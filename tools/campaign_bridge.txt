@@ -1,0 +1,65 @@
+    // Shadow Run result bridge. Raw core messages preserve the exact engine result.
+    static nlohmann::json request;
+    static nlohmann::json events = nlohmann::json::array();
+    if(request.is_null()) {
+        std::ifstream file("campaign-request.json");
+        if(file.good()) { try { file >> request; } catch(...) { request = nlohmann::json::object(); } }
+        else request = nlohmann::json::object();
+    }
+    if(request.value("protocol", 0) == 1) {
+        const uint8_t* data = packet.data();
+        static nlohmann::json pending = nlohmann::json::array();
+        static int peak_attack=0,peak_defense=0,peak_field=0,turns=0;
+        {
+            std::lock_guard<epro::mutex> lock(mainGame->gMutex);
+            int field=0;
+            for(auto* c:mainGame->dField.mzone[0]) if(c && (c->position & POS_FACEUP)) {
+                peak_attack=std::max(peak_attack,c->attack);peak_defense=std::max(peak_defense,c->defense);++field;
+            }
+            peak_field=std::max(peak_field,field);
+        }
+        if(packet.message == MSG_NEW_TURN) ++turns;
+        if((packet.message == MSG_SUMMONING || packet.message == MSG_SPSUMMONING || packet.message == MSG_FLIPSUMMONING) && packet.buff_size() >= 5) {
+            uint32_t code=BufferIO::Read<uint32_t>(data);uint8_t player=BufferIO::Read<uint8_t>(data);
+            if(player==0) pending.push_back({{"kind","summon"},{"card",code},{"method",packet.message==MSG_SUMMONING?"normal":packet.message==MSG_FLIPSUMMONING?"flip":"special"}});
+        }
+        if(packet.message == MSG_SUMMONED || packet.message == MSG_SPSUMMONED || packet.message == MSG_FLIPSUMMONED) {
+            for(const auto& summon:pending) events.push_back(summon);
+            pending=nlohmann::json::array();
+        }
+        // A negated summon must not leak into the next successful summon.
+        if(packet.message == MSG_MOVE && packet.buff_size()>=28) {
+            const uint8_t* p=packet.data();uint32_t code=BufferIO::Read<uint32_t>(p);
+            auto from=CoreUtils::ReadLocInfo(p,false);auto to=CoreUtils::ReadLocInfo(p,false);auto reason=BufferIO::Read<uint32_t>(p);
+            if(to.location!=LOCATION_MZONE && from.controler==0) {
+                for(auto it=pending.begin();it!=pending.end();) { if(it->value("card",0u)==code) it=pending.erase(it);else ++it; }
+            }
+            if(from.controler==1 && (from.location & LOCATION_ONFIELD) && (reason & REASON_DESTROY))
+                events.push_back({{"kind",(reason&REASON_BATTLE)?"battle_destroy":"destroy"},{"card",code}});
+            if(to.location==LOCATION_REMOVED && from.location!=LOCATION_REMOVED)
+                events.push_back({{"kind","banish"},{"player",from.controler},{"card",code}});
+        }
+        if(packet.message == MSG_CHAINING && packet.buff_size()>=5) {
+            const uint8_t* p=packet.data();uint32_t code=BufferIO::Read<uint32_t>(p);
+            if(*p==0)events.push_back({{"kind","activate"},{"card",code}});
+        }
+        if(packet.message == MSG_SET && packet.buff_size()>=5) {
+            const uint8_t* p=packet.data();uint32_t code=BufferIO::Read<uint32_t>(p);
+            if(*p==0)events.push_back({{"kind","set"},{"card",code}});
+        }
+        if(packet.message == MSG_ATTACK && packet.buff_size()>=1 && packet.data()[0]==0)events.push_back({{"kind","attack"}});
+        if((packet.message == MSG_DAMAGE || packet.message == MSG_RECOVER || packet.message == MSG_DRAW) && packet.buff_size()>=5) {
+            const uint8_t* p=packet.data();uint8_t player=*p++;uint32_t value=BufferIO::Read<uint32_t>(p);
+            if(packet.message==MSG_DAMAGE)events.push_back({{"kind",player==1?"damage":"damage_taken"},{"amount",value}});
+            else if(player==0)events.push_back({{"kind",packet.message==MSG_RECOVER?"recover":"draw"},{"amount",value}});
+        }
+        if(packet.message == MSG_WIN && packet.buff_size() >= 2) {
+            int grave_monsters=0;for(auto* c:mainGame->dField.grave[0]) if(c && (c->type & TYPE_MONSTER)) ++grave_monsters;
+            events.push_back({{"grave_monsters",grave_monsters},{"kind","duel_metrics"},{"peak_attack",peak_attack},{"peak_defense",peak_defense},{"peak_field",peak_field},{"turns",turns}});
+            nlohmann::json result = {{"protocol", 1}, {"id", request.value("id", "")},
+                {"winner", packet.data()[0]}, {"reason", packet.data()[1]},
+                {"lp", mainGame->dInfo.lp[0]}, {"opponent_lp", mainGame->dInfo.lp[1]}, {"events", events}};
+            std::ofstream file("campaign-result.tmp"); file << result.dump(2); file.close();
+            std::remove("campaign-result.json"); std::rename("campaign-result.tmp", "campaign-result.json");
+        }
+    }

@@ -1,0 +1,374 @@
+{
+  "types": {
+    "Aqua": "types-aqua.png",
+    "Beast": "types-beast.png",
+    "BeastWarrior": "types-beastwarrior.png",
+    "CreatorGod": "types-creatorgod.png",
+    "Cyberse": "types-cyberse.png",
+    "Dinosaur": "types-dinosaur.png",
+    "DivineBeast": "types-divinebeast.png",
+    "Dragon": "types-dragon.png",
+    "Fairy": "types-fairy.png",
+    "Fiend": "types-fiend.png",
+    "Fish": "types-fish.png",
+    "Illusion": "types-illusion.png",
+    "Insect": "types-insect.png",
+    "Machine": "types-machine.png",
+    "Plant": "types-plant.png",
+    "Psychic": "types-psychic.png",
+    "Pyro": "types-pyro.png",
+    "Reptile": "types-reptile.png",
+    "Rock": "types-rock.png",
+    "SeaSerpent": "types-seaserpent.png",
+    "Spellcaster": "types-spellcaster.png",
+    "Thunder": "types-thunder.png",
+    "Warrior": "types-warrior.png",
+    "WingedBeast": "types-wingedbeast.png",
+    "Wyrm": "types-wyrm.png",
+    "Zombie": "types-zombie.png"
+  },
+  "genres": {
+    "Attribute": "genres-attribute.png",
+    "Cancel out Effect": "genres-cancel-out-effect.png",
+    "Cannot be destroyed": "genres-cannot-be-destroyed.png",
+    "Cannot perform Normal Summon": "genres-cannot-perform-normal-summon.png",
+    "Card with a different artwork": "genres-card-with-a-different-artwork.png",
+    "Change card position": "genres-change-card-position.png",
+    "Deck destruction": "genres-deck-destruction.png",
+    "Destroy Spell Trap": "genres-destroy-spell-trap.png",
+    "Destroy monster": "genres-destroy-monster.png",
+    "Direct Attack": "genres-direct-attack.png",
+    "Flip Effect": "genres-flip-effect.png",
+    "Fusion Material": "genres-fusion-material.png",
+    "Gamble": "genres-gamble.png",
+    "Game Original": "genres-game-original.png",
+    "Get control": "genres-get-control.png",
+    "Hand destruction": "genres-hand-destruction.png",
+    "Increase Decrease ATK DEF": "genres-increase-decrease-atk-def.png",
+    "Increase draw": "genres-increase-draw.png",
+    "LV Monsters": "genres-lv-monsters.png",
+    "Multiple Attack": "genres-multiple-attack.png",
+    "Pierce": "genres-pierce.png",
+    "Recover Life Points": "genres-recover-life-points.png",
+    "Recover cards from Graveyard": "genres-recover-cards-from-graveyard.png",
+    "Reduce Life Points": "genres-reduce-life-points.png",
+    "Remove card from play": "genres-remove-card-from-play.png",
+    "Restrict Attack": "genres-restrict-attack.png",
+    "Return card": "genres-return-card.png",
+    "Search Deck": "genres-search-deck.png",
+    "Special Summon": "genres-special-summon.png",
+    "Spell Counter": "genres-spell-counter.png",
+    "Spirit": "genres-spirit.png",
+    "Token": "genres-token.png",
+    "Toon": "genres-toon.png",
+    "Union": "genres-union.png",
+    "Type": "genres-type.png"
+  },
+  "sources": [
+    {
+      "file": "types-aqua.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Aqua-MADU.png",
+      "url": "https://ms.yugipedia.com//d/de/Type-Aqua-MADU.png"
+    },
+    {
+      "file": "types-beast.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Beast-MADU.png",
+      "url": "https://ms.yugipedia.com//1/1d/Type-Beast-MADU.png"
+    },
+    {
+      "file": "types-beastwarrior.png",
+      "page": "https://yugipedia.com/wiki/File:Type-BeastWarrior-MADU.png",
+      "url": "https://ms.yugipedia.com//e/e2/Type-BeastWarrior-MADU.png"
+    },
+    {
+      "file": "types-creatorgod.png",
+      "page": "https://yugipedia.com/wiki/File:Type-CreatorGod-MADU.png",
+      "url": "https://ms.yugipedia.com//c/cc/Type-CreatorGod-MADU.png"
+    },
+    {
+      "file": "types-cyberse.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Cyberse-MADU.png",
+      "url": "https://ms.yugipedia.com//5/59/Type-Cyberse-MADU.png"
+    },
+    {
+      "file": "types-dinosaur.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Dinosaur-MADU.png",
+      "url": "https://ms.yugipedia.com//2/23/Type-Dinosaur-MADU.png"
+    },
+    {
+      "file": "types-divinebeast.png",
+      "page": "https://yugipedia.com/wiki/File:Type-DivineBeast-MADU.png",
+      "url": "https://ms.yugipedia.com//a/a8/Type-DivineBeast-MADU.png"
+    },
+    {
+      "file": "types-dragon.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Dragon-MADU.png",
+      "url": "https://ms.yugipedia.com//5/5b/Type-Dragon-MADU.png"
+    },
+    {
+      "file": "types-fairy.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Fairy-MADU.png",
+      "url": "https://ms.yugipedia.com//f/f2/Type-Fairy-MADU.png"
+    },
+    {
+      "file": "types-fiend.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Fiend-MADU.png",
+      "url": "https://ms.yugipedia.com//c/c4/Type-Fiend-MADU.png"
+    },
+    {
+      "file": "types-fish.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Fish-MADU.png",
+      "url": "https://ms.yugipedia.com//6/6f/Type-Fish-MADU.png"
+    },
+    {
+      "file": "types-illusion.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Illusion-MADU.png",
+      "url": "https://ms.yugipedia.com//b/be/Type-Illusion-MADU.png"
+    },
+    {
+      "file": "types-insect.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Insect-MADU.png",
+      "url": "https://ms.yugipedia.com//9/92/Type-Insect-MADU.png"
+    },
+    {
+      "file": "types-machine.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Machine-MADU.png",
+      "url": "https://ms.yugipedia.com//8/8e/Type-Machine-MADU.png"
+    },
+    {
+      "file": "types-plant.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Plant-MADU.png",
+      "url": "https://ms.yugipedia.com//5/52/Type-Plant-MADU.png"
+    },
+    {
+      "file": "types-psychic.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Psychic-MADU.png",
+      "url": "https://ms.yugipedia.com//d/d3/Type-Psychic-MADU.png"
+    },
+    {
+      "file": "types-pyro.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Pyro-MADU.png",
+      "url": "https://ms.yugipedia.com//2/2c/Type-Pyro-MADU.png"
+    },
+    {
+      "file": "types-reptile.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Reptile-MADU.png",
+      "url": "https://ms.yugipedia.com//4/4c/Type-Reptile-MADU.png"
+    },
+    {
+      "file": "types-rock.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Rock-MADU.png",
+      "url": "https://ms.yugipedia.com//a/a5/Type-Rock-MADU.png"
+    },
+    {
+      "file": "types-seaserpent.png",
+      "page": "https://yugipedia.com/wiki/File:Type-SeaSerpent-MADU.png",
+      "url": "https://ms.yugipedia.com//8/88/Type-SeaSerpent-MADU.png"
+    },
+    {
+      "file": "types-spellcaster.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Spellcaster-MADU.png",
+      "url": "https://ms.yugipedia.com//d/d4/Type-Spellcaster-MADU.png"
+    },
+    {
+      "file": "types-thunder.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Thunder-MADU.png",
+      "url": "https://ms.yugipedia.com//2/27/Type-Thunder-MADU.png"
+    },
+    {
+      "file": "types-warrior.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Warrior-MADU.png",
+      "url": "https://ms.yugipedia.com//5/51/Type-Warrior-MADU.png"
+    },
+    {
+      "file": "types-wingedbeast.png",
+      "page": "https://yugipedia.com/wiki/File:Type-WingedBeast-MADU.png",
+      "url": "https://ms.yugipedia.com//1/1d/Type-WingedBeast-MADU.png"
+    },
+    {
+      "file": "types-wyrm.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Wyrm-MADU.png",
+      "url": "https://ms.yugipedia.com//1/1e/Type-Wyrm-MADU.png"
+    },
+    {
+      "file": "types-zombie.png",
+      "page": "https://yugipedia.com/wiki/File:Type-Zombie-MADU.png",
+      "url": "https://ms.yugipedia.com//2/2e/Type-Zombie-MADU.png"
+    },
+    {
+      "file": "genres-attribute.png",
+      "page": "https://yugipedia.com/wiki/File:Attribute-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//c/c1/Attribute-genre-GX02.png"
+    },
+    {
+      "file": "genres-cancel-out-effect.png",
+      "page": "https://yugipedia.com/wiki/File:Cancel_out_Effect-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//4/49/Cancel_out_Effect-genre-GX02.png"
+    },
+    {
+      "file": "genres-cannot-be-destroyed.png",
+      "page": "https://yugipedia.com/wiki/File:Cannot_be_destroyed-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//7/70/Cannot_be_destroyed-genre-GX02.png"
+    },
+    {
+      "file": "genres-cannot-perform-normal-summon.png",
+      "page": "https://yugipedia.com/wiki/File:Cannot_perform_Normal_Summon-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//d/d7/Cannot_perform_Normal_Summon-genre-GX02.png"
+    },
+    {
+      "file": "genres-card-with-a-different-artwork.png",
+      "page": "https://yugipedia.com/wiki/File:Card_with_a_different_artwork-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//c/cf/Card_with_a_different_artwork-genre-GX02.png"
+    },
+    {
+      "file": "genres-change-card-position.png",
+      "page": "https://yugipedia.com/wiki/File:Change_card_position-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//a/a7/Change_card_position-genre-GX02.png"
+    },
+    {
+      "file": "genres-deck-destruction.png",
+      "page": "https://yugipedia.com/wiki/File:Deck_destruction-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//5/58/Deck_destruction-genre-GX02.png"
+    },
+    {
+      "file": "genres-destroy-spell-trap.png",
+      "page": "https://yugipedia.com/wiki/File:Destroy_Spell_Trap-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//7/76/Destroy_Spell_Trap-genre-GX02.png"
+    },
+    {
+      "file": "genres-destroy-monster.png",
+      "page": "https://yugipedia.com/wiki/File:Destroy_monster-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//9/96/Destroy_monster-genre-GX02.png"
+    },
+    {
+      "file": "genres-direct-attack.png",
+      "page": "https://yugipedia.com/wiki/File:Direct_Attack-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//3/33/Direct_Attack-genre-GX02.png"
+    },
+    {
+      "file": "genres-flip-effect.png",
+      "page": "https://yugipedia.com/wiki/File:Flip_Effect-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//0/02/Flip_Effect-genre-GX02.png"
+    },
+    {
+      "file": "genres-fusion-material.png",
+      "page": "https://yugipedia.com/wiki/File:Fusion_Material-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//b/bf/Fusion_Material-genre-GX02.png"
+    },
+    {
+      "file": "genres-gamble.png",
+      "page": "https://yugipedia.com/wiki/File:Gamble-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//d/d2/Gamble-genre-GX02.png"
+    },
+    {
+      "file": "genres-game-original.png",
+      "page": "https://yugipedia.com/wiki/File:Game_Original-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//f/f3/Game_Original-genre-GX02.png"
+    },
+    {
+      "file": "genres-get-control.png",
+      "page": "https://yugipedia.com/wiki/File:Get_control-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//1/17/Get_control-genre-GX02.png"
+    },
+    {
+      "file": "genres-hand-destruction.png",
+      "page": "https://yugipedia.com/wiki/File:Hand_destruction-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//7/73/Hand_destruction-genre-GX02.png"
+    },
+    {
+      "file": "genres-increase-decrease-atk-def.png",
+      "page": "https://yugipedia.com/wiki/File:Increase_Decrease_ATK_DEF-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//8/84/Increase_Decrease_ATK_DEF-genre-GX02.png"
+    },
+    {
+      "file": "genres-increase-draw.png",
+      "page": "https://yugipedia.com/wiki/File:Increase_draw-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//c/ca/Increase_draw-genre-GX02.png"
+    },
+    {
+      "file": "genres-lv-monsters.png",
+      "page": "https://yugipedia.com/wiki/File:LV_Monsters-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//5/57/LV_Monsters-genre-GX02.png"
+    },
+    {
+      "file": "genres-multiple-attack.png",
+      "page": "https://yugipedia.com/wiki/File:Multiple_Attack-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//2/2e/Multiple_Attack-genre-GX02.png"
+    },
+    {
+      "file": "genres-pierce.png",
+      "page": "https://yugipedia.com/wiki/File:Pierce-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//d/df/Pierce-genre-GX02.png"
+    },
+    {
+      "file": "genres-recover-life-points.png",
+      "page": "https://yugipedia.com/wiki/File:Recover_Life_Points-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//3/3d/Recover_Life_Points-genre-GX02.png"
+    },
+    {
+      "file": "genres-recover-cards-from-graveyard.png",
+      "page": "https://yugipedia.com/wiki/File:Recover_cards_from_Graveyard-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//2/26/Recover_cards_from_Graveyard-genre-GX02.png"
+    },
+    {
+      "file": "genres-reduce-life-points.png",
+      "page": "https://yugipedia.com/wiki/File:Reduce_Life_Points-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//6/66/Reduce_Life_Points-genre-GX02.png"
+    },
+    {
+      "file": "genres-remove-card-from-play.png",
+      "page": "https://yugipedia.com/wiki/File:Remove_card_from_play-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//a/a2/Remove_card_from_play-genre-GX02.png"
+    },
+    {
+      "file": "genres-restrict-attack.png",
+      "page": "https://yugipedia.com/wiki/File:Restrict_Attack-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//7/7c/Restrict_Attack-genre-GX02.png"
+    },
+    {
+      "file": "genres-return-card.png",
+      "page": "https://yugipedia.com/wiki/File:Return_card-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//f/f5/Return_card-genre-GX02.png"
+    },
+    {
+      "file": "genres-search-deck.png",
+      "page": "https://yugipedia.com/wiki/File:Search_Deck-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//2/28/Search_Deck-genre-GX02.png"
+    },
+    {
+      "file": "genres-special-summon.png",
+      "page": "https://yugipedia.com/wiki/File:Special_Summon-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//6/67/Special_Summon-genre-GX02.png"
+    },
+    {
+      "file": "genres-spell-counter.png",
+      "page": "https://yugipedia.com/wiki/File:Spell_Counter-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//1/1c/Spell_Counter-genre-GX02.png"
+    },
+    {
+      "file": "genres-spirit.png",
+      "page": "https://yugipedia.com/wiki/File:Spirit-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//8/88/Spirit-genre-GX02.png"
+    },
+    {
+      "file": "genres-token.png",
+      "page": "https://yugipedia.com/wiki/File:Token-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//2/26/Token-genre-GX02.png"
+    },
+    {
+      "file": "genres-toon.png",
+      "page": "https://yugipedia.com/wiki/File:Toon-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//e/e8/Toon-genre-GX02.png"
+    },
+    {
+      "file": "genres-type.png",
+      "page": "https://yugipedia.com/wiki/File:Type-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//a/a6/Type-genre-GX02.png"
+    },
+    {
+      "file": "genres-union.png",
+      "page": "https://yugipedia.com/wiki/File:Union-genre-GX02.png",
+      "url": "https://ms.yugipedia.com//7/7c/Union-genre-GX02.png"
+    }
+  ]
+}

@@ -1,0 +1,1190 @@
+[
+  {
+    "file": "type-normal.png",
+    "source_box": [
+      0,
+      0,
+      17,
+      17
+    ],
+    "suggested_use": "normal",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-effect.png",
+    "source_box": [
+      17,
+      0,
+      34,
+      17
+    ],
+    "suggested_use": "effect",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-synchro.png",
+    "source_box": [
+      34,
+      0,
+      51,
+      17
+    ],
+    "suggested_use": "synchro",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-xyz.png",
+    "source_box": [
+      51,
+      0,
+      68,
+      17
+    ],
+    "suggested_use": "xyz",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-ritual.png",
+    "source_box": [
+      68,
+      0,
+      85,
+      17
+    ],
+    "suggested_use": "ritual",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-fusion.png",
+    "source_box": [
+      85,
+      0,
+      102,
+      17
+    ],
+    "suggested_use": "fusion",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-spell.png",
+    "source_box": [
+      102,
+      0,
+      119,
+      17
+    ],
+    "suggested_use": "spell",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-trap.png",
+    "source_box": [
+      119,
+      0,
+      136,
+      17
+    ],
+    "suggested_use": "trap",
+    "width": 8,
+    "height": 12
+  },
+  {
+    "file": "type-normal-spell.png",
+    "source_box": [
+      0,
+      17,
+      17,
+      36
+    ],
+    "suggested_use": "normal spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-equip-spell.png",
+    "source_box": [
+      17,
+      17,
+      34,
+      36
+    ],
+    "suggested_use": "equip spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-field-spell.png",
+    "source_box": [
+      34,
+      17,
+      51,
+      36
+    ],
+    "suggested_use": "field spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-quick-play-spell.png",
+    "source_box": [
+      51,
+      17,
+      68,
+      36
+    ],
+    "suggested_use": "quick play spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-continuous-spell.png",
+    "source_box": [
+      68,
+      17,
+      85,
+      36
+    ],
+    "suggested_use": "continuous spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-ritual-spell.png",
+    "source_box": [
+      85,
+      17,
+      102,
+      36
+    ],
+    "suggested_use": "ritual spell",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-normal-trap.png",
+    "source_box": [
+      102,
+      17,
+      119,
+      36
+    ],
+    "suggested_use": "normal trap",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-continuous-trap.png",
+    "source_box": [
+      119,
+      17,
+      136,
+      36
+    ],
+    "suggested_use": "continuous trap",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "type-counter-trap.png",
+    "source_box": [
+      136,
+      17,
+      153,
+      36
+    ],
+    "suggested_use": "counter trap",
+    "width": 12,
+    "height": 14
+  },
+  {
+    "file": "symbol-spell.png",
+    "source_box": [
+      0,
+      46,
+      17,
+      63
+    ],
+    "suggested_use": "spell",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-normal.png",
+    "source_box": [
+      17,
+      46,
+      34,
+      63
+    ],
+    "suggested_use": "normal",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-field.png",
+    "source_box": [
+      34,
+      46,
+      51,
+      63
+    ],
+    "suggested_use": "field",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-quick-play.png",
+    "source_box": [
+      51,
+      46,
+      68,
+      63
+    ],
+    "suggested_use": "quick play",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-continuous.png",
+    "source_box": [
+      68,
+      46,
+      85,
+      63
+    ],
+    "suggested_use": "continuous",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-ritual.png",
+    "source_box": [
+      85,
+      46,
+      102,
+      63
+    ],
+    "suggested_use": "ritual",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-trap.png",
+    "source_box": [
+      0,
+      63,
+      17,
+      80
+    ],
+    "suggested_use": "trap",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-continuous-trap.png",
+    "source_box": [
+      17,
+      63,
+      34,
+      80
+    ],
+    "suggested_use": "continuous trap",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "symbol-counter-trap.png",
+    "source_box": [
+      34,
+      63,
+      51,
+      80
+    ],
+    "suggested_use": "counter trap",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-light.png",
+    "source_box": [
+      0,
+      80,
+      17,
+      97
+    ],
+    "suggested_use": "light",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-dark.png",
+    "source_box": [
+      17,
+      80,
+      34,
+      97
+    ],
+    "suggested_use": "dark",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-water.png",
+    "source_box": [
+      34,
+      80,
+      51,
+      97
+    ],
+    "suggested_use": "water",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-fire.png",
+    "source_box": [
+      51,
+      80,
+      68,
+      97
+    ],
+    "suggested_use": "fire",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-earth.png",
+    "source_box": [
+      68,
+      80,
+      85,
+      97
+    ],
+    "suggested_use": "earth",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-wind.png",
+    "source_box": [
+      85,
+      80,
+      102,
+      97
+    ],
+    "suggested_use": "wind",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "attribute-divine.png",
+    "source_box": [
+      102,
+      80,
+      119,
+      97
+    ],
+    "suggested_use": "divine",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-01.png",
+    "source_box": [
+      0,
+      107,
+      17,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-02.png",
+    "source_box": [
+      17,
+      107,
+      34,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-03.png",
+    "source_box": [
+      34,
+      107,
+      51,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-04.png",
+    "source_box": [
+      51,
+      107,
+      68,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-05.png",
+    "source_box": [
+      68,
+      107,
+      85,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-06.png",
+    "source_box": [
+      85,
+      107,
+      102,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-07.png",
+    "source_box": [
+      102,
+      107,
+      119,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-08.png",
+    "source_box": [
+      119,
+      107,
+      136,
+      124
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-09.png",
+    "source_box": [
+      0,
+      124,
+      17,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-10.png",
+    "source_box": [
+      17,
+      124,
+      34,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-11.png",
+    "source_box": [
+      34,
+      124,
+      51,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-12.png",
+    "source_box": [
+      51,
+      124,
+      68,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-13.png",
+    "source_box": [
+      68,
+      124,
+      85,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-14.png",
+    "source_box": [
+      85,
+      124,
+      102,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-15.png",
+    "source_box": [
+      102,
+      124,
+      119,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-16.png",
+    "source_box": [
+      119,
+      124,
+      136,
+      141
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-17.png",
+    "source_box": [
+      0,
+      141,
+      17,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-18.png",
+    "source_box": [
+      17,
+      141,
+      34,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-19.png",
+    "source_box": [
+      34,
+      141,
+      51,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-20.png",
+    "source_box": [
+      51,
+      141,
+      68,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-21.png",
+    "source_box": [
+      68,
+      141,
+      85,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-22.png",
+    "source_box": [
+      85,
+      141,
+      102,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "race-23.png",
+    "source_box": [
+      102,
+      141,
+      119,
+      158
+    ],
+    "suggested_use": "Monster Type badge; verify species before assigning",
+    "width": 16,
+    "height": 16
+  },
+  {
+    "file": "action-collection.png",
+    "source_box": [
+      0,
+      170,
+      17,
+      187
+    ],
+    "suggested_use": "collection",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-dice.png",
+    "source_box": [
+      17,
+      170,
+      34,
+      187
+    ],
+    "suggested_use": "dice",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-level-up.png",
+    "source_box": [
+      34,
+      170,
+      51,
+      187
+    ],
+    "suggested_use": "level up",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-level-down.png",
+    "source_box": [
+      51,
+      170,
+      68,
+      187
+    ],
+    "suggested_use": "level down",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-draw.png",
+    "source_box": [
+      68,
+      170,
+      85,
+      187
+    ],
+    "suggested_use": "draw",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-return-card.png",
+    "source_box": [
+      85,
+      170,
+      102,
+      187
+    ],
+    "suggested_use": "return card",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-recover-lp.png",
+    "source_box": [
+      102,
+      170,
+      119,
+      187
+    ],
+    "suggested_use": "recover lp",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-counter.png",
+    "source_box": [
+      119,
+      170,
+      136,
+      187
+    ],
+    "suggested_use": "counter",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-token.png",
+    "source_box": [
+      136,
+      170,
+      153,
+      187
+    ],
+    "suggested_use": "token",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-summon.png",
+    "source_box": [
+      0,
+      187,
+      17,
+      204
+    ],
+    "suggested_use": "summon",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-vortex.png",
+    "source_box": [
+      17,
+      187,
+      34,
+      204
+    ],
+    "suggested_use": "vortex",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-field.png",
+    "source_box": [
+      34,
+      187,
+      51,
+      204
+    ],
+    "suggested_use": "field",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-send-to-grave.png",
+    "source_box": [
+      51,
+      187,
+      68,
+      204
+    ],
+    "suggested_use": "send to grave",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-return-to-hand.png",
+    "source_box": [
+      68,
+      187,
+      85,
+      204
+    ],
+    "suggested_use": "return to hand",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-destroy.png",
+    "source_box": [
+      85,
+      187,
+      102,
+      204
+    ],
+    "suggested_use": "destroy",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-negate.png",
+    "source_box": [
+      102,
+      187,
+      119,
+      204
+    ],
+    "suggested_use": "negate",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-shuffle-deck.png",
+    "source_box": [
+      119,
+      187,
+      136,
+      204
+    ],
+    "suggested_use": "shuffle deck",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-tribute.png",
+    "source_box": [
+      136,
+      187,
+      153,
+      204
+    ],
+    "suggested_use": "tribute",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-card-stack.png",
+    "source_box": [
+      0,
+      204,
+      17,
+      221
+    ],
+    "suggested_use": "card stack",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-set-card.png",
+    "source_box": [
+      17,
+      204,
+      34,
+      221
+    ],
+    "suggested_use": "set card",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-select.png",
+    "source_box": [
+      34,
+      204,
+      51,
+      221
+    ],
+    "suggested_use": "select",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-direct-attack.png",
+    "source_box": [
+      51,
+      204,
+      68,
+      221
+    ],
+    "suggested_use": "direct attack",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-attack.png",
+    "source_box": [
+      68,
+      204,
+      85,
+      221
+    ],
+    "suggested_use": "attack",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-battle.png",
+    "source_box": [
+      85,
+      204,
+      102,
+      221
+    ],
+    "suggested_use": "battle",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-defense.png",
+    "source_box": [
+      102,
+      204,
+      119,
+      221
+    ],
+    "suggested_use": "defense",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-equip.png",
+    "source_box": [
+      119,
+      204,
+      136,
+      221
+    ],
+    "suggested_use": "equip",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-damage-lp.png",
+    "source_box": [
+      136,
+      204,
+      153,
+      221
+    ],
+    "suggested_use": "damage lp",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-lp.png",
+    "source_box": [
+      0,
+      221,
+      17,
+      238
+    ],
+    "suggested_use": "lp",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-skull.png",
+    "source_box": [
+      17,
+      221,
+      34,
+      238
+    ],
+    "suggested_use": "skull",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-ice.png",
+    "source_box": [
+      34,
+      221,
+      51,
+      238
+    ],
+    "suggested_use": "ice",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-monster.png",
+    "source_box": [
+      51,
+      221,
+      68,
+      238
+    ],
+    "suggested_use": "monster",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-ring.png",
+    "source_box": [
+      68,
+      221,
+      85,
+      238
+    ],
+    "suggested_use": "ring",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-chain.png",
+    "source_box": [
+      85,
+      221,
+      102,
+      238
+    ],
+    "suggested_use": "chain",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-exchange.png",
+    "source_box": [
+      102,
+      221,
+      119,
+      238
+    ],
+    "suggested_use": "exchange",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-card.png",
+    "source_box": [
+      119,
+      221,
+      136,
+      238
+    ],
+    "suggested_use": "card",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-light.png",
+    "source_box": [
+      136,
+      221,
+      153,
+      238
+    ],
+    "suggested_use": "light",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-dark.png",
+    "source_box": [
+      0,
+      238,
+      17,
+      254
+    ],
+    "suggested_use": "dark",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-earth.png",
+    "source_box": [
+      17,
+      238,
+      34,
+      254
+    ],
+    "suggested_use": "earth",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-water.png",
+    "source_box": [
+      34,
+      238,
+      51,
+      254
+    ],
+    "suggested_use": "water",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-fire.png",
+    "source_box": [
+      51,
+      238,
+      68,
+      254
+    ],
+    "suggested_use": "fire",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-wind.png",
+    "source_box": [
+      68,
+      238,
+      85,
+      254
+    ],
+    "suggested_use": "wind",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-banish.png",
+    "source_box": [
+      85,
+      238,
+      102,
+      254
+    ],
+    "suggested_use": "banish",
+    "width": 14,
+    "height": 14
+  },
+  {
+    "file": "action-explosion.png",
+    "source_box": [
+      102,
+      238,
+      119,
+      254
+    ],
+    "suggested_use": "explosion",
+    "width": 14,
+    "height": 14
+  }
+]

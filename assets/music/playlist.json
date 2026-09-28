@@ -1,0 +1,34 @@
+{
+  "title": [
+    "home-abandon"
+  ],
+  "characters": [
+    "carousel-dreams"
+  ],
+  "draft": [
+    "draft-mode"
+  ],
+  "shop": [
+    "shop-home"
+  ],
+  "victory": [
+    "victory-trophy"
+  ],
+  "defeat": [
+    "defeat-home"
+  ],
+  "duel": [
+    "duel",
+    "enter-city",
+    "trilogy"
+  ],
+  "boss": [
+    "enter-city"
+  ],
+  "champion": [
+    "champion-world"
+  ],
+  "packs": [
+    "pack-build"
+  ]
+}

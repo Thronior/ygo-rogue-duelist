@@ -1,0 +1,8 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,L,R,I} from './web/duel.js';
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),meta=read('content'),id=n=>meta.cards.find(x=>x.name===n).id,e=await new MobileDuel(meta.cards).init([read('engine-data'),read('scripts')]);
+const deck=Array(30).fill(id('Battle Ox'));const opening=JSON.parse(fs.readFileSync(new URL('../temp/followup-opening.json',import.meta.url))).script;
+try{e.start(deck,deck,8000,8000,5,9182,[],[],opening);assert.equal(e.player,1,'opponent opening turn');assert.equal(e.turn,2);assert.equal(e.pending.type,M.SELECT_IDLECMD,'no pre-turn discard');assert.equal(e.query(0,L.HAND).filter(Boolean).length,5);e.destroy();console.log('PASS opponent starts without early reduced-hand-limit discard');
+const script='-- SHADOW_RUN_RNG 2\nlocal e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_ADJUST) e:SetOperation(function(e) e:Reset() Duel.TossDice(0,6) end) Duel.RegisterEffect(e,0)';let counts=Array(6).fill(0),rows=[];
+for(let i=0;i<100;i++){e.start(deck,deck,8000,8000,5,(i*2654435761)>>>0,[],[],script);const roll=e.visuals.find(x=>x.kind==='dice');assert(roll);assert.equal(roll.results.length,6);for(const n of roll.results){assert(n>=1&&n<=6);counts[n-1]++}rows.push(roll.results);e.destroy();}
+assert(counts.every(n=>n>50&&n<150),JSON.stringify(counts));console.log('PASS 600 actual core dice results across 100 seeds:',counts);fs.writeFileSync(new URL('../temp/dice-audit.json',import.meta.url),JSON.stringify({counts,rows}));
+}finally{e.destroy()}

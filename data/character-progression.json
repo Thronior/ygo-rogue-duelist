@@ -1,0 +1,213 @@
+{
+  "_notes": "Two initial characters remain available. The 34 unlockable characters split evenly: 17 unique character victories and 17 distinct gameplay challenges. Existing unlocks are preserved. Starting relic IDs must be unique across all playable characters.",
+  "starting_relics": {
+    "0": "mage",
+    "1": "dragon",
+    "2": "blade",
+    "3": "wing",
+    "4": "gear",
+    "5": "horn",
+    "6": "dark",
+    "7": "toon_world",
+    "8": "fossil",
+    "9": "bone",
+    "10": "hive",
+    "11": "flame",
+    "12": "normal",
+    "13": "buckler",
+    "14": "halo",
+    "15": "prism",
+    "16": "scarab",
+    "17": "inkwell",
+    "18": "shell",
+    "19": "map",
+    "20": "light",
+    "21": "tribute",
+    "22": "spring",
+    "23": "bargain",
+    "24": "satchel",
+    "28": "interest",
+    "29": "bandage",
+    "30": "ritual_dagger",
+    "31": "sword",
+    "32": "pendulum",
+    "33": "last_word",
+    "34": "eclipse",
+    "35": "pierce",
+    "36": "blank_relic",
+    "37": "echo_glass",
+    "38": "none"
+  },
+  "unlocks": {
+    "2": {
+      "metric": "won_as:0",
+      "target": 1,
+      "description": "Win a run with Yami Yugi"
+    },
+    "3": {
+      "metric": "won_as:1",
+      "target": 1,
+      "description": "Win a run with Seto Kaiba"
+    },
+    "4": {
+      "metric": "won_as:2",
+      "target": 1,
+      "description": "Win a run with Joey Wheeler"
+    },
+    "5": {
+      "metric": "won_as:3",
+      "target": 1,
+      "description": "Win a run with Mai Valentine"
+    },
+    "6": {
+      "metric": "won_as:4",
+      "target": 1,
+      "description": "Win a run with Bandit Keith"
+    },
+    "7": {
+      "metric": "won_as:5",
+      "target": 1,
+      "description": "Win a run with Lumis and Umbra"
+    },
+    "8": {
+      "metric": "won_as:6",
+      "target": 1,
+      "description": "Win a run with Yami Bakura"
+    },
+    "9": {
+      "metric": "won_as:7",
+      "target": 1,
+      "description": "Win a run with Maximillion Pegasus"
+    },
+    "10": {
+      "metric": "won_as:8",
+      "target": 1,
+      "description": "Win a run with Rex Raptor"
+    },
+    "11": {
+      "metric": "won_as:9",
+      "target": 1,
+      "description": "Win a run with Bonz"
+    },
+    "12": {
+      "metric": "won_as:10",
+      "target": 1,
+      "description": "Win a run with Weevil Underwood"
+    },
+    "13": {
+      "metric": "won_as:11",
+      "target": 1,
+      "description": "Win a run with Yami Marik"
+    },
+    "14": {
+      "metric": "won_as:12",
+      "target": 1,
+      "description": "Win a run with Tristan Taylor"
+    },
+    "15": {
+      "metric": "won_as:13",
+      "target": 1,
+      "description": "Win a run with Yugi Muto"
+    },
+    "16": {
+      "metric": "won_as:14",
+      "target": 1,
+      "description": "Win a run with Ishizu Ishtar"
+    },
+    "17": {
+      "metric": "won_as:15",
+      "target": 1,
+      "description": "Win a run with Odion"
+    },
+    "18": {
+      "metric": "won_as:16",
+      "target": 1,
+      "description": "Win a run with Espa Roba"
+    },
+    "19": {
+      "metric": "packs_variety",
+      "target": 4,
+      "description": "Buy four different booster packs in one run"
+    },
+    "20": {
+      "metric": "six_attributes",
+      "target": 1,
+      "description": "Win a duel with all six monster Attributes represented in your Main Deck"
+    },
+    "21": {
+      "metric": "tribute_roster",
+      "target": 1,
+      "description": "Win a duel with 6 or 7 Level 5+ monsters in your Main Deck"
+    },
+    "22": {
+      "metric": "ten_thousand_lp",
+      "target": 1,
+      "description": "Win a duel with 10,000 or more LP"
+    },
+    "23": {
+      "metric": "singles_bought",
+      "target": 50,
+      "description": "Buy 50 single cards across runs"
+    },
+    "24": {
+      "metric": "max_gold",
+      "target": 300,
+      "description": "Hold 300 coins at once"
+    },
+    "28": {
+      "metric": "singleton_win",
+      "target": 1,
+      "description": "Win a duel with no duplicate cards in your Main Deck"
+    },
+    "29": {
+      "metric": "clutch_boss",
+      "target": 1,
+      "description": "Beat a boss with 500 LP or less remaining before healing"
+    },
+    "30": {
+      "metric": "two_rituals",
+      "target": 1,
+      "description": "Summon 2 or more Ritual Monsters in one duel"
+    },
+    "31": {
+      "metric": "five_banished",
+      "target": 1,
+      "description": "Win a duel with 5 or more banished cards"
+    },
+    "32": {
+      "metric": "fusion_win",
+      "target": 1,
+      "description": "Win a duel after summoning a Fusion Monster"
+    },
+    "33": {
+      "metric": "sixty_win",
+      "target": 1,
+      "description": "Win a duel with a 60-card Main Deck"
+    },
+    "34": {
+      "metric": "relic_variety",
+      "target": 6,
+      "description": "Own six different relics at once"
+    },
+    "35": {
+      "metric": "frugal_run",
+      "target": 1,
+      "description": "Complete a run without buying any cards or packs"
+    },
+    "36": {
+      "metric": "normal_win",
+      "target": 1,
+      "description": "Win a duel with only Normal Monsters in your Main Deck (no Spells or Traps)"
+    },
+    "37": {
+      "metric": "champion_win",
+      "target": 1,
+      "description": "Beat the World Champion"
+    },
+    "38": {
+      "metric": "decks_bought",
+      "target": 1,
+      "description": "Buy a starter or structure deck from the shop"
+    }
+  }
+}

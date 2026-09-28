@@ -1,0 +1,197 @@
+{
+  "0": {
+    "character": "Yami Yugi",
+    "card": "Thousand Knives",
+    "card_id": 63391643
+  },
+  "1": {
+    "character": "Seto Kaiba",
+    "card": "Burst Stream of Destruction",
+    "card_id": 17655904
+  },
+  "2": {
+    "character": "Joey Wheeler",
+    "card": "Red-Eyes Black Dragon",
+    "card_id": 74677422
+  },
+  "3": {
+    "character": "Mai Valentine",
+    "card": "Elegant Egotist",
+    "card_id": 90219263
+  },
+  "4": {
+    "character": "Bandit Keith",
+    "card": "7 Completed",
+    "card_id": 86198326
+  },
+  "5": {
+    "character": "Lumis and Umbra",
+    "card": "Mask of Restrict",
+    "card_id": 29549364
+  },
+  "6": {
+    "character": "Yami Bakura",
+    "card": "Dark Necrofear",
+    "card_id": 31829185
+  },
+  "7": {
+    "character": "Maximillion Pegasus",
+    "card": "Toon World",
+    "card_id": 15259703
+  },
+  "8": {
+    "character": "Rex Raptor",
+    "card": "Raise Body Heat",
+    "card_id": 51267887
+  },
+  "9": {
+    "character": "Bonz",
+    "card": "Call of the Haunted",
+    "card_id": 97077563
+  },
+  "10": {
+    "character": "Weevil Underwood",
+    "card": "Insect Barrier",
+    "card_id": 23615409
+  },
+  "11": {
+    "character": "Yami Marik",
+    "card": "Nightmare Wheel",
+    "card_id": 54704216
+  },
+  "12": {
+    "character": "Tristan Taylor",
+    "card": "Reinforcements",
+    "card_id": 17814387
+  },
+  "13": {
+    "character": "Yugi Muto",
+    "card": "Swords of Revealing Light",
+    "card_id": 72302403
+  },
+  "14": {
+    "character": "Ishizu Ishtar",
+    "card": "Exchange of the Spirit",
+    "card_id": 17484499
+  },
+  "15": {
+    "character": "Odion",
+    "card": "Temple of the Kings",
+    "card_id": 29762407
+  },
+  "16": {
+    "character": "Espa Roba",
+    "card": "Amplifier",
+    "card_id": 303660
+  },
+  "17": {
+    "character": "Arkana",
+    "card": "Dark Magic Curtain",
+    "card_id": 99789342
+  },
+  "18": {
+    "character": "Mako Tsunami",
+    "card": "Umi",
+    "card_id": 22702055
+  },
+  "19": {
+    "character": "Duke Devlin",
+    "card": "Dice Re-Roll",
+    "card_id": 83241722
+  },
+  "20": {
+    "character": "Noah Kaiba",
+    "card": "Shinato's Ark",
+    "card_id": 60365591
+  },
+  "21": {
+    "character": "Paradox Brothers",
+    "card": "Monster Gate",
+    "card_id": 43040603
+  },
+  "22": {
+    "character": "Tea Gardner",
+    "card": "Waboku",
+    "card_id": 12607053
+  },
+  "23": {
+    "character": "Solomon Muto",
+    "card": "Exodia the Forbidden One",
+    "card_id": 33396948
+  },
+  "24": {
+    "character": "Mokuba Kaiba",
+    "card": "Dragon Treasure",
+    "card_id": 1435851
+  },
+  "25": {
+    "character": "Rebecca Hawkins",
+    "card": "Last Will",
+    "card_id": 85602018
+  },
+  "26": {
+    "character": "Serenity Wheeler",
+    "card": "Graceful Charity",
+    "card_id": 79571449
+  },
+  "27": {
+    "character": "Marik Ishtar",
+    "card": "Mask of the Accursed",
+    "card_id": 56948373
+  },
+  "28": {
+    "character": "Rebecca Hawkins",
+    "card": "Witch of the Black Forest",
+    "card_id": 78010363
+  },
+  "29": {
+    "character": "Serenity Wheeler",
+    "card": "Mystical Elf",
+    "card_id": 15025844
+  },
+  "30": {
+    "character": "Marik Ishtar",
+    "card": "Newdoria",
+    "card_id": 4335645
+  },
+  "31": {
+    "character": "Anubis",
+    "card": "Guardian Sphinx",
+    "card_id": 40659562
+  },
+  "32": {
+    "character": "Shadi",
+    "card": "Millennium Shield",
+    "card_id": 32012841
+  },
+  "33": {
+    "character": "PaniK",
+    "card": "Castle of Dark Illusions",
+    "card_id": 62121
+  },
+  "34": {
+    "character": "Dartz",
+    "card": "Dark Ruler Ha Des",
+    "card_id": 53982768
+  },
+  "35": {
+    "character": "Rafael",
+    "card": "Gravity Axe - Grarl",
+    "card_id": 32022366
+  },
+  "36": {
+    "character": "Ryou Bakura",
+    "card": "Change of Heart",
+    "card_id": 4031928
+  },
+  "37": {
+    "character": "Copycat",
+    "card": "Copycat",
+    "card_id": 26376390
+  },
+  "38": {
+    "character": "Dueling Engine",
+    "card": "Jinzo",
+    "card_id": 77585513
+  }
+}

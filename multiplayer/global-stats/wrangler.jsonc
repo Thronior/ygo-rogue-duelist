@@ -1,0 +1,1 @@
+{"name":"ygo-rogue-stats","main":"worker.mjs","compatibility_date":"2026-09-25","workers_dev":true,"observability":{"enabled":false},"durable_objects":{"bindings":[{"name":"STATS","class_name":"GlobalStats"}]},"migrations":[{"tag":"v1","new_sqlite_classes":["GlobalStats"]}]}

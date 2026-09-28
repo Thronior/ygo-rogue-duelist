@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {smartContext} from './web/smart_policy.js';
+import {MobileDuel,M,L} from './web/duel.js';
+const trap={code:1,controller:1,location:L.SZONE,sequence:0,position:8};
+const attacker={code:2,controller:0,location:L.MZONE,sequence:2,position:1,attack:2600};
+const defender={code:3,controller:1,location:L.MZONE,sequence:1,position:8,defense:2000};
+const other={code:4,controller:1,location:L.MZONE,sequence:3,position:4,defense:3000};
+const e={player:0,phase:32,data:{1:{type:4}},cards:new Map(),lp:[8000,8000],name:c=>c===1?'Castle Walls':'Monster',query:(p,l)=>l===L.MZONE?(p===1?[defender,other]:[attacker]):l===L.SZONE&&p===1?[trap]:[],activeChain:[],battleProtected:[false,false],attackCard:attacker,attackTarget:defender};
+let count=0;
+function score(expected,label){assert.equal(smartContext(e,1,L).activation(trap,true)>0,expected,label);count++;}
+score(false,'2600 ATK versus 2000 DEF: cannot save');
+attacker.attack=2500;score(true,'exact 500 boost saves');
+attacker.attack=2400;score(true,'400 deficit saves');
+defender.position=4;score(true,'face-up defense also saved');
+attacker.attack=2000;score(false,'already safe');
+attacker.attack=1800;score(false,'already stronger defense');
+attacker.attack=2400;defender.position=1;score(false,'attack-position target');
+defender.position=8;e.attackTarget=null;score(false,'direct attack');
+e.attackTarget=defender;e.battleProtected[1]=true;score(false,'Waboku already protects');
+e.battleProtected[1]=false;
+const ctx=smartContext(e,1,L);
+assert.ok(ctx.targetScore('Castle Walls',defender,{})>ctx.targetScore('Castle Walls',other,{}));count++;
+assert.ok(ctx.activation(trap,false)<0);count++;
+// The same message handler feeds native desktop and mobile decisions.
+const duel=new MobileDuel([]);Object.assign(duel,{events:[],visuals:[],activeChain:[],player:0});
+duel.onMessage({type:M.ATTACK,card:attacker,target:defender});
+assert.equal(duel.attackTarget,defender);count++;
+duel.onMessage({type:M.DAMAGE_STEP_END});assert.equal(duel.attackTarget,null);count++;
+duel.onMessage({type:M.ATTACK,card:attacker,target:defender});
+duel.onMessage({type:M.NEW_PHASE,phase:4});assert.equal(duel.attackCard,null);count++;
+console.log(`Castle Walls: ${count} regression checks passed`);

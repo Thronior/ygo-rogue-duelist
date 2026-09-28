@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import {GlobalStats,mergeCounts} from './worker.mjs';
+const data=new Map(),storage={get:async k=>structuredClone(data.get(k)),put:async rows=>{for(const [k,v] of Object.entries(rows))data.set(k,structuredClone(v))}},worker=new GlobalStats({storage});
+const post=async (id,counts,played=false)=>{const r=await worker.fetch(new Request('https://example/v1/stats',{method:'POST',body:JSON.stringify({id,counts,played})}));return [r.status,await r.json()]};
+const id='11111111-1111-4111-8111-111111111111';let result=await post(id,{runs:1});assert.equal(result[1].devices,0);
+result=await post(id,{runs:1,duels:1},true);assert.equal(result[1].devices,1);assert.equal(result[1].duels,1);
+result=await post(id,{runs:1,duels:1,wins:1},true);assert.equal(result[1].wins,1);
+result=await post(id,{runs:1,duels:1,wins:1},true);assert.equal(result[1].wins,1);assert.equal(result[1].devices,1);
+result=await post(id,{runs:1},false);assert.equal(result[1].wins,1);assert.equal(result[1].devices,1);
+result=await post('22222222-2222-4222-8222-222222222222',{},true);assert.equal(result[1].devices,2);assert.equal(result[1].duels,1);
+assert.equal((await post(id,{duels:1,wins:9}))[0],400);assert.throws(()=>mergeCounts({},{seconds:-1}));
+console.log('PASS statistics: devices only after playing, guest device counted, retry/out-of-order idempotency, malformed counters rejected');

@@ -1,0 +1,145 @@
+{
+  "_notes": "Attributes define character identity and pack assignment; do not change duel card attributes. Fixed packs are exclusive. Tournament variety, random packs and Copycat retain their special drafts.",
+  "characters": {
+    "0": {
+      "attribute": "DARK",
+      "theme": "Spellcaster / DARK"
+    },
+    "1": {
+      "attribute": "LIGHT",
+      "theme": "Dragon / LIGHT"
+    },
+    "2": {
+      "attribute": "FIRE",
+      "theme": "Warrior / FIRE"
+    },
+    "3": {
+      "attribute": "WIND",
+      "theme": "Winged Beast / WIND"
+    },
+    "4": {
+      "attribute": "DARK",
+      "theme": "Machine / DARK"
+    },
+    "5": {
+      "attribute": "DARK",
+      "theme": "Fiend / DARK"
+    },
+    "6": {
+      "attribute": "DARK",
+      "theme": "Fiend / DARK"
+    },
+    "7": {
+      "attribute": "DARK",
+      "theme": "Spellcaster / DARK"
+    },
+    "8": {
+      "attribute": "EARTH",
+      "theme": "Dinosaur / EARTH"
+    },
+    "9": {
+      "attribute": "DARK",
+      "theme": "Zombie / DARK"
+    },
+    "10": {
+      "attribute": "EARTH",
+      "theme": "Insect / EARTH"
+    },
+    "11": {
+      "attribute": "FIRE",
+      "theme": "Fiend / FIRE"
+    },
+    "12": {
+      "attribute": "EARTH",
+      "theme": "Warrior / EARTH"
+    },
+    "13": {
+      "attribute": "EARTH",
+      "theme": "Rock / EARTH"
+    },
+    "14": {
+      "attribute": "EARTH",
+      "theme": "Fairy / EARTH"
+    },
+    "15": {
+      "attribute": "EARTH",
+      "theme": "Rock / EARTH"
+    },
+    "16": {
+      "attribute": "DARK",
+      "theme": "Machine / DARK"
+    },
+    "17": {
+      "attribute": "DARK",
+      "theme": "Spellcaster / DARK"
+    },
+    "18": {
+      "attribute": "WATER",
+      "theme": "Aqua / WATER"
+    },
+    "19": {
+      "attribute": "LIGHT",
+      "theme": "Fiend / LIGHT"
+    },
+    "20": {
+      "attribute": "LIGHT",
+      "theme": "Fairy / LIGHT"
+    },
+    "21": {
+      "attribute": "WIND",
+      "theme": "Thunder / WIND"
+    },
+    "22": {
+      "attribute": "LIGHT",
+      "theme": "Fairy / LIGHT"
+    },
+    "23": {
+      "attribute": "DARK",
+      "theme": "Spellcaster / DARK"
+    },
+    "24": {
+      "attribute": "WIND",
+      "theme": "Dragon / WIND"
+    },
+    "28": {
+      "attribute": "DARK",
+      "theme": "Spellcaster / DARK"
+    },
+    "29": {
+      "attribute": "LIGHT",
+      "theme": "Fairy / LIGHT"
+    },
+    "30": {
+      "attribute": "DARK",
+      "theme": "Fiend / DARK"
+    },
+    "31": {
+      "attribute": "EARTH",
+      "theme": "Ancient tombs / Sphinx guardians"
+    },
+    "32": {
+      "attribute": "LIGHT",
+      "theme": "Millennium guardians / judgment"
+    },
+    "33": {
+      "attribute": "DARK",
+      "theme": "Fiends / dark illusions"
+    },
+    "34": {
+      "attribute": "DARK",
+      "theme": "Fiend / DARK"
+    },
+    "35": {
+      "attribute": "EARTH",
+      "theme": "Dinosaur / EARTH"
+    },
+    "36": {
+      "attribute": "EARTH",
+      "theme": "Rock / EARTH"
+    },
+    "37": {
+      "attribute": "LIGHT",
+      "theme": "Spellcaster / LIGHT"
+    }
+  }
+}

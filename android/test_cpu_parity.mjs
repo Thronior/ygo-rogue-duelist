@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {MobileDuel} from './web/duel.js';
+import {TagDuel} from './web/tag-duel.js';
+assert.equal(Object.getPrototypeOf(TagDuel.prototype),MobileDuel.prototype);
+assert.equal(TagDuel.prototype.auto,MobileDuel.prototype.auto,'Tag and solo must use the same CPU decision function');
+assert(!Object.hasOwn(TagDuel.prototype,'auto'),'Do not fork CPU policy for tag mode');
+assert.match(fs.readFileSync(new URL('./web/tag-session.js',import.meta.url),'utf8'),/this\.engine\.auto\(\)/);
+assert.match(fs.readFileSync(new URL('./web/mobile.js',import.meta.url),'utf8'),/respond\(engine\.auto\(\)\)/);
+console.log('PASS solo and tag share exactly the same CPU policy and decision entry point');

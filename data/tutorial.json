@@ -1,0 +1,45 @@
+[
+  {
+    "title": "How to play Yu-Gi-Oh!",
+    "icon": "duel",
+    "image": "tutorial/classic-field.png",
+    "text": "New to Yu-Gi-Oh!? Learn the basic rules, turn phases, Summoning and combat with the official beginner video. Reduce the opponent’s LP to 0 while protecting your own. Rogue Duelist uses a vintage card pool and its own campaign deck-building rules; the later tutorial pages explain those differences.",
+    "video": "https://www.youtube.com/watch?v=orVzLmJhi2c"
+  },
+  {
+    "title": "Draft and deck building",
+    "icon": "deck",
+    "image": "tutorial/hand.jpg",
+    "text": "Choose a character, then open the starting packs. Select at least 20 main-deck cards; Extra Deck monsters are separate. Up to three copies of a card are allowed. Signature cards may be removed. On Android, tap to add or remove a card and hold to inspect it; dragging cancels inspection. Dragging scrolls without selecting. On desktop, click cards to toggle them and hover for details."
+  },
+  {
+    "title": "The duel field",
+    "icon": "duel",
+    "image": "tutorial/classic-field.png",
+    "text": "Your five Monster Zones face the opponent’s five Monster Zones. Spell/Trap Zones sit behind them. The side zones hold the Deck, Extra Deck, Graveyard, banished cards and Field Spell. Select a card to see its legal actions. Highlighted zones or cards are eligible choices. Opponent hands and face-down cards stay hidden."
+  },
+  {
+    "title": "Attacks, targets and phases",
+    "icon": "duel",
+    "image": "tutorial/hand.jpg",
+    "text": "In the Battle Phase, select an eligible monster and choose Attack. Choose a legal target on the field. With no opposing monsters, the attack goes directly to LP. If both a monster and a direct attack are legal, answer the direct-attack question first. Use the phase controls to advance or end your turn. Tributes and field targets are selected on the field; hand and other pile selections appear in a chooser."
+  },
+  {
+    "title": "Card information and chains",
+    "icon": "chain",
+    "image": "tutorial/card-preview.jpg",
+    "text": "Inspect a card to read its full rules, type, attribute, level and current stats. On Android, the large chain icon beside your Deck toggles Don’t chain. When enabled, optional responses are passed automatically; mandatory choices still appear. Turn it off to choose activations and chain responses. Each choice shows the card you would use. Desktop uses EDOPro’s native response controls."
+  },
+  {
+    "title": "Shop and relics",
+    "icon": "shop",
+    "image": "ui/shop.png",
+    "text": "Prices are shown on the artwork. Select the checkbox on each purchase, then use Buy selected to pay for the whole basket. Selections beyond your gold are refused. Tap a relic’s artwork to read its effect before buying. Packs reveal their contents after purchase. The Relics button in the shop and duel shows only what you currently own."
+  },
+  {
+    "title": "Your journey",
+    "icon": "achievements",
+    "image": "ui/achievements.png",
+    "text": "A loop has nine duels. Every third duel is a boss with a curse lasting only for that fight. Winning a boss heals up to 2,000 LP without healing past 8,000. Every victory reveals your coin breakdown and a random card from the defeated deck. Opponents do not repeat within a loop, and you never face your own character. Defeat the optional champion to start a new loop with stronger opponents."
+  }
+]

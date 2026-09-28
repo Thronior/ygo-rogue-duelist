@@ -1,0 +1,577 @@
+{
+  "_guide": "Exactly three fixed YDK decks per opponent. Tier 1: duels 1-3; tier 2: duels 4-6; tier 3: duels 7-9. Edit the named files in data/decks. No runtime card additions or substitutions. Draw order alone is shuffled. Round 0 ignores these decks and uses the tier-0 tutorial pool instead.",
+  "opponents": {
+    "0": [
+      {
+        "character": 0,
+        "name": "Yami Yugi",
+        "tier": 1,
+        "deck": "yami-yugi-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 0,
+        "name": "Yami Yugi",
+        "tier": 2,
+        "deck": "yami-yugi-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 0,
+        "name": "Yami Yugi",
+        "tier": 3,
+        "deck": "yami-yugi-tier-3",
+        "source": "User supplied exact list",
+        "fixed": true
+      }
+    ],
+    "1": [
+      {
+        "character": 1,
+        "name": "Seto Kaiba",
+        "tier": 1,
+        "deck": "seto-kaiba-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 1,
+        "name": "Seto Kaiba",
+        "tier": 2,
+        "deck": "seto-kaiba-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 1,
+        "name": "Seto Kaiba",
+        "tier": 3,
+        "deck": "seto-kaiba-tier-3",
+        "source": "User-provided list plus requested monster filler; 24 monsters / 24 Spells and Traps (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "2": [
+      {
+        "character": 2,
+        "name": "Joey Wheeler",
+        "tier": 1,
+        "deck": "joey-wheeler-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 2,
+        "name": "Joey Wheeler",
+        "tier": 2,
+        "deck": "joey-wheeler-tier-2",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 2,
+        "name": "Joey Wheeler",
+        "tier": 3,
+        "deck": "joey-wheeler-tier-3",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "3": [
+      {
+        "character": 3,
+        "name": "Mai Valentine",
+        "tier": 1,
+        "deck": "mai-valentine-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 3,
+        "name": "Mai Valentine",
+        "tier": 2,
+        "deck": "mai-valentine-tier-2",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 3,
+        "name": "Mai Valentine",
+        "tier": 3,
+        "deck": "mai-valentine-tier-3",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      }
+    ],
+    "4": [
+      {
+        "character": 4,
+        "name": "Bandit Keith",
+        "tier": 1,
+        "deck": "bandit-keith-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 4,
+        "name": "Bandit Keith",
+        "tier": 2,
+        "deck": "bandit-keith-tier-2",
+        "source": "User-provided exact revised text list (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 4,
+        "name": "Bandit Keith",
+        "tier": 3,
+        "deck": "bandit-keith-tier-3",
+        "source": "User-provided exact revised text list (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "5": [
+      {
+        "character": 5,
+        "name": "Lumis and Umbra",
+        "tier": 1,
+        "deck": "lumis-and-umbra-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 5,
+        "name": "Lumis and Umbra",
+        "tier": 2,
+        "deck": "lumis-and-umbra-tier-2",
+        "source": "User-provided exact screenshot (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 5,
+        "name": "Lumis and Umbra",
+        "tier": 3,
+        "deck": "lumis-and-umbra-tier-3",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "6": [
+      {
+        "character": 6,
+        "name": "Yami Bakura",
+        "tier": 1,
+        "deck": "yami-bakura-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 6,
+        "name": "Yami Bakura",
+        "tier": 2,
+        "deck": "yami-bakura-tier-2",
+        "source": "User-provided screenshot, first release through 2008 only (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 6,
+        "name": "Yami Bakura",
+        "tier": 3,
+        "deck": "yami-bakura-tier-3",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "7": [
+      {
+        "character": 7,
+        "name": "Maximillion Pegasus",
+        "tier": 1,
+        "deck": "maximillion-pegasus-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 7,
+        "name": "Maximillion Pegasus",
+        "tier": 2,
+        "deck": "maximillion-pegasus-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 7,
+        "name": "Maximillion Pegasus",
+        "tier": 3,
+        "deck": "maximillion-pegasus-tier-3",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "8": [
+      {
+        "character": 8,
+        "name": "Rex Raptor",
+        "tier": 1,
+        "deck": "rex-raptor-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 8,
+        "name": "Rex Raptor",
+        "tier": 2,
+        "deck": "rex-raptor-tier-2",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 8,
+        "name": "Rex Raptor",
+        "tier": 3,
+        "deck": "rex-raptor-tier-3",
+        "source": "User-requested powered-up Dinosaur version of Tier 2 (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "9": [
+      {
+        "character": 9,
+        "name": "Bonz",
+        "tier": 1,
+        "deck": "bonz-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 9,
+        "name": "Bonz",
+        "tier": 2,
+        "deck": "bonz-tier-2",
+        "source": "User-provided screenshot with requested Regenerating Mummy substitution and Monster Reborn for crossed-out Premature Burial (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 9,
+        "name": "Bonz",
+        "tier": 3,
+        "deck": "bonz-tier-3",
+        "source": "User-requested powered-up Zombie revival version of Tier 2 (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "10": [
+      {
+        "character": 10,
+        "name": "Weevil Underwood",
+        "tier": 1,
+        "deck": "weevil-underwood-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 10,
+        "name": "Weevil Underwood",
+        "tier": 2,
+        "deck": "weevil-underwood-tier-2",
+        "source": "User-provided Tier 2 screenshot (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 10,
+        "name": "Weevil Underwood",
+        "tier": 3,
+        "deck": "weevil-underwood-tier-3",
+        "source": "User-requested powered-up version of Tier 2; Insect Queen / DNA Surgery control (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "11": [
+      {
+        "character": 11,
+        "name": "Yami Marik",
+        "tier": 1,
+        "deck": "yami-marik-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 11,
+        "name": "Yami Marik",
+        "tier": 2,
+        "deck": "yami-marik-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 11,
+        "name": "Yami Marik",
+        "tier": 3,
+        "deck": "yami-marik-tier-3",
+        "source": "User supplied exact list",
+        "fixed": true
+      }
+    ],
+    "12": [
+      {
+        "character": 12,
+        "name": "Tristan Taylor",
+        "tier": 1,
+        "deck": "tristan-taylor-tier-1",
+        "source": "User-provided exact text list (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 12,
+        "name": "Tristan Taylor",
+        "tier": 2,
+        "deck": "tristan-taylor-tier-2",
+        "source": "User-provided exact screenshot with 3 Super Roboyarou (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 12,
+        "name": "Tristan Taylor",
+        "tier": 3,
+        "deck": "tristan-taylor-tier-3",
+        "source": "User-provided exact 40-card main / 6-card Extra Deck screenshot (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "13": [
+      {
+        "character": 13,
+        "name": "Yugi Muto",
+        "tier": 1,
+        "deck": "yugi-muto-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 13,
+        "name": "Yugi Muto",
+        "tier": 2,
+        "deck": "yugi-muto-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 13,
+        "name": "Yugi Muto",
+        "tier": 3,
+        "deck": "yugi-muto-tier-3",
+        "source": "User supplied exact list",
+        "fixed": true
+      }
+    ],
+    "14": [
+      {
+        "character": 14,
+        "name": "Ishizu Ishtar",
+        "tier": 1,
+        "deck": "ishizu-ishtar-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 14,
+        "name": "Ishizu Ishtar",
+        "tier": 2,
+        "deck": "ishizu-ishtar-tier-2",
+        "source": "User-provided exact 40-card screenshot deck (2026-09-24)",
+        "fixed": true
+      },
+      {
+        "character": 14,
+        "name": "Ishizu Ishtar",
+        "tier": 3,
+        "deck": "ishizu-ishtar-tier-3",
+        "source": "User supplied exact list",
+        "fixed": true
+      }
+    ],
+    "15": [
+      {
+        "character": 15,
+        "name": "Odion",
+        "tier": 1,
+        "deck": "odion-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 15,
+        "name": "Odion",
+        "tier": 2,
+        "deck": "odion-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 15,
+        "name": "Odion",
+        "tier": 3,
+        "deck": "odion-tier-3",
+        "source": "https://gamefaqs.gamespot.com/gba/925904-yu-gi-oh-7-trials-to-glory-world-championship-tournament/faqs/46689",
+        "fixed": true
+      }
+    ],
+    "16": [
+      {
+        "character": 16,
+        "name": "Espa Roba",
+        "tier": 1,
+        "deck": "espa-roba-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 16,
+        "name": "Espa Roba",
+        "tier": 2,
+        "deck": "espa-roba-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 16,
+        "name": "Espa Roba",
+        "tier": 3,
+        "deck": "espa-roba-tier-3",
+        "source": "User-provided 40-card deck screenshot (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "17": [
+      {
+        "character": 17,
+        "name": "Arkana",
+        "tier": 1,
+        "deck": "arkana-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 17,
+        "name": "Arkana",
+        "tier": 2,
+        "deck": "arkana-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 17,
+        "name": "Arkana",
+        "tier": 3,
+        "deck": "arkana-tier-3",
+        "source": "User-provided deck screenshot (2026-09-24); crossed-out cards omitted; post-2004 cards replaced with classic staples; balanced to 23 monsters and 23 Spells/Traps (Breaker replaces Swords of Revealing Light)",
+        "fixed": true
+      }
+    ],
+    "18": [
+      {
+        "character": 18,
+        "name": "Mako Tsunami",
+        "tier": 1,
+        "deck": "mako-tsunami-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 18,
+        "name": "Mako Tsunami",
+        "tier": 2,
+        "deck": "mako-tsunami-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 18,
+        "name": "Mako Tsunami",
+        "tier": 3,
+        "deck": "mako-tsunami-tier-3",
+        "source": "User-provided exact 40-card screenshot deck (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "20": [
+      {
+        "character": 20,
+        "name": "Noah Kaiba",
+        "tier": 1,
+        "deck": "noah-kaiba-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 20,
+        "name": "Noah Kaiba",
+        "tier": 2,
+        "deck": "noah-kaiba-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 20,
+        "name": "Noah Kaiba",
+        "tier": 3,
+        "deck": "noah-kaiba-tier-3",
+        "source": "User-provided exact 40-card screenshot deck (2026-09-24)",
+        "fixed": true
+      }
+    ],
+    "22": [
+      {
+        "character": 22,
+        "name": "Tea Gardner",
+        "tier": 1,
+        "deck": "tea-gardner-tier-1",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 22,
+        "name": "Tea Gardner",
+        "tier": 2,
+        "deck": "tea-gardner-tier-2",
+        "source": "User supplied exact list",
+        "fixed": true
+      },
+      {
+        "character": 22,
+        "name": "Tea Gardner",
+        "tier": 3,
+        "deck": "tea-gardner-tier-3",
+        "source": "User-supplied list balanced to 20 monsters and 20 Spells/Traps; three substitutions",
+        "fixed": true
+      }
+    ],
+    "27": [
+      {
+        "character": 27,
+        "name": "Marik Ishtar",
+        "tier": 1,
+        "deck": "marik-ishtar-tier-1",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 27,
+        "name": "Marik Ishtar",
+        "tier": 2,
+        "deck": "marik-ishtar-tier-2",
+        "source": "https://gamefaqs.gamespot.com/gba/919562-yu-gi-oh-world-championship-tournament-2004/faqs/28716",
+        "fixed": true
+      },
+      {
+        "character": 27,
+        "name": "Marik Ishtar",
+        "tier": 3,
+        "deck": "marik-ishtar-tier-3",
+        "source": "User-provided exact 40-card screenshot deck (2026-09-24)",
+        "fixed": true
+      }
+    ]
+  }
+}

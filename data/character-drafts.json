@@ -1,0 +1,200 @@
+{
+  "0": [
+    "EN-MFC",
+    "EN-MFC",
+    "EN-LOB",
+    "EN-MRD"
+  ],
+  "1": [
+    "JP-SC",
+    "JP-SC",
+    "JP-SC",
+    "EN-LOB"
+  ],
+  "2": [
+    "JP-SC",
+    "JP-SC",
+    "EN-MRD",
+    "JP-P5"
+  ],
+  "3": [
+    "EN-MRD",
+    "EN-MRD",
+    "JP-303",
+    "EN-MRL"
+  ],
+  "4": [
+    "EN-PSV",
+    "EN-PSV",
+    "JP-302",
+    "JP-302"
+  ],
+  "5": [
+    "JP-SM",
+    "JP-SM",
+    "JP-SM",
+    "EN-MRL"
+  ],
+  "6": [
+    "JP-LN",
+    "JP-LN",
+    "EN-MRD",
+    "EN-MRD"
+  ],
+  "7": [
+    "EN-MRL",
+    "EN-MRL",
+    "JP-DL4",
+    "JP-307"
+  ],
+  "8": [
+    "JP-BC",
+    "JP-BC",
+    "JP-307",
+    "JP-307"
+  ],
+  "9": [
+    "JP-PH",
+    "JP-PH",
+    "JP-PH",
+    "JP-307"
+  ],
+  "10": [
+    "JP-307",
+    "JP-307",
+    "EN-PSV",
+    "EN-MRD"
+  ],
+  "11": [
+    "JP-301",
+    "JP-301",
+    "JP-301",
+    "EN-LON"
+  ],
+  "12": [
+    "EN-LOB",
+    "EN-LOB",
+    "JP-SC",
+    "JP-MA"
+  ],
+  "13": [
+    "EN-LOB",
+    "EN-LOB",
+    "EN-MRD",
+    "JP-PH"
+  ],
+  "14": [
+    "JP-305",
+    "JP-305",
+    "JP-305",
+    "EN-MRL"
+  ],
+  "15": [
+    "EN-PSV",
+    "EN-PSV",
+    "EN-PGD",
+    "JP-PP6"
+  ],
+  "16": [
+    "EN-PSV",
+    "EN-PSV",
+    "JP-302",
+    "JP-308"
+  ],
+  "17": [
+    "JP-303",
+    "JP-303",
+    "JP-303",
+    "EN-LOB"
+  ],
+  "18": [
+    "EN-MRL",
+    "EN-MRL",
+    "EN-LOD",
+    "EN-IOC"
+  ],
+  "19": [
+    "JP-DL5",
+    "JP-DL5",
+    "JP-305",
+    "EN-PSV"
+  ],
+  "20": [
+    "JP-MA",
+    "JP-MA",
+    "EN-MRL",
+    "JP-307"
+  ],
+  "21": [
+    "EN-MRD",
+    "EN-MRD",
+    "EN-MRD",
+    "EN-MRL"
+  ],
+  "22": [
+    "JP-308",
+    "JP-308",
+    "EN-LON",
+    "EN-MRL"
+  ],
+  "23": [
+    "JP-DL2",
+    "JP-DL2",
+    "JP-DL2",
+    "EN-MRL"
+  ],
+  "28": [
+    "EN-MRD",
+    "EN-MRD",
+    "EN-MRL",
+    "EN-MFC"
+  ],
+  "29": [
+    "EN-LON",
+    "EN-LON",
+    "EN-MRL",
+    "JP-308"
+  ],
+  "30": [
+    "JP-301",
+    "JP-301",
+    "EN-MRL",
+    "EN-MRL"
+  ],
+  "31": [
+    "EN-PGD",
+    "EN-PGD",
+    "JP-309",
+    "EN-DCR"
+  ],
+  "32": [
+    "JP-309",
+    "JP-309",
+    "EN-PGD",
+    "EN-LOB"
+  ],
+  "33": [
+    "EN-MRD",
+    "EN-MRD",
+    "EN-MRD",
+    "EN-LOB"
+  ],
+  "34": [
+    "EN-IOC",
+    "EN-IOC",
+    "EN-LOD",
+    "EN-MRL"
+  ],
+  "35": [
+    "JP-304",
+    "JP-304",
+    "JP-304",
+    "EN-MRL"
+  ],
+  "24": [
+    "EN-LOD",
+    "EN-LOD",
+    "EN-LOB",
+    "EN-MRD"
+  ]
+}

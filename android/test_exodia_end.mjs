@@ -1,0 +1,4 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel} from './web/duel.js';import {isExodiaWin} from './web/exodia-finale.js';
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),meta=read('content'),pieces=[33396948,70903634,7902349,44519536,8124921],other=Array(20).fill(meta.cards.find(c=>c.name==='Battle Ox').id);
+const e=await new MobileDuel(meta.cards).init([read('engine-data'),read('scripts')]);
+try{for(const winner of [0,1]){const s=e.start(winner===0?pieces:other,winner===1?pieces:other,8000,8000,5,13);assert(s.finished);assert.equal(s.finished.player,winner);assert(isExodiaWin(s.finished));assert.deepEqual(e.errors,[]);e.destroy()}console.log('PASS real-core Exodia end detection for player and opponent starting hands')}finally{e.destroy()}

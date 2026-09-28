@@ -1,0 +1,9 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,L,B} from './web/duel.js';
+const meta=JSON.parse(fs.readFileSync(new URL('./web/content.json',import.meta.url))),data=JSON.parse(fs.readFileSync(new URL('./web/engine-data.json',import.meta.url)));const id=n=>meta.cards.find(c=>c.name===n).id;let checks=0;
+for(const p of [0,1]){const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],turn:3,player:p,phase:8,activeChain:[],battleProtected:[false,false],events:[],visuals:[],peak:{},pendingSummons:[]});let targets=[];const attacker={code:id('Blue-Eyes White Dragon'),controller:p,location:L.MZONE,sequence:0,position:1,attack:3000,defense:2500};e.query=(s,l)=>l===L.MZONE?(s===p?[attacker]:targets):[];const m={type:M.SELECT_BATTLECMD,player:p,chains:[],attacks:[attacker],to_m2:true,to_ep:true};
+for(const pos of [1,4]){targets=[{code:id('Battle Ox'),controller:1-p,location:L.MZONE,sequence:0,position:pos,attack:1700,defense:1000}];e.battleProtected=[false,false];assert.equal(e.auto(m).action,B.SELECT_BATTLE);e.battleProtected[1-p]=true;assert.equal(e.auto(m).action,B.TO_M2);checks+=2}
+e.battleProtected=[false,false];e.activeChain=[{code:id('Waboku'),player:1-p,link:1,targets:[]}];e.onMessage({type:M.CHAIN_SOLVED,chain_size:1});assert(e.battleProtected[1-p]);assert.equal(e.auto(m).action,B.TO_M2);checks+=2;
+e.onMessage({type:M.NEW_TURN,player:p});assert(!e.battleProtected[1-p]);assert.equal(e.auto(m).action,B.SELECT_BATTLE);checks+=2;
+e.activeChain=[{code:id('Waboku'),player:1-p,link:1,targets:[]}];e.onMessage({type:M.CHAIN_NEGATED,chain_size:1});e.onMessage({type:M.CHAIN_SOLVED,chain_size:1});assert(!e.battleProtected[1-p]);checks++;
+e.battleProtected[1-p]=true;targets.push({...targets[0],sequence:1,position:8});assert.equal(e.auto(m).action,B.SELECT_BATTLE);checks++;
+}console.log('PASS',checks,'Waboku attack avoidance, both seats, successful resolution, negation and next-turn reset');

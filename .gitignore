@@ -1,0 +1,71 @@
+# Local state, credentials, and private player data
+/saves/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.admin-token
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+*credentials*.json
+local.properties
+/android/signing/
+
+# Build products and installed toolchains (retain on disk)
+/dependencies/
+/python/
+/releases/
+/temp/
+/assets/music/potential sound effects/
+/tools/irrlicht.zip
+/android/build/
+/ios/
+node_modules/
+.wrangler/
+__pycache__/
+*.py[cod]
+*.log
+*.exe
+*.dll
+*.obj
+*.o
+*.apk
+*.aab
+*.pdb
+
+# Existing independent source repositories / installed native toolchain
+/edopro-source/
+/tools/core/
+/tools/irrlicht1-8-4-1.9-custom/
+
+# Runtime contains both shared game data and local/native-only state
+/runtime/*
+!/runtime/config/
+/runtime/config/*
+!/runtime/config/strings.conf
+!/runtime/expansions/
+!/runtime/script/
+!/runtime/sound/
+!/runtime/textures/
+!/runtime/notices/
+!/runtime/lflists/
+
+# Recreated by the Android/web build from shared source and assets
+/android/web/assets/
+/android/web/sound/
+/android/web/textures/
+/android/web/campaign-files.json
+/android/web/content.json
+/android/web/build.json
+/android/web/system-strings.js
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp

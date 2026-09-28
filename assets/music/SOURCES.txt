@@ -1,0 +1,18 @@
+Additional user-supplied audio from D:/elio/Work/Favoree/videos/music
+carousel-dreams.mp3 = Carousel Dreams - The Soundlings.mp3
+home-abandon.mp3 = HOME - Abandon Planet.mp3
+shop-home.mp3 = Gran Turismo 4 Soundtrack - Home.mp3
+enter-city.mp3 = Enter The City - Hover _ Revolt Of Gamers Original Soundtrack.mp3
+pack-open.mp3 = matimassa-fx-scratch-02-379219.mp3
+purchase.mp3 = effects/cash-register-kaching-sound-effect-125042.mp3
+pack-rare.mp3 = effects/slot-machine-jackpot-sound-effect.mp3
+
+draft-mode.mp3 = Gran Turismo 4 Soundtrack - GT Mode 1.mp3
+victory-trophy.mp3 = Trophy - Super Smash Bros. Melee - No Copyright Nintendo Music.mp3
+defeat-home.mp3 = Going Home - The Soundlings.mp3
+boss-one-way.mp3 = Find your One Way (Instrumental) Sol Badguy Theme.mp3
+champion-world.mp3 = His World (Theme of Sonic) - Sonic the Hedgehog [OST].mp3
+trilogy.mp3 = Trilogy - Telecasted.mp3
+card-reveal.wav = Sonniss GDC 2026 / 344 Audio - Casino Cards Vol. 1\GAMECas_Dealing 3_344 Audio_Casino Cards Vol 1.wav (trimmed, mono, level-normalized)
+pack-rustle.wav = Sonniss GDC 2026 / 344 Audio - Casino Cards Vol. 1\GAMECas_Pick Up Multiple Cards At Once 5_344 Audio_Casino Cards Vol 1.wav (trimmed, mono, level-normalized)
+rare-shimmer.wav = Sonniss GDC 2026 / 344 Audio - Elemental Palette Designed Vol. 1\WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav (trimmed, mono, level-normalized)

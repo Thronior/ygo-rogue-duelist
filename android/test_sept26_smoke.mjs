@@ -1,0 +1,3 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel} from './web/duel.js';
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),meta=read('content'),f=read('test-fixture'),e=await new MobileDuel(meta.cards).init([read('engine-data'),read('scripts')]);let wins=0,max=0;
+try{for(let seed=1;seed<=100;seed++){let s=e.start(seed%2?f.strong:f.copy,f.enemy,8000,4000,5,seed,[],[],f.passives),i=0;for(;i<5000&&!s.finished;i++)s=e.respond(e.auto());assert(s.finished,'stalled seed '+seed);assert.deepEqual(e.errors,[]);max=Math.max(max,i);wins+=s.finished.player===0;e.destroy();}console.log('PASS 100 full core duels; player wins',wins,'maximum responses',max);}finally{e.destroy()}

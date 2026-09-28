@@ -1,0 +1,1 @@
+{"name": "ygo-rogue-replays", "main": "worker.mjs", "compatibility_date": "2026-09-25", "workers_dev": true, "observability": {"enabled": false}, "durable_objects": {"bindings": [{"name": "REPLAYS", "class_name": "ReplayBucket"}]}, "migrations": [{"tag": "v1", "new_sqlite_classes": ["ReplayBucket"]}]}

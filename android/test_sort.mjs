@@ -1,0 +1,4 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M} from './web/duel.js';
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url)));
+const meta=read('content'),id=n=>meta.cards.find(c=>c.name===n).id;const e=await new MobileDuel(meta.cards).init([read('engine-data'),read('scripts')]);let sorts=0;
+try{let s=e.start(Array(30).fill(id('Battle Ox')),Array(30).fill(id("Gravekeeper's Servant")),8000,4000,5,67);for(let i=0;i<250&&!s.finished;i++){if(e.pending.type===M.SORT_CARD||e.pending.type===M.SORT_CHAIN)sorts++;s=e.respond(e.auto());}assert(sorts>0,'Must reproduce simultaneous Servant costs');assert.equal(e.errors.length,0);assert(s.finished,'Duel must continue to a result');console.log('PASS multiple Gravekeeper Servants: '+sorts+' sorting prompts, duel completed')}finally{e.destroy()}

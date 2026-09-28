@@ -1,0 +1,8 @@
+Compatibility target checked: ProjectIgnis/windbot public master API, September 2026.
+Deck attribute: [Deck("Classic2004Smart", "AI_Classic2004Smart", "Hard")]
+Expected external executor location: WindBot/Executors/
+Expected deck location: WindBot/Decks/
+Expected bot list: WindBot/bots.json
+
+The installer intentionally references the installed ExecutorBase.dll instead of
+bundling one, so it does not overwrite or fork the user's WindBot runtime.

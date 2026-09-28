@@ -1,0 +1,290 @@
+[
+  {
+    "id": "destroy-monster",
+    "name": "Destroy monsters",
+    "icon": "genres-destroy-monster.png",
+    "pattern": "destroy[^.;\\n]*(?:monster|all cards|every card)"
+  },
+  {
+    "id": "destroy-spell-trap",
+    "name": "Destroy Spells / Traps",
+    "icon": "genres-destroy-spell-trap.png",
+    "pattern": "destroy[^.;\\n]*(?:spell|trap|all cards|every card)"
+  },
+  {
+    "id": "cancel-out-effect",
+    "name": "Negate effects",
+    "icon": "genres-cancel-out-effect.png",
+    "pattern": "negate[^.;\\n]*(?:effect|activation|spell|trap)"
+  },
+  {
+    "id": "cannot-be-destroyed",
+    "name": "Destruction protection",
+    "icon": "genres-cannot-be-destroyed.png",
+    "pattern": "cannot be destroyed|would be destroyed[^.;\\n]*instead"
+  },
+  {
+    "id": "change-card-position",
+    "name": "Change battle position",
+    "icon": "genres-change-card-position.png",
+    "pattern": "(?:change|switch|flip)[^.;\\n]*(?:position|face-down|face-up)"
+  },
+  {
+    "id": "deck-destruction",
+    "name": "Send cards from Deck to GY",
+    "icon": "genres-deck-destruction.png",
+    "pattern": "(?:send|discard)[^.;\\n]*(?:top|deck)[^.;\\n]*(?:graveyard|gy)"
+  },
+  {
+    "id": "direct-attack",
+    "name": "Attack directly",
+    "icon": "genres-direct-attack.png",
+    "pattern": "(?:can |may )?attack (?:your opponent )?directly"
+  },
+  {
+    "id": "flip-effect",
+    "name": "Flip effects",
+    "icon": "genres-flip-effect.png",
+    "pattern": "^FLIP:|flip effect"
+  },
+  {
+    "id": "fusion-material",
+    "name": "Fusion support",
+    "icon": "genres-fusion-material.png",
+    "pattern": "fusion summon|fusion material"
+  },
+  {
+    "id": "gamble",
+    "name": "Coin / dice effects",
+    "icon": "genres-gamble.png",
+    "pattern": "toss[^.;\\n]*coin|roll[^.;\\n]*(?:die|dice)"
+  },
+  {
+    "id": "get-control",
+    "name": "Change control",
+    "icon": "genres-get-control.png",
+    "pattern": "(?:take|gain|switch|exchange) control"
+  },
+  {
+    "id": "hand-destruction",
+    "name": "Discard from hand",
+    "icon": "genres-hand-destruction.png",
+    "pattern": "discard|send[^.;\\n]*hand[^.;\\n]*(?:graveyard|gy)"
+  },
+  {
+    "id": "increase-decrease-atk-def",
+    "name": "Change ATK / DEF",
+    "icon": "genres-increase-decrease-atk-def.png",
+    "pattern": "(?:gain|lose|increase|decrease|becomes?|double|halve)[^.;\\n]*(?:atk|def)|(?:atk|def)[^.;\\n]*(?:gain|lose|increase|decrease|becomes?|double|halve)"
+  },
+  {
+    "id": "increase-draw",
+    "name": "Draw cards",
+    "icon": "genres-increase-draw.png",
+    "pattern": "\\bdraw (?:\\d+|one|two|three|a|the same number of) cards?"
+  },
+  {
+    "id": "multiple-attack",
+    "name": "Multiple attacks",
+    "icon": "genres-multiple-attack.png",
+    "pattern": "attack[^.;\\n]*(?:twice|second|additional|each|all monsters)|(?:second|additional) attack"
+  },
+  {
+    "id": "pierce",
+    "name": "Piercing damage",
+    "icon": "genres-pierce.png",
+    "pattern": "piercing battle damage|difference[^.;\\n]*battle damage"
+  },
+  {
+    "id": "recover-cards-from-graveyard",
+    "name": "Recover from GY",
+    "icon": "genres-recover-cards-from-graveyard.png",
+    "pattern": "(?:add|return|special summon|target)[^.;\\n]*(?:graveyard|gy)"
+  },
+  {
+    "id": "recover-life-points",
+    "name": "Recover LP",
+    "icon": "genres-recover-life-points.png",
+    "pattern": "(?:gain|increase|recover)[^.;\\n]*(?:\\bLP\\b|life points)"
+  },
+  {
+    "id": "reduce-life-points",
+    "name": "Effect damage / LP loss",
+    "icon": "genres-reduce-life-points.png",
+    "pattern": "inflict[^.;\\n]*damage|(?:lose|pay)[^.;\\n]*(?:\\bLP\\b|life points)"
+  },
+  {
+    "id": "remove-card-from-play",
+    "name": "Banish cards",
+    "icon": "genres-remove-card-from-play.png",
+    "pattern": "\\bbanish(?:ed)?\\b|remove[^.;\\n]*from play"
+  },
+  {
+    "id": "restrict-attack",
+    "name": "Restrict attacks",
+    "icon": "genres-restrict-attack.png",
+    "pattern": "cannot (?:declare an |an? )?attack|negate[^.;\\n]*attack|skip[^.;\\n]*battle phase"
+  },
+  {
+    "id": "return-card",
+    "name": "Return cards",
+    "icon": "genres-return-card.png",
+    "pattern": "return[^.;\\n]*(?:hand|deck)"
+  },
+  {
+    "id": "search-deck",
+    "name": "Search Deck",
+    "icon": "genres-search-deck.png",
+    "pattern": "add[^.;\\n]*deck[^.;\\n]*hand"
+  },
+  {
+    "id": "special-summon",
+    "name": "Special Summon",
+    "icon": "genres-special-summon.png",
+    "pattern": "\\bspecial summon"
+  },
+  {
+    "id": "spell-counter",
+    "name": "Spell Counters",
+    "icon": "genres-spell-counter.png",
+    "pattern": "spell counters?"
+  },
+  {
+    "id": "token",
+    "name": "Tokens",
+    "icon": "genres-token.png",
+    "pattern": "\\btokens?\\b"
+  },
+  {
+    "id": "attribute",
+    "name": "Change Attribute",
+    "icon": "genres-attribute.png",
+    "pattern": "(?:becomes?|treated as|change)[^.;\\n]*(?:attribute|LIGHT|DARK|WATER|FIRE|EARTH|WIND)"
+  },
+  {
+    "id": "type",
+    "name": "Change monster Type",
+    "icon": "genres-type.png",
+    "pattern": "(?:becomes?|treated as|change)[^.;\\n]*-Type"
+  },
+  {
+    "id": "spirit",
+    "name": "Spirit",
+    "icon": "genres-spirit.png",
+    "flag": 512
+  },
+  {
+    "id": "union",
+    "name": "Union",
+    "icon": "genres-union.png",
+    "flag": 1024
+  },
+  {
+    "id": "toon",
+    "name": "Toon",
+    "icon": "genres-toon.png",
+    "flag": 4194304
+  },
+  {
+    "id": "send-to-gy",
+    "name": "Send to GY",
+    "icon": "../pixel/action-send-to-grave.png",
+    "pattern": "(?:send|sent)[^.;\\n]*(?:graveyard|gy)"
+  },
+  {
+    "id": "level",
+    "name": "Change Level",
+    "icon": "../pixel/action-level-down.png",
+    "pattern": "(?:increase|reduce|decrease|downgrade|gain|lose|change)[^.;\\n]*levels?|levels?[^.;\\n]*(?:becomes?|increase|reduce|decrease)"
+  },
+  {
+    "id": "ritual",
+    "name": "Ritual Summoning",
+    "icon": "../pixel/type-ritual.png",
+    "pattern": "ritual summon"
+  },
+  {
+    "id": "equip",
+    "name": "Equip cards",
+    "icon": "../pixel/action-equip.png",
+    "pattern": "\\bequip(?:ped)?\\b"
+  },
+  {
+    "id": "reveal",
+    "name": "Reveal / look at cards",
+    "icon": "../pixel/action-select.png",
+    "pattern": "\\breveal|look at|pick it up|upside down"
+  },
+  {
+    "id": "damage-protection",
+    "name": "Change / prevent battle damage",
+    "icon": "../pixel/action-defense.png",
+    "pattern": "(?:no|0|halve|double|instead|becomes|take)[^.;\\n]*battle damage|battle damage[^.;\\n]*(?:0|instead|becomes|take|halved|doubled)"
+  },
+  {
+    "id": "effect-protection",
+    "name": "Unaffected / cannot be targeted",
+    "icon": "../pixel/action-negate.png",
+    "pattern": "unaffected|cannot be targeted|cannot (?:select|target)[^.;\\n]*(?:card|monster)"
+  },
+  {
+    "id": "restrictions",
+    "name": "Activation / Summon restrictions",
+    "icon": "../pixel/action-chain.png",
+    "pattern": "cannot (?:activate|play|set|normal summon|special summon)|neither player can|must set"
+  },
+  {
+    "id": "win",
+    "name": "Alternative victory",
+    "icon": "../pixel/action-ring.png",
+    "pattern": "win the duel"
+  },
+  {
+    "id": "lp-cost",
+    "name": "LP costs / cost changes",
+    "icon": "../pixel/action-lp.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "target",
+    "name": "Redirect / select targets",
+    "icon": "../pixel/action-select.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "deck-order",
+    "name": "Arrange / shuffle Deck",
+    "icon": "../pixel/action-card-stack.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "identity",
+    "name": "Card name / identity",
+    "icon": "../pixel/action-card.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "hand-limit",
+    "name": "Hand size limit",
+    "icon": "../pixel/action-card-stack.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "phase",
+    "name": "Turn / Phase changes",
+    "icon": "../pixel/action-counter.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "normal-summon",
+    "name": "Normal Summon / Tribute support",
+    "icon": "../pixel/action-monster.png",
+    "pattern": "(?!)"
+  },
+  {
+    "id": "zone-limit",
+    "name": "Field / Zone limits",
+    "icon": "../pixel/action-field.png",
+    "pattern": "(?!)"
+  }
+]
