@@ -15,4 +15,4 @@ does not include those trees or the installed build toolchains.
 
 Generated web assets and campaign bundles are recreated by the supported build
 scripts. Vendored engine and Pyodide files are retained because builds rely on
-them. No remote repository is configured by this setup.
+them. The private GitHub remote is `https://github.com/Thronior/ygo-rogue-duelist`.
