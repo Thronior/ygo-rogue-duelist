@@ -1,4 +1,22 @@
 // Core-driven feedback: never reveal the identity of a private card selection.
+export function removalKind(reason=0){
+ // Core REASON_DESTROY / REASON_RELEASE; ordinary sends, discards and costs do not qualify.
+ return reason&2?'tribute':reason&1?'destroy':null;
+}
+
+export function playRemovalFeedback(kind,source,{reduced=false}={}){
+ if(!source||!['destroy','tribute'].includes(kind))return;
+ const r=source.getBoundingClientRect(),el=document.createElement('div');
+ el.className='card-removal-fx '+kind;el.setAttribute('aria-hidden','true');
+ Object.assign(el.style,{left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
+ el.innerHTML='<i></i><i></i><i></i><i></i>';document.body.append(el);
+ const frames=reduced?[{opacity:.8},{opacity:0}]:kind==='tribute'
+  ?[{opacity:0,transform:'translateY(0) scale(.8)'},{opacity:1,offset:.3},{opacity:0,transform:'translateY(-20px) scale(1.15)'}]
+  :[{opacity:1,transform:'scale(.85)'},{opacity:1,transform:'scale(1.12)',offset:.3},{opacity:0,transform:'scale(1.4)'}];
+ const animation=el.animate(frames,{duration:180,easing:'ease-out'});
+ return animation.finished.catch(()=>{}).finally(()=>el.remove());
+}
+
 export function effectMessageCue(e,m,M,L){
  const cue=(text,cards=[],extra={})=>({kind:'effect-action',text,cards,...extra});
  const publicCard=c=>{const live=e.query(c.controller,c.location)[c.sequence];return {...c,code:live&&(c.location===L.GRAVE||live.isPublic||live.is_public||([L.MZONE,L.SZONE,L.REMOVED].includes(c.location)&&(live.position&5)))?live.code:0};};

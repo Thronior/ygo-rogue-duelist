@@ -177,7 +177,7 @@ export class TagSession {
   this.aiTimer=setTimeout(()=>this.enqueue(async()=>{
    if(!this.connected||!this.engine||this.engine.pvp||this.engine.pending?.player!==1)return;
    const response=this.engine.auto();this.engine.respond(response);await this.backend('tag-journal',{seat:null,response:encode(response)});await this.pushDuel();this.schedule();
-  }),400);
+  }),this.engine.inDamageStep?40:120);
  }
  scheduleRecovery(delay){
   // The guest coordinates new generations. The host follows via signaling;

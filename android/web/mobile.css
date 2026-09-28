@@ -730,11 +730,26 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
  .title .menu-card>p{display:none}
 }
 
-/* Every hand remains horizontally reachable, including its final card. */
-.duel .hand{justify-content:flex-start!important;overflow-x:auto;overflow-y:hidden;min-width:0;padding-right:16px;scroll-padding:12px;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:thin}
-.duel .hand button{flex:0 0 auto}
+/* Center up to seven cards; larger hands scroll without clipping either end. */
+.duel .hand{--hand-gap:4px;justify-content:center;gap:var(--hand-gap);overflow-x:hidden;overflow-y:hidden;min-width:0;padding-inline:8px;scroll-padding:8px;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:thin}
+.duel .hand:has(>button:nth-child(8)){justify-content:flex-start;overflow-x:auto}
+.duel .hand button{flex:0 0 auto;min-width:0;max-width:calc((100% - 6 * var(--hand-gap)) / 7)}
+.duel .hand img{object-fit:contain}
 .card-counter{position:absolute;top:3px;left:3px;z-index:4;border:1px solid #ffe291;border-radius:5px;background:#172330eb;color:#ffe291;padding:2px 4px;font-size:clamp(10px,1.5vw,17px);font-weight:bold;box-shadow:0 0 7px #f9dc6777;pointer-events:none}
 .spell-counter{left:auto;right:3px;color:#a9f7ff;border-color:#83e2ff}
+.zone .sword{z-index:5}
+.zone:has(>.sword) .card-counter{top:calc(44% + 3px)}
+.card-removal-fx{position:fixed;z-index:245;pointer-events:none;border-radius:6px}
+.card-removal-fx.destroy{background:radial-gradient(ellipse,#fff7cf 0%,#ff7546aa 30%,transparent 70%)}
+.card-removal-fx.destroy i{position:absolute;left:47%;top:10%;width:6%;height:80%;background:#fff4dc;transform:rotate(35deg)}
+.card-removal-fx.destroy i:nth-child(2){transform:rotate(-35deg)}
+.card-removal-fx.destroy i:nth-child(3){transform:rotate(75deg)}
+.card-removal-fx.destroy i:nth-child(4){transform:rotate(-75deg)}
+.card-removal-fx.tribute{border:3px solid #ffe59a;box-shadow:0 0 12px #ffd66f,inset 0 0 16px #fff1ac;background:linear-gradient(transparent,#fff1ad99,transparent)}
+.card-removal-fx.tribute i{position:absolute;left:20%;top:20%;height:55%;width:3px;background:#fff8d7}
+.card-removal-fx.tribute i:nth-child(2){left:40%;top:0}
+.card-removal-fx.tribute i:nth-child(3){left:60%;top:10%}
+.card-removal-fx.tribute i:nth-child(4){left:80%;top:30%}
 @keyframes counter-pop{from{transform:scale(1.5);filter:brightness(2)}to{transform:scale(1);filter:none}}
 @media(prefers-reduced-motion:reduce){.card-counter{animation:none}}
 
@@ -917,3 +932,37 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 @media(prefers-reduced-motion:reduce){.title .smooth-menu .menu-card{animation:none!important}}
 
 #behaviour-description{display:block;width:100%;max-width:100%;min-height:110px;margin:10px 0;padding:10px;background:#071b25;color:#eef9f4;border:1px solid #628994;border-radius:6px;font:inherit;resize:vertical}
+
+/* Size choices to their content; keep the confirmation directly beneath. */
+.duel .duel-main .selection-dialog{bottom:auto;max-height:calc(100% - 50px)}
+.duel .selection-dialog>.prompt{flex:0 1 auto;overflow:auto}
+.duel .selection-dialog>.selection-actions{background:none;border:0;box-shadow:none;padding:0}
+.duel .selection-dialog .choices{flex:none}
+.duel .choices button.selected{border:2px solid #ffe39a;box-shadow:0 0 10px #ffdc7c88,inset 0 0 8px #ffdc7c33}
+.prompt .notice:empty{display:none}.prompt-context{color:#f4d98d}
+.duel .chain-control{z-index:80}
+.chain-cue{z-index:100;display:flex;justify-content:center;align-items:center;gap:12px;font-size:clamp(14px,2vw,22px);animation:none}
+.chain-cue img{height:90px;max-height:22dvh;width:auto}.chain-cue div{display:grid;gap:5px}.chain-cue small{font-size:.8em}
+
+/* Fixed-deck characters buy relics; stock is omitted from the markup as well. */
+.shop-compact.relic-only-shop .shop-layout>.shop-stock{display:none}
+@media(orientation:portrait){
+ .shop-compact.relic-only-shop .shop-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+ .shop-compact.relic-only-shop .shop-layout>aside{min-height:0;grid-template-rows:22px minmax(0,1fr) 32px}
+ .shop-compact.relic-only-shop .shop-layout>aside>.relics{min-height:0;align-items:center}
+ .shop-compact.relic-only-shop .relics .shop-product{height:auto;max-height:100%;aspect-ratio:.8}
+}
+
+#chain-toggle{visibility:hidden}.duel-cue{z-index:100}
+
+.title .smooth-menu .menu-card{transform-origin:50% 50%;touch-action:none}
+
+/* The enlarged landscape card fits beneath the logo without moving its neighbors. */
+@media(orientation:landscape){.title .smooth-menu .menu-card{height:min(60dvh,400px);max-height:calc(100% - 32px);width:auto;aspect-ratio:.685}}
+
+@media(orientation:landscape) and (min-width:1000px) and (min-height:650px){.title .smooth-menu .menu-card{height:min(68dvh,760px)}}
+
+/* Keep the complete character roster in consistent six-column rows. */
+.character-select-page .roster{grid-template-columns:repeat(6,minmax(0,1fr));width:100%;max-width:1080px;justify-self:center;margin-inline:auto}
+
+.duelist-hero>img{position:absolute;inset:auto 0 0;object-position:center bottom}

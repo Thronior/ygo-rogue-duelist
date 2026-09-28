@@ -1,4 +1,5 @@
 import {genreIcons,typeIcon} from './card-search.js';
+import {loadDuelResources} from './engine.js';
 import {MobileDuel,L} from './duel.js';
 // Separate deterministic streams keep each seat shuffled and Replay seed reproducible.
 export function shuffleCPUDeck(cards,seed,seat=0){
@@ -21,7 +22,7 @@ export class CPUViewer {
   if(!repeat){if(this.characters[0]===this.characters[1])throw Error('Choose two different opponents.');this.seed=freshSeed(this.seed);}
   clearTimeout(this.timer);this.engine?.destroy();this.engine=null;const generation=++this.generation;this.history=[];this.decisions=[];this.paused=true;this.state=null;this.error='';this.preview=null;
   this.root.innerHTML='<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h2>Preparing CPU duel…</h2><progress></progress></section>';
-  const resources=await Promise.all(['engine-data','scripts'].map(n=>fetch(n+'.json').then(r=>r.json())));
+  const resources=await loadDuelResources();
   if(generation!==this.generation)return;
   const created=await new MobileDuel([...this.content.cards,...(this.content.tokenCards||[])]).init(resources);
   if(generation!==this.generation){created.destroy();return}this.engine=created;

@@ -77,7 +77,9 @@ export function smartContext(e,p,L,prompt=null){
   if(!enemy.some(x=>x.sequence===a.sequence)||reservedForRemoval(a)||e.battleProtected?.[p])return null;
   if((e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&attackStops.has(e.name(x.code))))return null;
   const defender=own.find(x=>x.sequence===t.sequence);
-  return defender&&(defender.position&12)?defender:null;
+  // The first Damage Step window can precede the defender's reveal. Castle
+  // Walls targets only face-up monsters; wait for the post-flip window.
+  return defender&&(defender.position&4)?defender:null;
  }
  // Resource decisions use public information and previously revealed identities only.
  const resourceRemoval=new Set([...removalNames].filter(n=>!['Man-Eater Bug','Hane-Hane','Penguin Soldier','Newdoria'].includes(n)));

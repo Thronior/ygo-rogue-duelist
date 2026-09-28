@@ -41,7 +41,7 @@ export class TagDuel extends MobileDuel {
  snapshotFor(seat){
   if(this.pvp)return this.pvpSnapshot(seat);
   const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','duel_metrics','battle_destroy','destroy','banish','tribute_summons'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;
-  state.tag.ui={chainDepth:this.chainDepth,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:this.logs,revealedHands:[{...(this.revealedHands?.[0]||{})},{}]};
+  state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:this.logs,revealedHands:[{...(this.revealedHands?.[0]||{})},{}]};
   state.players[0].extraCards=this.query(0,L.EXTRA);
   if(!state.tag.canRespond)state.pending=null;
   // Never transmit an AI hand, deck order, or hidden enemy card to the remote player.
@@ -61,7 +61,7 @@ export class TagDuel extends MobileDuel {
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
   if(this.respondingSeat!==seat)state.pending=null;
   const reveals={};for(const [key,code] of Object.entries(this.revealedHands?.[seat]||{})){const [side,seq]=key.split(':');reveals[(Number(side)^seat)+':'+seq]=code}
-  state.tag.ui={chainDepth:this.chainDepth,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:[],revealedHands:[reveals,{}]};
+  state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:[],revealedHands:[reveals,{}]};
   if(seat===1){state=flipPerspective(state);state.players.reverse();state.lp.reverse();state.tag.names.reverse();}
   if(state.pending)delete state.pending.wire;
   state.tag.pvp=true;state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.activeSeats=[0,0];

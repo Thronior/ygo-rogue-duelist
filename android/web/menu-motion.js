@@ -5,15 +5,21 @@ export function mountMenuMotion(root,count,initial,onSelect){
  let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0;
  const wrap=n=>(n%count+count)%count;
  const portrait=()=>matchMedia('(orientation:portrait)').matches;
- const spacing=()=>Math.max(1,(portrait()?root.clientHeight*.32:root.clientWidth*.23));
+ const cardSize=()=>{const c=cards.find(c=>!c.hidden)||cards[0];return portrait()?c.offsetHeight:c.offsetWidth;};
+ const gap=()=>portrait()?-cardSize()*.22:Math.max(10,root.clientWidth*.012);
+ const spacing=()=>Math.max(1,cardSize()*.86+gap());
  function paint(){
   for(const card of cards){
    const i=Number(card.dataset.menu);
    const d=wrap(i-position+count/2)-count/2,dist=Math.abs(d);
    card.hidden=dist>2.6;card.dataset.distance=String(dist);
    card.style.setProperty('--menu-offset',d);
-   card.style.left=`${50+d*23}%`;
-   card.style.scale=String(1-.28*Math.min(dist,1));
+   const near=Math.min(dist,1),offset=Math.sign(d)*(cardSize()*(.72*dist+.28*(near-near*near/2))+gap()*dist);
+   card.style.left=portrait()?'50%':`calc(50% + ${offset}px)`;
+   const focus=1-Math.min(dist,1);
+   card.style.top=portrait()?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;
+   card.style.scale='none';
+   card.style.transform=`translate(-50%,-50%) scale(${1-.28*Math.min(dist,1)})`;
    card.style.filter=`brightness(${1-.42*Math.min(dist,1)})`;
    card.style.opacity=String(Math.min(1,Math.max(0,2.6-dist)));
    card.style.zIndex=String(100-Math.round(dist*10));
@@ -54,7 +60,8 @@ export function mountMenuMotion(root,count,initial,onSelect){
   if(previous.moved){
    suppressUntil=performance.now()+400;
    if(performance.now()-previous.last>100||e.type==='pointercancel')velocity=0;
-   settle(Math.round(position+Math.max(-.65,Math.min(.65,velocity*.13))));
+   const travel=position-previous.position,projected=position+Math.max(-.65,Math.min(.65,velocity*.13));
+   settle(Math.abs(travel)>.18? (travel>0?Math.max(Math.round(projected),Math.floor(previous.position)+1):Math.min(Math.round(projected),Math.ceil(previous.position)-1)):Math.round(projected));
   }else settle(target);
  }
  function click(e){if(performance.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation();}}
@@ -68,6 +75,6 @@ export function mountMenuMotion(root,count,initial,onSelect){
  return {
   select(index){settle(target+wrap(index-wrap(target)+count/2)-count/2);},
   step(direction){settle(target+direction);},
-  destroy(){cancelAnimationFrame(frame);window.removeEventListener('resize',resize);}
+  destroy(){cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
  };
 }

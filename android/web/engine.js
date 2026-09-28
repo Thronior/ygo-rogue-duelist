@@ -3,9 +3,10 @@ import createCore,{OcgDuelMode as D,OcgLocation as L,OcgPosition as P,OcgQueryFl
 import {systemStrings} from './system-strings.js';
 export {M,R,I,B,L,P};
 export function expandedSeed(seed){let state=BigInt.asUintN(64,BigInt(seed));return Array.from({length:4},()=>{state=BigInt.asUintN(64,state+0x9e3779b97f4a7c15n);let z=state;z=BigInt.asUintN(64,(z^(z>>30n))*0xbf58476d1ce4e5b9n);z=BigInt.asUintN(64,(z^(z>>27n))*0x94d049bb133111ebn);return BigInt.asUintN(64,z^(z>>31n));});}
+export function loadDuelResources(){return Promise.all([fetch('engine-data.json').then(r=>{if(!r.ok)throw Error('Could not load duel data');return r.json()}),fetch('scripts.json').then(r=>r.json())]);}
 export class DuelEngine{
  constructor(cards){this.cards=new Map(cards.map(c=>[c.id,c]));this.logs=[];this.errors=[];this.turn=0;this.phase=0;this.player=0;this.pending=null;this.finished=null;this.last=null;}
- async init(resources){const [data,scripts]=resources||await Promise.all([fetch('engine-data.json').then(r=>r.json()),fetch('scripts.json').then(r=>r.json())]);this.data=data;this.scripts={...scripts};
+ async init(resources){const [data,scripts]=resources||await loadDuelResources();this.data=data;this.scripts={...scripts};
  // The bundled core predates the Link (31) and Pendulum-scale (32) chain queries. Vintage cards
  // have no Pendulum scale, but newer utility scripts query it on registration.
  if(this.scripts['chain.lua']&&![...this.cards.values()].some(c=>c.data?.type&0x1000000))this.scripts['chain.lua']=this.scripts['chain.lua'].replace('Chain.GetTriggeringScale            = chaininfo_fn(CHAININFO_TRIGGERING_LSCALE)','Chain.GetTriggeringScale            = function() return 0 end');
