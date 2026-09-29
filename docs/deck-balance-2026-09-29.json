@@ -1,0 +1,1414 @@
+{
+  "basis": "User-provided 1,050-match results per character per tier; no new balance simulation yet. Minimum main-deck size 40; existing larger lists retained.",
+  "changes": [
+    {
+      "deck": "arkana-tier-1",
+      "before": 27,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Mystic Tomato": 1,
+        "Mystic Clown": 1,
+        "Rogue Doll": 1,
+        "Sorcerer of the Doomed": 1,
+        "Ancient Elf": 1,
+        "Dark Magician": 1,
+        "Book of Secret Arts": 1,
+        "Yami": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Rush Recklessly": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "arkana-tier-2",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Mystic Tomato": 1,
+        "Dark Magician": 1,
+        "Mystic Clown": 1,
+        "Rogue Doll": 1,
+        "Skilled Dark Magician": 1,
+        "Apprentice Magician": 1,
+        "Old Vindictive Magician": 1,
+        "Sorcerer of the Doomed": 1,
+        "Book of Secret Arts": 1,
+        "Thousand Knives": 1,
+        "Dark Magic Attack": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1,
+        "Rush Recklessly": 1,
+        "Magical Dimension": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "bandit-keith-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Roboyarou": 1,
+        "Cyber Falcon": 1,
+        "Oni Tank T-34": 1,
+        "Gradius": 1,
+        "Giga-Tech Wolf": 1,
+        "Guardian of the Throne Room": 1,
+        "7 Completed": 1,
+        "Trap Hole": 1,
+        "Fissure": 1,
+        "Reinforcements": 1,
+        "Jar of Greed": 1,
+        "Dust Tornado": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "bonz-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Dragon Zombie": 1,
+        "Armored Zombie": 1,
+        "The 13th Grave": 1,
+        "Magical Ghost": 1,
+        "The Snake Hair": 1,
+        "Yaranzo": 1,
+        "Violet Crystal": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Castle Walls": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "bonz-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Vampire Lord": 1,
+        "Pyramid Turtle": 1,
+        "Axe of Despair": 2,
+        "Call of the Haunted": 1,
+        "Bottomless Trap Hole": 1
+      },
+      "added": {
+        "Royal Keeper": 1,
+        "The Shallow Grave": 1,
+        "Trap Hole": 1,
+        "Violet Crystal": 2,
+        "Vampire Lady": 1
+      },
+      "reasons": [
+        "77.71%: reduce recruiter/revival snowball and overpowering equipment."
+      ]
+    },
+    {
+      "deck": "bonz-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Pyramid Turtle": 1,
+        "Book of Life": 1,
+        "Call of the Haunted": 1,
+        "Raigeki": 1
+      },
+      "added": {
+        "Royal Keeper": 1,
+        "The Shallow Grave": 1,
+        "Violet Crystal": 1,
+        "Tribute to the Doomed": 1
+      },
+      "reasons": [
+        "67.14%: lower recruiter/revival chain consistency and sweepers."
+      ]
+    },
+    {
+      "deck": "espa-roba-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {
+        "Shadow of Eyes": 1,
+        "Light of Intervention": 1,
+        "Happy Lover": 1,
+        "Kageningen": 1
+      },
+      "added": {
+        "Cyber Raider": 2,
+        "Reflect Bounder": 1,
+        "Cyber Falcon": 1,
+        "Roboyarou": 1,
+        "Guardian of the Throne Room": 2,
+        "Mechanicalchaser": 1,
+        "Jinzo": 1,
+        "Fissure": 2,
+        "Trap Hole": 1,
+        "Rush Recklessly": 1,
+        "Jar of Greed": 1,
+        "Dust Tornado": 1,
+        "Enemy Controller": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "30.19%: add useful Machine pressure and removal; Jinzo now makes Amplifier live."
+      ]
+    },
+    {
+      "deck": "espa-roba-tier-2",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "The Fiend Megacyber": 1,
+        "Jinzo": 1,
+        "Cyber Raider": 1,
+        "Reflect Bounder": 1,
+        "Mechanicalchaser": 2,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Enemy Controller": 1,
+        "Dust Tornado": 1,
+        "Jar of Greed": 1,
+        "Rush Recklessly": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "ishizu-ishtar-tier-1",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Dunames Dark Witch": 2,
+        "Shining Angel": 1,
+        "Airknight Parshath": 1,
+        "Swords of Revealing Light": 1,
+        "Monster Reborn": 1
+      },
+      "added": {
+        "Hysteric Fairy": 1,
+        "Happy Lover": 1,
+        "Dancing Elf": 1,
+        "Wingweaver": 1,
+        "The Shallow Grave": 1,
+        "Enchanted Javelin": 1
+      },
+      "reasons": [
+        "73.33%: lower recruiter, attacker and recovery efficiency."
+      ]
+    },
+    {
+      "deck": "joey-wheeler-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Little-Winguard": 1,
+        "Rocket Warrior": 1,
+        "Baby Dragon": 1,
+        "Kojikocy": 1,
+        "Alligator's Sword": 1,
+        "Axe Raider": 1,
+        "Polymerization": 1,
+        "Kunai with Chain": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Reinforcements": 1,
+        "Jar of Greed": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "joey-wheeler-tier-2",
+      "before": 38,
+      "after": 40,
+      "removed": {
+        "Summoned Skull": 1,
+        "Penguin Soldier": 1,
+        "Spear Dragon": 2,
+        "Time Wizard": 2
+      },
+      "added": {
+        "Little-Winguard": 1,
+        "Rocket Warrior": 1,
+        "Swordsman of Landstar": 1,
+        "Battle Warrior": 1,
+        "Garoozis": 1,
+        "Masaki the Legendary Swordsman": 1,
+        "Legendary Sword": 1,
+        "Kunai with Chain": 1
+      },
+      "reasons": [
+        "76.86%: reduce repeated piercing, board wipes and efficient tribute access.",
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "joey-wheeler-tier-3",
+      "before": 41,
+      "after": 41,
+      "removed": {
+        "Spear Dragon": 1,
+        "Graceful Charity": 1,
+        "Premature Burial": 1,
+        "Raigeki": 1,
+        "Ring of Destruction": 1
+      },
+      "added": {
+        "Fissure": 1,
+        "Kunai with Chain": 1,
+        "Jar of Greed": 1,
+        "The Shallow Grave": 1,
+        "Rocket Warrior": 1
+      },
+      "reasons": [
+        "68.00%: replace duplicate premium staples and piercing with thematic alternatives."
+      ]
+    },
+    {
+      "deck": "lumis-and-umbra-tier-1",
+      "before": 29,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Melchid the Four-Face Beast": 1,
+        "Grand Tiki Elder": 1,
+        "Terra the Terrible": 1,
+        "Mask of Darkness": 1,
+        "Mystic Clown": 1,
+        "Mask of Weakness": 1,
+        "Shining Abyss": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "lumis-and-umbra-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Exchange": 1,
+        "Chosen One": 1,
+        "The Mask of Remnants": 1,
+        "Spirit Elimination": 1
+      },
+      "added": {
+        "Fissure": 1,
+        "Manju of the Ten Thousand Hands": 1,
+        "Trap Hole": 1,
+        "Mystic Tomato": 1
+      },
+      "reasons": [
+        "41.52%: reduce dead/situational spells and improve ritual consistency."
+      ]
+    },
+    {
+      "deck": "lumis-and-umbra-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Monster Reborn": 1,
+        "Premature Burial": 1,
+        "Raigeki": 1
+      },
+      "added": {
+        "Mask of Darkness": 1,
+        "Mask of the Accursed": 1,
+        "The Shallow Grave": 1
+      },
+      "reasons": [
+        "61.33%: replace redundant power staples with masked-theme support."
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-1",
+      "before": 26,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Harpie Lady": 1,
+        "Birdface": 1,
+        "Faith Bird": 1,
+        "Blue-Winged Crown": 1,
+        "Skull Red Bird": 1,
+        "Follow Wind": 1,
+        "Elegant Egotist": 1,
+        "Sky Scout": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1,
+        "Gust": 1,
+        "Reinforcements": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-3",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Harpie Lady": 2,
+        "Harpie Lady Sisters": 1,
+        "Harpie's Pet Dragon": 1,
+        "Elegant Egotist": 2,
+        "Birdface": 2,
+        "Graceful Charity": 1,
+        "Mystical Space Typhoon": 1,
+        "Mirror Force": 1,
+        "Call of the Haunted": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "mako-tsunami-tier-1",
+      "before": 29,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Slime Toad": 1,
+        "Sentinel of the Seas": 1,
+        "Water Magician": 1,
+        "Armored Starfish": 1,
+        "7 Colored Fish": 1,
+        "Giant Red Seasnake": 1,
+        "Steel Shell": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "mako-tsunami-tier-2",
+      "before": 27,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "7 Colored Fish": 1,
+        "Giant Red Seasnake": 1,
+        "Trap Hole": 1,
+        "Penguin Soldier": 1,
+        "Mother Grizzly": 2,
+        "Yomi Ship": 1,
+        "Star Boy": 1,
+        "Salvage": 1,
+        "Fissure": 1,
+        "Dust Tornado": 1,
+        "Jar of Greed": 1,
+        "Steel Shell": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "mako-tsunami-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Root Water": 1,
+        "The Furious Sea King": 1,
+        "Enchanting Mermaid": 1,
+        "Fiend Kraken": 1,
+        "Jellyfish": 1,
+        "Flying Fish": 1,
+        "High Tide Gyojin": 1,
+        "Return of the Doomed": 1,
+        "Hydro Pressure Cannon": 1,
+        "Fish and Kicks": 1
+      },
+      "added": {
+        "Salvage": 1,
+        "Mother Grizzly": 3,
+        "Abyss Soldier": 2,
+        "7 Colored Fish": 1,
+        "Book of Moon": 1,
+        "Graceful Charity": 1,
+        "Levia-Dragon - Daedalus": 1
+      },
+      "reasons": [
+        "33.86%: replace weak normals and unsupported effects with WATER recruiters, bounce and recovery."
+      ]
+    },
+    {
+      "deck": "marik-ishtar-tier-1",
+      "before": 29,
+      "after": 40,
+      "removed": {
+        "King Fog": 1,
+        "The Shadow Who Controls the Dark": 1,
+        "Jam Breeding Machine": 1,
+        "Card of Safe Return": 1
+      },
+      "added": {
+        "Newdoria": 2,
+        "Witty Phantom": 1,
+        "Giant Germ": 2,
+        "Dark Jeroid": 2,
+        "Drillago": 1,
+        "Gil Garth": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Rush Recklessly": 2,
+        "Jar of Greed": 1,
+        "Mask of Darkness": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "26.19%: remove summon lock and unsupported draw engine; add effect monsters."
+      ]
+    },
+    {
+      "deck": "marik-ishtar-tier-2",
+      "before": 25,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Newdoria": 1,
+        "Mask of the Accursed": 1,
+        "Coffin Seller": 1,
+        "Dark Jeroid": 2,
+        "Drillago": 1,
+        "Gil Garth": 1,
+        "Giant Germ": 2,
+        "Mystic Tomato": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Rush Recklessly": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "marik-ishtar-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "The Winged Dragon of Ra": 2,
+        "Legendary Fiend": 2,
+        "Revival Jam": 2,
+        "Rafflesia Seduction": 1,
+        "Chorus of Sanctuary": 2,
+        "Magical Stone Excavation": 1,
+        "Jam Defender": 2
+      },
+      "added": {
+        "Gil Garth": 1,
+        "Drillago": 1,
+        "Newdoria": 2,
+        "Mystic Tomato": 2,
+        "Fissure": 1,
+        "Mystical Space Typhoon": 1,
+        "Call of the Haunted": 1,
+        "Waboku": 1,
+        "Graceful Charity": 1,
+        "Dark Dust Spirit": 1
+      },
+      "reasons": [
+        "26.86%: keep Ra identity but reduce tribute bricks and Jam-only support, adding recruiters/removal."
+      ]
+    },
+    {
+      "deck": "maximillion-pegasus-tier-1",
+      "before": 27,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Toon Mermaid": 1,
+        "Thousand-Eyes Idol": 1,
+        "Fairy's Gift": 1,
+        "The Illusory Gentleman": 1,
+        "Toon World": 1,
+        "Toon Table of Contents": 1,
+        "Rogue Doll": 1,
+        "Senju of the Thousand Hands": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1,
+        "Sonic Bird": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "maximillion-pegasus-tier-2",
+      "before": 24,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Toon Mermaid": 1,
+        "Nimble Momonga": 1,
+        "Toon World": 1,
+        "Toon Table of Contents": 2,
+        "Toon Gemini Elf": 2,
+        "Senju of the Thousand Hands": 1,
+        "Sonic Bird": 1,
+        "Manju of the Ten Thousand Hands": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Dust Tornado": 1,
+        "Waboku": 1,
+        "Rush Recklessly": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "noah-kaiba-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Great Long Nose": 1,
+        "Spring of Rebirth": 2,
+        "Spiritual Energy Settle Machine": 1,
+        "Reload": 1,
+        "Call of the Haunted": 1
+      },
+      "added": {
+        "Maharaghi": 1,
+        "Fissure": 2,
+        "Trap Hole": 1,
+        "Giant Rat": 1,
+        "Rush Recklessly": 1
+      },
+      "reasons": [
+        "39.43%: replace excess life gain and revival that cannot target Spirits with board support."
+      ]
+    },
+    {
+      "deck": "noah-kaiba-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Gradius": 2,
+        "Great Long Nose": 1,
+        "Gradius' Option": 1,
+        "Giant Rex": 1,
+        "Sebek's Blessing": 1,
+        "Cyclon Laser": 1,
+        "Spring of Rebirth": 1,
+        "Earthshaker": 1,
+        "Last Turn": 1
+      },
+      "added": {
+        "Asura Priest": 1,
+        "Tsukuyomi": 1,
+        "Manju of the Ten Thousand Hands": 1,
+        "Shinato's Ark": 1,
+        "Mirror Force": 1,
+        "Pot of Greed": 1,
+        "Book of Moon": 1,
+        "Giant Rat": 2,
+        "Graceful Charity": 1
+      },
+      "reasons": [
+        "28.57%: remove incompatible Gradius/Last Turn package; improve Spirit and ritual setup."
+      ]
+    },
+    {
+      "deck": "odion-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {
+        "Anti Raigeki": 1,
+        "Call of Darkness": 1,
+        "Call of the Grave": 1
+      },
+      "added": {
+        "Stone Armadiller": 1,
+        "The Statue of Easter Island": 1,
+        "Mask of Darkness": 2,
+        "Man-Eater Bug": 1,
+        "Mystical Beast of Serket": 1,
+        "Embodiment of Apophis": 2,
+        "Temple of the Kings": 1,
+        "Giant Soldier of Stone": 1,
+        "Trap Hole": 2,
+        "Widespread Ruin": 2,
+        "Jar of Greed": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "Low win rate: replace narrow counter cards with usable traps and trap recovery."
+      ]
+    },
+    {
+      "deck": "odion-tier-2",
+      "before": 28,
+      "after": 40,
+      "removed": {
+        "Anti Raigeki": 1,
+        "Call of Darkness": 1,
+        "Call of the Grave": 1
+      },
+      "added": {
+        "Mystical Beast of Serket": 1,
+        "Mask of Darkness": 2,
+        "Man-Eater Bug": 1,
+        "Embodiment of Apophis": 2,
+        "Temple of the Kings": 1,
+        "Trap Hole": 2,
+        "Widespread Ruin": 2,
+        "Giant Soldier of Stone": 1,
+        "Jar of Greed": 1,
+        "Dust Tornado": 1,
+        "Fissure": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "Low win rate: replace narrow counter cards with usable traps and trap recovery."
+      ]
+    },
+    {
+      "deck": "odion-tier-3",
+      "before": 29,
+      "after": 40,
+      "removed": {
+        "Two-Pronged Attack": 1,
+        "Monster Recovery": 1,
+        "Anti Raigeki": 1,
+        "Call of Darkness": 1,
+        "Call of the Grave": 1,
+        "Enchanted Javelin": 1
+      },
+      "added": {
+        "Mystical Beast of Serket": 1,
+        "Mask of Darkness": 2,
+        "Man-Eater Bug": 1,
+        "Trap Hole": 1,
+        "Temple of the Kings": 1,
+        "Embodiment of Apophis": 3,
+        "Mirror Force": 1,
+        "Call of the Haunted": 1,
+        "Dust Tornado": 1,
+        "Graceful Charity": 1,
+        "Widespread Ruin": 1,
+        "Sakuretsu Armor": 1,
+        "Book of Moon": 1,
+        "Bottomless Trap Hole": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "Low win rate: replace narrow counter cards with usable traps and trap recovery.",
+        "21.95%: replace costly/situational cards with practical trap control."
+      ]
+    },
+    {
+      "deck": "rex-raptor-tier-1",
+      "before": 27,
+      "after": 40,
+      "removed": {
+        "Mystical Capture Chain": 1,
+        "Obese Marmot of Nefariousness": 1,
+        "Tenderness": 1,
+        "The Drdek": 1
+      },
+      "added": {
+        "Two-Headed King Rex": 2,
+        "Crawling Dragon #2": 2,
+        "Gilasaurus": 1,
+        "Hyper Hammerhead": 2,
+        "Uraby": 2,
+        "Raise Body Heat": 1,
+        "Mad Sword Beast": 2,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Rush Recklessly": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support.",
+        "31.76%: replace off-theme weak normals with playable Dinosaurs."
+      ]
+    },
+    {
+      "deck": "rex-raptor-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Hyper Hammerhead": 1,
+        "Raigeki": 1,
+        "Snatch Steal": 1,
+        "United We Stand": 1
+      },
+      "added": {
+        "Fissure": 1,
+        "Brain Control": 1,
+        "Raise Body Heat": 1,
+        "Two-Mouth Darkruler": 1
+      },
+      "reasons": [
+        "65.71%: preserve Dinosaur aggression while lowering generic power spikes."
+      ]
+    },
+    {
+      "deck": "seto-kaiba-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Kaiser Sea Horse": 1,
+        "Spear Dragon": 1,
+        "Luster Dragon": 1
+      },
+      "added": {
+        "Spirit Ryu": 1,
+        "The Dragon Dwelling in the Cave": 1,
+        "Koumori Dragon": 1
+      },
+      "reasons": [
+        "62.76%: modestly reduce early pressure and Blue-Eyes acceleration."
+      ]
+    },
+    {
+      "deck": "seto-kaiba-tier-3",
+      "before": 48,
+      "after": 48,
+      "removed": {
+        "Goblin Attack Force": 1,
+        "Heavy Storm": 1,
+        "Monster Reborn": 2,
+        "Premature Burial": 1,
+        "Raigeki": 2,
+        "Ring of Destruction": 1
+      },
+      "added": {
+        "Fissure": 1,
+        "Tribute to the Doomed": 1,
+        "The Shallow Grave": 1,
+        "Dragon Treasure": 1,
+        "Stamping Destruction": 1,
+        "Burst Breath": 1,
+        "Dust Tornado": 1,
+        "Koumori Dragon": 1
+      },
+      "reasons": [
+        "73.52%: remove repeated mass removal/revival and lower blowout density, retaining 48 cards."
+      ]
+    },
+    {
+      "deck": "tea-gardner-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Darklord Marie": 2,
+        "Kiseitai": 1,
+        "Dian Keto the Cure Master": 2,
+        "Monster Recovery": 1,
+        "Numinous Healer": 1,
+        "Enchanted Javelin": 1
+      },
+      "added": {
+        "Cure Mermaid": 1,
+        "Shining Angel": 2,
+        "Poison of the Old Man": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Cestus of Dagla": 1,
+        "Dancing Fairy": 1
+      },
+      "reasons": [
+        "28.10%: improve access to Fire Princess and add field interaction instead of redundant healing."
+      ]
+    },
+    {
+      "deck": "tea-gardner-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Darklord Marie": 2,
+        "White Magician Pikeru": 1,
+        "Guardian Angel Joan": 2,
+        "The Agent of Force - Mars": 1,
+        "Numinous Healer": 1,
+        "Gift of The Mystical Elf": 1
+      },
+      "added": {
+        "Cestus of Dagla": 1,
+        "Airknight Parshath": 1,
+        "Cure Mermaid": 2,
+        "Dancing Fairy": 1,
+        "Asura Priest": 1,
+        "Mirror Force": 1,
+        "Mystical Space Typhoon": 1
+      },
+      "reasons": [
+        "25.62%: reduce dead healing/tribute draws and add attack pressure and interaction."
+      ]
+    },
+    {
+      "deck": "tristan-taylor-tier-1",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Basic Insect": 1,
+        "Hyozanryu": 1,
+        "LaLa Li-oon": 1,
+        "Leo Wizard": 1,
+        "Mikazukinoyaiba": 1,
+        "Misairuzame": 1,
+        "Petit Dragon": 1,
+        "Spirit of the Mountain": 1,
+        "Stone Dragon": 1,
+        "Tatsunootoshigo": 1,
+        "Tentacle Plant": 1,
+        "The Melting Red Shadow": 1,
+        "Weather Control": 1,
+        "Wing Egg Elf": 1,
+        "Wretched Ghost of the Attic": 1,
+        "Zarigun": 1
+      },
+      "added": {
+        "Warrior Dai Grepher": 2,
+        "Axe Raider": 2,
+        "Battle Warrior": 1,
+        "Kojikocy": 1,
+        "Roboyarou": 1,
+        "Robolady": 1,
+        "Cyber Commander": 1,
+        "Swamp Battleguard": 1,
+        "Lava Battleguard": 1,
+        "Fissure": 2,
+        "Trap Hole": 1,
+        "Reinforcements": 1,
+        "Dust Tornado": 1
+      },
+      "reasons": [
+        "12.29%: replace tribute-heavy random filler with summonable Warriors, a Battleguard pair and interaction."
+      ]
+    },
+    {
+      "deck": "tristan-taylor-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Launcher Spider": 2,
+        "Sengenjin": 2,
+        "Garma Sword": 3,
+        "Block Attack": 2,
+        "Garma Sword Oath": 3
+      },
+      "added": {
+        "Warrior Dai Grepher": 2,
+        "Marauding Captain": 1,
+        "Reinforcement of the Army": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Mataza the Zapper": 1,
+        "Ninja Grandmaster Sasuke": 1,
+        "Giant Rat": 2,
+        "Rush Recklessly": 1,
+        "Dust Tornado": 1
+      },
+      "reasons": [
+        "31.62%: cut clumsy rituals/excess tributes, add Warrior setup and practical interaction."
+      ]
+    },
+    {
+      "deck": "tristan-taylor-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Science Soldier": 1,
+        "Cyber Commander": 1,
+        "Sword Hunter": 1,
+        "Spirit Ryu": 2,
+        "Fusion Weapon": 2,
+        "Cybernetic Fusion Support": 2,
+        "Cybernetic Zone": 1
+      },
+      "added": {
+        "Ninja Grandmaster Sasuke": 1,
+        "Mataza the Zapper": 1,
+        "Reinforcement of the Army": 2,
+        "Call of the Haunted": 1,
+        "Book of Moon": 1,
+        "Mystical Space Typhoon": 1,
+        "Marauding Captain": 2,
+        "Giant Rat": 1
+      },
+      "reasons": [
+        "23.05%: remove unsupported fusion support and weak bodies; keep Robo fusions with Warrior pressure."
+      ]
+    },
+    {
+      "deck": "tutorial-dragon-hatchery",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Lizard Soldier": 1,
+        "Two-Mouth Darkruler": 1,
+        "Wicked Dragon with the Ersatz Head": 1,
+        "Anthrosaurus": 1,
+        "Petit Dragon": 1,
+        "Tomozaurus": 1,
+        "Yamatano Dragon Scroll": 1,
+        "Mega Thunderball": 1,
+        "Niwatori": 1,
+        "Dragon Treasure": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-forest-clearing",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Nekogal #1": 1,
+        "Archfiend Marmot of Nefariousness": 1,
+        "Tentacle Plant": 1,
+        "Korogashi": 1,
+        "Burglar": 1,
+        "Meotoko": 1,
+        "Laughing Flower": 1,
+        "Gate Deeg": 1,
+        "Nightmare Scorpion": 1,
+        "Forest": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-moonlit-garden",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Lady of Faith": 1,
+        "Lucky Trinket": 1,
+        "Necrolancer the Time-lord": 1,
+        "The Bewitching Phantom Thief": 1,
+        "Djinn the Watcher of the Wind": 1,
+        "Dancing Elf": 1,
+        "Key Mace": 1,
+        "Hurricail": 1,
+        "Nemuriko": 1,
+        "Book of Secret Arts": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-quiet-graveyard",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Corroding Shark": 1,
+        "Souls of the Forgotten": 1,
+        "Wood Remains": 1,
+        "Megirus Light": 1,
+        "Embryonic Beast": 1,
+        "Mystery Hand": 1,
+        "Dokuroyaiba": 1,
+        "Phantom Ghost": 1,
+        "The Drdek": 1,
+        "Violet Crystal": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-scrap-workshop",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Holograh": 1,
+        "Roboyarou": 1,
+        "Mega Thunderball": 1,
+        "Bat": 1,
+        "United Resistance": 1,
+        "Thunder Kid": 1,
+        "Cyber Commander": 1,
+        "Robolady": 1,
+        "Lightning Conger": 1,
+        "Machine Conversion Factory": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-tidal-shallows",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Aqua Snake": 1,
+        "Liquid Beast": 1,
+        "Flying Fish": 1,
+        "Twin Long Rods #1": 1,
+        "Hitodenchak": 1,
+        "Root Water": 1,
+        "Wetha": 1,
+        "Zarigun": 1,
+        "Turu-Purun": 1,
+        "Umi": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "tutorial-training-yard",
+      "before": 23,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Dragon Statue": 1,
+        "Vishwar Randi": 1,
+        "Skull Stalker": 1,
+        "Kagemusha of the Blue Flame": 1,
+        "M-Warrior #1": 1,
+        "Monster Egg": 1,
+        "Doron": 1,
+        "Science Soldier": 1,
+        "Unknown Warrior of Fiend": 1,
+        "Legendary Sword": 2,
+        "Red Medicine": 2,
+        "Stop Defense": 2,
+        "Reinforcements": 1,
+        "Castle Walls": 1
+      },
+      "reasons": [
+        "Reach 40 by repeating existing low-power tutorial cards only."
+      ]
+    },
+    {
+      "deck": "weevil-underwood-tier-1",
+      "before": 27,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Pinch Hopper": 1,
+        "Swarm of Scarabs": 1,
+        "Gokibore": 1,
+        "Man-Eater Bug": 1,
+        "Big Insect": 1,
+        "Flying Kamakiri #2": 1,
+        "Insect Armor with Laser Cannon": 1,
+        "Trap Hole": 1,
+        "Howling Insect": 1,
+        "Fissure": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1,
+        "Dust Tornado": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "weevil-underwood-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Perfectly Ultimate Great Moth": 1,
+        "Great Moth": 1,
+        "Cocoon of Evolution": 3,
+        "Cockroach Knight": 1,
+        "Larvae Moth": 3,
+        "Basic Insect": 1,
+        "Eradicating Aerosol": 2,
+        "Laser Cannon Armor": 2,
+        "Infinite Dismissal": 2
+      },
+      "added": {
+        "Insect Princess": 1,
+        "Empress Mantis": 1,
+        "Howling Insect": 3,
+        "Man-Eater Bug": 1,
+        "Swarm of Scarabs": 1,
+        "Swarm of Locusts": 1,
+        "Neo Bug": 2,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Rush Recklessly": 1,
+        "Dust Tornado": 1,
+        "Waboku": 1,
+        "Jar of Greed": 1
+      },
+      "reasons": [
+        "17.90%: remove the unusable Moth package (no Petit Moth) and redundant narrow cards; add Insect recruiters and removal."
+      ]
+    },
+    {
+      "deck": "yami-bakura-tier-1",
+      "before": 28,
+      "after": 40,
+      "removed": {},
+      "added": {
+        "Goblin Zombie": 1,
+        "Lord of the Lamp": 1,
+        "Terra the Terrible": 1,
+        "The Portrait's Secret": 1,
+        "Claw Reacher": 1,
+        "Witty Phantom": 1,
+        "Dark Spirit of the Silent": 1,
+        "Yami": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Waboku": 1
+      },
+      "reasons": [
+        "Bring the main deck to 40 with themed monsters and tier-appropriate support."
+      ]
+    },
+    {
+      "deck": "yami-bakura-tier-2",
+      "before": 43,
+      "after": 43,
+      "removed": {
+        "Lady of Faith": 1,
+        "Happy Lover": 1,
+        "Dark Designator": 1,
+        "Exchange": 1,
+        "Polymerization": 1
+      },
+      "added": {
+        "Giant Germ": 1,
+        "Newdoria": 1,
+        "Fissure": 1,
+        "Trap Hole": 1,
+        "Mystic Tomato": 1
+      },
+      "reasons": [
+        "40.43%: improve Fiend graveyard supply and replace unsupported spells; retain Destiny Board."
+      ]
+    },
+    {
+      "deck": "yami-bakura-tier-3",
+      "before": 42,
+      "after": 42,
+      "removed": {
+        "Dark Hole": 1,
+        "Monster Reborn": 1,
+        "Raigeki": 1
+      },
+      "added": {
+        "Fissure": 1,
+        "Dark Spirit of the Silent": 1,
+        "Newdoria": 1
+      },
+      "reasons": [
+        "59.62%: modestly reduce duplicated mass removal/recursion."
+      ]
+    },
+    {
+      "deck": "yami-marik-tier-1",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Des Koala": 1,
+        "Spirit Reaper": 2,
+        "Tremendous Fire": 1,
+        "Messenger of Peace": 2,
+        "Secret Barrel": 2,
+        "Gravity Bind": 2
+      },
+      "added": {
+        "Hinotama": 1,
+        "Sparks": 1,
+        "Giant Germ": 2,
+        "Enchanted Javelin": 2,
+        "Castle Walls": 2,
+        "Viser Des": 1,
+        "Coffin Seller": 1
+      },
+      "reasons": [
+        "82.00%: replace persistent locks and high-output burn with finite defense and smaller burn."
+      ]
+    },
+    {
+      "deck": "yami-marik-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Stealth Bird": 1,
+        "Solar Flare Dragon": 1,
+        "Des Koala": 1,
+        "Wave-Motion Cannon": 1,
+        "Secret Barrel": 1,
+        "Ojama Trio": 1
+      },
+      "added": {
+        "Ookazi": 1,
+        "Poison Mummy": 1,
+        "Cannon Soldier": 1,
+        "Princess of Tsurugi": 1,
+        "Hinotama": 1,
+        "Enchanted Javelin": 1
+      },
+      "reasons": [
+        "67.81%: reduce lock/burn density and repeatable damage."
+      ]
+    },
+    {
+      "deck": "yami-marik-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Wave-Motion Cannon": 1,
+        "Level Limit - Area B": 1,
+        "Gravity Bind": 1,
+        "Ojama Trio": 1
+      },
+      "added": {
+        "Ookazi": 1,
+        "Nightmare's Steelcage": 1,
+        "Negate Attack": 1,
+        "Princess of Tsurugi": 1
+      },
+      "reasons": [
+        "64.76%: reduce repeatable burn and permanent battle locks."
+      ]
+    },
+    {
+      "deck": "yami-yugi-tier-1",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Skilled Dark Magician": 2,
+        "Magician of Faith": 1,
+        "Old Vindictive Magician": 1,
+        "Gemini Elf": 2,
+        "Swords of Revealing Light": 1,
+        "Monster Reborn": 1,
+        "Pot of Greed": 1,
+        "Magic Cylinder": 1
+      },
+      "added": {
+        "The Stern Mystic": 1,
+        "Book of Secret Arts": 1,
+        "Jar of Greed": 1,
+        "Rogue Doll": 2,
+        "Sorcerer of the Doomed": 1,
+        "The Shallow Grave": 1,
+        "Enchanted Javelin": 1,
+        "Stop Defense": 1,
+        "Lady of Faith": 1
+      },
+      "reasons": [
+        "84.10%: reduce efficient beaters, recursion and premium defensive staples."
+      ]
+    },
+    {
+      "deck": "yami-yugi-tier-2",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Skilled Dark Magician": 2,
+        "Breaker the Magical Warrior": 1,
+        "Magic Cylinder": 1
+      },
+      "added": {
+        "Rogue Doll": 1,
+        "Neo the Magic Swordsman": 1,
+        "The Stern Mystic": 1,
+        "Enchanted Javelin": 1
+      },
+      "reasons": [
+        "68.00%: lower easy pressure and reactive swing damage."
+      ]
+    },
+    {
+      "deck": "yugi-muto-tier-3",
+      "before": 40,
+      "after": 40,
+      "removed": {
+        "Emissary of the Afterlife": 1,
+        "Mystic Tomato": 1,
+        "Upstart Goblin": 1,
+        "Messenger of Peace": 1,
+        "Level Limit - Area B": 1,
+        "Gravity Bind": 1
+      },
+      "added": {
+        "Nightmare's Steelcage": 1,
+        "Negate Attack": 1,
+        "Enchanted Javelin": 1,
+        "Different Dimension Capsule": 1,
+        "Giant Soldier of Stone": 1,
+        "Aqua Madoor": 1
+      },
+      "reasons": [
+        "71.00%: reduce permanent lock and Exodia search/draw consistency."
+      ]
+    }
+  ]
+}

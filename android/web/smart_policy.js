@@ -90,7 +90,8 @@ export function smartContext(e,p,L,prompt=null){
  const same=(a,b)=>a&&b&&a.controller===b.controller&&a.location===b.location&&a.sequence===b.sequence;
  const enabled=c=>face(c)&&!c.is_disabled&&(!(data(c).type&1)||effectsEnabled(c.controller??p));
  const trapNegated=[0,1].some(s=>relic(s,'traps_no_more'))||[...own,...enemy].some(c=>enabled(c)&&name(c)==='Jinzo')||[...back,...theirBack].some(c=>enabled(c)&&name(c)==='Royal Decree');
- const spellNegated=[0,1].some(s=>relic(s,'spells_no_more'))||[...own,...enemy].some(c=>enabled(c)&&name(c)==='Spell Canceller');
+ const imperialUp=[...back,...theirBack].some(c=>enabled(c)&&name(c)==='Imperial Order');
+ const spellNegated=[0,1].some(s=>relic(s,'spells_no_more'))||[...own,...enemy].some(c=>enabled(c)&&name(c)==='Spell Canceller')||imperialUp;
  const activeLocks=[...back,...theirBack].filter(c=>enabled(c)&&!(data(c).type&4&&trapNegated)&&!(data(c).type&2&&spellNegated));
  const umi=activeLocks.some(c=>['Umi','A Legendary Ocean'].includes(name(c)));
  function effectiveLevel(c,future=false){return Math.max(1,lvl(c)-(future&&c.level===undefined&&c.location!==L.MZONE&&attr(c)==='WATER'&&activeLocks.some(x=>name(x)==='A Legendary Ocean')?1:0));}
@@ -433,6 +434,9 @@ export function smartContext(e,p,L,prompt=null){
   // During the other player's turn, preserve combat tricks until the Damage Step.
   // Do not suppress a spent card's separate graveyard/banished triggered effect.
   const spent=c.location===L.GRAVE||c.location===L.REMOVED;
+  // A face-up Imperial Order negates every spell on the field, including our
+  // own. Hold spells while it stands, except a direct answer to its activation.
+  if(imperialUp&&!spent&&(d.type&2)&&!(chain&&e.effect&&name(e.effect.code)==='Imperial Order'))return -1;
   // Temporary combat boosts expire before the opponent can attack: hold them
   // when there is no remaining attack this turn, or resolved protection nullifies it.
   const temporaryBoost=['Limiter Removal','Riryoku','Deal of Phantom'].includes(n)||(!!(d.type&6)&&t.split(/[.!?]/).some(t=>/\b(?:ATK|DEF)\b/i.test(t)&&/(?:until (?:the )?(?:end (?:phase|of (?:this|the) turn))|during the turn this card is activated)/i.test(t)&&/(?:gain|increase|double|add|become|switch)/i.test(t)));
@@ -589,6 +593,7 @@ export function smartContext(e,p,L,prompt=null){
   if(['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break'].includes(n))return enemy.length&&(!/Tribute|Break/.test(n)||hand.length>=2)?105:-1;
   if(n==='Two-Pronged Attack')return own.length>=2&&own.map(expendable).sort((a,b)=>a-b).slice(0,2).reduce((a,b)=>a+b,0)<threat?100:-1;
   if(['Change of Heart','Snatch Steal'].includes(n))return enemy.some(x=>face(x)&&(n==='Snatch Steal'||canBattle&&(enemy.length===1||enemy.some(t=>!same(t,x)&&controlledAttack(x)>power(t)))))?110:-1;
+  if(n==='Mind Control')return enemy.some(x=>face(x))&&(canBattle||hand.some(t=>effectiveLevel(t,true)>4&&effectiveLevel(t,true)<=6))?105:-1;
   if(n==='Nobleman of Crossout')return enemy.some(c=>!face(c))?105:-1;
   if(n==='Stop Defense'&&enemy.filter(x=>face(x)&&!(x.position&1)).every(x=>activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l))))return -1;
   if(n==='Block Attack'&&canBattle)return enemy.some(x=>face(x)&&x.position&1&&(x.defense??data(x).defense)<Math.max(0,...own.map(atk)))?85:-1;
@@ -614,6 +619,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Dark Balter the Terrible'||n==='Ryu Senshi')return chain&&e.effect?.player!==p&&e.lp[p]>1000?92:-1;
   if(n==='Ring of Destruction')return enemy.some(x=>face(x)&&atk(x)<e.lp[p]&&atk(x)<=e.lp[1-p])?100:-1;
   if(n==='Reckless Greed')return chain&&hand.length<=1&&q(p,L.DECK).length>2?65:-1;
+  // Ceasefire had no activation rule at all: 500 damage per face-up monster.
+  if(n==='Ceasefire'){const burn=500*[...own,...enemy].filter(x=>face(x)).length;return burn>=e.lp[1-p]?120:(chain||e.phase===4)&&burn>=1000?80:-1;}
   if(n==='Just Desserts')return enemy.length>=2||enemy.length*500>=e.lp[1-p]?80:-1;
   if(n==='Gift of The Mystical Elf')return own.length+enemy.length>=3&&e.lp[p]<6000?50:-1;
   if(['Red Medicine',"Goblin's Secret Remedy"].includes(n))return e.lp[p]<8000?40:-1;

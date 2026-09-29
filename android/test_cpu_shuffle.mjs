@@ -9,7 +9,7 @@ assert.deepEqual(source,original);assert.notDeepEqual(shuffleCPUDeck(source,123,
 assert.deepEqual(shuffleCPUDeck([],1),[]);assert.deepEqual(shuffleCPUDeck([4],1),[4]);
 const duplicate=[1,1,1,2,2,3];assert.deepEqual(shuffleCPUDeck(duplicate,11).sort(),duplicate);
 // Exercise the actual Watch CPU Duel start/replay path using the real duel core.
-globalThis.fetch=async name=>({json:async()=>resources[name.replace('.json','')]});
+globalThis.fetch=async name=>({ok:true,json:async()=>resources[name.replace('.json','')]});
 const viewer=Object.assign(Object.create(CPUViewer.prototype),{root:{innerHTML:''},content,characters:[4,12],tiers:[2,2],seed:123,generation:0,capture(){},render(){},schedule(){}});
 const saved=JSON.stringify(viewer.characters.map(id=>content.cpuDecks[id][2]));
 const opening=()=>JSON.stringify(viewer.state.players.map(p=>p.hand.map(c=>c.code)));

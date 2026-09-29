@@ -1,0 +1,810 @@
+{
+  "seed": 30715010,
+  "decks": [
+    {
+      "character": 7,
+      "name": "Maximillion Pegasus",
+      "tier": 3,
+      "deck": "maximillion-pegasus-tier-3",
+      "source": "User-provided exact text list (2026-09-24)",
+      "fixed": true,
+      "main": [
+        70781052,
+        70781052,
+        27125110,
+        14898066,
+        14898066,
+        14898066,
+        34124316,
+        33508719,
+        22567609,
+        22567609,
+        22567609,
+        8131171,
+        78636495,
+        53183600,
+        65458948,
+        65458948,
+        65458948,
+        91842653,
+        91842653,
+        64631466,
+        64631466,
+        41426869,
+        41426869,
+        4031928,
+        53129443,
+        83764718,
+        70828912,
+        12580477,
+        45986603,
+        72302403,
+        15259703,
+        15259703,
+        96355986,
+        96355986,
+        62279055,
+        44095762,
+        22359980,
+        2130625,
+        2130625,
+        83555666
+      ],
+      "extra": [],
+      "side": []
+    },
+    {
+      "character": 15,
+      "name": "Odion",
+      "tier": 3,
+      "deck": "odion-tier-3",
+      "source": "https://gamefaqs.gamespot.com/gba/925904-yu-gi-oh-7-trials-to-glory-world-championship-tournament/faqs/46689",
+      "fixed": true,
+      "main": [
+        89194033,
+        31553716,
+        28933734,
+        33508719,
+        54652250,
+        70781052,
+        53129443,
+        83764718,
+        55144522,
+        4206964,
+        66788016,
+        53582587,
+        21598948,
+        77414722,
+        43434803,
+        17814387,
+        14315573,
+        34124316,
+        31560081,
+        78636495,
+        70828912,
+        12580477,
+        29762407,
+        28933734,
+        54652250,
+        89194033,
+        28649820,
+        28649820,
+        28649820,
+        29762407,
+        44095762,
+        97077563,
+        60082869,
+        79571449,
+        4206964,
+        77754944,
+        28933734,
+        56120475,
+        14087893,
+        29401950
+      ],
+      "extra": [],
+      "side": []
+    }
+  ],
+  "responses": [
+    {
+      "type": 1,
+      "action": 4,
+      "index": 0
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 0,
+          "location": 8,
+          "sequence": 0
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 0
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 0,
+          "location": 8,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 2
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 0,
+          "location": 8,
+          "sequence": 2
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 3,
+      "index": 0,
+      "card": "Mask of Darkness"
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 4,
+          "sequence": 0
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 0
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 0
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 1
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 2,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": 0,
+      "card": "Embodiment of Apophis"
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 4,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 11,
+      "position": 1
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 5,
+      "index": 0,
+      "card": "Snatch Steal"
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 0,
+          "location": 8,
+          "sequence": 3
+        }
+      ]
+    },
+    {
+      "type": 5,
+      "indicies": [
+        0
+      ],
+      "cards": [
+        "Embodiment of Apophis"
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 0,
+          "location": 4,
+          "sequence": 0
+        }
+      ]
+    },
+    {
+      "type": 9,
+      "places": [
+        {
+          "player": 0,
+          "location": 8,
+          "sequence": 4
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 1,
+      "index": 0,
+      "card": "Embodiment of Apophis"
+    },
+    {
+      "type": 5,
+      "indicies": [
+        0
+      ],
+      "cards": [
+        "Mask of Darkness"
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 2,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": 0,
+      "card": "Snatch Steal"
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 5,
+      "index": 2,
+      "card": "Pot of Greed"
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 3,
+      "index": 0,
+      "card": "Mask of Darkness"
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 4,
+          "sequence": 0
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 2
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 2
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 2
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 2,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 1,
+      "index": 0,
+      "card": "Embodiment of Apophis"
+    },
+    {
+      "type": 5,
+      "indicies": [
+        0
+      ],
+      "cards": [
+        "Mask of Darkness"
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": 0,
+      "card": "Negate Attack"
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": 0,
+      "card": "Snatch Steal"
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 2,
+      "index": 0
+    },
+    {
+      "type": 5,
+      "indicies": [
+        0
+      ],
+      "cards": [
+        "Negate Attack"
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 2
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 4,
+      "index": 2
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 3
+        }
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 6,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 0,
+      "action": 2,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 1,
+      "action": 7,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 8,
+      "index": 0,
+      "card": "Dust Tornado"
+    },
+    {
+      "type": 5,
+      "indicies": [
+        4
+      ],
+      "cards": [
+        "Snatch Steal"
+      ]
+    },
+    {
+      "type": 8,
+      "index": null
+    },
+    {
+      "type": 3,
+      "yes": true
+    },
+    {
+      "type": 5,
+      "indicies": [
+        0
+      ],
+      "cards": [
+        "Monster Reborn"
+      ]
+    },
+    {
+      "type": 10,
+      "places": [
+        {
+          "player": 1,
+          "location": 8,
+          "sequence": 4
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1144 @@
+{
+  "basis": "37,950-attempt v2 benchmark; 6,740 paired validation/refinement duels.",
+  "changes": [
+    {
+      "deck": "tea-gardner-tier-1",
+      "character": "Tea Gardner",
+      "tier": 1,
+      "identity": "Healing now has a payoff: Fire Princess converts recovery into pressure; fairies remain the backbone.",
+      "removed": {
+        "The Forgiving Maiden": 1,
+        "Goblin's Secret Remedy": 3,
+        "Soul of the Pure": 2
+      },
+      "added": {
+        "Asura Priest": 1,
+        "Fire Princess": 3,
+        "UFO Turtle": 2
+      },
+      "swaps": [
+        {
+          "remove": "The Forgiving Maiden",
+          "add": "Asura Priest"
+        },
+        {
+          "remove": "Goblin's Secret Remedy",
+          "add": "Fire Princess"
+        },
+        {
+          "remove": "Goblin's Secret Remedy",
+          "add": "Fire Princess"
+        },
+        {
+          "remove": "Goblin's Secret Remedy",
+          "add": "Fire Princess"
+        },
+        {
+          "remove": "Soul of the Pure",
+          "add": "UFO Turtle"
+        },
+        {
+          "remove": "Soul of the Pure",
+          "add": "UFO Turtle"
+        }
+      ]
+    },
+    {
+      "deck": "tea-gardner-tier-2",
+      "character": "Tea Gardner",
+      "tier": 2,
+      "identity": "Find and protect the healing/burn engine, with a fairy combat fallback.",
+      "removed": {
+        "Kiseitai": 1,
+        "Nightmare's Steelcage": 2,
+        "Reload": 1,
+        "The Shallow Grave": 1,
+        "Enchanted Javelin": 1,
+        "Dancing Fairy": 1
+      },
+      "added": {
+        "UFO Turtle": 2,
+        "Messenger of Peace": 1,
+        "Gravity Bind": 1,
+        "Gift of The Mystical Elf": 1,
+        "Cestus of Dagla": 1,
+        "Asura Priest": 1
+      },
+      "swaps": [
+        {
+          "remove": "Kiseitai",
+          "add": "UFO Turtle"
+        },
+        {
+          "remove": "Nightmare's Steelcage",
+          "add": "UFO Turtle"
+        },
+        {
+          "remove": "Nightmare's Steelcage",
+          "add": "Messenger of Peace"
+        },
+        {
+          "remove": "Reload",
+          "add": "Gravity Bind"
+        },
+        {
+          "remove": "The Shallow Grave",
+          "add": "Gift of The Mystical Elf"
+        },
+        {
+          "remove": "Enchanted Javelin",
+          "add": "Cestus of Dagla"
+        },
+        {
+          "remove": "Dancing Fairy",
+          "add": "Asura Priest"
+        }
+      ]
+    },
+    {
+      "deck": "tea-gardner-tier-3",
+      "character": "Tea Gardner",
+      "tier": 3,
+      "identity": "Healing/burn consistency instead of unrelated tribute attackers; preserve Mars, sanctuary and Marie.",
+      "removed": {
+        "Cestus of Dagla": 1,
+        "Waboku": 1,
+        "Guardian Angel Joan": 1,
+        "Airknight Parshath": 1,
+        "Cure Mermaid": 1,
+        "Dancing Fairy": 1
+      },
+      "added": {
+        "White Magician Pikeru": 1,
+        "Poison of the Old Man": 1,
+        "Gravity Bind": 1,
+        "UFO Turtle": 3
+      },
+      "swaps": [
+        {
+          "remove": "Cestus of Dagla",
+          "add": "White Magician Pikeru"
+        },
+        {
+          "remove": "Waboku",
+          "add": "Poison of the Old Man"
+        },
+        {
+          "remove": "Guardian Angel Joan",
+          "add": "Gravity Bind"
+        },
+        {
+          "remove": "Airknight Parshath",
+          "add": "UFO Turtle"
+        },
+        {
+          "remove": "Cure Mermaid",
+          "add": "UFO Turtle"
+        },
+        {
+          "remove": "Dancing Fairy",
+          "add": "UFO Turtle"
+        }
+      ]
+    },
+    {
+      "deck": "tristan-taylor-tier-3",
+      "character": "Tristan Taylor",
+      "tier": 3,
+      "identity": "Reinforce Tristan warrior/equipment combat while retaining the Roboyarou/Robolady fusion package.",
+      "removed": {
+        "Warrior Dai Grepher": 1,
+        "Acrobat Monkey": 1,
+        "Polymerization": 1,
+        "Limiter Removal": 1
+      },
+      "added": {
+        "Mataza the Zapper": 1,
+        "Marauding Captain": 1,
+        "The A. Forces": 1,
+        "United We Stand": 1
+      },
+      "swaps": [
+        {
+          "remove": "Warrior Dai Grepher",
+          "add": "Mataza the Zapper"
+        },
+        {
+          "remove": "Acrobat Monkey",
+          "add": "Marauding Captain"
+        },
+        {
+          "remove": "Polymerization",
+          "add": "The A. Forces"
+        },
+        {
+          "remove": "Limiter Removal",
+          "add": "United We Stand"
+        }
+      ]
+    },
+    {
+      "deck": "yugi-muto-tier-3",
+      "character": "Yugi Muto",
+      "tier": 3,
+      "identity": "Keep all Exodia pieces, tutors and recovery; weaken redundant draw/stall density.",
+      "removed": {
+        "Upstart Goblin": 1,
+        "Messenger of Peace": 1,
+        "Jar of Greed": 1,
+        "Reckless Greed": 1
+      },
+      "added": {
+        "Aqua Madoor": 1,
+        "Enchanted Javelin": 1,
+        "Mystical Elf": 1,
+        "Spirit of the Harp": 1
+      },
+      "swaps": [
+        {
+          "remove": "Upstart Goblin",
+          "add": "Aqua Madoor"
+        },
+        {
+          "remove": "Messenger of Peace",
+          "add": "Enchanted Javelin"
+        },
+        {
+          "remove": "Jar of Greed",
+          "add": "Mystical Elf"
+        },
+        {
+          "remove": "Reckless Greed",
+          "add": "Spirit of the Harp"
+        }
+      ]
+    },
+    {
+      "deck": "rex-raptor-tier-2",
+      "character": "Rex Raptor",
+      "tier": 2,
+      "identity": "Dinosaur combat and bounce replace weak unrelated dragons; keep fusion materials.",
+      "removed": {
+        "Fairy Dragon": 1,
+        "Petit Dragon": 1,
+        "Sky Dragon": 1,
+        "Wicked Dragon with the Ersatz Head": 1,
+        "Yormungarde": 1
+      },
+      "added": {
+        "Hyper Hammerhead": 2,
+        "Dark Driceratops": 1,
+        "Gilasaurus": 1,
+        "Raise Body Heat": 1
+      },
+      "swaps": [
+        {
+          "remove": "Fairy Dragon",
+          "add": "Hyper Hammerhead"
+        },
+        {
+          "remove": "Petit Dragon",
+          "add": "Hyper Hammerhead"
+        },
+        {
+          "remove": "Sky Dragon",
+          "add": "Dark Driceratops"
+        },
+        {
+          "remove": "Wicked Dragon with the Ersatz Head",
+          "add": "Gilasaurus"
+        },
+        {
+          "remove": "Yormungarde",
+          "add": "Raise Body Heat"
+        }
+      ]
+    },
+    {
+      "deck": "espa-roba-tier-1",
+      "character": "Espa Roba",
+      "tier": 1,
+      "identity": "Preserve Jinzo as the ace, reduce one efficient generic attacker.",
+      "removed": {
+        "Mechanicalchaser": 1
+      },
+      "added": {
+        "Patrol Robo": 1
+      },
+      "swaps": [
+        {
+          "remove": "Mechanicalchaser",
+          "add": "Patrol Robo"
+        }
+      ]
+    },
+    {
+      "deck": "espa-roba-tier-3",
+      "character": "Espa Roba",
+      "tier": 3,
+      "identity": "More Jinzo access and machines; fewer off-plan tribute bodies and low-impact hand peeks.",
+      "removed": {
+        "Giant Mech-Soldier": 1,
+        "Cyber Soldier of Darkworld": 1,
+        "Mesmeric Control": 1,
+        "Seal of the Ancients": 1
+      },
+      "added": {
+        "Jinzo": 1,
+        "Mechanicalchaser": 1,
+        "Soul Exchange": 1,
+        "Enemy Controller": 1
+      },
+      "swaps": [
+        {
+          "remove": "Giant Mech-Soldier",
+          "add": "Jinzo"
+        },
+        {
+          "remove": "Cyber Soldier of Darkworld",
+          "add": "Mechanicalchaser"
+        },
+        {
+          "remove": "Mesmeric Control",
+          "add": "Soul Exchange"
+        },
+        {
+          "remove": "Seal of the Ancients",
+          "add": "Enemy Controller"
+        }
+      ]
+    },
+    {
+      "deck": "bonz-tier-2",
+      "character": "Bonz",
+      "tier": 2,
+      "identity": "Keep zombie recruitment/revival; reduce removal density and immediate big-body access.",
+      "removed": {
+        "Ryu Kokki": 1,
+        "Tribute to the Doomed": 1,
+        "Trap Hole": 1
+      },
+      "added": {
+        "Dragon Zombie": 1,
+        "Poison Mummy": 1,
+        "Castle of Dark Illusions": 1
+      },
+      "swaps": [
+        {
+          "remove": "Ryu Kokki",
+          "add": "Dragon Zombie"
+        },
+        {
+          "remove": "Tribute to the Doomed",
+          "add": "Poison Mummy"
+        },
+        {
+          "remove": "Trap Hole",
+          "add": "Castle of Dark Illusions"
+        }
+      ]
+    },
+    {
+      "deck": "mako-tsunami-tier-3",
+      "character": "Mako Tsunami",
+      "tier": 3,
+      "identity": "Ocean access and WATER bounce become reliable without generic board wipes.",
+      "removed": {
+        "Skull Mariner": 1,
+        "Kairyu-Shin": 1,
+        "Umi": 1,
+        "Power of Kaishin": 1
+      },
+      "added": {
+        "Star Boy": 1,
+        "Abyss Soldier": 1,
+        "A Legendary Ocean": 2
+      },
+      "swaps": [
+        {
+          "remove": "Skull Mariner",
+          "add": "Star Boy"
+        },
+        {
+          "remove": "Kairyu-Shin",
+          "add": "Abyss Soldier"
+        },
+        {
+          "remove": "Umi",
+          "add": "A Legendary Ocean"
+        },
+        {
+          "remove": "Power of Kaishin",
+          "add": "A Legendary Ocean"
+        }
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-1",
+      "character": "Mai Valentine",
+      "tier": 1,
+      "identity": "Keep Harpie/Egotist and Mirror Wall; temper generic bird stats and universal removal.",
+      "removed": {
+        "Skull Red Bird": 1,
+        "Rising Air Current": 1,
+        "Fissure": 1,
+        "Reinforcements": 1
+      },
+      "added": {
+        "Kurama": 1,
+        "Tyhone": 1,
+        "Cyber Shield": 1,
+        "Mountain": 1
+      },
+      "swaps": [
+        {
+          "remove": "Skull Red Bird",
+          "add": "Kurama"
+        },
+        {
+          "remove": "Rising Air Current",
+          "add": "Tyhone"
+        },
+        {
+          "remove": "Fissure",
+          "add": "Cyber Shield"
+        },
+        {
+          "remove": "Reinforcements",
+          "add": "Mountain"
+        }
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-2",
+      "character": "Mai Valentine",
+      "tier": 2,
+      "identity": "Harpie recruitment replaces unrelated normal monsters; trim one dead double-tribute bird.",
+      "removed": {
+        "Bottom Dweller": 1,
+        "Humanoid Slime": 1,
+        "Harpie's Pet Dragon": 1
+      },
+      "added": {
+        "Birdface": 2,
+        "Cyber Shield": 1
+      },
+      "swaps": [
+        {
+          "remove": "Bottom Dweller",
+          "add": "Birdface"
+        },
+        {
+          "remove": "Humanoid Slime",
+          "add": "Birdface"
+        },
+        {
+          "remove": "Harpie's Pet Dragon",
+          "add": "Cyber Shield"
+        }
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-3",
+      "character": "Mai Valentine",
+      "tier": 3,
+      "identity": "Harpie variants and hunting ground give the flock its own combat/backrow engine.",
+      "removed": {
+        "Bottom Dweller": 1,
+        "Gaia The Fierce Knight": 1,
+        "Harpie Lady": 2,
+        "Humanoid Slime": 1
+      },
+      "added": {
+        "Harpies' Hunting Ground": 1,
+        "Flying Kamakiri #1": 1,
+        "Harpie Lady 1": 1,
+        "Birdface": 1,
+        "Cyber Harpie Lady": 1
+      },
+      "swaps": [
+        {
+          "remove": "Bottom Dweller",
+          "add": "Harpies' Hunting Ground"
+        },
+        {
+          "remove": "Gaia The Fierce Knight",
+          "add": "Flying Kamakiri #1"
+        },
+        {
+          "remove": "Harpie Lady",
+          "add": "Harpie Lady 1"
+        },
+        {
+          "remove": "Harpie Lady",
+          "add": "Birdface"
+        },
+        {
+          "remove": "Humanoid Slime",
+          "add": "Cyber Harpie Lady"
+        }
+      ]
+    },
+    {
+      "deck": "bandit-keith-tier-2",
+      "character": "Bandit Keith",
+      "tier": 2,
+      "identity": "Machines and coin-flip aces get accessible tribute bodies instead of off-theme bricks.",
+      "removed": {
+        "Gaia The Fierce Knight": 1,
+        "Living Vase": 1,
+        "Zoa": 1,
+        "Monster Recovery": 1
+      },
+      "added": {
+        "Fusilier Dragon, the Dual-Mode Beast": 1,
+        "Mechanicalchaser": 1,
+        "Blowback Dragon": 1,
+        "Time Machine": 1
+      },
+      "swaps": [
+        {
+          "remove": "Gaia The Fierce Knight",
+          "add": "Fusilier Dragon, the Dual-Mode Beast"
+        },
+        {
+          "remove": "Living Vase",
+          "add": "Mechanicalchaser"
+        },
+        {
+          "remove": "Zoa",
+          "add": "Blowback Dragon"
+        },
+        {
+          "remove": "Monster Recovery",
+          "add": "Time Machine"
+        }
+      ]
+    },
+    {
+      "deck": "joey-wheeler-tier-2",
+      "character": "Joey Wheeler",
+      "tier": 2,
+      "identity": "More Joey equipment/warriors, less generic removal and piercing.",
+      "removed": {
+        "Man-Eater Bug": 1,
+        "Spear Dragon": 1,
+        "Zombyra the Dark": 1
+      },
+      "added": {
+        "Rocket Warrior": 1,
+        "Little-Winguard": 1,
+        "Gearfried the Iron Knight": 1
+      },
+      "swaps": [
+        {
+          "remove": "Man-Eater Bug",
+          "add": "Rocket Warrior"
+        },
+        {
+          "remove": "Spear Dragon",
+          "add": "Little-Winguard"
+        },
+        {
+          "remove": "Zombyra the Dark",
+          "add": "Gearfried the Iron Knight"
+        }
+      ]
+    },
+    {
+      "deck": "joey-wheeler-tier-3",
+      "character": "Joey Wheeler",
+      "tier": 3,
+      "identity": "Keep Red-Eyes, Jinzo, Time Wizard and fusion; trim generic theft and duplicate tribute pressure.",
+      "removed": {
+        "Summoned Skull": 1,
+        "Spear Dragon": 1,
+        "Snatch Steal": 1
+      },
+      "added": {
+        "Baby Dragon": 1,
+        "Little-Winguard": 1,
+        "Skull Dice": 1
+      },
+      "swaps": [
+        {
+          "remove": "Summoned Skull",
+          "add": "Baby Dragon"
+        },
+        {
+          "remove": "Spear Dragon",
+          "add": "Little-Winguard"
+        },
+        {
+          "remove": "Snatch Steal",
+          "add": "Skull Dice"
+        }
+      ]
+    },
+    {
+      "deck": "maximillion-pegasus-tier-1",
+      "character": "Maximillion Pegasus",
+      "tier": 1,
+      "identity": "Toon/Relinquished setup replaces weak off-theme filler.",
+      "removed": {
+        "Tao the Chanter": 1,
+        "Phantom Dewan": 1
+      },
+      "added": {
+        "Manju of the Ten Thousand Hands": 1,
+        "Toon Gemini Elf": 1
+      },
+      "swaps": [
+        {
+          "remove": "Tao the Chanter",
+          "add": "Manju of the Ten Thousand Hands"
+        },
+        {
+          "remove": "Phantom Dewan",
+          "add": "Toon Gemini Elf"
+        }
+      ]
+    },
+    {
+      "deck": "maximillion-pegasus-tier-2",
+      "character": "Maximillion Pegasus",
+      "tier": 2,
+      "identity": "Retain the Toon/ritual engine while reducing independent generic reset power.",
+      "removed": {
+        "Cyber Jar": 1,
+        "Morphing Jar": 1
+      },
+      "added": {
+        "Thousand-Eyes Idol": 1,
+        "Toon Alligator": 1
+      },
+      "swaps": [
+        {
+          "remove": "Cyber Jar",
+          "add": "Thousand-Eyes Idol"
+        },
+        {
+          "remove": "Morphing Jar",
+          "add": "Toon Alligator"
+        }
+      ]
+    },
+    {
+      "deck": "maximillion-pegasus-tier-3",
+      "character": "Maximillion Pegasus",
+      "tier": 3,
+      "identity": "Searchable Toons and ritual consistency replace tribute congestion and passive healing.",
+      "removed": {
+        "Summoned Skull": 2,
+        "Enchanted Javelin": 2,
+        "Numinous Healer": 2
+      },
+      "added": {
+        "Toon Table of Contents": 3,
+        "Senju of the Thousand Hands": 1,
+        "Toon Gemini Elf": 1,
+        "Manju of the Ten Thousand Hands": 1
+      },
+      "swaps": [
+        {
+          "remove": "Summoned Skull",
+          "add": "Toon Table of Contents"
+        },
+        {
+          "remove": "Summoned Skull",
+          "add": "Toon Table of Contents"
+        },
+        {
+          "remove": "Enchanted Javelin",
+          "add": "Toon Table of Contents"
+        },
+        {
+          "remove": "Enchanted Javelin",
+          "add": "Senju of the Thousand Hands"
+        },
+        {
+          "remove": "Numinous Healer",
+          "add": "Toon Gemini Elf"
+        },
+        {
+          "remove": "Numinous Healer",
+          "add": "Manju of the Ten Thousand Hands"
+        }
+      ]
+    },
+    {
+      "deck": "arkana-tier-2",
+      "character": "Arkana",
+      "tier": 2,
+      "identity": "Retain all Dark Magicians and the sacrifice/spellcaster plan; slow broad recruiter/removal consistency.",
+      "removed": {
+        "Mystic Tomato": 1,
+        "Fissure": 1,
+        "Trap Hole": 1
+      },
+      "added": {
+        "Sorcerer of the Doomed": 1,
+        "Dark Magic Curtain": 1,
+        "Book of Secret Arts": 1
+      },
+      "swaps": [
+        {
+          "remove": "Mystic Tomato",
+          "add": "Sorcerer of the Doomed"
+        },
+        {
+          "remove": "Fissure",
+          "add": "Dark Magic Curtain"
+        },
+        {
+          "remove": "Trap Hole",
+          "add": "Book of Secret Arts"
+        }
+      ]
+    },
+    {
+      "deck": "odion-tier-1",
+      "character": "Odion",
+      "tier": 1,
+      "identity": "Trap recursion and Apophis/Serket remain central; replace weak rocks and narrow counters.",
+      "removed": {
+        "Prisman": 1,
+        "Rock Ogre Grotto #2": 1,
+        "Gryphon Wing": 1
+      },
+      "added": {
+        "Giant Soldier of Stone": 2,
+        "Statue of the Wicked": 1
+      },
+      "swaps": [
+        {
+          "remove": "Prisman",
+          "add": "Giant Soldier of Stone"
+        },
+        {
+          "remove": "Rock Ogre Grotto #2",
+          "add": "Giant Soldier of Stone"
+        },
+        {
+          "remove": "Gryphon Wing",
+          "add": "Statue of the Wicked"
+        }
+      ]
+    },
+    {
+      "deck": "odion-tier-2",
+      "character": "Odion",
+      "tier": 2,
+      "identity": "Keep the tomb/trap engine, trade very narrow protection for usable trap interaction.",
+      "removed": {
+        "Gryphon Wing": 1,
+        "White Hole": 1
+      },
+      "added": {
+        "Sakuretsu Armor": 1,
+        "Dust Tornado": 1
+      },
+      "swaps": [
+        {
+          "remove": "Gryphon Wing",
+          "add": "Sakuretsu Armor"
+        },
+        {
+          "remove": "White Hole",
+          "add": "Dust Tornado"
+        }
+      ]
+    },
+    {
+      "deck": "ishizu-ishtar-tier-1",
+      "character": "Ishizu Ishtar",
+      "tier": 1,
+      "identity": "Keep the fairy sanctuary plan with slightly less raw low-tribute pressure.",
+      "removed": {
+        "Trap Hole": 1
+      },
+      "added": {
+        "Keldo": 1
+      },
+      "swaps": [
+        {
+          "remove": "Trap Hole",
+          "add": "Keldo"
+        }
+      ]
+    },
+    {
+      "deck": "ishizu-ishtar-tier-3",
+      "character": "Ishizu Ishtar",
+      "tier": 3,
+      "identity": "Fairy graveyard pressure and sanctuary remain distinct from Tea healing/burn.",
+      "removed": {
+        "Airknight Parshath": 1,
+        "The Agent of Judgment - Saturn": 1,
+        "The Agent of Wisdom - Mercury": 1
+      },
+      "added": {
+        "Kelbek": 1,
+        "Mudora": 1,
+        "Asura Priest": 1
+      },
+      "swaps": [
+        {
+          "remove": "Airknight Parshath",
+          "add": "Kelbek"
+        },
+        {
+          "remove": "The Agent of Judgment - Saturn",
+          "add": "Mudora"
+        },
+        {
+          "remove": "The Agent of Wisdom - Mercury",
+          "add": "Asura Priest"
+        }
+      ]
+    },
+    {
+      "deck": "marik-ishtar-tier-2",
+      "character": "Marik Ishtar",
+      "tier": 2,
+      "identity": "Reduce generic reset advantage while retaining Newdoria, Jam and torment/control cards.",
+      "removed": {
+        "Vorse Raider": 1,
+        "Cyber Jar": 1,
+        "Man-Eater Bug": 1,
+        "Morphing Jar": 1,
+        "Fissure": 1
+      },
+      "added": {
+        "Revival Jam": 1,
+        "Viser Des": 1,
+        "Worm Drake": 1,
+        "Helpoemer": 1,
+        "Jam Defender": 1
+      },
+      "swaps": [
+        {
+          "remove": "Vorse Raider",
+          "add": "Revival Jam"
+        },
+        {
+          "remove": "Cyber Jar",
+          "add": "Viser Des"
+        },
+        {
+          "remove": "Man-Eater Bug",
+          "add": "Worm Drake"
+        },
+        {
+          "remove": "Morphing Jar",
+          "add": "Helpoemer"
+        },
+        {
+          "remove": "Fissure",
+          "add": "Jam Defender"
+        }
+      ]
+    },
+    {
+      "deck": "seto-kaiba-tier-3",
+      "character": "Seto Kaiba",
+      "tier": 3,
+      "identity": "Keep Blue-Eyes and dragon finishers, trim one unrelated removal boss and generic nuke.",
+      "removed": {
+        "Barrel Dragon": 1,
+        "Dark Hole": 1
+      },
+      "added": {
+        "Hyozanryu": 1,
+        "Burst Stream of Destruction": 1
+      },
+      "swaps": [
+        {
+          "remove": "Barrel Dragon",
+          "add": "Hyozanryu"
+        },
+        {
+          "remove": "Dark Hole",
+          "add": "Burst Stream of Destruction"
+        }
+      ]
+    },
+    {
+      "deck": "yami-bakura-tier-2",
+      "character": "Yami Bakura",
+      "tier": 2,
+      "identity": "Maintain Destiny Board and Necrofear, increasing useful fiend material.",
+      "removed": {
+        "The Earl of Demise": 1,
+        "Earthbound Spirit": 1,
+        "Souls of the Forgotten": 1
+      },
+      "added": {
+        "Giant Germ": 2,
+        "Newdoria": 1
+      },
+      "swaps": [
+        {
+          "remove": "The Earl of Demise",
+          "add": "Giant Germ"
+        },
+        {
+          "remove": "Earthbound Spirit",
+          "add": "Giant Germ"
+        },
+        {
+          "remove": "Souls of the Forgotten",
+          "add": "Newdoria"
+        }
+      ]
+    },
+    {
+      "deck": "yami-marik-tier-2",
+      "character": "Yami Marik",
+      "tier": 2,
+      "identity": "Keep the burn engines and reduce redundant stall protection and mass-damage density.",
+      "removed": {
+        "Nightmare's Steelcage": 1,
+        "Waboku": 1,
+        "Secret Barrel": 1
+      },
+      "added": {
+        "Coffin Seller": 1,
+        "Viser Des": 1,
+        "Poison Mummy": 1
+      },
+      "swaps": [
+        {
+          "remove": "Nightmare's Steelcage",
+          "add": "Coffin Seller"
+        },
+        {
+          "remove": "Waboku",
+          "add": "Viser Des"
+        },
+        {
+          "remove": "Secret Barrel",
+          "add": "Poison Mummy"
+        }
+      ]
+    },
+    {
+      "deck": "yami-marik-tier-3",
+      "character": "Yami Marik",
+      "tier": 3,
+      "identity": "Preserve Stealth Bird, Solar Flare and Wave-Motion Cannon; remove redundant long-term locks so combat can answer the burn plan.",
+      "removed": {
+        "Messenger of Peace": 1,
+        "Gravity Bind": 1,
+        "Just Desserts": 1
+      },
+      "added": {
+        "Coffin Seller": 1,
+        "Viser Des": 1,
+        "Poison Mummy": 1
+      },
+      "swaps": [
+        {
+          "remove": "Messenger of Peace",
+          "add": "Coffin Seller"
+        },
+        {
+          "remove": "Gravity Bind",
+          "add": "Viser Des"
+        },
+        {
+          "remove": "Just Desserts",
+          "add": "Poison Mummy"
+        }
+      ]
+    },
+    {
+      "deck": "yami-yugi-tier-1",
+      "character": "Yami Yugi",
+      "tier": 1,
+      "identity": "Keep Dark Magician and themed removal, but reduce generic draw/defense.",
+      "removed": {
+        "Neo the Magic Swordsman": 1,
+        "Trap Hole": 1,
+        "Jar of Greed": 1,
+        "Rogue Doll": 1
+      },
+      "added": {
+        "Ancient Elf": 1,
+        "Dark Magic Attack": 1,
+        "Dark Magic Curtain": 1,
+        "Sorcerer of the Doomed": 1
+      },
+      "swaps": [
+        {
+          "remove": "Neo the Magic Swordsman",
+          "add": "Ancient Elf"
+        },
+        {
+          "remove": "Trap Hole",
+          "add": "Dark Magic Attack"
+        },
+        {
+          "remove": "Jar of Greed",
+          "add": "Dark Magic Curtain"
+        },
+        {
+          "remove": "Rogue Doll",
+          "add": "Sorcerer of the Doomed"
+        }
+      ]
+    },
+    {
+      "deck": "yami-yugi-tier-2",
+      "character": "Yami Yugi",
+      "tier": 2,
+      "identity": "More reliable Dark Magician summoning rather than universal staples.",
+      "removed": {
+        "Monster Recovery": 1,
+        "Pitch-Black Power Stone": 1
+      },
+      "added": {
+        "Skilled Dark Magician": 1,
+        "Dark Magic Curtain": 1
+      },
+      "swaps": [
+        {
+          "remove": "Monster Recovery",
+          "add": "Skilled Dark Magician"
+        },
+        {
+          "remove": "Pitch-Black Power Stone",
+          "add": "Dark Magic Curtain"
+        }
+      ]
+    },
+    {
+      "deck": "noah-kaiba-tier-1",
+      "character": "Noah Kaiba",
+      "tier": 1,
+      "identity": "Keep spirit returns and Spring of Rebirth; fewer duplicate upkeep bricks.",
+      "removed": {
+        "Spring of Rebirth": 1,
+        "Spiritual Energy Settle Machine": 1
+      },
+      "added": {
+        "Asura Priest": 1,
+        "Book of Moon": 1
+      },
+      "swaps": [
+        {
+          "remove": "Spring of Rebirth",
+          "add": "Asura Priest"
+        },
+        {
+          "remove": "Spiritual Energy Settle Machine",
+          "add": "Book of Moon"
+        }
+      ]
+    },
+    {
+      "deck": "noah-kaiba-tier-2",
+      "character": "Noah Kaiba",
+      "tier": 2,
+      "identity": "More useful spirit support and return-cycle interaction.",
+      "removed": {
+        "Spiritual Energy Settle Machine": 1
+      },
+      "added": {
+        "Susa Soldier": 1
+      },
+      "swaps": [
+        {
+          "remove": "Spiritual Energy Settle Machine",
+          "add": "Susa Soldier"
+        }
+      ]
+    },
+    {
+      "deck": "noah-kaiba-tier-3",
+      "character": "Noah Kaiba",
+      "tier": 3,
+      "identity": "Spirit/Creature Swap synergy replaces upkeep and an off-theme body; retain the original Shinato package.",
+      "removed": {
+        "Gilasaurus": 1,
+        "Spiritual Energy Settle Machine": 1
+      },
+      "added": {
+        "Creature Swap": 2
+      },
+      "swaps": [
+        {
+          "remove": "Gilasaurus",
+          "add": "Creature Swap"
+        },
+        {
+          "remove": "Spiritual Energy Settle Machine",
+          "add": "Creature Swap"
+        }
+      ]
+    }
+  ],
+  "identityAudit": [
+    {
+      "tier": 1,
+      "version": "before",
+      "meanMultisetJaccard": 0.046524612944956446
+    },
+    {
+      "tier": 1,
+      "version": "after",
+      "meanMultisetJaccard": 0.04530654590151601
+    },
+    {
+      "tier": 2,
+      "version": "before",
+      "meanMultisetJaccard": 0.05011853557108235
+    },
+    {
+      "tier": 2,
+      "version": "after",
+      "meanMultisetJaccard": 0.0443161025477484
+    },
+    {
+      "tier": 3,
+      "version": "before",
+      "meanMultisetJaccard": 0.08260259733335891
+    },
+    {
+      "tier": 3,
+      "version": "after",
+      "meanMultisetJaccard": 0.0805363135482639
+    }
+  ],
+  "validation": {
+    "jobs": 2772,
+    "baselineContentSHA256": "be6c90e90043a7e93fd5e08a0ff708aa0b489ed74b58c2ce05831c967e220204",
+    "candidateContentSHA256": "42e6022ffed5e3d7d389caeb9d9c7e99cbdad7f1df705864efe9a94451f82059",
+    "note": "Both pilots use current shared CPU policy and trap-return compatibility fix.",
+    "engineSHA256": "b75b60d8ffc2fc2af9703011a3de5a64cefa29a4ab54857d32680907874ead32",
+    "compatibilitySHA256": "26ccb21a855e55ccfb81282bb3b68648e9b5934eb3e7b13bb5bf17dc90dd7313",
+    "cpuPolicySHA256": "fd4e417e38e192392a895c245429683efa1dd2f32b4ffd486fe3d7f9083a2521",
+    "decksChanged": 34,
+    "swaps": 115,
+    "validation": {
+      "deckLists": 96,
+      "unchangedLists": 62,
+      "scenarioDecks": 73,
+      "scenarioDecisions": 14248,
+      "scenarioFailures": 0,
+      "originalFailureSeed": 30715010,
+      "originalFailureNow": {
+        "turns": 18,
+        "decisions": 312,
+        "milliseconds": 741,
+        "errors": []
+      },
+      "finalCohortDeckVersionsVerified": true
+    },
+    "initialCandidateContentSHA256": "fc5cf81220b6fa24cce55fea14e9a3e5362655e3f332da633db9bf99865a1249",
+    "finalContentSHA256": "42e6022ffed5e3d7d389caeb9d9c7e99cbdad7f1df705864efe9a94451f82059",
+    "refinementDuels": 1196,
+    "totalValidationDuels": 6740,
+    "finalComparisonNote": "Final cohort merges initial candidate outcomes for unchanged matchups with reruns for every matchup affected by tier-1 tuning and subsequent refinements."
+  }
+}
