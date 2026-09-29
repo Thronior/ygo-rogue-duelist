@@ -10,7 +10,8 @@ def observe(profile,run):
  profile['singles_bought']=profile.get('singles_bought',0)+max(0,purchased-run.get('credited_singles',0))
  run['credited_singles']=purchased
  for key in run.get('character_challenges',[]):profile[key]=1
- if run.get('secret_challenge') and run.get('encore_won'):profile['gallery_unlocked']=True
+ if run.get('secret_challenge') and run.get('encore_won'):
+  profile['relicless_unlocked' if run.get('secret_challenge')=='relicless' else 'gallery_unlocked']=True
  if not run.get('secret_challenge') and run.get('stage')=='complete' and not run.get('card_purchases',run.get('purchased',0)):
   profile['frugal_run']=1
 

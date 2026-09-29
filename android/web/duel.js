@@ -6,6 +6,7 @@ import {DuelEngine,M,R,I,B,L,P} from './engine.js';
 export {M,R,I,B,L,P};
 export class MobileDuel extends DuelEngine {
  constructor(cards){super(cards);this.fieldKnowledge=new FieldKnowledge();this.rebornMonsters=new Map();this.resolvingChain=0}
+ unknownDefense(c){return this.tributeSets?.has(this.fieldKnowledge.key(c))?2000:900}
  knownFieldCard(viewer,c){return this.fieldKnowledge.known(viewer,c)}
  wasReborn(c){return this.rebornMonsters.get(this.fieldKnowledge.key(c))===c.code}
  trackReborn(m){
@@ -23,10 +24,22 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
   this.trackReborn(m);
+  if(m.type===M.NEW_TURN)this.releasedForSet=[0,0];
+  if(m.type===M.MOVE){
+   const reason=m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0);
+   const old=this.fieldKnowledge.key(m.from),next=this.fieldKnowledge.key(m.to),was=this.tributeSets.has(old);
+   this.tributeSets.delete(old);this.tributeSets.delete(next);
+   if(was&&m.from.location===L.MZONE&&m.to.location===L.MZONE)this.tributeSets.add(next);
+   if(m.from.location===L.MZONE&&(reason&2)&&(reason&16))this.releasedForSet[m.from.controller]++;
+  }
+  if(m.type===M.SWAP){const a=this.fieldKnowledge.key(m.card1),b=this.fieldKnowledge.key(m.card2),wasA=this.tributeSets.has(a),wasB=this.tributeSets.has(b);this.tributeSets.delete(a);this.tributeSets.delete(b);if(wasA)this.tributeSets.add(b);if(wasB)this.tributeSets.add(a);}
+  if(m.type===M.SHUFFLE_SET_CARD){for(const c of m.cards||[]){this.tributeSets.delete(this.fieldKnowledge.key(c.from));this.tributeSets.delete(this.fieldKnowledge.key(c.to));}}
+  if(m.type===M.SET&&m.location===L.MZONE){if(this.releasedForSet[m.controller])this.tributeSets.add(this.fieldKnowledge.key(m));this.releasedForSet[m.controller]=0;}
+  if([M.SUMMONING,M.SPSUMMONING,M.CHAIN_END].includes(m.type))this.releasedForSet=[0,0];
   const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You · ":feedback.player===1?"Opponent · ":"")+feedback.text);}
   if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();}
   if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
@@ -156,7 +169,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   this.fieldKnowledge.observe(m.player,(p,l)=>this.query(p,l),L);
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
   const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,atk=c=>live(c)?.attack??c.attack??stat(c).attack??0,def=c=>live(c)?.defense??c.defense??stat(c).defense??0;
-  const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):(this.knownFieldCard(p,c)?this.data[this.knownFieldCard(p,c)]?.defense??900:900);
+  const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):(this.knownFieldCard(p,c)?this.data[this.knownFieldCard(p,c)]?.defense??900:this.unknownDefense(c));
   const threat=Math.max(0,...enemy.map(strength));
   const fodder=own.map(c=>Math.max(0,atk(c))+(stat(c).type&0x4000?-1500:0)).sort((a,b)=>a-b);
   const worthwhile=(c,setting=false)=>{const limit=smart.tributeWorth(c,setting);if(limit!==null)return limit;const level=this.cards.get(c.code)?.level||0,n=level>6?2:level>4?1:0;return !n||own.length<n||smart.projectedAttack(c)>fodder.slice(0,n).reduce((a,b)=>a+b,0)||smart.projectedAttack(c)>threat&&own.every(x=>atk(x)<=threat)};
@@ -196,10 +209,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(helpful)return idle(I.SELECT_ACTIVATE,helpful.index);
    const ranked=list=>list.map((c,i)=>({c,i})).sort((a,b)=>atk(b.c)-atk(a.c));
    const firstMove=own.length===0&&enemy.length===0&&this.query(p,L.GRAVE).filter(Boolean).length===0;
-   const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy.some(t=>smart.projectedAttack(c)>strength(t)));
+   const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy.some(t=>smart.projectedAttack(c)>strength(t))||smart.clearedLane(c));
    const special=ranked(m.special_summons).filter(x=>smart.specialOk(x.c)!==false).find(x=>usefulAttacker(x.c)||smart.summonUtility(x.c));if(special)return idle(I.SELECT_SPECIAL_SUMMON,special.i);
    const summon=ranked(m.summons).filter(x=>(!(stat(x.c).type&0x200000)||smart.saferPosition(x.c)===true)&&!smart.preferSet(x.c)&&smart.summonScore(x.c)>=0).sort((a,b)=>(smart.summonScore(b.c)-smart.summonScore(a.c))||(atk(b.c)-atk(a.c))).find(x=>(usefulAttacker(x.c)||smart.summonUtility(x.c)||smart.saferPosition(x.c)===true)&&worthwhile(x.c));if(summon&&(!firstMove||smart.projectedAttack(summon.c)>1500))return idle(I.SELECT_SUMMON,summon.i);
-   const flip=m.pos_changes.findIndex(c=>{if(exodiaPieces.has(c.code))return false;const field=this.query(p,L.MZONE)[c.sequence];const name=this.name(c.code);if(field&&visible(field)&&smart.attackBlocked(field,p))return false;const useful=name==='Magician of Faith'?this.query(p,L.GRAVE).some(c=>stat(c).type&2):name==='Mask of Darkness'?this.query(p,L.GRAVE).some(c=>stat(c).type&4):['Man-Eater Bug','Penguin Soldier'].includes(name)?enemy.length>0:name==='Morphing Jar'?(this.query(p,L.HAND).length<3&&this.query(p,L.DECK).length>5):false;const extra=smart.flipUseful(name,field);return field&&!(field.position&1)&&smart.saferPosition(field)!==false&&extra!==false&&(useful||extra===true||m.to_bp&&!smart.attackBlocked(field,p)&&atk(field)>threat)});if(flip>=0)return idle(I.SELECT_POS_CHANGE,flip);
+   const flip=m.pos_changes.findIndex(c=>{if(exodiaPieces.has(c.code))return false;const field=this.query(p,L.MZONE)[c.sequence];const name=this.name(c.code);if(field&&visible(field)&&smart.attackBlocked(field,p))return false;const useful=name==='Magician of Faith'?this.query(p,L.GRAVE).some(c=>stat(c).type&2):name==='Mask of Darkness'?this.query(p,L.GRAVE).some(c=>stat(c).type&4):['Man-Eater Bug','Penguin Soldier'].includes(name)?enemy.length>0:name==='Morphing Jar'?(this.query(p,L.HAND).length<3&&this.query(p,L.DECK).length>5):false;const extra=smart.flipUseful(name,field);return field&&!(field.position&1)&&smart.saferPosition(field)!==false&&extra!==false&&(useful||extra===true||m.to_bp&&!smart.attackBlocked(field,p)&&(atk(field)>threat||smart.clearedLane(field)))});if(flip>=0)return idle(I.SELECT_POS_CHANGE,flip);
    if(m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((def(b.c)+(stat(b.c).type&0x200000?600:0))-(def(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;return idle(I.SELECT_MONSTER_SET,index)}
    // Keep one main back-row slot free for spells from hand; the Field Zone is separate.
    const backrowCount=this.query(p,L.SZONE).filter((c,i)=>c&&(c.sequence??i)<5).length;

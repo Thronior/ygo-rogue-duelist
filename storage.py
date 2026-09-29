@@ -161,7 +161,7 @@ def merge_desktop_profile(raw, metrics=()):
   value=incoming[key]
   if type(value) not in (int,bool) or not 0<=value<=10**12:raise ValueError('Invalid achievement progress.')
   merged[key]=max(current.get(key,0),value)
- for key in ('gallery_unlocked','unlock_all'):
+ for key in ('gallery_unlocked','relicless_unlocked','unlock_all'):
   if key in incoming:
    if type(incoming[key])!=bool:raise ValueError('Invalid unlock flag.')
    merged[key]=bool(current.get(key)) or incoming[key]

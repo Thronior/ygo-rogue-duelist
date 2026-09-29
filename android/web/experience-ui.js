@@ -17,3 +17,5 @@ export function victoryRewardsMarkup(rewards,bonusLabels){
  const ordinary=earned.filter(([label])=>!labels.has(label)).map(row).join('');
  return ordinary+(bonuses.length?`<details class="battle-bonuses"><summary><span>Battle bonuses</span><b>+${bonuses.reduce((sum,[,value])=>sum+value,0)}</b></summary><div class="battle-bonus-list" tabindex="0" role="region" aria-label="Earned battle bonuses">${bonuses.map(row).join('')}</div></details>`:'');
 }
+
+export function shopRerollPrice(run){const n=Math.max(0,Math.trunc(run.shop_rerolls||0));return n<6?[10,20,40,60,100,150][n]:200+50*(n-6)}

@@ -59,9 +59,10 @@ def install(g):
    r['selected']=selected
    if not r.get('encore_active') and (not r['routes'] or any(i not in GAME_DECKS or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=4:
-    r['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(r['round'],random.Random(i+r['round']*101),i,r.get('tutorial_variants',{}).get(str(i),0)),g.BY_ID,random,shop_rewards.THEME_OPTIONS.get(i)) for i in r['routes']}
+    r['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(r['round'],random.Random(i+r['round']*101),i,r.get('tutorial_variants',{}).get(str(i),0),loop=r.get('loop',0)),g.BY_ID,random,shop_rewards.THEME_OPTIONS.get(i)) for i in r['routes']}
     r['reward_rules']=4
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
+  if r:challenge_levels.suppress(r)
   return r
  def save(run):
   run.setdefault('_save_slot',storage.active_slot())
@@ -102,7 +103,7 @@ def install(g):
   return pulls+[premium]
  def routes(run,rng=random):
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0
-  if rd==0:choices=[22,12,13]
+  if rd==0 and not run.get('loop'):choices=[22,12,13]
   elif rd>=6:choices=[0,1,6,15,17,27]
   elif boss:choices=[0,1,3,4,6,7,11,15,17,27]
   else:choices=list(GAME_DECKS)
@@ -114,13 +115,14 @@ def install(g):
   if not choices:choices=[i for i in GAME_DECKS if i not in defeated and i!=run['character']]
   if not choices:raise ValueError('All eligible opponents in this journey have been defeated.')
   run['routes']=rng.sample(choices,min(3,len(choices)));run['opponent']=run['routes'][0]
-  if rd==0:run['tutorial_variants']={str(i):v for i,v in zip(run['routes'],rng.sample(range(len(encounters.TUTORIALS)),3))}
+  if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):v for i,v in zip(run['routes'],rng.sample(range(len(encounters.TUTORIALS)),3))}
   else:run.pop('tutorial_variants',None)
-  run['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(rd,random.Random(i+rd*101),i,run.get('tutorial_variants',{}).get(str(i),0)),g.BY_ID,rng,shop_rewards.THEME_OPTIONS.get(i)) for i in run['routes']}
+  run['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(rd,random.Random(i+rd*101),i,run.get('tutorial_variants',{}).get(str(i),0),loop=run.get('loop',0)),g.BY_ID,rng,shop_rewards.THEME_OPTIONS.get(i)) for i in run['routes']}
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   choices=[rng.choices(list(CURSES),k=count) for _ in run['routes']] if boss else []
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
+  challenge_levels.suppress(run)
   run['reward_rules']=4
  def new_run(index,rng=random,level=0):
   level=challenge_levels.validate(index,level)
@@ -133,10 +135,10 @@ def install(g):
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
    if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9):break
   else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
-  r=dict(version=3,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
+  r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r.update(campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
-  relic=char['starting_relic']
+  relic='none' if level==-1 else char['starting_relic']
   if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k not in cursed_relics.approved()])
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
@@ -149,19 +151,19 @@ def install(g):
   if char.get('copycat'):copy_deck(r,rng)
   if char.get('engine_deck'):engine_deck(r,rng)
   return r
- def opponent_deck(round_index,rng=random,opponent=None,tutorial_variant=0):
+ def opponent_deck(round_index,rng=random,opponent=None,tutorial_variant=0,loop=0):
   # Round 0 is tier 0: the weak tutorial pool, always stupid easy.
-  if round_index==0:
+  if round_index==0 and not loop:
    from deck_files import read
    n=tutorial_variant%len(encounters.TUTORIALS);result=read('tutorial-'+str(n+1),encounters.TUTORIALS[n])['main'][:]
   else:
    # One exact deck for this opponent and tier. Only draw order changes.
-   result=opponent_record(round_index,opponent if opponent is not None else 2)['main'][:]
+   result=opponent_record(round_index,opponent if opponent is not None else 2,loop)['main'][:]
   rng.shuffle(result);return result
  def copy_deck(run,rng=random):
   if not CHARACTERS[run['character']].get('copycat'):return
-  main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0))
-  extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 else opponent_record(run['round'],run['opponent'])['extra'])
+  main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+  extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
@@ -173,13 +175,15 @@ def install(g):
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    main=[c for c in choice['cards'] if not g.is_extra(c)];extra=[c for c in choice['cards'] if g.is_extra(c)]
    run['pool']=main+extra;run['selected']=list(range(len(run['pool'])));run['guaranteed']=[];run['engine_deck']=choice['id']
- def owns(run,key):return key in run.get('artifacts',[]) or run.get('mirror_copy')==key
+ def owns(run,key):return ar.has(run,key)
  def amount(run,kind):
+  if run.get('challenge_level')==-1:return 0
   total=sum(ART_INFO[a]['amount'] for a in run['artifacts'] if ART_INFO[a]['effect']==kind)
   copy=run.get('mirror_copy')
   if copy and copy in ART_INFO and ART_INFO[copy]['effect']==kind:total+=ART_INFO[copy]['amount']
   return total
  def prepare_duel(run,rng=random):
+  challenge_levels.suppress(run)
   cursed_relics.require_choice(run)
   reload_tuning()
   if run['stage']=='shop':run['gold_leaving_shop']=run['gold']
@@ -205,6 +209,7 @@ def install(g):
     run.setdefault('route_curses',{})[str(run['opponent'])]=selected
    run['curses']=selected[:];run['boss_curse']=selected[0]
   else:run['curses']=[]
+  challenge_levels.suppress(run)
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run) if 'drain' in run['curses'] else 0))
   if 'magic_mirror' in run.get('artifacts',[]):
    others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic')]
@@ -236,8 +241,8 @@ def install(g):
      a,d=mods[str(i)];card=g.BY_ID[cid]
      run['duel_modifications'].append(dict(location=location,sequence=sequence,atk=max(0,card['atk']+a),defense=max(0,card['defense']+d)))
   # Shuffle both main decks before the engine draws opening hands, on every attempt.
-  enemy=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0));rng.shuffle(enemy)
-  enemy_extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 else opponent_record(run['round'],run['opponent'])['extra'])
+  enemy=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0));rng.shuffle(enemy)
+  enemy_extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   request['enemy_deck']=enemy[:]+enemy_extra[:]
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
   if run.get('encore_active'):enemy_name=endless.CHAMPION['name']
@@ -325,9 +330,10 @@ def install(g):
    import loss_reason
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
   else:
-   defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0))
+   defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    run['last_reward_card']=rng.choice(defeated_deck);run['last_reward_cards']=[run['last_reward_card']];run['pool'].append(run['last_reward_card'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
+   if boss:run['shop_rerolls']=0
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    cap=8000 if boss else (10000 if 'ankh' in run['artifacts'] else 8000)
@@ -373,6 +379,7 @@ def install(g):
    else:restock(run,rng)
   save(run)
  def restock(run,rng=random):
+  challenge_levels.suppress(run)
   reload_tuning()
   shop_rewards.normalize_run(run)
   profile=storage.profile();eligible=[c for c in g.CARDS if unlocks.card_allowed(c,profile)]
@@ -426,10 +433,25 @@ def install(g):
    if item['kind']!='deck':item['price']=max(1,round(item['price']*modifier))
   for item in items:item['price']=ar.price(run,item['kind'],item['price'])
   run['shop']=items
+  challenge_levels.suppress(run)
+ def reroll_price(run):
+  count=max(0,int(run.get('shop_rerolls',0) or 0))
+  return [10,20,40,60,100,150][count] if count<6 else 200+50*(count-6)
+ def reroll_shop(run,rng=random):
+  cursed_relics.require_choice(run)
+  if run.get('stage')!='shop':raise ValueError('Shop is closed.')
+  if run.get('challenge_level')==-1 and run.get('history_mode')!='tag' and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):raise ValueError('There is no purchasable stock to reroll at LVL -1.')
+  price=reroll_price(run)
+  if run['gold']<price:raise ValueError('Not enough coins to reroll.')
+  # Generate first so a failed restock cannot charge the player.
+  restock(run,rng)
+  run['gold']-=price;run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
+  return price
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)
   if run['stage']!='shop':raise ValueError('Shop is closed.')
   item=run['shop'][index]
+  if run.get('challenge_level')==-1 and item['kind']=='artifact':raise ValueError('Relics are disabled at LVL -1.')
   if CHARACTERS[run['character']].get('copycat') and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine runs random starter decks and can only buy relics.')
   if item['sold'] or item['price']>run['gold']:raise ValueError('Item unavailable or not enough coins.')
@@ -490,5 +512,5 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])

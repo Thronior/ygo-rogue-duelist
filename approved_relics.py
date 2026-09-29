@@ -52,9 +52,9 @@ def install(artifact):
  for key,name,price,text,art in REGULAR:artifact(key,name,price,text,art,'approved_'+key,0,'economy')
  for number,key,name,text,art in CURSED:artifact('cursed_'+key,name,0,text,art,'approved_'+key,0,'offense')
 
-def has(run,key):return key in run.get('artifacts',[]) or run.get('mirror_copy')==key
+def has(run,key):return run.get('challenge_level')!=-1 and (key in run.get('artifacts',[]) or run.get('mirror_copy')==key)
 
-def copies(run,key):return run.get('artifacts',[]).count(key)+int(run.get('mirror_copy')==key)
+def copies(run,key):return 0 if run.get('challenge_level')==-1 else run.get('artifacts',[]).count(key)+int(run.get('mirror_copy')==key)
 
 def minimum(run):return 40 if has(run,'cursed_collectors_burden') else 20
 
@@ -112,5 +112,6 @@ def reconcile_turn_order(run):
 
 def duel_run(run):
  """A duel-only view; never remove owned relics from the saved campaign."""
+ if run.get('challenge_level')==-1:return dict(run,artifacts=[],curses=[],boss_curse=None,mirror_copy=None,duel_modifications=[],relics_suppressed=True)
  if 'relic_seal' not in run.get('curses',[]):return run
  return dict(run,artifacts=[],mirror_copy=None,duel_modifications=[],relics_suppressed=True)

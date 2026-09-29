@@ -6,10 +6,13 @@ def highest(profile, character):
 def unlocked(profile, character):return min(5,highest(profile,character)+1)
 def validate(character, level):
  level=int(level)
+ if level==-1 and storage.profile().get('relicless_unlocked'):return -1
  if not 0<=level<=unlocked(storage.profile(),character):raise ValueError('Beat the previous level with this character first.')
  return level
 def award(profile, run):
- level=int(run.get('challenge_level',0));levels=profile.setdefault('character_levels',{})
+ level=int(run.get('challenge_level',0))
+ if level<0:return
+ levels=profile.setdefault('character_levels',{})
  levels[str(run['character'])]=max(highest(profile,run['character']),level)
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
 
@@ -19,6 +22,7 @@ def curse_description(run,key,default):
 
 def active_modifiers(run):
  from content import CURSES
+ if run.get('challenge_level')==-1:return [dict(kind='level',name='LVL -1',description='Disable all relics or curses')]
  rows=[]
  keys=run.get('curses') or ([run['boss_curse']] if run.get('boss_curse') else [])
  for key in dict.fromkeys(keys):
@@ -27,3 +31,12 @@ def active_modifiers(run):
  for level in range(1,min(5,run.get('challenge_level',0))+1):
   rows.append(dict(kind='level',name='LVL '+str(level),description=DESCRIPTIONS[level]))
  return rows
+
+
+def suppress(run):
+ """Enforce the relicless difficulty at campaign boundaries, including old saves."""
+ if run.get('challenge_level')!=-1:return run
+ run.update(artifacts=[],cursed_artifacts=[],curses=[],boss_curse=None,route_curses={},mirror_copy=None,starting_relic='none')
+ run.pop('cursed_offer',None)
+ run['shop']=[x for x in run.get('shop',[]) if x.get('kind')!='artifact']
+ return run

@@ -13,14 +13,18 @@ class TagCampaign:
   if len(characters)!=2 or len(profiles)!=2:raise ValueError('Two players are required.')
   self.trade=self.new_trade()
   self.finale={'votes':[False,False],'status':'available','winner':None};self.room_code=None;self.rng=random.Random(seed);self.profiles=deepcopy(profiles);self.players=[];self.revision=0;self.receipts={};self.ready=[False,False];self.phase='lobby' if lobby else 'draft';self.shop_seat=0;self.duel=None;self.paused=False
-  if not 0<=level<=challenge_levels.unlocked(profiles[0],characters[0]):raise ValueError('The host has not unlocked this level.')
+  if not (level==-1 and profiles[0].get('relicless_unlocked') or 0<=level<=challenge_levels.unlocked(profiles[0],characters[0])):raise ValueError('The host has not unlocked this level.')
   for seat,character in enumerate(characters):
    with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0)
    run['history_mode']='tag';run['history_partner']=characters[1-seat]
    run['challenge_level']=level
+   if level==-1:
+    run['lp']=8000
+    if run.get('starting_relic')=='final_hour' and run['pool'][-1]==game.BY_NAME['Final Countdown']['id']:run['pool'].pop()
+   challenge_levels.suppress(run)
    if level>=4:run['lp']=4000
    self.players.append(run)
-  self.shared={'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
+  self.shared={'shop_rerolls':0,'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
   self.sync();self.routes()
   if not lobby:
    for seat in (0,1):
@@ -56,7 +60,7 @@ class TagCampaign:
     if run['round']==0:run.setdefault('tutorial_variants',{})[str(opponent)]=variant
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
     run['route_rewards'][str(opponent)]=shop_rewards.reward_from_deck(deck,game.BY_ID,self.rng,shop_rewards.THEME_OPTIONS.get(opponent))
-    if (run['round']+1)%3==0:run['route_curses'][str(opponent)]=self.rng.choices(list(content.CURSES),k=min(3,(run['round']+1)//3))
+    if run.get('challenge_level')!=-1 and (run['round']+1)%3==0:run['route_curses'][str(opponent)]=self.rng.choices(list(content.CURSES),k=min(3,(run['round']+1)//3))
    if len(run['routes'])<2:raise ValueError('Not enough undefeated opponents remain for a tag duel.')
    run['opponent']=None
  def view(self,seat):
@@ -135,7 +139,7 @@ class TagCampaign:
   self.finale=deepcopy(data.get('finale',{'votes':[False,False],'status':'available','winner':None}))
   for key in ('room_code','players','profiles','shared','revision','receipts','ready','phase','shop_seat','duel','paused'):setattr(self,key,deepcopy(data[key]))
   def tuples(x):return tuple(tuples(v) for v in x) if isinstance(x,list) else x
-  self.shared.setdefault('cursed_offer',None);self.shared.setdefault('cursed_artifacts',[])
+  self.shared.setdefault('shop_rerolls',0);self.shared.setdefault('cursed_offer',None);self.shared.setdefault('cursed_artifacts',[])
   self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']));self.sync();return self
  def command(self,seat,request):
   if seat not in (0,1):raise ValueError('Invalid seat.')
@@ -198,6 +202,11 @@ class TagCampaign:
     else:cursed_relics.reroll(run,self.rng)
    for field in ('artifacts','cursed_artifacts','cursed_offer','shop'):self.shared[field]=deepcopy(run.get(field))
    self.sync();return
+  if action=='shop-reroll':
+   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
+   with self.scope(seat):price=game.reroll_shop(run,self.rng)
+   for key in ('gold','shop','shop_rerolls'):self.shared[key]=deepcopy(run[key])
+   self.sync();return price
   if action in ('buy','skip'):
    cursed_relics.require_choice(run)
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
@@ -310,7 +319,7 @@ class TagCampaign:
    with self.scope(seat):game.finish_duel(run,result,self.rng)
   host=self.players[0]
   # One team reward and healing, not a duplicate payout per connected player.
-  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts'):self.shared[key]=deepcopy(host.get(key))
+  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts','shop_rerolls'):self.shared[key]=deepcopy(host.get(key))
   defeated=sorted(set(x for r in self.players for x in r.get('defeated_opponents',[])))
   for run in self.players:run['defeated_opponents']=defeated[:];run['last_rewards']=deepcopy(host['last_rewards']);run['last_gold']=host['last_gold']
   self.sync();self.phase=host['stage'];self.shop_seat=0;self.ready=[False,False];self.duel=None;self.revision+=1

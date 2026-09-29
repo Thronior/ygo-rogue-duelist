@@ -54,6 +54,9 @@ def dispatch(raw):
  elif action=='secret-champion':
   import secret_challenge
   run=secret_challenge.create(g)
+ elif action=='secret-relicless':
+  import secret_challenge
+  run=secret_challenge.relicless(g,run)
  elif action=='champion':
   import endless
   endless.challenge(g,run)
@@ -98,8 +101,8 @@ def dispatch(raw):
   if 'deck_spyglass' not in run['artifacts'] and run.get('mirror_copy')!='deck_spyglass':raise ValueError('Deck Spyglass is required.')
   opponent=int(value)
   if opponent not in run['routes']:raise ValueError('Unavailable opponent')
-  main=g.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0))
-  extra=[] if run['round']==0 else content.opponent_record(run['round'],opponent)['extra']
+  main=g.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0),loop=run.get('loop',0))
+  extra=[] if run['round']==0 and not run.get('loop') else content.opponent_record(run['round'],opponent,run.get('loop',0))['extra']
   result=main+extra
  elif action=='cursed-choose':
   import cursed_relics
@@ -107,6 +110,7 @@ def dispatch(raw):
  elif action=='cursed-reroll':
   import cursed_relics
   cursed_relics.reroll(run)
+ elif action=='shop-reroll':result=g.reroll_shop(run)
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))
  elif action=='reset-progress':storage.reset_progress();run=None

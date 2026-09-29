@@ -44,7 +44,7 @@ def sync():
  from duel_rewards import RULES, VICTORY_ONLY
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY) for metric,_,label,coins in RULES]
- meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)] for i in content.GAME_DECKS}
+ meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
  (WEB/'content.json').write_text(json.dumps(meta,ensure_ascii=False),encoding='utf8')
  old=ROOT.parent/'Shadow Run/duel-run/dist'
  # Vendor the working engine once. Subsequent builds are self-contained.

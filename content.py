@@ -164,9 +164,9 @@ def starting_packs(index,rng=None):
   return [p['id'] for p in chosen]
  return CHARACTERS[index].get('starting_packs',DRAFTS.get(str(index),[CHARACTERS[index]['pack']]*4))
 OPPONENT_TIERS=FIXED_OPPONENTS
-def opponent_record(round_index,index):
+def opponent_record(round_index,index,loop=0):
  from deck_files import read
- row=OPPONENT_TIERS[str(index)][min(2,round_index//3)]
+ row=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8'))[str(index)] if loop>=1 else OPPONENT_TIERS[str(index)][min(2,round_index//3)]
  return read(row['deck'],row)
 
 # Coin milestones are shared by the whole roster.

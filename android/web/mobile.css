@@ -966,3 +966,28 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .character-select-page .roster{grid-template-columns:repeat(6,minmax(0,1fr));width:100%;max-width:1080px;justify-self:center;margin-inline:auto}
 
 .duelist-hero>img{position:absolute;inset:auto 0 0;object-position:center bottom}
+
+/* Shopkeeper remains reachable on phones without occupying a stock shelf. */
+.secret-shopkeeper{padding:0;border:0;background:none;cursor:pointer}
+.secret-shopkeeper img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+@media(orientation:portrait){.shop-compact .shop-counter .secret-shopkeeper{display:none}}
+
+.shop-counter .secret-shopkeeper{pointer-events:auto}
+
+.shop-reference-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.shop-reference-buttons button{min-width:0;padding-inline:3px}
+
+.shop-compact:not(.tag-offline-shop) .shop-reference-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+.shop-reroll-counter{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:76px;height:68px;padding:5px;border:2px solid #e69191;border-radius:14px;background:linear-gradient(#a83d4d,#732436);color:#fff3df;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;z-index:2}
+.shop-reroll-counter b{font-size:12px}.shop-reroll-counter span{display:flex;gap:5px;align-items:center;font-size:16px}.shop-reroll-counter img{width:19px;height:19px;object-fit:contain}.shop-reroll-counter:disabled{opacity:.45}
+@media(orientation:portrait){.shop-counter .shop-reroll-counter{bottom:6px;width:68px;height:58px}}
+
+.shop-reroll-landscape{background:linear-gradient(#a83d4d,#732436);border-color:#e69191;color:#fff3df;display:flex;align-items:center;justify-content:center;gap:6px}.shop-reroll-landscape b{font-size:11px}.shop-reroll-landscape span{display:flex;align-items:center;gap:3px}.shop-reroll-landscape img{width:16px;height:16px;object-fit:contain}
+@media(orientation:landscape){.shop-reroll-counter{display:none}.shop-compact:not(.tag-offline-shop) .shop-reference-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(orientation:portrait){.shop-reroll-landscape{display:none}}
+
+@media(orientation:portrait){
+ .shop-compact.relicless-shop .shop-layout{grid-template-rows:minmax(0,1fr) 28px}
+ .shop-compact.relicless-shop .shop-layout>aside{grid-template-rows:28px}
+ .shop-compact.relicless-shop .shop-layout>aside>.shop-reference-buttons{grid-row:1}
+ .shop-compact.relicless-shop.relic-only-shop .shop-layout{grid-template-rows:28px;align-content:end}
+}

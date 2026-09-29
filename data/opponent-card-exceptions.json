@@ -1849,5 +1849,831 @@
       "",
       ""
     ]
+  },
+  {
+    "id": 35027493,
+    "name": "Deck Devastation Virus",
+    "desc": "Tribute 1 DARK monster with 2000 or more ATK; look at your opponent's hand, all monsters they control, and all cards they draw until the end of their 3rd turn after this card's activation, and destroy all those monsters with 1500 or less ATK.",
+    "type": "Trap Card",
+    "race": "Normal",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2004-11-25",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/35027493.jpg",
+    "data": {
+      "code": 35027493,
+      "alias": 0,
+      "setcodes": [],
+      "type": 4,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "Affected by \"Deck Devastation Virus\"",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 13756293,
+    "name": "King Dragun",
+    "desc": "\"Lord of D.\" + \"Divine Dragon Ragnarok\"\nYour opponent cannot target Dragon monsters with card effects. Once per turn: You can Special Summon 1 Dragon monster from your hand.",
+    "type": "Fusion Monster",
+    "race": "Dragon",
+    "attribute": "DARK",
+    "level": 7,
+    "atk": 2400,
+    "defense": 1100,
+    "date": "2004-11-25",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/13756293.jpg",
+    "data": {
+      "code": 13756293,
+      "alias": 0,
+      "setcodes": [
+        109
+      ],
+      "type": 97,
+      "level": 7,
+      "attribute": 32,
+      "race": "8192",
+      "attack": 2400,
+      "defense": 1100,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Special Summon",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 86805855,
+    "name": "Dark Blade the Dragon Knight",
+    "desc": "\"Dark Blade\" + \"Pitch-Dark Dragon\"\nEach time this card inflicts Battle Damage to your opponent, you can select up to 3 Monster Cards from your opponent's Graveyard and remove them from play.",
+    "type": "Fusion Monster",
+    "race": "Warrior",
+    "attribute": "DARK",
+    "level": 6,
+    "atk": 2200,
+    "defense": 1500,
+    "date": "2004-08-05",
+    "sets": [
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Rare"
+      },
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/86805855.jpg",
+    "data": {
+      "code": 86805855,
+      "alias": 0,
+      "setcodes": [],
+      "type": 97,
+      "level": 6,
+      "attribute": 32,
+      "race": "1",
+      "attack": 2200,
+      "defense": 1500,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Banish",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 90140980,
+    "name": "Ojama King",
+    "desc": "\"Ojama Green\" + \"Ojama Yellow\" + \"Ojama Black\"\nSelect up to 3 of your opponent's Monster Card Zones. The selected zones cannot be used.",
+    "type": "Fusion Monster",
+    "race": "Beast",
+    "attribute": "LIGHT",
+    "level": 6,
+    "atk": 0,
+    "defense": 3000,
+    "date": "2004-05-27",
+    "sets": [
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Rare"
+      },
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/90140980.jpg",
+    "data": {
+      "code": 90140980,
+      "alias": 0,
+      "setcodes": [
+        15
+      ],
+      "type": 97,
+      "level": 6,
+      "attribute": 16,
+      "race": "16384",
+      "attack": 0,
+      "defense": 3000,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Select Monster Card Zones?",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 47507260,
+    "name": "Mystic Swordsman LV2",
+    "desc": "At the start of the Damage Step, if this card attacked a face-down Defense Position monster: Destroy that monster. During the End Phase, if this card destroyed a monster by battle this turn: You can send this face-up card to the Graveyard; Special Summon 1 \"Mystic Swordsman LV4\" from your hand or Deck.",
+    "type": "Effect Monster",
+    "race": "Warrior",
+    "attribute": "EARTH",
+    "level": 2,
+    "atk": 900,
+    "defense": 0,
+    "date": "2004-05-27",
+    "sets": [
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Rare"
+      },
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/47507260.jpg",
+    "data": {
+      "code": 47507260,
+      "alias": 0,
+      "setcodes": [
+        65,
+        95
+      ],
+      "type": 33,
+      "level": 2,
+      "attribute": 1,
+      "race": "1",
+      "attack": 900,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Destroy",
+      "Special Summon",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 91932350,
+    "name": "Harpie Lady 1",
+    "desc": "(This card's name is always treated as \"Harpie Lady\".)\nAll WIND monsters gain 300 ATK.",
+    "type": "Effect Monster",
+    "race": "Winged Beast",
+    "attribute": "WIND",
+    "level": 4,
+    "atk": 1300,
+    "defense": 1400,
+    "date": "2004-08-05",
+    "sets": [
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Common"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/91932350.jpg",
+    "data": {
+      "code": 91932350,
+      "alias": 76812113,
+      "setcodes": [
+        100
+      ],
+      "type": 33,
+      "level": 4,
+      "attribute": 8,
+      "race": "512",
+      "attack": 1300,
+      "defense": 1400,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 75782277,
+    "name": "Harpies' Hunting Ground",
+    "desc": "All Winged Beast monsters gain 200 ATK/DEF. If any \"Harpie Lady\" or \"Harpie Lady Sisters\" is Normal or Special Summoned: The player who conducted the Summon targets 1 Spell/Trap on the field; that player destroys that target.",
+    "type": "Spell Card",
+    "race": "Field",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2004-08-05",
+    "sets": [
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Common"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/75782277.jpg",
+    "data": {
+      "code": 75782277,
+      "alias": 0,
+      "setcodes": [
+        100
+      ],
+      "type": 524290,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Spell/Trap Destruction",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 4929256,
+    "name": "Mobius the Frost Monarch",
+    "desc": "When this card is Tribute Summoned: You can target up to 2 Spell/Trap Cards on the field; destroy those targets.",
+    "type": "Effect Monster",
+    "race": "Aqua",
+    "attribute": "WATER",
+    "level": 6,
+    "atk": 2400,
+    "defense": 1000,
+    "date": "2004-05-27",
+    "sets": [
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Super Rare"
+      },
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/4929256.jpg",
+    "data": {
+      "code": 4929256,
+      "alias": 0,
+      "setcodes": [],
+      "type": 33,
+      "level": 6,
+      "attribute": 2,
+      "race": "64",
+      "attack": 2400,
+      "defense": 1000,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Select up to 2 Spell or Trap Cards on the field to destroy",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 63356631,
+    "name": "Phoenix Wing Wind Blast",
+    "desc": "Discard 1 card, then target 1 card your opponent controls; place that target on the top of the Deck.",
+    "type": "Trap Card",
+    "race": "Normal",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2004-11-25",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/63356631.jpg",
+    "data": {
+      "code": 63356631,
+      "alias": 0,
+      "setcodes": [],
+      "type": 4,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 9637706,
+    "name": "Des Wombat",
+    "desc": "You take no effect damage.",
+    "type": "Effect Monster",
+    "race": "Beast",
+    "attribute": "EARTH",
+    "level": 3,
+    "atk": 1600,
+    "defense": 300,
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/9637706.jpg",
+    "data": {
+      "code": 9637706,
+      "alias": 0,
+      "setcodes": [],
+      "type": 33,
+      "level": 3,
+      "attribute": 1,
+      "race": "16384",
+      "attack": 1600,
+      "defense": 300,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 93107608,
+    "name": "Howling Insect",
+    "desc": "When this card is destroyed by battle and sent to the Graveyard: You can Special Summon 1 Insect-Type monster with 1500 or less ATK from your Deck.",
+    "type": "Effect Monster",
+    "race": "Insect",
+    "attribute": "EARTH",
+    "level": 3,
+    "atk": 1200,
+    "defense": 1300,
+    "date": "2004-05-27",
+    "sets": [
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Common"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/93107608.jpg",
+    "data": {
+      "code": 93107608,
+      "alias": 0,
+      "setcodes": [],
+      "type": 33,
+      "level": 3,
+      "attribute": 1,
+      "race": "2048",
+      "attack": 1200,
+      "defense": 1300,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Special Summon",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 84430950,
+    "name": "Armed Samurai - Ben Kei",
+    "desc": "For each Equip Card equipped to this card, it gains 1 additional attack during each Battle Phase.",
+    "type": "Effect Monster",
+    "race": "Warrior",
+    "attribute": "DARK",
+    "level": 4,
+    "atk": 500,
+    "defense": 800,
+    "date": "2004-11-25",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/84430950.jpg",
+    "data": {
+      "code": 84430950,
+      "alias": 0,
+      "setcodes": [],
+      "type": 33,
+      "level": 4,
+      "attribute": 32,
+      "race": "1",
+      "attack": 500,
+      "defense": 800,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 87621407,
+    "name": "Dekoichi the Battlechanted Locomotive",
+    "desc": "FLIP: Draw 1 card, then draw 1 additional card for each face-up \"Bokoichi the Freightening Car\" you control.",
+    "type": "Flip Effect Monster",
+    "race": "Machine",
+    "attribute": "DARK",
+    "level": 4,
+    "atk": 1400,
+    "defense": 1000,
+    "date": "2004-08-05",
+    "sets": [
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Rare"
+      },
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/87621407.jpg",
+    "data": {
+      "code": 87621407,
+      "alias": 0,
+      "setcodes": [],
+      "type": 2097185,
+      "level": 4,
+      "attribute": 32,
+      "race": "32",
+      "attack": 1400,
+      "defense": 1000,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Draw card",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 18318842,
+    "name": "Abyss Soldier",
+    "desc": "Once per turn: You can discard 1 WATER monster to the Graveyard to target 1 card on the field; return it to the hand.",
+    "type": "Effect Monster",
+    "race": "Aqua",
+    "attribute": "WATER",
+    "level": 4,
+    "atk": 1800,
+    "defense": 1300,
+    "date": "2004-07-29",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/18318842.jpg",
+    "data": {
+      "code": 18318842,
+      "alias": 0,
+      "setcodes": [
+        117
+      ],
+      "type": 33,
+      "level": 4,
+      "attribute": 2,
+      "race": "64",
+      "attack": 1800,
+      "defense": 1300,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Return to hand",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 76515293,
+    "name": "Xing Zhen Hu",
+    "desc": "Activate by selecting 2 Set Spell or Trap Cards on the field. The selected Spell or Trap Cards cannot be activated.",
+    "type": "Trap Card",
+    "race": "Continuous",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2004-08-05",
+    "sets": [
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Common"
+      },
+      {
+        "name": "Rise of Destiny",
+        "rarity": "Short Print"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/76515293.jpg",
+    "data": {
+      "code": 76515293,
+      "alias": 0,
+      "setcodes": [],
+      "type": 131076,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Select 2 Set Spell or Trap Cards on the field.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 27134689,
+    "name": "Master of Oz",
+    "desc": "\"Big Koala\" + \"Des Kangaroo\"",
+    "type": "Fusion Monster",
+    "race": "Beast",
+    "attribute": "EARTH",
+    "level": 9,
+    "atk": 4200,
+    "defense": 3700,
+    "date": "2004-05-27",
+    "sets": [
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Rare"
+      },
+      {
+        "name": "Soul of the Duelist",
+        "rarity": "Ultimate Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/27134689.jpg",
+    "data": {
+      "code": 27134689,
+      "alias": 0,
+      "setcodes": [],
+      "type": 65,
+      "level": 9,
+      "attribute": 1,
+      "race": "16384",
+      "attack": 4200,
+      "defense": 3700,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
   }
 ]
