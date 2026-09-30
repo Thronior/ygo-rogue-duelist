@@ -383,6 +383,7 @@ export function smartContext(e,p,L,prompt=null){
    return cheap&&enemy.length&&enemy.every(x=>known(x)&&targetValue(x)>expendable(cheap)+600)?88:-1;
   }
   if(replayRule('hold_combat_traps')&&['Kunai with Chain','Energy Drain','Metalmorph'].includes(n)&&c.location===L.SZONE&&!e.attackCard)return -1;
+  if(n==='Avatar of The Pot')return has(hand,'Pot of Greed')&&q(p,L.DECK).length>3?96:-1;
   if(replayRule('repeat_flip')&&n==='Royal Keeper')return e.phase>=256&&!enemy.some(x=>face(x)&&pierce(x,1-p))?70:-1;
 
   // Do not commit a beneficial equip when only enemy/set monsters can receive it.
@@ -542,8 +543,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Guardian Sphinx')return enemy.length?110:-1;
   if(n==='Swarm of Scarabs')return enemy.length?100:-1;
   if(n==='Swarm of Locusts')return theirBack.length?100:-1;
-  if(['Nightmare Wheel','Mask of the Accursed','Spellbinding Circle'].includes(n))return enemy.some(face)?85:-1;
-  if(n==='Mask of Dispel')return theirBack.some(x=>face(x)&&(data(x).type&2))?55:-1;
+  if(n==='Spellbinding Circle'&&!chain)return enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>=1700)?85:-1;
+  if(['Nightmare Wheel','Mask of the Accursed','Spellbinding Circle'].includes(n))return enemy.some(face)?85:-1;  if(n==='Mask of Dispel')return theirBack.some(x=>face(x)&&(data(x).type&2))?55:-1;
   if(n==='Shield & Sword')return shieldSwordScore();
   if(['Graceful Dice','Skull Dice','Metalmorph','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
   if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||((e.data[e.knownFieldCard(p,x)]?.defense??0)<=2000)))?95:-1;
@@ -622,6 +623,7 @@ export function smartContext(e,p,L,prompt=null){
   // Ceasefire had no activation rule at all: 500 damage per face-up monster.
   if(n==='Ceasefire'){const burn=500*[...own,...enemy].filter(x=>face(x)).length;return burn>=e.lp[1-p]?120:(chain||e.phase===4)&&burn>=1000?80:-1;}
   if(n==='Just Desserts')return enemy.length>=2||enemy.length*500>=e.lp[1-p]?80:-1;
+  if(n==='Secret Barrel'){const t=q(1-p,L.HAND).length+enemy.length+theirBack.filter(Boolean).length;return t*200>=e.lp[1-p]?120:t>=6?75:-1;}
   if(n==='Gift of The Mystical Elf')return own.length+enemy.length>=3&&e.lp[p]<6000?50:-1;
   if(['Red Medicine',"Goblin's Secret Remedy"].includes(n))return e.lp[p]<8000?40:-1;
   if(n==='Reinforcements'||n==='Rush Recklessly'){if(!chain)return -1;
@@ -802,7 +804,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'backrow_atk':v=[0,1].flatMap(s=>q(s,L.SZONE)).filter(face).length*a;break;
     case 'banished_atk':v=[0,1].flatMap(s=>q(s,L.REMOVED)).filter(x=>face(x)&&(data(x).type&1)).length*a;break;
     case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=300;break;
-    case 'approved_zombies_bargain':v=400;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
+    case 'approved_zombies_bargain':v=800;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
     case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
     case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?1000:-300;break;
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>face(x)&&race(x)!==race(c))?200:0;break;
@@ -948,6 +950,9 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(pierce(a)&&t&&!(t.position&1))s+=Math.max(0,atk(a)-((t.defense??e.data[t.code]?.defense)??0));
   if(n==='Newdoria'&&dmg<=0&&t&&power(t)>atk(a))s+=50;
   return s;}
+ function suicideScore(a){const n=name(a);if(!['Witch of the Black Forest','Sangan'].includes(n))return 0;
+  if(e.lp[p]<=2000||q(p,L.DECK).length<=3)return 0;
+  return enemy.some(x=>face(x)&&power(x)>atk(a)&&power(x)<=atk(a)+1500)?800:0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
   if(subject&&projectedAttack(subject)<atk(c)&&!(attackBlocked(c,p)&&!attackBlocked(subject,p,true)))return -100000000;
@@ -1023,5 +1028,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;return null;}
- return {clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position};
+ return {clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

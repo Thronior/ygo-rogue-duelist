@@ -471,10 +471,16 @@ def install(g):
   if item['kind']=='deck':
    _prof=storage.profile();_prof['decks_bought']=_prof.get('decks_bought',0)+1;storage.write(storage.ROOT/'profile.json',_prof)
   elif item['kind']=='artifact':
+   _pre_discount=amount(run,'discount')
    run['artifacts'].append(item['id'])
    if item['id']=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
    if item['id']=='stamp':run['stamped_singles']=0
    if item['id']=='ankh' and ar.can_heal(run,between=True):run['lp']=max(run['lp'],min(4000,run['lp']+2000)) if run.get('challenge_level',0)>=4 else run['lp']+2000
+   if ART_INFO.get(item['id'],{}).get('effect')=='discount':
+    _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
+    if _old_mod>0:
+     for _it in run['shop']:
+      if not _it.get('sold') and _it['kind']!='deck':_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
   run['last_misprints']=[]
   if owns(run,'faulty_printer') and item['kind'] in ('single','pack'):
    _chance=amount(run,'faulty')/100;_faulty=run.setdefault('card_mods',{});_fresh=[]

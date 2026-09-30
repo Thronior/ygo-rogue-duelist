@@ -147,6 +147,15 @@
 .chain-control span{inset:0;display:grid;place-items:center;padding:0;font-size:clamp(10px,1.35vw,17px);font-weight:700;line-height:1;color:#fff4ce;text-shadow:0 2px 3px #000,0 0 5px #000;pointer-events:none;z-index:1}
 .chain-disabled span{color:#ffaaaa}
 @media(prefers-reduced-motion:reduce){.duel-particles{display:none}}
+.level-unlock{position:relative;overflow:hidden;border-radius:10px;padding:14px 12px;margin:12px 0;text-align:center;background:linear-gradient(135deg,#3a2a08,#6b4d0f 40%,#3a2a08);border:2px solid var(--gold)}
+.level-unlock h2{margin:0;font-size:clamp(20px,3vw,30px);color:#ffe9a8;text-shadow:0 0 12px #ffb700,0 2px 3px #000}
+.level-unlock p{margin:6px 0 0;color:#fff4ce}
+.level-unlock .unlock-lights{position:absolute;inset:-40%;pointer-events:none;background:repeating-linear-gradient(115deg,transparent 0 40px,rgba(255,215,106,.14) 40px 80px);animation:unlock-sweep 3.2s linear infinite}
+.level-unlock .unlock-motes{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.level-unlock .unlock-motes i{position:absolute;left:var(--x);top:var(--y);width:4px;height:4px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 8px #ffcf4d;opacity:0;animation:unlock-rise var(--duration) linear var(--delay) infinite}
+@keyframes unlock-sweep{from{transform:translateX(-60px)}to{transform:translateX(60px)}}
+@keyframes unlock-rise{0%{transform:translateY(24px) scale(.6);opacity:0}25%,75%{opacity:.9}100%{transform:translateY(-70px) scale(1.1);opacity:0}}
+@media(prefers-reduced-motion:reduce){.level-unlock .unlock-lights,.level-unlock .unlock-motes{display:none}}
 
 /* Shop counter controls free the full-height left shelves. */
 .shop-compact{position:relative}
@@ -991,3 +1000,19 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .shop-compact.relicless-shop .shop-layout>aside>.shop-reference-buttons{grid-row:1}
  .shop-compact.relicless-shop.relic-only-shop .shop-layout{grid-template-rows:28px;align-content:end}
 }
+
+
+/* On-board chain/activation selection. Leave the field and inspection usable. */
+.field-reaction{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:21;max-width:80%;pointer-events:none;text-align:center}
+.reaction-buttons{display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.reaction-buttons button,.reaction-orb{pointer-events:auto;border:2px solid #f3dc38;background:#dfcb36e8;color:#111b16;border-radius:24px;padding:8px 13px;font-size:clamp(11px,1.3vw,16px);font-weight:700;box-shadow:0 0 9px #fae24788;min-height:34px}
+.reaction-buttons button:disabled{opacity:.75;cursor:default}
+.reaction-context{font-size:clamp(9px,1vw,12px);line-height:1.15;color:#fff4aa;text-shadow:0 1px 3px #000;background:#071923ba;border-radius:5px;padding:2px 5px;margin:0 auto 3px;width:max-content;max-width:100%}
+.reaction-orb{position:absolute;left:2%;top:54%;width:40px;height:40px;padding:0;z-index:21;font-size:23px}
+.reaction-orb[hidden]{display:none}
+.zone.reaction-available,.reaction-orb.reaction-available{border:2px solid #ffdf31;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;cursor:pointer}
+.zone.reaction-picked,.reaction-orb.reaction-picked{border-color:#fff8c4;box-shadow:0 0 0 2px #ffe52b,0 0 20px #fff47e,inset 0 0 14px #fff47e99}
+.reaction-picker{position:absolute;z-index:23;left:50%;top:57%;transform:translateX(-50%);width:max-content;max-width:85%;max-height:40%;overflow:auto;display:flex;flex-direction:column;gap:4px;padding:5px;background:#102b36f5;border:1px solid #ffe64b;border-radius:8px}
+.reaction-picker button{display:flex;gap:7px;align-items:center;text-align:left;padding:5px 8px;font-size:12px;min-height:34px}
+.reaction-picker img{height:42px;width:29px;object-fit:contain}.reaction-picker .reaction-picked{border-color:#fff47e;box-shadow:inset 0 0 8px #ffe64b}
+@media(orientation:portrait){.reaction-buttons{gap:6px}.reaction-buttons button{padding:5px 9px;min-height:30px}.reaction-orb{left:1%;width:30px;height:30px;min-height:30px;font-size:18px}.reaction-context{font-size:9px;max-width:65vw}.reaction-picker{max-height:38%;max-width:90%}}

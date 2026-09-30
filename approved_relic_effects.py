@@ -45,7 +45,7 @@ def effect(kind):
  elif key=='giants_oath':atk(800,'c:IsLevelAbove(5)');atk(-400,'c:IsLevelBelow(4)')
  elif key=='commoners_chain':both(300,'c:IsType(TYPE_NORMAL)');both(-200,'c:IsType(TYPE_EFFECT)')
  elif key=='zombies_bargain':
-  atk(400);out.append(player_rule('EFFECT_REVERSE_RECOVER',1));out.append(player_rule('EFFECT_CHANGE_DAMAGE','function(e,re,val,r,rp) if (r&REASON_RRECOVER)~=0 then return 0 end return val end'))
+  atk(800);out.append(player_rule('EFFECT_REVERSE_RECOVER',1));out.append(player_rule('EFFECT_CHANGE_DAMAGE','function(e,re,val,r,rp) if (r&REASON_RRECOVER)~=0 then return 0 end return val end'))
  elif key=='warriors_vow':atk(200);out.append(stat('EFFECT_CANNOT_CHANGE_POSITION',1,'c:IsAttackPos()'))
  elif key=='ritual_scar':
   atk(1000,'c:IsType(TYPE_RITUAL)');out.append(event('EVENT_SPSUMMON_SUCCESS','Duel.Damage(0,1000,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,1,nil)'))

@@ -22,7 +22,7 @@ CURSED=[
 (8,'ashen_nursery','Ashen Nursery','Level 3 or lower monsters you control gain 700 ATK. Level 5 or higher monsters you control lose 700 ATK.','Baby Dragon'),
 (9,'giants_oath',"Giant's Oath",'Level 5 or higher monsters you control gain 800 ATK. Level 4 or lower monsters you control lose 400 ATK.','Summoned Skull'),
 (10,'commoners_chain',"Commoner's Chain",'Normal Monsters you control gain 300 ATK/DEF. Effect Monsters you control lose 200 ATK/DEF.','Kunai with Chain'),
-(14,'zombies_bargain',"Zombie's Bargain",'Monsters you control gain 400 ATK. You cannot gain LP.','Vampire Lord'),
+(14,'zombies_bargain',"Zombie's Bargain",'Monsters you control gain 800 ATK. You cannot gain LP.','Vampire Lord'),
 (16,'warriors_vow',"Warrior's Vow",'Monsters you control gain 200 ATK. You cannot manually change your monsters from Attack Position to Defense Position.','Axe Raider'),
 (17,'ritual_scar','Ritual Scar','Ritual Monsters you control gain 1000 ATK. Each time you Ritual Summon, take 1000 damage.','Relinquished'),
 (18,'fusion_fever','Fusion Fever','Fusion Monsters you control gain 800 ATK. Each time you Fusion Summon, discard 1 card if possible.','Polymerization'),

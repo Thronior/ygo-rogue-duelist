@@ -12,8 +12,11 @@ def validate(character, level):
 def award(profile, run):
  level=int(run.get('challenge_level',0))
  if level<0:return
+ before=highest(profile,run['character'])
+ new=max(before,level)
  levels=profile.setdefault('character_levels',{})
- levels[str(run['character'])]=max(highest(profile,run['character']),level)
+ levels[str(run['character'])]=new
+ if new>before and new+1<=5:run['level_unlocked']=new+1
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
 
 def curse_description(run,key,default):

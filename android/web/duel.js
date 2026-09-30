@@ -225,6 +225,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     if(!best||score>best.score||(score===best.score&&((_pw>=1400)?(_bw<1400||_pw<_bw):(_bw<1400&&_pw>_bw))))best={score,i,power:_pw};}}
    // Only trade after exhausting every existing winning/direct attack option.
    if(!best){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i],a=own.find(x=>x.sequence===c.sequence)||c,power=atk(a);if(!smart.attackAllowed(a,false))continue;if(enemy.some(t=>tradeTarget(power,t))&&(!best||power>best.power))best={i,power};}}
+   if(!best&&!this.battleProtected?.[1-p]){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i],a=own.find(x=>x.sequence===c.sequence)||c;if(!smart.attackAllowed(a,false))continue;const v=smart.suicideScore(a);if(v>0&&(!best||v>best.score))best={score:v,i,power:0};}}
    // Mandatory attacks (e.g. Diffusion Wave-Motion) cannot be declined even under Waboku.
    if(!best&&!m.to_m2&&!m.to_ep&&m.attacks.length){const forced=m.attacks.map((c,i)=>({i,power:atk(own.find(x=>x.sequence===c.sequence)||c)})).sort((a,b)=>b.power-a.power);best=forced[0];}
    return best?{type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:best.i}:{type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null}}
