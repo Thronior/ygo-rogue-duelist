@@ -14,7 +14,7 @@ e:SetOperation(function()
  local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsLevelAbove(2) end,0,LOCATION_HAND,0,nil)
  if #g==0 then return end
  local c=g:RandomSelect(0,1):GetFirst()
- local d=Effect.CreateEffect(c) d:SetType(EFFECT_TYPE_SINGLE) d:SetCode(EFFECT_UPDATE_LEVEL) d:SetValue(-1) d:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) c:RegisterEffect(d)
+ local d=Effect.CreateEffect(c) d:SetType(EFFECT_TYPE_SINGLE) d:SetCode(EFFECT_UPDATE_LEVEL) d:SetValue(-1) d:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(d)
 end) Duel.RegisterEffect(e,0) end'''
  if kind=='enemy_standby_burn':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end) e:SetOperation(function() Duel.Damage(1,{amount},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
  if kind=='standby_bounce':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end)

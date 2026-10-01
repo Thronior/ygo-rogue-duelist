@@ -11,6 +11,11 @@ def state():
 def dispatch(raw):
  global run,tag_session
  req=json.loads(raw);action=req['action'];value=req.get('value');result=None
+ if action.startswith('collector-'):
+  import collector
+  result=collector.dispatch(action[10:],value)
+  if action=='collector-import' and run and int(run.get('_save_slot',storage.active_slot()))==int(value['source']):run=None
+  return json.dumps(dict(**state(),result=result),ensure_ascii=False)
  if action=='reward-progress':
   from duel_rewards import progress
   return json.dumps({'result':progress(value['run'],value['events'],g.BY_ID,value.get('victory',False))})
@@ -40,7 +45,9 @@ def dispatch(raw):
   elif action=='tag-finish':tag_session.finish(value['winner'],value['lp'],value['events'],value.get('reason',0));checkpoint()
   else:raise ValueError('Unknown tag operation.')
  elif action=='import-profile':result=storage.merge_desktop_profile(value,[g.unlock_rule(i)[0] for i in content.PLAYABLE_IDS[2:]])
- elif action=='init':run=g.load_run()
+ elif action=='init':
+  import collector
+  collector.load();run=g.load_run()
  elif action=='select-slot':
   slot=int(value);candidate=g.load_run(slot)
   if not candidate:raise ValueError('This slot has no valid saved run.')

@@ -324,6 +324,7 @@ def install(g):
   character_progression.duel(g,run,result,won,boss)
   run['last_rewards']={};run['last_gold']=0
   run['last_boss_heal']=0
+  run['shop_rerolls']=0
   # Curses end with this encounter, including defeats and the final boss.
   run['curses']=[];run['boss_curse']=None
   if not won:
@@ -333,7 +334,6 @@ def install(g):
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    run['last_reward_card']=rng.choice(defeated_deck);run['last_reward_cards']=[run['last_reward_card']];run['pool'].append(run['last_reward_card'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
-   if boss:run['shop_rerolls']=0
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    cap=8000 if boss else (10000 if 'ankh' in run['artifacts'] else 8000)
@@ -378,7 +378,7 @@ def install(g):
    if cursed_relics.pending(run):run['shop']=[]
    else:restock(run,rng)
   save(run)
- def restock(run,rng=random):
+ def restock(run,rng=random,general_stock=False):
   challenge_levels.suppress(run)
   reload_tuning()
   shop_rewards.normalize_run(run)
@@ -393,7 +393,9 @@ def install(g):
   if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
   boost=[c for c in eligible if c['id'] in like and c not in preferred]
   pool=(preferred+boost) or eligible
-  if run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
+  if general_stock:
+   top=rng.sample(eligible,5)
+  elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
    top=shop_rewards.tag_featured(eligible+[removal],run['tag_shop_rewards'],rng)
   else:
    top=rng.sample(pool,min(5,len(pool)))
@@ -443,8 +445,9 @@ def install(g):
   if run.get('challenge_level')==-1 and run.get('history_mode')!='tag' and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):raise ValueError('There is no purchasable stock to reroll at LVL -1.')
   price=reroll_price(run)
   if run['gold']<price:raise ValueError('Not enough coins to reroll.')
+  # Rerolls replace the encounter's featured singles with general stock.
   # Generate first so a failed restock cannot charge the player.
-  restock(run,rng)
+  restock(run,rng,general_stock=True)
   run['gold']-=price;run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
   return price
  def buy(run,index,rng=random):

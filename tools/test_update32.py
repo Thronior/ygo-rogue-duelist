@@ -25,7 +25,7 @@ if True:
  assert len(req['enemy_deck'])>=40
  g.finish_duel(secret,dict(protocol=1,id=req['id'],lp=8000,winner=0,events=[]),random.Random(1));assert storage.profile()['relicless_unlocked'] and secret['stage']=='complete'
  for rd in (0,2):
-  r=g.new_run(0);g.auto_deck(r);r.update(round=rd,shop_rerolls=7);g.routes(r,random.Random(1));r['opponent']=r['routes'][0];req=g.prepare_duel(r,random.Random(1));g.finish_duel(r,dict(protocol=1,id=req['id'],lp=8000,winner=0,events=[]),random.Random(1));assert r['shop_rerolls']==(0 if rd==2 else 7)
+  r=g.new_run(0);g.auto_deck(r);r.update(round=rd,shop_rerolls=7);g.routes(r,random.Random(1));r['opponent']=r['routes'][0];req=g.prepare_duel(r,random.Random(1));g.finish_duel(r,dict(protocol=1,id=req['id'],lp=8000,winner=0,events=[]),random.Random(1));assert r['shop_rerolls']==0 and g.reroll_price(r)==10
  for char in (0,37,38):
   r=g.new_run(char,level=-1);assert not r['artifacts'];r.update(stage='shop',opponent=r['routes'][0]);g.restock(r,random.Random(9));assert not any(x['kind']=='artifact' for x in r['shop'])
  for loop in (0,1,2):

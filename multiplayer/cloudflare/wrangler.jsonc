@@ -16,6 +16,10 @@
       {
         "name": "RELAY",
         "class_name": "GameRelay"
+      },
+      {
+        "name": "COLLECTOR",
+        "class_name": "CollectorRegistry"
       }
     ]
   },
@@ -30,6 +34,12 @@
       "tag": "v2",
       "new_sqlite_classes": [
         "GameRelay"
+      ]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": [
+        "CollectorRegistry"
       ]
     }
   ]
