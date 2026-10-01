@@ -143,7 +143,9 @@ def reward_for(index,rng=None):
  key,label=REWARDS.get(index,(CHARACTERS[index]['race'],CHARACTERS[index]['race']+' monsters'))
  if rng:
   key=rng.choice(list(dict.fromkeys(THEME_OPTIONS.get(index,[key])+['LIGHT','DARK','EARTH','WIND','WATER','FIRE'])));label=LABELS.get(key,key+' monsters')
- return dict(key=key,label=label,pack=CHARACTERS[index]['pack'])
+ pack=CHARACTERS[index]['pack']
+ if PACK_BY_ID[pack].get('draft_only'):pack=PACK_BY_ID[pack].get('reward_pack','EN-MFC')
+ return dict(key=key,label=label,pack=pack)
 
 def matches(card,key):
  key=RETIRED_THEMES.get(key,key)
@@ -222,12 +224,22 @@ def description(index,reward=None):
  return reward['label']+' appear more often\nGuaranteed pack: '+PACK_BY_ID[reward['pack']]['name']
 
 
-def _tied_pack(deck):
+def _tied_pack(deck,rng=None):
  from collections import Counter
  from content import PACKS
- frequency=Counter(deck)
- def overlap(pack):return sum(frequency[cid] for cid in set(pack['common']+pack['rare']))
- return max(PACKS,key=lambda p:overlap(p))['id']
+ frequency=Counter(deck);total=max(1,sum(frequency.values()))
+ eligible=[p for p in PACKS if not p.get('draft_only')]
+ # Reward both deck coverage and concentration. Broad all-card packs remain
+ # possible without always winning merely because they contain more cards.
+ weights=[]
+ for p in eligible:
+  ids=set(p['common']+p['rare'])
+  hits=sum(frequency[cid] for cid in ids)
+  weights.append((hits/total)**2 * (100/(100+len(ids)))**0.75)
+ if not any(weights):return 'EN-LOB'
+ if rng is None:return eligible[max(range(len(weights)),key=weights.__getitem__)]['id']
+ return rng.choices(eligible,weights=weights,k=1)[0]['id']
+
 
 def reward_from_deck(deck,byid,rng,options=None):
  # Choose a real concentration in the opponent list, including spells and effects.
@@ -242,11 +254,9 @@ def reward_from_deck(deck,byid,rng,options=None):
   # opponent's theme list, even when the picked theme is absent
   # from the actual deck. Do not 'fix' this into a best-match pick.
   key=rng.choice(list(dict.fromkeys(RETIRED_THEMES.get(k,k) for k in options)))
-  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=_tied_pack(deck))
+  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=_tied_pack(deck,rng))
  ranked=sorted((k for k in keys if counts[k]>=2),key=lambda k:counts[k]*(.45 if k in ('effect','normal') else 1),reverse=True)[:4]
  key=rng.choice(ranked) if ranked else 'normal'
- frequency=Counter(deck)
- def overlap(pack):return sum(frequency[cid] for cid in set(pack['common']+pack['rare']))
- tied=max(PACKS,key=lambda p:overlap(p))['id']
+ tied=_tied_pack(deck,rng)
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=tied)
 

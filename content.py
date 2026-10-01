@@ -20,7 +20,7 @@ ROSTER=[
  ('Weevil Underwood', 'EN-DCR', 7, 'Insect', 'Insect Queen', 'Insect Barrier'),
  ('Yami Marik', 'EN-IOC', 10, 'Fiend', 'Lava Golem', 'Nightmare Wheel'),
  ('Tristan Taylor', 'JP-SC', 29, 'Warrior', 'Gearfried the Iron Knight', 'Reinforcement of the Army'),
- ('Yugi Muto', 'JP-MA', 6, 'Rock', 'Giant Soldier of Stone', 'Swords of Revealing Light'),
+ ('Yugi Muto', 'JP-MA', 6, 'Rock', 'Buster Blader', 'Swords of Revealing Light'),
  ('Ishizu Ishtar', 'JP-PH', 13, 'Fairy', 'Zolga', 'Exchange of the Spirit'),
  ('Odion', 'JP-301', 14, 'Rock', 'Mystical Beast of Serket', 'Temple of the Kings'),
  ('Espa Roba', 'JP-302', 24, 'Machine', 'Jinzo', 'Amplifier'),
@@ -40,6 +40,8 @@ CHARACTERS=[]
 for name,pack,sprite,race,a,b in ROSTER:
  CHARACTERS.append(dict(name=name,pack=pack,sprite=f'dm{sprite:02}.png',race=race,cards=[a,b],type=4 if name in ('Mai Valentine','Odion') else 2,
   bonus=f'{race} summons and '+('Trap' if name in ('Mai Valentine','Odion') else 'Spell')+' activations',color='#e5c58a'))
+CHARACTERS[3]['cards']=['Harpie Lady','Harpie Lady Sisters','Elegant Egotist']
+CHARACTERS[5]['cards']=['Masked Beast Des Gardius','Grand Tiki Elder','Melchid the Four-Face Beast']
 # Stable character IDs preserve saves; these slots now contain original-series/movie duelists.
 for name,pack,sprite,race,a,b in [
  ('Rebecca Hawkins','EN-MRD','dm40','Spellcaster','Witch of the Black Forest','Last Will'),
@@ -80,7 +82,7 @@ for key,name,art,race in [
  ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur'),('hive','Amber Hive','Killer Needle','Insect'),
  ('bone','Bone Talisman','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
  ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend')]:
- artifact(key,name,60,f'Your {race} monsters gain 300 ATK in every duel.',art,'atk',300,'offense',race)
+ artifact(key,name,60,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
  artifact(key,name,65,f'Your {attr} monsters gain 250 ATK and DEF.',art,'both',250,'offense',attr)
 artifact('buckler','Stone Buckler',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
@@ -149,7 +151,7 @@ def starting_packs(index,rng=None):
  if CHARACTERS[index].get('random_packs'):
   import random,unlocks
   rng=rng or random
-  available=[p for p in PACKS if unlocks.available('pack',p['id'])]
+  available=[p for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'])]
   # Two foundations with at least 30% low-Level monsters, plus two wildcards.
   # Tiny Premium/Tournament pools are useful supplements, not the whole draft.
   cards={c['id']:c for c in json.loads((Path(__file__).parent/'data/era-cards.json').read_text(encoding='utf8'))}
@@ -176,7 +178,8 @@ CHARACTERS[37]['cards']=['Copycat']
 
 artifact('echo_glass','Echo Glass',100,"Once per duel, copy the first Level 4 or lower monster your opponent summons into your hand.",'Copycat','echo',1,'draw')
 artifact('faulty_printer','Faulty Printer',85,'Each purchased card has a 15% chance of misprinted ATK/DEF (randomized by up to 1000 each way, minimum 0).','Machine Conversion Factory','faulty',15,'economy')
-artifact('golden_sleeve','Golden Card Sleeve',90,'Name a golden card in the deck editor. Each time you summon, set, or activate it, gain 10 coins (max 5 per duel).','Graceful Charity','golden',10,'economy')
+artifact('carbon_copy','Carbon Copy',85,'Each card obtained from a booster pack or single-card purchase has a 15% chance to grant an extra copy.','Cloning','purchase_clone',15,'economy')
+artifact('golden_sleeve','Golden Card Sleeve',90,'Permanently choose a card when purchased. Win: gain 10 coins each time you summon, set, or activate it (max 5 per duel per chosen card).','Graceful Charity','golden',10,'economy')
 artifact('magic_mirror','Magic Mirror',110,'Copies the effect of a random other relic you own each duel.','Morphing Jar','mirror',0,'economy')
 artifact('underdog_clause','The Underdog Clause',70,'Earn 5 extra coins per Level 2 or lower Normal Monster in your deck after each victory.','Banner of Courage','underdog_gold',5,'economy')
 artifact('traps_no_more','Traps No More',300,'Negate all Trap card effects (both players). Very rare.','Royal Decree','trap_negate',0,'defense')
@@ -237,3 +240,7 @@ for index,identity in json.loads((Path(__file__).parent/'data/character-themes.j
 PROGRESSION=json.loads((Path(__file__).parent/"data/character-progression.json").read_text(encoding="utf8"))
 for _id,_relic in PROGRESSION["starting_relics"].items():
  CHARACTERS[int(_id)]["starting_relic"]=_relic
+
+# Approved signature cards; list order and duplicate copies are intentional.
+for _id, _cards in json.loads((Path(__file__).parent/"data/character-signatures.json").read_text(encoding="utf8")).items():
+ CHARACTERS[int(_id)]["cards"]=_cards

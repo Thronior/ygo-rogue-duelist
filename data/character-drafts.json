@@ -1,183 +1,183 @@
 {
   "0": [
+    "DRAFT-YAMI-YUGI",
+    "DRAFT-YAMI-YUGI",
     "EN-MFC",
-    "EN-MFC",
-    "EN-LOB",
-    "EN-MRD"
+    "WC4-16"
   ],
   "1": [
-    "JP-SC",
-    "JP-SC",
-    "JP-SC",
-    "EN-LOB"
+    "DRAFT-SETO-KAIBA",
+    "DRAFT-SETO-KAIBA",
+    "EN-LOB",
+    "EN-MFC"
   ],
   "2": [
-    "JP-SC",
-    "JP-SC",
+    "DRAFT-JOEY-WHEELER",
+    "DRAFT-JOEY-WHEELER",
     "EN-MRD",
-    "JP-P5"
+    "EN-LOD"
   ],
   "3": [
-    "EN-MRD",
-    "EN-MRD",
-    "JP-303",
-    "EN-MRL"
+    "DRAFT-MAI-VALENTINE",
+    "DRAFT-MAI-VALENTINE",
+    "EN-MFC",
+    "EN-MRD"
   ],
   "4": [
+    "DRAFT-BANDIT-KEITH",
+    "DRAFT-BANDIT-KEITH",
     "EN-PSV",
-    "EN-PSV",
-    "JP-302",
-    "JP-302"
+    "EN-MRD"
   ],
   "5": [
+    "DRAFT-LUMIS-AND-UMBRA",
+    "DRAFT-LUMIS-AND-UMBRA",
     "JP-SM",
-    "JP-SM",
-    "JP-SM",
-    "EN-MRL"
-  ],
-  "6": [
-    "JP-LN",
-    "JP-LN",
-    "EN-MRD",
-    "EN-MRD"
-  ],
-  "7": [
-    "EN-MRL",
-    "EN-MRL",
-    "JP-DL4",
-    "JP-307"
-  ],
-  "8": [
-    "JP-BC",
-    "JP-BC",
-    "JP-307",
-    "JP-307"
-  ],
-  "9": [
-    "JP-PH",
-    "JP-PH",
-    "JP-PH",
-    "JP-307"
-  ],
-  "10": [
-    "JP-307",
-    "JP-307",
-    "EN-PSV",
-    "EN-MRD"
-  ],
-  "11": [
-    "JP-301",
-    "JP-301",
-    "JP-301",
     "EN-LON"
   ],
+  "6": [
+    "DRAFT-YAMI-BAKURA",
+    "DRAFT-YAMI-BAKURA",
+    "EN-LON",
+    "EN-PGD"
+  ],
+  "7": [
+    "DRAFT-MAXIMILLION-PEGASUS",
+    "DRAFT-MAXIMILLION-PEGASUS",
+    "EN-MRL",
+    "EN-LON"
+  ],
+  "8": [
+    "DRAFT-REX-RAPTOR",
+    "DRAFT-REX-RAPTOR",
+    "EN-LOB",
+    "EN-IOC"
+  ],
+  "9": [
+    "DRAFT-BONZ",
+    "DRAFT-BONZ",
+    "EN-PGD",
+    "EN-MRD"
+  ],
+  "10": [
+    "DRAFT-WEEVIL-UNDERWOOD",
+    "DRAFT-WEEVIL-UNDERWOOD",
+    "EN-MRD",
+    "EN-IOC"
+  ],
+  "11": [
+    "DRAFT-YAMI-MARIK",
+    "DRAFT-YAMI-MARIK",
+    "EN-LON",
+    "EN-IOC"
+  ],
   "12": [
-    "EN-LOB",
-    "EN-LOB",
-    "JP-SC",
-    "JP-MA"
+    "DRAFT-TRISTAN-TAYLOR",
+    "DRAFT-TRISTAN-TAYLOR",
+    "EN-LOD",
+    "EN-MFC"
   ],
   "13": [
-    "EN-LOB",
-    "EN-LOB",
-    "EN-MRD",
-    "JP-PH"
+    "DRAFT-YUGI-MUTO",
+    "DRAFT-YUGI-MUTO",
+    "EN-MFC",
+    "WC4-16"
   ],
   "14": [
-    "JP-305",
-    "JP-305",
-    "JP-305",
+    "DRAFT-ISHIZU-ISHTAR",
+    "DRAFT-ISHIZU-ISHTAR",
+    "JP-308",
     "EN-MRL"
   ],
   "15": [
+    "DRAFT-ODION",
+    "DRAFT-ODION",
     "EN-PSV",
-    "EN-PSV",
-    "EN-PGD",
-    "JP-PP6"
+    "EN-PGD"
   ],
   "16": [
+    "DRAFT-ESPA-ROBA",
+    "DRAFT-ESPA-ROBA",
     "EN-PSV",
-    "EN-PSV",
-    "JP-302",
-    "JP-308"
+    "EN-MFC"
   ],
   "17": [
-    "JP-303",
-    "JP-303",
-    "JP-303",
-    "EN-LOB"
+    "DRAFT-ARKANA",
+    "DRAFT-ARKANA",
+    "EN-MFC",
+    "JP-303"
   ],
   "18": [
-    "EN-MRL",
-    "EN-MRL",
-    "EN-LOD",
-    "EN-IOC"
-  ],
-  "19": [
-    "JP-DL5",
-    "JP-DL5",
-    "JP-305",
-    "EN-PSV"
-  ],
-  "20": [
-    "JP-MA",
-    "JP-MA",
-    "EN-MRL",
-    "JP-307"
-  ],
-  "21": [
-    "EN-MRD",
-    "EN-MRD",
-    "EN-MRD",
+    "DRAFT-MAKO-TSUNAMI",
+    "DRAFT-MAKO-TSUNAMI",
+    "EN-IOC",
     "EN-MRL"
   ],
+  "19": [
+    "DRAFT-DUKE-DEVLIN",
+    "DRAFT-DUKE-DEVLIN",
+    "EN-LOD",
+    "EN-MRD"
+  ],
+  "20": [
+    "DRAFT-NOAH-KAIBA",
+    "DRAFT-NOAH-KAIBA",
+    "EN-LOD",
+    "JP-308"
+  ],
+  "21": [
+    "DRAFT-PARADOX-BROTHERS",
+    "DRAFT-PARADOX-BROTHERS",
+    "EN-MRD",
+    "EN-LOB"
+  ],
   "22": [
+    "DRAFT-TEA-GARDNER",
+    "DRAFT-TEA-GARDNER",
     "JP-308",
-    "JP-308",
-    "EN-LON",
     "EN-MRL"
   ],
   "23": [
-    "JP-DL2",
-    "JP-DL2",
-    "JP-DL2",
+    "DRAFT-SOLOMON-MUTO",
+    "DRAFT-SOLOMON-MUTO",
+    "EN-LOB",
     "EN-MRL"
   ],
   "28": [
-    "EN-MRD",
-    "EN-MRD",
-    "EN-MRL",
-    "EN-MFC"
+    "DRAFT-REBECCA-HAWKINS",
+    "DRAFT-REBECCA-HAWKINS",
+    "EN-MFC",
+    "EN-MRL"
   ],
   "29": [
-    "EN-LON",
-    "EN-LON",
+    "DRAFT-SERENITY-WHEELER",
+    "DRAFT-SERENITY-WHEELER",
     "EN-MRL",
     "JP-308"
   ],
   "30": [
-    "JP-301",
-    "JP-301",
-    "EN-MRL",
-    "EN-MRL"
+    "DRAFT-MARIK-ISHTAR",
+    "DRAFT-MARIK-ISHTAR",
+    "EN-LON",
+    "EN-PSV"
   ],
   "31": [
+    "DRAFT-ANUBIS",
+    "DRAFT-ANUBIS",
     "EN-PGD",
-    "EN-PGD",
-    "JP-309",
-    "EN-DCR"
+    "EN-LOB"
   ],
   "32": [
-    "JP-309",
-    "JP-309",
-    "EN-PGD",
-    "EN-LOB"
+    "DRAFT-SHADI",
+    "DRAFT-SHADI",
+    "EN-LOB",
+    "EN-MFC"
   ],
   "33": [
+    "DRAFT-PANIK",
+    "DRAFT-PANIK",
     "EN-MRD",
-    "EN-MRD",
-    "EN-MRD",
-    "EN-LOB"
+    "EN-LON"
   ],
   "34": [
     "EN-IOC",
@@ -186,15 +186,15 @@
     "EN-MRL"
   ],
   "35": [
-    "JP-304",
-    "JP-304",
-    "JP-304",
+    "DRAFT-RAFAEL",
+    "DRAFT-RAFAEL",
+    "EN-DCR",
     "EN-MRL"
   ],
   "24": [
-    "EN-LOD",
-    "EN-LOD",
+    "DRAFT-MOKUBA-KAIBA",
+    "DRAFT-MOKUBA-KAIBA",
     "EN-LOB",
-    "EN-MRD"
+    "EN-LOD"
   ]
 }

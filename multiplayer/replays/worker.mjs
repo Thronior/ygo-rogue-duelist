@@ -5,7 +5,8 @@ export async function validate(bytes){
  const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();let length=0,chunks=[];
  try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>2000000)throw Error('Replay expands beyond the limit.');chunks.push(value)}}finally{await reader.cancel().catch(()=>{})}
  const text=await new Blob(chunks).text(),r=JSON.parse(text);
- if(r.format!=='ygo-replay'||r.version!==1||r.core!=='ocgcore-wasm-0.1.2'||!Array.isArray(r.start)||r.start.length!==11||!Array.isArray(r.responses)||r.responses.length>25000||typeof r.start[8]!=='string'||r.start[8].length>200000||typeof r.ended!=='boolean')throw Error('Invalid replay.');
+ if(r.format!=='ygo-replay'||r.version!==1||r.core!=='ocgcore-wasm-0.1.2'||!Array.isArray(r.start)||![11,12].includes(r.start.length)||!Array.isArray(r.responses)||r.responses.length>25000||typeof r.start[8]!=='string'||r.start[8].length>200000||typeof r.ended!=='boolean')throw Error('Invalid replay.');
+ if(r.start.length===12&&r.start[11]!==null&&r.start[11]!==2)throw Error('Invalid duel rules.');
  for(const deck of [r.start[0],r.start[1],r.start[6],r.start[7]])if(!Array.isArray(deck)||deck.length>200||deck.some(x=>!Number.isInteger(x)||x<1||x>0x7fffffff))throw Error('Invalid deck.');
  return {build:String(r.build).slice(0,32),steps:r.responses.length,ended:r.ended};
 }

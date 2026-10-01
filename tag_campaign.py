@@ -39,6 +39,12 @@ class TagCampaign:
   storage.write=capture;game.RUNTIME=game.ROOT/'temp/tag-duel-preparation';game.RUNTIME.mkdir(parents=True,exist_ok=True)
   try:yield
   finally:storage.profile,storage.write,game.RUNTIME=old_profile,old_write,old_runtime
+ def finish_shop_turn(self):
+  self.shop_seat+=1
+  if self.shop_seat==2:
+   self.phase='draft';self.ready=[False,False]
+   for r in self.players:r['stage']='draft';r['gold_leaving_shop']=self.shared['gold']
+   self.routes()
  def sync(self):
   ar.reconcile_turn_order(self.shared)
   for run in self.players:
@@ -213,18 +219,20 @@ class TagCampaign:
    with self.scope(seat):result=game.buy_many(run,value or [],self.rng) if action=='buy' else []
    for key in ('gold','lp','artifacts','shop'):self.shared[key]=deepcopy(run[key])
    self.trade=self.new_trade()
-   self.sync();self.shop_seat+=1
-   if self.shop_seat==2:
-    self.phase='draft';self.ready=[False,False]
-    for r in self.players:r['stage']='draft';r['gold_leaving_shop']=self.shared['gold']
-    self.routes()
+   self.sync()
+   from golden_cards import pending
+   if pending(run):run['golden_shop_waiting']=True
+   else:self.finish_shop_turn()
    return result
+  if action=='golden-card':
+   from golden_cards import choose,pending
+   choose(run,value)
+   if run.get('golden_shop_waiting') and not pending(run):
+    run.pop('golden_shop_waiting');self.finish_shop_turn()
+   return
   if self.phase!='draft':raise ValueError('Deck editing is not available now.')
   if self.ready[seat] and action!='unready':raise ValueError('Unlock your selection before editing.')
   if action=='unready':self.ready[seat]=False;return
-  if action=='golden-card':
-   if 'golden_sleeve' not in run['artifacts'] or value not in game.deck(run):raise ValueError('Select a card in your deck with Golden Card Sleeve owned.')
-   run['golden_card']=None if run.get('golden_card')==value else value;return
   if action=='auto':game.auto_deck(run);return
   if action=='deck':
    if content.CHARACTERS[run['character']].get('copycat') or content.CHARACTERS[run['character']].get('engine_deck'):raise ValueError('This character uses a fixed deck.')

@@ -210,7 +210,8 @@
 .shop-compact .shop-layout>aside>.relics{align-self:end;height:100%;margin:0}
 .shop-compact .shop-layout>aside>.shop-reference-buttons{grid-row:4;align-self:stretch;margin:0}
 
-.duelist-hero .level-badge{position:absolute;right:5px;top:5px;background:#a82445;border:2px solid #ffe3af;box-shadow:0 2px 8px #000a;padding:3px 7px;line-height:1;font-weight:900;font-size:12px;color:white;z-index:3}
+.duelist-hero .level-badge{position:absolute;right:5px;top:5px}
+.level-badge{background:#a82445;border:2px solid #ffe3af;box-shadow:0 2px 8px #000a;padding:3px 7px;line-height:1;font-weight:900;font-size:12px;color:white;z-index:3}
 .level-badge strong{display:block;font-size:25px}
 .level-list{display:grid;gap:7px}.level-list button{text-align:left}.level-list small{display:block;margin-top:4px}
 .character-select-page .portrait.golden-complete{background:linear-gradient(135deg,#fff0a0,#bc791c,#ffe38b);border-color:#ffe182;box-shadow:0 0 10px #ffd15d88}
@@ -1138,3 +1139,19 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .collector-content>.collector-introduction:has(~.collector-roster)>.collector-guide-panel{flex-shrink:0}.collector-surrender-actions>.duel-confirm,.collector-surrender-actions>.duel-cancel{flex:none;margin:0}
 .collector-prize-confirm{width:78px!important;height:78px!important;min-width:78px!important;min-height:78px!important}.collector-prize-confirm .duel-decision-icon{font-size:48px!important}.collector-prize-confirm:not(:disabled){box-shadow:0 0 12px 5px #ffe481bb,0 0 30px 10px #ffb52b88!important}.collector-prize-confirm:disabled{opacity:.45!important;filter:grayscale(1);box-shadow:none!important}
 .collector-prize-confirm{border-radius:50%!important}.collector-prize-confirm .duel-decision-icon{width:74px!important;height:74px!important}.collector-prize-confirm:not(:disabled) .duel-decision-icon{box-shadow:0 0 12px 5px #ffe481bb,0 0 30px 10px #ffb52b88,inset 0 0 10px #ffe84b55}.collector-prize-confirm:disabled .duel-decision-icon{box-shadow:none}
+
+.golden-sleeve-reveal{animation:golden-sleeve-reveal .6s ease-out}@keyframes golden-sleeve-reveal{from{transform:scale(.3);filter:brightness(2)}to{transform:scale(1);filter:brightness(1)}}
+
+.duel-defeat-notice{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:rgba(15,0,7,.92);color:#fff;animation:defeat-arrival .65s ease-out}.duel-defeat-notice strong{font-size:clamp(48px,12vw,110px);color:#dd3344;text-shadow:0 0 24px #a00026}.duel-defeat-notice p{max-width:600px;font-size:clamp(18px,3vw,26px)}@keyframes defeat-arrival{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1)}}
+
+/* Challenge badges and April 2004 Collector deck restrictions. */
+.level-list button{display:flex;align-items:center;gap:10px;padding:7px 9px;min-height:54px;width:100%}
+.challenge-level-badge{flex:0 0 auto;text-align:center;border-radius:5px;min-width:40px}
+.challenge-level-copy{min-width:0;line-height:1.2}.challenge-level-copy>b{font-size:12px}.level-list .challenge-level-copy small{font-size:10px;margin-top:3px}
+.collector-deck-editor .collector-limit-icon{position:absolute;top:7px;left:7px;z-index:1;display:grid;place-items:center;width:25px;height:25px;border:2px solid #fff;border-radius:50%;background:#b81822;color:#fff;font-size:17px;font-weight:900;font-style:normal;line-height:1;box-shadow:0 1px 5px #000;pointer-events:none}
+.collector-deck-editor .collector-limit-icon.limit-2{background:#c08016}
+
+.golden-sleeve-stage{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#06121abd}.golden-sleeve-stage img{width:180px;height:220px;object-fit:contain;filter:drop-shadow(0 0 24px #ffd766);animation:goldenCenter 1.4s ease both}@keyframes goldenCenter{0%{opacity:0;transform:scale(.2)}35%,75%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
+
+/* Booster stock expands to three packs, or four with Booster Shelf. */
+.shop-compact .shop-stock .packs{grid-template-columns:repeat(var(--pack-columns,3),minmax(0,1fr))}

@@ -26,7 +26,7 @@ export function mountMenuMotion(root,count,initial,onSelect){
   }
  }
  function tick(now){
-  const dt=Math.min((now-last)/1000||1/60,.032);last=now;
+  const dt=Math.min((now-last)/1000||1/60,.032)/1.2;last=now;
   velocity+=(target-position)*100*dt;
   velocity*=Math.exp(-16*dt);position+=velocity*dt;
   if(Math.abs(target-position)<.001&&Math.abs(velocity)<.01){position=target;velocity=0;frame=0;paint();return;}

@@ -1,0 +1,261 @@
+{
+  "layout": "Silver sealed themed-color pack, moderately contrasted signature-card art background, logo, bottom-anchored character portrait",
+  "packs": [
+    {
+      "id": "DRAFT-YAMI-YUGI",
+      "name": "Yami Yugi",
+      "sprite": "dm01.png",
+      "card": 46986414,
+      "signature": "Dark Magician",
+      "tint": "#ac79d8"
+    },
+    {
+      "id": "DRAFT-YUGI-MUTO",
+      "name": "Yugi Muto",
+      "sprite": "dm06.png",
+      "card": 78193831,
+      "signature": "Buster Blader",
+      "tint": "#ceae66"
+    },
+    {
+      "id": "DRAFT-MAI-VALENTINE",
+      "name": "Mai Valentine",
+      "sprite": "dm04.png",
+      "card": 76812113,
+      "signature": "Harpie Lady",
+      "tint": "#bf8be0"
+    },
+    {
+      "id": "DRAFT-ANUBIS",
+      "name": "Anubis",
+      "sprite": "anubis.png",
+      "card": 40659562,
+      "signature": "Guardian Sphinx",
+      "tint": "#d4b877"
+    },
+    {
+      "id": "DRAFT-ARKANA",
+      "name": "Arkana",
+      "sprite": "dm22.png",
+      "card": 46986414,
+      "signature": "Dark Magician",
+      "tint": "#d18399"
+    },
+    {
+      "id": "DRAFT-BANDIT-KEITH",
+      "name": "Bandit Keith",
+      "sprite": "dm12.png",
+      "card": 81480460,
+      "signature": "Barrel Dragon",
+      "tint": "#839fac"
+    },
+    {
+      "id": "DRAFT-BONZ",
+      "name": "Bonz",
+      "sprite": "dm23.png",
+      "card": 29155212,
+      "signature": "Pumpking the King of Ghosts",
+      "tint": "#9db581"
+    },
+    {
+      "id": "DRAFT-DUKE-DEVLIN",
+      "name": "Duke Devlin",
+      "sprite": "dm34.png",
+      "card": 3549275,
+      "signature": "Dice Jar",
+      "tint": "#7fa894"
+    },
+    {
+      "id": "DRAFT-ESPA-ROBA",
+      "name": "Espa Roba",
+      "sprite": "dm24.png",
+      "card": 77585513,
+      "signature": "Jinzo",
+      "tint": "#7cbfb8"
+    },
+    {
+      "id": "DRAFT-ISHIZU-ISHTAR",
+      "name": "Ishizu Ishtar",
+      "sprite": "dm13.png",
+      "card": 16268841,
+      "signature": "Zolga",
+      "tint": "#74c2bc"
+    },
+    {
+      "id": "DRAFT-JOEY-WHEELER",
+      "name": "Joey Wheeler",
+      "sprite": "dm03.png",
+      "card": 74677422,
+      "signature": "Red-Eyes Black Dragon",
+      "tint": "#e8a34e"
+    },
+    {
+      "id": "DRAFT-LUMIS-AND-UMBRA",
+      "name": "Lumis and Umbra",
+      "sprite": "dm31.png",
+      "card": 48948935,
+      "signature": "Masked Beast Des Gardius",
+      "tint": "#8696c8"
+    },
+    {
+      "id": "DRAFT-MAKO-TSUNAMI",
+      "name": "Mako Tsunami",
+      "sprite": "dm09.png",
+      "card": 3643300,
+      "signature": "The Legendary Fisherman",
+      "tint": "#67bada"
+    },
+    {
+      "id": "DRAFT-MARIK-ISHTAR",
+      "name": "Marik Ishtar",
+      "sprite": "dm53.png",
+      "card": 4335645,
+      "signature": "Newdoria",
+      "tint": "#c5a4da"
+    },
+    {
+      "id": "DRAFT-MAXIMILLION-PEGASUS",
+      "name": "Maximillion Pegasus",
+      "sprite": "dm15.png",
+      "card": 64631466,
+      "signature": "Relinquished",
+      "tint": "#dc91b6"
+    },
+    {
+      "id": "DRAFT-MOKUBA-KAIBA",
+      "name": "Mokuba Kaiba",
+      "sprite": "dm17.png",
+      "card": 11091375,
+      "signature": "Luster Dragon",
+      "tint": "#85a9d4"
+    },
+    {
+      "id": "DRAFT-NOAH-KAIBA",
+      "name": "Noah Kaiba",
+      "sprite": "dm48.png",
+      "card": 86327225,
+      "signature": "Shinato, King of a Higher Plane",
+      "tint": "#8fcab5"
+    },
+    {
+      "id": "DRAFT-ODION",
+      "name": "Odion",
+      "sprite": "dm14.png",
+      "card": 89194033,
+      "signature": "Mystical Beast of Serket",
+      "tint": "#d2a65f"
+    },
+    {
+      "id": "DRAFT-PANIK",
+      "name": "PaniK",
+      "sprite": "panik.png",
+      "card": 62121,
+      "signature": "Castle of Dark Illusions",
+      "tint": "#9985b9"
+    },
+    {
+      "id": "DRAFT-PARADOX-BROTHERS",
+      "name": "Paradox Brothers",
+      "sprite": "dm19.png",
+      "card": 25955164,
+      "signature": "Sanga of the Thunder",
+      "tint": "#83b39d"
+    },
+    {
+      "id": "DRAFT-RAFAEL",
+      "name": "Rafael",
+      "sprite": "rafael.png",
+      "card": 47150851,
+      "signature": "Guardian Grarl",
+      "tint": "#a2b58a"
+    },
+    {
+      "id": "DRAFT-REBECCA-HAWKINS",
+      "name": "Rebecca Hawkins",
+      "sprite": "dm40.png",
+      "card": 78010363,
+      "signature": "Witch of the Black Forest",
+      "tint": "#ba9fda"
+    },
+    {
+      "id": "DRAFT-REX-RAPTOR",
+      "name": "Rex Raptor",
+      "sprite": "dm08.png",
+      "card": 94119974,
+      "signature": "Two-Headed King Rex",
+      "tint": "#9fb96b"
+    },
+    {
+      "id": "DRAFT-SERENITY-WHEELER",
+      "name": "Serenity Wheeler",
+      "sprite": "dm47.png",
+      "card": 53493204,
+      "signature": "Goddess with the Third Eye",
+      "tint": "#e7bb94"
+    },
+    {
+      "id": "DRAFT-SETO-KAIBA",
+      "name": "Seto Kaiba",
+      "sprite": "dm02.png",
+      "card": 89631139,
+      "signature": "Blue-Eyes White Dragon",
+      "tint": "#71b6ee"
+    },
+    {
+      "id": "DRAFT-SHADI",
+      "name": "Shadi",
+      "sprite": "shadi.png",
+      "card": 32012841,
+      "signature": "Millennium Shield",
+      "tint": "#77bfb9"
+    },
+    {
+      "id": "DRAFT-SOLOMON-MUTO",
+      "name": "Solomon Muto",
+      "sprite": "dm16.png",
+      "card": 33396948,
+      "signature": "Exodia the Forbidden One",
+      "tint": "#c8b378"
+    },
+    {
+      "id": "DRAFT-TEA-GARDNER",
+      "name": "Tea Gardner",
+      "sprite": "dm05.png",
+      "card": 35346968,
+      "signature": "Solemn Wishes",
+      "tint": "#e4a3b9"
+    },
+    {
+      "id": "DRAFT-TRISTAN-TAYLOR",
+      "name": "Tristan Taylor",
+      "sprite": "dm29.png",
+      "card": 423705,
+      "signature": "Gearfried the Iron Knight",
+      "tint": "#c49a73"
+    },
+    {
+      "id": "DRAFT-WEEVIL-UNDERWOOD",
+      "name": "Weevil Underwood",
+      "sprite": "dm07.png",
+      "card": 91512835,
+      "signature": "Insect Queen",
+      "tint": "#95c775"
+    },
+    {
+      "id": "DRAFT-YAMI-BAKURA",
+      "name": "Yami Bakura",
+      "sprite": "dm11.png",
+      "card": 31829185,
+      "signature": "Dark Necrofear",
+      "tint": "#a286c5"
+    },
+    {
+      "id": "DRAFT-YAMI-MARIK",
+      "name": "Yami Marik",
+      "sprite": "dm10.png",
+      "card": 102380,
+      "signature": "Lava Golem",
+      "tint": "#d694b7"
+    }
+  ]
+}

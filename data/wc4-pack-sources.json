@@ -1,0 +1,322 @@
+{
+  "source": "https://yugipedia.com/wiki/Portal:Yu-Gi-Oh!_World_Championship_Tournament_2004_sets",
+  "notes": [
+    "Original card names mapped to current game names.",
+    "Red Millennium page incorrectly repeats the Spell table; the stated Trap-only rule is used.",
+    "Special all-type packs retain existing rarity categories where the page gives none."
+  ],
+  "packs": [
+    {
+      "id": "WC4-01",
+      "name": "Blue-Eyes White Dragon",
+      "url": "https://yugipedia.com/wiki/Blue-Eyes_White_Dragon_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//8/88/Blue-Eyes_White_Dragon-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 62
+    },
+    {
+      "id": "WC4-02",
+      "name": "Red-Eyes B. Dragon",
+      "url": "https://yugipedia.com/wiki/Red-Eyes_B._Dragon_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//e/e0/Red-Eyes_B._Dragon-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 66
+    },
+    {
+      "id": "WC4-03",
+      "name": "B. Skull Dragon",
+      "url": "https://yugipedia.com/wiki/B._Skull_Dragon_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//1/16/B._Skull_Dragon-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 61
+    },
+    {
+      "id": "WC4-04",
+      "name": "Barrel Dragon",
+      "url": "https://yugipedia.com/wiki/Barrel_Dragon_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//c/cb/Barrel_Dragon-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 81
+    },
+    {
+      "id": "WC4-05",
+      "name": "Black Luster Soldier",
+      "url": "https://yugipedia.com/wiki/Black_Luster_Soldier_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//c/c0/Black_Luster_Soldier-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 32
+    },
+    {
+      "id": "WC4-06",
+      "name": "Relinquished",
+      "url": "https://yugipedia.com/wiki/Relinquished_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//3/35/Relinquished-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 55
+    },
+    {
+      "id": "WC4-07",
+      "name": "Toon Summoned Skull",
+      "url": "https://yugipedia.com/wiki/Toon_Summoned_Skull_pack",
+      "image": "https://ms.yugipedia.com//5/57/Toon_Summoned_Skull-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 55
+    },
+    {
+      "id": "WC4-08",
+      "name": "Jinzo",
+      "url": "https://yugipedia.com/wiki/Jinzo_pack",
+      "image": "https://ms.yugipedia.com//a/a0/Jinzo-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 57
+    },
+    {
+      "id": "WC4-09",
+      "name": "Thousand-Eyes Restrict",
+      "url": "https://yugipedia.com/wiki/Thousand-Eyes_Restrict_pack",
+      "image": "https://ms.yugipedia.com//c/ce/Thousand-Eyes_Restrict-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 52
+    },
+    {
+      "id": "WC4-10",
+      "name": "The Masked Beast",
+      "url": "https://yugipedia.com/wiki/The_Masked_Beast_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//3/34/The_Masked_Beast-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 65
+    },
+    {
+      "id": "WC4-11",
+      "name": "Zombyra the Dark",
+      "url": "https://yugipedia.com/wiki/Zombyra_the_Dark_pack",
+      "image": "https://ms.yugipedia.com//c/c6/Zombyra_the_Dark-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 96
+    },
+    {
+      "id": "WC4-12",
+      "name": "Dark Ruler Ha Des",
+      "url": "https://yugipedia.com/wiki/Dark_Ruler_Ha_Des_pack",
+      "image": "https://ms.yugipedia.com//c/c0/Dark_Ruler_Ha_Des-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 144
+    },
+    {
+      "id": "WC4-13",
+      "name": "Yamata Dragon",
+      "url": "https://yugipedia.com/wiki/Yamata_Dragon_pack",
+      "image": "https://ms.yugipedia.com//1/16/Yamata_Dragon-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 145
+    },
+    {
+      "id": "WC4-14",
+      "name": "Guardian Sphinx",
+      "url": "https://yugipedia.com/wiki/Guardian_Sphinx_pack",
+      "image": "https://ms.yugipedia.com//7/75/Guardian_Sphinx-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 99
+    },
+    {
+      "id": "WC4-15",
+      "name": "Yami Yugi 1",
+      "url": "https://yugipedia.com/wiki/Yami_Yugi_pack_1",
+      "image": "https://ms.yugipedia.com//0/00/Yami_Yugi_1-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 136
+    },
+    {
+      "id": "WC4-16",
+      "name": "Yami Yugi 2",
+      "url": "https://yugipedia.com/wiki/Yami_Yugi_pack_2",
+      "image": "https://ms.yugipedia.com//3/3e/Yami_Yugi_2-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 141
+    },
+    {
+      "id": "WC4-17",
+      "name": "Yami Yugi 3",
+      "url": "https://yugipedia.com/wiki/Yami_Yugi_pack_3",
+      "image": "https://ms.yugipedia.com//3/30/Yami_Yugi_3-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 130
+    },
+    {
+      "id": "WC4-18",
+      "name": "Yami Yugi 4",
+      "url": "https://yugipedia.com/wiki/Yami_Yugi_pack_4",
+      "image": "https://ms.yugipedia.com//2/2f/Yami_Yugi_4-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 128
+    },
+    {
+      "id": "WC4-19",
+      "name": "Yami Yugi 5",
+      "url": "https://yugipedia.com/wiki/Yami_Yugi_pack_5",
+      "image": "https://ms.yugipedia.com//6/68/Yami_Yugi_5-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 80
+    },
+    {
+      "id": "WC4-20",
+      "name": "Green Millennium Puzzle",
+      "url": "https://yugipedia.com/wiki/Green_Millennium_Puzzle_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//9/94/Green_Millennium_Puzzle-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 200
+    },
+    {
+      "id": "WC4-21",
+      "name": "Red Millennium Puzzle",
+      "url": "https://yugipedia.com/wiki/Red_Millennium_Puzzle_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//d/d0/Red_Millennium_Puzzle-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 109
+    },
+    {
+      "id": "WC4-22",
+      "name": "Yellow Millennium Puzzle",
+      "url": "https://yugipedia.com/wiki/Yellow_Millennium_Puzzle_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//2/26/Yellow_Millennium_Puzzle-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 229
+    },
+    {
+      "id": "WC4-23",
+      "name": "Purple Millennium Puzzle",
+      "url": "https://yugipedia.com/wiki/Purple_Millennium_Puzzle_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//d/d3/Purple_Millennium_Puzzle-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 826
+    },
+    {
+      "id": "WC4-24",
+      "name": "Eye of Wdjat",
+      "url": "https://yugipedia.com/wiki/Eye_of_Wdjat_pack_(World_Championship_2004)",
+      "image": "https://ms.yugipedia.com//1/19/Eye_of_Wdjat-Booster-WC4.png",
+      "crop": [
+        94,
+        17,
+        142,
+        120
+      ],
+      "cards": 1135
+    }
+  ]
+}

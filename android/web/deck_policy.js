@@ -60,7 +60,7 @@ export function deckPolicy(x){
   if(n==='Jowgen the Spiritualist')return !hand.some(t=>exodiaPieces.has(t.code))&&handCost(c,1)&&enemy.some(t=>(t.summon_type&0x40000000)!==0)&&!own.some(t=>!same(t,c)&&(t.summon_type&0x40000000)!==0)?100:-1;
   if(n==='Super Roboyarou')return !enemy.length&&has(q(p,L.EXTRA),'Super Robolady')?80:-1;
   if(n==='Super Robolady')return enemy.length>0&&has(q(p,L.EXTRA),'Super Roboyarou')?80:-1;
-  if(n==='Spirit Ryu')return handCost(c,1,t=>race(t)==='Dragon')&&incoming===false&&e.attackCard?.controller===p&&enemy.some(t=>face(t)&&atk(t)>=atk(c)&&atk(t)<atk(c)+1000)?80:-1;
+  if(n==='Spirit Ryu'){const t=e.attackTarget&&enemy.find(x=>same(x,e.attackTarget)),power=t?(t.position&1?atk(t):t.defense??data(t).defense??0):0;return handCost(c,1,x=>race(x)==='Dragon'&&atk(x)<=1700)&&incoming===false&&same(c,e.attackCard)&&t&&face(t)&&power>=atk(c)&&power<atk(c)+1000?80:-1;}
   if(n==='Bazoo the Soul-Eater')return grave.some(monster)&&enemy.some(t=>face(t)&&atk(t)>=atk(c)&&atk(t)<atk(c)+900)?70:-1;
   if(n==='Hysteric Fairy')return has(own,'Fire Princess')&&own.filter(t=>atk(t)<=500).length>=2?60:-1;
   if(n==='Royal Keeper'||n==='Wandering Mummy')return -1; // Avoid repeat set/flip loops that surrender attacks.

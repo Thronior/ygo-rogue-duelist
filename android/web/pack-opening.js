@@ -1,4 +1,4 @@
-const ULTRA_RARE=new Set([55144522, 79571449, 12580477, 53129443, 19613556, 18144506, 83764718, 45986603, 4031928, 44095762, 77585513, 72989439]);
+import {forcedUltra as ULTRA_RARE} from './ultra-rarity.js';
 let active=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Presentation only: every card is already awarded and saved before this opens.
@@ -7,7 +7,7 @@ export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()
  packs=packs.map(p=>({...p,cards:[...(p.cards||[])].sort((a,b)=>Number(ULTRA_RARE.has(a))-Number(ULTRA_RARE.has(b)))}));
  const dialog=document.createElement('dialog');dialog.className='pack-theatre';document.body.append(dialog);
  let index=0,revealed=0,timers=[],closed=false,opening=false,jackpot=false;
- const later=(fn,ms)=>timers.push(setTimeout(()=>{if(!closed)fn()},ms));
+ const later=(fn,ms)=>timers.push(setTimeout(()=>{if(!closed)fn()},ms*1.2));
  const clear=()=>{timers.forEach(clearTimeout);timers=[]};
  const finish=()=>{if(closed)return;closed=true;clear();stopSound();dialog.close();dialog.remove();if(active===finish)active=null;done()};active=finish;
  function burst(rare=false){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const fx=document.createElement('div');fx.className='pack-burst'+(rare?' gold':'');fx.setAttribute('aria-hidden','true');for(let i=0;i<(rare?28:42);i++){const dot=document.createElement('i'),angle=i*2.39996,distance=70+(i%7)*22;dot.style.setProperty('--dx',Math.cos(angle)*distance+'px');dot.style.setProperty('--dy',Math.sin(angle)*distance+'px');dot.style.setProperty('--delay',(i%5)*.025+'s');fx.append(dot)}dialog.append(fx);later(()=>fx.remove(),1400)}

@@ -62,6 +62,7 @@ def install(g):
     r['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(r['round'],random.Random(i+r['round']*101),i,r.get('tutorial_variants',{}).get(str(i),0),loop=r.get('loop',0)),g.BY_ID,random,shop_rewards.THEME_OPTIONS.get(i)) for i in r['routes']}
     r['reward_rules']=4
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
+   if r['stage']=='shop' and ensure_shop_packs(r):save(r)
   if r:challenge_levels.suppress(r)
   return r
  def save(run):
@@ -79,8 +80,8 @@ def install(g):
   if not unlocks.available('pack',p['id'],profile):raise ValueError('This booster is still locked. See Collection unlocks.')
   common=[cid for cid in p['common'] if unlocks.card_allowed(g.BY_ID[cid],profile)]
   rare=[cid for cid in p['rare'] if unlocks.card_allowed(g.BY_ID[cid],profile)]
-  basic=[cid for cid in set(common+rare+p.get('starter_support',[])) if g.normal_starter(cid) and unlocks.card_allowed(g.BY_ID[cid],profile)]
-  if not basic:raise ValueError('Booster has no playable starter monsters.')
+  basic=[cid for cid in set(common if p.get('draft_only') else common+rare+p.get('starter_support',[])) if g.normal_starter(cid) and unlocks.card_allowed(g.BY_ID[cid],profile)]
+  if not basic and not p.get('shop_only'):raise ValueError('Booster has no playable starter monsters.')
   # Reserve the premium slot first; exclude already-pulled identities everywhere.
   def unique(pool):
    seen=set();out=[]
@@ -138,6 +139,8 @@ def install(g):
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r.update(campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
+  r['challenge_level']=level
+  if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
   if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k not in cursed_relics.approved()])
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
@@ -145,8 +148,6 @@ def install(g):
    r['artifacts']=[relic];r['starting_relic']=relic
    if relic=='ankh':r['lp']+=2000
   if relic=='final_hour':r['pool'].append(g.BY_NAME['Final Countdown']['id'])
-  r['challenge_level']=level
-  if level>=4:r['lp']=4000
   routes(r,rng)
   if char.get('copycat'):copy_deck(r,rng)
   if char.get('engine_deck'):engine_deck(r,rng)
@@ -216,14 +217,13 @@ def install(g):
    run['mirror_copy']=rng.choice(others) if others else None
   else:run['mirror_copy']=None
   duel_run=ar.duel_run(run)
-  if duel_run.get('mirror_copy')=='ankh' and ar.can_heal(duel_run,between=True):lp=max(lp,min(4000,lp+2000)) if run.get('challenge_level',0)>=4 else lp+2000
+  if duel_run.get('mirror_copy')=='ankh' and ar.can_heal(duel_run,between=True):lp=lp+2000
   if owns(duel_run,'glass_shard'):lp=max(1,ART_INFO['glass_shard']['amount']-(1000*challenge_levels.curse_scale(run) if 'drain' in run['curses'] else 0))
   run['golden_hits']=0
   run['first_player']=ar.first(duel_run,0 if rng.random()<0.5 else 1)
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
-  char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
-  if run.get('challenge_level',0)>=1:enemy_lp=8000
+  char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
   enemy_lp+=2000*ar.copies(duel_run,'cursed_loaded_purse')
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
@@ -265,9 +265,10 @@ def install(g):
   if amount(run,'interest'):tally['Interest']=min(30,int(run['gold']*amount(run,'interest')/100))
   if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==20:tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
-  if owns(run,'golden_sleeve') and run.get('golden_card'):
-   hits=sum(1 for e in events if e.get('kind') in ('summon','set','activate') and e.get('card')==run['golden_card'])
-   if hits:tally['Golden Card']=min(5,hits)*amount(run,'golden')
+  if owns(run,'golden_sleeve'):
+   from golden_cards import choices
+   hits=sum(min(5,sum(1 for e in events if e.get('kind') in ('summon','set','activate') and e.get('card')==cid)) for cid in choices(run))
+   if hits:tally['Golden Card']=hits*10
   if owns(run,'underdog_clause'):
    pups=0
    for _cid in g.deck(run):
@@ -337,7 +338,7 @@ def install(g):
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    cap=8000 if boss else (10000 if 'ankh' in run['artifacts'] else 8000)
-   if run.get('challenge_level',0)>=4:cap=4000
+   if run.get('challenge_level',0)>=4:cap=4000+(2000 if 'ankh' in run['artifacts'] else 0)
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
@@ -378,6 +379,16 @@ def install(g):
    if cursed_relics.pending(run):run['shop']=[]
    else:restock(run,rng)
   save(run)
+ def ensure_shop_packs(run,rng=random):
+  if run.get('stage')!='shop' or CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'):return
+  current=[x['id'] for x in run.get('shop',[]) if x['kind']=='pack']
+  count=(4 if ar.has(run,'booster_shelf') else 3)-len(current)
+  if count<=0:return
+  profile=storage.profile()
+  options=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in current and unlocks.available('pack',p['id'],profile)]
+  price=ar.price(run,'pack',max(1,round(35*max(0,1-amount(run,'discount')/100))))
+  for pid in rng.sample(options,min(count,len(options))):run['shop'].append(dict(kind='pack',id=pid,price=price,sold=False,opponent_pack=False))
+  return bool(options)
  def restock(run,rng=random,general_stock=False):
   challenge_levels.suppress(run)
   reload_tuning()
@@ -416,25 +427,26 @@ def install(g):
     else:singles[8]=piece
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   tied=run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack']
-  if not unlocks.available('pack',tied,profile):
+  if PACK_BY_ID.get(tied,{}).get('draft_only') or not unlocks.available('pack',tied,profile):
    # Old shops/routes can predate progression; an unlocked early pack is the fallback.
    tied='EN-LOB'
-  other=rng.choice([p for p in PACKS if p['id']!=tied and unlocks.available('pack',p['id'],profile)])['id']
-  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(p==tied)) for p in [tied,other]]
+  pack_count=4 if ar.has(run,'booster_shelf') else 3
+  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and unlocks.available('pack',p['id'],profile)],pack_count-1)
+  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(p==tied)) for p in [tied]+others]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
   if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
-   items[-1]=dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False)
-  available=[a for a in ARTIFACTS if a not in cursed_relics.approved() and a not in run['artifacts'] and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25)]
+   items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
+  available=[a for a in ARTIFACTS if a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=rng.sample(preferred_art,min(1,len(preferred_art)))
   chosen+=rng.sample([a for a in available if a not in chosen],count-len(chosen))
   items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   modifier=max(0,1-amount(run,'discount')/100)
   for item in items:
-   if item['kind']!='deck':item['price']=max(1,round(item['price']*modifier))
+   item['price']=max(1,round(item['price']*modifier))
   for item in items:item['price']=ar.price(run,item['kind'],item['price'])
   run['shop']=items
   challenge_levels.suppress(run)
@@ -460,6 +472,10 @@ def install(g):
   if CHARACTERS[run['character']].get('copycat') and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine runs random starter decks and can only buy relics.')
   if item['sold'] or item['price']>run['gold']:raise ValueError('Item unavailable or not enough coins.')
+  if item['kind']=='artifact' and item['id']=='golden_sleeve':
+   from golden_cards import choices,pending
+   available=set(run['pool'][i] for i in run.get('selected',[]))-set(choices(run))
+   if len(available)<=pending(run):raise ValueError('Your current deck has no undesignated card for another Golden Card Sleeve.')
   obtained=[]
   if item['kind']=='single':
    if not unlocks.card_allowed(g.BY_ID[item['id']]):raise ValueError('This card is still locked. See Collection unlocks.')
@@ -471,21 +487,22 @@ def install(g):
   elif item['kind']=='deck':
    obtained=item['cards'][:]
    if not obtained or any(cid not in g.BY_ID for cid in obtained):raise ValueError('This starter deck is invalid.')
-   run['pool']=[];run['selected']=list(range(len(obtained)));run['guaranteed']=[];run['card_mods']={}
-  for key in ('golden_card','faulty'):run.pop(key,None)
   if item['kind']=='deck':
    _prof=storage.profile();_prof['decks_bought']=_prof.get('decks_bought',0)+1;storage.write(storage.ROOT/'profile.json',_prof)
   elif item['kind']=='artifact':
    _pre_discount=amount(run,'discount')
    run['artifacts'].append(item['id'])
+   if item['id']=='booster_shelf':ensure_shop_packs(run,rng)
    if item['id']=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
    if item['id']=='stamp':run['stamped_singles']=0
-   if item['id']=='ankh' and ar.can_heal(run,between=True):run['lp']=max(run['lp'],min(4000,run['lp']+2000)) if run.get('challenge_level',0)>=4 else run['lp']+2000
+   if item['id']=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
    if ART_INFO.get(item['id'],{}).get('effect')=='discount':
     _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
     if _old_mod>0:
      for _it in run['shop']:
-      if not _it.get('sold') and _it['kind']!='deck':_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
+      if not _it.get('sold'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
+  if item['kind'] in ('single','pack') and amount(run,'purchase_clone'):
+   obtained+= [cid for cid in obtained[:] if rng.random()<amount(run,'purchase_clone')/100]
   run['last_misprints']=[]
   if owns(run,'faulty_printer') and item['kind'] in ('single','pack'):
    _chance=amount(run,'faulty')/100;_faulty=run.setdefault('card_mods',{});_fresh=[]
@@ -511,7 +528,6 @@ def install(g):
   if not indices:return []
   if any(i<0 or i>=len(run['shop']) for i in indices):raise ValueError('Unknown shop item.')
   items=[run['shop'][i] for i in indices]
-  if len(items)>1 and any(x['kind']=='deck' for x in items):raise ValueError('Buy a replacement deck separately from other items.')
   if sum(x['price'] for x in items)>run['gold']:raise ValueError('Not enough gold')
   if run['stage']!='shop' or any(x['sold'] for x in items):raise ValueError('Item unavailable.')
   if CHARACTERS[run['character']].get('copycat') and any(x['kind']!='artifact' for x in items):raise ValueError('Copycat can only buy relics.')

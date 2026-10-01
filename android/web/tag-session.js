@@ -1,4 +1,4 @@
-import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour} from './replays.js';
+import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
 import {TagPeer} from './tag-peer.js';
 import {TagDuel} from './tag-duel.js';
 const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
@@ -116,6 +116,7 @@ export class TagSession {
   const receipt=await this.backend('tag-receipt',{seat,id:request.id});
   if(receipt!==null&&receipt!==undefined)return receipt.result;
   if(!this.connected)throw Error('Waiting for your teammate to reconnect.');
+  if(request.action==='flag-retry')return sendUnsentFlags();
   if(request.action==='flag-capture'){
    if(!this.engine||this.view.phase!=='duel')throw Error('No active duel.');
    this.behaviourCaptures??=new Map();

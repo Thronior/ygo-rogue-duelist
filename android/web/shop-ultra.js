@@ -1,5 +1,6 @@
+import {isUltra} from './ultra-rarity.js';
 const seen=new Set();
-export function isShopUltra(item,cards){return item.kind==='single'&&!item.sold&&cards.find(c=>c.id===item.id)?.sets?.some(s=>s.rarity==='Ultra Rare');}
+export function isShopUltra(item,cards){return item.kind==='single'&&!item.sold&&(isUltra(item.id)||cards.find(c=>c.id===item.id)?.sets?.some(s=>s.rarity==='Ultra Rare'));}
 export function announceShopUltra(run,cards){
  const key=JSON.stringify([run.started_at,run.round,run.shop?.map(x=>[x.kind,x.id])]);
  if(seen.has(key)||!run.shop?.some(x=>isShopUltra(x,cards)))return;

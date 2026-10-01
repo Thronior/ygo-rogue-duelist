@@ -124,8 +124,8 @@ def dispatch(raw):
  elif action=='buy':result=g.buy(run,int(value))
  elif action=='reset-progress':storage.reset_progress();run=None
  elif action=='golden-card':
-  if 'golden_sleeve' not in run['artifacts'] or int(value) not in g.deck(run):raise ValueError('Select a card in your deck with Golden Card Sleeve owned.')
-  run['golden_card']=None if run.get('golden_card')==int(value) else int(value)
+  from golden_cards import choose
+  choose(run,value)
  elif action=='settings':storage.write(storage.ROOT/'settings.json',value)
  elif action=='notices':
   p=storage.profile();result=p.pop('achievement_notices',[]);storage.write(storage.ROOT/'profile.json',p)

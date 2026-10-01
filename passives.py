@@ -53,7 +53,7 @@ Duel.RegisterEffect(e,0) end''')
    if not copy or copy not in ART_INFO or copy=='magic_mirror':continue
    info=ART_INFO[copy]
   kind=info['effect'];amount=info['amount'];filter=info['filter'];condition='true';params=info.get('parameters',{})
-  if filter in RACES:condition=f'c:IsRace({RACES[filter]})'
+  if filter in RACES:condition=f"c:IsRace({RACES[filter] + ('|RACE_BEASTWARRIOR' if filter in ('Warrior','Beast') else '')})"
   elif filter:condition=f'c:IsAttribute(ATTRIBUTE_{filter})'
   expanded=expanded_effect(kind,amount,filter)
   if kind=='approved_empty_hand_pact' and has(run,'cursed_starving_library'):expanded=expanded.replace('e:SetCode(EFFECT_HAND_LIMIT)', 'e:SetCode(EFFECT_HAND_LIMIT)').replace('e:SetValue(4)','e:SetValue(3)')
@@ -109,7 +109,7 @@ e:SetOperation(function() if not used and Duel.GetLP(0)<=0 then Duel.SetLP(0,{in
 Duel.RegisterEffect(e,0) end''')
  for mod in run.get('duel_modifications',[]):
   lines.append(f"""do local c=Duel.GetFieldCard(0,LOCATION_{mod['location']},{int(mod['sequence'])}) if c then
-local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_SET_BASE_ATTACK) a:SetValue({int(mod['atk'])}) c:RegisterEffect(a)
+local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_SET_BASE_ATTACK) a:SetProperty(EFFECT_FLAG_CANNOT_DISABLE|EFFECT_FLAG_UNCOPYABLE) a:SetValue({int(mod['atk'])}) c:RegisterEffect(a)
 local d=a:Clone() d:SetCode(EFFECT_SET_BASE_DEFENSE) d:SetValue({int(mod['defense'])}) c:RegisterEffect(d) end end""")
  if run.get('loop',0):
   from endless import LOOP

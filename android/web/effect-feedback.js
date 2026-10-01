@@ -47,7 +47,7 @@ export async function playEffectFeedback(cue,{field,image,esc,reduced=false}){
  const heading=(cue.player===0?'You · ':cue.player===1?'Opponent · ':'')+cue.text;
  el.innerHTML=`<strong>${esc(heading)}</strong><div class="effect-feedback-cards"></div>`;field.append(el);
  const rack=el.querySelector('.effect-feedback-cards');
- const cards=cue.cards||[],wait=ms=>new Promise(r=>setTimeout(r,ms));
+ const cards=cue.cards||[],wait=ms=>new Promise(r=>setTimeout(r,ms*1.2));
  const pause=cue.excavation?Math.min(180,1200/Math.max(1,cards.length)):0;
  for(const [i,c] of cards.entries()){
   if(!el.isConnected)break;

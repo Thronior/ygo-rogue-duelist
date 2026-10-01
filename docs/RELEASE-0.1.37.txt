@@ -1,0 +1,31 @@
+## YGO Rogue Duelist — Update 0.1.37
+
+### 🎴 Character packs & starting cards
+- Added 32 custom character packs, each containing at least 60 cards.
+- These characters now start with two of their own packs and two supporting packs that fit their playstyle.
+- Engine pieces are more common, while boss monsters and powerful staples are rarer.
+- Added missing real-life cards and expanded character signature cards.
+- Custom pack artwork now features character portraits, signature-card backgrounds and themed colours.
+
+### 🪙 Shops & boosters
+- Added 24 World Championship Tournament 2004 packs to the rotation.
+- Shops now offer three booster packs by default.
+- New relic: Booster Shelf adds a fourth booster pack.
+- New rare relic: Duelist’s Catalogue adds character packs to the shop rotation.
+- The expanded regular pack pool can also appear as opponent shop rewards.
+- “All X” pack previews now explain their contents without listing every card.
+- Cards from the 2004 World Champion deck and the Ultimate Collector Limited list always appear as Ultra Rare in shops and packs. Other rarity rules remain unchanged.
+
+### ✨ Relics, visuals & sound
+- Golden Card Sleeve now plays a relic reveal and immediately asks you to choose a card from your current deck, directly over the shop.
+- Carbon Copy has a 15% chance to grant an extra copy.
+- Added Limited/Semi-Limited icons and sorting by card colour, name, type, ATK, DEF, level and Attribute in Ultimate Collector.
+- Challenge selection now uses the same level badges as character portraits.
+- Animations are 20% slower, and music/SFX levels have been balanced.
+
+### 🛠️ Fixes & CPU improvements
+- Fixed the Flag Behaviour upload error. Failed submissions are saved offline, with a “Send unsent flags” button for retrying them.
+- Fixed a CPU attack-cancellation loop that could stall duels.
+- Improved CPU handling of The Hunter with 7 Weapons, Penguin Soldier, Solemn Judgment and other card interactions.
+- Buying a Starter Deck no longer replaces your equipped deck.
+- Shop discounts now apply immediately after purchase.

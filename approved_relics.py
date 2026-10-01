@@ -1,6 +1,8 @@
 """Approved September relics. Cursed IDs are never stocked as regular artifacts."""
 # id, name, price, rules text, illustration
 REGULAR=[
+('duelist_catalogue',"Duelist's Catalogue",120,'Character draft packs can appear in the random booster slots on shop visits and rerolls. This relic appears less often than other relics.','Exchange'),
+('booster_shelf','Booster Shelf',90,'Shops offer a fourth booster pack. Adds the extra pack immediately when purchased and on every shop visit and reroll.','Jar of Greed'),
 ('second_wind','Second Wind',110,'Once per Duel, at the start of your End Phase, if your hand is empty, draw 2 cards.','Pot of Greed'),
 ('grave_lantern','Grave Lantern',80,'Monsters you control gain 100 DEF for each monster in your GY (max. 800).','Spirit of the Pharaoh'),
 ('ritual_vestment','Ritual Vestment',85,'Ritual Monsters you control gain 300 ATK/DEF.','Black Illusion Ritual'),
