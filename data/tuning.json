@@ -702,11 +702,11 @@
     },
     "champion_trophy": {
       "name": "Champion Trophy",
-      "price": 100,
-      "description": "Earn 30 additional coins after each boss victory.",
+      "price": 60,
+      "description": "Earn 40 additional coins after each boss victory.",
       "art": "Victory Dragon",
       "effect": "boss_gold",
-      "amount": 30,
+      "amount": 40,
       "tag": "economy",
       "filter": "",
       "parameters": {}

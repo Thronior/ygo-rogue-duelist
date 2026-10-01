@@ -27,9 +27,13 @@ if _calibration.exists():
  _payouts=json.loads(_calibration.read_text(encoding='utf8')).get('payouts',{})
  RULES[:]=[(m,t,l,int(_payouts.get(l,c))) for m,t,l,c in RULES]
 
+RULES.append(('signature_played',1,'Play your signature card',10))
+
 def metrics(run,events,by_id):
  m=Counter();summoned=set();races=set();attrs=set();known=False;spell_names=set();trap_names=set();effect_names=set();spell_types=set()
+ signatures=set(run.get('guaranteed',[]))
  for e in events:
+  if e.get('kind') in ('summon','activate') and e.get('card') in signatures:m['signature_played']=1
   kind=e.get('kind');card=by_id.get(e.get('card'));typ=card['data']['type'] if card else 0
   if kind=='duel_metrics':
    known=True
@@ -62,6 +66,7 @@ def metrics(run,events,by_id):
  m['draws']=max(0,m['draw']-opening)
  m['untouched']=int(known and m['damage_taken']==0);m['close_call']=int(0<run['lp']<=500);m['healthy']=int(run['lp']>=8000)
  m['swift']=int(known and 0<m['turns']<=4);m['blitz']=int(known and 0<m['turns']<=2);m['quick']=int(known and 0<m['turns']<=6)
+ m['slow_turns']=max(0,m['turns']-6)
  m['destroyed_total']=m['battle_destroy']+m['destroy']
  m['unique_activations']=len(spell_names|trap_names|effect_names)
  battle=max(0,m['damage']-m['effect_damage']);boss=(run.get('round',0)+1)%3==0
@@ -96,13 +101,18 @@ def metrics(run,events,by_id):
 VICTORY_ONLY={'untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage'}
 def progress(run,events,by_id,victory=False):
  m=metrics(run,events,by_id)
- return {label:coins for metric,threshold,label,coins in RULES if (victory or metric not in VICTORY_ONLY) and m[metric]>=threshold}
+ out={label:coins for metric,threshold,label,coins in RULES if (victory or metric not in VICTORY_ONLY) and m[metric]>=threshold}
+ slow=-4*m['slow_turns']
+ if slow:out['Slow duel']=slow
+ return out
 
 
 def score(run,events,by_id):
  m=metrics(run,events,by_id);tally={'Victory':30}
  for metric,threshold,label,coins in RULES:
   if m[metric]>=threshold:tally[label]=coins
+ slow=-4*m['slow_turns']
+ if slow:tally['Slow duel']=slow
  return tally,min(400,sum(tally.values()))
 
 def show(app):

@@ -45,6 +45,8 @@ def dispatch(raw):
   elif action=='tag-finish':tag_session.finish(value['winner'],value['lp'],value['events'],value.get('reason',0));checkpoint()
   else:raise ValueError('Unknown tag operation.')
  elif action=='import-profile':result=storage.merge_desktop_profile(value,[g.unlock_rule(i)[0] for i in content.PLAYABLE_IDS[2:]])
+ elif action=='unlock-cpu-viewer':
+  profile=storage.profile();profile['cpu_viewer_unlocked']=True;storage.write(storage.ROOT/'profile.json',profile)
  elif action=='init':
   import collector
   collector.load();run=g.load_run()

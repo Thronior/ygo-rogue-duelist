@@ -70,6 +70,8 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	local tg=te:GetTarget()
 	local co=te:GetCost()
 	local op=te:GetOperation()
+	-- Curtain identifies its own summon through the resolving handler.
+	local ce=tc:IsCode(99789342) and e or te
 	e:SetCategory(te:GetCategory())
 	e:SetProperty(te:GetProperty())
 	Duel.ClearTargetCard()
@@ -80,12 +82,12 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 		Duel.MoveToField(tc,tp,tp,LOCATION_FZONE,POS_FACEUP,true)
 	end
 	tc:CreateEffectRelation(te)
-	if co then co(te,tp,eg,ep,ev,re,r,rp,1) end
+	if co then co(ce,tp,eg,ep,ev,re,r,rp,1) end
 	if tg then
 		if tc:IsSetCard(SET_RANK_UP_MAGIC) then
 			tg(e,tp,eg,ep,ev,re,r,rp,1)
 		else
-			tg(te,tp,eg,ep,ev,re,r,rp,1)
+			tg(ce,tp,eg,ep,ev,re,r,rp,1)
 		end
 	end
 	Duel.BreakEffect()
@@ -98,7 +100,7 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 		if tc:IsSetCard(SET_RANK_UP_MAGIC) then
 			op(e,tp,eg,ep,ev,re,r,rp)
 		else
-			op(te,tp,eg,ep,ev,re,r,rp)
+			op(ce,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 	tc:ReleaseEffectRelation(te)

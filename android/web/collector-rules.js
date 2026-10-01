@@ -6,9 +6,9 @@ const counts = cards => cards.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
 export const deckCards = deck => [...(deck.main||[]),...(deck.side||[]),...(deck.extra||[])];
 export function validateDeck(deck,pool,cards,original=null) {
  const errors=[], all=deckCards(deck), catalog=new Map(cards.map(c=>[c.id,c]));
- if(!Array.isArray(deck.main)||deck.main.length<40||deck.main.length>60)errors.push('Main Deck must contain 40ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ60 cards.');
- if(!Array.isArray(deck.side)||deck.side.length>15)errors.push('Side Deck may contain 0Ã¢â‚¬â€œ15 cards.');
- if(!Array.isArray(deck.extra)||deck.extra.length>15)errors.push('Fusion Deck may contain 0Ã¢â‚¬â€œ15 cards.');
+ if(!Array.isArray(deck.main)||deck.main.length<40||deck.main.length>60)errors.push('Main Deck must contain 40–60 cards.');
+ if(!Array.isArray(deck.side)||deck.side.length>15)errors.push('Side Deck may contain 0–15 cards.');
+ if(!Array.isArray(deck.extra)||deck.extra.length>15)errors.push('Fusion Deck may contain 0–15 cards.');
  if(all.some(id=>!Number.isInteger(id)))errors.push('Invalid card ID.');
  const owned=counts(pool), used=counts(all), names={};
  for(const [id,n] of Object.entries(used)) {

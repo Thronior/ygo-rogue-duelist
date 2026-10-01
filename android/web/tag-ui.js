@@ -1,3 +1,4 @@
+import {searches as deckSearches} from './card-search.js';
 import {shopRerollPrice} from './experience-ui.js';
 import {isShopUltra,announceShopUltra} from './shop-ultra.js';
 import {curseIcons,curseDescription,cursedMarkup} from './experience-ui.js';
@@ -244,7 +245,7 @@ export class TagUI {
    if(this.localDraft&&!view.ready[view.seat]){view.run.selected=[...this.localDraft.selected];view.run.opponent=this.localDraft.opponent}
   }else if(this.draftKey){localStorage.removeItem(this.draftKey);this.draftKey=null;this.localDraft=null}
   const before=this.view?.phase,scroll=this.root.querySelector('.tag-deck-scroll')?.scrollTop||0;
-  this.view=view;this.updateRoomBadge();this.profile=view.profile;this.onView(view);
+  if(before==='duel'&&view.phase!=='duel'){this.deckFilter='All';this.deckSort='Default';delete deckSearches['tag-deck'];}this.view=view;this.updateRoomBadge();this.profile=view.profile;this.onView(view);
   if(view.phase!=='duel'){this.render();const list=this.root.querySelector('.tag-deck-scroll');if(list)list.scrollTop=scroll}
   if(before==='duel'&&view.phase==='shop')this.showRewards?.();
  }

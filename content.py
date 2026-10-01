@@ -186,7 +186,7 @@ artifact('toon_world','Toon World',85,'Toon cards appear more often in shops.','
 artifact('ritual_dagger','Ritual Dagger',80,'Ritual monsters and Ritual Spells appear more often in shops.','Curse of the Masked Beast','like_ritual',0,'draw')
 artifact('fusion_chamber','Fusion Chamber',80,'Fusion monsters, Polymerization and Fusion Sage appear more often in shops.','Polymerization','like_fusion',0,'draw')
 artifact('phoenix_rebirth','Phoenix Rebirth',120,'Once per duel, if your LP would reach 0 they become 1000 instead. Consumed as soon as it saves you.','Fire Princess','phoenix',1000,'healing')
-artifact('champion_trophy','Champion Trophy',100,'Increase the coin reward from boss duel victories by 30.','Victory Dragon','boss_gold',30,'economy')
+artifact('champion_trophy','Champion Trophy',60,'Increase the coin reward from boss duel victories by 40.','Victory Dragon','boss_gold',40,'economy')
 artifact('glass_shard','Glass Shard',70,'You start every duel with 2000 LP, but coin rewards are doubled.','Gamble','glass',2000,'economy')
 artifact('deck_spyglass','Deck Spyglass',85,'See enemy decklists when choosing your opponent.','The Eye of Truth','spyglass',0,'draw')
 artifact('rulebook',"Broke Man's Rulebook",60,'Both players open with 1 card instead of 5.','A Deal with Dark Ruler','rulebook',0,'draw')

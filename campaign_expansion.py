@@ -391,16 +391,18 @@ def install(g):
   if 'toon_world' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x400000}
   if 'ritual_dagger' in _arts:like|={c['id'] for c in eligible if shop_rewards.matches(c,'ritual')}
   if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
-  boost=[c for c in eligible if c['id'] in like and c not in preferred]
-  pool=(preferred+boost) or eligible
+  def stock_sample(cards,count):
+   if not like:return rng.sample(cards,count)
+   return sorted(cards,key=lambda c:rng.random()**(1/(4 if c['id'] in like else 1)),reverse=True)[:count]
+  pool=preferred or eligible
   if general_stock:
-   top=rng.sample(eligible,5)
+   top=stock_sample(eligible,5)
   elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
    top=shop_rewards.tag_featured(eligible+[removal],run['tag_shop_rewards'],rng)
   else:
-   top=rng.sample(pool,min(5,len(pool)))
+   top=stock_sample(pool,min(5,len(pool)))
    top+=rng.sample([c for c in eligible if c not in top],5-len(top))
-  rest=rng.sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
+  rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
   if 'legendary_shackles' in _arts:
    # Count generated shops, not UI renders; the saved run preserves progress.
@@ -409,7 +411,7 @@ def install(g):
     piece=g.BY_NAME[rng.choice(('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'))]
     # The fourth general single leaves the final back-row removal offer intact.
     existing=next((i for i,c in enumerate(singles) if c['id']==piece['id']),None)
-    if existing is not None and existing<5 and run.get('tag_shop_rewards'):pass
+    if existing is not None and existing<5:pass
     elif existing is not None:singles[existing],singles[8]=singles[8],singles[existing]
     else:singles[8]=piece
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]

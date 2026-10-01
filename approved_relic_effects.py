@@ -24,7 +24,7 @@ def effect(kind):
  elif key=='ritual_vestment':both(300,'c:IsType(TYPE_RITUAL)')
  elif key=='fusion_insignia':both(300,'c:IsType(TYPE_FUSION)')
  elif key=='tribute_dividend':
-  out.append('do local used=false '+event('EVENT_SUMMON_SUCCESS','used=true Duel.Hint(HINT_MESSAGE,0,900000002)','not used and eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) end,1,nil)')+' end')
+  out.append(event('EVENT_SUMMON_SUCCESS','Duel.Hint(HINT_MESSAGE,0,900000002)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) end,1,nil)'))
  elif key=='patient_guardian':out.append(phase('STANDBY','Duel.Recover(0,300,REASON_EFFECT)','not Duel.IsExistingMatchingCard(Card.IsAttackPos,0,LOCATION_MZONE,0,1,nil)'))
  elif key=='healing_echo':
   # Shared label excludes every Echo instance, including Magic Mirror, from recursion.
@@ -38,7 +38,7 @@ def effect(kind):
  elif key=='blood_crown':atk(500);out.append(phase('END','Duel.Damage(0,300,REASON_EFFECT)'))
  elif key=='hollow_chalice':out.append(phase('STANDBY','Duel.Recover(0,600,REASON_EFFECT)'))
  elif key=='brittle_armor':atk(-300);defense(900)
- elif key=='cracked_sword':atk(300);defense(-400)
+ elif key=='cracked_sword':atk(300);defense(-1000)
  elif key=='starving_library':
   out.append(player_rule('EFFECT_DRAW_COUNT',2));handlimit(3)
  elif key=='ashen_nursery':atk(700,'c:IsLevelBelow(3)');atk(-700,'c:IsLevelAbove(5)')

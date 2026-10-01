@@ -5,7 +5,7 @@ REGULAR=[
 ('grave_lantern','Grave Lantern',80,'Monsters you control gain 100 DEF for each monster in your GY (max. 800).','Spirit of the Pharaoh'),
 ('ritual_vestment','Ritual Vestment',85,'Ritual Monsters you control gain 300 ATK/DEF.','Black Illusion Ritual'),
 ('fusion_insignia','Fusion Insignia',85,'Fusion Monsters you control gain 300 ATK/DEF.','Polymerization'),
-('tribute_dividend','Tribute Dividend',75,'If you successfully Tribute Summon during a Duel, earn 15 additional coins if you win that Duel.','Soul Exchange'),
+('tribute_dividend','Tribute Dividend',75,'Earn 15 additional coins for each successful Tribute Summon if you win the Duel.','Soul Exchange'),
 ('patient_guardian','Patient Guardian',90,'Once per turn, at the start of your Standby Phase, if you control no Attack Position monsters, gain 300 LP.','Waboku'),
 ('healing_echo','Healing Echo',100,'Each time you gain LP by a card effect other than this relic, gain 200 additional LP.','Dian Keto the Cure Master'),
 ('trap_weaver','Trap Weaver',80,'Trap Monsters you control gain 400 ATK/DEF.','Embodiment of Apophis'),
@@ -17,7 +17,7 @@ CURSED=[
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Halve battle damage you inflict.','Dian Keto the Cure Master'),
 (3,'loaded_purse','Loaded Purse','Earn 20 additional coins after each victory. Your opponent starts each Duel with 2000 additional LP.','Jar of Greed'),
 (4,'brittle_armor','Brittle Armor','Monsters you control gain 900 DEF, but lose 300 ATK.','Silver Bow and Arrow'),
-(5,'cracked_sword','Cracked Sword','Monsters you control gain 300 ATK, but lose 400 DEF.','Sword of Deep-Seated'),
+(5,'cracked_sword','Cracked Sword','Monsters you control gain 300 ATK, but lose 1000 DEF.','Sword of Deep-Seated'),
 (7,'starving_library','Starving Library','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 3.','Pot of Greed'),
 (8,'ashen_nursery','Ashen Nursery','Level 3 or lower monsters you control gain 700 ATK. Level 5 or higher monsters you control lose 700 ATK.','Baby Dragon'),
 (9,'giants_oath',"Giant's Oath",'Level 5 or higher monsters you control gain 800 ATK. Level 4 or lower monsters you control lose 400 ATK.','Summoned Skull'),
@@ -93,7 +93,11 @@ def rewards(run,events,boss):
  for key,name in [('loaded_purse','Loaded Purse'),('blind_fortune','Blind Fortune')]:
   if has(run,'cursed_'+key):out[name]=20*copies(run,'cursed_'+key)
  if has(run,'cursed_champions_burden') and boss:out["Champion's Burden"]=60*copies(run,'cursed_champions_burden')
- if has(run,'tribute_dividend') and any(e.get('kind')=='tribute_dividend' or e.get('kind')=='summon' and e.get('method')=='tribute' for e in events):out['Tribute Dividend']=15*copies(run,'tribute_dividend')
+ if has(run,'tribute_dividend'):
+  summons=sum(e.get('kind')=='summon' and e.get('method')=='tribute' for e in events)
+  hints=sum(e.get('kind')=='tribute_dividend' for e in events)
+  count=summons or hints//max(1,copies(run,'tribute_dividend')) # Each relic copy emits its own fallback hint.
+  if count:out['Tribute Dividend']=15*count*copies(run,'tribute_dividend')
  if has(run,'cursed_golden_grave'):
   n=next((e.get('grave_monsters',0) for e in reversed(events) if e.get('kind')=='duel_metrics'),0)
   out['Golden Grave']=min(30,2*n)*copies(run,'cursed_golden_grave')

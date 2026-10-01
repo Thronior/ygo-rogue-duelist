@@ -120,7 +120,7 @@ local d=a:Clone() d:SetCode(EFFECT_SET_BASE_DEFENSE) d:SetValue({int(mod['defens
   if curse=='frailty':stat('EFFECT_UPDATE_ATTACK',-200*scale)
   elif curse=='enemy_power':stat('EFFECT_UPDATE_ATTACK',200*scale,enemy=True)
   elif curse=='hunger':stat('EFFECT_UPDATE_DEFENSE',-300*scale)
-  elif curse=='tax':event('EVENT_PHASE|PHASE_END',f'Duel.Damage(0,{200*scale},REASON_EFFECT)')
+  elif curse=='tax':event('EVENT_PHASE|PHASE_END',f'Duel.Damage(0,{500 if scale>=2 else 200},REASON_EFFECT)')
   elif curse=='mercy' and scale==2:
    lines.append('''do local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PRE_BATTLE_DAMAGE)

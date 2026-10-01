@@ -21,7 +21,7 @@ def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
 
 def curse_description(run,key,default):
  if run.get('challenge_level',0)<2:return default
- return {'frailty':'Your monsters lose 400 ATK during this boss duel.', 'enemy_power':"The boss's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 400 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one quarter.', 'drain':'Start this boss duel with 2000 fewer LP, minimum 1.'}.get(key,default)
+ return {'frailty':'Your monsters lose 400 ATK during this boss duel.', 'enemy_power':"The boss's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one quarter.', 'drain':'Start this boss duel with 2000 fewer LP, minimum 1.'}.get(key,default)
 
 def active_modifiers(run):
  from content import CURSES
