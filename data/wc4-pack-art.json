@@ -1,0 +1,249 @@
+{
+  "layout": "Silver foil wrapper, supplied WCT 2004 logo, original card subjects and themed colors",
+  "packs": [
+    {
+      "id": "WC4-01",
+      "name": "Blue-Eyes White Dragon",
+      "card": 89631139,
+      "portrait": null,
+      "tint": "#71b6ee",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-02",
+      "name": "Red-Eyes B. Dragon",
+      "card": 74677422,
+      "portrait": null,
+      "tint": "#bb6478",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-03",
+      "name": "B. Skull Dragon",
+      "card": 11901678,
+      "portrait": null,
+      "tint": "#9766b1",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-04",
+      "name": "Barrel Dragon",
+      "card": 81480460,
+      "portrait": null,
+      "tint": "#829da9",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-05",
+      "name": "Black Luster Soldier",
+      "card": 5405694,
+      "portrait": null,
+      "tint": "#698cae",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-06",
+      "name": "Relinquished",
+      "card": 64631466,
+      "portrait": null,
+      "tint": "#9685cb",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-07",
+      "name": "Toon Summoned Skull",
+      "card": 91842653,
+      "portrait": null,
+      "tint": "#bc91d4",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-08",
+      "name": "Jinzo",
+      "card": 77585513,
+      "portrait": null,
+      "tint": "#8db78d",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-09",
+      "name": "Thousand-Eyes Restrict",
+      "card": 63519819,
+      "portrait": null,
+      "tint": "#8496bf",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-10",
+      "name": "The Masked Beast",
+      "card": 49064413,
+      "portrait": null,
+      "tint": "#b8878a",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-11",
+      "name": "Zombyra the Dark",
+      "card": 88472456,
+      "portrait": null,
+      "tint": "#7987a5",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-12",
+      "name": "Dark Ruler Ha Des",
+      "card": 53982768,
+      "portrait": null,
+      "tint": "#8f789e",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-13",
+      "name": "Yamata Dragon",
+      "card": 76862289,
+      "portrait": null,
+      "tint": "#bc806e",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-14",
+      "name": "Guardian Sphinx",
+      "card": 40659562,
+      "portrait": null,
+      "tint": "#c3a56a",
+      "kind": "card",
+      "variant": null
+    },
+    {
+      "id": "WC4-15",
+      "name": "Yami Yugi 1",
+      "portrait": "pack-components/yugi-official-1.jpg",
+      "tint": "#b482ae",
+      "kind": "yugi",
+      "variant": 1
+    },
+    {
+      "id": "WC4-16",
+      "name": "Yami Yugi 2",
+      "portrait": "pack-components/yugi-official-2.jpg",
+      "tint": "#80a4ce",
+      "kind": "yugi",
+      "variant": 2
+    },
+    {
+      "id": "WC4-17",
+      "name": "Yami Yugi 3",
+      "portrait": "pack-components/yugi-official-3.jpg",
+      "tint": "#b28bd7",
+      "kind": "yugi",
+      "variant": 3
+    },
+    {
+      "id": "WC4-18",
+      "name": "Yami Yugi 4",
+      "portrait": "pack-components/yugi-official-4.jpg",
+      "tint": "#71afb0",
+      "kind": "yugi",
+      "variant": 4
+    },
+    {
+      "id": "WC4-19",
+      "name": "Yami Yugi 5",
+      "portrait": "pack-components/yugi-official-5.jpg",
+      "tint": "#cca875",
+      "kind": "yugi",
+      "variant": 5
+    },
+    {
+      "id": "WC4-20",
+      "name": "Green Millennium Puzzle",
+      "portrait": null,
+      "tint": "#60c494",
+      "kind": "puzzle",
+      "variant": null
+    },
+    {
+      "id": "WC4-21",
+      "name": "Red Millennium Puzzle",
+      "portrait": null,
+      "tint": "#e56a9b",
+      "kind": "puzzle",
+      "variant": null
+    },
+    {
+      "id": "WC4-22",
+      "name": "Yellow Millennium Puzzle",
+      "portrait": null,
+      "tint": "#e3c66b",
+      "kind": "puzzle",
+      "variant": null
+    },
+    {
+      "id": "WC4-23",
+      "name": "Purple Millennium Puzzle",
+      "portrait": null,
+      "tint": "#ab75dd",
+      "kind": "puzzle",
+      "variant": null
+    },
+    {
+      "id": "WC4-24",
+      "name": "Eye of Wdjat",
+      "portrait": null,
+      "tint": "#dfb965",
+      "kind": "eye",
+      "variant": null
+    }
+  ],
+  "artSources": [
+    {
+      "pack": "WC4-15",
+      "file": "yugi-official-1.jpg",
+      "title": "Dungeon Dice Monsters, Part 3",
+      "url": "https://uploads3.yugioh.com/huluim_images/episode/50116920/180.jpeg",
+      "source": "Official Yu-Gi-Oh episode still; original background intact"
+    },
+    {
+      "pack": "WC4-16",
+      "file": "yugi-official-2.jpg",
+      "title": "Yugi Vs. Pegasus Match of the Millennium, Part 5",
+      "url": "https://uploads1.yugioh.com/huluim_images/episode/50115569/180.jpeg",
+      "source": "Official Yu-Gi-Oh episode still; original background intact"
+    },
+    {
+      "pack": "WC4-17",
+      "file": "yugi-official-3.jpg",
+      "title": "Yugi Vs. Pegasus Match of the Millennium, Part 3",
+      "url": "https://uploads4.yugioh.com/huluim_images/episode/50115571/180.jpeg",
+      "source": "Official Yu-Gi-Oh episode still; original background intact"
+    },
+    {
+      "pack": "WC4-18",
+      "file": "yugi-official-4.jpg",
+      "title": "Yugi Vs. Pegasus Match of the Millennium, Part 1",
+      "url": "https://uploads1.yugioh.com/huluim_images/episode/50115363/180.jpeg",
+      "source": "Official Yu-Gi-Oh episode still; original background intact"
+    },
+    {
+      "pack": "WC4-19",
+      "file": "yugi-official-5.jpg",
+      "title": "Face Off, Part 2",
+      "url": "https://uploads4.yugioh.com/huluim_images/episode/50115373/180.jpeg",
+      "source": "Official Yu-Gi-Oh episode still; original background intact"
+    }
+  ],
+  "symbolSources": "Original official WC2004 game pack illustrations; no generated replacements"
+}

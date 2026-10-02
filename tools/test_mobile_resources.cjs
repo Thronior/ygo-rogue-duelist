@@ -13,8 +13,8 @@ vm.runInNewContext(fs.readFileSync(root+'android/web/animation-speed.js','utf8')
 for(let i=0;i<500;i++)events.animationstart({target:{getAnimations:()=>{targetScans++;return[]}}});
 assert.equal(documentScans,0);assert.equal(targetScans,500);assert.equal(new sandbox.Element().animate().playbackRate,1/1.2);
 console.log('PASS 500 duel create/destroy cycles: zero retained callbacks; failure restores stack; animation events avoid document-wide scans');
-let mediaCount=0,sourceCount=0,connections=0;
-class AudioMock{constructor(){mediaCount++;this.paused=true;this.ended=false;this.src='';this.events={}}addEventListener(n,f){(this.events[n]??=[]).push(f)}emit(n){for(const f of this.events[n]||[])f();this['on'+n]?.()}pause(){this.paused=true;this.emit('pause')}play(){this.paused=false;this.emit('play');return Promise.resolve()}load(){}removeAttribute(){this.src=''}}
+let mediaCount=0,sourceCount=0,connections=0,plays=0;
+class AudioMock{constructor(){mediaCount++;this.paused=true;this.ended=false;this.src='';this.events={}}addEventListener(n,f){(this.events[n]??=[]).push(f)}emit(n){for(const f of this.events[n]||[])f();this['on'+n]?.()}pause(){this.paused=true;this.emit('pause')}play(){plays++;this.paused=false;this.emit('play');return Promise.resolve()}load(){}removeAttribute(){this.src=''}}
 class ContextMock{constructor(){this.state='running'}createDynamicsCompressor(){return {threshold:{},knee:{},ratio:{},attack:{},release:{},connect(){}}}createGain(){return {gain:{},connect(){},disconnect(){}}}createMediaElementSource(){sourceCount++;return {connect(){connections++},disconnect(){connections--}}}resume(){return Promise.resolve()}suspend(){return Promise.resolve()}}
 const audioEnv={Audio:AudioMock,AudioContext:ContextMock,URL,location:{href:'https://example.test/'},document:{hidden:false,addEventListener(){}},state:{settings:{sound:70}},Math,clearTimeout(){},setTimeout(){return 1}};
 const audioContext=vm.createContext(audioEnv);
@@ -24,3 +24,13 @@ vm.runInContext('let sfx=new Audio();'+mobile.slice(mobile.indexOf('let sfxStopT
 vm.runInContext("for(let i=0;i<500;i++){duelSound('attack');packSound('card-reveal')}sfx.pause();stopPackSounds();",audioContext);
 assert.equal(mediaCount,5);assert.equal(sourceCount,5);assert.equal(connections,0);
 console.log('PASS 1,000 sound requests use only five SFX media/source nodes and disconnect all stopped voices');
+const beforeNodes=mediaCount,beforeSources=sourceCount;
+vm.runInContext(mobile.slice(mobile.indexOf('const coinMilestones='),mobile.indexOf('function duelAnimationState')),audioContext);
+vm.runInContext('for(let duel=0;duel<100;duel++){for(let reward=0;reward<20;reward++)playCoinPickup();stopCoinSounds()}',audioContext);
+assert.equal(mediaCount-beforeNodes,3);assert.equal(sourceCount-beforeSources,3);assert.equal(connections,0);
+console.log('PASS 2,000 coin rewards across 100 duels use three reusable audio sources; zero live connections after cleanup');
+
+const audiblePlays=plays;
+vm.runInContext("state.settings.sound=0;for(let i=0;i<100;i++){duelSound('attack');packSound('card-reveal');playCoinPickup()}state.settings.sound=70;document.hidden=true;for(let i=0;i<100;i++){duelSound('attack');packSound('card-reveal');playCoinPickup()}",audioContext);
+assert.equal(plays,audiblePlays);
+console.log('PASS muted/background audio requests do not start playback');

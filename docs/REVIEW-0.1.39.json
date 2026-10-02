@@ -1,0 +1,19 @@
+{
+  "cutoff": "2026-10-02T19:05:07Z",
+  "discordExport": "discord-reader/output/20261002T190529-9136",
+  "messages": 78,
+  "newMessagesSincePreviousReview": 45,
+  "accessWarnings": 0,
+  "newBehaviourFlags": 0,
+  "flagsCompared": [
+    "07cd2cc4352a3a103b4dfbdb2961eaf71ed3daa44313f216a1e8c0db124ab646",
+    "83f38c3625dccc2ba8f537136fb42d16577c1972a1b1aa5f21a3c747b2bb6a46"
+  ],
+  "newAction": "Thronior requested distinct coin faces: implemented two-sided heads/tails SVG coin presentation.",
+  "carriedForward": [
+    "Unapproved: persist last challenge level per character.",
+    "Unapproved: CPU post-summon stat forecasting.",
+    "Physical iPhone retest needed for overheating."
+  ],
+  "previousReview": "review-new-oct2/results.json"
+}

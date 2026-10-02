@@ -1,5 +1,6 @@
 export const cardImages=new Map();
-// Keep compressed image blobs alive; decoded full-size images can be released after validation.
+// Keep stable URLs, not a second in-memory copy of every card's artwork.
+// Installed web builds serve these URLs from the offline service-worker cache.
 export async function preloadCards(cards,onProgress,{fetchImage=fetch,validateImage=async url=>{
  const image=new Image();image.src=url;try{await image.decode()}finally{image.removeAttribute('src')}
 },makeURL=blob=>URL.createObjectURL(blob),revokeURL=url=>URL.revokeObjectURL(url),workers=4}={}){
@@ -17,11 +18,11 @@ export async function preloadCards(cards,onProgress,{fetchImage=fetch,validateIm
   if(!response)response=await fetchImage(path);
   if(!response.ok)throw Error(`Card ${id}: ${response.status}`);
   const retained=!cached&&cache?response.clone():null;
-  const blob=await response.blob();bytes+=blob.size;url=makeURL(blob);
+  const blob=await response.blob();bytes+=blob.size;
   // Only previously decoded, validated artwork enters the persistent cache.
-  if(!cached)await validateImage(url);
+  if(!cached){url=makeURL(blob);await validateImage(url);revokeURL(url);url=null;}
   if(retained)await cache.put(path,retained).catch(()=>{});
-  cardImages.set(id,url);loaded++;
+  cardImages.set(id,path);loaded++;
  }catch(error){if(url)revokeURL(url);failed.push({id,error:String(error)})}finally{processed++;report()}
  // Let the browser paint the counter while processing its local asset cache.
  await new Promise(resolve=>setTimeout(resolve,0));

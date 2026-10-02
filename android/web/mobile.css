@@ -1163,6 +1163,8 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .ios-web .particle,.ios-web .pack-reveal-dust,.ios-web .pack-sparks{display:none}
 .ios-web .shop-product.shop-ultra,.ios-web .pack-pull.turned.ultra{animation:none}
 .ios-web .pack-theatre.opening{animation:none}
+.ios-web .duel-particles,.ios-web .card-sparkles{display:none}
+.ios-web .shop-ultra .product-art::after,.ios-web .pack-pull.turned.ultra::after,.ios-web .tag-choose-opponent>span::before,.ios-web .pack-open img,.ios-web .victory-rays,.ios-web .level-unlock .unlock-lights,.ios-web .level-unlock .unlock-motes i,.ios-web .collector-result-aura{animation:none!important;will-change:auto}
 
 /* Five encounter choices: one row on landscape, compact scrollable rows on portrait. */
 @media(orientation:landscape){
@@ -1200,3 +1202,13 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .routes .opponent>.reward{min-height:17px}.routes .opponent>.reward img{height:18px}
  .routes .opponent>button{min-height:27px}
 }
+
+.toss-start{position:absolute;inset:0;z-index:280;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;background:#071822dd;border:0;color:#ffdf81;font-size:22px;cursor:pointer}.toss-start img{height:90px}.toss-start>span{font-size:90px}.toss-start:focus-visible{outline:3px solid #ffdf81;outline-offset:-4px}
+
+/* Two physical faces; the authoritative engine result determines the landing. */
+.toss-coin{display:block;position:relative;width:90px;height:90px;transform-style:preserve-3d;animation:coin-spin .3s linear infinite}
+.toss-coin img{position:absolute;inset:0;width:90px;height:90px;animation:none!important;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.toss-coin .coin-tails{transform:rotateY(180deg)}
+.settled .toss-coin{animation:none;transform:rotateY(0deg)}
+.settled .toss-coin.tails{transform:rotateY(180deg)}
+@media(prefers-reduced-motion:reduce){.toss-coin{animation:none}}

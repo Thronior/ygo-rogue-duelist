@@ -1,0 +1,20 @@
+YGO Rogue Duelist — Update 0.1.39
+
+📱 Performance and stability
+• Reduced retained card-art memory and reused coin-reward audio players.
+• Reduced continuous visual effects on iOS to lower rendering load.
+• Muted and background sound effects no longer perform unnecessary playback.
+• Fixed Ultimate Collector cleanup when a response arrives after leaving the mode.
+• Added repeated-duel memory and resource cleanup checks. Physical iPhone performance still needs player retesting.
+
+⚔️ Duel improvements
+• Single mandatory chain effects resolve automatically when there is no ordering choice; multiple choices remain manual.
+• Player coin tosses and dice rolls now wait for a tap to start.
+• Coin tosses now use distinct heads and tails artwork.
+• Card inspection now reflects live Attribute and Type changes alongside live stats.
+
+✨ Packs and characters
+• Refreshed all 24 World Championship 2004 pack covers, including five different official Yugi images.
+• Added The Mask of Remnants as Lumis and Umbra’s fourth signature card.
+
+Available on Android and the webapp.
