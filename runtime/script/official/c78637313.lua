@@ -39,6 +39,7 @@ function s.adjustop(e,tp,eg,ep,ev,re,r,rp)
 	local phase=Duel.GetCurrentPhase()
 	if (phase==PHASE_DAMAGE and not Duel.IsDamageCalculated()) or phase==PHASE_DAMAGE_CAL then return end
 	local g=Duel.GetMatchingGroup(Card.IsSummonType,0,LOCATION_MZONE,LOCATION_MZONE,nil,SUMMON_TYPE_SPECIAL+SUMMON_WITH_MONSTER_REBORN)
+	if #g==0 then return end
 	if Duel.SendtoGrave(g,REASON_EFFECT)>0 then
 		Duel.Readjust()
 	end

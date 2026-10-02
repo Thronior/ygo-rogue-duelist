@@ -1,34 +1,33 @@
 {
   "title": [
-    "home-abandon"
+    "ygo-tf3-03"
   ],
   "characters": [
-    "carousel-dreams"
+    "ygo-tf3-05"
   ],
   "draft": [
-    "draft-mode"
+    "ygo-tf3-04"
   ],
   "shop": [
-    "shop-home"
+    "ygo-tf3-11"
   ],
   "victory": [
-    "victory-trophy"
+    "ygo-tf3-19"
   ],
   "defeat": [
-    "defeat-home"
+    "ygo-tf3-38"
   ],
   "duel": [
-    "duel",
-    "enter-city",
-    "trilogy"
+    "ygo-tf3-08",
+    "ygo-wc11-06"
   ],
   "boss": [
-    "enter-city"
+    "ygo-tf3-17"
   ],
   "champion": [
-    "champion-world"
+    "ygo-tf3-22"
   ],
   "packs": [
-    "pack-build"
+    "ygo-wc11-30"
   ]
 }

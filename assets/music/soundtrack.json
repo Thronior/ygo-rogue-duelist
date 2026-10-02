@@ -1,0 +1,378 @@
+{
+  "targetLUFS": -22,
+  "peakCeilingDBTP": -2,
+  "playlists": {
+    "title": [
+      "ygo-tf3-03"
+    ],
+    "characters": [
+      "ygo-tf3-05"
+    ],
+    "draft": [
+      "ygo-tf3-04"
+    ],
+    "shop": [
+      "ygo-tf3-11"
+    ],
+    "victory": [
+      "ygo-tf3-19"
+    ],
+    "defeat": [
+      "ygo-tf3-38"
+    ],
+    "duel": [
+      "ygo-tf3-08",
+      "ygo-wc11-06"
+    ],
+    "boss": [
+      "ygo-tf3-17"
+    ],
+    "champion": [
+      "ygo-tf3-22"
+    ],
+    "packs": [
+      "ygo-wc11-30"
+    ]
+  },
+  "bossThemes": {
+    "Yami Yugi": "ygo-tf3-39",
+    "Seto Kaiba": "ygo-wc11-07",
+    "Joey Wheeler": "ygo-tf3-36",
+    "Mai Valentine": "ygo-wc11-13",
+    "Bandit Keith": "ygo-wc11-11",
+    "Lumis and Umbra": "ygo-tf3-33",
+    "Yami Bakura": "ygo-tf3-40",
+    "Maximillion Pegasus": "ygo-tf3-23",
+    "Rex Raptor": "ygo-tf3-15",
+    "Bonz": "ygo-tf3-37",
+    "Weevil Underwood": "ygo-tf3-43",
+    "Yami Marik": "ygo-tf3-18",
+    "Tristan Taylor": "ygo-tf3-31",
+    "Yugi Muto": "ygo-wc11-06",
+    "Ishizu Ishtar": "ygo-wc11-14",
+    "Odion": "ygo-tf3-21",
+    "Espa Roba": "ygo-wc11-15",
+    "Arkana": "ygo-tf3-22",
+    "Mako Tsunami": "ygo-wc11-08",
+    "Duke Devlin": "ygo-wc11-16",
+    "Noah Kaiba": "ygo-tf3-25",
+    "Paradox Brothers": "ygo-wc11-12",
+    "Tea Gardner": "ygo-wc11-17",
+    "Solomon Muto": "ygo-wc11-09",
+    "Mokuba Kaiba": "ygo-tf3-29",
+    "Rebecca Hawkins": "ygo-tf3-27",
+    "Serenity Wheeler": "ygo-tf3-46",
+    "Marik Ishtar": "ygo-tf3-17",
+    "Anubis": "ygo-wc11-44",
+    "Shadi": "ygo-wc11-45",
+    "PaniK": "ygo-tf3-42",
+    "Dartz": "ygo-tf3-30",
+    "Rafael": "ygo-wc11-10",
+    "Ryou Bakura": "ygo-tf3-45",
+    "Copycat": "ygo-tf3-35",
+    "Dueling Engine": "ygo-tf3-08"
+  },
+  "tracks": {
+    "ygo-tf3-03": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/03 - Main Menu.mp3",
+      "lufs": -22.42,
+      "truePeak": -8.84,
+      "title": "Main Menu",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-04": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/04 - Deck Menu.mp3",
+      "lufs": -22.43,
+      "truePeak": -7.07,
+      "title": "Deck Menu",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-05": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/05 - Duel Academy.mp3",
+      "lufs": -22.43,
+      "truePeak": -8.31,
+      "title": "Duel Academy",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-08": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/08 - Get Your Game On!.mp3",
+      "lufs": -22.44,
+      "truePeak": -7.65,
+      "title": "Get Your Game On!",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-11": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/11 - Shop.mp3",
+      "lufs": -22.44,
+      "truePeak": -6.31,
+      "title": "Shop",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-15": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/15 - Volcano.mp3",
+      "lufs": -22.45,
+      "truePeak": -6.75,
+      "title": "Volcano",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-17": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/17 - Big Fight.mp3",
+      "lufs": -22.43,
+      "truePeak": -11.79,
+      "title": "Big Fight",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-18": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/18 - Impossible Victory 3.mp3",
+      "lufs": -22.43,
+      "truePeak": -9.59,
+      "title": "Impossible Victory 3",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-19": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/19 - Win.mp3",
+      "lufs": -22.44,
+      "truePeak": -7.36,
+      "title": "Win",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-21": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/21 - Laboratory.mp3",
+      "lufs": -22.44,
+      "truePeak": -3.5,
+      "title": "Laboratory",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-22": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/22 - Epic Battle!.mp3",
+      "lufs": -22.43,
+      "truePeak": -10.75,
+      "title": "Epic Battle!",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-23": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/23 - Revelations.mp3",
+      "lufs": -22.45,
+      "truePeak": -9.54,
+      "title": "Revelations",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-25": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/25 - Discoveries.mp3",
+      "lufs": -22.44,
+      "truePeak": -8.83,
+      "title": "Discoveries",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-27": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/27 - New Ways.mp3",
+      "lufs": -22.43,
+      "truePeak": -7.55,
+      "title": "New Ways",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-29": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/29 - Next & Go.mp3",
+      "lufs": -22.45,
+      "truePeak": -6.57,
+      "title": "Next & Go",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-30": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/30 - The Turnaround Move 2.mp3",
+      "lufs": -22.44,
+      "truePeak": -8.95,
+      "title": "The Turnaround Move 2",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-31": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/31 - Early Start.mp3",
+      "lufs": -22.43,
+      "truePeak": -7.28,
+      "title": "Early Start",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-33": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/33 - Get Your Game On! - Shadow Game.mp3",
+      "lufs": -22.43,
+      "truePeak": -9.31,
+      "title": "Get Your Game On! - Shadow Game",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-35": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/35 - Minigame.mp3",
+      "lufs": -22.47,
+      "truePeak": -10.24,
+      "title": "Minigame",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-36": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/36 - Judai's Theme 3.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.94,
+      "title": "Judai's Theme 3",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-37": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/37 - Abandoned Dorm.mp3",
+      "lufs": -22.44,
+      "truePeak": -10.03,
+      "title": "Abandoned Dorm",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-38": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/38 - Lose.mp3",
+      "lufs": -22.44,
+      "truePeak": -8.93,
+      "title": "Lose",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-39": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/39 - Until the Last Card....mp3",
+      "lufs": -22.43,
+      "truePeak": -9.24,
+      "title": "Until the Last Card...",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-40": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/40 - Shadow Game Status.mp3",
+      "lufs": -22.44,
+      "truePeak": -8.59,
+      "title": "Shadow Game Status",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-42": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/42 - Gotta Game.mp3",
+      "lufs": -22.45,
+      "truePeak": -9.54,
+      "title": "Gotta Game",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-43": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/43 - Forest.mp3",
+      "lufs": -22.44,
+      "truePeak": -5.12,
+      "title": "Forest",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-45": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/45 - Winning - Big Fight.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.44,
+      "title": "Winning - Big Fight",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-tf3-46": {
+      "source": "Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/46 - Secret Ending.mp3",
+      "lufs": -22.42,
+      "truePeak": -11.84,
+      "title": "Secret Ending",
+      "game": "GX Tag Force 3"
+    },
+    "ygo-wc11-06": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/06_NTR-BYYJ-JPN-000c.mp3",
+      "lufs": -22.46,
+      "truePeak": -7.94,
+      "title": "Unlimited Potential (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-07": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/07_NTR-BYYJ-JPN-000d.mp3",
+      "lufs": -22.44,
+      "truePeak": -8.31,
+      "title": "Five Star (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-08": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/08_NTR-BYYJ-JPN-000e.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.19,
+      "title": "Buckle Up! (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-09": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/09_NTR-BYYJ-JPN-000f.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.47,
+      "title": "The Wilderness Of Duelist (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-10": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/10_NTR-BYYJ-JPN-0010.mp3",
+      "lufs": -22.46,
+      "truePeak": -7.21,
+      "title": "Go Stronger (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-11": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/11_NTR-BYYJ-JPN-0011.mp3",
+      "lufs": -22.43,
+      "truePeak": -10.11,
+      "title": "Gatling Buster (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-12": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/12_NTR-BYYJ-JPN-0012.mp3",
+      "lufs": -22.45,
+      "truePeak": -8.5,
+      "title": "Vicious Attack (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-13": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/13_NTR-BYYJ-JPN-0013.mp3",
+      "lufs": -22.45,
+      "truePeak": -9.03,
+      "title": "Lightning Speed (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-14": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/14_NTR-BYYJ-JPN-0014.mp3",
+      "lufs": -22.43,
+      "truePeak": -9.54,
+      "title": "Pulse Of Soul (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-15": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/15_NTR-BYYJ-JPN-0015.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.68,
+      "title": "Machine Control (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-16": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/16_NTR-BYYJ-JPN-0016.mp3",
+      "lufs": -22.47,
+      "truePeak": -9.29,
+      "title": "One Coin Dream (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-17": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/17_NTR-BYYJ-JPN-0017.mp3",
+      "lufs": -22.45,
+      "truePeak": -9.37,
+      "title": "Shining Road (Duel Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-30": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/30_NTR-BYYJ-JPN-0027.mp3",
+      "lufs": -22.44,
+      "truePeak": -6.75,
+      "title": "Get Cards",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-44": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/44_NTR-BYYJ-JPN-003c.mp3",
+      "lufs": -22.44,
+      "truePeak": -9.35,
+      "title": "Wilderness Course & Mountain Pass Course (Race Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    },
+    "ygo-wc11-45": {
+      "source": "Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/45_NTR-BYYJ-JPN-003d.mp3",
+      "lufs": -22.42,
+      "truePeak": -7.82,
+      "title": "Combat Lane Courses (Race Music)",
+      "game": "World Championship 2011: Over the Nexus"
+    }
+  }
+}

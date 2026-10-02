@@ -1,7 +1,7 @@
 import challenge_levels
 """Nine-duel progression and persistent profile integration."""
 import random,uuid,json,time
-import shop_rewards
+import shop_rewards,card_rarity
 from collections import Counter
 import storage
 from content import *
@@ -57,7 +57,7 @@ def install(g):
     key=g.card_identity(r['pool'][i])
     if counts[key]<3:selected.append(i);counts[key]+=1
    r['selected']=selected
-   if not r.get('encore_active') and (not r['routes'] or any(i not in GAME_DECKS or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=5 or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=4:
     r['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(r['round'],random.Random(i+r['round']*101),i,r.get('tutorial_variants',{}).get(str(i),0),loop=r.get('loop',0)),g.BY_ID,random,shop_rewards.THEME_OPTIONS.get(i)) for i in r['routes']}
     r['reward_rules']=4
@@ -92,31 +92,34 @@ def install(g):
   common,rare,basic=unique(common),unique(rare),unique(basic)
   all_cards=unique(common+rare+basic)
   if len(all_cards)<9:raise ValueError('Booster needs at least nine different cards.')
-  premium=rng.choice(rare or common);used={g.card_identity(premium)}
+  premium=card_rarity.choose(rare or common,rng);used={g.card_identity(premium)}
   starters=[cid for cid in basic if g.card_identity(cid) not in used]
   count=max(0,min(3,len(basic))-int(g.normal_starter(premium)))
-  pulls=rng.sample(starters,min(count,len(starters)))
+  pulls=card_rarity.sample(starters,min(count,len(starters)),rng)
   used.update(g.card_identity(cid) for cid in pulls)
   while len(pulls)<8:
    available=[cid for cid in common if g.card_identity(cid) not in used]
    if not available:available=[cid for cid in all_cards if g.card_identity(cid) not in used]
-   cid=rng.choice(available);pulls.append(cid);used.add(g.card_identity(cid))
+   cid=card_rarity.choose(available,rng);pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
  def routes(run,rng=random):
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0
-  if rd==0 and not run.get('loop'):choices=[22,12,13]
+  if rd==0 and not run.get('loop'):choices=list(TUTORIAL_OPPONENTS)
   elif rd>=6:choices=[0,1,6,15,17,27]
   elif boss:choices=[0,1,3,4,6,7,11,15,17,27]
   else:choices=list(GAME_DECKS)
+  eligible=eligible_opponents(rd,run.get('loop',0))
+  choices+=[i for i in eligible if i in TIER_EXCLUSIVE_OPPONENTS and i not in choices]
+  choices=[i for i in choices if i in eligible]
   defeated=set(run.get('defeated_opponents',[]))
   choices=[i for i in choices if i not in defeated and i!=run['character']]
-  if rd>=6 and len(choices)<3:
-   extra=[i for i in GAME_DECKS if i not in defeated and i!=run['character'] and i not in choices]
-   choices+=rng.sample(extra,min(3-len(choices),len(extra)))
-  if not choices:choices=[i for i in GAME_DECKS if i not in defeated and i!=run['character']]
+  if len(choices)<5:
+   extra=[i for i in eligible if i not in defeated and i!=run['character'] and i not in choices]
+   choices+=rng.sample(extra,min(5-len(choices),len(extra)))
+  if not choices:choices=[i for i in eligible if i not in defeated and i!=run['character']]
   if not choices:raise ValueError('All eligible opponents in this journey have been defeated.')
-  run['routes']=rng.sample(choices,min(3,len(choices)));run['opponent']=run['routes'][0]
-  if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):v for i,v in zip(run['routes'],rng.sample(range(len(encounters.TUTORIALS)),3))}
+  run['routes']=rng.sample(choices,min(5,len(choices)));run['opponent']=run['routes'][0]
+  if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)
   run['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(rd,random.Random(i+rd*101),i,run.get('tutorial_variants',{}).get(str(i),0),loop=run.get('loop',0)),g.BY_ID,rng,shop_rewards.THEME_OPTIONS.get(i)) for i in run['routes']}
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
@@ -394,7 +397,8 @@ def install(g):
   reload_tuning()
   shop_rewards.normalize_run(run)
   profile=storage.profile();eligible=[c for c in g.CARDS if unlocks.card_allowed(c,profile)]
-  removal=rng.choice([c for c in eligible if shop_rewards.removes_backrow(c)])
+  removal_pool=[c for c in eligible if shop_rewards.removes_backrow(c)]
+  removal=rng.choices(removal_pool,weights=[card_rarity.weight(c['id']) for c in removal_pool],k=1)[0]
   eligible=[c for c in eligible if c['id']!=removal['id']]
   bias=run.get('bias','');preferred=[c for c in eligible if shop_rewards.matches(c,bias)]
   like=set();_arts=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
@@ -403,8 +407,7 @@ def install(g):
   if 'ritual_dagger' in _arts:like|={c['id'] for c in eligible if shop_rewards.matches(c,'ritual')}
   if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
   def stock_sample(cards,count):
-   if not like:return rng.sample(cards,count)
-   return sorted(cards,key=lambda c:rng.random()**(1/(4 if c['id'] in like else 1)),reverse=True)[:count]
+   return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id']))),reverse=True)[:count]
   pool=preferred or eligible
   if general_stock:
    top=stock_sample(eligible,5)
@@ -412,7 +415,7 @@ def install(g):
    top=shop_rewards.tag_featured(eligible+[removal],run['tag_shop_rewards'],rng)
   else:
    top=stock_sample(pool,min(5,len(pool)))
-   top+=rng.sample([c for c in eligible if c not in top],5-len(top))
+   top+=stock_sample([c for c in eligible if c not in top],5-len(top))
   rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
   if 'legendary_shackles' in _arts:

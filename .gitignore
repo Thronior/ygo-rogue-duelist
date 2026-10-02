@@ -69,3 +69,7 @@ __pycache__/
 Thumbs.db
 *.swp
 *.tmp
+
+# User-supplied soundtrack masters; selected, normalized tracks are tracked separately.
+/assets/music/Yu-Gi-Oh! 5D's World Championship 2011 - Over The Nexus Music (DS) (2011)/
+/assets/music/Yu-Gi-Oh! GX Tag Force 3 (PSP) (gamerip) (2008)/

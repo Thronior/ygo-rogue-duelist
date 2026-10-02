@@ -1,5 +1,6 @@
+import card_rarity
 """Opponent rewards specify card properties, not just monster races."""
-from content import CHARACTERS,PACK_BY_ID,ART_INFO
+from content import CHARACTERS,PACK_BY_ID,ART_INFO,TIER_EXCLUSIVE_OPPONENTS
 
 REWARDS={
  0:('normal_spell','Normal Spells'),1:('LIGHT','LIGHT monsters'),2:('normal','Normal Monsters'),
@@ -88,9 +89,12 @@ THEME_OPTIONS={
  16:['Machine', 'cyber', 'negation', 'hole', 'draw', 'control'],
  17:['Spellcaster', 'darkmagician', 'normal_spell', 'magician', 'stall', 'banish'],
  18:['Aqua', 'WATER', 'Fish', 'Beast', 'stall', 'bounce'],
+ 20:['spirit', 'Fairy', 'EARTH', 'field', 'bounce', 'ritual'],
  22:['Fairy', 'heal', 'burn', 'Pyro', 'stall', 'bounce'],
  27:['summon', 'jar', 'Pyro', 'ritual', 'Winged Beast', 'banish'],
 }
+# New encounter rewards use the same random theme and overlapping-pack selection.
+THEME_OPTIONS.update({i:row['reward_themes'] for i,row in TIER_EXCLUSIVE_OPPONENTS.items()})
 LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','counter':'Counter Traps','quickplay':'Quick-Play Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','search':'Monster searchers','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','ojama':'Ojama cards','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Hole Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
 
 
@@ -122,7 +126,7 @@ def tag_featured(cards,rewards,rng):
  def choose(depth):
   if depth==5:return True
   i=order[depth];available=[c for c in slots[i] if c['id'] not in used]
-  rng.shuffle(available)
+  available.sort(key=lambda c:rng.random()**(1/card_rarity.weight(c['id'])),reverse=True)
   for c in available:
    chosen[i]=c;used.add(c['id'])
    if choose(depth+1):return True
@@ -135,14 +139,17 @@ def tag_featured(cards,rewards,rng):
  for pool in slots:
   pool=pool or cards
   unused=[c for c in pool if c['id'] not in {x['id'] for x in chosen}]
-  chosen.append(rng.choice(unused or pool))
+  options=unused or pool
+  chosen.append(rng.choices(options,weights=[card_rarity.weight(c['id']) for c in options],k=1)[0])
  return chosen
 
 
 def reward_for(index,rng=None):
  key,label=REWARDS.get(index,(CHARACTERS[index]['race'],CHARACTERS[index]['race']+' monsters'))
+ if index in TIER_EXCLUSIVE_OPPONENTS:
+  key=THEME_OPTIONS[index][0];label=LABELS.get(key,key+' monsters')
  if rng:
-  key=rng.choice(list(dict.fromkeys(THEME_OPTIONS.get(index,[key])+['LIGHT','DARK','EARTH','WIND','WATER','FIRE'])));label=LABELS.get(key,key+' monsters')
+  key=rng.choice(THEME_OPTIONS[index] if index in THEME_OPTIONS else list(dict.fromkeys(THEME_OPTIONS.get(index,[key])+['LIGHT','DARK','EARTH','WIND','WATER','FIRE'])));label=LABELS.get(key,key+' monsters')
  pack=CHARACTERS[index]['pack']
  if PACK_BY_ID[pack].get('draft_only'):pack=PACK_BY_ID[pack].get('reward_pack','EN-MFC')
  return dict(key=key,label=label,pack=pack)

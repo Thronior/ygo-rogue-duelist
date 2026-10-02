@@ -1,6 +1,17 @@
 import {validateDeck,deckCards,rankFor} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
+// Shuffle once on the server at each game boundary. Both clients and reconnects
+// receive the same persisted order; editor order and prize snapshots stay intact.
+export function shuffleCollectorDeck(deck,randomWord=()=>crypto.getRandomValues(new Uint32Array(1))[0]){
+ const result=structuredClone(deck);
+ for(let i=result.main.length-1;i>0;i--){
+  const range=i+1,limit=4294967296-(4294967296%range);let word;
+  do{word=randomWord();}while(word>=limit);
+  const j=word%range;[result.main[i],result.main[j]]=[result.main[j],result.main[i]];
+ }
+ return result;
+}
 export class CollectorRegistry {
  constructor(ctx){this.ctx=ctx;this.tail=Promise.resolve();this.cache=new Map();ctx.blockConcurrencyWhile(async()=>{
  this.data={players:{},rooms:{}};const stored=await ctx.storage.list({prefix:'collector:'});
@@ -42,7 +53,7 @@ export class CollectorRegistry {
  if(op==='host'||op==='join'){
  if(room&&room.phase!=='complete')throw Error('Reconnect to your existing room.');const errors=validateDeck(p.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));
  if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0};this.data.rooms[code]=room;p.room=code;seat=0;}
- else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=structuredClone(room.startDecks);room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};}
+ else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};}
  }
  if(room&&room.phase!=='complete'){
  room.seen[seat]=Date.now();room.charged??=[0,0];room.charged[seat]=0;
@@ -53,7 +64,7 @@ export class CollectorRegistry {
  if(op==='result'){if(room.phase!=='duel'||![0,1,2].includes(v.winner)||v.number!==room.events.length)throw Error('Invalid duel receipt.');room.votes[seat]=v.winner;if(Object.keys(room.votes).length===2){if(room.votes[0]!==room.votes[1])throw Error('Duel verification mismatch; match remains recoverable.');const winner=v.winner;room.games??=[];room.games.push({game:room.game,winner,turns:room.turn,at:Date.now()});if(winner!==2)room.score[winner]++;if(winner!==2&&room.score[winner]>=2)this.finish(room,1-winner,'Match defeat');else{room.phase='siding';room.chooser=winner===2?room.first:1-winner;room.ready=[false,false];room.nextFirst=null;}}}
  if(op==='side'){if(room.phase!=='siding')throw Error('Not between duels.');const errors=validateDeck(v.deck,deckCards(room.startDecks[seat]),cards,room.startDecks[seat]);if(errors.length)throw Error(errors.join(' '));room.decks[seat]=v.deck;room.ready[seat]=true;}
  if(op==='first'){if(room.phase!=='siding'||seat!==room.chooser||![0,1].includes(v.first))throw Error('The previous loser chooses who starts.');room.nextFirst=v.first;}
- if(room.phase==='siding'&&room.ready.every(Boolean)&&room.nextFirst!==null){room.first=room.nextFirst;room.phase='duel';room.game++;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.events=[];room.votes={};room.turn=1;room.turnLeft=[180000,180000];room.actor=room.first;room.clockVotes={};room.clockAt=Date.now();}
+ if(room.phase==='siding'&&room.ready.every(Boolean)&&room.nextFirst!==null){room.first=room.nextFirst;room.decks=room.decks.map(deck=>shuffleCollectorDeck(deck));room.phase='duel';room.game++;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.events=[];room.votes={};room.turn=1;room.turnLeft=[180000,180000];room.actor=room.first;room.clockVotes={};room.clockAt=Date.now();}
  }
  if(op==='prizes'){if(!room||room.phase!=='complete'||room.winner!==seat)throw Error('No prizes available.');if(!room.claimed){if(!Array.isArray(v.indices)||v.indices.length!==Math.min(5,room.prizes.length)||new Set(v.indices).size!==v.indices.length||v.indices.some(i=>!Number.isInteger(i)||i<0||i>=room.prizes.length))throw Error('Choose five prize copies.');const earned=v.indices.map(i=>room.prizes[i]);p.pool.push(...earned);p.history.find(h=>h.room===room.code).cards=earned;room.claimed=true;}}
  }

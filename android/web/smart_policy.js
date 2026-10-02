@@ -68,6 +68,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Raigeki'||n==='Burst Stream of Destruction')return c.controller!==p&&c.location===L.MZONE;
   if(n==='Dark Hole'||n==='Torrential Tribute')return c.location===L.MZONE;
   if(n==='Mirror Force')return c.controller!==p&&c.location===L.MZONE&&!!(c.position&1);
+  // Bottomless does not target. Reserve the summoned monsters it will destroy.
+  if(e.cpuReviewRules?.duplicateRemoval!==false&&n==='Bottomless Trap Hole')return c.controller!==p&&c.location===L.MZONE&&face(c)&&atk(c)>=1500&&(e.lastSummoned||[]).some(t=>same(t,c));
   return (isRemoval(n)||['Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap'].includes(n))&&(link.targets||[]).some(t=>t.controller===c.controller&&t.location===c.location&&t.sequence===c.sequence);
  })}
  const attackStops=new Set(['Sakuretsu Armor','Magic Cylinder','Negate Attack','Mirror Force','Widespread Ruin','Draining Shield','Waboku','Threatening Roar']);
@@ -266,7 +268,7 @@ export function smartContext(e,p,L,prompt=null){
   }
   // MST is a cheap one-for-one answer: an unknown set card is worth clearing.
   // Keep the stricter threshold for discard removal and other expensive answers.
-  const threshold=n==='Mystical Space Typhoon'?850:1400;
+  const threshold=n==='Mystical Space Typhoon'||n==='Dust Tornado'&&e.cpuReviewRules?.dustTornado!==false?850:1400;
   if(best<threshold+cost)return -1;
   const offered=[...(prompt?.activates||[]),...(prompt?.chains||[]),...(prompt?.selects||[])];
   if(n==='Raigeki Break'&&offered.some(x=>['Mystical Space Typhoon','Dust Tornado','De-Spell','Remove Trap'].includes(name(x))&&backScore(x)>0))return -1;
@@ -371,6 +373,11 @@ export function smartContext(e,p,L,prompt=null){
   if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
    const cheap=own.filter(x=>!resilient(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0))[0];
+   if(e.cpuReviewRules?.swapForecast!==false){
+    const obtained=Math.min(...enemy.map(x=>known(x)?controlledAttack(x):900));
+    const given=cheap?controlledAttack(cheap,1-p):Infinity;
+    return cheap&&enemy.length&&obtained>given+500?88:-1;
+   }
    const floor=Math.min(...enemy.map(x=>known(x)?Math.max(controlledAttack(x),x.defense??0):900));
    return cheap&&enemy.length&&floor>Math.max(atk(cheap),cheap.defense??0)+500?88:-1;
   }
@@ -481,7 +488,7 @@ export function smartContext(e,p,L,prompt=null){
    if(!pool.some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)))return -1;
    // Bank revival resources after battle when the existing board already covers
    // the visible threat. Do not apply this to reactive chains or a recovery turn.
-   if(!chain&&e.player===p&&e.phase===256&&own.length>=2&&own.length>=enemy.length){
+   if(!chain&&e.player===p&&e.phase===256&&own.length>=(e.cpuReviewRules?.holdRevival!==false?1:2)&&own.length>=enemy.length){
     const available=pool.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));
     const strongest=Math.max(0,...own.map(power));
     const protectionNeeded=enemy.some(x=>face(x)&&atk(x)>=strongest)||enemyPower>own.reduce((v,x)=>v+power(x),0);
@@ -489,7 +496,7 @@ export function smartContext(e,p,L,prompt=null){
      name(x)==='Breaker the Magical Warrior'&&theirBack.length>0||
      name(x)==='Jinzo'&&theirBack.some(y=>face(y)&&(data(y).type&4))||
      name(x)==='Cure Mermaid'&&firePrincess));
-    const tributeNeeded=hand.some(x=>{const need=['The Winged Dragon of Ra','The Wicked Eraser'].includes(name(x))?3:effectiveLevel(x,true)>6?2:effectiveLevel(x,true)>4?1:0;return need>own.length&&(projectedAttack(x)>strongest||summonUtility(x));});
+    const tributeNeeded=(e.cpuReviewRules?.holdRevival===false||!!prompt?.summons?.length)&&hand.some(x=>{const need=['The Winged Dragon of Ra','The Wicked Eraser'].includes(name(x))?3:effectiveLevel(x,true)>6?2:effectiveLevel(x,true)>4?1:0;return need>own.length&&(projectedAttack(x)>strongest||summonUtility(x));});
     // A ritual or fusion with identified materials is an immediate use, unlike
     // a speculative extra body. Keep this conservative when a combo is possible.
     const materialUse=hand.some(x=>(data(x).type&2)&&(data(x).type&0x80))&&hand.some(x=>data(x).type&0x80&&data(x).type&1)||hand.some(x=>name(x)==='Polymerization')&&q(p,L.EXTRA).some(x=>available.some(y=>(e.cards.get(x.code)?.desc||'').split('\n')[0].includes('"'+name(y)+'"')));
@@ -618,6 +625,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Swords of Revealing Light')return enemy.length&&danger?70:-1;
   if(['Enchanted Javelin','Mirror Wall','Fairy Box','Mask of Weakness'].includes(n))return chain&&e.player!==p&&danger?90:-1;
   if(['Mirror Force','Magic Cylinder','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
+  if(n==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return enemy.some(x=>face(x)&&!attackBlocked(x,1-p)&&!safeBattle(x)&&atk(x)>=1600)?85:-1;
   if(n==='Solemn Judgment')return chain&&(e.chainDepth?e.effect?.player===1-p:e.summoningPlayer===1-p)&&e.lp[p]>1500?100:-1;
   if(['Magic Jammer','Seven Tools of the Bandit'].includes(n))return chain&&e.effect?.player===1-p&&e.lp[p]>1500?100:-1;
   if(n==='Dark Balter the Terrible'||n==='Ryu Senshi')return chain&&e.effect?.player!==p&&e.lp[p]>1000?92:-1;
@@ -627,7 +635,12 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Ceasefire'){const burn=500*[...own,...enemy].filter(x=>face(x)).length;return burn>=e.lp[1-p]?120:(chain||e.phase===4)&&burn>=1000?80:-1;}
   if(n==='Just Desserts')return enemy.length>=2||enemy.length*500>=e.lp[1-p]?80:-1;
   if(n==='Secret Barrel'){const t=q(1-p,L.HAND).length+enemy.length+theirBack.filter(Boolean).length;return t*200>=e.lp[1-p]?120:t>=6?75:-1;}
-  if(n==='Gift of The Mystical Elf')return own.length+enemy.length>=3&&e.lp[p]<6000?50:-1;
+  if(n==='Gift of The Mystical Elf'){
+   if(!healingAllowed(p)||[...own,...enemy].some(x=>face(x)&&enabled(x)&&name(x)==='Nurse Reficule the Fallen One')||[...back,...theirBack].some(x=>face(x)&&!x.is_disabled&&name(x)==='Bad Reaction to Simochi'))return -1;
+   const monsters=[...own,...enemy].filter(face).length;
+   const threatened=e.cpuReviewRules?.chainHealing!==false&&chain&&(e.activeChain||[]).some(link=>!link.inactive&&(['Heavy Storm',"Harpie's Feather Duster",'Giant Trunade'].includes(e.name(link.code))||(link.targets||[]).some(t=>same(t,c))&&['Mystical Space Typhoon','Dust Tornado','Raigeki Break','Tornado Bird','Breaker the Magical Warrior','Mobius the Frost Monarch'].includes(e.name(link.code))));
+   return monsters>0&&(threatened||monsters>=3&&e.lp[p]<6000)?50:-1;
+  }
   if(['Red Medicine',"Goblin's Secret Remedy"].includes(n))return e.lp[p]<8000?40:-1;
   if(n==='Reinforcements'||n==='Rush Recklessly'){if(!chain)return -1;
   if(e.phase===8&&e.attacker&&e.attacker.player===p){
@@ -824,7 +837,7 @@ export function smartContext(e,p,L,prompt=null){
    }return sum+v;
   },0);
  }
- function controlledAttack(c){return Math.max(0,atk(c)-relicAttack(c,c.controller??1-p)+relicAttack(c,p)-(c.controller===1?(e.aiModifiers?.enemyAttack||0):0)+(p===1?(e.aiModifiers?.enemyAttack||0):0));}
+ function controlledAttack(c,side=p){return Math.max(0,atk(c)-relicAttack(c,c.controller??1-p)+relicAttack(c,side)-(c.controller===1?(e.aiModifiers?.enemyAttack||0):0)+(side===1?(e.aiModifiers?.enemyAttack||0):0));}
  function reaperDirectReady(c){
   const live=own.find(x=>same(x,c))||c;
   return e.player===p&&(e.phase===4||e.phase===8)&&(prompt?.to_bp===true||e.turn>1)&&prompt?.to_bp!==false&&!enemy.length&&!battleLocked&&!live?.attack_disabled&&!(live?.attack_count>0)&&!attackBlocked(live,p,true)&&!theirBack.some(x=>!face(x));
@@ -986,6 +999,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(chaosPair&&grave.length<=6&&(attr(c)==='LIGHT'||attr(c)==='DARK')){const light=attr(c)==='LIGHT';if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
   return s;}
  function targetScore(fxN,cand,info){const nm=name(cand);
+  if(fxN==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return cand.controller!==p&&cand.location===L.MZONE&&!attackBlocked(cand,1-p)?20000+atk(cand):-1000000000;
   if(fxN==='Spirit Ryu'&&cand.controller===p&&cand.location===L.HAND)return -expendable(cand);
   const fxText=e.cards.get(e.effect?.code)?.desc||'';
   const selfRemoval=fxN===nm&&cand.controller===p&&[L.MZONE,L.SZONE].includes(cand.location)&&/destroy|banish|return.*hand/i.test(fxText);

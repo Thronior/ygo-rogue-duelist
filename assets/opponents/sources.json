@@ -1,0 +1,163 @@
+[
+  {
+    "name": "Roland",
+    "file": "opponents/roland.png",
+    "source": "https://ms.yugipedia.com//7/77/Roland.png",
+    "page": "https://yugipedia.com/wiki/Roland",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Arthur Hawkins",
+    "file": "opponents/arthur-hawkins.png",
+    "source": "https://ms.yugipedia.com//5/56/Arthur_Hawkins.png",
+    "page": "https://yugipedia.com/wiki/Arthur_Hawkins",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Leon von Schroeder",
+    "file": "opponents/leon-von-schroeder.png",
+    "source": "https://ms.yugipedia.com//thumb/7/76/LeonWilson.png/700px-LeonWilson.png",
+    "page": "https://yugipedia.com/wiki/Leon_von_Schroeder",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Kemo",
+    "file": "opponents/kemo.png",
+    "source": "https://ms.yugipedia.com//thumb/1/1a/Kemo2.png/700px-Kemo2.png",
+    "page": "https://yugipedia.com/wiki/Kemo",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Leichter",
+    "file": "opponents/leichter.png",
+    "source": "https://ms.yugipedia.com//thumb/1/1e/Lector.png/700px-Lector.png",
+    "page": "https://yugipedia.com/wiki/Leichter",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Weevil's helper",
+    "file": "opponents/weevil-s-helper.png",
+    "source": "https://ms.yugipedia.com//e/e7/Helper.png",
+    "page": "https://yugipedia.com/wiki/Weevil's_helper",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Sid",
+    "file": "opponents/sid.png",
+    "source": "https://ms.yugipedia.com//e/ef/Sid.png",
+    "page": "https://yugipedia.com/wiki/Sid",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Crump",
+    "file": "opponents/crump.png",
+    "source": "https://ms.yugipedia.com//thumb/e/e7/Crump.png/700px-Crump.png",
+    "page": "https://yugipedia.com/wiki/Crump",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Harpie Lady Sisters",
+    "file": "opponents/harpie-lady-sisters.png",
+    "source": "https://ms.yugipedia.com//b/b0/HarpieLadySisters-SBC2-NA-C-1E.png",
+    "page": "https://yugipedia.com/wiki/Harpie_Lady_Sisters",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Nezbitt",
+    "file": "opponents/nezbitt.png",
+    "source": "https://ms.yugipedia.com//thumb/c/c6/Nezbit.png/700px-Nezbit.png",
+    "page": "https://yugipedia.com/wiki/Nezbitt",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Valon",
+    "file": "opponents/valon.png",
+    "source": "https://ms.yugipedia.com//6/6d/Valon.png",
+    "page": "https://yugipedia.com/wiki/Valon",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Alister",
+    "file": "opponents/alister.png",
+    "source": "https://ms.yugipedia.com//5/5a/Alister.png",
+    "page": "https://yugipedia.com/wiki/Alister",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Dark Magician",
+    "file": "opponents/dark-magician.png",
+    "source": "existing assets/cards/46986414.jpg (YGOPRODeck)",
+    "page": "https://yugipedia.com/wiki/Dark_Magician",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "The Masked Beast",
+    "file": "opponents/the-masked-beast.png",
+    "source": "https://ms.yugipedia.com//thumb/7/7d/TheMaskedBeast-STP4-EN-SR-UE.png/483px-TheMaskedBeast-STP4-EN-SR-UE.png",
+    "page": "https://yugipedia.com/wiki/The_Masked_Beast",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Gansley",
+    "file": "opponents/gansley.png",
+    "source": "https://ms.yugipedia.com//thumb/b/b0/Gansley.png/700px-Gansley.png",
+    "page": "https://yugipedia.com/wiki/Gansley",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Johnson",
+    "file": "opponents/johnson.png",
+    "source": "https://ms.yugipedia.com//thumb/6/61/Johnson2.png/669px-Johnson2.png",
+    "page": "https://yugipedia.com/wiki/Johnson",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Princess Adena",
+    "file": "opponents/princess-adena.png",
+    "source": "https://ms.yugipedia.com//thumb/3/39/Princess_Adena.jpg/700px-Princess_Adena.jpg",
+    "page": "https://yugipedia.com/wiki/Princess_Adena",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Yami Alexander",
+    "file": "opponents/yami-alexander.png",
+    "source": "https://ms.yugipedia.com//thumb/1/13/YamiAlexander.png/700px-YamiAlexander.png",
+    "page": "https://yugipedia.com/wiki/Yami_Alexander",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Aknadin",
+    "file": "opponents/aknadin.png",
+    "source": "https://ms.yugipedia.com//a/a9/Aknadin2.png",
+    "page": "https://yugipedia.com/wiki/Aknadin",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Shimon Muran / Simon",
+    "file": "opponents/shimon-muran-simon.png",
+    "source": "https://ms.yugipedia.com//1/10/Shimon_muran.png",
+    "page": "https://yugipedia.com/wiki/Shimon_Muran",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Zorc Necrophades",
+    "file": "opponents/zorc-necrophades.png",
+    "source": "https://ms.yugipedia.com//6/68/Zork3.png",
+    "page": "https://yugipedia.com/wiki/Zorc_Necrophades",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Strings",
+    "file": "opponents/strings.png",
+    "source": "https://ms.yugipedia.com//thumb/5/59/Strings.png/604px-Strings.png",
+    "page": "https://yugipedia.com/wiki/Strings",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Mahad",
+    "file": "opponents/mahad.png",
+    "source": "https://ms.yugipedia.com//9/91/MAHADO.png",
+    "page": "https://yugipedia.com/wiki/Mahad",
+    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  }
+]

@@ -24,3 +24,5 @@ Transparent replacement portraits: Dartz original download https://www.pngfind.c
 Opponent difficulty adaptations: data/opponent-tiers.json retains each NPC list source. Optional champion: Masatoshi Togawa 2004 main and Fusion Deck, Jason Grabher-Meyer event report, http://kperovic.com/metagame/yugiohb707.html?ArticleId=288 . Modern EDOPro scripts/errata apply.
 
 September 2026 replacements: PaniK and Shadi portraits from official yugioh.com character profiles (uploads1.yugioh.com/character/145/detail/detail/panik-lrg.png; uploads4.yugioh.com/character/15/detail/detail/shadi-l.png). Anubis movie still: https://i.pinimg.com/originals/d4/f9/ed/d4f9ed042c13355da60349248c9efb69.png . Copyright Konami / respective movie rights holders.
+
+October 2026 tier-exclusive opponents: 23 portraits prepared from existing anime stills and monster card artwork, with imagegen background removal and square framing. Per-portrait source URLs are recorded in `opponents/sources.json`. Copyright remains with the original Yu-Gi-Oh! rights holders.

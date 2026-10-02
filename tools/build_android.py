@@ -22,7 +22,7 @@ def sync():
  WEB.mkdir(exist_ok=True)
  (WEB/'replay-version.js').write_text('export const replayVersion='+json.dumps((ROOT/'VERSION').read_text().strip())+';\n',encoding='utf8')
  import endless
- champion_ids=sorted(set(sum((endless.CHAMPION.get(k,[]) for k in ('main','side','extra')),[])))
+ champion_ids=json.loads((ROOT/'data/champion-ultra.json').read_text(encoding='utf8'))['cards']
  (WEB/'champion-cards.js').write_text('export const championCards='+json.dumps(champion_ids)+';\n',encoding='utf8')
  system_strings={}
  for line in (ROOT/'runtime/config/strings.conf').read_text(encoding='utf-8-sig').splitlines():
@@ -34,10 +34,12 @@ def sync():
   scripts=json.loads(scripts_path.read_text(encoding='utf8'))
   scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
   scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
+  for card in (78637313,53119267):
+   scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  shared=['collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.append('golden_cards.py')
+ shared.extend(['golden_cards.py','card_rarity.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  for p in (ROOT/'data').glob('*.json'):files['data/'+p.name]=p.read_text(encoding='utf8')
@@ -66,9 +68,11 @@ def sync():
   if not (WEB/name).exists():copy(old/name,WEB/name)
  # Card assets include all pool cards, every token and the menu's decorative cards.
  ids={c['id'] for c in game.CARDS}|{c['id'] for c in json.loads((ROOT/'data/tokens.json').read_text())}
+ selected_music=set(json.loads((ROOT/'assets/music/soundtrack.json').read_text(encoding='utf8'))['tracks'])
  for source in (ROOT/'assets').rglob('*'):
   if not source.is_file():continue
   relative=source.relative_to(ROOT/'assets')
+  if relative.parts[0]=='music' and (len(relative.parts)!=2 or source.suffix.lower()!='.mp3' or source.stem not in selected_music):continue
   if any(part.casefold()=='potential sound effects' for part in relative.parts):continue
   if source.name.startswith('gx'):continue
   if relative.parts[0]=='cards' and int(source.stem) not in ids:continue

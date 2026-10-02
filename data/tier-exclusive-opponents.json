@@ -1,0 +1,590 @@
+{
+  "notes": "Append-only opponent identities. Authoritative tier_decks select the version for each supported first-journey tier; no new opponents in tier-4 loops.",
+  "excluded_source_ids": [
+    1,
+    2,
+    16,
+    22,
+    27
+  ],
+  "opponents": [
+    {
+      "character": 39,
+      "name": "Roland",
+      "tier": 1,
+      "deck": "wct2004-roland",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Ryou Bakura",
+      "source_id": 3,
+      "fixed": true,
+      "sprite": "opponents/roland.png",
+      "theme": "A generic introductory deck for KaibaCorp's referee, not a canonical deck.",
+      "background": "character-backgrounds/6.jpg",
+      "reward_themes": [
+        "Thunder",
+        "lowlevel",
+        "normal",
+        "Spellcaster",
+        "DARK",
+        "summon"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 40,
+      "name": "Arthur Hawkins",
+      "tier": 1,
+      "deck": "wct2004-arthur-hawkins",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Trusdale",
+      "source_id": 4,
+      "fixed": true,
+      "sprite": "opponents/arthur-hawkins.png",
+      "theme": "An ancient-card collector concept built around Exodia; not his documented deck.",
+      "background": "character-backgrounds/23.jpg",
+      "reward_themes": [
+        "exodia",
+        "Plant",
+        "search",
+        "draw",
+        "Spellcaster",
+        "stall"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 41,
+      "name": "Leon von Schroeder",
+      "tier": 3,
+      "deck": "wct2004-leon-von-schroeder",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Yugi Muto",
+      "source_id": 5,
+      "fixed": true,
+      "sprite": "opponents/leon-von-schroeder.png",
+      "theme": "A resourceful tournament duelist using a borrowed early-game list; his Fairy Tale identity is absent.",
+      "background": "character-backgrounds/13.jpg",
+      "tier_decks": {
+        "2": "wct2004-leon-von-schroeder-tier2",
+        "3": "wct2004-leon-von-schroeder"
+      },
+      "reward_themes": [
+        "Reptile",
+        "quickplay",
+        "ojama",
+        "Spellcaster",
+        "DARK",
+        "negation"
+      ],
+      "reward_pack": "WC4-24",
+      "reward_theme_note": "Low-level Normal Monsters support tribute fodder and Ojama-style Normal Monster support."
+    },
+    {
+      "character": 42,
+      "name": "Kemo",
+      "tier": 1,
+      "deck": "wct2004-kemo",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Rex Raptor",
+      "source_id": 6,
+      "fixed": true,
+      "sprite": "opponents/kemo.png",
+      "theme": "A brute-force security enforcer encounter. This does not claim that Kemo canonically uses Dinosaurs.",
+      "background": "character-backgrounds/8.jpg",
+      "reward_themes": [
+        "highlevel",
+        "Dinosaur",
+        "EARTH",
+        "normal",
+        "equip",
+        "Plant"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 43,
+      "name": "Leichter",
+      "tier": 1,
+      "deck": "wct2004-leichter",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Espa Roba",
+      "source_id": 7,
+      "fixed": true,
+      "sprite": "opponents/leichter.png",
+      "theme": "Jinzo and control effects match his original-series dueling identity.",
+      "background": "character-backgrounds/16.jpg",
+      "reward_themes": [
+        "Sea Serpent",
+        "counter",
+        "Machine",
+        "negation",
+        "Plant",
+        "midlevel"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 44,
+      "name": "Weevil's helper",
+      "tier": 3,
+      "deck": "wct2004-weevil-s-helper",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Weevil Underwood",
+      "source_id": 8,
+      "fixed": true,
+      "sprite": "opponents/weevil-s-helper.png",
+      "theme": "The unnamed Battle City boy who planted Parasite Paracide could borrow an Insect deck from Weevil; his own deck is not established.",
+      "background": "character-backgrounds/10.jpg",
+      "tier_decks": {
+        "2": "wct2004-weevil-s-helper-tier2",
+        "3": "wct2004-weevil-s-helper"
+      },
+      "reward_themes": [
+        "Insect",
+        "lowlevel",
+        "flip",
+        "Plant",
+        "destruction",
+        "graveyard"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 45,
+      "name": "Sid",
+      "tier": 3,
+      "deck": "wct2004-sid",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Bonz",
+      "source_id": 9,
+      "fixed": true,
+      "sprite": "opponents/sid.png",
+      "theme": "Bonz's original-series associate could use this borrowed sinister deck; no claim of a canonical list.",
+      "background": "character-backgrounds/9.jpg",
+      "tier_decks": {
+        "2": "wct2004-sid-tier2",
+        "3": "wct2004-sid"
+      },
+      "reward_themes": [
+        "archfiend",
+        "equip",
+        "Fiend",
+        "draw",
+        "normal",
+        "graveyard"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 46,
+      "name": "Crump",
+      "tier": 3,
+      "deck": "wct2004-crump",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Mako Tsunami",
+      "source_id": 10,
+      "fixed": true,
+      "sprite": "opponents/crump.png",
+      "theme": "A WATER-based adaptation, with less Penguin emphasis than his own deck.",
+      "background": "character-backgrounds/18.jpg",
+      "tier_decks": {
+        "2": "wct2004-crump-tier2",
+        "3": "wct2004-crump"
+      },
+      "reward_themes": [
+        "field",
+        "Fish",
+        "WATER",
+        "normal",
+        "stall",
+        "Aqua"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 47,
+      "name": "Harpie Lady Sisters",
+      "tier": 2,
+      "deck": "wct2004-harpie-lady-sisters",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Mai Valentine",
+      "source_id": 11,
+      "fixed": true,
+      "sprite": "opponents/harpie-lady-sisters.png",
+      "theme": "Retains the previous proposed monster-opponent concept, rather than inventing a human Harpie specialist.",
+      "background": "character-backgrounds/3.jpg",
+      "reward_themes": [
+        "Winged Beast",
+        "WIND",
+        "harpie",
+        "field",
+        "equip",
+        "highlevel"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 48,
+      "name": "Nezbitt",
+      "tier": 2,
+      "deck": "wct2004-nezbitt",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Bandit Keith",
+      "source_id": 12,
+      "fixed": true,
+      "sprite": "opponents/nezbitt.png",
+      "theme": "Machine-based combat suits this Big Five member.",
+      "background": "character-backgrounds/4.jpg",
+      "reward_themes": [
+        "union",
+        "Machine",
+        "normal",
+        "equip",
+        "highlevel",
+        "destruction"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 49,
+      "name": "Valon",
+      "tier": 3,
+      "deck": "wct2004-valon",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Joey Wheeler",
+      "source_id": 13,
+      "fixed": true,
+      "sprite": "opponents/valon.png",
+      "theme": "Aggressive combat suits his personality, but the borrowed Joey list does not recreate his Armor deck.",
+      "background": "character-backgrounds/2.jpg",
+      "tier_decks": {
+        "2": "wct2004-valon-tier2",
+        "3": "wct2004-valon"
+      },
+      "reward_themes": [
+        "fusion",
+        "gambling",
+        "pierce",
+        "Warrior",
+        "Dragon",
+        "Beast-Warrior"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 50,
+      "name": "Alister",
+      "tier": 3,
+      "deck": "wct2004-alister",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Maximillion Pegasus",
+      "source_id": 14,
+      "fixed": true,
+      "sprite": "opponents/alister.png",
+      "theme": "He actually impersonated Pegasus and used Toons in the original series; a better human assignment than the earlier Toon monster encounter.",
+      "background": "character-backgrounds/7.jpg",
+      "tier_decks": {
+        "2": "wct2004-alister-tier2",
+        "3": "wct2004-alister"
+      },
+      "reward_themes": [
+        "ritual",
+        "toon",
+        "Beast-Warrior",
+        "heal",
+        "Aqua",
+        "control"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 51,
+      "name": "Dark Magician",
+      "tier": 3,
+      "deck": "wct2004-dark-magician",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Arkana",
+      "source_id": 15,
+      "fixed": true,
+      "sprite": "opponents/dark-magician.png",
+      "theme": "Retains the proposed monster-opponent concept for Arkana's list. Pandora is the same person as Arkana and is not a separate candidate.",
+      "background": "character-backgrounds/17.jpg",
+      "tier_decks": {
+        "2": "wct2004-dark-magician-tier2",
+        "3": "wct2004-dark-magician"
+      },
+      "reward_themes": [
+        "toplevel",
+        "darkmagician",
+        "Spellcaster",
+        "burn",
+        "summon",
+        "control"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 52,
+      "name": "The Masked Beast",
+      "tier": 3,
+      "deck": "wct2004-the-masked-beast",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Umbra & Lumis",
+      "source_id": 17,
+      "fixed": true,
+      "sprite": "opponents/the-masked-beast.png",
+      "theme": "Retains the proposed encounter against the monster itself.",
+      "background": "character-backgrounds/5.jpg",
+      "tier_decks": {
+        "2": "wct2004-the-masked-beast-tier2",
+        "3": "wct2004-the-masked-beast"
+      },
+      "reward_themes": [
+        "ritual",
+        "highlevel",
+        "Fiend",
+        "equip",
+        "graveyard",
+        "Beast-Warrior"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 53,
+      "name": "Gansley",
+      "tier": 3,
+      "deck": "wct2004-gansley",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Strings",
+      "source_id": 18,
+      "fixed": true,
+      "sprite": "opponents/gansley.png",
+      "theme": "A general-purpose borrowed list, without his own distinctive strategy.",
+      "background": "character-backgrounds/27.jpg",
+      "tier_decks": {
+        "2": "wct2004-gansley-tier2",
+        "3": "wct2004-gansley"
+      },
+      "reward_themes": [
+        "pierce",
+        "Dragon",
+        "Aqua",
+        "normal",
+        "Beast-Warrior",
+        "highlevel"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 54,
+      "name": "Johnson",
+      "tier": 3,
+      "deck": "wct2004-johnson",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Odion",
+      "source_id": 19,
+      "fixed": true,
+      "sprite": "opponents/johnson.png",
+      "theme": "Punishment and counterplay suit the courtroom-themed Big Five member.",
+      "background": "character-backgrounds/15.jpg",
+      "tier_decks": {
+        "2": "wct2004-johnson-tier2",
+        "3": "wct2004-johnson"
+      },
+      "reward_themes": [
+        "counter",
+        "quick_counter",
+        "normal_trap",
+        "negation",
+        "discard",
+        "gravekeeper"
+      ],
+      "reward_pack": "WC4-21",
+      "reward_theme_note": "Graveyard-denial traps overlap with Gravekeeper control."
+    },
+    {
+      "character": 55,
+      "name": "Princess Adena",
+      "tier": 3,
+      "deck": "wct2004-princess-adena",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Ishizu Ishtar",
+      "source_id": 20,
+      "fixed": true,
+      "sprite": "opponents/princess-adena.png",
+      "theme": "A royal magical encounter for the princess from the original anime's virtual-game arc; a creative deck assignment.",
+      "background": "character-backgrounds/14.jpg",
+      "tier_decks": {
+        "2": "wct2004-princess-adena-tier2",
+        "3": "wct2004-princess-adena"
+      },
+      "reward_themes": [
+        "heal",
+        "burn",
+        "Fairy",
+        "FIRE",
+        "continuous",
+        "field"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 56,
+      "name": "Yami Alexander",
+      "tier": 3,
+      "deck": "wct2004-yami-alexander",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Marik Ishtar",
+      "source_id": 21,
+      "fixed": true,
+      "sprite": "opponents/yami-alexander.png",
+      "theme": "A disruptive antagonist encounter drawing on the original cast's Capsule Monsters adventure.",
+      "background": "character-backgrounds/27.jpg",
+      "tier_decks": {
+        "2": "wct2004-yami-alexander-tier2",
+        "3": "wct2004-yami-alexander"
+      },
+      "reward_themes": [
+        "discard",
+        "jar",
+        "draw",
+        "darkscorpion",
+        "control",
+        "Beast-Warrior"
+      ],
+      "reward_pack": "WC4-24",
+      "reward_theme_note": "White Magical Hat and hand-disruption effects overlap with Dark Scorpion combat disruption."
+    },
+    {
+      "character": 57,
+      "name": "Aknadin",
+      "tier": 3,
+      "deck": "wct2004-aknadin",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Shadi",
+      "source_id": 23,
+      "fixed": true,
+      "sprite": "opponents/aknadin.png",
+      "theme": "An oppressive ancient sorcerer encounter, replacing a video-game-only character.",
+      "background": "character-backgrounds/32.jpg",
+      "tier_decks": {
+        "2": "wct2004-aknadin-tier2",
+        "3": "wct2004-aknadin"
+      },
+      "reward_themes": [
+        "burn",
+        "Insect",
+        "Warrior",
+        "equip",
+        "continuous",
+        "stall"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 58,
+      "name": "Shimon Muran / Simon",
+      "tier": 3,
+      "deck": "wct2004-shimon-muran-simon",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Simon",
+      "source_id": 24,
+      "fixed": true,
+      "sprite": "opponents/shimon-muran-simon.png",
+      "theme": "The original deck owner also has an original-series counterpart.",
+      "background": "character-backgrounds/23.jpg",
+      "tier_decks": {
+        "2": "wct2004-shimon-muran-simon-tier2",
+        "3": "wct2004-shimon-muran-simon"
+      },
+      "reward_themes": [
+        "exodia",
+        "search",
+        "draw",
+        "Spellcaster",
+        "Plant",
+        "lowlevel"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 59,
+      "name": "Zorc Necrophades",
+      "tier": 3,
+      "deck": "wct2004-zorc-necrophades",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Yami Bakura",
+      "source_id": 25,
+      "fixed": true,
+      "sprite": "opponents/zorc-necrophades.png",
+      "theme": "A supernatural endgame encounter, replacing a video-game-only character; not a canonical Destiny Board deck.",
+      "background": "character-backgrounds/6.jpg",
+      "tier_decks": {
+        "2": "wct2004-zorc-necrophades-tier2",
+        "3": "wct2004-zorc-necrophades"
+      },
+      "reward_themes": [
+        "archfiend",
+        "Fiend",
+        "continuous",
+        "stall",
+        "equip",
+        "graveyard"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 60,
+      "name": "Strings",
+      "tier": 3,
+      "deck": "wct2004-strings",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Yami Marik",
+      "source_id": 26,
+      "fixed": true,
+      "sprite": "opponents/strings.png",
+      "theme": "Stalling and a large hand are plausible, but this borrowed list lacks his Slime/Slifer identity.",
+      "background": "character-backgrounds/11.jpg",
+      "tier_decks": {
+        "2": "wct2004-strings-tier2",
+        "3": "wct2004-strings"
+      },
+      "reward_themes": [
+        "jar",
+        "Rock",
+        "discard",
+        "lowlevel",
+        "stall",
+        "control"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 61,
+      "name": "Mahad",
+      "tier": 3,
+      "deck": "wct2004-mahad",
+      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "original": "Yami Yugi",
+      "source_id": 28,
+      "fixed": true,
+      "sprite": "opponents/mahad.png",
+      "theme": "His connection to Dark Magician supports the Spellcaster assignment.",
+      "background": "character-backgrounds/0.jpg",
+      "tier_decks": {
+        "2": "wct2004-mahad-tier2",
+        "3": "wct2004-mahad"
+      },
+      "reward_themes": [
+        "ritual",
+        "darkmagician",
+        "Spellcaster",
+        "toplevel",
+        "summon",
+        "Divine-Beast"
+      ],
+      "reward_pack": "WC4-24",
+      "reward_theme_note": "Ancient Egyptian high-level boss and tribute theme."
+    }
+  ]
+}

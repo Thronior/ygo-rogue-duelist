@@ -59,15 +59,15 @@ class TagCampaign:
   for seat,run in enumerate(self.players):
    with self.scope(seat):game.routes(run,self.rng)
    run['routes']=[i for i in run['routes'] if i not in excluded]
-   choices=[i for i in content.GAME_DECKS if i not in excluded and i not in run['routes']]
-   for opponent in self.rng.sample(choices,min(max(0,3-len(run['routes'])),len(choices))):
+   choices=[i for i in content.eligible_opponents(run['round']) if i not in excluded and i not in run['routes']]
+   for opponent in self.rng.sample(choices,min(max(0,5-len(run['routes'])),len(choices))):
     run['routes'].append(opponent)
-    variant=self.rng.randrange(len(encounters.TUTORIALS)) if run['round']==0 else 0
+    variant=content.TUTORIAL_OPPONENTS[opponent] if run['round']==0 else 0
     if run['round']==0:run.setdefault('tutorial_variants',{})[str(opponent)]=variant
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
     run['route_rewards'][str(opponent)]=shop_rewards.reward_from_deck(deck,game.BY_ID,self.rng,shop_rewards.THEME_OPTIONS.get(opponent))
     if run.get('challenge_level')!=-1 and (run['round']+1)%3==0:run['route_curses'][str(opponent)]=self.rng.choices(list(content.CURSES),k=min(3,(run['round']+1)//3))
-   if len(run['routes'])<2:raise ValueError('Not enough undefeated opponents remain for a tag duel.')
+   if len(run['routes'])!=5:raise ValueError('Not enough undefeated opponents remain for five tag choices.')
    run['opponent']=None
  def view(self,seat):
   run=deepcopy(self.players[seat])

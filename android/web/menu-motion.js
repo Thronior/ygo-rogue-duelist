@@ -9,15 +9,16 @@ export function mountMenuMotion(root,count,initial,onSelect){
  const gap=()=>portrait()?-cardSize()*.22:Math.max(10,root.clientWidth*.012);
  const spacing=()=>Math.max(1,cardSize()*.86+gap());
  function paint(){
+  const vertical=portrait(),size=cardSize(),space=vertical?-size*.22:Math.max(10,root.clientWidth*.012);
   for(const card of cards){
    const i=Number(card.dataset.menu);
    const d=wrap(i-position+count/2)-count/2,dist=Math.abs(d);
    card.hidden=dist>2.6;card.dataset.distance=String(dist);
    card.style.setProperty('--menu-offset',d);
-   const near=Math.min(dist,1),offset=Math.sign(d)*(cardSize()*(.72*dist+.28*(near-near*near/2))+gap()*dist);
-   card.style.left=portrait()?'50%':`calc(50% + ${offset}px)`;
+   const near=Math.min(dist,1),offset=Math.sign(d)*(size*(.72*dist+.28*(near-near*near/2))+space*dist);
+   card.style.left=vertical?'50%':`calc(50% + ${offset}px)`;
    const focus=1-Math.min(dist,1);
-   card.style.top=portrait()?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;
+   card.style.top=vertical?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;
    card.style.scale='none';
    card.style.transform=`translate(-50%,-50%) scale(${1-.28*Math.min(dist,1)})`;
    card.style.filter=`brightness(${1-.42*Math.min(dist,1)})`;

@@ -13,6 +13,7 @@ function s.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetRange(LOCATION_SZONE)
 	e2:SetCode(EVENT_TO_GRAVE)
+	e2:SetCondition(s.damcon)
 	e2:SetOperation(s.damop)
 	c:RegisterEffect(e2)
 end
@@ -22,5 +23,8 @@ function s.filter(c,tp)
 end
 function s.damop(e,tp,eg,ep,ev,re,r,rp)
 	local ct=eg:FilterCount(s.filter,nil,tp)
-	Duel.Damage(1-tp,ct*500,REASON_EFFECT)
+	if ct>0 then Duel.Damage(1-tp,ct*500,REASON_EFFECT) end
+end
+function s.damcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.filter,1,nil,tp)
 end

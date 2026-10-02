@@ -168,6 +168,11 @@ def starting_packs(index,rng=None):
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):
  from deck_files import read
+ if index in TIER_EXCLUSIVE_OPPONENTS:
+  row=TIER_EXCLUSIVE_OPPONENTS[index]
+  if index not in eligible_opponents(round_index,loop):raise ValueError('Opponent is not eligible for this duel tier.')
+  tier=min(3,round_index//3+1)
+  return read(row.get('tier_decks',{}).get(str(tier),row['deck']),dict(row,tier=tier))
  row=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8'))[str(index)] if loop>=1 else OPPONENT_TIERS[str(index)][min(2,round_index//3)]
  return read(row['deck'],row)
 
@@ -244,3 +249,16 @@ for _id,_relic in PROGRESSION["starting_relics"].items():
 # Approved signature cards; list order and duplicate copies are intentional.
 for _id, _cards in json.loads((Path(__file__).parent/"data/character-signatures.json").read_text(encoding="utf8")).items():
  CHARACTERS[int(_id)]["cards"]=_cards
+
+# Append-only opponent identities do not join PLAYABLE_IDS or starter progression.
+TIER_EXCLUSIVE_OPPONENTS={row['character']:row for row in json.loads((Path(__file__).parent/'data/tier-exclusive-opponents.json').read_text(encoding='utf8'))['opponents']}
+for _id,_row in TIER_EXCLUSIVE_OPPONENTS.items():
+ if _id!=len(CHARACTERS):raise ValueError('Tier-exclusive opponent IDs must remain append-only.')
+ CHARACTERS.append(dict(name=_row['name'],sprite=_row['sprite'],background=_row['background'],pack=_row['reward_pack'],opponent_only=True,tier=_row['tier'],theme=_row['theme'],race='',attribute='',cards=[],type=2,bonus='',color='#e5c58a',starting_relic='none'))
+
+TUTORIAL_OPPONENTS={int(k):v for k,v in json.loads((Path(__file__).parent/'data/tutorial-opponents.json').read_text(encoding='utf8')).items()}
+
+def eligible_opponents(round_index,loop=0):
+ if round_index==0 and not loop:return list(TUTORIAL_OPPONENTS)
+ tier=min(3,round_index//3+1)
+ return list(GAME_DECKS)+([] if loop else [i for i,row in TIER_EXCLUSIVE_OPPONENTS.items() if str(tier) in row.get('tier_decks',{str(row['tier']):row['deck']})])

@@ -1155,3 +1155,48 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 
 /* Booster stock expands to three packs, or four with Booster Shelf. */
 .shop-compact .shop-stock .packs{grid-template-columns:repeat(var(--pack-columns,3),minmax(0,1fr))}
+
+/* iOS: keep prompts and event animations; avoid continuous offscreen/paint-heavy decoration. */
+.ios-web .zone.selectable{animation:none;box-shadow:0 0 8px #fff4b8,inset 0 0 6px #fff5a344}
+.ios-web .zone img,.ios-web .field-character{filter:none}
+.ios-web .title .smooth-menu .menu-card{animation:none!important;will-change:auto}
+.ios-web .particle,.ios-web .pack-reveal-dust,.ios-web .pack-sparks{display:none}
+.ios-web .shop-product.shop-ultra,.ios-web .pack-pull.turned.ultra{animation:none}
+.ios-web .pack-theatre.opening{animation:none}
+
+/* Five encounter choices: one row on landscape, compact scrollable rows on portrait. */
+@media(orientation:landscape){
+ .routes,.tag-page .tag-routes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:8px;align-content:start;overflow:auto}
+ .routes .opponent,.tag-page .tag-routes .opponent{width:100%;max-width:none;min-width:0;min-height:0;padding:7px;overflow:visible}
+ .routes .opponent .encounter-hero h2{font-size:clamp(13px,1.7vw,23px);overflow-wrap:anywhere}
+ .routes .opponent .reward{font-size:clamp(10px,1.1vw,13px);gap:5px;overflow-wrap:anywhere}
+ .routes .opponent .reward img{width:24px;height:30px;flex:none}
+ .routes .opponent>.primary{font-size:clamp(11px,1.2vw,14px);padding:6px 3px}
+}
+
+/* Keep all five portrait encounters visible, including boss curse badges. */
+@media(orientation:portrait){
+ .routes,.tag-page .tag-routes{grid-template-rows:repeat(5,minmax(0,1fr));align-content:stretch;gap:5px;padding:5px;overflow:hidden}
+ .routes .opponent,.boss .routes .opponent,.tag-routes .tag-opponent{height:100%;min-height:0;grid-template-columns:90px minmax(0,1fr);grid-template-rows:auto auto auto auto;gap:2px 7px;padding:5px;align-content:center}
+ .routes .opponent .encounter-hero{width:90px;height:64px;min-height:0;max-height:64px;grid-row:1/4}
+ .routes .opponent .encounter-hero>img{height:64px;max-height:64px}
+ .routes .opponent .encounter-hero h2{font-size:11px;bottom:0;line-height:1}
+ .routes .opponent>small{font-size:9px}
+ .routes .opponent>.reward{min-height:20px;font-size:9px;line-height:1.1;gap:5px;margin:0}
+ .routes .opponent>.reward img{width:18px;height:22px}
+ .routes .opponent>.opponent-curses{grid-column:1;grid-row:4;gap:2px;justify-content:center;align-self:center}
+ .routes .opponent .curse-icon{width:20px;height:20px;padding:1px}
+ .routes .opponent>button{grid-column:2;grid-row:4;min-height:30px;margin:1px 0 0;padding:3px 7px;font-size:11px}
+ .routes .opponent>button:not(.primary){grid-column:1;font-size:9px;padding:2px;min-height:24px}
+}
+
+@media(orientation:portrait){
+ .routes .opponent:has(>button:not(.primary))>button.primary{grid-row:5}
+ .routes .opponent:has(>button:not(.primary))>button:not(.primary){grid-row:5;grid-column:1}
+ .routes .opponent:has(>button:not(.primary))>.opponent-curses{grid-row:4;grid-column:2}
+}
+@media(orientation:portrait) and (max-height:740px){
+ .routes .opponent .encounter-hero,.routes .opponent .encounter-hero>img{height:52px;max-height:52px}
+ .routes .opponent>.reward{min-height:17px}.routes .opponent>.reward img{height:18px}
+ .routes .opponent>button{min-height:27px}
+}
