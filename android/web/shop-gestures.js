@@ -7,6 +7,6 @@ export function installShopGestures(root,{tap,hold,delay=500}){
  root.addEventListener('scroll',cancel,{capture:true,passive:true});root.addEventListener('pointercancel',cancel,true);
  root.addEventListener('pointerup',e=>{if(gesture?.id!==e.pointerId)return;const g=gesture;clearTimeout(g.timer);gesture=null;suppressClick=true;if(!g.cancelled&&!g.held&&e.target.closest('[data-shop-item]')===g.el)tap(g.index)},true);
  root.addEventListener('click',e=>{if(suppressClick&&e.detail!==0){suppressClick=false;e.preventDefault();e.stopImmediatePropagation();return}const el=e.target.closest('[data-shop-item]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();if(e.detail===0)tap(Number(el.dataset.shopItem))},true);
- root.addEventListener('contextmenu',e=>{if(e.target.closest('[data-shop-item]'))e.preventDefault()},true);
+ root.addEventListener('contextmenu',e=>{const el=e.target.closest('[data-shop-item]');if(!el)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch')return;cancel();gesture=null;hold(Number(el.dataset.shopItem))},true);
  root.addEventListener('dragstart',e=>{if(e.target.closest('[data-shop-item]')){cancel();e.preventDefault()}},true);
 }

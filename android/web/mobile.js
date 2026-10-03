@@ -1,3 +1,5 @@
+import {equippedTarget} from './equip-target.js';
+import {rememberedLevel} from './difficulty-preference.js';
 import {encounterCard,bossBanner,bossControls,bossRerollPrice,playEncounterReveal,playPortraitReveal} from './encounter-reveal.js';
 import {playLegendarySummon} from './legendary-summon.js';
 import {DeviceSync} from './device-sync.js';
@@ -160,6 +162,7 @@ async function shopkeeperSecret(){
 }
 
 function renderCharacters(){
+ selectedLevels[selected]=rememberedLevel(state.profile,selected);
  const c=content.characters[selected],locked=!state.profile.unlocked.includes(selected),row=state.achievements.find(a=>a.id==='character:'+selected);
  const packs=(c.copycat||c.engine_deck)?[]:c.random_packs?[]:c.starting_packs||[c.pack,c.pack,c.pack,c.pack];
  const relic=c.starting_relic,info=(relic==='none'?null:content.artifactInfo[relic]),relicName=relic==='random'?'Random relic':relic==='none'?'No relic':content.artifacts[relic]?.[0]||'',relicText=relic==='random'?'A different relic is rolled for each new run.':relic==='none'?'The Dueling Engine starts with no relic.':content.artifacts[relic]?.[2]||'';
@@ -186,7 +189,7 @@ document.addEventListener('pointermove',e=>{if(draftPointer?.id===e.pointerId&&M
 document.addEventListener('scroll',cancelDraftHold,{capture:true,passive:true});
 document.addEventListener('pointercancel',cancelDraftHold);
 document.addEventListener('pointerup',e=>{if(draftPointer?.id!==e.pointerId)return;const p=draftPointer;clearTimeout(p.timer);draftPointer=null;if(!p.cancel&&!p.held&&p.el===e.target.closest('[data-pick]'))tapDraft(p.el)});
-document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-pick]'))e.preventDefault()});
+document.addEventListener('contextmenu',e=>{const el=e.target.closest('[data-pick]');if(!el)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch'||modal.open||screen!=='draft')return;cancelDraftHold();draftPointer=null;inspect(state.run.pool[+el.dataset.pick],+el.dataset.pick)});
 document.addEventListener('dragstart',e=>{if(e.target.closest('.cardbtn'))e.preventDefault()});
 const seenBossReveals=new Set();
 function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;const key=JSON.stringify([r.started_at,r.character,r.loop,r.round,r.boss_rerolls||0,r.routes]);shell(`Loop ${(r.loop||0)+1} · Duel ${r.round+1} / 9 — ${boss?'BOSS ENCOUNTER':'Select next opponent'}`,`${boss?bossBanner(r):''}<div class="routes">${r.routes.map(i=>encounterCard(content,r,i,{button:btn,curseIcons})).join('')}</div>${boss?bossControls(r):''}`,`${!boss?`<span class="route-coins"><img src="assets/ui/coins.png" alt="Coins"><b>${r.gold}</b></span>`:''}${btn('Edit deck','draft')}`,boss?'boss':'');if(boss&&!seenBossReveals.has(key)){seenBossReveals.add(key);if(seenBossReveals.size>64)seenBossReveals.delete(seenBossReveals.values().next().value);busy=true;playEncounterReveal({content,opponents:r.routes,slot:true,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'}).finally(()=>busy=false)}}
@@ -214,10 +217,25 @@ async function startDuel(resume=false,opponent=null){busy=true;app.innerHTML='<s
  if(!engine)engine=await new MobileDuel([...content.cards,...content.tokenCards]).init();else engine.destroy();const d=state.run.mobile_duel;if(!d)throw Error('No resumable mobile duel.');
  coinMilestones.delete(engine);duelAnimations.delete(engine);if(!resume)summonMusic.delete(engine);snapshot=engine.start(d.deck,d.enemy,d.lp,d.enemyLP,d.draw,d.seed,d.extra,d.enemyExtra,d.passives,d.enemyDraw??5);
  if(resume)for(const r of d.responses)snapshot=engine.respond(decode(r));
- lastLP=[...snapshot.lp];lastPhase=snapshot.phase;screen='duel';preview=state.run.pool[0];if(!resume)toast(state.run.first_player===1?'Coin toss: tails - opponent starts.':'Coin toss: heads - you start.');if(resume)engine.visuals=[];render();if(resume)await updateCoinMilestones(true);if(snapshot.finished){await completeDuel(snapshot.finished.player);return}await playDuelCues();scheduleAI();
+ lastLP=[...snapshot.lp];lastPhase=snapshot.phase;equipSelection=null;screen='duel';preview=state.run.pool[0];if(!resume)toast(state.run.first_player===1?'Coin toss: tails - opponent starts.':'Coin toss: heads - you start.');if(resume)engine.visuals=[];render();if(resume)await updateCoinMilestones(true);if(snapshot.finished){await completeDuel(snapshot.finished.player);return}await playDuelCues();scheduleAI();
  }catch(e){toast('Duel could not start: '+e.message);screen='routes';render()}finally{busy=false}}
 const encode=x=>JSON.parse(JSON.stringify(x,(k,v)=>typeof v==='bigint'?v+'n':v));
 const decode=x=>JSON.parse(JSON.stringify(x),(k,v)=>typeof v==='string'&&/^\d+n$/.test(v)?BigInt(v.slice(0,-1)):v);
+let equipSelection=null;
+function decorateEquipTarget(){
+ document.querySelectorAll('.equip-target-marker').forEach(el=>el.remove());
+ const target=equippedTarget(snapshot,equipSelection);if(!target)return;
+ const zone=document.querySelector(`[data-zone="${target.controller},${target.location},${target.sequence}"]`);if(!zone)return;
+ const marker=document.createElement('span');marker.className='equip-target-marker';marker.setAttribute('role','img');marker.setAttribute('aria-label','Equipped to this card');marker.title='Equipped to this card';zone.append(marker);
+}
+// Capture inspection taps without consuming normal card actions or target selection.
+document.addEventListener('click',event=>{
+ if(screen!=='duel')return;
+ const el=event.target.closest('.mat [data-zone],.hand button,.enemy-hand button,[data-inspect],[data-pile]');if(!el)return;
+ const address=el.dataset.zone?.split(',').map(Number);
+ equipSelection=address&&el.dataset.code?{controller:address[0],location:address[1],sequence:address[2],code:Number(el.dataset.code)}:null;
+ decorateEquipTarget();
+},true);
 function removeActions(){document.querySelector('.action-pop')?.remove()}
 // Capture the tap before any field/control handler can stop propagation.
 // Do not consume it: phase buttons and other controls still work on that tap.
@@ -271,6 +289,7 @@ function fieldSelectBare(m){if(!m||m.player!==0)return false;const entries=selec
  document.querySelector('.duel .hand').scrollLeft=handScroll;
  syncModalChain();
  decorateReactions();
+ decorateEquipTarget();
  const inspection=document.querySelector('.duel>.inspection');if(inspection)inspection.scrollTop=inspectionScroll;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const el of document.querySelectorAll('.zone .card-counter')){const old=previousCounters.get(el.closest('.zone').dataset.zone+':'+el.dataset.counterKind)||0;if(Number(el.dataset.count)>old)el.animate([{transform:'scale(1.5)',filter:'brightness(2)'},{transform:'scale(1)',filter:'none'}],{duration:500});}
  const field=[...s.players[0].spells.slice(5,6),...s.players[1].spells.slice(5,6)].find(c=>c&&c.position&5);if(field){const duel=document.querySelector('.duel');duel.classList.add('has-field');duel.style.setProperty('--active-field-art',`linear-gradient(#04171988,#031017aa),url('assets/fields/${field.code}.jpg')`);}
@@ -376,7 +395,7 @@ async function sendBehaviourReport(){
  catch(e){status.textContent=e.message;button.disabled=false;}
  finally{behaviourSending=false;}
 }
-async function respond(response){stagedChoice=null;promptHidden=false;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{snapshot=engine.respond(response);await command('response',encode(response));if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction);renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
+async function respond(response){equipSelection=null;decorateEquipTarget();stagedChoice=null;promptHidden=false;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{snapshot=engine.respond(response);await command('response',encode(response));if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction);renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
 let skipOptionalChains=false,chainOverride=false;
 function offerChain(m){return !!m.forced||!skipOptionalChains}
 function scheduleAI(){clearTimeout(aiTimer);const automatic=automaticChainResponse(engine?.pending,skipOptionalChains,M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.connected)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,skipOptionalChains,M,R);if(current)respond(current)}},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.connected)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?80:220)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
@@ -428,7 +447,7 @@ async function action(a,el={dataset:{}}){
 if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);return;}if(a==='collection-collector-back'){collectionKind='cards';renderCollection();return;}if(a==='collector-decklist'){const d=collectorLeaders[+el.dataset.index];if(d)dialog(d.name,Object.entries(d.deck).map(([zone,ids])=>`<h3>${esc(zone==='extra'?'Fusion':zone)}</h3><div class="cardgrid collector-decklist-grid">${ids.map(id=>`<button data-inspect="${id}"><img src="${image(id)}" alt="${esc(card(id)?.name)}"></button>`).join('')}</div>`).join(''));return;}if(a==='coin-bonuses'){await showCoinBonuses();return}if(a==='curse-info'){dialog(content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(content,el.dataset.curse,state.run?.challenge_level))}</p>`);return}if(a==='cpu'){if(state.profile.cpu_viewer_unlocked)await openCPU();return}if(a==='tag'){await openTag();return}if(a==='collector'){await openCollector();return}if(tagUI){if(a==='active-curses'){dialog('Curses & LVL modifiers',tagUI.view.modifiers.map(x=>'<h3>'+esc(x.name)+'</h3><p>'+esc(x.description)+'</p>').join('')||'<p>No modifiers</p>');return}if(a==='pause'||a==='pause-title'||a==='title'){await tagUI.action('exit',{dataset:{}});return}if(a==='surrender'){dialog(tagUI.isCollector?'Surrender this match and lose your duelist?':'Surrender the team’s run?',tagUI.isCollector?`<div class="collector-surrender-actions">${duelConfirm('Confirm surrender','confirm-surrender')}${duelDecision('Cancel surrender','close','',true)}</div>`:duelConfirm('Confirm surrender','confirm-surrender'));return}if(a==='confirm-surrender'){modal.close();await tagUI.session.request('surrender');return}}if(busy&&a!=='close'&&a!=='toggle-chain'&&a!=='golden-card')return;effect(['start','new','confirm-new'].includes(a),a==='buy');
  if(a==='active-curses'){const rows=await command('active-curses');dialog('This duel: curses & difficulty',rows.length?rows.map(x=>`<section class="panel"><h3>${esc(x.name)}</h3><p>${esc(x.description)}</p></section>`).join(''):'<p>No active curses or LVL modifiers.</p>');return}
  if(a==='shop-reroll'){busy=true;try{await command('shop-reroll');shopSelection.clear();packSound('purchase');renderShop()}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}
- if(a==='levels'){levelMenu();return}if(a==='choose-level'){selectedLevels[selected]=+el.dataset.level;modal.close();renderCharacters();return}
+ if(a==='levels'){levelMenu();return}if(a==='choose-level'){await command('remember-level',{character:selected,level:+el.dataset.level});selectedLevels[selected]=rememberedLevel(state.profile,selected);modal.close();renderCharacters();return}
  if(a==='tutorial'){tutorialReturn=screen;go('tutorial');return}if(a==='tutorial-page'){tutorialPage=+el.dataset.index;renderTutorial();return}if(a==='tutorial-back'){go(tutorialReturn);if(screen==='duel')scheduleAI();return}if(a==='toggle-chain'){skipOptionalChains=!skipOptionalChains;if(!busy){renderDuel();scheduleAI()}const original=document.getElementById('chain-toggle');if(original){original.classList.toggle('chain-disabled',skipOptionalChains);original.setAttribute('aria-pressed',String(!skipOptionalChains));original.title=skipOptionalChains?'Optional chains off':'Optional chains on'}syncModalChain();return}if(a==='close'){closeDialog();return}if(a==='menu-prev'||a==='menu-next'){titleMotion?.step(a==='menu-next'?1:-1);return}
  if(a==='continue')return showRunSlots();
  if(a==='cursed-choose'){await command('cursed-choose',el.dataset.relic);go('shop');return}
@@ -497,6 +516,15 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.draftSort!==undefined){draftSort=e.target.value;renderDraft()}});
 document.addEventListener('input',async e=>{if(['music','sound'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic());await command('settings',state.settings)}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
 window.androidBack=()=>{if(screen==='loading'||document.querySelector('.exodia-finale'))return;if(modal.open){closeDialog();if(screen==='duel')scheduleAI()}else if(cpuViewer){cpuViewer.destroy();cpuViewer.onExit()}else if(tagUI)tagUI.action('exit',{dataset:{}});else if(screen==='duel')action('pause');else if(screen==='settings')action('settings-back');else go('title')};
+// Use the same visible cancel button as a left click; never invent a response for forced prompts.
+document.addEventListener('contextmenu',e=>{
+ if(e.button!==2||e.pointerType==='touch'||screen!=='duel')return;
+ e.preventDefault();
+ if(busy||document.querySelector('.encounter-cinematic,.legendary-summon,.exodia-finale'))return;
+ const scope=modal.open?modal:app;
+ const cancel=[...scope.querySelectorAll('button.reaction-decline,button.duel-cancel')].find(button=>!button.disabled&&button.checkVisibility());
+ cancel?.click();
+});
 window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='device-secret'){e.preventDefault();action('device-secret',e.target);return;}if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowDown':'ArrowRight'))action('menu-next');if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowUp':'ArrowLeft'))action('menu-prev');if(e.key==='Escape')window.androidBack()});
 
 async function boot(){try{
@@ -603,8 +631,9 @@ document.addEventListener('change',async e=>{
  }catch(error){pendingDesktopProfile=null;toast(error.message)}
 });
 
-function relicCountBadge(id){const count=(state.run?.artifacts||[]).filter(x=>x===id).length+(state.run?.cursed_artifacts||[]).filter(x=>x===id).length;return count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';}
-function ownedRelics(){return [...new Set([...(state.run?.artifacts||[]),...(state.run?.cursed_artifacts||[])])].filter(id=>content.artifacts[id]&&content.artifactInfo[id]);}
+// cursed_artifacts classifies entries already present in artifacts; it is not a second inventory.
+function relicCountBadge(id){const count=(state.run?.artifacts||[]).filter(x=>x===id).length;return count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';}
+function ownedRelics(){return [...new Set(state.run?.artifacts||[])].filter(id=>content.artifacts[id]&&content.artifactInfo[id]);}
 function cardCountersMarkup(c){
  const turns=Number.isFinite(c.turnCount)?`<span class="card-counter turn-counter" data-counter-kind="turn" data-count="${c.turnCount}" title="${c.turnCount} turns elapsed" aria-label="${c.turnCount} turns elapsed">◷ ${c.turnCount}</span>`:'';
  const raw=c.counters||[],entries=Array.isArray(raw)?raw:Object.entries(raw).map(([type,count])=>({type:Number(type),count}));

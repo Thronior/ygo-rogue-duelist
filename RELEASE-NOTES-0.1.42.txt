@@ -1,0 +1,11 @@
+YGO Rogue Duelist — v0.1.42
+
+• Added 65 relic PNG icons, including the revised artwork selections.
+• Clicking an equipped Spell, Trap or monster now overlays its target with the Equip icon at 50% opacity. Selecting another card clears the overlay.
+• Each character remembers their last selected difficulty.
+• Fixed cursed relics incorrectly showing double their actual owned count. Cracked Sword's stacking bonuses were already working correctly.
+• Right-click cancels duel prompts or declines activation/chaining. In the deck editor, shop and pack reveals, it inspects cards instead.
+• Shortened both monster and Spell/Trap set actions to “Set”.
+• Fixed broken shop text and reroll-button overflow on narrow landscape screens.
+
+Available on Android and web. Existing saves are preserved.

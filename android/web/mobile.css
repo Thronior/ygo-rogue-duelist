@@ -766,7 +766,7 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
 @media(prefers-reduced-motion:reduce){.card-counter{animation:none}}
 
 .shop-product.shop-ultra{border-color:#fff0a5;box-shadow:0 0 9px #ffd55dbb,inset 0 0 10px #c9903455;animation:ultra-glow 2.8s ease-in-out infinite}
-.shop-ultra .product-art::after{content:"âœ¦  Â·  âœ§";position:absolute;inset:8% 3%;color:#fff5bf;text-shadow:0 0 8px gold;font-size:20px;pointer-events:none;animation:ultra-sparkle 2.5s ease-in-out infinite;z-index:2}
+.shop-ultra .product-art::after{content:"\2726\2002\00b7\2002\2727";position:absolute;inset:8% 3%;color:#fff5bf;text-shadow:0 0 8px gold;font-size:20px;pointer-events:none;animation:ultra-sparkle 2.5s ease-in-out infinite;z-index:2}
 @keyframes ultra-glow{50%{box-shadow:0 0 15px #ffe998ee,inset 0 0 12px #ffd76366}}
 @keyframes ultra-sparkle{0%,100%{opacity:.2;transform:translateY(5px)}50%{opacity:.95;transform:translateY(-5px)}}
 @media(prefers-reduced-motion:reduce){.shop-product.shop-ultra,.shop-ultra .product-art::after{animation:none}}
@@ -993,7 +993,7 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .shop-reroll-counter b{font-size:12px}.shop-reroll-counter span{display:flex;gap:5px;align-items:center;font-size:16px}.shop-reroll-counter img{width:19px;height:19px;object-fit:contain}.shop-reroll-counter:disabled{opacity:.45}
 @media(orientation:portrait){.shop-counter .shop-reroll-counter{bottom:6px;width:68px;height:58px}}
 
-.shop-reroll-landscape{background:linear-gradient(#a83d4d,#732436);border-color:#e69191;color:#fff3df;display:flex;align-items:center;justify-content:center;gap:6px}.shop-reroll-landscape b{font-size:11px}.shop-reroll-landscape span{display:flex;align-items:center;gap:3px}.shop-reroll-landscape img{width:16px;height:16px;object-fit:contain}
+.shop-reroll-landscape{background:linear-gradient(#a83d4d,#732436);border-color:#e69191;color:#fff3df;display:flex;align-items:center;justify-content:center;gap:min(6px,4cqi);min-width:0;container-type:inline-size;white-space:nowrap}.shop-reroll-landscape b,.shop-reroll-landscape span,.shop-reroll-landscape strong{font-size:min(11px,10cqi);line-height:1.1}.shop-reroll-landscape span{display:flex;align-items:center;gap:min(3px,2cqi)}.shop-reroll-landscape img{width:min(16px,16cqi);height:auto;aspect-ratio:1;flex-shrink:0;object-fit:contain}
 @media(orientation:landscape){.shop-reroll-counter{display:none}.shop-compact:not(.tag-offline-shop) .shop-reference-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(orientation:portrait){.shop-reroll-landscape{display:none}}
 
@@ -1279,3 +1279,7 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .page:not(.boss) .routes .opponent .encounter-mystery>span{font-size:36px}
 }
 .portrait-reveal-flash{position:absolute;inset:0;z-index:8;background:#fff;box-shadow:0 0 26px #e6f6ff;pointer-events:none;border-radius:inherit}
+
+/* Selected equip overlays its live target without intercepting card taps. */
+.zone .equip-target-marker{position:absolute;z-index:8;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5;background:url('assets/icons/equip-target.png') center/contain no-repeat}
+.zone.defense .equip-target-marker{transform:rotate(90deg) scale(.85)}

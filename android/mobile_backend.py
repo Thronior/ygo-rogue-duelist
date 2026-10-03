@@ -51,6 +51,13 @@ def dispatch(raw):
  elif action=='import-profile':result=storage.merge_desktop_profile(value,[g.unlock_rule(i)[0] for i in content.PLAYABLE_IDS[2:]])
  elif action=='unlock-cpu-viewer':
   profile=storage.profile();profile['cpu_viewer_unlocked']=True;storage.write(storage.ROOT/'profile.json',profile)
+ elif action=='remember-level':
+  import challenge_levels
+  character=int(value['character']);profile=storage.profile()
+  if character not in content.PLAYABLE_IDS or character not in profile['unlocked']:raise ValueError('Choose an unlocked character.')
+  level=challenge_levels.validate(character,value['level'])
+  profile.setdefault('character_last_levels',{})[str(character)]=level
+  storage.write(storage.ROOT/'profile.json',profile)
  elif action=='init':
   import collector
   collector.load();run=g.load_run()
@@ -64,6 +71,7 @@ def dispatch(raw):
   if storage.read(storage.run_path(slot)) and not value.get('replace'):raise ValueError('Confirm before replacing this saved run.')
   candidate=g.new_run(int(value['character']),level=int(value.get('level',0)));candidate['_save_slot']=slot
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
+  profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
  elif action=='secret-champion':
   import secret_challenge
   run=secret_challenge.create(g)
