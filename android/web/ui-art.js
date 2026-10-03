@@ -1,5 +1,5 @@
 // Use pre-cropped artwork files so responsive layouts never expose card frames.
-export const relicImage=id=>`assets/relics/${id}.jpg`;
+export const relicImage=id=>`assets/relics/${String(id).endsWith('.png')?encodeURIComponent(id):id+'.jpg'}`;
 export function relicArtwork(src,attributes=''){
  return `<img class="relic-artwork" src="${src}" alt="Relic artwork" ${attributes}>`;
 }

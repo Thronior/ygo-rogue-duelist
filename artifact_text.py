@@ -49,7 +49,7 @@ def description(key,info,previous):
  'phoenix':f'Once per Duel, if your LP become 0, your LP become {n(a)} instead and you do not lose the Duel for having 0 LP. After this effect is applied, this artifact is consumed.',
  'boss_gold':f'Earn {a} additional coins after each boss victory.',
  'glass':f'Your starting LP become {n(a)} in each Duel, before boss LP penalties. Double your victory coin rewards.',
- 'spyglass':"You can view your opponent's decklist on the opponent-selection screen.",
+ 'spyglass':"Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
  }
  if key=='ankh':return 'When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. This overrides challenge-level healing limits.'

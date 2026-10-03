@@ -50,6 +50,16 @@ public final class MainActivity extends Activity {
         web.loadUrl("https://"+HOST+"/index.html");
     }
     public final class SaveStore {
+        @JavascriptInterface public void openUpdate() {
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        Uri.parse("https://github.com/Thronior/ygo-rogue-duelist/releases/latest/download/YGO-Rogue-Android.apk")));
+                } catch (android.content.ActivityNotFoundException error) {
+                    android.widget.Toast.makeText(MainActivity.this, "Install a browser to download the update.", android.widget.Toast.LENGTH_LONG).show();
+                }
+            });
+        }
         private final AtomicFile file = new AtomicFile(new File(getFilesDir(), "campaign.json"));
         @JavascriptInterface public synchronized String load() {
             try { return new String(file.readFully(), StandardCharsets.UTF_8); } catch(IOException e) { return "{}"; }

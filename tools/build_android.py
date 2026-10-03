@@ -39,7 +39,7 @@ def sync():
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  shared=['collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['golden_cards.py','card_rarity.py'])
+ shared.extend(['boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  for p in (ROOT/'data').glob('*.json'):files['data/'+p.name]=p.read_text(encoding='utf8')
@@ -50,7 +50,8 @@ def sync():
   for token in tokens:
    cid=token['id'];row=db.execute('SELECT name,desc,type,level,atk,def,race,attribute FROM texts JOIN datas USING(id) WHERE id=?',(cid,)).fetchone()
    if row:token_cards.append(dict(id=cid,name=row[0],desc=row[1],type='Token',level=row[3]&255,atk=row[4],defense=row[5],race='Token',attribute='',data=dict(type=row[2]),strings=[]))
- meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,artifactInfo={key:dict(value,art=next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id'])) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
+ custom_relic_art=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
+ meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,retiredArtifacts=sorted(content.RETIRED_ARTIFACTS),artifactInfo={key:dict(value,art=custom_relic_art.get(key) or next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id'])) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
  from duel_rewards import RULES, VICTORY_ONLY
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY) for metric,_,label,coins in RULES]
@@ -120,7 +121,7 @@ def build():
  run(sign+['sign','--ks',key,'--ks-key-alias','shadowrun','--ks-pass','pass:shadowrun-private','--out',apk,BUILD/'aligned.apk'])
  run(sign+['verify','--verbose',apk])
  (release/'build.json').write_text((WEB/'build.json').read_text())
- print('APK:',apk,'—',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
+ print('APK:',apk,'â€”',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
 
 if __name__=='__main__':
  sync()

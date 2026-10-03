@@ -29,5 +29,11 @@
   ],
   "packs": [
     "ygo-wc11-30"
+  ],
+  "summon-cute": [
+    "ygo-tf3-35"
+  ],
+  "summon-epic": [
+    "ygo-tf3-22"
   ]
 }

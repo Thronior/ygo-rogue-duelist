@@ -64,41 +64,43 @@ CHARACTERS.append(dict(name='Ryou Bakura',pack='RANDOM',sprite='dsod15.png',race
 CHARACTERS.append(dict(name='Copycat',pack='COPY',sprite='cards/26376390.jpg',race='Spellcaster',cards=[],type=2,bonus='',color='#cce3db',copycat=True))
 CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='cards/77585513.jpg',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='A random starter deck every duel'))
 
+# Retain definitions for existing saves; exclude these from new offers and the collection.
+RETIRED_ARTIFACTS=frozenset({'feather'})
 ARTIFACTS={}
 ART_INFO={}
 def artifact(key,name,price,desc,art,effect='',amount=0,tag='economy',filter=''):
  ARTIFACTS[key]=(name,price,desc)
  ART_INFO[key]=dict(art=art,effect=effect,amount=amount,tag=tag,filter=filter)
-artifact('ankh','Golden Ankh',75,'Gain 2,000 LP now; healing cap becomes 10,000.','Monster Reborn')
+artifact('ankh','Diamond Ankh',75,'Gain 2,000 LP now; healing cap becomes 10,000.','Monster Reborn')
 artifact('feather','Phoenix Feather',65,'Heal 400 LP after each victory.',"Harpie's Feather Duster",'victory_heal',400,'healing')
 artifact('urn','Merchant Urn',60,'Earn 10 additional coins per victory.','Pot of Greed','gold',10)
 artifact('eye','Millennium Eye',100,'Draw one extra opening card.','Sangan','opening',1,'draw')
-artifact('scarab','Jade Scarab',55,'Heal 250 LP when entering a shop.','Man-Eater Bug','shop_heal',250,'healing')
+artifact('scarab','Jade Pendant',40,'Heal 250 LP when entering a shop.','Man-Eater Bug','shop_heal',250,'healing')
 artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbinding Circle','enemy_lp',500,'offense')
 for key,name,art,race in [
  ('dragon','Dragon Crest','Blue-Eyes White Dragon','Dragon'),('mage','Magician Staff','Dark Magician','Spellcaster'),
  ('blade','Warrior Blade','Axe Raider','Warrior'),('wing','Wind Plume','Harpie Lady','Winged Beast'),
  ('gear','Ancient Gear','Jinzo','Machine'),('shell','Tidal Shell','Aqua Madoor','Aqua'),
  ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur'),('hive','Amber Hive','Killer Needle','Insect'),
- ('bone','Bone Talisman','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
+ ('bone','Zombie Crystal','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
  ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend')]:
  artifact(key,name,60,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
  artifact(key,name,65,f'Your {attr} monsters gain 250 ATK and DEF.',art,'both',250,'offense',attr)
-artifact('buckler','Stone Buckler',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
-artifact('sword','Royal Sword',110,'Your monsters gain 200 ATK.','Sword of Deep-Seated','atk',200,'offense')
-artifact('normal','Normal Crown',65,'Your Normal Monsters gain 400 ATK.','Battle Ox','normal',400,'offense')
-artifact('tribute','Tribute Crown',75,'Your Level 5+ monsters gain 400 ATK.','Summoned Skull','tribute',400,'offense')
+artifact('buckler','Millennium Shield',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
+artifact('sword','Demonic Sword',110,'Your monsters gain 200 ATK.','Sword of Deep-Seated','atk',200,'offense')
+artifact('normal','Normal Power',65,'Your Normal Monsters gain 400 ATK.','Battle Ox','normal',400,'offense')
+artifact('tribute','Tribute Power',75,'Your Level 5+ monsters gain 400 ATK.','Summoned Skull','tribute',400,'offense')
 artifact('small','Tiny Courage',70,'Your Level 3 or lower monsters gain 500 DEF.','Kuriboh','small',500,'defense')
 artifact('spring','Healing Spring',85,'Recover 200 LP at each of your Standby Phases.','Red Medicine','standby',200,'healing')
 artifact('flame','Eternal Flame',100,'Deal 200 damage at each of your End Phases.','Ookazi','burn',200,'offense')
-artifact('prism','Life Prism',100,'Reduce incoming effect damage by 200, minimum zero.','Waboku','reduce',200,'defense')
+artifact('prism','Life Shield',100,'Reduce incoming effect damage by 400, minimum zero.','Waboku','reduce',400,'defense')
 artifact('pierce','Lancer Spear',125,'Your monsters inflict piercing battle damage.','Spear Dragon','pierce',1,'offense')
 artifact('chalice','Silver Chalice',65,'Heal 600 LP after each victory.','Dian Keto the Cure Master','victory_heal',600,'healing')
 artifact('satchel','Travel Satchel',70,'Each victory grants one additional random card from the opponent\'s deck.','Graceful Charity','reward_card',1,'draw')
 artifact('bargain','Merchant Sigil',80,'All future shop prices are reduced by 20%.','Upstart Goblin','discount',20)
 artifact('interest','Golden Scale',90,'Earn 10% of held gold after victory (maximum 30).','Pot of Greed','interest',10)
-artifact('bandage','Restorative Cloth',55,'Heal 500 LP on every shop arrival.','Dian Keto the Cure Master','shop_heal',500,'healing')
+artifact('bandage','Red Medicine',55,'Heal 500 LP on every shop arrival.','Dian Keto the Cure Master','shop_heal',500,'healing')
 artifact('map','Treasure Map',75,'Shops offer a fourth artifact.','Sangan','extra_artifact',1)
 
 # Build-around relics: their effects are implemented in passives/campaign_expansion.
@@ -109,7 +111,7 @@ artifact('epitaph',"Commoner's Epitaph",95,'Your monsters gain 75 ATK per Normal
 artifact('eclipse','Eclipse Locket',100,'With both LIGHT and DARK monsters in your Graveyard, your monsters gain 350 ATK and DEF.','Chaos Sorcerer','eclipse',350,'offense')
 artifact('pendulum','Sun and Moon Dial',105,'Your monsters gain 400 ATK during your turn and 600 DEF during the opponent’s turn.','Darkness Approaches','dial',400,'defense')
 artifact('desperate',"Underdog's Banner",90,'While your LP are lower and you control fewer monsters, your monsters gain 900 ATK.','Banner of Courage','underdog',900,'offense')
-artifact('inkwell','Bottomless Inkwell',115,'At your End Phase, if your hand is empty, draw 1 card.','Jar of Greed','empty_draw',1,'draw')
+artifact('inkwell','Bottomless Draw',115,'At your End Phase, if your hand is empty, draw 1 card.','Jar of Greed','empty_draw',1,'draw')
 artifact('receipt','Golden Receipt',80,'Buying a booster refunds 12 coins after payment. Cannot make the purchase free.','Upstart Goblin','pack_refund',12)
 artifact('razor','Razor Ledger',85,'Win with exactly 20 main-deck cards to earn 30 extra coins.','Narrow Pass','lean_bonus',30)
 artifact('phoenix_debt','Phoenix IOU',90,'After a victory below 2,000 LP, gain 40 coins before healing.','Spirit of the Breeze','clutch_bonus',40)
@@ -193,10 +195,10 @@ artifact('legendary_shackles','Legendary Shackles',85,'Exodia pieces appear more
 artifact('toon_world','Toon World',85,'Toon cards appear more often in shops.','Toon World','like_toon',0,'draw')
 artifact('ritual_dagger','Ritual Dagger',80,'Ritual monsters and Ritual Spells appear more often in shops.','Curse of the Masked Beast','like_ritual',0,'draw')
 artifact('fusion_chamber','Fusion Chamber',80,'Fusion monsters, Polymerization and Fusion Sage appear more often in shops.','Polymerization','like_fusion',0,'draw')
-artifact('phoenix_rebirth','Phoenix Rebirth',120,'Once per duel, if your LP would reach 0 they become 1000 instead. Consumed as soon as it saves you.','Fire Princess','phoenix',1000,'healing')
+artifact('phoenix_rebirth','Phoenix Feather',120,'Once per duel, if your LP would reach 0 they become 1000 instead. Consumed as soon as it saves you.','Fire Princess','phoenix',1000,'healing')
 artifact('champion_trophy','Champion Trophy',60,'Increase the coin reward from boss duel victories by 40.','Victory Dragon','boss_gold',40,'economy')
 artifact('glass_shard','Glass Shard',70,'You start every duel with 2000 LP, but coin rewards are doubled.','Gamble','glass',2000,'economy')
-artifact('deck_spyglass','Deck Spyglass',85,'See enemy decklists when choosing your opponent.','The Eye of Truth','spyglass',0,'draw')
+artifact('deck_spyglass','Deck Spyglass',85,'Reveal opponent portraits and view their decks when choosing your opponent.','The Eye of Truth','spyglass',0,'draw')
 artifact('rulebook',"Broke Man's Rulebook",60,'Both players open with 1 card instead of 5.','A Deal with Dark Ruler','rulebook',0,'draw')
 artifact('blank_relic','Blank Relic',50,'Does nothing. After your next duel it becomes an attribute orb matching your most common monster attribute.','Fiber Jar','',0,'economy')
 from artifact_expansion import install as install_artifact_expansion

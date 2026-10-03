@@ -1,0 +1,24 @@
+**YGO Rogue Duelist — v0.1.41**
+
+**Bosses & encounters**
+• New ominous Boss Duel screen with a slot-machine reveal. Boss victories now award 5 cards from their deck.
+• Reroll the boss and curses for 30 / 50 / 100 / 150 / 200 coins, then +50 per reroll. Prices carry across the run.
+• Opponents stay hidden until the duel reveal. Shop boosts and guaranteed packs are randomized independently of characters.
+• Reveal a portrait for 15 coins with a quick white-flash animation. Deck Spyglass reveals portraits AND decks.
+• New “It’s time to duel” intro for regular and boss duels: your character, VS, delayed opponent reveal, and both LP totals.
+
+**Cards, relics & presentation**
+• New summon cinematics for 20 boss monsters, plus Dark Magician Girl with floating hearts and pink lights.
+• Boss summons switch to epic music; Dark Magician Girl switches to a cute track.
+• Refreshed 500×500 artwork for 63 relics, cleaner cutouts, glow effects, and updated names.
+• Life Shield now reduces damage by 400 LP. Jade Pendant costs 40 coins.
+• The third pack on first shop entry matches your character. Tag duels alternate between teammates’ packs; shop rerolls remain random.
+
+**Fixes & quality of life**
+• Chain toggle stays usable during CPU actions. Added a brief pause only when the CPU enters Battle Phase from Main Phase.
+• Fixed slot audio, using card-draw sounds for ticks; balanced effect volume and cleaned up animation resources.
+• Improved mobile encounter layouts, portrait sizing, and coin/reroll controls.
+• Link devices in Settings to sync character unlocks, achievements, challenge levels, and secret unlocks. Runs, stats, and Collector saves stay on each device.
+• Android now checks for updates and offers a download prompt.
+• Collector imports require finishing an active duel first.
+• Fixed expanded shop layouts and removed the retired Feather from shops and relic collections.

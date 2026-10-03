@@ -24,7 +24,7 @@ class TagCampaign:
    challenge_levels.suppress(run)
    if level>=4:run['lp']=4000
    self.players.append(run)
-  self.shared={'shop_rerolls':0,'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
+  self.shared={'boss_rerolls':0,'shop_rerolls':0,'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
   self.sync();self.routes()
   if not lobby:
    for seat in (0,1):
@@ -52,22 +52,25 @@ class TagCampaign:
    for key,value in self.shared.items():run[key]=deepcopy(value)
    shop_rewards.normalize_run(run)
  def routes(self):
+  self.shared['revealed_opponents']=[]
   if self.shared['round']>=content.RUN_LENGTH:
    for run in self.players:run['routes']=[];run['opponent']=None
    return
   excluded={r['character'] for r in self.players}|set(self.players[0].get('defeated_opponents',[]))|set(self.players[1].get('defeated_opponents',[]))
+  count=1 if (self.shared['round']+1)%3==0 else 5
   for seat,run in enumerate(self.players):
    with self.scope(seat):game.routes(run,self.rng)
    run['routes']=[i for i in run['routes'] if i not in excluded]
    choices=[i for i in content.eligible_opponents(run['round']) if i not in excluded and i not in run['routes']]
-   for opponent in self.rng.sample(choices,min(max(0,5-len(run['routes'])),len(choices))):
+   for opponent in self.rng.sample(choices,min(max(0,count-len(run['routes'])),len(choices))):
     run['routes'].append(opponent)
     variant=content.TUTORIAL_OPPONENTS[opponent] if run['round']==0 else 0
     if run['round']==0:run.setdefault('tutorial_variants',{})[str(opponent)]=variant
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
-    run['route_rewards'][str(opponent)]=shop_rewards.reward_from_deck(deck,game.BY_ID,self.rng,shop_rewards.THEME_OPTIONS.get(opponent))
+    run['route_rewards'][str(opponent)]=shop_rewards.random_reward(self.rng,self.profiles[seat])
     if run.get('challenge_level')!=-1 and (run['round']+1)%3==0:run['route_curses'][str(opponent)]=self.rng.choices(list(content.CURSES),k=min(3,(run['round']+1)//3))
-   if len(run['routes'])!=5:raise ValueError('Not enough undefeated opponents remain for five tag choices.')
+   if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
+   if count==1:excluded.update(run['routes'])
    run['opponent']=None
  def view(self,seat):
   run=deepcopy(self.players[seat])
@@ -146,7 +149,12 @@ class TagCampaign:
   for key in ('room_code','players','profiles','shared','revision','receipts','ready','phase','shop_seat','duel','paused'):setattr(self,key,deepcopy(data[key]))
   def tuples(x):return tuple(tuples(v) for v in x) if isinstance(x,list) else x
   self.shared.setdefault('shop_rerolls',0);self.shared.setdefault('cursed_offer',None);self.shared.setdefault('cursed_artifacts',[])
-  self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']));self.sync();return self
+  self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']));self.sync()
+  if self.phase=='draft' and (self.shared['round']+1)%3==0 and any(len(r.get('routes',[]))>1 for r in self.players):self.ready=[False,False];self.routes()
+  if self.phase=='draft':
+   for seat,run in enumerate(self.players):
+    if run.get('reward_rules')!=5:run['route_rewards']={str(i):shop_rewards.random_reward(self.rng,self.profiles[seat]) for i in run['routes']};run['reward_rules']=5
+  return self
  def command(self,seat,request):
   if seat not in (0,1):raise ValueError('Invalid seat.')
   key=str(seat)+':'+str(request.get('id',''))
@@ -166,6 +174,19 @@ class TagCampaign:
    restored=self.restore(before);self.__dict__.update(restored.__dict__);raise
  def apply(self,seat,action,value):
   run=self.players[seat]
+  if action=='reveal-opponent':
+   import boss_selection
+   if self.phase!='draft':raise ValueError('Reveal opponents before the duel.')
+   cost=boss_selection.reveal(run,value);self.shared['gold']=run['gold'];self.shared['revealed_opponents']=run.get('revealed_opponents',[])[:];self.sync();return cost
+  if action=='boss-reroll':
+   import boss_selection
+   if self.phase!='draft' or (self.shared['round']+1)%3 or any(self.ready):raise ValueError('Unlock both selections before rerolling bosses.')
+   cost=boss_selection.price(self.shared)
+   if self.shared['gold']<cost:raise ValueError('Not enough coins to reroll the bosses.')
+   self.routes();self.shared['gold']-=cost;self.shared['boss_rerolls']=self.shared.get('boss_rerolls',0)+1;self.sync();return cost
+  if action=='peek-deck':
+   if not ar.has(run,'deck_spyglass') or int(value) not in run['routes']:raise ValueError('Deck Spyglass is required.')
+   i=int(value);main=game.opponent_deck(run['round'],random.Random(i+run['round']*101),i,run.get('tutorial_variants',{}).get(str(i),0));return main+([] if run['round']==0 else content.opponent_record(run['round'],i)['extra'])
   if action.startswith('trade-'):return self.trade_command(seat,action,value)
   if self.trade['status']!='idle':raise ValueError('Finish the card trade before continuing.')
   if action in ('finale-vote','finale-skip'):
@@ -319,7 +340,8 @@ class TagCampaign:
    self.phase='complete';self.duel=None;self.ready=[False,False];self.revision+=1;return
   # Snapshot both chosen rewards before either completion advances its routes.
   rewards=[shop_rewards.normalize_reward(r.get('route_rewards',{}).get(str(r['opponent']),shop_rewards.reward_for(r['opponent']))) for r in self.players]
-  for run in self.players:run['tag_shop_rewards']=deepcopy(rewards)
+  pack_character=self.players[self.shared['round']%2]['character']
+  for run in self.players:run['tag_shop_rewards']=deepcopy(rewards);run['shop_pack_character']=pack_character
   burden_allowed=all(ar.eligible(dict(r,round=r['round']+1,blocked_cursed=[]),'cursed_collectors_burden') for r in self.players)
   for seat,run in enumerate(self.players):
    run['blocked_cursed']=[] if burden_allowed else ['cursed_collectors_burden']

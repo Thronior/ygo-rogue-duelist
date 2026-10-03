@@ -13,7 +13,7 @@
   },
   "relics": {
     "ankh": {
-      "name": "Golden Ankh",
+      "name": "Diamond Ankh",
       "price": 75,
       "description": "When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. Challenge-level healing limits take priority.",
       "art": "Monster Reborn",
@@ -57,8 +57,8 @@
       "parameters": {}
     },
     "scarab": {
-      "name": "Jade Scarab",
-      "price": 55,
+      "name": "Jade Pendant",
+      "price": 40,
       "description": "After each victory, gain 250 LP before entering the shop, up to your current healing limit.",
       "art": "Man-Eater Bug",
       "effect": "shop_heal",
@@ -167,7 +167,7 @@
       "parameters": {}
     },
     "bone": {
-      "name": "Bone Talisman",
+      "name": "Zombie Crystal",
       "price": 60,
       "description": "Zombie monsters you control gain 300 ATK.",
       "art": "Dragon Zombie",
@@ -277,7 +277,7 @@
       "parameters": {}
     },
     "buckler": {
-      "name": "Stone Buckler",
+      "name": "Millennium Shield",
       "price": 60,
       "description": "Monsters you control gain 200 DEF.",
       "art": "Giant Soldier of Stone",
@@ -288,7 +288,7 @@
       "parameters": {}
     },
     "sword": {
-      "name": "Royal Sword",
+      "name": "Demonic Sword",
       "price": 110,
       "description": "Monsters you control gain 100 ATK.",
       "art": "Sword of Deep-Seated",
@@ -299,7 +299,7 @@
       "parameters": {}
     },
     "normal": {
-      "name": "Normal Crown",
+      "name": "Normal Power",
       "price": 65,
       "description": "Normal Monsters you control gain 400 ATK.",
       "art": "Battle Ox",
@@ -310,7 +310,7 @@
       "parameters": {}
     },
     "tribute": {
-      "name": "Tribute Crown",
+      "name": "Tribute Power",
       "price": 75,
       "description": "Level 5 or higher monsters you control gain 400 ATK.",
       "art": "Soul Exchange",
@@ -354,12 +354,12 @@
       "parameters": {}
     },
     "prism": {
-      "name": "Life Prism",
+      "name": "Life Shield",
       "price": 100,
-      "description": "Each time you would take effect damage, reduce that damage by 200 (min. 0).",
+      "description": "Each time you would take effect damage, reduce that damage by 400 (min. 0).",
       "art": "Waboku",
       "effect": "reduce",
-      "amount": 200,
+      "amount": 400,
       "tag": "defense",
       "filter": "",
       "parameters": {}
@@ -420,7 +420,7 @@
       "parameters": {}
     },
     "bandage": {
-      "name": "Restorative Cloth",
+      "name": "Red Medicine",
       "price": 55,
       "description": "After each victory, gain 500 LP before entering the shop, up to your current healing limit.",
       "art": "Goblin's Secret Remedy",
@@ -525,7 +525,7 @@
       "parameters": {}
     },
     "inkwell": {
-      "name": "Bottomless Inkwell",
+      "name": "Bottomless Draw",
       "price": 115,
       "description": "Once per turn, at the start of your End Phase, if you have no cards in your hand, draw 1 card.",
       "art": "Cyber Jar",
@@ -690,7 +690,7 @@
       "parameters": {}
     },
     "phoenix_rebirth": {
-      "name": "Phoenix Rebirth",
+      "name": "Phoenix Feather",
       "price": 120,
       "description": "Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. After this effect is applied, this artifact is consumed.",
       "art": "Fire Princess",
@@ -725,7 +725,7 @@
     "deck_spyglass": {
       "name": "Deck Spyglass",
       "price": 85,
-      "description": "You can view your opponent's decklist on the opponent-selection screen.",
+      "description": "Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",
       "art": "The Eye of Truth",
       "effect": "spyglass",
       "amount": 0,

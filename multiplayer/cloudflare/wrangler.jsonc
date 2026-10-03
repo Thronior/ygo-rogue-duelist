@@ -20,6 +20,10 @@
       {
         "name": "COLLECTOR",
         "class_name": "CollectorRegistry"
+      },
+      {
+        "name": "PROGRESS",
+        "class_name": "ProgressRegistry"
       }
     ]
   },
@@ -40,6 +44,12 @@
       "tag": "v3",
       "new_sqlite_classes": [
         "CollectorRegistry"
+      ]
+    },
+    {
+      "tag": "v4",
+      "new_sqlite_classes": [
+        "ProgressRegistry"
       ]
     }
   ]

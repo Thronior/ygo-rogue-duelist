@@ -267,3 +267,13 @@ def reward_from_deck(deck,byid,rng,options=None):
  tied=_tied_pack(deck,rng)
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=tied)
 
+
+
+def random_reward(rng,profile=None):
+ """Draw rewards without taking an opponent or deck as input."""
+ from content import PACKS
+ import unlocks
+ keys=sorted(set(RETIRED_THEMES.get(k,k) for options in THEME_OPTIONS.values() for k in options)|set(LABELS)|{'LIGHT','DARK','EARTH','WIND','WATER','FIRE'})
+ key=rng.choice(keys)
+ packs=[p['id'] for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'],profile)]
+ return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=rng.choice(packs or ['EN-LOB']))

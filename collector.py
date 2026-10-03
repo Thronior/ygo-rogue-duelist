@@ -20,6 +20,7 @@ def dispatch(action,value):
  if action=='import':
   slot=int(value['source']);source=storage.read(storage.run_path(slot))
   if not source or source.get('stage')=='gameover':raise ValueError('Choose an existing living single-player save.')
+  if source.get('stage')=='duel':raise ValueError('finish your duel to import this collector')
   if content.CHARACTERS[source['character']].get('copycat'):raise ValueError('Copycat saves cannot enter Ultimate Collector.')
   name=str(value.get('name','')).strip()
   if not name or len(name)>32:raise ValueError('Use a duelist name with 1–32 characters.')

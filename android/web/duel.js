@@ -126,9 +126,9 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.MOVE&&m.from.location&&m.to.location)this.visuals.push({kind:'move',reason:m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0),from:m.from,to:m.to,code:(m.from.controller===0||m.to.controller===0||((m.from.location&12)&&(m.from.position&5))||((m.to.location&12)&&(m.to.position&5))||m.to.location===L.GRAVE)?m.card:0});
   if(m.type===M.DRAW)this.visuals.push({kind:'draw',from:{controller:m.player,location:L.DECK},to:{controller:m.player,location:L.HAND},code:0});
   if(m.type===M.NEW_TURN)this.visuals.push({kind:'turn',player:m.player});
-  if(m.type===M.NEW_PHASE)this.visuals.push({kind:'phase',phase:m.phase});
+  if(m.type===M.NEW_PHASE)this.visuals.push({kind:'phase',phase:m.phase,cpuBattleEntry:this.player===1&&this.phase===4&&m.phase===8});
   if(m.type===M.ATTACK)this.visuals.push({kind:'attack',card:m.card,target:m.target,text:m.target?'ATTACK!':'DIRECT ATTACK!'});
-  if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type))this.visuals.push({kind:'summon',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'You summon ':'Opponent summons ')+this.name(m.code)});
+  if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type))this.visuals.push({kind:'summon',code:m.code,card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'You summon ':'Opponent summons ')+this.name(m.code)});
   if(m.type===M.CHAINING)this.visuals.push({kind:'chain',stage:'activate',code:m.code,link:m.chain_size||1,text:this.name(m.code)});
   if([M.DAMAGE,M.RECOVER,M.PAY_LPCOST].includes(m.type))this.visuals.push({kind:'lp',player:m.player,amount:m.amount*(m.type===M.RECOVER?1:-1)});
   if(m.type===M.LPUPDATE&&m.lp!==this.lp[m.player])this.visuals.push({kind:'lp',player:m.player,amount:m.lp-this.lp[m.player]});

@@ -11,6 +11,14 @@ try:
   except ValueError as e:assert 'Copycat' in str(e)
   else:raise AssertionError('Copycat accepted')
   assert storage.read(storage.run_path(2))['character']==37
+  active={'character':0,'pool':[1,2,3],'stage':'duel','duel':{'id':'unfinished'}}
+  storage.write(storage.run_path(1),active)
+  before=collector.load()
+  try:collector.dispatch('import',{'source':1,'slot':1,'name':'Blocked'})
+  except ValueError as e:assert str(e)=='finish your duel to import this collector'
+  else:raise AssertionError('Unfinished duel imported')
+  assert storage.read(storage.run_path(1))==active
+  assert collector.load()==before
   run={'character':0,'pool':[1,2,3],'stage':'shop'}
   storage.write(storage.run_path(1),run)
   data=collector.dispatch('import',{'source':1,'slot':9,'name':'Test'})

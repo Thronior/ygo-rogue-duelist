@@ -11,6 +11,10 @@ def state():
 def dispatch(raw):
  global run,tag_session
  req=json.loads(raw);action=req['action'];value=req.get('value');result=None
+ if action.startswith('device-sync-'):
+  import progress_sync
+  result=progress_sync.dispatch(action[12:],value)
+  return json.dumps(dict(**state(),result=result),ensure_ascii=False)
  if action.startswith('collector-'):
   import collector
   result=collector.dispatch(action[10:],value)
@@ -119,6 +123,12 @@ def dispatch(raw):
  elif action=='cursed-reroll':
   import cursed_relics
   cursed_relics.reroll(run)
+ elif action=='reveal-opponent':
+  import boss_selection
+  result=boss_selection.reveal(run,value)
+ elif action=='boss-reroll':
+  import boss_selection
+  result=boss_selection.reroll(g,run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))

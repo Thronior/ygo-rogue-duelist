@@ -43,6 +43,8 @@ def install(g):
    for item in r.get('shop',[]):
     if item['kind']=='single':item['id']=aliases.get(item['id'],item['id'])
    for k,v in dict(version=3,stage='draft',curses=[],boss_cursed=[],purchased=0,artifacts=[],history=[],shop=[],duel=None,routes=[],opponent=None).items():r.setdefault(k,v)
+   if r.get('stage')!='duel' and (r['round']+1)%3==0 and len(r.get('routes',[]))>1:
+    r['routes']=r['routes'][:1];r['opponent']=r['routes'][0]
    if r['version']<3:r['shop']=[];r['version']=3
    if r.get('boss_rules')!=3:
     r['boss_rules']=3
@@ -57,10 +59,10 @@ def install(g):
     key=g.card_identity(r['pool'][i])
     if counts[key]<3:selected.append(i);counts[key]+=1
    r['selected']=selected
-   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=5 or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
-   if r.get('reward_rules')!=4:
-    r['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(r['round'],random.Random(i+r['round']*101),i,r.get('tutorial_variants',{}).get(str(i),0),loop=r.get('loop',0)),g.BY_ID,random,shop_rewards.THEME_OPTIONS.get(i)) for i in r['routes']}
-    r['reward_rules']=4
+   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   if r.get('reward_rules')!=5 and r['stage']!='duel':
+    r['route_rewards']={str(i):shop_rewards.random_reward(random,storage.profile()) for i in r['routes']}
+    r['reward_rules']=5;save(r)
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
    if r['stage']=='shop' and ensure_shop_packs(r):save(r)
   if r:challenge_levels.suppress(r)
@@ -118,16 +120,17 @@ def install(g):
    choices+=rng.sample(extra,min(5-len(choices),len(extra)))
   if not choices:choices=[i for i in eligible if i not in defeated and i!=run['character']]
   if not choices:raise ValueError('All eligible opponents in this journey have been defeated.')
-  run['routes']=rng.sample(choices,min(5,len(choices)));run['opponent']=run['routes'][0]
+  run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)));run['opponent']=run['routes'][0]
   if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)
-  run['route_rewards']={str(i):shop_rewards.reward_from_deck(opponent_deck(rd,random.Random(i+rd*101),i,run.get('tutorial_variants',{}).get(str(i),0),loop=run.get('loop',0)),g.BY_ID,rng,shop_rewards.THEME_OPTIONS.get(i)) for i in run['routes']}
+  run['route_rewards']={str(i):shop_rewards.random_reward(rng,storage.profile()) for i in run['routes']}
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   choices=[rng.choices(list(CURSES),k=count) for _ in run['routes']] if boss else []
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
   challenge_levels.suppress(run)
-  run['reward_rules']=4
+  run['reward_rules']=5
+  run['revealed_opponents']=[]
  def new_run(index,rng=random,level=0):
   level=challenge_levels.validate(index,level)
   reload_tuning()
@@ -145,7 +148,7 @@ def install(g):
   r['challenge_level']=level
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
-  if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k!='feather' and k not in cursed_relics.approved()])
+  if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved()])
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -336,7 +339,7 @@ def install(g):
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   run['last_reward_card']=rng.choice(defeated_deck);run['last_reward_cards']=[run['last_reward_card']];run['pool'].append(run['last_reward_card'])
+   run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=run['last_reward_cards'][0];run['pool'].extend(run['last_reward_cards'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
@@ -428,14 +431,17 @@ def install(g):
    tied='EN-LOB'
   pack_count=4 if ar.has(run,'booster_shelf') else 3
   others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and unlocks.available('pack',p['id'],profile)],pack_count-1)
-  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(p==tied)) for p in [tied]+others]
+  pack_ids=[tied]+others
+  personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
+  if not general_stock and personal in PACK_BY_ID and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n==0)) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
   if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
-  available=[a for a in ARTIFACTS if a!='feather' and a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
+  available=[a for a in ARTIFACTS if a not in RETIRED_ARTIFACTS and a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=rng.sample(preferred_art,min(1,len(preferred_art)))
   chosen+=rng.sample([a for a in available if a not in chosen],count-len(chosen))
