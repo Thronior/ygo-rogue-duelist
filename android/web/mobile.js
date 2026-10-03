@@ -49,7 +49,7 @@ const duelDecision=(label,action,extra='',cancel=false)=>btn(`<span class="duel-
 const duelConfirm=(label,action,extra='')=>duelDecision(label,action,extra);
 const duelCancel=(label,action,extra='')=>duelDecision(label,action,extra,true);
 const cardButton=(id,extra='',active=false,mis=false)=>`<button class="cardbtn ${active?'selected':''}" data-preview="${id}" ${extra}>${mis?'<b class="misprint">MISPRINT</b>':''}<img draggable="false" loading="lazy" src="${image(id)}" alt="${esc(card(id)?.name||'Card')}"><span>${esc(card(id)?.name||'Card')}</span></button>`;
-const baseMenu=[COLLECTOR_MENU_CARD,['Watch CPU duel',28566710,'trap','Observe and test two opponent AIs.','cpu'],['Tag duels',81332143,'spell','Team up across Android and web.','tag'],['Continue',30834988,'trap','Return to your saved journey.','continue'],['New Game',71625222,'effect','Choose a duelist. Draft a new beginning.','characters'],['Collection',75500286,'spell','Every card, booster and relic.','collection'],['Settings',36560997,'spell','Tune your music and sound.','settings'],['Achievements',32012841,'normal','Your feats and lifetime progress.','achievements'],['Tutorial',91595718,'spell','Learn the field, shops and controls.','tutorial']];
+const baseMenu=[COLLECTOR_MENU_CARD,['Watch CPU duel',28566710,'trap','Observe and test two opponent AIs.','cpu'],['Tag duels',81332143,'spell','Team up across Android and web.','tag'],['Continue',30834988,'trap','Return to your saved journey.','continue'],['New Game',71625222,'effect','Choose a duelist. Draft a new beginning.','characters'],['Collection',75500286,'spell','Every card, booster and relic.','collection'],['Settings',23171610,'spell','Tune your music and sound.','settings'],['Achievements',32012841,'normal','Your feats and lifetime progress.','achievements'],['Tutorial',91595718,'spell','Learn the field, shops and controls.','tutorial']];
 
 function toast(text){toastQueue.push(text);showToast()}
 function showToast(){if(toastBusy||!toastQueue.length)return;toastBusy=true;const el=document.querySelector('#toast');el.textContent=toastQueue.shift();el.classList.add('show');setTimeout(()=>{el.classList.remove('show');toastBusy=false;showToast()},4200)}
@@ -483,8 +483,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
  try{const result=await deviceSync.run({'device-sync-create':'create','device-sync-join':'join','device-sync-now':'sync','device-sync-unlink':'unlink'}[a],code);await showDeviceSync(result.code?`<p>Enter this code on your other device:</p><p class="device-link-code">${esc(result.code)}</p><p>Expires in 10 minutes. Each code can be used once.</p>`:a==='device-sync-unlink'?'<p>Device disconnected. Your unlocks have been kept.</p>':'<p>Unlocks synced.</p>')}catch(error){dialog('Link devices',`<p>${esc(error.message)}</p>${btn('Try again','device-sync-open')}`)}finally{el.disabled=false}return;
  }
  if(a==='android-update'){
- if(!window.ShadowNative?.openUpdate||el.disabled)return;el.disabled=true;el.textContent='Checking…';
- try{const update=await checkAndroidUpdate();dialog('Android update',update.available?`<p>Version ${esc(update.latest)} is available. Installed: ${esc(update.installed)}.</p><p>Download the APK, then open it to confirm the update. Your saves will be kept. Do not uninstall the game.</p>${btn('Download update','android-download')}`:`<p>You’re up to date — version ${esc(update.installed)}.</p>`)}catch(error){dialog('Android update',`<p>${esc(error.message)}</p><p>Check your connection and try again.</p>`)}finally{el.disabled=false;el.textContent='Update'}return;
+ if(!window.ShadowNative?.openUpdate||el.disabled)return;await persist();ShadowNative.openUpdate();return;
  }
  if(a==='android-download'){await persist();ShadowNative.openUpdate();return;}
  if(a==='settings'){returnScreen=screen;go('settings');return}if(a==='settings-back'){go(returnScreen);if(screen==='duel')scheduleAI();return}
@@ -546,7 +545,7 @@ async function boot(){try{
  await py.runPythonAsync("import sys\nsys.path.insert(0,'/game')\nimport mobile_backend");await command('init');screen='title';render();await notices();if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
  void startupAndroidUpdate({native:window.ShadowNative,online:navigator.onLine,prompt:async version=>{
   while(modal.open)await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));
-  dialog('update',`<p>would you like to update to version ${esc(version)}?</p><div class="actions">${btn('update','android-download')}${btn('close','close')}</div>`,false);
+  dialog('Update',`<p>Would you like to update to version ${esc(version)}?</p><div class="actions">${btn('Update','android-download')}${btn('Close','close')}</div>`,false);
  }});
  startDeviceSync();
  window.shadowTest={command,state:()=>state,collector:()=>tagUI?.isCollector?tagUI:null,engine:()=>engine,screen:()=>screen,go,startDuel,respond};

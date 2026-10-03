@@ -4,7 +4,7 @@ import sys,shutil
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 import content,campaign
-MENU=[17375316,28566710,81332143,30834988,71625222,75500286,36560997,32012841,91595718]
+MENU=[17375316,28566710,81332143,30834988,71625222,75500286,23171610,32012841,91595718]
 def generate():
     relics={campaign.BY_NAME[v['art']]['id'] for v in content.ART_INFO.values()}
     for folder,ids in [('relics',relics),('menu',MENU)]:
