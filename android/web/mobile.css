@@ -1212,3 +1212,8 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .settled .toss-coin{animation:none;transform:rotateY(0deg)}
 .settled .toss-coin.tails{transform:rotateY(180deg)}
 @media(prefers-reduced-motion:reduce){.toss-coin{animation:none}}
+
+.collector-response-wait{grid-column:3/8;grid-row:1/3;align-self:center;justify-self:center;z-index:12;display:flex;align-items:center;gap:8px;max-width:96%;padding:9px 13px;border:1px solid #dbc17a;border-radius:9px;background:#102632ed;color:#ffe7a3;box-shadow:0 3px 12px #0008;pointer-events:none;text-align:center;font-size:clamp(11px,1.7vw,15px)}
+.collector-response-wait strong,.collector-response-wait small{display:block}.collector-response-wait small{margin-top:3px;color:#d2e1e6;font-size:.8em}
+
+.relic-ledger-grid .panel,.active-relic-strip button{position:relative}.relic-count{position:absolute;top:3px;right:3px;z-index:3;padding:2px 5px;border:1px solid #ebce78;border-radius:9px;background:#102632;color:#ffe7a3;font-size:12px;font-weight:bold;line-height:1.2}

@@ -26,3 +26,8 @@ export function waitForTossStart(field,kind,isCurrent){
   button.addEventListener('click',start,{once:true});button.focus({preventScroll:true});
  });
 }
+
+export function collectorResponseOverlay(snapshot,isCollector){
+ if(!isCollector||snapshot?.finished||snapshot?.player!==0||!snapshot?.tag?.waitingForOpponent)return '';
+ return '<div class="collector-response-wait" role="status" aria-live="polite"><span aria-hidden="true">⌛</span><span><strong>Waiting for opponent…</strong><small>Your opponent is choosing a response.</small></span></div>';
+}

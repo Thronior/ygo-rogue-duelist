@@ -1,7 +1,7 @@
 {
-  "exclusiveAfter": "2026-10-02T19:05:07Z",
-  "localTime": "2026-10-02 21:05:07 Europe/Berlin",
+  "exclusiveAfter": "2026-10-03T10:54:49Z",
+  "localTime": "2026-10-03 12:54:49 Europe/Berlin",
   "scope": "YGO Rogue Duelist Discord messages, Flag behaviour reports and replay submission timestamps",
-  "policy": "Only submissions strictly after this review snapshot cutoff need review next time. Unresolved proposals are retained in review-release39/results.json. Older reports may reproduce approved fixes.",
-  "previous": "2026-10-02T09:58:36Z"
+  "policy": "Review submissions strictly after this cutoff. Current review and carried-forward items are recorded in review-oct3/results.json; older reports may reproduce approved fixes.",
+  "previous": "2026-10-02T19:05:07Z"
 }

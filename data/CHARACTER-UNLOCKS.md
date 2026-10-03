@@ -37,7 +37,7 @@ Paradox Brothers require six Level 5+ monsters; "6 or 7" is the displayed joke.
 | Sera | Win a duel after summoning a Fusion Monster | Sun and Moon Dial |
 | Scud | Win a duel with a 60-card Main Deck | Last Word |
 | Dartz | Own six different relics at once | Eclipse Locket |
-| Rafael | Complete a run without buying any cards or packs | Lancer Spear |
+| Rafael | Beat a run without buying any relics | Lancer Spear |
 | Ryou Bakura | Win a duel with only Normal Monsters in your Main Deck (no Spells or Traps) | Blank Relic |
 | Copycat | Beat the World Champion | Echo Glass |
 | Dueling Engine | Buy a starter or structure deck from the shop | Broke Man's Rulebook |

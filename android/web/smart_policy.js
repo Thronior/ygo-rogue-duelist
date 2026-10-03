@@ -548,6 +548,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Multiplication of Ants')return own.length<=2&&own.some(x=>race(x)==='Insect'&&atk(x)<1000)?65:-1;
   if(n==='Jam Breeding Machine')return !own.length&&!hand.some(x=>(data(x).type&1)&&lvl(x)<=4)?40:-1;
   if(n==='Exchange of the Spirit')return e.lp[p]>2000&&q(1-p,L.GRAVE).length<grave.length?80:-1;
+  // Recovering an equip is not worth sacrificing a stronger established monster.
+  if(n==='Axe of Despair'&&c.location===L.GRAVE)return own.some(x=>atk(x)<=1000&&!exodiaPieces.has(x.code)&&!['Relinquished','Thousand-Eyes Restrict'].includes(name(x)))?35:-1;
+  if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&![8,16,32,64,128].includes(e.phase))return -1;
   if(n==='Levia-Dragon - Daedalus')return umiActive&&enemyPower+theirBack.length*800>ownPower-atk(c)+back.length*800?115:-1;
   if(n==='Guardian Sphinx')return enemy.length?110:-1;
   if(n==='Swarm of Scarabs')return enemy.length?100:-1;
@@ -1012,7 +1015,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
 
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
-  if(['Change of Heart','Snatch Steal'].includes(fxN))return cand.controller!==p?10000+controlledAttack(cand):-1000000000;
+  if(['Change of Heart','Snatch Steal'].includes(fxN))return cand.controller!==p?10000+(name(cand)==='Spirit Reaper'&&face(cand)&&!cand.is_disabled&&effectsEnabled(cand.controller)?10000:controlledAttack(cand)):-1000000000;
   if(['Book of Moon','Tsukuyomi'].includes(fxN)&&e.player===p&&cand.location===L.MZONE&&cand.controller===p){const value=resetValue(own.find(x=>same(x,cand)));return value>=0?20000+value*100:-1000000000;}
   if(fxN==='Book of Moon'&&e.player!==p)return same(cand,e.attackCard)?100000:-1000000000;
 

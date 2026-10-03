@@ -1,0 +1,23 @@
+## YGO Rogue Duelist — Update 0.1.40
+
+### Ultimate Collector
+- Fixed overlapping reconnect sessions and repeated duel animations.
+- Rejoining restores the current duel without replaying its earlier animations.
+- Improved recovery from failed timer syncs and interrupted rendering.
+- Added an opponent-field overlay when your opponent must respond during your turn.
+
+### CPU fixes
+- Improved Axe of Despair recovery decisions to avoid sacrificing valuable monsters.
+- Improved targeted control decisions against Spirit Reaper.
+- Prevented premature use of Enemy Controller’s battle-position effect.
+
+### Shops, relics and progression
+- Toon World adds an extra Toon card to each shop and reroll.
+- Legendary Shackles adds an extra Exodia piece to each shop and reroll.
+- Golden Ankh now overrides the challenge-level healing cap correctly.
+- Removed Phoenix Feather from shops and random starting relics; existing copies remain.
+- Added quantity badges for duplicate relics.
+- Grouped duplicate cards together within pack-opening rarity groups.
+- Rafael now unlocks by completing a run without buying relics.
+
+Available on Android and the webapp.

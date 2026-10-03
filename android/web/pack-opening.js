@@ -4,7 +4,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 // Presentation only: every card is already awarded and saved before this opens.
 export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()=>{},done=()=>{}}){
  active?.();if(!packs.length){done();return}
- packs=packs.map(p=>({...p,cards:[...(p.cards||[])].sort((a,b)=>Number(ULTRA_RARE.has(a))-Number(ULTRA_RARE.has(b)))}));
+ packs=packs.map(p=>{const order=new Map();(p.cards||[]).forEach((id,i)=>{if(!order.has(id))order.set(id,i)});return {...p,cards:[...(p.cards||[])].sort((a,b)=>Number(ULTRA_RARE.has(a))-Number(ULTRA_RARE.has(b))||order.get(a)-order.get(b))};});
  const dialog=document.createElement('dialog');dialog.className='pack-theatre';document.body.append(dialog);
  let index=0,revealed=0,timers=[],closed=false,opening=false,jackpot=false;
  const later=(fn,ms)=>timers.push(setTimeout(()=>{if(!closed)fn()},ms*1.2));

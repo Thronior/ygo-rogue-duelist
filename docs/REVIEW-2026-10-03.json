@@ -1,0 +1,32 @@
+{
+  "reviewedAfter": "2026-10-02T19:05:07Z",
+  "newCutoff": "2026-10-03T10:54:49Z",
+  "discordMessages": 43,
+  "accessWarnings": 0,
+  "behaviourFlags": 4,
+  "implemented": [
+    "Relic duplicate count badges",
+    "Adjacent duplicate pack reveals",
+    "Golden Ankh challenge-level cap override and description",
+    "Phoenix Feather removed from shop/random starting relic pools; existing copies retained",
+    "Extra Toon stock each shop/reroll",
+    "Extra Exodia stock each shop/reroll",
+    "Decline Axe of Despair recovery when it sacrifices Summoned Skull",
+    "Prefer active Spirit Reaper as targeted control removal",
+    "Do not waste Enemy Controller position effect outside Battle Phase"
+  ],
+  "notBugs": [
+    "Dark Magician duplicate destroyed by opposing Kotodama, confirmed in exact replay"
+  ],
+  "carriedForwardProposals": [
+    "Remember last challenge level per character (unapproved from earlier review)",
+    "Broader CPU post-summon stat forecasting (unapproved from earlier review)"
+  ],
+  "publication": "Local changes only; no release requested",
+  "validation": [
+    "All four reports replay without engine errors",
+    "Exact CPU decisions corrected at steps 90, 37 and 18",
+    "200 shop visit/reroll configurations passed",
+    "45 full duel regressions completed without engine warnings"
+  ]
+}

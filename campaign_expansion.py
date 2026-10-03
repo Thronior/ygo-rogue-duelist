@@ -145,7 +145,7 @@ def install(g):
   r['challenge_level']=level
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
-  if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k not in cursed_relics.approved()])
+  if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k!='feather' and k not in cursed_relics.approved()])
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -341,7 +341,7 @@ def install(g):
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    cap=8000 if boss else (10000 if 'ankh' in run['artifacts'] else 8000)
-   if run.get('challenge_level',0)>=4:cap=4000+(2000 if 'ankh' in run['artifacts'] else 0)
+   if run.get('challenge_level',0)>=4 and 'ankh' not in run['artifacts']:cap=4000
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
@@ -402,8 +402,8 @@ def install(g):
   eligible=[c for c in eligible if c['id']!=removal['id']]
   bias=run.get('bias','');preferred=[c for c in eligible if shop_rewards.matches(c,bias)]
   like=set();_arts=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
-  if 'legendary_shackles' in _arts:like|={g.BY_NAME[n]['id'] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')}
-  if 'toon_world' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x400000}
+  # Legendary Shackles likewise grants its own slot below.
+  # Toon World now grants a separate guaranteed slot instead of weighting general stock.
   if 'ritual_dagger' in _arts:like|={c['id'] for c in eligible if shop_rewards.matches(c,'ritual')}
   if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
   def stock_sample(cards,count):
@@ -418,16 +418,9 @@ def install(g):
    top+=stock_sample([c for c in eligible if c not in top],5-len(top))
   rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
-  if 'legendary_shackles' in _arts:
-   # Count generated shops, not UI renders; the saved run preserves progress.
-   run['shackles_shop_visits']=int(run.get('shackles_shop_visits',0))+1
-   if run['shackles_shop_visits']%3==0:
-    piece=g.BY_NAME[rng.choice(('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'))]
-    # The fourth general single leaves the final back-row removal offer intact.
-    existing=next((i for i,c in enumerate(singles) if c['id']==piece['id']),None)
-    if existing is not None and existing<5:pass
-    elif existing is not None:singles[existing],singles[8]=singles[8],singles[existing]
-    else:singles[8]=piece
+  # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
+  for relic,bonus in [('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
+   if relic in _arts and bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   tied=run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack']
   if PACK_BY_ID.get(tied,{}).get('draft_only') or not unlocks.available('pack',tied,profile):
@@ -442,7 +435,7 @@ def install(g):
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
-  available=[a for a in ARTIFACTS if a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
+  available=[a for a in ARTIFACTS if a!='feather' and a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=rng.sample(preferred_art,min(1,len(preferred_art)))
   chosen+=rng.sample([a for a in available if a not in chosen],count-len(chosen))
@@ -520,6 +513,7 @@ def install(g):
   stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+item['price']
   if item['kind']=='pack':stats['packs_bought']=stats.get('packs_bought',0)+1
   if item['kind']=='single':run['singles_bought']=run.get('singles_bought',0)+1
+  if item['kind']=='artifact':run['relics_bought']=run.get('relics_bought',0)+1
   if item['kind']=='pack':run['bought_pack_ids']=sorted(set(run.get('bought_pack_ids',[]))|{item['id']})
   if item['kind'] in ('single','pack','deck'):run['card_purchases']=run.get('card_purchases',0)+1
   run['pool']+=obtained;run['purchased']+=len(obtained);run['gold']-=item['price'];item['sold']=True

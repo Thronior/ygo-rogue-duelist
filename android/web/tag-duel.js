@@ -64,7 +64,7 @@ export class TagDuel extends MobileDuel {
   state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:[],revealedHands:[reveals,{}]};
   if(seat===1){state=flipPerspective(state);state.players.reverse();state.lp.reverse();state.tag.names.reverse();}
   if(state.pending)delete state.pending.wire;
-  state.tag.pvp=true;state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.activeSeats=[0,0];
+  state.tag.waitingForOpponent=!!this.pending&&this.respondingSeat===opponent&&!this.finished;state.tag.pvp=true;state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.activeSeats=[0,0];
   return state;
  }
  cuesFor(seat,cues){

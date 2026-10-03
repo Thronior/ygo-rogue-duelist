@@ -42,8 +42,8 @@ def description(key,info,previous):
  'underdog_gold':f'After each victory, earn {a} additional coins for each Level 2 or lower Normal Monster in your Main Deck.',
  'trap_negate':'Negate all Trap effects on the field and all activated Trap effects.',
  'spell_negate':'Negate all Spell effects on the field and all activated Spell effects.',
- 'like_exodia':'"Exodia the Forbidden One" and "Forbidden One" monsters appear more often in shops. Every third shop visit or reroll while this artifact is active guarantees 1 random Exodia piece in general stock.',
- 'like_toon':'Toon cards appear more often in shops.',
+ 'like_exodia':'Adds one extra random Exodia piece to every shop and reroll.',
+ 'like_toon':'Adds one extra random card with "Toon" in its name to every shop and reroll.',
  'like_ritual':'Ritual Monsters and Ritual Spells appear more often in shops.',
  'like_fusion':'Fusion Monsters, "Polymerization", and "Fusion Sage" appear more often in shops.',
  'phoenix':f'Once per Duel, if your LP become 0, your LP become {n(a)} instead and you do not lose the Duel for having 0 LP. After this effect is applied, this artifact is consumed.',
@@ -52,6 +52,6 @@ def description(key,info,previous):
  'spyglass':"You can view your opponent's decklist on the opponent-selection screen.",
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
  }
- if key=='ankh':return 'When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. Challenge-level healing limits take priority.'
+ if key=='ankh':return 'When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. This overrides challenge-level healing limits.'
  if key=='blank_relic':return 'After your next Duel, this artifact becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, it becomes Earth Orb.'
  return patterns.get(kind,previous)
