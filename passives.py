@@ -71,7 +71,7 @@ Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_
    stat('EFFECT_UPDATE_ATTACK',amount,condition);stat('EFFECT_UPDATE_DEFENSE',amount,condition)
   elif kind=='normal':stat('EFFECT_UPDATE_ATTACK',amount,'c:IsType(TYPE_NORMAL)')
   elif kind=='tribute':stat('EFFECT_UPDATE_ATTACK',amount,'c:IsLevelAbove(5)')
-  elif kind=='small':stat('EFFECT_UPDATE_DEFENSE',amount,'c:IsLevelBelow(3)')
+  elif kind=='small':stat('EFFECT_UPDATE_ATTACK',amount,'c:IsLevelBelow(3)')
   elif kind=='pierce':stat('EFFECT_PIERCE',1)
   elif kind=='empty_hand':stat('EFFECT_UPDATE_ATTACK',amount,'Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==0')
   elif kind=='solo':stat('EFFECT_UPDATE_ATTACK',amount,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1')

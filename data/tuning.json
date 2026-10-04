@@ -15,7 +15,7 @@
     "ankh": {
       "name": "Diamond Ankh",
       "price": 75,
-      "description": "When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. Challenge-level healing limits take priority.",
+      "description": "When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP.",
       "art": "Monster Reborn",
       "effect": "",
       "amount": 0,
@@ -70,7 +70,7 @@
     "seal": {
       "name": "Broken Seal",
       "price": 90,
-      "description": "Your opponent starts each Duel with 1,000 fewer LP. Challenge-level starting LP rules take priority.",
+      "description": "Your opponent starts each Duel with 1000 fewer LP after challenge-level rules (minimum 1 LP).",
       "art": "Spellbinding Circle",
       "effect": "enemy_lp",
       "amount": 1000,
@@ -323,11 +323,11 @@
     "small": {
       "name": "Tiny Courage",
       "price": 70,
-      "description": "Level 3 or lower monsters you control gain 500 DEF.",
+      "description": "Level 3 or lower monsters you control gain 400 ATK.",
       "art": "Kuriboh",
       "effect": "small",
-      "amount": 500,
-      "tag": "defense",
+      "amount": 400,
+      "tag": "offense",
       "filter": "",
       "parameters": {}
     },
@@ -571,7 +571,7 @@
     "stamp": {
       "name": "Collector's Stamp",
       "price": 80,
-      "description": "Every 1 single-card purchase includes 1 additional random Normal Monster at no cost.",
+      "description": "Every 1 single-card purchase includes 1 additional random unlocked card at no cost.",
       "art": "Gift of The Mystical Elf",
       "effect": "single_stamp",
       "amount": 1,
@@ -905,6 +905,17 @@
       "amount": 1,
       "tag": "draw",
       "filter": ""
+    },
+    "archfiend_contract": {
+      "name": "Archfiend Contract",
+      "price": 85,
+      "description": "Adds one extra random Archfiend card to every shop and reroll.",
+      "art": "Pandemonium",
+      "effect": "like_archfiend",
+      "amount": 1,
+      "tag": "draw",
+      "filter": "",
+      "parameters": {}
     }
   },
   "loops": {

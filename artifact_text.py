@@ -9,12 +9,12 @@ def description(key,info,previous):
  'both':f'{subject} gain {n(a)} ATK/DEF.',
  'normal':f'Normal Monsters you control gain {n(a)} ATK.',
  'tribute':f'Level 5 or higher monsters you control gain {n(a)} ATK.',
- 'small':f'Level 3 or lower monsters you control gain {n(a)} DEF.',
+ 'small':f'Level 3 or lower monsters you control gain {n(a)} ATK.',
  'opening':f'Your opening hand contains {a} additional card'+('s.' if a!=1 else '.'),
  'gold':f'Earn {a} additional coins after each victory.',
  'victory_heal':f'After each victory, gain {n(a)} LP, up to your current healing limit.',
  'shop_heal':f'After each victory, gain {n(a)} LP before entering the shop, up to your current healing limit.',
- 'enemy_lp':f'Your opponent starts each Duel with {n(a)} fewer LP. Challenge-level starting LP rules take priority.',
+ 'enemy_lp':f'Your opponent starts each Duel with {n(a)} fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).',
  'standby':f'Once per turn, at the start of your Standby Phase, gain {n(a)} LP.',
  'burn':f'Once per turn, at the start of your End Phase, inflict {n(a)} damage to your opponent.',
  'reduce':f'Each time you would take effect damage, reduce that damage by {n(a)} (min. 0).',
@@ -34,7 +34,7 @@ def description(key,info,previous):
  'pack_refund':f'After buying a booster pack, receive a refund of {a} coins (up to the price paid minus 1).',
  'lean_bonus':f'If you win a Duel with exactly 20 cards in your Main Deck, earn {a} additional coins.',
  'clutch_bonus':f'If you win a Duel with less than 2000 LP, earn {a} additional coins. Check your LP before post-duel healing.',
- 'single_stamp':f'Every {a} single-card purchase'+('s' if a!=1 else '')+' includes 1 additional random Normal Monster at no cost.',
+ 'single_stamp':f'Every {a} single-card purchase'+('s' if a!=1 else '')+' includes 1 additional random unlocked card at no cost.',
  'echo':'Once per Duel, the first time your opponent Normal, Flip, or Special Summons a face-up Level 4 or lower monster, add a copy of 1 such monster to your hand.',
  'faulty':f'Each monster purchased as a single or pulled from a purchased booster has a {a}% chance to become a misprint. A misprint changes that copy\'s original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0).',
  'golden':f'Designate 1 card in the deck editor. If you win a Duel, earn {a} additional coins for each time you Summoned, Set, or activated a card with that name during that Duel (max. 5 times).',
@@ -43,6 +43,7 @@ def description(key,info,previous):
  'trap_negate':'Negate all Trap effects on the field and all activated Trap effects.',
  'spell_negate':'Negate all Spell effects on the field and all activated Spell effects.',
  'like_exodia':'Adds one extra random Exodia piece to every shop and reroll.',
+ 'like_archfiend':'Adds one extra random Archfiend card to every shop and reroll.',
  'like_toon':'Adds one extra random card with "Toon" in its name to every shop and reroll.',
  'like_ritual':'Ritual Monsters and Ritual Spells appear more often in shops.',
  'like_fusion':'Fusion Monsters, "Polymerization", and "Fusion Sage" appear more often in shops.',
@@ -52,6 +53,6 @@ def description(key,info,previous):
  'spyglass':"Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
  }
- if key=='ankh':return 'When acquired, gain 2000 LP. Your healing limit outside boss victories becomes 10,000 LP. This overrides challenge-level healing limits.'
+ if key=='ankh':return 'When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP, including challenge-level and boss-victory healing limits.'
  if key=='blank_relic':return 'After your next Duel, this artifact becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, it becomes Earth Orb.'
  return patterns.get(kind,previous)

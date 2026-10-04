@@ -1,0 +1,14 @@
+YGO Rogue Duelist 0.1.44
+
+- Card previews respond immediately during CPU actions. Opening a full inspection window pauses the local duel until it is closed.
+- Faster card lookups and fewer unnecessary preview redraws.
+- Improved CPU use of Wave-Motion Cannon, Relinquished, Toon Cannon Soldier, Book of Moon, Toon Table of Contents, Gray Wing and several situational effects. Toon World restraint is unchanged.
+- Rex's character pack now contains 66 cards, with more Dinosaurs and Dinosaur support while retaining generic staples and some Dragons.
+- Added Element Saurus, Hydrogeddon, Oxygeddon and Tyranno Infinity.
+- Trapbound Idol grants Trap Monsters 1000 ATK and removes 1000 DEF. Tiny Courage grants 400 ATK to Level 3 or lower monsters.
+- Diamond Ankh increases the healing cap by 2000 LP. Added Archfiend Contract's extra Archfiend shop card.
+- Collector's Stamp adds one random card instead of only a Normal Monster.
+- Reorganized Settings. Watch CPU Duel now lists 46 opponents and their 136 distinct current campaign deck variants.
+- Fixed card inspection layout, relic count badges and readable deck validation messages; improved viewport handling after rotation.
+
+Android updates preserve existing saves. Web updates are available at https://ygo-rogue.pages.dev/.

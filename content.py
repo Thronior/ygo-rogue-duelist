@@ -91,7 +91,7 @@ artifact('buckler','Millennium Shield',60,'Your monsters gain 250 DEF.','Giant S
 artifact('sword','Demonic Sword',110,'Your monsters gain 200 ATK.','Sword of Deep-Seated','atk',200,'offense')
 artifact('normal','Normal Power',65,'Your Normal Monsters gain 400 ATK.','Battle Ox','normal',400,'offense')
 artifact('tribute','Tribute Power',75,'Your Level 5+ monsters gain 400 ATK.','Summoned Skull','tribute',400,'offense')
-artifact('small','Tiny Courage',70,'Your Level 3 or lower monsters gain 500 DEF.','Kuriboh','small',500,'defense')
+artifact('small','Tiny Courage',70,'Your Level 3 or lower monsters gain 400 ATK.','Kuriboh','small',400,'offense')
 artifact('spring','Healing Spring',85,'Recover 200 LP at each of your Standby Phases.','Red Medicine','standby',200,'healing')
 artifact('flame','Eternal Flame',100,'Deal 200 damage at each of your End Phases.','Ookazi','burn',200,'offense')
 artifact('prism','Life Shield',100,'Reduce incoming effect damage by 400, minimum zero.','Waboku','reduce',400,'defense')
@@ -115,7 +115,9 @@ artifact('inkwell','Bottomless Draw',115,'At your End Phase, if your hand is emp
 artifact('receipt','Golden Receipt',80,'Buying a booster refunds 12 coins after payment. Cannot make the purchase free.','Upstart Goblin','pack_refund',12)
 artifact('razor','Razor Ledger',85,'Win with exactly 20 main-deck cards to earn 30 extra coins.','Narrow Pass','lean_bonus',30)
 artifact('phoenix_debt','Phoenix IOU',90,'After a victory below 2,000 LP, gain 40 coins before healing.','Spirit of the Breeze','clutch_bonus',40)
-artifact('stamp',"Collector's Stamp",80,'Every single you buy includes a free random unlocked Normal Monster.','Gift of The Mystical Elf','single_stamp',1,'draw')
+artifact('stamp',"Collector's Stamp",80,'Every single you buy includes a free random unlocked card.','Gift of The Mystical Elf','single_stamp',1,'draw')
+
+artifact('archfiend_contract','Archfiend Contract',85,'Adds one extra random Archfiend card to every shop and reroll.','Pandemonium','like_archfiend',1,'draw')
 
 CURSES={
  'relic_seal':('Relic Seal','Negate all effects of your relics during this Duel, including their benefits and drawbacks. Shop and post-duel effects are unaffected.'),

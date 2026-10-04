@@ -42,7 +42,7 @@ CURSED=[
 (37,'reckless_spear','Reckless Spear','If a monster you control attacks a Defense Position monster, inflict piercing battle damage. Increase battle damage you take by 50% (rounded down).','Fairy Meteor Crush'),
 (38,'nocturnal_guard','Nocturnal Guard','During your opponent\'s turn, monsters you control gain 600 DEF. During your turn, monsters you control lose 300 ATK.','Castle Walls'),
 (40,'narrow_gate','Narrow Gate','Neither player can use the fourth or fifth Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
-(42,'trapbound_idol','Trapbound Idol','Trap Monsters you control gain 1000 ATK/DEF. Other monsters you control lose 300 ATK.','Embodiment of Apophis'),
+(42,'trapbound_idol','Trapbound Idol','Trap Monsters you control gain 1000 ATK and lose 1000 DEF.','Embodiment of Apophis'),
 (44,'iron_silence','Iron Silence','Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate your activated monster effects in all locations.','Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
 (48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 1).','Time Wizard'),

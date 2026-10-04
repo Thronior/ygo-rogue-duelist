@@ -19,6 +19,8 @@ export function smartContext(e,p,L,prompt=null){
  const q=(side,loc)=>rawQuery(side,loc).map((c,sequence)=>c?(c.controller!==undefined&&c.location!==undefined&&c.sequence!==undefined?c:{controller:side,location:loc,sequence,...c}):null).filter(Boolean),name=c=>e.name(c.code),data=c=>e.data[c.code]||{},atk=c=>(c.location===L.MZONE?rawQuery(c.controller??p,L.MZONE)[c.sequence]?.attack:undefined)??c.attack??data(c).attack??0;
  const openingTurn=e.turn<=1||(e.aiModifiers?.firstPlayer===1&&e.turn===2);
  const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key);
+ // Damage plans include visible prevention/conversion and the defender's known relics.
+ const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);return Math.max(0,raw-reduction)};
  const healingAllowed=side=>!relic(side,'cursed_zombies_bargain');
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===attacker)factor*=.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;}return Math.floor(Math.max(0,raw)*factor)};
@@ -367,6 +369,13 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return [];
   return own.filter(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(!(a.attack_count>0)||same(a,e.attackCard)));
  }
+ function moonRescue(){
+  // Fissure only destroys face-up monsters. Do not pretend to save one by
+  // merely redirecting it into another valuable face-up friendly monster.
+  if(!(e.activeChain||[]).some(x=>!x.inactive&&x.player!==p&&e.name(x.code)==='Fissure'))return null;
+  const targets=own.filter(face);if(targets.length!==1)return null;
+  const c=targets[0];return !(data(c).type&0x4000)&&!c.is_immune?c:null;
+ }
  const attackOnly=new Set(['Diffusion Wave-Motion','Stop Defense','Shooting Star Bow - Ceal','Fairy Meteor Crush','Big Bang Shot','Meteorain','Opti-Camouflage Armor','Riryoku']);
  function doomed(c){return e.limiterDoom?.has(`${c.controller}:${c.sequence}`);}
  function activation(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
@@ -427,6 +436,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Stop Defense'&&!canBattle)return -1;
   if(n==='Giant Trunade')return canBattle&&(activeAttackers(p).length>0||(prompt?.special_summons?.length>0&&prompt?.summons?.length>0))&&theirBack.length?90:-1;
   if(n==='Book of Moon'){
+   if(moonRescue())return 115;
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard));
    if(e.player!==p)return attacker&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
@@ -517,15 +527,7 @@ export function smartContext(e,p,L,prompt=null){
    const charge=x=>1000*(e.cardTurnCounts?.get(`${x.controller}:${x.location}:${x.sequence}`)||0);
    const damage=charge(live);
    if(!damage||spellNegated||live.is_disabled||enemy.some(x=>enabled(x)&&['Des Wombat','Prime Material Dragon'].includes(name(x))))return -1;
-   const total=back.filter(x=>enabled(x)&&name(x)===n).reduce((v,x)=>v+charge(x),0);
-   if(total>=e.lp[1-p])return 180;
-   const direct=e.turn>1&&e.phase===4&&prompt?.to_bp!==false&&!battleLocked&&!enemy.length&&!theirBack.length
-    ?activeAttackers(p).filter(x=>!x.attack_disabled&&!x.attack_count&&attackAllowed(x,true)).reduce((v,x)=>v+atk(x),0):0;
-   if(damage+battleDamage(direct)>=e.lp[1-p])return 170;
-   const exposed=enemy.some(x=>enabled(x)&&['Breaker the Magical Warrior','Blowback Dragon','Mobius the Frost Monarch'].includes(name(x)));
-   const ownWipe=(prompt?.activates||[]).some(x=>['Heavy Storm','Giant Trunade'].includes(name(x))&&theirBack.length>back.length);
-   // Bank a meaningful payout; cash out sooner when the board is unlikely to survive.
-   return damage>=4000||damage>=2000&&(danger||exposed)||ownWipe?100:-1;
+   return burnDamage(damage)>=e.lp[1-p]?180:-1;
   }
   const recent=deck.activation(c,chain);if(recent!==null)return recent;
   if(!spent&&backRemoval.has(n))return backScore(c);
@@ -616,6 +618,7 @@ export function smartContext(e,p,L,prompt=null){
   }
   if(n==='Polymerization')return fusionReady()?95:-1;
   if(n==='Fusion Sage')return !has(hand,'Polymerization')&&has(q(p,L.DECK),'Polymerization')?95:-1;
+  if(n==='Black Illusion Ritual'&&(!enemy.length||back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)||!effectsEnabled(p)))return -1;
   if(n==='Black Illusion Ritual')return ritualGate(c,'Relinquished',threat>=1800||enemy.some(x=>face(x)&&atk(x)>=2000)?97:95);
   if(n==='Black Magic Ritual')return ritualGate(c,'Magician of Black Chaos',95);
   if(n==='Curse of the Masked Beast')return ritualGate(c,'The Masked Beast',ownPower<=enemyPower+2000?95:-1);
@@ -706,11 +709,22 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Kiseitai')return null;
   // --- board wipes with 2004-correct valuation ---
   if(n==='Chaos Emperor Dragon - Envoy of the Beginning'||n==='Chaos Emperor Dragon - Envoy of the End'){if(e.lp[p]<=1000)return -1;const total=hand.length+own.length+back.length+enemy.length+theirBack.length+q(1-p,L.HAND).length;if(300*total>=e.lp[1-p])return 120;const oppTotal=enemy.length+theirBack.length+q(1-p,L.HAND).length,ownTotal=own.length+back.length+hand.length;if(oppTotal>=ownTotal+3)return 96;if(ownPower>enemyPower+1500)return -1;return 90;}
-  if(n==='Cannon Soldier'){if(e.lp[1-p]<=500*own.filter(c=>name(c)!=='Relinquished').length&&own.some(c=>name(c)!=='Relinquished'))return 100;return own.some(x=>expendable(x)<=800)?55:-1;}
+  if(n==='Cannon Soldier'||n==='Toon Cannon Soldier'){
+   const damage=burnDamage(500);if(!damage||!effectsEnabled(p)||own.find(x=>same(x,c))?.is_disabled)return -1;
+   if(damage*own.filter(x=>name(x)!=='Relinquished').length>=e.lp[1-p])return 180;
+   return n==='Cannon Soldier'&&own.some(x=>expendable(x)<=800)?55:-1;
+  }
+  if(n==='Penguin Soldier')return enemy.length?90:-1;
+  if(n==='Gray Wing'){
+   const live=own.find(x=>same(x,c));const cost=hand.filter(x=>!exodiaPieces.has(x.code)).sort((a,b)=>expendable(a)-expendable(b))[0];
+   if(!live||!cost||!canBattle||!attackAllowed(live,!enemy.length)||!(live.position&1)||!enabled(live))return -1;
+   const damage=enemy.length?Math.max(0,...enemy.filter(x=>known(x)&&(x.position&1)&&!resilient(x)).map(x=>battleDamage(atk(live)-atk(x)))):battleDamage(atk(live));
+   return damage>=e.lp[1-p]||damage>=1000&&expendable(cost)<=damage?95:-1;
+  }
   if(n==='Tribe-Infecting Virus'){if(hand.length<2)return -1;const byType={};for(const m of enemy){if(!face(m))continue;const t=race(m)||'Unknown';(byType[t]=byType[t]||[]).push(m);}let best=0;for(const t in byType){const hit=own.filter(x=>face(x)&&(race(x)===t)).length;const val=byType[t].length*2-hit*2;if(val>best)best=val;}return best>=3?100:(best>=2?85:-1);}
   if(n==='Time Wizard')return enemyPower>ownPower+1500?90:(ownPower>enemyPower+1500?-1:(enemy.length?70:-1));
   if(n==='Dark-Piercing Light'){const fd=enemy.filter(x=>!face(x)).length;return fd>=2?95:(fd>=1?80:-1);}
-  if(n==='Call of Darkness')return [...own,...enemy].some(x=>e.wasReborn?.(x))?96:-1;
+  if(n==='Call of Darkness'){const loss=own.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0),gain=enemy.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0);return gain>loss?96:-1;}
   if(n==='Creature Swap'){
    const gift=x=>(data(x).type&0x200)?0:expendable(x);
    const give=Math.min(Infinity,...own.map(gift));
@@ -765,6 +779,10 @@ export function smartContext(e,p,L,prompt=null){
  function projectedAttack(c){
   if(c.location===L.MZONE)return atk(c);
   let result=(name(c)==='Fusilier Dragon, the Dual-Mode Beast'&&own.length<2?1400:atk(c))+(p===1?(e.aiModifiers?.enemyAttack||0):0);
+  if(effectsEnabled(p)){
+   if(name(c)==='Tyranno Infinity')result=1000*q(p,L.REMOVED).filter(x=>face(x)&&race(x)==='Dinosaur').length+(p===1?(e.aiModifiers?.enemyAttack||0):0);
+   if(name(c)==='Element Saurus'&&[...own,...enemy].some(x=>face(x)&&attr(x)==='FIRE'))result+=500;
+  }
   // Only face-up field cards affect a future summon; do not copy equipped monsters' bonuses.
   const fields=[...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000));
   const bonuses={'Yami':[['Fiend','Spellcaster'],['Fairy'],200],'Mountain':[['Dragon','Winged Beast','Thunder'],[],200],'Forest':[['Insect','Beast','Plant','Beast-Warrior'],[],200],'Umi':[['Aqua','Fish','Sea Serpent','Thunder'],['Machine','Pyro'],200],'Wasteland':[['Dinosaur','Zombie','Rock'],[],200],'Sogen':[['Warrior','Beast-Warrior'],[],200]};
@@ -785,6 +803,7 @@ export function smartContext(e,p,L,prompt=null){
   }
   for(const key of relics(p)){
    const type=data(c).type||0,level=effectiveLevel(c,true);
+   if(key==='small'&&level<=3)result+=(e.aiModifiers?.statRelics?.[p]||[]).find(r=>r.effect==='small')?.amount??400;
    if(['cursed_blood_crown'].includes(key))result+=500;
    if(['cursed_cracked_sword'].includes(key))result+=300;
    if(key==='cursed_brittle_armor')result-=300;
@@ -801,7 +820,7 @@ export function smartContext(e,p,L,prompt=null){
    if(key==='cursed_solitary_tyrant')result+=own.length===0?400:-500;
    if(key==='cursed_nocturnal_guard'&&e.player===p)result-=300;
    if(key==='cursed_crowded_crypt')result+=Math.min(750,75*grave.filter(x=>data(x).type&1).length);
-   if(key==='cursed_trapbound_idol')result+=(type&0x100)?1000:-300;
+   if(key==='cursed_trapbound_idol')result+=(type&0x100)?1000:0;
    if(key==='trap_weaver'&&(type&0x100))result+=400;
    if(key==='cursed_empty_hand_pact'&&c.location===L.HAND&&hand.length===1)result+=1000;
    if(key==='arcane_resonance')result+=100*[...back,...theirBack].filter(face).length;
@@ -817,6 +836,7 @@ export function smartContext(e,p,L,prompt=null){
    const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||r.filter===attribute;let v=0;
    switch(k){
     case 'atk':case 'both':v=match?a:0;break;
+    case 'small':v=level<=3?a:0;break;
     case 'normal':v=is(0x10)?a:0;break;case 'tribute':v=level>=5?a:0;break;
     case 'empty_hand':v=q(side,L.HAND).length===0?a:0;break;case 'solo':v=field.length===1?a:0;break;
     case 'diversity':v=Math.min(r.parameters?.cap??500,new Set(field.filter(face).map(race)).size*a);break;
@@ -828,7 +848,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=100;break;
     case 'approved_zombies_bargain':v=800;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
     case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
-    case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?1000:-300;break;
+    case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?1000:0;break;
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_ashen_nursery':v=level<=3?700:level>=5?-700:0;break;case 'approved_giants_oath':v=level>=5?800:level<=4?-400:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
@@ -896,6 +916,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Spirit Reaper')return reaperDirectReady(field);
   if(exodiaPieces.has(field?.code))return false;
   if(exodiaPlan&&['Cyber Jar','Morphing Jar #2','Fiber Jar'].includes(n))return false;
+  if(n==='Man-Eater Bug'||n==='Old Vindictive Magician')return enemy.length>0;
   if(n==='Guardian Sphinx'||n==='Swarm of Scarabs')return enemy.length>0;
   if(n==='Swarm of Locusts')return theirBack.length>0;
   if(n==='Greenkappa')return theirBack.filter(Boolean).length>=2;
@@ -985,7 +1006,10 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Fiend Skull Dragon'&&t&&!face(t))s+=500;
   if(n==='Goblin Attack Force'&&dmg<=0)s-=1500;
   if(n==='Panther Warrior'&&dmg<=0)s-=2500;
-  if(n==='The Bistro Butcher')s+=deckOut?100000:-100000;
+  if(n==='The Bistro Butcher'&&dmg>0&&enabled(a)&&dmg<e.lp[1-p]){
+   const discard=back.some(x=>enabled(x)&&name(x)==="Robbin' Goblin"),punish=back.some(x=>enabled(x)&&name(x)==='Magical Thorn');
+   s+=deckOut?100000:-(discard?punish?300:800:1500);
+  }
   if(n==='Slate Warrior'&&dmg<=0&&threat>=2500)s+=10;
   if(pierce(a)&&t&&!(t.position&1))s+=Math.max(0,atk(a)-((t.defense??e.data[t.code]?.defense)??0));
   if(n==='Newdoria'&&dmg<=0&&t&&power(t)>atk(a))s+=50;
@@ -1003,7 +1027,16 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   return s;}
  function targetScore(fxN,cand,info){const nm=name(cand);
   if(fxN==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return cand.controller!==p&&cand.location===L.MZONE&&!attackBlocked(cand,1-p)?20000+atk(cand):-1000000000;
-  if(fxN==='Spirit Ryu'&&cand.controller===p&&cand.location===L.HAND)return -expendable(cand);
+  if(['Spirit Ryu','Gray Wing'].includes(fxN)&&cand.controller===p&&cand.location===L.HAND)return -expendable(cand);
+  if(fxN==='Toon Table of Contents'&&cand.controller===p&&cand.location===L.DECK){
+   if(nm==='Toon World')return !toonWorld&&e.lp[p]>1000&&hand.some(x=>(data(x).type&1)&&name(x).includes('Toon')&&!['Toon Cannon Soldier','Toon Gemini Elf','Toon Masked Sorcerer','Toon Goblin Attack Force'].includes(name(x)))?50000:-1000;
+   const monster=!!(data(cand).type&1),requiresWorld=!['Toon Cannon Soldier','Toon Gemini Elf','Toon Masked Sorcerer','Toon Goblin Attack Force'].includes(nm);
+   if(!monster)return 1000;
+   const tributes=effectiveLevel(cand,true)>6?2:effectiveLevel(cand,true)>4?1:0;
+   const playable=(!requiresWorld||toonWorld)&&own.filter(x=>name(x)!=='Relinquished').length>=tributes&&own.length<5+tributes;
+   return (playable?20000:0)+projectedAttack(cand)-tributes*800-(hand.some(x=>name(x)===nm)?1500:0);
+  }
+  if(['Cannon Soldier','Toon Cannon Soldier'].includes(fxN)&&cand.controller===p&&cand.location===L.MZONE)return (nm===fxN?-50000:0)-expendable(cand);
   const fxText=e.cards.get(e.effect?.code)?.desc||'';
   const selfRemoval=fxN===nm&&cand.controller===p&&[L.MZONE,L.SZONE].includes(cand.location)&&/destroy|banish|return.*hand/i.test(fxText);
   const usefulCost=e.selectionHint===500||/tribute this card|banish this card from your|destroy this card,? and if you do|return this card to (?:the|your) hand.*(?:Special Summon|draw)/i.test(fxText);
@@ -1016,9 +1049,11 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
   if(['Change of Heart','Snatch Steal'].includes(fxN))return cand.controller!==p?10000+(name(cand)==='Spirit Reaper'&&face(cand)&&!cand.is_disabled&&effectsEnabled(cand.controller)?10000:controlledAttack(cand)):-1000000000;
+  if(fxN==='Book of Moon'&&moonRescue())return same(cand,moonRescue())?1000000:-1000000000;
   if(['Book of Moon','Tsukuyomi'].includes(fxN)&&e.player===p&&cand.location===L.MZONE&&cand.controller===p){const value=resetValue(own.find(x=>same(x,cand)));return value>=0?20000+value*100:-1000000000;}
   if(fxN==='Book of Moon'&&e.player!==p)return same(cand,e.attackCard)?100000:-1000000000;
 
+  if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
   if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500&&!/tribute/i.test(info.text||'')){if(doomed(cand))return -1000000000;
    return cand.controller===p?20000+atk(cand)+(nm==='Maha Vailo'?10000:0):-1000000000;

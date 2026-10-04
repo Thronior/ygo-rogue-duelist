@@ -60,7 +60,7 @@ def effect(kind):
  elif key=='nocturnal_guard':defense(600,'Duel.GetTurnPlayer()==1');atk(-300,'Duel.GetTurnPlayer()==0')
  elif key=='narrow_gate':
   out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
- elif key=='trapbound_idol':both(1000,'c:IsType(TYPE_TRAPMONSTER)');atk(-300,'not c:IsType(TYPE_TRAPMONSTER)')
+ elif key=='trapbound_idol':atk(1000,'c:IsType(TYPE_TRAPMONSTER)');defense(-1000,'c:IsType(TYPE_TRAPMONSTER)')
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])

@@ -35,8 +35,8 @@ def build(root,out,templates):
  text="import {webStorage} from './pwa-storage.js';\n"+text
  old="else localStorage.setItem('shadow-run-mobile',data)";assert old in text;text=text.replace(old,'else await webStorage.store(data)')
  old="localStorage.getItem('shadow-run-mobile')||'{}'";assert old in text;text=text.replace(old,'await webStorage.load()')
- text=text.replace('updating this APK preserves your save.','web updates preserve your saves. Export a backup before clearing browser data.')
- old="${btn('Tutorial','tutorial')}${btn('Back','settings-back')}";assert old in text
+ text=text.replace('Updating the app keeps your save.','Web updates keep your saves. Export a backup before clearing browser data.')
+ old="${btn('How to Play','tutorial')}";assert old in text
  text=text.replace(old,"<button id=\"web-app-options\">Install, offline play &amp; save backups</button>"+old)
  marker='<small style="padding-bottom:8px">Offline private fan experiment'
  assert marker in text

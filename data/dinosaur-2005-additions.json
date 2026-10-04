@@ -1,0 +1,29 @@
+{
+  "cutoff": "2005-12-31",
+  "cards": [
+    {
+      "id": 92755808,
+      "name": "Element Saurus",
+      "date": "2004-12-01",
+      "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6183&ope=2"
+    },
+    {
+      "id": 22587018,
+      "name": "Hydrogeddon",
+      "date": "2005-11-05",
+      "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6479&ope=2"
+    },
+    {
+      "id": 58071123,
+      "name": "Oxygeddon",
+      "date": "2005-11-05",
+      "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6480&ope=2"
+    },
+    {
+      "id": 83235263,
+      "name": "Tyranno Infinity",
+      "date": "2005-08-06",
+      "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6427&ope=2"
+    }
+  ]
+}

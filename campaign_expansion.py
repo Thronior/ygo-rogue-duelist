@@ -230,7 +230,7 @@ def install(g):
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
   char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
-  enemy_lp+=2000*ar.copies(duel_run,'cursed_loaded_purse')
+  enemy_lp=max(1,enemy_lp+2000*ar.copies(duel_run,'cursed_loaded_purse'))
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
   rng.shuffle(main_pairs)
@@ -343,8 +343,7 @@ def install(g):
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
-   cap=8000 if boss else (10000 if 'ankh' in run['artifacts'] else 8000)
-   if run.get('challenge_level',0)>=4 and 'ankh' not in run['artifacts']:cap=4000
+   cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh')
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
@@ -422,7 +421,7 @@ def install(g):
   rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
-  for relic,bonus in [('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
+  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))]),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
    if relic in _arts and bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   tied=run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack']
@@ -484,7 +483,7 @@ def install(g):
    obtained=[item['id']]
    if amount(run,'single_stamp'):
     run['stamped_singles']=run.get('stamped_singles',0)+1
-    if run['stamped_singles']%max(1,amount(run,'single_stamp'))==0:obtained.append(rng.choice([c for c in g.CARDS if c['data']['type']&1 and c['data']['type']&16 and unlocks.card_allowed(c)])['id'])
+    if run['stamped_singles']%max(1,amount(run,'single_stamp'))==0:obtained.append(rng.choice([c for c in g.CARDS if unlocks.card_allowed(c)])['id'])
   elif item['kind']=='pack':obtained=open_pack(item['id'],rng)
   elif item['kind']=='deck':
    obtained=item['cards'][:]

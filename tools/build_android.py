@@ -56,6 +56,24 @@ def sync():
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY) for metric,_,label,coins in RULES]
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
+ # Spectator catalog comes only from decks reachable by the current campaign.
+ # Do not enumerate the deck directory: it also contains retired revisions.
+ watch={}
+ def add_watch(i,record,label):
+  rows=watch.setdefault(str(i),[])
+  signature=(sorted(record['main']),sorted(record.get('extra',[])))
+  same=next((row for row in rows if (sorted(row['main']),sorted(row['extra']))==signature),None)
+  if same:same['label']+=' / '+label
+  else:rows.append(dict(main=record['main'][:],extra=record.get('extra',[])[:],label=label))
+ for i,variant in content.TUTORIAL_OPPONENTS.items():
+  add_watch(i,dict(main=game.opponent_deck(0,opponent=i,tutorial_variant=variant),extra=[]),'Opening Duel')
+ for tier in range(3):
+  for i in content.eligible_opponents(tier*3+1):add_watch(i,content.opponent_record(tier*3+1,i),'Tier '+str(tier+1))
+ for i in content.eligible_opponents(0,loop=1):add_watch(i,content.opponent_record(0,i,loop=1),'Endless')
+ add_watch(-1,endless.CHAMPION,'World Championship')
+ meta['cpuWatchDecks']=watch
+ meta['cpuWatchOpponents']={'-1':dict(name=endless.CHAMPION['name'],sprite='dm01.png',background='character-backgrounds/0.jpg')}
+
  (WEB/'content.json').write_text(json.dumps(meta,ensure_ascii=False),encoding='utf8')
  old=ROOT.parent/'Shadow Run/duel-run/dist'
  # Vendor the working engine once. Subsequent builds are self-contained.

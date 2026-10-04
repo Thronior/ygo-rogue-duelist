@@ -79,7 +79,7 @@ export function deckPolicy(x){
   if(n==='Cold Wave')return ownPower>enemyPower+1500&&theirBack.length>0&&!hand.some(t=>data(t).type&6&&!same(t,c))?65:-1;
   if(n==='Last Turn')return e.player!==p&&e.lp[p]<=1000&&live(own).some(t=>name(t)==='Jowgen the Spiritualist')?110:-1;
   if(n==='Mask of Restrict')return chain&&e.player!==p&&!hand.some(t=>monster(t)&&lvl(t)>4)&&!has(own,'Insect Queen')?60:-1;
-  if(n==='Light of Intervention')return ![...hand,...own].some(t=>data(t).type&0x200000)&&enemy.some(t=>!face(t))?45:-1;
+  if(n==='Light of Intervention')return ![...hand,...own].some(t=>data(t).type&0x200000)&&(e.player!==p||e.phase<4)?45:-1;
   if(n==='Prohibition')return -1; // No reliable declaration from hidden opponent deck contents.
   if(n==='Chain Energy')return e.lp[p]>e.lp[1-p]+2000&&ownPower>enemyPower?60:-1;
   if(n==='Vengeful Bog Spirit')return danger&&ownPower<enemyPower?60:-1;
@@ -91,7 +91,7 @@ export function deckPolicy(x){
   if(n==='Steel Shell')return live(own).some(water)?50:-1;
   if(n==='Power of Kaishin')return live(own).some(t=>race(t)==='Aqua')?50:-1;
   if(n==='Cyclon Laser')return has(own,'Gradius')?60:-1;
-  if(n==='Cestus of Dagla')return live(own).some(t=>race(t)==='Fairy')?65:-1;
+  if(n==='Cestus of Dagla')return e.player===p&&e.turn>1&&e.phase===4&&live(own).some(t=>race(t)==='Fairy'&&battleReady(t)&&(!enemy.length||enemy.some(x=>face(x)&&atk(t)+500>(x.position&1?atk(x):x.defense??0))))?65:-1;
   if(n==='Cyber-Stein')return e.lp[p]>6000&&free>0&&q(p,L.EXTRA).some(t=>atk(t)>=3000&&atk(t)>threat)?95:-1;
   if(n==='Garma Sword Oath')return has(hand,'Garma Sword')&&[...hand,...own].filter(t=>monster(t)&&name(t)!=='Garma Sword'&&!exodiaPieces.has(t.code)).reduce((v,t)=>v+lvl(t),0)>=7?90:-1;
   if(n==='Gamble')return q(1-p,L.HAND).length>=6&&hand.filter(t=>!same(t,c)).length<=1&&q(p,L.DECK).length>=5&&!lethal?55:-1;
@@ -140,6 +140,7 @@ export function deckPolicy(x){
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
+  if(n==='Cestus of Dagla')return ownCard&&race(c)==='Fairy'&&battleReady(own.find(x=>same(x,c))||c)?20000+atk(c):-100000;
   if(['Polymerization','Cybernetic Fusion Support'].includes(n)){
    if(c.location===L.EXTRA){const plan=fusionPlan(c,n==='Cybernetic Fusion Support'||e.fusionSupport?.[p]===e.turn);return plan?20000+plan.score:-100000;}
    if(ownCard&&[L.MZONE,L.HAND,L.GRAVE].includes(c.location))return -Math.max(0,atk(c))+(c.location===L.GRAVE?4000:0);
