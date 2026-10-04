@@ -41,7 +41,7 @@ public final class UpdateActivity extends Activity {
         status=new TextView(this);status.setTextSize(17);status.setTextColor(Color.WHITE);status.setGravity(Gravity.CENTER);status.setPadding(0,pad,0,pad);panel.addView(status);
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setMax(100);progress.setIndeterminate(true);panel.addView(progress,new LinearLayout.LayoutParams(-1,pad));
         action=new Button(this);action.setText("Cancel");action.setOnClickListener(v->finish());panel.addView(action);setContentView(panel);
-        if(getIntent().hasExtra(PackageInstaller.EXTRA_STATUS))handleResult(getIntent());else begin();
+        if(getIntent().hasExtra(PackageInstaller.EXTRA_STATUS)){restoreCandidate();handleResult(getIntent());}else begin();
     }
     private void ui(Runnable task){runOnUiThread(()->{if(!closed&&!isFinishing())task.run();});}
     private void text(String message){ui(()->status.setText(message));}
@@ -69,8 +69,7 @@ public final class UpdateActivity extends Activity {
         status.setText("Checking for an update…");
         worker.execute(()->{
             try{
-                File[] leftovers=getCacheDir().listFiles((dir,name)->name.startsWith("game-update-")&&name.endsWith(".apk"));
-                if(leftovers!=null)for(File old:leftovers)old.delete();
+                UpdateCleanupReceiver.clear(this);
                 JSONObject release=latest();String tag=release.getString("tag_name");
                 PackageInfo installed=getPackageManager().getPackageInfo(getPackageName(),PackageManager.GET_SIGNING_CERTIFICATES);
                 if(release.optBoolean("draft")||release.optBoolean("prerelease"))throw new IOException("No stable update is available.");
@@ -94,7 +93,7 @@ public final class UpdateActivity extends Activity {
                 text("Verifying the update…");
                 PackageInfo candidate=getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(),PackageManager.GET_SIGNING_CERTIFICATES);
                 if(candidate==null||!getPackageName().equals(candidate.packageName)||!version.equals(candidate.versionName)||candidate.getLongVersionCode()<=installed.getLongVersionCode()||!sameSigners(installed,candidate))throw new IOException("This update does not match the installed game.");
-                ensureOpen();ui(this::requestInstall);
+                ensureOpen();rememberCandidate();ui(this::requestInstall);
             }catch(Exception error){discardApk();fail(error.getMessage());}
         });
     }
@@ -116,8 +115,8 @@ public final class UpdateActivity extends Activity {
             try{
                 ensureOpen();PackageInstaller.SessionParams params=new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
                 params.setAppPackageName(getPackageName());params.setSize(expectedSize);
-                if(Build.VERSION.SDK_INT>=31)params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED);
-                sessionId=installer.createSession(params);
+                if(Build.VERSION.SDK_INT>=31)params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED);
+                sessionId=installer.createSession(params);rememberCandidate();
                 try(PackageInstaller.Session session=installer.openSession(sessionId);InputStream in=new FileInputStream(apk);OutputStream out=session.openWrite("base.apk",0,expectedSize)){
                     byte[] buf=new byte[65536];int n;while((n=in.read(buf))!=-1){ensureOpen();out.write(buf,0,n);}session.fsync(out);
                 }
@@ -130,7 +129,7 @@ public final class UpdateActivity extends Activity {
                     committed=true;
                     try{session.commit(PendingIntent.getActivity(this,sessionId,result,flags,options.toBundle()).getIntentSender());}catch(Exception error){committed=false;throw error;}
                 }
-                discardApk();
+                // Retain the verified file until installation succeeds or the user leaves.
             }catch(Exception error){if(sessionId>=0&&!committed)try{installer.abandonSession(sessionId);}catch(Exception ignored){}discardApk();fail(error.getMessage());}
         });
     }
@@ -139,19 +138,32 @@ public final class UpdateActivity extends Activity {
     private void handleResult(Intent intent){
         committed=true;
         int result=intent.getIntExtra(PackageInstaller.EXTRA_STATUS,PackageInstaller.STATUS_FAILURE);
+        String detail=intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+        android.util.Log.i("GameUpdate","Installer status="+result+" session="+sessionId+" detail="+detail);
         if(result==PackageInstaller.STATUS_PENDING_USER_ACTION){
             Intent confirmation=intent.getParcelableExtra(Intent.EXTRA_INTENT);
             if(confirmation==null){fail("Android could not open the update confirmation.");return;}
             status.setText("Confirm the update in Android’s installation prompt.");
+            action.setEnabled(false);
             try{startActivity(confirmation);}catch(ActivityNotFoundException error){fail("Android could not open the update confirmation.");}
         }else if(result==PackageInstaller.STATUS_SUCCESS){
-            committed=false;discardApk();progress.setVisibility(View.GONE);status.setText("Update installed. Your saves are ready.");action.setText("Play");action.setEnabled(true);action.setOnClickListener(v->{startActivity(new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();});
+            committed=false;discardApk();UpdateCleanupReceiver.clear(this);progress.setVisibility(View.GONE);status.setText("Update installed. Your saves are ready.");action.setText("Play");action.setEnabled(true);action.setOnClickListener(v->{startActivity(new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();});
         }else{
-            discardApk();String message=result==PackageInstaller.STATUS_FAILURE_ABORTED?"Update cancelled. Your current game and saves are unchanged.":result==PackageInstaller.STATUS_FAILURE_STORAGE?"Not enough storage to install the update.":result==PackageInstaller.STATUS_FAILURE_BLOCKED?"Android blocked installation. Check the app’s install permission and try again.":"Android could not install the update. Your current game and saves are unchanged.";fail(message);
+            committed=false;
+            String message=result==PackageInstaller.STATUS_FAILURE_ABORTED?(detail!=null&&detail.toLowerCase(Locale.ROOT).contains("permission denied")?"Android denied this installation. Retry to open its confirmation prompt.":"Installation was not completed. You can retry without downloading again."):result==PackageInstaller.STATUS_FAILURE_STORAGE?"Not enough storage to install the update.":result==PackageInstaller.STATUS_FAILURE_BLOCKED?"Android blocked installation. Check the app’s install permission and try again.":"Android could not install the update. Your current game and saves are unchanged.";fail(message);
         }
     }
-    private void fail(String message){committed=false;ui(()->{progress.setVisibility(View.GONE);status.setText(message==null?"Could not update. Check your connection and try again.":message);action.setEnabled(true);action.setText("Close");action.setOnClickListener(v->finish());});}
-    private void discardApk(){File file=apk;apk=null;if(file!=null)file.delete();}
+    private void fail(String message){committed=false;ui(()->{progress.setVisibility(View.GONE);status.setText(message==null?"Could not update. Check your connection and try again.":message);action.setEnabled(true);boolean retry=apk!=null&&apk.isFile();action.setText(retry?"Retry Installation":"Close");action.setOnClickListener(v->{if(retry)requestInstall();else finish();});});}
+    private SharedPreferences updateState(){return getSharedPreferences("pending-game-update",MODE_PRIVATE);}
+    private void rememberCandidate(){if(apk!=null)updateState().edit().putString("file",apk.getName()).putString("version",version).putLong("size",expectedSize).putInt("session",sessionId).apply();}
+    private void restoreCandidate(){
+        SharedPreferences saved=updateState();String name=saved.getString("file","");
+        if(!name.matches("game-update-[A-Za-z0-9_-]+\\.apk"))return;
+        File file=new File(getCacheDir(),name);long size=saved.getLong("size",0);
+        if(!file.isFile()||file.length()!=size)return;
+        apk=file;expectedSize=size;version=saved.getString("version","");sessionId=saved.getInt("session",-1);
+    }
+    private void discardApk(){File file=apk;apk=null;if(file!=null)file.delete();updateState().edit().clear().apply();}
     @Override public void onBackPressed(){if(committed){Toast.makeText(this,"Finish the Android installation prompt first.",Toast.LENGTH_SHORT).show();return;}super.onBackPressed();}
-    @Override protected void onDestroy(){closed=true;HttpsURLConnection c=connection;if(c!=null)c.disconnect();worker.shutdownNow();if(!committed&&sessionId>=0)try{getPackageManager().getPackageInstaller().abandonSession(sessionId);}catch(Exception ignored){}discardApk();super.onDestroy();}
+    @Override protected void onDestroy(){closed=true;HttpsURLConnection c=connection;if(c!=null)c.disconnect();worker.shutdownNow();if(!committed&&sessionId>=0)try{getPackageManager().getPackageInstaller().abandonSession(sessionId);}catch(Exception ignored){}if(!committed)discardApk();super.onDestroy();}
 }
