@@ -18,6 +18,11 @@ final class UpdatePolicy {
             digest.matches("sha256:[0-9a-fA-F]{64}") &&
             url.equals("https://github.com/Thronior/ygo-rogue-duelist/releases/download/"+tag+"/YGO-Rogue-Android.apk");
     }
+    static boolean deltaAsset(String url,String tag,String baseHash,String digest,long size,long fullSize) {
+        return tag.matches("v?\\d+\\.\\d+\\.\\d+") && baseHash.matches("[0-9a-f]{64}") &&
+            size>0 && size<fullSize*0.8 && fullSize<=MAX_APK_BYTES && digest.matches("sha256:[0-9a-fA-F]{64}") &&
+            url.equals("https://github.com/Thronior/ygo-rogue-duelist/releases/download/"+tag+"/ygo-update-"+baseHash+".delta.gz");
+    }
     static boolean allowed(URL url) {
         String host=url.getHost();
         return "https".equals(url.getProtocol()) && url.getUserInfo()==null && (url.getPort()==-1||url.getPort()==443) &&

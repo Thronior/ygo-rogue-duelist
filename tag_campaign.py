@@ -229,6 +229,13 @@ class TagCampaign:
     else:cursed_relics.reroll(run,self.rng)
    for field in ('artifacts','cursed_artifacts','cursed_offer','shop'):self.shared[field]=deepcopy(run.get(field))
    self.sync();return
+  if action in ('reward-reroll','reward-accept'):
+   import reward_slots
+   if action=='reward-accept':reward_slots.accept(run);return
+   if self.phase not in ('shop','complete'):raise ValueError('No victory rewards are available.')
+   result=reward_slots.reroll(run,value,self.rng)
+   with self.scope(seat):game.update_profile(run)
+   self.shared['gold']=run['gold'];self.sync();return result
   if action=='shop-reroll':
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
    with self.scope(seat):price=game.reroll_shop(run,self.rng)

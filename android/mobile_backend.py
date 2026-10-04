@@ -137,6 +137,13 @@ def dispatch(raw):
  elif action=='boss-reroll':
   import boss_selection
   result=boss_selection.reroll(g,run)
+ elif action=='reward-reroll':
+  import reward_slots
+  result=reward_slots.reroll(run,value)
+  g.update_profile(run)
+ elif action=='reward-accept':
+  import reward_slots
+  reward_slots.accept(run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))

@@ -43,7 +43,7 @@
         "name": "Seto Kaiba",
         "tier": 2,
         "deck": "seto-kaiba-tier-2",
-        "source": "User supplied exact list",
+        "source": "User supplied exact list; user-approved balance adjustments 2026-10-04",
         "fixed": true
       },
       {
@@ -192,7 +192,7 @@
         "name": "Maximillion Pegasus",
         "tier": 1,
         "deck": "maximillion-pegasus-tier-1",
-        "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&pid=13302001&request_locale=en&rp=99999",
+        "source": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&pid=13302001&request_locale=en&rp=99999; user-approved balance adjustments 2026-10-04",
         "fixed": true,
         "starter_deck": "SDP"
       },
@@ -313,7 +313,7 @@
         "name": "Yami Marik",
         "tier": 3,
         "deck": "yami-marik-tier-3",
-        "source": "User supplied exact list",
+        "source": "User supplied exact list; user-approved balance adjustments 2026-10-04",
         "fixed": true
       }
     ],
@@ -339,7 +339,7 @@
         "name": "Tristan Taylor",
         "tier": 3,
         "deck": "tristan-taylor-tier-3",
-        "source": "User-provided exact 40-card main / 6-card Extra Deck screenshot (2026-09-24)",
+        "source": "User-provided exact 40-card main / 6-card Extra Deck screenshot (2026-09-24); user-approved balance adjustments 2026-10-04",
         "fixed": true
       }
     ],
@@ -547,7 +547,7 @@
         "name": "Tea Gardner",
         "tier": 3,
         "deck": "tea-gardner-tier-3",
-        "source": "User-supplied list balanced to 20 monsters and 20 Spells/Traps; three substitutions",
+        "source": "User-supplied list balanced to 20 monsters and 20 Spells/Traps; three substitutions; user-approved balance adjustments 2026-10-04",
         "fixed": true
       }
     ],

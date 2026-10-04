@@ -13,7 +13,6 @@ import org.json.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.net.ssl.HttpsURLConnection;
@@ -24,7 +23,9 @@ public final class UpdateActivity extends Activity {
     private volatile boolean closed;
     private volatile HttpsURLConnection connection;
     private volatile File apk;
+    private final UpdateDownload download=new UpdateDownload();
     private TextView status;
+    private TextView transfer;
     private ProgressBar progress;
     private Button action;
     private volatile int sessionId=-1;
@@ -39,6 +40,7 @@ public final class UpdateActivity extends Activity {
         int pad=(int)(24*getResources().getDisplayMetrics().density);panel.setPadding(pad,pad,pad,pad);panel.setBackgroundColor(Color.rgb(8,25,35));
         TextView title=new TextView(this);title.setText("Game Update");title.setTextSize(26);title.setTextColor(Color.rgb(242,220,137));panel.addView(title);
         status=new TextView(this);status.setTextSize(17);status.setTextColor(Color.WHITE);status.setGravity(Gravity.CENTER);status.setPadding(0,pad,0,pad);panel.addView(status);
+        transfer=new TextView(this);transfer.setTextSize(14);transfer.setTextColor(Color.rgb(180,200,210));transfer.setGravity(Gravity.CENTER);panel.addView(transfer);
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setMax(100);progress.setIndeterminate(true);panel.addView(progress,new LinearLayout.LayoutParams(-1,pad));
         action=new Button(this);action.setText("Cancel");action.setOnClickListener(v->finish());panel.addView(action);setContentView(panel);
         if(getIntent().hasExtra(PackageInstaller.EXTRA_STATUS)){restoreCandidate();handleResult(getIntent());}else begin();
@@ -81,21 +83,58 @@ public final class UpdateActivity extends Activity {
                 version=tag.replaceFirst("^v", "");
                 if(getCacheDir().getUsableSpace()<expectedSize*2+32*1024*1024)throw new IOException("Not enough free space to update. Free some storage and try again.");
                 apk=File.createTempFile("game-update-", ".apk",getCacheDir());
-                HttpsURLConnection c=open(url);MessageDigest hash=MessageDigest.getInstance("SHA-256");long total=0;int previous=-1;
                 ui(()->progress.setIndeterminate(false));
-                try(InputStream in=c.getInputStream();FileOutputStream out=new FileOutputStream(apk)){
-                    byte[] buf=new byte[65536];int n;while((n=in.read(buf))!=-1){ensureOpen();total+=n;if(total>expectedSize)throw new IOException("The downloaded update has an unexpected size.");out.write(buf,0,n);hash.update(buf,0,n);
-                        int percent=(int)(total*100/expectedSize);if(percent!=previous){previous=percent;final int p=percent;ui(()->{progress.setProgress(p);status.setText("Downloading Version "+version+"… "+p+"%");});}}
-                    out.getFD().sync();
-                }finally{c.disconnect();connection=null;}
-                StringBuilder hex=new StringBuilder();for(byte b:hash.digest())hex.append(String.format(Locale.ROOT,"%02x",b&255));
-                if(total!=expectedSize||!hex.toString().equalsIgnoreCase(digest.substring(7)))throw new IOException("The download is incomplete or damaged. Please try again.");
+                if(!tryDelta(assets,tag,digest.substring(7))){
+                    download.download(url,apk,expectedSize,digest.substring(7),downloadProgress(expectedSize,"Downloading Version "+version));
+                }
                 text("Verifying the update…");
                 PackageInfo candidate=getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(),PackageManager.GET_SIGNING_CERTIFICATES);
                 if(candidate==null||!getPackageName().equals(candidate.packageName)||!version.equals(candidate.versionName)||candidate.getLongVersionCode()<=installed.getLongVersionCode()||!sameSigners(installed,candidate))throw new IOException("This update does not match the installed game.");
                 ensureOpen();rememberCandidate();ui(this::requestInstall);
             }catch(Exception error){discardApk();fail(error.getMessage());}
         });
+    }
+    private UpdateDownload.Progress downloadProgress(long size,String label){
+        return new UpdateDownload.Progress(){
+            private int previous=-1;
+            private long started=System.nanoTime(),lastReport;
+            public synchronized void update(long bytes){
+                int percent=(int)(bytes*100/size);
+                long now=System.nanoTime();if(bytes==0){started=now;previous=-1;}
+                if(bytes!=0&&percent!=100&&(percent<=previous||now-lastReport<200000000L))return;
+                previous=percent;lastReport=now;
+                boolean downloading=label.startsWith("Downloading");
+                String amount=String.format(Locale.ROOT,"%.1f / %.1f MB",bytes/1048576.0,size/1048576.0);
+                double seconds=(now-started)/1e9;
+                if(downloading&&seconds>=1&&bytes>0&&percent<100)amount+=String.format(Locale.ROOT," · %.1f MB/s",bytes/1048576.0/seconds);
+                final String detail=amount;
+                ui(()->{progress.setVisibility(View.VISIBLE);progress.setIndeterminate(false);progress.setProgress(percent);status.setText(downloading&&percent==100?"Verifying the download…":label+"… "+percent+"%");transfer.setText(detail);});
+            }
+        };
+    }
+    private boolean tryDelta(JSONArray assets,String tag,String targetHash) throws IOException {
+        File patch=null;
+        try{
+            boolean offered=false;
+            for(int i=0;i<assets.length();i++)if(assets.getJSONObject(i).optString("name").matches("ygo-update-[0-9a-f]{64}\\.delta\\.gz")){offered=true;break;}
+            if(!offered)return false;
+            text("Checking for a smaller update…");
+            File base=new File(getApplicationInfo().sourceDir);String baseHash=UpdateDelta.hash(base,this::ensureOpen);
+            String name="ygo-update-"+baseHash+".delta.gz";JSONObject selected=null;
+            for(int i=0;i<assets.length();i++)if(name.equals(assets.getJSONObject(i).optString("name"))){selected=assets.getJSONObject(i);break;}
+            if(selected==null)return false;
+            long size=selected.getLong("size");String url=selected.getString("browser_download_url"),hash=selected.optString("digest");
+            if(!UpdatePolicy.deltaAsset(url,tag,baseHash,hash,size,expectedSize))return false;
+            if(getCacheDir().getUsableSpace()<expectedSize*2+size+32*1024*1024)return false;
+            patch=File.createTempFile("game-update-",".delta.gz",getCacheDir());
+            download.download(url,patch,size,hash.substring(7),downloadProgress(size,"Downloading smaller update"));
+            text("Preparing the update…");
+            UpdateDelta.apply(base,patch,apk,expectedSize,targetHash,this::ensureOpen,downloadProgress(expectedSize,"Preparing the update"));
+            return true;
+        }catch(Exception error){
+            ensureOpen();android.util.Log.i("GameUpdate","Smaller update unavailable; using full APK.");
+            text("Downloading the full update instead…");return false;
+        }finally{if(patch!=null)patch.delete();}
     }
     private static boolean sameSigners(PackageInfo a,PackageInfo b){
         if(a.signingInfo==null||b.signingInfo==null)return false;
@@ -109,7 +148,7 @@ public final class UpdateActivity extends Activity {
             try{startActivityForResult(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:"+getPackageName())),1);}catch(ActivityNotFoundException error){awaitingPermission=false;fail("Open Android Settings and allow this game to install updates, then try again.");}
             return;
         }
-        status.setText("Installing Version "+version+"… Your saves will be kept.");progress.setVisibility(View.VISIBLE);progress.setIndeterminate(true);action.setEnabled(false);
+        status.setText("Preparing installation… Your saves will be kept.");progress.setVisibility(View.VISIBLE);progress.setIndeterminate(true);action.setEnabled(false);
         worker.execute(()->{
             PackageInstaller installer=getPackageManager().getPackageInstaller();
             try{
@@ -118,7 +157,8 @@ public final class UpdateActivity extends Activity {
                 if(Build.VERSION.SDK_INT>=31)params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED);
                 sessionId=installer.createSession(params);rememberCandidate();
                 try(PackageInstaller.Session session=installer.openSession(sessionId);InputStream in=new FileInputStream(apk);OutputStream out=session.openWrite("base.apk",0,expectedSize)){
-                    byte[] buf=new byte[65536];int n;while((n=in.read(buf))!=-1){ensureOpen();out.write(buf,0,n);}session.fsync(out);
+                    UpdateDownload.Progress staged=downloadProgress(expectedSize,"Preparing installation");
+                    byte[] buf=new byte[65536];long copied=0;int n;while((n=in.read(buf))!=-1){ensureOpen();out.write(buf,0,n);copied+=n;staged.update(copied);}session.fsync(out);
                 }
                 ensureOpen();
                 Intent result=new Intent(this,UpdateActivity.class).setAction("com.shadowrun.game.UPDATE_RESULT").setData(Uri.parse("shadow-update:"+sessionId)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -144,6 +184,7 @@ public final class UpdateActivity extends Activity {
             Intent confirmation=intent.getParcelableExtra(Intent.EXTRA_INTENT);
             if(confirmation==null){fail("Android could not open the update confirmation.");return;}
             status.setText("Confirm the update in Android’s installation prompt.");
+            progress.setVisibility(View.GONE);transfer.setText("Version "+version);
             action.setEnabled(false);
             try{startActivity(confirmation);}catch(ActivityNotFoundException error){fail("Android could not open the update confirmation.");}
         }else if(result==PackageInstaller.STATUS_SUCCESS){
@@ -165,5 +206,5 @@ public final class UpdateActivity extends Activity {
     }
     private void discardApk(){File file=apk;apk=null;if(file!=null)file.delete();updateState().edit().clear().apply();}
     @Override public void onBackPressed(){if(committed){Toast.makeText(this,"Finish the Android installation prompt first.",Toast.LENGTH_SHORT).show();return;}super.onBackPressed();}
-    @Override protected void onDestroy(){closed=true;HttpsURLConnection c=connection;if(c!=null)c.disconnect();worker.shutdownNow();if(!committed&&sessionId>=0)try{getPackageManager().getPackageInstaller().abandonSession(sessionId);}catch(Exception ignored){}if(!committed)discardApk();super.onDestroy();}
+    @Override protected void onDestroy(){closed=true;download.cancel();HttpsURLConnection c=connection;if(c!=null)c.disconnect();worker.shutdownNow();if(!committed&&sessionId>=0)try{getPackageManager().getPackageInstaller().abandonSession(sessionId);}catch(Exception ignored){}if(!committed)discardApk();super.onDestroy();}
 }

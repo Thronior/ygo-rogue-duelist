@@ -10,7 +10,8 @@ export async function preloadCards(cards,onProgress,{fetchImage=fetch,validateIm
  if(cache)navigator.storage?.persist?.().catch(()=>{});
  const ids=[...new Set(cards.map(c=>Number(c.id)))];let loaded=ids.filter(id=>cardImages.has(id)).length,processed=loaded,next=0,bytes=0;const failed=[];
  const pending=ids.filter(id=>!cardImages.has(id));
- const report=()=>onProgress({loaded,total:ids.length,processed,failed:failed.length,bytes});report();
+ let lastReport=-Infinity;
+ const report=()=>{const now=performance.now();if(processed!==ids.length&&now-lastReport<50)return;lastReport=now;onProgress({loaded,total:ids.length,processed,failed:failed.length,bytes})};report();
  async function worker(){while(next<pending.length){const id=pending[next++];let url;try{
   const path=`assets/cards/${id}.jpg`;
   let response=cache?await cache.match(path).catch(()=>null):null;

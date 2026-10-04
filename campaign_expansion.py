@@ -339,6 +339,7 @@ def install(g):
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   reward_start=len(run['pool'])
    run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=run['last_reward_cards'][0];run['pool'].extend(run['last_reward_cards'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
@@ -348,10 +349,12 @@ def install(g):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
    run['lp']=max(run['lp'],min(cap,run['lp']+heal))
-   if amount(run,'reward_card') and not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck'):
+   for _ in range(int(amount(run,'reward_card')) if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
    for _ in range(2*ar.copies(run,'cursed_collectors_burden')):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
+   import reward_slots
+   reward_slots.prepare(run,defeated_deck,reward_start)
    if run.get('encore_active'):run.update(encore_active=False,encore_won=True)
    run['stage']='complete' if run['round']==RUN_LENGTH or run.get('secret_challenge') else 'shop'
    # Award collection progress before generating this victory's shop.

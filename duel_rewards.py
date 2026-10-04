@@ -27,6 +27,11 @@ if _calibration.exists():
  _payouts=json.loads(_calibration.read_text(encoding='utf8')).get('payouts',{})
  RULES[:]=[(m,t,l,int(_payouts.get(l,c))) for m,t,l,c in RULES]
 
+# Pace bonuses stack to 205/105/70/60/50/5 coins by total turns 2/4/6/8/10/20.
+RULES[:]=[(m,t,l,35 if m=='swift' else 100 if m=='blitz' else c) for m,t,l,c in RULES]
+for metric,turns,coins in [('quick',6,10),('early_eight',8,10),('early_ten',10,45),('early_twenty',20,5)]:
+ RULES.append((metric,1,f'Win within {turns} total turns',coins))
+
 RULES.append(('signature_played',1,'Play your signature card',10))
 
 def metrics(run,events,by_id):
@@ -66,7 +71,9 @@ def metrics(run,events,by_id):
  m['draws']=max(0,m['draw']-opening)
  m['untouched']=int(known and m['damage_taken']==0);m['close_call']=int(0<run['lp']<=500);m['healthy']=int(run['lp']>=8000)
  m['swift']=int(known and 0<m['turns']<=4);m['blitz']=int(known and 0<m['turns']<=2);m['quick']=int(known and 0<m['turns']<=6)
- m['slow_turns']=max(0,m['turns']-6)
+ m['early_eight']=int(known and 0<m['turns']<=8);m['early_ten']=int(known and 0<m['turns']<=10)
+ m['early_twenty']=int(known and 0<m['turns']<=20)
+ m['slow_turns']=max(0,m['turns']-10)
  m['destroyed_total']=m['battle_destroy']+m['destroy']
  m['unique_activations']=len(spell_names|trap_names|effect_names)
  battle=max(0,m['damage']-m['effect_damage']);boss=(run.get('round',0)+1)%3==0
@@ -98,12 +105,18 @@ def metrics(run,events,by_id):
  return m
 
 # These conditions can only be decided at victory; all other thresholds are monotonic.
-VICTORY_ONLY={'untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage'}
+VICTORY_ONLY={'early_twenty','early_eight','early_ten','untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage'}
+def pace_penalty(turns):
+ """Continuous brackets: 7/turn after 10, 12/turn after 20, then +3 each decade."""
+ extra=max(0,int(turns)-10);blocks,remainder=divmod(extra,10)
+ return 70*blocks+15*blocks*(blocks-1)+remainder*(7+3*blocks)+2*max(0,int(turns)-20)
+
 def progress(run,events,by_id,victory=False):
  m=metrics(run,events,by_id)
  out={label:coins for metric,threshold,label,coins in RULES if (victory or metric not in VICTORY_ONLY) and m[metric]>=threshold}
- slow=-4*m['slow_turns']
+ slow=-pace_penalty(m['turns'])
  if slow:out['Slow duel']=slow
+ if victory and sum(out.values())<0:out['Victory minimum']=-sum(out.values())
  return out
 
 
@@ -111,9 +124,12 @@ def score(run,events,by_id):
  m=metrics(run,events,by_id);tally={'Victory':30}
  for metric,threshold,label,coins in RULES:
   if m[metric]>=threshold:tally[label]=coins
- slow=-4*m['slow_turns']
+ slow=-pace_penalty(m['turns'])
  if slow:tally['Slow duel']=slow
- return tally,min(400,sum(tally.values()))
+ # Pace can remove milestone earnings, never the base victory award.
+ total=sum(tally.values())
+ if total<30:tally['Victory minimum']=30-total;total=30
+ return tally,min(400,total)
 
 def show(app):
  from in_game_popup import Popup

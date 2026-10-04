@@ -21,7 +21,7 @@ export const legendarySummons={
  72443568:{"name": "Silent Magician LV8", "color": "#b6dfff"},
  87997872:{"name": "Theinen the Great Sphinx", "color": "#ffca65"}
 };
-export async function playLegendarySummon(code,{field,image,sound=()=>{},music=()=>{},active=()=>true,reduced=false}){
+export async function playLegendarySummon(code,{field,image,sound=()=>{},music=()=>{},active=()=>true,paused=()=>false,reduced=false}){
  const theme=legendarySummons[code];if(!theme||!field||!active())return false;
  const el=document.createElement('div');el.className='legendary-summon';el.style.setProperty('--summon-color',theme.color);el.setAttribute('role','status');el.setAttribute('aria-label',theme.name+' summoned');
  const light=document.createElement('div');light.className='legendary-summon-light';
@@ -35,7 +35,7 @@ export async function playLegendarySummon(code,{field,image,sound=()=>{},music=(
   animations.push(light.animate([{opacity:0},{opacity:.75,offset:.16},{opacity:.4,offset:.7},{opacity:0}],{duration:3000,fill:'both'}));
   animations.push(art.animate([{opacity:0,transform:reduced?'none':'scale(.72)'},{opacity:0,offset:.16},{opacity:1,transform:'scale(1)',offset:.32},{opacity:1,transform:reduced?'none':'scale(1.035)',offset:.78},{opacity:0,transform:reduced?'none':'scale(1.1)'}],{duration:3000,fill:'both',easing:'ease-out'}));
   animations.push(label.animate([{opacity:0},{opacity:0,offset:.25},{opacity:1,offset:.36},{opacity:1,offset:.8},{opacity:0}],{duration:3000,fill:'both'}));
-  await new Promise(resolve=>{timer=setTimeout(resolve,3000);watch=setInterval(()=>{if(!active()||!field.isConnected||document.hidden)resolve()},100)});
+  await new Promise(resolve=>{let remaining=3000,last=performance.now();watch=setInterval(()=>{const now=performance.now();if(!paused())remaining-=now-last;last=now;if(remaining<=0||!active()||!field.isConnected||document.hidden)resolve()},50)});
  }finally{clearTimeout(timer);clearInterval(watch);for(const a of animations)a.cancel();el.remove()}
  return true;
 }

@@ -1,0 +1,41 @@
+import {rewardAudio} from './reward-slot-audio.js';
+import {deckRewardRarities} from './reward-rarity.js';
+// Presentation never chooses a reward. Every final card comes from the backend.
+export function rewardMarkup(run,{image,name,esc}){
+ const ids=run.last_reward_cards||(run.last_reward_card?[run.last_reward_card]:[]);
+ return `<section class="reward-screen"><header><div><strong>+${Number(run.last_gold||0).toLocaleString()} coins</strong><small>LP ${Number(run.last_healing?.before??run.lp).toLocaleString()} → ${Number(run.lp).toLocaleString()}</small></div><div class="reward-wallet"><img src="assets/ui/coins.png" alt="Coins"><b>${run.gold}</b></div></header><div class="reward-slot-grid">${ids.map((id,i)=>`<article class="reward-slot waiting" data-slot="${i}"><button class="reward-card" data-reward-start="${i}" aria-label="Spin reward slot ${i+1}"><img alt="" src="assets/card-back.jpg"><span class="reward-start-label">Tap to spin</span></button><span class="reward-rarity" aria-hidden="true">ULTRA RARE</span><strong class="reward-name">Ready to spin</strong><button class="reward-reroll" data-reward-reroll="${i}" disabled><span>Reroll</span><img src="assets/ui/coins.png" alt="coins"><b>15</b></button></article>`).join('')}</div><p class="reward-status" role="status">Each reroll costs 15 coins. The same card may appear again.</p><footer>${ids.length>1?'<button class="reward-spin-all" data-reward-spin-all>Spin all</button>':''}<button data-do="reward-details">Coin breakdown</button><button class="primary" data-do="reward-accept" disabled>${run.cursed_offer?'Choose cursed relic':run.stage==='complete'?'View run summary':'Open shop'}</button></footer></section>`;
+}
+
+export function mountRewardSlots(root,{getRun,reroll,image,name,tick,land,volume=()=>.7,ultra,card=()=>null,reduced=false}){
+ const rarity=deckRewardRarities(getRun().reward_slots?.source||getRun().last_reward_cards||[],card);
+ const audio=rewardAudio(volume);tick??=(progress)=>audio.tick(progress);land??=()=>audio.land();
+ const slots=[...root.querySelectorAll('.reward-slot')],grid=root.querySelector('.reward-slot-grid'),working=new Set(),unrevealed=new Set(slots.map((_,i)=>i)),frames=new Set(),pendingReveals=new Set();let disposed=false,lastLand=0;
+ function controls(){if(disposed)return;const run=getRun();root.querySelector('.reward-wallet b').textContent=Number(run.gold).toLocaleString();slots.forEach((el,i)=>{el.querySelector('.reward-reroll').disabled=unrevealed.has(i)||working.has(i)||!run.reward_slots?.pending||run.gold<15});root.querySelector('[data-do="reward-accept"]').disabled=working.size>0||unrevealed.size>0;const all=root.querySelector('[data-reward-spin-all]');if(all){all.disabled=![...unrevealed].some(i=>!working.has(i));all.hidden=unrevealed.size===0;}if(!working.size)audio.stopSpin();}
+ function layout(){const {width:w,height:h}=grid.getBoundingClientRect();if(w<=0||h<=0||!slots.length)return;let best=0,columns=1;for(let c=1;c<=slots.length;c++){const rows=Math.ceil(slots.length/c),cw=(w-8*(c-1))/c,ch=(h-8*(rows-1))/rows,scale=Math.min(cw/120,ch/220);if(c>1&&cw<76)continue;if(scale>best){best=scale;columns=c}}grid.classList.toggle('compact-cards',(h-8*(Math.ceil(slots.length/columns)-1))/Math.ceil(slots.length/columns)<110);grid.style.gridTemplateColumns=`repeat(${columns},minmax(0,1fr))`;grid.style.gridTemplateRows=`repeat(${Math.ceil(slots.length/columns)},minmax(0,1fr))`;grid.style.setProperty('--reward-font',Math.max(8,Math.min(14,14*best))+'px');}
+ const resize=new ResizeObserver(layout);resize.observe(grid);
+ let ultraLights=null,ultraTimer=null,lastLight=-Infinity;
+ function screenShine(){
+  if(disposed||document.hidden||performance.now()-lastLight<700)return;
+  lastLight=performance.now();clearTimeout(ultraTimer);ultraLights?.remove();
+  ultraLights=document.createElement('div');ultraLights.className='reward-ultra-screen'+(reduced?' reduced':'');ultraLights.setAttribute('aria-hidden','true');
+  ultraLights.innerHTML='<i class="ultra-beam beam-one"></i><i class="ultra-beam beam-two"></i><i class="ultra-beam beam-three"></i><i class="ultra-beam beam-four"></i><i class="ultra-screen-glow"></i><i class="ultra-confetti-sheet"></i>';
+  // A manual popover paints above the reward dialog without taking focus.
+  ultraLights.setAttribute('popover','manual');document.body.append(ultraLights);
+  try{ultraLights.showPopover?.()}catch{}
+  ultraTimer=setTimeout(()=>{ultraLights?.remove();ultraLights=null;ultraTimer=null},reduced?650:2800);
+ }
+
+ async function reveal(i,id){
+  if(disposed)return;
+  const el=slots[i],button=el.querySelector('.reward-card'),img=button.querySelector('img'),label=el.querySelector('.reward-name');
+  el.classList.remove('waiting','landed','ultra-reward','rare-reward','common-reward');button.removeAttribute('data-reward-start');el.querySelector('.reward-rarity').setAttribute('aria-hidden','true');audio.spin();button.removeAttribute('data-inspect');button.disabled=true;label.textContent='Revealing…';img.style.visibility='visible';el.classList.add('spinning');
+  const pool=getRun().reward_slots?.source||getRun().last_reward_cards||[id],duration=reduced?180:1250+Math.min(i,6)*100;
+  await new Promise(resolve=>{const finish=()=>{pendingReveals.delete(finish);resolve()};pendingReveals.add(finish);const start=performance.now();let nextSwap=0,frame=0,previousCard=null;function step(now){if(disposed){finish();return}const elapsed=now-start;if(elapsed>=duration||document.hidden){finish();return}if(elapsed>=nextSwap){frame++;nextSwap=elapsed+70+220*(elapsed/duration)**2;const passing=pool[(frame*7+i*3)%pool.length];img.src=image(passing);if(passing!==previousCard){previousCard=passing;tick(elapsed/duration)}}const raf=requestAnimationFrame(t=>{frames.delete(raf);step(t)});frames.add(raf)}step(start)});
+  if(disposed)return;img.src=image(id);img.alt=name(id);img.style.visibility='visible';label.textContent=name(id);el.classList.remove('spinning');el.classList.add('landed');const tier=ultra?(ultra(id)?'ultra':'common'):(rarity.get(Number(id))||'common');el.classList.add(tier+'-reward');el.querySelector('.reward-rarity').textContent=tier==='ultra'?'ULTRA RARE':tier==='rare'?'RARE':'COMMON';el.querySelector('.reward-rarity').removeAttribute('aria-hidden');if(tier==='ultra'){el.classList.add('ultra-reward');el.querySelector('.reward-rarity').removeAttribute('aria-hidden');audio.ultra();screenShine();}button.disabled=false;button.dataset.inspect=id;button.setAttribute('aria-label','Inspect '+name(id)+' ('+(tier==='ultra'?'Ultra Rare':tier==='rare'?'Rare':'Common')+' reward)');if(performance.now()-lastLand>80){lastLand=performance.now();land();}
+ }
+ controls();
+ async function startSlot(i){if(working.has(i)||!unrevealed.has(i))return;if(!working.size)audio.newRoll();working.add(i);controls();try{await reveal(i,getRun().last_reward_cards?.[i]??getRun().last_reward_card);unrevealed.delete(i)}finally{working.delete(i);controls()}}
+ async function click(event){const all=event.target.closest('[data-reward-spin-all]');if(all){if(!all.disabled)await Promise.all([...unrevealed].map(startSlot));return;}const start=event.target.closest('[data-reward-start]');if(start){if(!start.disabled)await startSlot(Number(start.dataset.rewardStart));return;}const button=event.target.closest('[data-reward-reroll]');if(!button||button.disabled)return;const i=Number(button.dataset.rewardReroll);if(working.has(i))return;audio.newRoll();working.add(i);controls();const el=slots[i];el.querySelector('.reward-card').disabled=true;el.querySelector('.reward-card img').style.visibility='hidden';el.querySelector('.reward-name').textContent='Rolling…';try{await reroll(i);await reveal(i,getRun().last_reward_cards[i]);}catch(error){if(disposed)return;root.querySelector('.reward-status').textContent=error.message||'Unable to reroll.';await reveal(i,getRun().last_reward_cards[i]);}finally{working.delete(i);controls()}}
+ root.addEventListener('click',click);layout();
+ return {refresh:controls,destroy(){if(disposed)return;disposed=true;clearTimeout(ultraTimer);ultraLights?.remove();ultraLights=null;audio.destroy();resize.disconnect();root.removeEventListener('click',click);for(const id of frames)cancelAnimationFrame(id);frames.clear();for(const finish of pendingReveals)finish();pendingReveals.clear();}};
+}

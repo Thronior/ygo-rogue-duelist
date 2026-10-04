@@ -257,7 +257,7 @@ export class TagUI {
   const before=this.view?.phase,scroll=this.root.querySelector('.tag-deck-scroll')?.scrollTop||0;
   if(before==='duel'&&view.phase!=='duel'){this.deckFilter='All';this.deckSort='Default';delete deckSearches['tag-deck'];}this.view=view;this.updateRoomBadge();this.profile=view.profile;this.onView(view);
   if(view.phase!=='duel'){this.render();const list=this.root.querySelector('.tag-deck-scroll');if(list)list.scrollTop=scroll}
-  if(before==='duel'&&view.phase==='shop')this.showRewards?.();
+  if((!before||before==='duel')&&['shop','complete'].includes(view.phase)&&view.run.reward_slots?.pending)this.showRewards?.();
  }
  destroy(){this.root.removeEventListener('contextmenu',this.context);this.roomBadge?.remove();clearTimeout(this.finaleRollTimer);this.cancelTradeHold();this.root.removeEventListener('pointerup',this.cancelTradeHold);this.root.removeEventListener('pointercancel',this.cancelTradeHold);this.root.removeEventListener('scroll',this.cancelTradeHold,true);window.visualViewport?.removeEventListener('resize',this.viewport);this.root.style.removeProperty('--tag-visible-height');this.alive=false;clearTimeout(this.tap?.timer);document.removeEventListener('click',this.click,true);this.root.removeEventListener('pointerdown',this.down);this.root.removeEventListener('pointermove',this.move)}
 }

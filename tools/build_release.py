@@ -6,3 +6,5 @@ subprocess.run([sys.executable,'-B',str(ROOT/'tools/build_android.py')],cwd=ROOT
 version=(ROOT/'VERSION').read_text().strip()
 subprocess.run([sys.executable,'-B',str(ROOT/'tools/build_pwa.py'),'--output',str(ROOT/'releases'/('web-'+version))],cwd=ROOT,check=True)
 print('Built Android and web. Publishing is separate.')
+
+subprocess.run([sys.executable,'-B',str(ROOT/'tools/finalize_releases.py')],cwd=ROOT,check=True)

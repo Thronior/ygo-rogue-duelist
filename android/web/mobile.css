@@ -1297,3 +1297,118 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .settings-organized .settings-danger{color:#ffc1ba}.settings-organized .danger{border-color:#c67572;background:#642d3a}.settings-organized .settings-advanced{grid-column:1/-1;margin:0;border-radius:10px;padding:6px 18px}.settings-advanced label{display:block;margin:8px 0}.settings-code{display:flex;gap:8px;margin-bottom:10px}.settings-code input{flex:1;min-width:0}
 .settings-organized .settings-about{grid-column:1/-1;text-align:center;font-size:11px;color:#92aeb9;margin:0}.settings-footer{flex:none;padding:10px 18px;display:flex;justify-content:center;border-top:1px solid #53798466;background:#0c222d}.settings-footer button{min-width:140px}
 @media(max-width:620px){.settings-page .settings-organized{grid-template-columns:1fr;padding:12px;gap:12px}.settings-organized .settings-section{padding:15px}}
+/* Keep inspection controls visible; only the detail pane scrolls for long effects. */
+#modal.card-inspect-modal[open]{display:flex;flex-direction:column;overflow:hidden}
+#modal.card-inspect-modal .modal-head{position:static;flex:0 0 auto;min-width:0;gap:8px}
+#modal.card-inspect-modal .modal-head h2{min-width:0;overflow-wrap:anywhere;font-size:clamp(15px,2.8vw,24px);margin:0}
+#modal.card-inspect-modal .modal-head button{flex-shrink:0}
+#modal.card-inspect-modal .inspect{flex:1 1 auto;min-height:0;overflow:hidden;grid-template-columns:minmax(80px,28%) minmax(0,1fr)}
+#modal.card-inspect-modal .inspect>img{width:100%;height:auto;max-height:100%;object-fit:contain;align-self:start}
+#modal.card-inspect-modal .inspect>div{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding-right:6px}
+#modal.card-inspect-modal .inspect-card-name{margin-top:0}
+.duel-log .log-action{display:flex;align-items:center;justify-content:space-between;text-align:left;width:100%;gap:12px;margin:5px 0;padding:12px;white-space:normal}
+.duel-log .log-action span{min-width:0;overflow-wrap:anywhere}
+.duel-log .log-action small{flex:0 0 auto;color:#f2dc89;font-size:11px}
+.duel-log .log-event{padding:6px 12px;margin:0;color:#a9b8c0}
+.duel-log .log-help{font-size:12px;color:#a9b8c0}
+@media(max-width:480px) and (orientation:portrait){#modal.card-inspect-modal .inspect{grid-template-columns:minmax(66px,25%) minmax(0,1fr);gap:10px}#modal.card-inspect-modal .inspect-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.duel-log .log-action{gap:6px;padding:9px}.duel-log .log-action small{font-size:10px}}
+
+/* Victory rewards occupy one viewport; every reward owns its own reroll. */
+dialog:has(> .reward-screen){box-sizing:border-box;width:min(1100px,calc(100vw - 16px));height:calc(var(--modal-viewport-height,100dvh) - 20px);max-height:calc(100dvh - 20px);padding:12px;overflow:hidden;display:flex;flex-direction:column;gap:8px;}
+dialog:not([open]):has(> .reward-screen){display:none}
+dialog:has(> .reward-screen)>.modal-head{flex:0 0 auto;margin:0;min-height:0}
+dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margin:0}
+.reward-screen{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.reward-screen>header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:0 0 auto}
+.reward-screen>header small{display:block;font-size:12px;color:#bdcdd2}
+.reward-wallet{display:flex;align-items:center;gap:6px;color:#ffe395;font-size:clamp(18px,4vw,28px)}
+.reward-wallet img{width:26px;height:26px;object-fit:contain}
+.reward-slot-grid{flex:1;min-height:0;min-width:0;display:grid;gap:8px;overflow:hidden}
+.reward-slot{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:stretch;gap:3px;border:1px solid #c9aa64;border-radius:9px;padding:5px;background:radial-gradient(ellipse at center,#294455,#0b1728);overflow:hidden}
+.reward-card{flex:1;min-height:0;min-width:0;width:100%;padding:0;border:0;background:transparent;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.reward-card img{display:block;height:100%;width:100%;min-height:0;object-fit:contain}
+.reward-card:disabled{opacity:1}.reward-slot.spinning .reward-card img{animation:reward-reel .16s linear infinite;filter:blur(1px)}
+.reward-name{font-size:var(--reward-font,12px);line-height:1.1;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;text-align:center;flex:0 0 auto;color:#ffe395}
+.reward-reroll{display:flex;align-items:center;justify-content:center;gap:4px;min-height:0;padding:5px 2px;font-size:var(--reward-font,12px);line-height:1;border:1px solid #e4b77d;background:linear-gradient(#983954,#632038);color:#fff3d6;border-radius:6px;flex:0 0 auto;min-width:0}
+.reward-reroll img{width:1em;height:1em;object-fit:contain}.reward-reroll:disabled{opacity:.45}
+.reward-status{flex:0 0 auto;font-size:11px;line-height:1.15;margin:0;text-align:center;color:#b9cbd0}
+.reward-screen>footer{display:flex;justify-content:space-between;gap:8px;flex:0 0 auto}
+.reward-screen>footer button{min-width:0;min-height:0;padding:8px;font-size:clamp(11px,2.5vw,15px);line-height:1.1}
+@keyframes reward-reel{from{transform:translateY(-28%)}to{transform:translateY(28%)}}
+@media(max-height:440px){dialog:has(> .reward-screen){padding:7px;gap:3px}.reward-screen{gap:4px}.reward-screen>header small{font-size:10px}.reward-wallet{font-size:18px}.reward-wallet img{width:20px;height:20px}.reward-screen>footer button{padding:5px}.reward-reroll{padding:4px 1px}.reward-status{font-size:10px}.reward-slot{padding:3px}}
+@media(prefers-reduced-motion:reduce){.reward-slot.spinning .reward-card img{animation:none;filter:none}}
+
+.reward-reroll{min-height:28px;font-size:max(10px,var(--reward-font,12px))}
+
+/* Slot-machine lights remain inside the existing card footprint. */
+.reward-slot{position:relative;isolation:isolate;border-color:#d5b45e;box-shadow:inset 0 0 12px #d8ad2420}
+.reward-slot::before{content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(circle at 8px 8px,#fff1a7 0 2px,transparent 3px) 0 0/19px 19px;opacity:.16}
+.reward-slot.spinning{border-color:#fbda70;background:radial-gradient(ellipse at 50% 45%,#572b71,#112438 70%);box-shadow:inset 0 0 20px #c570f655}
+.reward-slot.spinning::before{opacity:.55;animation:reward-bulbs .85s ease-in-out infinite alternate}
+.reward-card{position:relative}.reward-card::after{content:"";position:absolute;inset:-30%;pointer-events:none;background:linear-gradient(110deg,transparent 35%,#fff8ccbb 48%,transparent 61%);opacity:0;transform:translateX(-100%)}
+.reward-slot.landed{animation:reward-land .6s ease-out}
+.reward-slot.landed .reward-card::after{animation:reward-shine .75s ease-out}
+.reward-rarity{display:none;position:absolute;top:7px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:2;padding:3px 6px;border-radius:20px;background:linear-gradient(110deg,#794b15,#ffe399,#916321);color:#241003;font-size:clamp(7px,var(--reward-font,12px),12px);font-weight:900;letter-spacing:.05em;box-shadow:0 0 12px #ffcf64;pointer-events:none}
+.reward-slot.ultra-reward{border-color:#ffe696;background:radial-gradient(ellipse at 50% 38%,#745731,#352c55 52%,#111c30);box-shadow:inset 0 0 20px #ffd96c55,0 0 7px #ffd96c88;animation:reward-ultra-land 1.2s ease-out}
+.reward-slot.ultra-reward .reward-rarity{display:block}
+.reward-slot.ultra-reward .reward-name{color:#fff0a9;text-shadow:0 0 7px #ffae4d}
+.reward-slot.ultra-reward .reward-card::after{background:linear-gradient(110deg,transparent 32%,#ffdf76aa 43%,#fff 50%,#9ef5ff88 56%,transparent 67%);animation:reward-shine 1.1s ease-out 2}
+@keyframes reward-lights{from{box-shadow:inset 0 0 13px #f7bc5544;border-color:#f7bc55}to{box-shadow:inset 0 0 24px #c570f677;border-color:#b9e6ff}}
+@keyframes reward-bulbs{from{opacity:.2}to{opacity:.65}}
+@keyframes reward-shine{0%{opacity:0;transform:translateX(-100%)}20%{opacity:.8}80%{opacity:.8}100%{opacity:0;transform:translateX(100%)}}
+@keyframes reward-land{0%{box-shadow:inset 0 0 35px #ffe88dbb}100%{box-shadow:inset 0 0 12px #d8ad2420}}
+@keyframes reward-ultra-land{0%{box-shadow:inset 0 0 60px #fff1bacc,0 0 9px #fff1ba}100%{box-shadow:inset 0 0 20px #ffd96c55,0 0 7px #ffd96c88}}
+@media(prefers-reduced-motion:reduce){.reward-slot.spinning,.reward-slot.spinning::before,.reward-slot.landed,.reward-slot.ultra-reward,.reward-slot.landed .reward-card::after{animation:none}}
+
+.reward-start-label{display:none;position:absolute;inset:auto 4px 12%;padding:7px 3px;border:1px solid #ffe598;border-radius:8px;background:#132332ed;color:#ffe59c;font-size:clamp(10px,var(--reward-font,14px),18px);font-weight:bold;pointer-events:none;box-shadow:0 0 12px #ffd15c55}
+.reward-slot.waiting .reward-start-label{display:block}
+.reward-slot.waiting .reward-card img{opacity:.65}
+.reward-slot.waiting .reward-card{cursor:pointer}
+
+/* Ultra Rare celebration spans the viewport without affecting layout or taps. */
+.reward-ultra-screen{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;pointer-events:none!important;z-index:2147483647;display:block;isolation:isolate}
+.reward-ultra-screen::backdrop{background:transparent;pointer-events:none}
+.reward-ultra-screen i{position:absolute;display:block;pointer-events:none}
+.ultra-beam{left:50%;top:auto;bottom:-8vh;width:70vmax;height:145vmax;transform-origin:50% 100%;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%);background:linear-gradient(to top,rgba(var(--ray),.8),rgba(var(--ray),.38) 42%,rgba(var(--ray),.08));opacity:0;animation:ultra-ray-sway 2.7s ease-in-out both;will-change:transform,opacity}
+.ultra-beam.beam-one{--ray:255,211,83;--ray-start:-29deg;--ray-mid:-15deg;--ray-end:-25deg}
+.ultra-beam.beam-two{--ray:255,104,191;--ray-start:-9deg;--ray-mid:-20deg;--ray-end:-5deg;animation-delay:.04s}
+.ultra-beam.beam-three{--ray:83,225,255;--ray-start:10deg;--ray-mid:23deg;--ray-end:7deg;animation-delay:.07s}
+.ultra-beam.beam-four{--ray:172,115,255;--ray-start:31deg;--ray-mid:18deg;--ray-end:29deg;animation-delay:.1s}
+.ultra-screen-glow{inset:0;background:radial-gradient(ellipse at 50% 105%,#fff2b966,transparent 65%);animation:ultra-wide-glow 2.8s ease-out both}
+@keyframes ultra-ray-sway{0%{opacity:0;transform:translateX(-50%) rotate(var(--ray-start)) scaleY(.3)}15%{opacity:.75}48%{opacity:.72;transform:translateX(-50%) rotate(var(--ray-mid)) scaleY(1)}78%{opacity:.6;transform:translateX(-50%) rotate(var(--ray-end)) scaleY(1)}100%{opacity:0;transform:translateX(-50%) rotate(var(--ray-start)) scaleY(1)}}
+@keyframes ultra-wide-glow{0%,100%{opacity:0}25%{opacity:.8}}
+.reward-ultra-screen.reduced .ultra-beam,.reward-ultra-screen.reduced .ultra-screen-ring{display:none}
+.reward-ultra-screen.reduced .ultra-screen-glow{animation-duration:.65s}
+@media(prefers-reduced-motion:reduce){.reward-ultra-screen .ultra-beam,.reward-ultra-screen .ultra-screen-ring{display:none}.reward-ultra-screen .ultra-screen-glow{animation-duration:.65s}}
+
+.ultra-confetti-sheet{left:0;top:-100vh;width:100%;height:300vh;background:url('assets/ui/reward-confetti.svg') repeat;background-size:clamp(420px,100vw,960px) auto;animation:ultra-confetti-fall 2.8s linear both;will-change:transform,opacity}
+@keyframes ultra-confetti-fall{0%{opacity:0;transform:translateY(-20%)}12%{opacity:.95}78%{opacity:.9}100%{opacity:0;transform:translateY(42%)}}
+.reward-ultra-screen.reduced .ultra-confetti-sheet{display:none}
+@media(prefers-reduced-motion:reduce){.reward-ultra-screen .ultra-confetti-sheet{display:none}}
+
+/* Ultra cards keep a distinct foil finish after the full-screen celebration. */
+.reward-slot.ultra-reward{border:2px solid #ffe7a0;box-shadow:inset 0 0 25px #ffc94f44,inset 0 0 14px #72efce55,0 0 8px #76e8daa0;background:radial-gradient(ellipse at 50% 38%,#4a8075,#2d5368 52%,#17283d)}
+.reward-slot.ultra-reward .reward-card img{filter:drop-shadow(0 0 3px #ffe894) drop-shadow(0 0 7px #86f7d9bb) drop-shadow(0 0 12px #65bde980)}
+.reward-slot.ultra-reward .reward-card::before{content:"";position:absolute;inset:2%;z-index:1;pointer-events:none;background:radial-gradient(ellipse 2px 10px at 16% 18%,#fff 65%,transparent 100%),radial-gradient(ellipse 10px 2px at 16% 18%,#fff5b7 65%,transparent 100%),radial-gradient(ellipse 2px 8px at 82% 35%,#fff 65%,transparent 100%),radial-gradient(ellipse 8px 2px at 82% 35%,#a9eeff 65%,transparent 100%),radial-gradient(ellipse 2px 10px at 24% 76%,#fff 65%,transparent 100%),radial-gradient(ellipse 10px 2px at 24% 76%,#ffe292 65%,transparent 100%),radial-gradient(ellipse 2px 7px at 72% 86%,#fff 65%,transparent 100%),radial-gradient(ellipse 7px 2px at 72% 86%,#e3b8ff 65%,transparent 100%);animation:ultra-card-sparkles 2.4s ease-in-out infinite alternate}
+.reward-slot.ultra-reward .reward-card::after{z-index:2;background:linear-gradient(110deg,transparent 32%,#ffd56488 40%,#ffa2dd99 46%,#ffffffc9 50%,#91efffaa 54%,#b9a1ff77 60%,transparent 68%);animation:ultra-card-foil 3.2s ease-in-out infinite}
+.reward-slot.ultra-reward .reward-rarity{border:1px solid #fff0ac;box-shadow:0 0 8px #ffe398,0 0 16px #fca96188;text-shadow:0 1px #fff6c5}
+.reward-slot.spinning .reward-card::before{display:none}
+@keyframes ultra-card-sparkles{0%{opacity:.25;transform:translateY(2%) scale(.96)}55%{opacity:.95}100%{opacity:.45;transform:translateY(-3%) scale(1.02)}}
+@keyframes ultra-card-foil{0%,18%{opacity:0;transform:translateX(-100%)}30%{opacity:.75}58%{opacity:.7}72%,100%{opacity:0;transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.reward-slot.ultra-reward .reward-card::before{animation:none;opacity:.65}.reward-slot.ultra-reward .reward-card::after{animation:none;opacity:0}}
+
+/* Keep reward labels contained on narrow phones and pause effects offscreen. */
+.reward-screen>header>div{min-width:0}.reward-wallet b{font-size:clamp(14px,4vw,28px);overflow-wrap:anywhere}
+.reward-slot{contain:layout paint}
+.reward-screen>footer button{overflow-wrap:anywhere}
+
+/* Dense rewards preserve the artwork; full names remain in Inspect. */
+.reward-slot-grid.compact-cards .reward-slot{padding:2px;gap:2px}
+.reward-slot-grid.compact-cards .reward-name{display:none}
+.reward-slot-grid.compact-cards .reward-rarity{left:auto;right:3px;top:3px;transform:none;width:12px;height:12px;padding:0;font-size:0;line-height:12px;text-align:center;border-radius:50%}
+.reward-slot-grid.compact-cards .reward-rarity::after{content:'★';font-size:9px}
+
+.reward-slot.landed .reward-rarity{display:block}
+.reward-slot.common-reward .reward-rarity{background:#1e3341;color:#d4dfe3;box-shadow:none}
+.reward-slot.rare-reward{border-color:#a6d7ff}
+.reward-slot.rare-reward .reward-rarity{background:linear-gradient(110deg,#355c8b,#b8e9ff,#5384b0);color:#071e36;box-shadow:0 0 8px #73bdff66}

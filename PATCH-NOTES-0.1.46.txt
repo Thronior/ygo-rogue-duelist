@@ -1,0 +1,31 @@
+**YGO Rogue Duelist — Update 0.1.46**
+
+🎰 **Victory Reward Slots**
+• Tap to spin your post-duel card rewards, or use Spin All for multiple slots.
+• Reroll each card individually for a flat 15 coins — the price never increases.
+• Boss victories give 5 slots, with extra slots from reward relics.
+• Rewards stay random, with unchanged odds for each card.
+• Deck-based Common / Rare / Ultra Rare tiers target a 25 / 10 / 5 split per 40 cards, scaling for larger decks. Duplicate copies share a tier.
+• New reel sounds, passing-card dings, landing chimes and pack-opening music.
+• Ultra Rares celebrate with glowing foil, blue-jade highlights, sweeping colored rays and confetti.
+• Starting another roll immediately stops the previous reward's sound effects.
+
+🪙 **Coin Rewards**
+• Higher average payouts, with bigger bonuses for early wins.
+• Turn penalties increase after turns 10, 20, 30 and onward to discourage dragging out duels.
+• Base victory payouts stay at least 30 coins before relic and difficulty modifiers.
+
+🃏 **Deck Balance**
+• Trimmed Pegasus's tier-1 deck to 40 cards.
+• Added defensive stall to Tea's tier-3 deck to support Fire Princess.
+• Improved Tristan's tier-3 consistency and trimmed Kaiba's tier-2 Paladin package while keeping 40 cards.
+• Replaced two stronger burn cards in Yami Marik's tier-3 deck with weaker burn options.
+• Simplified and weakened the newer tutorial decks.
+
+🛠️ **Quality of Life & Performance**
+• Click card references in the duel log to inspect their effects.
+• Improved reward layouts for mobile portrait and landscape, including narrow-screen text fixes.
+• Better animation/audio cleanup and reduced reward-effect overhead.
+• Faster Android update downloads and support for smaller incremental updates when available. The first upgrade to this updater still requires the full APK.
+
+Your saves are preserved. Android and web only.

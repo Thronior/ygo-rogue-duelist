@@ -24,7 +24,7 @@ public final class UpdateCleanupReceiver extends BroadcastReceiver {
 
     static void clear(Context context) {
         File[] files = context.getCacheDir().listFiles((dir, name) ->
-            name.matches("game-update-[A-Za-z0-9_-]+\\.apk"));
+            name.matches("game-update-[A-Za-z0-9_-]+\\.(apk|delta\\.gz)"));
         int removed = 0;
         if (files != null) for (File file : files) if (file.isFile() && file.delete()) removed++;
         context.getSharedPreferences("pending-game-update", Context.MODE_PRIVATE).edit().clear().commit();
