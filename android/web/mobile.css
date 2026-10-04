@@ -1369,7 +1369,7 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-ultra-screen{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;pointer-events:none!important;z-index:2147483647;display:block;isolation:isolate}
 .reward-ultra-screen::backdrop{background:transparent;pointer-events:none}
 .reward-ultra-screen i{position:absolute;display:block;pointer-events:none}
-.ultra-beam{left:50%;top:auto;bottom:-8vh;width:70vmax;height:145vmax;transform-origin:50% 100%;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%);background:linear-gradient(to top,rgba(var(--ray),.8),rgba(var(--ray),.38) 42%,rgba(var(--ray),.08));opacity:0;animation:ultra-ray-sway 2.7s ease-in-out both;will-change:transform,opacity}
+.ultra-beam{left:50%;top:auto;bottom:-4%;width:min(56vw,560px);height:120%;transform-origin:50% 100%;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%);background:linear-gradient(to top,rgba(var(--ray),.52),rgba(var(--ray),.24) 42%,transparent);opacity:0;animation:ultra-ray-sway 2.7s ease-in-out both;will-change:transform,opacity}
 .ultra-beam.beam-one{--ray:255,211,83;--ray-start:-29deg;--ray-mid:-15deg;--ray-end:-25deg}
 .ultra-beam.beam-two{--ray:255,104,191;--ray-start:-9deg;--ray-mid:-20deg;--ray-end:-5deg;animation-delay:.04s}
 .ultra-beam.beam-three{--ray:83,225,255;--ray-start:10deg;--ray-mid:23deg;--ray-end:7deg;animation-delay:.07s}
@@ -1381,7 +1381,7 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-ultra-screen.reduced .ultra-screen-glow{animation-duration:.65s}
 @media(prefers-reduced-motion:reduce){.reward-ultra-screen .ultra-beam,.reward-ultra-screen .ultra-screen-ring{display:none}.reward-ultra-screen .ultra-screen-glow{animation-duration:.65s}}
 
-.ultra-confetti-sheet{left:0;top:-100vh;width:100%;height:300vh;background:url('assets/ui/reward-confetti.svg') repeat;background-size:clamp(420px,100vw,960px) auto;animation:ultra-confetti-fall 2.8s linear both;will-change:transform,opacity}
+.ultra-confetti-sheet{left:0;top:-100%;width:100%;height:300%;background:url('assets/ui/reward-confetti.svg') repeat;background-size:clamp(420px,100vw,960px) auto;animation:ultra-confetti-fall 2.8s linear both;will-change:transform,opacity}
 @keyframes ultra-confetti-fall{0%{opacity:0;transform:translateY(-20%)}12%{opacity:.95}78%{opacity:.9}100%{opacity:0;transform:translateY(42%)}}
 .reward-ultra-screen.reduced .ultra-confetti-sheet{display:none}
 @media(prefers-reduced-motion:reduce){.reward-ultra-screen .ultra-confetti-sheet{display:none}}
@@ -1412,3 +1412,17 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-slot.common-reward .reward-rarity{background:#1e3341;color:#d4dfe3;box-shadow:none}
 .reward-slot.rare-reward{border-color:#a6d7ff}
 .reward-slot.rare-reward .reward-rarity{background:linear-gradient(110deg,#355c8b,#b8e9ff,#5384b0);color:#071e36;box-shadow:0 0 8px #73bdff66}
+
+/* Compact single rewards; confirmation follows the reroll row. */
+dialog:has(> .reward-screen.single-reward){width:min(380px,calc(100vw - 24px));height:min(640px,calc(var(--modal-viewport-height,100dvh) - 32px))}
+.reward-confirm{flex:0 0 auto;width:100%;min-height:44px;font-size:20px;font-weight:800;padding:8px 12px;line-height:1.1}
+.reward-screen>footer{justify-content:center}
+.reward-screen>footer button{flex:1}
+.reward-slot.ultra-reward{border-width:1px}
+@media(max-height:440px){.reward-confirm{min-height:32px;padding:5px;font-size:17px}dialog:has(> .reward-screen.single-reward){width:min(420px,calc(100vw - 24px));height:calc(var(--modal-viewport-height,100dvh) - 16px)}}
+@media(orientation:portrait){.ultra-beam.beam-one{--ray-start:-18deg;--ray-mid:-12deg;--ray-end:-16deg}.ultra-beam.beam-two{--ray-start:-6deg;--ray-mid:-10deg;--ray-end:-4deg}.ultra-beam.beam-three{--ray-start:6deg;--ray-mid:11deg;--ray-end:4deg}.ultra-beam.beam-four{--ray-start:18deg;--ray-mid:12deg;--ray-end:16deg}}
+dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(var(--modal-viewport-height,100dvh) - 24px);box-sizing:border-box;overflow:hidden}
+.reward-tally{display:flex;flex-direction:column;gap:12px;min-height:0}
+.reward-tally-total{font-size:clamp(24px,6vw,36px);color:#ffe19c;text-align:center}
+.reward-tally-lines{max-height:45dvh;overflow:auto;min-height:0}
+.reward-tally>button{flex-shrink:0;min-height:44px;font-size:20px}

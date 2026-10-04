@@ -1,0 +1,7 @@
+**YGO Rogue Duelist — Hotfix 0.1.47**
+
+• Fixed Ultra Rare light effects in mobile portrait mode.
+• The coin tally now appears before the card reward slots.
+• Replaced Open Shop with a large Confirm button beneath the reroll controls.
+• Made the single-card reward window smaller.
+• Improved reward-screen layout across portrait and landscape displays.
