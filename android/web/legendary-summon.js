@@ -1,4 +1,5 @@
 export const legendarySummons={
+ 77585513:{name:'Jinzo',color:'#d85bff'},
  38033121:{name:'Dark Magician Girl',color:'#ff72c2',hearts:true},
  10000000:{name:'Obelisk the Tormentor',color:'#499eff'},
  10000020:{name:'Slifer the Sky Dragon',color:'#ff493e'},

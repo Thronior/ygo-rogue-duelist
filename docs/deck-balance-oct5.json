@@ -1,0 +1,750 @@
+{
+  "scope": "Tier 2 four-premium-staple cap plus selected T1/T2 consistency edits. No T3 balance changes.",
+  "decks": [
+    {
+      "deck": "bandit-keith-tier-2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 0,
+      "premium_after": 0,
+      "changes": [
+        {
+          "from": "Gamble",
+          "to": "Fissure",
+          "copies": 2,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Barrel Dragon",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Slot Machine",
+          "to": "Guardian of the Throne Room",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "ishizu-ishtar-tier-2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 3,
+      "premium_after": 3,
+      "changes": [
+        {
+          "from": "Cestus of Dagla",
+          "to": "Shining Angel",
+          "copies": 2,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Muko",
+          "to": "Waboku",
+          "copies": 2,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "mai-valentine-tier-2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 0,
+      "premium_after": 0,
+      "changes": [
+        {
+          "from": "Gaia The Fierce Knight",
+          "to": "Birdface",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Ansatsu",
+          "to": "Skull Red Bird",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Monster Recovery",
+          "to": "Sakuretsu Armor",
+          "copies": 2,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "marik-ishtar-tier-1",
+      "tier": 1,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 0,
+      "premium_after": 0,
+      "changes": [
+        {
+          "from": "Newdoria",
+          "to": "Witty Phantom",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Dark Jeroid",
+          "to": "Terra the Terrible",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "tristan-taylor-tier-2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 3,
+        "side": 0
+      },
+      "premium_before": 0,
+      "premium_after": 0,
+      "changes": [
+        {
+          "from": "Roboyarou",
+          "to": "Command Knight",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Roboyarou",
+          "to": "Warrior Dai Grepher",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Robolady",
+          "to": "Giant Rat",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Robolady",
+          "to": "Mataza the Zapper",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Polymerization",
+          "to": "Fissure",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Polymerization",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-aknadin-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 5,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-alister-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 7,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Dark Hole",
+          "to": "Fissure",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-arthur-hawkins",
+      "tier": 1,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 15,
+      "premium_after": 13,
+      "changes": [
+        {
+          "from": "Raigeki",
+          "to": "Fissure",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Torrential Tribute",
+          "to": "Giant Soldier of Stone",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-dark-magician-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 7,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Mirror Force",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Ring of Destruction",
+          "to": "Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-gansley-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 41,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 5,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Magician of Faith",
+          "to": "Hane-Hane",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-harpie-lady-sisters",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 9,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Call of the Haunted",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Premature Burial",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Raigeki",
+          "to": "Fissure",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Ring of Destruction",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-johnson-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 47,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 12,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magician of Faith",
+          "to": "Mask of Darkness",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Morphing Jar",
+          "to": "Hiro's Shadow Scout",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Premature Burial",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Ring of Destruction",
+          "to": "Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Solemn Judgment",
+          "to": "Magic Jammer",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Torrential Tribute",
+          "to": "Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Torrential Tribute",
+          "to": "Acid Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-leichter",
+      "tier": 1,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 8,
+      "premium_after": 8,
+      "changes": [
+        {
+          "from": "Launcher Spider",
+          "to": "Guardian of the Throne Room",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Ryu-Ran",
+          "to": "Oni Tank T-34",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Obese Marmot of Nefariousness",
+          "to": "Overdrive",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Happy Lover",
+          "to": "Blocker",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-leon-von-schroeder-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 10,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Call of the Haunted",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Harpie's Feather Duster",
+          "to": "Dust Tornado",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magician of Faith",
+          "to": "Skelengel",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Sinister Serpent",
+          "to": "Nimble Momonga",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-mahad-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 45,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 9,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Call of the Haunted",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Cyber Jar",
+          "to": "Old Vindictive Magician",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Heavy Storm",
+          "to": "Dust Tornado",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-nezbitt",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 5,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Snatch Steal",
+          "to": "Brain Control",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-roland",
+      "tier": 1,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 0,
+      "premium_after": 0,
+      "changes": [
+        {
+          "from": "Hyozanryu",
+          "to": "Battle Ox",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Mikazukinoyaiba",
+          "to": "Neo the Magic Swordsman",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Candle of Fate",
+          "to": "Rogue Doll",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Curtain of the Dark Ones",
+          "to": "Baron of the Fiend Sword",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-shimon-muran-simon-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 44,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 8,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Change of Heart",
+          "to": "Brain Control",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Premature Burial",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Swords of Revealing Light",
+          "to": "Nightmare's Steelcage",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Torrential Tribute",
+          "to": "Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-sid-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 40,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 6,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magician of Faith",
+          "to": "Skelengel",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-strings-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 44,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 7,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Final Attack Orders",
+          "to": "Book of Moon",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Infinite Cards",
+          "to": "Book of Moon",
+          "copies": 1,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Appropriate",
+          "to": "Waboku",
+          "copies": 2,
+          "reason": "targeted consistency/balance"
+        },
+        {
+          "from": "Harpie's Feather Duster",
+          "to": "Dust Tornado",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magician of Faith",
+          "to": "Hiro's Shadow Scout",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Torrential Tribute",
+          "to": "Trap Hole",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-yami-alexander-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 44,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 6,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Dark Hole",
+          "to": "Fissure",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    },
+    {
+      "deck": "wct2004-zorc-necrophades-tier2",
+      "tier": 2,
+      "before_sizes": {
+        "main": 42,
+        "extra": 0,
+        "side": 0
+      },
+      "premium_before": 6,
+      "premium_after": 4,
+      "changes": [
+        {
+          "from": "Magic Cylinder",
+          "to": "Sakuretsu Armor",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        },
+        {
+          "from": "Premature Burial",
+          "to": "The Shallow Grave",
+          "copies": 1,
+          "reason": "T2 four-staple cap"
+        }
+      ]
+    }
+  ],
+  "protected_unchanged": [
+    "yami-yugi-tier-2",
+    "yami-marik-tier-2",
+    "noah-kaiba-tier-2"
+  ],
+  "counts": {
+    "edited_decks": 22,
+    "replaced_copies": 80
+  }
+}
