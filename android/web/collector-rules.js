@@ -23,3 +23,11 @@ export function validateDeck(deck,pool,cards,original=null) {
  if(original){if(deck.main.length!==original.main.length)errors.push('Keep your starting Main Deck size.');const previous=counts(deckCards(original));if(Object.keys({...previous,...used}).some(id=>previous[id]!==used[id]))errors.push('Siding must preserve all cards in your match decks.');}
  return [...new Set(errors)];
 }
+
+// During siding every click transfers one owned copy; no unassigned pool.
+export function moveSideCard(deck,from,id,cards){
+ if(!['main','side','extra'].includes(from))return false;
+ const index=deck[from].indexOf(id),card=cards.find(c=>c.id===id);if(index<0||!card)return false;
+ const to=from==='side'?(card.data.type&64?'extra':'main'):'side';
+ deck[from].splice(index,1);deck[to].push(id);return true;
+}

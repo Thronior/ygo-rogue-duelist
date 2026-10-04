@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {CollectorUI} from '../android/web/collector-ui.js';
+import {validateDeck,deckCards} from '../android/web/collector-rules.js';
+import cards from '../multiplayer/cloudflare/collector-cards.json' with {type:'json'};
+const normal=cards.filter(c=>c.type==='Normal Monster').slice(0,22).map(c=>c.id),fusion=cards.find(c=>c.data.type&64).id;
+const original={main:normal.slice(0,20).flatMap(id=>[id,id]),side:[normal[20],normal[21]],extra:[fusion]};
+const ui=Object.assign(Object.create(CollectorUI.prototype),{mode:'siding',section:'main',draft:structuredClone(original),content:{cards},room:{startDecks:[original],decks:[structuredClone(original)]},seat:0,render(){}});
+const all=()=>deckCards(ui.draft).sort((a,b)=>a-b),initial=all();
+await ui.action('toggle',{dataset:{id:String(normal[0]),selected:'true'}});
+assert.equal(ui.draft.main.length,39);assert.equal(ui.draft.side.length,3);assert.equal(ui.draft.main.filter(x=>x===normal[0]).length,1);assert.deepEqual(all(),initial);assert(validateDeck(ui.draft,initial,cards,original).length);
+ui.section='side';await ui.action('toggle',{dataset:{id:String(normal[20]),selected:'true'}});
+assert.equal(ui.draft.main.length,40);assert.equal(ui.draft.side.length,2);assert(ui.draft.main.includes(normal[20]));assert.deepEqual(validateDeck(ui.draft,initial,cards,original),[]);assert.deepEqual(all(),initial);
+ui.section='extra';await ui.action('toggle',{dataset:{id:String(fusion)}});assert(ui.draft.side.includes(fusion));ui.section='side';await ui.action('toggle',{dataset:{id:String(fusion)}});assert(ui.draft.extra.includes(fusion));assert(!ui.draft.main.includes(fusion));assert.deepEqual(all(),initial);
+await ui.action('reset-siding');assert.deepEqual(ui.draft,original);
+await ui.action('deselect');assert.deepEqual(ui.draft,original);
+console.log('PASS click transfers, duplicate conservation, Ready validation, Fusion routing and reset.');

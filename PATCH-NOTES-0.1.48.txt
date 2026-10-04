@@ -1,0 +1,13 @@
+**YGO Rogue Duelist — Update 0.1.48**
+
+• Added Chain Sometimes: prompts on summons, attack declarations and card activations, with a half-grey chain button.
+• Cancel now blocks the Battle Phase button for half a second to prevent accidental double taps.
+• Legal Extra Deck summons can now be selected directly from the Extra Deck window.
+• Revealed cards remain inspectable until movement or shuffling invalidates their identity.
+• Improved DNA Surgery choices using deck composition and active continuous Spell/Trap effects.
+• Fixed Stealth Bird skipping its reset effect.
+• Panther Warrior no longer sacrifices a stronger monster unless the extra direct attack is lethal.
+• Surrendering in Ultimate Collector now concedes only the current duel.
+• Added large, short-lived portrait emotes with sounds in Ultimate Collector and tag duels: ❤️ 😜 🍆.
+• Side decking now transfers cards directly between Main/Extra and Side Deck by clicking them.
+• Limited and Semi-Limited badges now appear when taking opponent cards.

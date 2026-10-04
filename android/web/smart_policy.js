@@ -355,6 +355,7 @@ export function smartContext(e,p,L,prompt=null){
  function resetValue(c){
   if(!c||!face(c)||c.controller!==p||!effectsEnabled(p)||c.is_disabled)return -1;
   const n=name(c);let value=0;
+  if(n==='Stealth Bird')value=85;
   if(n==='Magician of Faith'&&grave.some(x=>data(x).type&2))value=80;
   if(n==='Mask of Darkness'&&grave.some(x=>data(x).type&4))value=65;
   if(n==='Man-Eater Bug'&&enemy.length)value=75;
@@ -379,6 +380,7 @@ export function smartContext(e,p,L,prompt=null){
  const attackOnly=new Set(['Diffusion Wave-Motion','Stop Defense','Shooting Star Bow - Ceal','Fairy Meteor Crush','Big Bang Shot','Meteorain','Opti-Camouflage Armor','Riryoku']);
  function doomed(c){return e.limiterDoom?.has(`${c.controller}:${c.sequence}`);}
  function activation(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
+  if(n==='Stealth Bird')return chain?85:remainingAttackers().some(a=>same(a,c))&&(!enemy.length||enemy.some(t=>face(t)&&atk(c)>power(t)))?-1:85;
   if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
    const cheap=own.filter(x=>!resilient(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0))[0];
@@ -984,13 +986,21 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   const targets=target?[target]:enemy;
   return targets.some(t=>face(t)&&power(t)>=base&&power(t)<base+1000)?base+1000:base;
  }
+ function pantherTributeAllowed(a,c,direct){
+  if(same(a,c)||name(c)==='Relinquished')return false;
+  if(atk(c)<=atk(a))return true;
+  // United We Stand loses one body when the attack cost is paid.
+  const shrink=back.filter(t=>name(t)==='United We Stand'&&t.equipCard?.controller===p&&t.equipCard?.sequence===a.sequence).length*800;
+  return direct&&!e.battleProtected?.[1-p]&&battleDamage(Math.max(0,atk(a)-shrink))>=e.lp[1-p];
+ }
  function attackAllowed(a,direct){const n=name(a);
-  if(n==='Panther Warrior'&&!own.some(c=>!same(c,a)&&name(c)!=='Relinquished'))return false;
+  if(n==='Panther Warrior'&&!own.some(c=>pantherTributeAllowed(a,c,direct)))return false;
   if(attackBlocked(a,a.controller??p))return false;
   if(['Zombyra the Dark','Giant Rex'].includes(n)&&direct)return false;
   if(["Queen's Double",'Inaba White Rabbit'].includes(n)&&!direct)return false;
   return true;}
  function attackScore(a,t,ctx){const n=name(a),dmg=(ctx&&ctx.dmg)||0,deckOut=!!(ctx&&ctx.deckOut);let s=0;
+  if(n==='Panther Warrior'&&!own.some(c=>pantherTributeAllowed(a,c,!t)))return -100000;
   if(t&&face(t)&&((name(t)==='The Hunter with 7 Weapons'&&(t.position&1))||n==='The Hunter with 7 Weapons')&&combatPower(a,t)<((t.position&1)?combatPower(t,a):(t.defense??data(t).defense??0)))return -100000;
   const remembered=t&&e.knownFieldCard?.(p,t),known=t&&(face(t)?t:remembered?{...t,code:remembered}:null);
   const protectedByEffect=known&&!t.is_disabled&&effectsEnabled(t.controller??1-p)&&/cannot be destroyed (?:by|as a result of) battle/i.test(e.cards.get(known.code)?.desc||'');
@@ -1105,5 +1115,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
- return {combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
+ return {pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

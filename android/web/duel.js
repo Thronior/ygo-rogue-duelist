@@ -1,3 +1,4 @@
+import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
 import {planBattle} from './battle-planner.js';
 import {FieldKnowledge} from './field-knowledge.js';
@@ -7,7 +8,7 @@ export {M,R,I,B,L,P};
 export class MobileDuel extends DuelEngine {
  constructor(cards){super(cards);this.fieldKnowledge=new FieldKnowledge();this.rebornMonsters=new Map();this.resolvingChain=0}
  unknownDefense(c){return this.tributeSets?.has(this.fieldKnowledge.key(c))?2000:900}
- knownFieldCard(viewer,c){return this.fieldKnowledge.known(viewer,c)}
+ knownFieldCard(viewer,c){return this.fieldKnowledge?.known(viewer,c)||c?.rememberedCode||0}
  wasReborn(c){return this.rebornMonsters.get(this.fieldKnowledge.key(c))===c.code}
  trackReborn(m){
   const key=c=>this.fieldKnowledge.key(c),memory=this.rebornMonsters;
@@ -79,9 +80,8 @@ export class MobileDuel extends DuelEngine {
    if(ordeal&&cards.length){const text='Ordeal revealed '+cards.map(c=>this.name(c.code)).join(', ');this.logs.unshift(text);this.visuals.push({kind:'reveal',cards:cards.map(c=>({...c})),text});}
    if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' — revealed cards'});}
   }
-  if([M.CHAIN_END,M.NEW_TURN].includes(m.type))this.revealedHands=[{},{}];
-  if(m.type===M.SHUFFLE_HAND||m.type===M.MOVE&&[m.from?.location,m.to?.location].includes(L.HAND)){
-   const sides=m.type===M.SHUFFLE_HAND?[m.player]:[m.from?.controller,m.to?.controller];
+  if(m.type===M.SHUFFLE_HAND||m.type===M.TAG_SWAP||m.type===M.MOVE&&[m.from?.location,m.to?.location].includes(L.HAND)){
+   const sides=[M.SHUFFLE_HAND,M.TAG_SWAP].includes(m.type)?[m.player]:[m.from?.controller,m.to?.controller];
    for(const known of this.revealedHands)for(const key of Object.keys(known))if(sides.includes(Number(key.split(':')[0])))delete known[key];
   }
 
@@ -191,6 +191,13 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const hostileEquip=['Snatch Steal','Mask of the Accursed'].includes(this.name(this.effect?.code));
   const benefit=!hostileEquip&&/equip|gains? \d+ atk|increase.*atk|recover|increase.*def/.test(text)&&!/destroy.*equip/.test(text);
   const smart=smartContext(this,p,L,m);
+  if(m.type===M.ANNOUNCE_RACE&&this.name(this.effect?.code)==='DNA Surgery'&&m.count===1){const race=dnaSurgeryRace(this,p,L,m.available);if(race!==null)return {type:R.ANNOUNCE_RACE,races:[race]};}
+  if(m.type===M.SELECT_UNSELECT_CARD&&(this.name(this.effect?.code)==='Panther Warrior'||!this.effect&&this.selectionHint===500&&this.phase>=8&&this.phase<256&&this.attacker?.player===p&&this.name(this.attacker?.code)==='Panther Warrior'&&m.select_cards?.every(c=>c.controller===p&&c.location===L.MZONE))){
+   const attacker=own.find(c=>c.sequence===this.attackCard?.sequence&&this.name(c.code)==='Panther Warrior')||own.find(c=>this.name(c.code)==='Panther Warrior');
+   const choices=(m.select_cards||[]).map((c,i)=>({c:live(c)||c,i})).filter(x=>attacker&&smart.pantherTributeAllowed(attacker,x.c,!enemy.length)).sort((a,b)=>atk(a.c)-atk(b.c));
+   if(choices.length)return {type:R.SELECT_UNSELECT_CARD,index:choices[0].i};
+   if(m.can_cancel||m.can_finish)return {type:R.SELECT_UNSELECT_CARD,index:null};
+  }
   // Equal positive ATK destroys both Attack Position monsters; equal DEF does not.
   const tradeTarget=(power,t,attacker=null)=>power>0&&visible(t)&&(t.position&1)&&power===(attacker?smart.combatPower(t,attacker):atk(t))&&!this.battleProtected?.[1-p]&&!/cannot be destroyed (?:by|as a result of) battle/i.test(this.cards.get(t.code)?.desc||'');
   const idle=(action,index=null)=>({type:R.SELECT_IDLECMD,action,index});

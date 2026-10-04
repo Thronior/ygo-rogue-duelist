@@ -46,7 +46,7 @@ export class TagDuel extends MobileDuel {
   if(!state.tag.canRespond)state.pending=null;
   // Never transmit an AI hand, deck order, or hidden enemy card to the remote player.
   const enemy=state.players[1];enemy.hand=enemy.hand.map((c,sequence)=>c&&this.handRevealed(0,{...c,controller:1,location:L.HAND,sequence})?c:{code:0});
-  for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:1,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:0}:c);
+  for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:1,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:this.knownFieldCard(0,{...c,controller:1,location:zone==='monsters'?L.MZONE:L.SZONE}),rememberedCode:this.knownFieldCard(0,{...c,controller:1,location:zone==='monsters'?L.MZONE:L.SZONE})}:c);
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
   state.native=this.nativeState(seat);
   return state;
@@ -57,7 +57,7 @@ export class TagDuel extends MobileDuel {
   state.players[seat].extraCards=this.query(seat,L.EXTRA);
   const enemy=state.players[opponent];
   enemy.hand=enemy.hand.map((c,sequence)=>c&&this.handRevealed(seat,{...c,controller:opponent,location:L.HAND,sequence})?c:{code:0});
-  for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:0}:c);
+  for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE}),rememberedCode:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE})}:c);
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
   if(this.respondingSeat!==seat)state.pending=null;
   const reveals={};for(const [key,code] of Object.entries(this.revealedHands?.[seat]||{})){const [side,seq]=key.split(':');reveals[(Number(side)^seat)+':'+seq]=code}

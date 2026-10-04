@@ -1,3 +1,11 @@
+import {OcgHintTiming as Timing} from './vendor/package/dist/index.js';
+export function chainWindowAllowed(m,mode,activeChain=[]){
+ if(m?.forced||mode==='always')return true;
+ if(mode==='never')return false;
+ const timing=Number(m?.hint_timing||0);
+ return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0;
+}
+
 // Only collapse prompts with no timing/order decision left to make.
 export function automaticChainResponse(m,skipOptional,M,R){
  if(m?.player!==0||m.type!==M.SELECT_CHAIN)return null;
