@@ -1345,7 +1345,7 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-slot::before{content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(circle at 8px 8px,#fff1a7 0 2px,transparent 3px) 0 0/19px 19px;opacity:.16}
 .reward-slot.spinning{border-color:#fbda70;background:radial-gradient(ellipse at 50% 45%,#572b71,#112438 70%);box-shadow:inset 0 0 20px #c570f655}
 .reward-slot.spinning::before{opacity:.55;animation:reward-bulbs .85s ease-in-out infinite alternate}
-.reward-card{position:relative}.reward-card::after{content:"";position:absolute;inset:-30%;pointer-events:none;background:linear-gradient(110deg,transparent 35%,#fff8ccbb 48%,transparent 61%);opacity:0;transform:translateX(-100%)}
+.reward-card{position:relative;container-type:inline-size}.reward-card::after{content:"";position:absolute;inset:-30%;pointer-events:none;background:linear-gradient(110deg,transparent 35%,#fff8ccbb 48%,transparent 61%);opacity:0;transform:translateX(-100%)}
 .reward-slot.landed{animation:reward-land .6s ease-out}
 .reward-slot.landed .reward-card::after{animation:reward-shine .75s ease-out}
 .reward-rarity{display:none;position:absolute;top:7px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:2;padding:3px 6px;border-radius:20px;background:linear-gradient(110deg,#794b15,#ffe399,#916321);color:#241003;font-size:clamp(7px,var(--reward-font,12px),12px);font-weight:900;letter-spacing:.05em;box-shadow:0 0 12px #ffcf64;pointer-events:none}
@@ -1360,7 +1360,9 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 @keyframes reward-ultra-land{0%{box-shadow:inset 0 0 60px #fff1bacc,0 0 9px #fff1ba}100%{box-shadow:inset 0 0 20px #ffd96c55,0 0 7px #ffd96c88}}
 @media(prefers-reduced-motion:reduce){.reward-slot.spinning,.reward-slot.spinning::before,.reward-slot.landed,.reward-slot.ultra-reward,.reward-slot.landed .reward-card::after{animation:none}}
 
-.reward-start-label{display:none;position:absolute;inset:auto 4px 12%;padding:7px 3px;border:1px solid #ffe598;border-radius:8px;background:#132332ed;color:#ffe59c;font-size:clamp(10px,var(--reward-font,14px),18px);font-weight:bold;pointer-events:none;box-shadow:0 0 12px #ffd15c55}
+.reward-start-label{display:none;position:absolute;inset:auto 4% 12%;padding:7px 0;white-space:nowrap;text-align:center;line-height:1.15;border:0;background:none;color:#fff0b8;font-size:calc(var(--reward-font,14px)*1.6);font-size:18cqw;font-weight:bold;pointer-events:none;text-shadow:0 2px 4px #000,0 0 9px #ffd15c;animation:reward-tap-pulse 2s ease-in-out infinite}
+@keyframes reward-tap-pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.reward-start-label{animation:none;opacity:1}}
 .reward-slot.waiting .reward-start-label{display:block}
 .reward-slot.waiting .reward-card img{opacity:.65}
 .reward-slot.waiting .reward-card{cursor:pointer}
@@ -1441,3 +1443,14 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
 .chain-control.chain-sometimes span{font-size:clamp(7px,1.2vmin,12px);white-space:normal;line-height:1}
 
 .chain-control.chain-sometimes:before{content:"";position:absolute;inset:0 0 0 50%;border-radius:0 100% 100% 0;background:#8887;backdrop-filter:grayscale(1);pointer-events:none}
+
+/* Completed LVL 5: a persistent gold aura and a slow sheen over the portrait. */
+.character-select-page .portrait.golden-complete{border-color:#ffe182;box-shadow:0 0 9px #ffd15d99,inset 0 0 8px #ffe9a888}
+.character-select-page .portrait.golden-complete::before,.character-select-page .portrait.golden-complete::after{content:"";position:absolute;pointer-events:none;z-index:1}
+.character-select-page .portrait.golden-complete::before{inset:0;border-radius:inherit;box-shadow:inset 0 0 12px 3px #ffdb6ebb;background:linear-gradient(135deg,#ffeaa52b,transparent 45%,#ffc34d22);animation:roster-complete-glow 3.6s ease-in-out infinite}
+.character-select-page .portrait.golden-complete::after{inset:-40% -80%;background:linear-gradient(110deg,transparent 42%,#fff5c92e 47%,#fffbe9b3 50%,#fff5c92e 53%,transparent 58%);transform:translateX(-70%);animation:roster-complete-shine 5.4s ease-in-out infinite}
+.character-select-page .portrait.golden-complete span{z-index:2}
+.character-select-page .portrait.golden-complete.selected{border-color:#f77eb1;box-shadow:0 0 10px #ffd15d99,0 0 0 1px #f77eb1}
+@keyframes roster-complete-glow{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes roster-complete-shine{0%,18%{transform:translateX(-70%);opacity:0}24%{opacity:.7}54%{opacity:.7}62%,100%{transform:translateX(70%);opacity:0}}
+@media(prefers-reduced-motion:reduce){.character-select-page .portrait.golden-complete::before{animation:none;opacity:.7}.character-select-page .portrait.golden-complete::after{animation:none;display:none}}

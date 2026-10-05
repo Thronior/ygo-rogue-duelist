@@ -26,6 +26,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetLabelObject()
+	local attacker=Duel.GetAttacker()
 	if Duel.NegateAttack() and tc:IsRelateToEffect(e) and tc:IsFaceup() then
 		if tc:IsDefensePos() then
 			Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
@@ -33,6 +34,16 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 		if tc:CanAttack() and not tc:IsImmuneToEffect(e) then
 			Duel.BreakEffect()
 			Duel.CalculateDamage(tc,Duel.GetAttackTarget())
+			-- Forced damage calculation resets the core's current attack state.
+			-- Keep the original, successfully negated attacker from attacking again.
+			if attacker and attacker:IsRelateToEffect(e) and attacker:IsLocation(LOCATION_MZONE) then
+				local stop=Effect.CreateEffect(e:GetHandler())
+				stop:SetType(EFFECT_TYPE_SINGLE)
+				stop:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+				stop:SetCode(EFFECT_CANNOT_ATTACK)
+				stop:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+				attacker:RegisterEffect(stop)
+			end
 		end
 	end
 end

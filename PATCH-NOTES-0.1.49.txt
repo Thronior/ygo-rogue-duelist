@@ -1,0 +1,10 @@
+**YGO Rogue Duelist — Update 0.1.49**
+
+• Rebalanced several Tier 1 and Tier 2 decks and reduced high-power staples in Tier 2.
+• Corrected opponent deck copies to follow Ultimate Collector limits, including duplicate Monster Reborn in Gansley decks.
+• Added Jinzo's boss summon animation.
+• Characters who complete Level 5 now have glowing, shining roster portraits.
+• Fixed Chain Sometimes missing opponent summon and attack windows.
+• Tap to spin now floats and fades, with larger text scaled to the card box.
+• Improved CPU trap choices to avoid wasting Trap Hole before a worthwhile Torrential Tribute.
+• Fixed Dark Spirit of the Silent letting the original negated attacker attack again.

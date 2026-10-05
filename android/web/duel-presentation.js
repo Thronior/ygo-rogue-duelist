@@ -2,7 +2,8 @@ import {OcgHintTiming as Timing} from './vendor/package/dist/index.js';
 export function chainWindowAllowed(m,mode,activeChain=[]){
  if(m?.forced||mode==='always')return true;
  if(mode==='never')return false;
- const timing=Number(m?.hint_timing||0);
+ // The core reports separate timing masks for the responding player and opponent.
+ const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
  return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0;
 }
 

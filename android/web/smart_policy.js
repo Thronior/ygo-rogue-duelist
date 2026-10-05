@@ -281,6 +281,12 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Thousand Knives'&&!own.some(x=>face(x)&&name(x)==='Dark Magician'))return -1;
   if(n==='Burst Stream of Destruction'&&!own.some(x=>face(x)&&name(x)==='Blue-Eyes White Dragon'))return -1;
   const cost=resourceCost(c);if(!Number.isFinite(cost))return -1;
+  // If a legal board wipe is already worth spending, do not start that same
+  // chain with Trap Hole and then spend both on the summoned monster.
+  if(['Trap Hole','Bottomless Trap Hole'].includes(n)){
+   const offered=prompt?.selects||[];
+   if(offered.some(x=>name(x)==='Torrential Tribute'&&removalScore(x)>=0))return -1;
+  }
   const urgent=wipes.has(n)?emergency(n,targets):targets.some(x=>emergency(n,[x]));
   if(urgent)return 145;
   const answers=[...hand,...back].filter(x=>resourceRemoval.has(name(x))||wipes.has(name(x)));

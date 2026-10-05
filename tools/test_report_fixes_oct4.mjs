@@ -5,8 +5,8 @@ import {FieldKnowledge} from '../android/web/field-knowledge.js';
 import {MobileDuel,M,R,L} from '../android/web/duel.js';
 import {smartContext} from '../android/web/smart_policy.js';
 import fs from 'node:fs';
-for(const timing of [T.SUMMON,T.SPSUMMON,T.FLIPSUMMON,T.ATTACK])assert(chainWindowAllowed({hint_timing:timing},'sometimes'));
-for(const timing of [0,T.DRAW_PHASE,T.STANDBY_PHASE,T.END_PHASE,T.CHAIN_END,T.DAMAGE_STEP])assert(!chainWindowAllowed({hint_timing:timing},'sometimes'));
+for(const timing of [T.SUMMON,T.SPSUMMON,T.FLIPSUMMON,T.ATTACK])for(const player of [0,1]){assert(chainWindowAllowed({player,hint_timing:timing,hint_timing_other:0},'sometimes'));assert(chainWindowAllowed({player,hint_timing:0,hint_timing_other:timing},'sometimes'),'opponent event must remain visible');}
+for(const timing of [0,T.DRAW_PHASE,T.STANDBY_PHASE,T.END_PHASE,T.CHAIN_END,T.DAMAGE_STEP]){assert(!chainWindowAllowed({hint_timing:timing},'sometimes'));assert(!chainWindowAllowed({hint_timing_other:timing},'sometimes'));}
 assert(chainWindowAllowed({},'sometimes',[{code:1}]));assert(chainWindowAllowed({forced:true},'never'));assert(!chainWindowAllowed({},'never',[{}]));
 assert.deepEqual(automaticChainResponse({player:0,type:M.SELECT_CHAIN,forced:true,selects:[{}]},true,M,R),{type:R.SELECT_CHAIN,index:0});
 const k=new FieldKnowledge(),c={controller:1,location:L.MZONE,sequence:0,position:8,code:123};

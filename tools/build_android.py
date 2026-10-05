@@ -34,7 +34,7 @@ def sync():
   scripts=json.loads(scripts_path.read_text(encoding='utf8'))
   scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
   scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
-  for card in (78637313,53119267):
+  for card in (78637313,53119267,93599951):
    scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
