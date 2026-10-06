@@ -8,6 +8,8 @@ function tick(now){
  frame=0;
  for(const [el,j] of jobs){
   if(!el.isConnected){jobs.delete(el);continue}
+  if(now-(j.lastPaint||0)<32&&now<j.start+j.duration)continue;
+  j.lastPaint=now;
   const t=Math.min(1,(now-j.start)/j.duration),v=j.from+(j.to-j.from)*(1-(1-t)**3);
   if(j.sound&&Math.round(v)!==Math.round(j.state.value))counterTick(j.sound);
   j.state.value=v;j.paint(v);
@@ -21,7 +23,7 @@ function count(el,state,target,paint,duration=440,sound){
  const from=state.value;
  if(reduced()||from===target){state.value=target;paint(target);return}
  const now=performance.now();if(previous?.to===target)duration=Math.max(1,previous.start+previous.duration-now);
- paint(from);jobs.set(el,{state,from,to:target,paint,start:now,duration,sound});
+ paint(from);jobs.set(el,previous?.to===target?{...previous,paint}:{state,from,to:target,paint,start:now,duration,sound});
  if(!frame)frame=requestAnimationFrame(tick);
 }
 export function polishShop(root,key,gold){
@@ -34,10 +36,19 @@ export function polishDuel(root,owner,s,lookup){
  root.querySelectorAll('.life').forEach((el,i)=>{
   const state=d.lp[i],target=s.lp[i],changed=state.target!==target,healed=target>state.value;
   state.max=Math.max(state.max,target);state.target=target;
-  count(el,state,target,v=>{el.querySelector('strong').textContent=Math.round(v);el.style.setProperty('--life-fill',Math.max(0,v/state.max))},620,healed?'lp-heal':'lp-damage');
+  const number=el.querySelector('strong');
+  let meter=el.querySelector('.life-meter');if(!meter){meter=document.createElement('span');meter.className='life-meter';meter.setAttribute('aria-hidden','true');el.prepend(meter);el.classList.add('has-life-meter')}
+  const from=Math.max(0,state.value/state.max),to=Math.max(0,target/state.max);
+  count(el,state,target,v=>{const text=String(Math.round(v));if(number.textContent!==text)number.textContent=text},620,healed?'lp-heal':'lp-damage');
+  // Keep the bar on the compositor: no inherited CSS variable updates per frame.
+  if(changed||!meter.dataset.target){
+   meter.getAnimations().forEach(a=>a.cancel());meter.style.transform=`scaleX(${to})`;meter.dataset.target=String(target);
+   const job=jobs.get(el),remaining=job?Math.max(0,job.start+job.duration-performance.now()):0;
+   if(!reduced()&&from!==to&&remaining)meter.animate([{transform:`scaleX(${from})`},{transform:`scaleX(${to})`}],{duration:remaining,easing:'cubic-bezier(.22,.61,.36,1)'});
+  }
   if(changed&&!reduced()){
    const portrait=root.querySelector(i?'.field-character:not(.own)':'.field-character.own');
-   portrait?.animate([{filter:healed?'drop-shadow(0 0 15px #70ffab) brightness(1.5)':'drop-shadow(0 0 15px #ff455e) brightness(1.5)'},{filter:'none'}],{duration:480});
+   portrait?.animate([{opacity:.65},{opacity:1}],{duration:480});
   }
  });
  const live=new Set();

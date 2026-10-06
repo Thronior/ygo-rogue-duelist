@@ -29,8 +29,17 @@ export function mountRewardSlots(root,{getRun,reroll,image,name,tick,land,volume
   if(disposed)return;
   const el=slots[i],button=el.querySelector('.reward-card'),img=button.querySelector('img'),label=el.querySelector('.reward-name');
   el.classList.remove('waiting','landed','ultra-reward','rare-reward','common-reward');button.removeAttribute('data-reward-start');el.querySelector('.reward-rarity').setAttribute('aria-hidden','true');audio.spin();button.removeAttribute('data-inspect');button.disabled=true;label.textContent='Revealing…';img.style.visibility='visible';el.classList.add('spinning');
-  const pool=getRun().reward_slots?.source||getRun().last_reward_cards||[id],duration=reduced?180:1250+Math.min(i,6)*100;
-  await new Promise(resolve=>{const finish=()=>{pendingReveals.delete(finish);resolve()};pendingReveals.add(finish);const start=performance.now();let nextSwap=0,frame=0,previousCard=null;function step(now){if(disposed){finish();return}const elapsed=now-start;if(elapsed>=duration||document.hidden){finish();return}if(elapsed>=nextSwap){frame++;nextSwap=elapsed+70+220*(elapsed/duration)**2;const passing=pool[(frame*7+i*3)%pool.length];img.src=image(passing);if(passing!==previousCard){previousCard=passing;tick(elapsed/duration)}}const raf=requestAnimationFrame(t=>{frames.delete(raf);step(t)});frames.add(raf)}step(start)});
+  const pool=[...new Set(getRun().reward_slots?.source||getRun().last_reward_cards||[id])],duration=reduced?180:2100+Math.min(i,6)*80;
+  const strip=document.createElement('span');strip.className='reward-reel-strip';strip.setAttribute('aria-hidden','true');
+  const passing=Array.from({length:9},(_,n)=>pool[(n+i*3)%pool.length]);passing.push(id);
+  passing.forEach((code,n)=>{const card=document.createElement('img');card.src=image(code);card.alt='';card.style.left=(n*100)+'%';strip.append(card)});
+  button.append(strip);img.style.visibility='hidden';
+  // Decode the bounded strip first, instead of replacing one not-yet-decoded image each tick.
+  let preloadTimer;await Promise.race([Promise.all([...strip.children].map(c=>c.decode?.().catch(()=>{}))),new Promise(r=>{preloadTimer=setTimeout(r,1200)})]);clearTimeout(preloadTimer);
+  if(disposed){strip.remove();return}
+  const distance=(passing.length-1)*100;
+  const animation=strip.animate(Array.from({length:41},(_,n)=>{const t=n/40;return {offset:t,transform:`translateX(${-distance*(1-(1-t)**3)}%)`}}),{duration,fill:'forwards'});
+  await new Promise(resolve=>{let finished=false;const finish=()=>{if(finished)return;finished=true;pendingReveals.delete(finish);animation.cancel();strip.remove();resolve()};pendingReveals.add(finish);let last=-1;function step(){if(disposed||document.hidden){finish();return}const t=Math.min(1,Number(animation.currentTime||0)/duration),index=Math.round((passing.length-1)*(1-(1-t)**3));if(index!==last){last=index;tick(t)}if(t>=1){finish();return}const raf=requestAnimationFrame(()=>{frames.delete(raf);step()});frames.add(raf)}step()});
   if(disposed)return;img.src=image(id);img.alt=name(id);img.style.visibility='visible';label.textContent=name(id);el.classList.remove('spinning');el.classList.add('landed');const tier=ultra?(ultra(id)?'ultra':'common'):(rarity.get(Number(id))||'common');el.classList.add(tier+'-reward');el.querySelector('.reward-rarity').textContent=tier==='ultra'?'ULTRA RARE':tier==='rare'?'RARE':'COMMON';el.querySelector('.reward-rarity').removeAttribute('aria-hidden');if(tier==='ultra'){el.classList.add('ultra-reward');el.querySelector('.reward-rarity').removeAttribute('aria-hidden');audio.ultra();screenShine();}button.disabled=false;button.dataset.inspect=id;button.setAttribute('aria-label','Inspect '+name(id)+' ('+(tier==='ultra'?'Ultra Rare':tier==='rare'?'Rare':'Common')+' reward)');if(performance.now()-lastLand>80){lastLand=performance.now();land();}
  }
  controls();
