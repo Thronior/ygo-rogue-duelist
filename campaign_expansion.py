@@ -123,6 +123,8 @@ def install(g):
   run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)));run['opponent']=run['routes'][0]
   if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)
+  import fallen_collectors
+  fallen_collectors.add_route(run,rng)
   run['route_rewards']={str(i):shop_rewards.random_reward(rng,storage.profile()) for i in run['routes']}
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   choices=[rng.choices(list(CURSES),k=count) for _ in run['routes']] if boss else []
@@ -171,6 +173,9 @@ def install(g):
   if not CHARACTERS[run['character']].get('copycat'):return
   main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
   extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
+  import fallen_collectors
+  fallen=fallen_collectors.opponent(run)
+  if fallen:main=fallen['deck']['main'][:];extra=fallen['deck']['extra'][:]
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
@@ -249,8 +254,12 @@ def install(g):
   # Shuffle both main decks before the engine draws opening hands, on every attempt.
   enemy=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0));rng.shuffle(enemy)
   enemy_extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
+  import fallen_collectors
+  fallen=fallen_collectors.opponent(run)
+  if fallen:enemy=fallen['deck']['main'][:];enemy_extra=fallen['deck']['extra'][:];rng.shuffle(enemy)
   request['enemy_deck']=enemy[:]+enemy_extra[:]
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
+  if fallen:enemy_name='Fallen '+fallen['name']
   if run.get('encore_active'):enemy_name=endless.CHAMPION['name']
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand1=1 if owns(duel_run,'rulebook') else 5

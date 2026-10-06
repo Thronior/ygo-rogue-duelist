@@ -15,6 +15,9 @@ def dispatch(raw):
   import progress_sync
   result=progress_sync.dispatch(action[12:],value)
   return json.dumps(dict(**state(),result=result),ensure_ascii=False)
+ if action=='fallen-sync':
+  import fallen_collectors
+  return json.dumps({'result':fallen_collectors.sync(value)})
  if action.startswith('collector-'):
   import collector
   result=collector.dispatch(action[10:],value)
@@ -124,7 +127,9 @@ def dispatch(raw):
   if opponent not in run['routes']:raise ValueError('Unavailable opponent')
   main=g.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0),loop=run.get('loop',0))
   extra=[] if run['round']==0 and not run.get('loop') else content.opponent_record(run['round'],opponent,run.get('loop',0))['extra']
-  result=main+extra
+  import fallen_collectors
+  fallen=fallen_collectors.opponent(run,opponent)
+  result=fallen['deck']['main']+fallen['deck']['extra'] if fallen else main+extra
  elif action=='cursed-choose':
   import cursed_relics
   cursed_relics.choose(run,str(value))

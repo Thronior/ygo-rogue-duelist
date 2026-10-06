@@ -373,6 +373,7 @@ export function smartContext(e,p,L,prompt=null){
   return value;
  }
  function remainingAttackers(){
+  if((Number(prompt?.hint_timing||0)|Number(prompt?.hint_timing_other||0))&16)return [];
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return [];
   return own.filter(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(!(a.attack_count>0)||same(a,e.attackCard)));
  }
@@ -730,7 +731,13 @@ export function smartContext(e,p,L,prompt=null){
    return damage>=e.lp[1-p]||damage>=1000&&expendable(cost)<=damage?95:-1;
   }
   if(n==='Tribe-Infecting Virus'){if(hand.length<2)return -1;const byType={};for(const m of enemy){if(!face(m))continue;const t=race(m)||'Unknown';(byType[t]=byType[t]||[]).push(m);}let best=0;for(const t in byType){const hit=own.filter(x=>face(x)&&(race(x)===t)).length;const val=byType[t].length*2-hit*2;if(val>best)best=val;}return best>=3?100:(best>=2?85:-1);}
-  if(n==='Time Wizard')return enemyPower>ownPower+1500?90:(ownPower>enemyPower+1500?-1:(enemy.length?70:-1));
+  if(n==='Time Wizard'){
+   const loss=own.reduce((v,x)=>v+Math.max(atk(x),power(x)),0),gain=enemy.reduce((v,x)=>v+(known(x)?Math.max(atk(x),power(x)):1500),0);
+   const backlash=own.reduce((v,x)=>v+Math.max(0,data(x).attack??atk(x)),0)/2;
+   if(!enemy.length||backlash>=e.lp[p]||gain<=loss+750)return -1;
+   if(enemy.every(t=>known(t)&&own.some(a=>attackAllowed(a,false)&&atk(a)>power(t))))return -1;
+   return 90;
+  }
   if(n==='Dark-Piercing Light'){const fd=enemy.filter(x=>!face(x)).length;return fd>=2?95:(fd>=1?80:-1);}
   if(n==='Call of Darkness'){const loss=own.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0),gain=enemy.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0);return gain>loss?96:-1;}
   if(n==='Creature Swap'){
@@ -1042,6 +1049,17 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(chaosPair&&grave.length<=6&&(attr(c)==='LIGHT'||attr(c)==='DARK')){const light=attr(c)==='LIGHT';if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
   return s;}
  function targetScore(fxN,cand,info){const nm=name(cand);
+  if(['Sonic Bird','Manju of the Ten Thousand Hands','Senju of the Thousand Hands'].includes(fxN)&&cand.controller===p&&cand.location===L.DECK){
+   const ritualMonster=x=>!!(data(x).type&1)&&!!(data(x).type&128),ritualSpell=x=>!!(data(x).type&2)&&!!(data(x).type&128);
+   const matches=(spell,monster)=>(e.cards.get(spell.code)?.desc||'').includes(name(monster));
+   const isMonster=ritualMonster(cand),partners=hand.filter(x=>isMonster?ritualSpell(x)&&matches(x,cand):ritualMonster(x)&&matches(cand,x));
+   const duplicate=hand.filter(x=>name(x)===nm).length;
+   let ready=0;for(const partner of partners){const monster=isMonster?cand:partner;const materials=allOwn.filter(x=>!same(x,partner)&&!same(x,cand)&&data(x).type&1&&!(x.location===L.MZONE&&name(x)==='Relinquished'));
+    const levels=materials.reduce((v,x)=>v+lvl(x),0);if(levels>=lvl(monster))ready=1;
+   }
+   const future=[...q(p,L.DECK),...hand].some(x=>isMonster?ritualSpell(x)&&matches(x,cand):ritualMonster(x)&&matches(cand,x));
+   return (partners.length?30000:future?4000:0)+ready*20000-duplicate*12000+(isMonster?Math.min(4000,projectedAttack(cand)):0);
+  }
   if(fxN==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return cand.controller!==p&&cand.location===L.MZONE&&!attackBlocked(cand,1-p)?20000+atk(cand):-1000000000;
   if(['Spirit Ryu','Gray Wing'].includes(fxN)&&cand.controller===p&&cand.location===L.HAND)return -expendable(cand);
   if(fxN==='Toon Table of Contents'&&cand.controller===p&&cand.location===L.DECK){
@@ -1060,7 +1078,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(fxN==='Black Luster Soldier - Envoy of the Beginning'&&cand.location===L.MZONE)return cand.controller!==p?30000+targetValue(cand):-1000000000;
 
   if(fxN==='Acid Trap Hole')return cand.controller!==p&&cand.location===L.MZONE?20000+targetValue(cand):-1000000000;
-  if(fxN==='Temple of the Kings'&&[L.HAND,L.DECK,L.EXTRA].includes(cand.location))return cand.controller===p?templeSummonValue(cand):-1000000000;
+  if(fxN==='Temple of the Kings'&&[L.HAND,L.DECK,L.EXTRA].includes(cand.location))return cand.controller===p&&nm!=='Mystical Beast of Serket'?templeSummonValue(cand):-1000000000;
 
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
@@ -1071,8 +1089,18 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
 
   if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
-  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500&&!/tribute/i.test(info.text||'')){if(doomed(cand))return -1000000000;
-   return cand.controller===p?20000+atk(cand)+(nm==='Maha Vailo'?10000:0):-1000000000;
+  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand))return -1000000000;
+   if(cand.controller!==p)return -1000000000;
+   const fixed={'Axe of Despair':1000,'Malevolent Nuzzler':700,'Black Pendant':500,'Horn of the Unicorn':700,'Sword of Deep-Seated':500,'Shine Palace':700,'Sword of Dark Destruction':400};
+   const bonus=fixed[fxN]??(fxN==='United We Stand'?800*own.filter(face).length:fxN==='Mage Power'?500*back.length:500);
+   const gain=bonus+(nm==='Maha Vailo'&&enabled(cand)?500:0);
+   const attacks=enabled(cand)&&['Mataza the Zapper','Hayabusa Knight'].includes(nm)?2:1;
+   const remaining=attackAllowed(cand,!enemy.length)?Math.max(0,attacks-(cand.attack_count||0)):0;
+   const attached=Math.max(cand.equip_cards?.length||0,back.filter(x=>same(x.equipCard||x.equip_card,cand)).length);
+   // Value additional usable damage, but avoid piling every equip onto one removal target.
+   // Only known blockers contribute thresholds; never read a face-down card's printed stats.
+   const clears=enemy.some(x=>known(x)&&atk(cand)<=power(x)&&atk(cand)+gain>power(x));
+   return 20000+gain*(remaining||.3)+(clears?900:0)-attached*650+Math.min(atk(cand),3000)*.05;
   }
 
   if(!fxN&&relic(p,'returning_tide')&&e.selectionHint===505&&cand.location===L.SZONE)return cand.controller===p?-backValue(cand):10000+backValue(cand);

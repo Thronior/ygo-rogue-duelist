@@ -1454,3 +1454,40 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
 @keyframes roster-complete-glow{0%,100%{opacity:.45}50%{opacity:1}}
 @keyframes roster-complete-shine{0%,18%{transform:translateX(-70%);opacity:0}24%{opacity:.7}54%{opacity:.7}62%,100%{transform:translateX(70%);opacity:0}}
 @media(prefers-reduced-motion:reduce){.character-select-page .portrait.golden-complete::before{animation:none;opacity:.7}.character-select-page .portrait.golden-complete::after{animation:none;display:none}}
+
+.draft-character-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:8px}.draft-character-grid button{min-width:0;display:flex;flex-direction:column;align-items:center}.draft-character-grid img{width:100%;height:110px;object-fit:contain}.draft-character-grid span{font-size:13px}.draft-pvp .collector-home{display:flex;flex-wrap:wrap;gap:12px}
+
+.shadow-conquered .ultra-beam{animation-duration:6.5s}.shadow-conquered .ultra-confetti-sheet{animation-duration:6.5s}.shadow-conquered .ultra-screen-glow{animation-duration:6.5s}
+.shadow-victory-banner{position:absolute;left:3%;right:3%;top:max(8%,env(safe-area-inset-top));padding:clamp(14px,3vh,28px) 12px;text-align:center;border-block:3px solid #fff3b1;background:linear-gradient(100deg,#946a19,#ffe5a0,#bd8d2d,#ffeac0,#946a19);color:#332006;font:bold clamp(20px,4.5vw,48px)/1.2 Georgia,serif;text-shadow:0 1px #fff0c4;box-shadow:0 0 28px #ffd979;animation:shadow-banner 7s both}
+.shadow-victory-seal{position:absolute;inset:42% 5% auto;display:flex;justify-content:center;align-items:center;gap:15px;color:#ffe6a1;text-shadow:0 0 22px #ffc239;font-size:clamp(28px,5vw,60px);animation:shadow-banner 7s both}.shadow-victory-seal span{font:bold clamp(16px,4vw,32px) Georgia,serif}
+@keyframes shadow-banner{0%{opacity:0;transform:scale(.8)}12%,85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.03)}}
+@media(prefers-reduced-motion:reduce){.shadow-victory-banner,.shadow-victory-seal{animation:none}.shadow-conquered .ultra-screen-glow{animation:none}}
+
+.reward-slot{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;overflow:visible;contain:layout;gap:6px}
+.reward-slot::before{display:none}.reward-slot-frame{position:relative;isolation:isolate;display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden;border:1px solid #d5b45e;border-radius:9px;padding:4px;background:#112438;box-shadow:inset 0 0 12px #d8ad2420}
+.reward-slot-frame::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 8px 8px,#fff1a7 0 2px,transparent 3px) 0 0/19px 19px;opacity:.18;pointer-events:none}
+.reward-slot.spinning .reward-slot-frame::before{opacity:.55;animation:reward-bulbs .85s ease-in-out infinite alternate}
+.reward-slot.ultra-reward .reward-slot-frame{border-color:#ffe7a0;background:radial-gradient(ellipse at 50% 38%,#4a8075,#2d5368 52%,#17283d);box-shadow:inset 0 0 20px #72efce55,0 0 7px #76e8daa0}
+.reward-slot>.reward-reroll{flex:none;width:100%;margin:0}.reward-slot.rare-reward .reward-slot-frame{border-color:#a6d7ff}
+@media(prefers-reduced-motion:reduce){.reward-slot.spinning .reward-slot-frame::before{animation:none}}
+
+.draft-connect-actions{display:flex;gap:10px;flex:none}.draft-connect-actions>.start-run{flex:1;min-width:0;width:0;margin:0}
+.draft-rules{text-align:center;font-size:clamp(11px,1.5vw,15px);padding:4px 8px}.draft-rules p{margin:5px 0}
+.draft-room-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.draft-room-actions button{flex:1;min-width:100px}
+.draft-pvp .collector-result{padding:20px;align-items:center}
+/* Draft uses the campaign picker while reserving room for both connection buttons. */
+.draft-character-select .duelist-selection{min-height:0}.draft-character-select .char-details{min-height:0}
+.draft-pvp .collector-room .tag-room-players{min-height:80px}.draft-pvp .collector-room{box-sizing:border-box;padding-bottom:0}.draft-pvp .draft-room-actions{flex:none}
+@media(orientation:portrait){
+ .draft-character-select>header{position:absolute}
+ .draft-character-select .char-layout{height:100%;min-height:0;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,40%) minmax(0,1fr);overflow:hidden;padding-top:48px;box-sizing:border-box}
+ .draft-character-select .roster{min-height:0;max-height:none;grid-template-rows:repeat(var(--roster-rows),minmax(0,1fr));overflow:hidden}
+ .draft-character-select .portrait{height:100%;width:100%;aspect-ratio:auto}
+ .draft-character-select .duelist-selection{height:100%;display:flex;flex-direction:column;padding:0;gap:6px}
+ .draft-character-select .char-details{flex:1;display:flex;flex-direction:column;gap:4px;padding:8px;overflow:hidden}
+ .draft-character-select .duelist-hero{flex:1;min-height:55px;height:auto;max-height:none}
+ .draft-character-select .duelist-loadout{flex:none;height:80px;min-height:0}
+ .draft-character-select .loadout-heading{margin:3px;font-size:10px}
+ .draft-character-select .draft-rules{font-size:10px;padding:0}.draft-character-select .draft-rules p{margin:2px}
+ .draft-character-select .draft-connect-actions{height:36px}.draft-character-select .start-run{min-height:0;padding:3px}
+}

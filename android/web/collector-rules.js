@@ -4,10 +4,10 @@ export const RANKS = Object.freeze(['Bronze','Silver','Gold','Legend','God']);
 export const rankFor = wins => RANKS[Math.min(4,Math.max(0,wins|0))];
 const counts = cards => cards.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
 export const deckCards = deck => [...(deck.main||[]),...(deck.side||[]),...(deck.extra||[])];
-export function validateDeck(deck,pool,cards,original=null) {
+export function validateDeck(deck,pool,cards,original=null,unrestricted=false) {
  const errors=[], all=deckCards(deck), catalog=new Map(cards.map(c=>[c.id,c]));
  if(!Array.isArray(deck.main)||deck.main.length<40||deck.main.length>60)errors.push('Main Deck must contain 40–60 cards.');
- if(!Array.isArray(deck.side)||deck.side.length>15)errors.push('Side Deck may contain 0–15 cards.');
+ if(!Array.isArray(deck.side)||deck.side.length>(unrestricted?0:15))errors.push(unrestricted?'Draft duels have no Side Deck.':'Side Deck may contain 0–15 cards.');
  if(!Array.isArray(deck.extra)||deck.extra.length>15)errors.push('Fusion Deck may contain 0–15 cards.');
  if(all.some(id=>!Number.isInteger(id)))errors.push('Invalid card ID.');
  const owned=counts(pool), used=counts(all), names={};
@@ -17,7 +17,7 @@ export function validateDeck(deck,pool,cards,original=null) {
   if(n>(owned[id]||0))errors.push('Not enough owned copies of '+card.name+'.');
   const alias=card.name;names[alias]=(names[alias]||0)+n;
  }
- for(const [id,n] of Object.entries(names))if(n>Math.min(...cards.filter(c=>c.name===id).map(c=>LIMITS[c.id]??3)))errors.push(id+' exceeds the April 2004 TCG copy limit.');
+ for(const [id,n] of Object.entries(names))if(n>(unrestricted?3:Math.min(...cards.filter(c=>c.name===id).map(c=>LIMITS[c.id]??3))))errors.push(id+(unrestricted?' exceeds the three-copy limit.':' exceeds the April 2004 TCG copy limit.'));
  for(const id of deck.main||[])if(catalog.get(id)?.data?.type&64)errors.push('Fusion Monsters belong in the Fusion Deck.');
  for(const id of deck.extra||[])if(!(catalog.get(id)?.data?.type&64))errors.push('Only Fusion Monsters belong in the Fusion Deck.');
  if(original){if(deck.main.length!==original.main.length)errors.push('Keep your starting Main Deck size.');const previous=counts(deckCards(original));if(Object.keys({...previous,...used}).some(id=>previous[id]!==used[id]))errors.push('Siding must preserve all cards in your match decks.');}
@@ -31,3 +31,5 @@ export function moveSideCard(deck,from,id,cards){
  const to=from==='side'?(card.data.type&64?'extra':'main'):'side';
  deck[from].splice(index,1);deck[to].push(id);return true;
 }
+
+export const validateDraftDeck=(deck,pool,cards)=>validateDeck(deck,pool,cards,null,true);

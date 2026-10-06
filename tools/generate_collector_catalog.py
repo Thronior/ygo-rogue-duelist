@@ -6,6 +6,9 @@ sys.path.insert(0,str(ROOT))
 import campaign
 
 def generate():
+ import content,card_rarity
+ draft={'characters':[dict(content.CHARACTERS[i],id=i,signatures=[campaign.BY_NAME[n]['id'] for n in content.CHARACTERS[i]['cards']]) for i in content.PLAYABLE_IDS], 'packs':content.PACKS,'weights':{str(c['id']):card_rarity.weight(c['id']) for c in campaign.CARDS if card_rarity.weight(c['id'])!=1}}
+ (ROOT/'multiplayer/cloudflare/draft-catalog.json').write_text(json.dumps(draft,separators=(',',':')),encoding='utf-8')
  cards=[{'id':c['id'],'name':c['name'],'type':c['type'],'data':{'type':c['data']['type'],'alias':c['data'].get('alias',0)}} for c in campaign.CARDS]
  (ROOT/'multiplayer/cloudflare/collector-cards.json').write_text(json.dumps(cards,separators=(',',':')),encoding='utf-8')
  rules=json.loads((ROOT/'data/collector-banlist.json').read_text())

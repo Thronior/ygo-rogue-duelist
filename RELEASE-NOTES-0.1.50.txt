@@ -1,0 +1,18 @@
+YGO Rogue Duelist 0.1.50
+
+NEW: Draft Duels
+- Pick a character, host or join a room, and keep their signature cards plus double starting boosters.
+- Both players ready up before the single-player pack-opening animations begin. Build independently, then both ready up to duel.
+- Best of three, 40-60 card Main Deck, no siding or banned/limited list, maximum three copies by name.
+- Fresh deck shuffles each duel and automatic room reconnection.
+
+CPU improvements
+- Smarter equip targets: considers extra attacks, visible blockers, Maha Vailo's bonus and spreading equips across monsters.
+- Sonic Bird, Manju and Senju search for ritual pieces that complement the current hand.
+- Fixed wasteful Limiter Removal timing, unfavorable Time Wizard gambles and Temple of the Kings choosing an unsupported Serket.
+
+Other changes
+- Special Level 5 completion celebration with a golden conquest banner, lights and confetti.
+- Fallen Ultimate Collector decks can appear in later single-player loops using their character portraits.
+- Reward reroll buttons sit beneath their card frames.
+- Mobile portrait and landscape layout fixes for Draft Duels.

@@ -24,6 +24,10 @@
       {
         "name": "PROGRESS",
         "class_name": "ProgressRegistry"
+      },
+      {
+        "name": "DRAFT",
+        "class_name": "DraftRegistry"
       }
     ]
   },
@@ -50,6 +54,12 @@
       "tag": "v4",
       "new_sqlite_classes": [
         "ProgressRegistry"
+      ]
+    },
+    {
+      "tag": "v5",
+      "new_sqlite_classes": [
+        "DraftRegistry"
       ]
     }
   ]
