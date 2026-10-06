@@ -54,7 +54,7 @@ export function polishDuel(root,owner,s,lookup){
 export function duelFinish(winner){
  return new Promise(resolve=>{
   const el=document.createElement('button');el.className='duel-finish '+(winner===0?'won':'lost');
-  el.setAttribute('aria-label','Dismiss duel result');el.innerHTML='<strong>'+(winner===0?'VICTORY':winner===1?'DEFEAT':'DRAW')+'</strong><small>Tap to continue</small>';
+  el.setAttribute('aria-label','Dismiss duel result');el.innerHTML='<strong>'+(winner===0?'VICTORY':winner===1?'DEFEAT':'DRAW')+'</strong>';
   let timer;const close=()=>{clearTimeout(timer);el.remove();resolve()};
   el.addEventListener('click',close,{once:true});document.body.append(el);el.focus({preventScroll:true});timer=setTimeout(close,1450);
  });

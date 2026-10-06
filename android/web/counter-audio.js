@@ -1,7 +1,7 @@
 import {balancedVolume} from './audio-balance.js';
 // Three reusable, short voices across all counters. No audio loops or timers.
 const voices=Array.from({length:3},()=>new Audio());
-const purchaseVoice=new Audio('assets/sfx/purchase-coins.wav');
+const purchaseVoice=new Audio('assets/sfx/purchase.mp3');
 export function purchaseCoins(){const gain=volume();if(!gain||document.hidden)return;purchaseVoice.pause();purchaseVoice.currentTime=0;balancedVolume(purchaseVoice,gain,.65);purchaseVoice.play().catch(()=>{})}
 export function stopPurchaseCoins(){purchaseVoice.pause()}
 const last=new Map();let volume=()=>0,index=0;

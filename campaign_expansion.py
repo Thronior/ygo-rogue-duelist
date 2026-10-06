@@ -252,11 +252,17 @@ def install(g):
      a,d=mods[str(i)];card=g.BY_ID[cid]
      run['duel_modifications'].append(dict(location=location,sequence=sequence,atk=max(0,card['atk']+a),defense=max(0,card['defense']+d)))
   # Shuffle both main decks before the engine draws opening hands, on every attempt.
-  enemy=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0));rng.shuffle(enemy)
-  enemy_extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   import fallen_collectors
   fallen=fallen_collectors.opponent(run)
-  if fallen:enemy=fallen['deck']['main'][:];enemy_extra=fallen['deck']['extra'][:];rng.shuffle(enemy)
+  if fallen:
+   # A saved Collector encounter owns its deck; it may predate roster restrictions.
+   enemy=fallen['deck']['main'][:];enemy_extra=fallen['deck']['extra'][:]
+  elif run.get('encore_active'):
+   enemy=endless.CHAMPION['main'][:];enemy_extra=endless.CHAMPION['extra'][:]
+  else:
+   enemy=opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   enemy_extra=[] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra']
+  rng.shuffle(enemy)
   request['enemy_deck']=enemy[:]+enemy_extra[:]
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
   if fallen:enemy_name='Fallen '+fallen['name']

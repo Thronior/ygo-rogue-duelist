@@ -32,3 +32,37 @@ export function balancedVolume(audio,slider,emphasis=1){
   audio.volume=1;voice.gain.gain.value=volume;resume();
  }catch{audio.volume=Math.min(1,volume);}
 }
+
+// Decoded effects avoid interrupted HTMLAudio play requests during rapid reel ticks.
+const effectBuffers=new Map();
+export function bufferedEffects(paths,volume){
+ const ctx=graph(),active=new Map(),versions=new Map();let disposed=false;
+ const load=path=>{
+  if(!effectBuffers.has(path))effectBuffers.set(path,fetch(path).then(r=>{if(!r.ok)throw Error('Audio '+r.status);return r.arrayBuffer()}).then(b=>ctx.decodeAudioData(b)).catch(e=>{effectBuffers.delete(path);throw e}));
+  return effectBuffers.get(path);
+ };
+ if(ctx)for(const path of new Set(Object.values(paths)))load(path).catch(()=>{});
+ const stop=key=>{
+  versions.set(key,(versions.get(key)||0)+1);
+  const voice=active.get(key);if(!voice)return;
+  active.delete(key);voice.source.onended=null;voice.source.stop();voice.source.disconnect();voice.gain.disconnect();
+ };
+ return {
+  unlock(){resume()},
+  playing(key){return active.has(key)},
+  play(key,emphasis=1,rate=1,loop=false){
+   if(disposed||!ctx||document.hidden||!volume())return;
+   stop(key);resume();const version=versions.get(key),path=paths[key];
+   load(path).then(buffer=>{
+    if(disposed||document.hidden||versions.get(key)!==version)return;
+    const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=buffer;source.loop=loop;source.playbackRate.value=rate;
+    gain.gain.value=Math.max(0,Math.min(1,Number(volume())||0))*emphasis*(audioGains[path]??1);
+    source.connect(gain);gain.connect(master);active.set(key,{source,gain});
+    source.onended=()=>{source.disconnect();gain.disconnect();if(active.get(key)?.source===source)active.delete(key)};source.start();
+   }).catch(()=>{});
+  },
+  stop,
+  stopAll(){for(const key of Object.keys(paths))stop(key)},
+  destroy(){disposed=true;this.stopAll()}
+ };
+}

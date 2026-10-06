@@ -254,4 +254,7 @@ TUTORIAL_OPPONENTS={int(k):v for k,v in json.loads((Path(__file__).parent/'data/
 def eligible_opponents(round_index,loop=0):
  if round_index==0 and not loop:return list(TUTORIAL_OPPONENTS)
  tier=min(3,round_index//3+1)
+ if loop:
+  tier4=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8'))
+  return [i for i in GAME_DECKS if str(i) in tier4]
  return list(GAME_DECKS)+([] if loop else [i for i,row in TIER_EXCLUSIVE_OPPONENTS.items() if str(tier) in row.get('tier_decks',{str(row['tier']):row['deck']})])

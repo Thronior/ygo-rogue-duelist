@@ -1,11 +1,12 @@
 // One finite entrance at a time; cancellation never leaves an input blocker behind.
 let active;
 export function cancelCharacterEntrance(){active?.()}
+export function captureCharacterEntrance(source){return source?.isConnected?{portrait:source.cloneNode(),rect:source.getBoundingClientRect()}:null}
 export async function characterEntrance(source,enter){
  cancelCharacterEntrance();
- if(!source?.isConnected||document.hidden){enter();return}
- const rect=source.getBoundingClientRect(),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
- const overlay=document.createElement('div'),portrait=source.cloneNode();
+ if(!(source?.portrait||source?.isConnected)||document.hidden){enter();return}
+ const rect=source.rect||source.getBoundingClientRect(),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const overlay=document.createElement('div'),portrait=source.portrait||source.cloneNode();
  overlay.className='character-entrance';overlay.setAttribute('aria-hidden','true');
  portrait.removeAttribute('loading');overlay.append(portrait);
  Object.assign(portrait.style,{left:rect.x+'px',top:rect.y+'px',width:rect.width+'px',height:rect.height+'px'});

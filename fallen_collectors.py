@@ -31,7 +31,9 @@ def candidates():
 def add_route(run,rng):
  run.pop('fallen_routes',None)
  if not run.get('loop') or run.get('encore_active'):return
- choices=[d for d in candidates() if d['character']!=run['character'] and d['character'] not in run.get('defeated_opponents',[])]
+ import content
+ eligible=set(content.eligible_opponents(run['round'],run['loop']))
+ choices=[d for d in candidates() if d['character'] in eligible and d['character']!=run['character'] and d['character'] not in run.get('defeated_opponents',[])]
  if not choices:return
  chosen=copy.deepcopy(rng.choice(choices));cid=chosen['character']
  if cid not in run['routes']:run['routes'][rng.randrange(len(run['routes']))]=cid

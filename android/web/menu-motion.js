@@ -2,7 +2,7 @@
 export function mountMenuMotion(root,count,initial,onSelect){
  const cards=[...root.querySelectorAll('[data-menu]')];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0,opening=false,destroyed=false,twirl=null;
+ let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0,opening=false,destroyed=false,twirl=null,back=null,backAnimation=null;
  const wrap=n=>(n%count+count)%count;
  const portrait=()=>matchMedia('(orientation:portrait)').matches;
  const cardSize=()=>{const c=cards.find(c=>!c.hidden)||cards[0];return portrait()?c.offsetHeight:c.offsetWidth;};
@@ -81,18 +81,24 @@ export function mountMenuMotion(root,count,initial,onSelect){
    root.classList.remove('dragging');root.setAttribute('aria-busy','true');
    const base=card.style.transform;
    try{
+    if(!reduced.matches){
+     back=document.createElement('img');back.className='menu-twirl-back';back.src='assets/card-back.jpg';back.alt='';
+     Object.assign(back.style,{position:'absolute',inset:'0',width:'100%',height:'100%',maxWidth:'none',maxHeight:'none',objectFit:'fill',borderRadius:'inherit',pointerEvents:'none',zIndex:'20'});
+     card.append(back);
+     backAnimation=back.animate([{opacity:0},{opacity:0,offset:.249},{opacity:1,offset:.25},{opacity:1,offset:.75},{opacity:0,offset:.751},{opacity:0}],{duration:280,easing:'linear'});
+    }
     twirl=card.animate(reduced.matches?[{opacity:1},{opacity:.65},{opacity:1}]:[
      {transform:base+' perspective(900px) rotateY(0deg) rotateZ(0deg)'},
      {transform:base+' perspective(900px) rotateY(180deg) rotateZ(8deg)',offset:.5},
      {transform:base+' perspective(900px) rotateY(360deg) rotateZ(0deg)'}
-    ],{duration:reduced.matches?100:420,easing:'cubic-bezier(.3,0,.2,1)'});
+    ],{duration:reduced.matches?100:280,easing:'linear'});
     await twirl.finished;
     if(!destroyed&&root.isConnected)await onOpen();
    }catch(error){if(error.name!=='AbortError')throw error;}
-   finally{twirl?.cancel();twirl=null;opening=false;root.removeAttribute('aria-busy');}
+   finally{backAnimation?.cancel();backAnimation=null;back?.remove();back=null;twirl?.cancel();twirl=null;opening=false;root.removeAttribute('aria-busy');}
   },
   select(index){settle(target+wrap(index-wrap(target)+count/2)-count/2);},
   step(direction){settle(target+direction);},
-  destroy(){destroyed=true;twirl?.cancel();cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
+  destroy(){destroyed=true;backAnimation?.cancel();back?.remove();back=null;twirl?.cancel();cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
  };
 }
