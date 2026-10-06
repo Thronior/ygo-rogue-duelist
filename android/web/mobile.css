@@ -1491,3 +1491,8 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
  .draft-character-select .draft-rules{font-size:10px;padding:0}.draft-character-select .draft-rules p{margin:2px}
  .draft-character-select .draft-connect-actions{height:36px}.draft-character-select .start-run{min-height:0;padding:3px}
 }
+
+/* Keep draft names clear of the packs and the buttons clear of phone edges. */
+.draft-character-select{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+.draft-character-select .duelist-hero{margin-bottom:clamp(34px,4vh,42px)}
+.draft-character-select .duelist-hero h2{bottom:-16px;font-size:clamp(16px,2.5vw,26px);line-height:1.1}

@@ -1,0 +1,6 @@
+YGO Rogue Duelist 0.1.51 — Hotfix
+
+- Fixed the missing Dice Jar artwork on the Draft Duels menu card.
+- Added more space between character names and booster packs in Draft Duels.
+- Added bottom padding below the Draft Duels Join/Host buttons.
+- Moved Watch CPU Duel beside Collection in the main menu.
