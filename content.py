@@ -161,6 +161,9 @@ def starting_packs(index,rng=None):
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):
  from deck_files import read
+ if index in UC_OPPONENTS:
+  if not loop:raise ValueError('UC opponents require a later loop.')
+  return dict(UC_OPPONENTS[index]['deck'],tier=4)
  if index in TIER_EXCLUSIVE_OPPONENTS:
   row=TIER_EXCLUSIVE_OPPONENTS[index]
   if index not in eligible_opponents(round_index,loop):raise ValueError('Opponent is not eligible for this duel tier.')
@@ -256,5 +259,12 @@ def eligible_opponents(round_index,loop=0):
  tier=min(3,round_index//3+1)
  if loop:
   tier4=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8'))
-  return [i for i in GAME_DECKS if str(i) in tier4]
+  return [i for i in GAME_DECKS if str(i) in tier4]+list(UC_OPPONENTS)
  return list(GAME_DECKS)+([] if loop else [i for i,row in TIER_EXCLUSIVE_OPPONENTS.items() if str(tier) in row.get('tier_decks',{str(row['tier']):row['deck']})])
+
+# Each defeated Collector is a separate, permanent NPC identity, not its avatar.
+UC_OPPONENTS={row['opponent_id']:row for row in json.loads((Path(__file__).parent/'data/fallen-collectors.json').read_text(encoding='utf8'))['opponents']}
+for _id,_row in sorted(UC_OPPONENTS.items()):
+ if _id!=len(CHARACTERS):raise ValueError('UC opponent identities must remain append-only.')
+ _avatar=CHARACTERS[_row['character']]
+ CHARACTERS.append(dict(_avatar,name=_row['name'],opponent_only=True,ultimate_collector=True,avatar_character=_row['character']))

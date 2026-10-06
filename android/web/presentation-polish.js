@@ -1,3 +1,4 @@
+import {victoryReasons} from './victory-reasons.js';
 import {counterTick,stopCounterAudio} from './counter-audio.js';
 // Finite, shared animation scheduler; detached nodes never retain a frame loop.
 const jobs=new Map(), duels=new WeakMap();
@@ -51,13 +52,17 @@ export function polishDuel(root,owner,s,lookup){
  });
  for(const key of d.stats.keys())if(!live.has(key))d.stats.delete(key);
 }
-export function duelFinish(winner){
- return new Promise(resolve=>{
-  const el=document.createElement('button');el.className='duel-finish '+(winner===0?'won':'lost');
-  el.setAttribute('aria-label','Dismiss duel result');el.innerHTML='<strong>'+(winner===0?'VICTORY':winner===1?'DEFEAT':'DRAW')+'</strong>';
-  let timer;const close=()=>{clearTimeout(timer);el.remove();resolve()};
-  el.addEventListener('click',close,{once:true});document.body.append(el);el.focus({preventScroll:true});timer=setTimeout(close,1450);
- });
+export async function duelFinish(winner,reason=0,settled=Promise.resolve()){
+ const el=document.createElement('button');el.className='victory-settlement duel-result '+(winner===0?'won':'lost');
+ el.setAttribute('aria-label','Dismiss duel result');
+ el.innerHTML='<div class="victory-rays"></div><div class="victory-title"><span></span><strong></strong><small></small></div>';
+ el.querySelector('span').textContent=winner===0?'DUEL WON':winner===1?'DUEL LOST':'DUEL ENDED';
+ el.querySelector('strong').textContent=winner===0?'VICTORY':winner===1?'DEFEAT':'DRAW';
+ const side=winner===0?'Opponent': 'You';
+ el.querySelector('small').textContent=reason===1?(winner===0?"Opponent’s LP reached 0":"Your LP reached 0"):reason===2?(winner===0?'Opponent could not draw a card':'You could not draw a card'):reason===0?(winner===0?'Opponent surrendered':'You surrendered'):(victoryReasons[reason]||'Duel ended by a card effect');
+ const field=document.querySelector('.field-wrap');if(field){const b=field.getBoundingClientRect();Object.assign(el.style,{left:b.left+'px',top:b.top+'px',width:b.width+'px',height:b.height+'px'})}
+ document.body.append(el);let timer;
+ try{await Promise.all([settled,new Promise(resolve=>{const done=()=>{clearTimeout(timer);resolve()};el.addEventListener('click',done,{once:true});timer=setTimeout(done,2600)})]);}finally{clearTimeout(timer);el.remove()}
 }
 
 // Finish counters when backgrounded instead of retaining detached views in a suspended RAF.

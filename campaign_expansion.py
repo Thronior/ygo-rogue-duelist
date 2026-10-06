@@ -59,7 +59,7 @@ def install(g):
     key=g.card_identity(r['pool'][i])
     if counts[key]<3:selected.append(i);counts[key]+=1
    r['selected']=selected
-   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any((i not in eligible_opponents(r['round'],r.get('loop',0)) and not r.get('fallen_routes',{}).get(str(i))) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
     r['route_rewards']={str(i):shop_rewards.random_reward(random,storage.profile()) for i in r['routes']}
     r['reward_rules']=5;save(r)
@@ -111,7 +111,7 @@ def install(g):
   elif boss:choices=[0,1,3,4,6,7,11,15,17,27]
   else:choices=list(GAME_DECKS)
   eligible=eligible_opponents(rd,run.get('loop',0))
-  choices+=[i for i in eligible if i in TIER_EXCLUSIVE_OPPONENTS and i not in choices]
+  choices+=[i for i in eligible if (i in TIER_EXCLUSIVE_OPPONENTS or i in UC_OPPONENTS) and i not in choices]
   choices=[i for i in choices if i in eligible]
   defeated=set(run.get('defeated_opponents',[]))
   choices=[i for i in choices if i not in defeated and i!=run['character']]
@@ -171,11 +171,13 @@ def install(g):
   rng.shuffle(result);return result
  def copy_deck(run,rng=random):
   if not CHARACTERS[run['character']].get('copycat'):return
-  main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-  extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   import fallen_collectors
   fallen=fallen_collectors.opponent(run)
-  if fallen:main=fallen['deck']['main'][:];extra=fallen['deck']['extra'][:]
+  if fallen:
+   main=fallen['deck']['main'][:];extra=fallen['deck']['extra'][:]
+  else:
+   main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
