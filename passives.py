@@ -7,7 +7,7 @@ def ai_modifiers(run):
  run=duel_run(run)
  from endless import LOOP
  from approved_relics import has
- return {'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[]],'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1) if 'enemy_power' in run.get('curses',[]) else 0)}
+ return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[]],'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1) if 'enemy_power' in run.get('curses',[]) else 0)}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
@@ -36,6 +36,12 @@ end""")
  if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0:
   lines.extend([expanded_effect('approved_champion_stats',0)]*__import__('approved_relics').copies(run,'cursed_champions_burden'))
  events={}
+ current_relic=None
+ def feedback(text):
+  if current_relic is None:return text
+  import re
+  hint=f'Duel.Hint(HINT_MESSAGE,0,{1800000000+list(ART_INFO).index(current_relic)}) '
+  return re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
  def stat(code,value,condition='true',enemy=False):
   lines.append(f'''do local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD)
@@ -45,8 +51,9 @@ e:SetTarget(function(e,c) return {condition} end)
 e:SetValue({value})
 Duel.RegisterEffect(e,0) end''')
  def event(code,operation):
-  events.setdefault(code,[]).append(operation)
+  events.setdefault(code,[]).append(feedback(operation))
  for key in run['artifacts']:
+  current_relic=key;line_start=len(lines)
   info=ART_INFO[key]
   if key=='magic_mirror':
    copy=run.get('mirror_copy')
@@ -58,7 +65,7 @@ Duel.RegisterEffect(e,0) end''')
   expanded=expanded_effect(kind,amount,filter)
   if kind=='approved_empty_hand_pact' and has(run,'cursed_starving_library'):expanded=expanded.replace('e:SetCode(EFFECT_HAND_LIMIT)', 'e:SetCode(EFFECT_HAND_LIMIT)').replace('e:SetValue(4)','e:SetValue(3)')
   if expanded is not None:
-   lines.append(expanded);continue
+   lines.append(feedback(expanded));continue
   if kind=='echo':
    lines.append("""do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
@@ -107,6 +114,8 @@ local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_ADJUST)
 e:SetOperation(function() if not used and Duel.GetLP(0)<=0 then Duel.SetLP(0,{int(amount)}) used=true {('Duel.Hint(HINT_MESSAGE,0,900000001) ' if telemetry else '')}end end)
 Duel.RegisterEffect(e,0) end''')
+  for pos in range(line_start,len(lines)):lines[pos]=feedback(lines[pos])
+ current_relic=None
  for mod in run.get('duel_modifications',[]):
   lines.append(f"""do local c=Duel.GetFieldCard(0,LOCATION_{mod['location']},{int(mod['sequence'])}) if c then
 local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_SET_BASE_ATTACK) a:SetProperty(EFFECT_FLAG_CANNOT_DISABLE|EFFECT_FLAG_UNCOPYABLE) a:SetValue({int(mod['atk'])}) c:RegisterEffect(a)

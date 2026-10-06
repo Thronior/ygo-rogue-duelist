@@ -4,7 +4,7 @@ export const hasSpyglass=r=>(r.artifacts||[]).includes('deck_spyglass')||r.mirro
 export const bossRerollPrice=r=>{const n=Math.max(0,Number(r.boss_rerolls)||0);return n<2?[30,50][n]:100+(n-2)*50};
 export function encounterPortrait(content,r,i){
  const c=content.characters[i],boss=(r.round+1)%3===0;
- return boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i)?`<div class="duelist-hero encounter-hero" style="background-image:url('assets/${esc(c.background||'character-backgrounds/'+i+'.jpg')}')"><img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}"><h2>${esc(c.name)}</h2></div>`:`<div class="duelist-hero encounter-hero encounter-mystery" aria-label="Unknown opponent"><span>?</span></div>`;
+ return boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i)?`<div data-tier="${r.loop?4:Math.min(3,Math.floor(r.round/3)+1)}" class="duelist-hero encounter-hero" style="background-image:url('assets/${esc(c.background||'character-backgrounds/'+i+'.jpg')}')"><img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}"><h2>${esc(c.name)}</h2></div>`:`<div data-tier="${r.loop?4:Math.min(3,Math.floor(r.round/3)+1)}" class="duelist-hero encounter-hero encounter-mystery" aria-label="Unknown opponent"><span>?</span></div>`;
 }
 export function encounterCard(content,r,i,{button,curseIcons}={}){
  const reward=r.route_rewards[i],p=content.packs.find(x=>x.id===reward.pack),boss=(r.round+1)%3===0;

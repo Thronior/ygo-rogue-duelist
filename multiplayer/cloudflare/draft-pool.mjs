@@ -5,7 +5,7 @@ const pick=(xs,random)=>xs[Math.floor(random()*xs.length)];
 const weighted=(xs,random)=>{let value=random()*xs.reduce((n,id)=>n+(catalog.weights?.[id]??1),0);for(const id of xs){value-=catalog.weights?.[id]??1;if(value<0)return id;}return xs.at(-1);};
 export function draftPool(character,random=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296){
  const c=catalog.characters.find(c=>c.id===character);if(!c)throw Error('Choose a playable character.');
- const eligible=catalog.packs.filter(p=>!p.shop_only&&!p.draft_only&&!p.id.startsWith('DRAFT-'));
+ const eligible=catalog.packs.filter(p=>!p.shop_only&&!p.draft_only&&!p.id.startsWith('DRAFT-')&&new Set([...p.common,...(p.rare||[])].map(id=>byId.get(id)?.name).filter(Boolean)).size>=9);
  const usual=c.starting_packs||Array.from({length:4},()=>c.pack==='RANDOM'||c.copycat||c.engine_deck?pick(eligible,random).id:c.pack);
  const ids=[...usual,...usual];
  for(let attempt=0;attempt<500;attempt++){

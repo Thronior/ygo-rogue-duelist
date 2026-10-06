@@ -153,21 +153,10 @@ PLAYABLE_IDS=[i for i in range(len(CHARACTERS)) if i not in (25,26,27)]
 def starting_packs(index,rng=None):
  if CHARACTERS[index].get('copycat') or CHARACTERS[index].get('engine_deck'):return []
  if CHARACTERS[index].get('random_packs'):
-  import random,unlocks
+  import random
   rng=rng or random
-  available=[p for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'])]
-  # Two foundations with at least 30% low-Level monsters, plus two wildcards.
-  # Tiny Premium/Tournament pools are useful supplements, not the whole draft.
-  cards={c['id']:c for c in json.loads((Path(__file__).parent/'data/era-cards.json').read_text(encoding='utf8'))}
-  def foundation(pack):
-   ids=set(pack['common']+pack['rare'])
-   return len(ids)>=40 and sum(1 for cid in ids if 'Monster' in cards.get(cid,{}).get('type','') and 0<cards[cid].get('level',0)<=4)>=len(ids)*.30
-  chosen=rng.sample([p for p in available if foundation(p)],2)
-  while len(chosen)<4:
-   options=[p for p in available if p not in chosen and (len(set(p['common']+p['rare']))>=40 or all(len(set(q['common']+q['rare']))>=40 for q in chosen))]
-   chosen.append(rng.choice(options))
-  rng.shuffle(chosen)
-  return [p['id'] for p in chosen]
+  # Bakura can draw any pack, including character and shop boosters.
+  return [p['id'] for p in rng.sample(PACKS,4)]
  return CHARACTERS[index].get('starting_packs',DRAFTS.get(str(index),[CHARACTERS[index]['pack']]*4))
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):

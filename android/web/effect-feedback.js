@@ -23,7 +23,8 @@ export function effectMessageCue(e,m,M,L){
  if([M.RANDOM_SELECTED,M.CARD_SELECTED,M.BECOME_TARGET].includes(m.type))return cue(m.type===M.RANDOM_SELECTED?'Random card selected':m.type===M.BECOME_TARGET?'Effect target selected':'Card selected',(m.cards||[]).map(publicCard),{player:m.player,random:m.type===M.RANDOM_SELECTED});
  if([M.EQUIP,M.CARD_TARGET,M.CANCEL_TARGET].includes(m.type))return cue(m.type===M.EQUIP?'Equipped':m.type===M.CARD_TARGET?'Cards linked':'Card link removed',[m.card,m.target].filter(Boolean).map(publicCard));
  if([M.ADD_COUNTER,M.REMOVE_COUNTER].includes(m.type))return cue(`${m.type===M.ADD_COUNTER?'+':'−'}${m.count} counter${m.count===1?'':'s'}`,[publicCard(m)],{increase:m.type===M.ADD_COUNTER});
- if([M.CHAIN_NEGATED,M.CHAIN_DISABLED,M.ATTACK_DISABLED].includes(m.type))return cue(m.type===M.ATTACK_DISABLED?'Attack negated':'Effect negated');
+ if(m.type===M.ATTACK_DISABLED)return cue('Attack negated',e.attackCard?[publicCard(e.attackCard)]:[],{negated:true});
+ if([M.CHAIN_NEGATED,M.CHAIN_DISABLED].includes(m.type))return null;
  if(m.type===M.SWAP)return cue('Cards switched',[m.card1,m.card2].filter(Boolean).map(publicCard));
  if([M.SHUFFLE_DECK,M.SHUFFLE_HAND,M.SHUFFLE_SET_CARD,M.SWAP_GRAVE_DECK,M.REVERSE_DECK].includes(m.type))return cue(m.type===M.SHUFFLE_HAND?'Hand shuffled':m.type===M.SHUFFLE_SET_CARD?'Set cards shuffled':m.type===M.SWAP_GRAVE_DECK?'Deck and Graveyard exchanged':m.type===M.REVERSE_DECK?'Deck reversed':'Deck shuffled',[],{player:m.player});
  return null;

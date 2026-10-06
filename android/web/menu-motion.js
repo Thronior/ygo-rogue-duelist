@@ -2,7 +2,7 @@
 export function mountMenuMotion(root,count,initial,onSelect){
  const cards=[...root.querySelectorAll('[data-menu]')];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0;
+ let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0,opening=false,destroyed=false,twirl=null;
  const wrap=n=>(n%count+count)%count;
  const portrait=()=>matchMedia('(orientation:portrait)').matches;
  const cardSize=()=>{const c=cards.find(c=>!c.hidden)||cards[0];return portrait()?c.offsetHeight:c.offsetWidth;};
@@ -34,12 +34,13 @@ export function mountMenuMotion(root,count,initial,onSelect){
   paint();frame=requestAnimationFrame(tick);
  }
  function settle(next){
+  if(opening||destroyed)return;
   target=next;onSelect(wrap(next));
   if(reduced.matches){cancelAnimationFrame(frame);frame=0;position=target;velocity=0;paint();}
   else if(!frame){last=performance.now();frame=requestAnimationFrame(tick);}
  }
  function down(e){
-  if(!e.isPrimary||e.button!==0)return;
+  if(opening||destroyed||!e.isPrimary||e.button!==0)return;
   cancelAnimationFrame(frame);frame=0;
   drag={id:e.pointerId,start:portrait()?e.clientY:e.clientX,position,last:performance.now(),point:portrait()?e.clientY:e.clientX,moved:false,vertical:portrait()};
   velocity=0;
@@ -65,7 +66,7 @@ export function mountMenuMotion(root,count,initial,onSelect){
    settle(Math.abs(travel)>.18? (travel>0?Math.max(Math.round(projected),Math.floor(previous.position)+1):Math.min(Math.round(projected),Math.ceil(previous.position)-1)):Math.round(projected));
   }else settle(target);
  }
- function click(e){if(performance.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation();}}
+ function click(e){if(opening||performance.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation();}}
  function resize(){if(drag){drag=null;root.classList.remove('dragging');}velocity=0;settle(Math.round(target));paint();}
  root.classList.add('smooth-menu');paint();
  root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
@@ -74,8 +75,24 @@ export function mountMenuMotion(root,count,initial,onSelect){
  window.addEventListener('resize',resize);
  function prevent(e){e.preventDefault();}
  return {
+  async open(card,onOpen){
+   if(opening||destroyed||!cards.includes(card))return;
+   opening=true;cancelAnimationFrame(frame);frame=0;drag=null;velocity=0;
+   root.classList.remove('dragging');root.setAttribute('aria-busy','true');
+   const base=card.style.transform;
+   try{
+    twirl=card.animate(reduced.matches?[{opacity:1},{opacity:.65},{opacity:1}]:[
+     {transform:base+' perspective(900px) rotateY(0deg) rotateZ(0deg)'},
+     {transform:base+' perspective(900px) rotateY(180deg) rotateZ(8deg)',offset:.5},
+     {transform:base+' perspective(900px) rotateY(360deg) rotateZ(0deg)'}
+    ],{duration:reduced.matches?100:420,easing:'cubic-bezier(.3,0,.2,1)'});
+    await twirl.finished;
+    if(!destroyed&&root.isConnected)await onOpen();
+   }catch(error){if(error.name!=='AbortError')throw error;}
+   finally{twirl?.cancel();twirl=null;opening=false;root.removeAttribute('aria-busy');}
+  },
   select(index){settle(target+wrap(index-wrap(target)+count/2)-count/2);},
   step(direction){settle(target+direction);},
-  destroy(){cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
+  destroy(){destroyed=true;twirl?.cancel();cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
  };
 }

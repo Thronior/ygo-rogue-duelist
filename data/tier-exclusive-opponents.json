@@ -89,7 +89,7 @@
       "source_id": 6,
       "fixed": true,
       "sprite": "opponents/kemo.png",
-      "theme": "A brute-force security enforcer encounter. This does not claim that Kemo canonically uses Dinosaurs.",
+      "theme": "Ritual progression: mixed beginner rituals at T1, Shinato and weaker rituals at T2, then the full Shinato/Zorc list at T3.",
       "background": "character-backgrounds/8.jpg",
       "reward_themes": [
         "highlevel",
@@ -99,7 +99,12 @@
         "equip",
         "Plant"
       ],
-      "reward_pack": "WC4-24"
+      "reward_pack": "WC4-24",
+      "tier_decks": {
+        "1": "wct2004-kemo",
+        "2": "kemo-tier-2",
+        "3": "kemo-tier-3"
+      }
     },
     {
       "character": 43,
@@ -111,7 +116,7 @@
       "source_id": 7,
       "fixed": true,
       "sprite": "opponents/leichter.png",
-      "theme": "Jinzo and control effects match his original-series dueling identity.",
+      "theme": "Jinzo control at T1; tuned STA02 Blue-Eyes and battle support at T2.",
       "background": "character-backgrounds/16.jpg",
       "reward_themes": [
         "Sea Serpent",
@@ -121,7 +126,11 @@
         "Plant",
         "midlevel"
       ],
-      "reward_pack": "WC4-24"
+      "reward_pack": "WC4-24",
+      "tier_decks": {
+        "1": "wct2004-leichter",
+        "2": "leichter-tier-2"
+      }
     },
     {
       "character": 44,

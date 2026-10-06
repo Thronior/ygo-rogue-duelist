@@ -1496,3 +1496,40 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
 .draft-character-select{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
 .draft-character-select .duelist-hero{margin-bottom:clamp(34px,4vh,42px)}
 .draft-character-select .duelist-hero h2{bottom:-16px;font-size:clamp(16px,2.5vw,26px);line-height:1.1}
+
+/* Presentation polish: no additional layout rows or persistent particle loops. */
+button{transition:filter .12s,box-shadow .12s,background-color .12s}
+button:active:not(:disabled){filter:brightness(1.2)}
+button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
+.cardbtn,.shop-product{transition:border-color .16s,box-shadow .16s}
+.cardbtn>img,.shop-product .product-art>img{transition:translate .16s,filter .16s}
+.cardbtn.selected,.shop-product.chosen{border-color:#ffe09b;box-shadow:inset 0 0 0 1px #ffe09b,0 0 10px #e8c36570}
+.cardbtn.selected>img,.shop-product.chosen .product-art>img{translate:0 -3px}
+.shop-product.sold{box-shadow:none;border-color:#59616a}
+.shop-product.sold .product-art>img{filter:grayscale(1);opacity:.35}
+.shop-product.sold .price-badge{color:#ccc;background:#18222e}
+.shop-balance strong,.life strong,.zone .power{font-variant-numeric:tabular-nums}
+.life,.life.enemy{position:relative;isolation:isolate;background:#091324;overflow:hidden}
+.life:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(#568ee5,#1b3d7c);transform:scaleX(var(--life-fill,1));transform-origin:left}
+.life.enemy:before{background:linear-gradient(#bc4f65,#60112d);transform-origin:right}
+.encounter-hero[data-tier]{border:3px solid #b87c48;box-shadow:inset 0 0 10px #b87c4850}
+.encounter-hero[data-tier="2"]{border-color:#c5d3df;border-style:double;border-width:4px}
+.encounter-hero[data-tier="3"]{border-color:#e9c96d;outline:1px solid #a17a31;outline-offset:-7px;box-shadow:inset 0 0 18px #ffcc5560}
+.encounter-hero[data-tier="4"]{border-color:#b28be8;border-style:double;border-width:5px;box-shadow:inset 0 0 22px #9c42f570,0 0 10px #773acb70}
+.duel-finish{position:fixed;inset:0;width:100%;height:100%;z-index:2000;border:0;border-radius:0;background:#030913b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:finish-dim .3s ease-out;color:#ecd287}
+.duel-finish strong{font:900 clamp(38px,9vw,92px) Georgia,serif;letter-spacing:.08em;text-shadow:0 0 25px #dfb14888;animation:finish-title .45s ease-out}
+.duel-finish.lost{color:#e39aa8}.duel-finish small{font-size:14px;color:#e1e5ec}
+@keyframes finish-dim{from{background:transparent}to{background:#030913b8}}
+@keyframes finish-title{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){button,.cardbtn,.shop-product,.cardbtn>img,.shop-product .product-art>img{transition:none}.duel-finish,.duel-finish strong{animation:none}}
+
+.hand button.reaction-available{outline:2px solid #ffdf31;outline-offset:-2px;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;cursor:pointer}
+.hand button.reaction-picked{outline-color:#fff8c4;box-shadow:0 0 0 2px #ffe52b,0 0 20px #fff47e,inset 0 0 14px #fff47e99}
+
+.effect-target-frame{position:absolute;inset:0;z-index:9;border:2px solid #ffd96f;box-shadow:inset 0 0 8px #f7cd6677,0 0 5px #ffe7a0;pointer-events:none;display:flex;align-items:flex-start;justify-content:center;color:#fff6d5;font-size:clamp(8px,1vw,12px);font-weight:bold;text-shadow:0 1px 3px #000;background:linear-gradient(#342807dd 0 14px,transparent 14px)}
+.hand button{position:relative}
+
+.character-entrance{position:fixed;inset:0;z-index:1500;overflow:hidden;pointer-events:auto}
+.character-entrance>img{position:absolute;object-fit:contain;max-width:none;max-height:none}
+.zone.attack-source{outline:3px solid #7af3ff;outline-offset:2px;box-shadow:0 0 18px #39dce8!important}
+.zone.attack-target,.life.attack-target{outline:3px solid #ff695e;outline-offset:2px;box-shadow:0 0 18px #ff593b!important}

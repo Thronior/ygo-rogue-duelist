@@ -142,7 +142,7 @@ def install(g):
   for _ in range(500):
    packs=[open_pack(pack,rng) for pack in pack_ids]
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
-   if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9):break
+   if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and (char.get('random_packs') or sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9)):break
   else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r.update(campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)

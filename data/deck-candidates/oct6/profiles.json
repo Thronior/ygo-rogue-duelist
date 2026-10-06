@@ -1,0 +1,284 @@
+{
+  "date": "2026-10-06",
+  "notes": "Kemo uses ritual decks at T1/T2/T3. Tuned STA02 is active as Leichter T2 only. Pegasus and Chaos ritual candidates remain inactive.",
+  "opponents": [
+    {
+      "name": "KaibaCorp Challenger",
+      "source": "Optimal STA02",
+      "deck": "data/decks/leichter-tier-2.ydk",
+      "recommendedTier": 2,
+      "active": true,
+      "character": 43,
+      "placement": "Leichter T2; no T3 variant",
+      "reason": "Four weaker spell/trap substitutions bring the legal list to 58.3% against the T2 roster; Blue-Eyes and its monster core remain.",
+      "changes": [
+        "2 Dark Hole -> 2 Offerings to the Doomed",
+        "2 Monster Reborn -> 2 The Shallow Grave"
+      ],
+      "results": [
+        {
+          "tier": 2,
+          "wins": 239,
+          "duels": 410,
+          "winPercent": 58.3
+        }
+      ],
+      "tuning": [
+        [
+          "Dark Hole",
+          "Tribute to the Doomed",
+          1
+        ],
+        [
+          "Monster Reborn",
+          "Monster Recovery",
+          1
+        ],
+        [
+          "Fissure",
+          "Castle Walls",
+          1
+        ],
+        [
+          "Trap Hole",
+          "Reinforcements",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "Industrial Illusions Ritualist",
+      "source": "Optimal STA04 Pegasus",
+      "deck": "data/deck-candidates/oct6/industrial-illusions-ritualist.ydk",
+      "recommendedTier": 4,
+      "active": false,
+      "character": null,
+      "placement": "Potential opponent; not added to campaign roster",
+      "reason": "Sonic Bird and Senju consistently find Relinquished; absorption plus defensive bodies provides repeated board control.",
+      "changes": [
+        "2 Witch of the Black Forest -> 2 Senju of the Thousand Hands",
+        "2 Dark Hole -> 2 Sakuretsu Armor",
+        "2 Graceful Charity -> 2 Jar of Greed",
+        "2 Monster Reborn -> 2 The Shallow Grave",
+        "2 Change of Heart -> 2 Enemy Controller"
+      ],
+      "results": [
+        {
+          "rule": "legal",
+          "name": "Optimal STA04 Pegasus",
+          "tier": 1,
+          "wins": 218,
+          "duels": 260,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 83.8,
+          "meanTurns": 17.3
+        },
+        {
+          "rule": "legal",
+          "name": "Optimal STA04 Pegasus",
+          "tier": 2,
+          "wins": 356,
+          "duels": 410,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 86.8,
+          "meanTurns": 15.2
+        },
+        {
+          "rule": "legal",
+          "name": "Optimal STA04 Pegasus",
+          "tier": 3,
+          "wins": 254,
+          "duels": 390,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 65.1,
+          "meanTurns": 17.6
+        },
+        {
+          "rule": "legal",
+          "name": "Optimal STA04 Pegasus",
+          "tier": 4,
+          "wins": 120,
+          "duels": 220,
+          "draws": 1,
+          "invalid": 0,
+          "winPercent": 54.5,
+          "meanTurns": 18.0
+        }
+      ]
+    },
+    {
+      "name": "Ritual Initiate",
+      "source": "Ritual Deck T1",
+      "deck": "data/deck-candidates/oct6/ritual-initiate.ydk",
+      "recommendedTier": 1,
+      "active": true,
+      "character": 42,
+      "placement": "Kemo T1 replacement",
+      "reason": "Three Senju and Sonic Bird make a visible ritual plan, offset by weak normal monsters and mixed ritual requirements.",
+      "changes": [
+        "1 Monster Reincarnation -> 1 Monster Recovery",
+        "1 Monster Reincarnation -> 1 The Shallow Grave"
+      ],
+      "results": [
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T1",
+          "tier": 1,
+          "wins": 92,
+          "duels": 260,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 35.4,
+          "meanTurns": 16.0
+        },
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T1",
+          "tier": 2,
+          "wins": 119,
+          "duels": 410,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 29.0,
+          "meanTurns": 13.8
+        }
+      ],
+      "progression": {
+        "1": "wct2004-kemo",
+        "2": "kemo-tier-2",
+        "3": "kemo-tier-3"
+      }
+    },
+    {
+      "name": "Zorc Ritualist",
+      "source": "Ritual Deck T2",
+      "deck": "data/deck-candidates/oct6/zorc-ritualist.ydk",
+      "recommendedTier": 3,
+      "active": true,
+      "character": 42,
+      "placement": "Kemo ritual progression: nerfed T2 and unchanged legal T3",
+      "reason": "Manju/Senju/Sonic Bird support Shinato and Zorc, with Dark Magician as a secondary package.",
+      "changes": [
+        "1 Sangan -> 1 Senju of the Thousand Hands",
+        "1 Magician of Faith -> 1 Old Vindictive Magician",
+        "1 Premature Burial -> 1 The Shallow Grave",
+        "1 Magic Cylinder -> 1 Enchanted Javelin"
+      ],
+      "results": [
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T2",
+          "tier": 2,
+          "wins": 292,
+          "duels": 410,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 71.2,
+          "meanTurns": 14.9
+        },
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T2",
+          "tier": 3,
+          "wins": 180,
+          "duels": 390,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 46.2,
+          "meanTurns": 16.8
+        }
+      ],
+      "tierDecks": {
+        "2": "data/decks/kemo-tier-2.ydk",
+        "3": "data/decks/kemo-tier-3.ydk"
+      },
+      "tier2Tuning": [
+        [
+          "Dark Master - Zorc",
+          "The Masked Beast",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Curse of the Masked Beast",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Skelengel",
+          1
+        ],
+        [
+          "Don Zaloog",
+          "White Magical Hat",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Hungry Burger",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Hamburger Recipe",
+          1
+        ],
+        [
+          "Spirit Reaper",
+          "Spirit of the Harp",
+          1
+        ],
+        [
+          "Old Vindictive Magician",
+          "Hane-Hane",
+          1
+        ]
+      ],
+      "tier2Result": {
+        "wins": 265,
+        "duels": 410,
+        "winPercent": 64.6
+      }
+    },
+    {
+      "name": "Chaos Ritualist",
+      "source": "Ritual Deck T4 or T3",
+      "deck": "data/deck-candidates/oct6/chaos-ritualist.ydk",
+      "recommendedTier": 4,
+      "active": false,
+      "character": null,
+      "placement": "Potential opponent; not added to campaign roster",
+      "reason": "Chaos bosses, Relinquished/Thousand-Eyes Restrict, stall bodies and ritual searchers combine into a high-tier control deck.",
+      "changes": [
+        "1 Sangan -> 1 Senju of the Thousand Hands"
+      ],
+      "results": [
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T4 or T3",
+          "tier": 3,
+          "wins": 257,
+          "duels": 390,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 65.9,
+          "meanTurns": 17.1
+        },
+        {
+          "rule": "legal",
+          "name": "Ritual Deck T4 or T3",
+          "tier": 4,
+          "wins": 119,
+          "duels": 220,
+          "draws": 0,
+          "invalid": 0,
+          "winPercent": 54.1,
+          "meanTurns": 15.8
+        }
+      ]
+    }
+  ]
+}

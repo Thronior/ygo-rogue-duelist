@@ -1,0 +1,399 @@
+{
+  "games": 4510,
+  "method": "Eleven variants, 10 games against each of 41 previous T2 opponents, five seeds in both seats. Current CPU unchanged. Screening estimates, not precise true win rates.",
+  "selectedSTA02": 3001,
+  "selectedRitual": 3012,
+  "stats": [
+    {
+      "id": 3000,
+      "name": "STA02 light",
+      "wins": 266,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Hole",
+          "Tribute to the Doomed",
+          1
+        ],
+        [
+          "Monster Reborn",
+          "Monster Recovery",
+          1
+        ]
+      ],
+      "winPercent": 64.9
+    },
+    {
+      "id": 3001,
+      "name": "STA02 medium",
+      "wins": 239,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Hole",
+          "Tribute to the Doomed",
+          1
+        ],
+        [
+          "Monster Reborn",
+          "Monster Recovery",
+          1
+        ],
+        [
+          "Fissure",
+          "Castle Walls",
+          1
+        ],
+        [
+          "Trap Hole",
+          "Reinforcements",
+          1
+        ]
+      ],
+      "winPercent": 58.3
+    },
+    {
+      "id": 3002,
+      "name": "STA02 stronger",
+      "wins": 237,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Hole",
+          "Tribute to the Doomed",
+          1
+        ],
+        [
+          "Monster Reborn",
+          "Monster Recovery",
+          1
+        ],
+        [
+          "Fissure",
+          "Castle Walls",
+          1
+        ],
+        [
+          "Trap Hole",
+          "Reinforcements",
+          1
+        ],
+        [
+          "Hane-Hane",
+          "Mysterious Puppeteer",
+          2
+        ]
+      ],
+      "winPercent": 57.8
+    },
+    {
+      "id": 3003,
+      "name": "Ritual light",
+      "wins": 302,
+      "games": 410,
+      "changes": [
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Old Vindictive Magician",
+          1
+        ]
+      ],
+      "winPercent": 73.7
+    },
+    {
+      "id": 3004,
+      "name": "Ritual medium",
+      "wins": 291,
+      "games": 410,
+      "changes": [
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Old Vindictive Magician",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Chakra",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Resurrection of Chakra",
+          1
+        ]
+      ],
+      "winPercent": 71.0
+    },
+    {
+      "id": 3005,
+      "name": "Ritual stronger",
+      "wins": 274,
+      "games": 410,
+      "changes": [
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Old Vindictive Magician",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Chakra",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Resurrection of Chakra",
+          1
+        ],
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Call of the Haunted",
+          "Monster Recovery",
+          1
+        ]
+      ],
+      "winPercent": 66.8
+    },
+    {
+      "id": 3010,
+      "name": "Ritual bosses 1",
+      "wins": 299,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Master - Zorc",
+          "The Masked Beast",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Curse of the Masked Beast",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Skelengel",
+          1
+        ],
+        [
+          "Don Zaloog",
+          "White Magical Hat",
+          1
+        ]
+      ],
+      "winPercent": 72.9
+    },
+    {
+      "id": 3011,
+      "name": "Ritual bosses 2",
+      "wins": 283,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Master - Zorc",
+          "The Masked Beast",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Curse of the Masked Beast",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Skelengel",
+          1
+        ],
+        [
+          "Don Zaloog",
+          "White Magical Hat",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Chakra",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Resurrection of Chakra",
+          1
+        ]
+      ],
+      "winPercent": 69.0
+    },
+    {
+      "id": 3012,
+      "name": "Ritual bosses 3",
+      "wins": 265,
+      "games": 410,
+      "changes": [
+        [
+          "Dark Master - Zorc",
+          "The Masked Beast",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Curse of the Masked Beast",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Skelengel",
+          1
+        ],
+        [
+          "Don Zaloog",
+          "White Magical Hat",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Hungry Burger",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Hamburger Recipe",
+          1
+        ],
+        [
+          "Spirit Reaper",
+          "Spirit of the Harp",
+          1
+        ],
+        [
+          "Old Vindictive Magician",
+          "Hane-Hane",
+          1
+        ]
+      ],
+      "winPercent": 64.6
+    },
+    {
+      "id": 3020,
+      "name": "Ritual balanced 1",
+      "wins": 276,
+      "games": 410,
+      "changes": [
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Old Vindictive Magician",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Chakra",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Resurrection of Chakra",
+          1
+        ],
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Call of the Haunted",
+          "Monster Recovery",
+          1
+        ],
+        [
+          "Dark Master - Zorc",
+          "The Masked Beast",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Curse of the Masked Beast",
+          1
+        ]
+      ],
+      "winPercent": 67.3
+    },
+    {
+      "id": 3021,
+      "name": "Ritual balanced 2",
+      "wins": 272,
+      "games": 410,
+      "changes": [
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Magician of Faith",
+          "Old Vindictive Magician",
+          1
+        ],
+        [
+          "Shinato, King of a Higher Plane",
+          "Chakra",
+          1
+        ],
+        [
+          "Shinato's Ark",
+          "Resurrection of Chakra",
+          1
+        ],
+        [
+          "Manju of the Ten Thousand Hands",
+          "Rogue Doll",
+          1
+        ],
+        [
+          "Call of the Haunted",
+          "Monster Recovery",
+          1
+        ],
+        [
+          "Dark Master - Zorc",
+          "Hungry Burger",
+          1
+        ],
+        [
+          "Contract with the Dark Master",
+          "Hamburger Recipe",
+          1
+        ]
+      ],
+      "winPercent": 66.3
+    }
+  ],
+  "kemoProgression": {
+    "1": "wct2004-kemo",
+    "2": "kemo-tier-2",
+    "3": "kemo-tier-3"
+  },
+  "sta02Tier": 2,
+  "notes": "STA02 58.3%; Kemo T2 64.6%, deliberately at the stronger end of T2. Ritual T3 preserved byte-for-byte from the legal candidate. No T3 STA02 candidate retained."
+}

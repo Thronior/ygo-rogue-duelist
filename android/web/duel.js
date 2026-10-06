@@ -1,3 +1,4 @@
+import {trackEffectTargets} from './selection-feedback.js';
 import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
 import {planBattle} from './battle-planner.js';
@@ -25,10 +26,12 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
+  trackEffectTargets(this,m,M);
   this.trackReborn(m);
+  if(m.type===M.HINT&&m.hint_type===2){const id=Number(m.hint)-1800000000,relic=this.aiModifiers?.relicFeedback?.[id];if(relic)this.visuals.push({kind:'relic',relic});}
   if([M.NEW_TURN,M.NEW_PHASE].includes(m.type))this.cancelledAttacks?.clear();
   if(m.type===M.NEW_TURN)this.releasedForSet=[0,0];
   if(m.type===M.MOVE){
@@ -110,9 +113,9 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.CHAIN_SOLVED){const x=this.activeChain?.find(c=>c.link===m.chain_size);if(x&&!x.inactive&&this.name(x.code)==='Cybernetic Fusion Support')(this.fusionSupport??={})[x.player]=this.turn;if(x&&!x.inactive&&['Waboku','Threatening Roar','Negate Attack'].includes(this.name(x.code)))(this.battleProtected??=[false,false])[x.player]=true;}
   if(m.type===M.HINT&&Number(m.hint)===900000002)this.events.push({kind:'tribute_dividend'});
   if(m.type===M.HINT&&Number(m.hint)===900000001)this.events.push({kind:'relic_used',relic:'phoenix_rebirth'});
-  if(m.type===M.CHAINING){this.chainDepth=m.chain_size||1;(this.activeChain??=[]).push({code:m.code,player:m.triggering_controller??m.player??m.controller,targets:[],location:m.location,sequence:m.sequence,link:m.chain_size||1});}
+  if(m.type===M.CHAINING){this.chainDepth=m.chain_size||1;(this.activeChain??=[]).push({code:m.code,player:m.triggering_controller??m.player??m.controller,targets:[],location:m.location,sequence:m.sequence,controller:m.controller,link:m.chain_size||1});}
   if(m.type===M.BECOME_TARGET&&this.activeChain?.length)this.activeChain[this.activeChain.length-1].targets.push(...m.cards);
-  if([M.CHAIN_SOLVING,M.CHAIN_NEGATED,M.CHAIN_DISABLED].includes(m.type)){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link)this.visuals.push({kind:'chain',stage:m.type===M.CHAIN_SOLVING?'resolve':'negated',code:link.code,link:link.link,text:this.name(link.code)});}
+  if([M.CHAIN_SOLVING,M.CHAIN_NEGATED,M.CHAIN_DISABLED].includes(m.type)){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link)this.visuals.push({kind:'chain',stage:m.type===M.CHAIN_SOLVING?'resolve':'negated',code:link.code,link:link.link,text:this.name(link.code),card:{controller:link.controller??link.player,location:link.location,sequence:link.sequence}});}
   if([M.CHAIN_NEGATED,M.CHAIN_DISABLED,M.CHAIN_SOLVED].includes(m.type)){
    const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link)link.inactive=true;
   }
@@ -144,7 +147,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.DRAW&&m.player===0)add('draw',{amount:m.drawn?.length??m.cards?.length??m.count??1});
   if(m.type===M.SET&&m.controller===0)add('set',{card:m.code});
  }
- snapshot(){const s=super.snapshot();
+ snapshot(){const s=super.snapshot();s.effectTargets=(this.effectTargets||[]).map(t=>({...t}));
   const currentStats=new Map(),changes=[],changedCards=[];
   for(const side of s.players)for(const c of side.monsters)if(c&&(c.position&5)){
    const key=`${c.controller}:${c.location}:${c.sequence}:${c.code}`,old=this.feedbackStats?.get(key);currentStats.set(key,{attack:c.attack,defense:c.defense,level:c.level});
