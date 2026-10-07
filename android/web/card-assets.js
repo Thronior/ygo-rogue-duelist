@@ -9,6 +9,16 @@ export async function preloadCards(cards,onProgress,{fetchImage=fetch,validateIm
  const cache=typeof window!=='undefined'&&!window.ShadowNative&&globalThis.caches?await caches.open('ygo-card-art-v1').catch(()=>null):null;
  if(cache)navigator.storage?.persist?.().catch(()=>{});
  const ids=[...new Set(cards.map(c=>Number(c.id)))];let loaded=ids.filter(id=>cardImages.has(id)).length,processed=loaded,next=0,bytes=0;const failed=[];
+ // Retired card artwork must not accumulate in the persistent browser cache.
+ const activeIds=new Set(ids);
+ for(const id of cardImages.keys())if(!activeIds.has(id))cardImages.delete(id);
+ if(cache){
+  const requests=await cache.keys().catch(()=>[]);
+  for(const request of requests){
+   const match=new URL(request.url).pathname.match(/\/assets\/cards\/(\d+)\.jpg$/);
+   if(match&&!activeIds.has(Number(match[1])))await cache.delete(request).catch(()=>false);
+  }
+ }
  const pending=ids.filter(id=>!cardImages.has(id));
  let lastReport=-Infinity;
  const report=()=>{const now=performance.now();if(processed!==ids.length&&now-lastReport<50)return;lastReport=now;onProgress({loaded,total:ids.length,processed,failed:failed.length,bytes})};report();

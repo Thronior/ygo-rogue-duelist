@@ -1428,6 +1428,9 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
 .reward-tally-total{font-size:clamp(24px,6vw,36px);color:#ffe19c;text-align:center}
 .reward-tally-lines{max-height:45dvh;overflow:auto;min-height:0}
 .reward-tally>button{flex-shrink:0;min-height:44px;font-size:20px}
+/* Coins and cards are one reward sequence; hide the shop until confirmation. */
+dialog:has(> .reward-tally),dialog:has(> .reward-screen){background:radial-gradient(ellipse at 50% 100%,#443626,#142331 60%,#09121e);border-color:#cfb77e}
+dialog:has(> .reward-tally)::backdrop,dialog:has(> .reward-screen)::backdrop{background:radial-gradient(ellipse at 50% 100%,#493725,#142331 55%,#06101c)}
 
 .field-character.own[data-do="duel-emotes"]{pointer-events:auto;cursor:pointer;z-index:15}
 .duel-emote-picker{position:fixed;z-index:3000;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;width:min(280px,94vw);padding:6px;box-sizing:border-box;border:2px solid #cfb874;border-radius:12px;background:#102c3bf5;box-shadow:0 4px 20px #0008}

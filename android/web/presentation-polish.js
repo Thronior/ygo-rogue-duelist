@@ -58,7 +58,7 @@ export function polishDuel(root,owner,s,lookup){
   el.classList.toggle('stat-down',knownBase&&target<base);
   live.add(key);let state=d.stats.get(key);
   if(!state){state={value:knownBase?base:target};d.stats.set(key,state)}
-  count(el,state,target,v=>el.textContent=Math.round(v),260,target>state.value?'stat-boost':'stat-nerf');
+  count(el,state,target,v=>el.textContent=Math.round(v),130,target>state.value?'stat-boost':'stat-nerf');
  });
  for(const key of d.stats.keys())if(!live.has(key))d.stats.delete(key);
 }

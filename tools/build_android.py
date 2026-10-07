@@ -87,6 +87,7 @@ def sync():
   if not (WEB/name).exists():copy(old/name,WEB/name)
  # Card assets include all pool cards, every token and the menu's decorative cards.
  ids={c['id'] for c in game.CARDS}|{c['id'] for c in json.loads((ROOT/'data/tokens.json').read_text())}
+ excluded_packs=set(json.loads((ROOT/'data/content-era.json').read_text(encoding='utf8')).get('excluded_pack_ids',[]))
  selected_music=set(json.loads((ROOT/'assets/music/soundtrack.json').read_text(encoding='utf8'))['tracks'])
  for source in (ROOT/'assets').rglob('*'):
   if not source.is_file():continue
@@ -94,6 +95,7 @@ def sync():
   if relative.parts[0]=='music' and (len(relative.parts)!=2 or source.suffix.lower()!='.mp3' or source.stem not in selected_music):continue
   if any(part.casefold()=='potential sound effects' for part in relative.parts):continue
   if source.name.startswith('gx'):continue
+  if relative.parts[0]=='packs' and source.stem in excluded_packs:continue
   if relative.parts[0]=='cards' and int(source.stem) not in ids:continue
   dest=WEB/'assets'/relative;dest.parent.mkdir(parents=True,exist_ok=True)
   if dest.exists() and dest.stat().st_mtime>=source.stat().st_mtime:continue

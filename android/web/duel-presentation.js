@@ -1,4 +1,5 @@
 import {OcgHintTiming as Timing} from './vendor/package/dist/index.js';
+import {toss3DMarkup} from './toss-3d.js';
 export function chainWindowAllowed(m,mode,activeChain=[]){
  if(m?.forced||mode==='always')return true;
  if(mode==='never')return false;
@@ -25,7 +26,7 @@ export function liveCardFacts(base,live,cards){
 export function waitForTossStart(field,kind,isCurrent){
  const button=document.createElement('button');
  button.type='button';button.className='toss-start';button.setAttribute('aria-label',`Start ${kind==='coin'?'coin toss':'dice roll'}`);
- button.innerHTML=(kind==='coin'?'<img src="assets/ui/coin-heads.svg" alt="Coin">':'<span aria-hidden="true">⚄</span>')+'<strong>Press to start</strong>';
+ button.innerHTML=toss3DMarkup(kind,[kind==='coin'?1:5])+'<strong>Press to start</strong>';
  field.append(button);
  return new Promise(resolve=>{
   const finish=value=>{observer.disconnect();button.removeEventListener('click',start);button.remove();resolve(value)};
