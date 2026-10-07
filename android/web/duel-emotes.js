@@ -1,31 +1,44 @@
+import {bufferedEffects} from './audio-balance.js';
 export const EMOTES=['❤️','😜','🍆'];
 export const validEmote=emoji=>EMOTES.includes(emoji);
 let picker=null,pickerTimer=null;
 const bubbles=new Map();
-export function showDuelEmote(emoji,own=true){
+function portrait(own){return document.querySelector(own?'.field-character.own':'.field-character:not(.own)')}
+const clamp=(value,min,max)=>Math.max(min,Math.min(Math.max(min,max),value));
+export function positionDuelEmotes(){
+ for(const {el,own,ally} of bubbles.values()){
+  const anchor=portrait(own||ally);if(!anchor){el.hidden=true;continue}el.hidden=false;
+  const r=anchor.getBoundingClientRect(),size=el.offsetWidth||80,friendly=own||ally;
+  el.style.left=clamp(friendly?r.right+size/2+8:r.left-size/2-8,size/2+4,innerWidth-size/2-4)+'px';
+  el.style.top=clamp(r.top+r.height/2,size/2+4,innerHeight-size/2-4)+'px';
+ }
+ if(picker){const anchor=portrait(true);if(!anchor){closeEmotePicker();return}const r=anchor.getBoundingClientRect(),box=picker.getBoundingClientRect();picker.style.left=clamp(r.left,4,innerWidth-box.width-4)+'px';picker.style.top=clamp(r.top-box.height-6,4,innerHeight-box.height-4)+'px';}
+}
+export function showDuelEmote(emoji,own=true,{ally=false}={}){
  if(!validEmote(emoji)||document.hidden||!document.querySelector('.field-wrap'))return;
- const previous=bubbles.get(true);if(previous){clearTimeout(previous.timer);previous.el.remove();}
- const el=document.createElement('div');el.className='duel-emote '+(own?'local':'remote');el.textContent=emoji;el.setAttribute('role','status');el.setAttribute('aria-label',(own?'You: ':'Other player: ')+emoji);const box=document.querySelector('.phases')?.getBoundingClientRect()||document.querySelector('.field-wrap').getBoundingClientRect();el.style.left=(box.left+box.width/2)+'px';el.style.top=(box.top+box.height/2)+'px';document.body.append(el);playEmoteSound(emoji);
- const timer=setTimeout(()=>{el.remove();bubbles.delete(true)},1400);bubbles.set(true,{el,timer});
+ const key=ally?'friendly':own,previous=bubbles.get(key);if(previous){clearTimeout(previous.timer);previous.el.remove();}
+ const el=document.createElement('div');el.className='duel-emote '+(own?'local':'remote');el.textContent=emoji;el.setAttribute('role','status');el.setAttribute('aria-label',(own?'You: ':ally?'Teammate: ':'Opponent: ')+emoji);document.body.append(el);playEmoteSound(emoji);
+ const timer=setTimeout(()=>{el.remove();if(bubbles.get(key)?.el===el)bubbles.delete(key)},1400);bubbles.set(key,{el,timer,own,ally});positionDuelEmotes();
 }
 export function closeEmotePicker(){clearTimeout(pickerTimer);picker?.remove();picker=null;}
 export function openEmotePicker(send){
  if(picker){closeEmotePicker();return;}
  unlockEmoteSound();picker=document.createElement('div');picker.className='duel-emote-picker';picker.setAttribute('role','group');picker.setAttribute('aria-label','Choose an emote');
  for(const emoji of EMOTES){const b=document.createElement('button');b.textContent=emoji;b.setAttribute('aria-label','Send '+emoji);b.onclick=()=>{closeEmotePicker();send(emoji)};picker.append(b);}
- const cancel=document.createElement('button');cancel.textContent='×';cancel.setAttribute('aria-label','Close emotes');cancel.onclick=closeEmotePicker;picker.append(cancel);document.body.append(picker);pickerTimer=setTimeout(closeEmotePicker,8000);
+ const cancel=document.createElement('button');cancel.textContent='×';cancel.setAttribute('aria-label','Close emotes');cancel.onclick=closeEmotePicker;picker.append(cancel);document.body.append(picker);pickerTimer=setTimeout(closeEmotePicker,8000);positionDuelEmotes();
 }
-export function clearDuelEmotes(){closeEmotePicker();for(const voice of voices){try{voice.stop()}catch{}}voices.clear();for(const {el,timer} of bubbles.values()){clearTimeout(timer);el.remove()}bubbles.clear();}
+export function clearDuelEmotes(){closeEmotePicker();emoteAudio?.stopAll();for(const {el,timer} of bubbles.values()){clearTimeout(timer);el.remove()}bubbles.clear();}
 globalThis.document?.addEventListener('visibilitychange',()=>{if(document.hidden)clearDuelEmotes()});
 
-let soundVolume=()=>0,audioContext=null;
-const voices=new Set();
+let soundVolume=()=>0,emoteAudio=null;
+const emotePaths={'❤️':'assets/sfx/emote-heart.mp3','😜':'assets/sfx/emote-tongue.mp3','🍆':'assets/sfx/emote-eggplant.mp3'};
 export function setEmoteVolumeReader(reader){soundVolume=reader;}
-function unlockEmoteSound(){try{if(!audioContext)audioContext=new (window.AudioContext||window.webkitAudioContext)();audioContext.resume().catch(()=>{});}catch{}}
+function unlockEmoteSound(){if(!emoteAudio)emoteAudio=bufferedEffects(emotePaths,()=>soundVolume());emoteAudio.unlock();}
 function playEmoteSound(emoji){
- const volume=Math.max(0,Math.min(1,Number(soundVolume())||0));if(!volume||document.hidden)return;
- unlockEmoteSound();if(!audioContext||audioContext.state!=='running')return;
- for(const voice of voices){try{voice.stop()}catch{}}voices.clear();
- const notes=emoji==='❤️'?[[523,659,0],[659,784,.12],[784,880,.24]]:emoji==='😜'?[[780,1100,0],[1100,600,.13]]:[[220,440,0],[440,160,.12]];
- for(const [from,to,delay] of notes){const osc=audioContext.createOscillator(),gain=audioContext.createGain(),start=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(from,start);osc.frequency.exponentialRampToValueAtTime(to,start+.16);gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.045*volume,start+.015);gain.gain.exponentialRampToValueAtTime(.0001,start+.19);osc.connect(gain);gain.connect(audioContext.destination);voices.add(osc);osc.onended=()=>{voices.delete(osc);osc.disconnect();gain.disconnect()};osc.start(start);osc.stop(start+.2);}
+ if(!soundVolume()||document.hidden)return;
+ unlockEmoteSound();emoteAudio.stopAll();
+ // AudioBufferSource playback rate naturally changes both speed and pitch.
+ emoteAudio.play(emoji,1,emoji==='❤️'?1.5:1);
 }
+
+window.addEventListener('resize',positionDuelEmotes);

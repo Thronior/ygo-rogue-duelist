@@ -1,3 +1,4 @@
+import {roomCodeControl} from './room-code.js';
 import {characterEntrance,captureCharacterEntrance,cancelCharacterEntrance} from './character-entrance.js';
 import {deckReadyFeedback} from './selection-feedback.js';
 import {purchaseCoins} from './counter-audio.js';
@@ -110,7 +111,7 @@ export class TagUI {
   if(this.session){
    const joined=!!this.view&&this.session.connected,seat=this.session.seat??this.session.peer.seat??0,characters=this.view?.characters||[seat===0?this.character:null,seat===1?this.character:null];
    const slots=[0,1].map(i=>characters[i]!=null&&(i===seat||joined)?this.portrait(characters[i],i===0?'Host':'Player 2'):`<div class="tag-player-portrait tag-empty"><span>Waiting for player ${i+1}…</span></div>`).join('');
-   this.root.innerHTML=this.header(`<section class="tag-room"><div class="tag-room-heading"><div><small>ROOM CODE</small><strong class="tag-room-code">${esc(this.session.code||this.session.peer.code||'…')}</strong></div><h2>${joined?2:1} / 2 players</h2></div><div class="tag-room-players">${slots}</div>${seat===0?button('Start run','start',joined&&!this.working?'':'disabled'):'<p>Waiting for the host to start…</p>'}</section>`);return;
+   this.root.innerHTML=this.header(`<section class="tag-room"><div class="tag-room-heading"><div><small>ROOM CODE</small>${roomCodeControl(this.session.code||this.session.peer?.code)}</div><h2>${joined?2:1} / 2 players</h2></div><div class="tag-room-players">${slots}</div>${seat===0?button('Start run','start',joined&&!this.working?'':'disabled'):'<p>Waiting for the host to start…</p>'}</section>`);return;
   }
   if(this.screen==='join'){
    const keyboard=this.desktop?`<div class="tag-code-keyboard" role="group" aria-label="Room code keyboard">${['23456789','QWERTYUIOP','ASDFGHJKL','ZXCVBNM'].map(row=>`<div class="tag-key-row">${[...row].map(key=>button(key,'code-key',`data-key="${key}" aria-label="Type ${key}" ${this.working?'disabled':''}`)).join('')}</div>`).join('')}<div class="tag-key-row">${button('Backspace','code-delete',this.working?'disabled':'')}${button('Clear','code-clear',this.working?'disabled':'')}</div></div>`:'';

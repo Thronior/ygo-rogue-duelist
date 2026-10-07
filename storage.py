@@ -18,6 +18,8 @@ def read(path,default=None,validate=None):
  return default
 def write(path,value):
  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
+ if path.parent==ROOT and path.name in ('run.json','run-2.json','run-3.json','collector.json'):
+  register_collection(value)
  envelope={'schema':1,'sha256':hashlib.sha256(encoded(value)).hexdigest(),'payload':value}
  tmp=path.with_name(path.name+'.'+uuid.uuid4().hex+'.tmp')
  try:
@@ -78,7 +80,7 @@ def reset_progress():
  """Called only after the settings screen's two explicit confirmations."""
  fresh={'unlocked':[0,1],'wins':0,'runs':0,'victories':0,'won_as':[],'max_gold':0,'max_bought':0,'max_artifacts':0}
  # Replace both current state and recovery backup so recovery cannot restore it.
- for name,value in [('profile.json',fresh),('run.json',None),('run-2.json',None),('run-3.json',None),('run-slots.json',{'active':1})]:
+ for name,value in [('profile.json',fresh),('registered-cards.json',{'cards':[]}),('run.json',None),('run-2.json',None),('run-3.json',None),('run-slots.json',{'active':1})]:
   write(ROOT/name,value)
   write((ROOT/name).with_suffix('.bak'),value)
 
@@ -187,3 +189,31 @@ def merge_desktop_profile(raw, metrics=()):
  # All validation completes before any write; storage.write keeps the old profile as .bak.
  write(ROOT/'profile.json',merged)
  return dict(historyAdded=added,unlocksAdded=len(set(merged['unlocked'])-set(current.get('unlocked',[]))))
+
+
+_registration_migrated=None
+def register_collection(value):
+ """Register owned cards only, never shop offers, opponents, or preview decks."""
+ if not isinstance(value,dict):return
+ ids=set()
+ def collect(row):
+  if not isinstance(row,dict):return
+  ids.update(x for x in row.get('pool',[]) if type(x)==int and x>0)
+  for key in ('deck','draftDeck','defeatedDeck'):
+   deck=row.get(key)
+   if isinstance(deck,dict):
+    for zone in ('main','side','extra'):
+     ids.update(x for x in deck.get(zone,[]) if type(x)==int and x>0)
+ collect(value)
+ for row in value.get('duelists',[]):collect(row)
+ if not ids:return
+ path=ROOT/'registered-cards.json';old=read(path,{});known=set(old.get('cards',[]))
+ if not ids<=known:write(path,{'cards':sorted(known|ids)})
+
+def registered_cards():
+ global _registration_migrated
+ if _registration_migrated!=ROOT:
+  for name in ('run.json','run-2.json','run-3.json','collector.json'):
+   register_collection(read(ROOT/name))
+  _registration_migrated=ROOT
+ return read(ROOT/'registered-cards.json',{}).get('cards',[])

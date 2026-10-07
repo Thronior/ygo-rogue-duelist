@@ -73,7 +73,7 @@ export class TagSession {
    }catch(error){this.connected=false;clearTimeout(this.aiTimer);throw error}
   }
   if(!this.connected)throw Error('Waiting for the reconnection handshake.');
-  if(message.kind==='emote'){if(this.view?.phase==='duel'&&validEmote(message.emoji)&&Date.now()-(this.lastRemoteEmote||0)>=1200){this.lastRemoteEmote=Date.now();showDuelEmote(message.emoji,false);}return;}
+  if(message.kind==='emote'){if(this.view?.phase==='duel'&&validEmote(message.emoji)&&Date.now()-(this.lastRemoteEmote||0)>=1200){this.lastRemoteEmote=Date.now();showDuelEmote(message.emoji,false,{ally:this.view?.duel?.mode!=='pvp'});}return;}
   if(message.kind==='shop-packs'&&this.seat===1){this.showPackEvent(message);return}
   if(message.kind==='replay'&&this.seat===1){if(message.record?.format==='ygo-replay'&&message.record.ended)await storeReplay(message.record);return}
   if(message.kind==='view'&&this.seat===1){this.active=true;this.view=message.view;if(this.view.phase!=='duel')clearDuelEmotes();this.peer.setPhase(this.view.phase);this.onView(this.view);return}
@@ -96,7 +96,7 @@ export class TagSession {
   if(this.view.phase==='duel'&&!this.engine)await this.startEngine(this.view.duel);
  }
  request(action,value){
-  if(action==='emote'){if(!this.connected||this.view?.phase!=='duel'||!validEmote(value))return Promise.reject(Error('Emotes are available during a connected duel.'));if(Date.now()-(this.lastEmote||0)<1500)return Promise.resolve();this.lastEmote=Date.now();this.send({kind:'emote',emoji:value});showDuelEmote(value,true);return Promise.resolve();}
+  if(action==='emote'){if(!this.connected||this.view?.phase!=='duel'||!validEmote(value))return Promise.reject(Error('Emotes are available during a connected duel.'));if(Date.now()-(this.lastEmote||0)<1500)return Promise.resolve();this.lastEmote=Date.now();this.send({kind:'emote',emoji:value});showDuelEmote(value,true,{ally:this.view?.duel?.mode!=='pvp'});return Promise.resolve();}
   if(action==='duel-response'){
    if(this.responseInFlight)return this.responseInFlight;
    const pending=this.sendRequest(action,value);this.responseInFlight=pending;

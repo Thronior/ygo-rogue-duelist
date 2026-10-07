@@ -6,7 +6,9 @@ run=None
 tag_session=None
 
 def state():
- return dict(history=storage.run_history(),run=run,slots=storage.run_slots(),activeSlot=storage.active_slot(),profile=storage.profile(),settings=storage.settings(),achievements=achievement_model.entries())
+ storage.registered_cards()
+ storage.register_collection(run)
+ return dict(registeredCards=storage.registered_cards(),history=storage.run_history(),run=run,slots=storage.run_slots(),activeSlot=storage.active_slot(),profile=storage.profile(),settings=storage.settings(),achievements=achievement_model.entries())
 
 def dispatch(raw):
  global run,tag_session

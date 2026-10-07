@@ -4,6 +4,7 @@ import storage, content
 
 def load():
  data=storage.read(storage.ROOT/'collector.json',{'duelists':[]})
+ storage.register_collection(data)
  # Complete an interrupted move before either roster can be used again.
  pending=data.get('pending_move')
  if pending:
