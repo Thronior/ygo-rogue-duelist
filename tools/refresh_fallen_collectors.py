@@ -19,7 +19,7 @@ def refresh(rows=None):
  for row in fallen_collectors.sanitize(old+rows):
   combined[row['id'] or json.dumps(row,sort_keys=True)]=row
  identities={row['id']:row['opponent_id'] for row in old}
- next_id=max(identities.values(),default=len(content.CHARACTERS)-1)+1
+ next_id=max([len(content.CHARACTERS)-1,*identities.values()])+1
  for row in combined.values():
   if row['id'] not in identities:identities[row['id']]=next_id;next_id+=1
   row['opponent_id']=identities[row['id']]

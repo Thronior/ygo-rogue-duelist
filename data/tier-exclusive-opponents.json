@@ -594,6 +594,30 @@
       ],
       "reward_pack": "WC4-24",
       "reward_theme_note": "Ancient Egyptian high-level boss and tribute theme."
+    },
+    {
+      "character": 69,
+      "name": "Amazoness Paladin",
+      "tier": 2,
+      "deck": "amazoness-paladin-tier2",
+      "tier_decks": {
+        "2": "amazoness-paladin-tier2"
+      },
+      "fixed": true,
+      "sprite": "opponents/amazoness-paladin.png",
+      "background": "character-backgrounds/3.jpg",
+      "theme": "Amazoness Warriors supported by Village, equips and battle traps.",
+      "reward_themes": [
+        "Warrior",
+        "equip",
+        "battle"
+      ],
+      "reward_pack": "EN-MFC",
+      "limit_exceptions": {
+        "Mystical Space Typhoon": 2,
+        "Call of the Haunted": 2
+      },
+      "source": "User-approved exact 40-card deck; 205/430 wins against current T2 roster."
     }
   ]
 }

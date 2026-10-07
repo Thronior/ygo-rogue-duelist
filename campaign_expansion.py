@@ -59,7 +59,7 @@ def install(g):
     key=g.card_identity(r['pool'][i])
     if counts[key]<3:selected.append(i);counts[key]+=1
    r['selected']=selected
-   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any((i not in eligible_opponents(r['round'],r.get('loop',0)) and not r.get('fallen_routes',{}).get(str(i))) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
     r['route_rewards']={str(i):shop_rewards.random_reward(random,storage.profile()) for i in r['routes']}
     r['reward_rules']=5;save(r)
@@ -104,7 +104,7 @@ def install(g):
    if not available:available=[cid for cid in all_cards if g.card_identity(cid) not in used]
    cid=card_rarity.choose(available,rng);pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
- def routes(run,rng=random):
+ def routes(run,rng=random,exclude=()):
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0
   if rd==0 and not run.get('loop'):choices=list(TUTORIAL_OPPONENTS)
   elif rd>=6:choices=[0,1,6,15,17,27]
@@ -120,6 +120,10 @@ def install(g):
    choices+=rng.sample(extra,min(5-len(choices),len(extra)))
   if not choices:choices=[i for i in eligible if i not in defeated and i!=run['character']]
   if not choices:raise ValueError('All eligible opponents in this journey have been defeated.')
+  alternatives=[i for i in choices if i not in exclude]
+  if exclude:
+   if not alternatives:raise ValueError('No different eligible opponent remains. Your coins were not spent.')
+   choices=alternatives
   run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)));run['opponent']=run['routes'][0]
   if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)

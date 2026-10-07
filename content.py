@@ -248,10 +248,6 @@ for _id, _cards in json.loads((Path(__file__).parent/"data/character-signatures.
 
 # Append-only opponent identities do not join PLAYABLE_IDS or starter progression.
 TIER_EXCLUSIVE_OPPONENTS={row['character']:row for row in json.loads((Path(__file__).parent/'data/tier-exclusive-opponents.json').read_text(encoding='utf8'))['opponents']}
-for _id,_row in TIER_EXCLUSIVE_OPPONENTS.items():
- if _id!=len(CHARACTERS):raise ValueError('Tier-exclusive opponent IDs must remain append-only.')
- CHARACTERS.append(dict(name=_row['name'],sprite=_row['sprite'],background=_row['background'],pack=_row['reward_pack'],opponent_only=True,tier=_row['tier'],theme=_row['theme'],race='',attribute='',cards=[],type=2,bonus='',color='#e5c58a',starting_relic='none'))
-
 TUTORIAL_OPPONENTS={int(k):v for k,v in json.loads((Path(__file__).parent/'data/tutorial-opponents.json').read_text(encoding='utf8')).items()}
 
 def eligible_opponents(round_index,loop=0):
@@ -264,7 +260,13 @@ def eligible_opponents(round_index,loop=0):
 
 # Each defeated Collector is a separate, permanent NPC identity, not its avatar.
 UC_OPPONENTS={row['opponent_id']:row for row in json.loads((Path(__file__).parent/'data/fallen-collectors.json').read_text(encoding='utf8'))['opponents']}
-for _id,_row in sorted(UC_OPPONENTS.items()):
- if _id!=len(CHARACTERS):raise ValueError('UC opponent identities must remain append-only.')
- _avatar=CHARACTERS[_row['character']]
- CHARACTERS.append(dict(_avatar,name=_row['name'],opponent_only=True,ultimate_collector=True,avatar_character=_row['character']))
+# One append-only identity space lets new characters follow existing UC identities.
+if set(TIER_EXCLUSIVE_OPPONENTS)&set(UC_OPPONENTS):raise ValueError('Duplicate opponent identity.')
+for _id in sorted(set(TIER_EXCLUSIVE_OPPONENTS)|set(UC_OPPONENTS)):
+ if _id!=len(CHARACTERS):raise ValueError('Opponent identities must remain append-only.')
+ if _id in TIER_EXCLUSIVE_OPPONENTS:
+  _row=TIER_EXCLUSIVE_OPPONENTS[_id]
+  CHARACTERS.append(dict(name=_row['name'],sprite=_row['sprite'],background=_row['background'],pack=_row['reward_pack'],opponent_only=True,tier=_row['tier'],theme=_row['theme'],race='',attribute='',cards=[],type=2,bonus='',color='#e5c58a',starting_relic='none'))
+ else:
+  _row=UC_OPPONENTS[_id];_avatar=CHARACTERS[_row['character']]
+  CHARACTERS.append(dict(_avatar,name=_row['name'],opponent_only=True,ultimate_collector=True,avatar_character=_row['character']))

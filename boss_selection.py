@@ -1,5 +1,6 @@
 """Saved boss draws and run-wide reroll prices."""
 import random
+from copy import deepcopy
 
 def price(run):
  n=max(0,int(run.get('boss_rerolls',0)))
@@ -10,13 +11,14 @@ def reroll(game,run,rng=random):
   raise ValueError('Boss rerolls are only available before a boss duel.')
  cost=price(run)
  if run['gold']<cost:raise ValueError('Not enough coins to reroll the boss.')
- old=run.get('routes',[])[:]
- game.routes(run,rng)
- # Prefer a different boss; eligibility still comes from the shared route rules.
- for _ in range(12):
-  if run['routes']!=old:break
-  game.routes(run,rng)
- run['gold']-=cost;run['boss_rerolls']=run.get('boss_rerolls',0)+1
+ # Generate and validate before charging, without mutating the live save on failure.
+ candidate=deepcopy(run)
+ game.routes(candidate,rng,exclude=run.get('routes',[]))
+ from content import opponent_record
+ for cid in candidate['routes']:opponent_record(candidate['round'],cid,candidate.get('loop',0))
+ candidate['gold']-=cost;candidate['boss_rerolls']=candidate.get('boss_rerolls',0)+1
+ run.update(candidate)
+ if 'fallen_routes' not in candidate:run.pop('fallen_routes',None)
  return cost
 
 

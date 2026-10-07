@@ -44,7 +44,8 @@ export function effectChoiceCue(e,m,r,M){
 }
 
 export async function playEffectFeedback(cue,{field,image,esc,reduced=false}){
- const el=document.createElement('div');el.className='effect-feedback'+(cue.random?' random-selection':'');el.setAttribute('role','status');
+ if(cue.statChange)field.querySelectorAll('.stat-feedback').forEach(el=>el.remove());
+ const el=document.createElement('div');el.className=(cue.statChange?'stat-feedback ':'')+'effect-feedback'+(cue.random?' random-selection':'');el.setAttribute('role','status');
  const heading=(cue.player===0?'You · ':cue.player===1?'Opponent · ':'')+cue.text;
  el.innerHTML=`<strong>${esc(heading)}</strong><div class="effect-feedback-cards"></div>`;field.append(el);
  const rack=el.querySelector('.effect-feedback-cards');
@@ -58,5 +59,5 @@ export async function playEffectFeedback(cue,{field,image,esc,reduced=false}){
   const zone=field.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);
   if(!reduced&&zone&&cue.increase!==false)zone.animate([{boxShadow:'0 0 18px #ffe185'},{boxShadow:'none'}],{duration:450});
  }
- await wait(reduced?350:cue.excavation||cue.choice?850:450);el.remove();
+ await wait(cue.statChange?200:reduced?350:cue.excavation||cue.choice?850:450);el.remove();
 }

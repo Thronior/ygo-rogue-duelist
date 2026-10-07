@@ -13,6 +13,25 @@ import java.util.*;
 /** Offline game container. Only bundled HTTPS-origin assets can access save storage. */
 public final class MainActivity extends Activity {
     private WebView web;
+    private static final int SAVE_DECK_IMAGE = 4102;
+    private byte[] pendingDeckImage;
+    private void exportNotice(String text) { runOnUiThread(() -> android.widget.Toast.makeText(this,text,android.widget.Toast.LENGTH_LONG).show()); }
+    @Override protected void onActivityResult(int request,int result,android.content.Intent data) {
+        super.onActivityResult(request,result,data);
+        if(request!=SAVE_DECK_IMAGE)return;
+        final byte[] bytes;
+        synchronized(this){bytes=pendingDeckImage;pendingDeckImage=null;}
+        if(result!=RESULT_OK || data==null || data.getData()==null || bytes==null)return;
+        final Uri uri=data.getData();
+        new Thread(() -> {
+            try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")) {
+                if(out==null)throw new IOException("No output stream");
+                out.write(bytes);out.flush();exportNotice("Deck image saved.");
+            }catch(IOException | SecurityException e){exportNotice("Could not save the image. Please try again.");}
+        },"Deck-image-export").start();
+    }
+    @Override protected void onDestroy(){synchronized(this){pendingDeckImage=null;}super.onDestroy();}
+
     private static final String HOST = "appassets.androidplatform.net";
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -51,6 +70,23 @@ public final class MainActivity extends Activity {
         web.loadUrl("https://"+HOST+"/index.html");
     }
     public final class SaveStore {
+        @JavascriptInterface public boolean saveDeckImage(String name,String base64) {
+            if(base64==null || base64.length()>16000000)return false;
+            final byte[] bytes;
+            try{bytes=android.util.Base64.decode(base64,android.util.Base64.DEFAULT);}catch(IllegalArgumentException e){return false;}
+            if(bytes.length<8 || bytes[0]!=(byte)137 || bytes[1]!=80 || bytes[2]!=78 || bytes[3]!=71)return false;
+            synchronized(MainActivity.this){if(pendingDeckImage!=null)return false;pendingDeckImage=bytes;}
+            final String filename=(name==null?"Deck.png":name.replaceAll("[^a-zA-Z0-9 _.()-]","_")).substring(0,Math.min(100,name==null?8:name.length()));
+            runOnUiThread(() -> {
+                try{
+                    android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT);
+                    intent.addCategory(android.content.Intent.CATEGORY_OPENABLE);intent.setType("image/png");
+                    intent.putExtra(android.content.Intent.EXTRA_TITLE,filename);startActivityForResult(intent,SAVE_DECK_IMAGE);
+                }catch(android.content.ActivityNotFoundException | SecurityException e){synchronized(MainActivity.this){pendingDeckImage=null;}exportNotice("No app is available to save this image.");}
+            });
+            return true;
+        }
+
         @JavascriptInterface public void openUpdate() {
             runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class)));
         }

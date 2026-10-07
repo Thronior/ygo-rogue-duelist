@@ -154,7 +154,7 @@ export class MobileDuel extends DuelEngine {
    if(old){const diff=[['attack','ATK'],['defense','DEF'],['level','Level']].filter(([k])=>old[k]!==undefined&&c[k]!==undefined&&old[k]!==c[k]).map(([k,label])=>`${label} ${old[k]} → ${c[k]}`);if(diff.length){changes.push(this.name(c.code)+': '+diff.join(', '));changedCards.push({...c});}}
   }
   this.feedbackStats=currentStats;
-  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' · '),cards:changedCards});this.logs.unshift(changes.join(' · '));}
+  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' · '),cards:changedCards,statChange:true});this.logs.unshift(changes.join(' · '));}
 for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(c)c.turnCount=this.cardTurnCounts?.get(`${c.controller}:${c.location}:${c.sequence}`)??(c.location===L.SZONE&&(c.position&5)&&['Swords of Revealing Light','Wave-Motion Cannon',"Nightmare's Steelcage"].includes(this.name(c.code))?0:undefined);const own=s.players[0].monsters.filter(c=>c&&(c.position&5));
   this.peak.peak_field=Math.max(this.peak.peak_field,own.length);
   for(const c of own){this.peak.peak_attack=Math.max(this.peak.peak_attack,c.attack||0);this.peak.peak_defense=Math.max(this.peak.peak_defense,c.defense||0)}return s;

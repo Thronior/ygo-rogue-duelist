@@ -7,7 +7,7 @@ export function flipPerspective(value){
 // Uses EDOPro's real extra-duelist slots, never merges partners' decks.
 export class TagDuel extends MobileDuel {
  startTag({teams,lp,enemyLP,draw=5,enemyDraw=5,seed,passives='',names,mode='tag',rules=null}){
-  this.pvp=mode==='pvp';
+  this.presentationKey=seed;this.pvp=mode==='pvp';
   if(!Array.isArray(teams)||teams.length!==2||teams.some(t=>t.length!==(this.pvp?1:2)||t.some(d=>!d.main?.length)))throw Error('Tag duels need four decks.');
   this.activeSeats=[0,0];this.tagNames=names||[['Host','Partner'],['Opponent 1','Opponent 2']];this.responseNumber=0;
   return this.start(teams[0][0].main,teams[1][0].main,lp,enemyLP,draw,seed,teams[0][0].extra||[],teams[1][0].extra||[],passives,enemyDraw,this.pvp?null:teams,rules);
@@ -21,7 +21,7 @@ export class TagDuel extends MobileDuel {
   }
   super.onMessage(message);
  }
- snapshot(){return {...super.snapshot(),tag:{activeSeats:[...this.activeSeats],names:this.tagNames,responseNumber:this.responseNumber}}}
+ snapshot(){return {...super.snapshot(),tag:{presentationDuel:this.presentationKey,activeSeats:[...this.activeSeats],names:this.tagNames,responseNumber:this.responseNumber}}}
  get respondingSeat(){return this.pvp?(this.pending?.player??null):this.pending?.player===0?this.activeSeats[0]:null}
  respondFor(seat,number,response){
   if(this.respondingSeat!==seat)throw Error('Wait for your teammate.');

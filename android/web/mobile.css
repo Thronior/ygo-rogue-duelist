@@ -1408,7 +1408,7 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-slot-grid.compact-cards .reward-slot{padding:2px;gap:2px}
 .reward-slot-grid.compact-cards .reward-name{display:none}
 .reward-slot-grid.compact-cards .reward-rarity{left:auto;right:3px;top:3px;transform:none;width:12px;height:12px;padding:0;font-size:0;line-height:12px;text-align:center;border-radius:50%}
-.reward-slot-grid.compact-cards .reward-rarity::after{content:'â˜…';font-size:9px}
+.reward-slot-grid.compact-cards .reward-rarity::after{content:'\2605';font-size:9px}
 
 .reward-slot.landed .reward-rarity{display:block}
 .reward-slot.common-reward .reward-rarity{background:#1e3341;color:#d4dfe3;box-shadow:none}
@@ -1588,3 +1588,33 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 .cde-selected-deck{flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left}.cde-selected-deck>img{width:34px;height:40px;object-fit:contain;flex:none}.cde-selected-deck>span{min-width:0;display:flex;flex-direction:column}.cde-selected-deck strong,.cde-selected-deck small{overflow-wrap:anywhere;white-space:normal}.cde-selected-deck small{display:block!important;font-size:11px}.cde-picker{width:min(850px,94vw);height:min(740px,90dvh);max-height:90dvh;box-sizing:border-box;padding:12px;overflow:hidden}.cde-picker[open]{display:flex;flex-direction:column;gap:8px}.cde-picker header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}.cde-picker h2{font-size:20px;margin:0}.cde-portrait-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:6px;min-height:0;overflow:auto;flex:1;align-content:start}.cde-portrait-grid button{padding:4px;min-width:0;display:flex;align-items:center;flex-direction:column;gap:3px}.cde-portrait-grid img{height:70px;width:100%;object-fit:contain}.cde-portrait-grid span{font-size:11px;line-height:1.2;overflow-wrap:anywhere}.cde-portrait-grid b{height:70px;font-size:40px}.cde-picker button[aria-pressed=true]{border-color:#ffe58b;background:#645226}.cde-tier-picker{flex:none;border-top:1px solid #65808b;padding-top:7px;max-height:35%;overflow:auto}.cde-tier-picker h3{font-size:16px;margin:0;overflow-wrap:anywhere}.cde-tier-picker p{font-size:12px;margin:4px 0}.cde-tier-picker>div{display:flex;flex-wrap:wrap;gap:6px}.cde-tier-picker button{font-size:13px;white-space:normal;overflow-wrap:anywhere;max-width:100%;padding:8px}@media(max-height:450px){.cde-selected-deck>img{height:28px;width:24px}.cde-picker h2{font-size:16px}.cde-portrait-grid img{height:48px}.cde-picker{height:94dvh;max-height:94dvh}.cde-tier-picker{max-height:40%}}
 
 .cde-picker-categories{display:flex;gap:6px;flex:none}.cde-picker-categories button{flex:1;min-width:0;font-size:13px;padding:8px;white-space:normal}
+
+.cde-deck-copy button{-webkit-touch-callout:none;user-select:none;touch-action:pan-y}
+
+/* Discord Oct 7: editors fit inside the app safe area, with controls in flow. */
+#app>.cde{height:100%;max-height:100%;min-height:0}
+.cde>header,.cde>.cde-select,.cde>nav,.cde>footer{flex-shrink:0}
+.page:has(.draft-scroll)>header{flex-wrap:wrap;min-height:0;gap:6px;padding:8px}
+.page:has(.draft-scroll)>header .tools{flex-wrap:wrap;justify-content:flex-end;gap:5px;min-width:0}
+.page:has(.draft-scroll)>header .tools button{padding:7px 9px}
+.draft-summary:has(.draft-next.deck-count-arrow){padding-right:0;min-height:0;align-items:center}
+.draft-summary>.draft-next.deck-count-arrow{position:relative;inset:auto;flex:none;width:100px;height:68px}
+.tag-offline-draft:has(.tag-deck-scroll)>.tag-choose-opponent{position:relative;inset:auto;align-self:flex-end;flex:none;width:100px;height:68px;margin:4px 10px}
+.tag-offline-draft:has(.tag-deck-scroll) .draft-summary{padding-right:0;min-height:0}
+.cardbtn.golden-card{border-color:#ffe183;box-shadow:inset 0 0 0 2px #bd8429,0 0 10px #f9ca6677}
+.cardbtn .golden-sleeve-mark{position:absolute;top:4px;right:4px;z-index:2;background:#382509e8;color:#ffdf80;border:1px solid #ffe183;border-radius:50%;padding:3px 5px;line-height:1;font-size:15px}
+.stat-feedback{pointer-events:none}
+
+.reward-card .reward-reel-strip img,.reward-slot.spinning .reward-card .reward-reel-strip img{position:absolute;top:0;height:100%;max-width:none;object-fit:contain;animation:none;transform:none}
+.reward-center-arrow{position:absolute;z-index:4;left:50%;top:clamp(0px,12%,28px);transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:13px solid #ff3449;filter:drop-shadow(0 1px 2px #000);pointer-events:none}
+.reward-reel-strip.settled{will-change:auto}
+.reward-card .reward-reel-strip.settled img:not(.reel-winner){filter:grayscale(.8) brightness(.5)}
+.reward-card .reward-reel-strip.settled .reel-winner{filter:drop-shadow(0 0 5px #ffdc7b)}
+.ultra-reward .reward-card .reward-reel-strip.settled .reel-winner{filter:drop-shadow(0 0 7px #7affe2) drop-shadow(0 0 3px #77caff) brightness(1.12)}
+
+.cde-export-actions{display:flex;gap:8px;margin:8px 0}.cde-export-actions button{flex:1}
+
+.cde-export[open]{display:flex;flex-direction:column;overflow:hidden}
+.cde-export>header,.cde-export-actions{flex:none;min-width:0}
+.cde-export>header h2{overflow-wrap:anywhere;min-width:0}
+.cde-export-body{min-height:0;flex:1}

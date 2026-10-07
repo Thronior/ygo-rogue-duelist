@@ -28,7 +28,7 @@ def read(name,fallback):
  limits=json.loads((ROOT.parent/'collector-banlist.json').read_text(encoding='utf8'))['names']
  named_counts=Counter(cards[c]['name'] for c in counts for _ in range(counts[c]))
  for card_name,n in named_counts.items():
-  maximum=limits.get(card_name,3)
+  maximum=min(3,fallback.get('limit_exceptions',{}).get(card_name,limits.get(card_name,3)))
   if n>maximum:raise ValueError(f'{p.name}: {card_name} has {n} copies; Ultimate Collector allows {maximum}.')
  for section in ('main','extra','side'):result[section]=[aliases.get(c,c) for c in result[section]]
  return result
