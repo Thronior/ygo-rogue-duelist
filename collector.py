@@ -34,6 +34,10 @@ def dispatch(action,value):
   return data
  duelist=next((d for d in data['duelists'] if d['id']==value.get('id')),None)
  if not duelist:raise ValueError('Collector not found.')
+ if action=='delete':
+  if duelist.get('status')!='deleted':raise ValueError('Confirm deletion with the server first.')
+  data['duelists']=[d for d in data['duelists'] if d['id']!=duelist['id']]
+  save(data);storage.write((storage.ROOT/'collector.json').with_suffix('.bak'),data);return data
  if action=='draft':
   if duelist['status']!='alive':raise ValueError('This duelist has been eliminated.')
   deck=value.get('deck',{})

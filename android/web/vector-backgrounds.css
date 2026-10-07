@@ -8,12 +8,12 @@
 .game-vector-background .bg-stage[data-scene=duel]{--ink:#a35a25;background:#100707}
 .game-vector-background .bg-stage[data-scene=duel] .veil{background:radial-gradient(circle at center,#040406 0%,#040406dd 8%,#06040780 22%,#09050720 52%,transparent 82%)}
 .game-vector-background .hex-cell{animation:gv-hex-enter .3s var(--enter) both!important;animation-iteration-count:1!important}
-.game-vector-background .hex-shade{animation:gv-hex-shade var(--duration,14s) 2s ease-in-out infinite alternate}
+.game-vector-background .hex-shade{animation:gv-hex-shade var(--duration,14s) 2s steps(16) infinite alternate}
 .game-vector-background .bg-stage[data-scene=hex] .art{opacity:1}
-.game-vector-background .wave-colors{animation:gv-wave-colors var(--duration,25s) ease-in-out infinite}
+.game-vector-background .wave-colors{animation:gv-wave-colors var(--duration,25s) steps(24) infinite}
 .game-vector-background .flame{transform-origin:50% 100%!important;animation:gv-flame-sway var(--duration,3s) ease-in-out infinite alternate;animation-delay:var(--delay)}
 .game-vector-background .spiral-arms{transform-box:view-box!important;transform-origin:50% 50%!important;animation:gv-bg-turn 55s linear infinite;animation-timing-function:linear!important}
-.game-vector-background .spiral-color{animation:gv-spiral-color 36s ease-in-out infinite}
+.game-vector-background .spiral-color{animation:gv-spiral-color 36s steps(24) infinite}
 .game-vector-background .hex-light{animation:gv-hex-light 12s ease-in-out infinite alternate;animation-delay:var(--delay,0s)}
 @keyframes gv-spiral-color{0%,100%{stop-color:#cd782f}25%,75%{stop-color:#b32f37}50%{stop-color:#8653c5}}
 @keyframes gv-hex-light{from{transform:translate(-65px,170px);opacity:.3}to{transform:translate(65px,-170px);opacity:.8}}
@@ -66,3 +66,13 @@
 dialog.game-vector-host{background:#100f0a!important}
 
 
+
+/* Decoration fades in after the interactive menu has painted. */
+.game-vector-background .bg-stage>.art,.game-vector-background .bg-stage>.dice-space,.game-vector-background .bg-stage>.lightning-layer{transition:opacity .35s ease-out}
+.game-vector-background .bg-stage:not(.ready)>.art,.game-vector-background .bg-stage:not(.ready)>.dice-space,.game-vector-background .bg-stage:not(.ready)>.lightning-layer{opacity:0!important}
+@media(prefers-reduced-motion:reduce){.game-vector-background .bg-stage>*{transition:none!important}}
+
+.game-vector-background .art .spiral-color,.game-vector-background .art .wave-colors{animation-timing-function:steps(24)}
+.game-vector-background .art .hex-shade{animation-timing-function:steps(16)}
+.game-vector-background .bg-stage.ready>.art,.game-vector-background .bg-stage.ready>.dice-space{animation:gv-background-entry .35s ease-out both}
+@keyframes gv-background-entry{from{opacity:0}}

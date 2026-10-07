@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node --test test.mjs collector-shuffle.test.mjs draft-shuffle.test.mjs draft-rules.test.mjs draft-lifecycle.test.mjs progress.test.mjs backup.test.mjs"
+    "test": "node --test test.mjs collector-shuffle.test.mjs collector-delete.test.mjs draft-shuffle.test.mjs draft-rules.test.mjs draft-lifecycle.test.mjs progress.test.mjs backup.test.mjs"
   },
   "devDependencies": {
     "wrangler": "4.136.3"

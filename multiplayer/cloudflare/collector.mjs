@@ -51,6 +51,7 @@ export class CollectorRegistry {
  }
  if(!p||p.token!==v.token)throw Error('Invalid Collector credentials.');
  let room=p.room?this.data.rooms[p.room]:null,seat=room?.players.indexOf(p.id);
+ if(op==='delete'){if(this.draftMode)throw Error('Not available in Draft Duels.');if(room&&room.phase!=='complete')throw Error('Finish or cancel your room before deleting this Collector.');p.status='deleted';p.pool=[];p.deck={main:[],side:[],extra:[]};p.room=null;await this.persist();const {token,...record}=p;return this.reply({record,room:null,now:Date.now()});}
  if(p.status==='eliminated'&&!p.defeatedDeck&&room?.startDecks?.[seat]){p.defeatedDeck=structuredClone(room.decks?.[seat]||room.startDecks[seat]);p.defeatedAt=p.history?.at(-1)?.at||Date.now();p.defeatReason=room.reason;}
  if(this.draftMode&&['deck','open-ready','ready','next','response','result','clock','surrender','emote'].includes(op)){
  if(!room||room.phase==='complete'||room.players.length!==2||op!=='deck'&&room.seen.some((t,i)=>i!==seat&&Date.now()-t>=15000))throw Error('Waiting for both players to connect.');
