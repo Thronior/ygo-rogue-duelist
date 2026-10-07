@@ -1,3 +1,4 @@
+export {BackupRegistry} from './backup.mjs';
 export {ProgressRegistry} from './progress.mjs';
 export {CollectorRegistry,DraftRegistry} from './collector.mjs';
 import {Registry} from './registry.mjs';
@@ -6,6 +7,7 @@ const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
 export default {async fetch(request,env){
  const path=new URL(request.url).pathname;
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
+ if(path.startsWith('/backup/')&&request.method==='POST')return env.BACKUP.get(env.BACKUP.idFromName('backups-v1')).fetch(request);
  if(path.startsWith('/progress/')&&request.method==='POST')return env.PROGRESS.get(env.PROGRESS.idFromName('progress-v1')).fetch(request);
  if(path.startsWith('/draft/')&&request.method==='POST')return env.DRAFT.get(env.DRAFT.idFromName('draft-v1')).fetch(request);
  if(path.startsWith('/collector/')&&request.method==='POST')return env.COLLECTOR.get(env.COLLECTOR.idFromName('collectors-v1')).fetch(request);

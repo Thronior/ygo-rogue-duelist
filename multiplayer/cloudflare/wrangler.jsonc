@@ -28,6 +28,10 @@
       {
         "name": "DRAFT",
         "class_name": "DraftRegistry"
+      },
+      {
+        "name": "BACKUP",
+        "class_name": "BackupRegistry"
       }
     ]
   },
@@ -60,6 +64,12 @@
       "tag": "v5",
       "new_sqlite_classes": [
         "DraftRegistry"
+      ]
+    },
+    {
+      "tag": "v6",
+      "new_sqlite_classes": [
+        "BackupRegistry"
       ]
     }
   ]
