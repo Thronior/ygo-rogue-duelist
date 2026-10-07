@@ -1597,7 +1597,8 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 .page:has(.draft-scroll)>header{flex-wrap:wrap;min-height:0;gap:6px;padding:8px}
 .page:has(.draft-scroll)>header .tools{flex-wrap:wrap;justify-content:flex-end;gap:5px;min-width:0}
 .page:has(.draft-scroll)>header .tools button{padding:7px 9px}
-.draft-summary:has(.draft-next.deck-count-arrow){padding-right:0;min-height:0;align-items:center}
+/* Keep the next-opponent control below the fixed menu while the card pool scrolls. */
+.draft-summary:has(.draft-next.deck-count-arrow){position:sticky;top:0;z-index:7;padding-right:0;min-height:0;align-items:center;background:#102732;box-shadow:0 -15px #102732,0 4px 8px #0005;border-radius:0 0 6px 6px}
 .draft-summary>.draft-next.deck-count-arrow{position:relative;inset:auto;flex:none;width:100px;height:68px}
 .tag-offline-draft:has(.tag-deck-scroll)>.tag-choose-opponent{position:relative;inset:auto;align-self:flex-end;flex:none;width:100px;height:68px;margin:4px 10px}
 .tag-offline-draft:has(.tag-deck-scroll) .draft-summary{padding-right:0;min-height:0}
