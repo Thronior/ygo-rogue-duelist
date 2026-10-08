@@ -104,6 +104,7 @@ dialog.game-vector-host{background:#100f0a!important}
 .game-vector-background .bg-stage[data-scene=tunnel]{background:#100707}
 .duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}
 
-/* Keep the duel scenery in its own composited layer during touch/preview paints. */
-.duel.game-vector-host>.game-vector-background{transform:translate3d(0,0,0);backface-visibility:hidden}
-.duel.game-vector-host .bg-stage[data-scene=duel]>.art{backface-visibility:hidden}
+/* Explicit sibling layers prevent animated scenery from painting over board tiles. */
+.duel.game-vector-host>.game-vector-background{z-index:0}
+.duel.game-vector-host>.inspection,.duel.game-vector-host>.portrait-relics,.duel.game-vector-host>.duel-main{position:relative;z-index:1}
+.duel.game-vector-host>.duel-main{transform:translateZ(0)}
