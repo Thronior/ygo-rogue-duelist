@@ -1694,3 +1694,6 @@ body{height:var(--app-viewport-height,100dvh)}
 .engine-rewards .reward-slot{align-items:center;justify-content:center}
 .engine-rewards .reward-slot-frame{flex:none;width:var(--deck-slot-size);height:var(--deck-slot-size);max-width:100%;aspect-ratio:1}
 .engine-rewards .reward-slot>.reward-reroll{max-width:var(--deck-slot-size)}
+
+/* The hand ends above the bottom controls; avoid a gradient ending at that seam. */
+.duel .hand{background:transparent}

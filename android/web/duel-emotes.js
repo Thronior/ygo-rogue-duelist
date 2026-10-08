@@ -38,7 +38,7 @@ function playEmoteSound(emoji){
  if(!soundVolume()||document.hidden)return;
  unlockEmoteSound();emoteAudio.stopAll();
  // AudioBufferSource playback rate naturally changes both speed and pitch.
- emoteAudio.play(emoji,1,emoji==='❤️'?1.5:1);
+ emoteAudio.play(emoji,2.5,emoji==='❤️'?1.5:1);
 }
 
 window.addEventListener('resize',positionDuelEmotes);

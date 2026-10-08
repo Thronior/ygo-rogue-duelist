@@ -121,7 +121,7 @@ export function setVectorBackground(target,kind){
  syncPause();
 }
 function syncPause(){
- paused=document.hidden||reduced.matches||!!document.querySelector('dialog[open] .inspect,.inspection-modal[open]');root?.classList.toggle('paused',paused);
+ paused=document.hidden||reduced.matches||!!document.querySelector('dialog[open] .inspect,.inspection-modal[open]');if(root&&root.classList.contains('paused')!==paused)root.classList.toggle('paused',paused);
  const tunnel=root?.querySelector('.duel-tunnel');
  if(tunnel){if(paused)tunnel.pause();else if(tunnel.paused)tunnel.play().catch(()=>{});}
  if(paused){lightningAnimation?.pause();clearInterval(strikeTimer);strikeTimer=null;}

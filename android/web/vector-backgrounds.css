@@ -103,3 +103,7 @@ dialog.game-vector-host{background:#100f0a!important}
 .duel.has-field>.game-vector-background>.bg-stage[data-scene=duel]{opacity:.5}
 .game-vector-background .bg-stage[data-scene=tunnel]{background:#100707}
 .duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}
+
+/* Keep the duel scenery in its own composited layer during touch/preview paints. */
+.duel.game-vector-host>.game-vector-background{transform:translate3d(0,0,0);backface-visibility:hidden}
+.duel.game-vector-host .bg-stage[data-scene=duel]>.art{backface-visibility:hidden}
