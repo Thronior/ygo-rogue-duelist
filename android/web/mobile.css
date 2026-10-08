@@ -1697,3 +1697,7 @@ body{height:var(--app-viewport-height,100dvh)}
 
 /* The hand ends above the bottom controls; avoid a gradient ending at that seam. */
 .duel .hand{background:transparent}
+
+/* Android WebView can drop unrelated board tiles when a filter starts/stops.
+   Keep only small duel controls/art in stable layers; released with the duel DOM. */
+.duel button,.duel .zone>img,.duel [data-relic],.duel .card-counter,.floating-chain-control{will-change:filter}
