@@ -1,0 +1,130 @@
+
+.game-vector-background .bg-stage{--ink:#8de6ff;--glow:#155279;position:relative;height:420px;width:100%;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 110%,var(--glow),#050e19 75%);border-radius:12px;color:#edf6ff;font-family:Arial,sans-serif;margin:14px auto;box-sizing:border-box}
+.game-vector-background .bg-stage[data-scene=rings]{--ink:#c79aff;--glow:#3b1558}
+.game-vector-background .bg-stage[data-scene=crystals]{--ink:#7be9ff;--glow:#103c68}
+.game-vector-background .bg-stage[data-scene=gold]{--ink:#ffe4a0;--glow:#674519;background:radial-gradient(ellipse at 50% 100%,#674519,#161208 70%)}
+.game-vector-background .bg-stage[data-scene=jade]{--ink:#71e5bd;--glow:#124e47}
+.game-vector-background .bg-stage[data-scene=embers]{--ink:#ff8a60;--glow:#631e23}
+.game-vector-background .bg-stage[data-scene=duel]{--ink:#a35a25;background:#100707}
+.game-vector-background .bg-stage[data-scene=duel] .veil{background:radial-gradient(circle at center,#040406 0%,#040406dd 8%,#06040780 22%,#09050720 52%,transparent 82%)}
+.game-vector-background .hex-cell{animation:gv-hex-enter .3s var(--enter) both!important;animation-iteration-count:1!important}
+.game-vector-background .hex-shade{animation:gv-hex-shade var(--duration,14s) 2s steps(16) infinite alternate}
+.game-vector-background .bg-stage[data-scene=hex] .art{opacity:1}
+.game-vector-background .wave-colors{animation:gv-wave-colors var(--duration,25s) steps(24) infinite}
+.game-vector-background .flame{transform-origin:50% 100%!important;animation:gv-flame-sway var(--duration,3s) ease-in-out infinite alternate;animation-delay:var(--delay)}
+.game-vector-background .spiral-arms{transform-box:view-box!important;transform-origin:50% 50%!important;animation:gv-bg-turn 55s linear infinite;animation-timing-function:linear!important}
+.game-vector-background .spiral-color{animation:gv-spiral-color 36s steps(24) infinite}
+.game-vector-background .hex-light{animation:gv-hex-light 12s ease-in-out infinite alternate;animation-delay:var(--delay,0s)}
+@keyframes gv-spiral-color{0%,100%{stop-color:#cd782f}25%,75%{stop-color:#b32f37}50%{stop-color:#8653c5}}
+@keyframes gv-hex-light{from{transform:translate(-65px,170px);opacity:.3}to{transform:translate(65px,-170px);opacity:.8}}
+.game-vector-background .lightning-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;contain:strict;opacity:var(--strength,.8)}
+.game-vector-background .collection-mote{animation:gv-collection-drift var(--duration,32s) ease-in-out infinite alternate;animation-delay:var(--delay)}
+.game-vector-background .dice-space{position:absolute;left:50%;top:45%;width:84px;height:84px;transform:translate(-50%,-50%) scale(.74);opacity:.38;perspective:650px;pointer-events:none}
+.game-vector-background .dice{width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:gv-dice-roll 14s linear infinite}
+.game-vector-background .dice-face{position:absolute;inset:0;box-sizing:border-box;border:1px solid #a6e5ef;border-radius:5px;background:transparent;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:13px;gap:5px;backface-visibility:hidden}
+.game-vector-background .pip{border-radius:50%;border:1px solid #a6e5ef;background:transparent}
+.game-vector-background .dice-face:nth-child(1){transform:translateZ(42px)}
+.game-vector-background .dice-face:nth-child(2){transform:rotateY(90deg) translateZ(42px)}
+.game-vector-background .dice-face:nth-child(3){transform:rotateY(180deg) translateZ(42px)}
+.game-vector-background .dice-face:nth-child(4){transform:rotateY(-90deg) translateZ(42px)}
+.game-vector-background .dice-face:nth-child(5){transform:rotateX(90deg) translateZ(42px)}
+.game-vector-background .dice-face:nth-child(6){transform:rotateX(-90deg) translateZ(42px)}
+.game-vector-background.paused .dice,.game-vector-background [hidden] .dice{animation-play-state:paused!important}
+@keyframes gv-hex-enter{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
+@keyframes gv-dice-roll{from{transform:rotateX(-20deg) rotateY(0deg) rotateZ(12deg)}to{transform:rotateX(340deg) rotateY(720deg) rotateZ(372deg)}}
+@keyframes gv-collection-drift{0%{transform:translate(-45px,110px);opacity:.18}50%{transform:translate(0px,0px);opacity:.42}100%{transform:translate(55px,-110px);opacity:.2}}
+@keyframes gv-hex-shade{0%,100%{fill:var(--shade-a)}50%{fill:var(--shade-b)}}
+@keyframes gv-wave-colors{0%,100%{stroke:var(--wave-a)}33%{stroke:var(--wave-b)}67%{stroke:var(--wave-c)}}
+@keyframes gv-flame-sway{from{transform:skewX(-7deg) scaleY(.82);opacity:.45}to{transform:skewX(8deg) scaleY(1.12);opacity:.75}}
+@media(prefers-reduced-motion:reduce){.game-vector-background:not(.motion-opt-in) .dice{animation-play-state:paused!important}}
+.game-vector-background .art{position:absolute;width:100%;height:100%;inset:0;color:var(--ink);opacity:var(--strength,.8)}
+.game-vector-background .art *{transform-box:fill-box;transform-origin:center;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.game-vector-background .pulse{animation:gv-bg-pulse 7s infinite;animation-delay:var(--delay,0s)}
+.game-vector-background .turn{animation:gv-bg-turn 28s linear infinite}
+.game-vector-background .reverse{animation-direction:reverse;animation-duration:40s}
+.game-vector-background .float{animation:gv-bg-float 6s ease-in-out infinite;animation-delay:var(--delay,0s)}
+.game-vector-background .rays{transform-origin:50% 100%;animation:gv-bg-rays 7s ease-in-out infinite alternate}
+.game-vector-background .wave{animation:gv-bg-wave 8s ease-in-out infinite alternate;animation-delay:var(--delay,0s)}
+.game-vector-background .trace{stroke-dasharray:24 170;animation:gv-bg-trace 5s linear infinite}
+.game-vector-background .spark{animation:gv-bg-rise 9s linear infinite;animation-delay:var(--delay,0s)}
+.game-vector-background .veil{position:absolute;inset:0;background:radial-gradient(ellipse at center,#050e1940,transparent 80%);pointer-events:none}
+.game-vector-background.paused .art *,.game-vector-background [hidden] .art *{animation-play-state:paused!important}
+@keyframes gv-bg-pulse{0%,100%{opacity:.12}50%{opacity:.72}}
+@keyframes gv-bg-turn{to{transform:rotate(360deg)}}
+@keyframes gv-bg-float{0%,100%{transform:translate(10px,30px) rotate(-12deg);opacity:.3}50%{transform:translate(-10px,-40px) rotate(12deg);opacity:.9}}
+@keyframes gv-bg-rays{from{transform:rotate(-18deg);opacity:.35}to{transform:rotate(18deg);opacity:.8}}
+@keyframes gv-bg-wave{from{transform:translate(-38px,28px);opacity:.22}to{transform:translate(38px,-28px);opacity:.65}}
+@keyframes gv-bg-rise{0%{transform:translate(12px,100px);opacity:0}20%{opacity:.9}80%{opacity:.6}100%{transform:translate(-20px,-500px);opacity:0}}
+@keyframes gv-bg-trace{to{stroke-dashoffset:-388}}
+@media(prefers-reduced-motion:reduce){.game-vector-background:not(.motion-opt-in) .art *{animation-play-state:paused!important}}
+.game-vector-host{isolation:isolate;background:transparent!important}
+.game-vector-host:not(dialog){position:relative}
+.game-vector-host>.game-vector-background{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict;border-radius:inherit}
+.game-vector-background>.bg-stage{width:100%;height:100%;margin:0;border-radius:0}
+.game-vector-background.paused *{animation-play-state:paused!important}
+.game-vector-host.title>.particle{display:none}
+dialog.game-vector-host{background:#100f0a!important}
+
+
+
+/* Decoration fades in after the interactive menu has painted. */
+.game-vector-background .bg-stage>.art,.game-vector-background .bg-stage>.dice-space,.game-vector-background .bg-stage>.lightning-layer{transition:opacity .35s ease-out}
+.game-vector-background .bg-stage:not(.ready)>.art,.game-vector-background .bg-stage:not(.ready)>.dice-space,.game-vector-background .bg-stage:not(.ready)>.lightning-layer{opacity:0!important}
+@media(prefers-reduced-motion:reduce){.game-vector-background .bg-stage>*{transition:none!important}}
+
+.game-vector-background .art .spiral-color,.game-vector-background .art .wave-colors{animation-timing-function:steps(24)}
+.game-vector-background .art .hex-shade{animation-timing-function:steps(16)}
+.game-vector-background .bg-stage.ready>.art,.game-vector-background .bg-stage.ready>.dice-space{animation:gv-background-entry .35s ease-out both}
+@keyframes gv-background-entry{from{opacity:0}}
+
+/* One lightweight card vortex for run and Collector endings. */
+.game-vector-background .bg-stage[data-scene="vortex-victory"]{--ink:#e5b849;--accent:#3acab0;background:radial-gradient(ellipse at center,#332b18,#10151a 72%)}
+.game-vector-background .bg-stage[data-scene="vortex-defeat"]{--ink:#d9463f;--accent:#ed794b;background:radial-gradient(ellipse at center,#351215,#110b10 72%)}
+.game-vector-background .art .outcome-orbit{transform-box:view-box;transform-origin:0 0;animation:gv-bg-turn 40s linear infinite}
+.game-vector-background .art .outcome-card{fill:none;stroke:var(--ink);stroke-width:1.5;transform-box:view-box;transform-origin:0 0;animation:gv-outcome-card 28s linear infinite;animation-delay:var(--delay)}
+.game-vector-background .art .outcome-card.accent{stroke:var(--accent)}
+@keyframes gv-outcome-card{0%{transform:translateX(0) rotate(34deg);opacity:0}45%{opacity:.28}100%{transform:translateX(var(--reach)) rotate(34deg);opacity:0}}
+.collector-result.game-vector-host>.collector-result-aura,.collector-result.game-vector-host>.collector-defeat-particles{display:none}
+
+.game-vector-background .duel-tunnel{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;pointer-events:none}
+
+/* High-resolution video needs no blur or sharpening. */
+.game-vector-background .duel-tunnel{image-rendering:auto;opacity:.45;filter:none}
+
+/* Keep the grid static; animate one lighting layer instead of every SVG tile. */
+.game-vector-background .hex-cell{animation:gv-hex-enter .3s var(--enter) backwards!important;animation-iteration-count:1!important}
+.game-vector-background .hex-shade{animation:none!important}
+.game-vector-background .bg-stage[data-scene=hex]>.veil{background:radial-gradient(ellipse at center,#75c7de45,transparent 68%);animation:gv-hex-wash 18s ease-in-out infinite alternate;will-change:transform,opacity}
+@keyframes gv-hex-wash{from{transform:translate3d(-25%,-12%,0);opacity:.2}to{transform:translate3d(25%,12%,0);opacity:.8}}
+
+/* Field artwork sits below either animated duel background. */
+.duel.has-field,.duel.has-field .duel-main{background-image:none!important}
+.duel.has-field>.game-vector-background:before{content:"";position:absolute;inset:0;background:var(--active-field-art) center/cover no-repeat}
+.duel.has-field>.game-vector-background>.bg-stage[data-scene=duel]{opacity:.5}
+.game-vector-background .bg-stage[data-scene=tunnel]{background:#100707}
+.duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}
+
+/* Explicit sibling layers prevent animated scenery from painting over board tiles. */
+.duel.game-vector-host>.game-vector-background{z-index:0}
+.duel.game-vector-host>.inspection,.duel.game-vector-host>.portrait-relics,.duel.game-vector-host>.duel-main{position:relative;z-index:1}
+.duel.game-vector-host>.duel-main{transform:translateZ(0)}
+/* Duel scenery is a single pre-rendered video, independent of board updates. */
+.game-vector-background .duel-video{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;pointer-events:none;filter:none}
+.game-vector-background .duel-spiral{opacity:1}
+/* Simple mode creates no SVG, video, dice, lightning timers or background animation. */
+.game-vector-background.simple>.bg-stage{background:radial-gradient(ellipse at 50% 70%,#173846,#06121a 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=hex]{background:radial-gradient(ellipse at 50% 90%,#16414b,#06151d 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=rings]{background:radial-gradient(ellipse at 50% 70%,#332044,#0d101d 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=crystals]{background:radial-gradient(ellipse at 50% 80%,#163d59,#06101e 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=gold]{background:radial-gradient(ellipse at 50% 100%,#674519,#161208 75%)}
+.game-vector-background.simple>.bg-stage[data-scene=jade]{background:radial-gradient(ellipse at 50% 80%,#184638,#061b1b 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=embers]{background:radial-gradient(ellipse at 50% 100%,#5b2420,#140d17 85%)}
+.game-vector-background.simple>.bg-stage[data-scene=duel]{background:radial-gradient(ellipse at center,#090709,#291411 90%)}
+.game-vector-background.simple>.bg-stage[data-scene=tunnel]{background:radial-gradient(ellipse at center,#0b1527,#27334b 100%)}
+.game-vector-background.simple>.bg-stage[data-scene=vortex-victory]{background:radial-gradient(ellipse at center,#332b18,#10151a 80%)}
+.game-vector-background.simple>.bg-stage[data-scene=vortex-defeat]{background:radial-gradient(ellipse at center,#351215,#110b10 80%)}
+.game-vector-background.simple>.bg-stage[data-scene=shop]{background:radial-gradient(ellipse at center,#29444b,#091923 90%)}
+.simple-backgrounds .duel.has-field>.game-vector-background.simple:before{display:none}
+.simple-backgrounds .duel>.game-vector-background.simple>.bg-stage{opacity:1}
+.simple-backgrounds .page:not(.game-vector-host){background:radial-gradient(ellipse at center,#173846,#06121a 85%)!important}
+.simple-backgrounds .duel,.simple-backgrounds .duel-main{background-image:none!important}

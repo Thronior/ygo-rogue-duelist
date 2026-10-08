@@ -53,7 +53,7 @@ def settings():
   except (ValueError,TypeError):return default
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
- return dict(duelBackground='tunnel' if p.get('duelBackground')=='tunnel' else 'spiral',resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',35),sound=volume('sound',65))
+ return dict(simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),duelBackground='tunnel' if p.get('duelBackground')=='tunnel' else 'spiral',resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',35),sound=volume('sound',65))
 
 
 def migrate_previous_install():
