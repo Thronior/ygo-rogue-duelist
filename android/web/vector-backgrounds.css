@@ -76,3 +76,23 @@ dialog.game-vector-host{background:#100f0a!important}
 .game-vector-background .art .hex-shade{animation-timing-function:steps(16)}
 .game-vector-background .bg-stage.ready>.art,.game-vector-background .bg-stage.ready>.dice-space{animation:gv-background-entry .35s ease-out both}
 @keyframes gv-background-entry{from{opacity:0}}
+
+/* One lightweight card vortex for run and Collector endings. */
+.game-vector-background .bg-stage[data-scene="vortex-victory"]{--ink:#e5b849;--accent:#3acab0;background:radial-gradient(ellipse at center,#332b18,#10151a 72%)}
+.game-vector-background .bg-stage[data-scene="vortex-defeat"]{--ink:#d9463f;--accent:#ed794b;background:radial-gradient(ellipse at center,#351215,#110b10 72%)}
+.game-vector-background .art .outcome-orbit{transform-box:view-box;transform-origin:0 0;animation:gv-bg-turn 40s linear infinite}
+.game-vector-background .art .outcome-card{fill:none;stroke:var(--ink);stroke-width:1.5;transform-box:view-box;transform-origin:0 0;animation:gv-outcome-card 28s linear infinite;animation-delay:var(--delay)}
+.game-vector-background .art .outcome-card.accent{stroke:var(--accent)}
+@keyframes gv-outcome-card{0%{transform:translateX(0) rotate(34deg);opacity:0}45%{opacity:.28}100%{transform:translateX(var(--reach)) rotate(34deg);opacity:0}}
+.collector-result.game-vector-host>.collector-result-aura,.collector-result.game-vector-host>.collector-defeat-particles{display:none}
+
+.game-vector-background .duel-tunnel{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;pointer-events:none}
+
+/* High-resolution video needs no blur or sharpening. */
+.game-vector-background .duel-tunnel{image-rendering:auto;opacity:.45;filter:none}
+
+/* Keep the grid static; animate one lighting layer instead of every SVG tile. */
+.game-vector-background .hex-cell{animation:gv-hex-enter .3s var(--enter) backwards!important;animation-iteration-count:1!important}
+.game-vector-background .hex-shade{animation:none!important}
+.game-vector-background .bg-stage[data-scene=hex]>.veil{background:radial-gradient(ellipse at center,#75c7de45,transparent 68%);animation:gv-hex-wash 18s ease-in-out infinite alternate;will-change:transform,opacity}
+@keyframes gv-hex-wash{from{transform:translate3d(-25%,-12%,0);opacity:.2}to{transform:translate3d(25%,12%,0);opacity:.8}}

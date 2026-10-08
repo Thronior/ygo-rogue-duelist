@@ -7,7 +7,7 @@ def ai_modifiers(run):
  run=duel_run(run)
  from endless import LOOP
  from approved_relics import has
- return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[]],'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1) if 'enemy_power' in run.get('curses',[]) else 0)}
+ return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[]],'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
@@ -130,17 +130,15 @@ local d=a:Clone() d:SetCode(EFFECT_SET_BASE_DEFENSE) d:SetValue({int(mod['defens
   elif curse=='enemy_power':stat('EFFECT_UPDATE_ATTACK',200*scale,enemy=True)
   elif curse=='hunger':stat('EFFECT_UPDATE_DEFENSE',-300*scale)
   elif curse=='tax':event('EVENT_PHASE|PHASE_END',f'Duel.Damage(0,{500 if scale>=2 else 200},REASON_EFFECT)')
-  elif curse=='mercy' and scale==2:
-   lines.append('''do local e=Effect.GlobalEffect()
+ # HALF_DAMAGE is a non-stacking engine flag. Apply the combined divisor once.
+ mercy=run.get('curses',[]).count('mercy')
+ if mercy:
+  divisor=(4 if scale==2 else 2)**mercy
+  lines.append(f'''do local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PRE_BATTLE_DAMAGE)
 e:SetCondition(function(e,tp,eg,ep) return ep==1 end)
-e:SetOperation(function(e,tp,eg,ep,ev) Duel.ChangeBattleDamage(ep,math.floor(ev/4)) end)
+e:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)/{divisor})) end)
 Duel.RegisterEffect(e,0) end''')
-  elif curse=='mercy':
-   lines.append('''do local e=Effect.GlobalEffect()
-e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_BATTLE_DAMAGE)
-e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(0,1)
-e:SetValue(HALF_DAMAGE) Duel.RegisterEffect(e,0) end''')
  for code,operations in events.items():
   # Phase-start continuous events resolve without an optional activation prompt.
   code=code.replace('EVENT_PHASE|','EVENT_PHASE_START|')

@@ -377,12 +377,13 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return [];
   return own.filter(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(!(a.attack_count>0)||same(a,e.attackCard)));
  }
+ function moonPending(c){return !!c&&(e.activeChain||[]).some(link=>!link.inactive&&e.name(link.code)==='Book of Moon'&&(link.targets||[]).some(t=>same(t,c)));}
  function moonRescue(){
   // Fissure only destroys face-up monsters. Do not pretend to save one by
   // merely redirecting it into another valuable face-up friendly monster.
   if(!(e.activeChain||[]).some(x=>!x.inactive&&x.player!==p&&e.name(x.code)==='Fissure'))return null;
   const targets=own.filter(face);if(targets.length!==1)return null;
-  const c=targets[0];return !(data(c).type&0x4000)&&!c.is_immune?c:null;
+  const c=targets[0];return !moonPending(c)&&!(data(c).type&0x4000)&&!c.is_immune?c:null;
  }
  const attackOnly=new Set(['Diffusion Wave-Motion','Stop Defense','Shooting Star Bow - Ceal','Fairy Meteor Crush','Big Bang Shot','Meteorain','Opti-Camouflage Armor','Riryoku']);
  function doomed(c){return e.limiterDoom?.has(`${c.controller}:${c.sequence}`);}
@@ -448,8 +449,8 @@ export function smartContext(e,p,L,prompt=null){
    if(moonRescue())return 115;
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard));
-   if(e.player!==p)return attacker&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
-   return canBattle&&enemy.some(x=>face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>resetValue(x)>=65)?70:-1;
+   if(e.player!==p)return attacker&&!moonPending(attacker)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
+   return canBattle&&enemy.some(x=>!moonPending(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>!moonPending(x)&&resetValue(x)>=65)?70:-1;
   }
   if(['Reinforcements','Rush Recklessly'].includes(n)){
    if(!chain||!e.attackCard||e.player!==p&&!(e.inDamageStep||e.phase===32||e.phase===64))return -1;
@@ -1083,6 +1084,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
   if(['Change of Heart','Snatch Steal'].includes(fxN))return cand.controller!==p?10000+(name(cand)==='Spirit Reaper'&&face(cand)&&!cand.is_disabled&&effectsEnabled(cand.controller)?10000:controlledAttack(cand)):-1000000000;
+  if(fxN==='Book of Moon'&&moonPending(cand))return -1000000000;
   if(fxN==='Book of Moon'&&moonRescue())return same(cand,moonRescue())?1000000:-1000000000;
   if(['Book of Moon','Tsukuyomi'].includes(fxN)&&e.player===p&&cand.location===L.MZONE&&cand.controller===p){const value=resetValue(own.find(x=>same(x,cand)));return value>=0?20000+value*100:-1000000000;}
   if(fxN==='Book of Moon'&&e.player!==p)return same(cand,e.attackCard)?100000:-1000000000;

@@ -298,7 +298,8 @@ class TagCampaign:
    for code,team,location in re.findall(r'Debug.AddCard\((\d+),(\d),\d,(LOCATION_\w+),',lua):groups.setdefault((int(team),location),[]).append(int(code))
    info=re.findall(r'Debug.SetPlayerInfo\((\d),(\d+),(\d+),1\)',lua)
    configurations.append({'teams':[{'main':groups.get((t,'LOCATION_DECK'),[]),'extra':groups.get((t,'LOCATION_EXTRA'),[])} for t in (0,1)],'lp':int(info[0][1]),'enemyLP':int(info[1][1]),'draw':int(info[0][2]),'enemyDraw':int(info[1][2])})
-  combined=deepcopy(self.players[0]);combined['curses']=list(dict.fromkeys(c for r in self.players for c in r['curses']))
+  from collections import Counter
+  combined=deepcopy(self.players[0]);combined['curses']=list((Counter(self.players[0]['curses'])|Counter(self.players[1]['curses'])).elements())
   self.shared['curses']=combined['curses'];self.sync()
   self.duel={'teams':[[c['teams'][t] for c in configurations] for t in (0,1)],'lp':min(c['lp'] for c in configurations),'enemyLP':max(c['enemyLP'] for c in configurations),'draw':max(c['draw'] for c in configurations),'enemyDraw':max(c['enemyDraw'] for c in configurations),'seed':self.rng.randrange(1,2**31),'passives':passives.script(combined),'names':[[content.CHARACTERS[r[key]]['name'] for r in self.players] for key in ('character','opponent')],'responses':[]}
   self.phase='duel'

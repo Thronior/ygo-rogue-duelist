@@ -30,7 +30,7 @@ def active_modifiers(run):
  keys=run.get('curses') or ([run['boss_curse']] if run.get('boss_curse') else [])
  for key in dict.fromkeys(keys):
   if key in CURSES:
-   name,desc=CURSES[key];rows.append(dict(kind='curse',name=name,description=curse_description(run,key,desc)))
+   name,desc=CURSES[key];count=keys.count(key);rows.append(dict(kind='curse',name=name+(' ×'+str(count) if count>1 else ''),description=curse_description(run,key,desc)+(' Applies '+str(count)+' times.' if count>1 else '')))
  for level in range(1,min(5,run.get('challenge_level',0))+1):
   rows.append(dict(kind='level',name='LVL '+str(level),description=DESCRIPTIONS[level]))
  return rows

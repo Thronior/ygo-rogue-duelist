@@ -1,8 +1,20 @@
+import {duelBackgroundURL} from './background-assets.js';
 // Bounded markup cache: reuse scenery without retaining live DOM or animations.
 const artworkCache=new Map();
 const polygon=(x,y,r,n=6,offset=0)=>Array.from({length:n},(_,i)=>{const a=(i/n*Math.PI*2)+offset;return `${(x+Math.cos(a)*r).toFixed(1)},${(y+Math.sin(a)*r).toFixed(1)}`}).join(' ');
 
 function draw(stage){
+ if(stage.dataset.scene==='duel'){
+  if(!stage.querySelector('.duel-tunnel')){
+   const video=document.createElement('video');video.className='duel-tunnel';
+   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.autoplay=!paused;video.preload='auto';
+   video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
+   video.style.cssText='position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;display:block;pointer-events:none';
+   video.src=duelBackgroundURL();stage.append(video);
+   video.addEventListener('loadeddata',()=>{if(video.isConnected)syncPause()},{once:true});
+  }
+  syncPause();return;
+ }
  const bounds=stage.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
  const W=500*bounds.width/bounds.height,compact=W<500;
  const key=Math.round(W);if(stage.dataset.size===String(key))return;stage.dataset.size=String(key);
@@ -38,11 +50,12 @@ function draw(stage){
   for(let i=0;i<Math.ceil(W/60)+2;i++){const x=i*60-20,h=95+Math.random()*105;art+=`<g transform="translate(${x} 520) scale(${.6+Math.random()*.5} ${h/180})"><g class="flame" style="--duration:${1.4+Math.random()*1.8}s;--delay:-${i*.37}s"><path d="M-30 0C-54-30-18-48-25-90C-10-78-13-59-3-54C22-91-25-123 13-180C-1-141 39-130 27-100C61-121 45-145 43-150C77-108 24-74 36-47C45-65 53-61 55-78C67-38 39-16 31 0Z" fill="url(#fire-fill)"/><path d="M-12 0C-32-25-4-40-8-72C7-63 1-46 12-39C25-58 11-71 24-94C22-62 41-44 27-22L17 0Z" fill="url(#fire-core)"/></g></g>`;}
   for(let i=0;i<18;i++)art+=`<path class="spark" style="--delay:-${i*.53}s;animation-duration:${4+i%4}s" d="M${(i*179)%W} ${410+(i*61)%120}l3 -9" stroke="${i%3?'currentColor':'#ffdc9a'}" stroke-width="${i%3+1}"/>`;
  }
- if(scene==='duel'){
-  art+=`<defs><radialGradient id="spiral-depth" gradientUnits="userSpaceOnUse" cx="${W/2}" cy="250" r="${Math.hypot(W/2,250)}"><stop stop-color="#080609"/><stop offset=".13" stop-color="#130b0c"/><stop class="spiral-color" offset=".6" stop-color="#cd782f" stop-opacity=".7"/><stop class="spiral-color" offset="1" stop-color="#cd782f"/></radialGradient></defs><g class="spiral-arms">`;
-  const radius=Math.hypot(W/2,250)*1.4,extent=Math.log(radius/5)/.3;
-  for(let arm=0;arm<4;arm++)for(let layer=0;layer<4;layer++){const points=[];for(let edge=0;edge<2;edge++)for(let j=0;j<=64;j++){const t=(edge?64-j:j)/64*extent,r=5*Math.exp(t*.3),a=t+arm*Math.PI/2+(edge?(.83-layer*.11):layer*.035);points.push(`${(W/2+Math.cos(a)*r).toFixed(2)},${(250+Math.sin(a)*r).toFixed(2)}`);}art+=`<path d="M${points.join('L')}Z" fill="url(#spiral-depth)" opacity="${.14+layer*.06}"/>`;}
-  art+='</g>';
+ if(scene==='vortex-victory'||scene==='vortex-defeat'){
+  // Shared geometry and motion; only the palette changes with the outcome.
+  const radius=Math.hypot(W/2,250)*1.2;
+  art+=`<g transform="translate(${W/2} 250)"><g class="outcome-orbit">`;
+  for(let i=0;i<26;i++)art+=`<g transform="rotate(${i*137.5})"><g class="outcome-card ${i%3===0?'accent':''}" style="--reach:${radius}px;--delay:-${i*28/26}s"><rect x="-16" y="-23" width="32" height="46" rx="2"/><rect x="-12" y="-19" width="24" height="38" rx="1"/></g></g>`;
+  art+='</g></g>';
  }
  stage.innerHTML=`<svg class="art" viewBox="0 0 ${W} 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${art}</svg><div class="veil"></div>`;
  if(scene==='crystals'){
@@ -67,18 +80,29 @@ function strike(){
  lightningAnimation=bolt.animate([{opacity:0},{opacity:1,offset:.06},{opacity:.3,offset:.18},{opacity:.85,offset:.3},{opacity:0}],{duration:430,fill:'forwards'});
 }
 
-let root=null,stage=null,host=null,scene=null,observer=null,lightningAnimation=null,strikeTimer=null,paused=false,drawFrame=0,drawTimer=0;
+let root=null,stage=null,host=null,scene=null,observer=null,lightningAnimation=null,strikeTimer=null,paused=false,drawFrame=0,drawTimer=0,sceneStarted=0;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 function clearBackground(){
+ const video=root?.querySelector('video.duel-tunnel');
+ if(video){video.pause();video.removeAttribute('src');video.load();}
+
  cancelAnimationFrame(drawFrame);clearTimeout(drawTimer);drawFrame=drawTimer=0;
  clearInterval(strikeTimer);strikeTimer=null;lightningAnimation?.cancel();lightningAnimation=null;
  observer?.disconnect();observer=null;root?.remove();host?.classList.remove('game-vector-host');
  root=null;stage=null;host=null;scene=null;
 }
 export function setVectorBackground(target,kind){
- if(target===host&&kind===scene&&root){if(!root.isConnected)host.prepend(root);return;}
+ if(kind===scene&&root&&target){
+  if(target!==host||!root.isConnected){
+   host?.classList.remove('game-vector-host');host=target;host.classList.add('game-vector-host');host.prepend(root);
+   // Duel rendering replaces the board DOM. Keep ready artwork and its phase.
+   const elapsed=performance.now()-sceneStarted;
+   for(const animation of root.getAnimations({subtree:true}))animation.currentTime=elapsed;
+  }
+  return;
+ }
  clearBackground();if(!target||!kind)return;
- host=target;scene=kind;host.classList.add('game-vector-host');
+ host=target;scene=kind;sceneStarted=performance.now();host.classList.add('game-vector-host');
  root=document.createElement('div');root.className='game-vector-background';root.setAttribute('aria-hidden','true');
  stage=document.createElement('div');stage.className='bg-stage';stage.dataset.scene=kind;root.append(stage);host.prepend(root);
  // Let the menu and its solid base colour paint before constructing decorative SVG.
@@ -92,18 +116,24 @@ export function setVectorBackground(target,kind){
 }
 function syncPause(){
  paused=document.hidden||reduced.matches||!!document.querySelector('dialog[open] .inspect,.inspection-modal[open]');root?.classList.toggle('paused',paused);
+ const tunnel=root?.querySelector('.duel-tunnel');
+ if(tunnel){if(paused)tunnel.pause();else if(tunnel.paused)tunnel.play().catch(()=>{});}
  if(paused){lightningAnimation?.pause();clearInterval(strikeTimer);strikeTimer=null;}
  else {lightningAnimation?.play();if(scene==='embers'&&!strikeTimer)strikeTimer=setInterval(strike,1000);}
 }
 export function installVectorBackgrounds(app,modal){
- if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
+ if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=duel-video-7',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
  let frame=0;
  function refresh(){frame=0;
   const reward=[...document.querySelectorAll('dialog[open]')].find(d=>d.matches('.pack-theatre')||d.querySelector('.reward-screen,.reward-tally'));
   const page=app.firstElementChild;let target=reward||page,kind=null;
   if(reward)kind='gold';
   else if(page){
-   if(page.matches('.duel'))kind='duel';
+   const runOutcome=page.querySelector('[data-run-outcome]')?.dataset.runOutcome;
+   const collectorResult=!page.matches('.draft-pvp')&&page.querySelector('.collector-result');
+   if(runOutcome)kind='vortex-'+runOutcome;
+   else if(collectorResult){target=collectorResult;kind=collectorResult.classList.contains('triumph')?'vortex-victory':'vortex-defeat';}
+   else if(page.matches('.duel'))kind='duel';
    else if(page.matches('.title'))kind='hex';
    else if(page.matches('.boss')||page.querySelector('.boss-banner'))kind='embers';
    else if(page.matches('.character-select-page')||page.querySelector('.char-layout'))kind='crystals';

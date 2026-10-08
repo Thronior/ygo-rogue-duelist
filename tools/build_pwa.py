@@ -38,7 +38,7 @@ def build(root,out,templates):
  text=text.replace('Updating the app keeps your save.','Web updates keep your saves. Export a backup before clearing browser data.')
  old="${btn('How to Play','tutorial')}";assert old in text
  text=text.replace(old,"<button id=\"web-app-options\">Install, offline play &amp; save backups</button>"+old)
- marker='<small style="padding-bottom:8px">Offline private fan experiment'
+ marker='<small style="padding-bottom:8px">Fan Experiment'
  assert marker in text
  text=text.replace(marker,'<button class="web-install-menu" data-web-install>Install on iPhone / Play offline</button>'+marker,1)
  mobile.write_text(text,encoding='utf8')

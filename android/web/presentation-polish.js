@@ -62,7 +62,15 @@ export function polishDuel(root,owner,s,lookup){
  });
  for(const key of d.stats.keys())if(!live.has(key))d.stats.delete(key);
 }
-export async function duelFinish(winner,reason=0,settled=Promise.resolve()){await settled;}
+let defeatPresentation=null;
+export async function duelFinish(winner,reason=0,settled=Promise.resolve()){
+ await settled;if(winner!==1)return;
+ if(defeatPresentation)return defeatPresentation;
+ const board=document.querySelector('.duel');if(!board)return;
+ const overlay=document.createElement('div');overlay.className='duel-defeat-transition';overlay.setAttribute('role','status');overlay.innerHTML='<div class="defeat-rays" aria-hidden="true"></div><div class="defeat-title"><span>DUEL LOST</span><div class="defeat-rule" aria-hidden="true"></div><strong>DEFEAT</strong><div class="defeat-rule" aria-hidden="true"></div></div>';board.append(overlay);
+ defeatPresentation=(async()=>{try{const animation=overlay.animate([{opacity:0},{opacity:1,offset:.55},{opacity:1}],{duration:reduced()?300:1400,fill:'forwards',easing:'ease-out'});await animation.finished.catch(()=>{});}finally{overlay.remove();defeatPresentation=null;}})();
+ return defeatPresentation;
+}
 
 // Finish counters when backgrounded instead of retaining detached views in a suspended RAF.
 document.addEventListener('visibilitychange',()=>{if(document.hidden){

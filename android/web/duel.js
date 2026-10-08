@@ -180,7 +180,19 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   this.selectionHint=null;return super.respond(r);
  }
  summary(){return [...this.events,{kind:'duel_metrics',grave_monsters:this.query(0,L.GRAVE).filter(c=>c&&(this.data[c.code]?.type&1)).length,...this.peak,banished_count:this.core.duelQueryCount(this.h,0,L.REMOVED)+this.core.duelQueryCount(this.h,1,L.REMOVED)}]}
+ // Engine queries cross the WASM boundary and allocate card records. A decision
+ // sees an immutable board; share each zone read only until auto() returns.
+ query(player,location){
+  if(!this.decisionQueries)return super.query(player,location);
+  const key=player+':'+location;
+  if(!this.decisionQueries.has(key))this.decisionQueries.set(key,super.query(player,location));
+  return this.decisionQueries.get(key);
+ }
  auto(m=this.pending){
+  const previous=this.decisionQueries;this.decisionQueries=new Map();
+  try{return this.chooseDecision(m)}finally{this.decisionQueries=previous;}
+ }
+ chooseDecision(m){
   this.fieldKnowledge.observe(m.player,(p,l)=>this.query(p,l),L);
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
   const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,atk=c=>live(c)?.attack??c.attack??stat(c).attack??0,def=c=>live(c)?.defense??c.defense??stat(c).defense??0;

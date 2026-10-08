@@ -1647,3 +1647,21 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 .registration-progress{color:#9ddfcf;flex-basis:100%;text-align:center}
 
 .collector-delete-corner{display:flex;justify-content:flex-end;margin-top:auto;padding:16px 0 max(8px,env(safe-area-inset-bottom))}.collector-delete-corner button{font-size:12px;padding:7px 10px;min-height:36px;opacity:.8}.collector-content:has(.collector-delete-corner){display:flex;flex-direction:column}
+
+.cpu-category-tabs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:5px 0}.cpu-category-tabs button{padding:5px 12px;font-size:clamp(11px,1.5vh,15px)}.cpu-category-tabs button[aria-pressed="true"]{background:#946b32;border-color:#e6c77d}
+
+.cpu-setup .cpu-picker-title{height:auto;flex-shrink:0}.cpu-setup .char-layout{height:auto;flex:1;min-height:0}
+
+.duel-defeat-transition{position:absolute;inset:0;z-index:600;display:grid;place-items:center;background:#31080de8;color:#ffd5ce;font-size:clamp(42px,9vw,110px);font-weight:bold;text-shadow:0 3px 14px #000;pointer-events:none}
+
+/* Defeat uses the same visual hierarchy as victory, with restrained crimson light. */
+.duel-defeat-transition{overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 48%,#591522d9,#090e18ed 78%);color:#ffe3da}
+.defeat-rays{position:absolute;inset:-60%;z-index:-1;background:repeating-conic-gradient(from 8deg,#b9475515 0deg 10deg,transparent 10deg 36deg);animation:defeat-rays 14s linear infinite;pointer-events:none}
+.defeat-title{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,20px);width:min(82%,720px);padding:clamp(20px,5vh,46px) 0;text-align:center;background:linear-gradient(90deg,transparent,#200b1488,transparent);animation:defeat-title-arrive .5s ease-out both}
+.defeat-title>span{font-size:clamp(12px,2vw,20px);font-weight:600;letter-spacing:.3em;color:#dba0a4;text-shadow:0 2px 6px #000}
+.defeat-title>strong{font-size:clamp(38px,8vw,96px);line-height:1.1;font-weight:900;letter-spacing:.08em;color:#ffd9d1;text-shadow:0 3px 6px #000,0 0 28px #a52d48;max-width:100%}
+.defeat-rule{position:relative;width:82%;height:1px;background:linear-gradient(90deg,transparent,#c6787a,transparent)}
+.defeat-rule:after{content:'';position:absolute;left:50%;top:-3px;width:7px;height:7px;background:#dfa292;transform:translateX(-50%) rotate(45deg);box-shadow:0 0 10px #c65265}
+@keyframes defeat-title-arrive{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes defeat-rays{to{transform:rotate(-360deg)}}
+@media(prefers-reduced-motion:reduce){.defeat-rays,.defeat-title{animation:none}}

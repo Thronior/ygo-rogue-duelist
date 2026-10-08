@@ -228,14 +228,14 @@ def install(g):
    run['curses']=selected[:];run['boss_curse']=selected[0]
   else:run['curses']=[]
   challenge_levels.suppress(run)
-  lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run) if 'drain' in run['curses'] else 0))
+  lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):
    others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic')]
    run['mirror_copy']=rng.choice(others) if others else None
   else:run['mirror_copy']=None
   duel_run=ar.duel_run(run)
   if duel_run.get('mirror_copy')=='ankh' and ar.can_heal(duel_run,between=True):lp=lp+2000
-  if owns(duel_run,'glass_shard'):lp=max(1,ART_INFO['glass_shard']['amount']-(1000*challenge_levels.curse_scale(run) if 'drain' in run['curses'] else 0))
+  if owns(duel_run,'glass_shard'):lp=max(1,ART_INFO['glass_shard']['amount']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   run['golden_hits']=0
   run['first_player']=ar.first(duel_run,0 if rng.random()<0.5 else 1)
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
