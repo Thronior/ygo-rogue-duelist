@@ -389,7 +389,7 @@
     "satchel": {
       "name": "Travel Satchel",
       "price": 70,
-      "description": "After each victory, add 1 additional random card from your opponent's duel decklist to your card pool. This does not apply to Copycat or Dueling Engine.",
+      "description": "After each victory, add 1 additional random card from your opponent's duel decklist to your card pool. Dueling Engine gains 1 additional deck choice instead. Does not apply to Copycat.",
       "art": "Reload",
       "effect": "reward_card",
       "amount": 1,

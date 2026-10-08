@@ -93,7 +93,7 @@ def dispatch(raw):
   run['selected']=[]
  elif action=='toggle':
   if content.CHARACTERS[run['character']].get('copycat'):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
-  if content.CHARACTERS[run['character']].get('engine_deck'):raise ValueError('The Dueling Engine runs a fixed random starter deck.')
+  if content.CHARACTERS[run['character']].get('engine_deck'):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
   index=int(value)
   if index<0 or index>=len(run['pool']):raise ValueError('Unknown card')
   if index in run['selected']:run['selected'].remove(index)
@@ -149,7 +149,8 @@ def dispatch(raw):
   g.update_profile(run)
  elif action=='reward-accept':
   import reward_slots
-  reward_slots.accept(run)
+  reward_slots.accept(run,value)
+  g.update_profile(run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))

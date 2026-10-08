@@ -44,6 +44,9 @@ export function renderDuelDOM(container,html){
    }else if(after===null)live.removeAttribute(name);else live.setAttribute(name,after);
    stats.attributes++;
   }
+  // Card taps replace this preview outside the board reconciler. Never merge
+  // its old detached children with the freshly rendered card details.
+  if(v.classList.contains('inspection')){if(live.innerHTML!==v.innerHTML)live.innerHTML=v.innerHTML;return;}
   const buckets=new Map();
   for(const child of old.childNodes){const k=key(child);if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(child)}
   let previous=null;

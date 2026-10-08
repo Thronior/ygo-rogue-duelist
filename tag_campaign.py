@@ -231,7 +231,10 @@ class TagCampaign:
    self.sync();return
   if action in ('reward-reroll','reward-accept'):
    import reward_slots
-   if action=='reward-accept':reward_slots.accept(run);return
+   if action=='reward-accept':
+    reward_slots.accept(run,value)
+    with self.scope(seat):game.update_profile(run)
+    self.sync();return
    if self.phase not in ('shop','complete'):raise ValueError('No victory rewards are available.')
    result=reward_slots.reroll(run,value,self.rng)
    with self.scope(seat):game.update_profile(run)

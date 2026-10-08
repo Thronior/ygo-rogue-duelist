@@ -1665,3 +1665,32 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 @keyframes defeat-title-arrive{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes defeat-rays{to{transform:rotate(-360deg)}}
 @media(prefers-reduced-motion:reduce){.defeat-rays,.defeat-title{animation:none}}
+
+/* Deck prizes use the same reels as card prizes, without printed names or rarity. */
+.engine-rewards .reward-name,.engine-rewards .reward-rarity{visibility:hidden}
+.engine-rewards .deck-selected .reward-slot-frame{outline:2px solid #ffe9a2;outline-offset:-2px}
+.engine-rewards .reward-reel-strip img{object-fit:contain}
+@media(orientation:landscape){
+}
+
+@media(orientation:landscape){
+ .shop-compact .shop-layout,.shop-compact .shop-layout>aside{min-height:0}
+ .shop-compact .shop-layout>aside{grid-template-rows:minmax(0,1.2fr) 18px minmax(0,1fr) 30px}
+}
+/* Refresh the usable height after mobile browser chrome and orientation changes. */
+body{height:var(--app-viewport-height,100dvh)}
+
+/* Keep the counter controls in place; only Solomon is anchored to the lower shop. */
+.shop-compact.relicless-shop .shop-layout>aside{position:relative}
+.shop-compact.relicless-shop .shop-layout>aside>.keeper{display:none}
+@media(orientation:landscape){
+ .shop-compact.relicless-shop .shop-layout>aside>.keeper{display:block;position:absolute;left:18%;bottom:34px;width:66%;height:min(45vh,230px);margin:0;transform:none}
+ .shop-compact.relicless-shop .shop-layout>aside>.keeper img{object-position:center bottom}
+ .shop-compact.relicless-shop .shop-counter{z-index:1;pointer-events:none}
+ .shop-compact.relicless-shop .shop-counter>button{pointer-events:auto}
+}
+/* Portrait prizes have square frames; normal card reels remain unchanged. */
+.engine-rewards .reward-name,.engine-rewards .reward-rarity{display:none}
+.engine-rewards .reward-slot{align-items:center;justify-content:center}
+.engine-rewards .reward-slot-frame{flex:none;width:var(--deck-slot-size);height:var(--deck-slot-size);max-width:100%;aspect-ratio:1}
+.engine-rewards .reward-slot>.reward-reroll{max-width:var(--deck-slot-size)}

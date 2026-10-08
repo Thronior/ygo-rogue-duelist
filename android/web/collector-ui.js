@@ -15,8 +15,28 @@ export class CollectorUI {
  constructor(options){Object.assign(this,{validateDeck},options);this.mode='roster';this.isCollector=true;this.alive=true;this.queue=Promise.resolve();this.session={connected:false,code:'',request:(a,v)=>this.enqueue(()=>this.request(a,v))};this.click=e=>{const el=e.target.closest('[data-collector],[data-collector-slot]');if(!el)return;e.stopImmediatePropagation();if(this.held){this.held=false;return;}this.enqueue(()=>this.action(el.dataset.collector||(el.dataset.do==='collector-select'?'select':'import'),el));};document.addEventListener('click',this.click,true);this.down=e=>{const card=e.target.closest('[data-collector=toggle],[data-collector=prize]');if(!card||e.button!==0)return;this.origin=[e.clientX,e.clientY];this.held=false;this.hold=setTimeout(()=>{this.held=true;this.inspect(+card.dataset.id)},450);};this.cancelHold=()=>clearTimeout(this.hold);this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10)this.cancelHold();};document.addEventListener('pointerdown',this.down);document.addEventListener('pointermove',this.move);document.addEventListener('pointerup',this.cancelHold);document.addEventListener('pointercancel',this.cancelHold);}
  enqueue(fn){const next=this.queue.then(()=>this.alive?fn():undefined);this.queue=next.catch(e=>{if(!this.alive)return;this.status=e.message;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector',`<p>${esc(e.message)}</p>`)});return this.queue;}
  init(){const pending=this.queue.then(()=>this.initialize());this.queue=pending.catch(()=>{});return pending;}
- async initialize(){const config=await fetch('./multiplayer-config.json').then(r=>r.json());this.endpoint=(config.signalingUrl||'').replace(/\/$/,'');if(!this.endpoint)throw Error('Online service is not configured.');if(!this.alive)return;this.data=await this.backend('collector-list');if(!this.alive)return;for(const d of this.data.duelists.filter(d=>d.status==='alive')){this.duelist=d;const result=await this.api('register',{duelist:d});if(!this.alive)return;await this.sync(result);if(!this.alive)return;if(result.room&&result.room.phase!=='complete'){this.restoring=true;try{await this.accept(result);}finally{this.restoring=false;this.schedule();}return;}if(result.record.status!=='alive'){await this.accept(result);return;}}this.duelist=null;this.render();}
- async api(op,body={}){const d=this.duelist;const response=await fetch(`${this.endpoint}/collector/${op}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:d.id,token:d.token,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok)throw Error(result.error||'Collector service unavailable.');return result;}
+ async initialize(){
+ const configPromise=fetch('./multiplayer-config.json').then(r=>r.json());
+ this.data=await this.backend('collector-list');if(!this.alive)return;
+ this.duelist=null;this.render();
+ this.connectionReady=configPromise.then(config=>{this.endpoint=(config.signalingUrl||'').replace(/\/$/,'');if(!this.endpoint)throw Error('Online service is not configured.');});
+ this.registrations=new Map();
+ for(const d of this.data.duelists.filter(d=>d.status==='alive')){
+  const pending=this.connectionReady.then(()=>this.alive?this.api('register',{duelist:d},d):null);
+  this.registrations.set(d.id,pending);
+  pending.then(result=>this.enqueue(async()=>{
+   this.registrations.delete(d.id);if(!result||this.mode!=='roster')return;
+   this.data=await this.backend('collector-sync',{id:d.id,record:result.record});if(!this.alive)return;
+   if(result.room&&result.room.phase!=='complete'||result.record.status!=='alive'){
+    this.duelist=this.data.duelists.find(row=>row.id===d.id);this.restoring=true;
+    try{await this.accept(result);}finally{this.restoring=false;this.schedule();}
+   }else this.render();
+  }),()=>{});
+ }
+ this.connectionReady.catch(()=>{});
+ }
+
+ async api(op,body={},d=this.duelist){const response=await fetch(`${this.endpoint}/collector/${op}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:d.id,token:d.token,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok)throw Error(result.error||'Collector service unavailable.');return result;}
  async sync(result){this.data=await this.backend('collector-sync',{id:this.duelist.id,record:result.record});this.duelist=this.data.duelists.find(d=>d.id===this.duelist.id);}
  schedule(){clearTimeout(this.timer);if(!this.alive||!this.room||this.room.phase==='complete')return;this.timer=setTimeout(()=>this.enqueue(async()=>{try{await this.accept(await this.api('poll'));this.session.connected=true;}catch(e){this.session.connected=false;this.status='Connection interrupted. Reconnecting automatically…';if(this.mode!=='duel')this.render();}finally{this.schedule();}}),1500);}
  async accept(result){if(!this.alive)return;await this.sync(result);if(!this.alive)return;this.room=result.record.room?result.room:null;this.seat=result.seat;this.serverOffset=result.now-Date.now();this.updateReconnectTimer();this.session.code=this.room?.code||'';this.session.connected=true;
@@ -101,12 +121,12 @@ export class CollectorUI {
  if(action==='exit'||action==='back'){if(this.room&&this.room.phase!=='complete'){this.dialog('Leave Ultimate Collector?',`<p>Your match remains active. Reopen Ultimate Collector within five minutes to reconnect or your duelist will be lost.</p>${button('Leave and reconnect later','exit-now')}`);return;}if(this.mode==='roster'){this.destroy();await this.onExit();return;}this.mode=['editor','history','join'].includes(this.mode)?'home':this.mode==='import-name'?'import':'roster';this.render();return;}
  if(action==='exit-now'){document.querySelector('dialog[open]')?.close();this.destroy();await this.onExit();return;}
  if(action==='roster'){this.room=null;this.mode='roster';this.duelist=null;this.render();return;}
- if(action==='select'){this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===+x.collectorSlot);await this.accept(await this.api('poll'));this.schedule();return;}
+ if(action==='select'){this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===+x.collectorSlot);if(!this.duelist)return;await this.connectionReady;const pending=this.registrations?.get(this.duelist.id);let result;try{result=pending?await pending:await this.api('register',{duelist:this.duelist});}catch{result=await this.api('register',{duelist:this.duelist});}this.registrations?.delete(this.duelist.id);if(!this.alive)return;await this.accept(result);this.schedule();return;}
  if(action==='home'){this.mode='home';}
  if(action==='import-back'){this.mode='import';}
  if(action==='select-import'){const s=this.getSlots().find(s=>s.slot===+x.source);if(s?.run?.stage==='duel'){this.dialog('Ultimate Collector','<p>finish your duel to import this collector</p>');return;}if(!s?.run||this.content.characters[s.run.character]?.copycat)return;this.importSource=+x.source;this.mode='import-name';}
  if(action==='import'){this.importSlot=+x.collectorSlot;this.mode='import';}
- if(action==='move'){const name=document.getElementById('collector-name').value;this.data=await this.backend('collector-import',{source:+x.source,slot:this.importSlot,name});this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===this.importSlot);await this.accept(await this.api('register',{duelist:this.duelist}));return;}
+ if(action==='move'){await this.connectionReady;const name=document.getElementById('collector-name').value;this.data=await this.backend('collector-import',{source:+x.source,slot:this.importSlot,name});this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===this.importSlot);await this.accept(await this.api('register',{duelist:this.duelist}));return;}
  if(action==='edit'){this.draft=structuredClone(this.duelist.draftDeck||this.duelist.deck);this.section='main';this.mode='editor';}
  if(action==='section'){this.section=x.section;if(this.mode!=='siding')this.mode='editor';}
  if(action==='sort')this.sort=x.sort;

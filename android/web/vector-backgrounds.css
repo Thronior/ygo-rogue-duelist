@@ -96,3 +96,10 @@ dialog.game-vector-host{background:#100f0a!important}
 .game-vector-background .hex-shade{animation:none!important}
 .game-vector-background .bg-stage[data-scene=hex]>.veil{background:radial-gradient(ellipse at center,#75c7de45,transparent 68%);animation:gv-hex-wash 18s ease-in-out infinite alternate;will-change:transform,opacity}
 @keyframes gv-hex-wash{from{transform:translate3d(-25%,-12%,0);opacity:.2}to{transform:translate3d(25%,12%,0);opacity:.8}}
+
+/* Field artwork sits below either animated duel background. */
+.duel.has-field,.duel.has-field .duel-main{background-image:none!important}
+.duel.has-field>.game-vector-background:before{content:"";position:absolute;inset:0;background:var(--active-field-art) center/cover no-repeat}
+.duel.has-field>.game-vector-background>.bg-stage[data-scene=duel]{opacity:.5}
+.game-vector-background .bg-stage[data-scene=tunnel]{background:#100707}
+.duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}

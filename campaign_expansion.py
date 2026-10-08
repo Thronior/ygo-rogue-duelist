@@ -188,6 +188,7 @@ def install(g):
   run['pool']=main+extra;run['selected']=list(range(len(run['pool'])));run['guaranteed']=[signature];run['copied_opponent']=run['opponent']
  def engine_deck(run,rng=random):
    if not CHARACTERS[run['character']].get('engine_deck'):return
+   if run.get('engine_reward_selected'):return
    pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
@@ -202,6 +203,7 @@ def install(g):
   return total
  def prepare_duel(run,rng=random):
   challenge_levels.suppress(run)
+  if run.get('reward_slots',{}).get('kind')=='deck' and run['reward_slots'].get('pending'):raise ValueError('Choose your reward deck before starting the duel.')
   cursed_relics.require_choice(run)
   reload_tuning()
   if run['stage']=='shop':run['gold_leaving_shop']=run['gold']
@@ -375,7 +377,10 @@ def install(g):
    for _ in range(2*ar.copies(run,'cursed_collectors_burden')):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
    import reward_slots
-   reward_slots.prepare(run,defeated_deck,reward_start)
+   if CHARACTERS[run['character']].get('engine_deck'):
+    del run['pool'][reward_start:]
+    reward_slots.prepare_decks(run,1+int(amount(run,'reward_card'))+2*ar.copies(run,'cursed_collectors_burden'),rng)
+   else:reward_slots.prepare(run,defeated_deck,reward_start)
    if run.get('encore_active'):run.update(encore_active=False,encore_won=True)
    run['stage']='complete' if run['round']==RUN_LENGTH or run.get('secret_challenge') else 'shop'
    # Award collection progress before generating this victory's shop.
@@ -495,7 +500,7 @@ def install(g):
   item=run['shop'][index]
   if run.get('challenge_level')==-1 and item['kind']=='artifact':raise ValueError('Relics are disabled at LVL -1.')
   if CHARACTERS[run['character']].get('copycat') and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
-  if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine runs random starter decks and can only buy relics.')
+  if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine uses reward decks and can only buy relics.')
   if item['sold'] or item['price']>run['gold']:raise ValueError('Item unavailable or not enough coins.')
   if item['kind']=='artifact' and item['id']=='golden_sleeve':
    from golden_cards import choices,pending

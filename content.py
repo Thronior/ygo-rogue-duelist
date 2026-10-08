@@ -62,7 +62,7 @@ for index,packs in DRAFTS.items():
 CHARACTERS.append(dict(name='Ryou Bakura',pack='RANDOM',sprite='dsod15.png',race='Rock',cards=['Morphing Jar','Change of Heart'],type=2,bonus='',color='#e5c58a',random_packs=True))
 
 CHARACTERS.append(dict(name='Copycat',pack='COPY',sprite='cards/26376390.jpg',race='Spellcaster',cards=[],type=2,bonus='',color='#cce3db',copycat=True))
-CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='cards/77585513.jpg',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='A random starter deck every duel'))
+CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='cards/77585513.jpg',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='Start with a random starter deck. After each victory, choose a random opponent deck from your next duel tier. Reroll each offer for 15 coins. Extra-card reward relics add more deck choices.'))
 
 # Retain definitions for existing saves; exclude these from new offers and the collection.
 RETIRED_ARTIFACTS=frozenset({'feather'})

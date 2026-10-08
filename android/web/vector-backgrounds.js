@@ -4,7 +4,7 @@ const artworkCache=new Map();
 const polygon=(x,y,r,n=6,offset=0)=>Array.from({length:n},(_,i)=>{const a=(i/n*Math.PI*2)+offset;return `${(x+Math.cos(a)*r).toFixed(1)},${(y+Math.sin(a)*r).toFixed(1)}`}).join(' ');
 
 function draw(stage){
- if(stage.dataset.scene==='duel'){
+ if(stage.dataset.scene==='tunnel'){
   if(!stage.querySelector('.duel-tunnel')){
    const video=document.createElement('video');video.className='duel-tunnel';
    video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.autoplay=!paused;video.preload='auto';
@@ -56,6 +56,12 @@ function draw(stage){
   art+=`<g transform="translate(${W/2} 250)"><g class="outcome-orbit">`;
   for(let i=0;i<26;i++)art+=`<g transform="rotate(${i*137.5})"><g class="outcome-card ${i%3===0?'accent':''}" style="--reach:${radius}px;--delay:-${i*28/26}s"><rect x="-16" y="-23" width="32" height="46" rx="2"/><rect x="-12" y="-19" width="24" height="38" rx="1"/></g></g>`;
   art+='</g></g>';
+ }
+ if(scene==='duel'){
+  art+=`<defs><radialGradient id="spiral-depth" gradientUnits="userSpaceOnUse" cx="${W/2}" cy="250" r="${Math.hypot(W/2,250)}"><stop stop-color="#080609"/><stop offset=".13" stop-color="#130b0c"/><stop class="spiral-color" offset=".6" stop-color="#cd782f" stop-opacity=".7"/><stop class="spiral-color" offset="1" stop-color="#cd782f"/></radialGradient></defs><g class="spiral-arms">`;
+  const radius=Math.hypot(W/2,250)*1.4,extent=Math.log(radius/5)/.3;
+  for(let arm=0;arm<4;arm++)for(let layer=0;layer<4;layer++){const points=[];for(let edge=0;edge<2;edge++)for(let j=0;j<=64;j++){const t=(edge?64-j:j)/64*extent,r=5*Math.exp(t*.3),a=t+arm*Math.PI/2+(edge?(.83-layer*.11):layer*.035);points.push(`${(W/2+Math.cos(a)*r).toFixed(2)},${(250+Math.sin(a)*r).toFixed(2)}`);}art+=`<path d="M${points.join('L')}Z" fill="url(#spiral-depth)" opacity="${.14+layer*.06}"/>`;}
+  art+='</g>';
  }
  stage.innerHTML=`<svg class="art" viewBox="0 0 ${W} 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${art}</svg><div class="veil"></div>`;
  if(scene==='crystals'){
@@ -121,8 +127,8 @@ function syncPause(){
  if(paused){lightningAnimation?.pause();clearInterval(strikeTimer);strikeTimer=null;}
  else {lightningAnimation?.play();if(scene==='embers'&&!strikeTimer)strikeTimer=setInterval(strike,1000);}
 }
-export function installVectorBackgrounds(app,modal){
- if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=duel-video-7',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
+export function installVectorBackgrounds(app,modal,settings=()=>({})){
+ if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=duel-choice-8',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
  let frame=0;
  function refresh(){frame=0;
   const reward=[...document.querySelectorAll('dialog[open]')].find(d=>d.matches('.pack-theatre')||d.querySelector('.reward-screen,.reward-tally'));
@@ -133,7 +139,7 @@ export function installVectorBackgrounds(app,modal){
    const collectorResult=!page.matches('.draft-pvp')&&page.querySelector('.collector-result');
    if(runOutcome)kind='vortex-'+runOutcome;
    else if(collectorResult){target=collectorResult;kind=collectorResult.classList.contains('triumph')?'vortex-victory':'vortex-defeat';}
-   else if(page.matches('.duel'))kind='duel';
+   else if(page.matches('.duel'))kind=settings().duelBackground==='tunnel'?'tunnel':'duel';
    else if(page.matches('.title'))kind='hex';
    else if(page.matches('.boss')||page.querySelector('.boss-banner'))kind='embers';
    else if(page.matches('.character-select-page')||page.querySelector('.char-layout'))kind='crystals';
@@ -145,9 +151,9 @@ export function installVectorBackgrounds(app,modal){
  function queue(){if(!frame)frame=requestAnimationFrame(refresh)}
  const changes=new MutationObserver(records=>{if(records.some(r=>r.target===app||r.target===document.body||r.target===modal||r.target instanceof HTMLDialogElement))queue()});
  changes.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open','class']});
- document.addEventListener('visibilitychange',syncPause);reduced.addEventListener('change',syncPause);
+ document.addEventListener('duel-background-change',queue);document.addEventListener('visibilitychange',syncPause);reduced.addEventListener('change',syncPause);
  const suspend=()=>{cancelAnimationFrame(frame);frame=0;changes.disconnect();clearBackground();};
  const resume=()=>{changes.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open','class']});queue()};
  window.addEventListener('pagehide',suspend);window.addEventListener('pageshow',resume);queue();
- return ()=>{suspend();document.removeEventListener('visibilitychange',syncPause);reduced.removeEventListener('change',syncPause);window.removeEventListener('pagehide',suspend);window.removeEventListener('pageshow',resume)};
+ return ()=>{suspend();document.removeEventListener('duel-background-change',queue);document.removeEventListener('visibilitychange',syncPause);reduced.removeEventListener('change',syncPause);window.removeEventListener('pagehide',suspend);window.removeEventListener('pageshow',resume)};
 }

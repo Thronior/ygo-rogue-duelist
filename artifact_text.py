@@ -19,7 +19,7 @@ def description(key,info,previous):
  'burn':f'Once per turn, at the start of your End Phase, inflict {n(a)} damage to your opponent.',
  'reduce':f'Each time you would take effect damage, reduce that damage by {n(a)} (min. 0).',
  'pierce':'If a monster you control attacks a Defense Position monster, inflict piercing battle damage.',
- 'reward_card':"After each victory, add 1 additional random card from your opponent's duel decklist to your card pool. This does not apply to Copycat or Dueling Engine.",
+ 'reward_card':"After each victory, add 1 additional random card from your opponent's duel decklist to your card pool. Dueling Engine gains 1 additional deck choice instead. Does not apply to Copycat.",
  'discount':f'Shop prices are reduced by {a}%.',
  'interest':f'After each victory, earn additional coins equal to {a}% of your held coins, rounded down (max. 30).',
  'extra_artifact':f'Shops offer {a} additional relic'+('s.' if a!=1 else '.'),
