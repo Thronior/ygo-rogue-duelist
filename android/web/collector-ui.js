@@ -1,3 +1,4 @@
+import {playUISound} from './ui-sounds.js';
 import {play3DToss} from './toss-3d.js';
 import {roomCodeControl} from './room-code.js';
 import {deckReadyFeedback} from './selection-feedback.js';
@@ -133,7 +134,7 @@ export class CollectorUI {
  if(action==='filter')this.filter=x.filter;
  if(action==='reset-siding'&&this.mode==='siding')this.draft=structuredClone(this.room.decks[this.seat]);
  if(action==='deselect'&&this.mode!=='siding')this.draft[this.section]=[];
- if(action==='toggle'){if(this.mode==='siding'){moveSideCard(this.draft,this.section,+x.id,this.content.cards);}else if(x.selected==='true'){const i=this.draft[this.section].indexOf(+x.id);if(i>=0)this.draft[this.section].splice(i,1);}else this.draft[this.section].push(+x.id);}
+ if(action==='toggle'){if(this.mode==='siding'){moveSideCard(this.draft,this.section,+x.id,this.content.cards);}else if(x.selected==='true'){const i=this.draft[this.section].indexOf(+x.id);if(i>=0)this.draft[this.section].splice(i,1);}else this.draft[this.section].push(+x.id);playUISound('deck-select');}
  if(action==='add'&&this.mode!=='siding'){this.draft[this.section].push(+x.id);}
  if(action==='remove'&&this.mode!=='siding'){this.draft[this.section].splice(+x.index,1);}
  if(action==='search')this.search=document.getElementById('collector-search').value;

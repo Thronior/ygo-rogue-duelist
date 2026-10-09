@@ -1,3 +1,4 @@
+import {playUISound,playRerollSound} from './ui-sounds.js';
 import {roomCodeControl} from './room-code.js';
 import {characterEntrance,captureCharacterEntrance,cancelCharacterEntrance} from './character-entrance.js';
 import {deckReadyFeedback} from './selection-feedback.js';
@@ -189,7 +190,7 @@ export class TagUI {
   if(action==='finale-mode'||action==='finale-pick'){this.working=true;try{await this.session.request(action,action==='finale-mode'?el.dataset.mode:Number(el.dataset.index))}finally{this.working=false;this.render()}return}
   if(action==='finale-vote'||action==='finale-skip'){this.working=true;try{await this.session.request(action,action==='finale-vote'?!this.view.finale?.votes?.[this.view.seat]:null)}finally{this.working=false;this.render()}return}
   if(action==='cursed-choose'||action==='cursed-reroll'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}
-  if(action==='shop-reroll'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{await this.session.request('shop-reroll');this.selection.clear()}finally{this.working=false;this.render()}return}
+  if(action==='shop-reroll'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{await this.session.request('shop-reroll');this.selection.clear();playRerollSound()}finally{this.working=false;this.render()}return}
   if(action==='start'){this.working=true;try{await this.session.request('start')}finally{this.working=false;this.render()}return}
   if(['host','join-room'].includes(action)){
    const code=this.joinCode.trim().toUpperCase();if(action==='join-room'&&!/^[A-Z2-9]{5}$/.test(code))throw Error('Enter the five-character room code.');
@@ -216,13 +217,13 @@ export class TagUI {
   if(action==='relics'){this.dialog('Owned relics',this.view.run.artifacts.map(k=>`<h3>${esc(this.content.artifacts[k][0])}</h3><p>${esc(this.content.artifacts[k][2])}</p>`).join(''));return}
   if(action==='scorecard'){if(this.showScorecard)await this.showScorecard();return}
 
-  if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold)throw Error('Not enough gold');this.selection.add(index)}this.render();return}
+  if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold)throw Error('Not enough gold');this.selection.add(index)}playUISound('shop-select');this.render();return}
   if(action==='deselect-all'){const c=this.content.characters[this.view.run.character];if(this.view.ready[this.view.seat]||c.copycat||c.engine_deck)return;this.view.run.selected=[];this.saveDraft();this.render();return}
   if(action==='card'){
    if(this.view.ready[this.view.seat])return;
    if(this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)return;
    const selected=[...this.view.run.selected],at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);
-   this.view.run.selected=selected;this.saveDraft();this.render();return;
+   this.view.run.selected=selected;playUISound('deck-select');this.saveDraft();this.render();return;
   }
 
   this.working=true;

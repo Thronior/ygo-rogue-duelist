@@ -1716,3 +1716,17 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .tutorial-mode{margin:12px 0;border:1px solid #45616b;border-radius:8px;padding:12px}.tutorial-mode summary{cursor:pointer;font-weight:bold;font-size:18px;min-height:30px}.tutorial-video{display:inline-block;padding:18px;border:1px solid #577a8b;border-radius:8px;color:#ffe5a0;line-height:1.5}
 .tutorial-enlarged{display:block;max-width:100%;max-height:75dvh;object-fit:contain;margin:auto}
 @media(max-width:600px){.tutorial-page .tutorial-layout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px}.tutorial-page nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:28dvh}.tutorial-page nav button{font-size:12px;padding:7px;line-height:1.25}.tutorial-page article{padding:12px}.tutorial-page article p{font-size:15px}.tutorial-page article h2{font-size:21px}}
+
+/* Mouse-only classes are driven by pointerType, never sticky CSS :hover on touch. */
+.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art{transition:scale 160ms ease-out}
+.mouse-card-hover{scale:1.045;position:relative;z-index:8}
+.mouse-details{position:fixed;z-index:10000;pointer-events:none;box-sizing:border-box;width:min(330px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:hidden;padding:14px;border:1px solid #bda46b;border-radius:10px;background:#10202bf5;color:#edf1f5;box-shadow:0 6px 20px #0008;font-size:13px;line-height:1.4}
+.mouse-details h3{margin:0 0 8px;color:#ffe3a6;font-size:16px}.mouse-details p{margin:8px 0 0;white-space:pre-wrap}.mouse-details .inspect-facts{font-size:12px}.mouse-details .pixel-badge,.mouse-details .genre-icon{max-width:22px;max-height:22px}
+@media(prefers-reduced-motion:reduce){.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art{transition:none}}
+
+/* Body-level action menus must cover the floating chain control (z-index 1000). */
+.action-pop{z-index:1100}
+.duel .hand > button[data-hand]{transition:scale 160ms ease-out;transform-origin:center center}
+.duel .hand > button.mouse-hand-hover{scale:1.04;z-index:5}
+@media(any-hover:hover) and (any-pointer:fine){.duel .hand{padding-top:8px}}
+@media(prefers-reduced-motion:reduce){.duel .hand > button[data-hand]{transition:none}}

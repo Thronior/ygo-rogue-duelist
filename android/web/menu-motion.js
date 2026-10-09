@@ -68,6 +68,18 @@ export function mountMenuMotion(root,count,initial,onSelect){
  }
  function click(e){if(opening||performance.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation();}}
  function resize(){if(drag){drag=null;root.classList.remove('dragging');}velocity=0;settle(Math.round(target));paint();}
+ const wheelRoot=root.closest('.title')||root;
+ let wheelTotal=0,wheelLast=0,wheelStep=-Infinity;
+ function wheel(e){
+  if(e.ctrlKey||opening||destroyed||drag||document.querySelector('dialog[open]'))return;
+  const raw=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(!raw)return;
+  e.preventDefault();const now=performance.now();
+  if(now-wheelStep<160)return;
+  if(now-wheelLast>180||Math.sign(raw)!==Math.sign(wheelTotal))wheelTotal=0;
+  wheelLast=now;wheelTotal+=raw*(e.deltaMode===1?16:e.deltaMode===2?120:1);
+  if(Math.abs(wheelTotal)>=40){settle(Math.round(target)+Math.sign(wheelTotal));wheelTotal=0;wheelStep=now;}
+ }
+ wheelRoot.addEventListener('wheel',wheel,{passive:false});
  root.classList.add('smooth-menu');paint();
  root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
  root.addEventListener('pointerup',up);root.addEventListener('pointercancel',up);root.addEventListener('lostpointercapture',up);
@@ -99,6 +111,6 @@ export function mountMenuMotion(root,count,initial,onSelect){
   },
   select(index){settle(target+wrap(index-wrap(target)+count/2)-count/2);},
   step(direction){settle(target+direction);},
-  destroy(){destroyed=true;backAnimation?.cancel();back?.remove();back=null;twirl?.cancel();cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
+  destroy(){wheelRoot.removeEventListener('wheel',wheel);destroyed=true;backAnimation?.cancel();back?.remove();back=null;twirl?.cancel();cancelAnimationFrame(frame);window.removeEventListener('resize',resize);for(const [name,fn] of [['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',up],['lostpointercapture',up],['dragstart',prevent]])root.removeEventListener(name,fn);root.removeEventListener('click',click,true);}
  };
 }
