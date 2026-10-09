@@ -7,7 +7,7 @@ from pathlib import Path
 import argparse,hashlib,json,shutil,sys,zipfile
 from PIL import Image
 
-def build(root,out,templates):
+def build(root,out,templates,bundle_artwork=False):
  sys.path.insert(0,str(root/'tools'))
  from mobile_bundle import web_files
  out.mkdir(parents=True,exist_ok=True)
@@ -49,16 +49,23 @@ def build(root,out,templates):
  (out/'manifest.webmanifest').write_text(json.dumps(manifest,indent=2),encoding='utf8')
  page=out/'index.html';text=page.read_text(encoding='utf8').replace('</head>','<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="theme-color" content="#102936"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="YGO Rogue"><link rel="stylesheet" href="pwa.css"></head>').replace('</body>','<script type="module" src="pwa.js"></script></body>');page.write_text(text,encoding='utf8')
  (out/'_headers').write_text('/sw.js\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/manifest.webmanifest\n  Content-Type: application/manifest+json\n/*.wasm\n  Content-Type: application/wasm\n/*.mjs\n  Content-Type: text/javascript\n',encoding='utf8')
+ entries={};packs={}
+ if bundle_artwork:
+  from web_artwork_bundles import pack_artwork
+  entries,packs=pack_artwork(out,templates)
+ worker=templates/('bundle-sw.js' if bundle_artwork else 'pwa-sw.js')
  files=sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name!='_headers')
  digest=hashlib.sha256()
  for name in files:digest.update(name.encode());digest.update((out/name).read_bytes())
- digest.update((templates/'pwa-sw.js').read_bytes())
+ digest.update(worker.read_bytes());digest.update(json.dumps(entries,sort_keys=True).encode())
  version=digest.hexdigest()[:16]
- sw=(templates/'pwa-sw.js').read_text(encoding='utf8').replace('__VERSION__',json.dumps(version)).replace('__FILES__',json.dumps(files))
+ if bundle_artwork:
+  boot=out/'bundle-boot.js';boot.write_text(boot.read_text(encoding='utf8').replace('__BUNDLE_VERSION__',version),encoding='utf8')
+ sw=worker.read_text(encoding='utf8').replace('__VERSION__',json.dumps(version)).replace('__FILES__',json.dumps(files)).replace('__ARTWORK__',json.dumps(entries,separators=(',',':'))).replace('__PACKS__',json.dumps(packs))
  (out/'sw.js').write_text(sw,encoding='utf8')
- assert len(files)<20000
+ assert len(files)<(998 if bundle_artwork else 20000)
  assert all(p.stat().st_size<=25*1024*1024 for p in out.rglob('*') if p.is_file())
- report=dict(version=version,files=len(files),bytes=sum(p.stat().st_size for p in out.rglob('*') if p.is_file()),scriptChunks=len(chunks),scriptCount=len(scripts))
+ report=dict(version=version,artworkImages=len(entries),artworkBundles=len(packs),files=len(files),bytes=sum(p.stat().st_size for p in out.rglob('*') if p.is_file()),scriptChunks=len(chunks),scriptCount=len(scripts))
  (out.parent/(out.name+'-build.json')).write_text(json.dumps(report,indent=2))
  with zipfile.ZipFile(out.parent/(out.name+'.zip'),'w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
   for p in out.rglob('*'):
@@ -66,4 +73,4 @@ def build(root,out,templates):
  print(json.dumps(report,indent=2),flush=True)
 
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1]);parser.add_argument('--output',type=Path,required=True);parser.add_argument('--templates',type=Path,default=Path(__file__).parent/'pwa');args=parser.parse_args();build(args.root,args.output,args.templates)
+ parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1]);parser.add_argument('--output',type=Path,required=True);parser.add_argument('--templates',type=Path,default=Path(__file__).parent/'pwa');parser.add_argument('--bundle-artwork',action='store_true',help='Lossless artwork bundles for itch.io (under 1000 files)');args=parser.parse_args();build(args.root,args.output,args.templates,args.bundle_artwork)

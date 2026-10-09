@@ -11,6 +11,10 @@ async function offline(){
  report('Downloading game files. Keep this window open…');
  registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
  await registration.update();
+ if(document.documentElement.dataset.bundledArtwork==='true'){
+  if(registration.waiting){report('Update ready. Close all game windows and reopen, then download offline files.');return;}
+  navigator.serviceWorker.controller.postMessage({type:'DOWNLOAD_OFFLINE'});navigator.storage?.persist?.().catch(()=>{});return;
+ }
  if(registration.waiting)report('Update downloaded. Close all game windows and reopen to apply it.');
  else if(registration.active&&!registration.installing)report('Offline game is ready.');
  registration.addEventListener('updatefound',()=>{
@@ -24,7 +28,7 @@ async function offline(){
 panel.querySelector('#web-offline').onclick=()=>offline().catch(e=>report(e.message));
 navigator.serviceWorker?.addEventListener('message',({data})=>{
  if(data?.type==='CACHE_PROGRESS'){const p=panel.querySelector('#web-progress');p.hidden=false;p.max=data.total;p.value=data.done;report(`Saving offline files: ${data.done} / ${data.total}`);}
- if(data?.type==='CACHE_READY'){panel.querySelector('#web-progress').hidden=true;report('Download complete. Close all game windows and reopen to use the latest offline version.');}
+ if(data?.type==='CACHE_READY'){document.documentElement.dataset.offlineReady='true';panel.querySelector('#web-progress').hidden=true;report('Download complete. Close all game windows and reopen to use the latest offline version.');}
  if(data?.type==='CACHE_ERROR')report('Offline download failed: '+data.message+'. Retry when connected and storage is available.');
 });
 panel.querySelector('#web-export').onclick=async()=>{try{
@@ -39,5 +43,5 @@ panel.querySelector('#web-file').onchange=async event=>{try{
  await webStorage.store(text);location.reload();
 }catch(e){report(e.message);}finally{event.target.value='';}};
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration('./').then(reg=>{
- registration=reg;if(reg?.active)report('Offline game is ready.');if(reg?.waiting)report('An update is ready. Close all game windows and reopen to apply it.');
+ registration=reg;if(reg?.active&&(document.documentElement.dataset.bundledArtwork!=='true'||document.documentElement.dataset.offlineReady==='true'))report('Offline game is ready.');if(reg?.waiting)report('An update is ready. Close all game windows and reopen to apply it.');
 }).catch(()=>{});
