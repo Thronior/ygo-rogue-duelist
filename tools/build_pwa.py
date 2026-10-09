@@ -40,7 +40,7 @@ def build(root,out,templates):
  text=text.replace(old,"<button id=\"web-app-options\">Install, offline play &amp; save backups</button>"+old)
  marker='<small style="padding-bottom:8px">Fan Experiment'
  assert marker in text
- text=text.replace(marker,'<button class="web-install-menu" data-web-install>Install on iPhone / Play offline</button>'+marker,1)
+ text=text.replace(marker,'<button class="web-install-menu" data-web-install>Download the app</button>'+marker,1)
  mobile.write_text(text,encoding='utf8')
  # Export dedicated icons; the original game artwork is preserved.
  with Image.open(root/'assets/zgo rogue iconArtboard 1.png') as source:
