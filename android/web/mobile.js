@@ -1,3 +1,4 @@
+import {installEscapeInspection} from './escape-inspection.js';
 import {installHandHover} from './hand-hover.js';
 import {setUISoundVolume,playUISound,stopUISounds,playRerollSound} from './ui-sounds.js';
 import {installMouseDetails} from './mouse-details.js';
@@ -533,7 +534,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
  return;
 }
  try{
- if(el.dataset.menu!==undefined){const n=+el.dataset.menu;if(n!==menuIndex){titleMotion.select(n)}else {menuSelectionSound();await titleMotion.open(el,()=>action(menu[n][4],el,true));}return}
+ if(el.dataset.menu!==undefined){const n=+el.dataset.menu;if(n!==menuIndex){titleMotion.select(n)}else {if(menu[n][4]==='settings')playUISound('inspect-open');else menuSelectionSound();await titleMotion.open(el,()=>action(menu[n][4],el,true));}return}
  if(el.dataset.character!==undefined){const next=+el.dataset.character;if(next!==selected)copycatTaps=0;selected=next;effect();renderCharacters();if(selected===37)await copycatSecret();return}
  if(el.dataset.inspect){if(screen==='duel')setPreview(+el.dataset.inspect);inspect(+el.dataset.inspect);return}
  if(el.dataset.openPack!==undefined){effect(true);openDraftPack(+el.dataset.openPack,true);return}
@@ -564,6 +565,7 @@ async function showCoinBonuses(){
  dialog('Coin bonuses',`<section class="coin-bonuses">${coinBonusMarkup(earned)}</section>`);
 }
 async function action(a,el={dataset:{}},silent=false){
+ if(!silent&&['settings','duel-settings'].includes(a)){playUISound('inspect-open');silent=true;}else if(!silent&&['title','pause-title','pause'].includes(a)){menuSelectionSound();silent=true;}
  if(a==='log'){dialog('Duel log',duelLogMarkup(engine?.logs||[],content.cards));return}
  if(a==='log-action'){
   const ids=(el.dataset.cards||'').split(',').map(Number).filter(id=>card(id));previewLocation=null;
@@ -650,6 +652,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 }
 document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.draftSort!==undefined){draftSort=e.target.value;renderDraft()}});
 document.addEventListener('input',async e=>{if(['music','sound'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic());await command('settings',state.settings)}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
+installEscapeInspection(()=>modal.open&&!!modal.querySelector('.inspect,.pile-inspection'),closeDialog);
 window.androidBack=()=>{const reminder=document.querySelector('.replay-upload-reminder[open]');if(reminder){reminder.close();return}if(screen==='loading'||document.querySelector('.exodia-finale'))return;if(modal.open){closeDialog();if(screen==='duel')scheduleAI()}else if(cpuViewer){cpuViewer.back()}else if(tagUI)tagUI.action('exit',{dataset:{}});else if(screen==='duel')action('pause');else if(screen==='settings')action('settings-back');else go('title')};
 // Use the same visible cancel button as a left click; never invent a response for forced prompts.
 document.addEventListener('contextmenu',e=>{
@@ -660,7 +663,7 @@ document.addEventListener('contextmenu',e=>{
  const cancel=[...scope.querySelectorAll('button.reaction-decline,button.duel-cancel')].find(button=>!button.disabled&&button.checkVisibility());
  cancel?.click();
 });
-window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='duel-emotes'){e.preventDefault();action('duel-emotes',e.target);return;}if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='device-secret'){e.preventDefault();action('device-secret',e.target);return;}if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowDown':'ArrowRight'))action('menu-next');if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowUp':'ArrowLeft'))action('menu-prev');if(e.key==='Escape')window.androidBack()});
+window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='duel-emotes'){e.preventDefault();action('duel-emotes',e.target);return;}if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='device-secret'){e.preventDefault();action('device-secret',e.target);return;}if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowDown':'ArrowRight'))action('menu-next');if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowUp':'ArrowLeft'))action('menu-prev');});
 
 async function boot(){try{
  document.querySelector('#loading-status').textContent='Step 1 of 6 · Reading game data and saved progress…';
