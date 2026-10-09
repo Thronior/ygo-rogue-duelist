@@ -677,7 +677,7 @@ async function boot(){try{
  document.querySelector('#loading-status').textContent='Step 5 of 6 · Loading sounds, music and interface artwork…';
  const effects=await preloadStartupAssets(({loaded,total,bytes})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} assets · ${(bytes/1048576).toFixed(1)} MB`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});
  document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects);
- screen='title';render();await notices();if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
+ screen='title';render();await notices();document.dispatchEvent(new CustomEvent('game-startup-ready',{detail:{newDevice:Object.keys(saved).length===0}}));if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
  void startupAndroidUpdate({native:window.ShadowNative,online:navigator.onLine,prompt:async version=>{
   while(modal.open)await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));
   dialog('Update',`<p>Would you like to update to version ${esc(version)}?</p><div class="actions">${btn('Update','android-download')}${btn('Close','close')}</div>`,false);

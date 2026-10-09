@@ -3,3 +3,5 @@ html,body{overscroll-behavior:none}
 #web-app-settings{max-width:min(560px,92vw);max-height:88dvh;overflow:auto;color:#e5f4f4;background:#102936;border:1px solid #d8bd76;border-radius:16px;padding:22px}
 #web-app-settings::backdrop{background:#000b}#web-app-settings p{line-height:1.5;margin:12px 0}#web-app-settings .web-actions{display:flex;gap:10px;flex-wrap:wrap}#web-app-settings progress{width:100%}
 #web-app-settings .web-android-download{display:inline-block;background:#14323d;color:#ffe3a6;border:1px solid #d8bd76;border-radius:8px;padding:10px 14px;text-decoration:none}#web-app-settings .web-android-download:hover{background:#204956}#web-app-settings .web-android-download:focus-visible{outline:2px solid #ffe3a6;outline-offset:3px}
+
+#web-offline-offer{max-width:min(480px,92vw);max-height:88dvh;overflow:auto;color:#e5f4f4;background:#102936;border:1px solid #d8bd76;border-radius:16px;padding:22px}#web-offline-offer::backdrop{background:#000b}#web-offline-offer p{line-height:1.5;margin:12px 0}#web-offline-offer .web-actions{display:flex;gap:10px;flex-wrap:wrap}

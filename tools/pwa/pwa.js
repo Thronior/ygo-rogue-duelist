@@ -45,3 +45,18 @@ panel.querySelector('#web-file').onchange=async event=>{try{
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration('./').then(reg=>{
  registration=reg;if(reg?.active&&(document.documentElement.dataset.bundledArtwork!=='true'||document.documentElement.dataset.offlineReady==='true'))report('Offline game is ready.');if(reg?.waiting)report('An update is ready. Close all game windows and reopen to apply it.');
 }).catch(()=>{});
+
+// Offer offline storage once, only after a genuinely fresh save has booted.
+// Existing players retain the manual download option in Settings.
+document.addEventListener('game-startup-ready',({detail})=>{
+ if(!detail?.newDevice||!('serviceWorker' in navigator)||!isSecureContext)return;
+ const key='ygo-offline-offer-seen';
+ try{if(localStorage.getItem(key))return;localStorage.setItem(key,'1');}catch{/* The initialized save also prevents repeat offers. */}
+ const offer=document.createElement('dialog');offer.id='web-offline-offer';
+ offer.innerHTML='<h2>Download game data?</h2><p>Would you like to download data for a smoother experience and offline play?</p><p>Save game files on this device for faster future loading and fewer interruptions. Online modes still need an internet connection.</p><p>You can also download later from Settings.</p><div class="web-actions"><button data-download>Download</button><button data-later>Not now</button></div>';
+ document.body.append(offer);
+ offer.addEventListener('close',()=>offer.remove(),{once:true});
+ offer.querySelector('[data-later]').onclick=()=>offer.close();
+ offer.querySelector('[data-download]').onclick=()=>{offer.close();report(status);panel.showModal();offline().catch(e=>report(e.message));};
+ offer.showModal();
+},{once:true});
