@@ -1,3 +1,4 @@
+import {tributeSelection} from './cpu-card-plans.js';
 import {trackEffectTargets} from './selection-feedback.js';
 import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
@@ -298,6 +299,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const held=new Set(this.query(p,L.HAND).filter(Boolean).map(c=>c.code));
    const recoverPieces=fxN==='Backup Soldier'?new Set(m.selects.filter(c=>c.controller===p&&c.location===L.GRAVE&&exodiaPieces.has(c.code)&&!held.has(c.code)).map(c=>c.code)).size:0;
    const need=fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):m.min;
+   if(m.type===M.SELECT_TRIBUTE){const selected=tributeSelection(candidates,need);if(selected)return {type:R.SELECT_TRIBUTE,indicies:selected};}
    for(const x of candidates){if(n>=need)break;if(x.score===-Infinity&&n>=m.min)continue;indicies.push(x.i);n+=m.type===M.SELECT_TRIBUTE?(x.c.release_param||1):1}
    return {type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies};
   }

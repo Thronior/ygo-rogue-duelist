@@ -1701,3 +1701,7 @@ body{height:var(--app-viewport-height,100dvh)}
 /* Android WebView can drop unrelated board tiles when a filter starts/stops.
    Keep only small duel controls/art in stable layers; released with the duel DOM. */
 .duel button,.duel .zone>img,.duel [data-relic],.duel .card-counter,.floating-chain-control{will-change:filter}
+
+/* Compact navigation, with accessible labels and full touch targets. */
+button.navigation-icon-button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;padding:8px}
+button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:25px;pointer-events:none}

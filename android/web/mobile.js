@@ -63,7 +63,11 @@ const card=id=>cardsById.get(Number(id));
 const image=id=>cardImages.get(Number(id))||`assets/cards/${id}.jpg`;
 const character=()=>content.characters[state.run.character];
 const uiIcons={settings:'settings',draft:'deck',start:'duel','relic-ledger':'relics','buy-selected':'coins',shop:'shop',achievements:'achievements',tutorial:'tutorial'};
-const btn=(label,action,extra='',cls='')=>`<button class="${cls}" data-do="${action}" ${extra}>${uiIcons[action]?`<img class="ui-icon" src="assets/ui/${uiIcons[action]}.png" alt="">`:""}${label}</button>`;
+const navigationIcons={
+ settings:'<path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/>',
+ shop:'<path d="M3 10v11h18V10M2 6l2-3h16l2 3v4c0 3-5 3-5 0 0 3-5 3-5 0 0 3-5 3-5 0 0 3-5 3-5 0V6ZM2 6h20M7 6v4m5-4v4m5-4v4M6 16h12M6 16v5m12-5v5"/>'
+};
+const btn=(label,action,extra='',cls='')=>navigationIcons[action]?`<button class="${cls} navigation-icon-button" data-do="${action}" aria-label="${esc(label)}" title="${esc(label)}" ${extra}><svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${navigationIcons[action]}</svg></button>`:`<button class="${cls}" data-do="${action}" ${extra}>${uiIcons[action]?`<img class="ui-icon" src="assets/ui/${uiIcons[action]}.png" alt="">`:""}${label}</button>`;
 const duelDecision=(label,action,extra='',cancel=false)=>btn(`<span class="duel-decision-label">${esc(label)}</span><span class="duel-decision-icon" aria-hidden="true">${cancel?'✕':'✓'}</span>`,action,`aria-label="${esc(label)}" title="${esc(label)}" ${extra}`,cancel?'duel-cancel':'duel-confirm');
 const duelConfirm=(label,action,extra='')=>duelDecision(label,action,extra);
 const duelCancel=(label,action,extra='')=>duelDecision(label,action,extra,true);

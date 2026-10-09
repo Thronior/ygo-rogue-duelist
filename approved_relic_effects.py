@@ -36,7 +36,9 @@ def effect(kind):
  elif key=='quiet_library':
   out.append('do local attacked=-1 '+event('EVENT_ATTACK_ANNOUNCE','attacked=Duel.GetTurnCount()','Duel.GetAttacker() and Duel.GetAttacker():IsControler(0)')+' '+phase('END','Duel.Recover(0,250,REASON_EFFECT)','attacked~=Duel.GetTurnCount()')+' end')
  elif key=='blood_crown':atk(500);out.append(phase('END','Duel.Damage(0,300,REASON_EFFECT)'))
- elif key=='hollow_chalice':out.append(phase('STANDBY','Duel.Recover(0,600,REASON_EFFECT)'))
+ elif key=='hollow_chalice':
+  out.append(phase('STANDBY','Duel.Recover(0,600,REASON_EFFECT)'))
+  out.append(player_rule('EFFECT_CHANGE_DAMAGE','function(e,re,val,r,rp) return math.floor(val*1.5) end'))
  elif key=='brittle_armor':atk(-300);defense(900)
  elif key=='cracked_sword':atk(300);defense(-1000)
  elif key=='starving_library':
@@ -68,7 +70,7 @@ def effect(kind):
 
 def battle_rules(run):
  from approved_relics import copies
- out=1.5**copies(run,'cursed_duelists_wager')*.5**copies(run,'cursed_hollow_chalice')
+ out=1.5**copies(run,'cursed_duelists_wager')
  inc=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'cursed_reckless_spear'))
  if out==1 and inc==1:return ''
  return event('EVENT_PRE_BATTLE_DAMAGE',f'Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*(ep==0 and {inc} or {out})))')

@@ -16,7 +16,7 @@ REGULAR=[
 ('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional general-stock single.','The Eye of Truth')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
-(2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Halve battle damage you inflict.','Dian Keto the Cure Master'),
+(2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50%.','Dian Keto the Cure Master'),
 (3,'loaded_purse','Loaded Purse','Earn 20 additional coins after each victory. Your opponent starts each Duel with 2000 additional LP.','Jar of Greed'),
 (4,'brittle_armor','Brittle Armor','Monsters you control gain 900 DEF, but lose 300 ATK.','Silver Bow and Arrow'),
 (5,'cracked_sword','Cracked Sword','Monsters you control gain 300 ATK, but lose 1000 DEF.','Sword of Deep-Seated'),

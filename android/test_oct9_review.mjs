@@ -1,0 +1,23 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import{MobileDuel,M,L}from'./web/duel.js';import{smartContext}from'./web/smart_policy.js';import{ritualMatches,ritualLevelsReady,tributeSelection}from'./web/cpu-card-plans.js';
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),meta=read('content'),data=read('engine-data'),get=n=>meta.cards.find(c=>c.name===n),id=n=>get(n).id;let checks=0;
+for(const p of [0,1]){
+ const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],player:p,turn:3,phase:4,activeChain:[],battleProtected:[false,false]});let zones={};e.query=(side,loc)=>zones[side+':'+loc]||[];
+ const c=(n,side,loc,sequence=0,extra={})=>({code:id(n),controller:side,location:loc,sequence,position:1,attack:data[id(n)].attack,defense:data[id(n)].defense,...extra});const put=(side,loc,...cards)=>zones[side+':'+loc]=cards;
+ const clown=c('Ryu-Kishin Clown',p,L.MZONE),ally=c('Melchid the Four-Face Beast',p,L.MZONE,1,{attack:1800}),enemy=c('Blocker',1-p,L.MZONE,0,{position:4,attack:1550,defense:1800});put(p,L.MZONE,clown,ally);put(1-p,L.MZONE,enemy);e.effect={code:clown.code,player:p};const prompt={type:M.SELECT_CARD,player:p,min:1,max:1,selects:[clown,ally,enemy]};assert.equal(e.auto(prompt).indicies[0],2);checks++;
+ enemy.attack=3000;assert.notEqual(e.auto(prompt).indicies[0],2,'Do not expose stronger enemy');checks++;
+ enemy.attack=1800;assert.notEqual(e.auto(prompt).indicies[0],2,'No unnecessary equal-ATK trade');checks++;
+ enemy.attack=1550;e.player=1-p;assert.notEqual(e.auto(prompt).indicies[0],2,'Do not expose enemy on its turn');checks++;e.player=p;
+ const kaiser=c('Kaiser Sea Horse',p,L.MZONE,0,{release_param:2}),peten=c('Peten the Dark Clown',p,L.MZONE,1,{release_param:1});put(p,L.MZONE,kaiser,peten);e.effect=null;assert.deepEqual(e.auto({type:M.SELECT_TRIBUTE,player:p,min:2,max:2,selects:[kaiser,peten]}).indicies,[0]);checks++;
+ zones={};const spell=c('Contract with the Abyss',p,L.HAND),zorc=c('Dark Master - Zorc',p,L.DECK),masked=c('Relinquished',p,L.DECK,1);put(p,L.HAND,spell,c('Battle Ox',p,L.HAND,1),c('Battle Ox',p,L.HAND,2));e.effect={code:id('Manju of the Ten Thousand Hands'),player:p};assert.equal(e.auto({type:M.SELECT_CARD,player:p,min:1,max:1,selects:[zorc,masked]}).indicies[0],0,'Exact level 8 material makes Zorc ready');checks++;
+ put(p,L.HAND,spell,c('Dark Master - Zorc',p,L.HAND,1),c('Battle Ox',p,L.HAND,2),c('Battle Ox',p,L.HAND,3));assert(smartContext(e,p,L).ritualReady(spell));checks++;
+ put(p,L.HAND,spell,c('Dark Master - Zorc',p,L.HAND,1),c('Summoned Skull',p,L.HAND,2),c('Battle Ox',p,L.HAND,3));assert(!smartContext(e,p,L).ritualReady(spell),'Cannot pay exact 8 with levels 6 and 4');checks++;
+ // Duplicate normal monsters should lose to new utility, but a winning beater stays useful.
+ zones={};const melchid=c('Melchid the Four-Face Beast',p,L.DECK),newdoria=c('Newdoria',p,L.DECK,1);put(p,L.HAND,c('Melchid the Four-Face Beast',p,L.HAND),c('Melchid the Four-Face Beast',p,L.HAND,1));put(1-p,L.MZONE,c('Blue-Eyes White Dragon',1-p,L.MZONE));e.effect={code:id('Sangan'),player:p};let search={type:M.SELECT_CARD,player:p,min:1,max:1,selects:[melchid,newdoria]};assert.equal(e.auto(search).indicies[0],1);checks++;
+ put(p,L.HAND);put(1-p,L.MZONE,c('Petit Dragon',1-p,L.MZONE));assert.equal(e.auto(search).indicies[0],0,'Keep beater to defeat weak board');checks++;
+ put(p,L.HAND,c('Masked Beast Des Gardius',p,L.HAND));put(1-p,L.MZONE,c('Blue-Eyes White Dragon',1-p,L.MZONE));assert.equal(e.auto(search).indicies[0],0,'Preserve required unique combo piece');checks++;
+ const piece=c('Right Arm of the Forbidden One',p,L.DECK,2);search.selects.push(piece);assert.equal(e.auto(search).indicies[0],2,'Exodia remains first priority');checks++;
+ e.aiModifiers={activeRelics:p===0?[['cursed_hollow_chalice'],[]]:[[],['cursed_hollow_chalice']]};let policy=smartContext(e,p,L);assert.equal(policy.battleDamage(1000,p),1000);assert.equal(policy.battleDamage(1000,1-p),1500);checks+=2;
+}
+assert(ritualMatches(get('Contract with the Abyss'),get('Dark Master - Zorc')));assert(!ritualMatches(get('Contract with the Abyss'),get('Paladin of White Dragon')));assert(ritualMatches(get('Earth Chant'),get('Black Luster Soldier')));assert(!ritualMatches(get('Earth Chant'),get('Dark Master - Zorc')));assert(ritualLevelsReady([4,4,3],8,true));assert(!ritualLevelsReady([6,4],8,true));checks+=6;
+assert.deepEqual(tributeSelection([{c:{release_param:1},i:0,score:-100},{c:{release_param:1},i:1,score:-200},{c:{release_param:2},i:2,score:-3000}],2),[0,1]);checks++;
+console.log('PASS',checks,'CPU guardrails across both seats');

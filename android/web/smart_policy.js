@@ -1,3 +1,4 @@
+import {ritualMatches,ritualLevelsReady} from './cpu-card-plans.js';
 import {acceptedReplayRules} from './replay-rules.js';
 import {deckPolicy} from './deck_policy.js';
 // Shared vintage policy. Adapted decision principles from the supplied Classic2004SmartExecutor
@@ -20,10 +21,10 @@ export function smartContext(e,p,L,prompt=null){
  const openingTurn=e.turn<=1||(e.aiModifiers?.firstPlayer===1&&e.turn===2);
  const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key);
  // Damage plans include visible prevention/conversion and the defender's known relics.
- const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);return Math.max(0,raw-reduction)};
+ const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);return Math.floor(Math.max(0,raw-reduction)*1.5**relics(1-p).filter(key=>key==='cursed_hollow_chalice').length)};
  const healingAllowed=side=>!relic(side,'cursed_zombies_bargain');
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
- const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===attacker)factor*=.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;}return Math.floor(Math.max(0,raw)*factor)};
+ const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
  const heldPieces=new Set(hand.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
  e.exodiaPlan??=[false,false];if(heldPieces.size)e.exodiaPlan[p]=true;
@@ -41,7 +42,12 @@ export function smartContext(e,p,L,prompt=null){
  const allOwn=[...hand,...own];
  const attr=c=>{if(c.location===L.MZONE&&(c.position&5)){const change=relics(c.controller??p).filter(k=>k.startsWith('attribute_')).at(-1);if(change)return change.slice(10).toUpperCase();}if(c.location===L.MZONE&&c.attribute){const bits={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK'};return bits[c.attribute]||e.cards.get(c.code)?.attribute;}return e.cards.get(c.code)?.attribute;};
  const fusionReady=()=>q(p,L.EXTRA).some(c=>{const text=e.cards.get(c.code)?.desc||'',materials=[...text.split('\n')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]);const names=allOwn.map(name);return materials.length>1&&materials.every(n=>{const i=names.indexOf(n);if(i<0)return false;names.splice(i,1);return true})&&atk(c)>threat});
- const ritualReady=c=>{const text=e.cards.get(c.code)?.desc||'',target=types(hand,0x80).find(m=>text.includes(name(m)));if(!target)return false;return allOwn.filter(x=>x!==target&&!(x.location===L.MZONE&&name(x)==='Relinquished')).reduce((n,x)=>n+(e.cards.get(x.code)?.level||0),0)>=(e.cards.get(target.code)?.level||0)};
+ const matchesRitual=(spell,monster)=>ritualMatches(e.cards.get(spell.code),e.cards.get(monster.code));
+ const ritualMaterialReady=(spell,monster)=>{const advanced=name(spell)==='Advanced Ritual Art',source=advanced?q(p,L.DECK):allOwn;
+  const levels=source.filter(x=>!same(x,monster)&&data(x).type&1&&(!advanced||data(x).type&16)&&!(x.location===L.MZONE&&name(x)==='Relinquished')).map(x=>x.level??e.cards.get(x.code)?.level??0);
+  return ritualLevelsReady(levels,e.cards.get(monster.code)?.level||0,/exactly equal/.test(e.cards.get(spell.code)?.desc||''));
+ };
+ const ritualReady=c=>hand.some(m=>matchesRitual(c,m)&&ritualMaterialReady(c,m));
  const lvl=c=>c.level??e.cards.get(c.code)?.level??0,race=c=>e.cards.get(c.code)?.race||'';
  const firePrincess=effectsEnabled(p)&&own.some(c=>name(c)==='Fire Princess'&&!c.is_disabled);
  const fireBonus=firePrincess?35:0;
@@ -1050,14 +1056,26 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(chaosPair&&grave.length<=6&&(attr(c)==='LIGHT'||attr(c)==='DARK')){const light=attr(c)==='LIGHT';if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
   return s;}
  function targetScore(fxN,cand,info){const nm=name(cand);
+  if(fxN==='Ryu-Kishin Clown'&&cand.location===L.MZONE){
+   const target=q(cand.controller,L.MZONE).find(x=>same(x,cand));if(!target||!face(target))return -1000000;
+   const attack=atk(target),defense=target.defense??data(target).defense??0;
+   if(cand.controller!==p){
+    if(target.position&1)return 10000+attack-defense; // Hide an attacker rather than expose a stronger defender.
+    const attackers=own.filter(a=>face(a)&&(a.position&1)&&attackAllowed(a,false));
+    const strongest=Math.max(0,...attackers.map(a=>combatPower(a,target)));
+    if(e.player!==p||battleLocked||strongest<=attack)return -1000000;
+    return 20000+Math.max(0,defense-attack)+battleDamage(strongest-attack);
+   }
+   if(target.position&1)return 1000+defense-attack;
+   return attack>Math.max(0,...enemy.filter(face).map(power))&&!attackBlocked(target,p)?5000+attack:-10000;
+  }
+
   if(['Sonic Bird','Manju of the Ten Thousand Hands','Senju of the Thousand Hands'].includes(fxN)&&cand.controller===p&&cand.location===L.DECK){
    const ritualMonster=x=>!!(data(x).type&1)&&!!(data(x).type&128),ritualSpell=x=>!!(data(x).type&2)&&!!(data(x).type&128);
-   const matches=(spell,monster)=>(e.cards.get(spell.code)?.desc||'').includes(name(monster));
+   const matches=matchesRitual;
    const isMonster=ritualMonster(cand),partners=hand.filter(x=>isMonster?ritualSpell(x)&&matches(x,cand):ritualMonster(x)&&matches(cand,x));
    const duplicate=hand.filter(x=>name(x)===nm).length;
-   let ready=0;for(const partner of partners){const monster=isMonster?cand:partner;const materials=allOwn.filter(x=>!same(x,partner)&&!same(x,cand)&&data(x).type&1&&!(x.location===L.MZONE&&name(x)==='Relinquished'));
-    const levels=materials.reduce((v,x)=>v+lvl(x),0);if(levels>=lvl(monster))ready=1;
-   }
+   const ready=partners.some(partner=>ritualMaterialReady(isMonster?partner:cand,isMonster?cand:partner))?1:0;
    const future=[...q(p,L.DECK),...hand].some(x=>isMonster?ritualSpell(x)&&matches(x,cand):ritualMonster(x)&&matches(cand,x));
    return (partners.length?30000:future?4000:0)+ready*20000-duplicate*12000+(isMonster?Math.min(4000,projectedAttack(cand)):0);
   }
@@ -1119,6 +1137,18 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
    const t=enemy.find(x=>same(x,cand))||cand,old=atk(t),reduced=Math.max(0,old-800);
    const opens=own.some(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)&&atk(a)>reduced&&atk(a)<=old);
    return 20000+(opens?20000:0)+Math.min(800,old)*10+targetValue(t);
+  }
+  if(['Sangan','Witch of the Black Forest'].includes(fxN)&&cand.controller===p&&cand.location===L.DECK){
+   const duplicates=hand.filter(x=>name(x)===nm).length,lowLevel=(e.cards.get(cand.code)?.level||0)<=4;
+   const knownThreats=enemy.filter(face),largest=Math.max(0,...knownThreats.map(atk));
+   const canAlreadyBeat=hand.some(x=>data(x).type&1&&(e.cards.get(x.code)?.level||0)<=4&&projectedAttack(x)>largest);
+   let value=projectedAttack(cand)-duplicates*650;
+   if(lowLevel&&projectedAttack(cand)>largest&&largest>0)value+=900;
+   if(effectsEnabled(p)&&!canAlreadyBeat&&largest>=projectedAttack(cand)&&knownThreats.length&&['Newdoria','Man-Eater Bug'].includes(nm))value+=2200;
+   if(effectsEnabled(p)&&!canAlreadyBeat&&largest>=projectedAttack(cand)&&knownThreats.length&&['Spirit Reaper','Marshmallon'].includes(nm))value+=1800;
+   // Keep unique combo components worthwhile; never demote missing Exodia pieces above.
+   if(['Melchid the Four-Face Beast','Grand Tiki Elder'].includes(nm)&&!hand.some(x=>['Melchid the Four-Face Beast','Grand Tiki Elder'].includes(name(x)))&&hand.some(x=>name(x)==='Masked Beast Des Gardius'))value+=3000;
+   return value;
   }
   const recent=deck.targetScore(fxN,cand,info);if(recent!==null)return recent;
   if(fxN==='Castle Walls'){
