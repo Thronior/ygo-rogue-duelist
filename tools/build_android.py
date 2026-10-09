@@ -116,6 +116,11 @@ def sync():
    if p.is_file():copy(p,WEB/folder/p.name)
  missing=[cid for cid in ids if not (WEB/'assets/cards'/f'{cid}.jpg').exists()]
  if missing:raise RuntimeError('Missing offline card images: '+str(missing))
+ # Enumerate only assets shipped by the shared Android/web packaging policy.
+ packaged=[relative for _,relative in web_files(WEB)]
+ audio=[p.as_posix() for p in packaged if p.suffix.lower() in ('.wav','.mp3','.ogg')]
+ images=[p.as_posix() for p in packaged if p.suffix.lower() in ('.jpg','.png','.webp','.gif','.svg') and p.parts[:2]!=('assets','cards')]
+ (WEB/'startup-assets.json').write_text(json.dumps(dict(audio=audio,images=images)),encoding='utf8')
  digest=hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()
  (WEB/'build.json').write_text(json.dumps(dict(version=(ROOT/'VERSION').read_text().strip(),built=time.strftime('%Y-%m-%d %H:%M'),campaignHash=digest,desktopEngine='ShadowDuel.exe',androidEngine='ocgcore-wasm 0.1.2',cards=len(game.CARDS),tokens=len(ids)-len(game.CARDS))))
  print('Synchronized campaign,',len(ids),'card/token images and desktop UI assets.',flush=True)

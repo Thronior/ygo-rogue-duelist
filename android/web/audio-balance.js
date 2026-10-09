@@ -1,3 +1,4 @@
+import {assetURL,originalAssetPath} from './startup-assets.js';
 import {audioGains} from './audio-gains.js';
 let context,master;
 const voices=new WeakMap();
@@ -17,8 +18,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)context?.su
 for(const name of ['pointerdown','keydown','touchend'])document.addEventListener(name,resume,{passive:true});
 export function resumeBalancedAudio(){resume()}
 export function balancedVolume(audio,slider,emphasis=1){
- const path=new URL(audio.src||audio.currentSrc,location.href).pathname;
+ const original=originalAssetPath(audio.src||audio.currentSrc);
+ const path=new URL(original,location.href).pathname;
  const key=Object.keys(audioGains).find(key=>path.endsWith('/'+key));
+ const relative=originalPathsKey(path),ready=assetURL(relative);if(ready!==relative&&audio.src!==ready){audio.src=ready;audio.load();}
  const volume=Math.max(0,Math.min(1,Number(slider)||0))*emphasis*(audioGains[key]??1);
  try{
   const ctx=graph();if(!ctx)throw Error('Web Audio unavailable');
@@ -35,12 +38,15 @@ export function balancedVolume(audio,slider,emphasis=1){
 
 // Decoded effects avoid interrupted HTMLAudio play requests during rapid reel ticks.
 const effectBuffers=new Map();
+function originalPathsKey(path){const base=new URL('./',location.href).pathname;return path.startsWith(base)?path.slice(base.length):path.replace(/^\//,'');}
+function loadEffect(path,ctx){
+ if(!effectBuffers.has(path))effectBuffers.set(path,fetch(assetURL(path)).then(r=>{if(!r.ok)throw Error('Audio '+r.status);return r.arrayBuffer()}).then(b=>ctx.decodeAudioData(b)).catch(e=>{effectBuffers.delete(path);throw e}));
+ return effectBuffers.get(path);
+}
+export async function preloadSoundEffects(paths){const ctx=graph();if(!ctx)return;let next=0;await Promise.all(Array.from({length:2},async()=>{while(next<paths.length)await loadEffect(paths[next++],ctx);}));}
 export function bufferedEffects(paths,volume){
  const ctx=graph(),active=new Map(),versions=new Map();let disposed=false;
- const load=path=>{
-  if(!effectBuffers.has(path))effectBuffers.set(path,fetch(path).then(r=>{if(!r.ok)throw Error('Audio '+r.status);return r.arrayBuffer()}).then(b=>ctx.decodeAudioData(b)).catch(e=>{effectBuffers.delete(path);throw e}));
-  return effectBuffers.get(path);
- };
+ const load=path=>loadEffect(path,ctx);
  if(ctx)for(const path of new Set(Object.values(paths)))load(path).catch(()=>{});
  const stop=key=>{
   versions.set(key,(versions.get(key)||0)+1);

@@ -1,3 +1,4 @@
+import {preloadStartupAssets,assetURL,originalAssetPath} from './startup-assets.js';
 import {deckRewardMarkup,mountDeckRewards} from './engine-rewards.js';
 import {preloadAllBackgrounds} from './background-assets.js';
 import {renderDuelDOM,clearDuelDOM} from './duel-dom.js';
@@ -23,7 +24,7 @@ import {checkAndroidUpdate,startupAndroidUpdate} from './android-update.js';
 import {collectorResponseOverlay,automaticChainResponse,chainWindowAllowed,liveCardFacts,waitForTossStart} from './duel-presentation.js';
 import {playlists,bossTheme} from './music-config.js';
 import {allCardsPackDescription} from './pack-inspection.js';
-import {balancedVolume,resumeBalancedAudio} from './audio-balance.js';
+import {balancedVolume,resumeBalancedAudio,preloadSoundEffects} from './audio-balance.js';
 import {searches as deckSearches} from './card-search.js';
 import {rankFor} from './collector-rules.js';
 import {CollectorUI} from './collector-ui.js';
@@ -86,7 +87,7 @@ function command(action,value){const payload=JSON.stringify({action,value});cons
 async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(statsRequest.action==='reward-progress')return result.result;if(statsRequest.action.startsWith('device-sync-'))state={...state,profile:result.profile,achievements:result.achievements};else if(!JSON.parse(payload).action.startsWith('tag-'))state=result;if(statsRequest.action!=='device-sync-read')await persist();if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish'){draftTab='All';draftSort='Newest';delete deckSearches.draft;}if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);}return result.result}
 async function notices(){const list=state.profile.achievement_notices||[];if(list.length){await command('notices');list.forEach(n=>toast('Achievement complete: '+n.name+' — '+n.reward))}}
 let sfxStopTimer;
-function setDuelSound(url){clearTimeout(sfxStopTimer);sfx.pause();sfx.src=url;sfx.load();}
+function setDuelSound(url){clearTimeout(sfxStopTimer);sfx.pause();sfx.src=assetURL(url);sfx.load();}
 function effect(major=false,purchase=false){if(!state.settings.sound||document.hidden)return;setDuelSound('sound/'+(major?'activate.wav':purchase?'coinflip.wav':'flip.wav'));balancedVolume(sfx,state.settings.sound/100,major?1:purchase?.85:.65);sfx.play().catch(()=>{})}
 function duelSound(name,gain=.3,duration=0){if(!state.settings.sound||document.hidden)return;setDuelSound('sound/'+name+'.wav');balancedVolume(sfx,state.settings.sound/100,Math.max(.5,Math.min(1,gain/.3)));sfx.play().catch(()=>{});if(duration){sfxStopTimer=setTimeout(()=>sfx.pause(),duration)}}
 const summonMusic=new WeakMap();
@@ -97,7 +98,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)slotTick.pa
 let musicContext='',previousTrack={};
 function screenMusic(){if(screen==='duel'||screen==='cpu'){if(screen==='cpu')return 'duel';if(engine&&summonMusic.has(engine))return summonMusic.get(engine);if(state.run?.encore_active&&!snapshot?.tag||snapshot?.tag?.pvp)return 'champion';const run=snapshot?.tag?tagUI?.view?.run:state.run;if(((run?.round||0)+1)%3===0){const opponent=snapshot?.tag?activeTagCharacters(content,tagUI.view,snapshot.tag)[1]:content.characters[run?.opponent];return bossTheme(opponent?.name)}return 'duel'}if(screen==='ending')return state.run?.stage==='complete'?'victory':'defeat';if(screen==='characters')return 'characters';if(screen==='routes')return (state.run.round+1)%3===0?'boss':'draft';if(screen==='draft')return 'draft';if(screen==='shop')return state.run?.cursed_offer?'boss':'shop';if(screen==='settings')return musicContext||'title';if(screen==='tag'&&tagUI?.view?.phase==='draft'&&tagUI.tab!=='deck'&&(tagUI.view.run.round+1)%3===0)return 'boss';if(screen==='tag')return tagUI?.view?.phase==='shop'?'shop':tagUI?.view?.phase==='complete'?'victory':tagUI?.view?.phase==='gameover'?'defeat':tagUI?.view?.phase==='draft'?'draft':'characters';return 'title'}
 let rewardMusic=false;
-function track(name,advance=false){if(rewardMusic)name='packs';if(name!==musicContext||advance){musicContext=name;const all=playlists[name]||[name],alternatives=all.filter(x=>x!==previousTrack[name]),choices=alternatives.length?alternatives:all;const pick=choices[Math.floor(Math.random()*choices.length)];previousTrack[name]=pick;music.src='assets/music/'+pick+'.mp3';music.load()}balancedVolume(music,state.settings.music/100);if(state.settings.music&&!audioSuspended)music.play().catch(()=>{});else music.pause()}
+function track(name,advance=false){if(rewardMusic)name='packs';if(name!==musicContext||advance){musicContext=name;const all=playlists[name]||[name],alternatives=all.filter(x=>x!==previousTrack[name]),choices=alternatives.length?alternatives:all;const pick=choices[Math.floor(Math.random()*choices.length)];previousTrack[name]=pick;music.src=assetURL('assets/music/'+pick+'.mp3');music.load()}balancedVolume(music,state.settings.music/100);if(state.settings.music&&!audioSuspended)music.play().catch(()=>{});else music.pause()}
 music.loop=false;music.addEventListener('ended',()=>track(musicContext,true));
 // Recover interrupted playback without allocating new players or resetting an active song.
 let musicRecoveryAt=0;
@@ -115,8 +116,8 @@ function packSound(name){
  if(name==='purchase'){purchaseCoins();return}
  if(!state.settings.sound||document.hidden)return;
  const url=['card-reveal','pack-rustle','rare-shimmer','negation'].includes(name)?'assets/sfx/'+name+'.wav':name==='flip'?'sound/flip.wav':'assets/sfx/'+name+'.mp3';
- const voice=packVoicePool.find(v=>!packVoices.has(v))||packVoicePool.find(v=>!v.src.includes('pack-rare'))||packVoicePool[0];
- voice.pause();voice.src=url;voice.load();balancedVolume(voice,state.settings.sound/100,name==='rare-shimmer'?.7:.9);
+ const voice=packVoicePool.find(v=>!packVoices.has(v))||packVoicePool.find(v=>!originalAssetPath(v.src).includes('pack-rare'))||packVoicePool[0];
+ voice.pause();voice.src=assetURL(url);voice.load();balancedVolume(voice,state.settings.sound/100,name==='rare-shimmer'?.7:.9);
  voice.playbackRate=name==='flip'?.95+Math.random()*.16:1;packVoices.add(voice);
  voice.onended=()=>packVoices.delete(voice);voice.onerror=()=>packVoices.delete(voice);
  voice.play().catch(()=>{if(voice.paused)packVoices.delete(voice)});
@@ -657,22 +658,26 @@ document.addEventListener('contextmenu',e=>{
 window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='duel-emotes'){e.preventDefault();action('duel-emotes',e.target);return;}if(['Enter',' '].includes(e.key)&&e.target?.dataset?.do==='device-secret'){e.preventDefault();action('device-secret',e.target);return;}if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowDown':'ArrowRight'))action('menu-next');if(screen==='title'&&e.key===(matchMedia('(orientation:portrait)').matches?'ArrowUp':'ArrowLeft'))action('menu-prev');if(e.key==='Escape')window.androidBack()});
 
 async function boot(){try{
- document.querySelector('#loading-status').textContent='Step 1 of 4 · Reading game data and saved progress…';
+ document.querySelector('#loading-status').textContent='Step 1 of 6 · Reading game data and saved progress…';
  await installDesktopStorage();
  const [files,meta]=await Promise.all([fetch('campaign-files.json',{cache:'no-store'}).then(r=>r.json()),fetch('content.json',{cache:'no-store'}).then(r=>r.json())]);content=meta;for(const c of [...content.cards,...(content.tokenCards||[])])if(!cardsById.has(c.id))cardsById.set(c.id,c);
  await Promise.all([preloadCards([...content.cards,...(content.tokenCards||[])],({loaded,total,failed,bytes})=>{
   document.querySelector('#loading-count').textContent=`${loaded.toLocaleString()} / ${total.toLocaleString()} cards · ${(bytes/1048576).toFixed(1)} MB artwork read`;
   const bar=document.querySelector('#loading-progress');bar.max=Math.max(1,total);bar.value=loaded;
-  document.querySelector('#loading-status').textContent=failed?`${failed} images could not load; checking remaining cards…`:'Step 2 of 4 · Loading card artwork…';
+  document.querySelector('#loading-status').textContent=failed?`${failed} images could not load; checking remaining cards…`:'Step 2 of 6 · Loading card artwork…';
  })]);
- document.querySelector('#loading-status').textContent='Step 3 of 4 · Starting campaign runtime…';py=await loadPyodide({indexURL:new URL('pyodide/',location.href).href});
+ document.querySelector('#loading-status').textContent='Step 3 of 6 · Starting campaign runtime…';py=await loadPyodide({indexURL:new URL('pyodide/',location.href).href});
  py.FS.mkdirTree('/game/data');py.FS.mkdirTree('/game/data/decks');py.FS.mkdirTree('/game/saves');py.FS.mkdirTree('/game/runtime');
  for(const [name,text] of Object.entries(files))py.FS.writeFile('/game/'+name,text);
  const stored=window.ShadowNative?await ShadowNative.load():localStorage.getItem('shadow-run-mobile')||'{}';
  let saved={};try{saved=JSON.parse(stored)}catch{throw Error('Saved progress could not be read. It has not been overwritten.')}
  for(const [name,text] of Object.entries(saved))if(/^[\w-]+\.(json|bak)$/.test(name))py.FS.writeFile('/game/saves/'+name,text);
- document.querySelector('#loading-status').textContent='Step 4 of 4 · Restoring campaign…';
- await py.runPythonAsync("import sys\nsys.path.insert(0,'/game')\nimport mobile_backend");await command('init');if(!state.settings.simpleBackgrounds){document.querySelector('#loading-status').textContent='Step 4 of 4 · Loading background videos…';await preloadAllBackgrounds(({loaded,total})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} backgrounds loaded`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});}screen='title';render();await notices();if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
+ document.querySelector('#loading-status').textContent='Step 4 of 6 · Restoring campaign…';
+ await py.runPythonAsync("import sys\nsys.path.insert(0,'/game')\nimport mobile_backend");await command('init');if(!state.settings.simpleBackgrounds){document.querySelector('#loading-status').textContent='Step 4 of 6 · Loading background videos…';await preloadAllBackgrounds(({loaded,total})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} backgrounds loaded`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});}
+ document.querySelector('#loading-status').textContent='Step 5 of 6 · Loading sounds, music and interface artwork…';
+ const effects=await preloadStartupAssets(({loaded,total,bytes})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} assets · ${(bytes/1048576).toFixed(1)} MB`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});
+ document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects);
+ screen='title';render();await notices();if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
  void startupAndroidUpdate({native:window.ShadowNative,online:navigator.onLine,prompt:async version=>{
   while(modal.open)await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));
   dialog('Update',`<p>Would you like to update to version ${esc(version)}?</p><div class="actions">${btn('Update','android-download')}${btn('Close','close')}</div>`,false);
@@ -786,7 +791,7 @@ let lastCoinSound=-1;
 function playCoinPickup(){
  const volume=(state.settings.sound||0)/100;if(!volume||document.hidden)return;
  const choices=[0,1,2].filter(i=>i!==lastCoinSound),pick=choices[Math.floor(Math.random()*choices.length)];lastCoinSound=pick;
- const sound=coinVoicePool[coinVoiceIndex++%coinVoicePool.length];sound.pause();sound.src='sound/coin-pickup'+(pick?'-'+(pick+1):'')+'.wav';sound.load();balancedVolume(sound,volume,.75);sound.play().catch(()=>{});
+ const sound=coinVoicePool[coinVoiceIndex++%coinVoicePool.length];sound.pause();sound.src=assetURL('sound/coin-pickup'+(pick?'-'+(pick+1):'')+'.wav');sound.load();balancedVolume(sound,volume,.75);sound.play().catch(()=>{});
 }
 function duelAnimationState(owner){let state=duelAnimations.get(owner);if(!state){state={pending:new Set(),nextCoinAt:0,lane:0};duelAnimations.set(owner,state)}return state}
 function trackDuelAnimation(owner,promise){const state=duelAnimationState(owner);state.pending.add(promise);promise.finally(()=>state.pending.delete(promise));return promise}
