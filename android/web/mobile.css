@@ -1705,3 +1705,14 @@ body{height:var(--app-viewport-height,100dvh)}
 /* Compact navigation, with accessible labels and full touch targets. */
 button.navigation-icon-button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;padding:8px}
 button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:25px;pointer-events:none}
+
+/* Illustrated tutorial: one content scroller; categories wrap on phones. */
+.tutorial-page .tutorial-layout{flex:1;overflow:hidden;grid-template-columns:minmax(180px,24%) minmax(0,1fr)}
+.tutorial-page nav{overflow:auto;min-height:0}.tutorial-page nav button{text-align:left;white-space:normal;overflow-wrap:anywhere;min-height:44px}
+.tutorial-page article{min-width:0;min-height:0;overflow:auto;background:rgba(7,22,30,.9)}
+.tutorial-section+.tutorial-section{border-top:1px solid #45616b;margin-top:24px;padding-top:12px}
+.tutorial-page figure{margin:14px 0 20px}.tutorial-shot{display:block;width:100%;max-width:900px;padding:0;overflow:hidden;background:#081923;border:1px solid #557380;border-radius:8px}
+.tutorial-shot img{display:block;width:100%;height:auto}.tutorial-page figcaption{font-size:12px;color:#b5cbd1;margin-top:6px}
+.tutorial-mode{margin:12px 0;border:1px solid #45616b;border-radius:8px;padding:12px}.tutorial-mode summary{cursor:pointer;font-weight:bold;font-size:18px;min-height:30px}.tutorial-video{display:inline-block;padding:18px;border:1px solid #577a8b;border-radius:8px;color:#ffe5a0;line-height:1.5}
+.tutorial-enlarged{display:block;max-width:100%;max-height:75dvh;object-fit:contain;margin:auto}
+@media(max-width:600px){.tutorial-page .tutorial-layout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px}.tutorial-page nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:28dvh}.tutorial-page nav button{font-size:12px;padding:7px;line-height:1.25}.tutorial-page article{padding:12px}.tutorial-page article p{font-size:15px}.tutorial-page article h2{font-size:21px}}

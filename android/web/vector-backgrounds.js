@@ -59,7 +59,7 @@ export function installVectorBackgrounds(app,modal,settings=()=>({})){
    else if(page.matches('.title'))kind='hex';
    else if(page.matches('.boss')||page.querySelector('.boss-banner'))kind='embers';
    else if(page.matches('.character-select-page')||page.querySelector('.char-layout'))kind='crystals';
-   else if(page.querySelector('.collection-nav'))kind='jade';
+   else if(page.matches('.tutorial-page')||page.querySelector('.collection-nav'))kind='jade';
    else if(page.matches('.collector-page'))kind='rings';
    else if(simple)kind=page.matches('.shop')?'shop':'plain';
   }

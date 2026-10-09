@@ -1,45 +1,209 @@
 [
   {
     "title": "How to play Yu-Gi-Oh!",
-    "icon": "duel",
-    "image": "tutorial/classic-field.png",
-    "text": "New to Yu-Gi-Oh!? Learn the basic rules, turn phases, Summoning and combat with the official beginner video. Reduce the opponent’s LP to 0 while protecting your own. Rogue Duelist uses a vintage card pool and its own campaign deck-building rules; the later tutorial pages explain those differences.",
-    "video": "https://www.youtube.com/watch?v=orVzLmJhi2c"
+    "video": "https://www.youtube.com/watch?v=orVzLmJhi2c",
+    "sections": [],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "Draft and deck building",
-    "icon": "deck",
-    "image": "tutorial/hand.jpg",
-    "text": "Choose a character, then open the starting packs. Select at least 20 main-deck cards; Extra Deck monsters are separate. Up to three copies of a card are allowed. Signature cards may be removed. On Android, tap to add or remove a card and hold to inspect it; dragging cancels inspection. Dragging scrolls without selecting. On desktop, click cards to toggle them and hover for details."
+    "title": "Starting a run",
+    "sections": [
+      {
+        "title": "Choose your character",
+        "text": "Choose New Game, pick a character and choose a level. Each character brings their own starting cards and packs. Press Start Run.",
+        "image": "tutorial/guide/characters.jpg"
+      },
+      {
+        "title": "Open your packs",
+        "text": "Open each booster and reveal its cards. These cards join your collection for this run. You do not have to choose just one card from a pack.",
+        "image": "tutorial/guide/packs.jpg"
+      },
+      {
+        "title": "Build your deck",
+        "text": "Tap cards to add or remove them. Build at least 20 Main Deck cards, unless a relic changes the minimum. You can use up to 3 copies of the same card. Fusion monsters go in the Extra Deck. Hold a card to read it. Your starting signature cards can be removed too.",
+        "image": "tutorial/guide/deck.jpg"
+      },
+      {
+        "title": "Choose a duel",
+        "text": "When your deck is ready, use the arrow to pick your next opponent. Check the reward shown with each opponent before choosing.",
+        "image": "tutorial/guide/routes.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "The duel field",
-    "icon": "duel",
-    "image": "tutorial/classic-field.png",
-    "text": "Your five Monster Zones face the opponent’s five Monster Zones. Spell/Trap Zones sit behind them. The side zones hold the Deck, Extra Deck, Graveyard, banished cards and Field Spell. Select a card to see its legal actions. Highlighted zones or cards are eligible choices. Opponent hands and face-down cards stay hidden."
+    "title": "Shop and rewards",
+    "sections": [
+      {
+        "title": "Coins after a win",
+        "text": "After a duel, the tally shows how many coins you earned. Winning quickly gives a bonus. Very long duels earn less from later actions.",
+        "image": "tutorial/guide/coins.jpg"
+      },
+      {
+        "title": "Card rewards",
+        "text": "Tap a slot to spin for a random card. A reroll costs 15 coins every time. Each slot can be rerolled on its own. Extra-card relics add more slots; bosses give 5 before relic bonuses. Press Confirm when you are happy.",
+        "image": "tutorial/guide/rewards.jpg"
+      },
+      {
+        "title": "Buy and improve",
+        "text": "Select the items you want, then press Buy. Cards and opened packs join your run collection; use Edit deck to put them in your deck. Relics work as soon as you buy them. The shop also has a reroll button with its price shown.",
+        "image": "tutorial/guide/shop.jpg"
+      },
+      {
+        "title": "Your opponent affects the shop",
+        "text": "The reward shown on an opponent adds matching cards and a booster to the next shop. It is extra shop stock, so you still pay for it. When you are ready, use Next Duel.",
+        "image": "tutorial/guide/routes.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "Attacks, targets and phases",
-    "icon": "duel",
-    "image": "tutorial/hand.jpg",
-    "text": "In the Battle Phase, select an eligible monster and choose Attack. Choose a legal target on the field. With no opposing monsters, the attack goes directly to LP. If both a monster and a direct attack are legal, answer the direct-attack question first. Use the phase controls to advance or end your turn. Tributes and field targets are selected on the field; hand and other pile selections appear in a chooser."
+    "title": "Relics and Cursed Relics",
+    "sections": [
+      {
+        "title": "Relics",
+        "text": "Relics change the rules for your run. They can boost cards, heal you or change rewards. You can buy them in the shop. Open Relics to read what you own. The easiest level has no relics.",
+        "image": "tutorial/guide/relics.jpg"
+      },
+      {
+        "title": "Cursed relics",
+        "text": "After a boss, choose 1 of 3 cursed relics. Each has a benefit and a drawback. You get one reroll of the choices. The relic stays with you for the run, so read both parts before picking. This choice is skipped on the easiest level.",
+        "image": "tutorial/guide/cursed.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "Card information and chains",
-    "icon": "chain",
-    "image": "tutorial/card-preview.jpg",
-    "text": "Inspect a card to read its full rules, type, attribute, level and current stats. On Android, the large chain icon beside your Deck toggles Don’t chain. When enabled, optional responses are passed automatically; mandatory choices still appear. Turn it off to choose activations and chain responses. Each choice shows the card you would use. Desktop uses EDOPro’s native response controls."
+    "title": "Bosses and curses",
+    "sections": [
+      {
+        "title": "Boss encounters",
+        "text": "Every third duel is a boss. Read its curses before you start. A curse is like a relic for that encounter: it changes the rules and can make the fight harder. Boss curses apply to that fight; a cursed relic you take afterwards stays with your run.",
+        "image": "tutorial/guide/boss.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "Shop and relics",
-    "icon": "shop",
-    "image": "ui/shop.png",
-    "text": "Prices are shown on the artwork. Select the checkbox on each purchase, then use Buy selected to pay for the whole basket. Selections beyond your gold are refused. Tap a relic’s artwork to read its effect before buying. Packs reveal their contents after purchase. The Relics button in the shop and duel shows only what you currently own."
+    "title": "Loops",
+    "sections": [
+      {
+        "title": "Keep your run going",
+        "text": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
+        "image": "tutorial/guide/loops.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   },
   {
-    "title": "Your journey",
-    "icon": "achievements",
-    "image": "ui/achievements.png",
-    "text": "A loop has nine duels. Every third duel is a boss with a curse lasting only for that fight. Winning a boss heals up to 2,000 LP without healing past 8,000. Every victory reveals your coin breakdown and a random card from the defeated deck. Opponents do not repeat within a loop, and you never face your own character. Defeat the optional champion to start a new loop with stronger opponents."
+    "title": "Online",
+    "collapsible": true,
+    "sections": [
+      {
+        "title": "Tag Duels — play together",
+        "text": "Pick a character and host or join a room. Share the room code with your friend. You play a run together against the CPU, taking turns in duels. Open packs, build your decks and use the shop between fights.",
+        "image": "tutorial/guide/tag.jpg",
+        "images": [
+          "tutorial/guide/tag.jpg",
+          "tutorial/guide/tag-room.jpg",
+          "tutorial/guide/deck.jpg",
+          "tutorial/guide/shop.jpg"
+        ]
+      },
+      {
+        "title": "Draft Duels — build and battle",
+        "text": "Choose a character, then host or join. Once both players are connected and ready, you each open double the normal starting boosters and keep the character’s signature cards. Build 40–60 Main Deck cards and press Ready. Play a best-of-three match. No siding or banned/limited list, but the 3-copy limit still applies. Decks are shuffled each duel. Reopen Draft Duels after a disconnect to try to return to your room.",
+        "image": "tutorial/guide/draft-online.jpg",
+        "images": [
+          "tutorial/guide/draft-online.jpg",
+          "tutorial/guide/online-room.jpg",
+          "tutorial/guide/packs.jpg",
+          "tutorial/guide/online-deck.jpg"
+        ]
+      },
+      {
+        "title": "Ultimate Collector — risk your collection",
+        "text": "Import a saved singleplayer run and name your collector. Importing moves it out of singleplayer. Build a 40–60-card Main Deck using this mode’s card limits. Host or join a best-of-three match, with side decking between duels. The winner takes 5 cards from the opponent. Losing the match permanently deletes that collector. Your other saves are safe.",
+        "image": "tutorial/guide/collector.jpg",
+        "images": [
+          "tutorial/guide/collector.jpg",
+          "tutorial/guide/collector-import.jpg",
+          "tutorial/guide/collector-deck.jpg",
+          "tutorial/guide/collector-room.jpg"
+        ]
+      }
+    ],
+    "text": "",
+    "image": ""
+  },
+  {
+    "title": "Collection",
+    "sections": [
+      {
+        "title": "Track the cards you have found",
+        "text": "Collection shows the game’s cards, packs and relics. Search or filter to find something, then tap it for details. Cards you have owned in singleplayer or Ultimate Collector get a colored frame. Use Registered to see cards you have found and Missing to see what is left. This does not give those cards to every run.",
+        "image": "tutorial/guide/collection.jpg"
+      },
+      {
+        "title": "Check your progress",
+        "text": "The tabs also show Run History, Device Stats, Global Stats, Ultimate Collectors and Achievements. Pick a tab to browse it.",
+        "image": "tutorial/guide/collection.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
+  },
+  {
+    "title": "Other",
+    "sections": [
+      {
+        "title": "Send replays",
+        "text": "Open Settings and press Upload Replays. The latest 100 duels are kept on your device. Uploads need internet. Replays show the decks, decisions and results, so we can compare player choices with the CPU and improve how it plays.",
+        "image": "tutorial/guide/settings-replays.jpg"
+      },
+      {
+        "title": "Flag a CPU mistake",
+        "text": "During a singleplayer duel, open Options, then Flag behaviour. Say what the CPU did and what you expected. The game attaches the replay up to that moment. Send unsent flags when you are back online.",
+        "image": "tutorial/guide/flag.jpg"
+      },
+      {
+        "title": "Link devices",
+        "text": "Open Settings, then Link Devices. Create a code on one device and enter it on the other within 10 minutes. This shares unlocks; it does not move your active runs or Ultimate Collectors.",
+        "image": "tutorial/guide/link.jpg"
+      },
+      {
+        "title": "Recover lost progress",
+        "text": "While you play online, saves are backed up in the background. In Settings, open Recover Save Data and keep a copy of your backup code. If you lose progress, contact the admin on Discord. They can give you a recovery file to load here.",
+        "image": "tutorial/guide/recovery.jpg"
+      },
+      {
+        "title": "Sound and performance",
+        "text": "Settings lets you change music and sound volume. Turn on Simple Backgrounds for static colors and lower battery use.",
+        "image": "tutorial/guide/settings.jpg"
+      },
+      {
+        "title": "Card details and chains",
+        "text": "Tap a card to preview it; hold it to open its details. An inspection window pauses the CPU until you close it. The Chain button cycles through Chain, No chain and Chain sometimes. Sometimes asks at summons, attacks and card activations. Options also has a Log: tap an action to inspect its cards.",
+        "image": "tutorial/guide/duel.jpg",
+        "images": [
+          "tutorial/guide/duel.jpg",
+          "tutorial/guide/inspection.jpg",
+          "tutorial/guide/log.jpg"
+        ]
+      },
+      {
+        "title": "Get help",
+        "text": "Use the Discord icon on the main menu to report bugs or suggest deck changes. Include what happened and a screenshot or replay when possible.",
+        "image": "tutorial/guide/title.jpg"
+      }
+    ],
+    "text": "",
+    "image": ""
   }
 ]
