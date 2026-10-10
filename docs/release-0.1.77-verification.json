@@ -1,0 +1,25 @@
+{
+  "version": "0.1.77",
+  "sourceCommit": "393205b07e0e714e22447ce6d46a1afad23095ff",
+  "pushed": true,
+  "web": "https://ygo-rogue.pages.dev/",
+  "deployment": "https://b59c3248.ygo-rogue.pages.dev",
+  "android": "https://github.com/Thronior/ygo-rogue-duelist/releases/tag/v0.1.77",
+  "itchUpload": "19675215",
+  "devlog": "https://thronior.itch.io/ygo-rogue/devlog/1700675/v0177",
+  "liveFilesVerified": [
+    "mobile.js",
+    "device-backup.js",
+    "collector-ui.js",
+    "build.json"
+  ],
+  "itchVersionVerified": true,
+  "publishedAt": "2026-10-10T15:44:43Z",
+  "backendVersions": {
+    "replays": "99008f96-7704-47c9-a7f1-a0e129852aa3",
+    "stats": "ec8762e7-68f8-43d9-9721-e1e30f73f0e8",
+    "rooms": "08fceea1-aa93-4cc2-abc7-a13e8a6352c3"
+  },
+  "reportReview": "Blocked by daily storage allowance; pending review retained",
+  "fallenRoster": "Refresh blocked; existing roster retained"
+}
