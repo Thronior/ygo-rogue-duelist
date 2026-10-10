@@ -19,7 +19,18 @@ export default {async fetch(request,env){
 export class RoomRegistry {
  constructor(ctx,env){
   this.ctx=ctx;this.env=env;this.tail=Promise.resolve();
-  ctx.blockConcurrencyWhile(async()=>{this.registry=new Registry({saved:await ctx.storage.get('rooms')||{},save:data=>ctx.storage.put('rooms',data),ice:()=>this.ice()})});
+  ctx.blockConcurrencyWhile(async()=>{
+   // Migrate atomically so deleted rooms cannot reappear from the old snapshot.
+   if(!await ctx.storage.get('rooms-migrated')){const legacy=await ctx.storage.get('rooms')||{};await ctx.storage.transaction(async tx=>{for(const [code,room] of Object.entries(legacy))await tx.put('room:'+code,room);await tx.put('rooms-migrated',true);await tx.delete('rooms');});}
+   const rows=await ctx.storage.list({prefix:'room:'}),saved=Object.fromEntries([...rows].map(([k,v])=>[k.slice(5),v]));
+   let previous=new Map(Object.entries(saved).map(([k,v])=>[k,JSON.stringify(v)]));
+   this.registry=new Registry({saved,save:async data=>{
+    const next=new Map(Object.entries(data).map(([k,v])=>[k,JSON.stringify(v)]));
+    const changed=[...next].filter(([k,v])=>previous.get(k)!==v),removed=[...previous.keys()].filter(k=>!next.has(k));
+    if(changed.length||removed.length)await ctx.storage.transaction(async tx=>{for(const [k,v] of changed)await tx.put('room:'+k,JSON.parse(v));for(const k of removed)await tx.delete('room:'+k);});
+    previous=next;
+   },ice:()=>this.ice()});
+  });
  }
  async ice(){
   if(!this.env.TURN_KEY_ID||!this.env.TURN_KEY_API_TOKEN){return [{urls:'stun:stun.cloudflare.com:3478'}]}

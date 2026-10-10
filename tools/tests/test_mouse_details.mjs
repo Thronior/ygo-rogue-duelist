@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {installMouseDetails} from '../../android/web/mouse-details.js';
+const timers=new Map();let tick=0,shown=0,described=0,removed=0;
+globalThis.setTimeout=f=>{timers.set(++tick,f);return tick};globalThis.clearTimeout=id=>timers.delete(id);
+const surface=()=>({events:{},addEventListener(t,f){this.events[t]=f}});
+globalThis.window=surface();globalThis.innerWidth=800;globalThis.innerHeight=600;
+globalThis.document=Object.assign(surface(),{body:{append(){shown++}},querySelector(){return null},createElement(){return {setAttribute(){},style:{},getBoundingClientRect(){return {width:220,height:100}},remove(){removed++}}}});
+globalThis.MutationObserver=class{observe(){}};
+const root=surface();const clear=installMouseDetails(root,()=>{described++;return '<p>Pack or curse description</p>'});
+const el={dataset:{pack:'test'},isConnected:true,classList:{add(){throw Error('Pack/curse must not gain card zoom')},remove(){}},matches(){return false},closest(selector){return selector.includes('[data-pack]')?this:null},getBoundingClientRect(){return {right:760,left:650,top:550}},contains(x){return x===this}};
+for(const pointerType of ['touch','pen',''])root.events.pointerover({pointerType,buttons:0,target:el});
+assert.equal(described,0);assert.equal(timers.size,0);
+root.events.pointerover({pointerType:'mouse',buttons:1,target:el});assert.equal(described,0);
+root.events.pointerover({pointerType:'mouse',buttons:0,target:el});assert.equal(described,1);assert.equal(shown,0);
+for(const f of [...timers.values()])f();assert.equal(shown,1);
+document.events.pointerdown();assert.equal(removed,1);assert.equal(timers.size,0);
+root.events.pointerover({pointerType:'mouse',buttons:0,target:el});document.events.scroll();assert.equal(timers.size,0);
+clear();console.log('PASS mouse-only delayed tooltips; no touch/pen/drag activation; no extra zoom; tap/scroll cleanup.');

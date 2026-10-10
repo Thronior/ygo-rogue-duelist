@@ -1,13 +1,14 @@
 // Delegated pointer events keep touch taps/dragging and existing click handlers unchanged.
 export function installMouseDetails(root,describe){
- const selector='.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art';
+ const growSelector='.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art';
+ const selector=growSelector+',[data-pack],img[src^="assets/packs/"],[data-curse]';
  let active=null,timer=null,tip=null;
  function clear(){clearTimeout(timer);timer=null;active?.classList.remove('mouse-card-hover');active=null;tip?.remove();tip=null;}
  root.addEventListener('pointerover',event=>{
   if(event.pointerType!=='mouse'||event.buttons)return;
-  const el=event.target.closest(selector);if(!el||el===active)return;
+  const el=event.target.closest(growSelector)||event.target.closest(selector);if(!el||el===active)return;
   clear();const info=describe(el);if(!info)return;active=el;
-  el.classList.add('mouse-card-hover');
+  if(el.matches(growSelector))el.classList.add('mouse-card-hover');
   timer=setTimeout(()=>{
    if(active!==el||!el.isConnected)return clear();
    tip=document.createElement('aside');tip.className='mouse-details';tip.setAttribute('role','tooltip');tip.innerHTML=info;

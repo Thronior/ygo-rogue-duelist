@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import fs from 'node:fs';
+let now=1000,posts=[],interval,active=false,persisted;
+const source=fs.readFileSync('android/web/global-stats.js','utf8').replaceAll('export ','');
+const context=vm.createContext({crypto:{randomUUID:()=> 'test'},location:{hostname:'game.example'},localStorage:{getItem:()=>persisted,setItem:(k,v)=>{persisted=v;}},Date:{now:()=>now},document:{hidden:false,addEventListener(){}},setInterval:fn=>{interval=fn;},AbortSignal:{timeout:()=>undefined},fetch:async(url,options)=>{posts.push(JSON.parse(options.body));return {ok:true};}});
+vm.runInContext(source,context);vm.runInContext('startStats(()=>false);recordStat("runs","one")',context);
+await vm.runInContext('syncStats()',context);assert.equal(posts.length,0);
+now+=599999;await vm.runInContext('syncStats()',context);assert.equal(posts.length,0);
+now++;await vm.runInContext('syncStats()',context);assert.equal(posts.length,1);
+now+=600000;await vm.runInContext('syncStats()',context);assert.equal(posts.length,1);
+vm.runInContext('recordStat("runs","two")',context);await new Promise(resolve=>setImmediate(resolve));assert.equal(posts.length,2);
+assert.equal(posts[1].counts.runs,2);
+console.log('PASS ten-minute throttle, unchanged suppression, accumulated counters');

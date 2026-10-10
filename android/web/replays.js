@@ -14,7 +14,7 @@ export function storeReplay(record){if(!globalThis.indexedDB)return Promise.reso
 export function startRecording(engine,args){engine.replayRecord={format:'ygo-replay',version:1,core:'ocgcore-wasm-0.1.2',build:replayVersion,at:Date.now(),start:clone(args),responses:[],ended:false};}
 export function recordResponse(engine,response){if(!engine.replayRecord)return;engine.replayRecord.responses.push(clone(response));if(engine.finished)engine.replayRecord.ended=true;clearTimeout(engine.replaySaveTimer);engine.replaySaveTimer=setTimeout(()=>{void saveRecording(engine)},500)}
 export function saveRecording(engine){clearTimeout(engine.replaySaveTimer);if(!engine.replayRecord)return Promise.resolve();return storeReplay(engine.replayRecord).catch(e=>console.warn('Replay storage:',e.message))}
-export async function uploadReplays(progress=()=>{}){if(uploadBusy)return;uploadBusy=true;try{await saveQueue;const all=await replayRows(),rows=all.filter(r=>!r.uploaded);if(!rows.length){progress(all.length?'All saved replays are already uploaded.':'No recorded duels yet. Play a duel first.');return {uploaded:0}}let sent=0;for(const row of rows){progress(`Uploading ${sent+1} / ${rows.length}…`);const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:row.bytes,signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error(`Upload failed (${response.status}). Tap again to retry; your replays are safe.`);const d=await db();await new Promise((resolve,reject)=>{const tx=d.transaction('duels','readwrite'),s=tx.objectStore('duels'),q=s.get(row.id);q.onsuccess=()=>{if(q.result?.steps===row.steps&&q.result?.ended===row.ended)s.put({...q.result,uploaded:true})};tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});sent++}progress(`Uploaded ${sent} replay${sent===1?'':'s'}. Thank you!`);return {uploaded:sent}}finally{uploadBusy=false}}
+export async function uploadReplays(progress=()=>{}){if(uploadBusy)return;uploadBusy=true;try{await saveQueue;const all=await replayRows(),rows=all.filter(r=>!r.uploaded);if(!rows.length){progress(all.length?'All saved replays are already uploaded.':'No recorded duels yet. Play a duel first.');return {uploaded:0}}let sent=0;for(const row of rows){progress(`Uploading ${sent+1} / ${rows.length}â€¦`);const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:row.bytes,signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error(`Upload failed (${response.status}). Tap again to retry; your replays are safe.`);const d=await db();await new Promise((resolve,reject)=>{const tx=d.transaction('duels','readwrite'),s=tx.objectStore('duels'),q=s.get(row.id);q.onsuccess=()=>{if(q.result?.steps===row.steps&&q.result?.ended===row.ended)s.put({...q.result,uploaded:true})};tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});sent++}progress(`Uploaded ${sent} replay${sent===1?'':'s'}. Thank you!`);return {uploaded:sent}}finally{uploadBusy=false}}
 
 export function captureBehaviour(record,context={}){
  if(!record)throw Error('No replay is available for this duel yet.');
@@ -30,16 +30,16 @@ export function sendUnsentFlags(){
   for(const row of rows){try{
    if(row.bytes.byteLength>=20000)throw Error('Replay exceeds the 20 kB upload limit.');
    const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:row.bytes,signal:AbortSignal.timeout(20000)});
-   if(!response.ok)throw Error(`Report upload failed (${response.status}).`);
+   if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=response.status===503||response.status===429;throw error;}
    const result=await response.json();if(!result.ok||result.id!==row.id)throw Error('The service did not confirm this report.');
    await flagTransaction(store=>store.delete(row.id));sent++;
-  }catch(error){errors.push(error.message)}}
+  }catch(error){errors.push(error.message);if(error.serviceUnavailable)break}}
   return {ok:errors.length===0,sent,pending:rows.length-sent,error:errors[0]||null};
  });flagSendQueue=task.catch(()=>{});return task;
 }
 export async function uploadBehaviour(capture,description){
  const text=String(description||'').trim();
- if(!text||text.length>2000)throw Error('Describe the behaviour in 1–2,000 characters.');
+ if(!text||text.length>2000)throw Error('Describe the behaviour in 1â€“2,000 characters.');
  const record=clone(capture.record);
  record.behaviourReport={...capture.context,version:1,description:text,at:capture.at,step:record.responses.length};
  const bytes=await packReplay(record),id=await hash(bytes);

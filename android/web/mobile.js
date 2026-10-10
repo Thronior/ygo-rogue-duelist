@@ -87,10 +87,10 @@ function toast(text){
  toastQueue.push(message);showToast();
 }
 function showToast(){if(toastBusy||!toastQueue.length)return;toastBusy=true;const el=document.querySelector('#toast');el.textContent=toastQueue.shift();el.classList.add('show');setTimeout(()=>{el.classList.remove('show');toastBusy=false;showToast()},4200)}
-async function persist(){const files={};for(const name of py.FS.readdir('/game/saves'))if(name.endsWith('.json')||name.endsWith('.bak'))files[name]=py.FS.readFile('/game/saves/'+name,{encoding:'utf8'});const data=JSON.stringify(files);if(window.ShadowNative){if(!await ShadowNative.store(data))throw Error('Could not save game to device storage.')}else localStorage.setItem('shadow-run-mobile',data);deviceBackup.queue(data)}
+async function persist(cloudCheckpoint=false){const files={};for(const name of py.FS.readdir('/game/saves'))if(name.endsWith('.json')||name.endsWith('.bak'))files[name]=py.FS.readFile('/game/saves/'+name,{encoding:'utf8'});const data=JSON.stringify(files);if(window.ShadowNative){if(!await ShadowNative.store(data))throw Error('Could not save game to device storage.')}else localStorage.setItem('shadow-run-mobile',data);if(cloudCheckpoint)deviceBackup.queue(data)}
 let commandQueue=Promise.resolve();
 function command(action,value){const payload=JSON.stringify({action,value});const job=commandQueue.then(()=>executeCommand(payload));commandQueue=job.catch(()=>{});return job}
-async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(statsRequest.action==='reward-progress')return result.result;if(statsRequest.action.startsWith('device-sync-'))state={...state,profile:result.profile,achievements:result.achievements};else if(!JSON.parse(payload).action.startsWith('tag-'))state=result;if(statsRequest.action!=='device-sync-read')await persist();if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish'){draftTab='All';draftSort='Newest';delete deckSearches.draft;}if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);}return result.result}
+async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(statsRequest.action==='reward-progress')return result.result;if(statsRequest.action.startsWith('device-sync-'))state={...state,profile:result.profile,achievements:result.achievements};else if(!JSON.parse(payload).action.startsWith('tag-'))state=result;if(statsRequest.action!=='device-sync-read')await persist(statsRequest.action==='finish');if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish'){draftTab='All';draftSort='Newest';delete deckSearches.draft;}if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);}return result.result}
 async function notices(){const list=state.profile.achievement_notices||[];if(list.length){await command('notices');list.forEach(n=>toast('Achievement complete: '+n.name+' — '+n.reward))}}
 let sfxStopTimer;
 function setDuelSound(url){clearTimeout(sfxStopTimer);sfx.pause();sfx.src=assetURL(url);sfx.load();}
@@ -297,7 +297,7 @@ function renderSettings(){shell('Settings',`<div class="scroll settings settings
  <section class="panel settings-section"><h2>Appearance</h2>${duelBackgroundSetting()}</section>
  <section class="panel settings-section"><h2>App &amp; Devices</h2>${window.ShadowNative?'':`<label>Preload game assets <input type="checkbox" data-preload-visuals ${preloadVisualPreference()==='all'?'checked':''}></label><small>Preload music, artwork and backgrounds on next startup. Sound effects always preload; offline files are reused.</small>`}<p class="muted">Keep playing with your saved progress.</p><div class="settings-actions">${window.ShadowNative?.openUpdate?btn('Check for Updates','android-update'):''}${btn('Link Devices','device-sync-open')}${btn('How to Play','tutorial')}</div></section>
  <section class="panel settings-section replay-settings"><h2>Duel Replays</h2><p>The latest 100 duels are saved on this device. Upload them to help improve the CPU.</p><p class="muted">Includes decks, actions and results. No profile or account details.</p>${btn('Upload Replays','upload-replays')}<p id="replay-status" role="status" aria-live="polite"></p></section>
- <section class="panel settings-section"><h2>Saved Data</h2><p class="muted">Updating the app keeps your save.</p><details><summary>Recover Save Data</summary><p>Progress and Ultimate Collectors are backed up automatically while online. An admin can help recover a lost save.</p><p>Backup code: <strong style="overflow-wrap:anywhere">${esc(deviceBackup.status().code||'Unavailable')}</strong></p><p>${deviceBackup.status().updatedAt?'Last backup: '+esc(new Date(deviceBackup.status().updatedAt).toLocaleString()):'Waiting for first online backup'}</p><label>Restore an admin recovery file <input id="device-recovery-file" type="file" accept=".json,application/json"></label></details><details class="settings-danger"><summary>Reset Progress</summary><p>Remove all saved progress on this device.</p>${btn('Delete All Progress','reset-progress','','danger')}</details></section>
+ <section class="panel settings-section"><h2>Saved Data</h2><label><input type="checkbox" id="cloud-saves-enabled" ${deviceBackup.isEnabled()?'checked':''}> Enable cloud saves</label><p>Off by default. Once you have earned an unlock, your progress is backed up after each duel while online. Local saves always stay enabled.</p><p class="muted">Updating the app keeps your save.</p><details><summary>Recover Save Data</summary><p>Enabled cloud saves back up your progress and Ultimate Collectors after duels. Turning this off stops future backups; existing backups are kept. An admin can help recover a lost save.</p><p>Backup code: <strong style="overflow-wrap:anywhere">${esc(deviceBackup.status().code||'Unavailable')}</strong></p><p>${deviceBackup.status().updatedAt?'Last backup: '+esc(new Date(deviceBackup.status().updatedAt).toLocaleString()):'Waiting for first online backup'}</p><label>Restore an admin recovery file <input id="device-recovery-file" type="file" accept=".json,application/json"></label></details><details class="settings-danger"><summary>Reset Progress</summary><p>Remove all saved progress on this device.</p>${btn('Delete All Progress','reset-progress','','danger')}</details></section>
  <details class="panel settings-advanced"><summary>Advanced</summary><label for="cheat-code">Testing Code</label><div class="settings-code"><input id="cheat-code" placeholder="Enter code">${btn('Apply','cheat')}</div></details>
  <p class="notice settings-about">Yu-Gi-Oh: Rogue Duelist · A private fan experiment.<br>Card and character artwork © Konami. Duel rules: Project Ignis / ocgcore-wasm.</p></div><footer class="settings-footer">${btn('Back','settings-back')}</footer>`,'','settings-page')}
 
@@ -697,6 +697,7 @@ async function boot(){try{
  }catch(e){app.innerHTML=`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>Could not start</h1><p>${esc(e.message)}</p><button id="retry-startup">Retry loading</button></section>`;document.querySelector('#retry-startup').onclick=()=>location.reload();console.error(e)}}
 boot();
 
+let tagCloudPhase=null;
 let tagUI=null,tagOffline=null,tagDuelQueue=Promise.resolve(),tagFinalePlayed=false;
 const desktopToken=new URLSearchParams(location.search).get('desktop');
 modal.addEventListener('close',()=>{if(desktopToken&&tagUI)desktopRPC('native-visible',true).catch(console.error)});
@@ -710,7 +711,7 @@ if(desktopToken)setTimeout(()=>reportDesktopLayout(),0);
 window.addEventListener('resize',()=>{if(desktopToken)reportDesktopLayout();if(desktopToken&&tagUI&&screen==='duel')desktopRPC('native-layout',(app.querySelector('header')?.getBoundingClientRect().bottom||0)/innerHeight).catch(console.error)});
 async function openCollector(draftMode=false){
  if(tagUI)return;tagOffline=state;screen='tag';tagDuelQueue=Promise.resolve();
- const owner=new (draftMode?DraftUI:CollectorUI)({root:app,content,profile:state.profile,backend:command,image,inspect,dialog,openPacks:presentPacks,getSlots:()=>state.slots,onResult:won=>track(won?'victory':'defeat'),
+ const owner=new (draftMode?DraftUI:CollectorUI)({root:app,content,profile:state.profile,backend:command,image,inspect,dialog,openPacks:presentPacks,getSlots:()=>state.slots,onResult:won=>track(won?'victory':'defeat'),onCheckpoint:()=>persist(true),
  onView:view=>{if(tagUI!==owner)return;if(view.phase==='duel')state={...state,run:view.run};else{screen='tag';engine=null;snapshot=null;}},
  onDuel:(s,cues)=>{tagDuelQueue=tagDuelQueue.catch(()=>{}).then(()=>{if(tagUI===owner&&owner.alive)return showTagDuel(s,cues,owner)});return tagDuelQueue;},
  onExit:async()=>{if(tagUI!==owner)return;clearTimeout(aiTimer);tagUI=null;engine=null;snapshot=null;await command('init');tagOffline=null;screen='title';render();}
@@ -719,10 +720,11 @@ async function openCollector(draftMode=false){
  try{await owner.init()}catch(error){owner.destroy();if(tagUI!==owner)return;tagUI=null;state=tagOffline;screen='title';render();dialog('Ultimate Collector',`<p>${esc(error.message)}</p>`);}
 }
 async function openTag(){
+ tagCloudPhase=null;
  if(tagUI)return;tagOffline=state;screen='tag';track('characters');
  if(desktopToken){document.title='YGO Rogue Tag '+desktopToken.slice(0,12);const initial=await desktopRPC('bootstrap');state={...state,profile:initial.profile}}
  tagUI=new TagUI({sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),root:app,content,profile:state.profile,backend:desktopToken?desktopRPC:command,image,inspect,dialog,showRewards:showVictoryReceipt,showScorecard:()=>action('scorecard'),openPacks:presentPacks,onGoldenCards:offerGoldenCards,
- onView:view=>{observeTagStats(view);state={...state,run:view.run,profile:view.profile};rewardPresentation?.refresh();track(view.phase==='duel'?(summonMusic.get(engine)||(view.duel?.mode==='pvp'?'champion':((view.run.round||0)+1)%3===0?'boss':'duel')):view.phase==='shop'?'shop':view.phase==='complete'?'victory':view.phase==='gameover'?'defeat':view.phase==='draft'?'draft':'characters');if(view.phase!=='duel'){document.querySelectorAll('.float-lp,.float-coins,.victory-settlement,.moving-card,.attack-beam,.duel-cue,.coin-toss,.dice-toss').forEach(el=>el.remove());screen='tag';engine=null;snapshot=null;if(desktopToken)desktopRPC('native-stop').catch(console.error)}},
+ onView:view=>{const duelEnded=tagCloudPhase==='duel'&&view.phase!=='duel';tagCloudPhase=view.phase;if(duelEnded)void command('tag-profile',view.profile).then(()=>persist(true)).catch(error=>console.warn('Post-duel backup:',error.message));observeTagStats(view);state={...state,run:view.run,profile:view.profile};rewardPresentation?.refresh();track(view.phase==='duel'?(summonMusic.get(engine)||(view.duel?.mode==='pvp'?'champion':((view.run.round||0)+1)%3===0?'boss':'duel')):view.phase==='shop'?'shop':view.phase==='complete'?'victory':view.phase==='gameover'?'defeat':view.phase==='draft'?'draft':'characters');if(view.phase!=='duel'){document.querySelectorAll('.float-lp,.float-coins,.victory-settlement,.moving-card,.attack-beam,.duel-cue,.coin-toss,.dice-toss').forEach(el=>el.remove());screen='tag';engine=null;snapshot=null;if(desktopToken)desktopRPC('native-stop').catch(console.error)}},
  onDuel:(s,cues)=>{tagDuelQueue=tagDuelQueue.then(async()=>{if(!s.finished)tagFinalePlayed=false;await showTagDuel(s,cues);if(isCardWin(s.finished)&&!tagFinalePlayed){tagFinalePlayed=true;clearTimeout(aiTimer);removeActions();if(modal.open)modal.close();await playCardWin(s.finished)}}).catch(error=>toast(error.message));return tagDuelQueue;},
  onStatus:()=>{if(screen==='duel')tagConnectionBanner()},
  onBack:async profile=>{clearTimeout(aiTimer);engine=null;snapshot=null;screen='tag';busy=false;state={...tagOffline,profile};if(modal.open)modal.close();if(desktopToken)await desktopRPC('native-stop');track('characters')},
@@ -873,9 +875,14 @@ installHandHover(app);
 installMouseDetails(app,el=>{
  if(modal.open||!content)return null;
  let id=Number(el.dataset.preview||el.dataset.id),run=tagUI?.view?.run||state.run;
+ const packDetails=pid=>{const p=content.packs.find(p=>p.id===pid);return p?`<h3>${esc(p.name)}</h3><p>${esc(allCardsPackDescription(p)||packSummary(content,pid))}</p>`:null;};
+ if(el.dataset.curse){const key=el.dataset.curse;return content.curses[key]?`<h3>${esc(content.curses[key][0])}</h3><p>${esc(curseDescription(content,key,run?.challenge_level||0))}</p>`:null;}
+ const packId=el.dataset.pack||el.getAttribute('src')?.match(/^assets\/packs\/(.+)\.jpg$/)?.[1];
+ if(packId)return packDetails(packId);
  if(el.matches('.product-art')){
   const item=run?.shop?.[Number(el.dataset.shopItem)];if(!item)return null;
   if(item.kind==='artifact'){const a=content.artifacts[item.id];return a?`<h3>${esc(a[0])}</h3><p>${esc(a[2])}</p>`:null;}
+  if(item.kind==='pack')return packDetails(item.id);
   if(item.kind!=='single')return null;id=Number(item.id);
  }
  let c=card(id);if(!c)return null;
@@ -885,3 +892,6 @@ installMouseDetails(app,el=>{
 });
 
 document.addEventListener('change',e=>{if(e.target.matches('[data-preload-visuals]'))setPreloadVisualPreference(e.target.checked)});
+
+deviceBackup.setUploadGuard(()=>screen!=='duel'&&tagUI?.view?.phase!=='duel');
+document.addEventListener('change',e=>{if(e.target.id==='cloud-saves-enabled')deviceBackup.setEnabled(e.target.checked)});

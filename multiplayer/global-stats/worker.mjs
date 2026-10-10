@@ -14,7 +14,7 @@ export class GlobalStats{
    const key='client:'+data.id,old=await this.ctx.storage.get(key),next=mergeCounts(old,data.counts);
    next.played=!!old?.played||data.played===true||next.duels>0;if(next.played&&!old?.played)total.devices++;
    for(const k of fields)total[k]+=next[k]-(old?.[k]||0);
-   await this.ctx.storage.put({[key]:next,total});return reply(total);
+   if(!old||fields.some(k=>next[k]!==old[k])||next.played!==old.played)await this.ctx.storage.put({[key]:next,total});return reply(total);
   };
   const task=this.tail.then(work);this.tail=task.catch(()=>{});try{return await task}catch{return reply({error:'Invalid stats request'},400)}
  }

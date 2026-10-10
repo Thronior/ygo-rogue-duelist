@@ -33,7 +33,7 @@ export function toss3DMarkup(kind,results,{rolling=false}={}){
  const value=kind==='coin'?(raw?1:0):Math.max(1,Math.min(6,Number(raw)||1));
  const label=kind==='coin'?(value?'HEADS':'TAILS'):String(value);
  const faces=kind==='coin'?`${[-4,-3,-2,-1,0,1,2,3,4].map(z=>`<span class="toss3d-rim" style="--depth:${z}px"></span>`).join('')}<span class="toss3d-face"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33"/><path d="M25 59H54L47 52V46L52 43V38L57 36L52 29C53 16 32 13 27 26C22 34 28 43 32 47V52Z"/></svg></span><span class="toss3d-face back"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33"/><path d="M40 18L46 33L63 34L50 45L54 62L40 53L26 62L30 45L17 34L34 33Z"/></svg></span>`:pips.map((dots,i)=>`<span class="toss3d-face" style="--face:${faceAngles[i]}">${dots.map(n=>`<i class="toss3d-pip" style="grid-area:${Math.ceil(n/3)}/${(n-1)%3+1}"></i>`).join('')}</span>`).join('');
- return `<span class="toss3d-item"><span class="toss3d-stage" aria-hidden="true"><span class="toss3d-object toss3d-${kind==='coin'?'coin':'die'}" style="--result:${kind==='coin'?`rotateY(${value?0:180}deg)`:resultAngles[value-1]}">${faces}</span></span><b class="toss3d-label">${label}</b></span>`;
+ return `<span class="toss3d-item"><span class="toss3d-stage" aria-hidden="true"><span class="toss3d-object toss3d-${kind==='coin'?'coin':'die'}" style="--result:${kind==='coin'?`rotateY(${value?0:180}deg)`:resultAngles[value-1]}">${faces}</span></span><b class="toss3d-label">${rolling?'':label}</b></span>`;
  }).join('')}</div>`;
 }
 export async function play3DToss(field,kind,results,{wait=ms=>new Promise(r=>setTimeout(r,ms)),active=()=>true,sound=()=>{}}={}){
@@ -59,9 +59,9 @@ export async function play3DToss(field,kind,results,{wait=ms=>new Promise(r=>set
   const from=objects.map(node=>getComputedStyle(node).transform);
   spins.forEach(animation=>animation.cancel());
   row.classList.add('settling');row.classList.remove('rolling');
-  if(!reduced){objects.forEach((node,i)=>settling.push(node.animate([{transform:from[i]},{transform:getComputedStyle(node).transform}],{duration:landingMs,easing:'cubic-bezier(.18,.7,.25,1)',fill:'forwards'})));await wait(landingMs);}
+  if(!reduced){objects.forEach((node,i)=>settling.push(node.animate([{transform:from[i]},{transform:getComputedStyle(node).transform}],{duration:landingMs,easing:'cubic-bezier(.18,.7,.25,1)',fill:'forwards'})));await Promise.allSettled(settling.map(animation=>animation.finished));}
   if(!active()||!overlay.isConnected)return;
-  settling.forEach(animation=>animation.cancel());row.classList.remove('settling');row.setAttribute('aria-label',kind==='coin'?results.map(v=>v?'Heads':'Tails').join(', '):`Rolled ${results.join(', ')}`);
+  settling.forEach(animation=>animation.cancel());row.querySelectorAll('.toss3d-label').forEach((label,i)=>{label.textContent=kind==='coin'?(results[i]?'HEADS':'TAILS'):String(results[i]);});row.classList.remove('settling');row.setAttribute('aria-label',kind==='coin'?results.map(v=>v?'Heads':'Tails').join(', '):`Rolled ${results.join(', ')}`);
   await wait(kind==='coin'?850:1100);
  }finally{spins.forEach(animation=>animation.cancel());settling.forEach(animation=>animation.cancel());overlay.remove()}
 }

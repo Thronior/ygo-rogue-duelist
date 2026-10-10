@@ -14,15 +14,19 @@ export function shuffleCollectorDeck(deck,randomWord=()=>crypto.getRandomValues(
  return result;
 }
 export class CollectorRegistry {
- constructor(ctx){this.validate=validateDeck;this.ctx=ctx;this.tail=Promise.resolve();this.cache=new Map();ctx.blockConcurrencyWhile(async()=>{
+ constructor(ctx){this.validate=validateDeck;this.ctx=ctx;this.tail=Promise.resolve();this.cache=new Map();this.timingCache=new Map();this.alarmAt=null;ctx.blockConcurrencyWhile(async()=>{
  this.data={players:{},rooms:{}};const stored=await ctx.storage.list({prefix:'collector:'});
  for(const [key,meta] of stored){if(!key.endsWith(':meta'))continue;const base=key.slice(0,-5);let text='';for(let i=0;i<meta.count;i++)text+=stored.get(base+':'+i);const value=JSON.parse(text),[,kind,id]=base.split(':');this.data[kind][id]=value;this.cache.set(base,{text,count:meta.count});}
+ for(const [id,room] of Object.entries(this.data.rooms)){const timing=stored.get('collector:timing:'+id);if(timing){Object.assign(room,timing);this.timingCache.set(id,JSON.stringify(timing));}}
+ if(this.ctx.storage.getAlarm)this.alarmAt=await this.ctx.storage.getAlarm();
  });}
  async persist(){
- const changes=[];for(const kind of ['players','rooms'])for(const [id,value] of Object.entries(this.data[kind])){const base=`collector:${kind}:${id}`,text=JSON.stringify(value),previous=this.cache.get(base);if(previous?.text===text)continue;changes.push({base,text,count:Math.ceil(text.length/30000),oldCount:previous?.count||0});}
- if(changes.length)await this.ctx.storage.transaction(async tx=>{for(const row of changes){for(let i=0;i<row.count;i++)await tx.put(row.base+':'+i,row.text.slice(i*30000,(i+1)*30000));await tx.put(row.base+':meta',{count:row.count});for(let i=row.count;i<row.oldCount;i++)await tx.delete(row.base+':'+i);}});
+ const timingChanges=[];const changes=[];for(const kind of ['players','rooms'])for(const [id,value] of Object.entries(this.data[kind])){const base=`collector:${kind}:${id}`,text=JSON.stringify(kind==='rooms'?Object.fromEntries(Object.entries(value).filter(([k])=>!['seen','charged','disconnectLeft','turnLeft','clockAt'].includes(k))):value),previous=this.cache.get(base);if(previous?.text===text)continue;changes.push({base,text,count:Math.ceil(text.length/30000),oldCount:previous?.count||0});}
+ for(const [id,room] of Object.entries(this.data.rooms)){const timing=Object.fromEntries(['seen','charged','disconnectLeft','turnLeft','clockAt'].filter(k=>k in room).map(k=>[k,room[k]])),text=JSON.stringify(timing);if(this.timingCache.get(id)!==text)timingChanges.push({id,timing,text});}
+ if(changes.length||timingChanges.length)await this.ctx.storage.transaction(async tx=>{for(const row of timingChanges)await tx.put('collector:timing:'+row.id,row.timing);for(const row of changes){for(let i=0;i<row.count;i++)await tx.put(row.base+':'+i,row.text.slice(i*30000,(i+1)*30000));await tx.put(row.base+':meta',{count:row.count});for(let i=row.count;i<row.oldCount;i++)await tx.delete(row.base+':'+i);}});
  for(const row of changes)this.cache.set(row.base,row);
- if(Object.values(this.data.rooms).some(r=>r.phase!=='complete'&&r.players.length===2))await this.ctx.storage.setAlarm(Date.now()+10000);
+ for(const row of timingChanges)this.timingCache.set(row.id,row.text);
+ if(Object.values(this.data.rooms).some(r=>r.phase!=='complete'&&r.players.length===2)&&!this.alarmAt){const at=Date.now()+10000;await this.ctx.storage.setAlarm(at);this.alarmAt=at;}
  }
  finish(room,loser,reason){if(room.phase==='complete')return;room.phase='complete';room.winner=1-loser;room.reason=reason;const win=this.data.players[room.players[room.winner]],loss=this.data.players[room.players[loser]];loss.defeatedDeck=structuredClone(room.decks?.[loser]||room.startDecks[loser]);loss.defeatedAt=Date.now();loss.defeatReason=reason;loss.status='eliminated';loss.pool=[];loss.deck={main:[],side:[],extra:[]};win.wins++;room.prizes=deckCards(room.startDecks[loser]);const entry={room:room.code,at:Date.now(),score:room.score,reason,cards:[]};win.history.push({...entry,won:true,opponent:loss.name,games:(room.games||[]).map(g=>({...g,result:g.winner===2?'Draw':g.winner===room.winner?'Won':'Lost'}))});loss.history.push({...entry,won:false,opponent:win.name,games:(room.games||[]).map(g=>({...g,result:g.winner===2?'Draw':g.winner===loser?'Won':'Lost'}))});}
  finishDuel(room,winner,reason){if(room.phase!=='duel')return;room.games??=[];room.games.push({game:room.game,winner,turns:room.turn,at:Date.now(),...(reason?{reason}:{})});if(winner!==2)room.score[winner]++;if(winner!==2&&room.score[winner]>=2)this.finish(room,1-winner,'Match defeat');else{room.phase='siding';room.chooser=winner===2?room.first:1-winner;room.ready=[false,false];room.nextFirst=null;}room.votes={};}
@@ -40,7 +44,7 @@ export class CollectorRegistry {
  else if(room.phase==='duel'&&room.turnLeft?.some(t=>t<=0))this.finish(room,room.turnLeft[0]<=0?0:1,'Turn timer expired');
  }
  expire(){for(const room of Object.values(this.data.rooms))this.tick(room);}
- async alarm(){const job=this.tail.then(async()=>{this.expire();await this.persist();});this.tail=job.catch(()=>{});await job;}
+ async alarm(){const job=this.tail.then(async()=>{this.alarmAt=null;this.expire();await this.persist();});this.tail=job.catch(()=>{});await job;}
  fetch(request){const job=this.tail.then(()=>this.handle(request));this.tail=job.catch(()=>{});return job;}
  async handle(request){try{const raw=await request.text();if(raw.length>1000000)throw Error('Request too large.');const v=JSON.parse(raw),op=new URL(request.url).pathname.split('/').pop();this.expire();let p=this.data.players[v.id];
  if(op==='fallen'){const fallen=Object.values(this.data.players).filter(x=>x.status==='eliminated'&&x.defeatedDeck?.main?.length>=40).sort((a,b)=>(b.defeatedAt||0)-(a.defeatedAt||0)).slice(0,200).map(x=>({id:x.id,name:x.name,character:x.character,deck:x.defeatedDeck}));return this.reply({fallen});}

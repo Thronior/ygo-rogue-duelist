@@ -25,7 +25,7 @@ export class ProgressRegistry{
   }
   let group=v.group,g;
   if(op==='create'&&!group){group=crypto.randomUUID();g={token:crypto.randomUUID()+crypto.randomUUID(),progress:cleanProgress(v.progress)}}else g=await auth();
-  g.progress=mergeProgress(g.progress,v.progress);await this.ctx.storage.put('group:'+group,g);
+  const previous=JSON.stringify(g.progress);g.progress=mergeProgress(g.progress,v.progress);if(op!=='sync'||JSON.stringify(g.progress)!==previous)await this.ctx.storage.put('group:'+group,g);
   if(op==='sync')return reply({progress:g.progress});
   if(g.code)await this.ctx.storage.delete('code:'+g.code);
   let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(8)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%32]).join('')}while(await this.ctx.storage.get('code:'+code));

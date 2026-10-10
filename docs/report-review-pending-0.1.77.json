@@ -1,0 +1,7 @@
+{
+  "exclusiveAfter": "2026-10-10T12:37:20Z",
+  "status": "blocked-by-cloudflare-daily-write-quota",
+  "scope": "Behaviour reports and uploaded replays; review this pending window even after the release cutoff advances.",
+  "cpuChanges": false,
+  "fallenRosterRefresh": "Attempted twice; service HTTP 500. Existing roster retained unchanged."
+}
