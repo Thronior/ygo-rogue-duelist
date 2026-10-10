@@ -10,19 +10,22 @@ async function offline(){
  if(!('serviceWorker' in navigator)||!isSecureContext)throw Error('Offline play needs HTTPS or localhost.');
  report('Downloading game files. Keep this window open…');
  registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
- await registration.update();
  if(document.documentElement.dataset.bundledArtwork==='true'){
   if(registration.waiting){report('Update ready. Close all game windows and reopen, then download offline files.');return;}
+  if(!navigator.serviceWorker.controller)throw Error('Offline worker is still starting. Please retry in a moment.');
   navigator.serviceWorker.controller.postMessage({type:'DOWNLOAD_OFFLINE'});navigator.storage?.persist?.().catch(()=>{});return;
  }
- if(registration.waiting)report('Update downloaded. Close all game windows and reopen to apply it.');
- else if(registration.active&&!registration.installing)report('Offline game is ready.');
- registration.addEventListener('updatefound',()=>{
-  const worker=registration.installing;worker?.addEventListener('statechange',()=>{
-   if(worker.state==='installed')report(navigator.serviceWorker.controller?'Update downloaded. Close all game windows and reopen to apply it.':'Offline game is ready.');
-   if(worker.state==='redundant')report('Download failed. Check connection and available storage, then retry.');
-  });
- });
+ const watch=worker=>{
+  if(!worker)return;
+  const changed=()=>{
+   if(worker.state==='installed'){report(registration.active?'Update downloaded. Close all game windows and reopen to apply it.':'Offline game is ready.');worker.removeEventListener('statechange',changed);}
+   if(worker.state==='redundant'){report('Offline download interrupted. Check your connection and available storage, then retry. Downloaded files will be reused.');worker.removeEventListener('statechange',changed);}
+  };
+  worker.addEventListener('statechange',changed);changed();
+ };
+ if(registration.installing)watch(registration.installing);
+ else if(registration.waiting)report('Update downloaded. Close all game windows and reopen to apply it.');
+ else if(registration.active)report('Offline game is ready.');
  navigator.storage?.persist?.().catch(()=>{});
 }
 panel.querySelector('#web-offline').onclick=()=>offline().catch(e=>report(e.message));

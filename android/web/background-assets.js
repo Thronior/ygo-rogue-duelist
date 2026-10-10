@@ -1,3 +1,4 @@
+import {downloadBlob} from './asset-download.js';
 // Fixed set of compressed background files, preloaded once at startup.
 // Only the visible scene creates a video decoder; no hidden players are retained.
 const loaded=new Map(),pending=new Map();let activeKey=null;
@@ -14,8 +15,7 @@ export function preloadBackground(spec){
  if(loaded.has(spec.key)){const url=loaded.get(spec.key);loaded.delete(spec.key);loaded.set(spec.key,url);return Promise.resolve(url)}
  if(pending.has(spec.key))return pending.get(spec.key);
  const task=(async()=>{
-  const response=await fetch(spec.path);if(!response.ok)throw Error('Background unavailable');
-  const blob=await response.blob(),signature=new Uint8Array(await blob.slice(0,12).arrayBuffer());
+  const blob=await downloadBlob(spec.path),signature=new Uint8Array(await blob.slice(0,12).arrayBuffer());
   const valid=spec.type==='video/webm'?signature.slice(0,4).join()==='26,69,223,163':String.fromCharCode(...signature.slice(4,8))==='ftyp';
   if(!valid)throw Error('Invalid background video');
   const url=URL.createObjectURL(new Blob([blob],{type:spec.type}));loaded.set(spec.key,url);trim();return url;

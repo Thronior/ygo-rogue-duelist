@@ -92,7 +92,7 @@ def sync():
  for source in (ROOT/'assets').rglob('*'):
   if not source.is_file():continue
   relative=source.relative_to(ROOT/'assets')
-  if relative.parts[0]=='music' and (len(relative.parts)!=2 or source.suffix.lower()!='.mp3' or source.stem not in selected_music):continue
+  if relative.parts[0]=='music' and (len(relative.parts)!=2 or source.suffix.lower()!='.m4a' or source.stem not in selected_music):continue
   if any(part.casefold()=='potential sound effects' for part in relative.parts):continue
   if source.name.startswith('gx'):continue
   if relative.parts[0]=='packs' and source.stem in excluded_packs:continue
@@ -118,7 +118,7 @@ def sync():
  if missing:raise RuntimeError('Missing offline card images: '+str(missing))
  # Enumerate only assets shipped by the shared Android/web packaging policy.
  packaged=[relative for _,relative in web_files(WEB)]
- audio=[p.as_posix() for p in packaged if p.suffix.lower() in ('.wav','.mp3','.ogg')]
+ audio=[p.as_posix() for p in packaged if p.suffix.lower() in ('.wav','.mp3','.ogg','.m4a')]
  images=[p.as_posix() for p in packaged if p.suffix.lower() in ('.jpg','.png','.webp','.gif','.svg') and p.parts[:2]!=('assets','cards')]
  (WEB/'startup-assets.json').write_text(json.dumps(dict(audio=audio,images=images)),encoding='utf8')
  digest=hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()

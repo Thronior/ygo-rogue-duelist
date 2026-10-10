@@ -502,6 +502,7 @@ export function smartContext(e,p,L,prompt=null){
    // A second face-up continuous/field copy ordinarily adds no useful action.
    if(duplicates.length&&(d.type&(0x20000|0x80000))&&!['Wave-Motion Cannon',"Gravekeeper's Servant"].includes(n))return -1;
   }
+  if(n==='Thousand-Eyes Restrict')return back.filter(x=>x.sequence<5).length<5&&enemy.some(x=>!reservedForRemoval(x))?140:-1;
   if(n==='Relinquished')return enemy.length&&back.length<5?140:-1;
   if(n==='The Shallow Grave'){
    const value=c=>Math.max(atk(c),c.defense??data(c).defense??0);
@@ -900,7 +901,17 @@ function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))retu
   if(n==='Dancing Fairy')return openingTurn||prompt?.to_bp===false||attackBlocked(c,p,true)||projectedAttack(c)<=threat;
   if(data(c).type&0x200&&!(back.some(x=>enabled(x)&&name(x)==='Spiritual Energy Settle Machine'))&&(e.turn===1||prompt?.to_bp===false||battleLocked))return true;
   return !!(data(c).type&0x200000)||['Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts','Blast Sphere','Kiseitai','Nimble Momonga','Newdoria','Greenkappa','Hane-Hane','Needle Worm','Cyber Jar','4-Starred Ladybug of Doom','Slate Warrior'].includes(n);}
- function scientistUseful(){return e.lp[p]>2500&&own.length<5&&enemy.length>0&&q(p,L.EXTRA).some(c=>lvl(c)<=6&&(data(c).type&0x40)&&(name(c)==='Thousand-Eyes Restrict'&&enemy.some(face)||!openingTurn&&e.phase<256&&!battleLocked&&atk(c)>Math.min(...enemy.map(power))))}
+ function scientistRemovalTargets(){
+  return enemy.filter(c=>face(c)&&!c.is_immune&&!reservedForRemoval(c)&&
+   !/cannot be targeted by (?:card|monster) effects|unaffected by (?:other )?monster effects/i.test(e.cards.get(c.code)?.desc||'')&&
+   (effectThreat(c)>=1000||resilient(c)||power(c)>=1800&&power(c)>=Math.max(0,...own.filter(x=>face(x)&&!attackBlocked(x,p)).map(atk))));
+ }
+ function scientistFusionScore(c){
+  if(name(c)!=='Thousand-Eyes Restrict'||lvl(c)>6||!(data(c).type&0x40)||!effectsEnabled(p)||back.filter(x=>x.sequence<5).length>=5)return -1000000;
+  if([...back,...theirBack].some(x=>enabled(x)&&name(x)==='Skill Drain')||own.some(x=>enabled(x)&&name(x)==='Thousand-Eyes Restrict'))return -1000000;
+  const targets=scientistRemovalTargets();return targets.length?10000+Math.max(...targets.map(targetValue)):-1000000;
+ }
+ function scientistUseful(){return e.lp[p]>2500&&own.length<5&&q(p,L.EXTRA).some(c=>scientistFusionScore(c)>0)}
  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code)||!effectsEnabled(p))return false;const n=name(c);if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
@@ -1056,6 +1067,8 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(chaosPair&&grave.length<=6&&(attr(c)==='LIGHT'||attr(c)==='DARK')){const light=attr(c)==='LIGHT';if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
   return s;}
  function targetScore(fxN,cand,info){const nm=name(cand);
+  if(fxN==='Magical Scientist'&&cand.controller===p&&cand.location===L.EXTRA)return scientistFusionScore(cand);
+  if(fxN==='Thousand-Eyes Restrict'&&cand.controller!==p&&cand.location===L.MZONE)return reservedForRemoval(cand)?-1000000:20000+targetValue(cand);
   if(fxN==='Ryu-Kishin Clown'&&cand.location===L.MZONE){
    const target=q(cand.controller,L.MZONE).find(x=>same(x,cand));if(!target||!face(target))return -1000000;
    const attack=atk(target),defense=target.defense??data(target).defense??0;

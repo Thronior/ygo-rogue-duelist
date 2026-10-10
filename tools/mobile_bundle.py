@@ -19,7 +19,7 @@ def web_files(root):
   # Retained source reference; all supported clients now use the smaller H.264 copy.
   if relative.as_posix()=='assets/duel-tunnel-1080.webm':continue
   if relative.parts[:2]==('assets','music') and selected_music is not None:
-   if len(relative.parts)!=3 or p.suffix.lower()!='.mp3' or p.stem not in selected_music:continue
+   if len(relative.parts)!=3 or p.suffix.lower()!='.m4a' or p.stem not in selected_music:continue
   if any(part.casefold()=='potential sound effects' for part in relative.parts):continue
   if p.name=='package.json' or p.name.startswith(('test-','tmp-')):continue
   if any(part.startswith('ai-backup-') or part=='__pycache__' for part in relative.parts):continue

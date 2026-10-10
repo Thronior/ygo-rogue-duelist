@@ -1730,3 +1730,12 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .duel .hand > button.mouse-hand-hover{scale:1.04;z-index:5}
 @media(any-hover:hover) and (any-pointer:fine){.duel .hand{padding-top:8px}}
 @media(prefers-reduced-motion:reduce){.duel .hand > button[data-hand]{transition:none}}
+
+/* Compact reward and menu labels, without changing the card footprint. */
+.earned-coin{width:1em;height:1em;object-fit:contain;vertical-align:-.1em}
+.modal-head:empty{display:none}
+.menu-card{container-type:inline-size}
+.title .menu-card h3.compact-menu-title{white-space:nowrap;font-size:clamp(8px,7.8cqw,22px)}
+
+.duel .field-character{object-position:center bottom}
+.startup-choice{max-width:560px;padding:16px;text-align:center}.startup-choice p{font-size:15px}.startup-choice .actions{justify-content:center;flex-wrap:wrap}

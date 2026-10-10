@@ -7,6 +7,20 @@ const allowed=new Set(FILES.map(path=>new URL(path,root).href));
 function withoutRedirect(response){
  return response.redirected?new Response(response.body,{status:response.status,statusText:response.statusText,headers:response.headers}):response;
 }
+async function cacheFile(cache,path,url){
+ // A failed installation keeps only this version's completed entries for retry.
+ if(await cache.match(url))return;
+ let error;
+ for(let attempt=0;attempt<3;attempt++){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
+  try{
+   const response=await fetch(new Request(path==='index.html'?root:url,{cache:'reload',signal:controller.signal}));
+   if(!response.ok)throw Error(`${url.pathname}: ${response.status}`);
+   await cache.put(url,withoutRedirect(response));return;
+  }catch(e){error=e;if(attempt<2)await new Promise(r=>setTimeout(r,500*2**attempt))}finally{clearTimeout(timer)}
+ }
+ throw error;
+}
 async function broadcast(data){for(const client of await self.clients.matchAll({includeUncontrolled:true}))client.postMessage(data);}
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  // Repair the old worker's homepage before the full offline download.
@@ -20,13 +34,12 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);let next=0,done=0;
  try{
   const results=await Promise.allSettled(Array.from({length:6},async()=>{while(next<FILES.length){
-   const path=FILES[next++],url=new URL(path,root);const response=await fetch(new Request(path==='index.html'?root:url,{cache:'reload'}));
-   if(!response.ok)throw Error(`${url.pathname}: ${response.status}`);await cache.put(url,withoutRedirect(response));done++;
+   const path=FILES[next++],url=new URL(path,root);await cacheFile(cache,path,url);done++;
    if(done%40===0||done===FILES.length)await broadcast({type:'CACHE_PROGRESS',done,total:FILES.length});
   }}));
   const failure=results.find(result=>result.status==='rejected');if(failure)throw failure.reason;
   await broadcast({type:'CACHE_READY'});
- }catch(error){await caches.delete(CACHE);await broadcast({type:'CACHE_ERROR',message:error.message});throw error;}
+ }catch(error){await broadcast({type:'CACHE_ERROR',message:error.message});throw error;}
  // No skipWaiting: never replace a running duel's assets with another version.
 })()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{

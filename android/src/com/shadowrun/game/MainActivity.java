@@ -61,6 +61,7 @@ public final class MainActivity extends Activity {
                     String mime=MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
                     if(ext.equals("js") || ext.equals("mjs")) mime="text/javascript";
                     if(ext.equals("wasm")) mime="application/wasm";
+                    if(ext.equals("m4a")) mime="audio/mp4";
                     if(ext.equals("json")) mime="application/json";
                     if(mime==null) mime="application/octet-stream";
                     return new WebResourceResponse(mime,"UTF-8",getAssets().open("web/"+path));
