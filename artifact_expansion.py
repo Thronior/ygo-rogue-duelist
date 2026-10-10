@@ -2,7 +2,7 @@
 def install(artifact):
  from approved_relics import install as approved_install
  approved_install(artifact)
- for attr,name,art in [('LIGHT','Radiant Covenant','Luminous Spark'),('DARK','Umbral Covenant','Mystic Plasma Zone'),('FIRE','Ember Covenant','Molten Destruction'),('WATER','Tidal Covenant','Umi'),('WIND','Gale Covenant','Rising Air Current'),('EARTH','Stone Covenant','Gaia Power')]:
+ for attr,name,art in [('LIGHT','Light Surgery','Luminous Spark'),('DARK','Dark Surgery','Mystic Plasma Zone'),('FIRE','Fire Surgery','Molten Destruction'),('WATER','Water Surgery','Umi'),('WIND','Wind Surgery','Rising Air Current'),('EARTH','Earth Surgery','Gaia Power')]:
   artifact('attribute_'+attr.lower(),name,90,f'All face-up monsters you control become {attr}.',art,'attribute',0,'offense',attr)
  artifact('arcane_resonance','Arcane Resonance',130,'Monsters you control gain 100 ATK for each face-up Spell/Trap on the field.','Mage Power','backrow_atk',100,'offense')
  artifact('waning_star','Waning Star',95,'Once per turn, at the start of your Standby Phase, reduce the Level of 1 random Level 2 or higher monster in your hand by 1 until the end of this turn.','Cost Down','hand_level',1,'draw')

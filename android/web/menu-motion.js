@@ -56,6 +56,9 @@ export function mountMenuMotion(root,count,initial,onSelect){
   drag.point=point;drag.last=now;paint();e.preventDefault();
  }
  function up(e){
+  // Touch starts with implicit capture on the card. Its bubbled loss during
+  // transfer to the carousel is not the end of the carousel's drag.
+  if(e.type==='lostpointercapture'&&(e.target!==root||root.hasPointerCapture(e.pointerId)))return;
   if(!drag||e.pointerId!==drag.id)return;
   const previous=drag;drag=null;root.classList.remove('dragging');
   if(root.hasPointerCapture(e.pointerId))root.releasePointerCapture(e.pointerId);

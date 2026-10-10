@@ -58,11 +58,11 @@
     },
     "scarab": {
       "name": "Jade Pendant",
-      "price": 40,
-      "description": "After each victory, gain 250 LP before entering the shop, up to your current healing limit.",
+      "price": 100,
+      "description": "After each victory, gain 1,000 LP before entering the shop, up to your current healing limit.",
       "art": "Man-Eater Bug",
       "effect": "shop_heal",
-      "amount": 250,
+      "amount": 1000,
       "tag": "healing",
       "filter": "",
       "parameters": {}
@@ -767,7 +767,7 @@
       "parameters": {}
     },
     "attribute_light": {
-      "name": "Radiant Covenant",
+      "name": "Light Surgery",
       "price": 90,
       "description": "All face-up monsters you control become LIGHT.",
       "art": "Luminous Spark",
@@ -777,7 +777,7 @@
       "filter": "LIGHT"
     },
     "attribute_dark": {
-      "name": "Umbral Covenant",
+      "name": "Dark Surgery",
       "price": 90,
       "description": "All face-up monsters you control become DARK.",
       "art": "Mystic Plasma Zone",
@@ -787,7 +787,7 @@
       "filter": "DARK"
     },
     "attribute_fire": {
-      "name": "Ember Covenant",
+      "name": "Fire Surgery",
       "price": 90,
       "description": "All face-up monsters you control become FIRE.",
       "art": "Molten Destruction",
@@ -797,7 +797,7 @@
       "filter": "FIRE"
     },
     "attribute_water": {
-      "name": "Tidal Covenant",
+      "name": "Water Surgery",
       "price": 90,
       "description": "All face-up monsters you control become WATER.",
       "art": "Umi",
@@ -807,7 +807,7 @@
       "filter": "WATER"
     },
     "attribute_wind": {
-      "name": "Gale Covenant",
+      "name": "Wind Surgery",
       "price": 90,
       "description": "All face-up monsters you control become WIND.",
       "art": "Rising Air Current",
@@ -817,7 +817,7 @@
       "filter": "WIND"
     },
     "attribute_earth": {
-      "name": "Stone Covenant",
+      "name": "Earth Surgery",
       "price": 90,
       "description": "All face-up monsters you control become EARTH.",
       "art": "Gaia Power",

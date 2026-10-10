@@ -1739,3 +1739,4 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 
 .duel .field-character{object-position:center bottom}
 .startup-choice{max-width:560px;padding:16px;text-align:center}.startup-choice p{font-size:15px}.startup-choice .actions{justify-content:center;flex-wrap:wrap}
+.duelist-selection .engine-character-description{flex:1 1 62%;display:grid;place-content:center;text-align:center;margin:0;padding:12px;line-height:1.5}

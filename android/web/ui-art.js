@@ -1,6 +1,6 @@
 import {assetURL} from './startup-assets.js';
 // Use pre-cropped artwork files so responsive layouts never expose card frames.
-export const relicImage=id=>assetURL(`assets/relics/${String(id).endsWith('.png')?encodeURIComponent(id):id+'.jpg'}`);
+export const relicImage=id=>assetURL(`assets/relics/${/\.(png|svg)$/i.test(String(id))?encodeURIComponent(id):id+'.jpg'}`);
 export function relicArtwork(src,attributes=''){
  return `<img class="relic-artwork" src="${src}" alt="Relic artwork" ${attributes}>`;
 }

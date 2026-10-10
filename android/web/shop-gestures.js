@@ -6,7 +6,8 @@ export function installShopGestures(root,{tap,hold,delay=500}){
  root.addEventListener('pointermove',e=>{if(gesture?.id===e.pointerId&&Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)>10)cancel()},{capture:true,passive:true});
  root.addEventListener('scroll',cancel,{capture:true,passive:true});root.addEventListener('pointercancel',cancel,true);
  root.addEventListener('pointerup',e=>{if(gesture?.id!==e.pointerId)return;const g=gesture;clearTimeout(g.timer);gesture=null;suppressClick=true;if(!g.cancelled&&!g.held&&e.target.closest('[data-shop-item]')===g.el)tap(g.index)},true);
- root.addEventListener('click',e=>{if(suppressClick&&e.detail!==0){suppressClick=false;e.preventDefault();e.stopImmediatePropagation();return}const el=e.target.closest('[data-shop-item]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();if(e.detail===0)tap(Number(el.dataset.shopItem))},true);
+ root.addEventListener('click',e=>{if(suppressClick&&e.detail!==0){suppressClick=false;e.preventDefault();e.stopImmediatePropagation();return}const el=e.target.closest('[data-shop-item]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();// A browser may deliver a click without the matching pointerup.
+ const g=gesture;clearTimeout(g?.timer);gesture=null;if(e.detail===0||!g||(!g.cancelled&&!g.held&&g.el===el))tap(Number(el.dataset.shopItem))},true);
  root.addEventListener('contextmenu',e=>{const el=e.target.closest('[data-shop-item]');if(!el)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch')return;cancel();gesture=null;hold(Number(el.dataset.shopItem))},true);
  root.addEventListener('dragstart',e=>{if(e.target.closest('[data-shop-item]')){cancel();e.preventDefault()}},true);
 }

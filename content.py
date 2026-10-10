@@ -75,7 +75,7 @@ artifact('ankh','Diamond Ankh',75,'Gain 2,000 LP now; healing cap becomes 10,000
 artifact('feather','Phoenix Feather',65,'Heal 400 LP after each victory.',"Harpie's Feather Duster",'victory_heal',400,'healing')
 artifact('urn','Merchant Urn',60,'Earn 10 additional coins per victory.','Pot of Greed','gold',10)
 artifact('eye','Millennium Eye',100,'Draw one extra opening card.','Sangan','opening',1,'draw')
-artifact('scarab','Jade Pendant',40,'Heal 250 LP when entering a shop.','Man-Eater Bug','shop_heal',250,'healing')
+artifact('scarab','Jade Pendant',100,'Heal 1,000 LP after each victory.','Man-Eater Bug','shop_heal',1000,'healing')
 artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbinding Circle','enemy_lp',500,'offense')
 for key,name,art,race in [
  ('dragon','Dragon Crest','Blue-Eyes White Dragon','Dragon'),('mage','Magician Staff','Dark Magician','Spellcaster'),
