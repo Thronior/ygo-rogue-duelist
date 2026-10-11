@@ -1,0 +1,21 @@
+{
+  "version": "0.1.78",
+  "sourceCommit": "b7a4ef6d0f01f6cab15020754c54bb46840da0fd",
+  "pushed": true,
+  "web": "https://ygo-rogue.pages.dev/",
+  "deployment": "https://42506479.ygo-rogue.pages.dev",
+  "android": "https://github.com/Thronior/ygo-rogue-duelist/releases/tag/v0.1.78",
+  "itchUpload": "19689081",
+  "devlog": "https://thronior.itch.io/ygo-rogue/devlog/1701785/v0178",
+  "publishedAt": "2026-10-11T08:53:05Z",
+  "liveFilesVerified": [
+    "build.json",
+    "mobile.js",
+    "smart_policy.js",
+    "duel.js",
+    "card-inspection.js"
+  ],
+  "itchVersionVerified": true,
+  "fallenRosterCount": 10,
+  "uiVerified": "Pack/startup flow, close-icon header, deck sorting/deselect/auto-build layout"
+}
