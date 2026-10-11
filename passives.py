@@ -1,7 +1,7 @@
 """Generate real core field effects for the run's artifacts and boss curses."""
 from content import ART_INFO
 from artifact_effects import effect as expanded_effect
-RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Dinosaur':'RACE_DINOSAUR','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND'}
+RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Aqua/Fish':'RACE_AQUA|RACE_FISH','Dinosaur':'RACE_DINOSAUR','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND'}
 def ai_modifiers(run):
  from approved_relics import duel_run
  run=duel_run(run)
@@ -41,7 +41,9 @@ end""")
   if current_relic is None:return text
   import re
   hint=f'Duel.Hint(HINT_MESSAGE,0,{1800000000+list(ART_INFO).index(current_relic)}) '
-  return re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
+  text=re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
+  if current_relic=='solemn_relic' or current_relic=='magic_mirror' and run.get('mirror_copy')=='solemn_relic':text=text.replace('then used=true end',f'then used=true {hint}end')
+  return text
  def stat(code,value,condition='true',enemy=False):
   lines.append(f'''do local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD)

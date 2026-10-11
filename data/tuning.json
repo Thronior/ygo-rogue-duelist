@@ -134,14 +134,14 @@
       "parameters": {}
     },
     "shell": {
-      "name": "Tidal Shell",
+      "name": "Shell Spikes",
       "price": 60,
-      "description": "Aqua monsters you control gain 300 ATK.",
+      "description": "Aqua and Fish monsters you control gain 300 ATK.",
       "art": "Aqua Madoor",
       "effect": "atk",
       "amount": 300,
       "tag": "offense",
-      "filter": "Aqua",
+      "filter": "Aqua/Fish",
       "parameters": {}
     },
     "fossil": {
@@ -213,10 +213,10 @@
     "ember": {
       "name": "Ember Orb",
       "price": 65,
-      "description": "FIRE monsters you control gain 250 ATK/DEF.",
+      "description": "FIRE monsters you control gain 200 ATK/DEF.",
       "art": "Flame Swordsman",
       "effect": "both",
-      "amount": 250,
+      "amount": 200,
       "tag": "offense",
       "filter": "FIRE",
       "parameters": {}

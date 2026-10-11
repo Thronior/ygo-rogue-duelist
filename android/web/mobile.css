@@ -872,7 +872,7 @@ dialog:has(.coin-bonuses){width:min(620px,94vw);max-height:88dvh;overflow:hidden
 
 /* Live level changes, including Waning Star, stay visible on the affected copy. */
 .duel .hand>button{position:relative}
-.duel .level-change{position:absolute;left:2px;top:2px;z-index:3;display:flex;align-items:center;gap:2px;padding:2px 4px;border:1px solid #ffd469;border-radius:5px;background:#122833f2;color:#ffe39b;font-size:clamp(9px,1.5vw,13px);font-weight:700;line-height:1.2;white-space:nowrap;pointer-events:none;box-shadow:0 1px 3px #0009}
+.duel .level-change{position:absolute;left:2px;top:2px;z-index:3;display:flex;align-items:center;gap:2px;padding:0;border:0;border-radius:0;background:none;color:#ffe39b;font-size:clamp(9px,1.5vw,13px);font-weight:700;line-height:1.2;white-space:nowrap;pointer-events:none;box-shadow:none;text-shadow:0 1px 3px #000,0 0 2px #000}
 .duel .level-change img{width:12px!important;height:12px!important;min-height:0!important;object-fit:contain!important;transform:none!important;border:0!important}
 
 /* Shared tag/solo duel controls and naturally sized trade cards. */
@@ -1744,3 +1744,20 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 /* Startup artwork: prominent logo above the smaller loading mascot. */
 .startup-loading>.game-logo{width:auto;height:clamp(72px,27dvh,180px);max-width:80vw;margin:0 auto 10px}
 .startup-loading>.loading-wizard{width:80px;height:80px;margin:8px auto}
+
+.reward-tally .deck-minimum-increase{color:#ff6b6b;font-weight:700;font-size:18px;text-align:center;margin:0 0 12px}
+
+.pack-registration-count{display:block;margin:6px 0 12px;font-size:12px}
+[data-pack-sort]{max-width:100%;padding:5px 8px;background:#173744;color:#e8f2f3;border:1px solid #577a86;border-radius:4px}
+
+/* Performance mode only suppresses ambient decoration, not action/reveal timing. */
+.performance-mode .title .smooth-menu .menu-card{animation:none!important;will-change:auto}
+.performance-mode .particle,.performance-mode .pack-aura,.performance-mode .victory-rays,.performance-mode .defeat-rays,.performance-mode .collector-result-aura,.performance-mode .collector-defeat-particles{display:none!important}
+.performance-mode .reward-start-label,.performance-mode .reward-slot.spinning::before,.performance-mode .reward-slot.spinning .reward-slot-frame::before,.performance-mode .character-select-page .portrait.golden-complete::before{animation:none!important}
+.performance-mode .reward-slot.ultra-reward .reward-card::before,.performance-mode .reward-slot.ultra-reward .reward-card::after,.performance-mode .character-select-page .portrait.golden-complete::after{display:none!important}
+.performance-mode dialog::backdrop{backdrop-filter:none!important}
+
+.performance-mode .duel-particles,.performance-mode .level-unlock .unlock-lights,.performance-mode .level-unlock .unlock-motes{display:none!important}
+.performance-mode .pack-open img{animation:none!important}
+
+.relic-group-heading{grid-column:1/-1;margin:10px 0 2px}.cardgrid>.relic-group-heading{align-self:start}

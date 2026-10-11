@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 PACKS=json.loads((Path(__file__).parent/'data/packs.json').read_text(encoding='utf8'))
+import custom_cards
+custom_cards.install_packs(PACKS)
 FIXED_OPPONENTS=json.loads((Path(__file__).parent/'data/fixed-opponents.json').read_text(encoding='utf8'))['opponents']
 GAME_DECKS={int(k):v for k,v in FIXED_OPPONENTS.items()}
 PACK_BY_ID={p['id']:p for p in PACKS}
@@ -80,13 +82,13 @@ artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbind
 for key,name,art,race in [
  ('dragon','Dragon Crest','Blue-Eyes White Dragon','Dragon'),('mage','Magician Staff','Dark Magician','Spellcaster'),
  ('blade','Warrior Blade','Axe Raider','Warrior'),('wing','Wind Plume','Harpie Lady','Winged Beast'),
- ('gear','Ancient Gear','Jinzo','Machine'),('shell','Tidal Shell','Aqua Madoor','Aqua'),
+ ('gear','Ancient Gear','Jinzo','Machine'),('shell','Shell Spikes','Aqua Madoor','Aqua/Fish'),
  ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur'),('hive','Amber Hive','Killer Needle','Insect'),
  ('bone','Zombie Crystal','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
  ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend')]:
  artifact(key,name,60,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
- artifact(key,name,65,f'Your {attr} monsters gain 250 ATK and DEF.',art,'both',250,'offense',attr)
+ artifact(key,name,65,f'Your {attr} monsters gain 200 ATK and DEF.',art,'both',200,'offense',attr)
 artifact('buckler','Millennium Shield',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
 artifact('sword','Demonic Sword',110,'Your monsters gain 200 ATK.','Sword of Deep-Seated','atk',200,'offense')
 artifact('normal','Normal Power',65,'Your Normal Monsters gain 400 ATK.','Battle Ox','normal',400,'offense')

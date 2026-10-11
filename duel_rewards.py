@@ -117,6 +117,9 @@ def progress(run,events,by_id,victory=False):
  slow=-pace_penalty(m['turns'])
  if slow:out['Slow duel']=slow
  if victory and sum(out.values())<0:out['Victory minimum']=-sum(out.values())
+ from custom_cards import coins
+ bonus=coins(events)
+ for i in range(bonus//50):out['Ancient Treasure'+(f' · {i+1}' if i else '')]=50
  return out
 
 

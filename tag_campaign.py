@@ -177,13 +177,16 @@ class TagCampaign:
   if action=='reveal-opponent':
    import boss_selection
    if self.phase!='draft':raise ValueError('Reveal opponents before the duel.')
-   cost=boss_selection.reveal(run,value);self.shared['gold']=run['gold'];self.shared['revealed_opponents']=run.get('revealed_opponents',[])[:];self.sync();return cost
+   cost=boss_selection.reveal(run,value);self.shared['gold']=run['gold'];self.shared['revealed_opponents']=run.get('revealed_opponents',[])[:];self.shared['jar_reveal_used']=run.get('jar_reveal_used');self.sync();return cost
   if action=='boss-reroll':
    import boss_selection
    if self.phase!='draft' or (self.shared['round']+1)%3 or any(self.ready):raise ValueError('Unlock both selections before rerolling bosses.')
    cost=boss_selection.price(self.shared)
    if self.shared['gold']<cost:raise ValueError('Not enough coins to reroll the bosses.')
-   self.routes();self.shared['gold']-=cost;self.shared['boss_rerolls']=self.shared.get('boss_rerolls',0)+1;self.sync();return cost
+   self.routes();self.shared['gold']-=cost
+   if cost==0:ar.use_free(self.shared,'boss')
+   else:self.shared['boss_rerolls']=self.shared.get('boss_rerolls',0)+1
+   self.sync();return cost
   if action=='peek-deck':
    if not ar.has(run,'deck_spyglass') or int(value) not in run['routes']:raise ValueError('Deck Spyglass is required.')
    i=int(value);main=game.opponent_deck(run['round'],random.Random(i+run['round']*101),i,run.get('tutorial_variants',{}).get(str(i),0));return main+([] if run['round']==0 else content.opponent_record(run['round'],i)['extra'])
@@ -242,13 +245,13 @@ class TagCampaign:
   if action=='shop-reroll':
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
    with self.scope(seat):price=game.reroll_shop(run,self.rng)
-   for key in ('gold','shop','shop_rerolls'):self.shared[key]=deepcopy(run[key])
+   for key in ('gold','shop','shop_rerolls','jar_shop_used'):self.shared[key]=deepcopy(run.get(key))
    self.sync();return price
   if action in ('buy','skip'):
    cursed_relics.require_choice(run)
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
    with self.scope(seat):result=game.buy_many(run,value or [],self.rng) if action=='buy' else []
-   for key in ('gold','lp','artifacts','shop'):self.shared[key]=deepcopy(run[key])
+   for key in ('gold','lp','artifacts','shop'):self.shared[key]=deepcopy(run.get(key))
    self.trade=self.new_trade()
    self.sync()
    from golden_cards import pending

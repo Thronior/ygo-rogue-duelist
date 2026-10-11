@@ -1,6 +1,10 @@
 """Approved September relics. Cursed IDs are never stocked as regular artifacts."""
 # id, name, price, rules text, illustration
 REGULAR=[
+('solemn_relic','Solemn Relic',150,"Once per duel, negate your opponent's first Spell, Trap, or monster effect activation that can be negated.",'Solemn Judgment'),
+('dice_jar','Dice Jar',100,'Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice.','Dice Jar'),
+('morphing_jar_2','Morphing Jar #2',100,'Shop rerolls restock your character booster pack, allowing you to buy it again.','Morphing Jar #2'),
+('cyber_jar','Cyber Jar',100,'Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter.','Cyber Jar'),
 ('duelist_catalogue',"Duelist's Catalogue",120,'Character draft packs can appear in the random booster slots on shop visits and rerolls. This relic appears less often than other relics.','Exchange'),
 ('booster_shelf','Booster Box',90,'Shops offer a fourth booster pack. Adds the extra pack immediately when purchased and on every shop visit and reroll.','Jar of Greed'),
 ('second_wind','Second Wind',110,'Once per Duel, at the start of your End Phase, if your hand is empty, draw 2 cards.','Pot of Greed'),
@@ -56,9 +60,21 @@ def install(artifact):
 
 def has(run,key):return run.get('challenge_level')!=-1 and (key in run.get('artifacts',[]) or run.get('mirror_copy')==key)
 
+def encounter_key(run):return str(run.get('loop',0))+':'+str(run.get('round',0))
+
+def free_use(run,relic,kind):return has(run,relic) and run.get('jar_'+kind+'_used')!=encounter_key(run)
+
+def use_free(run,kind):run['jar_'+kind+'_used']=encounter_key(run)
+
 def copies(run,key):return 0 if run.get('challenge_level')==-1 else run.get('artifacts',[]).count(key)+int(run.get('mirror_copy')==key)
 
-def minimum(run):return 40 if has(run,'cursed_collectors_burden') else 20
+def minimum(run):
+ from content import CHARACTERS, BOSS_EVERY
+ character=CHARACTERS[run.get('character',0)]
+ if character.get('copycat') or character.get('engine_deck'):return 20
+ # Derive from completed rounds so existing saves and repeat loops agree.
+ progress=40 if run.get('loop',0)>0 else min(40,20+10*(max(0,run.get('round',0))//BOSS_EVERY))
+ return max(progress,40 if has(run,'cursed_collectors_burden') else 20)
 
 def opening(run,normal):return max(1,normal-3*copies(run,'cursed_crowded_crypt')-2*copies(run,'cursed_premature_triumph'))
 

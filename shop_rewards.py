@@ -36,6 +36,10 @@ BACKROW_REMOVAL=frozenset({
  'XYZ-Dragon Cannon','XZ-Tank Cannon',
 })
 
+# Expansion cards reviewed for actual removal of opposing back row.
+BACKROW_REMOVAL |= {'Fuh-Rin-Ka-Zan','Infernal Flame Emperor','Ocean Dragon Lord - Neo-Daedalus',
+ "Van'Dalgyon the Dark Dragon Lord"}
+
 def removes_backrow(card):return card['name'] in BACKROW_REMOVAL
 
 NEGATION={'Magic Jammer','Seven Tools of the Bandit','Solemn Judgment'}
@@ -98,9 +102,19 @@ THEME_OPTIONS.update({i:row['reward_themes'] for i,row in TIER_EXCLUSIVE_OPPONEN
 LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','counter':'Counter Traps','quickplay':'Quick-Play Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','search':'Monster searchers','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','ojama':'Ojama cards','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Hole Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
 
 
+# Every monster Type/Attribute represented in the card database can be rolled.
+MONSTER_TYPES=('Aqua','Beast','Beast-Warrior','Dinosaur','Divine-Beast','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Zombie')
+ATTRIBUTES=('LIGHT','DARK','EARTH','WIND','WATER','FIRE','DIVINE')
+LABELS.update({key:key+' monsters' for key in MONSTER_TYPES+ATTRIBUTES})
+FIELD_SUPPORT={'Terraforming','An Owl of Luck','Magic Reflector','Maiden of the Aqua','Forgotten Temple of the Deep','Amphibious Bugroth MK-3','Cannonball Spear Shellfish','Deepsea Warrior',"Gravekeeper's Assailant", "Gravekeeper's Chief",'Levia-Dragon - Daedalus','Mermaid Knight','Royal Tribute','The Legendary Fisherman','Tornado Wall','Torpedo Fish','Ocean Dragon Lord - Neo-Daedalus','A Cat of Ill Omen','Rite of Spirit'}
+LABELS['field']='Field Spells and Support'
+LABELS['direct']='Direct Attacks'
+DIRECT_ATTACKS={"Alligator's Sword Dragon",'Amphibious Bugroth MK-3','Black Tyranno','Blue-Eyes Toon Dragon','Checkmate','Dark Scorpion Combination','Decayed Commander','Delta Attacker','Drillago','Gear Golem the Moving Fortress','Jinzo #7','Jowls of Dark Demise','Kiryu','Leghul','Manga Ryu-Ran','Mucus Yolk','Mystic Lamp','Nightmare Horse','Ooguchi','Opti-Camouflage Armor',"Queen's Double",'Rainbow Flower','Reaper on the Nightmare','Rocket Jumper',"Sebek's Blessing",'Secret Pass to the Treasures','Servant of Catabolism','Shooting Star Bow - Ceal','Spirit Reaper','Toon Cannon Soldier','Toon Dark Magician Girl','Toon Gemini Elf','Toon Goblin Attack Force','Toon Masked Sorcerer','Toon Mermaid','Toon Summoned Skull','Overpowering Eye','Silent Swordsman LV5','Ancient Dragon','Shadowslayer','Raging Flame Sprite'}
+
 # Retire arbitrary word buckets; old saves keep their pack and gain a useful theme.
 RETIRED_THEMES={'sword':'equip','shield':'stall','book':'Spellcaster',
  'magician':'Spellcaster','goblin':'gambling','cyber':'Machine','chaos':'banish'}
+RETIRED_THEMES.update({key.lower():key for key in MONSTER_TYPES if key.lower() in LABELS and key.lower()!=key})
 for _key in RETIRED_THEMES:LABELS.pop(_key,None)
 THEME_OPTIONS={i:list(dict.fromkeys(RETIRED_THEMES.get(k,k) for k in keys)) for i,keys in THEME_OPTIONS.items()}
 
@@ -108,7 +122,7 @@ def normalize_reward(reward):
  result=dict(reward)
  if result.get('key') in RETIRED_THEMES:
   result['key']=RETIRED_THEMES[result['key']]
-  result['label']=LABELS.get(result['key'],result['key']+' monsters')
+ if result.get('key') in LABELS:result['label']=LABELS[result['key']]
  return result
 
 def normalize_run(run):
@@ -154,10 +168,30 @@ def reward_for(index,rng=None):
  if PACK_BY_ID[pack].get('draft_only'):pack=PACK_BY_ID[pack].get('reward_pack','EN-MFC')
  return dict(key=key,label=label,pack=pack)
 
+
+# Effect pools are curated from card text, not printed rarity or loose keywords.
+# Include the latest expansion while keeping unrelated filler out of each theme.
+DRAW -= {'White Magical Hat','Don Zaloog','Sasuke Samurai',"Robbin' Goblin","Robbin' Zombie","Gravekeeper's Vassal"}
+DRAW |= {'Good Goblin Housekeeping','Dark Mimic LV1','Dark Mimic LV3','Lighten the Load','Necklace of Command','Spiral Spear Strike','Fuh-Rin-Ka-Zan'}
+BURN -= {'Meteorain','Fairy Meteor Crush'}
+BURN |= {'Mecha-Dog Marron','Abare Ushioni','Poison Fangs','D.D. Dynamite','Thestalos the Firestorm Monarch','Ultimate Baseball Kid','Inferno Fire Blast','Greed','Cemetary Bomb','Castle Gate','Goblin Thief',"Van'Dalgyon the Dark Dragon Lord"}
+HEAL -= {'Cure Master','Fire Princess','Des Dendle','Mushroom Man #2'}
+HEAL |= {'Spell Absorption','Draining Shield','Mystik Wok','Goblin Thief'}
+SEARCH -= {'Slate Warrior','Frontline Base','Vampire Lady'}
+SEARCH |= {'Green Gadget','Red Gadget','Yellow Gadget','Manju of the Ten Thousand Hands','Senju of the Thousand Hands','Sonic Bird','Thunder Dragon','Masked Dragon','Hyena','Rescue Cat','Summoner Monk'}
+SUMMON -= {'Sangan','Witch of the Black Forest','Slate Warrior','Magical Merchant','Vampire Lady'}
+SUMMON |= {'Hyena','Rescue Cat','Masked Dragon','Summoner Monk','The Creator','The Creator Incarnate','Machine Duplication','Beast Soul Swap','Fulfillment of the Contract','Re-Fusion','Centrifugal Field','Fox Fire',"Black Dragon's Chick",'Level Up!','Two-Man Cell Battle','Kaibaman','Vampire Genesis','The Tricky','Tricky Spell 4',"Vampire's Curse",'Familiar Knight','Return from the Different Dimension','Watapon','Dark Mimic LV1','Ultimate Insect LV1','Ultimate Insect LV3','Ultimate Insect LV5','Horus the Black Flame Dragon LV4','Horus the Black Flame Dragon LV6','Mystic Swordsman LV4','Armed Dragon LV3','Armed Dragon LV5',"Van'Dalgyon the Dark Dragon Lord"}
+PIERCE = {'Fairy Meteor Crush','Spear Dragon','Airknight Parshath','Mad Sword Beast','Dark Driceratops','Meteorain'}
+NEGATION |= {'A-Team: Trap Disposal Unit','Horus the Black Flame Dragon LV8','Silent Swordsman LV7','Sorcerer of Dark Magic','Rare Metalmorph','Arcana Knight Joker','Element Doom','Element Soldier'}
+FUSION_SUPPORT = {'Polymerization','Fusion Sage','Fusion Gate','Metamorphosis','De-Fusion','King of the Swamp','The Light - Hex-Sealed Fusion','The Dark - Hex-Sealed Fusion','The Earth - Hex-Sealed Fusion','Re-Fusion','Centrifugal Field'}
+LABELS['fusion']='Fusion monsters and support'
+LABELS['search']='Deck searchers and recruiters'
+
 def matches(card,key):
+ if card.get('id')==190000050:return False
  key=RETIRED_THEMES.get(key,key)
  t=card['data']['type']
- if key in ('LIGHT','DARK','EARTH','WIND','WATER','FIRE'):return bool(t&1) and card['attribute']==key
+ if key in ATTRIBUTES:return bool(t&1) and card['attribute']==key
  if key=='normal':return bool(t&1 and t&16)
  if key=='effect':return bool(t&1 and t&32)
  if key=='flip':return bool(t&1 and t&0x200000)
@@ -167,9 +201,9 @@ def matches(card,key):
  if key=='ritual':return bool(t&0x80 and t&3)
  if key=='toon':return bool(t&1 and t&0x400000) or card['name'] in TOON_SUPPORT
  if key=='amazoness':return 'amazoness' in card['name'].lower() or card['name'] in WARRIOR_SUPPORT
- if key=='negation':return bool((t&4 and t&0x100000) or ((t&2 or t&4) and card['name'] in NEGATION)) or card['name'] in ('Dark Balter the Terrible','Ryu Senshi')
+ if key=='negation':return bool(t&4 and t&0x100000) or card['name'] in NEGATION or card['name'] in ('Dark Balter the Terrible','Ryu Senshi')
  if key=='destruction':return card['name'] in DESTRUCTION or 'destroy' in (card.get('desc') or '').lower()
- if key=='graveyard':return 'graveyard' in (card.get('desc') or '').lower()
+ if key=='graveyard':return 'graveyard' in (card.get('desc') or '').lower() or 'GY' in (card.get('desc') or '')
  if key=='bounce':d=(card.get('desc') or '').lower();return 'return' in d and 'hand' in d
  if key=='banish':d=(card.get('desc') or '').lower();return 'remove from play' in d or 'removed from play' in d or 'banish' in d or 'remove from the game' in d or 'removed from the game' in d
  if key=='discard':return 'discard' in (card.get('desc') or '').lower()
@@ -184,10 +218,11 @@ def matches(card,key):
  if key=='toplevel':return bool(t&1) and (card.get('level') or 0)>=7
  if key=='spirit':return (bool(t&1) and 'spirit' in (card.get('type') or '').lower()) or card['name'] in SPIRIT_SUPPORT
  if key=='union':return (bool(t&1) and 'union' in (card.get('type') or '').lower()) or card['name'] in UNION_SUPPORT
- if key=='fusion':return bool(t&0x40) or card['name'] in ('Polymerization','Fusion Sage')
+ if key=='fusion':return bool(t&0x40) or card['name'] in FUSION_SUPPORT
  if key=='equip':return bool(t&0x40000) or card['name'] in EQUIPTRAP
- if key=='field':return bool(t&0x80000) or card['name']=='Terraforming'
- if key=='counter':return bool(t&4 and t&0x100000) or card['name'] in ('Solemn Wishes','Cure Mermaid')
+ if key=='direct':return card['name'] in DIRECT_ATTACKS
+ if key=='field':return bool(t&2 and t&0x80000) or card['name'] in FIELD_SUPPORT
+ if key=='counter':return bool(t&4 and t&0x100000)
  if key=='quickplay':return bool(t&2 and t&0x10000)
  if key=='normal_trap':return bool(t&4) and not bool(t&(0x20000|0x100000))
  if key=='draw':return card['name'] in DRAW
@@ -222,7 +257,7 @@ def matches(card,key):
 
 def artifact_matches(key,artifact):
  info=ART_INFO[artifact]
- if info['filter']==key:return True
+ if info['filter']==key or key in info['filter'].split('/'):return True
  tags={'normal':'normal','effect':'offense','flip':'defense','normal_spell':'draw','quick_counter':'defense','continuous':'healing','ritual':'draw'}
  return info['tag']==tags.get(key,'')
 

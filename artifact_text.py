@@ -3,7 +3,7 @@ Artifact phase effects are continuous rules and do not start a Chain: no colon.
 """
 def description(key,info,previous):
  a=info['amount'];f=info['filter'];p=info.get('parameters',{});kind=info['effect'];n=lambda x:f'{x:,}'
- subject=(f+' monsters' if f else 'Monsters')+' you control'
+ subject=(f.replace('/',' and ')+' monsters' if f else 'Monsters')+' you control'
  patterns={
  'atk':f'{subject} gain {n(a)} ATK.', 'def':f'Monsters you control gain {n(a)} DEF.',
  'both':f'{subject} gain {n(a)} ATK/DEF.',

@@ -1,3 +1,4 @@
+import {phaseCheckpoint} from './state-update.js';
 import {validEmote,showDuelEmote,clearDuelEmotes} from './duel-emotes.js';
 import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
 import {TagPeer} from './tag-peer.js';
@@ -144,8 +145,8 @@ export class TagSession {
    if(!this.engine||this.view.phase!=='duel'){await this.broadcast();return {ok:true,stale:true};}
    const {number,response}=request.value;
    if(number!==this.engine.responseNumber||seat!==this.engine.respondingSeat){await this.broadcast();await this.pushDuel();return {ok:true,stale:true};}
-   this.engine.respondFor(seat,number,response);
-   await this.backend('tag-journal',{id:request.id,seat,number,response:encode(response)});
+   const before={turn:this.engine.turn,phase:this.engine.phase};this.engine.respondFor(seat,number,response);
+   await this.backend('tag-journal',{id:request.id,seat,number,response:encode(response),checkpoint:phaseCheckpoint(before,this.engine)});
    await this.pushDuel();this.schedule();return {ok:true};
   }
   const result=await this.backend('tag-command',{seat,request});await this.broadcast();
@@ -180,7 +181,7 @@ export class TagSession {
   clearTimeout(this.aiTimer);if(!this.connected||!this.engine||this.engine.pvp||this.engine.pending?.player!==1)return;
   this.aiTimer=setTimeout(()=>this.enqueue(async()=>{
    if(!this.connected||!this.engine||this.engine.pvp||this.engine.pending?.player!==1)return;
-   const response=this.engine.auto();this.engine.respond(response);await this.backend('tag-journal',{seat:null,response:encode(response)});await this.pushDuel();this.schedule();
+   const before={turn:this.engine.turn,phase:this.engine.phase},response=this.engine.auto();this.engine.respond(response);await this.backend('tag-journal',{seat:null,response:encode(response),checkpoint:phaseCheckpoint(before,this.engine)});await this.pushDuel();this.schedule();
   }),this.engine.inDamageStep?40:120);
  }
  scheduleRecovery(delay){

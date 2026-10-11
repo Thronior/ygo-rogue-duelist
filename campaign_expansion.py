@@ -9,7 +9,7 @@ import passives,unlocks,encounters,endless
 import cursed_relics,approved_relics as ar
 
 def install(g):
- g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))
+ g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))+custom_cards.CARDS
  g.BY_ID={c['id']:c for c in g.CARDS};g.BY_NAME={c['name']:c for c in g.CARDS}
  aliases={int(k):v for k,v in json.loads((g.ROOT/'data/card-aliases.json').read_text()).items()}
  g.CHARACTERS=CHARACTERS;g.ARTIFACTS=ARTIFACTS;g.OPPONENTS=['Act I']*3+['Act II']*3+['Act III']*3
@@ -315,6 +315,8 @@ def install(g):
    bonus=int(total*((1.25**ar.copies(run,'cursed_glass_treasury'))-1));tally['Glass Treasury']=bonus;total+=bonus
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
+  bonus=custom_cards.coins(events)
+  if bonus:tally['Ancient Treasure']=bonus;total+=bonus
   return {k:v for k,v in tally.items() if v},total
  def update_profile(run,won=False):
   import achievement_model
@@ -345,6 +347,8 @@ def install(g):
  def finish_duel(run,result,rng=random):
   if result.get('protocol')!=1 or not run.get('duel') or result.get('id')!=run['duel']['id']:raise ValueError('Duel result does not belong to this run.')
   if run['stage']!='duel':raise ValueError('Result already processed.')
+  minimum_before=ar.minimum(run)
+  run['last_deck_minimum_increase']=0
   duel_number=run['round']+1
   boss=duel_number%BOSS_EVERY==0
   run['lp']=max(0,int(result['lp']));won=result['winner']==0 and run['lp']>0
@@ -360,21 +364,26 @@ def install(g):
   if not won:
    import loss_reason
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
+   bonus=custom_cards.coins(result.get('events',[]))
+   if bonus:run['last_rewards']['Ancient Treasure']=bonus;run['last_gold']=bonus;run['gold']+=bonus
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   defeated_deck=[cid for cid in defeated_deck if cid not in custom_cards.IDS]
+   # A custom-only test/imported deck has no eligible post-duel card reward.
    reward_start=len(run['pool'])
-   run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=run['last_reward_cards'][0];run['pool'].extend(run['last_reward_cards'])
+   run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=next(iter(run['last_reward_cards']),None);run['pool'].extend(run['last_reward_cards'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
+   if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
    cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh')
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
    run['lp']=max(run['lp'],min(cap,run['lp']+heal))
-   for _ in range(int(amount(run,'reward_card')) if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
+   for _ in range(int(amount(run,'reward_card')) if defeated_deck and not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
-   for _ in range(2*ar.copies(run,'cursed_collectors_burden')):
+   for _ in range(2*ar.copies(run,'cursed_collectors_burden') if defeated_deck else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
    import reward_slots
    if CHARACTERS[run['character']].get('engine_deck'):
@@ -439,14 +448,15 @@ def install(g):
   if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
   def stock_sample(cards,count):
    return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id']))),reverse=True)[:count]
-  pool=preferred or eligible
+  themed=[c for c in eligible if c['id'] not in custom_cards.IDS]
+  pool=preferred or themed
   if general_stock:
    top=stock_sample(eligible,5)
   elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
-   top=shop_rewards.tag_featured(eligible+[removal],run['tag_shop_rewards'],rng)
+   top=shop_rewards.tag_featured(themed+[removal],run['tag_shop_rewards'],rng)
   else:
    top=stock_sample(pool,min(5,len(pool)))
-   top+=stock_sample([c for c in eligible if c not in top],5-len(top))
+   top+=stock_sample([c for c in themed if c not in top],5-len(top))
   rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
@@ -461,7 +471,7 @@ def install(g):
   others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and unlocks.available('pack',p['id'],profile)],pack_count-1)
   pack_ids=[tied]+others
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
-  if not general_stock and personal in PACK_BY_ID and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
   items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n==0)) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
@@ -481,6 +491,7 @@ def install(g):
   run['shop']=items
   challenge_levels.suppress(run)
  def reroll_price(run):
+  if ar.free_use(run,'dice_jar','shop'):return 0
   count=max(0,int(run.get('shop_rerolls',0) or 0))
   return [10,20,40,60,100,150][count] if count<6 else 200+50*(count-6)
  def reroll_shop(run,rng=random):
@@ -492,7 +503,9 @@ def install(g):
   # Rerolls replace the encounter's featured singles with general stock.
   # Generate first so a failed restock cannot charge the player.
   restock(run,rng,general_stock=True)
-  run['gold']-=price;run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
+  run['gold']-=price
+  if price==0:ar.use_free(run,'shop')
+  else:run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
   return price
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)

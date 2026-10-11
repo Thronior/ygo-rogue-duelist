@@ -1,8 +1,12 @@
 """Saved boss draws and run-wide reroll prices."""
 import random
+import approved_relics as ar
 from copy import deepcopy
 
+def reveal_price(run):return 0 if ar.free_use(run,'cyber_jar','reveal') else 15
+
 def price(run):
+ if ar.free_use(run,'cyber_jar','boss'):return 0
  n=max(0,int(run.get('boss_rerolls',0)))
  return [30,50][n] if n<2 else 100+50*(n-2)
 
@@ -16,7 +20,9 @@ def reroll(game,run,rng=random):
  game.routes(candidate,rng,exclude=run.get('routes',[]))
  from content import opponent_record
  for cid in candidate['routes']:opponent_record(candidate['round'],cid,candidate.get('loop',0))
- candidate['gold']-=cost;candidate['boss_rerolls']=candidate.get('boss_rerolls',0)+1
+ candidate['gold']-=cost
+ if cost==0:ar.use_free(candidate,'boss')
+ else:candidate['boss_rerolls']=candidate.get('boss_rerolls',0)+1
  run.update(candidate)
  if 'fallen_routes' not in candidate:run.pop('fallen_routes',None)
  return cost
@@ -28,6 +34,8 @@ def reveal(run,opponent):
  if run.get('stage') not in ('draft','shop') or opponent not in run.get('routes',[]):raise ValueError('Choose an available opponent.')
  known=run.setdefault('revealed_opponents',[])
  if opponent in known or ar.has(run,'deck_spyglass') or (run['round']+1)%3==0:return 0
- if run['gold']<15:raise ValueError('Not enough coins to reveal this opponent.')
- run['gold']-=15;known.append(opponent)
- return 15
+ cost=reveal_price(run)
+ if run['gold']<cost:raise ValueError('Not enough coins to reveal this opponent.')
+ run['gold']-=cost;known.append(opponent)
+ if cost==0:ar.use_free(run,'reveal')
+ return cost

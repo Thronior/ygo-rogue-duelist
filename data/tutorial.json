@@ -21,7 +21,7 @@
       },
       {
         "title": "Build your deck",
-        "text": "Tap cards to add or remove them. Build at least 20 Main Deck cards, unless a relic changes the minimum. You can use up to 3 copies of the same card. Fusion monsters go in the Extra Deck. Hold a card to read it. Your starting signature cards can be removed too.",
+        "text": "Tap cards to add or remove them. Start with at least 20 Main Deck cards. Each boss you beat raises the minimum by 10, up to 40. Relics can also change the minimum. You can use up to 3 copies of the same card. Fusion monsters go in the Extra Deck. Hold a card to read it. Your starting signature cards can be removed too.",
         "image": "tutorial/guide/deck.jpg"
       },
       {

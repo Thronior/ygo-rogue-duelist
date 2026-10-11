@@ -40,7 +40,7 @@ export class TagDuel extends MobileDuel {
  }
  snapshotFor(seat){
   if(this.pvp)return this.pvpSnapshot(seat);
-  const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','duel_metrics','battle_destroy','destroy','banish','tribute_summons'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;
+  const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','duel_metrics','battle_destroy','destroy','banish','tribute_summons','ancient_treasure'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;
   state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:this.logs,revealedHands:[{...(this.revealedHands?.[0]||{})},{}]};
   state.players[0].extraCards=this.query(0,L.EXTRA);
   if(!state.tag.canRespond)state.pending=null;

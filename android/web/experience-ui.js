@@ -1,3 +1,4 @@
+import {freeJarUse} from './jar-relics.js';
 export const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function lastPlayed(value){const date=new Date(Number(value)*1000);return value&&Number.isFinite(+date)?date.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'Not recorded';}
 export function packSummary(content,pid){const p=content.packs.find(p=>p.id===pid);if(!p)return '';const ids=new Set([...(p.common||[]),...(p.rare||[])]),cards=content.cards.filter(c=>ids.has(c.id)),counts={};for(const c of cards)if(c.data.type&1)counts[c.race]=(counts[c.race]||0)+1;const types=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name])=>name);const themes=[];if(cards.some(c=>c.data.type&128))themes.push('Ritual Summoning');if(cards.some(c=>c.data.type&64))themes.push('Fusion Summoning');if(cards.filter(c=>/destroy|banish|return.*hand/i.test(c.desc)).length>=6)themes.push('removal and control');if(cards.filter(c=>/gain.*LP|increase.*Life Points/i.test(c.desc)).length>=4)themes.push('LP recovery');return `${types.length?'Main monster types: '+types.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${ids.size} different cards. Click to inspect.`;}
@@ -18,4 +19,4 @@ export function victoryRewardsMarkup(rewards,bonusLabels){
  return ordinary+(bonuses.length?`<details class="battle-bonuses"><summary><span>Battle bonuses</span><b>+${bonuses.reduce((sum,[,value])=>sum+value,0)}</b></summary><div class="battle-bonus-list" tabindex="0" role="region" aria-label="Earned battle bonuses">${bonuses.map(row).join('')}</div></details>`:'');
 }
 
-export function shopRerollPrice(run){const n=Math.max(0,Math.trunc(run.shop_rerolls||0));return n<6?[10,20,40,60,100,150][n]:200+50*(n-6)}
+export function shopRerollPrice(run){if(freeJarUse(run,'dice_jar','shop'))return 0;const n=Math.max(0,Math.trunc(run.shop_rerolls||0));return n<6?[10,20,40,60,100,150][n]:200+50*(n-6)}

@@ -38,8 +38,8 @@ def sync():
    scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
- shared=['fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py'])
+ shared=['pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
+ shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py','custom_cards.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  for p in (ROOT/'data').glob('*.json'):files['data/'+p.name]=p.read_text(encoding='utf8')
@@ -85,6 +85,14 @@ def sync():
  if vendor.exists():vendor.write_text(vendor.read_text(encoding='utf8').replace('t.counters[a]=c','t.counters[c]=a'),encoding='utf8')
  for name in ['engine-data.json','scripts.json']:
   if not (WEB/name).exists():copy(old/name,WEB/name)
+ import custom_cards
+ engine_data=json.loads((WEB/'engine-data.json').read_text(encoding='utf8'))
+ scripts=json.loads((WEB/'scripts.json').read_text(encoding='utf8'))
+ for card in custom_cards.CARDS:
+  engine_data[str(card['id'])]=card['data']
+  scripts[f'c{card["id"]}.lua']=(ROOT/f'runtime/script/custom/c{card["id"]}.lua').read_text(encoding='utf8')
+ (WEB/'engine-data.json').write_text(json.dumps(engine_data,ensure_ascii=False),encoding='utf8')
+ (WEB/'scripts.json').write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  # Card assets include all pool cards, every token and the menu's decorative cards.
  ids={c['id'] for c in game.CARDS}|{c['id'] for c in json.loads((ROOT/'data/tokens.json').read_text())}
  excluded_packs=set(json.loads((ROOT/'data/content-era.json').read_text(encoding='utf8')).get('excluded_pack_ids',[]))

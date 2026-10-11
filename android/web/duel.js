@@ -31,6 +31,7 @@ export class MobileDuel extends DuelEngine {
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
   trackEffectTargets(this,m,M);
+  if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000050&&m.player===0)this.events.push({kind:'ancient_treasure',card:190000050});
   this.trackReborn(m);
   if(m.type===M.HINT&&m.hint_type===2){const id=Number(m.hint)-1800000000,relic=this.aiModifiers?.relicFeedback?.[id];if(relic)this.visuals.push({kind:'relic',relic});}
   if([M.NEW_TURN,M.NEW_PHASE].includes(m.type))this.cancelledAttacks?.clear();

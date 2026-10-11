@@ -1,4 +1,5 @@
 import {ritualMatches,ritualLevelsReady} from './cpu-card-plans.js';
+import {coinSpellValue} from './custom-card-policy.js';
 import {acceptedReplayRules} from './replay-rules.js';
 import {deckPolicy} from './deck_policy.js';
 // Shared vintage policy. Adapted decision principles from the supplied Classic2004SmartExecutor
@@ -395,6 +396,7 @@ export function smartContext(e,p,L,prompt=null){
  const attackOnly=new Set(['Diffusion Wave-Motion','Stop Defense','Shooting Star Bow - Ceal','Fairy Meteor Crush','Big Bang Shot','Meteorain','Opti-Camouflage Armor','Riryoku']);
  function doomed(c){return e.limiterDoom?.has(`${c.controller}:${c.sequence}`);}
  function activation(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
+  if(c.code===190000050)return coinSpellValue(e,p,L);
   if(n==='Stealth Bird')return chain?85:remainingAttackers().some(a=>same(a,c))&&(!enemy.length||enemy.some(t=>face(t)&&atk(c)>power(t)))?-1:85;
   if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
@@ -871,7 +873,7 @@ export function smartContext(e,p,L,prompt=null){
   const monsters=loc=>q(side,loc).filter(x=>(data(x).type&1)&&face(x)),is=t=>!!(data(c).type&t),level=lvl(c);
   const changed=relics(side).filter(k=>k.startsWith('attribute_')).at(-1),attribute=changed?changed.slice(10).toUpperCase():(e.cards.get(c.code)?.attribute||attr(c));
   return (e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
-   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||r.filter===attribute;let v=0;
+   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter==='Aqua/Fish'&&['Aqua','Fish'].includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||r.filter===attribute;let v=0;
    switch(k){
     case 'atk':case 'both':v=match?a:0;break;
     case 'small':v=level<=3?a:0;break;

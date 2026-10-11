@@ -15,14 +15,14 @@ def create_offer(run,rng=random):
  if pending(run):return
  choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
  if len(choices)<6:return
- run['cursed_offer']={'options':rng.sample(choices,3),'rerolls_left':1,'boss_round':run['round']}
+ run['cursed_offer']={'options':rng.sample(choices,3),'rerolls_left':1+int(ar.has(run,'dice_jar')),'boss_round':run['round']}
 
 def reroll(run,rng=random):
  offer=run.get('cursed_offer')
- if not offer or offer['rerolls_left']!=1:raise ValueError('No cursed-relic reroll remains.')
+ if not offer or offer['rerolls_left']<=0:raise ValueError('No cursed-relic reroll remains.')
  eligible=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[]) and k not in offer['options']]
  if len(eligible)<3:raise ValueError('There are not enough different cursed relics to reroll.')
- offer['options']=rng.sample(eligible,3);offer['rerolls_left']=0
+ offer['options']=rng.sample(eligible,3);offer['rerolls_left']-=1
 
 def choose(run,key,rng=random):
  offer=run.get('cursed_offer')

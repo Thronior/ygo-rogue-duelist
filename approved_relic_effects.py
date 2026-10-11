@@ -19,6 +19,8 @@ def effect(kind):
  def both(v,t='true'):atk(v,t);defense(v,t)
  def handlimit(n):out.append(player_rule('EFFECT_HAND_LIMIT',n))
  if key=='champion_stats':out.extend([stat('EFFECT_UPDATE_ATTACK',300,enemy=True),stat('EFFECT_UPDATE_DEFENSE',300,enemy=True)])
+ elif key=='solemn_relic':
+  out.append('do local used=false '+event('EVENT_CHAINING','if Duel.NegateActivation(ev) then used=true end','not used and rp==1 and re~=nil and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER|TYPE_SPELL|TYPE_TRAP)')+' end')
  elif key=='second_wind':out.append('do local used=false '+phase('END','used=true Duel.Draw(0,2,REASON_EFFECT)','not used and Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==0')+' end')
  elif key=='grave_lantern':defense('function() return math.min(800,100*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end')
  elif key=='ritual_vestment':both(300,'c:IsType(TYPE_RITUAL)')

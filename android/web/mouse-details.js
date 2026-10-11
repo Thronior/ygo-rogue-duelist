@@ -3,11 +3,11 @@ export function installMouseDetails(root,describe){
  const growSelector='.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art';
  const selector=growSelector+',[data-pack],img[src^="assets/packs/"],[data-curse]';
  let active=null,timer=null,tip=null;
- function clear(){clearTimeout(timer);timer=null;active?.classList.remove('mouse-card-hover');active=null;tip?.remove();tip=null;}
+ function clear(){observer.disconnect();clearTimeout(timer);timer=null;active?.classList.remove('mouse-card-hover');active=null;tip?.remove();tip=null;}
  root.addEventListener('pointerover',event=>{
   if(event.pointerType!=='mouse'||event.buttons)return;
   const el=event.target.closest(growSelector)||event.target.closest(selector);if(!el||el===active)return;
-  clear();const info=describe(el);if(!info)return;active=el;
+  clear();const info=describe(el);if(!info)return;active=el;observer.observe(root,{childList:true,subtree:true});
   if(el.matches(growSelector))el.classList.add('mouse-card-hover');
   timer=setTimeout(()=>{
    if(active!==el||!el.isConnected)return clear();
@@ -26,6 +26,6 @@ export function installMouseDetails(root,describe){
  window.addEventListener('blur',clear);window.addEventListener('resize',clear);
  document.addEventListener('visibilitychange',clear);
  const observer=new MutationObserver(()=>{if(active&&!active.isConnected||tip&&document.querySelector('dialog[open]'))clear();});
- observer.observe(root,{childList:true,subtree:true});
+ // Observe only while a mouse hover is active; touch-only play needs no DOM watcher.
  return clear;
 }
