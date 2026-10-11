@@ -1,7 +1,10 @@
 {
   "exclusiveAfter": "2026-10-10T12:37:20Z",
-  "status": "blocked-by-cloudflare-daily-write-quota",
+  "status": "reviewed-for-0.1.78",
   "scope": "Behaviour reports and uploaded replays; review this pending window even after the release cutoff advances.",
   "cpuChanges": false,
-  "fallenRosterRefresh": "Attempted twice; service HTTP 500. Existing roster retained unchanged."
+  "fallenRosterRefresh": "Succeeded: 10 shared records, existing identities retained",
+  "reviewedFrom": "2026-10-10T11:33:35Z",
+  "replaysRetrieved": 75,
+  "flagsReviewed": 4
 }

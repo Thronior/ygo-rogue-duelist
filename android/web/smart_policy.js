@@ -310,7 +310,8 @@ export function smartContext(e,p,L,prompt=null){
   if(same(target.c,e.attackCard)&&defender&&atk(target.c)>power(defender)&&targetValue(defender)>=2000)target.value+=1200;
   // Hold reactive removal until an attack or a visible engine demands an answer.
   if(e.player!==p&&!e.attackCard&&!danger&&effectThreat(target.c)<2000&&!['Trap Hole','Bottomless Trap Hole'].includes(n))return -1;
-  let threshold=n==='Nobleman of Crossout'?850+lastAnswer*.25+cost:1400+lastAnswer+cost+(survivalDeck?250:0);
+  // Summon-only traps lose their opportunity now; do not save them as flexible removal.
+  let threshold=['Trap Hole','Bottomless Trap Hole'].includes(n)?1000+cost:n==='Nobleman of Crossout'?850+lastAnswer*.25+cost:1400+lastAnswer+cost+(survivalDeck?250:0);
   if(n==='Compulsory Evacuation Device')threshold+=700; // Temporary relief must buy something substantial.
   if(target.value<threshold)return -1;
   // Spend a legal narrow answer before a flexible or costly one. Never assume a set trap is usable.
@@ -422,7 +423,7 @@ export function smartContext(e,p,L,prompt=null){
   // Do not commit a beneficial equip when only enemy/set monsters can receive it.
   // Face-up/Graveyard effects (including costs and recovery) use their own rules.
   if(friendlyEquip(c)&&prompt?.summons?.some(x=>lvl(x)>=5&&tributeWorth(x)!==false&&projectedAttack(x)>Math.max(0,...own.map(atk))))return -1;
-  if(n==='Black Luster Soldier - Envoy of the Beginning'&&!enemy.length&&Number(BigInt(c.description||0)&0xfffffn)!==1)return -1;
+  if(n==='Black Luster Soldier - Envoy of the Beginning'&&!enemy.length&&Number(BigInt(c.description||0)&0xfffffn)!==2)return -1;
   if(friendlyEquip(c)&&(c.location===L.HAND||c.location===L.SZONE&&!face(c))&&!own.some(face))return -1;
 
   if(spell&&(d.type&0x80)&&relic(p,'cursed_ritual_scar')&&e.lp[p]<=1000*relics(p).filter(k=>k==='cursed_ritual_scar').length)return -1;
@@ -546,6 +547,8 @@ export function smartContext(e,p,L,prompt=null){
    if(!damage||spellNegated||live.is_disabled||enemy.some(x=>enabled(x)&&['Des Wombat','Prime Material Dragon'].includes(name(x))))return -1;
    return burnDamage(damage)>=e.lp[1-p]?180:-1;
   }
+  // Prefer the legal, worthwhile free wipe to discarding a card for the same targets.
+  if(n==='Lightning Vortex'&&(prompt?.activates||[]).some(x=>name(x)==='Raigeki'&&removalScore(x)>0))return -1;
   const recent=deck.activation(c,chain);if(recent!==null)return recent;
   if(!spent&&backRemoval.has(n))return backScore(c);
   if(!spent&&(resourceRemoval.has(n)||wipes.has(n)))return n==='Raigeki Break'?Math.max(removalScore(c),backScore(c)):removalScore(c);
@@ -650,7 +653,19 @@ export function smartContext(e,p,L,prompt=null){
   if(['Mirror Force','Magic Cylinder','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
   if(n==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return enemy.some(x=>face(x)&&!attackBlocked(x,1-p)&&!safeBattle(x)&&atk(x)>=1600)?85:-1;
   if(n==='Solemn Judgment')return chain&&(e.chainDepth?e.effect?.player===1-p:e.summoningPlayer===1-p)&&e.lp[p]>1500?100:-1;
-  if(['Magic Jammer','Seven Tools of the Bandit'].includes(n))return chain&&e.effect?.player===1-p&&e.lp[p]>1500?100:-1;
+  if(n==='Magic Jammer'){
+   if(!chain||e.effect?.player!==1-p)return -1;
+   const link=(e.activeChain||[]).at(-1);
+   // Jammer is consumed either way. Do not also discard just to negate pure
+   // backrow removal when no other friendly card would be protected.
+   if(link&&!link.inactive&&link.player===1-p&&link.code===e.effect.code){
+    const incoming=e.name(link.code),targets=link.targets||[];
+    if(incoming==='Mystical Space Typhoon'&&targets.some(x=>same(x,c))&&!targets.some(x=>x.controller===p&&!same(x,c)))return -1;
+    if(['Heavy Storm',"Harpie's Feather Duster",'Giant Trunade'].includes(incoming)&&!back.some(x=>!same(x,c)))return -1;
+   }
+   return e.lp[p]>1500?100:-1;
+  }
+  if(n==='Seven Tools of the Bandit')return chain&&e.effect?.player===1-p&&e.lp[p]>1500?100:-1;
   if(n==='Dark Balter the Terrible'||n==='Ryu Senshi')return chain&&e.effect?.player!==p&&e.lp[p]>1000?92:-1;
   if(n==='Ring of Destruction')return enemy.some(x=>face(x)&&atk(x)<e.lp[p]&&atk(x)<=e.lp[1-p])?100:-1;
   if(n==='Reckless Greed')return chain&&hand.length<=1&&q(p,L.DECK).length>2?65:-1;
@@ -766,7 +781,7 @@ export function smartContext(e,p,L,prompt=null){
    return own.filter(x=>face(x)&&benefit(x)).length>enemy.filter(x=>face(x)&&benefit(x)).length?60:-1;
   }
   if(d.type&0x40000)return own.some(face)&&(!/Megamorph/.test(n)||e.lp[p]<e.lp[1-p])?45:-1;
-  if(n==='Black Luster Soldier - Envoy of the Beginning'){const option=Number(BigInt(c.description||0)&0xfffffn);if(option===1)return 110;return enemy.length&&(threat>=atk(c)||e.phase>=256||enemy.some(x=>battleHazards.has(name(x))))?100:-1;}
+  if(n==='Black Luster Soldier - Envoy of the Beginning'){const option=Number(BigInt(c.description||0)&0xfffffn);if(option===2)return 110;return enemy.length&&(threat>=atk(c)||e.phase>=256||enemy.some(x=>battleHazards.has(name(x))))?100:-1;}
   if(n==='Tsukuyomi')return has(own,'Magician of Faith')||enemy.some(face)?80:-1;
   if(['Magician of Faith','Mask of Darkness','Sangan','Witch of the Black Forest','Sinister Serpent'].includes(n))return 85;
   if(n==='Cyber-Stein')return e.lp[p]>6000&&own.length<5?80:-1;

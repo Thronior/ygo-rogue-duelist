@@ -11,3 +11,6 @@ export function cardFacts(c){
 }
 
 
+
+// Hide database editorial footnotes without changing the engine's card text.
+export const displayCardText=text=>String(text??'').replace(/(?:\r?\n)*\* The above text is unofficial and describes the card's functionality in the OCG\.[ \t]*(?=\r?\n|$)/g,'').trim();

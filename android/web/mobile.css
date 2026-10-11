@@ -1740,3 +1740,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .duel .field-character{object-position:center bottom}
 .startup-choice{max-width:560px;padding:16px;text-align:center}.startup-choice p{font-size:15px}.startup-choice .actions{justify-content:center;flex-wrap:wrap}
 .duelist-selection .engine-character-description{flex:1 1 62%;display:grid;place-content:center;text-align:center;margin:0;padding:12px;line-height:1.5}
+
+/* Startup artwork: prominent logo above the smaller loading mascot. */
+.startup-loading>.game-logo{width:auto;height:clamp(72px,27dvh,180px);max-width:80vw;margin:0 auto 10px}
+.startup-loading>.loading-wizard{width:80px;height:80px;margin:8px auto}

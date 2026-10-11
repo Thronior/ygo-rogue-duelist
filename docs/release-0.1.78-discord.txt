@@ -1,0 +1,7 @@
+**v0.1.78**
+
+- Improved CPU decisions for Trap Hole, Black Luster Soldier, Lightning Vortex and Magic Jammer.
+- Improved CPU summon choices against monsters that cannot be destroyed by battle.
+- Added your relic collection to the run results screen.
+- Refreshed the shared Ultimate Collector opponent roster.
+- Various minor UI tweaks.

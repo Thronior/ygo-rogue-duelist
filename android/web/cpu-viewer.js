@@ -1,3 +1,4 @@
+import {displayCardText} from './card-inspection.js';
 import {CPUDeckEditor} from './cpu-deck-editor.js';
 import {genreIcons,typeIcon} from './card-search.js';
 import {loadDuelResources} from './engine.js';
@@ -47,7 +48,7 @@ export class CPUViewer {
   // Re-run policy bookkeeping, but replay the exact recorded core response.
   const generated=this.engine.auto(prompt),response=structuredClone(saved??generated);this.decisions.push(structuredClone(response));this.history.push(`${actor} · prompt ${prompt.type}: ${JSON.stringify(response,(_,v)=>typeof v==='bigint'?String(v):v)}`);this.state=this.engine.respond(response);this.capture();}
  step(){if(!this.engine||this.state.finished)return;this.applyDecision();if(this.state.finished)this.paused=true;this.render();this.schedule();}
- previewMarkup(){const c=this.content.cards.find(c=>c.id===this.preview);return c?`<img src="assets/cards/${c.id}.jpg" alt="${esc(c.name)}"><h3>${esc(c.name)}</h3><div class="badges">${typeIcon(c)}${esc(c.type||'')} · ${esc(c.race||'')}${c.attribute?' · '+esc(c.attribute):''}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(c.desc)}</div>`:'<p>Tap any card to inspect it. Both hands and set cards are revealed to you.</p>'}
+ previewMarkup(){const c=this.content.cards.find(c=>c.id===this.preview);return c?`<img src="assets/cards/${c.id}.jpg" alt="${esc(c.name)}"><h3>${esc(c.name)}</h3><div class="badges">${typeIcon(c)}${esc(c.type||'')} · ${esc(c.race||'')}${c.attribute?' · '+esc(c.attribute):''}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(displayCardText(c.desc))}</div>`:'<p>Tap any card to inspect it. Both hands and set cards are revealed to you.</p>'}
  zone(c,p,loc,seq,col,row,label=''){
   const visible=c&&(this.reveal||!!(c.position&5)),monster=loc===L.MZONE;
   return `<button class="zone ${p?'enemy':''} ${!c?'empty':''} ${monster&&c&&(c.position&12)?'defense':''}" style="grid-column:${col};grid-row:${row}" ${c&&visible?`data-cpu="inspect" data-code="${c.code}" aria-label="Inspect ${esc(this.engine.name(c.code))}"`:'disabled'}>${c?`<img src="${visible?'assets/cards/'+c.code+'.jpg':'assets/card-back.jpg'}" alt="${visible?esc(this.engine.name(c.code)):'Set card'}">`:label}${c&&visible&&!(c.position&5)?'<span class="cpu-set-badge">SET</span>':''}${visible&&monster?`<span class="power">${c.attack} / ${c.defense}</span>`:''}</button>`;

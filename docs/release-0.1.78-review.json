@@ -1,0 +1,31 @@
+{
+  "version": "0.1.78",
+  "reviewedAfter": "2026-10-10T11:33:35Z",
+  "discordMessages": 137,
+  "discordAccessWarnings": 0,
+  "replaysReplayed": 75,
+  "replayEngineErrors": 0,
+  "behaviourFlags": 4,
+  "findings": {
+    "trapHole": "One report was correct special-summon exclusion; duplicate trap guard preserved. Wdjat missed summon window reproduced and fixed.",
+    "attackPosition": "Two duplicate Doron reports reproduced; invulnerable Marshmallon no longer counted as a useful attack target.",
+    "blackLusterSoldier": "Confirmed script effect identifiers: banish=1, second attack=2; corrected inversion.",
+    "lightningVortex": "Prefer legally offered worthwhile Raigeki; preserve Raigeki when discarding.",
+    "magicJammer": "Do not discard solely to save the targeted Jammer itself.",
+    "cardText": "Hide exact database editorial note only in UI.",
+    "runResults": "Show relic count and inspectable relic strip."
+  },
+  "validation": [
+    "Both-seat report regression tests",
+    "Magic Jammer resource tests",
+    "Removal resource and chain tests",
+    "Battle restriction and trade tests",
+    "Solo/tag policy parity",
+    "75 original replays completed without engine errors"
+  ],
+  "knownBaselineTestFailure": "test_new_deck_policy.mjs: Threatening Roar should activate. Identical failure confirmed against HEAD smart_policy.js; unchanged in this release.",
+  "deferred": [
+    "Healing Spring price suggestion: no balance change",
+    "Unspecified download error lacks reproducible details"
+  ]
+}
