@@ -1,0 +1,30 @@
+{
+  "version": "0.1.79",
+  "sourceCommit": "f05fe558f607e765b44e15e0bdab7ec4a73b0ba2",
+  "pushed": true,
+  "web": "https://ygo-rogue.pages.dev/",
+  "deployment": "https://87acba12.ygo-rogue.pages.dev",
+  "android": "https://github.com/Thronior/ygo-rogue-duelist/releases/tag/v0.1.79",
+  "backendVersion": "0adfd059-9297-48fe-b9e3-d344f53fb125",
+  "itchUpload": "19703990",
+  "devlog": "https://thronior.itch.io/ygo-rogue/devlog/1702832/v0179",
+  "publishedAt": "2026-10-11T22:24:16Z",
+  "liveFilesVerified": [
+    "build.json",
+    "mobile.js",
+    "custom-card-policy.js",
+    "memfs-cleanup.js",
+    "relic-collection.js",
+    "duel.js"
+  ],
+  "itchVersionVerified": true,
+  "fallenRosterCount": 10,
+  "validation": [
+    "Ancient Treasure resolution, negation, CPU and coin payout",
+    "Solemn Relic Spell/Trap/monster effects and once-per-duel reset",
+    "Jar relics, boss deck minimum, shop categories and pack odds",
+    "Phase saves and deterministic restore at 70 phase/turn checkpoints",
+    "14 online backend tests passed",
+    "Prior 12-campaign/108-duel memory soak: no errors; backing storage 13.68MB to 13.79MB"
+  ]
+}
