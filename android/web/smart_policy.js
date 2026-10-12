@@ -873,7 +873,7 @@ export function smartContext(e,p,L,prompt=null){
   const monsters=loc=>q(side,loc).filter(x=>(data(x).type&1)&&face(x)),is=t=>!!(data(c).type&t),level=lvl(c);
   const changed=relics(side).filter(k=>k.startsWith('attribute_')).at(-1),attribute=changed?changed.slice(10).toUpperCase():(e.cards.get(c.code)?.attribute||attr(c));
   return (e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
-   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter==='Aqua/Fish'&&['Aqua','Fish'].includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||r.filter===attribute;let v=0;
+   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||r.filter===attribute;let v=0;
    switch(k){
     case 'atk':case 'both':v=match?a:0;break;
     case 'small':v=level<=3?a:0;break;
@@ -966,6 +966,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Spirit Reaper')return reaperDirectReady(field);
   if(exodiaPieces.has(field?.code))return false;
   if(exodiaPlan&&['Cyber Jar','Morphing Jar #2','Fiber Jar'].includes(n))return false;
+  if(n==='4-Starred Ladybug of Doom')return enemy.some(x=>face(x)&&Number(x.level??data(x).level)===4);
   if(n==='Man-Eater Bug'||n==='Old Vindictive Magician')return enemy.length>0;
   if(n==='Guardian Sphinx'||n==='Swarm of Scarabs')return enemy.length>0;
   if(n==='Swarm of Locusts')return theirBack.length>0;
@@ -1055,6 +1056,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(protectedByEffect&&dmg<=0&&!(pierce(a)&&t&&!(t.position&1)&&atk(a)>(t.defense??data(known).defense??0)))return -100000;
 
   if(known&&enabled(t)&&['D.D. Assailant','D.D. Warrior Lady'].includes(name(known))&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known))return -100000;
+  if(known&&name(known)==='Yomi Ship'&&enabled(t)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known)&&!['Dark Balter the Terrible','Dark Ruler Ha Des'].includes(n))return -100000;
   if(n==='Panther Warrior'&&(prompt?.attacks||[]).some(c=>!same(c,a)&&name(c)!=='Panther Warrior'&&attackAllowed(c,false)&&enemy.some(t=>face(t)&&atk(c)>power(t))))s-=10000;
   if(n==='Airknight Parshath'&&dmg>0)s+=800;
   if(n==='Masked Sorcerer'&&dmg>0)s+=600;

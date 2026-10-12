@@ -1,5 +1,8 @@
 """Core-backed rules for the expanded regular artifact pool."""
 def effect(kind,amount,attribute=''):
+ from variant_relics import effect as variant_effect
+ result=variant_effect(kind)
+ if result is not None:return result
  from approved_relic_effects import effect as approved_effect
  result=approved_effect(kind)
  if result is not None:return result

@@ -1,0 +1,847 @@
+{
+  "unlock_level": 2,
+  "variants": {
+    "0": {
+      "name": "Fusion Master",
+      "starting_relic": "fusion_insignia",
+      "supporting_packs": [
+        "EN-MRD",
+        "EN-DCR"
+      ],
+      "cards": [
+        "Dark Paladin",
+        "Dark Magician",
+        "Buster Blader",
+        "Polymerization"
+      ],
+      "pack_additions": [
+        "Dark Paladin",
+        "Dark Magician",
+        "Buster Blader",
+        "Polymerization",
+        "Fusion Sage",
+        "King of the Swamp",
+        "Dark Flare Knight",
+        "Mirage Knight",
+        "De-Fusion"
+      ],
+      "background_card": "Dark Paladin",
+      "background": "character-backgrounds/variant-0.jpg"
+    },
+    "1": {
+      "name": "Union Commander",
+      "starting_relic": "union_dock",
+      "supporting_packs": [
+        "JP-302",
+        "EN-DR1"
+      ],
+      "cards": [
+        "X-Head Cannon",
+        "Y-Dragon Head",
+        "Z-Metal Tank"
+      ],
+      "pack_additions": [
+        "X-Head Cannon",
+        "Y-Dragon Head",
+        "Z-Metal Tank",
+        "XYZ-Dragon Cannon",
+        "XY-Dragon Cannon",
+        "XZ-Tank Cannon",
+        "YZ-Tank Dragon",
+        "Formation Union",
+        "Frontline Base",
+        "Combination Attack",
+        "Heavy Mech Support Platform"
+      ],
+      "background_card": "X-Head Cannon",
+      "background": "character-backgrounds/variant-1.jpg"
+    },
+    "2": {
+      "name": "Armed Duelist",
+      "starting_relic": "arcane_resonance",
+      "supporting_packs": [
+        "EN-MRL",
+        "EN-FET"
+      ],
+      "cards": [
+        "Gearfried the Iron Knight",
+        "Armed Samurai - Ben Kei",
+        "Smoke Grenade of the Thief"
+      ],
+      "pack_additions": [
+        "Gearfried the Iron Knight",
+        "Armed Samurai - Ben Kei",
+        "Smoke Grenade of the Thief",
+        "Release Restraint",
+        "Gearfried the Swordmaster",
+        "Axe of Despair",
+        "United We Stand",
+        "Mage Power",
+        "Iron Blacksmith Kotetsu"
+      ],
+      "background_card": "Gearfried the Iron Knight",
+      "background": "character-backgrounds/variant-2.jpg"
+    },
+    "3": {
+      "name": "Amazoness Commander",
+      "starting_relic": "amazoness_standard",
+      "supporting_packs": [
+        "JP-303",
+        "EN-DR1"
+      ],
+      "cards": [
+        "Amazoness Swords Woman",
+        "Amazoness Paladin",
+        "Amazoness Village"
+      ],
+      "pack_additions": [
+        "Amazoness Swords Woman",
+        "Amazoness Paladin",
+        "Amazoness Village",
+        "Amazoness Tiger",
+        "Amazoness Fighter",
+        "Amazoness Archers",
+        "Amazoness Spellcaster",
+        "Dramatic Rescue",
+        "Amazoness Sage",
+        "Amazoness Scouts",
+        "Amazoness Trainee"
+      ],
+      "background_card": "Amazoness Swords Woman",
+      "background": "character-backgrounds/variant-3.jpg"
+    },
+    "4": {
+      "name": "Fusion Arsenal",
+      "starting_relic": "machine_foundry",
+      "supporting_packs": [
+        "EN-FET",
+        "EN-RDS"
+      ],
+      "cards": [
+        "Barrel Dragon",
+        "Blowback Dragon",
+        "Polymerization"
+      ],
+      "pack_additions": [
+        "Barrel Dragon",
+        "Blowback Dragon",
+        "Polymerization",
+        "Gatling Dragon",
+        "King of the Swamp",
+        "The Dark - Hex-Sealed Fusion",
+        "Re-Fusion",
+        "Fusilier Dragon, the Dual-Mode Beast"
+      ],
+      "background_card": "Blowback Dragon",
+      "background": "character-backgrounds/variant-4.jpg"
+    },
+    "5": {
+      "name": "Masked Ritual",
+      "starting_relic": "ritual_vestment",
+      "supporting_packs": [
+        "EN-MRL",
+        "EN-DCR"
+      ],
+      "cards": [
+        "The Masked Beast",
+        "Curse of the Masked Beast",
+        "Manju of the Ten Thousand Hands"
+      ],
+      "pack_additions": [
+        "The Masked Beast",
+        "Curse of the Masked Beast",
+        "Manju of the Ten Thousand Hands",
+        "Senju of the Thousand Hands",
+        "Sonic Bird",
+        "Contract with the Abyss",
+        "Ritual Weapon",
+        "Fulfillment of the Contract"
+      ],
+      "background_card": "The Masked Beast",
+      "background": "character-backgrounds/variant-5.jpg"
+    },
+    "6": {
+      "name": "Final Message",
+      "starting_relic": "destiny_hourglass",
+      "supporting_packs": [
+        "EN-DCR",
+        "EN-PSV"
+      ],
+      "cards": [
+        "Destiny Board",
+        "Spirit Message \"I\"",
+        "Final Countdown"
+      ],
+      "pack_additions": [
+        "Destiny Board",
+        "Spirit Message \"I\"",
+        "Final Countdown",
+        "Spirit Message \"N\"",
+        "Spirit Message \"A\"",
+        "Spirit Message \"L\"",
+        "Threatening Roar",
+        "Waboku",
+        "Spirit Reaper",
+        "Gravity Bind"
+      ],
+      "background_card": "Destiny Board",
+      "background": "character-backgrounds/variant-6.jpg"
+    },
+    "7": {
+      "name": "Toon Creator",
+      "starting_relic": "toon_world",
+      "supporting_packs": [
+        "EN-MRL",
+        "EN-LON"
+      ],
+      "cards": [
+        "Toon World",
+        "Toon Mermaid",
+        "Toon Table of Contents"
+      ],
+      "pack_additions": [
+        "Toon World",
+        "Toon Mermaid",
+        "Toon Table of Contents",
+        "Toon Gemini Elf",
+        "Toon Masked Sorcerer",
+        "Toon Goblin Attack Force",
+        "Toon Defense",
+        "Blue-Eyes Toon Dragon",
+        "Toon Dark Magician Girl"
+      ],
+      "background_card": "Toon World",
+      "background": "character-backgrounds/variant-7.jpg"
+    },
+    "8": {
+      "name": "Fossil Graveyard",
+      "starting_relic": "epitaph",
+      "supporting_packs": [
+        "EN-MRD",
+        "EN-AST"
+      ],
+      "cards": [
+        "Two-Headed King Rex",
+        "Crawling Dragon #2",
+        "Soul Resurrection"
+      ],
+      "pack_additions": [
+        "Two-Headed King Rex",
+        "Crawling Dragon #2",
+        "Soul Resurrection",
+        "Dark Factory of Mass Production",
+        "Order to Charge",
+        "Megazowler",
+        "Uraby"
+      ],
+      "background_card": "Crawling Dragon #2",
+      "background": "character-backgrounds/variant-8.jpg"
+    },
+    "9": {
+      "name": "Restless Crypt",
+      "starting_relic": "quiet_library",
+      "supporting_packs": [
+        "EN-IOC",
+        "EN-AST"
+      ],
+      "cards": [
+        "Soul-Absorbing Bone Tower",
+        "Pyramid Turtle",
+        "Book of Life"
+      ],
+      "pack_additions": [
+        "Soul-Absorbing Bone Tower",
+        "Pyramid Turtle",
+        "Book of Life",
+        "Call of the Mummy",
+        "Regenerating Mummy",
+        "Vampire Lady",
+        "Des Lacooda",
+        "Needle Worm"
+      ],
+      "background_card": "Soul-Absorbing Bone Tower",
+      "background": "character-backgrounds/variant-9.jpg"
+    },
+    "10": {
+      "name": "Insect Evolution",
+      "starting_relic": "chitin_carapace",
+      "supporting_packs": [
+        "EN-SOD",
+        "EN-FET"
+      ],
+      "cards": [
+        "Ultimate Insect LV1",
+        "Ultimate Insect LV3",
+        "Ultimate Insect LV5"
+      ],
+      "pack_additions": [
+        "Ultimate Insect LV1",
+        "Ultimate Insect LV3",
+        "Ultimate Insect LV5",
+        "Level Up!",
+        "The Graveyard in the Fourth Dimension",
+        "Howling Insect",
+        "Pinch Hopper",
+        "Petit Moth",
+        "Cocoon of Evolution"
+      ],
+      "background_card": "Ultimate Insect LV1",
+      "background": "character-backgrounds/variant-10.jpg"
+    },
+    "11": {
+      "name": "Tribute Tyrant",
+      "starting_relic": "tribute_dividend",
+      "supporting_packs": [
+        "EN-PGD",
+        "EN-AST"
+      ],
+      "cards": [
+        "Zaborg the Thunder Monarch",
+        "Double Coston",
+        "Soul Exchange"
+      ],
+      "pack_additions": [
+        "Zaborg the Thunder Monarch",
+        "Double Coston",
+        "Soul Exchange",
+        "Mobius the Frost Monarch",
+        "Thestalos the Firestorm Monarch",
+        "Granmarg the Rock Monarch",
+        "Gilasaurus"
+      ],
+      "background_card": "Zaborg the Thunder Monarch",
+      "background": "character-backgrounds/variant-11.jpg"
+    },
+    "12": {
+      "name": "Hidden Blade",
+      "starting_relic": "ninja_scroll",
+      "supporting_packs": [
+        "EN-IOC",
+        "EN-SOD"
+      ],
+      "cards": [
+        "Strike Ninja",
+        "Ninja Grandmaster Sasuke",
+        "Ninjitsu Art of Transformation"
+      ],
+      "pack_additions": [
+        "Strike Ninja",
+        "Ninja Grandmaster Sasuke",
+        "Ninjitsu Art of Transformation",
+        "Ninjitsu Art of Decoy",
+        "Fuhma Shuriken",
+        "Armed Ninja",
+        "Crimson Ninja",
+        "Nin-Ken Dog"
+      ],
+      "background_card": "Strike Ninja",
+      "background": "character-backgrounds/variant-12.jpg"
+    },
+    "13": {
+      "name": "Silent Resolve",
+      "starting_relic": "evolution_tablet",
+      "supporting_packs": [
+        "EN-SOD",
+        "EN-RDS"
+      ],
+      "cards": [
+        "Silent Swordsman LV3",
+        "Silent Swordsman LV5",
+        "Level Up!"
+      ],
+      "pack_additions": [
+        "Silent Swordsman LV3",
+        "Silent Swordsman LV5",
+        "Level Up!",
+        "Silent Swordsman LV7",
+        "Mystic Swordsman LV2",
+        "Mystic Swordsman LV4",
+        "Mystic Swordsman LV6",
+        "The Graveyard in the Fourth Dimension"
+      ],
+      "background_card": "Silent Swordsman LV3",
+      "background": "character-backgrounds/variant-13.jpg"
+    },
+    "14": {
+      "name": "Keeper of the Valley",
+      "starting_relic": "necrovalley_tablet",
+      "supporting_packs": [
+        "EN-PGD",
+        "EN-DR1"
+      ],
+      "cards": [
+        "Gravekeeper's Spy",
+        "Gravekeeper's Assailant",
+        "Necrovalley"
+      ],
+      "pack_additions": [
+        "Gravekeeper's Spy",
+        "Gravekeeper's Assailant",
+        "Necrovalley",
+        "Gravekeeper's Chief",
+        "Gravekeeper's Spear Soldier",
+        "Gravekeeper's Guard",
+        "Rite of Spirit",
+        "Royal Tribute",
+        "Charm of Shabti"
+      ],
+      "background_card": "Gravekeeper's Spy",
+      "background": "character-backgrounds/variant-14.jpg"
+    },
+    "15": {
+      "name": "Living Traps",
+      "starting_relic": "trap_weaver",
+      "supporting_packs": [
+        "EN-RDS",
+        "EN-AST"
+      ],
+      "cards": [
+        "Embodiment of Apophis",
+        "Zoma the Spirit",
+        "Metal Reflect Slime"
+      ],
+      "pack_additions": [
+        "Embodiment of Apophis",
+        "Zoma the Spirit",
+        "Metal Reflect Slime"
+      ],
+      "background_card": "Zoma the Spirit",
+      "background": "character-backgrounds/variant-15.jpg"
+    },
+    "16": {
+      "name": "Machine Meltdown",
+      "starting_relic": "static_coil",
+      "supporting_packs": [
+        "EN-IOC",
+        "EN-AST"
+      ],
+      "cards": [
+        "Needle Burrower",
+        "KA-2 Des Scissors",
+        "Limiter Removal"
+      ],
+      "pack_additions": [
+        "Needle Burrower",
+        "KA-2 Des Scissors",
+        "Limiter Removal",
+        "Cannon Soldier",
+        "Blowback Dragon",
+        "Reflect Bounder",
+        "Machine Duplication",
+        "Heavy Mech Support Platform"
+      ],
+      "background_card": "Needle Burrower",
+      "background": "character-backgrounds/variant-16.jpg"
+    },
+    "17": {
+      "name": "Arcane Reservoir",
+      "starting_relic": "counterweight",
+      "supporting_packs": [
+        "EN-FET",
+        "EN-DR1"
+      ],
+      "cards": [
+        "Magical Marionette",
+        "Apprentice Magician",
+        "Pitch-Black Power Stone"
+      ],
+      "pack_additions": [
+        "Magical Marionette",
+        "Apprentice Magician",
+        "Pitch-Black Power Stone",
+        "Breaker the Magical Warrior",
+        "Blast Magician",
+        "Royal Magical Library",
+        "Magical Plant Mandragola",
+        "Mega Ton Magical Cannon"
+      ],
+      "background_card": "Magical Marionette",
+      "background": "character-backgrounds/variant-17.jpg"
+    },
+    "18": {
+      "name": "Ocean Sovereign",
+      "starting_relic": "ocean_relic",
+      "supporting_packs": [
+        "EN-LOD",
+        "EN-SOD"
+      ],
+      "cards": [
+        "Levia-Dragon - Daedalus",
+        "Umi",
+        "Mother Grizzly"
+      ],
+      "pack_additions": [
+        "Levia-Dragon - Daedalus",
+        "Umi",
+        "Mother Grizzly",
+        "Ocean Dragon Lord - Neo-Daedalus",
+        "Big Wave Small Wave",
+        "Mermaid Knight",
+        "Tornado Wall",
+        "Forgotten Temple of the Deep"
+      ],
+      "background_card": "Levia-Dragon - Daedalus",
+      "background": "character-backgrounds/variant-18.jpg"
+    },
+    "19": {
+      "name": "Jar Collector",
+      "starting_relic": "jar_of_echoes",
+      "supporting_packs": [
+        "EN-PGD",
+        "EN-AST"
+      ],
+      "cards": [
+        "Morphing Jar",
+        "Dice Jar",
+        "Pot of Greed"
+      ],
+      "pack_additions": [
+        "Morphing Jar",
+        "Dice Jar",
+        "Pot of Greed",
+        "Morphing Jar #2",
+        "Cyber Jar",
+        "Avatar of The Pot",
+        "Spirit of the Pot of Greed",
+        "Book of Moon",
+        "Book of Taiyou"
+      ],
+      "background_card": "Morphing Jar",
+      "background": "character-backgrounds/variant-19.jpg"
+    },
+    "20": {
+      "name": "Ritual Ascension",
+      "starting_relic": "ritual_incense",
+      "supporting_packs": [
+        "EN-DCR",
+        "EN-SOD"
+      ],
+      "cards": [
+        "Shinato, King of a Higher Plane",
+        "Shinato's Ark",
+        "Manju of the Ten Thousand Hands"
+      ],
+      "pack_additions": [
+        "Shinato, King of a Higher Plane",
+        "Shinato's Ark",
+        "Manju of the Ten Thousand Hands",
+        "Senju of the Thousand Hands",
+        "Sonic Bird",
+        "Ritual Weapon",
+        "Fulfillment of the Contract",
+        "Contract with the Abyss"
+      ],
+      "background_card": "Manju of the Ten Thousand Hands",
+      "background": "character-backgrounds/variant-20.jpg"
+    },
+    "21": {
+      "name": "Flame Labyrinth",
+      "starting_relic": "storm_core",
+      "supporting_packs": [
+        "EN-PSV",
+        "EN-AST"
+      ],
+      "cards": [
+        "Solar Flare Dragon",
+        "Solar Flare Dragon",
+        "Backfire"
+      ],
+      "pack_additions": [
+        "Solar Flare Dragon",
+        "Backfire",
+        "Ultimate Baseball Kid",
+        "Firebird",
+        "Flame Ruler",
+        "Infernal Flame Emperor",
+        "Molten Destruction",
+        "Raging Flame Sprite"
+      ],
+      "background_card": "Solar Flare Dragon",
+      "background": "character-backgrounds/variant-21.jpg"
+    },
+    "22": {
+      "name": "Kindred Spirits",
+      "starting_relic": "twin_banner",
+      "supporting_packs": [
+        "EN-AST",
+        "EN-FET"
+      ],
+      "cards": [
+        "The Agent of Creation - Venus",
+        "Mystical Shine Ball",
+        "Rescue Cat"
+      ],
+      "pack_additions": [
+        "The Agent of Creation - Venus",
+        "Mystical Shine Ball",
+        "Rescue Cat",
+        "Nimble Momonga",
+        "Hyena",
+        "Maji-Gire Panda",
+        "The Big March of Animals",
+        "Beast Soul Swap",
+        "Mokey Mokey"
+      ],
+      "background_card": "The Agent of Creation - Venus",
+      "background": "character-backgrounds/variant-22.jpg"
+    },
+    "23": {
+      "name": "Old-School Army",
+      "starting_relic": "village_banner",
+      "supporting_packs": [
+        "EN-AST",
+        "EN-SOD"
+      ],
+      "cards": [
+        "Giant Soldier of Stone",
+        "Gemini Elf",
+        "Order to Charge"
+      ],
+      "pack_additions": [
+        "Giant Soldier of Stone",
+        "Gemini Elf",
+        "Order to Charge",
+        "Dark Factory of Mass Production",
+        "Soul Resurrection",
+        "Enchanting Fitting Room",
+        "Human-Wave Tactics",
+        "Two-Man Cell Battle"
+      ],
+      "background_card": "Giant Soldier of Stone",
+      "background": "character-backgrounds/variant-23.jpg"
+    },
+    "24": {
+      "name": "Dragon Hatchlings",
+      "starting_relic": "small",
+      "supporting_packs": [
+        "EN-SOD",
+        "EN-FET"
+      ],
+      "cards": [
+        "Armed Dragon LV3",
+        "Armed Dragon LV5",
+        "Masked Dragon"
+      ],
+      "pack_additions": [
+        "Armed Dragon LV3",
+        "Armed Dragon LV5",
+        "Masked Dragon",
+        "Armed Dragon LV7",
+        "Level Up!",
+        "The Graveyard in the Fourth Dimension",
+        "Troop Dragon",
+        "Mirage Dragon",
+        "Divine Dragon Ragnarok"
+      ],
+      "background_card": "Armed Dragon LV3",
+      "background": "character-backgrounds/variant-24.jpg"
+    },
+    "28": {
+      "name": "Dragon Heiress",
+      "starting_relic": "dragon_triumph",
+      "supporting_packs": [
+        "EN-LOD",
+        "EN-FET"
+      ],
+      "cards": [
+        "Luster Dragon",
+        "Spear Dragon",
+        "Stamping Destruction"
+      ],
+      "pack_additions": [
+        "Luster Dragon",
+        "Spear Dragon",
+        "Stamping Destruction",
+        "A Wingbeat of Giant Dragon",
+        "Mirage Dragon",
+        "Masked Dragon",
+        "King Dragun",
+        "Divine Dragon Ragnarok",
+        "Lord of D."
+      ],
+      "background_card": "Luster Dragon",
+      "background": "character-backgrounds/variant-28.jpg"
+    },
+    "29": {
+      "name": "Saintly Fusion",
+      "starting_relic": "fusion_chamber",
+      "supporting_packs": [
+        "EN-MRD",
+        "EN-FET"
+      ],
+      "cards": [
+        "St. Joan",
+        "Fusion Gate",
+        "Darklord Marie",
+        "The Forgiving Maiden"
+      ],
+      "pack_additions": [
+        "St. Joan",
+        "Fusion Gate",
+        "Darklord Marie",
+        "The Forgiving Maiden",
+        "Polymerization",
+        "King of the Swamp",
+        "The Light - Hex-Sealed Fusion",
+        "The Dark - Hex-Sealed Fusion",
+        "Re-Fusion",
+        "Fusion Weapon"
+      ],
+      "background_card": "St. Joan",
+      "background": "character-backgrounds/variant-29.jpg"
+    },
+    "30": {
+      "name": "Offering to Ra",
+      "starting_relic": "healing_echo",
+      "supporting_packs": [
+        "EN-LOD",
+        "EN-AST"
+      ],
+      "cards": [
+        "The Winged Dragon of Ra",
+        "Nimble Momonga",
+        "Soul Exchange"
+      ],
+      "pack_additions": [
+        "The Winged Dragon of Ra",
+        "Nimble Momonga",
+        "Soul Exchange",
+        "Stray Lambs",
+        "Soul Rope",
+        "Solemn Wishes",
+        "Mystik Wok",
+        "Double Coston",
+        "Gilasaurus"
+      ],
+      "background_card": "Nimble Momonga",
+      "background": "character-backgrounds/variant-30.jpg"
+    },
+    "31": {
+      "name": "Patient Sphinx",
+      "starting_relic": "patient_guardian",
+      "supporting_packs": [
+        "EN-AST",
+        "EN-FET"
+      ],
+      "cards": [
+        "Guardian Sphinx",
+        "Stone Statue of the Aztecs",
+        "Cross Counter"
+      ],
+      "pack_additions": [
+        "Guardian Sphinx",
+        "Stone Statue of the Aztecs",
+        "Cross Counter",
+        "Golem Sentry",
+        "Legendary Jujitsu Master",
+        "Book of Moon",
+        "Desert Sunlight",
+        "Weapon Change"
+      ],
+      "background_card": "Stone Statue of the Aztecs",
+      "background": "character-backgrounds/variant-31.jpg"
+    },
+    "32": {
+      "name": "Ritual Judgment",
+      "starting_relic": "solemn_relic",
+      "supporting_packs": [
+        "EN-MRL",
+        "EN-DCR"
+      ],
+      "cards": [
+        "Black Luster Soldier",
+        "Black Luster Ritual",
+        "Manju of the Ten Thousand Hands"
+      ],
+      "pack_additions": [
+        "Black Luster Soldier",
+        "Black Luster Ritual",
+        "Manju of the Ten Thousand Hands",
+        "Senju of the Thousand Hands",
+        "Sonic Bird",
+        "Shinato, King of a Higher Plane",
+        "Contract with the Abyss",
+        "Ritual Weapon"
+      ],
+      "background_card": "Black Luster Soldier",
+      "background": "character-backgrounds/variant-32.jpg"
+    },
+    "33": {
+      "name": "Archfiend Dominion",
+      "starting_relic": "archfiend_contract",
+      "supporting_packs": [
+        "EN-DCR",
+        "EN-DR1"
+      ],
+      "cards": [
+        "Terrorking Archfiend",
+        "Pandemonium",
+        "Archfiend Soldier"
+      ],
+      "pack_additions": [
+        "Terrorking Archfiend",
+        "Pandemonium",
+        "Archfiend Soldier",
+        "Vilepawn Archfiend",
+        "Desrook Archfiend",
+        "Darkbishop Archfiend",
+        "Archfiend's Roar",
+        "Falling Down",
+        "Checkmate"
+      ],
+      "background_card": "Terrorking Archfiend",
+      "background": "character-backgrounds/variant-33.jpg"
+    },
+    "34": {
+      "name": "Banished Legion",
+      "starting_relic": "exile_standard",
+      "supporting_packs": [
+        "EN-PGD",
+        "EN-FET"
+      ],
+      "cards": [
+        "Gren Maju Da Eiza",
+        "Bazoo the Soul-Eater",
+        "Soul Release"
+      ],
+      "pack_additions": [
+        "Gren Maju Da Eiza",
+        "Bazoo the Soul-Eater",
+        "Soul Release",
+        "D.D. Scout Plane",
+        "D.D. Dynamite",
+        "Dimension Fusion",
+        "Return from the Different Dimension",
+        "Inferno Tempest"
+      ],
+      "background_card": "Gren Maju Da Eiza",
+      "background": "character-backgrounds/variant-34.jpg"
+    },
+    "35": {
+      "name": "Master of Arms",
+      "starting_relic": "armory_crest",
+      "supporting_packs": [
+        "JP-304",
+        "EN-FET"
+      ],
+      "cards": [
+        "Maha Vailo",
+        "Armed Samurai - Ben Kei",
+        "Axe of Despair"
+      ],
+      "pack_additions": [
+        "Maha Vailo",
+        "Armed Samurai - Ben Kei",
+        "Axe of Despair",
+        "Iron Blacksmith Kotetsu",
+        "United We Stand",
+        "Mage Power",
+        "Big Bang Shot",
+        "Wicked-Breaking Flamberge - Baou",
+        "Shooting Star Bow - Ceal"
+      ],
+      "background_card": "Maha Vailo",
+      "background": "character-backgrounds/variant-35.jpg"
+    }
+  }
+}

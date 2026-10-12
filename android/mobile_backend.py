@@ -80,7 +80,7 @@ def dispatch(raw):
   value=value if isinstance(value,dict) else {'character':int(value)}
   slot=int(value.get('slot',storage.active_slot()));storage.run_path(slot)
   if storage.read(storage.run_path(slot)) and not value.get('replace'):raise ValueError('Confirm before replacing this saved run.')
-  candidate=g.new_run(int(value['character']),level=int(value.get('level',0)));candidate['_save_slot']=slot
+  candidate=g.new_run(int(value['character']),level=int(value.get('level',0)),variant=int(value.get('variant',0)));candidate['_save_slot']=slot
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
   profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
  elif action=='secret-champion':

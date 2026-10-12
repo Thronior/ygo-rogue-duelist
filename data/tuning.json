@@ -15,7 +15,7 @@
     "ankh": {
       "name": "Diamond Ankh",
       "price": 75,
-      "description": "When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP.",
+      "description": "When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP, including challenge-level and boss-victory healing limits.",
       "art": "Monster Reborn",
       "effect": "",
       "amount": 0,
@@ -70,7 +70,7 @@
     "seal": {
       "name": "Broken Seal",
       "price": 90,
-      "description": "Your opponent starts each Duel with 1000 fewer LP after challenge-level rules (minimum 1 LP).",
+      "description": "Your opponent starts each Duel with 1,000 fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).",
       "art": "Spellbinding Circle",
       "effect": "enemy_lp",
       "amount": 1000,
@@ -80,7 +80,7 @@
     },
     "dragon": {
       "name": "Dragon Crest",
-      "price": 60,
+      "price": 70,
       "description": "Dragon monsters you control gain 300 ATK.",
       "art": "Blue-Eyes White Dragon",
       "effect": "atk",
@@ -91,7 +91,7 @@
     },
     "mage": {
       "name": "Magician Staff",
-      "price": 60,
+      "price": 70,
       "description": "Spellcaster monsters you control gain 300 ATK.",
       "art": "Mage Power",
       "effect": "atk",
@@ -102,8 +102,8 @@
     },
     "blade": {
       "name": "Warrior Blade",
-      "price": 60,
-      "description": "Warrior monsters you control gain 300 ATK.",
+      "price": 70,
+      "description": "Warrior and Beast-Warrior monsters you control gain 300 ATK.",
       "art": "Axe Raider",
       "effect": "atk",
       "amount": 300,
@@ -113,7 +113,7 @@
     },
     "wing": {
       "name": "Wind Plume",
-      "price": 60,
+      "price": 70,
       "description": "Winged Beast monsters you control gain 300 ATK.",
       "art": "Harpie Lady",
       "effect": "atk",
@@ -124,7 +124,7 @@
     },
     "gear": {
       "name": "Ancient Gear",
-      "price": 60,
+      "price": 70,
       "description": "Machine monsters you control gain 300 ATK.",
       "art": "Jinzo",
       "effect": "atk",
@@ -135,40 +135,40 @@
     },
     "shell": {
       "name": "Shell Spikes",
-      "price": 60,
-      "description": "Aqua and Fish monsters you control gain 300 ATK.",
+      "price": 70,
+      "description": "Aqua, Fish, and Sea Serpent monsters you control gain 300 ATK.",
       "art": "Aqua Madoor",
       "effect": "atk",
       "amount": 300,
       "tag": "offense",
-      "filter": "Aqua/Fish",
+      "filter": "Aqua/Fish/Sea Serpent",
       "parameters": {}
     },
     "fossil": {
       "name": "Amber Fossil",
-      "price": 60,
-      "description": "Dinosaur monsters you control gain 300 ATK.",
+      "price": 70,
+      "description": "Dinosaur and Reptile monsters you control gain 300 ATK.",
       "art": "Two-Headed King Rex",
       "effect": "atk",
       "amount": 300,
       "tag": "offense",
-      "filter": "Dinosaur",
+      "filter": "Dinosaur/Reptile",
       "parameters": {}
     },
     "hive": {
-      "name": "Amber Hive",
-      "price": 60,
-      "description": "Insect monsters you control gain 300 ATK.",
-      "art": "Killer Needle",
+      "name": "Wildwood Charm",
+      "price": 70,
+      "description": "Insect and Plant monsters you control gain 300 ATK.",
+      "art": "Prickle Fairy",
       "effect": "atk",
       "amount": 300,
       "tag": "offense",
-      "filter": "Insect",
+      "filter": "Insect/Plant",
       "parameters": {}
     },
     "bone": {
       "name": "Zombie Crystal",
-      "price": 60,
+      "price": 70,
       "description": "Zombie monsters you control gain 300 ATK.",
       "art": "Dragon Zombie",
       "effect": "atk",
@@ -179,7 +179,7 @@
     },
     "halo": {
       "name": "Silver Halo",
-      "price": 60,
+      "price": 70,
       "description": "Fairy monsters you control gain 300 ATK.",
       "art": "Shining Angel",
       "effect": "atk",
@@ -190,8 +190,8 @@
     },
     "fang": {
       "name": "Beast Fang",
-      "price": 60,
-      "description": "Beast monsters you control gain 300 ATK.",
+      "price": 70,
+      "description": "Beast and Beast-Warrior monsters you control gain 300 ATK.",
       "art": "Silver Fang",
       "effect": "atk",
       "amount": 300,
@@ -201,7 +201,7 @@
     },
     "horn": {
       "name": "Fiend Horn",
-      "price": 60,
+      "price": 70,
       "description": "Fiend monsters you control gain 300 ATK.",
       "art": "Terrorking Archfiend",
       "effect": "atk",
@@ -433,7 +433,7 @@
     "map": {
       "name": "Treasure Map",
       "price": 75,
-      "description": "Shops offer 1 additional artifact.",
+      "description": "Shops offer 1 additional relic.",
       "art": "Terraforming",
       "effect": "extra_artifact",
       "amount": 1,
@@ -604,7 +604,7 @@
     "magic_mirror": {
       "name": "Magic Mirror",
       "price": 110,
-      "description": "At the start of each Duel, this artifact copies the effects of 1 random other artifact you own, except \"Blank Relic\", for that Duel.",
+      "description": "At the start of each Duel, copy the effects of 1 random other relic you own, except \"Blank Relic\". Keep those effects until the next Duel starts.",
       "art": "Morphing Jar",
       "effect": "mirror",
       "amount": 0,
@@ -648,7 +648,7 @@
     "legendary_shackles": {
       "name": "Legendary Shackles",
       "price": 85,
-      "description": "\"Exodia the Forbidden One\" and \"Forbidden One\" monsters appear more often in shops. Every third shop visit or reroll while this artifact is active guarantees 1 random Exodia piece in general stock.",
+      "description": "Adds one extra random Exodia piece to every shop and reroll.",
       "art": "Kunai with Chain",
       "effect": "like_exodia",
       "amount": 0,
@@ -659,7 +659,7 @@
     "toon_world": {
       "name": "Toon World",
       "price": 85,
-      "description": "Toon cards appear more often in shops.",
+      "description": "Adds one extra random card with \"Toon\" in its name to every shop and reroll.",
       "art": "Toon World",
       "effect": "like_toon",
       "amount": 0,
@@ -681,18 +681,18 @@
     "fusion_chamber": {
       "name": "Fusion Chamber",
       "price": 80,
-      "description": "Fusion Monsters, \"Polymerization\", and \"Fusion Sage\" appear more often in shops.",
+      "description": "Every shop and reroll offers one additional random Fusion Monster or Fusion support card.",
       "art": "Polymerization",
-      "effect": "like_fusion",
-      "amount": 0,
-      "tag": "draw",
+      "effect": "archetype_stock",
+      "amount": 1,
+      "tag": "economy",
       "filter": "",
       "parameters": {}
     },
     "phoenix_rebirth": {
       "name": "Phoenix Feather",
       "price": 120,
-      "description": "Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. After this effect is applied, this artifact is consumed.",
+      "description": "Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. After this effect is applied, this relic is consumed.",
       "art": "Fire Princess",
       "effect": "phoenix",
       "amount": 1000,
@@ -714,7 +714,7 @@
     "glass_shard": {
       "name": "Glass Shard",
       "price": 70,
-      "description": "Your starting LP become 2,000 in each Duel, before boss LP penalties. Double your victory coin rewards, up to the reward limit.",
+      "description": "Your starting LP become 2,000 in each Duel, before boss LP penalties. Double your victory coin rewards.",
       "art": "Gamble",
       "effect": "glass",
       "amount": 2000,
@@ -747,7 +747,7 @@
     "blank_relic": {
       "name": "Blank Relic",
       "price": 50,
-      "description": "After your next Duel, this artifact becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, it becomes Earth Orb.",
+      "description": "After your next Duel, this relic becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, or the most common Attribute has no matching Orb, it becomes Earth Orb.",
       "art": "Fiber Jar",
       "effect": "",
       "amount": 0,
@@ -849,7 +849,7 @@
     "third_gate": {
       "name": "The Third Gate",
       "price": 135,
-      "description": "Count cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.",
+      "description": "Count non-Token cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.",
       "art": "Banisher of the Light",
       "effect": "third_banish",
       "amount": 3,
@@ -859,7 +859,7 @@
     "exile_standard": {
       "name": "Exile Standard",
       "price": 100,
-      "description": "Monsters you control gain 50 ATK for each face-up banished monster.",
+      "description": "Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.",
       "art": "Soul Release",
       "effect": "banished_atk",
       "amount": 50,
@@ -915,6 +915,17 @@
       "amount": 1,
       "tag": "draw",
       "filter": "",
+      "parameters": {}
+    },
+    "storm_core": {
+      "name": "Lightning Fire",
+      "price": 70,
+      "description": "Pyro and Thunder monsters you control gain 300 ATK.",
+      "art": "Lightning Storm",
+      "effect": "atk",
+      "amount": 300,
+      "tag": "offense",
+      "filter": "Pyro/Thunder",
       "parameters": {}
     }
   },

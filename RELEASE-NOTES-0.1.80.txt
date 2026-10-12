@@ -1,0 +1,59 @@
+v0.1.80
+
+• Added second character variants, unlocked by beating Challenge LVL 2 with that character. Previous completions count automatically. Ryou Bakura, Copycat, and Dueling Engine are excluded for now.
+• Updated starting relics, signature cards, supporting packs, and character pack contents to support the new variants.
+• Added unique signature-card backgrounds for alternate portraits.
+
+New Relics — Cost → Effect
+
+• Lightning Fire — 70 coins → Pyro and Thunder monsters gain 300 ATK.
+• Chitin Carapace — 85 coins → Insect monsters gain 400 DEF.
+• Fusion Dividend — 90 coins → Earn 30 coins per Fusion Summon, collected after the duel.
+• Swordsman’s Oath — 85 coins → Warrior LV monsters gain 300 ATK.
+• Damage Echo — 90 coins → Deal 200 additional damage whenever you inflict effect damage. Cannot trigger itself.
+• Counterweight — 90 coins → Your monsters gain 100 ATK per Spell Counter on your field.
+• Jar of Echoes — 90 coins → Once during your Standby Phase, change one of your face-up monsters to face-down Defense Position.
+• Ritual Incense — 90 coins → Draw a card whenever you Ritual Summon.
+• Veteran’s Might — 85 coins → Your Level 4 Normal Monsters gain 200 ATK and DEF.
+• Dragon’s Claws — 90 coins → Inflict 300 damage whenever your Dragon destroys an opponent’s monster by battle.
+• Armory Crest — 85 coins → Your equipped monsters gain 300 ATK.
+
+New Archetype Relics
+
+Each costs 85 coins and adds one matching card to every shop and reroll:
+
+• Amazoness Standard → Amazoness cards and support.
+• Necrovalley Tablet → Gravekeeper’s cards and Necrovalley support.
+• Harpie Feather → Harpie cards and support.
+• Scorpion Emblem → Dark Scorpions and Don Zaloog.
+• Ninja Scroll → Ninjas and Ninjitsu support.
+• Guardian Arsenal → Guardians and their dedicated equipment.
+• Union Dock → Union cards, support, and XYZ Fusion Monsters.
+• Ocean Relic → Umi cards and support.
+• Evolution Tablet → LV monsters and support.
+• Destiny Hourglass → Destiny Board, Spirit Messages, and Final Countdown.
+
+Relic Updates
+
+• Type-based 300 ATK relics now cost 70 coins.
+• Shell Spikes now also supports Sea Serpents.
+• Amber Fossil now also supports Reptiles.
+• Amber Hive becomes Wildwood Charm and also supports Plants.
+• Warrior Blade and Beast Fang now also support Beast-Warriors.
+• Fusion Chamber now adds a Fusion Monster or Fusion support card to every shop and reroll.
+• Updated artwork and clarified relic descriptions.
+
+CPU Improvements
+
+• Improved Ritual and Tribute material choices.
+• Fixed unnecessary attacks into visible Yomi Ship.
+• Improved Ladybug Flip Effect usage against visible Level 4 monsters.
+
+Performance and UI
+
+• Reduced the size and memory usage of new relic artwork.
+• Added an indicator for misprinted cards in hand.
+• Start Run stays visible in portrait mode, with scrollable character details.
+• Run results display the full relic collection.
+• Simplified victory and looping text.
+• Various minor UI tweaks.

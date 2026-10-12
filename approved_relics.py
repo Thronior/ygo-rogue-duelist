@@ -13,14 +13,14 @@ REGULAR=[
 ('fusion_insignia','Fusion Weapon',85,'Fusion Monsters you control gain 300 ATK/DEF.','Polymerization'),
 ('tribute_dividend','Tribute Dividend',75,'Earn 15 additional coins for each successful Tribute Summon if you win the Duel.','Soul Exchange'),
 ('patient_guardian','Patient Guardian',90,'Once per turn, at the start of your Standby Phase, if you control no Attack Position monsters, gain 300 LP.','Waboku'),
-('healing_echo','Healing Echo',100,'Each time you gain LP by a card effect other than this relic, gain 200 additional LP.','Dian Keto the Cure Master'),
+('healing_echo','Healing Echo',100,'Each time you gain LP by an effect other than Healing Echo, gain 200 additional LP.','Dian Keto the Cure Master'),
 ('trap_weaver','Trap Weaver',80,'Trap Monsters you control gain 400 ATK/DEF.','Embodiment of Apophis'),
-('twin_banner','Twin Banner',85,'While you control exactly 2 monsters with different Types, they gain 200 ATK/DEF.','United We Stand'),
+('twin_banner','Twin Banner',85,'While you control exactly 2 face-up monsters with different Types and no other monsters, they gain 200 ATK/DEF.','United We Stand'),
 ('quiet_library','Quiet Library',80,'Once per turn, at the start of your End Phase, if you did not declare an attack this turn, gain 250 LP.','Solemn Wishes'),
 ('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional general-stock single.','The Eye of Truth')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
-(2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50%.','Dian Keto the Cure Master'),
+(2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
 (3,'loaded_purse','Loaded Purse','Earn 20 additional coins after each victory. Your opponent starts each Duel with 2000 additional LP.','Jar of Greed'),
 (4,'brittle_armor','Brittle Armor','Monsters you control gain 900 DEF, but lose 300 ATK.','Silver Bow and Arrow'),
 (5,'cracked_sword','Cracked Sword','Monsters you control gain 300 ATK, but lose 1000 DEF.','Sword of Deep-Seated'),

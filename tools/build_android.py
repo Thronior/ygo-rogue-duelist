@@ -38,7 +38,7 @@ def sync():
    scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
- shared=['pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
+ shared=['character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
  shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py','custom_cards.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
@@ -106,10 +106,14 @@ def sync():
   if relative.parts[0]=='packs' and source.stem in excluded_packs:continue
   if relative.parts[0]=='cards' and int(source.stem) not in ids:continue
   dest=WEB/'assets'/relative;dest.parent.mkdir(parents=True,exist_ok=True)
-  if dest.exists() and dest.stat().st_mtime>=source.stat().st_mtime:continue
+  variant_icon=relative.parts[0]=='relics' and source.name.startswith('variant-')
+  if dest.exists() and dest.stat().st_mtime>=source.stat().st_mtime:
+   if not variant_icon:continue
+   with Image.open(dest) as current:
+    if max(current.size)<=512:continue
   if source.suffix.lower() in ('.jpg','.png'):
    with Image.open(source) as im:
-    im.thumbnail((288,420) if relative.parts[0]=='cards' else (1280,900),Image.Resampling.LANCZOS)
+    im.thumbnail((288,420) if relative.parts[0]=='cards' else (512,512) if variant_icon else (1280,900),Image.Resampling.LANCZOS)
     if source.suffix.lower()=='.jpg':im=im.convert('RGB')
     im.save(dest,quality=85,optimize=True)
   else:copy(source,dest)

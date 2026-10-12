@@ -82,11 +82,12 @@ artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbind
 for key,name,art,race in [
  ('dragon','Dragon Crest','Blue-Eyes White Dragon','Dragon'),('mage','Magician Staff','Dark Magician','Spellcaster'),
  ('blade','Warrior Blade','Axe Raider','Warrior'),('wing','Wind Plume','Harpie Lady','Winged Beast'),
- ('gear','Ancient Gear','Jinzo','Machine'),('shell','Shell Spikes','Aqua Madoor','Aqua/Fish'),
- ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur'),('hive','Amber Hive','Killer Needle','Insect'),
+ ('gear','Ancient Gear','Jinzo','Machine'),('shell','Shell Spikes','Aqua Madoor','Aqua/Fish/Sea Serpent'),
+ ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur/Reptile'),('hive','Wildwood Charm','Prickle Fairy','Insect/Plant'),
  ('bone','Zombie Crystal','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
- ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend')]:
- artifact(key,name,60,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
+ ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend'),
+ ('storm_core','Lightning Fire','Lightning Storm','Pyro/Thunder')]:
+ artifact(key,name,70,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
  artifact(key,name,65,f'Your {attr} monsters gain 200 ATK and DEF.',art,'both',200,'offense',attr)
 artifact('buckler','Millennium Shield',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
@@ -197,6 +198,10 @@ artifact('glass_shard','Glass Shard',70,'You start every duel with 2000 LP, but 
 artifact('deck_spyglass','Deck Spyglass',85,'Reveal opponent portraits and view their decks when choosing your opponent.','The Eye of Truth','spyglass',0,'draw')
 artifact('rulebook',"Broke Man's Rulebook",60,'Both players open with 1 card instead of 5.','A Deal with Dark Ruler','rulebook',0,'draw')
 artifact('blank_relic','Blank Relic',50,'Does nothing. After your next duel it becomes an attribute orb matching your most common monster attribute.','Fiber Jar','',0,'economy')
+from variant_relics import install as install_variant_relics
+install_variant_relics(artifact)
+from archetype_relics import install as install_archetype_relics
+install_archetype_relics(artifact)
 from artifact_expansion import install as install_artifact_expansion
 install_artifact_expansion(artifact)
 
@@ -247,6 +252,9 @@ for _id,_relic in PROGRESSION["starting_relics"].items():
 # Approved signature cards; list order and duplicate copies are intentional.
 for _id, _cards in json.loads((Path(__file__).parent/"data/character-signatures.json").read_text(encoding="utf8")).items():
  CHARACTERS[int(_id)]["cards"]=_cards
+
+from character_variants import install as install_character_variants
+install_character_variants(CHARACTERS)
 
 # Append-only opponent identities do not join PLAYABLE_IDS or starter progression.
 TIER_EXCLUSIVE_OPPONENTS={row['character']:row for row in json.loads((Path(__file__).parent/'data/tier-exclusive-opponents.json').read_text(encoding='utf8'))['opponents']}

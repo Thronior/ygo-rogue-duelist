@@ -3,7 +3,10 @@ Artifact phase effects are continuous rules and do not start a Chain: no colon.
 """
 def description(key,info,previous):
  a=info['amount'];f=info['filter'];p=info.get('parameters',{});kind=info['effect'];n=lambda x:f'{x:,}'
- subject=(f.replace('/',' and ')+' monsters' if f else 'Monsters')+' you control'
+ types=f.split('/') if f else []
+ if f in ('Warrior','Beast'):types.append('Beast-Warrior')
+ label=', '.join(types[:-1])+', and '+types[-1] if len(types)>2 else ' and '.join(types)
+ subject=(label+' monsters' if label else 'Monsters')+' you control'
  patterns={
  'atk':f'{subject} gain {n(a)} ATK.', 'def':f'Monsters you control gain {n(a)} DEF.',
  'both':f'{subject} gain {n(a)} ATK/DEF.',
@@ -38,7 +41,7 @@ def description(key,info,previous):
  'echo':'Once per Duel, the first time your opponent Normal, Flip, or Special Summons a face-up Level 4 or lower monster, add a copy of 1 such monster to your hand.',
  'faulty':f'Each monster purchased as a single or pulled from a purchased booster has a {a}% chance to become a misprint. A misprint changes that copy\'s original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0).',
  'golden':f'Designate 1 card in the deck editor. If you win a Duel, earn {a} additional coins for each time you Summoned, Set, or activated a card with that name during that Duel (max. 5 times).',
- 'mirror':'At the start of each Duel, this relic copies the effects of 1 random other relic you own, except "Blank Relic", for that Duel.',
+ 'mirror':'At the start of each Duel, copy the effects of 1 random other relic you own, except "Blank Relic". Keep those effects until the next Duel starts.',
  'underdog_gold':f'After each victory, earn {a} additional coins for each Level 2 or lower Normal Monster in your Main Deck.',
  'trap_negate':'Negate all Trap effects on the field and all activated Trap effects.',
  'spell_negate':'Negate all Spell effects on the field and all activated Spell effects.',
@@ -54,5 +57,6 @@ def description(key,info,previous):
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
  }
  if key=='ankh':return 'When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP, including challenge-level and boss-victory healing limits.'
- if key=='blank_relic':return 'After your next Duel, this relic becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, it becomes Earth Orb.'
- return patterns.get(kind,previous)
+ if key=='blank_relic':return 'After your next Duel, this relic becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, or the most common Attribute has no matching Orb, it becomes Earth Orb.'
+ text=patterns.get(kind,previous)
+ return text

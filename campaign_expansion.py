@@ -1,7 +1,8 @@
+import variant_relics
 import challenge_levels
 """Nine-duel progression and persistent profile integration."""
 import random,uuid,json,time
-import shop_rewards,card_rarity
+import shop_rewards,card_rarity,archetype_relics
 from collections import Counter
 import storage
 from content import *
@@ -137,24 +138,25 @@ def install(g):
   challenge_levels.suppress(run)
   run['reward_rules']=5
   run['revealed_opponents']=[]
- def new_run(index,rng=random,level=0):
+ def new_run(index,rng=random,level=0,variant=0):
   level=challenge_levels.validate(index,level)
   reload_tuning()
   if index not in PLAYABLE_IDS or index not in storage.profile()['unlocked']:raise ValueError('This duelist is locked.')
-  char=CHARACTERS[index];signatures=[g.BY_NAME[n]['id'] for n in char['cards']]
-  pack_ids=starting_packs(index,rng)
+  import character_variants
+  char=character_variants.loadout(CHARACTERS,index,variant,storage.profile());signatures=[g.BY_NAME[n]['id'] for n in char['cards']]
+  pack_ids=char['starting_packs'] if variant else starting_packs(index,rng)
   for _ in range(500):
    packs=[open_pack(pack,rng) for pack in pack_ids]
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
    if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and (char.get('random_packs') or sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9)):break
   else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
-  r.update(campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
+  r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else 'Standard',campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
   r['challenge_level']=level
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
-  if relic=='random':relic=rng.choice([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved()])
+  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved()],1,r,rng)[0]
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -317,6 +319,8 @@ def install(g):
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
   bonus=custom_cards.coins(events)
   if bonus:tally['Ancient Treasure']=bonus;total+=bonus
+  bonus=variant_relics.coins(run,events)
+  if bonus:tally['Fusion Dividend']=bonus;total+=bonus
   return {k:v for k,v in tally.items() if v},total
  def update_profile(run,won=False):
   import achievement_model
@@ -366,6 +370,8 @@ def install(g):
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
    bonus=custom_cards.coins(result.get('events',[]))
    if bonus:run['last_rewards']['Ancient Treasure']=bonus;run['last_gold']=bonus;run['gold']+=bonus
+   bonus=variant_relics.coins(run,result.get('events',[]))
+   if bonus:run['last_rewards']['Fusion Dividend']=bonus;run['last_gold']+=bonus;run['gold']+=bonus
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    defeated_deck=[cid for cid in defeated_deck if cid not in custom_cards.IDS]
@@ -445,7 +451,6 @@ def install(g):
   # Legendary Shackles likewise grants its own slot below.
   # Toon World now grants a separate guaranteed slot instead of weighting general stock.
   if 'ritual_dagger' in _arts:like|={c['id'] for c in eligible if shop_rewards.matches(c,'ritual')}
-  if 'fusion_chamber' in _arts:like|={c['id'] for c in eligible if c['data']['type']&0x40}|{g.BY_NAME['Polymerization']['id'],g.BY_NAME['Fusion Sage']['id']}&{c['id'] for c in eligible}
   def stock_sample(cards,count):
    return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id']))),reverse=True)[:count]
   themed=[c for c in eligible if c['id'] not in custom_cards.IDS]
@@ -462,6 +467,9 @@ def install(g):
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
   for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))]),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
    if relic in _arts and bonus:singles.append(rng.choice(bonus))
+  for relic in sorted(archetype_relics.NEW_IDS & _arts):
+   bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c)]
+   if bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   tied=run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack']
   if PACK_BY_ID.get(tied,{}).get('draft_only') or not unlocks.available('pack',tied,profile):
@@ -481,8 +489,8 @@ def install(g):
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   available=[a for a in ARTIFACTS if a not in RETIRED_ARTIFACTS and a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
-  count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=rng.sample(preferred_art,min(1,len(preferred_art)))
-  chosen+=rng.sample([a for a in available if a not in chosen],count-len(chosen))
+  count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
+  chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)
   items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   modifier=max(0,1-amount(run,'discount')/100)
   for item in items:

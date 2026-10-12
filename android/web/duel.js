@@ -27,9 +27,10 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
+  if(m.type===M.HINT&&m.hint_type===2){const marker=Number(m.hint)-1950000000;if(marker>=0&&marker<2000){const hand=this.misprintedHands?.[m.player];if(hand){const sequence=Math.floor(marker/2);if(marker%2)hand.add(sequence);else hand.delete(sequence);}return;}}
   trackEffectTargets(this,m,M);
   if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000050&&m.player===0)this.events.push({kind:'ancient_treasure',card:190000050});
   this.trackReborn(m);
@@ -113,6 +114,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.CHAIN_END)this.chainedSinceAttack=false;
   if(m.type===M.NEW_PHASE){this.battleOpen=false;this.chainedSinceAttack=false;}
   if(m.type===M.CHAIN_SOLVED){const x=this.activeChain?.find(c=>c.link===m.chain_size);if(x&&!x.inactive&&this.name(x.code)==='Cybernetic Fusion Support')(this.fusionSupport??={})[x.player]=this.turn;if(x&&!x.inactive&&['Waboku','Threatening Roar','Negate Attack'].includes(this.name(x.code)))(this.battleProtected??=[false,false])[x.player]=true;}
+  if(m.type===M.HINT&&m.player===0&&Number(m.hint)===900000003)this.events.push({kind:'fusion_dividend'});
   if(m.type===M.HINT&&Number(m.hint)===900000002)this.events.push({kind:'tribute_dividend'});
   if(m.type===M.HINT&&Number(m.hint)===900000001)this.events.push({kind:'relic_used',relic:'phoenix_rebirth'});
   if(m.type===M.CHAINING){this.chainDepth=m.chain_size||1;(this.activeChain??=[]).push({code:m.code,player:m.triggering_controller??m.player??m.controller,targets:[],location:m.location,sequence:m.sequence,controller:m.controller,link:m.chain_size||1});}
@@ -209,6 +211,11 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const benefit=!hostileEquip&&/equip|gains? \d+ atk|increase.*atk|recover|increase.*def/.test(text)&&!/destroy.*equip/.test(text);
   const smart=smartContext(this,p,L,m);
   if(m.type===M.ANNOUNCE_RACE&&this.name(this.effect?.code)==='DNA Surgery'&&m.count===1){const race=dnaSurgeryRace(this,p,L,m.available);if(race!==null)return {type:R.ANNOUNCE_RACE,races:[race]};}
+  if(m.type===M.SELECT_UNSELECT_CARD&&this.name(this.effect?.code)==='Multiplication of Ants'){
+   if(m.can_finish)return {type:R.SELECT_UNSELECT_CARD,index:null};
+   const choices=(m.select_cards||[]).map((c,i)=>({c:live(c)||c,i})).sort((a,b)=>smart.expendable(a.c)-smart.expendable(b.c));
+   if(choices.length)return {type:R.SELECT_UNSELECT_CARD,index:choices[0].i};
+  }
   if(m.type===M.SELECT_UNSELECT_CARD&&(this.name(this.effect?.code)==='Panther Warrior'||!this.effect&&this.selectionHint===500&&this.phase>=8&&this.phase<256&&this.attacker?.player===p&&this.name(this.attacker?.code)==='Panther Warrior'&&m.select_cards?.every(c=>c.controller===p&&c.location===L.MZONE))){
    const attacker=own.find(c=>c.sequence===this.attackCard?.sequence&&this.name(c.code)==='Panther Warrior')||own.find(c=>this.name(c.code)==='Panther Warrior');
    const choices=(m.select_cards||[]).map((c,i)=>({c:live(c)||c,i})).filter(x=>attacker&&smart.pantherTributeAllowed(attacker,x.c,!enemy.length)).sort((a,b)=>atk(a.c)-atk(b.c));
@@ -273,7 +280,13 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // Mandatory attacks (e.g. Diffusion Wave-Motion) cannot be declined even under Waboku.
    if(!best&&!m.to_m2&&!m.to_ep&&m.attacks.length){const forced=m.attacks.map((c,i)=>({i,power:atk(own.find(x=>x.sequence===c.sequence)||c)})).sort((a,b)=>b.power-a.power);best=forced[0];}
    return best?{type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:best.i}:{type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null}}
-  if(m.type===M.SELECT_SUM)return {type:R.SELECT_SUM,indicies:this.sumSelection(m,c=>c.controller===p&&c.location===L.MZONE&&this.name(c.code)==='Relinquished')};
+  if(m.type===M.SELECT_SUM){
+   // Keep engine legality checks, but try expendable materials before valuable bodies.
+   const order=m.selects.map((c,i)=>({c,i})).sort((a,b)=>smart.expendable(live(a.c)||a.c)-smart.expendable(live(b.c)||b.c));
+   const sorted={...m,selects:order.map(x=>x.c)};
+   const indices=this.sumSelection(sorted,c=>c.controller===p&&c.location===L.MZONE&&this.name(c.code)==='Relinquished');
+   return {type:R.SELECT_SUM,indicies:indices.map(i=>order[i].i)};
+  }
   if(m.type===M.SELECT_CARD||m.type===M.SELECT_TRIBUTE){
    const targetAttack=this.selectionHint===549&&this.attacker?.player===p&&m.selects.every(c=>c.controller!==p&&c.location===L.MZONE);
    const candidates=m.selects.map((c,i)=>({c,i,score:0}));

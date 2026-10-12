@@ -1,7 +1,7 @@
 """Generate real core field effects for the run's artifacts and boss curses."""
 from content import ART_INFO
 from artifact_effects import effect as expanded_effect
-RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Aqua/Fish':'RACE_AQUA|RACE_FISH','Dinosaur':'RACE_DINOSAUR','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND'}
+RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Aqua/Fish':'RACE_AQUA|RACE_FISH','Aqua/Fish/Sea Serpent':'RACE_AQUA|RACE_FISH|RACE_SEASERPENT','Insect/Plant':'RACE_INSECT|RACE_PLANT','Pyro/Thunder':'RACE_PYRO|RACE_THUNDER','Dinosaur':'RACE_DINOSAUR','Dinosaur/Reptile':'RACE_DINOSAUR|RACE_REPTILE','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND'}
 def ai_modifiers(run):
  from approved_relics import duel_run
  run=duel_run(run)
@@ -118,10 +118,30 @@ e:SetOperation(function() if not used and Duel.GetLP(0)<=0 then Duel.SetLP(0,{in
 Duel.RegisterEffect(e,0) end''')
   for pos in range(line_start,len(lines)):lines[pos]=feedback(lines[pos])
  current_relic=None
+ if run.get('duel_modifications'):lines.append('do local misprinted={} local previous={{},{}}')
  for mod in run.get('duel_modifications',[]):
-  lines.append(f"""do local c=Duel.GetFieldCard(0,LOCATION_{mod['location']},{int(mod['sequence'])}) if c then
+  lines.append(f"""do local c=Duel.GetFieldCard(0,LOCATION_{mod['location']},{int(mod['sequence'])}) if c then misprinted[c]=true
 local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_SET_BASE_ATTACK) a:SetProperty(EFFECT_FLAG_CANNOT_DISABLE|EFFECT_FLAG_UNCOPYABLE) a:SetValue({int(mod['atk'])}) c:RegisterEffect(a)
 local d=a:Clone() d:SetCode(EFFECT_SET_BASE_DEFENSE) d:SetValue({int(mod['defense'])}) c:RegisterEffect(d) end end""")
+ if run.get('duel_modifications'):lines.append("""
+local tracker=Effect.GlobalEffect()
+tracker:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) tracker:SetCode(EVENT_ADJUST)
+tracker:SetOperation(function()
+ for p=0,1 do
+  local count=Duel.GetFieldGroupCount(p,LOCATION_HAND,0)
+  local old=previous[p+1] local current={}
+  for i=0,math.max(count,#old)-1 do
+   local c=Duel.GetFieldCard(p,LOCATION_HAND,i)
+   local marked=c~=nil and misprinted[c]==true
+   current[i+1]=marked
+   if marked~=(old[i+1]==true) then Duel.Hint(HINT_MESSAGE,p,1950000000+i*2+(marked and 1 or 0)) end
+  end
+  previous[p+1]=current
+ end
+end)
+Duel.RegisterEffect(tracker,0)
+end
+""")
  if run.get('loop',0):
   from endless import LOOP
   stat('EFFECT_UPDATE_ATTACK',run['loop']*LOOP['attack'],enemy=True);stat('EFFECT_UPDATE_DEFENSE',run['loop']*LOOP['defense'],enemy=True)
