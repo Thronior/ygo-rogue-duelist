@@ -9,4 +9,4 @@ The native Windows desktop version is permanently deprecated by the user. Never 
 When publishing itch.io updates, hide the previous ZIP and select the new ZIP as playable. Retain old uploads for recovery. The user has authorized this for all future releases.
 
 # Report review cutoff
-Only review Discord, behaviour flags and replays submitted after 2026-10-11T22:24:16Z. See REPORT-REVIEW-CUTOFF.json. Refresh this cutoff after each successfully published release.
+Only review Discord, behaviour flags and replays submitted after 2026-10-12T15:33:42Z. See REPORT-REVIEW-CUTOFF.json. Refresh this cutoff after each successfully published release.
