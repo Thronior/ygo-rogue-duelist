@@ -1,0 +1,24 @@
+v0.1.81
+
+Gameplay & Quality of Life
+- You can now open Options and inspect cards during your opponent's turn. Options pauses single-player duels until closed.
+- Added Pause When Tabbed Out in Settings, enabled by default.
+- Inspect booster contents on opponent and boss selection screens.
+- Completing Challenge LVL -1 also unlocks character variants. Previous completed runs count.
+- The Normal Monster-only unlock now accepts any monster-only Main Deck.
+
+Shop Improvements
+- Redesigned the relic-only shop for Copycat and Dueling Engine, with Solomon and the controls above the relics in portrait and landscape.
+- Removed unusable card-stock and pack-related relics from both characters' shop pools.
+- Dueling Engine keeps Travel Satchel for its extra reward-deck choice.
+- Copycat no longer receives card-reward rolls after victories. Coin rewards are unchanged.
+
+CPU Improvements
+- Refined discard and resource decisions, including Magic Drain, Dark Coffin, and recovery effects.
+- Improved hand-limit discards when holding Tribute Monsters without enough available Tributes.
+- Improved chain-response selection and Mirage of Nightmare removal timing.
+- The CPU prefers placing cards closer to the center, while equally rated choices retain some variation.
+
+Visuals
+- Standard Pegasus now uses Relinquished as his portrait background.
+- Various minor UI tweaks.

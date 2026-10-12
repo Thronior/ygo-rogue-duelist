@@ -40,6 +40,69 @@ export function smartContext(e,p,L,prompt=null){
  const LOCK=['Gravity Bind','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage",'Level Limit - Area B'];
  const lockUp=theirBack.some(x=>face(x)&&!x.is_disabled&&LOCK.includes(name(x)));
  const expendable=c=>effectsEnabled(p)&&name(c)==='Relinquished'?1000000:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))?500:Math.max(0,atk(c));
+ // Add verified hand-to-Graveyard recovery to the established discard priorities.
+ function discardBenefit(c){
+  if(!effectsEnabled(p)||[...back,...theirBack,...own,...enemy].some(x=>face(x)&&!x.is_disabled&&['Macro Cosmos','Dimensional Fissure','Banisher of the Light','Banisher of the Radiance'].includes(name(x))))return 0;
+  const n=name(c),graveLocked=[...back,...theirBack].some(x=>face(x)&&!x.is_disabled&&name(x)==='Necrovalley');
+  if(n==='Night Assailant'&&!graveLocked&&grave.some(x=>name(x)!==n&&(data(x).type&0x200000)))return 2200;
+  if(n==='Sinister Serpent'&&!graveLocked&&!grave.some(x=>name(x)===n))return 1400;
+  if(n==='Skull-Mark Ladybug'&&healingAllowed(p)&&![...back,...theirBack,...own,...enemy].some(x=>face(x)&&!x.is_disabled&&['Bad Reaction to Simochi','Nurse Reficule the Fallen One'].includes(name(x))))return e.lp[p]<4000?1600:600;
+  if(n==='Darklord Marie'&&healingAllowed(p))return e.lp[p]<4000?800:400;
+  return 0;
+ }
+ function handLoss(c){
+  if(exodiaPieces.has(c.code))return 100000;
+  const legacy=expendable(c)+(data(c).type&6?1600:0)+(name(c)==='Raigeki'?5000:0);
+  // Change established rankings only for a verified recovery plan.
+  const benefit=['Night Assailant','Sinister Serpent'].includes(name(c))?discardBenefit(c):0;
+  return legacy-benefit;
+ }
+ function handLimitScore(c){
+  const text=e.cards.get(c.code)?.desc||'',type=data(c).type;
+  if(!(type&1)||(type&0xc0)||exodiaPieces.has(c.code))return null;
+  const specialTributes=/by Tributing ([12]) monsters?/i.exec(text);
+  if((type&0x2000000)&&!specialTributes)return null;
+  const level=effectiveLevel(c,true),required=specialTributes?Number(specialTributes[1]):level>6?2:level>4?1:0;
+  if(!required||own.length>=required)return null;
+  // Keep alternate routes and double-Tribute effects out of this conservative rule.
+  if(own.some(x=>/2 tributes|two tributes/i.test(e.cards.get(x.code)?.desc||'')))return null;
+  if(hand.some(x=>['Cost Down','Soul Exchange','Change of Heart','Snatch Steal','Brain Control','The Monarchs Stormforth','Mausoleum of the Emperor'].includes(name(x))))return null;
+  if(q(p,L.EXTRA).some(x=>(e.cards.get(x.code)?.desc||'').split('\n')[0].includes('"'+name(c)+'"')))return null;
+  return 10000+atk(c);
+ }
+ function coffinMonsterLoss(c){
+  if(data(c).type&0x4000)return 0;
+  let loss=Math.max(600,atk(c),c.defense??data(c).defense??0);
+  if(name(c)==='Relinquished'&&effectsEnabled(p))loss+=3000;
+  if(effectsEnabled(p)&&['Sangan','Witch of the Black Forest'].includes(name(c))&&q(p,L.DECK).length)loss-=1400;
+  if(effectsEnabled(p)&&name(c)==='Darklord Marie'&&healingAllowed(p))loss-=500;
+  return Math.max(0,loss);
+ }
+ function resourceOption(options){
+  const fx=e.name(e.effect?.code),find=v=>options.findIndex(x=>BigInt(x)===BigInt(v));
+  if(fx==='Dark Coffin'){
+   const discard=find((1804528n<<20n)+1n),destroy=find((1804528n<<20n)+2n);
+   // Older cores use a four-bit description shift.
+   const a=discard>=0?discard:find((1804528n<<4n)+1n),b=destroy>=0?destroy:find((1804528n<<4n)+2n);
+   if(a<0||b<0)return options.length===1?0:null;
+   const randomLoss=hand.length?hand.reduce((sum,c)=>sum+handLoss(c),0)/hand.length:0;
+   return own.length&&Math.min(...own.map(coffinMonsterLoss))<randomLoss?b:a;
+  }
+  if(fx==='Magic Drain'){
+   const pay=find(1213),decline=find(1214);if(pay<0||decline<0)return options.length===1?0:null;
+   const spells=hand.filter(c=>data(c).type&2);if(!spells.length)return decline;
+   const chain=e.activeChain||[],drain=chain.findLastIndex(x=>x.code===e.effect.code),link=chain.slice(0,drain<0?chain.length:drain).findLast(x=>!x.inactive&&x.player===p&&(data(x).type&2));
+   if(!link)return decline; // Do not spend another card without knowing what is protected.
+   const n=name(link);let value=1600;
+   if(['Red Medicine',"Goblin's Secret Remedy",'Mooyan Curry','Dian Keto the Cure Master'].includes(n))value=400;
+   if(n==='Pot of Greed'||n==='Graceful Charity')value=2800;
+   if(['Raigeki','Dark Hole'].includes(n))value=enemy.reduce((sum,c)=>sum+targetValue(c),0)-(n==='Dark Hole'?own.reduce((sum,c)=>sum+coffinMonsterLoss(c),0):0);
+   if(['Fissure','Smashing Ground','Mystical Space Typhoon','Nobleman of Crossout'].includes(n))value=(link.targets||[]).length?Math.max(0,...link.targets.filter(c=>c.controller!==p).map(targetValue)):enemy.length?Math.max(...enemy.map(targetValue)):0;
+   if(['Monster Reborn','Premature Burial'].includes(n))value=Math.max(0,...(link.targets||[]).map(c=>Math.max(atk(c),data(c).defense||0)));
+   return value>Math.min(...spells.map(handLoss))?pay:decline;
+  }
+  return null;
+ }
  const allOwn=[...hand,...own];
  const attr=c=>{if(c.location===L.MZONE&&(c.position&5)){const change=relics(c.controller??p).filter(k=>k.startsWith('attribute_')).at(-1);if(change)return change.slice(10).toUpperCase();}if(c.location===L.MZONE&&c.attribute){const bits={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK'};return bits[c.attribute]||e.cards.get(c.code)?.attribute;}return e.cards.get(c.code)?.attribute;};
  const fusionReady=()=>q(p,L.EXTRA).some(c=>{const text=e.cards.get(c.code)?.desc||'',materials=[...text.split('\n')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]);const names=allOwn.map(name);return materials.length>1&&materials.every(n=>{const i=names.indexOf(n);if(i<0)return false;names.splice(i,1);return true})&&atk(c)>threat});
@@ -261,17 +324,26 @@ export function smartContext(e,p,L,prompt=null){
   }
   return false;
  }
+ // TF3 explicitly targets its own Mirage at selected timings. Here we use
+ // our engine's confirmed discard trigger, not PSP phase numbers or hidden labels.
+ // A resolving continuous effect needs its source to remain on the field.
+ function mirageEscapeValue(c){
+  const live=back.find(x=>same(x,c));
+  if(!live||name(live)!=='Mirage of Nightmare'||!face(live)||live.is_disabled||e.player!==p||e.phase!==2||!hand.length||reservedForRemoval(live))return 0;
+  return (e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&link.code===live.code&&link.location===L.SZONE&&link.sequence===live.sequence)?6000:0;
+ }
+ function friendlyRemovalValue(c){return Math.max(lockValue(c),mirageEscapeValue(c));}
  function backScore(c){
-  const n=name(c);let targets=[...theirBack,...back.filter(x=>lockValue(x)>=4000)].filter(x=>!reservedForRemoval(x));
+  const n=name(c);let targets=[...theirBack,...back.filter(x=>friendlyRemovalValue(x)>=4000)].filter(x=>!reservedForRemoval(x));
   if(n==='De-Spell')targets=targets.filter(x=>face(x)&&(data(x).type&2));
   if(n==='Remove Trap')targets=targets.filter(x=>face(x)&&(data(x).type&4));
   if(!targets.length)return -1;
   // Resolve other monster removal first, then reconsider Breaker's counter.
   if(n==='Breaker the Magical Warrior'&&preserveBreakerCounter(c,targets))return -1;
   const cost=resourceCost(c);if(!Number.isFinite(cost))return -1;
-  const best=Math.max(...targets.map(backValue));
+  const best=Math.max(...targets.map(x=>x.controller===p?friendlyRemovalValue(x):backValue(x)));
   if(n==='Heavy Storm'||n==="Harpie's Feather Duster"){
-   targets=targets.filter(x=>x.controller!==p||n==='Heavy Storm');const loss=n==='Heavy Storm'?back.filter(x=>!same(x,c)&&lockValue(x)<4000).reduce((v,x)=>v+backValue(x),0):0;
+   targets=targets.filter(x=>x.controller!==p||n==='Heavy Storm'&&lockValue(x)>=4000);const loss=n==='Heavy Storm'?back.filter(x=>!same(x,c)&&lockValue(x)<4000).reduce((v,x)=>v+backValue(x),0):0;
    const gain=targets.reduce((v,x)=>v+backValue(x),0)-loss;
    return gain>=2300&&(targets.length>=2||lockUp||targets.some(x=>lockValue(x)>=4000))?110:-1;
   }
@@ -450,6 +522,12 @@ export function smartContext(e,p,L,prompt=null){
   if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
   if((d.type&6)&&attackOnly.has(n)&&!remainingAttackers().length)return -1;
   if(friendlyEquip(c)&&own.filter(face).length&&own.filter(face).every(doomed))return -1;
+  if(n==='The Cheerful Coffin'){
+   // Recovery next turn does not replace a blocker needed this turn.
+   const body=x=>(data(x).type&1)&&!(data(x).type&0x20000c0)&&(e.cards.get(x.code)?.level||0)<=4;
+   if(!own.length&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0)&&!hand.some(x=>body(x)&&handLoss(x)>=-600))return -1;
+   return hand.some(x=>(data(x).type&1)&&handLoss(x)<-600)?65:-1;
+  }
   if(n==='Limiter Removal'){const machines=remainingAttackers().filter(x=>race(x)==='Machine');const lethal=!enemy.length&&machines.reduce((v,x)=>v+atk(x)*2,0)>=e.lp[1-p];const breakthrough=enemy.some(t=>known(t)&&!resilient(t)&&machines.some(a=>atk(a)<=power(t)&&atk(a)*2>power(t)));if(!lethal&&!breakthrough)return -1;}
   const canBattle=e.player===p&&e.turn>1&&e.phase<256&&prompt?.to_bp!==false&&!battleLocked;
   if(n==='Stop Defense'&&!canBattle)return -1;
@@ -1187,7 +1265,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
    const defender=castleWallsDefender();
    return defender&&cand.controller===p&&cand.location===L.MZONE&&cand.sequence===defender.sequence?100000:-1000000000;
   }
-  if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.location===L.SZONE&&cand.controller===p&&lockValue(cand)>=4000)return 20000+lockValue(cand);
+  if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.location===L.SZONE&&cand.controller===p&&friendlyRemovalValue(cand)>=4000)return 20000+friendlyRemovalValue(cand);
   if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.controller!==p&&cand.location===L.SZONE)return reservedForRemoval(cand)?-1000000000:20000+backValue(cand);
   if(isRemoval(fxN)&&fxN!=='Ring of Destruction'&&cand.controller!==p&&cand.location===L.MZONE){const live=enemy.find(x=>same(x,cand))||cand;return reservedForRemoval(live)?-1000000000:20000+targetValue(live)+(emergency(fxN,[live])?100000:0);}
   if(['Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap'].includes(fxN)&&cand.controller!==p&&cand.location===L.SZONE&&LOCK.includes(nm))return 25000;
@@ -1213,5 +1291,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
- return {pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
+ return {handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

@@ -197,7 +197,7 @@
   "36": {
    "metric": "normal_win",
    "target": 1,
-   "description": "Win a duel with only Normal Monsters in your Main Deck (no Spells or Traps)"
+   "description": "Win a duel with only monsters in your Main Deck (no Spells or Traps)"
   },
   "37": {
    "metric": "champion_win",

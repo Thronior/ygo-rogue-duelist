@@ -1,3 +1,4 @@
+import {rankedDecision} from './cpu-ranking.js';
 import {tributeSelection} from './cpu-card-plans.js';
 import {trackEffectTargets} from './selection-feedback.js';
 import {dnaSurgeryRace} from './dna-surgery-policy.js';
@@ -197,6 +198,13 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   try{return this.chooseDecision(m)}finally{this.decisionQueries=previous;}
  }
  chooseDecision(m){
+  if(m.type===M.SELECT_PLACE){
+   // Prefer the center of each row without changing controller/row priority or legal zones.
+   const places=this.choices(m).map(c=>c.response.places[0]);
+   const rank=p=>(p.player===m.player?0:16)+(p.location===L.MZONE?0:8)+([4,2,0,1,3][p.sequence]??p.sequence);
+   places.sort((a,b)=>rank(a)-rank(b));
+   if(places.length)return {type:R.SELECT_PLACE,places:places.slice(0,m.count||1)};
+  }
   this.fieldKnowledge.observe(m.player,(p,l)=>this.query(p,l),L);
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
   const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,atk=c=>live(c)?.attack??c.attack??stat(c).attack??0,def=c=>live(c)?.defense??c.defense??stat(c).defense??0;
@@ -210,6 +218,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const hostileEquip=['Snatch Steal','Mask of the Accursed'].includes(this.name(this.effect?.code));
   const benefit=!hostileEquip&&/equip|gains? \d+ atk|increase.*atk|recover|increase.*def/.test(text)&&!/destroy.*equip/.test(text);
   const smart=smartContext(this,p,L,m);
+  const rank=rankedDecision(this,m);
+  if(m.type===M.SELECT_OPTION){const index=smart.resourceOption(m.options);if(index!==null)return {type:R.SELECT_OPTION,index};}
   if(m.type===M.ANNOUNCE_RACE&&this.name(this.effect?.code)==='DNA Surgery'&&m.count===1){const race=dnaSurgeryRace(this,p,L,m.available);if(race!==null)return {type:R.ANNOUNCE_RACE,races:[race]};}
   if(m.type===M.SELECT_UNSELECT_CARD&&this.name(this.effect?.code)==='Multiplication of Ants'){
    if(m.can_finish)return {type:R.SELECT_UNSELECT_CARD,index:null};
@@ -228,7 +238,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m.type===M.SELECT_IDLECMD){
    if(m.to_bp&&!enemy.length&&own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0)>=this.lp[1-p])return idle(I.TO_BP);
    const activate=m.activates.map((c,index)=>({c,index,name:this.name(c.code),text:desc(c)})).filter(x=>safeCost(x.c));
-   const planned=activate.map(x=>({...x,score:smart.activation(x.c,false)})).filter(x=>x.score!==null&&x.score>=80).sort((a,b)=>b.score-a.score);
+   const planned=activate.map(x=>({...x,score:smart.activation(x.c,false)})).filter(x=>x.score!==null&&x.score>=80).sort(rank);
    if(planned.length)return idle(I.SELECT_ACTIVATE,planned[0].index);
    const clear=activate.find(x=>smart.activation(x.c,false)!==-1&&['Raigeki','Harpie\'s Feather Duster','Dark Hole','Heavy Storm'].includes(x.name)&&(x.name.includes('Duster')?this.query(1-p,L.SZONE).some(Boolean):x.name==='Heavy Storm'?this.query(1-p,L.SZONE).filter(Boolean).length>this.query(p,L.SZONE).filter(Boolean).length:enemy.length&&(x.name!=='Dark Hole'||enemy.reduce((s,c)=>s+strength(c),0)>own.reduce((s,c)=>s+atk(c),0))));
    if(clear)return idle(I.SELECT_ACTIVATE,clear.index);
@@ -300,6 +310,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
      if(targetAttack&&field&&visible(field)&&this.battleProtected?.[1-p]){x.score=-Infinity;continue;}
      if(targetAttack&&field&&tradeTarget(this.attacker.attack,field,this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker)){x.score=5000+Math.min(4000,this.attacker.attack);continue;}
      if(targetAttack&&field){const attacker=this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,power=smart.combatPower(attacker,field),opposing=strength(field),damage=smart.battleDamage((field.position&1)?Math.max(0,power-opposing):smart.pierce(attacker)?Math.max(0,power-opposing):0);const adjustment=smart.attackScore(attacker,field,{dmg:damage});if(adjustment<=-99999||visible(field)&&power<opposing&&smart.suicideScore(attacker)<=0){x.score=-Infinity;continue;}}
+     if(fxN==='Dark Coffin'&&c.controller===p&&c.location===L.MZONE){x.score=-smart.coffinMonsterLoss(field||c);continue;}
+     if(this.selectionHint===501&&this.phase===512&&!/discard/.test(text)&&m.selects.every(x=>x.controller===p&&x.location===L.HAND)){const value=smart.handLimitScore(c);if(value!==null){x.score=value;continue;}}
+     if(m.selects.every(x=>x.controller===p&&x.location===L.HAND)&&(this.selectionHint===501||/discard/.test(text))){x.score=-smart.handLoss(c);continue;}
      const _over=targetAttack?null:smart.targetScore(fxN,c,_tinfo);if(_over!==null&&_over!==undefined){x.score=_over;continue;}
     if(m.type===M.SELECT_TRIBUTE)x.score=-smart.expendable(field||c)+(stat(c).type&0x4000?5000:0)+smart.tributeAdj(field||c);
     else if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(this.name(this.effect?.code)))x.score=atk(c);
@@ -309,24 +322,28 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     else if((hostileEquip||/destroy|banish|return.*hand|take control/.test(text))&&[L.MZONE,L.SZONE].includes(c.location))x.score=(c.controller!==p?10000:-10000)+(field&&visible(field)?atk(field):800);
     else x.score=atk(c)+(c.controller===p?200:0);
    }
-   candidates.sort((a,b)=>b.score-a.score);if(targetAttack&&m.can_cancel&&this.attacker.canStop!==false&&candidates.every(x=>x.score===-Infinity))return {type:R.SELECT_CARD,indicies:null};let n=0,indicies=[];
+   candidates.sort(rank);if(targetAttack&&m.can_cancel&&this.attacker.canStop!==false&&candidates.every(x=>x.score===-Infinity))return {type:R.SELECT_CARD,indicies:null};let n=0,indicies=[];
    const held=new Set(this.query(p,L.HAND).filter(Boolean).map(c=>c.code));
    const recoverPieces=fxN==='Backup Soldier'?new Set(m.selects.filter(c=>c.controller===p&&c.location===L.GRAVE&&exodiaPieces.has(c.code)&&!held.has(c.code)).map(c=>c.code)).size:0;
-   const need=fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):m.min;
+   const need=fxN==='The Cheerful Coffin'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.score>600).length)):fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):m.min;
    if(m.type===M.SELECT_TRIBUTE){const selected=tributeSelection(candidates,need);if(selected)return {type:R.SELECT_TRIBUTE,indicies:selected};}
    for(const x of candidates){if(n>=need)break;if(x.score===-Infinity&&n>=m.min)continue;indicies.push(x.i);n+=m.type===M.SELECT_TRIBUTE?(x.c.release_param||1):1}
    return {type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies};
   }
   if(m.type===M.SELECT_CHAIN){
-   const index=m.selects.findIndex(c=>{
-    const name=this.name(c.code);
-    const value=smart.activation(c,true);if(value!==null)return value>=0;
-    if(['Mirror Force','Sakuretsu Armor','Trap Hole','Bottomless Trap Hole','Magic Jammer','Seven Tools of the Bandit'].includes(name))return true;
-    if(name==='Torrential Tribute')return enemy.length>own.length;
-    if(['Waboku','Negate Attack'].includes(name))return this.player!==p&&enemy.some(x=>visible(x)&&atk(x)>Math.max(0,...own.map(atk)));
-    if(name==='Call of the Haunted')return own.length<5&&this.query(p,L.GRAVE).some(c=>c&&atk(c)>threat);
-    return false;
-   });
+   // Rank every legal response rather than accepting the first adequate one.
+   const choices=m.selects.map((c,index)=>{
+    const name=this.name(c.code);let score=smart.activation(c,true);
+    if(score===null){
+     score=-1;
+     if(['Mirror Force','Sakuretsu Armor','Trap Hole','Bottomless Trap Hole','Magic Jammer','Seven Tools of the Bandit'].includes(name))score=80;
+     else if(name==='Torrential Tribute'&&enemy.length>own.length)score=80;
+     else if(['Waboku','Negate Attack'].includes(name)&&this.player!==p&&enemy.some(x=>visible(x)&&atk(x)>Math.max(0,...own.map(atk))))score=80;
+     else if(name==='Call of the Haunted'&&own.length<5&&this.query(p,L.GRAVE).some(c=>c&&atk(c)>threat))score=80;
+    }
+    return {c,index,score};
+   }).filter(x=>Number.isFinite(x.score)&&x.score>=0).sort(rank);
+   const index=choices[0]?.index??-1;
    if(index>=0){this.effect={code:m.selects[index].code,player:p};return {type:R.SELECT_CHAIN,index}}
    return {type:R.SELECT_CHAIN,index:m.forced?0:null};
   }

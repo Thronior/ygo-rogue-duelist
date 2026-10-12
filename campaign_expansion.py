@@ -9,6 +9,21 @@ from content import *
 import passives,unlocks,encounters,endless
 import cursed_relics,approved_relics as ar
 
+# These effects require buying or changing card stock, unavailable to fixed-deck characters.
+FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
+ 'archetype_stock','like_archfiend','like_exodia','like_toon','like_ritual',
+ 'single_stamp','pack_refund','purchase_clone','faulty',
+ 'approved_booster_shelf','approved_duelist_catalogue','approved_prospector_lens',
+ 'approved_morphing_jar_2',
+})
+
+def shop_relic_eligible(run,key):
+ character=CHARACTERS[run['character']]
+ effect=ART_INFO[key]['effect']
+ if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS:return False
+ # Engine converts this bonus into an extra reward-deck choice.
+ return not (character.get('copycat') and effect=='reward_card')
+
 def install(g):
  g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))+custom_cards.CARDS
  g.BY_ID={c['id']:c for c in g.CARDS};g.BY_NAME={c['name']:c for c in g.CARDS}
@@ -374,7 +389,7 @@ def install(g):
    if bonus:run['last_rewards']['Fusion Dividend']=bonus;run['last_gold']+=bonus;run['gold']+=bonus
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   defeated_deck=[cid for cid in defeated_deck if cid not in custom_cards.IDS]
+   defeated_deck=[] if CHARACTERS[run['character']].get('copycat') else [cid for cid in defeated_deck if cid not in custom_cards.IDS]
    # A custom-only test/imported deck has no eligible post-duel card reward.
    reward_start=len(run['pool'])
    run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=next(iter(run['last_reward_cards']),None);run['pool'].extend(run['last_reward_cards'])
@@ -487,7 +502,7 @@ def install(g):
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
-  available=[a for a in ARTIFACTS if a not in RETIRED_ARTIFACTS and a not in cursed_relics.approved() and not (a in ('booster_shelf','duelist_catalogue') and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'))) and (a not in run['artifacts'] or a=='golden_sleeve') and not (CHARACTERS[run['character']].get('copycat') and ART_INFO[a]['effect'] in ('reward_card','single_stamp','pack_refund','purchase_clone')) and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
+  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed_relics.approved() and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
   chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)

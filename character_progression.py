@@ -30,7 +30,7 @@ def duel(game,run,result,won,boss):
   'five_banished':any(e.get('kind')=='duel_metrics' and e.get('banished_count',0)>=5 for e in result.get('events',[])),
   'fusion_win':metrics['fusion']>0,
   'sixty_win':len(cards)==60,
-  'normal_win':bool(cards) and all(c['data']['type']&1 and c['data']['type']&16 for c in cards),
+  'normal_win':bool(cards) and all(c['data']['type']&1 for c in cards),
   'champion_win':bool(run.get('encore_active')),
  }
  run['character_challenges']=sorted(set(run.get('character_challenges',[]))|{k for k,v in conditions.items() if v and (won or k=='two_rituals')})

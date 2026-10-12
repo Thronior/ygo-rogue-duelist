@@ -22,7 +22,7 @@ def generate():
                 w,h=im.size
                 art=im.crop((round(w*.12),round(h*.192),round(w*.88),round(h*.70))).convert('RGB')
                 art.thumbnail((512,512),Image.Resampling.LANCZOS);art.save(dest,quality=94)
-    for slot,cid in [(31,40659562),(32,32012841),(33,62121)]:
+    for slot,cid in [(7,campaign.BY_NAME['Relinquished']['id']),(31,40659562),(32,32012841),(33,62121)]:
         with Image.open(ROOT/'assets/cards'/f'{cid}.jpg') as im:
             w,h=im.size
             im.crop((round(w*.12),round(h*.192),round(w*.88),round(h*.70))).convert('RGB').save(ROOT/'assets/character-backgrounds'/f'{slot}.jpg',quality=94)

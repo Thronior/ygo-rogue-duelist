@@ -11,11 +11,13 @@ def install(characters):
   c=characters[int(index)]
   c['alternate']=dict(row,starting_packs=[c['pack']]*2+row['supporting_packs'])
   c['alternate'].pop('pack_additions',None)
-def unlocked(profile,index):return int(profile.get('character_levels',{}).get(str(index),-1))>=DATA['unlock_level']
+def unlocked(profile,index):
+ if int(profile.get('character_levels',{}).get(str(index),-1))>=DATA['unlock_level']:return True
+ return any(row.get('character')==int(index) and row.get('challenge_level')==-1 and row.get('result')=='complete' and (row.get('round') or 0)>=9 for row in profile.get('run_history',[]))
 def loadout(characters,index,variant,profile):
  if variant not in (0,1):raise ValueError('Unknown character variant.')
  c=characters[index]
  if not variant:return c
  if str(index) not in VARIANTS:raise ValueError('This character has no alternate variant.')
- if not unlocked(profile,index):raise ValueError('Beat Difficulty Level 2 with this character to unlock the alternate variant.')
+ if not unlocked(profile,index):raise ValueError('Beat Challenge LVL 2 or LVL -1 with this character to unlock the alternate variant.')
  return {**c, **c['alternate'], 'name': c['name']}

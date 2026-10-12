@@ -41,3 +41,12 @@ assert g.rewards(r,events)[0]['Fusion Dividend']==60
 assert c.CHARACTERS[10]['alternate']['starting_relic']=='chitin_carapace'
 assert c.CHARACTERS[13]['alternate']['starting_relic']=='evolution_tablet'
 print('PASS Fusion Dividend payout and updated character assignments')
+
+# Existing completed relicless runs unlock only the matching character.
+from character_variants import unlocked
+relicless={'character_levels':{},'run_history':[{'character':0,'challenge_level':-1,'result':'complete','round':9}]}
+assert unlocked(relicless,0) and not unlocked(relicless,1)
+for field,value in [('result','lost'),('round',8),('challenge_level',0)]:
+ row=dict(relicless['run_history'][0]);row[field]=value
+ assert not unlocked({'run_history':[row]},0)
+print('PASS retrospective Level -1 variant unlocks; losses and partial runs stay locked')
