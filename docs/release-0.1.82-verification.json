@@ -1,0 +1,26 @@
+{
+  "version": "0.1.82",
+  "sourceCommit": "343fa82edaed55880cd745d38e03bfd676c484ca",
+  "pushed": true,
+  "web": "https://ygo-rogue.pages.dev/",
+  "deployment": "https://c37fb826.ygo-rogue.pages.dev",
+  "android": "https://github.com/Thronior/ygo-rogue-duelist/releases/tag/v0.1.82",
+  "itchUpload": "19738068",
+  "devlog": "https://thronior.itch.io/ygo-rogue/devlog/1705395/v0182",
+  "publishedAt": "2026-10-13T14:09:41Z",
+  "liveFilesVerified": [
+    "build.json",
+    "mobile.js",
+    "duel.js",
+    "smart_policy.js",
+    "campaign-files.json"
+  ],
+  "fallenRosterCount": 10,
+  "validation": [
+    "Seven reported replays reproduced without errors",
+    "600 legal fixed-deck rewards",
+    "Destiny Board completes in display order from both seats",
+    "Phone UI and surrender at 390x844, 360x640, 844x390",
+    "Options and background pause regressions"
+  ]
+}
