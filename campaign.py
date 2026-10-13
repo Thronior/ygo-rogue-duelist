@@ -66,6 +66,17 @@ def card_identity(cid):
     c=BY_ID[cid]
     return BY_ID.get(c['data'].get('alias',0),c)['name'].casefold()
 
+def legal_fixed_cards(main,extra):
+    """Apply shared-name limits to fixed player decks before presenting them."""
+    counts=Counter();out=[[],[]]
+    for zone,cards in enumerate((main,extra)):
+        for cid in cards:
+            key=card_identity(cid)
+            if counts[key]>=3 or len(out[zone])>=(60 if zone==0 else 15):continue
+            counts[key]+=1;out[zone].append(cid)
+    return out
+
+
 def validate(run):
     cards = deck(run)
     main = sum(not is_extra(c) for c in cards)

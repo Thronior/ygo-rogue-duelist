@@ -12,7 +12,13 @@ def pending(run):return bool(run and run.get('cursed_offer'))
 
 def create_offer(run,rng=random):
  if run.get('challenge_level')==-1:run.pop('cursed_offer',None);return
- if pending(run):return
+ if pending(run):
+  offer=run['cursed_offer']
+  if all(ar.eligible(run,k) for k in offer['options']):return
+  choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
+  if len(choices)>=3:offer['options']=rng.sample(choices,3)
+  else:run.pop('cursed_offer',None)
+  return
  choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
  if len(choices)<6:return
  run['cursed_offer']={'options':rng.sample(choices,3),'rerolls_left':1+int(ar.has(run,'dice_jar')),'boss_round':run['round']}

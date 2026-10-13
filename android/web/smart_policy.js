@@ -521,7 +521,7 @@ export function smartContext(e,p,L,prompt=null){
   const lasting=!!(d.type&(0x20000|0x40000))||['Swords of Revealing Light',"Nightmare's Steelcage"].includes(n);
   if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
   if((d.type&6)&&attackOnly.has(n)&&!remainingAttackers().length)return -1;
-  if(friendlyEquip(c)&&own.filter(face).length&&own.filter(face).every(doomed))return -1;
+  if(friendlyEquip(c)&&!own.some(x=>face(x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
   if(n==='The Cheerful Coffin'){
    // Recovery next turn does not replace a blocker needed this turn.
    const body=x=>(data(x).type&1)&&!(data(x).type&0x20000c0)&&(e.cards.get(x.code)?.level||0)<=4;
@@ -536,7 +536,7 @@ export function smartContext(e,p,L,prompt=null){
    if(moonRescue())return 115;
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard));
-   if(e.player!==p)return attacker&&!moonPending(attacker)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
+   if(e.player!==p)return attacker&&face(attacker)&&(attacker.position&1)&&!moonPending(attacker)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
    return canBattle&&enemy.some(x=>!moonPending(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>!moonPending(x)&&resetValue(x)>=65)?70:-1;
   }
   if(['Reinforcements','Rush Recklessly'].includes(n)){
@@ -570,6 +570,7 @@ export function smartContext(e,p,L,prompt=null){
   if(chain&&attackStops.has(n)&&e.attackCard&&reservedForRemoval(e.attackCard))return -1;
   // Resolved protection survives CHAIN_END; do not spend another pure battle stopper.
   if(chain&&['Waboku','Threatening Roar','Negate Attack'].includes(n)&&e.battleProtected?.[p])return -1;
+  if(['Waboku','Negate Attack','Threatening Roar','Enchanted Javelin','Draining Shield'].includes(n)&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&['Negate Attack','Waboku','Threatening Roar','Draining Shield','Magic Cylinder','Mirror Force'].includes(e.name(x.code))))return -1;
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n))return chain&&wabokuWorthUsing()?90:-1;
   if(isRemoval(n)&&enemy.length){
    const legal=enemy.filter(x=>n==='Nobleman of Crossout'?!face(x):n==='Ring of Destruction'?face(x)&&atk(x)<e.lp[p]&&atk(x)<=e.lp[1-p]:true);
@@ -593,7 +594,7 @@ export function smartContext(e,p,L,prompt=null){
   if(revival.has(n)){
    if(openingTurn&&!grave.concat(q(1-p,L.GRAVE)).some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&(Math.max(atk(x),x.defense??data(x).defense??0)>=1800||summonUtility(x))))return -1;
    const pool=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
-   if(!pool.some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)))return -1;
+   if(!pool.some(x=>(data(x).type&1)&&specialOk(x)))return -1;
    // Bank revival resources after battle when the existing board already covers
    // the visible threat. Do not apply this to reactive chains or a recovery turn.
    if(!chain&&e.player===p&&e.phase===256&&own.length>=(e.cpuReviewRules?.holdRevival!==false?1:2)&&own.length>=enemy.length){
@@ -729,6 +730,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Scapegoat')return chain&&e.player!==p&&own.length<=1&&danger?90:-1;
   if(n==='Limiter Removal')return chain&&e.player===p&&own.some(x=>e.cards.get(x.code)?.race==='Machine')?95:-1;
   if(n==='Swords of Revealing Light')return enemy.length&&danger?70:-1;
+  if(n==='Enchanted Javelin'&&chain&&wabokuWorthUsing()&&(prompt?.selects||[]).some(x=>name(x)==='Negate Attack'))return -1;
   if(['Enchanted Javelin','Mirror Wall','Fairy Box','Mask of Weakness'].includes(n))return chain&&e.player!==p&&danger?90:-1;
   if(['Mirror Force','Magic Cylinder','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
   if(n==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return enemy.some(x=>face(x)&&!attackBlocked(x,1-p)&&!safeBattle(x)&&atk(x)>=1600)?85:-1;
@@ -1033,6 +1035,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Pumpking the King of Ghosts'&&has(back,'Castle of Dark Illusions'))return 30;
   return 0;}
  function specialOk(c){if(exodiaPieces.has(c.code))return false;const n=name(c);if(!deck.specialOk(c))return false;
+  if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;
   if(n==='Lava Golem'){if(enemy.length<2)return false;const answer=own.some(x=>face(x)&&atk(x)>=3000)||hand.some(x=>['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break','Raigeki','Dark Hole','Change of Heart','Snatch Steal'].includes(name(x)));if(e.lp[1-p]<=3000||answer)return true;return false;}
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return false;
   if((n==='Toon Mermaid'||n==='Blue-Eyes Toon Dragon')&&!toonWorld)return false;
@@ -1075,8 +1078,9 @@ if(!effectsEnabled(p))return 0;const n=name(c);
  // Compare whole-board damage, including follow-up direct attacks after a defender falls.
  // Only publicly visible opposing monsters enter the forecast; never inspect hidden cards.
  function incomingDamage(c,attackPosition){
-  const defenders=own.filter(x=>!same(x,c)).concat({...c,controller:p,position:attackPosition?1:4,
-   attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:c.defense??data(c).defense??0});
+  const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine');
+  const defenders=own.filter(x=>!same(x,c)&&!(face(x)&&returns(x))).concat(attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
+   attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:c.defense??data(c).defense??0}]);
   const attackers=enemy.filter(x=>face(x)&&atk(x)>0&&!attackBlocked(x,1-p,true)).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:atk(x)}));
   const memo=new Map();
   function visit(am,dm){const key=am+':'+dm;if(memo.has(key))return memo.get(key);let best=0;
@@ -1152,9 +1156,9 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(pierce(a)&&t&&!(t.position&1))s+=Math.max(0,atk(a)-((t.defense??e.data[t.code]?.defense)??0));
   if(n==='Newdoria'&&dmg<=0&&t&&power(t)>atk(a))s+=50;
   return s;}
- function suicideScore(a){const n=name(a);if(!['Witch of the Black Forest','Sangan'].includes(n))return 0;
-  if(e.lp[p]<=2000||q(p,L.DECK).length<=3)return 0;
-  return enemy.some(x=>face(x)&&power(x)>atk(a)&&power(x)<=atk(a)+1500)?800:0;}
+ function suicideScore(a,target=null){const n=name(a);if(!['Witch of the Black Forest','Sangan'].includes(n))return 0;
+  if(!enabled(a)||!effectsEnabled(p)||e.lp[p]<=2000||q(p,L.DECK).length<=3||[...own,...enemy].some(x=>enabled(x)&&name(x)==='Banisher of the Light'))return 0;
+  return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500)?800:0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
   if(subject&&projectedAttack(subject)<atk(c)&&!(attackBlocked(c,p)&&!attackBlocked(subject,p,true)))return -100000000;
@@ -1219,7 +1223,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
 
   if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
-  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand))return -1000000000;
+  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand)||(nm==='Gearfried the Iron Knight'&&enabled(cand)))return -1000000000;
    if(cand.controller!==p)return -1000000000;
    const fixed={'Axe of Despair':1000,'Malevolent Nuzzler':700,'Black Pendant':500,'Horn of the Unicorn':700,'Sword of Deep-Seated':500,'Shine Palace':700,'Sword of Dark Destruction':400};
    const bonus=fixed[fxN]??(fxN==='United We Stand'?800*own.filter(face).length:fxN==='Mage Power'?500*back.length:500);
@@ -1236,7 +1240,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(!fxN&&relic(p,'returning_tide')&&e.selectionHint===505&&cand.location===L.SZONE)return cand.controller===p?-backValue(cand):10000+backValue(cand);
   if(nm==='Relinquished'&&cand.controller===p&&cand.location===L.MZONE&&(/tribute/i.test(e.cards.get(e.effect?.code)?.desc||'')||e.selectionHint===500))return -Infinity;
   const piece=exodiaPieces.has(cand.code),toHand=handSearch.has(fxN)||handRecovery.has(fxN)||e.selectionHint===506;
-  if(piece&&(revival.has(fxN)||e.selectionHint===509))return -Infinity;
+  if((piece||!specialOk(cand))&&(revival.has(fxN)||e.selectionHint===509))return -Infinity;
   if(cand.controller===p&&piece&&toHand&&cand.location!==L.HAND)return missingPiece(cand)?1000000:900000;
   if(exodiaPlan&&cand.controller===p){
    if(piece&&[L.DECK,L.GRAVE,L.REMOVED].includes(cand.location))return -1000000;

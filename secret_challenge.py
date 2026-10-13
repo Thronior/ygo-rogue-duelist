@@ -20,6 +20,8 @@ def relicless(game,current):
  if game.validate(current):raise ValueError('Build a valid deck before challenging the champion.')
  storage.write(storage.ROOT/'before-relicless-secret-run.json',current)
  run=deepcopy(current)
+ from approved_relics import minimum
+ run['secret_deck_minimum']=minimum(current)
  run.update(round=8,loop=0,lp=8000,stage='draft',opponent=0,routes=[0],encore_active=True,encore_won=False,secret_challenge='relicless',challenge_level=-1,profile_complete=True,duel=None,shop=[],duel_modifications=[],card_mods={})
  challenge_levels.suppress(run)
  run.pop('mobile_duel',None);run.pop('faulty',None)

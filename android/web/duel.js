@@ -168,6 +168,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
  attackBoardKey(){return JSON.stringify([this.turn,this.phase,this.lp,[0,1].map(p=>[L.MZONE,L.SZONE].map(loc=>this.query(p,loc).map(c=>c?[c.code,c.position,c.attack,c.defense,c.status,c.equipTarget,c.counters]:null)))]);}
  attackWasCancelled(p,c){const previous=this.cancelledAttacks?.get(p+':'+c.sequence);return previous!==undefined&&previous===this.attackBoardKey();}
  respond(r){const m=this.pending;
+  if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;}
+  else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
+
   if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
   if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined)this.effect={code:m.selects[r.index]?.code,player:m.player};
   if(m?.type===M.SELECT_EFFECTYN&&r.yes)this.effect={code:m.code,player:m.player};
@@ -201,7 +204,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m.type===M.SELECT_PLACE){
    // Prefer the center of each row without changing controller/row priority or legal zones.
    const places=this.choices(m).map(c=>c.response.places[0]);
-   const rank=p=>(p.player===m.player?0:16)+(p.location===L.MZONE?0:8)+([4,2,0,1,3][p.sequence]??p.sequence);
+   const destiny=[L.DECK,L.HAND,L.SZONE,L.GRAVE,L.REMOVED].some(loc=>this.query(m.player,loc).some(c=>c&&this.name(c.code)==='Destiny Board'));
+   const boardCard=this.name(this.placementCode)==='Destiny Board'||this.name(this.resolvingChain)==='Destiny Board';
+   const rank=p=>{const edge=boardCard?(p.player===1?4-p.sequence:p.sequence):(p.player===1?p.sequence:4-p.sequence);return (p.player===m.player?0:16)+(p.location===L.MZONE?0:8)+(destiny&&p.location===L.SZONE&&p.sequence<5?edge:([4,2,0,1,3][p.sequence]??p.sequence));};
    places.sort((a,b)=>rank(a)-rank(b));
    if(places.length)return {type:R.SELECT_PLACE,places:places.slice(0,m.count||1)};
   }
@@ -270,7 +275,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(this.cpuReviewRules?.survivalGuard!==false&&enemy.filter(c=>visible(c)&&(c.position&1)).reduce((n,c)=>n+atk(c),0)>=this.lp[p]){
     const attacks=m.summons.filter(c=>!smart.preferSet(c)&&smart.summonScore(c)>=0&&worthwhile(c));
     const safe=m.monster_sets.map((c,index)=>({c,index,damage:smart.incomingDamage(c,false)})).filter(x=>!exodiaPieces.has(x.c.code)&&worthwhile(x.c,true)&&x.damage<this.lp[p]).sort((a,b)=>a.damage-b.damage);
-    if(safe.length&&attacks.length&&attacks.every(c=>!usefulAttacker(c)&&!smart.summonUtility(c)&&smart.incomingDamage(c,true)>=this.lp[p]))return idle(I.SELECT_MONSTER_SET,safe[0].index);
+    if(safe.length&&attacks.length&&attacks.every(c=>smart.incomingDamage(c,true)>=this.lp[p]&&!(m.to_bp&&!enemy.length&&!smart.attackBlocked(c,p,true)&&smart.battleDamage(smart.projectedAttack(c))>=this.lp[1-p])))return idle(I.SELECT_MONSTER_SET,safe[0].index);
    }
    const summon=ranked(m.summons).filter(x=>(!(stat(x.c).type&0x200000)||smart.saferPosition(x.c)===true)&&!smart.preferSet(x.c)&&smart.summonScore(x.c)>=0).sort((a,b)=>(smart.summonScore(b.c)-smart.summonScore(a.c))||(atk(b.c)-atk(a.c))).find(x=>(usefulAttacker(x.c)||smart.summonUtility(x.c)||smart.saferPosition(x.c)===true)&&worthwhile(x.c));if(summon&&(!firstMove||smart.projectedAttack(summon.c)>1500))return idle(I.SELECT_SUMMON,summon.i);
 
@@ -309,7 +314,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
      if(targetAttack&&field&&this.expertTarget?.turn===this.turn&&this.expertTarget.attacker===this.attacker?.sequence&&this.expertTarget.target===c.sequence){x.score=10000000;continue;}
      if(targetAttack&&field&&visible(field)&&this.battleProtected?.[1-p]){x.score=-Infinity;continue;}
      if(targetAttack&&field&&tradeTarget(this.attacker.attack,field,this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker)){x.score=5000+Math.min(4000,this.attacker.attack);continue;}
-     if(targetAttack&&field){const attacker=this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,power=smart.combatPower(attacker,field),opposing=strength(field),damage=smart.battleDamage((field.position&1)?Math.max(0,power-opposing):smart.pierce(attacker)?Math.max(0,power-opposing):0);const adjustment=smart.attackScore(attacker,field,{dmg:damage});if(adjustment<=-99999||visible(field)&&power<opposing&&smart.suicideScore(attacker)<=0){x.score=-Infinity;continue;}}
+     if(targetAttack&&field){const attacker=this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,power=smart.combatPower(attacker,field),opposing=strength(field),damage=smart.battleDamage((field.position&1)?Math.max(0,power-opposing):smart.pierce(attacker)?Math.max(0,power-opposing):0);const adjustment=smart.attackScore(attacker,field,{dmg:damage});if(adjustment<=-99999||visible(field)&&power<opposing&&smart.suicideScore(attacker,field)<=0){x.score=-Infinity;continue;}}
      if(fxN==='Dark Coffin'&&c.controller===p&&c.location===L.MZONE){x.score=-smart.coffinMonsterLoss(field||c);continue;}
      if(this.selectionHint===501&&this.phase===512&&!/discard/.test(text)&&m.selects.every(x=>x.controller===p&&x.location===L.HAND)){const value=smart.handLimitScore(c);if(value!==null){x.score=value;continue;}}
      if(m.selects.every(x=>x.controller===p&&x.location===L.HAND)&&(this.selectionHint===501||/discard/.test(text))){x.score=-smart.handLoss(c);continue;}

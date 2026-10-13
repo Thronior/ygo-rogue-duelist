@@ -44,7 +44,9 @@ def accept(run, slot=None):
         if not offer.get('pending'):return
         validate_deck_offer(run, slot)
         chosen=offer['choices'][slot]
-        run['pool']=chosen['main'][:]+chosen['extra'][:]
+        import campaign
+        main,extra=campaign.legal_fixed_cards(chosen['main'],chosen['extra'])
+        run['pool']=main+extra
         run['selected']=list(range(len(run['pool'])))
         run['guaranteed']=[]
         run['engine_deck']='opponent:'+str(chosen['opponent'])
@@ -60,6 +62,10 @@ def prepare_decks(run, count, rng=random):
     for opponent in eligible_opponents(round_index,loop):
         record=opponent_record(round_index,opponent,loop)
         c=CHARACTERS[opponent]
+        import campaign
+        main,extra=campaign.legal_fixed_cards(record['main'],record.get('extra',[]))
+        if len(main)<20:continue
+        record=dict(record,main=main,extra=extra)
         source.append(dict(opponent=opponent,name=c['name'],sprite=c['sprite'],tier=4 if loop else min(3,round_index//3+1),main=record['main'][:],extra=record.get('extra',[])[:]))
     if not source:raise ValueError('No opponent decks are available for this tier.')
     run['last_reward_cards']=[];run['last_reward_card']=None

@@ -619,7 +619,7 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
  .routes .opponent>.reward img{width:21px;height:27px}
  .routes .opponent>.opponent-curses{grid-column:2;gap:4px;padding:0;justify-content:flex-start}
  .routes .opponent .curse-icon{width:32px;height:32px;padding:4px}
- .routes .opponent>button{grid-column:1/-1;position:static;min-height:34px;padding:5px 10px;margin:3px 0 0;font-size:12px}
+ .routes .opponent>button:not(.encounter-pack){grid-column:1/-1;position:static;min-height:34px;padding:5px 10px;margin:3px 0 0;font-size:12px}
  .boss-banner{padding:5px;font-size:11px}.boss-banner small{font-size:10px}
  .tag-lock-in{padding:5px;gap:5px}.tag-lock-in>.tag-edit-deck,.tag-lock-in>button{min-height:36px;min-width:0;font-size:13px;padding:6px 10px}.tag-lock-in>span{font-size:12px}.tag-lock-in>small{font-size:10px}
 }
@@ -1189,19 +1189,19 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .routes .opponent>.reward img{width:18px;height:22px}
  .routes .opponent>.opponent-curses{grid-column:1;grid-row:4;gap:2px;justify-content:center;align-self:center}
  .routes .opponent .curse-icon{width:20px;height:20px;padding:1px}
- .routes .opponent>button{grid-column:2;grid-row:4;min-height:30px;margin:1px 0 0;padding:3px 7px;font-size:11px}
- .routes .opponent>button:not(.primary){grid-column:1;font-size:9px;padding:2px;min-height:24px}
+ .routes .opponent>button:not(.encounter-pack){grid-column:2;grid-row:4;min-height:30px;margin:1px 0 0;padding:3px 7px;font-size:11px}
+ .routes .opponent>button:not(.primary):not(.encounter-pack){grid-column:1;font-size:9px;padding:2px;min-height:24px}
 }
 
 @media(orientation:portrait){
- .routes .opponent:has(>button:not(.primary))>button.primary{grid-row:5}
- .routes .opponent:has(>button:not(.primary))>button:not(.primary){grid-row:5;grid-column:1}
- .routes .opponent:has(>button:not(.primary))>.opponent-curses{grid-row:4;grid-column:2}
+ .routes .opponent:has(>button:not(.primary):not(.encounter-pack))>button.primary{grid-row:5}
+ .routes .opponent:has(>button:not(.primary):not(.encounter-pack))>button:not(.primary):not(.encounter-pack){grid-row:5;grid-column:1}
+ .routes .opponent:has(>button:not(.primary):not(.encounter-pack))>.opponent-curses{grid-row:4;grid-column:2}
 }
 @media(orientation:portrait) and (max-height:740px){
  .routes .opponent .encounter-hero,.routes .opponent .encounter-hero>img{height:52px;max-height:52px}
  .routes .opponent>.reward{min-height:17px}.routes .opponent>.reward img{height:18px}
- .routes .opponent>button{min-height:27px}
+ .routes .opponent>button:not(.encounter-pack){min-height:27px}
 }
 
 .toss-start{position:absolute;inset:0;z-index:280;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;background:#071822dd;border:0;color:#ffdf81;font-size:22px;cursor:pointer}.toss-start img{height:90px}.toss-start>span{font-size:90px}.toss-start:focus-visible{outline:3px solid #ffdf81;outline-offset:-4px}
@@ -1242,8 +1242,8 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .page.boss .routes .opponent>.reward img{width:28px;height:36px}
 .page.boss .routes .opponent>.opponent-curses{grid-area:auto;justify-content:center;margin:0;padding:4px}
 .page.boss .routes .opponent .curse-icon{width:40px;height:40px;padding:5px}
-.page.boss .routes .opponent>button{grid-area:auto;position:static;margin:0;min-height:38px;font-size:14px;padding:7px}
-@media(orientation:landscape) and (max-height:650px){.page.boss .routes .opponent{display:grid;grid-template-columns:1fr 1fr;width:min(650px,100%);max-width:650px;padding:10px;gap:8px 16px}.page.boss .routes .opponent .encounter-hero{grid-column:1;grid-row:1/6;height:190px;min-height:140px;max-height:190px;margin:0}.page.boss .routes .opponent>.reward,.page.boss .routes .opponent>.opponent-curses,.page.boss .routes .opponent>button{grid-column:2;grid-row:auto}.page.boss .routes .opponent .encounter-hero h2{font-size:22px}}
+.page.boss .routes .opponent>button:not(.encounter-pack){grid-area:auto;position:static;margin:0;min-height:38px;font-size:14px;padding:7px}
+@media(orientation:landscape) and (max-height:650px){.page.boss .routes .opponent{display:grid;grid-template-columns:1fr 1fr;width:min(650px,100%);max-width:650px;padding:10px;gap:8px 16px}.page.boss .routes .opponent .encounter-hero{grid-column:1;grid-row:1/6;height:190px;min-height:140px;max-height:190px;margin:0}.page.boss .routes .opponent>.reward,.page.boss .routes .opponent>.opponent-curses,.page.boss .routes .opponent>button:not(.encounter-pack){grid-column:2;grid-row:auto}.page.boss .routes .opponent .encounter-hero h2{font-size:22px}}
 .boss-economy{flex:none;display:flex;align-items:center;justify-content:center;gap:26px;padding:14px 20px 18px;background:linear-gradient(0deg,#05080fee,#130b18dd);border-top:1px solid #b5875340;box-shadow:0 -12px 35px #0003;z-index:2}.boss-wallet{display:flex;align-items:center;gap:12px;padding:8px 22px 8px 12px;min-width:185px;border-radius:12px;background:linear-gradient(135deg,#1f2030e8,#0a101bea);border:1px solid #ccad6955;box-shadow:inset 0 1px #fff1,0 4px 16px #0006}.boss-wallet>img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 0 10px #edc76366)}.boss-wallet small{display:block;color:#c3b49a;font-size:10px;font-weight:700;letter-spacing:2px}.boss-wallet strong{display:block;color:#ffe389;font-size:40px;line-height:1.08;text-shadow:0 2px 2px #000,0 0 20px #ffc84444}.boss-reroll-shop{display:flex;align-items:center;justify-content:space-between;gap:26px;min-height:76px;min-width:240px;padding:12px 22px;border-radius:12px;border:2px solid #d89892;background:linear-gradient(140deg,#a74359,#702c42 70%,#482338);box-shadow:inset 0 2px 0 #ffcad333,0 5px 0 #371b29,0 10px 28px #0008;color:#fff0d6}.boss-reroll-shop:hover:not(:disabled){filter:brightness(1.12);box-shadow:inset 0 2px 0 #ffcad366,0 5px 0 #371b29,0 0 28px #d7726344}.boss-reroll-shop:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 #ffcad333,0 2px 0 #371b29}.boss-reroll-label{font-size:24px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:8px}.boss-reroll-label>span{font-size:33px;font-weight:400}.boss-reroll-price{display:flex;gap:9px;align-items:center;padding-left:20px;border-left:1px solid #f3c2a655}.boss-reroll-price img{width:30px;height:30px;object-fit:contain}.boss-reroll-price strong{font-size:32px;color:#ffe9a1;text-shadow:0 2px 3px #0006}.boss-reroll-shop:disabled{opacity:.45;filter:saturate(.4)}@media(max-width:550px){.boss-economy{gap:10px;padding:12px 10px 16px}.boss-wallet{min-width:0;padding:8px 10px;gap:6px}.boss-wallet>img{width:30px;height:30px}.boss-wallet small{font-size:8px;letter-spacing:1px}.boss-wallet strong{font-size:30px}.boss-reroll-shop{min-width:0;flex:1;min-height:68px;padding:10px 12px;gap:8px}.boss-reroll-label{font-size:18px;gap:4px}.boss-reroll-label>span{font-size:25px}.boss-reroll-price{gap:5px;padding-left:10px}.boss-reroll-price img{width:24px;height:24px}.boss-reroll-price strong{font-size:25px}}@media(orientation:landscape) and (max-height:550px){.boss-economy{padding:6px 12px 9px;gap:20px}.boss-wallet{padding:4px 14px;min-width:170px}.boss-wallet strong{font-size:30px}.boss-wallet>img{height:36px;width:36px}.boss-reroll-shop{min-height:55px;padding:5px 18px}.boss-reroll-label{font-size:21px}.boss-reroll-price strong{font-size:27px}}
 .versus-stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:22px;align-items:center;width:min(1000px,94vw);z-index:1}.versus-side{min-width:0;text-align:center}.versus-portraits{display:flex;justify-content:center;gap:6px;height:min(44vh,340px);border-bottom:2px solid #b99866;background:linear-gradient(transparent,#36677e33);box-shadow:0 18px 35px -20px #71c6fc88}.versus-opponent .versus-portraits{background:linear-gradient(transparent,#88324544);box-shadow:0 18px 35px -20px #ee687b88}.versus-portrait{position:relative;flex:1;min-width:0;height:100%}.versus-portrait>img{width:100%;height:92%;object-fit:contain;filter:drop-shadow(0 0 16px #76b5db66)}.versus-opponent .versus-portrait>img{filter:drop-shadow(0 0 16px #e67b8966)}.versus-portrait>strong{position:absolute;bottom:0;left:0;right:0;font:bold clamp(13px,2.4vw,25px) Georgia;text-shadow:0 2px 5px black;padding:6px 0;color:#fff2d1}.versus-mark{font:italic 900 clamp(32px,7vw,80px) Georgia;color:#ffe1a4;text-shadow:0 3px 0 #66361d,0 0 30px #ed925b;transform:rotate(-8deg)}.versus-lp{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:18px auto 0;padding:7px 18px;background:linear-gradient(90deg,transparent,#203648dd,transparent);color:#c5eaff}.versus-opponent .versus-lp{background:linear-gradient(90deg,transparent,#512539dd,transparent);color:#ffb9c0}.versus-lp small{font:bold 15px Arial;letter-spacing:2px}.versus-lp strong{font:bold clamp(24px,4vw,46px) Arial;font-variant-numeric:tabular-nums;text-shadow:0 0 18px currentColor}.duel-intro .cinematic-copy h1{margin-bottom:30px}.duel-intro .cinematic-line{margin-top:28px}@media(max-width:550px){.versus-stage{gap:8px;width:96vw}.versus-portraits{height:35vh}.versus-portrait>strong{font-size:13px}.versus-lp{gap:5px;padding:7px 3px}.versus-lp small{font-size:11px}.versus-mark{font-size:34px}.duel-intro .cinematic-copy h1{font-size:26px;letter-spacing:1px;margin-bottom:36px}}@media(orientation:landscape) and (max-height:500px){.duel-intro .cinematic-copy h1{font-size:27px;margin-bottom:8px}.versus-portraits{height:45vh}.versus-lp{margin-top:5px}.versus-lp strong{font-size:28px}.duel-intro .cinematic-line{margin-top:8px}}
 
@@ -1262,7 +1262,7 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-hero h2{font-size:10px;bottom:0}
  .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{grid-column:2;grid-row:auto;font-size:10px;line-height:1.1;min-height:0;margin:0;gap:5px}
  .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward img{width:18px;height:22px}
- .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary){grid-column:1;grid-row:3;width:76px;min-height:24px;height:26px;padding:2px;margin:0;font-size:10px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.encounter-pack){grid-column:1;grid-row:3;width:76px;min-height:24px;height:26px;padding:2px;margin:0;font-size:10px}
  .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{grid-column:2;grid-row:3;min-height:24px;height:26px;padding:2px;margin:0;font-size:12px}
 }
 @media(orientation:landscape) and (max-height:550px){
@@ -1273,7 +1273,7 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
  .page.boss .routes .opponent>.reward img{height:27px;width:22px}
  .page.boss .routes .opponent>.opponent-curses{padding:0}
  .page.boss .routes .opponent .curse-icon{height:28px;width:28px;padding:3px}
- .page.boss .routes .opponent>button{min-height:30px;padding:4px;font-size:12px}
+ .page.boss .routes .opponent>button:not(.encounter-pack){min-height:30px;padding:4px;font-size:12px}
  .page:not(.boss) .routes .opponent .encounter-hero{margin-bottom:3px;height:48px;min-height:0;max-height:48px}
  .page:not(.boss) .routes .opponent>button.opponent-reveal{min-height:27px;height:27px;font-size:11px;padding:3px;margin:2px 0}
  .page:not(.boss) .routes .opponent>button.primary{min-height:27px;height:27px;padding:3px;margin:2px 0}
@@ -1805,3 +1805,14 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .keeper{bottom:calc(-1 * (var(--relic-heading-height) + 12px))!important;padding:0!important;border:0!important;border-radius:0!important}
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .keeper img{display:block!important;object-position:center bottom!important;margin:0!important}
 @media(orientation:landscape){.shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout>aside{--relic-heading-height:18px}}
+
+/* Keep opposing hand cards clear of the board, in either phone orientation. */
+.duel:not(.cpu-watch) .field-wrap{padding-top:clamp(24px,5dvh,42px);box-sizing:border-box}
+.duel:not(.cpu-watch) .enemy-hand{height:clamp(22px,4.5dvh,38px);top:1px;max-height:none}
+.duel:not(.cpu-watch) .mat{max-height:100%}
+
+@media(orientation:portrait) and (max-height:740px){
+ .page:not(.boss) .routes:not(.tag-routes){grid-template-rows:repeat(5,minmax(114px,1fr));overflow-y:auto}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent{min-height:114px;grid-template-rows:minmax(22px,1fr) minmax(46px,1fr) 26px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{height:100%;min-height:0;padding:2px 4px;box-sizing:border-box}
+}

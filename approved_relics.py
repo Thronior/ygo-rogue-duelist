@@ -73,7 +73,7 @@ def minimum(run):
  character=CHARACTERS[run.get('character',0)]
  if character.get('copycat') or character.get('engine_deck'):return 20
  # Derive from completed rounds so existing saves and repeat loops agree.
- progress=40 if run.get('loop',0)>0 else min(40,20+10*(max(0,run.get('round',0))//BOSS_EVERY))
+ progress=run.get('secret_deck_minimum',40) if run.get('secret_challenge') else 40 if run.get('loop',0)>0 else min(40,20+10*(max(0,run.get('round',0))//BOSS_EVERY))
  return max(progress,40 if has(run,'cursed_collectors_burden') else 20)
 
 def opening(run,normal):return max(1,normal-3*copies(run,'cursed_crowded_crypt')-2*copies(run,'cursed_premature_triumph'))
@@ -94,6 +94,9 @@ def price(run,kind,value):
 
 def eligible(run,key):
  if key in run.get('blocked_cursed',[]):return False
+ from content import CHARACTERS
+ fixed=CHARACTERS[run.get('character',0)]
+ if (fixed.get('copycat') or fixed.get('engine_deck')) and key in {'cursed_cursed_refund','cursed_black_market_seal','cursed_collectors_burden'}:return False
  if key=='cursed_collectors_burden':
   if run.get('round',0)<6:return False
   # Never impose an impossible minimum on the two characters with fixed decks.

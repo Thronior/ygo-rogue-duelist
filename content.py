@@ -67,7 +67,7 @@ CHARACTERS.append(dict(name='Copycat',pack='COPY',sprite='copycat-portrait.png',
 CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='dueling-engine-portrait.png',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='Start with a random starter deck. After each victory, choose a random opponent deck from your next duel tier. Reroll each offer for 15 coins. Extra-card reward relics add more deck choices.'))
 
 # Retain definitions for existing saves; exclude these from new offers and the collection.
-RETIRED_ARTIFACTS=frozenset({'feather'})
+RETIRED_ARTIFACTS=frozenset({'feather','swordsman_oath'})
 ARTIFACTS={}
 ART_INFO={}
 def artifact(key,name,price,desc,art,effect='',amount=0,tag='economy',filter=''):

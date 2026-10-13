@@ -3,6 +3,9 @@ import {toss3DMarkup} from './toss-3d.js';
 export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  if(m?.forced||mode==='always')return true;
  if(mode==='never')return false;
+ // The core uses 0x7f for optional trigger-effect selection, including effects
+ // after a Special Summon resolves. These are decisions, not empty timing windows.
+ if(m?.spe_count===0x7f&&m.selects?.length)return true;
  // The core reports separate timing masks for the responding player and opponent.
  const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
  const opponentEnd=context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&(context.phase===512||!!(timing&Timing.END_PHASE));

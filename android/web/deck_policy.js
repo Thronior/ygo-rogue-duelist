@@ -165,6 +165,6 @@ export function deckPolicy(x){
   return null;
  }
  function specialOk(c){return !['The Winged Dragon of Ra','The Wicked Eraser','Doomcaliber Knight'].includes(name(c));}
- function setAllowed(c){return !boardPlan||name(c)==='Destiny Board';}
+ function setAllowed(c){return !board||name(c)==='Destiny Board';}
  return {activation,targetScore,fusionChoices,setAllowed,specialOk};
 }

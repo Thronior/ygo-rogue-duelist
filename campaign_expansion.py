@@ -81,7 +81,9 @@ def install(g):
     r['reward_rules']=5;save(r)
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
    if r['stage']=='shop' and ensure_shop_packs(r):save(r)
-  if r:challenge_levels.suppress(r)
+  if r:
+   challenge_levels.suppress(r)
+   if cursed_relics.pending(r):cursed_relics.create_offer(r)
   return r
  def save(run):
   run.setdefault('_save_slot',storage.active_slot())
@@ -202,6 +204,7 @@ def install(g):
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
+  if not run.get('encore_active'):main,extra=g.legal_fixed_cards(main,extra)
   run['pool']=main+extra;run['selected']=list(range(len(run['pool'])));run['guaranteed']=[signature];run['copied_opponent']=run['opponent']
  def engine_deck(run,rng=random):
    if not CHARACTERS[run['character']].get('engine_deck'):return
@@ -210,6 +213,7 @@ def install(g):
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    main=[c for c in choice['cards'] if not g.is_extra(c)];extra=[c for c in choice['cards'] if g.is_extra(c)]
+   main,extra=g.legal_fixed_cards(main,extra)
    run['pool']=main+extra;run['selected']=list(range(len(run['pool'])));run['guaranteed']=[];run['engine_deck']=choice['id']
  def owns(run,key):return ar.has(run,key)
  def amount(run,kind):

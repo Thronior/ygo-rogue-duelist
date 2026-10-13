@@ -1,5 +1,5 @@
 // One finite entrance at a time; cancellation never leaves an input blocker behind.
-let active;
+let active,finishHidden;
 export function cancelCharacterEntrance(){active?.()}
 export function captureCharacterEntrance(source){return source?.isConnected?{portrait:source.cloneNode(),rect:source.getBoundingClientRect()}:null}
 export async function characterEntrance(source,enter){
@@ -11,9 +11,11 @@ export async function characterEntrance(source,enter){
  portrait.removeAttribute('loading');overlay.append(portrait);
  Object.assign(portrait.style,{left:rect.x+'px',top:rect.y+'px',width:rect.width+'px',height:rect.height+'px'});
  document.body.append(overlay);
- const animations=[];let cancelled=false,target;
- const cleanup=()=>{for(const a of animations)a.cancel();overlay.remove();if(target)target.inert=false;if(active===cancel)active=null};
- const cancel=()=>{cancelled=true;cleanup()};active=cancel;
+ const animations=[];let cancelled=false,target,entered=false;
+ const enterOnce=()=>{if(!entered){entered=true;enter()}};
+ const cleanup=()=>{for(const a of animations)a.cancel();overlay.remove();if(target)target.inert=false;if(active===cancel)active=null;if(finishHidden===hidden)finishHidden=null};
+ const cancel=()=>{cancelled=true;cleanup()};
+ const hidden=()=>{cancel();enterOnce()};active=cancel;finishHidden=hidden;
  const animate=(el,frames,options)=>{const a=el.animate(frames,options);animations.push(a);return a.finished};
  try{
   if(!reduced){const width=Math.min(innerWidth*.88,innerHeight*.95),height=innerHeight*.84;
@@ -23,8 +25,8 @@ export async function characterEntrance(source,enter){
   }
   if(cancelled)return;
   // Detach the cancellation hook before the intentional navigation.
-  active=null;enter();overlay.remove();target=document.querySelector('.pack-theatre');
+  active=null;enterOnce();overlay.remove();target=document.querySelector('.pack-theatre');
   if(target){target.inert=true;active=cancel;await animate(target,[{opacity:0,transform:reduced?'none':'translateY(10px)'},{opacity:1,transform:'none'}],{duration:reduced?100:200,easing:'ease-out'})}
  }catch(error){if(!cancelled&&error.name!=='AbortError')throw error}finally{cleanup()}
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelCharacterEntrance()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)finishHidden?.()});
