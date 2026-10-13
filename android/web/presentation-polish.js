@@ -20,7 +20,7 @@ function count(el,state,target,paint,duration=440,sound){
  if(!el)return;
  let previous;for(const [node,j] of jobs)if(j.state===state){previous=j;jobs.delete(node)}
  const from=state.value;
- if(reduced()||from===target){state.value=target;paint(target);return}
+ if(document.hidden||reduced()||from===target){state.value=target;paint(target);return}
  const now=performance.now();if(previous?.to===target)duration=Math.max(1,previous.start+previous.duration-now);
  paint(from);jobs.set(el,previous?.to===target?{...previous,paint}:{state,from,to:target,paint,start:now,duration,sound});
  if(!frame)frame=requestAnimationFrame(tick);

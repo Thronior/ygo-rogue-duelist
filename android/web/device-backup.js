@@ -11,7 +11,7 @@ export function validateRecovery(value){
  for(const [key,text] of Object.entries(extras)){if(!EXTRAS.includes(key)||typeof text!=='string')throw Error('Invalid recovery extras.');JSON.parse(text)}
  return {files,extras};
 }
-export function createBackupClient({storage=localStorage,online=()=>navigator.onLine,visible=()=>!document.hidden,request=fetch,version=replayVersion,platform=()=>window.ShadowNative?'Android':navigator.standalone?'Home Screen':navigator.platform,enabled=!/^(localhost|127\.0\.0\.1)$/.test(location.hostname),now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}={}){
+export function createBackupClient({storage=localStorage,online=()=>navigator.onLine,visible=()=>!document.hidden,request=fetch,version=replayVersion,platform=()=>window.ShadowNative?'Android':navigator.standalone?'Home Screen':'Web',enabled=!/^(localhost|127\.0\.0\.1)$/.test(location.hostname),now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}={}){
  let uploadGuard=()=>true;const optedIn=()=>storage.getItem(OPT_IN)==='true';
  let latest=null,timer=null,busy=false,closed=false,last=0,failures=0,lastContent='',endpoint,identity;
  function identify(){if(identity)return identity;try{identity=JSON.parse(storage.getItem(ID)||'null')}catch{}if(!/^SB-[A-F0-9]{24}$/.test(identity?.code||'')||! /^[a-f0-9]{64}$/.test(identity?.token||'')){identity={code:'SB-'+hex(12).toUpperCase(),token:hex(32)};storage.setItem(ID,JSON.stringify(identity))}return identity}

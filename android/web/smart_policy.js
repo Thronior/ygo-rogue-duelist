@@ -366,6 +366,8 @@ export function smartContext(e,p,L,prompt=null){
    const offered=prompt?.selects||[];
    if(offered.some(x=>name(x)==='Torrential Tribute'&&removalScore(x)>=0))return -1;
   }
+  // Preserve narrow removal when an offered, worthwhile wipe already covers its targets.
+  if(!wipes.has(n)&&e.player===p&&!(e.activeChain||[]).length&&(prompt?.activates||[]).some(x=>['Dark Hole','Raigeki','Burst Stream of Destruction'].includes(name(x))&&targets.every(t=>candidates(name(x)).some(y=>same(y,t)))&&removalScore(x)>=0))return -1;
   const urgent=wipes.has(n)?emergency(n,targets):targets.some(x=>emergency(n,[x]));
   if(urgent)return 145;
   const answers=[...hand,...back].filter(x=>resourceRemoval.has(name(x))||wipes.has(name(x)));
@@ -424,6 +426,16 @@ export function smartContext(e,p,L,prompt=null){
  const hostileEquips=new Set(['Snatch Steal','Falling Down','Mask of the Accursed','Ekibyo Drakmord','Germ Infection','Paralyzing Potion']);
  const nonBuffEquips=new Set(['Premature Burial','Autonomous Action Unit','Demotion','Scroll of Bewitchment','Smoke Grenade of the Thief']);
  const friendlyEquip=c=>!!(data(c).type&2)&&!!(data(c).type&0x40000)&&!hostileEquips.has(name(c))&&!nonBuffEquips.has(name(c));
+ // Check restricted equips before committing: the engine may offer activation
+ // solely because an opponent's monster is eligible, leaving a mandatory target.
+ const equipRaces={'7 Completed':32,'Beast Fangs':16384,'Book of Secret Arts':2,'Cestus of Dagla':4,'Dark Energy':8,'Dragon Treasure':8192,'Dragonic Attack':1,'Electro-Whip':4096,'Follow Wind':512,'Fusion Sword Murasame Blade':1,'Insect Armor with Laser Cannon':2048,'Laser Cannon Armor':2048,'Legendary Sword':1,'Lightning Blade':1,'Machine Conversion Factory':32,'Mystical Moon':32768,'Power of Kaishin':64,'Raise Body Heat':65536,'Silver Bow and Arrow':4,"Sword of Dragon's Soul":1,'Vile Germs':1024,'Violet Crystal':16};
+ const equipAttributes={'Burning Spear':'FIRE',"Elf's Light":'LIGHT','Gust Fan':'WIND','Invigoration':'EARTH','Salamandra':'FIRE','Shine Palace':'LIGHT','Steel Shell':'WATER','Sword of Dark Destruction':'DARK'};
+ function equipCompatible(source,target){const n=name(source),requiredRace=equipRaces[n],requiredAttribute=equipAttributes[n];
+  if(requiredRace&&!(BigInt(target.race??data(target).race??0)&BigInt(requiredRace)))return false;
+  if(requiredAttribute&&attr(target)!==requiredAttribute)return false;
+  return true;
+ }
+
  function templeSummonValue(c){
   const projected={...c,controller:p,location:L.MZONE,position:1};
   const useful=effectsEnabled(p)?effectThreat(projected):0;
@@ -519,9 +531,9 @@ export function smartContext(e,p,L,prompt=null){
   if((d.type&2)&&[0,1].some(s=>relic(s,'spells_no_more'))||(d.type&4)&&[0,1].some(s=>relic(s,'traps_no_more')))return -1;
   // Reserve one ordinary S/T slot for cards that leave after resolving.
   const lasting=!!(d.type&(0x20000|0x40000))||['Swords of Revealing Light',"Nightmare's Steelcage"].includes(n);
-  if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
+  if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&!(n==='Temple of the Kings'&&own.some(x=>name(x)==='Mystical Beast of Serket'))&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
   if((d.type&6)&&attackOnly.has(n)&&!remainingAttackers().length)return -1;
-  if(friendlyEquip(c)&&!own.some(x=>face(x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
+  if(friendlyEquip(c)&&!own.some(x=>face(x)&&equipCompatible(c,x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
   if(n==='The Cheerful Coffin'){
    // Recovery next turn does not replace a blocker needed this turn.
    const body=x=>(data(x).type&1)&&!(data(x).type&0x20000c0)&&(e.cards.get(x.code)?.level||0)<=4;
@@ -663,14 +675,14 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Shield & Sword')return shieldSwordScore();
   if(['Graceful Dice','Skull Dice','Metalmorph','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
   if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||((e.data[e.knownFieldCard(p,x)]?.defense??0)<=2000)))?95:-1;
+  if(n==='Temple of the Kings'&&!(c.location===L.SZONE&&face(c))&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
   if(n==='Temple of the Kings'&&c.location===L.SZONE&&face(c))return templeUpgradeAvailable()?100:-1;
   if(['Widespread Ruin','Lightforce Sword','Blast Held by a Tribute','Judgment of Anubis','White Hole','Dark Spirit of the Silent'].includes(n))return chain&&e.player!==p?95:-1;
   if(['Embodiment of Apophis','Metal Reflect Slime'].includes(n))return own.length<5?65:-1;
   if(['Coffin Seller','Card of Safe Return','Temple of the Kings'].includes(n))return 45;
   if(["Nightmare's Steelcage",'The Dark Door','Dragon Capture Jar'].includes(n))return danger?70:-1;
   if(n==='Spiritualism')return theirBack.length?90:-1;
-  const equipRace={'Salamandra':'Zombie','Insect Armor with Laser Cannon':'Insect','Raise Body Heat':'Dinosaur','Silver Bow and Arrow':'Fairy',"Sword of Dragon's Soul":'Warrior'};
-  if(equipRace[n])return own.some(x=>face(x)&&race(x)===equipRace[n])?65:-1;
+  if(equipRaces[n]||equipAttributes[n])return own.some(x=>face(x)&&equipCompatible(c,x))?65:-1;
   if(n==='Cyber Shield')return own.some(x=>face(x)&&name(x)==='Harpie Lady')?65:-1;
   if(n==='Follow Wind')return own.some(x=>face(x)&&race(x)==='Winged Beast')?60:-1;
   if(n==='Time Machine'){
@@ -712,7 +724,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Mind Control')return enemy.some(x=>face(x))&&(canBattle||hand.some(t=>effectiveLevel(t,true)>4&&effectiveLevel(t,true)<=6))?105:-1;
   if(n==='Nobleman of Crossout')return enemy.some(c=>!face(c))?105:-1;
   if(n==='Stop Defense'&&enemy.filter(x=>face(x)&&!(x.position&1)).every(x=>activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l))))return -1;
-  if(n==='Block Attack'&&canBattle)return enemy.some(x=>face(x)&&x.position&1&&(x.defense??data(x).defense)<Math.max(0,...own.map(atk)))?85:-1;
+  if(n==='Block Attack')return canBattle&&enemy.some(x=>blockAttackUseful(x))?85:-1;
     if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'){
    const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
    const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));const best=Math.max(0,...elig.map(atk));if(!(own.length<5&&elig.some(x=>atk(x)>threat)&&(n!=='Premature Burial'||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
@@ -1009,6 +1021,15 @@ function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))retu
   const targets=scientistRemovalTargets();return targets.length?10000+Math.max(...targets.map(targetValue)):-1000000;
  }
  function scientistUseful(){return e.lp[p]>2500&&own.length<5&&q(p,L.EXTRA).some(c=>scientistFusionScore(c)>0)}
+ function blockAttackUseful(target){
+  if(!face(target)||!(target.position&1))return false;
+  const defense=target.defense??data(target).defense??0;
+  return own.some(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)&&atk(a)>defense&&atk(a)<=atk(target));
+ }
+ function battleBeforeSummon(){
+  if(e.phase!==4||prompt?.to_bp!==true||battleLocked||!effectsEnabled(1-p))return false;
+  return enemy.some(t=>!face(t)&&e.knownFieldCard?.(p,t)&&e.name(e.knownFieldCard(p,t))==='Cyber Jar'&&own.some(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)&&atk(a)>power(t)&&attackScore(a,t,{dmg:0})>-99999));
+ }
  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code)||!effectsEnabled(p))return false;const n=name(c);if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
@@ -1024,7 +1045,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='The Wicked Eraser')return own.length>=3&&enemy.length+theirBack.length>=4?60:-1;
   if(attackBlocked(c,p,true)&&!['Jinzo','Breaker the Magical Warrior','Exiled Force','Fire Princess','Bowganian'].includes(n))return -1;
   if(['Darklord Marie','Nuvia the Wicked'].includes(n))return -1;
-  if(n==='Mystical Beast of Serket'&&!has(back,'Temple of the Kings'))return -1;
+  if(n==='Mystical Beast of Serket'&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return -1;
   if(n==='The Masked Beast'&&ownPower>enemyPower+2000)return -1;
   if((n==='Blue-Eyes Toon Dragon'||n==='Toon Mermaid'||n==='Toon Summoned Skull')&&!toonWorld)return -1;
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return -1;
@@ -1040,7 +1061,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return false;
   if((n==='Toon Mermaid'||n==='Blue-Eyes Toon Dragon')&&!toonWorld)return false;
   return true;}
- function flipUseful(n,field){if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
+ function flipUseful(n,field){if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
   if(!effectsEnabled(p))return false;
   if(n==='Dancing Fairy')return e.phase===4&&prompt?.to_bp!==false&&atk(field)>threat&&!attackBlocked(field,p);
   if(field&&(data(field).type&0x200)&&(e.turn===1||prompt?.to_bp===false||battleLocked)&&!['Tsukuyomi','Otohime','Dark Dust Spirit'].includes(n))return false;
@@ -1210,6 +1231,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(selfRemoval&&!usefulCost)return -1000000000;
   if(fxN==='Black Luster Soldier - Envoy of the Beginning'&&cand.location===L.MZONE)return cand.controller!==p?30000+targetValue(cand):-1000000000;
 
+  if(fxN==='Block Attack')return cand.controller!==p&&blockAttackUseful(cand)?20000+atk(cand):-1000000000;
   if(fxN==='Acid Trap Hole')return cand.controller!==p&&cand.location===L.MZONE?20000+targetValue(cand):-1000000000;
   if(fxN==='Temple of the Kings'&&[L.HAND,L.DECK,L.EXTRA].includes(cand.location))return cand.controller===p&&nm!=='Mystical Beast of Serket'?templeSummonValue(cand):-1000000000;
 
@@ -1295,5 +1317,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
- return {handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
+ return {battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

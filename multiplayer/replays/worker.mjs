@@ -17,12 +17,22 @@ export async function validate(bytes){
  for(const deck of [r.start[0],r.start[1],r.start[6],r.start[7]])if(!Array.isArray(deck)||deck.length>200||deck.some(x=>!Number.isInteger(x)||x<1||x>0x7fffffff))throw Error('Invalid deck.');
  return {build:String(r.build).slice(0,32),steps:r.responses.length,ended:r.ended};
 }
+async function readLimited(req,limit){const reader=req.body?.getReader();if(!reader)throw Error('Missing upload body.');let size=0,chunks=[];for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>limit){await reader.cancel();throw Error('Upload body is too large.')}chunks.push(value)}return new Uint8Array(await new Blob(chunks).arrayBuffer());}
+async function storeValidated(bytes,env){const meta=await validate(bytes),id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');const bucket=env.REPLAYS.get(env.REPLAYS.idFromName(id.slice(0,2)));const response=await storageRequest(bucket,new Request('https://bucket/'+id,{method:'POST',headers:{'X-Replay-Meta':JSON.stringify(meta)},body:bytes}));return {status:response.status,...await response.json()};}
+export async function uploadBatch(req,env){
+ let body;try{body=JSON.parse(new TextDecoder().decode(await readLimited(req,280000)));}catch{return reply({error:'Invalid or oversized replay bundle.'},400)}
+ if(!Array.isArray(body?.replays)||!body.replays.length||body.replays.length>10)return reply({error:'Bundles must contain 1 to 10 replays.'},400);
+ const results=new Array(body.replays.length);let next=0;
+ await Promise.all(Array.from({length:2},async()=>{for(;;){const index=next++;if(index>=results.length)return;try{const encoded=body.replays[index];if(typeof encoded!=='string'||encoded.length>26668||!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded))throw Error('Invalid replay encoding.');const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));results[index]=await storeValidated(bytes,env);}catch(error){results[index]={ok:false,status:400,error:['Replay must be below 20 kB.','Replay expands beyond the limit.','Invalid replay.','Invalid duel rules.','Invalid deck.','Invalid replay encoding.'].includes(error.message)?error.message:'Invalid compressed replay.'};}}}));
+ return reply({results});
+}
 export default {async fetch(req,env){
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  const url=new URL(req.url);if(url.pathname==='/health')return reply({ok:true});
+ if(req.method==='POST'&&url.pathname==='/v1/replays/batch')return uploadBatch(req,env);
  if(req.method==='POST'&&url.pathname==='/v1/replays'){
   if(Number(req.headers.get('content-length'))>=20000)return reply({error:'Replay too large'},413);
-  try{const reader=req.body.getReader();let size=0,chunks=[];for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>=20000){await reader.cancel();return reply({error:'Replay too large'},413)}chunks.push(value)}const bytes=await new Blob(chunks).arrayBuffer(),meta=await validate(bytes),id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');const bucket=env.REPLAYS.get(env.REPLAYS.idFromName(id.slice(0,2)));return storageRequest(bucket,new Request('https://bucket/'+id,{method:'POST',headers:{'X-Replay-Meta':JSON.stringify(meta)},body:bytes}));}catch{return reply({error:'Invalid compressed replay'},400)}
+  try{const reader=req.body.getReader();let size=0,chunks=[];for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>=20000){await reader.cancel();return reply({error:'Replay too large'},413)}chunks.push(value)}const bytes=await new Blob(chunks).arrayBuffer(),meta=await validate(bytes),id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');const bucket=env.REPLAYS.get(env.REPLAYS.idFromName(id.slice(0,2)));return storageRequest(bucket,new Request('https://bucket/'+id,{method:'POST',headers:{'X-Replay-Meta':JSON.stringify(meta)},body:bytes}));}catch(error){return reply({error:['Replay must be below 20 kB.','Replay expands beyond the limit.','Invalid replay.','Invalid duel rules.','Invalid deck.'].includes(error.message)?error.message:'Invalid compressed replay'},400)}
  }
  // Replay downloads and listings are private to the game's maintainer.
  if(req.method==='GET'&&url.pathname.startsWith('/v1/replays')){

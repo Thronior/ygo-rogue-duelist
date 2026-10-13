@@ -37,7 +37,7 @@ def description(key,info,previous):
  'pack_refund':f'After buying a booster pack, receive a refund of {a} coins (up to the price paid minus 1).',
  'lean_bonus':f'If you win a Duel with exactly 20 cards in your Main Deck, earn {a} additional coins.',
  'clutch_bonus':f'If you win a Duel with less than 2000 LP, earn {a} additional coins. Check your LP before post-duel healing.',
- 'single_stamp':f'Every {a} single-card purchase'+('s' if a!=1 else '')+' includes 1 additional random unlocked card at no cost.',
+ 'single_stamp':('Each single-card purchase' if a==1 else f'Every {a} single-card purchases')+' includes 1 additional random unlocked card at no cost.',
  'echo':'Once per Duel, the first time your opponent Normal, Flip, or Special Summons a face-up Level 4 or lower monster, add a copy of 1 such monster to your hand.',
  'faulty':f'Each monster purchased as a single or pulled from a purchased booster has a {a}% chance to become a misprint. A misprint changes that copy\'s original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0).',
  'golden':f'Designate 1 card in the deck editor. If you win a Duel, earn {a} additional coins for each time you Summoned, Set, or activated a card with that name during that Duel (max. 5 times).',

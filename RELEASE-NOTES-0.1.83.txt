@@ -1,0 +1,10 @@
+v0.1.83
+
+- Improved CPU decisions for equip cards, removal spells, Cyber Jar, Block Attack, and Temple of the Kings.
+- Added bundled replay uploads, better error reporting, and safer retries.
+- Improved security for Android and the webapp.
+- Made global statistics more private by removing persistent installation IDs while preserving previous totals.
+- Renamed Total Devices to Total Players and added a Share Global Statistics toggle in Settings. Personal statistics remain unchanged.
+- Reduced statistics server load and prevented duplicate contributions across browser tabs.
+- Improved background play when Pause When Tabbed Out is disabled.
+- Clarified relic descriptions and made various minor UI tweaks.

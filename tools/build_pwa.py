@@ -48,7 +48,7 @@ def build(root,out,templates,bundle_artwork=False):
  manifest=dict(id='./',name='Yu-Gi-Oh: Rogue Duelist',short_name='YGO Rogue',start_url='./',scope='./',display='standalone',background_color='#081923',theme_color='#102936',orientation='any',icons=[dict(src=f'icon-{s}.png',sizes=f'{s}x{s}',type='image/png',purpose='any') for s in [192,512]])
  (out/'manifest.webmanifest').write_text(json.dumps(manifest,indent=2),encoding='utf8')
  page=out/'index.html';text=page.read_text(encoding='utf8').replace('</head>','<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="theme-color" content="#102936"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="YGO Rogue"><link rel="stylesheet" href="pwa.css"></head>').replace('</body>','<script type="module" src="pwa.js"></script></body>');page.write_text(text,encoding='utf8')
- (out/'_headers').write_text('/sw.js\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/manifest.webmanifest\n  Content-Type: application/manifest+json\n/*.wasm\n  Content-Type: application/wasm\n/*.mjs\n  Content-Type: text/javascript\n',encoding='utf8')
+ (out/'_headers').write_text('/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/sw.js\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/manifest.webmanifest\n  Content-Type: application/manifest+json\n/*.wasm\n  Content-Type: application/wasm\n/*.mjs\n  Content-Type: text/javascript\n',encoding='utf8')
  entries={};packs={}
  if bundle_artwork:
   from web_artwork_bundles import pack_artwork

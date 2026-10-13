@@ -10,3 +10,6 @@ When publishing itch.io updates, hide the previous ZIP and select the new ZIP as
 
 # Report review cutoff
 Only review Discord, behaviour flags and replays submitted after 2026-10-13T14:09:41Z. See REPORT-REVIEW-CUTOFF.json. Refresh this cutoff after each successfully published release.
+
+# Aggregate statistics release migration
+Before the next statistics Worker deployment, run `node tools/snapshot_global_stats.mjs before D:/<release-output>/stats-before.json` immediately before deployment. Stop deployment if the snapshot fails. Keep the existing STATS Durable Object namespace, class and `global-v1` object identity. The v2 Worker transactionally preserves the exact cutover totals in `migration:aggregate-v2` and continues those totals without re-adding them on restart. Deploy the Worker before new clients, then run the same script with `verify` and the snapshot path. Do not publish clients if verification fails. Older client uploads receive 426 rather than mixing cumulative totals with increments. No statistics snapshot or deployment has been performed yet for this local change.

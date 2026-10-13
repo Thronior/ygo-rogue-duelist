@@ -30,9 +30,12 @@ public final class MainActivity extends Activity {
             }catch(IOException | SecurityException e){exportNotice("Could not save the image. Please try again.");}
         },"Deck-image-export").start();
     }
-    @Override protected void onDestroy(){synchronized(this){pendingDeckImage=null;}super.onDestroy();}
+    @Override protected void onDestroy(){synchronized(this){pendingDeckImage=null;}if(web!=null){web.removeJavascriptInterface("ShadowNative");web.stopLoading();web.destroy();web=null;}super.onDestroy();}
 
     private static final String HOST = "appassets.androidplatform.net";
+    private static boolean bundled(Uri uri) {
+        return "https".equals(uri.getScheme()) && HOST.equals(uri.getHost()) && uri.getUserInfo()==null && (uri.getPort()==-1 || uri.getPort()==443);
+    }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         UpdateCleanupReceiver.clearInstalled(this);
@@ -41,12 +44,17 @@ public final class MainActivity extends Activity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false); s.setAllowContentAccess(false);
+        s.setAllowFileAccessFromFileURLs(false); s.setAllowUniversalAccessFromFileURLs(false);
+        s.setJavaScriptCanOpenWindowsAutomatically(false); s.setSupportMultipleWindows(false);
+        s.setGeolocationEnabled(false); s.setSafeBrowsingEnabled(true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
+        WebView.setWebContentsDebuggingEnabled(false);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.addJavascriptInterface(new SaveStore(), "ShadowNative");
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView w, WebResourceRequest r) { if (HOST.equals(r.getUrl().getHost())) return false;
+            @Override public boolean shouldOverrideUrlLoading(WebView w, WebResourceRequest r) { if (r.isForMainFrame() && bundled(r.getUrl())) return false;
                 if (r.isForMainFrame() && "https".equals(r.getUrl().getScheme()) && "discord.gg".equals(r.getUrl().getHost())) {
                     try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, r.getUrl())); } catch (android.content.ActivityNotFoundException ignored) {}
                 }
@@ -55,7 +63,7 @@ public final class MainActivity extends Activity {
                 Uri uri=r.getUrl(); String path=uri.getPath();
                 try {
                     if (!HOST.equals(uri.getHost()) && "https".equals(uri.getScheme())) return null;
-                    if (!HOST.equals(uri.getHost()) || path==null || path.contains("..")) throw new IOException("Blocked");
+                    if (!bundled(uri) || path==null || path.contains("..") || path.contains("\\")) throw new IOException("Blocked");
                     path=path.substring(1); if(path.isEmpty()) path="index.html";
                     String ext=path.substring(path.lastIndexOf('.')+1).toLowerCase(Locale.ROOT);
                     String mime=MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
@@ -64,7 +72,10 @@ public final class MainActivity extends Activity {
                     if(ext.equals("m4a")) mime="audio/mp4";
                     if(ext.equals("json")) mime="application/json";
                     if(mime==null) mime="application/octet-stream";
-                    return new WebResourceResponse(mime,"UTF-8",getAssets().open("web/"+path));
+                    Map<String,String> headers=new HashMap<>();
+                    headers.put("X-Content-Type-Options","nosniff");headers.put("Referrer-Policy","no-referrer");
+                    if(ext.equals("html"))headers.put("Content-Security-Policy","frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'");
+                    return new WebResourceResponse(mime,"UTF-8",200,"OK",headers,getAssets().open("web/"+path));
                 } catch(IOException e) { return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",Collections.emptyMap(),new ByteArrayInputStream(new byte[0])); }
             }
         });
