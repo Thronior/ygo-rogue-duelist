@@ -1,0 +1,25 @@
+{
+  "version": "0.1.84",
+  "sourceCommit": "45d55c6d37fbc697428d1ade46c51bb2ebdbafee",
+  "pushed": true,
+  "web": "https://ygo-rogue.pages.dev/",
+  "deployment": "https://e466f12d.ygo-rogue.pages.dev/",
+  "android": "https://github.com/Thronior/ygo-rogue-duelist/releases/tag/v0.1.84",
+  "itchUpload": "19756214",
+  "devlog": "https://thronior.itch.io/ygo-rogue/devlog/1706848/v0184",
+  "publishedAt": "2026-10-14T10:50:02Z",
+  "fallenRosterCount": 10,
+  "validation": [
+    "Android uploaded assets size and SHA256 verified",
+    "Production web build.json and changed assets verified",
+    "Public itch embed build.json version verified",
+    "Unlock and deck preview regressions passed",
+    "CPU report and equip eligibility regressions passed",
+    "Four reported replays completed without engine errors",
+    "Packaged web real Chrome quota failure and save recovery passed"
+  ],
+  "limitations": [
+    "Itch mobile rotation awaits physical-device verification",
+    "Existing Threatening Roar policy test also fails on unchanged baseline"
+  ]
+}
