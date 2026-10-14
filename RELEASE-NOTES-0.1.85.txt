@@ -24,17 +24,13 @@ Unlocks
 Text
 - Fixed garbled symbols in duel log messages (middle dots, quotes, arrows, em dashes).
 
-Encounters and bosses
-- New versus-screen duel intro and boss slot-reel cinematics.
-- Unknown opponents stay mysterious until revealed; revealing costs coins, Deck Spyglass shows decks.
-- Boss reroll economy with visible wallet, plus Ultimate Collector tags on opponents.
+Packs and collection
+- Rarest cards matched into character packs so named-card references resolve; Ancient Treasure odds retuned.
+- Premium Packs 1-4 added to the Premium Pack Collection.
+- Card inspection gains a "Where to Find" tab with booster packs and opponent decks.
+- Signature cards now register correctly; misprinted stats show in hand.
+- Watch CPU Duel includes the newer Ultimate Collector decks.
 
-Card inspection and collection
-- Inspecting a card shows owned and in-deck counts, misprint badges, and golden-card designation.
-- New "Where to Find" tab lists which boosters and opponent decks contain a card.
-- Collection gains sorting, registration filters, grouped relics, and Run History / Device / Global stats tabs.
-
-Characters and tag duels
-- Clearer challenge-completion colors, LVL badges, golden frames, and relicless-clear stars.
-- Tag lobby adds host challenge-level select and a cleaner surrender flow.
-- Victory Deck choices for the Dueling Engine character.
+Duel UI
+- Reworked curses/relics bar with hover descriptions matching curses.
+- DNA Rewrite art updated; Divine Might repriced.
