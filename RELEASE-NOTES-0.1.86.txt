@@ -1,0 +1,6 @@
+v0.1.86
+
+- Deck builder ATK sorting now includes relic bonuses and misprints, matching the displayed values.
+- Slightly staggered and offset healing and damage popups to reduce overlap.
+- Refined Chain Sometimes: continuous Traps keep their previous prompting behavior, while phase-limited cards remain available before their activation window closes.
+- Checked memory stability across 108 automated duels and 12 campaign cycles.

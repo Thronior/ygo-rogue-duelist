@@ -1,0 +1,576 @@
+{
+  "additions": [
+    {
+      "card": "Aegis of the Ocean Dragon Lord",
+      "pack": "Mako Tsunami",
+      "pool": "rare"
+    },
+    {
+      "card": "Fish Depth Charge",
+      "pack": "Mako Tsunami",
+      "pool": "rare"
+    },
+    {
+      "card": "Mad Lobster",
+      "pack": "Mako Tsunami",
+      "pool": "rare"
+    },
+    {
+      "card": "Surface",
+      "pack": "Mako Tsunami",
+      "pool": "rare"
+    },
+    {
+      "card": "Sentinel of the Seas",
+      "pack": "Mako Tsunami",
+      "pool": "rare"
+    },
+    {
+      "card": "Anti-Spell Fragrance",
+      "pack": "Mai Valentine",
+      "pool": "rare"
+    },
+    {
+      "card": "Dark Magician Knight",
+      "pack": "Yami Yugi",
+      "pool": "rare"
+    },
+    {
+      "card": "Knight's Title",
+      "pack": "Yami Yugi",
+      "pool": "rare"
+    },
+    {
+      "card": "Sage's Stone",
+      "pack": "Yami Yugi",
+      "pool": "rare"
+    },
+    {
+      "card": "Dark Renewal",
+      "pack": "Yami Yugi",
+      "pool": "common"
+    },
+    {
+      "card": "Legion the Fiend Jester",
+      "pack": "Yami Yugi",
+      "pool": "common"
+    },
+    {
+      "card": "Electromagnetic Bagworm",
+      "pack": "Espa Roba",
+      "pool": "rare"
+    },
+    {
+      "card": "Cybernetic Fusion Support",
+      "pack": "Espa Roba",
+      "pool": "rare"
+    },
+    {
+      "card": "Cybernetic Zone",
+      "pack": "Espa Roba",
+      "pool": "rare"
+    },
+    {
+      "card": "Karakuri Spider",
+      "pack": "Espa Roba",
+      "pool": "common"
+    },
+    {
+      "card": "Metalzoa",
+      "pack": "Espa Roba",
+      "pool": "rare"
+    },
+    {
+      "card": "Proton Blast",
+      "pack": "Espa Roba",
+      "pool": "rare"
+    },
+    {
+      "card": "Soul Charge",
+      "pack": "Ishizu Ishtar",
+      "pool": "rare"
+    },
+    {
+      "card": "Sebek's Blessing",
+      "pack": "Ishizu Ishtar",
+      "pool": "common"
+    },
+    {
+      "card": "Call of the Earthbound",
+      "pack": "Yami Bakura",
+      "pool": "rare"
+    },
+    {
+      "card": "Doomcaliber Knight",
+      "pack": "Yami Bakura",
+      "pool": "rare"
+    },
+    {
+      "card": "Inferno Hammer",
+      "pack": "Yami Bakura",
+      "pool": "common"
+    },
+    {
+      "card": "The Wicked Dreadroot",
+      "pack": "Yami Bakura",
+      "pool": "rare"
+    },
+    {
+      "card": "The Wicked Eraser",
+      "pack": "Yami Bakura",
+      "pool": "rare"
+    },
+    {
+      "card": "Mirror of Yata",
+      "pack": "Noah Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Orb of Yasaka",
+      "pack": "Noah Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Hydro Pressure Cannon",
+      "pack": "Noah Kaiba",
+      "pool": "common"
+    },
+    {
+      "card": "Malevolent Catastrophe",
+      "pack": "Marik Ishtar",
+      "pool": "rare"
+    },
+    {
+      "card": "Juragedo",
+      "pack": "Marik Ishtar",
+      "pool": "common"
+    },
+    {
+      "card": "Soul Taker",
+      "pack": "Marik Ishtar",
+      "pool": "common"
+    },
+    {
+      "card": "Spell of Pain",
+      "pack": "Marik Ishtar",
+      "pool": "common"
+    },
+    {
+      "card": "Sword of Dark Destruction",
+      "pack": "Arkana",
+      "pool": "rare"
+    },
+    {
+      "card": "Sorcerer of Dark Magic",
+      "pack": "Arkana",
+      "pool": "rare"
+    },
+    {
+      "card": "Mystical Refpanel",
+      "pack": "Arkana",
+      "pool": "rare"
+    },
+    {
+      "card": "Amazoness Scouts",
+      "pack": "Tea Gardner",
+      "pool": "common"
+    },
+    {
+      "card": "Teva",
+      "pack": "Tea Gardner",
+      "pool": "common"
+    },
+    {
+      "card": "Watapon",
+      "pack": "Tea Gardner",
+      "pool": "common"
+    },
+    {
+      "card": "Unity",
+      "pack": "Tea Gardner",
+      "pool": "common"
+    },
+    {
+      "card": "Ancient Dragon",
+      "pack": "Rebecca Hawkins",
+      "pool": "common"
+    },
+    {
+      "card": "Blue-Eyes Shining Dragon",
+      "pack": "Rebecca Hawkins",
+      "pool": "rare"
+    },
+    {
+      "card": "Fiend's Sanctuary",
+      "pack": "Rebecca Hawkins",
+      "pool": "rare"
+    },
+    {
+      "card": "Mesmeric Control",
+      "pack": "Rebecca Hawkins",
+      "pool": "common"
+    },
+    {
+      "card": "Silent Doom",
+      "pack": "Rebecca Hawkins",
+      "pool": "common"
+    },
+    {
+      "card": "Des Volstgalph",
+      "pack": "Rebecca Hawkins",
+      "pool": "rare"
+    },
+    {
+      "card": "Victory Dragon",
+      "pack": "Rebecca Hawkins",
+      "pool": "rare"
+    },
+    {
+      "card": "Ancient Lamp",
+      "pack": "Solomon Muto",
+      "pool": "common"
+    },
+    {
+      "card": "Gale Dogra",
+      "pack": "Solomon Muto",
+      "pool": "common"
+    },
+    {
+      "card": "Ultimate Insect LV7",
+      "pack": "Solomon Muto",
+      "pool": "rare"
+    },
+    {
+      "card": "Last Will",
+      "pack": "Solomon Muto",
+      "pool": "common"
+    },
+    {
+      "card": "Attack Guidance Armor",
+      "pack": "Bandit Keith",
+      "pool": "common"
+    },
+    {
+      "card": "Emes the Infinity",
+      "pack": "Bandit Keith",
+      "pool": "rare"
+    },
+    {
+      "card": "Fiendish Engine \u03a9",
+      "pack": "Bandit Keith",
+      "pool": "rare"
+    },
+    {
+      "card": "Satellite Cannon",
+      "pack": "Bandit Keith",
+      "pool": "rare"
+    },
+    {
+      "card": "Dangerous Machine Type-6",
+      "pack": "Bandit Keith",
+      "pool": "common"
+    },
+    {
+      "card": "Beast of Talwar",
+      "pack": "PaniK",
+      "pool": "rare"
+    },
+    {
+      "card": "Card of Demise",
+      "pack": "Maximillion Pegasus",
+      "pool": "rare"
+    },
+    {
+      "card": "Copycat",
+      "pack": "Maximillion Pegasus",
+      "pool": "common"
+    },
+    {
+      "card": "Cloning",
+      "pack": "Maximillion Pegasus",
+      "pool": "common"
+    },
+    {
+      "card": "Dragon Master Knight",
+      "pack": "Joey Wheeler",
+      "pool": "rare"
+    },
+    {
+      "card": "Twinheaded Beast",
+      "pack": "Rex Raptor",
+      "pool": "common"
+    },
+    {
+      "card": "Damage Condenser",
+      "pack": "Tristan Taylor",
+      "pool": "common"
+    },
+    {
+      "card": "Exarion Universe",
+      "pack": "Tristan Taylor",
+      "pool": "common"
+    },
+    {
+      "card": "Gilford the Lightning",
+      "pack": "Tristan Taylor",
+      "pool": "rare"
+    },
+    {
+      "card": "Relieve Monster",
+      "pack": "Joey Wheeler",
+      "pool": "common"
+    },
+    {
+      "card": "Kaibaman",
+      "pack": "Mokuba Kaiba",
+      "pool": "common"
+    },
+    {
+      "card": "Shrink",
+      "pack": "Mokuba Kaiba",
+      "pool": "common"
+    },
+    {
+      "card": "Spell Shattering Arrow",
+      "pack": "Mokuba Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Virus Cannon",
+      "pack": "Mokuba Kaiba",
+      "pool": "common"
+    },
+    {
+      "card": "Five-Headed Dragon",
+      "pack": "Seto Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Red-Eyes Black Metal Dragon",
+      "pack": "Seto Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Fish and Kicks",
+      "pack": "Rex Raptor",
+      "pool": "rare"
+    },
+    {
+      "card": "Ocean Dragon Lord - Neo-Daedalus",
+      "pack": "Rex Raptor",
+      "pool": "rare"
+    },
+    {
+      "card": "Red-Eyes Darkness Dragon",
+      "pack": "Rex Raptor",
+      "pool": "rare"
+    },
+    {
+      "card": "Giant Rex",
+      "pack": "Bonz",
+      "pool": "common"
+    },
+    {
+      "card": "Hydrogeddon",
+      "pack": "Weevil Underwood",
+      "pool": "common"
+    },
+    {
+      "card": "Oxygeddon",
+      "pack": "Weevil Underwood",
+      "pool": "common"
+    },
+    {
+      "card": "Judgment of the Pharaoh",
+      "pack": "Yugi Muto",
+      "pool": "rare"
+    },
+    {
+      "card": "Makiu, the Magical Mist",
+      "pack": "Yugi Muto",
+      "pool": "common"
+    },
+    {
+      "card": "Yu-Jo Friendship",
+      "pack": "Yugi Muto",
+      "pool": "common"
+    },
+    {
+      "card": "Toon Dark Magician Girl",
+      "pack": "Yugi Muto",
+      "pool": "rare"
+    },
+    {
+      "card": "Maximum Six",
+      "pack": "Duke Devlin",
+      "pool": "rare"
+    },
+    {
+      "card": "Roulette Spider",
+      "pack": "Duke Devlin",
+      "pool": "common"
+    },
+    {
+      "card": "Sixth Sense",
+      "pack": "Duke Devlin",
+      "pool": "rare"
+    },
+    {
+      "card": "Dark Artist",
+      "pack": "Yami Bakura",
+      "pool": "common"
+    },
+    {
+      "card": "Hidden Soldiers",
+      "pack": "Lumis and Umbra",
+      "pool": "common"
+    },
+    {
+      "card": "The Selection",
+      "pack": "Lumis and Umbra",
+      "pool": "rare"
+    },
+    {
+      "card": "Van'Dalgyon the Dark Dragon Lord",
+      "pack": "Seto Kaiba",
+      "pool": "rare"
+    },
+    {
+      "card": "Pyramid of Light",
+      "pack": "Ishizu Ishtar",
+      "pool": "common"
+    },
+    {
+      "card": "Rigorous Reaver",
+      "pack": "Shadi",
+      "pool": "common"
+    },
+    {
+      "card": "Vampire Genesis",
+      "pack": "Yami Marik",
+      "pool": "rare"
+    }
+  ],
+  "dependencies": [
+    {
+      "pack": "Yugi Muto",
+      "card": "Unity",
+      "pool": "common",
+      "requiredBy": "Judgment of the Pharaoh"
+    },
+    {
+      "pack": "Yugi Muto",
+      "card": "Toon World",
+      "pool": "rare",
+      "requiredBy": "Toon Dark Magician Girl"
+    },
+    {
+      "pack": "Espa Roba",
+      "card": "Zoa",
+      "pool": "common",
+      "requiredBy": "Metalzoa"
+    },
+    {
+      "pack": "Espa Roba",
+      "card": "Metalmorph",
+      "pool": "common",
+      "requiredBy": "Metalzoa"
+    },
+    {
+      "pack": "Ishizu Ishtar",
+      "card": "Andro Sphinx",
+      "pool": "rare",
+      "requiredBy": "Pyramid of Light"
+    },
+    {
+      "pack": "Ishizu Ishtar",
+      "card": "Sphinx Teleia",
+      "pool": "rare",
+      "requiredBy": "Pyramid of Light"
+    },
+    {
+      "pack": "Joey Wheeler",
+      "card": "Black Luster Soldier",
+      "pool": "rare",
+      "requiredBy": "Dragon Master Knight"
+    },
+    {
+      "pack": "Joey Wheeler",
+      "card": "Blue-Eyes Ultimate Dragon",
+      "pool": "rare",
+      "requiredBy": "Dragon Master Knight"
+    },
+    {
+      "pack": "Joey Wheeler",
+      "card": "Black Luster Ritual",
+      "pool": "rare",
+      "requiredBy": "Black Luster Soldier"
+    },
+    {
+      "pack": "Joey Wheeler",
+      "card": "Blue-Eyes White Dragon",
+      "pool": "rare",
+      "requiredBy": "Blue-Eyes Ultimate Dragon"
+    },
+    {
+      "pack": "Rebecca Hawkins",
+      "card": "Blue-Eyes Ultimate Dragon",
+      "pool": "rare",
+      "requiredBy": "Blue-Eyes Shining Dragon"
+    },
+    {
+      "pack": "Rebecca Hawkins",
+      "card": "Blue-Eyes White Dragon",
+      "pool": "rare",
+      "requiredBy": "Blue-Eyes Ultimate Dragon"
+    },
+    {
+      "pack": "Rex Raptor",
+      "card": "Umi",
+      "pool": "common",
+      "requiredBy": "Ocean Dragon Lord - Neo-Daedalus"
+    },
+    {
+      "pack": "Rex Raptor",
+      "card": "Levia-Dragon - Daedalus",
+      "pool": "rare",
+      "requiredBy": "Ocean Dragon Lord - Neo-Daedalus"
+    },
+    {
+      "pack": "Seto Kaiba",
+      "card": "Metalmorph",
+      "pool": "common",
+      "requiredBy": "Red-Eyes Black Metal Dragon"
+    },
+    {
+      "pack": "Solomon Muto",
+      "card": "Ultimate Insect LV5",
+      "pool": "rare",
+      "requiredBy": "Ultimate Insect LV7"
+    },
+    {
+      "pack": "Solomon Muto",
+      "card": "La Jinn the Mystical Genie of the Lamp",
+      "pool": "common",
+      "requiredBy": "Ancient Lamp"
+    },
+    {
+      "pack": "Solomon Muto",
+      "card": "Ultimate Insect LV3",
+      "pool": "rare",
+      "requiredBy": "Ultimate Insect LV5"
+    },
+    {
+      "pack": "Solomon Muto",
+      "card": "Ultimate Insect LV1",
+      "pool": "rare",
+      "requiredBy": "Ultimate Insect LV3"
+    },
+    {
+      "pack": "Yami Marik",
+      "card": "Vampire Lord",
+      "pool": "rare",
+      "requiredBy": "Vampire Genesis"
+    }
+  ]
+}

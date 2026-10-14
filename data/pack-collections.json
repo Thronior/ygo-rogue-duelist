@@ -1,0 +1,1148 @@
+[
+  {
+    "id": "EN-TP4",
+    "name": "Tournament Pack Collection",
+    "original_packs": [
+      {
+        "id": "EN-TP1",
+        "name": "Tournament Pack: 1st Season",
+        "region": "EN",
+        "code": "TP1",
+        "date": "2002-09-01",
+        "image": "https://ms.yugipedia.com//f/f5/TP1-BoosterNA.png",
+        "common": [
+          10262698,
+          27324313,
+          28003512,
+          33413638,
+          34290067,
+          41762634,
+          42883273,
+          52584282,
+          57405307,
+          60802233,
+          69750536,
+          75559356,
+          82065276,
+          82085619,
+          84990171
+        ],
+        "rare": [
+          2370081,
+          7359741,
+          18937875,
+          20871001,
+          39897277,
+          43487744,
+          48305365,
+          49791927,
+          50259460,
+          53493204,
+          55321970,
+          56260110,
+          76775123,
+          95144193,
+          99426834
+        ],
+        "size": 9,
+        "rarities": {
+          "2370081": [
+            "Rare"
+          ],
+          "7359741": [
+            "Ultra Rare"
+          ],
+          "10262698": [
+            "Common"
+          ],
+          "18937875": [
+            "Rare"
+          ],
+          "20871001": [
+            "Rare"
+          ],
+          "27324313": [
+            "Common"
+          ],
+          "28003512": [
+            "Common"
+          ],
+          "33413638": [
+            "Common"
+          ],
+          "34290067": [
+            "Common"
+          ],
+          "39897277": [
+            "Rare"
+          ],
+          "41762634": [
+            "Common"
+          ],
+          "42883273": [
+            "Common"
+          ],
+          "43487744": [
+            "Super Rare"
+          ],
+          "48305365": [
+            "Super Rare"
+          ],
+          "49791927": [
+            "Rare"
+          ],
+          "50259460": [
+            "Rare"
+          ],
+          "52584282": [
+            "Common"
+          ],
+          "53493204": [
+            "Rare"
+          ],
+          "55321970": [
+            "Rare"
+          ],
+          "56260110": [
+            "Rare"
+          ],
+          "57405307": [
+            "Common"
+          ],
+          "60802233": [
+            "Common"
+          ],
+          "69750536": [
+            "Common"
+          ],
+          "75559356": [
+            "Common"
+          ],
+          "76775123": [
+            "Super Rare"
+          ],
+          "82065276": [
+            "Common"
+          ],
+          "82085619": [
+            "Common"
+          ],
+          "84990171": [
+            "Common"
+          ],
+          "95144193": [
+            "Super Rare"
+          ],
+          "99426834": [
+            "Rare"
+          ]
+        },
+        "rare_display": [
+          2370081,
+          7359741,
+          18937875,
+          20871001,
+          39897277,
+          43487744,
+          48305365,
+          49791927,
+          50259460,
+          53493204,
+          55321970,
+          56260110,
+          76775123,
+          95144193,
+          99426834
+        ],
+        "rarity_source": "Original North American TCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "EN-TP2",
+        "name": "Tournament Pack: 2nd Season",
+        "region": "EN",
+        "code": "TP2",
+        "date": "2002-10-01",
+        "image": "https://ms.yugipedia.com//9/99/TP2-BoosterNA.png",
+        "common": [
+          3170832,
+          4179849,
+          14037717,
+          14977074,
+          38289717,
+          59053232,
+          59983499,
+          62762898,
+          71068263,
+          75582395,
+          79629370,
+          93343894,
+          94119974,
+          95288024,
+          96967123
+        ],
+        "rare": [
+          3627449,
+          16899564,
+          16970158,
+          26725158,
+          28563545,
+          30451366,
+          31066283,
+          33508719,
+          38277918,
+          38942059,
+          43694075,
+          47852924,
+          56413937,
+          58831685,
+          99721536
+        ],
+        "size": 9,
+        "rarities": {
+          "3170832": [
+            "Common"
+          ],
+          "3627449": [
+            "Rare"
+          ],
+          "4179849": [
+            "Common"
+          ],
+          "14037717": [
+            "Common"
+          ],
+          "14977074": [
+            "Common"
+          ],
+          "16899564": [
+            "Rare"
+          ],
+          "16970158": [
+            "Super Rare"
+          ],
+          "26725158": [
+            "Super Rare"
+          ],
+          "28563545": [
+            "Super Rare"
+          ],
+          "30451366": [
+            "Rare"
+          ],
+          "31066283": [
+            "Rare"
+          ],
+          "33508719": [
+            "Ultra Rare"
+          ],
+          "38277918": [
+            "Rare"
+          ],
+          "38289717": [
+            "Common"
+          ],
+          "38942059": [
+            "Rare"
+          ],
+          "43694075": [
+            "Rare"
+          ],
+          "47852924": [
+            "Rare"
+          ],
+          "56413937": [
+            "Rare"
+          ],
+          "58831685": [
+            "Super Rare"
+          ],
+          "59053232": [
+            "Common"
+          ],
+          "59983499": [
+            "Common"
+          ],
+          "62762898": [
+            "Common"
+          ],
+          "71068263": [
+            "Common"
+          ],
+          "75582395": [
+            "Common"
+          ],
+          "79629370": [
+            "Common"
+          ],
+          "93343894": [
+            "Common"
+          ],
+          "94119974": [
+            "Common"
+          ],
+          "95288024": [
+            "Common"
+          ],
+          "96967123": [
+            "Common"
+          ],
+          "99721536": [
+            "Rare"
+          ]
+        },
+        "rare_display": [
+          3627449,
+          16899564,
+          16970158,
+          26725158,
+          28563545,
+          30451366,
+          31066283,
+          33508719,
+          38277918,
+          38942059,
+          43694075,
+          47852924,
+          56413937,
+          58831685,
+          99721536
+        ],
+        "rarity_source": "Original North American TCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "EN-TP3",
+        "name": "Tournament Pack: 3rd Season",
+        "region": "EN",
+        "code": "TP3",
+        "date": "2003-03-29",
+        "image": "https://ms.yugipedia.com//1/17/TP3-BoosterNA.png",
+        "common": [
+          11868825,
+          17881964,
+          21417692,
+          28470714,
+          50045299,
+          54541900,
+          55144522,
+          68658728,
+          73134081,
+          80770678,
+          90219263
+        ],
+        "rare": [
+          7359741,
+          11901678,
+          42364257,
+          43487744,
+          48305365,
+          76775123,
+          81843628,
+          95144193,
+          98069388
+        ],
+        "size": 9,
+        "rarities": {
+          "7359741": [
+            "Super Rare"
+          ],
+          "11868825": [
+            "Common"
+          ],
+          "11901678": [
+            "Super Rare"
+          ],
+          "17881964": [
+            "Common"
+          ],
+          "21417692": [
+            "Common"
+          ],
+          "28470714": [
+            "Common"
+          ],
+          "42364257": [
+            "Super Rare"
+          ],
+          "43487744": [
+            "Rare"
+          ],
+          "48305365": [
+            "Rare"
+          ],
+          "50045299": [
+            "Common"
+          ],
+          "54541900": [
+            "Common"
+          ],
+          "55144522": [
+            "Common"
+          ],
+          "68658728": [
+            "Common"
+          ],
+          "73134081": [
+            "Common"
+          ],
+          "76775123": [
+            "Rare"
+          ],
+          "80770678": [
+            "Common"
+          ],
+          "81843628": [
+            "Ultra Rare"
+          ],
+          "90219263": [
+            "Common"
+          ],
+          "95144193": [
+            "Rare"
+          ],
+          "98069388": [
+            "Super Rare"
+          ]
+        },
+        "rare_display": [
+          7359741,
+          11901678,
+          42364257,
+          43487744,
+          48305365,
+          76775123,
+          81843628,
+          95144193,
+          98069388
+        ],
+        "rarity_source": "Original North American TCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "EN-TP4",
+        "name": "Tournament Pack 4",
+        "region": "EN",
+        "code": "TP4",
+        "date": "2003-10-01",
+        "image": "https://ms.yugipedia.com//b/b7/TP4-BoosterNA.png",
+        "common": [
+          17449108,
+          21015833,
+          22567609,
+          23289281,
+          23401839,
+          59344077,
+          70046172,
+          79870141,
+          83011277,
+          85742772,
+          97017120
+        ],
+        "rare": [
+          1248895,
+          16970158,
+          22046459,
+          26725158,
+          28563545,
+          33508719,
+          51452091,
+          58831685,
+          66362965
+        ],
+        "size": 9,
+        "rarities": {
+          "1248895": [
+            "Super Rare"
+          ],
+          "16970158": [
+            "Rare"
+          ],
+          "17449108": [
+            "Common"
+          ],
+          "21015833": [
+            "Common"
+          ],
+          "22046459": [
+            "Super Rare"
+          ],
+          "22567609": [
+            "Common"
+          ],
+          "23289281": [
+            "Common"
+          ],
+          "23401839": [
+            "Common"
+          ],
+          "26725158": [
+            "Rare"
+          ],
+          "28563545": [
+            "Rare"
+          ],
+          "33508719": [
+            "Super Rare"
+          ],
+          "51452091": [
+            "Ultra Rare"
+          ],
+          "58831685": [
+            "Rare"
+          ],
+          "59344077": [
+            "Common"
+          ],
+          "66362965": [
+            "Super Rare"
+          ],
+          "70046172": [
+            "Common"
+          ],
+          "79870141": [
+            "Common"
+          ],
+          "83011277": [
+            "Common"
+          ],
+          "85742772": [
+            "Common"
+          ],
+          "97017120": [
+            "Common"
+          ]
+        },
+        "rare_display": [
+          1248895,
+          16970158,
+          22046459,
+          26725158,
+          28563545,
+          33508719,
+          51452091,
+          58831685,
+          66362965
+        ],
+        "rarity_source": "Original North American TCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "EN-TP5",
+        "name": "Tournament Pack 5",
+        "region": "EN",
+        "code": "TP5",
+        "date": "2004-11-01",
+        "image": "https://ms.yugipedia.com//2/28/TP5-BoosterEN.png",
+        "common": [
+          2926176,
+          5616412,
+          30451366,
+          41855169,
+          50259460,
+          53493204,
+          71283180,
+          77044671,
+          78053598,
+          87523462,
+          99426834
+        ],
+        "rare": [
+          2204140,
+          3055837,
+          11091375,
+          40133511,
+          53119267,
+          57482479,
+          65240384,
+          81843628,
+          88240808
+        ],
+        "size": 9,
+        "rarities": {
+          "57482479": [
+            "Ultra Rare"
+          ],
+          "65240384": [
+            "Super Rare"
+          ],
+          "53119267": [
+            "Super Rare"
+          ],
+          "11091375": [
+            "Super Rare"
+          ],
+          "81843628": [
+            "Super Rare"
+          ],
+          "88240808": [
+            "Rare"
+          ],
+          "40133511": [
+            "Rare"
+          ],
+          "2204140": [
+            "Rare"
+          ],
+          "3055837": [
+            "Rare"
+          ],
+          "53493204": [
+            "Common"
+          ],
+          "41855169": [
+            "Common"
+          ],
+          "71283180": [
+            "Common"
+          ],
+          "5616412": [
+            "Common"
+          ],
+          "99426834": [
+            "Common"
+          ],
+          "50259460": [
+            "Common"
+          ],
+          "30451366": [
+            "Common"
+          ],
+          "77044671": [
+            "Common"
+          ],
+          "2926176": [
+            "Common"
+          ],
+          "87523462": [
+            "Common"
+          ],
+          "78053598": [
+            "Common"
+          ]
+        },
+        "rare_display": [
+          57482479,
+          65240384,
+          53119267,
+          11091375,
+          81843628,
+          88240808,
+          40133511,
+          2204140,
+          3055837
+        ],
+        "rarity_source": "Original set printings; YGOJSON",
+        "source_set": "96dce750-f385-4de8-8f0b-5fcaab25b6bd"
+      }
+    ]
+  },
+  {
+    "id": "JP-PP7",
+    "name": "Premium Pack Collection",
+    "original_packs": [
+      {
+        "id": "JP-P5",
+        "name": "Premium Pack 5",
+        "region": "JP",
+        "code": "P5",
+        "date": "2001-12-22",
+        "image": "https://ms.yugipedia.com//b/b9/P5-BoosterJP.jpg",
+        "common": [
+          18144506,
+          32012841,
+          37390589,
+          41356845,
+          57728570,
+          64335804,
+          68540058,
+          74677422,
+          77754944
+        ],
+        "rare": [
+          18144506,
+          32012841,
+          37390589,
+          41356845,
+          57728570,
+          64335804,
+          68540058,
+          74677422,
+          77754944
+        ],
+        "size": 5,
+        "starter_support": [
+          5053103,
+          48305365,
+          44287299
+        ],
+        "draft_note": "Includes three starter-monster slots from this pack or its themed starter supplement.",
+        "rarities": {
+          "18144506": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "32012841": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "37390589": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "41356845": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "57728570": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "64335804": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "68540058": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "74677422": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ],
+          "77754944": [
+            "Ultra Rare",
+            "Ultraparallel"
+          ]
+        },
+        "rare_display": [
+          18144506,
+          32012841,
+          37390589,
+          41356845,
+          57728570,
+          64335804,
+          68540058,
+          74677422,
+          77754944
+        ],
+        "rarity_source": "Original Japanese OCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "JP-PP6",
+        "name": "Premium Pack 6",
+        "region": "JP",
+        "code": "PP6",
+        "date": "2004-03-11",
+        "image": "https://ms.yugipedia.com//5/59/PP6-BoosterJP.jpg",
+        "common": [
+          3072077,
+          30461781,
+          30683373,
+          31305911,
+          66865880,
+          67688478
+        ],
+        "rare": [
+          3072077,
+          30461781,
+          30683373,
+          31305911,
+          66865880,
+          67688478
+        ],
+        "size": 5,
+        "starter_support": [
+          13039848,
+          15025844,
+          68846917,
+          97017120
+        ],
+        "draft_note": "Includes three starter-monster slots from this pack or its themed starter supplement.",
+        "rarities": {
+          "3072077": [
+            "Secret Rare",
+            "Ultra Rare"
+          ],
+          "30461781": [
+            "Secret Rare",
+            "Ultra Rare"
+          ],
+          "30683373": [
+            "Secret Rare",
+            "Ultra Rare"
+          ],
+          "31305911": [
+            "Secret Rare",
+            "Ultra Rare"
+          ],
+          "66865880": [
+            "Secret Rare",
+            "Ultra Rare"
+          ],
+          "67688478": [
+            "Secret Rare",
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          3072077,
+          30461781,
+          30683373,
+          31305911,
+          66865880,
+          67688478
+        ],
+        "rarity_source": "Original Japanese OCG set printing; YGOJSON / published set checklist"
+      },
+      {
+        "id": "JP-PP7",
+        "name": "Premium Pack 7",
+        "region": "JP",
+        "code": "PP7",
+        "date": "2004-08-05",
+        "image": "https://ms.yugipedia.com//5/58/PP7-BoosterJP.jpg",
+        "common": [
+          14391920,
+          25236056,
+          27174286,
+          52624755,
+          89731911
+        ],
+        "rare": [
+          15013468,
+          51402177,
+          87997872
+        ],
+        "size": 5,
+        "rarities": {
+          "87997872": [
+            "Ultra Rare"
+          ],
+          "15013468": [
+            "Ultra Rare"
+          ],
+          "51402177": [
+            "Ultra Rare"
+          ],
+          "25236056": [
+            "Common"
+          ],
+          "52624755": [
+            "Common"
+          ],
+          "89731911": [
+            "Common"
+          ],
+          "14391920": [
+            "Common"
+          ],
+          "27174286": [
+            "Common"
+          ]
+        },
+        "rare_display": [
+          87997872,
+          15013468,
+          51402177
+        ],
+        "rarity_source": "Original set printings; YGOJSON",
+        "source_set": "76e5afc9-9ce4-4a05-9e55-fe9a5ee586e1",
+        "starter_support": [
+          5818798
+        ],
+        "draft_note": "Expanded nine-card draft format: includes themed starter-monster supplements, as with existing Premium Packs."
+      },
+      {
+        "id": "JP-P1",
+        "name": "Premium Pack 1",
+        "region": "JP",
+        "common": [
+          33396948,
+          38277918,
+          38999506,
+          59053232,
+          59983499,
+          64271667,
+          67959180,
+          68638985,
+          71625222,
+          96967123
+        ],
+        "rare": [
+          33396948,
+          38277918,
+          38999506,
+          59053232,
+          59983499,
+          64271667,
+          67959180,
+          68638985,
+          71625222,
+          96967123
+        ],
+        "size": 9,
+        "rare_display": [
+          33396948,
+          38277918,
+          38999506,
+          59053232,
+          59983499,
+          64271667,
+          67959180,
+          68638985,
+          71625222,
+          96967123
+        ],
+        "rarities": {
+          "71625222": [
+            "Secret Rare"
+          ],
+          "68638985": [
+            "Ultra Rare"
+          ],
+          "38277918": [
+            "Ultra Rare"
+          ],
+          "38999506": [
+            "Ultra Rare"
+          ],
+          "96967123": [
+            "Ultra Rare"
+          ],
+          "59983499": [
+            "Ultra Rare"
+          ],
+          "59053232": [
+            "Ultra Rare"
+          ],
+          "64271667": [
+            "Ultra Rare"
+          ],
+          "67959180": [
+            "Ultra Rare"
+          ],
+          "33396948": [
+            "Ultra Rare"
+          ]
+        },
+        "source_set": "94a6f114-8f3c-4239-a717-fe516538af90",
+        "date": "1999-08-26",
+        "rarity_source": "YGOJSON Japanese set printings; published Japanese checklist fallback for Premium Packs 1 and 2",
+        "sources": [
+          "https://yugioh.fandom.com/wiki/Premium_Pack_%28Japanese%29"
+        ]
+      },
+      {
+        "id": "JP-P2",
+        "name": "Premium Pack 2",
+        "region": "JP",
+        "common": [
+          5405694,
+          31890399,
+          33951077,
+          54539105,
+          55761792,
+          69123138,
+          81756897,
+          81933259
+        ],
+        "rare": [
+          5405694,
+          31890399,
+          33951077,
+          54539105,
+          55761792,
+          69123138,
+          81756897,
+          81933259
+        ],
+        "size": 9,
+        "rare_display": [
+          5405694,
+          31890399,
+          33951077,
+          54539105,
+          55761792,
+          69123138,
+          81756897,
+          81933259
+        ],
+        "rarities": {
+          "5405694": [
+            "Ultra Rare"
+          ],
+          "55761792": [
+            "Ultra Rare"
+          ],
+          "31890399": [
+            "Ultra Rare"
+          ],
+          "81933259": [
+            "Ultra Rare"
+          ],
+          "33951077": [
+            "Ultra Rare"
+          ],
+          "54539105": [
+            "Ultra Rare"
+          ],
+          "69123138": [
+            "Ultra Rare"
+          ],
+          "81756897": [
+            "Ultra Rare"
+          ]
+        },
+        "source_set": "546b2f4c-e7db-4913-b665-1b97409d13e9",
+        "date": "1999-12-18",
+        "rarity_source": "YGOJSON Japanese set printings; published Japanese checklist fallback for Premium Packs 1 and 2",
+        "sources": [
+          "https://yugioh.fandom.com/wiki/Premium_Pack_2_%28Japanese%29"
+        ]
+      },
+      {
+        "id": "JP-P3",
+        "name": "Premium Pack 3",
+        "region": "JP",
+        "common": [
+          23995346,
+          25833572,
+          27054370,
+          30208479,
+          39111158,
+          64271667,
+          66516792,
+          76232340,
+          76792184,
+          90660762
+        ],
+        "rare": [
+          23995346,
+          25833572,
+          27054370,
+          30208479,
+          39111158,
+          64271667,
+          66516792,
+          76232340,
+          76792184,
+          90660762
+        ],
+        "size": 9,
+        "rare_display": [
+          23995346,
+          25833572,
+          27054370,
+          30208479,
+          39111158,
+          64271667,
+          66516792,
+          76232340,
+          76792184,
+          90660762
+        ],
+        "rarities": {
+          "23995346": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "90660762": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "27054370": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "39111158": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "76232340": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "66516792": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "30208479": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "25833572": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "64271667": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ],
+          "76792184": [
+            "Super Parallel Rare",
+            "Super Rare"
+          ]
+        },
+        "source_set": "6c7e12dc-f24e-4d84-b31a-f35e6cfbf269",
+        "date": "2000-08-10",
+        "rarity_source": "YGOJSON Japanese set printings; published Japanese checklist fallback for Premium Packs 1 and 2",
+        "sources": [
+          "https://yugioh.fandom.com/wiki/Premium_Pack_3"
+        ]
+      },
+      {
+        "id": "JP-P4",
+        "name": "Premium Pack 4",
+        "region": "JP",
+        "common": [
+          25774450,
+          38033121,
+          46986414,
+          62279055,
+          63391643,
+          99789342
+        ],
+        "rare": [
+          25774450,
+          38033121,
+          46986414,
+          62279055,
+          63391643,
+          99789342
+        ],
+        "size": 9,
+        "rare_display": [
+          25774450,
+          38033121,
+          46986414,
+          62279055,
+          63391643,
+          99789342
+        ],
+        "rarities": {
+          "38033121": [
+            "Ultra Rare"
+          ],
+          "46986414": [
+            "Ultra Rare"
+          ],
+          "63391643": [
+            "Ultra Rare"
+          ],
+          "99789342": [
+            "Ultra Rare"
+          ],
+          "25774450": [
+            "Ultra Rare"
+          ],
+          "62279055": [
+            "Ultra Rare"
+          ]
+        },
+        "source_set": "0b37b7bb-5b76-41ac-868e-512b20a078e4",
+        "date": "2000-12-23",
+        "rarity_source": "YGOJSON Japanese set printings; published Japanese checklist fallback for Premium Packs 1 and 2",
+        "sources": [
+          "https://yugioh.fandom.com/wiki/Premium_Pack_4"
+        ]
+      }
+    ]
+  }
+]

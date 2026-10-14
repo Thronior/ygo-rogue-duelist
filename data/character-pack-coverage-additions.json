@@ -1,0 +1,95 @@
+{
+  "Bandit Keith": {
+    "rare": [
+      "Cybernetic Fusion Support",
+      "Cybernetic Zone",
+      "Proton Blast"
+    ],
+    "common": [
+      "Karakuri Spider"
+    ]
+  },
+  "Seto Kaiba": {
+    "rare": [
+      "Dragon Master Knight",
+      "Fiend's Sanctuary",
+      "Spell Shattering Arrow"
+    ],
+    "common": [
+      "Mesmeric Control",
+      "Silent Doom"
+    ]
+  },
+  "Espa Roba": {
+    "rare": [
+      "Emes the Infinity",
+      "Fiendish Engine Ω",
+      "Satellite Cannon"
+    ]
+  },
+  "Joey Wheeler": {
+    "rare": [
+      "Maximum Six",
+      "Sixth Sense"
+    ],
+    "common": [
+      "Exarion Universe",
+      "Twinheaded Beast"
+    ]
+  },
+  "Mako Tsunami": {
+    "rare": [
+      "Fish and Kicks"
+    ],
+    "common": [
+      "Hydro Pressure Cannon"
+    ]
+  },
+  "Mokuba Kaiba": {
+    "rare": [
+      "Five-Headed Dragon"
+    ]
+  },
+  "Tristan Taylor": {
+    "common": [
+      "Hidden Soldiers",
+      "Relieve Monster"
+    ]
+  },
+  "Yami Yugi": {
+    "rare": [
+      "Judgment of the Pharaoh",
+      "Mystical Refpanel"
+    ],
+    "common": [
+      "Makiu, the Magical Mist",
+      "Unity",
+      "Yu-Jo Friendship"
+    ]
+  },
+  "Duke Devlin": {
+    "common": [
+      "Rigorous Reaver"
+    ]
+  },
+  "Yami Marik": {
+    "rare": [
+      "The Wicked Dreadroot",
+      "The Wicked Eraser"
+    ],
+    "common": [
+      "Soul Taker",
+      "Spell of Pain"
+    ]
+  },
+  "Serenity Wheeler": {
+    "common": [
+      "Teva"
+    ]
+  },
+  "Odion": {
+    "rare": [
+      "Van'Dalgyon the Dark Dragon Lord"
+    ]
+  }
+}

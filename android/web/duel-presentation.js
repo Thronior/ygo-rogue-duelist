@@ -6,8 +6,14 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // The core uses 0x7f for optional trigger-effect selection, including effects
  // after a Special Summon resolves. These are decisions, not empty timing windows.
  if(m?.spe_count===0x7f&&m.selects?.length)return true;
- // Every entry is already legal according to the core. Preserve restricted windows.
- if((m?.selects||[]).some(choice=>/(?:during (?:the |your |your opponent[’']s )?(?:damage step|damage calculation|standby phase|end phase|battle phase)|(?:when|if) [^.;:]{0,180}(?:summon|declares? an attack|destroyed|sent to the|inflicts?|takes? (?:battle|effect) damage))/i.test(context.card?.(choice.code)?.desc||'')))return true;
+ // The core supplies only legal activations, including the final response window
+ // before a phase closes. Continuous Traps retain the existing Sometimes policy:
+ // their text often describes a later effect, not a restriction on setting up the Trap.
+ if((m?.selects||[]).some(choice=>{
+  const c=context.card?.(choice.code),type=Number(c?.data?.type||0);
+  if((type&4)&&(type&0x20000))return false;
+  return /(?:during (?:the |your |your opponent[’']s |either player's |each )?(?:damage step|damage calculation|draw phase|standby phase|end phase|battle phase|main phase(?: [12])?)|(?:when|if) [^.;:]{0,180}(?:summon|declares? an attack|destroyed|sent to the|inflicts?|takes? (?:battle|effect) damage))/i.test(c?.desc||'');
+ }))return true;
  // The core reports separate timing masks for the responding player and opponent.
  const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
  const opponentEnd=context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&(context.phase===512||!!(timing&Timing.END_PHASE));

@@ -1,5 +1,5 @@
 import {relicEyeIcon} from './relic-eye-icon.js';
-import {frameLevelName,deckCardMarkup} from './feedback-ui.js';
+import {frameLevelName,deckCardMarkup,deckStats} from './feedback-ui.js';
 import {revealPrice} from './jar-relics.js';
 
 import {deckMinimum} from './deck-minimum.js';
@@ -176,7 +176,8 @@ export class TagUI {
 
   if(this.deckSort==='Default')order.sort((a,b)=>frameLevelName(lookup(r.pool[a]),lookup(r.pool[b]))||a-b);else if(this.deckSort==='Name')order.sort((a,b)=>name(a).localeCompare(name(b)));
 
-  else if(['ATK','DEF','Level'].includes(this.deckSort)){const key={ATK:'atk',DEF:'defense',Level:'level'}[this.deckSort];order.sort((a,b)=>(lookup(r.pool[b])?.[key]||0)-(lookup(r.pool[a])?.[key]||0))}
+  else if(this.deckSort==='ATK'){const attacks=new Map(order.map(i=>[i,lookup(r.pool[i]).data.type&1?deckStats(lookup(r.pool[i]),r,i,this.content.artifactInfo)[0]:0]));order.sort((a,b)=>attacks.get(b)-attacks.get(a)||name(a).localeCompare(name(b))||a-b)}
+  else if(['DEF','Level'].includes(this.deckSort)){const key={ATK:'atk',DEF:'defense',Level:'level'}[this.deckSort];order.sort((a,b)=>(lookup(r.pool[b])?.[key]||0)-(lookup(r.pool[a])?.[key]||0))}
 
   else if(this.deckSort==='Newest')order.reverse();
 

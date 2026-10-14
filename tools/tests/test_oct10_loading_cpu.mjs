@@ -22,7 +22,7 @@ e.aiModifiers={activeRelics:[['cursed_iron_silence'],[]]};assert.equal(policy().
 console.log('PASS Scientist policy: removal choice, LP and board safety');
 const ctx={turnPlayer:1,phase:512,card:id=>cards.get(id)},m=n=>({player:0,selects:[{code:byName(n).id}],hint_timing:T.END_PHASE});
 for(const n of ['Mystical Space Typhoon','Dust Tornado','Call of the Haunted'])assert.equal(chainWindowAllowed(m(n),'sometimes',[],ctx),true,n);
-assert.equal(chainWindowAllowed(m('Mirror Force'),'sometimes',[],ctx),false);assert.equal(chainWindowAllowed(m('Mystical Space Typhoon'),'sometimes',[],{...ctx,turnPlayer:0}),false);assert.equal(chainWindowAllowed(m('Dust Tornado'),'never',[],ctx),false);assert.equal(chainWindowAllowed({...m('Dust Tornado'),forced:true},'never',[],ctx),true);assert.equal(chainWindowAllowed({player:0,hint_timing:T.ATTACK},'sometimes'),true);
+assert.equal(chainWindowAllowed(m('Waboku'),'sometimes',[],ctx),false);assert.equal(chainWindowAllowed(m('Mystical Space Typhoon'),'sometimes',[],{...ctx,turnPlayer:0}),false);assert.equal(chainWindowAllowed(m('Dust Tornado'),'never',[],ctx),false);assert.equal(chainWindowAllowed({...m('Dust Tornado'),forced:true},'never',[],ctx),true);assert.equal(chainWindowAllowed({player:0,hint_timing:T.ATTACK},'sometimes'),true);
 console.log('PASS Chain sometimes: opponent End Phase, card types, forced and never modes');
 let attempts=0;assert.equal((await downloadBlob('sound',{request:async()=>{if(++attempts<3)throw Error('offline');return new Response('audio')},delay:async()=>{}})).size,5);assert.equal(attempts,3);
 await assert.rejects(downloadBlob('stalled',{request:()=>new Promise(()=>{}),timeout:5,attempts:1}),/timed out/);
