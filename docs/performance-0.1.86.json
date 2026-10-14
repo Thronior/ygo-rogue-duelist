@@ -1,0 +1,43 @@
+{
+  "campaigns": 12,
+  "duels": 108,
+  "postWarmupHeapGrowthBytes": 445356,
+  "baseline": {
+    "campaign": 4,
+    "duels": 9,
+    "steps": 960,
+    "round": 9,
+    "stage": "complete",
+    "usedSize": 81622692,
+    "totalSize": 82894848,
+    "embedderHeapUsedSize": 3703016,
+    "backingStorageSize": 13757389,
+    "documents": 2,
+    "nodes": 391,
+    "jsEventListeners": 172,
+    "saveNodes": 1,
+    "videos": 1,
+    "animations": 5
+  },
+  "final": {
+    "campaign": 12,
+    "duels": 9,
+    "steps": 1069,
+    "round": 9,
+    "stage": "complete",
+    "usedSize": 82068048,
+    "totalSize": 83480576,
+    "embedderHeapUsedSize": 4557112,
+    "backingStorageSize": 13812991,
+    "documents": 2,
+    "nodes": 405,
+    "jsEventListeners": 181,
+    "saveNodes": 1,
+    "videos": 1,
+    "animations": 5
+  },
+  "limitations": [
+    "Accelerated campaign advancement uses controlled victories; tested in headless Chrome, not on a physical phone.",
+    "The soak preceded the final ATK sort, popup offsets and chain-rule edits; those were covered by focused regression and responsive UI checks."
+  ]
+}
