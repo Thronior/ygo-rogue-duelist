@@ -1,0 +1,1 @@
+export const relicEyeIcon='<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 10Q12 1 22 10Q12 19 2 10Zm10 6v6m0-6-5 5m5-5 5 5"/><circle cx="12" cy="10" r="3"/></svg>';

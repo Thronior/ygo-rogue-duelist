@@ -107420,5 +107420,59 @@
       "",
       ""
     ]
+  },
+  {
+    "id": 19877898,
+    "name": "Ultimate Insect LV7",
+    "desc": "If this card was Special Summoned by the effect of \"Ultimate Insect LV5\", while it remains on the field all of your opponent's monsters lose 700 ATK and DEF.",
+    "type": "Effect Monster",
+    "race": "Insect",
+    "attribute": "WIND",
+    "level": 7,
+    "atk": 2600,
+    "defense": 1200,
+    "date": "2005-02-24",
+    "sets": [
+      {
+        "name": "The Lost Millennium",
+        "rarity": "Rare"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/19877898.jpg",
+    "data": {
+      "code": 19877898,
+      "alias": 0,
+      "setcodes": [
+        65,
+        93
+      ],
+      "type": 33,
+      "level": 7,
+      "attribute": 8,
+      "race": "2048",
+      "attack": 2600,
+      "defense": 1200,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
   }
 ]

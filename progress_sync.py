@@ -6,7 +6,7 @@ FLAGS=('gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked')
 def export():
  import achievement_model
  p=storage.profile()
- return dict(characters=sorted(set(p['unlocked'])&set(PLAYABLE_IDS)),achievements=sorted({r['id'] for r in achievement_model.entries(p) if r['done']}),levels={str(i):min(5,int(v)) for i,v in p.get('character_levels',{}).items() if str(i).isdigit() and int(i) in PLAYABLE_IDS and isinstance(v,int) and 0<=v<=5},flags=[k for k in FLAGS if p.get(k)])
+ return dict(characters=sorted(set(p['unlocked'])&set(PLAYABLE_IDS)),achievements=sorted({r['id'] for r in achievement_model.entries(p) if r['done']}),levels={str(i):min(6,int(v)) for i,v in p.get('character_levels',{}).items() if str(i).isdigit() and int(i) in PLAYABLE_IDS and isinstance(v,int) and 0<=v<=6},flags=[k for k in FLAGS if p.get(k)])
 
 def merge(data):
  if not isinstance(data,dict):raise ValueError('Invalid unlock data')
@@ -16,7 +16,7 @@ def merge(data):
  p['synced_achievements']=sorted(set(p.get('synced_achievements',[]))|earned)
  p['unlocked']=sorted(set(p['unlocked'])|{int(x.split(':')[1]) for x in earned})
  for key,v in data.get('levels',{}).items():
-  if str(key).isdigit() and int(key) in valid and type(v)==int and 0<=v<=5:p.setdefault('character_levels',{})[str(key)]=max(p.get('character_levels',{}).get(str(key),-1),v)
+  if str(key).isdigit() and int(key) in valid and type(v)==int and 0<=v<=6:p.setdefault('character_levels',{})[str(key)]=max(p.get('character_levels',{}).get(str(key),-1),v)
  for key in data.get('flags',[]):
   if key in FLAGS:p[key]=True
  storage.write(storage.ROOT/'profile.json',p)

@@ -28,10 +28,11 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
-  if(m.type===M.HINT&&m.hint_type===2){const marker=Number(m.hint)-1950000000;if(marker>=0&&marker<2000){const hand=this.misprintedHands?.[m.player];if(hand){const sequence=Math.floor(marker/2);if(marker%2)hand.add(sequence);else hand.delete(sequence);}return;}}
+  if(m.type===M.HINT&&m.hint_type===2){const marker=Number(m.hint)-1950000000;if(marker>=0&&marker<2000){const hand=this.misprintedHands?.[m.player];if(hand){const sequence=Math.floor(marker/2);if(marker%2)hand.add(sequence);else {hand.delete(sequence);this.misprintedHandStats?.[m.player]?.delete(sequence);}}return;}}
+  if(m.type===M.HINT&&m.hint_type===2){const packed=Number(m.hint)-2100000000000;if(packed>=0&&packed<1000000000000){const sequence=Math.floor(packed/10000000000),stats=packed%10000000000;this.misprintedHandStats?.[m.player]?.set(sequence,{attack:Math.floor(stats/100000),defense:stats%100000});return;}}
   trackEffectTargets(this,m,M);
   if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000050&&m.player===0)this.events.push({kind:'ancient_treasure',card:190000050});
   this.trackReborn(m);
@@ -49,7 +50,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SHUFFLE_SET_CARD){for(const c of m.cards||[]){this.tributeSets.delete(this.fieldKnowledge.key(c.from));this.tributeSets.delete(this.fieldKnowledge.key(c.to));}}
   if(m.type===M.SET&&m.location===L.MZONE){if(this.releasedForSet[m.controller])this.tributeSets.add(this.fieldKnowledge.key(m));this.releasedForSet[m.controller]=0;}
   if([M.SUMMONING,M.SPSUMMONING,M.CHAIN_END].includes(m.type))this.releasedForSet=[0,0];
-  const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You Â· ":feedback.player===1?"Opponent Â· ":"")+feedback.text);}
+  const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You · ":feedback.player===1?"Opponent · ":"")+feedback.text);}
   if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();}
   if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
   if(m.type===M.CHAIN_SOLVED){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link&&!link.inactive){const n=this.name(link.code);if(n==='Meteorain')(this.piercingTurn??={})[link.player]=this.turn;if(n==='Exarion Universe')(this.piercingCards??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(['Spellbinding Circle','Nightmare Wheel','Shadow Spell','Fiendish Chain'].includes(n))for(const t of link.targets||[])if(t.location===L.MZONE)this.attackLocks.set(`${t.controller}:${t.sequence}`,{code:link.code,controller:link.player,location:link.location,sequence:link.sequence});if(n==='Limiter Removal')for(const c of this.query(link.player,L.MZONE).filter(Boolean))if(this.cards.get(c.code)?.race==='Machine')this.limiterDoom.add(`${link.player}:${c.sequence}`);}}
@@ -78,14 +79,14 @@ export class MobileDuel extends DuelEngine {
   this.revealedHands??=[{},{}];
   if([M.CONFIRM_DECKTOP,M.CONFIRM_EXTRATOP].includes(m.type)){
    const cards=(m.cards||[]).filter(c=>c.code).map(c=>({...c}));
-   if(cards.length){const source=this.name(this.resolvingChain||this.effect?.code);const text=(source?source+' â€” ':'')+'Excavated cards (top first)';this.logs.unshift(text+': '+cards.map(c=>this.name(c.code)).join(', '));this.visuals.push({kind:'reveal',public:true,excavation:true,cards,text});}
+   if(cards.length){const source=this.name(this.resolvingChain||this.effect?.code);const text=(source?source+' — ':'')+'Excavated cards (top first)';this.logs.unshift(text+': '+cards.map(c=>this.name(c.code)).join(', '));this.visuals.push({kind:'reveal',public:true,excavation:true,cards,text});}
   }
   if(m.type===M.CONFIRM_CARDS){
    for(const c of m.cards||[])if(c.location===L.HAND&&c.code)this.revealedHands[m.player][c.controller+':'+c.sequence]=c.code;
    const ordeal=this.name(this.effect?.code)==='Ordeal of a Traveler';
    const cards=(m.cards||[]).filter(c=>c.location===L.HAND&&(ordeal||c.controller!==0)&&c.code);
    if(ordeal&&cards.length){const text='Ordeal revealed '+cards.map(c=>this.name(c.code)).join(', ');this.logs.unshift(text);this.visuals.push({kind:'reveal',cards:cards.map(c=>({...c})),text});}
-   if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' â€” revealed cards'});}
+   if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' — revealed cards'});}
   }
   if(m.type===M.SHUFFLE_HAND||m.type===M.TAG_SWAP||m.type===M.MOVE&&[m.from?.location,m.to?.location].includes(L.HAND)){
    const sides=[M.SHUFFLE_HAND,M.TAG_SWAP].includes(m.type)?[m.player]:[m.from?.controller,m.to?.controller];
@@ -129,7 +130,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1])this.events.push({kind:'exact_lethal'});
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
   if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player});
-  if(m.type===M.POS_CHANGE)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'Your monster':'Opponentâ€™s monster')+' changes position'});
+  if(m.type===M.POS_CHANGE)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'Your monster':'Opponent’s monster')+' changes position'});
   if(m.type===M.SET)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:m.controller===0?'You set a card':'Opponent sets a card'});
   if(m.type===M.MOVE&&m.from.location&&m.to.location)this.visuals.push({kind:'move',reason:m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0),from:m.from,to:m.to,code:(m.from.controller===0||m.to.controller===0||((m.from.location&12)&&(m.from.position&5))||((m.to.location&12)&&(m.to.position&5))||m.to.location===L.GRAVE)?m.card:0});
   if(m.type===M.DRAW)this.visuals.push({kind:'draw',from:{controller:m.player,location:L.DECK},to:{controller:m.player,location:L.HAND},code:0});
@@ -156,10 +157,10 @@ export class MobileDuel extends DuelEngine {
   const currentStats=new Map(),changes=[],changedCards=[];
   for(const side of s.players)for(const c of side.monsters)if(c&&(c.position&5)){
    const key=`${c.controller}:${c.location}:${c.sequence}:${c.code}`,old=this.feedbackStats?.get(key);currentStats.set(key,{attack:c.attack,defense:c.defense,level:c.level});
-   if(old){const diff=[['attack','ATK'],['defense','DEF'],['level','Level']].filter(([k])=>old[k]!==undefined&&c[k]!==undefined&&old[k]!==c[k]).map(([k,label])=>`${label} ${old[k]} â†’ ${c[k]}`);if(diff.length){changes.push(this.name(c.code)+': '+diff.join(', '));changedCards.push({...c});}}
+   if(old){const diff=[['attack','ATK'],['defense','DEF'],['level','Level']].filter(([k])=>old[k]!==undefined&&c[k]!==undefined&&old[k]!==c[k]).map(([k,label])=>`${label} ${old[k]} → ${c[k]}`);if(diff.length){changes.push(this.name(c.code)+': '+diff.join(', '));changedCards.push({...c});}}
   }
   this.feedbackStats=currentStats;
-  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' Â· '),cards:changedCards,statChange:true});this.logs.unshift(changes.join(' Â· '));}
+  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' · '),cards:changedCards,statChange:true});this.logs.unshift(changes.join(' · '));}
 for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(c)c.turnCount=this.cardTurnCounts?.get(`${c.controller}:${c.location}:${c.sequence}`)??(c.location===L.SZONE&&(c.position&5)&&['Swords of Revealing Light','Wave-Motion Cannon',"Nightmare's Steelcage"].includes(this.name(c.code))?0:undefined);const own=s.players[0].monsters.filter(c=>c&&(c.position&5));
   this.peak.peak_field=Math.max(this.peak.peak_field,own.length);
   for(const c of own){this.peak.peak_attack=Math.max(this.peak.peak_attack,c.attack||0);this.peak.peak_defense=Math.max(this.peak.peak_defense,c.defense||0)}return s;
@@ -171,7 +172,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;}
   else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
 
-  if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You Â· ':'Opponent Â· ')+feedback.text);}}
+  if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
   if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined)this.effect={code:m.selects[r.index]?.code,player:m.player};
   if(m?.type===M.SELECT_EFFECTYN&&r.yes)this.effect={code:m.code,player:m.player};
   if(m?.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
@@ -191,11 +192,13 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
  // Engine queries cross the WASM boundary and allocate card records. A decision
  // sees an immutable board; share each zone read only until auto() returns.
  query(player,location){
-  if(!this.decisionQueries)return super.query(player,location);
   const key=player+':'+location;
-  if(!this.decisionQueries.has(key))this.decisionQueries.set(key,super.query(player,location));
-  return this.decisionQueries.get(key);
+  if(this.decisionQueries?.has(key))return this.decisionQueries.get(key);
+  const rows=super.query(player,location);
+  if(location===L.HAND)for(const c of rows){const stats=c&&this.misprintedHandStats?.[player]?.get(c.sequence);if(stats)Object.assign(c,stats);}
+  this.decisionQueries?.set(key,rows);return rows;
  }
+
  auto(m=this.pending){
   const previous=this.decisionQueries;this.decisionQueries=new Map();
   try{return this.chooseDecision(m)}finally{this.decisionQueries=previous;}

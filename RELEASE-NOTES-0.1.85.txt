@@ -1,0 +1,25 @@
+Battle coins
+- Slow duels now cost coins: -4 for every turn past the 6th (a 10-turn win is -16 coins).
+
+Targeting UI
+- The "choose a highlighted card" popup is gone for on-field picks. A small Done button sits in the phases timeline, single picks confirm on tap, and the hand stays visible.
+- The shop relic button now reads "Relics" instead of showing only an eye icon.
+- WC2004 promo pack names no longer show the " (WC2004)" suffix.
+
+Relics
+- Cracked Sword rebalanced: +300 ATK but -1000 DEF (was -400).
+
+CPU decisions
+- Tribe-Infecting Virus no longer activates into all face-down boards.
+- Reflect Bounder is summoned in Attack Position so its effect can trigger.
+- A Legendary Ocean is no longer replaced by Umi.
+- Monster Reborn is held for worthy targets (1800+ ATK or tribute fodder).
+- Spirits are no longer normal summoned in the opening turns.
+- Battle targeting falls back to hittable monsters instead of skipping attacks.
+- New relic-effect plumbing (curses draft, type choice, opponent relics) and card feedback UI.
+
+Unlocks
+- Rafael now unlocks by beating a run without buying any relics.
+
+Text
+- Fixed garbled symbols in duel log messages (middle dots, quotes, arrows, em dashes).

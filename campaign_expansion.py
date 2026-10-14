@@ -44,6 +44,8 @@ def install(g):
   r=storage.read(storage.run_path(slot),None,valid)
   if r and r.get('stage')=='gameover':storage.archive_run(r);storage.clear_run(slot);return None
   if r:
+   normalize_pack_references(r)
+   if r.get('challenge_level',0)>=5:r.setdefault('persistent_curses',list(r.get('curses',[])))
    shop_rewards.normalize_run(r)
    # Retire Silken Purse without invalidating an existing run.
    r['artifacts']=[a for a in r.get('artifacts',[]) if a!='purse']
@@ -149,7 +151,9 @@ def install(g):
   fallen_collectors.add_route(run,rng)
   run['route_rewards']={str(i):shop_rewards.random_reward(rng,storage.profile()) for i in run['routes']}
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
-  choices=[rng.choices(list(CURSES),k=count) for _ in run['routes']] if boss else []
+  from feedback_update import draw_curses
+  if run.get('challenge_level',0)>=5:count=1
+  choices=[draw_curses(rng,count) for _ in run['routes']] if boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5) else []
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
   challenge_levels.suppress(run)
@@ -168,6 +172,7 @@ def install(g):
    if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and (char.get('random_packs') or sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9)):break
   else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
+  r['new_cards_from']=0
   r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else 'Standard',campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
   r['challenge_level']=level
@@ -242,14 +247,23 @@ def install(g):
   if not run.get('routes'):routes(run,rng)
   if run['opponent'] not in run['routes']:raise ValueError('Choose an available opponent.')
   number=run['round']+1
-  if number%BOSS_EVERY==0:
-   count=min(3,number//BOSS_EVERY)+3*run.get('loop',0)
+  from feedback_update import draw_curses, require_type_choice
+  require_type_choice(run)
+  persistent=run.get('challenge_level',0)>=5
+  if number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop')):
+   count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
    if not selected or len(selected)!=count or any(c not in CURSES for c in selected):
-    selected=rng.choices(list(CURSES),k=count)
+    selected=draw_curses(rng,count)
     run.setdefault('route_curses',{})[str(run['opponent'])]=selected
-   run['curses']=selected[:];run['boss_curse']=selected[0]
-  else:run['curses']=[]
+   if persistent:
+    encounter=str(run.get('loop',0))+':'+str(run['round'])
+    if run.get('curse_committed')!=encounter:
+     run['persistent_curses']=run.get('persistent_curses',[]) + selected[:];run['curse_committed']=encounter
+    run['curses']=run['persistent_curses'][:]
+   else:run['curses']=selected[:]
+   run['boss_curse']=selected[0]
+  else:run['curses']=run.get('persistent_curses',[])[:] if persistent else []
   challenge_levels.suppress(run)
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):
@@ -278,8 +292,8 @@ def install(g):
   for location,pairs in [('DECK',main_pairs),('EXTRA',extra_pairs)]:
    for sequence,(i,cid) in enumerate(pairs):
     if str(i) in mods:
-     a,d=mods[str(i)];card=g.BY_ID[cid]
-     run['duel_modifications'].append(dict(location=location,sequence=sequence,atk=max(0,card['atk']+a),defense=max(0,card['defense']+d)))
+     a,d=mods[str(i)][:2];card=g.BY_ID[cid]
+     run['duel_modifications'].append(dict(location=location,sequence=sequence,atk=max(0,card['atk']+a),defense=max(0,card['defense']+d),race=mods[str(i)][2] if len(mods[str(i)])>2 else int(card['data']['race']),attribute=mods[str(i)][3] if len(mods[str(i)])>3 else card['data']['attribute']))
   # Shuffle both main decks before the engine draws opening hands, on every attempt.
   import fallen_collectors
   fallen=fallen_collectors.opponent(run)
@@ -292,7 +306,10 @@ def install(g):
    enemy=opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    enemy_extra=[] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra']
   rng.shuffle(enemy)
+  run['new_cards_from']=len(run['pool'])
   request['enemy_deck']=enemy[:]+enemy_extra[:]
+  from feedback_update import opponent_relic
+  run['opponent_relic']=opponent_relic(dict(run,opponent_cards=request['enemy_deck']))
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
   if fallen:enemy_name='Fallen '+fallen['name']
   if run.get('encore_active'):enemy_name=endless.CHAMPION['name']
@@ -372,6 +389,7 @@ def install(g):
   if result.get('protocol')!=1 or not run.get('duel') or result.get('id')!=run['duel']['id']:raise ValueError('Duel result does not belong to this run.')
   if run['stage']!='duel':raise ValueError('Result already processed.')
   minimum_before=ar.minimum(run)
+  run['new_cards_from']=len(run['pool'])
   run['last_deck_minimum_increase']=0
   duel_number=run['round']+1
   boss=duel_number%BOSS_EVERY==0
@@ -384,7 +402,7 @@ def install(g):
   run['last_boss_heal']=0
   run['shop_rerolls']=0
   # Curses end with this encounter, including defeats and the final boss.
-  run['curses']=[];run['boss_curse']=None
+  run['curses']=run.get('persistent_curses',[])[:] if run.get('challenge_level',0)>=5 else [];run['boss_curse']=None
   if not won:
    import loss_reason
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
@@ -582,6 +600,8 @@ def install(g):
     if not _c or not _c['data']['type']&1:continue
     if rng.random()<_chance:
      _delta=[max(-(_c['atk'] or 0),rng.randint(-1000,1000)),max(-(_c['defense'] or 0),rng.randint(-1000,1000))]
+     from feedback_update import RACE_VALUES, ATTRIBUTE_VALUES
+     _delta.extend([rng.choice(list(RACE_VALUES.values())),rng.choice(list(ATTRIBUTE_VALUES.values()))])
      _faulty[str(len(run['pool'])+_offset)]=_delta
      _fresh.append(dict(pool=len(run['pool'])+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1]))
    run['last_misprints']=_fresh

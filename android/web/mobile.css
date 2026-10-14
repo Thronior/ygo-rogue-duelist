@@ -1834,3 +1834,60 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .character-select-page .portrait.selected{outline:2px solid #ff61a5;outline-offset:-2px}
 
 .character-select-page .portrait .relicless-clear-star{position:absolute;top:3px;right:3px;z-index:3;display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#071824d9;color:#e5f9ff;font:normal 12px/1 Arial;text-shadow:0 0 4px #74d8ff;box-shadow:0 0 0 1px #d4f4ff70;pointer-events:none}
+
+.hand-misprint{max-width:100%;box-sizing:border-box;text-align:center;white-space:normal}
+.collection-card-sources ul{padding-left:1.2em;overflow-wrap:anywhere}
+
+.inspection-tabs{display:flex;gap:8px;margin-bottom:14px}.inspection-tabs button{flex:1}.inspection-tabs [aria-selected="true"]{background:#426474;border-color:#dfbf70}
+.card-inspect-modal [hidden]{display:none!important}
+.source-packs,.source-opponents{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:12px}
+.source-packs img{width:100%;height:140px;object-fit:contain}.source-opponents figure{margin:0;text-align:center}.source-opponents img{width:100%;height:100px;object-fit:contain;object-position:bottom}.source-opponents figcaption{font-size:12px;overflow-wrap:anywhere}.source-opponents small{display:block;color:#e3c16c}
+/* Feedback update: bounded bars and overlays; no layout-affecting animations. */
+.cardbtn{position:relative}.deck-card-stats{position:absolute!important;bottom:24px;left:2px;right:2px;z-index:2;background:none!important;color:#fff!important;font-size:clamp(11px,1.1vw,16px)!important;font-weight:700;text-shadow:0 1px 3px #000,1px 0 2px #000,-1px 0 2px #000;pointer-events:none;padding:0!important}
+.new-card-marker{position:absolute;top:4px;right:4px;z-index:3;padding:2px 5px;border-radius:4px;background:#fbe487;color:#15212b;font-size:11px;pointer-events:none}
+.type-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.duel .duel-tools-left>.active-relic-strip{display:none}
+.active-curse-strip{display:flex;flex:none;gap:3px;padding:4px;background:#451e39;border:1px solid #a25a80;overflow:auto;max-height:35%}
+.active-curse-strip button{flex:0 0 30px;width:30px;height:32px;padding:2px;min-width:0}.active-curse-strip img{max-width:100%;max-height:100%;object-fit:contain}.active-curse-strip .opponent-curses{display:contents}
+@media(orientation:landscape){
+ .duel:has(>.portrait-relics){grid-template-columns:22% 40px minmax(0,1fr)}
+ .duel>.portrait-relics{display:flex;flex-direction:column;min-height:0;min-width:0;padding:3px;background:#0b202bd9;overflow:hidden}
+ .portrait-relics .active-relic-strip{display:flex;flex-direction:column;flex-wrap:nowrap;max-height:none;max-width:none;overflow:auto;min-height:0;gap:4px;scrollbar-width:thin}
+ .portrait-relics .active-relic-strip button{flex:0 0 32px;width:32px;height:32px}
+ .active-curse-strip{flex-direction:column;padding:1px;max-height:35%}
+}
+@media(orientation:portrait){
+ .duel>.portrait-relics{display:flex!important;flex-direction:row;gap:5px;min-height:0}
+ .duel:has(>.portrait-relics){grid-template-rows:minmax(130px,1fr) auto minmax(0,1.75fr)!important}
+ .portrait-relics .active-relic-strip{flex:1;min-width:0}.active-curse-strip{order:2;max-width:32%;max-height:15dvh;flex-wrap:wrap;align-content:start}
+}
+@media(hover:hover) and (pointer:fine) and (min-width:1024px){.inspection .card-text{font-size:17px}.inspection .badges{font-size:13px}.inspect-effect{font-size:17px;line-height:1.5}}
+.character-select-page .portrait[data-completed-level="6"]{background:linear-gradient(135deg,#e4faff,#448ebc,#bceeff);border-color:#b8ecff;box-shadow:0 0 9px #72cfff99,inset 0 0 8px #d5f5ff88}
+.character-select-page .portrait[data-completed-level="6"]::before{background:linear-gradient(135deg,#ccefff2b,transparent 45%,#65baff22);box-shadow:inset 0 0 12px 3px #8fd8ffbb}
+.character-select-page .portrait[data-completed-level="6"]::after{background:linear-gradient(110deg,transparent 42%,#d3f5ff2e 47%,#f0fcff99 50%,#c2edff2e 53%,transparent 58%)}
+.level-badge[data-challenge-level="6"]{background:linear-gradient(135deg,#0961bb,#9deaff,#1476bf);border-color:#c5faff;color:#fff;box-shadow:0 0 10px #61d8ff}
+.draft-scroll .cardbtn .new-card-marker{inset:3px 3px auto auto;width:auto;max-width:max-content;background:#fbe487;color:#15212b;padding:1px 4px;font-size:10px;border-radius:3px;line-height:1.3;min-height:0}
+.draft-scroll .cardbtn .deck-card-stats{bottom:5px;min-height:0;display:block;line-height:1.2}
+#modal:has(.type-choice-grid){width:min(660px,94vw)}
+.type-choice-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;max-height:65dvh;overflow:auto;padding:4px}
+.type-choice-grid button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:80px;padding:7px 3px;font-size:12px;line-height:1.2}
+.type-choice-grid .genre-icon{width:36px;height:36px;object-fit:contain;image-rendering:auto}
+@media(max-width:480px){.type-choice-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.type-choice-grid button{font-size:10px;min-height:70px}.type-choice-grid .genre-icon{width:30px;height:30px}}
+.draft-scroll .cardbtn .new-card-marker{inset:-7px auto auto 3px;width:auto;max-width:none;background:none;border:0;border-radius:0;box-shadow:none;color:#ffe46b;padding:0;font-size:11px;font-weight:800;line-height:1.2;text-shadow:0 1px 3px #000,1px 0 2px #000;z-index:4;pointer-events:none}
+.draft-scroll .cardgrid{padding-top:9px;row-gap:14px}
+.draft-scroll .cardbtn{overflow:visible}
+/* Curses and relics share one rail; only the rail scrolls, without visible chrome. */
+.duel>.portrait-relics,.duel>.portrait-relics *{scrollbar-width:none}
+.duel>.portrait-relics::-webkit-scrollbar,.duel>.portrait-relics *::-webkit-scrollbar{display:none;width:0;height:0}
+.duel>.portrait-relics>.active-curse-strip{overflow:visible;max-height:none;box-sizing:border-box;flex-shrink:0}
+@media(orientation:landscape){
+ .duel>.portrait-relics{overflow-y:auto;overflow-x:hidden;gap:4px;align-items:stretch}
+ .duel>.portrait-relics>.active-curse-strip{width:100%;padding:0;border:0;border-bottom:1px solid #a25a80;background:#451e3980;align-items:center;gap:4px}
+ .duel>.portrait-relics>.active-relic-strip{overflow:visible;flex:0 0 auto;width:100%;align-items:center;min-height:auto}
+ .duel>.portrait-relics button{box-sizing:border-box;flex:0 0 32px;width:32px;height:32px;min-width:0;max-width:100%;margin:0}
+}
+@media(orientation:portrait){
+ .duel>.portrait-relics{max-height:15dvh;overflow-y:auto;overflow-x:hidden;align-items:flex-start}
+ .duel>.portrait-relics>.active-relic-strip{overflow:visible;max-height:none}
+ .duel>.portrait-relics>.active-curse-strip{overflow:visible;max-height:none;flex:0 0 auto}
+}

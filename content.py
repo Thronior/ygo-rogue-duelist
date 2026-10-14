@@ -7,6 +7,18 @@ custom_cards.install_packs(PACKS)
 FIXED_OPPONENTS=json.loads((Path(__file__).parent/'data/fixed-opponents.json').read_text(encoding='utf8'))['opponents']
 GAME_DECKS={int(k):v for k,v in FIXED_OPPONENTS.items()}
 PACK_BY_ID={p['id']:p for p in PACKS}
+# Retired boosters resolve to their collection, but are never offered separately.
+PACK_ALIASES={'EN-TP1':'EN-TP4','EN-TP2':'EN-TP4','EN-TP3':'EN-TP4','EN-TP5':'EN-TP4','JP-P5':'JP-PP7','JP-PP6':'JP-PP7'}
+PACK_ALIASES.update({f'JP-P{n}':'JP-PP7' for n in range(1,5)})
+PACK_BY_ID.update({old:PACK_BY_ID[new] for old,new in PACK_ALIASES.items()})
+def normalize_pack_references(value):
+ if isinstance(value,dict):
+  for key,item in value.items():value[key]=normalize_pack_references(item)
+ elif isinstance(value,list):
+  for i,item in enumerate(value):value[i]=normalize_pack_references(item)
+ elif isinstance(value,str):return PACK_ALIASES.get(value,value)
+ return value
+
 # One distinct duelist per original booster release. First two are starter unlocks.
 ROSTER=[
  ('Yami Yugi', 'EN-MFC', 1, 'Spellcaster', 'Dark Magician', 'Thousand Knives'),
@@ -236,6 +248,8 @@ def reload_tuning(force=False):
  artifacts={k:(v[0],v[1],description(k,infos[k],v[2])) for k,v in artifacts.items()}
  ARTIFACTS.clear();ARTIFACTS.update(artifacts)
  ART_INFO.clear();ART_INFO.update(infos)
+ artifact('dna_rewrite','DNA Rewrite',300,'When acquired, choose a monster Type. All your monsters become that Type, including future cards and Extra Deck monsters.','DNA Checkup','type_conversion',0,'other')
+ artifact('divine_might','Divine Might',100,'Divine-Beast monsters you control gain 1000 ATK.','Obelisk the Tormentor','atk',1000,'offense','Divine-Beast')
  _tuning_stamp=stamp
  return True
 reload_tuning()
@@ -280,3 +294,5 @@ for _id in sorted(set(TIER_EXCLUSIVE_OPPONENTS)|set(UC_OPPONENTS)):
  else:
   _row=UC_OPPONENTS[_id];_avatar=CHARACTERS[_row['character']]
   CHARACTERS.append(dict(_avatar,name=_row['name'],opponent_only=True,ultimate_collector=True,avatar_character=_row['character']))
+
+normalize_pack_references(CHARACTERS)

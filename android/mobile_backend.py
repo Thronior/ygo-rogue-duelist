@@ -16,6 +16,12 @@ def state():
 def dispatch(raw):
  global run,tag_session
  req=json.loads(raw);action=req['action'];value=req.get('value');result=None
+ if action=='choose-monster-type':
+  from feedback_update import choose_type
+  choose_type(run,value);g.save(run);return json.dumps(state(),ensure_ascii=False)
+ if action in ('card-sources','cpu-catalog'):
+  import campaign_catalog
+  return partial(campaign_catalog.card_sources(value) if action=='card-sources' else campaign_catalog.watch_catalog())
  if action=='pack-inspect':
   from pack_odds import inspect_pack
   return json.dumps(dict(result=inspect_pack(value,storage.profile())),ensure_ascii=False)

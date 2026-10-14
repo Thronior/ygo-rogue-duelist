@@ -38,7 +38,7 @@ def sync():
    scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
   if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
   scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
- shared=['character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
+ shared=['feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
  shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py','custom_cards.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
@@ -56,23 +56,8 @@ def sync():
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY) for metric,_,label,coins in RULES]
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
- # Spectator catalog comes only from decks reachable by the current campaign.
- # Do not enumerate the deck directory: it also contains retired revisions.
- watch={}
- def add_watch(i,record,label):
-  rows=watch.setdefault(str(i),[])
-  signature=(sorted(record['main']),sorted(record.get('extra',[])))
-  same=next((row for row in rows if (sorted(row['main']),sorted(row['extra']))==signature),None)
-  if same:same['label']+=' / '+label
-  else:rows.append(dict(main=record['main'][:],extra=record.get('extra',[])[:],label=label))
- for i,variant in content.TUTORIAL_OPPONENTS.items():
-  add_watch(i,dict(main=game.opponent_deck(0,opponent=i,tutorial_variant=variant),extra=[]),'Opening Duel')
- for tier in range(3):
-  for i in content.eligible_opponents(tier*3+1):add_watch(i,content.opponent_record(tier*3+1,i),'Tier '+str(tier+1))
- for i in content.eligible_opponents(0,loop=1):add_watch(i,content.opponent_record(0,i,loop=1),'Endless')
- add_watch(-1,endless.CHAMPION,'World Championship')
- meta['cpuWatchDecks']=watch
- meta['cpuWatchOpponents']={'-1':dict(name=endless.CHAMPION['name'],sprite='dm01.png',background='character-backgrounds/0.jpg')}
+ from campaign_catalog import watch_catalog
+ meta.update(watch_catalog())
 
  (WEB/'content.json').write_text(json.dumps(meta,ensure_ascii=False),encoding='utf8')
  old=ROOT.parent/'Shadow Run/duel-run/dist'

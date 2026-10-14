@@ -172,7 +172,7 @@ def merge_desktop_profile(raw, metrics=()):
  levels=incoming.get('character_levels',{})
  if not isinstance(levels,dict):raise ValueError('Invalid difficulty unlocks.')
  for key,value in levels.items():
-  if not key.isdigit() or type(value)!=int or not -1<=value<=5:raise ValueError('Invalid difficulty unlocks.')
+  if not key.isdigit() or type(value)!=int or not -1<=value<=6:raise ValueError('Invalid difficulty unlocks.')
   merged.setdefault('character_levels',{})[key]=max(current.get('character_levels',{}).get(key,-1),value)
  rows=incoming.get('run_history',[])
  if not isinstance(rows,list) or len(rows)>10000:raise ValueError('Invalid run history.')
@@ -194,13 +194,15 @@ def merge_desktop_profile(raw, metrics=()):
 
 
 _registration_migrated=None
+_collection_aliases={int(k):v for k,v in json.loads((Path(__file__).parent/'data/card-aliases.json').read_text(encoding='utf8')).items()}
 def register_collection(value):
  """Register owned cards only, never shop offers, opponents, or preview decks."""
  if not isinstance(value,dict):return
  ids=set()
  def collect(row):
   if not isinstance(row,dict):return
-  ids.update(x for x in row.get('pool',[]) if type(x)==int and x>0)
+  for key in ('pool','guaranteed'):
+   ids.update(x for x in row.get(key,[]) if type(x)==int and x>0)
   for key in ('deck','draftDeck','defeatedDeck'):
    deck=row.get(key)
    if isinstance(deck,dict):
@@ -208,6 +210,7 @@ def register_collection(value):
      ids.update(x for x in deck.get(zone,[]) if type(x)==int and x>0)
  collect(value)
  for row in value.get('duelists',[]):collect(row)
+ ids.update(_collection_aliases.get(x,x) for x in list(ids))
  if not ids:return
  path=ROOT/'registered-cards.json';old=read(path,{});known=set(old.get('cards',[]))
  if not ids<=known:write(path,{'cards':sorted(known|ids)})
@@ -215,6 +218,7 @@ def register_collection(value):
 def registered_cards():
  global _registration_migrated
  if _registration_migrated!=ROOT:
+  register_collection({'pool':read(ROOT/'registered-cards.json',{}).get('cards',[])})
   for name in ('run.json','run-2.json','run-3.json','collector.json'):
    register_collection(read(ROOT/name))
   _registration_migrated=ROOT

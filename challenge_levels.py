@@ -1,9 +1,9 @@
 """Shared per-character challenge progression; missing levels remain level zero."""
 import storage
-DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Boss curse penalties doubled; outgoing battle damage curse reduces damage to one quarter", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Take 200 damage after each player turn"]
+DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Boss curse penalties doubled; outgoing battle damage curse reduces damage to one quarter", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Start with a chosen curse. Curses persist through every duel; each boss adds one.", "Opponents receive a thematic combat relic"]
 def highest(profile, character):
- return max(-1,min(5,int(profile.get('character_levels',{}).get(str(character),-1))))
-def unlocked(profile, character):return min(5,highest(profile,character)+1)
+ return max(-1,min(6,int(profile.get('character_levels',{}).get(str(character),-1))))
+def unlocked(profile, character):return min(6,highest(profile,character)+1)
 def validate(character, level):
  level=int(level)
  if level==-1 and storage.profile().get('relicless_unlocked'):return -1
@@ -16,12 +16,12 @@ def award(profile, run):
  new=max(before,level)
  levels=profile.setdefault('character_levels',{})
  levels[str(run['character'])]=new
- if new>before and new+1<=5:run['level_unlocked']=new+1
+ if new>before and new+1<=6:run['level_unlocked']=new+1
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
 
 def curse_description(run,key,default):
  if run.get('challenge_level',0)<2:return default
- return {'frailty':'Your monsters lose 400 ATK during this boss duel.', 'enemy_power':"The boss's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one quarter.', 'drain':'Start this boss duel with 2000 fewer LP, minimum 1.'}.get(key,default)
+ return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one quarter.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.'}.get(key,default)
 
 def active_modifiers(run):
  from content import CURSES
@@ -30,9 +30,14 @@ def active_modifiers(run):
  keys=run.get('curses') or ([run['boss_curse']] if run.get('boss_curse') else [])
  for key in dict.fromkeys(keys):
   if key in CURSES:
-   name,desc=CURSES[key];count=keys.count(key);rows.append(dict(kind='curse',name=name+(' ×'+str(count) if count>1 else ''),description=curse_description(run,key,desc)+(' Applies '+str(count)+' times.' if count>1 else '')))
- for level in range(1,min(5,run.get('challenge_level',0))+1):
+   name,desc=CURSES[key];count=keys.count(key);rows.append(dict(kind='curse',key=key,name=name+(' ×'+str(count) if count>1 else ''),description=curse_description(run,key,desc)+(' Applies '+str(count)+' times.' if count>1 else '')))
+ for level in range(1,min(6,run.get('challenge_level',0))+1):
   rows.append(dict(kind='level',name='LVL '+str(level),description=DESCRIPTIONS[level]))
+ from feedback_update import opponent_relic
+ key=opponent_relic(run)
+ if key:
+  from content import ARTIFACTS
+  rows.append(dict(kind='opponent-relic',id=key,name=ARTIFACTS[key][0],description=ARTIFACTS[key][2].replace('Your','Opponent’s').replace('you control','your opponent controls')))
  return rows
 
 
