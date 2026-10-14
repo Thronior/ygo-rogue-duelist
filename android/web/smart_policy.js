@@ -436,6 +436,40 @@ export function smartContext(e,p,L,prompt=null){
   return true;
  }
 
+ // Only expose a defender when a visible, favourable attack is available.
+ function attackOpportunity(c,bonus=0){
+  if(e.player!==p||openingTurn||e.phase!==4||prompt?.to_bp!==true||battleLocked||c.attack_count>0)return false;
+  const a={...c,position:1},strength=atk(c)+bonus;
+  if(!attackAllowed(a,!enemy.length)||strength<=0)return false;
+  if(!enemy.length)return battleDamage(strength)>0;
+  return enemy.some(t=>face(t)&&strength>power(t)&&attackScore(a,t,{dmg:battleDamage((t.position&1)?strength-power(t):0)})>-99999&&
+   !enemy.some(other=>!same(other,t)&&face(other)&&(other.position&1)&&atk(other)>strength));
+ }
+ const defenseReducingEquips=new Set(['Invigoration','Burning Spear',"Elf's Light",'Steel Shell','Sword of Dark Destruction']);
+ function equipUseful(source,target){
+  if(!equipCompatible(source,target))return false;
+  if(!defenseReducingEquips.has(name(source))||target.position&1)return true;
+  return (prompt?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
+ }
+ function controlTarget(c){
+  if(!face(c)||c.is_immune)return false;
+  if(enabled(c)&&(/unaffected by (?:the effects of )?(?:all )?spell/i.test(e.cards.get(c.code)?.desc||'')||/control of this card cannot|cannot switch control/i.test(e.cards.get(c.code)?.desc||'')))return false;
+  if(race(c)==='Dragon'&&[...own,...enemy].some(x=>enabled(x)&&name(x)==='Lord of D.'))return false;
+  return true;
+ }
+ function temporaryControlValue(c,spellName){
+  if(!controlTarget(c))return -1;
+  if(spellName==='Brain Control'&&(e.lp[p]<=1800||(data(c).type&(0x40|0x80|0x2000000|0x800000|0x4000000))))return -1;
+  // A currently legal tribute summon is a concrete use even after battle.
+  if((prompt?.summons||[]).some(x=>effectiveLevel(x,true)>4&&tributeWorth(x)!==false&&(projectedAttack(x)>Math.max(0,...own.map(atk))||summonUtility(x))))return 10000+controlledAttack(c);
+  if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return -1;
+  const rest=enemy.filter(x=>!same(x,c)),a={...c,controller:p,position:1},strength=controlledAttack(c);
+  const usefulAttack=attackAllowed(a,!rest.length)&&!c.attack_count&&strength>0&&(!rest.length?battleDamage(strength)>0:rest.some(t=>face(t)&&strength>power(t)&&attackScore(a,t,{dmg:battleDamage((t.position&1)?strength-power(t):0)})>-99999));
+  // Stealing a blocker can also enable a real attack by an existing monster.
+  const opensLane=!rest.length&&own.some(x=>face(x)&&(x.position&1)&&!x.attack_count&&attackAllowed(x,true)&&battleDamage(atk(x))>0);
+  return usefulAttack||opensLane?10000+strength:-1;
+ }
+
  function templeSummonValue(c){
   const projected={...c,controller:p,location:L.MZONE,position:1};
   const useful=effectsEnabled(p)?effectThreat(projected):0;
@@ -642,6 +676,7 @@ export function smartContext(e,p,L,prompt=null){
   }
   // Prefer the legal, worthwhile free wipe to discarding a card for the same targets.
   if(n==='Lightning Vortex'&&(prompt?.activates||[]).some(x=>name(x)==='Raigeki'&&removalScore(x)>0))return -1;
+  if(['Change of Heart','Brain Control'].includes(n))return enemy.some(x=>temporaryControlValue(x,n)>=0)?110:-1;
   const recent=deck.activation(c,chain);if(recent!==null)return recent;
   if(!spent&&backRemoval.has(n))return backScore(c);
   if(!spent&&(resourceRemoval.has(n)||wipes.has(n)))return n==='Raigeki Break'?Math.max(removalScore(c),backScore(c)):removalScore(c);
@@ -682,7 +717,7 @@ export function smartContext(e,p,L,prompt=null){
   if(['Coffin Seller','Card of Safe Return','Temple of the Kings'].includes(n))return 45;
   if(["Nightmare's Steelcage",'The Dark Door','Dragon Capture Jar'].includes(n))return danger?70:-1;
   if(n==='Spiritualism')return theirBack.length?90:-1;
-  if(equipRaces[n]||equipAttributes[n])return own.some(x=>face(x)&&equipCompatible(c,x))?65:-1;
+  if(equipRaces[n]||equipAttributes[n])return own.some(x=>face(x)&&equipUseful(c,x))?65:-1;
   if(n==='Cyber Shield')return own.some(x=>face(x)&&name(x)==='Harpie Lady')?65:-1;
   if(n==='Follow Wind')return own.some(x=>face(x)&&race(x)==='Winged Beast')?60:-1;
   if(n==='Time Machine'){
@@ -720,7 +755,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Remove Trap')return theirBack.some(x=>face(x)&&(data(x).type&4))?105:-1;
   if(['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break'].includes(n))return enemy.length&&(!/Tribute|Break/.test(n)||hand.length>=2)?105:-1;
   if(n==='Two-Pronged Attack')return own.length>=2&&own.map(expendable).sort((a,b)=>a-b).slice(0,2).reduce((a,b)=>a+b,0)<threat?100:-1;
-  if(['Change of Heart','Snatch Steal'].includes(n))return enemy.some(x=>face(x)&&(n==='Snatch Steal'||canBattle&&(enemy.length===1||enemy.some(t=>!same(t,x)&&controlledAttack(x)>power(t)))))?110:-1;
+
+  if(n==='Snatch Steal')return enemy.some(controlTarget)?110:-1;
   if(n==='Mind Control')return enemy.some(x=>face(x))&&(canBattle||hand.some(t=>effectiveLevel(t,true)>4&&effectiveLevel(t,true)<=6))?105:-1;
   if(n==='Nobleman of Crossout')return enemy.some(c=>!face(c))?105:-1;
   if(n==='Stop Defense'&&enemy.filter(x=>face(x)&&!(x.position&1)).every(x=>activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l))))return -1;
@@ -1237,6 +1273,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
 
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
+  if(['Change of Heart','Brain Control'].includes(fxN))return cand.controller!==p?temporaryControlValue(enemy.find(x=>same(x,cand))||cand,fxN):-1000000000;
   if(['Change of Heart','Snatch Steal'].includes(fxN))return cand.controller!==p?10000+(name(cand)==='Spirit Reaper'&&face(cand)&&!cand.is_disabled&&effectsEnabled(cand.controller)?10000:controlledAttack(cand)):-1000000000;
   if(fxN==='Book of Moon'&&moonPending(cand))return -1000000000;
   if(fxN==='Book of Moon'&&moonRescue())return same(cand,moonRescue())?1000000:-1000000000;
@@ -1246,7 +1283,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
   if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand)||(nm==='Gearfried the Iron Knight'&&enabled(cand)))return -1000000000;
-   if(cand.controller!==p)return -1000000000;
+   if(cand.controller!==p||!equipUseful(equipSource,cand))return -1000000000;
    const fixed={'Axe of Despair':1000,'Malevolent Nuzzler':700,'Black Pendant':500,'Horn of the Unicorn':700,'Sword of Deep-Seated':500,'Shine Palace':700,'Sword of Dark Destruction':400};
    const bonus=fixed[fxN]??(fxN==='United We Stand'?800*own.filter(face).length:fxN==='Mage Power'?500*back.length:500);
    const gain=bonus+(nm==='Maha Vailo'&&enabled(cand)?500:0);
@@ -1317,5 +1354,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
- return {battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
+ return {attackOpportunity,battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

@@ -43,3 +43,12 @@ def suppress(run):
  run.pop('cursed_offer',None)
  run['shop']=[x for x in run.get('shop',[]) if x.get('kind')!='artifact']
  return run
+
+
+def sync_engine_unlock(profile):
+ """Derive progress from completed levels; preserve previously earned unlocks."""
+ from content import CHARACTERS
+ best=max((highest(profile,i) for i in range(len(CHARACTERS))),default=-1)
+ profile['highest_challenge_level']=best
+ if best>=5:
+  profile['unlocked']=sorted(set(profile.get('unlocked',[0,1]))|{i for i,c in enumerate(CHARACTERS) if c.get('engine_deck')})

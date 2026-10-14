@@ -33,7 +33,7 @@ def build(root,out,templates,bundle_artwork=False):
  for name in ['pwa-storage.js','pwa.js','pwa.css']:shutil.copy2(templates/name,out/name)
  mobile=out/'mobile.js';text=mobile.read_text(encoding='utf8')
  text="import {webStorage} from './pwa-storage.js';\n"+text
- old="else localStorage.setItem('shadow-run-mobile',data)";assert old in text;text=text.replace(old,'else await webStorage.store(data)')
+ old="else localStorage.setItem('shadow-run-mobile',data)";assert old in text;text=text.replace(old,'else await webStorage.saveGame(data)')
  old="localStorage.getItem('shadow-run-mobile')||'{}'";assert old in text;text=text.replace(old,'await webStorage.load()')
  text=text.replace('Updating the app keeps your save.','Web updates keep your saves. Export a backup before clearing browser data.')
  old="${btn('How to Play','tutorial')}";assert old in text
@@ -41,6 +41,8 @@ def build(root,out,templates,bundle_artwork=False):
  marker='<small style="padding-bottom:8px">Fan Experiment'
  assert marker in text
  text=text.replace(marker,'<button class="web-install-menu" data-web-install>Download the app</button>'+marker,1)
+ text=text.replace('esc(e.message)', "esc(e.message||'Storage or game files could not be loaded. Check browser storage permissions and available space.')")
+ text=text.replace('<button id="retry-startup">Retry loading</button>', '<button id="retry-startup">Retry loading</button><button data-web-install>Save backups and offline settings</button>')
  mobile.write_text(text,encoding='utf8')
  # Export dedicated icons; the original game artwork is preserved.
  with Image.open(root/'assets/zgo rogue iconArtboard 1.png') as source:
@@ -53,6 +55,7 @@ def build(root,out,templates,bundle_artwork=False):
  if bundle_artwork:
   from web_artwork_bundles import pack_artwork
   entries,packs=pack_artwork(out,templates)
+ (out/'offline-size.json').write_text(json.dumps(dict(bytes=sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))),encoding='utf8')
  worker=templates/('bundle-sw.js' if bundle_artwork else 'pwa-sw.js')
  files=sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name!='_headers')
  digest=hashlib.sha256()

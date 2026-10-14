@@ -1,4 +1,4 @@
-import {webStorage,validateSave} from './pwa-storage.js';
+import {webStorage,validateSave,storageError} from './pwa-storage.js';
 let registration,status='Online play available. Download game files for offline play.';
 const panel=document.createElement('dialog');panel.id='web-app-settings';
 panel.innerHTML=`<h2>Download the app</h2><p><a class="web-android-download" href="https://github.com/Thronior/ygo-rogue-duelist/releases/latest/download/YGO-Rogue-Android.apk" target="_blank" rel="noopener noreferrer">Download for Android (APK)</a></p><p>On iPhone: open this page in Safari, tap Share, then Add to Home Screen and enable Open as Web App.</p><p id="web-status" role="status"></p><progress id="web-progress" hidden></progress><div class="web-actions"><button id="web-offline">Download / update offline game</button><button id="web-export">Export save backup</button><button id="web-import">Import save backup</button><button id="web-close">Close</button></div><input id="web-file" type="file" accept=".json,application/json" hidden><p>Keep a backup before clearing browser data or moving devices. Multiplayer needs an internet connection. Updates take effect after all game windows are closed.</p>`;
@@ -8,7 +8,13 @@ document.addEventListener('click',event=>{if(event.target.closest('#web-app-opti
 panel.querySelector('#web-close').onclick=()=>panel.close();
 async function offline(){
  if(!('serviceWorker' in navigator)||!isSecureContext)throw Error('Offline play needs HTTPS or localhost.');
- report('Downloading game files. Keep this window open…');
+ report('Downloading game files. Keep this window openâ€¦');
+ // Leave headroom for saves. Estimates cannot guarantee the physical free space.
+ let estimate;try{estimate=await navigator.storage?.estimate?.();}catch{}
+ const available=estimate&&Number.isFinite(estimate.quota)&&Number.isFinite(estimate.usage)?estimate.quota-estimate.usage:null;
+ if(available!==null&&available<32*1024*1024)throw Error('Not enough browser storage for offline files and saves. Free some device space first. Export your save before clearing any site data.');
+ let bytes=0;try{const r=await fetch('./offline-size.json');if(r.ok)bytes=Number((await r.json()).bytes)||0;}catch{}
+ if(available!==null&&bytes&&available<bytes*1.2+32*1024*1024&&!confirm('There may not be enough space for the full offline download and your saves. Already cached files may be reused. Continue downloading?'))return;
  registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
  if(document.documentElement.dataset.bundledArtwork==='true'){
   if(registration.waiting){report('Update ready. Close all game windows and reopen, then download offline files.');return;}
@@ -28,23 +34,23 @@ async function offline(){
  else if(registration.active)report('Offline game is ready.');
  navigator.storage?.persist?.().catch(()=>{});
 }
-panel.querySelector('#web-offline').onclick=()=>offline().catch(e=>report(e.message));
+panel.querySelector('#web-offline').onclick=()=>offline().catch(e=>report(storageError(e)));
 navigator.serviceWorker?.addEventListener('message',({data})=>{
  if(data?.type==='CACHE_PROGRESS'){const p=panel.querySelector('#web-progress');p.hidden=false;p.max=data.total;p.value=data.done;report(`Saving offline files: ${data.done} / ${data.total}`);}
  if(data?.type==='CACHE_READY'){document.documentElement.dataset.offlineReady='true';panel.querySelector('#web-progress').hidden=true;report('Download complete. Close all game windows and reopen to use the latest offline version.');}
- if(data?.type==='CACHE_ERROR')report('Offline download failed: '+data.message+'. Retry when connected and storage is available.');
+ if(data?.type==='CACHE_ERROR')report('Offline download failed: '+(data.message||'Browser storage is full or unavailable')+'. Retry when connected and storage is available.');
 });
 panel.querySelector('#web-export').onclick=async()=>{try{
  const text=await webStorage.load();validateSave(text);const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
  const link=document.createElement('a');link.href=url;link.download='YGO-Rogue-save-backup.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);report('Save backup exported.');
-}catch(e){report(e.message);}};
+}catch(e){report(storageError(e));}};
 panel.querySelector('#web-import').onclick=()=>panel.querySelector('#web-file').click();
 panel.querySelector('#web-file').onchange=async event=>{try{
  const file=event.target.files[0];if(!file)return;if(file.size>20*1024*1024)throw Error('Backup is too large.');
  const text=validateSave(await file.text());
  if(!confirm('Replace all three run slots and progress with this backup? The game will reload.'))return;
  await webStorage.store(text);location.reload();
-}catch(e){report(e.message);}finally{event.target.value='';}};
+}catch(e){report(storageError(e));}finally{event.target.value='';}};
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration('./').then(reg=>{
  registration=reg;if(reg?.active&&(document.documentElement.dataset.bundledArtwork!=='true'||document.documentElement.dataset.offlineReady==='true'))report('Offline game is ready.');if(reg?.waiting)report('An update is ready. Close all game windows and reopen to apply it.');
 }).catch(()=>{});
@@ -60,6 +66,6 @@ document.addEventListener('game-startup-ready',({detail})=>{
  document.body.append(offer);
  offer.addEventListener('close',()=>offer.remove(),{once:true});
  offer.querySelector('[data-later]').onclick=()=>offer.close();
- offer.querySelector('[data-download]').onclick=()=>{offer.close();report(status);panel.showModal();offline().catch(e=>report(e.message));};
+ offer.querySelector('[data-download]').onclick=()=>{offer.close();report(status);panel.showModal();offline().catch(e=>report(storageError(e)));};
  offer.showModal();
 },{once:true});

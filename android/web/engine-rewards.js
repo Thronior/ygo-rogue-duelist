@@ -5,14 +5,15 @@ function presentation(run){
  return {...run,last_reward_cards:offer.choices.map(d=>source.findIndex(s=>s.opponent===d.opponent&&s.sprite===d.sprite)),reward_slots:{...offer,source:source.map((_,i)=>i)}};
 }
 export function deckRewardMarkup(run,{esc}){
- return rewardMarkup(presentation(run),{esc}).replace('class="reward-screen','class="reward-screen engine-rewards');
+ return rewardMarkup(presentation(run),{esc}).replace('class="reward-screen','class="reward-screen engine-rewards').replaceAll('</article>','<button class="reward-view" data-reward-view disabled>View Deck</button></article>');
 }
-export function mountDeckRewards(root,{getRun,reroll,volume,reduced=false}){
+export function mountDeckRewards(root,{getRun,reroll,volume,reduced=false,view}){
  let selected=getRun().reward_slots.choices.length===1?0:null;
  const controller=mountRewardSlots(root,{
   getRun:()=>presentation(getRun()),reroll,volume,reduced,portraitPrize:true,
   image:i=>'assets/'+(getRun().reward_slots.source||getRun().reward_slots.choices)[i].sprite,
   name:()=>'',ultra:()=>false,
+  onView:i=>view?.(getRun().reward_slots.choices[i]),
   canConfirm:()=>selected!==null,
   onSelect:i=>{selected=i;mark();}
  });

@@ -1,0 +1,27 @@
+Dueling Engine
+- Now unlocks by beating Challenge Level 5 with any character. Previous clears count, and existing unlocks are preserved.
+- Added View Deck to deck choices, opening a preview over the slots.
+- Cards are sorted by Monsters, Spells, and Traps. Inspect cards, close the preview, and continue rerolling normally.
+
+Character Selection
+- Made challenge-completion colours more distinct, with matching LVL badges.
+- Challenge Level 5 keeps its shiny golden appearance.
+- Added a small star to characters that have beaten Challenge Level -1.
+
+CPU Improvements
+- Improved Change of Heart and Brain Control decisions to avoid stealing monsters without a useful follow-up.
+- Improved consideration of spell immunity and targeting protection.
+- Prevented defence-reducing equips from weakening defenders when the ATK boost cannot be used effectively.
+- Improved willingness to switch into Attack Position for favourable attacks.
+
+Browser Saves and Offline Downloads
+- Added clearer messages when browser storage prevents saving.
+- Added options to export current progress and retry saving without repeating the original action.
+- Improved startup recovery when saving fails.
+- Added storage-space checks and warnings before offline downloads.
+
+UI
+- Fixed the broken separator between character names and deck tiers.
+- Various minor UI tweaks.
+
+Embedded itch.io screen-rotation improvements are still awaiting verification on a physical phone.

@@ -49,7 +49,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SHUFFLE_SET_CARD){for(const c of m.cards||[]){this.tributeSets.delete(this.fieldKnowledge.key(c.from));this.tributeSets.delete(this.fieldKnowledge.key(c.to));}}
   if(m.type===M.SET&&m.location===L.MZONE){if(this.releasedForSet[m.controller])this.tributeSets.add(this.fieldKnowledge.key(m));this.releasedForSet[m.controller]=0;}
   if([M.SUMMONING,M.SPSUMMONING,M.CHAIN_END].includes(m.type))this.releasedForSet=[0,0];
-  const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You · ":feedback.player===1?"Opponent · ":"")+feedback.text);}
+  const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You Â· ":feedback.player===1?"Opponent Â· ":"")+feedback.text);}
   if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();}
   if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
   if(m.type===M.CHAIN_SOLVED){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link&&!link.inactive){const n=this.name(link.code);if(n==='Meteorain')(this.piercingTurn??={})[link.player]=this.turn;if(n==='Exarion Universe')(this.piercingCards??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(['Spellbinding Circle','Nightmare Wheel','Shadow Spell','Fiendish Chain'].includes(n))for(const t of link.targets||[])if(t.location===L.MZONE)this.attackLocks.set(`${t.controller}:${t.sequence}`,{code:link.code,controller:link.player,location:link.location,sequence:link.sequence});if(n==='Limiter Removal')for(const c of this.query(link.player,L.MZONE).filter(Boolean))if(this.cards.get(c.code)?.race==='Machine')this.limiterDoom.add(`${link.player}:${c.sequence}`);}}
@@ -78,14 +78,14 @@ export class MobileDuel extends DuelEngine {
   this.revealedHands??=[{},{}];
   if([M.CONFIRM_DECKTOP,M.CONFIRM_EXTRATOP].includes(m.type)){
    const cards=(m.cards||[]).filter(c=>c.code).map(c=>({...c}));
-   if(cards.length){const source=this.name(this.resolvingChain||this.effect?.code);const text=(source?source+' — ':'')+'Excavated cards (top first)';this.logs.unshift(text+': '+cards.map(c=>this.name(c.code)).join(', '));this.visuals.push({kind:'reveal',public:true,excavation:true,cards,text});}
+   if(cards.length){const source=this.name(this.resolvingChain||this.effect?.code);const text=(source?source+' â€” ':'')+'Excavated cards (top first)';this.logs.unshift(text+': '+cards.map(c=>this.name(c.code)).join(', '));this.visuals.push({kind:'reveal',public:true,excavation:true,cards,text});}
   }
   if(m.type===M.CONFIRM_CARDS){
    for(const c of m.cards||[])if(c.location===L.HAND&&c.code)this.revealedHands[m.player][c.controller+':'+c.sequence]=c.code;
    const ordeal=this.name(this.effect?.code)==='Ordeal of a Traveler';
    const cards=(m.cards||[]).filter(c=>c.location===L.HAND&&(ordeal||c.controller!==0)&&c.code);
    if(ordeal&&cards.length){const text='Ordeal revealed '+cards.map(c=>this.name(c.code)).join(', ');this.logs.unshift(text);this.visuals.push({kind:'reveal',cards:cards.map(c=>({...c})),text});}
-   if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' — revealed cards'});}
+   if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' â€” revealed cards'});}
   }
   if(m.type===M.SHUFFLE_HAND||m.type===M.TAG_SWAP||m.type===M.MOVE&&[m.from?.location,m.to?.location].includes(L.HAND)){
    const sides=[M.SHUFFLE_HAND,M.TAG_SWAP].includes(m.type)?[m.player]:[m.from?.controller,m.to?.controller];
@@ -129,7 +129,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1])this.events.push({kind:'exact_lethal'});
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
   if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player});
-  if(m.type===M.POS_CHANGE)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'Your monster':'Opponent’s monster')+' changes position'});
+  if(m.type===M.POS_CHANGE)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'Your monster':'Opponentâ€™s monster')+' changes position'});
   if(m.type===M.SET)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:m.controller===0?'You set a card':'Opponent sets a card'});
   if(m.type===M.MOVE&&m.from.location&&m.to.location)this.visuals.push({kind:'move',reason:m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0),from:m.from,to:m.to,code:(m.from.controller===0||m.to.controller===0||((m.from.location&12)&&(m.from.position&5))||((m.to.location&12)&&(m.to.position&5))||m.to.location===L.GRAVE)?m.card:0});
   if(m.type===M.DRAW)this.visuals.push({kind:'draw',from:{controller:m.player,location:L.DECK},to:{controller:m.player,location:L.HAND},code:0});
@@ -156,10 +156,10 @@ export class MobileDuel extends DuelEngine {
   const currentStats=new Map(),changes=[],changedCards=[];
   for(const side of s.players)for(const c of side.monsters)if(c&&(c.position&5)){
    const key=`${c.controller}:${c.location}:${c.sequence}:${c.code}`,old=this.feedbackStats?.get(key);currentStats.set(key,{attack:c.attack,defense:c.defense,level:c.level});
-   if(old){const diff=[['attack','ATK'],['defense','DEF'],['level','Level']].filter(([k])=>old[k]!==undefined&&c[k]!==undefined&&old[k]!==c[k]).map(([k,label])=>`${label} ${old[k]} → ${c[k]}`);if(diff.length){changes.push(this.name(c.code)+': '+diff.join(', '));changedCards.push({...c});}}
+   if(old){const diff=[['attack','ATK'],['defense','DEF'],['level','Level']].filter(([k])=>old[k]!==undefined&&c[k]!==undefined&&old[k]!==c[k]).map(([k,label])=>`${label} ${old[k]} â†’ ${c[k]}`);if(diff.length){changes.push(this.name(c.code)+': '+diff.join(', '));changedCards.push({...c});}}
   }
   this.feedbackStats=currentStats;
-  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' · '),cards:changedCards,statChange:true});this.logs.unshift(changes.join(' · '));}
+  if(changes.length){this.visuals.push({kind:'effect-action',text:changes.join(' Â· '),cards:changedCards,statChange:true});this.logs.unshift(changes.join(' Â· '));}
 for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(c)c.turnCount=this.cardTurnCounts?.get(`${c.controller}:${c.location}:${c.sequence}`)??(c.location===L.SZONE&&(c.position&5)&&['Swords of Revealing Light','Wave-Motion Cannon',"Nightmare's Steelcage"].includes(this.name(c.code))?0:undefined);const own=s.players[0].monsters.filter(c=>c&&(c.position&5));
   this.peak.peak_field=Math.max(this.peak.peak_field,own.length);
   for(const c of own){this.peak.peak_attack=Math.max(this.peak.peak_attack,c.attack||0);this.peak.peak_defense=Math.max(this.peak.peak_defense,c.defense||0)}return s;
@@ -171,7 +171,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;}
   else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
 
-  if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
+  if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You Â· ':'Opponent Â· ')+feedback.text);}}
   if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined)this.effect={code:m.selects[r.index]?.code,player:m.player};
   if(m?.type===M.SELECT_EFFECTYN&&r.yes)this.effect={code:m.code,player:m.player};
   if(m?.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
@@ -270,7 +270,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy.some(t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
    if(smart.battleBeforeSummon())return idle(I.TO_BP);
    const special=ranked(m.special_summons).filter(x=>smart.specialOk(x.c)!==false).find(x=>usefulAttacker(x.c)||smart.summonUtility(x.c));if(special)return idle(I.SELECT_SPECIAL_SUMMON,special.i);
-   const flip=m.pos_changes.findIndex(c=>{if(exodiaPieces.has(c.code))return false;const field=this.query(p,L.MZONE)[c.sequence];const name=this.name(c.code);if(field&&visible(field)&&smart.attackBlocked(field,p))return false;const useful=name==='Magician of Faith'?this.query(p,L.GRAVE).some(c=>stat(c).type&2):name==='Mask of Darkness'?this.query(p,L.GRAVE).some(c=>stat(c).type&4):['Man-Eater Bug','Penguin Soldier'].includes(name)?enemy.length>0:name==='Morphing Jar'?(this.query(p,L.HAND).length<3&&this.query(p,L.DECK).length>5):false;const extra=smart.flipUseful(name,field);return field&&!(field.position&1)&&(extra===true||smart.saferPosition(field)!==false)&&extra!==false&&(useful||extra===true||m.to_bp&&!smart.attackBlocked(field,p)&&(atk(field)>threat||smart.clearedLane(field)))});if(flip>=0)return idle(I.SELECT_POS_CHANGE,flip);
+   const flip=m.pos_changes.findIndex(c=>{if(exodiaPieces.has(c.code))return false;const field=this.query(p,L.MZONE)[c.sequence];const name=this.name(c.code);if(field&&visible(field)&&smart.attackBlocked(field,p))return false;const useful=name==='Magician of Faith'?this.query(p,L.GRAVE).some(c=>stat(c).type&2):name==='Mask of Darkness'?this.query(p,L.GRAVE).some(c=>stat(c).type&4):['Man-Eater Bug','Penguin Soldier'].includes(name)?enemy.length>0:name==='Morphing Jar'?(this.query(p,L.HAND).length<3&&this.query(p,L.DECK).length>5):false;const extra=smart.flipUseful(name,field);return field&&!(field.position&1)&&(extra===true||smart.saferPosition(field)!==false)&&extra!==false&&(useful||extra===true||m.to_bp&&!smart.attackBlocked(field,p)&&(atk(field)>threat||smart.clearedLane(field)||smart.attackOpportunity(field)))});if(flip>=0)return idle(I.SELECT_POS_CHANGE,flip);
    // Compare all legal defenders before choosing an individually safer ATK summon.
    // A different monster in DEF may be the only line that survives piercing.
    if(this.cpuReviewRules?.survivalGuard!==false&&enemy.filter(c=>visible(c)&&(c.position&1)).reduce((n,c)=>n+atk(c),0)>=this.lp[p]){

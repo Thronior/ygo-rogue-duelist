@@ -348,6 +348,7 @@ def install(g):
   if won:p['victories']+=1
   if run['stage']=='complete' and not run.get('profile_complete') and not run.get('secret_challenge'):
    challenge_levels.award(p,run)
+   p['highest_challenge_level']=max(challenge_levels.highest(p,i) for i in PLAYABLE_IDS)
    p['wins']+=1;p['won_as']=list(set(p['won_as']+[run['character']]));run['profile_complete']=True
   import character_progression
   character_progression.observe(p,run)

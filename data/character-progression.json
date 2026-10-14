@@ -205,9 +205,9 @@
    "description": "Beat the World Champion"
   },
   "38": {
-   "metric": "decks_bought",
-   "target": 1,
-   "description": "Buy a starter or structure deck from the shop"
+   "metric": "highest_challenge_level",
+   "target": 5,
+   "description": "Beat Challenge Level 5 with any character"
   }
  }
 }
