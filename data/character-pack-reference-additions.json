@@ -760,5 +760,11 @@
     "card": "Dark Magician",
     "pool": "rare",
     "requiredBy": "Dedication through Light and Darkness"
+  },
+  {
+    "pack": "Anubis",
+    "card": "Great Dezard",
+    "pool": "rare",
+    "requiredBy": "Fushioh Richie"
   }
 ]

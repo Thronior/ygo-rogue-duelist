@@ -4,7 +4,18 @@ export const attributes={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DA
 
 export function frameLevelName(a,b){const frame=c=>{const t=c.data.type;return t&1?t&64?3:t&128?2:t&16?0:1:t&2?4:5};return frame(a)-frame(b)||(b.level||0)-(a.level||0)||a.name.localeCompare(b.name)||a.id-b.id;}
 
-export function modifiedCard(c,run,index){const m=run.card_mods?.[index];let race=m?.[2]?monsterTypes[Math.log2(m[2])]:c.race;return {...c,atk:Math.max(0,c.atk+(m?.[0]||0)),defense:Math.max(0,c.defense+(m?.[1]||0)),race:run.artifacts?.includes('dna_rewrite')&&run.monster_type||race,attribute:attributes[m?.[3]]||c.attribute};}
+export function effectiveAttribute(c,run,index){
+ if(!(c.data.type&1)||run.challenge_level===-1)return c.attribute||'';
+ let attribute=attributes[run.card_mods?.[index]?.[3]]||c.attribute;
+ for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw;if(/^attribute_(light|dark|fire|water|wind|earth)$/.test(id||''))attribute=id.slice(10).toUpperCase();}
+ return attribute||'';
+}
+export function attributeOrder(indices,pool,lookup,run){
+ const values=new Map(indices.map(i=>[i,lookup(pool[i]).data.type&1?effectiveAttribute(lookup(pool[i]),run,i):'~']));
+ return indices.sort((a,b)=>Number(!(lookup(pool[a]).data.type&1))-Number(!(lookup(pool[b]).data.type&1))||values.get(a).localeCompare(values.get(b))||frameLevelName(lookup(pool[a]),lookup(pool[b]))||a-b);
+}
+
+export function modifiedCard(c,run,index){const m=run.card_mods?.[index];let race=m?.[2]?monsterTypes[Math.log2(m[2])]:c.race;return {...c,atk:Math.max(0,c.atk+(m?.[0]||0)),defense:Math.max(0,c.defense+(m?.[1]||0)),race:run.artifacts?.includes('dna_rewrite')&&run.monster_type||race,attribute:effectiveAttribute(c,run,index)};}
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
@@ -14,7 +25,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  if(k==='atk'&&matches)a+=n;else if(k==='def')d+=n;else if(k==='both'&&matches){a+=n;d+=n;}else if(k==='normal'&&(t&16)||k==='tribute'&&l>=5||k==='small'&&l<=3)a+=n;
 
- 
+
 
  else if(k==='variant_chitin_carapace'&&c.race==='Insect')d+=400;
 

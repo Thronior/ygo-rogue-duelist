@@ -17,6 +17,7 @@ def description(key,info,previous):
  'gold':f'Earn {a} additional coins after each victory.',
  'victory_heal':f'After each victory, gain {n(a)} LP, up to your current healing limit.',
  'shop_heal':f'After each victory, gain {n(a)} LP before entering the shop, up to your current healing limit.',
+ 'coin_heal':f'After each victory, gain {n(a)} LP for every 10 coins you held before the victory payout, up to your current healing limit.',
  'enemy_lp':f'Your opponent starts each Duel with {n(a)} fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).',
  'standby':f'Once per turn, at the start of your Standby Phase, gain {n(a)} LP.',
  'burn':f'Once per turn, at the start of your End Phase, inflict {n(a)} damage to your opponent.',

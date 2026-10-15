@@ -1,16 +1,10 @@
-import card_rarity
-"""Opponent rewards specify card properties, not just monster races."""
-from content import CHARACTERS,PACK_BY_ID,ART_INFO,TIER_EXCLUSIVE_OPPONENTS
+import card_rarity,random,re
+"""Opponent rewards specify card properties, not just monster races.
 
-REWARDS={
- 0:('normal_spell','Normal Spells'),1:('LIGHT','LIGHT monsters'),2:('normal','Normal Monsters'),
- 3:('WIND','WIND monsters'),4:('Machine','Machine monsters'),5:('ritual','Ritual Monsters and Ritual Spells'),
- 6:('DARK','DARK monsters'),7:('ritual','Ritual Monsters and Ritual Spells'),8:('normal','Normal Monsters'),
- 9:('Zombie','Zombie monsters'),10:('effect','Effect Monsters'),11:('continuous','Continuous Spells and Traps'),
- 12:('normal','Normal Monsters'),13:('flip','Flip Effect Monsters'),14:('EARTH','EARTH monsters'),
- 15:('quick_counter','Quick-Play Spells and Counter Traps'),16:('LIGHT','LIGHT monsters'),
- 17:('normal_spell','Normal Spells'),18:('WATER','WATER monsters'),22:('LIGHT','LIGHT monsters'),
- 27:('quick_counter','Quick-Play Spells and Counter Traps')}
+Every opponent draws its shop theme from one shared list (see reward_keys);
+there is no longer a per-opponent theme table.
+"""
+from content import CHARACTERS,PACK_BY_ID,ART_INFO
 
 # Reviewed against the card text in era-cards.json: these can remove opposing
 # back row already on the field, including conditional and general-card removal.
@@ -73,39 +67,23 @@ ATTR_SUPPORT={'DARK':{'Mystic Plasma Zone','Yami','Dark Energy','Dark Necrofear'
 EQUIPTRAP={'Metalmorph','Blast with Chain','Kunai with Chain','Nightmare Wheel','Mask of the Accursed'}
 EXODIA_SET={'Exodia the Forbidden One','Exodia Necross','Contract with Exodia','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'}
 CONTROL_EXTRA={'Autonomous Action Unit','Lava Golem','Soul Exchange'}
-THEME_OPTIONS={
- 0:['DARK', 'Spellcaster', 'darkmagician', 'normal_spell', 'summon', 'control'],
- 1:['LIGHT', 'Dragon', 'Aqua', 'destruction', 'normal', 'banish'],
- 2:['Warrior', 'FIRE', 'Pyro', 'Rock', 'equip', 'graveyard'],
- 3:['Winged Beast', 'WIND', 'amazoness', 'harpie', 'equip', 'bounce'],
- 4:['cyber', 'Machine', 'equip', 'book', 'jar', 'discard'],
- 5:['stall', 'shield', 'effect', 'Beast', 'negation', 'graveyard'],
- 6:['DARK', 'Fiend', 'destruction', 'continuous', 'normal', 'graveyard'],
- 7:['toon', 'guardian', 'WIND', 'ritual', 'WATER', 'control'],
- 8:['Dinosaur', 'EARTH', 'Rock', 'Pyro', 'sword', 'graveyard'],
- 9:['Zombie', 'hole', 'effect', 'draw', 'normal_trap', 'graveyard'],
- 10:['Insect', 'EARTH', 'book', 'WIND', 'Aqua', 'control'],
- 11:['Fiend', 'burn', 'Pyro', 'negation', 'FIRE', 'discard'],
- 12:['Warrior', 'sword', 'shield', 'stall', 'Zombie', 'bounce'],
- 13:['Rock', 'Fiend', 'Spellcaster', 'effect', 'Dragon', 'graveyard'],
- 14:['Fairy', 'LIGHT', 'flip', 'heal', 'stall', 'graveyard'],
- 15:['Rock', 'normal_trap', 'flip', 'continuous', 'Insect', 'bounce'],
- 16:['Machine', 'cyber', 'negation', 'hole', 'draw', 'control'],
- 17:['Spellcaster', 'darkmagician', 'normal_spell', 'magician', 'stall', 'banish'],
- 18:['Aqua', 'WATER', 'Fish', 'Beast', 'stall', 'bounce'],
- 20:['spirit', 'Fairy', 'EARTH', 'field', 'bounce', 'ritual'],
- 22:['Fairy', 'heal', 'burn', 'Pyro', 'stall', 'bounce'],
- 27:['summon', 'jar', 'Pyro', 'ritual', 'Winged Beast', 'banish'],
-}
-# New encounter rewards use the same random theme and overlapping-pack selection.
-THEME_OPTIONS.update({i:row['reward_themes'] for i,row in TIER_EXCLUSIVE_OPPONENTS.items()})
-LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','counter':'Counter Traps','quickplay':'Quick-Play Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','search':'Monster searchers','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','ojama':'Ojama cards','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Hole Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
+# One shared theme list is rolled for every opponent on the encounter screen.
+
+LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Hole Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
 
 
-# Every monster Type/Attribute represented in the card database can be rolled.
-MONSTER_TYPES=('Aqua','Beast','Beast-Warrior','Dinosaur','Divine-Beast','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Zombie')
+# Every monster Type/Attribute represented in the card database can be rolled,
+# except Divine-Beast: it is retired because DIVINE already covers the same Gods.
+MONSTER_TYPES=('Aqua','Beast','Beast-Warrior','Dinosaur','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Zombie')
 ATTRIBUTES=('LIGHT','DARK','EARTH','WIND','WATER','FIRE','DIVINE')
 LABELS.update({key:key+' monsters' for key in MONSTER_TYPES+ATTRIBUTES})
+# Type/Attribute categories also accept any card whose text names that Type or
+# Attribute (longest name wins, so "Winged Beast" never counts as "Beast").
+_MENTION_PATTERN=re.compile(r'(?<![A-Za-z-])('+'|'.join(re.escape(n) for n in sorted(MONSTER_TYPES+ATTRIBUTES,key=len,reverse=True))+r')(?![A-Za-z])')
+def mentioned(text):return {match.group(1) for match in _MENTION_PATTERN.finditer(text or '')}
+# DIVINE is deliberately scarce and carries two iconic supporting Spell Cards.
+DIVINE_SUPPORT={'Solemn Judgment','Swords of Revealing Light'}
+DIVINE_WEIGHT=0.12
 FIELD_SUPPORT={'Terraforming','An Owl of Luck','Magic Reflector','Maiden of the Aqua','Forgotten Temple of the Deep','Amphibious Bugroth MK-3','Cannonball Spear Shellfish','Deepsea Warrior',"Gravekeeper's Assailant", "Gravekeeper's Chief",'Levia-Dragon - Daedalus','Mermaid Knight','Royal Tribute','The Legendary Fisherman','Tornado Wall','Torpedo Fish','Ocean Dragon Lord - Neo-Daedalus','A Cat of Ill Omen','Rite of Spirit'}
 LABELS['field']='Field Spells and Support'
 LABELS['direct']='Direct Attacks'
@@ -113,10 +91,14 @@ DIRECT_ATTACKS={"Alligator's Sword Dragon",'Amphibious Bugroth MK-3','Black Tyra
 
 # Retire arbitrary word buckets; old saves keep their pack and gain a useful theme.
 RETIRED_THEMES={'sword':'equip','shield':'stall','book':'Spellcaster',
- 'magician':'Spellcaster','goblin':'gambling','cyber':'Machine','chaos':'banish'}
+ 'magician':'Spellcaster','goblin':'gambling','cyber':'Machine','chaos':'banish',
+ 'quickplay':'quick_counter','counter':'quick_counter','search':'summon','ojama':'normal',
+ 'battle':'Warrior','Divine-Beast':'DIVINE'}
 RETIRED_THEMES.update({key.lower():key for key in MONSTER_TYPES if key.lower() in LABELS and key.lower()!=key})
 for _key in RETIRED_THEMES:LABELS.pop(_key,None)
-THEME_OPTIONS={i:list(dict.fromkeys(RETIRED_THEMES.get(k,k) for k in keys)) for i,keys in THEME_OPTIONS.items()}
+# Divine-Beast keeps a label for race coverage, but is never offered as a reward.
+LABELS['Divine-Beast']='Divine-Beast monsters'
+NON_REWARD_KEYS=frozenset({'Divine-Beast'})
 
 def normalize_reward(reward):
  result=dict(reward)
@@ -158,15 +140,17 @@ def tag_featured(cards,rewards,rng):
  return chosen
 
 
+def reward_keys():return [key for key in sorted(LABELS) if key not in NON_REWARD_KEYS]
+def reward_weights(keys):return [DIVINE_WEIGHT if key=='DIVINE' else 1.0 for key in keys]
+
+
 def reward_for(index,rng=None):
- key,label=REWARDS.get(index,(CHARACTERS[index]['race'],CHARACTERS[index]['race']+' monsters'))
- if index in TIER_EXCLUSIVE_OPPONENTS:
-  key=THEME_OPTIONS[index][0];label=LABELS.get(key,key+' monsters')
- if rng:
-  key=rng.choice(THEME_OPTIONS[index] if index in THEME_OPTIONS else list(dict.fromkeys(THEME_OPTIONS.get(index,[key])+['LIGHT','DARK','EARTH','WIND','WATER','FIRE'])));label=LABELS.get(key,key+' monsters')
+ # One shared list for every opponent; the opponent only fixes the guaranteed pack.
+ rng=rng or random.Random(index)
+ keys=reward_keys();key=rng.choices(keys,weights=reward_weights(keys),k=1)[0]
  pack=CHARACTERS[index]['pack']
  if PACK_BY_ID[pack].get('draft_only'):pack=PACK_BY_ID[pack].get('reward_pack','EN-MFC')
- return dict(key=key,label=label,pack=pack)
+ return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=pack)
 
 
 # Effect pools are curated from card text, not printed rarity or loose keywords.
@@ -185,13 +169,14 @@ PIERCE = {'Fairy Meteor Crush','Spear Dragon','Airknight Parshath','Mad Sword Be
 NEGATION |= {'A-Team: Trap Disposal Unit','Horus the Black Flame Dragon LV8','Silent Swordsman LV7','Sorcerer of Dark Magic','Rare Metalmorph','Arcana Knight Joker','Element Doom','Element Soldier'}
 FUSION_SUPPORT = {'Polymerization','Fusion Sage','Fusion Gate','Metamorphosis','De-Fusion','King of the Swamp','The Light - Hex-Sealed Fusion','The Dark - Hex-Sealed Fusion','The Earth - Hex-Sealed Fusion','Re-Fusion','Centrifugal Field'}
 LABELS['fusion']='Fusion monsters and support'
-LABELS['search']='Deck searchers and recruiters'
 
 def matches(card,key):
  if card.get('id')==190000050:return False
  key=RETIRED_THEMES.get(key,key)
  t=card['data']['type']
- if key in ATTRIBUTES:return bool(t&1) and card['attribute']==key
+ if key in ATTRIBUTES:
+  if key=='DIVINE' and card['name'] in DIVINE_SUPPORT:return True
+  return (bool(t&1) and card['attribute']==key) or key in mentioned(card.get('desc'))
  if key=='normal':return bool(t&1 and t&16)
  if key=='effect':return bool(t&1 and t&32)
  if key=='flip':return bool(t&1 and t&0x200000)
@@ -222,19 +207,15 @@ def matches(card,key):
  if key=='equip':return bool(t&0x40000) or card['name'] in EQUIPTRAP
  if key=='direct':return card['name'] in DIRECT_ATTACKS
  if key=='field':return bool(t&2 and t&0x80000) or card['name'] in FIELD_SUPPORT
- if key=='counter':return bool(t&4 and t&0x100000)
- if key=='quickplay':return bool(t&2 and t&0x10000)
  if key=='normal_trap':return bool(t&4) and not bool(t&(0x20000|0x100000))
  if key=='draw':return card['name'] in DRAW
  if key=='burn':return card['name'] in BURN
  if key=='heal':return card['name'] in HEAL
  if key=='stall':return card['name'] in STALL
  if key=='pierce':return card['name'] in PIERCE or 'piercing' in (card.get('desc') or '').lower()
- if key=='search':return card['name'] in SEARCH
  if key=='sword':return key in card['name'].lower()
  if key=='archfiend':return 'archfiend' in card['name'].lower() or card['name'] in ARCHFIEND_SUPPORT
  if key=='harpie':return 'harpie' in card['name'].lower() or (bool(t&1) and card.get('race')=='Winged Beast')
- if key=='ojama':return 'ojama' in card['name'].lower() or card['name'] in OJAMA_SUPPORT
  if key=='exodia':return card['name'] in EXODIA_SET or card['name'] in DRAW
  if key=='gravekeeper':return 'gravekeeper' in card['name'].lower() or card['name'] in GRAVE_SUPPORT
  if key=='guardian':return 'guardian' in card['name'].lower() or card['name'] in ('Shine Palace','Backup Soldier')
@@ -253,7 +234,7 @@ def matches(card,key):
  if key=='gambling':
   d=(card.get('desc') or '').lower()
   return 'six-sided die' in d or 'toss a coin' in d or 'coin toss' in d or 'roll a die' in d or 'die roll' in d or 'heads or tails' in d
- return bool(t&1) and card.get('race','').casefold()==key.casefold()
+ return (bool(t&1) and card.get('race','').casefold()==key.casefold()) or key in mentioned(card.get('desc'))
 
 def artifact_matches(key,artifact):
  info=ART_INFO[artifact]
@@ -288,7 +269,7 @@ def reward_from_deck(deck,byid,rng,options=None):
  from collections import Counter
  from content import PACKS
  cards=[byid[cid] for cid in deck if cid in byid]
- keys=list(LABELS)+['LIGHT','DARK','EARTH','WIND','WATER','FIRE']+sorted({c['race'] for c in cards if c['data']['type']&1})
+ keys=[k for k in LABELS if k not in NON_REWARD_KEYS]+['LIGHT','DARK','EARTH','WIND','WATER','FIRE']+sorted({c['race'] for c in cards if c['data']['type']&1})
  counts={key:sum(matches(c,key) for c in cards) for key in keys}
  # Generic effect/normal tags should not crowd out specific attributes or mechanics.
  if options:
@@ -304,11 +285,43 @@ def reward_from_deck(deck,byid,rng,options=None):
 
 
 
+# The five Forbidden One pieces; the shop always stocks one when Exodia is offered.
+EXODIA_PIECES=frozenset({'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'})
+
+
 def random_reward(rng,profile=None):
- """Draw rewards without taking an opponent or deck as input."""
+ """Draw one reward without taking an opponent or deck as input."""
  from content import PACKS
  import unlocks
- keys=sorted(set(RETIRED_THEMES.get(k,k) for options in THEME_OPTIONS.values() for k in options)|set(LABELS)|{'LIGHT','DARK','EARTH','WIND','WATER','FIRE'})
- key=rng.choice(keys)
+ keys=reward_keys();key=rng.choices(keys,weights=reward_weights(keys),k=1)[0]
  packs=[p['id'] for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'],profile)]
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=rng.choice(packs or ['EN-LOB']))
+
+
+def route_rewards(routes,rng,profile=None):
+ """Rewards for one encounter screen: no repeated theme and no repeated pack."""
+ from content import PACKS
+ import unlocks
+ order=list(routes);count=len(order)
+ keys=reward_keys();weights=reward_weights(keys);chosen_keys=[]
+ for _ in range(count):
+  if not keys:keys=reward_keys();weights=reward_weights(keys)
+  pick=rng.choices(range(len(keys)),weights=weights,k=1)[0]
+  chosen_keys.append(keys.pop(pick));weights.pop(pick)
+ packs=[p['id'] for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'],profile)]
+ if len(packs)>=count:chosen_packs=rng.sample(packs,count)
+ else:
+  chosen_packs=rng.sample(packs,len(packs));chosen_packs+=[rng.choice(packs or ['EN-LOB']) for _ in range(count-len(chosen_packs))]
+ return {str(route):dict(key=key,label=LABELS.get(key,key+' monsters'),pack=pack) for route,key,pack in zip(order,chosen_keys,chosen_packs)}
+
+
+def guarantee_exodia(offers,pool,rng,slots=None):
+ """Force one Forbidden One piece into the featured stock when Exodia is offered."""
+ pieces=[c for c in pool if c['name'] in EXODIA_PIECES]
+ if not pieces:return offers
+ slots=list(range(len(offers))) if slots is None else [i for i in slots if i<len(offers)]
+ if any(offers[i]['name'] in EXODIA_PIECES for i in slots):return offers
+ available=[c for c in pieces if c['id'] not in {offer['id'] for offer in offers}] or pieces
+ pick=rng.choice(available)
+ if slots:offers[slots[0]]=pick
+ return offers

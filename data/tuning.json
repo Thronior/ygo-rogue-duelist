@@ -37,10 +37,10 @@
     "urn": {
       "name": "Merchant Urn",
       "price": 60,
-      "description": "Earn 10 additional coins after each victory.",
+      "description": "Earn 20 additional coins after each victory.",
       "art": "Appropriate",
       "effect": "gold",
-      "amount": 10,
+      "amount": 20,
       "tag": "economy",
       "filter": "",
       "parameters": {}
@@ -422,10 +422,10 @@
     "bandage": {
       "name": "Red Medicine",
       "price": 55,
-      "description": "After each victory, gain 500 LP before entering the shop, up to your current healing limit.",
+      "description": "After each victory, gain 200 LP for every 10 coins you held before the victory payout, up to your current healing limit.",
       "art": "Goblin's Secret Remedy",
-      "effect": "shop_heal",
-      "amount": 500,
+      "effect": "coin_heal",
+      "amount": 200,
       "tag": "healing",
       "filter": "",
       "parameters": {}

@@ -89,7 +89,70 @@
   },
   "Odion": {
     "rare": [
-      "Van'Dalgyon the Dark Dragon Lord"
+      "Mystical Knight of Jackal",
+      "Granmarg the Rock Monarch",
+      "Gravekeeper's Chief",
+      "Graceful Charity",
+      "Swords of Revealing Light",
+      "Ring of Destruction",
+      "Nightmare Wheel",
+      "Trap Master",
+      "A-Team: Trap Disposal Unit",
+      "Fushioh Richie",
+      "Great Dezard",
+      "Giant Trunade",
+      "Nobleman of Extermination",
+      "Emergency Provisions",
+      "Mystical Space Typhoon",
+      "Shadow Ghoul",
+      "Spirit Reaper"
+    ],
+    "common": [
+      "Gravekeeper's Assailant",
+      "Gravekeeper's Spear Soldier",
+      "Gravekeeper's Cannonholder",
+      "Mystic Tomato",
+      "Gravekeeper's Spy",
+      "Gravekeeper's Guard",
+      "Gravekeeper's Watcher",
+      "Gravekeeper's Curse",
+      "Soul Exchange",
+      "Gravekeeper's Servant",
+      "Rite of Spirit",
+      "Skull Invitation",
+      "Xing Zhen Hu",
+      "Adhesion Trap Hole",
+      "Trap Dustshoot",
+      "Skull Servant",
+      "Pharaonic Protector",
+      "Pharaoh's Servant",
+      "Despair from the Dark",
+      "Acid Trap Hole",
+      "Reverse Trap",
+      "Chain Burst",
+      "Penalty Game!",
+      "Tiki Curse",
+      "Tiki Soul",
+      "Tiki Peace",
+      "Swamp Mirrorer"
+    ]
+  },
+  "Anubis": {
+    "common": [
+      "8-Claws Scorpion",
+      "Cobraman Sakuzy",
+      "Fushioh Richie",
+      "Giant Axe Mummy",
+      "Royal Keeper",
+      "Stealth Bird",
+      "Swarm of Locusts",
+      "Swarm of Scarabs",
+      "Wandering Mummy"
+    ]
+  },
+  "Yugi Muto": {
+    "common": [
+      "Stronghold the Moving Fortress"
     ]
   }
 }

@@ -79,7 +79,7 @@ def install(g):
    r['selected']=selected
    if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
-    r['route_rewards']={str(i):shop_rewards.random_reward(random,storage.profile()) for i in r['routes']}
+    r['route_rewards']=shop_rewards.route_rewards(r['routes'],random,storage.profile())
     r['reward_rules']=5;save(r)
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
    if r['stage']=='shop' and ensure_shop_packs(r):save(r)
@@ -149,7 +149,7 @@ def install(g):
   else:run.pop('tutorial_variants',None)
   import fallen_collectors
   fallen_collectors.add_route(run,rng)
-  run['route_rewards']={str(i):shop_rewards.random_reward(rng,storage.profile()) for i in run['routes']}
+  run['route_rewards']=shop_rewards.route_rewards(run['routes'],rng,storage.profile())
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=5:count=1
@@ -417,13 +417,14 @@ def install(g):
    reward_start=len(run['pool'])
    run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=next(iter(run['last_reward_cards']),None);run['pool'].extend(run['last_reward_cards'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
+   coins_before_rewards=run['gold']
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
    cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh')
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
-   heal=(amount(run,'victory_heal')+amount(run,'shop_heal')) if ar.can_heal(run,between=True) else 0
+   heal=(amount(run,'victory_heal')+amount(run,'shop_heal')+(coins_before_rewards//10)*amount(run,'coin_heal')) if ar.can_heal(run,between=True) else 0
    run['lp']=max(run['lp'],min(cap,run['lp']+heal))
    for _ in range(int(amount(run,'reward_card')) if defeated_deck and not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
@@ -500,6 +501,15 @@ def install(g):
   else:
    top=stock_sample(pool,min(5,len(pool)))
    top+=stock_sample([c for c in themed if c not in top],5-len(top))
+  # Exodia always shows at least one Forbidden One piece in its featured stock.
+  tag_rewards=run.get('tag_shop_rewards',[])
+  if 'exodia' in {bias}|{r['key'] for r in tag_rewards}:
+   slots=None
+   if len(tag_rewards)==2:
+    slots=[]
+    if tag_rewards[0]['key']=='exodia':slots+=[0,1,2]
+    if tag_rewards[1]['key']=='exodia':slots+=[3,4]
+   top=shop_rewards.guarantee_exodia(top,eligible,rng,slots)
   rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.

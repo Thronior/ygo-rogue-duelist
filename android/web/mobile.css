@@ -1760,6 +1760,15 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .performance-mode .duel-particles,.performance-mode .level-unlock .unlock-lights,.performance-mode .level-unlock .unlock-motes{display:none!important}
 .performance-mode .pack-open img{animation:none!important}
 
+/* Compatibility mode: drop the compositor layer hints and filter effects that make some
+   GPU/browser stacks (notably Firefox on Windows) flicker or blank the duel board. */
+.compatibility-mode .duel.game-vector-host>.duel-main{transform:none}
+.compatibility-mode .duel button,.compatibility-mode .duel .zone>img,.compatibility-mode .duel [data-relic],.compatibility-mode .duel .card-counter,.compatibility-mode .floating-chain-control{will-change:auto}
+.compatibility-mode .duel .zone img,.compatibility-mode .duel .field-character{filter:none}
+.compatibility-mode .duel-particles{display:none}
+.compatibility-mode .title .smooth-menu .menu-card{animation:none!important;will-change:auto}
+.compatibility-mode .chain-control.chain-sometimes:before{backdrop-filter:none}
+
 .relic-group-heading{grid-column:1/-1;margin:10px 0 2px}.cardgrid>.relic-group-heading{align-self:start}
 
 .hand button{position:relative}.hand-misprint{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);padding:2px 4px;border-radius:3px;background:#841e36ed;color:#fff;font-size:clamp(8px,1.1vw,12px);line-height:1.2;pointer-events:none;text-shadow:none;z-index:2}

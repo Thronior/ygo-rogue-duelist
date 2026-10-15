@@ -21,18 +21,20 @@ export function decorateEffectTargets(root,targets=[]){
   const frame=document.createElement('span');frame.className='effect-target-frame';frame.textContent='Selected';el.append(frame);
  }
 }
+// Compatibility mode avoids CSS filters: some GPU/browser stacks flicker when a filter starts.
+const compatibility=()=>document.documentElement.classList.contains('compatibility-mode');
 const feedbackAnimations=new WeakMap();
 function feedbackAnimation(el,frames,options){
  feedbackAnimations.get(el)?.cancel();const a=el.animate(frames,options);feedbackAnimations.set(el,a);
  a.finished.catch(()=>{}).finally(()=>{if(feedbackAnimations.get(el)===a)feedbackAnimations.delete(el)});return a;
 }
 export function pulseRelic(root,id){
- for(const el of root.querySelectorAll('[data-relic]'))if(el.dataset.relic===id)feedbackAnimation(el,[{filter:'brightness(1)',scale:'1'},{filter:'brightness(1.8) drop-shadow(0 0 8px #ffd86b)',scale:'1.12',offset:.35},{filter:'brightness(1)',scale:'1'}],{duration:500});
+ for(const el of root.querySelectorAll('[data-relic]'))if(el.dataset.relic===id)feedbackAnimation(el,compatibility()?[{scale:'1'},{scale:'1.12',offset:.35},{scale:'1'}]:[{filter:'brightness(1)',scale:'1'},{filter:'brightness(1.8) drop-shadow(0 0 8px #ffd86b)',scale:'1.12',offset:.35},{filter:'brightness(1)',scale:'1'}],{duration:500});
 }
 export function negateCard(el,reduced=false){
  if(!el)return Promise.resolve();
  const img=el.matches('img')?el:el.querySelector('img');if(!img)return Promise.resolve();
- return feedbackAnimation(img,reduced?[{filter:'grayscale(1)'},{filter:'grayscale(1)',offset:.8},{filter:'none'}]:[{filter:'grayscale(1)',translate:'0'},{filter:'grayscale(1)',translate:'-4px',offset:.2},{filter:'grayscale(1)',translate:'4px',offset:.35},{filter:'grayscale(1)',translate:'-3px',offset:.5},{filter:'grayscale(1)',translate:'0',offset:.8},{filter:'none',translate:'0'}],{duration:480}).finished.catch(()=>{});
+ return feedbackAnimation(img,compatibility()?[{opacity:.5},{opacity:.5,offset:.8},{opacity:1}]:reduced?[{filter:'grayscale(1)'},{filter:'grayscale(1)',offset:.8},{filter:'none'}]:[{filter:'grayscale(1)',translate:'0'},{filter:'grayscale(1)',translate:'-4px',offset:.2},{filter:'grayscale(1)',translate:'4px',offset:.35},{filter:'grayscale(1)',translate:'-3px',offset:.5},{filter:'grayscale(1)',translate:'0',offset:.8},{filter:'none',translate:'0'}],{duration:480}).finished.catch(()=>{});
 }
 const deckCounts=new WeakMap();
 export function deckReadyFeedback(root,count,minimum,owner=root){

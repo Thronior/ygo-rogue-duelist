@@ -2,6 +2,8 @@
 export function mountMenuMotion(root,count,initial,onSelect){
  const cards=[...root.querySelectorAll('[data-menu]')];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ // Compatibility mode drops the per-frame brightness filter that some GPU stacks flicker on.
+ const compatibility=()=>document.documentElement.classList.contains('compatibility-mode');
  let position=initial,target=initial,velocity=0,frame=0,last=0,drag=null,suppressUntil=0,opening=false,destroyed=false,twirl=null,back=null,backAnimation=null;
  const wrap=n=>(n%count+count)%count;
  const portrait=()=>matchMedia('(orientation:portrait)').matches;
@@ -21,7 +23,7 @@ export function mountMenuMotion(root,count,initial,onSelect){
    card.style.top=vertical?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;
    card.style.scale='none';
    card.style.transform=`translate(-50%,-50%) scale(${1-.28*Math.min(dist,1)})`;
-   card.style.filter=`brightness(${1-.42*Math.min(dist,1)})`;
+   card.style.filter=compatibility()?'none':`brightness(${1-.42*Math.min(dist,1)})`;
    card.style.opacity=String(Math.min(1,Math.max(0,2.6-dist)));
    card.style.zIndex=String(100-Math.round(dist*10));
   }

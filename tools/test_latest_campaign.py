@@ -8,9 +8,12 @@ from content import *
 base=ROOT/'temp'/('latest-'+uuid.uuid4().hex);base.mkdir();storage.ROOT=base;g.SAVE=base/'run.json';g.RUNTIME=base/'runtime';g.RUNTIME.mkdir()
 p=storage.profile();p['unlocked']=PLAYABLE_IDS;storage.write(base/'profile.json',p)
 for pack in PACKS:
+ starter_cards=pack['common'] if pack.get('draft_only') else pack['common']+pack['rare']+pack.get('starter_support',[])
+ starter_count=len({g.card_identity(cid) for cid in starter_cards if g.normal_starter(cid)})
  for seed in range(30):
   cards=g.open_pack(pack['id'],random.Random(seed))
-  assert len(cards)==9 and sum(g.normal_starter(cid) for cid in cards)>=3,pack['id']
+  assert len(cards)==9 and len(set(map(g.card_identity,cards)))==9,pack['id']
+  if starter_count>=3:assert sum(g.normal_starter(cid) for cid in cards)>=3,pack['id']
 for i in PLAYABLE_IDS:
  for seed in range(8):
   r=g.new_run(i,random.Random(seed));g.auto_deck(r);assert g.validate(r) is None
@@ -31,16 +34,16 @@ for rd in range(9):
  r=g.new_run(0);r['round']=rd;g.routes(r)
  for i in r['routes']:
   deck=g.opponent_deck(rd,opponent=i,tutorial_variant=r.get('tutorial_variants',{}).get(str(i),0));reward=r['route_rewards'][str(i)]
-  # Theme rewards are intentionally random within the opponent's theme
-  # list, even when the picked theme is absent from the actual deck.
-  assert reward['key'] in (shop_rewards.THEME_OPTIONS.get(i) or [reward['key']])
-  def overlap(p):return sum(cid in set(p['common']+p['rare']) for cid in deck)
-  assert overlap(PACK_BY_ID[reward['pack']])==max(map(overlap,PACKS))
+  # Theme and pack offers are sampled from the shared list, without repeats per screen.
+  assert reward['key'] in shop_rewards.reward_keys()
+  assert reward['pack'] in PACK_BY_ID and not PACK_BY_ID[reward['pack']].get('draft_only')
   if rd==1:
    low=[g.BY_ID[c] for c in deck if g.normal_starter(c)]
    # Bound covers the strongest fixed duel-2 starters (Kaiba 1308); decks are data, do not retune here.
    assert sum(c['atk'] for c in low)/len(low)<1350
-r=g.new_run(0);r['gold']=201;g.update_profile(r)
+ assert len({x['key'] for x in r['route_rewards'].values()})==len(r['route_rewards'])
+ assert len({x['pack'] for x in r['route_rewards'].values()})==len(r['route_rewards'])
+r=g.new_run(0);r.update(gold=201,stage='complete');g.update_profile(r,True)
 notices=storage.profile()['achievement_notices'];assert any(x['id']=='character:2' for x in notices)
-g.update_profile(r);assert storage.profile()['achievement_notices']==notices
-print('PASS: all 36 boosters supply starters; every draft playable; tutorial breakable; Copycat signature and shop restrictions; random theme rewards; gentler early decks; exactly-once achievement notices')
+g.update_profile(r,True);assert storage.profile()['achievement_notices']==notices
+print('PASS: all packs open to nine unique cards; starter-capable packs supply starters; every draft playable; tutorial breakable; Copycat signature and shop restrictions; random theme rewards; gentler early decks; exactly-once achievement notices')

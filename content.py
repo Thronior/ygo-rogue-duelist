@@ -87,7 +87,7 @@ def artifact(key,name,price,desc,art,effect='',amount=0,tag='economy',filter='')
  ART_INFO[key]=dict(art=art,effect=effect,amount=amount,tag=tag,filter=filter)
 artifact('ankh','Diamond Ankh',75,'Gain 2,000 LP now; healing cap becomes 10,000.','Monster Reborn')
 artifact('feather','Phoenix Feather',65,'Heal 400 LP after each victory.',"Harpie's Feather Duster",'victory_heal',400,'healing')
-artifact('urn','Merchant Urn',60,'Earn 10 additional coins per victory.','Pot of Greed','gold',10)
+artifact('urn','Merchant Urn',60,'Earn 20 additional coins after each victory.','Pot of Greed','gold',20)
 artifact('eye','Millennium Eye',100,'Draw one extra opening card.','Sangan','opening',1,'draw')
 artifact('scarab','Jade Pendant',100,'Heal 1,000 LP after each victory.','Man-Eater Bug','shop_heal',1000,'healing')
 artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbinding Circle','enemy_lp',500,'offense')
@@ -115,7 +115,7 @@ artifact('chalice','Silver Chalice',65,'Heal 600 LP after each victory.','Dian K
 artifact('satchel','Travel Satchel',70,'Each victory grants one additional random card from the opponent\'s deck.','Graceful Charity','reward_card',1,'draw')
 artifact('bargain','Merchant Sigil',80,'All future shop prices are reduced by 20%.','Upstart Goblin','discount',20)
 artifact('interest','Golden Scale',90,'Earn 10% of held gold after victory (maximum 30).','Pot of Greed','interest',10)
-artifact('bandage','Red Medicine',55,'Heal 500 LP on every shop arrival.','Dian Keto the Cure Master','shop_heal',500,'healing')
+artifact('bandage','Red Medicine',55,'After each victory, gain 200 LP for every 10 coins you held before the victory payout, up to your current healing limit.','Dian Keto the Cure Master','coin_heal',200,'healing')
 artifact('map','Treasure Map',75,'Shops offer a fourth artifact.','Sangan','extra_artifact',1)
 
 # Build-around relics: their effects are implemented in passives/campaign_expansion.

@@ -136,8 +136,6 @@ class TagCampaign:
 
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
 
-    run['route_rewards'][str(opponent)]=shop_rewards.random_reward(self.rng,self.profiles[seat])
-
     if run.get('challenge_level')!=-1 and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=5):
 
      from feedback_update import draw_curses
@@ -145,6 +143,9 @@ class TagCampaign:
      run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=5 else min(3,(run['round']+1)//3))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
+
+   # Rebuild rewards so one screen never repeats a theme or a guaranteed pack.
+   run['route_rewards']=shop_rewards.route_rewards(run['routes'],self.rng,self.profiles[seat])
 
    if count==1:excluded.update(run['routes'])
 
@@ -313,7 +314,7 @@ class TagCampaign:
 
    for seat,run in enumerate(self.players):
 
-    if run.get('reward_rules')!=5:run['route_rewards']={str(i):shop_rewards.random_reward(self.rng,self.profiles[seat]) for i in run['routes']};run['reward_rules']=5
+    if run.get('reward_rules')!=5:run['route_rewards']=shop_rewards.route_rewards(run['routes'],self.rng,self.profiles[seat]);run['reward_rules']=5
 
   return self
 

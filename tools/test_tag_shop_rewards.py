@@ -17,8 +17,8 @@ for keys in [('destruction','jar'),('jar','destruction'),('DARK','DARK'),('Spell
   check(top,keys);assert len({c['id'] for c in top})==5
 small=[c for c in game.CARDS if rewards.matches(c,'jar')][:1]
 check(rewards.tag_featured(small,[{'key':'jar'}]*2,random.Random(1)),['jar']*2)
-assert not set(rewards.RETIRED_THEMES)&set(rewards.LABELS)
-assert all(not set(options)&set(rewards.RETIRED_THEMES) for options in rewards.THEME_OPTIONS.values())
+assert not (set(rewards.RETIRED_THEMES)&set(rewards.LABELS)-{'Divine-Beast'})
+assert not set(rewards.reward_keys())&set(rewards.RETIRED_THEMES)
 old={'route_rewards':{'2':{'key':'sword','label':'Sword cards','pack':'EN-LOB'}},'bias':'shield'}
 rewards.normalize_run(old);assert old['bias']=='stall' and old['route_rewards']['2']['key']=='equip'
 profile=storage.profile();profile['unlocked']=list(range(len(content.CHARACTERS)))

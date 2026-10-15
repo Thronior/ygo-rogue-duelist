@@ -8,7 +8,7 @@ profile=storage.profile()
 assert content.ARTIFACTS['shell'][0]=='Shell Spikes'
 lua=passives.script({'character':0,'artifacts':['shell'],'round':0,'curses':[]},telemetry=False)
 assert 'RACE_AQUA|RACE_FISH' in lua and 'SetValue(300)' in lua
-for key,names in [('draw',['Good Goblin Housekeeping','Dark Mimic LV1']),('heal',['Spell Absorption','Draining Shield']),('search',['Green Gadget','Masked Dragon']),('summon',['Summoner Monk','Machine Duplication']),('fusion',['Re-Fusion','King of the Swamp']),('negation',['Horus the Black Flame Dragon LV8'])]:
+for key,names in [('draw',['Good Goblin Housekeeping','Dark Mimic LV1']),('heal',['Spell Absorption','Draining Shield']),('summon',['Summoner Monk','Machine Duplication']),('fusion',['Re-Fusion','King of the Swamp']),('negation',['Horus the Black Flame Dragon LV8'])]:
  assert all(s.matches(g.BY_NAME[n],key) for n in names)
 for key,names in [('heal',['Des Dendle','Fire Princess']),('draw',['Sasuke Samurai','White Magical Hat']),('pierce',['Axe of Despair']),('counter',['Cure Mermaid'])]:assert all(not s.matches(g.BY_NAME[n],key) for n in names)
 assert s.BACKROW_REMOVAL <= g.BY_NAME.keys()

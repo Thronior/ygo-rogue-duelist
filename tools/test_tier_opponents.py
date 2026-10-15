@@ -13,13 +13,13 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
    for rd in range(9):
     run=dict(round=rd,loop=loop,character=character,defeated_opponents=defeated[:],challenge_level=0)
     game.routes(run,random.Random(1000+character*19+rd+loop*100))
-    assert len(set(run['routes']))==5
+    assert len(set(run['routes']))==(1 if (rd+1)%3==0 else 5)
     assert not set(run['routes'])&set(defeated+[character])
     assert set(run['route_rewards'])==set(map(str,run['routes']))
     for i in run['routes']:
      assert i in content.eligible_opponents(rd,loop)
      reward=run['route_rewards'][str(i)]
-     assert reward['key'] in shop_rewards.THEME_OPTIONS[i]
+     assert reward['key'] in shop_rewards.reward_keys()
      assert reward['pack'] in content.PACK_BY_ID and not content.PACK_BY_ID[reward['pack']].get('draft_only')
      if i in content.TIER_EXCLUSIVE_OPPONENTS:
       assert not loop and rd>0
@@ -29,7 +29,7 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
     defeated.append(run['routes'][0]);count+=1
  for i,row in content.TIER_EXCLUSIVE_OPPONENTS.items():
   tiers={int(t) for t in row.get('tier_decks',{str(row['tier']):row['deck']})}
-  assert i not in content.PLAYABLE_IDS and len(set(shop_rewards.THEME_OPTIONS[i]))==6
+  assert i not in content.PLAYABLE_IDS
   for rd in range(9):
    allowed=rd>0 and rd//3+1 in tiers
    try:deck=content.opponent_record(rd,i)
@@ -54,7 +54,7 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
   for rd in range(9):
    room.shared['round']=rd;room.sync();room.routes()
    for run in room.players:
-    assert len(set(run['routes']))==5 and not set(chars)&set(run['routes'])
+    assert len(set(run['routes']))==(1 if (rd+1)%3==0 else 5) and not set(chars)&set(run['routes'])
     assert all(i in content.eligible_opponents(rd) for i in run['routes'])
    chosen=[room.players[0]['routes'][0],next(i for i in room.players[1]['routes'] if i!=room.players[0]['routes'][0])]
    for run in room.players:run.setdefault('defeated_opponents',[]).extend(chosen)

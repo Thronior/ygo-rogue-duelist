@@ -705,10 +705,18 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Guardian Sphinx')return enemy.length?110:-1;
   if(n==='Swarm of Scarabs')return enemy.length?100:-1;
   if(n==='Swarm of Locusts')return theirBack.length?100:-1;
-  if(n==='Spellbinding Circle'&&!chain)return enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>=1700)?85:-1;
-  if(['Nightmare Wheel','Mask of the Accursed','Spellbinding Circle'].includes(n))return enemy.some(face)?85:-1;  if(n==='Mask of Dispel')return theirBack.some(x=>face(x)&&(data(x).type&2))?55:-1;
+  if(n==='Spellbinding Circle')return enemy.some(x=>face(x)&&!reservedForRemoval(x)&&(chain||((x.position&1)&&atk(x)>=1700)))?85:-1;
+  if(['Nightmare Wheel','Mask of the Accursed'].includes(n))return enemy.some(face)?85:-1;  if(n==='Mask of Dispel')return theirBack.some(x=>face(x)&&(data(x).type&2))?55:-1;
   if(n==='Shield & Sword')return shieldSwordScore();
-  if(['Graceful Dice','Skull Dice','Metalmorph','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
+  if(n==='Skull Dice'){
+   const attacker=e.attackCard&&enemy.find(x=>same(x,e.attackCard));
+   if(!chain||!attacker)return -1;
+   const reduced=Math.max(0,combatPower(attacker,e.attackTarget)-600),target=e.attackTarget&&own.find(x=>same(x,e.attackTarget));
+   if(!target)return battleDamage(combatPower(attacker))>=e.lp[p]&&battleDamage(reduced)<e.lp[p]?80:-1;
+   const limit=(target.position&1)?combatPower(target,attacker):(target.defense??data(target).defense??0);
+   return (target.position&1?reduced<limit:reduced<=limit)?80:-1;
+  }
+  if(['Graceful Dice','Metalmorph','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
   if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||((e.data[e.knownFieldCard(p,x)]?.defense??0)<=2000)))?95:-1;
   if(n==='Temple of the Kings'&&!(c.location===L.SZONE&&face(c))&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
   if(n==='Temple of the Kings'&&c.location===L.SZONE&&face(c))return templeUpgradeAvailable()?100:-1;
@@ -1066,7 +1074,15 @@ function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))retu
   if(e.phase!==4||prompt?.to_bp!==true||battleLocked||!effectsEnabled(1-p))return false;
   return enemy.some(t=>!face(t)&&e.knownFieldCard?.(p,t)&&e.name(e.knownFieldCard(p,t))==='Cyber Jar'&&own.some(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)&&atk(a)>power(t)&&attackScore(a,t,{dmg:0})>-99999));
  }
- function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code)||!effectsEnabled(p))return false;const n=name(c);if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+ function ritualSearcherUseful(n){
+   if(!['Manju of the Ten Thousand Hands','Sonic Bird','Senju of the Thousand Hands'].includes(n))return false;
+   return q(p,L.DECK).some(target=>{
+    const isSpell=!!(data(target).type&2)&&!!(data(target).type&128),isMonster=!!(data(target).type&1)&&!!(data(target).type&128);
+    if((!isSpell&&!isMonster)||hand.some(x=>x.code===target.code)||n==='Sonic Bird'&&!isSpell||n==='Senju of the Thousand Hands'&&!isMonster)return false;
+    return hand.some(partner=>isSpell?(!!(data(partner).type&1)&&!!(data(partner).type&128)&&matchesRitual(target,partner)):(!!(data(partner).type&2)&&!!(data(partner).type&128)&&matchesRitual(partner,target)));
+   });
+  }
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code)||!effectsEnabled(p))return false;const n=name(c);if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -1323,7 +1339,12 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
    if(['Melchid the Four-Face Beast','Grand Tiki Elder'].includes(nm)&&!hand.some(x=>['Melchid the Four-Face Beast','Grand Tiki Elder'].includes(name(x)))&&hand.some(x=>name(x)==='Masked Beast Des Gardius'))value+=3000;
    return value;
   }
-  const recent=deck.targetScore(fxN,cand,info);if(recent!==null)return recent;
+  if(fxN==='Mask of Darkness'&&cand.controller===p&&cand.location===L.GRAVE&&(data(cand).type&4)){
+    const reserve={'Mirror Force':12000,'Widespread Ruin':10800,'Sakuretsu Armor':10500,'Torrential Tribute':9000,'Bottomless Trap Hole':8500,'Trap Hole':8000,'Call of the Haunted':7500,'White Hole':1500,'Embodiment of Apophis':2500};
+    const base=reserve[nm];
+    if(base!==undefined)return base+(nm==='Mirror Force'?enemy.filter(x=>face(x)&&(x.position&1)).length*400:nm==='Torrential Tribute'?Math.min(1200,enemy.length*300-own.length*150):0);
+   }
+   const recent=deck.targetScore(fxN,cand,info);if(recent!==null)return recent;
   if(fxN==='Castle Walls'){
    const defender=castleWallsDefender();
    return defender&&cand.controller===p&&cand.location===L.MZONE&&cand.sequence===defender.sequence?100000:-1000000000;
@@ -1332,7 +1353,8 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.controller!==p&&cand.location===L.SZONE)return reservedForRemoval(cand)?-1000000000:20000+backValue(cand);
   if(isRemoval(fxN)&&fxN!=='Ring of Destruction'&&cand.controller!==p&&cand.location===L.MZONE){const live=enemy.find(x=>same(x,cand))||cand;return reservedForRemoval(live)?-1000000000:20000+targetValue(live)+(emergency(fxN,[live])?100000:0);}
   if(['Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap'].includes(fxN)&&cand.controller!==p&&cand.location===L.SZONE&&LOCK.includes(nm))return 25000;
-  if(['Mask of Dispel','Enemy Controller','Book of Moon','Nightmare Wheel','Mask of the Accursed','Spellbinding Circle','Stamping Destruction','Thousand Knives','Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts'].includes(fxN)&&[L.MZONE,L.SZONE].includes(cand.location))return (cand.controller!==p?20000:-20000)+atk(cand);
+  if(fxN==='Spellbinding Circle'&&cand.location===L.MZONE&&cand.controller!==p){const live=enemy.find(x=>same(x,cand))||cand;return reservedForRemoval(live)?-1000000000:20000+atk(live);}
+   if(['Mask of Dispel','Enemy Controller','Book of Moon','Nightmare Wheel','Mask of the Accursed','Spellbinding Circle','Stamping Destruction','Thousand Knives','Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts'].includes(fxN)&&[L.MZONE,L.SZONE].includes(cand.location))return (cand.controller!==p?20000:-20000)+atk(cand);
   if(isRemoval(fxN)&&reservedForRemoval(cand))return -1000000000;
   // Activation and targeting must agree: generic removal prefers the largest ATK,
   // which can kill us even when a smaller, safe Ring target exists.
