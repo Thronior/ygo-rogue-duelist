@@ -6,25 +6,35 @@ base=Path(tempfile.mkdtemp(prefix='variants-',dir=ROOT/'temp'));storage.ROOT=bas
 p=storage.profile();p['unlocked']=list(c.PLAYABLE_IDS);p['character_levels']={str(i):2 for i in c.PLAYABLE_IDS};storage.write(base/'profile.json',p)
 relics=[c.CHARACTERS[i]['starting_relic'] for i in c.PLAYABLE_IDS]
 for k,row in v.VARIANTS.items():
- i=int(k);relics.append(row['starting_relic']);assert row['starting_relic'] in c.ARTIFACTS
+ i=int(k);basechar=c.CHARACTERS[i]
+ if row['starting_relic'] in c.ARTIFACTS:relics.append(row['starting_relic'])
+ else:assert row['starting_relic']=='random_archetype'
  for level in [-1,0,1]:
   try:v.loadout(c.CHARACTERS,i,1,{'character_levels':{k:level}})
   except ValueError:pass
   else:raise AssertionError(('early unlock',i,level))
  alt=v.loadout(c.CHARACTERS,i,1,p);assert alt['name']==c.CHARACTERS[i]['name']
- assert len(alt['starting_packs'])==4
- assert alt['starting_packs'][:2]==[c.CHARACTERS[i]['pack']]*2
- assert set(alt['starting_packs'][2:]).isdisjoint(c.starting_packs(i)[2:]),('support overlap',i)
- pack=c.PACK_BY_ID[c.CHARACTERS[i]['pack']];pool=set(pack['common']+pack['rare'])
- for name in c.CHARACTERS[i]['cards']+row['cards']+row['pack_additions']:assert g.BY_NAME[name]['id'] in pool,(i,name)
+ if basechar.get('random_packs'):
+  assert not alt.get('starting_packs')
+ else:
+  assert len(alt['starting_packs'])==4
+  assert alt['starting_packs'][:2]==[basechar['pack']]*2
+  assert set(alt['starting_packs'][2:]).isdisjoint(c.starting_packs(i)[2:]),('support overlap',i)
+  pack=c.PACK_BY_ID[basechar['pack']];pool=set(pack['common']+pack['rare'])
+  for name in basechar['cards']+row['cards']+row.get('pack_additions',[]):assert g.BY_NAME[name]['id'] in pool,(i,name)
  for seed in range(3):
   r=g.new_run(i,random.Random(seed),0,1)
-  assert r['starting_relic']==row['starting_relic'];assert r['variant']==1
+  if row['starting_relic']=='random_archetype':
+   import content
+   assert content.ART_INFO[r['starting_relic']]['effect']=='archetype_stock'
+  else:assert r['starting_relic']==row['starting_relic']
+  assert r['variant']==1
+  if basechar.get('random_packs'):assert len(r['pack_ids'])==4
   assert r['guaranteed']==[g.BY_NAME[n]['id'] for n in row['cards']]
   assert json.loads(json.dumps(r))['variant_name']==row['name']
  print('PASS',i,alt['name'],row['name'])
 assert not [k for k,n in collections.Counter(relics).items() if n>1],collections.Counter(relics)
-for i in [36,37,38]:
+for i in [25,26,27]:
  assert 'alternate' not in c.CHARACTERS[i]
  try:v.loadout(c.CHARACTERS,i,1,p)
  except ValueError:pass

@@ -549,7 +549,7 @@
     "razor": {
       "name": "Razor Ledger",
       "price": 85,
-      "description": "If you win a Duel with exactly 20 cards in your Main Deck, earn 30 additional coins.",
+      "description": "Win a Duel with exactly the current minimum Main Deck size (20, 30, or 40 cards) to earn 30 additional coins.",
       "art": "Narrow Pass",
       "effect": "lean_bonus",
       "amount": 30,

@@ -19,7 +19,7 @@ export function modifiedCard(c,run,index){const m=run.card_mods?.[index];let rac
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
-export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1)return [card.atk,card.defense];const t=c.data.type,l=c.level;
+export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1)return [card.atk,card.defense];if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level;
 
  for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||f===c.attribute||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
@@ -47,7 +47,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='approved_warriors_vow')a+=200;
  else if(k==='approved_ritual_scar'&&(t&128))a+=1000;
  else if(k==='approved_fusion_fever'&&(t&64))a+=800;
- else if(k==='variant_swordsman_oath'&&c.race==='Warrior'&&[47507260,1995985,74388798,60482781,74591968,37267041].includes(c.id))a+=300;
+ else if(k==='variant_swordsman_oath'&&c.data.setcodes?.some(code=>(Number(code)&0xfff)===0x41))a+=400;
  else if(k==='approved_golden_grave')d-=200;
 
  else if(k==='approved_iron_silence'){a+=600;d+=600;}

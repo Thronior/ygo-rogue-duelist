@@ -492,6 +492,12 @@ class TagCampaign:
 
    self.shared['gold']=run['gold'];self.sync();return result
 
+  if action=='sell-relic':
+   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
+   with self.scope(seat):result=game.sell_relic(run,str(value))
+   for key in ('gold','artifacts'):self.shared[key]=deepcopy(run.get(key))
+   self.sync();return result
+
   if action=='shop-reroll':
 
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')

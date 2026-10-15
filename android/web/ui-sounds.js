@@ -5,7 +5,7 @@ let volume=()=>0,voice,rerollTimer;
 export function setUISoundVolume(read){volume=read;}
 export function playUISound(name){
  if(document.hidden||!volume())return;
- voice??=new Audio();voice.pause();voice.src=assetURL('assets/sfx/'+name+'.wav');
+ voice??=new Audio();voice.pause();voice.src=assetURL('assets/sfx/'+(/\.(?:wav|mp3)$/i.test(name)?name:name+'.wav'));
  balancedVolume(voice,volume(),name==='deck-select'?.5:name==='shop-select'?.8:1);voice.play().catch(()=>{});
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUISounds();});

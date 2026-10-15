@@ -75,7 +75,7 @@ def install(g):
    counts=Counter();selected=[]
    for i in sorted(set(r['selected'])):
     key=g.card_identity(r['pool'][i])
-    if counts[key]<3:selected.append(i);counts[key]+=1
+    if 'broken_limiter' in r.get('artifacts',[]) or counts[key]<3:selected.append(i);counts[key]+=1
    r['selected']=selected
    if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
@@ -165,7 +165,7 @@ def install(g):
   if index not in PLAYABLE_IDS or index not in storage.profile()['unlocked']:raise ValueError('This duelist is locked.')
   import character_variants
   char=character_variants.loadout(CHARACTERS,index,variant,storage.profile());signatures=[g.BY_NAME[n]['id'] for n in char['cards']]
-  pack_ids=char['starting_packs'] if variant else starting_packs(index,rng)
+  pack_ids=char.get('starting_packs') if variant and char.get('starting_packs') else starting_packs(index,rng)
   for _ in range(500):
    packs=[open_pack(pack,rng) for pack in pack_ids]
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
@@ -179,6 +179,7 @@ def install(g):
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
   if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved()],1,r,rng)[0]
+  elif relic=='random_archetype':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved() and ART_INFO.get(k,{}).get('effect')=='archetype_stock'],1,r,rng)[0]
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -283,6 +284,9 @@ def install(g):
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
   rng.shuffle(main_pairs)
   main=[cid for _,cid in main_pairs];extra=[cid for _,cid in extra_pairs]
+  if owns(duel_run,'level_up_relic'):
+   level_up=g.BY_NAME['Level Up!']['id']
+   if level_up not in main:main.append(level_up)
   mods=run.setdefault('card_mods',{})
   if run.get('faulty'):
    for i,cid in enumerate(run['pool']):
@@ -330,7 +334,7 @@ def install(g):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
   if amount(run,'interest'):tally['Interest']=min(30,int(run['gold']*amount(run,'interest')/100))
-  if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==20:tally['Razor Ledger']=amount(run,'lean_bonus')
+  if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==ar.minimum(run):tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
   if owns(run,'golden_sleeve'):
    from golden_cards import choices
@@ -563,6 +567,18 @@ def install(g):
   if price==0:ar.use_free(run,'shop')
   else:run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
   return price
+ def sell_relic(run,key):
+  cursed_relics.require_choice(run)
+  if run.get('stage')!='shop':raise ValueError('Relics can only be sold in the shop.')
+  if key not in ARTIFACTS or key not in run.get('artifacts',[]):raise ValueError('You do not own that relic.')
+  if key=='broken_limiter' and run['artifacts'].count(key)==1:
+   counts=Counter(g.card_identity(run['pool'][i]) for i in run.get('selected',[]))
+   if max(counts.values(),default=0)>3:raise ValueError('Remove extra copies from your deck before selling Broken Limiter.')
+  price=ARTIFACTS[key][1]//2
+  run['artifacts'].remove(key);run['gold']+=price
+  stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+price
+  save(run)
+  return dict(relic=key,coins=price,gold=run['gold'])
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)
   if run['stage']!='shop':raise ValueError('Shop is closed.')
@@ -641,5 +657,5 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])

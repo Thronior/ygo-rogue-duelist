@@ -842,6 +842,17 @@
       ],
       "background_card": "Maha Vailo",
       "background": "character-backgrounds/variant-35.jpg"
+    },
+    "36": {
+      "name": "Fortune's Favorite",
+      "starting_relic": "random_archetype",
+      "cards": [
+        "Morphing Jar",
+        "Change of Heart"
+      ],
+      "supporting_packs": [],
+      "background_card": "Morphing Jar",
+      "background": "character-backgrounds/variant-36.jpg"
     }
   }
 }

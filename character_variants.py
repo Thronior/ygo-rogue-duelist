@@ -9,7 +9,9 @@ def install(characters):
  characters[30]['starting_relic']='ominous_clock'
  for index,row in VARIANTS.items():
   c=characters[int(index)]
-  c['alternate']=dict(row,starting_packs=[c['pack']]*2+row['supporting_packs'])
+  alternate=dict(row)
+  if not c.get('random_packs'):alternate['starting_packs']=[c['pack']]*2+row.get('supporting_packs',[])
+  c['alternate']=alternate
   c['alternate'].pop('pack_additions',None)
 def unlocked(profile,index):
  if int(profile.get('character_levels',{}).get(str(index),-1))>=DATA['unlock_level']:return True

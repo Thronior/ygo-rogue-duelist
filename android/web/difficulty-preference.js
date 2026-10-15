@@ -4,5 +4,6 @@ export function rememberedLevel(profile,character){
 }
 
 export function hasReliclessClear(profile,character){
+ if(profile.testing_all_clears)return true;
  return (profile.run_history||[]).some(r=>Number(r.character)===Number(character)&&r.challenge_level===-1&&r.result==='complete'&&r.round>=9);
 }

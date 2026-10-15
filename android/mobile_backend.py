@@ -114,7 +114,7 @@ def dispatch(raw):
   if index in run['selected']:run['selected'].remove(index)
   else:
    cid=run['pool'][index]
-   if sum(g.card_identity(run['pool'][i])==g.card_identity(cid) for i in run['selected'])>=3:raise ValueError('Maximum three copies of a card.')
+   if 'broken_limiter' not in run.get('artifacts',[]) and sum(g.card_identity(run['pool'][i])==g.card_identity(cid) for i in run['selected'])>=3:raise ValueError('Maximum three copies of a card.')
    run['selected'].append(index)
  elif action=='choose':
   if int(value) not in run['routes']:raise ValueError('Unavailable opponent')
@@ -176,6 +176,7 @@ def dispatch(raw):
   reward_slots.accept(run,value)
   g.update_profile(run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
+ elif action=='sell-relic':result=g.sell_relic(run,str(value))
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))
  elif action=='reset-progress':storage.reset_progress();run=None
@@ -186,8 +187,13 @@ def dispatch(raw):
  elif action=='notices':
   p=storage.profile();result=p.pop('achievement_notices',[]);storage.write(storage.ROOT/'profile.json',p)
  elif action=='cheat':
-  if value!='heartofthecards':raise ValueError('Unknown code')
-  p=storage.profile();p['unlock_all']=True;p['unlocked']=content.PLAYABLE_IDS;storage.write(storage.ROOT/'profile.json',p)
+  if value=='heartofthecards':
+   p=storage.profile();p['unlock_all']=True;p['unlocked']=content.PLAYABLE_IDS;storage.write(storage.ROOT/'profile.json',p)
+  elif value=='reliclessforall':
+   p=storage.profile();p['relicless_unlocked']=True;storage.write(storage.ROOT/'profile.json',p)
+  elif value=='touchgrass':
+   p=storage.profile();p.update(unlock_all=True,unlocked=content.PLAYABLE_IDS,relicless_unlocked=True,testing_all_clears=True,character_levels={str(i):6 for i in content.PLAYABLE_IDS});storage.write(storage.ROOT/'profile.json',p)
+  else:raise ValueError('Unknown code')
  else:raise ValueError('Unknown mobile action')
  if action in {'active-curses','peek-deck','tag-view','tag-receipt','tag-auto-preview'}:return partial(result)
  if run and action not in {'import-profile','init','select-slot','new','settings','notices','remember-level','unlock-cpu-viewer','cheat'} and not action.startswith('tag-'):g.save(run)

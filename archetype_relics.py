@@ -19,8 +19,15 @@ def install(artifact):
  for key,name,label,art in DEFINITIONS:
   artifact(key,name,80 if key=='fusion_chamber' else 85,f'Every shop and reroll offers one additional random card from this pool: {label}.',art,'archetype_stock',1,'economy')
 def weight(key,run):
- if key not in FAMILY:return 1.0
- return 0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
+ weight=1.0
+ if key in FAMILY:weight*=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
+ from content import ART_INFO
+ owned=[ART_INFO.get(x,{}) for x in run.get('artifacts',[]) if ART_INFO.get(x,{}).get('effect') in ('attribute','both') and ART_INFO.get(x,{}).get('filter') in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'}]
+ if owned:
+  candidate=ART_INFO.get(key,{})
+  filt=candidate.get('filter','')
+  if candidate.get('effect')=='attribute' or (candidate.get('effect')=='both' and filt in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'} and any(filt!=owned_relic.get('filter','') for owned_relic in owned)):weight*=0.5
+ return weight
 
 def sample(options,count,run,rng):
  remaining=list(options);result=[]

@@ -1,0 +1,30 @@
+*YGO Rogue Duelist v0.1.88*
+
+*New Relics*
+This Life Is Mine | 90 coins | The first time you pay LP to activate a card each Duel, recover the same amount.
+Boss Monster | 100 coins | Once per Duel, negate the first opponent's effect that targets your Level 7+ monster.
+Sword and Shield | 90 coins | Swap the original ATK and DEF of all monsters.
+Broken Limiter | 110 coins | Removes the three-copy limit from your Deck.
+Let's Go Gambling | 85 coins | Once per turn, retry a coin toss or dice roll.
+Terraforming | 90 coins | Add a random Field Spell from your Deck to your starting hand.
+Good Spirits | 80 coins | Spirit monsters you control do not return to the hand at the end of the turn.
+Dark Scorpion Squad | 90 coins | Dark Scorpion monsters gain 200 ATK for each face-up Dark Scorpion on the field.
+Gravekeeper's Union | 90 coins | Gravekeeper monsters gain 200 ATK for each face-up Gravekeeper on the field.
+Amazoness Hunters | 90 coins | Amazoness monsters gain 200 ATK for each face-up Amazoness on the field.
+Harpies of a Feather | 90 coins | Harpie monsters gain 200 ATK for each face-up Harpie on the field.
+Demonic Pact | 90 coins | Halves the LP costs of Archfiend cards.
+All for One Terrorking | 100 coins | Terrorking Archfiend gains 500 ATK for each other Archfiend on the field.
+Ojama Gang | 90 coins | Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.
+Tribute Free | 110 coins | Level 7+ monsters you Tribute Summon require only 1 Tribute.
+Fusion Time | 120 coins | Fusion Summon a Fusion Monster using materials from your field without Polymerization.
+Level One | 90 coins | Add a random Level 1–4 LV monster from your Deck to your starting hand.
+LEVEL UP | 90 coins | Add 1 "Level Up!" to your starting hand.
+
+*Relic Changes*
+Level Bonus now gives LV monsters 400 ATK. Razor Ledger checks the current minimum Deck size (20, 30, or 40). Relic prices were reduced by 10 coins as requested, and descriptions were corrected.
+
+*Shop and Packs*
+Relics can now be sold for half their original price. Owning an attribute-changing relic lowers the appearance chance of other attribute-changing relics and elemental orbs. Booster pack descriptions now list archetypes when present.
+
+*Characters and Fixes*
+Ryou Bakura's new variant, *Fortune's Favorite*, starts with a random archetype-shop relic. Level One only selects LV monsters. Solomon's Level -1 shop layout is corrected, and menu artwork and asset retries are more reliable.

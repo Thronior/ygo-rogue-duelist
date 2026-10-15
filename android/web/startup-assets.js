@@ -16,7 +16,7 @@ export async function preloadStartupAssets(onProgress=()=>{},options={}){
   }}catch(error){failures.push(path);console.warn(String(error));}loaded++;report();
  }}));
  const soundFailures=failures.filter(path=>manifest.audio.includes(path));
- if(soundFailures.length)throw Error(soundFailures.length+' sound files could not load. Check your connection and retry.');
+ if(soundFailures.length)throw Error(soundFailures.length+' sound files could not load: '+soundFailures.join(', ')+'. Check your connection and retry.');
  // Optional artwork can retry naturally when its screen opens.
  options.onFailures?.(failures);
  return manifest.audio.filter(path=>!path.startsWith('assets/music/'));

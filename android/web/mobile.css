@@ -1682,6 +1682,14 @@ body{height:var(--app-viewport-height,100dvh)}
 
 /* Keep the counter controls in place; only Solomon is anchored to the lower shop. */
 .shop-compact.relicless-shop .shop-layout>aside{position:relative}
+.shop-compact.relicless-shop .shop-layout>aside{isolation:isolate}
+.shop-compact.relicless-shop .shop-layout>aside>.shop-reference-buttons{position:relative;z-index:1}
+.shop-compact.relicless-shop{position:relative;isolation:isolate}
+.shop-compact.relicless-shop>.shop-layout{position:relative;z-index:1}
+.shop-compact.relicless-shop>.shop-layout{pointer-events:none}
+.shop-compact.relicless-shop>.shop-layout :is(button,a,input,select,[data-do],[data-inspect],[data-open-pack],[data-shop-item]){pointer-events:auto}
+.shop-compact.relicless-shop>.secret-shopkeeper{display:block}
+@media(orientation:portrait){.shop-compact.relicless-shop>.secret-shopkeeper{display:none!important}}
 .shop-compact.relicless-shop .shop-layout>aside>.keeper{display:none}
 @media(orientation:landscape){
  .shop-compact.relicless-shop .shop-layout>aside>.keeper{display:block;position:absolute;left:18%;bottom:34px;width:66%;height:min(45vh,230px);margin:0;transform:none}
@@ -1900,3 +1908,6 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
  .duel>.portrait-relics>.active-relic-strip{overflow:visible;max-height:none}
  .duel>.portrait-relics>.active-curse-strip{overflow:visible;max-height:none;flex:0 0 auto}
 }
+
+.owned-relic-sales{display:flex;flex-wrap:wrap;gap:.45rem;margin:.5rem 0 1rem}.owned-relic-sales button{font-size:.78rem;padding:.45rem .6rem}
+

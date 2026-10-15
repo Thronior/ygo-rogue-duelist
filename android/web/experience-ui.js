@@ -1,7 +1,26 @@
 import {freeJarUse} from './jar-relics.js';
 export const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function lastPlayed(value){const date=new Date(Number(value)*1000);return value&&Number.isFinite(+date)?date.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'Not recorded';}
-export function packSummary(content,pid){const p=content.packs.find(p=>p.id===pid);if(!p)return '';const ids=new Set([...(p.common||[]),...(p.rare||[])]),cards=content.cards.filter(c=>ids.has(c.id)),counts={};for(const c of cards)if(c.data.type&1)counts[c.race]=(counts[c.race]||0)+1;const types=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name])=>name);const themes=[];if(cards.some(c=>c.data.type&128))themes.push('Ritual Summoning');if(cards.some(c=>c.data.type&64))themes.push('Fusion Summoning');if(cards.filter(c=>/destroy|banish|return.*hand/i.test(c.desc)).length>=6)themes.push('removal and control');if(cards.filter(c=>/gain.*LP|increase.*Life Points/i.test(c.desc)).length>=4)themes.push('LP recovery');return `${types.length?'Main monster types: '+types.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${ids.size} different cards. Click to inspect.`;}
+export function packSummary(content,pid){
+ const p=content.packs.find(p=>p.id===pid);if(!p)return '';
+ const ids=new Set([...(p.common||[]),...(p.rare||[])]),cards=content.cards.filter(c=>ids.has(c.id)),counts={};
+ for(const c of cards)if(c.data.type&1)counts[c.race]=(counts[c.race]||0)+1;
+ const types=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name])=>name);
+ const themes=[];if(cards.some(c=>c.data.type&128))themes.push('Ritual Summoning');if(cards.some(c=>c.data.type&64))themes.push('Fusion Summoning');
+ if(cards.filter(c=>/destroy|banish|return.*hand/i.test(c.desc)).length>=6)themes.push('removal and control');
+ if(cards.filter(c=>/gain.*LP|increase.*Life Points/i.test(c.desc)).length>=4)themes.push('LP recovery');
+ const archetypes=[
+  ['Amazoness',/\bAmazoness\b/i],['Archfiend',/\bArchfiend\b/i],['Blue-Eyes',/Blue-Eyes/i],['Buster Blader',/Buster Blader/i],
+  ['Dark Magician',/Dark Magician/i],['Dark Scorpion',/Dark Scorpion/i],['Destiny Board',/Destiny Board|Spirit Message/i],['Exodia',/Exodia|Forbidden One/i],
+  ['Gravekeeper',/Gravekeeper|Necrovalley/i],['Harpie',/Harpie/i],['Horus LV',/Horus.*LV|LV[0-9]/i],['Magnet Warrior',/Magnet Warrior/i],
+  ['Ninja',/Ninja|Ninjitsu/i],['Ojama',/Ojama/i],['Red-Eyes',/Red-Eyes/i],['Relinquished',/Relinquished|Black Illusion Ritual/i],['Toon',/Toon/i],
+  ['Union',/\bUnion\b|X-Head Cannon|XY-Dragon|XYZ-Dragon|XZ-Tank|YZ-Tank/i],['Umi',/\bUmi\b|Legendary Fisherman/i]
+ ];
+ const present=new Set();
+ for(const c of cards){const text=`${c.name} ${c.desc||''}`;for(const [name,re] of archetypes)if(re.test(text))present.add(name);for(const code of c.data?.setcodes||[]){const series={4:'Amazoness',15:'Ojama',26:'Dark Scorpion',46:'Gravekeeper',65:'LV',69:'Archfiend',100:'Harpie'}[Number(code)&0xfff];if(series)present.add(series)}}
+ const series=archetypes.map(([name])=>name).filter(name=>present.has(name));
+ return `${types.length?'Main monster types: '+types.join(', ')+'. ':''}${series.length?'Archetypes: '+series.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${ids.size} different cards. Click to inspect.`;
+}
 export function cursedParts(key,text){if(key==='glass_shard')return ['Coin rewards are doubled.','You start every duel with 2000 LP.'];if(key==='cursed_duelists_wager')return ['Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'];if(key==='cursed_narrow_gate')return ['Your opponent has only 3 Main Monster Zones and 3 Spell & Trap Zones.','You also have only 3 of each. Field Zones are unaffected.'];let at=text.indexOf(', but ');if(at>=0)return [text.slice(0,at)+'.',text.slice(at+6)];at=text.search(/\.\s+(?=[A-Z])/);if(at>=0)return [text.slice(0,at+1),text.slice(at+2)];return [text,'This effect also changes your own side of the duel.'];}
 export function cursedMarkup(key,text){const [good,bad]=cursedParts(key,text);return `<div class="relic-benefit" aria-label="Benefit"><p>${safe(good)}</p></div><div class="relic-drawback" aria-label="Drawback"><p>${safe(bad)}</p></div>`;}
 export const EFFECT_FILTERS={'Any effect':null,'Removal':/destroy|banish|return.*(?:hand|deck)/i,'Draw / search':/draw|add.*(?:deck|gy|graveyard).*hand/i,'Recovery':/gain.*LP|increase.*Life Points|recover/i,'Negation':/negate/i,'Summoning':/Special Summon|Ritual Summon|Fusion Summon/i,'ATK / DEF':/ATK|DEF/i};
