@@ -127,7 +127,7 @@ export class MobileDuel extends DuelEngine {
   }
   if(m.type===M.CHAIN_END){this.activeChain=[];this.chainDepth=0;this.effect=null;this.materialSubject=null;}
   if(m.type===M.HINT&&m.hint_type===3)this.selectionHint=Number(m.hint);
-  if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1])this.events.push({kind:'exact_lethal'});
+  if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1]){this.events.push({kind:'exact_lethal'});this.visuals.push({kind:'lethal-hit',player:m.player});}
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
   if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player});
   if(m.type===M.POS_CHANGE)this.visuals.push({kind:'set',card:{controller:m.controller,location:m.location,sequence:m.sequence},text:(m.controller===0?'Your monster':'Opponent’s monster')+' changes position'});
@@ -144,7 +144,7 @@ export class MobileDuel extends DuelEngine {
   const add=(kind,extra={})=>this.events.push({kind,...extra});
   if(m.type===M.NEW_TURN)this.peak.turns++;
   if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type)&&m.controller===0)this.pendingSummons.push({kind:'summon',card:m.code,method:m.type===M.SUMMONING?'normal':m.type===M.SPSUMMONING?'special':'flip'});
-  if([M.SUMMONED,M.SPSUMMONED,M.FLIPSUMMONED].includes(m.type)){this.events.push(...this.pendingSummons);this.pendingSummons=[];}
+  if([M.SUMMONED,M.SPSUMMONED,M.FLIPSUMMONED].includes(m.type)){const code=Number(m.code)||0;if(code&&this.signatureCards?.has(code))this.visuals.push({kind:'signature-summon',code,card:{controller:m.controller,location:m.location,sequence:m.sequence}});this.events.push(...this.pendingSummons);this.pendingSummons=[];}
   if(m.type===M.MOVE&&m.to?.location!==L.MZONE)this.pendingSummons=this.pendingSummons.filter(c=>c.card!==m.card);
   if(m.type===M.CHAINING){this.effect={code:m.code,player:m.controller??m.player};if(this.effect.player===0)add('activate',{card:m.code})}
   if(m.type===M.DAMAGE)add(m.player===1?'damage':'damage_taken',{amount:m.amount});

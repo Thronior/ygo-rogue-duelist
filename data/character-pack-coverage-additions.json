@@ -6,7 +6,9 @@
       "Proton Blast"
     ],
     "common": [
-      "Karakuri Spider"
+      "Karakuri Spider",
+      "Electromagnetic Bagworm",
+      "Woodborg Inpachi"
     ]
   },
   "Seto Kaiba": {
@@ -17,7 +19,19 @@
     ],
     "common": [
       "Mesmeric Control",
-      "Silent Doom"
+      "Silent Doom",
+      "Time Machine",
+      "Pole Position",
+      "Lightning Vortex",
+      "Dark Blade the Dragon Knight",
+      "Mirror of Yata",
+      "Orb of Yasaka",
+      "Water Hazard",
+      "Aegis of the Ocean Dragon Lord",
+      "Fish Depth Charge",
+      "Forgotten Temple of the Deep",
+      "Sentinel of the Seas",
+      "Surface"
     ]
   },
   "Espa Roba": {
@@ -25,6 +39,9 @@
       "Emes the Infinity",
       "Fiendish Engine Ω",
       "Satellite Cannon"
+    ],
+    "common": [
+      "Fruits of Kozaky's Studies"
     ]
   },
   "Joey Wheeler": {
@@ -34,7 +51,16 @@
     ],
     "common": [
       "Exarion Universe",
-      "Twinheaded Beast"
+      "Twinheaded Beast",
+      "Behemoth the King of All Animals",
+      "Centrifugal Field",
+      "Kangaroo Champ",
+      "Cyber Shield",
+      "Master of Oz",
+      "Cipher Soldier",
+      "D.D. Warrior",
+      "Amazoness Village",
+      "Sanwitch"
     ]
   },
   "Mako Tsunami": {
@@ -42,12 +68,16 @@
       "Fish and Kicks"
     ],
     "common": [
-      "Hydro Pressure Cannon"
+      "Hydro Pressure Cannon",
+      "Neo Aqua Madoor"
     ]
   },
   "Mokuba Kaiba": {
     "rare": [
       "Five-Headed Dragon"
+    ],
+    "common": [
+      "Charcoal Inpachi"
     ]
   },
   "Tristan Taylor": {
@@ -64,12 +94,12 @@
     "common": [
       "Makiu, the Magical Mist",
       "Unity",
-      "Yu-Jo Friendship"
-    ]
-  },
-  "Duke Devlin": {
-    "common": [
-      "Rigorous Reaver"
+      "Yu-Jo Friendship",
+      "Goblin Calligrapher",
+      "Ojama King",
+      "Silent Swordsman LV7",
+      "Marshmallon Glasses",
+      "Shield Crush"
     ]
   },
   "Yami Marik": {
@@ -79,7 +109,8 @@
     ],
     "common": [
       "Soul Taker",
-      "Spell of Pain"
+      "Spell of Pain",
+      "Malevolent Catastrophe"
     ]
   },
   "Serenity Wheeler": {
@@ -134,7 +165,10 @@
       "Tiki Curse",
       "Tiki Soul",
       "Tiki Peace",
-      "Swamp Mirrorer"
+      "Swamp Mirrorer",
+      "Exchange of the Spirit",
+      "Magical Stone Excavation",
+      "Soul Charge"
     ]
   },
   "Anubis": {
@@ -153,6 +187,136 @@
   "Yugi Muto": {
     "common": [
       "Stronghold the Moving Fortress"
+    ]
+  },
+  "Shadi": {
+    "common": [
+      "Canyon",
+      "Criosphinx",
+      "Exxod, Master of The Guard",
+      "Gold Sarcophagus",
+      "Great Spirit",
+      "Guardian Statue",
+      "Hieracosphinx",
+      "Magical Mallet",
+      "Medusa Worm",
+      "Megarock Dragon",
+      "Mind Control",
+      "Moai Interceptor Cannons",
+      "Sand Moth",
+      "Shifting Shadows"
+    ]
+  },
+  "PaniK": {
+    "common": [
+      "Sword of Dark Destruction"
+    ]
+  },
+  "Solomon Muto": {
+    "common": [
+      "Fire Darts",
+      "Gambler of Legend",
+      "Level Conversion Lab",
+      "Prepare to Strike Back",
+      "Snipe Hunter"
+    ],
+    "rare": [
+      "Ancient Treasure"
+    ]
+  },
+  "Yami Bakura": {
+    "common": [
+      "Assault on GHQ",
+      "Deck Devastation Virus",
+      "Phoenix Wing Wind Blast",
+      "Back to Square One",
+      "Malice Dispersion",
+      "Pitch-Black Warwolf",
+      "Absolute End",
+      "Abyssal Designator"
+    ]
+  },
+  "Rex Raptor": {
+    "common": [
+      "Big-Tusked Mammoth",
+      "The Trojan Horse",
+      "Insect Armor with Laser Cannon"
+    ]
+  },
+  "Duke Devlin": {
+    "common": [
+      "Blade Rabbit",
+      "Chu-Ske the Mouse Fighter"
+    ]
+  },
+  "Marik Ishtar": {
+    "common": [
+      "Poison Fangs",
+      "Invasion of Flames",
+      "Gil Garth",
+      "Legendary Fiend",
+      "Viser Des"
+    ]
+  },
+  "Mai Valentine": {
+    "common": [
+      "Mad Lobster"
+    ]
+  },
+  "Tea Gardner": {
+    "common": [
+      "Cyber Harpie Lady",
+      "Harpies' Hunting Ground"
+    ]
+  },
+  "Arkana": {
+    "common": [
+      "Anti-Spell Fragrance",
+      "Element Magician",
+      "Dark Magician Knight",
+      "Sage's Stone",
+      "Knight's Title"
+    ]
+  },
+  "Ishizu Ishtar": {
+    "common": [
+      "Element Soldier",
+      "Rigorous Reaver",
+      "Embodiment of Apophis",
+      "Reverse Trap",
+      "Swamp Mirrorer",
+      "Tiki Curse",
+      "Tiki Peace",
+      "Tiki Soul",
+      "Trap Master",
+      "Zoma the Spirit"
+    ]
+  },
+  "Bonz": {
+    "common": [
+      "Hade-Hane",
+      "Muko",
+      "Pyro Clock of Destiny",
+      "Timeater",
+      "Overpowering Eye"
+    ]
+  },
+  "Weevil Underwood": {
+    "common": [
+      "Rafflesia Seduction"
+    ]
+  },
+  "Dartz": {
+    "common": [
+      "Call of the Earthbound",
+      "Doomcaliber Knight",
+      "Puppet Master"
+    ]
+  },
+  "Noah Kaiba": {
+    "common": [
+      "Shadow Spell",
+      "Van'Dalgyon the Dark Dragon Lord"
     ]
   }
 }

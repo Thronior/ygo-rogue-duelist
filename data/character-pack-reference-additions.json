@@ -1,758 +1,116 @@
 [
   {
     "pack": "Yami Yugi",
-    "card": "Black Luster Ritual",
-    "pool": "rare",
-    "requiredBy": "Black Luster Soldier"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Flame Swordsman",
-    "pool": "rare",
-    "requiredBy": "Dark Flare Knight"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Magician of Black Chaos",
-    "pool": "rare",
-    "requiredBy": "Dark Magician Girl"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Gaia the Dragon Champion",
-    "pool": "rare",
-    "requiredBy": "Spiral Spear Strike"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Flame Manipulator",
-    "pool": "common",
-    "requiredBy": "Flame Swordsman"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Masaki the Legendary Swordsman",
-    "pool": "common",
-    "requiredBy": "Flame Swordsman"
-  },
-  {
-    "pack": "Yugi Muto",
-    "card": "Black Luster Ritual",
-    "pool": "rare",
-    "requiredBy": "Black Luster Soldier"
-  },
-  {
-    "pack": "Yugi Muto",
-    "card": "Magician of Black Chaos",
-    "pool": "rare",
-    "requiredBy": "Dark Magician Girl"
-  },
-  {
-    "pack": "Mai Valentine",
-    "card": "Baby Dragon",
-    "pool": "common",
-    "requiredBy": "Alligator's Sword Dragon"
-  },
-  {
-    "pack": "Mai Valentine",
-    "card": "Commencement Dance",
-    "pool": "rare",
-    "requiredBy": "Performance of Sword"
-  },
-  {
-    "pack": "Mai Valentine",
-    "card": "Protector of the Throne",
-    "pool": "common",
-    "requiredBy": "Giltia the D. Knight"
-  },
-  {
-    "pack": "Mai Valentine",
-    "card": "Guardian of the Labyrinth",
-    "pool": "common",
-    "requiredBy": "Giltia the D. Knight"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Left Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Right Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Contract with Exodia",
-    "pool": "common",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Left Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Right Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Masked Sorcerer"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "Gravekeeper's Assailant"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Magician of Black Chaos",
-    "pool": "rare",
-    "requiredBy": "Dark Magician Girl"
-  },
-  {
-    "pack": "Arkana",
-    "card": "Black Magic Ritual",
-    "pool": "rare",
-    "requiredBy": "Magician of Black Chaos"
-  },
-  {
-    "pack": "Bandit Keith",
-    "card": "Umi",
-    "pool": "common",
-    "requiredBy": "Amphibious Bugroth MK-3"
-  },
-  {
-    "pack": "Bandit Keith",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Cannon Soldier"
-  },
-  {
-    "pack": "Duke Devlin",
     "card": "Silent Swordsman LV5",
     "pool": "rare",
-    "requiredBy": "Silent Swordsman LV3"
+    "requiredBy": "Silent Swordsman LV7"
   },
   {
-    "pack": "Duke Devlin",
-    "card": "X-Head Cannon",
+    "pack": "Yami Yugi",
+    "card": "Marshmallon",
     "pool": "rare",
-    "requiredBy": "Z-Metal Tank"
+    "requiredBy": "Marshmallon Glasses"
   },
   {
-    "pack": "Duke Devlin",
-    "card": "Queen's Knight",
+    "pack": "Yami Yugi",
+    "card": "Ojama Green",
     "pool": "common",
-    "requiredBy": "King's Knight"
+    "requiredBy": "Ojama King"
   },
   {
-    "pack": "Duke Devlin",
-    "card": "Jack's Knight",
+    "pack": "Yami Yugi",
+    "card": "Ojama Yellow",
     "pool": "common",
-    "requiredBy": "King's Knight"
+    "requiredBy": "Ojama King"
   },
   {
-    "pack": "Duke Devlin",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Cannon Soldier"
-  },
-  {
-    "pack": "Duke Devlin",
-    "card": "Bokoichi the Freightening Car",
+    "pack": "Yami Yugi",
+    "card": "Ojama Black",
     "pool": "common",
-    "requiredBy": "Dekoichi the Battlechanted Locomotive"
+    "requiredBy": "Ojama King"
   },
   {
-    "pack": "Duke Devlin",
-    "card": "Silent Swordsman LV7",
+    "pack": "Anubis",
+    "card": "Great Dezard",
     "pool": "rare",
-    "requiredBy": "Silent Swordsman LV5"
-  },
-  {
-    "pack": "Espa Roba",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Cannon Soldier"
-  },
-  {
-    "pack": "Espa Roba",
-    "card": "Bokoichi the Freightening Car",
-    "pool": "common",
-    "requiredBy": "Dekoichi the Battlechanted Locomotive"
-  },
-  {
-    "pack": "Ishizu Ishtar",
-    "card": "Pot of Greed",
-    "pool": "rare",
-    "requiredBy": "Spirit of the Pot of Greed"
+    "requiredBy": "Fushioh Richie"
   },
   {
     "pack": "Joey Wheeler",
-    "card": "Umi",
+    "card": "Big Koala",
     "pool": "common",
-    "requiredBy": "The Legendary Fisherman"
+    "requiredBy": "Master of Oz"
   },
   {
-    "pack": "Lumis and Umbra",
-    "card": "Wicked-Breaking Flamberge - Baou",
+    "pack": "Joey Wheeler",
+    "card": "Des Kangaroo",
     "pool": "common",
-    "requiredBy": "Guardian Baou"
+    "requiredBy": "Master of Oz"
   },
   {
-    "pack": "Mako Tsunami",
-    "card": "Rod of Silence - Kay'est",
-    "pool": "common",
-    "requiredBy": "Guardian Kay'est"
-  },
-  {
-    "pack": "Mako Tsunami",
-    "card": "Toon World",
+    "pack": "Joey Wheeler",
+    "card": "Sangan",
     "pool": "rare",
-    "requiredBy": "Toon Mermaid"
+    "requiredBy": "Sanwitch"
   },
   {
-    "pack": "Mako Tsunami",
-    "card": "Swords of Revealing Light",
+    "pack": "Joey Wheeler",
+    "card": "Witch of the Black Forest",
     "pool": "rare",
-    "requiredBy": "Weather Report"
+    "requiredBy": "Sanwitch"
   },
   {
-    "pack": "Mako Tsunami",
-    "card": "Polymerization",
-    "pool": "common",
-    "requiredBy": "King of the Swamp"
-  },
-  {
-    "pack": "Mako Tsunami",
-    "card": "Burning Beast",
-    "pool": "common",
-    "requiredBy": "Freezing Beast"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Left Arm of the Forbidden One",
+    "pack": "Joey Wheeler",
+    "card": "Harpie Lady Sisters",
     "pool": "rare",
-    "requiredBy": "Exodia Necross"
+    "requiredBy": "Cyber Shield"
   },
   {
-    "pack": "Maximillion Pegasus",
-    "card": "Right Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Contract with Exodia",
-    "pool": "common",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Exodia the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Left Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Right Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "Gravekeeper's Assailant"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Mystical Beast of Serket",
-    "pool": "rare",
-    "requiredBy": "Temple of the Kings"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Dark Magician",
-    "pool": "rare",
-    "requiredBy": "Skilled Dark Magician"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Magician of Black Chaos",
-    "pool": "rare",
-    "requiredBy": "Toon Dark Magician Girl"
-  },
-  {
-    "pack": "Maximillion Pegasus",
-    "card": "Black Magic Ritual",
-    "pool": "rare",
-    "requiredBy": "Magician of Black Chaos"
-  },
-  {
-    "pack": "Mokuba Kaiba",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Manga Ryu-Ran"
-  },
-  {
-    "pack": "Mokuba Kaiba",
-    "card": "Dark Blade",
-    "pool": "common",
-    "requiredBy": "Pitch-Dark Dragon"
-  },
-  {
-    "pack": "Mokuba Kaiba",
+    "pack": "Joey Wheeler",
     "card": "Harpie Lady",
     "pool": "common",
-    "requiredBy": "Harpie's Pet Dragon"
+    "requiredBy": "Cyber Shield"
   },
   {
-    "pack": "Noah Kaiba",
-    "card": "Mystical Shine Ball",
+    "pack": "Joey Wheeler",
+    "card": "Elegant Egotist",
     "pool": "common",
-    "requiredBy": "The Agent of Creation - Venus"
-  },
-  {
-    "pack": "Noah Kaiba",
-    "card": "Pot of Greed",
-    "pool": "rare",
-    "requiredBy": "Avatar of The Pot"
-  },
-  {
-    "pack": "Odion",
-    "card": "Yellow Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Odion",
-    "card": "Green Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Odion",
-    "card": "Red Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Odion",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "A Cat of Ill Omen"
-  },
-  {
-    "pack": "Odion",
-    "card": "Pot of Greed",
-    "pool": "rare",
-    "requiredBy": "Avatar of The Pot"
-  },
-  {
-    "pack": "PaniK",
-    "card": "Wicked-Breaking Flamberge - Baou",
-    "pool": "common",
-    "requiredBy": "Guardian Baou"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Umi",
-    "pool": "common",
-    "requiredBy": "A Legendary Ocean"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Left Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Right Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Contract with Exodia",
-    "pool": "common",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Exodia the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Left Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Right Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "Gravekeeper's Assailant"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Dark Magician",
-    "pool": "rare",
-    "requiredBy": "Skilled Dark Magician"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Burning Beast",
-    "pool": "common",
-    "requiredBy": "Freezing Beast"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Yellow Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Green Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Red Gadget",
-    "pool": "rare",
-    "requiredBy": "Stronghold the Moving Fortress"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Goblin Attack Force"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Queen's Knight",
-    "pool": "common",
-    "requiredBy": "King's Knight"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Jack's Knight",
-    "pool": "common",
-    "requiredBy": "King's Knight"
-  },
-  {
-    "pack": "Rafael",
-    "card": "The Reliable Guardian",
-    "pool": "common",
-    "requiredBy": "Arsenal Summoner"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Winged Dragon, Guardian of the Fortress #2",
-    "pool": "common",
-    "requiredBy": "Arsenal Summoner"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Winged Dragon, Guardian of the Fortress #1",
-    "pool": "common",
-    "requiredBy": "Arsenal Summoner"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Guardian of the Labyrinth",
-    "pool": "common",
-    "requiredBy": "Arsenal Summoner"
-  },
-  {
-    "pack": "Rafael",
-    "card": "Celtic Guardian",
-    "pool": "common",
-    "requiredBy": "Arsenal Summoner"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Left Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Right Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Contract with Exodia",
-    "pool": "common",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Exodia the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Left Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Right Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "Gravekeeper's Assailant"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Rebecca Hawkins",
-    "card": "Dark Magician",
-    "pool": "rare",
-    "requiredBy": "Skilled Dark Magician"
-  },
-  {
-    "pack": "Serenity Wheeler",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Gemini Elf"
-  },
-  {
-    "pack": "Serenity Wheeler",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Serenity Wheeler",
-    "card": "Mystical Shine Ball",
-    "pool": "common",
-    "requiredBy": "The Agent of Creation - Venus"
-  },
-  {
-    "pack": "Serenity Wheeler",
-    "card": "Silent Magician LV8",
-    "pool": "rare",
-    "requiredBy": "Silent Magician LV4"
+    "requiredBy": "Harpie Lady Sisters"
   },
   {
     "pack": "Seto Kaiba",
-    "card": "Black Luster Soldier",
-    "pool": "rare",
-    "requiredBy": "Dragon Master Knight"
+    "card": "Umi",
+    "pool": "common",
+    "requiredBy": "Forgotten Temple of the Deep"
   },
   {
     "pack": "Seto Kaiba",
-    "card": "Black Luster Ritual",
-    "pool": "rare",
-    "requiredBy": "Black Luster Soldier"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Left Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Right Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Contract with Exodia",
+    "card": "Dark Blade",
     "pool": "common",
-    "requiredBy": "Exodia Necross"
+    "requiredBy": "Dark Blade the Dragon Knight"
   },
   {
-    "pack": "Shadi",
-    "card": "Left Leg of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Right Arm of the Forbidden One",
-    "pool": "rare",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Necrovalley",
-    "pool": "rare",
-    "requiredBy": "Gravekeeper's Assailant"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Silent Magician LV8",
-    "pool": "rare",
-    "requiredBy": "Silent Magician LV4"
-  },
-  {
-    "pack": "Shadi",
-    "card": "Shinato's Ark",
-    "pool": "rare",
-    "requiredBy": "Shinato, King of a Higher Plane"
-  },
-  {
-    "pack": "Solomon Muto",
-    "card": "Contract with Exodia",
+    "pack": "Seto Kaiba",
+    "card": "Pitch-Dark Dragon",
     "pool": "common",
-    "requiredBy": "Exodia Necross"
-  },
-  {
-    "pack": "Solomon Muto",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Gemini Elf"
-  },
-  {
-    "pack": "Solomon Muto",
-    "card": "Bokoichi the Freightening Car",
-    "pool": "common",
-    "requiredBy": "Dekoichi the Battlechanted Locomotive"
+    "requiredBy": "Dark Blade the Dragon Knight"
   },
   {
     "pack": "Tea Gardner",
-    "card": "Magician of Black Chaos",
+    "card": "Harpie Lady Sisters",
     "pool": "rare",
-    "requiredBy": "Dark Magician Girl"
+    "requiredBy": "Harpies' Hunting Ground"
   },
   {
     "pack": "Tea Gardner",
-    "card": "Buster Blader",
-    "pool": "rare",
-    "requiredBy": "Skilled White Magician"
+    "card": "Harpie Lady",
+    "pool": "common",
+    "requiredBy": "Harpies' Hunting Ground"
   },
   {
     "pack": "Tea Gardner",
-    "card": "Silent Magician LV8",
-    "pool": "rare",
-    "requiredBy": "Silent Magician LV4"
-  },
-  {
-    "pack": "Tea Gardner",
-    "card": "Black Magic Ritual",
-    "pool": "rare",
-    "requiredBy": "Magician of Black Chaos"
-  },
-  {
-    "pack": "Tristan Taylor",
-    "card": "Toon World",
-    "pool": "rare",
-    "requiredBy": "Toon Goblin Attack Force"
-  },
-  {
-    "pack": "Weevil Underwood",
-    "card": "Ultimate Insect LV7",
-    "pool": "rare",
-    "requiredBy": "Ultimate Insect LV5"
-  },
-  {
-    "pack": "Yami Marik",
-    "card": "Grand Tiki Elder",
+    "card": "Elegant Egotist",
     "pool": "common",
-    "requiredBy": "Masked Beast Des Gardius"
-  },
-  {
-    "pack": "Yami Marik",
-    "card": "The Mask of Remnants",
-    "pool": "common",
-    "requiredBy": "Masked Beast Des Gardius"
-  },
-  {
-    "pack": "Yami Marik",
-    "card": "Melchid the Four-Face Beast",
-    "pool": "common",
-    "requiredBy": "Masked Beast Des Gardius"
-  },
-  {
-    "pack": "Dartz",
-    "card": "Pot of Greed",
-    "pool": "rare",
-    "requiredBy": "Spirit of the Pot of Greed"
-  },
-  {
-    "pack": "Dartz",
-    "card": "Ojama Green",
-    "pool": "common",
-    "requiredBy": "Ojama Delta Hurricane!!"
-  },
-  {
-    "pack": "Dartz",
-    "card": "Umi",
-    "pool": "common",
-    "requiredBy": "Levia-Dragon - Daedalus"
-  },
-  {
-    "pack": "Dartz",
-    "card": "Dark Magician",
-    "pool": "rare",
-    "requiredBy": "Dedication through Light and Darkness"
+    "requiredBy": "Harpie Lady Sisters"
   }
 ]

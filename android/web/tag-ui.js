@@ -445,7 +445,7 @@ export class TagUI {
 
 
 
-  if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold)throw Error('Not enough gold');this.selection.add(index)}playUISound('shop-select');this.render();return}
+  if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold){playUISound('count-coins');throw Error('Not enough gold')}this.selection.add(index)}playUISound('shop-select');this.render();return}
 
   if(action==='deselect-all'){const c=this.content.characters[this.view.run.character];if(this.view.ready[this.view.seat]||c.copycat||c.engine_deck)return;this.view.run.selected=[];this.saveDraft();this.render();return}
 

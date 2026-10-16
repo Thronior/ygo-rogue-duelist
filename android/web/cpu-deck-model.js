@@ -4,8 +4,7 @@ export const fingerprint=d=>JSON.stringify([d.main,d.extra||[]]);
 export function deckIssues(deck,cards,minimum=40){
  const by=new Map(cards.map(c=>[c.id,c])),counts=new Map(),limits=new Map(),errors=[],warnings=[];
  for(const c of cards)limits.set(c.name,Math.min(limits.get(c.name)??3,LIMITS[c.id]??3));
- if(deck.main.length<minimum||deck.main.length>60)errors.push(`Main Deck: ${minimum}–60 cards required.`);
- if(deck.extra.length>15)errors.push('Extra Deck: maximum 15 cards.');
+ if(deck.main.length<minimum)errors.push(`Main Deck: at least ${minimum} cards required.`);
  for(const zone of ['main','extra'])for(const id of deck[zone]){const c=by.get(id);if(!c){errors.push(`Unknown card ${id}.`);continue}if(!!(c.data.type&64)!==(zone==='extra'))errors.push(`${c.name} is in the wrong deck.`);counts.set(c.name,(counts.get(c.name)||0)+1)}
  for(const [name,n] of counts){if(n>3)errors.push(`${name}: maximum 3 copies.`);else if(n>(limits.get(name)??3))warnings.push(`${name}: ${n} copies; UC limit ${limits.get(name)}.`)}
  return {errors:[...new Set(errors)],warnings};
