@@ -9,14 +9,16 @@
     if(request.value("protocol", 0) == 1) {
         const uint8_t* data = packet.data();
         static nlohmann::json pending = nlohmann::json::array();
-        static int peak_attack=0,peak_defense=0,peak_field=0,turns=0;
+        static int peak_attack=0,peak_defense=0,peak_field=0,peak_monsters=0,turns=0;
         {
             std::lock_guard<epro::mutex> lock(mainGame->gMutex);
-            int field=0;
-            for(auto* c:mainGame->dField.mzone[0]) if(c && (c->position & POS_FACEUP)) {
-                peak_attack=std::max(peak_attack,c->attack);peak_defense=std::max(peak_defense,c->defense);++field;
+            int field=0,monsters=0;
+            for(auto* c:mainGame->dField.mzone[0]) if(c) {
+                ++monsters;
+                if(c->position & POS_FACEUP) { peak_attack=std::max(peak_attack,c->attack);peak_defense=std::max(peak_defense,c->defense);++field; }
             }
             peak_field=std::max(peak_field,field);
+            peak_monsters=std::max(peak_monsters,monsters);
         }
         if(packet.message == MSG_NEW_TURN) ++turns;
         if((packet.message == MSG_SUMMONING || packet.message == MSG_SPSUMMONING || packet.message == MSG_FLIPSUMMONING) && packet.buff_size() >= 5) {
@@ -55,7 +57,7 @@
         }
         if(packet.message == MSG_WIN && packet.buff_size() >= 2) {
             int grave_monsters=0;for(auto* c:mainGame->dField.grave[0]) if(c && (c->type & TYPE_MONSTER)) ++grave_monsters;
-            events.push_back({{"grave_monsters",grave_monsters},{"kind","duel_metrics"},{"peak_attack",peak_attack},{"peak_defense",peak_defense},{"peak_field",peak_field},{"turns",turns}});
+            events.push_back({{"grave_monsters",grave_monsters},{"kind","duel_metrics"},{"peak_attack",peak_attack},{"peak_defense",peak_defense},{"peak_field",peak_field},{"peak_monsters",peak_monsters},{"turns",turns}});
             nlohmann::json result = {{"protocol", 1}, {"id", request.value("id", "")},
                 {"winner", packet.data()[0]}, {"reason", packet.data()[1]},
                 {"lp", mainGame->dInfo.lp[0]}, {"opponent_lp", mainGame->dInfo.lp[1]}, {"events", events}};

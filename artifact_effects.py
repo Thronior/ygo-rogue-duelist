@@ -122,7 +122,7 @@ end'''
  end
 end'''
  if kind=='starting_field_spell':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
-e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsType(TYPE_SPELL|TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_low_level':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x41) and c:IsLevelAbove(1) and c:IsLevelBelow(4) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_level_up':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)

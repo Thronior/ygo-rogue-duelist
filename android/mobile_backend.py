@@ -1,4 +1,4 @@
-"""Thin mobile transport over the unchanged desktop campaign rules."""
+"""Thin mobile transport over the shared campaign rules."""
 import json, random, re, time
 import campaign as g, content, storage, achievement_model, passives
 

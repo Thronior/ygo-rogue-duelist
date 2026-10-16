@@ -1,6 +1,8 @@
 # Editing game data
 
-Back up your saves and JSON files first. Desktop reloads relic tuning on the title screen and before new runs, duels and shops. Existing shop prices stay fixed until the next shop. Run `Build Desktop and Android.cmd` to update the APK; it bundles the same data.
+> **Platform status:** The native Windows desktop edition is deprecated and is no longer maintained or distributed. The supported outputs are the webapp and Android app. The webapp remains supported in desktop browsers.
+
+Back up your saves and JSON files first. Run `Build Android and Web.cmd` to bundle data changes for the supported clients.
 
 - `tuning.json`: every relic name, price, description, artwork, category, effect, numeric amount, and filter. `_fields` documents each variable. IDs must stay stable. Numeric effects use amount. Compound options are documented in parameters (caps and defensive bonuses).
 - `packs.json`: booster metadata, card pool and themed starting supplements. Preserve IDs and use existing card IDs.
@@ -17,6 +19,6 @@ JSON is strict: double quotes, no trailing commas, no comments. Documentation is
 
 ## Active enemy decks
 
-`decks/*.ydk` are now authoritative. Edit these in EDOPro. `<opponent-name>-tier-<tier>.ydk` controls each difficulty; `tutorial-*.ydk` controls the opening encounter; `world-champion-2004.ydk` controls the optional challenge. JSON deck arrays are provenance only. Desktop reloads tier/tutorial decks before each duel. Rebuild the APK to bundle changes on Android. The Side Deck is preserved for editing but not used in single duels.
+`decks/*.ydk` are now authoritative. Edit these in EDOPro or a text editor. `<opponent-name>-tier-<tier>.ydk` controls each difficulty; `tutorial-*.ydk` controls the opening encounter; `world-champion-2004.ydk` controls the optional challenge. JSON deck arrays are provenance only. Rebuild the Android app or webapp to bundle deck changes. The Side Deck is preserved for editing but not used in single duels.
 
 `decks/index.json` maps stable character IDs to the named files. Do not rename files without updating this index. Invalid card IDs and over-three-copy lists are rejected before starting a duel.

@@ -97,6 +97,19 @@ class Artwork:
     def card(self,parent,cid,size=(115,168),crop=False,**kw):
         return self.label(parent,ASSETS/'cards'/f'{cid}.jpg',size,
             f'https://images.ygoprodeck.com/images/cards/{cid}.jpg',crop=crop,**kw)
+    def relic_path(self,key):
+        import json,campaign
+        from content import ART_INFO
+        art=ART_INFO[key]['art']
+        card=campaign.BY_NAME.get(art)
+        if card:return ASSETS/'cards'/f'{card["id"]}.jpg',True
+        custom=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
+        if key in custom:return ASSETS/'relics'/custom[key],False
+        fallback=campaign.BY_NAME['Sangan']
+        return ASSETS/'cards'/f'{fallback["id"]}.jpg',True
+    def relic(self,parent,key,size=(115,168),**kw):
+        path,crop=self.relic_path(key)
+        return self.label(parent,path,size,crop=crop,**kw)
     def pack(self,parent,code,size=(65,95),**kw):
         from content import PACK_BY_ID
         p=PACK_BY_ID.get(code)

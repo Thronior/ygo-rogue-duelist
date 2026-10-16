@@ -2,7 +2,7 @@
 
 The public endpoint is configured in `android/web/multiplayer-config.json`. Players select a character, host or join with a five-character code, and can reconnect with that code on the same device. No player account, URL input, port forwarding, or TURN subscription is needed.
 
-The host device runs the authoritative duel. WebRTC attempts a direct connection first. If it cannot connect within eight seconds, both clients switch to an authenticated TLS WebSocket relay on this Worker. Relay traffic is forwarded transiently, never stored. Either Android or desktop can host. Existing TURN secrets remain optional, not required.
+The host device runs the authoritative duel. WebRTC attempts a direct connection first. If it cannot connect within eight seconds, both clients switch to an authenticated TLS WebSocket relay on this Worker. Relay traffic is forwarded transiently, never stored. Either Android or the webapp can host, including when the webapp is open in a desktop browser. The native Windows desktop edition is deprecated and no longer supported. Existing TURN secrets remain optional, not required.
 
 ## Owner deployment
 

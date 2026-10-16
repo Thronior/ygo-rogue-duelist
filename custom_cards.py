@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 ANCIENT_TREASURE=190000050
+GATE_GUARDIAN_F=190000051
 CARDS=json.loads((Path(__file__).parent/'data/custom-cards.json').read_text(encoding='utf8'))
 IDS={c['id'] for c in CARDS}
 
@@ -11,6 +12,12 @@ def install_packs(packs):
   if pack['id']!='WC4-20':continue
   if ANCIENT_TREASURE not in pack['common']:pack['common'].append(ANCIENT_TREASURE)
   pack.setdefault('rarities',{})[str(ANCIENT_TREASURE)]=['Common']
+ for pack in packs:
+  if pack['id']!='DRAFT-PARADOX-BROTHERS':continue
+  pack['common']=[cid for cid in pack['common'] if cid!=GATE_GUARDIAN_F]
+  if GATE_GUARDIAN_F not in pack['rare']:pack['rare'].append(GATE_GUARDIAN_F)
+  pack.setdefault('rarities',{})[str(GATE_GUARDIAN_F)]=['Rare']
+  if GATE_GUARDIAN_F not in pack.setdefault('rare_display',[]):pack['rare_display'].append(GATE_GUARDIAN_F)
 
 def coins(events):
  # Amount is fixed by the card; never trust a caller-supplied reward amount.

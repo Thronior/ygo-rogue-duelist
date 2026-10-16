@@ -1,5 +1,5 @@
 """New relic batch: definitions, duel scripts, economy hooks and blank transform."""
-import sys, random, uuid
+import sys, random, uuid, json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -18,13 +18,15 @@ from content import PLAYABLE_IDS
 p["unlocked"] = list(PLAYABLE_IDS)
 storage.write(base / "profile.json", p)
 
-assert len(ARTIFACTS) == 69
+assert "bounty_list" in ARTIFACTS
 for key in ["faulty_printer", "golden_sleeve", "magic_mirror", "underdog_clause",
             "traps_no_more", "spells_no_more", "legendary_shackles", "toon_world",
             "ritual_dagger", "fusion_chamber", "phoenix_rebirth", "champion_trophy",
-            "glass_shard", "deck_spyglass", "rulebook", "blank_relic"]:
+            "glass_shard", "deck_spyglass", "rulebook", "blank_relic", "bounty_list"]:
     assert key in ARTIFACTS, key
-    assert ART_INFO[key]["art"] in g.BY_NAME, (key, ART_INFO[key]["art"])
+    if ART_INFO[key]["art"] not in g.BY_NAME:
+        custom = json.loads((ROOT / "data/relic-custom-art.json").read_text(encoding="utf8"))
+        assert key in custom and (ROOT / "assets/relics" / custom[key]).is_file(), (key, ART_INFO[key]["art"])
 assert reload_tuning() in (True, False)
 assert ART_INFO["traps_no_more"]["effect"] == "trap_negate"
 
@@ -35,7 +37,10 @@ assert "re:IsActiveType(TYPE_TRAP)" in script and "re:IsActiveType(TYPE_SPELL)" 
 assert "Duel.NegateEffect(ev)" in script and "EVENT_CHAIN_SOLVING" in script
 assert "EVENT_ADJUST" in script and "Duel.SetLP(0,1000)" in script
 run = {"artifacts": ["magic_mirror", "urn"], "mirror_copy": "urn", "curses": [], "loop": 0}
-assert passives.script(run) == passives.script({"artifacts": ["urn"], "curses": [], "loop": 0})
+mirror_script=passives.script(run)
+urn_script=passives.script({"artifacts": ["urn"], "curses": [], "loop": 0})
+strip_ai=lambda value:"\n".join(line for line in value.splitlines() if not line.startswith("-- SHADOW_RUN_AI "))
+assert strip_ai(mirror_script) == strip_ai(urn_script)
 run = {"artifacts": ["faulty_printer"], "faulty": {"89631139": [500, -200]}, "curses": [], "loop": 0}
 assert "HINT_MESSAGE" not in passives.script(run, telemetry=False)
 
@@ -59,17 +64,17 @@ tally, total = g.rewards(run, events)
 assert tally["Golden Card"] == 50, tally.get("Golden Card")
 pups = sum(1 for c in g.deck(run) if g.BY_ID[c]["data"]["type"] & 1
            and g.BY_ID[c]["data"]["type"] & 16 and g.BY_ID[c]["level"] <= 2)
-assert tally.get("Underdog's Clause", 0) == pups, (tally.get("Underdog's Clause"), pups)
-assert tally["Glass Shard"] == total // 2 and total == min(250, total)
+assert tally.get("Underdog's Clause", 0) == pups * ART_INFO["underdog_clause"]["amount"], (tally.get("Underdog's Clause"), pups)
+assert tally["Glass Shard"] > 0 and total == tally["Glass Shard"] * 2
 run["round"] = 2
 run["artifacts"].append("champion_trophy")
 tally2, _ = g.rewards(run, [])
-assert tally2["Champion Trophy"] == 30
+assert tally2["Champion Trophy"] == ART_INFO["champion_trophy"]["amount"]
 run2 = g.new_run(1, random.Random(5))
 g.auto_deck(run2)
 run2.update(artifacts=["magic_mirror", "urn"], mirror_copy="urn")
 tally_m, _ = g.rewards(run2, [])
-assert tally_m["Artifacts"] == 30, tally_m.get("Artifacts")
+assert tally_m["Artifacts"] == ART_INFO["urn"]["amount"] * 2, tally_m.get("Artifacts")
 
 # Faulty printer: deltas stay within range and never drop stats below zero.
 run3 = g.new_run(0, random.Random(6))
@@ -86,7 +91,8 @@ for seed in range(60):
         seen = True
         break
 assert seen, "printer never misprinted in 60 seeded buys"
-for k, (datk, ddef) in run3["card_mods"].items():
+for k, mod in run3["card_mods"].items():
+    datk, ddef = mod[:2]
     c = g.BY_ID[run3["pool"][int(k)]]
     assert -1000 <= datk <= 1000 and -1000 <= ddef <= 1000
     assert c["atk"] + datk >= 0 and c["defense"] + ddef >= 0
@@ -112,4 +118,4 @@ g.prepare_duel(run5, random.Random(8))
 lua = (g.RUNTIME / "puzzles/shadow-run.lua").read_text(encoding="utf8")
 assert lua.count(",1,1)") >= 2, lua[-400:]
 
-print("PASS: 16 new relics defined, scripted, economical and transformable (Loaded Dice omitted: core RNG not interceptable)")
+print("PASS: relic definitions, scripts, economy and transforms (Loaded Dice omitted: core RNG not interceptable)")

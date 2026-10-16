@@ -277,9 +277,8 @@ class CharacterSelect(tk.Canvas):
    self.tag_bind(tag,'<Motion>',lambda e:self._tip_move())
   relic=c.get('starting_relic','random')
   if relic in (None,'none'):relic='none'
-  try:rid=game.BY_NAME[ART_INFO[relic]['art']]['id'] if relic!='random' else None
-  except KeyError:rid=None
-  relic_image=self.app.art.photo(ASSETS/'cards'/f'{rid}.jpg' if rid else ASSETS/'card-back.jpg',(max(1,int(96*sx)),max(1,int(96*sy))),crop=bool(rid))
+  relic_path,relic_crop=self.app.art.relic_path(relic) if relic not in ('random','none') else (ASSETS/'card-back.jpg',False)
+  relic_image=self.app.art.photo(relic_path,(max(1,int(96*sx)),max(1,int(96*sy))),crop=relic_crop)
   if relic!='none':self.refs.append(relic_image);self.create_image(929*sx,584*sy,image=relic_image)
   text(992,565,'Random relic' if relic=='random' else 'No relic' if relic=='none' else ARTIFACTS[relic][0],13,'#f0d8b2',anchor='w')
   text(992,606,'A different relic each run.' if relic=='random' else 'The Dueling Engine starts with no relic.' if relic=='none' else ARTIFACTS[relic][2],9,'#e9d3ae',anchor='w',width=int(238*sx))

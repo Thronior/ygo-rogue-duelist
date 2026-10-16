@@ -128,8 +128,11 @@ export function smartContext(e,p,L,prompt=null){
  const relevantForest=c=>['Insect','Beast','Plant','Beast-Warrior'].includes(race(c));
  const forestNet=own.filter(c=>face(c)&&relevantForest(c)).length-enemy.filter(c=>face(c)&&relevantForest(c)).length;
  const oppSets=theirBack.length;
- function ritualGate(c,targetName,extra){const t=hand.find(c=>name(c)===targetName);if(!t)return -1;if(!ritualReady(c))return -1;return extra??95;}
- function equipScore(c,bonus){return own.some(f=>face(f)&&lethalAfter(atk(f)+bonus-e.lp[1-p]))||own.some(f=>face(f)&&atk(f)<=threat&&atkAfter(f,bonus)>threat)?75:(own.some(face)?45:-1);}
+ function ritualGate(c,targetName,extra){const t=hand.find(c=>name(c)===targetName);if(!t)return -1;if(!ritualReady(c))return -1;
+  // The Masked Beast has no effect; never trade away a stronger face-up monster for it.
+  if(targetName==='The Masked Beast'&&own.some(x=>face(x)&&projectedAttack(x)>projectedAttack(t)))return -1;
+  return extra??95;}
+ function equipScore(c,bonus){const targets=own.filter(f=>face(f)&&equipUseful(c,f));return targets.some(f=>lethalAfter(atk(f)+bonus-e.lp[1-p]))||targets.some(f=>atk(f)<=threat&&atkAfter(f,bonus)>threat)?75:(targets.length?45:-1);}
  const removalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane','Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Thousand Knives','Exiled Force','Widespread Ruin']);
  const isRemoval=n=>removalNames.has(n);
  function reservedForRemoval(c){return (e.activeChain||[]).some(link=>{
@@ -446,8 +449,13 @@ export function smartContext(e,p,L,prompt=null){
    !enemy.some(other=>!same(other,t)&&face(other)&&(other.position&1)&&atk(other)>strength));
  }
  const defenseReducingEquips=new Set(['Invigoration','Burning Spear',"Elf's Light",'Steel Shell','Sword of Dark Destruction']);
+ function spellCannotAffect(source,target){
+  if(target?.is_immune)return true;
+  const sourcePlayer=source.controller??p;
+  return face(target)&&(data(source).type&2)&&(data(target).type&0x10)&&q(1-sourcePlayer,L.SZONE).some(x=>face(x)&&!x.is_disabled&&name(x)==='Dust Barrier');
+ }
  function equipUseful(source,target){
-  if(!equipCompatible(source,target))return false;
+  if(!equipCompatible(source,target)||spellCannotAffect(source,target))return false;
   if(!defenseReducingEquips.has(name(source))||target.position&1)return true;
   return (prompt?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
  }
@@ -516,7 +524,7 @@ export function smartContext(e,p,L,prompt=null){
  function activation(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
   if(c.code===190000050)return coinSpellValue(e,p,L);
   if(n==='Stealth Bird')return chain?85:remainingAttackers().some(a=>same(a,c))&&(!enemy.length||enemy.some(t=>face(t)&&atk(c)>power(t)))?-1:85;
-  if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
+  if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return chain&&e.player!==p&&e.phase===8&&!e.inDamageStep&&e.attackCard?.controller===1-p&&hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
    const cheap=own.filter(x=>!resilient(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0))[0];
    if(e.cpuReviewRules?.swapForecast!==false){
@@ -567,7 +575,7 @@ export function smartContext(e,p,L,prompt=null){
   const lasting=!!(d.type&(0x20000|0x40000))||['Swords of Revealing Light',"Nightmare's Steelcage"].includes(n);
   if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&!(n==='Temple of the Kings'&&own.some(x=>name(x)==='Mystical Beast of Serket'))&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
   if((d.type&6)&&attackOnly.has(n)&&!remainingAttackers().length)return -1;
-  if(friendlyEquip(c)&&!own.some(x=>face(x)&&equipCompatible(c,x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
+  if(friendlyEquip(c)&&!own.some(x=>face(x)&&equipUseful(c,x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
   if(n==='The Cheerful Coffin'){
    // Recovery next turn does not replace a blocker needed this turn.
    const body=x=>(data(x).type&1)&&!(data(x).type&0x20000c0)&&(e.cards.get(x.code)?.level||0)<=4;
@@ -721,7 +729,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Temple of the Kings'&&!(c.location===L.SZONE&&face(c))&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
   if(n==='Temple of the Kings'&&c.location===L.SZONE&&face(c))return templeUpgradeAvailable()?100:-1;
   if(['Widespread Ruin','Lightforce Sword','Blast Held by a Tribute','Judgment of Anubis','White Hole','Dark Spirit of the Silent'].includes(n))return chain&&e.player!==p?95:-1;
-  if(['Embodiment of Apophis','Metal Reflect Slime'].includes(n))return own.length<5?65:-1;
+  if(['Embodiment of Apophis','Metal Reflect Slime'].includes(n))return own.length<5&&(!chain||e.phase>=8&&e.phase<256)?65:-1;
   if(['Coffin Seller','Card of Safe Return','Temple of the Kings'].includes(n))return 45;
   if(["Nightmare's Steelcage",'The Dark Door','Dragon Capture Jar'].includes(n))return danger?70:-1;
   if(n==='Spiritualism')return theirBack.length?90:-1;
@@ -761,7 +769,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='De-Spell'&&theirBack.some(x=>face(x)&&(name(x)==='Messenger of Peace'||name(x)==='Swords of Revealing Light')))return 112;
   if(n==='De-Spell')return theirBack.some(x=>face(x)&&(data(x).type&2))?105:-1;
   if(n==='Remove Trap')return theirBack.some(x=>face(x)&&(data(x).type&4))?105:-1;
-  if(['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break'].includes(n))return enemy.length&&(!/Tribute|Break/.test(n)||hand.length>=2)?105:-1;
+  if(n==='Raigeki Break')return hand.length>=2&&[...enemy,...theirBack].some(x=>face(x)&&targetValue(x)>=1800)?105:-1;
+  if(['Fissure','Smashing Ground','Tribute to the Doomed'].includes(n))return enemy.length&&(!/Tribute/.test(n)||hand.length>=2)?105:-1;
   if(n==='Two-Pronged Attack')return own.length>=2&&own.map(expendable).sort((a,b)=>a-b).slice(0,2).reduce((a,b)=>a+b,0)<threat?100:-1;
 
   if(n==='Snatch Steal')return enemy.some(controlTarget)?110:-1;
@@ -1375,6 +1384,6 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(c.de
   if(/Creature Swap/.test(fxN||'')){if(cand.controller===p)return nm==='The Bistro Butcher'?100000:(data(cand).type&0x200)?50000:-expendable(cand);return 10000+atk(cand);}
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
- function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true))return false;if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
+ function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=c.defense??data(c).defense??0;return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
  return {attackOpportunity,battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }

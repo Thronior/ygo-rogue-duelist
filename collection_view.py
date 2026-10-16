@@ -153,7 +153,7 @@ def show(app,kind='Packs',query='',page=0,pack=None,type_filter='All',subtype='A
   box=tk.Frame(grid2,bg=v.PANEL,padx=8,pady=8);box.grid(row=i//6,column=i%6,padx=5,pady=5,sticky='nsew')
   if kind=='Packs':art=app.art.pack(box,key,(120,165),bg=v.PANEL);callback=lambda e,key=key:show(app,'Cards','',0,key)
   else:
-   art=app.art.card(box,g.BY_NAME[content.ART_INFO[key]['art']]['id'],(120,100),bg=v.PANEL,crop=True);callback=None
+   art=app.art.relic(box,key,(120,100),bg=v.PANEL);callback=None
    v.label(box,content.ARTIFACTS[key][2],10,wraplength=170).pack(side='bottom')
   art.pack();v.label(box,name,10,wraplength=150).pack()
   if callback:art.bind('<Button-1>',callback);art.configure(cursor='hand2')

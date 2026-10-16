@@ -1,6 +1,8 @@
-# YGO Rogue — installable web preview (0.1.18)
+# YGO Rogue — installable webapp
 
-This standalone web edition reuses the current mobile game. Native Windows, Android and iOS source releases are unchanged.
+> **Platform status:** The native Windows desktop edition is deprecated and is no longer maintained or distributed. The supported versions are the webapp and Android app. The webapp remains supported in desktop browsers; this is not the retired native desktop client.
+
+This installable webapp shares campaign rules and assets with the Android game.
 
 ## Local preview
 
@@ -18,7 +20,7 @@ On iPhone, open the HTTPS link in Safari, use Share → Add to Home Screen, and 
 
 In game Settings, choose **Install, offline play & save backups**, then **Download / update offline game**. Keep the app open until the download is complete. The complete uncompressed offline payload is about 212 MiB; downloads may use less bandwidth when the host compresses responses. Offline single-player play is supported. Multiplayer still needs the existing online service.
 
-Saves, including the three run slots, stay in IndexedDB on this browser/origin. Updates preserve them. Use Export save backup and Import save backup to move progress or protect it before clearing browser data. Desktop/Android saves are not automatically synchronized. Keep using the same public origin for future releases.
+Saves, including the three run slots, stay in IndexedDB on this browser/origin. Updates preserve them. Use Export save backup and Import save backup to move progress or protect it before clearing browser data. Browser and Android saves are not automatically synchronized. Import existing saves from the deprecated native desktop edition through webapp Settings. Keep using the same public origin for future releases.
 
 Updates download a complete new cache and activate only after all game windows close. An incomplete download leaves the previous installed version available. Publish the full build as one deployment; do not mix files from different versions.
 

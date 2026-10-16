@@ -22,8 +22,7 @@ def show(app):
   name,_,desc=ARTIFACTS[key]
   if key=='magic_mirror' and app.run.get('mirror_copy'):desc+=' Current copy: '+ARTIFACTS[app.run['mirror_copy']][0]+'.'
   row=tk.Frame(body,bg=v.PANEL,padx=12,pady=12);row.pack(fill='x',padx=15,pady=5)
-  card=game.BY_NAME.get(ART_INFO[key]['art'],game.BY_NAME['Sangan'])
-  app.art.card(row,card['id'],(85,100),bg=v.PANEL).pack(side='left',padx=(0,15))
+  app.art.relic(row,key,(85,100),bg=v.PANEL).pack(side='left',padx=(0,15))
   v.label(row,name,15,v.GOLD).pack(anchor='w');v.label(row,desc,12,wraplength=540,justify='left').pack(anchor='w',pady=8)
  app.button(popup,'Close',popup.destroy).pack(pady=8)
  return popup

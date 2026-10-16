@@ -1,18 +1,20 @@
-# Android private experiment
+# Android app
+
+> **Platform status:** The native Windows desktop edition is deprecated and is no longer maintained or distributed. The supported versions are this Android app and the webapp; the webapp also works in desktop browsers. Existing saves from the deprecated native app can be imported through the webapp Settings.
 
 Install `../releases/YGO-Rogue-Android.apk` on Android 10 or newer. Use a current Android System WebView. The APK includes every eligible card image, token, booster image, character, music track, campaign rule and duel script; no network connection or account is required.
 
-This build uses the real Project Ignis duel core through `ocgcore-wasm`, with a touch UI patterned after the classic desktop/Tag Force field. It does **not** embed the native EDOPro Android GUI. The desktop still uses the customized native EDOPro client. Native Android GUI integration needs an Android build of the customized client and its campaign-result bridge; the existing online client cannot report this campaign's rewards and results automatically.
+This build uses the Project Ignis duel core through `ocgcore-wasm`, with a touch-friendly field layout. It does not embed the native EDOPro GUI.
 
-The Python campaign modules are copied unchanged into the APK and run offline with Pyodide. Characters, draft packs, deck lists, shops, relic effects, achievements and saved progression therefore come from the same source as desktop. Relic effects run as Lua effects inside the duel core. The mobile opponent decision layer is in `web/duel.js`; it is separate from the desktop C++ opponent.
+The Python campaign modules are copied into the APK and run offline with Pyodide. Characters, draft packs, deck lists, shops, relic effects, achievements and progression use the shared campaign data. Relic effects run as Lua effects inside the duel core. The mobile opponent decision layer is in `web/duel.js`.
 
 ## Updating
 
-Run `../Build Desktop and Android.cmd`. It rebuilds the native desktop client when its sources change, then synchronizes the campaign/data/art and produces a signed APK. Reinstall that APK over the existing app to preserve saves. Keep `signing/private-experiment.jks`: replacing the signing key prevents in-place updates. This is a local test signing key, not a public-release credential.
+Run `../Build Android and Web.cmd` to build the supported Android and web outputs. Reinstall the APK over the existing app to preserve saves. Keep `signing/private-experiment.jks`: replacing the signing key prevents in-place updates. This is a local test signing key, not a public-release credential.
 
 `../tools/build_android.py --sync-only` refreshes the mobile assets without packaging. Build tools and the JDK live under `../dependencies/android` on D:. `web/build.json` records the shared-campaign checksum.
 
-Saves are app-private and use Android AtomicFile plus the desktop checksummed JSON/backup format. Duel responses are journaled and replayed on Continue. Desktop and Android progress are separate; there is no cloud synchronization. Uninstalling the Android app deletes its private save.
+Saves are app-private and use Android AtomicFile. Duel responses are journaled and replayed on Continue. Android and browser progress are separate; there is no automatic cloud synchronization. Uninstalling the Android app deletes its private save.
 
 ## Controls
 

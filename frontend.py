@@ -289,7 +289,7 @@ class App(tk.Tk):
   grid,wheel=scroller(self);columns=max(2,min(4,(self.winfo_width()-50)//260))
   for i,(a,(name,price,desc)) in enumerate((a,row) for a,row in ARTIFACTS.items() if a in (self.run or {}).get('artifacts',[])):
    box=tk.Frame(grid,bg=PANEL,padx=15,pady=12);box.grid(row=i//columns,column=i%columns,padx=7,pady=7,sticky='nsew')
-   c=game.BY_NAME.get(ART_INFO[a]['art'],game.BY_NAME['Sangan']);self.art.card(box,c['id'],(210,105),crop=True,bg=PANEL).pack()
+   self.art.relic(box,a,(210,105),bg=PANEL).pack()
    v.label(box,name,15,GOLD).pack();v.label(box,desc,10,wraplength=220).pack(pady=5)
    for w in [box,*box.winfo_children()]:w.bind('<MouseWheel>',wheel)
  def close(self):

@@ -134,9 +134,9 @@ class ShopScene(tk.Canvas):
   text(830,561,'ARTIFACTS',13,anchor='w');text(1244,561,'Permanent upgrades',10,'#cfc5c3',anchor='e')
   width=427/max(1,len(artifacts))
   for n,(idx,item) in enumerate(artifacts):
-   x=827+width*(n+.5);name,_,desc=ARTIFACTS[item['id']];card=game.BY_NAME.get(ART_INFO[item['id']]['art'],game.BY_NAME['Sangan']);tag='item'+str(idx)
+   x=827+width*(n+.5);name,_,desc=ARTIFACTS[item['id']];relic_path,relic_crop=self.app.art.relic_path(item['id']);tag='item'+str(idx)
    rect(x-width/2+5,578,x+width/2-5,663,'#222c36','#776a79')
-   art(ASSETS/'cards'/f'{card["id"]}.jpg',x,696,width-22,112,tag,crop=True)
+   art(relic_path,x,696,width-22,112,tag,crop=relic_crop)
    title_text(x,591,name,10,width=int((width-14)*sx))
    self.hover(tag,name,desc);self.tag_bind(tag,'<Button-1>',lambda e,idx=idx:self.toggle_select(idx));buy_button(idx,item,x,688,width-12)
 

@@ -1,4 +1,4 @@
-import {OcgHintTiming as Timing} from './vendor/package/dist/index.js';
+import {OcgHintTiming as Timing,OcgMessageType as Message,OcgResponseType as Response} from './vendor/package/dist/index.js';
 import {toss3DMarkup} from './toss-3d.js';
 export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  if(m?.forced||mode==='always')return true;
@@ -24,6 +24,12 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
   return continuousTrap||removal;
  }))return true;
  return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0;
+}
+
+export function mandatoryChainResponse(m){
+ if(m?.type!==Message.SELECT_CHAIN||!m.forced)return null;
+ const total=m.selects?.length||0,optional=Number(m.spe_count)||0;
+ return total>1&&optional===total-1?{type:Response.SELECT_CHAIN,index:0}:null;
 }
 
 // Only collapse prompts with no timing/order decision left to make.

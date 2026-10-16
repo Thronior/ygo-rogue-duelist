@@ -9,6 +9,26 @@ from content import *
 import passives,unlocks,encounters,endless
 import cursed_relics,approved_relics as ar
 
+BOUNTY_OBJECTIVES=(
+ {'id':'ritual_summon','title':'Ritual Summon','description':'Ritual Summon a monster this Duel.'},
+ {'id':'fusion_summon','title':'Fusion Summon','description':'Fusion Summon a monster this Duel.'},
+ {'id':'five_monsters','title':'Full Field','description':'Control at least 5 monsters at once this Duel.'},
+ {'id':'eleven_activations','title':'Keep the Pressure','description':'Activate at least 11 cards or effects this Duel.'},
+ {'id':'over_3000_atk','title':'Heavy Hitter','description':'Control a monster with over 3,000 ATK this Duel.'},
+)
+
+def bounty_complete(objective,events,by_id):
+ if not objective:return False
+ key=objective.get('id')
+ if key in ('ritual_summon','fusion_summon'):
+  mask=0x80 if key=='ritual_summon' else 0x40
+  return any(e.get('kind')=='summon' and (by_id.get(int(e.get('card',0)),{}).get('data',{}).get('type',0)&mask) for e in events)
+ if key=='five_monsters':
+  return any(e.get('kind')=='duel_metrics' and max(int(e.get('peak_monsters',0)),int(e.get('peak_field',0)))>=5 for e in events)
+ if key=='eleven_activations':return sum(1 for e in events if e.get('kind')=='activate')>=11
+ if key=='over_3000_atk':return any(e.get('kind')=='duel_metrics' and int(e.get('peak_attack',0))>3000 for e in events)
+ return False
+
 # These effects require buying or changing card stock, unavailable to fixed-deck characters.
 FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
  'archetype_stock','like_archfiend','like_exodia','like_toon','like_ritual',
@@ -29,6 +49,15 @@ def install(g):
  g.BY_ID={c['id']:c for c in g.CARDS};g.BY_NAME={c['name']:c for c in g.CARDS}
  aliases={int(k):v for k,v in json.loads((g.ROOT/'data/card-aliases.json').read_text()).items()}
  g.CHARACTERS=CHARACTERS;g.ARTIFACTS=ARTIFACTS;g.OPPONENTS=['Act I']*3+['Act II']*3+['Act III']*3
+ def ensure_bounty(run,rng=random,force=False):
+  if 'bounty_list' not in run.get('artifacts',[]):
+   run.pop('bounty_objective',None)
+   return None
+  if force or not run.get('bounty_objective'):
+   previous=(run.get('last_bounty') or {}).get('id')
+   choices=[item for item in BOUNTY_OBJECTIVES if item['id']!=previous] or list(BOUNTY_OBJECTIVES)
+   run['bounty_objective']=dict(rng.choice(choices))
+  return run['bounty_objective']
  def load_run(slot=None):
   slot=storage.active_slot() if slot is None else slot
   def valid(r):
@@ -71,6 +100,7 @@ def install(g):
     r['campaign_rules']=4;r['routes']=[];r['curses']=[];r['boss_curse']=None
     if r['round']>=RUN_LENGTH and r['stage']!='gameover':r['round']=RUN_LENGTH;r['stage']='complete'
    r.setdefault('stats',{});r.setdefault('unlocks_earned',[]);r.setdefault('started_at',time.time())
+   if r.get('stage')!='duel':ensure_bounty(r)
    # Repair old over-limit decks without discarding owned cards or resetting a run.
    counts=Counter();selected=[]
    for i in sorted(set(r['selected'])):
@@ -184,6 +214,7 @@ def install(g):
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
    if relic=='ankh':r['lp']+=2000
+  ensure_bounty(r,rng)
   if relic=='final_hour':r['pool'].append(g.BY_NAME['Final Countdown']['id'])
   routes(r,rng)
   if char.get('copycat'):copy_deck(r,rng)
@@ -230,6 +261,7 @@ def install(g):
   return total
  def prepare_duel(run,rng=random):
   challenge_levels.suppress(run)
+  ensure_bounty(run,rng)
   if run.get('reward_slots',{}).get('kind')=='deck' and run['reward_slots'].get('pending'):raise ValueError('Choose your reward deck before starting the duel.')
   cursed_relics.require_choice(run)
   reload_tuning()
@@ -322,7 +354,7 @@ def install(g):
   lua=['-- Shadow Run: native EDOPro campaign.','Debug.SetAIName('+json.dumps(enemy_name)+')','Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)',f'Debug.SetPlayerInfo(0,{lp},{hand0},1)',f'Debug.SetPlayerInfo(1,{enemy_lp},{hand1},1)']
   for p,cards,loc in [(0,main,'LOCATION_DECK'),(0,extra,'LOCATION_EXTRA'),(1,enemy,'LOCATION_DECK'),(1,enemy_extra,'LOCATION_EXTRA')]:
    lua += [f'Debug.AddCard({cid},{p},{p},{loc},0,POS_FACEDOWN_DEFENSE)' for cid in cards]
-  # Desktop uses native result events; never emit damage-tracker hint messages.
+  # Legacy native result events do not include damage-tracker hint messages.
   lua += ['Debug.ReloadFieldEnd()',passives.script(run,telemetry=False)]
   (g.RUNTIME/'puzzles').mkdir(exist_ok=True)
   (g.RUNTIME/'puzzles/shadow-run.lua').write_text('\n'.join(lua),encoding='utf8')
@@ -404,6 +436,7 @@ def install(g):
   character_progression.duel(g,run,result,won,boss)
   run['last_rewards']={};run['last_gold']=0
   run['last_boss_heal']=0
+  active_bounty=dict(run.get('bounty_objective') or {}) if 'bounty_list' in run.get('artifacts',[]) else None
   run['shop_rerolls']=0
   # Curses end with this encounter, including defeats and the final boss.
   run['curses']=run.get('persistent_curses',[])[:] if run.get('challenge_level',0)>=5 else [];run['boss_curse']=None
@@ -446,6 +479,16 @@ def install(g):
    if run['stage']=='shop':
     routes(run,rng)
     if not boss:restock(run,rng)
+  if active_bounty and bounty_complete(active_bounty,result.get('events',[]),g.BY_ID):
+   reward=int(ART_INFO.get('bounty_list',{}).get('amount',40)) or 40
+   run['last_rewards']['Bounty List']=reward
+   run['last_gold']+=reward
+   run['gold']+=reward
+   run['last_bounty']={'id':active_bounty.get('id'),'title':active_bounty.get('title'),'completed':True,'reward':reward}
+  elif active_bounty:
+   run['last_bounty']={'id':active_bounty.get('id'),'title':active_bounty.get('title'),'completed':False,'reward':0}
+  if run['stage']=='shop' and 'bounty_list' in run.get('artifacts',[]):ensure_bounty(run,rng,force=True)
+  elif 'bounty_list' not in run.get('artifacts',[]):run.pop('bounty_objective',None)
   if 'blank_relic' in run.get('artifacts',[]):
    _attrs={}
    for _cid in g.deck(run):
@@ -571,11 +614,13 @@ def install(g):
   cursed_relics.require_choice(run)
   if run.get('stage')!='shop':raise ValueError('Relics can only be sold in the shop.')
   if key not in ARTIFACTS or key not in run.get('artifacts',[]):raise ValueError('You do not own that relic.')
+  if key in run.get('cursed_artifacts',[]) or key in cursed_relics.approved():raise ValueError('Cursed relics cannot be sold.')
   if key=='broken_limiter' and run['artifacts'].count(key)==1:
    counts=Counter(g.card_identity(run['pool'][i]) for i in run.get('selected',[]))
    if max(counts.values(),default=0)>3:raise ValueError('Remove extra copies from your deck before selling Broken Limiter.')
   price=ARTIFACTS[key][1]//2
   run['artifacts'].remove(key);run['gold']+=price
+  if key=='bounty_list':run.pop('bounty_objective',None)
   stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+price
   save(run)
   return dict(relic=key,coins=price,gold=run['gold'])
@@ -607,6 +652,7 @@ def install(g):
   elif item['kind']=='artifact':
    _pre_discount=amount(run,'discount')
    run['artifacts'].append(item['id'])
+   if item['id']=='bounty_list':ensure_bounty(run,rng,force=True)
    if item['id']=='booster_shelf':ensure_shop_packs(run,rng)
    if item['id']=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
    if item['id']=='stamp':run['stamped_singles']=0
@@ -659,3 +705,6 @@ def install(g):
   return _out
  for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
+ g.bounty_complete=bounty_complete
+ g.ensure_bounty=ensure_bounty
+ g.bounty_objectives=BOUNTY_OBJECTIVES

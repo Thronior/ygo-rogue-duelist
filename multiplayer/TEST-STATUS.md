@@ -1,5 +1,7 @@
 # Crossplay verification — 2026-09-23
 
+> **Platform status:** The native Windows desktop edition is deprecated and is no longer maintained or distributed. Desktop-native client checks below are historical; supported clients are the webapp (including desktop browsers) and Android app.
+
 ## Passed
 - Shared campaign tests: independent decks, distinct opponents, shared relics and currency, host-first purchases, ownership and duplicate-request protection.
 - Signaling persistence, original-seat recovery and stale-generation rejection.
