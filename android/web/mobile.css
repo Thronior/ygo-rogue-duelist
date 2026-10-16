@@ -1909,5 +1909,5 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
  .duel>.portrait-relics>.active-curse-strip{overflow:visible;max-height:none;flex:0 0 auto}
 }
 
-.owned-relic-sales{display:flex;flex-wrap:wrap;gap:.45rem;margin:.5rem 0 1rem}.owned-relic-sales button{font-size:.78rem;padding:.45rem .6rem}
+.relic-ledger-grid .sell-owned-relic{display:block;margin:12px auto 0;padding:5px 10px;min-height:28px;font-size:12px}
 

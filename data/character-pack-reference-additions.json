@@ -72,12 +72,6 @@
     "requiredBy": "Giltia the D. Knight"
   },
   {
-    "pack": "Anubis",
-    "card": "Pot of Greed",
-    "pool": "rare",
-    "requiredBy": "Avatar of The Pot"
-  },
-  {
     "pack": "Arkana",
     "card": "Left Arm of the Forbidden One",
     "pool": "rare",
@@ -760,11 +754,5 @@
     "card": "Dark Magician",
     "pool": "rare",
     "requiredBy": "Dedication through Light and Darkness"
-  },
-  {
-    "pack": "Anubis",
-    "card": "Great Dezard",
-    "pool": "rare",
-    "requiredBy": "Fushioh Richie"
   }
 ]
