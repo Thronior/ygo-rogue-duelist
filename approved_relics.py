@@ -39,7 +39,7 @@ CURSED=[
 (24,'wounded_merchant','Wounded Merchant','Shop prices are reduced by 50%. You start each Duel with 1000 fewer LP (min. 1).','Goblin of Greed'),
 (25,'rusted_compass','Rusted Compass','Each shop offers 2 additional regular relics. All shop prices are increased by 15%.','Different Dimension Capsule'),
 (26,'cursed_refund','Cursed Refund','After buying a booster pack, receive a refund of 20 coins (up to its price minus 1). Single-card prices are increased by 50%.','Jar of Greed'),
-(28,'collectors_burden',"Collector's Burden",'After each victory, add 2 additional random cards from the defeated opponent\'s Deck to your card pool. Your Main Deck must contain at least 40 cards.','Card Destruction'),
+(28,'collectors_burden',"Collector's Burden",'After each victory, add 2 additional random cards from the defeated opponent\'s Deck to your card pool. Your Main Deck must contain at least 50 cards.','Card Destruction'),
 (29,'golden_grave','Golden Grave','After each victory, earn 2 additional coins for each monster in your GY (max. 30). Monsters you control lose 200 DEF.','Foolish Burial'),
 (33,'scorched_clock','Scorched Clock','Once per turn, at the start of your Standby Phase, inflict 400 damage to your opponent. Once per turn, at the start of your End Phase, take 300 damage.','Ookazi'),
 (35,'duelists_wager',"Duelist's Wager",'Increase battle damage either player takes by 50% (rounded down).','Gamble'),
@@ -74,7 +74,7 @@ def minimum(run):
  if character.get('copycat') or character.get('engine_deck'):return 20
  # Derive from completed rounds so existing saves and repeat loops agree.
  progress=run.get('secret_deck_minimum',40) if run.get('secret_challenge') else 40 if run.get('loop',0)>0 else min(40,20+10*(max(0,run.get('round',0))//BOSS_EVERY))
- return max(progress,40 if has(run,'cursed_collectors_burden') else 20)
+ return max(progress,50 if has(run,'cursed_collectors_burden') else 20)
 
 def opening(run,normal):return max(1,normal-3*copies(run,'cursed_crowded_crypt')-2*copies(run,'cursed_premature_triumph'))
 

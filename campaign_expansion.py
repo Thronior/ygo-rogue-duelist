@@ -350,6 +350,7 @@ def install(g):
   if fallen:enemy_name='Fallen '+fallen['name']
   if run.get('encore_active'):enemy_name=endless.CHAMPION['name']
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
+  hand0=challenge_levels.curse_opening_hand(run,hand0)
   hand1=1 if owns(duel_run,'rulebook') else 5
   lua=['-- Shadow Run: native EDOPro campaign.','Debug.SetAIName('+json.dumps(enemy_name)+')','Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)',f'Debug.SetPlayerInfo(0,{lp},{hand0},1)',f'Debug.SetPlayerInfo(1,{enemy_lp},{hand1},1)']
   for p,cards,loc in [(0,main,'LOCATION_DECK'),(0,extra,'LOCATION_EXTRA'),(1,enemy,'LOCATION_DECK'),(1,enemy_extra,'LOCATION_EXTRA')]:
@@ -428,6 +429,7 @@ def install(g):
   run['new_cards_from']=len(run['pool'])
   run['last_deck_minimum_increase']=0
   duel_number=run['round']+1
+  duel_opponent=run.get('duel',{}).get('opponent',run['opponent'])
   boss=duel_number%BOSS_EVERY==0
   run['lp']=max(0,int(result['lp']));won=result['winner']==0 and run['lp']>0
   if 'relic_seal' not in run.get('curses',[]) and 'phoenix_rebirth' in run.get('artifacts',[]) and (any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in result.get('events',[])) or (result.get('winner')==0 and run['lp']<=1000)):
@@ -505,7 +507,7 @@ def install(g):
    key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt'}.get(event.get('kind'))
    if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key=='damage_dealt' else 1)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
-  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=run['opponent'],won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
+  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
   run['last_healing']={'before':int(result.get('lp',0)),'after':run['lp']}
   run['history'].append(result)
   if not won:update_profile(run)

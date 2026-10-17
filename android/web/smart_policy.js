@@ -251,7 +251,8 @@ export function smartContext(e,p,L,prompt=null){
   return (data(c).type&0x20)&&/draw |Special Summon|destroy|inflict|negate/i.test(text)?700:0;
  }
  function resilient(c){return known(c)&&enabled(c)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));}
- function targetValue(c){c=[...own,...enemy,...back,...theirBack].find(x=>same(x,c))||c;return !known(c)?1000:Math.max(power(c),(face(c)?atk(c):power(c))*(c.location===L.MZONE&&attackBlocked(c,c.controller)? .3:.8),600)+effectThreat(c)+(resilient(c)?2500:0)+((c.equip_cards?.length||0)*450);}
+ function relinquishedEquipped(c){return !!(c.equip_cards?.length||[...back,...theirBack].some(x=>same(x.equipCard||x.equip_card,c)));}
+ function targetValue(c){c=[...own,...enemy,...back,...theirBack].find(x=>same(x,c))||c;return !known(c)?1000:Math.max(power(c),(face(c)?atk(c):power(c))*(c.location===L.MZONE&&attackBlocked(c,c.controller)? .3:.8),600)+effectThreat(c)+(resilient(c)?2500:0)+(name(c)==='Relinquished'&&enabled(c)&&!relinquishedEquipped(c)?5000:0)+((c.equip_cards?.length||0)*450);}
  function safeBattle(c){
   if(e.player!==p||e.phase!==4||prompt?.to_bp===false||battleLocked||!face(c)||(battleHazards.has(name(c))||resilient(c))||effectThreat(c)>=2000)return false;
   // Unknown back row makes a battle plan uncertain; do not assume it is safe.
@@ -569,7 +570,14 @@ export function smartContext(e,p,L,prompt=null){
    if(/discard (?:your|their|the|all(?: the cards in your)?) hand/i.test(t))return -1;
   }
 
+  const spent=c.location===L.GRAVE||c.location===L.REMOVED;
   if(c.is_disabled||((d.type&1)&&!effectsEnabled(p)))return -1;
+  // Horus LV6 ignores Spell effects. Reject monster-removal Spells only when
+  // every visible opposing target is immune, preserving activations when a
+  // different monster can still be affected.
+  const monsterRemovalSpell=spell&&(isRemoval(n)||wipes.has(n)||n==='Lightning Vortex'||n==='Swords of Revealing Light');
+  if(!spent&&monsterRemovalSpell&&enemy.length&&enemy.every(x=>face(x)&&enabled(x)&&
+    /unaffected by (?:the effects of )?(?:all )?spell effects/i.test(e.cards.get(x.code)?.desc||'')))return -1;
   if((d.type&2)&&[0,1].some(s=>relic(s,'spells_no_more'))||(d.type&4)&&[0,1].some(s=>relic(s,'traps_no_more')))return -1;
   // Reserve one ordinary S/T slot for cards that leave after resolving.
   const lasting=!!(d.type&(0x20000|0x40000))||['Swords of Revealing Light',"Nightmare's Steelcage"].includes(n);
@@ -604,7 +612,6 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player===p&&!e.attackCard&&['Limiter Removal','Rush Recklessly','Reinforcements','Axe of Despair','Malevolent Nuzzler','United We Stand','Mage Power'].includes(n)&&own.length&&own.every(x=>attackBlocked(x,p)))return -1;
   // During the other player's turn, preserve combat tricks until the Damage Step.
   // Do not suppress a spent card's separate graveyard/banished triggered effect.
-  const spent=c.location===L.GRAVE||c.location===L.REMOVED;
   // A face-up Imperial Order negates every spell on the field, including our
   // own. Hold spells while it stands, except a direct answer to its activation.
   if(imperialUp&&!spent&&(d.type&2)&&!(chain&&e.effect&&name(e.effect.code)==='Imperial Order'))return -1;
@@ -797,7 +804,19 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Swords of Revealing Light')return enemy.length&&danger?70:-1;
   if(n==='Enchanted Javelin'&&chain&&wabokuWorthUsing()&&(prompt?.selects||[]).some(x=>name(x)==='Negate Attack'))return -1;
   if(['Enchanted Javelin','Mirror Wall','Fairy Box','Mask of Weakness'].includes(n))return chain&&e.player!==p&&danger?90:-1;
-  if(['Mirror Force','Magic Cylinder','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
+  if(n==='Magic Cylinder'){
+   if(!chain||e.player!==1-p||!e.attackCard||e.attackCard.controller!==1-p)return -1;
+   const attacker=enemy.find(x=>same(x,e.attackCard));if(!attacker)return -1;
+   const damage=battleDamage(combatPower(attacker),1-p);
+   const alternative=(prompt?.selects||[]).some(x=>['Negate Attack','Waboku','Threatening Roar'].includes(name(x)))||
+    (prompt?.chains||[]).some(x=>['Negate Attack','Waboku','Threatening Roar'].includes(name(x)));
+   // Keep Cylinder for meaningful damage when a pure battle stopper can cover
+   // a weak hit. In particular, it avoids consuming Cylinder and then Negate
+   // Attack on separate small/large attacks.
+   if(alternative&&damage<Math.min(1300,Math.ceil(e.lp[p]*0.2)))return -1;
+   return damage>0?100+Math.min(100,Math.floor(damage/100)):-1;
+  }
+  if(['Mirror Force','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
   if(n==='Ekibyo Drakmord'&&e.cpuReviewRules?.ekibyo!==false)return enemy.some(x=>face(x)&&!attackBlocked(x,1-p)&&!safeBattle(x)&&atk(x)>=1600)?85:-1;
   if(n==='Solemn Judgment')return chain&&(e.chainDepth?e.effect?.player===1-p:e.summoningPlayer===1-p)&&e.lp[p]>1500?100:-1;
   if(n==='Magic Jammer'){
@@ -1213,6 +1232,9 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(["Queen's Double",'Inaba White Rabbit'].includes(n)&&!direct)return false;
   return true;}
  function attackScore(a,t,ctx){const n=name(a),dmg=(ctx&&ctx.dmg)||0,deckOut=!!(ctx&&ctx.deckOut);let s=0;
+  // Attacking a visible Defense Position monster without piercing cannot deal
+  // damage. If it has higher DEF than our ATK, the attack only costs LP.
+  if(t&&face(t)&&!(t.position&1)&&!pierce(a)&&atk(a)<(t.defense??data(t).defense??0))return -100000;
   if(n==='Panther Warrior'&&!own.some(c=>pantherTributeAllowed(a,c,!t)))return -100000;
   if(t&&face(t)&&((name(t)==='The Hunter with 7 Weapons'&&(t.position&1))||n==='The Hunter with 7 Weapons')&&combatPower(a,t)<((t.position&1)?combatPower(t,a):(t.defense??data(t).defense??0)))return -100000;
   const remembered=t&&e.knownFieldCard?.(p,t),known=t&&(face(t)?t:remembered?{...t,code:remembered}:null);
@@ -1221,6 +1243,8 @@ if(!effectsEnabled(p))return 0;const n=name(c);
 
   if(known&&enabled(t)&&['D.D. Assailant','D.D. Warrior Lady'].includes(name(known))&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known))return -100000;
   if(known&&name(known)==='Yomi Ship'&&enabled(t)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known)&&!['Dark Balter the Terrible','Dark Ruler Ha Des'].includes(n))return -100000;
+  if(known&&name(known)==='Relinquished'&&enabled(known)&&!relinquishedEquipped(known)&&
+    (t.position&1)&&atk(a)>=atk(known))s+=16000;
   if(n==='Panther Warrior'&&(prompt?.attacks||[]).some(c=>!same(c,a)&&name(c)!=='Panther Warrior'&&attackAllowed(c,false)&&enemy.some(t=>face(t)&&atk(c)>power(t))))s-=10000;
   if(n==='Airknight Parshath'&&dmg>0)s+=800;
   if(n==='Masked Sorcerer'&&dmg>0)s+=600;

@@ -12,7 +12,7 @@ for loop in [0,1,5]:
   for level in [-1,0,5]:
    r={'character':0,'round':rd,'loop':loop,'challenge_level':level,'artifacts':[]}
    want=40 if loop else min(40,20+10*(rd//3));assert ar.minimum(r)==want
-   r['artifacts']=['cursed_collectors_burden'];assert ar.minimum(r)==(want if level==-1 else 40)
+   r['artifacts']=['cursed_collectors_burden'];assert ar.minimum(r)==(want if level==-1 else 50)
 for c in content.PLAYABLE_IDS:
  if content.CHARACTERS[c].get('copycat') or content.CHARACTERS[c].get('engine_deck'):
   assert ar.minimum({'character':c,'round':8,'loop':2})==20

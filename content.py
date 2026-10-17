@@ -142,6 +142,11 @@ CURSES={
  'hunger':('Empty Scabbard','Your monsters lose 300 DEF.'),
  'enemy_power':('Empowered Rival','The boss\'s monsters gain 200 ATK.'),
  'drain':('Withering Soul','Start this boss duel with 1000 fewer LP, minimum 1.'),
+ 'brittle':('Brittle Guard','Your monsters lose 100 ATK and 200 DEF.'),
+ 'short_handed':('Thin Ranks','Start this duel with 2 fewer cards in your hand, minimum 1.'),
+ 'exposed':('Open Wound','You take 50% more damage during this duel.'),
+ 'no_recovery':('Withered Hope','Your LP recovery is halved during this duel.'),
+ 'mirror_stats':('Reversed Might','Swap the original ATK and DEF of all monsters.'),
 }
 # Factual card themes from early WCT 2004 deck lists; shortened/rebalanced
 # for the 20-card format. Later acts add stronger staples and tribute threats.

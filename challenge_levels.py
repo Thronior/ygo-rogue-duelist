@@ -1,6 +1,6 @@
 """Shared per-character challenge progression; missing levels remain level zero."""
 import storage
-DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Boss curse penalties doubled; outgoing battle damage curse reduces damage to one quarter", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Start with a chosen curse. Curses persist through every duel; each boss adds one.", "Opponents receive a thematic combat relic"]
+DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Boss curse penalties doubled; outgoing battle damage curse reduces damage to one third", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Start with a chosen curse. Curses persist through every duel; each boss adds one.", "Opponents receive a thematic combat relic"]
 def highest(profile, character):
  return max(-1,min(6,int(profile.get('character_levels',{}).get(str(character),-1))))
 def unlocked(profile, character):return min(6,highest(profile,character)+1)
@@ -18,10 +18,11 @@ def award(profile, run):
  levels[str(run['character'])]=new
  if new>before and new+1<=6:run['level_unlocked']=new+1
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
+def curse_opening_hand(run,hand):return max(1,int(hand)-2*curse_scale(run)*run.get('curses',[]).count('short_handed'))
 
 def curse_description(run,key,default):
  if run.get('challenge_level',0)<2:return default
- return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one quarter.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.'}.get(key,default)
+ return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one third.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.', 'brittle':'Your monsters lose 200 ATK and 400 DEF.', 'short_handed':'Start this duel with 4 fewer cards in your hand, minimum 1.', 'exposed':'You take twice as much damage during this duel.', 'no_recovery':'You cannot recover LP during this duel.', 'mirror_stats':'Swap the original ATK and DEF of only your monsters.'}.get(key,default)
 
 def active_modifiers(run):
  from content import CURSES

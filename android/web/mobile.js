@@ -139,7 +139,7 @@ setEmoteVolumeReader(()=>state?.settings?.sound/100||0);
 
 let selectedLevels={},selectedVariants={};
 
-const levelText=['No modifiers','All enemies start with 8000 LP','Stronger boss curses','Coin rewards reduced by 25%','Start with 4000 LP; between-duel healing cap 4000 LP','Start with a chosen curse; curses persist and each boss adds one','Opponents receive a thematic combat relic'];
+const levelText=['No modifiers','All enemies start with 8000 LP','Boss curse penalties doubled; outgoing battle damage curse reduces damage to one third','Coin rewards reduced by 25%','Start with 4000 LP; between-duel healing cap 4000 LP','Start with a chosen curse; curses persist and each boss adds one','Opponents receive a thematic combat relic'];
 
 function levelMenu(){const beaten=state.profile.character_levels?.[selected]??-1;const row=(level,text,locked=false)=>`<button data-do="choose-level" data-level="${level}" ${locked?'disabled':''}><span class="level-badge challenge-level-badge" aria-label="Level ${level}"><span>LVL</span><strong>${level}</strong></span><span class="challenge-level-copy"><b>${locked?'Beat lvl '+(level-1)+' to unlock':text}</b>${locked?'<small>??????????</small>':level>0?'<small>Includes all previous modifiers</small>':''}${level>=0&&level<=beaten?'<small>Completed</small>':''}</span></button>`;dialog('Challenge level',`<p>Modifiers accumulate. Clear a full run to unlock the next level for this character.</p><div class="level-list">${state.profile.relicless_unlocked?row(-1,'Disable all relics or curses'):''}${levelText.map((text,i)=>row(i,text,i>beaten+1)).join('')}</div>`)}
 
@@ -497,7 +497,7 @@ let titleMotion=null;
 
 function render(){if(screen!=='shop'&&(shopkeeperSmall||shopkeeperShrinking)){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}syncBackgroundAnimations();if(screen!=='duel')clearDuelDOM(app);if(screen!=='ending')clearShadowVictory();titleMotion?.destroy();titleMotion=null;if(screen==='tag'){tagUI?.render();return}removeActions();if(screen!=='duel')clearTimeout(aiTimer);({title:renderTitle,characters:renderCharacters,draft:renderDraft,routes:renderRoutes,shop:renderShop,achievements:renderAchievements,relics:renderRelics,settings:renderSettings,tutorial:renderTutorial,collection:renderCollection,gallery:renderGallery,ending:renderEnding,duel:renderDuel})[screen]();track(screenMusic())}
 
-function go(name){cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;screen=name;syncBackgroundAnimations();render();if(['draft','shop'].includes(name)&&state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type&&!modal.open)void offerGoldenCards();if(pendingRewards)showVictoryReceipt()}
+function go(name){if(name!=='duel'){clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;heldAlwaysChain=false;heldChainPrompt=null;}cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;screen=name;syncBackgroundAnimations();render();if(['draft','shop'].includes(name)&&state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type&&!modal.open)void offerGoldenCards();if(pendingRewards)showVictoryReceipt()}
 
 let menu=baseMenu;
 
@@ -898,7 +898,7 @@ function renderDuel(){if(!snapshot)return;const inspectionScroll=document.queryS
 
  rows.push(zone(s.players[0].spells[5],0,L.SZONE,5,2,4,'Field'),pile(0,'extra',2,5),pile(0,'grave',8,4),pile(0,'banished',9,4),pile(0,'deck',8,5));
 
- rows.push(`<button id="chain-toggle" data-do="toggle-chain" class="chain-control ${(rightClickNoChain||chainMode==='never')?'chain-disabled':chainMode==='sometimes'?'chain-sometimes':''}" aria-label="Chain prompts" aria-pressed="${rightClickNoChain?'false':chainMode==='sometimes'?'mixed':chainMode==='always'}" title="${chainLabel()}" style="grid-column:9;grid-row:5"><img src="textures/chain.png" alt=""><span>${chainLabel()}</span></button>`);
+ rows.push(`<button id="chain-toggle" data-do="toggle-chain" class="chain-control ${(!heldAlwaysChain&&(rightClickNoChain||chainMode==='never'))?'chain-disabled':!heldAlwaysChain&&!rightClickNoChain&&chainMode==='sometimes'?'chain-sometimes':''}" aria-label="Chain prompts" aria-pressed="${heldAlwaysChain?'true':rightClickNoChain?'false':chainMode==='sometimes'?'mixed':chainMode==='always'}" title="${chainLabel()}" style="grid-column:9;grid-row:5"><img src="textures/chain.png" alt=""><span>${chainLabel()}</span></button>`);
 
  rows.push(`<div class="phases">${phases.map(([n,label])=>`<button data-phase="${n}" class="${(n===8?s.phase>=8&&s.phase<256:s.phase===n)?'active':''}" ${phaseAction(n)?'':'disabled'}>${label}</button>`).join('')}${fieldSelectBare(m)?`<button data-do="confirm-target" class="phase-confirm duel-confirm" aria-label="Confirm selection" title="Confirm selection" ${materialStatus(m,pickSet,engine,M).valid?'':'disabled'}><span class="duel-decision-label">Done</span><span class="duel-decision-icon" aria-hidden="true">✓</span></button>${m.can_cancel?`<button data-do="cancel-target" class="phase-confirm duel-cancel" aria-label="Cancel"><span class="duel-decision-label">✕</span><span class="duel-decision-icon" aria-hidden="true">✕</span></button>`:''}`:''}</div>`);
 
@@ -1144,27 +1144,38 @@ async function sendBehaviourReport(){
 
 }
 
-async function respond(response){if(inspectionPaused())return;stagedChoice=null;promptHidden=false;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
+async function respond(response){if(inspectionPaused())return;heldChainPrompt=null;stagedChoice=null;promptHidden=false;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
 
-let chainMode='sometimes',chainOverride=false,rightClickNoChain=false,rightClickPointer=null,rightClickHoldTimer=0;
+let chainMode='sometimes',chainOverride=false,rightClickNoChain=false,rightClickPointer=null,rightClickHoldTimer=0,heldAlwaysChain=false,heldChainPointer=null,heldChainTimer=0,heldChainPrompt=null;
 
-function offerChain(m){return !rightClickNoChain&&chainWindowAllowed(m,chainMode,engine?.activeChain,{turnPlayer:engine?.player,phase:engine?.phase,card:code=>card(code)})}
+function offerChain(m){const holdOverride=heldAlwaysChain||m===heldChainPrompt;return (holdOverride||!rightClickNoChain)&&chainWindowAllowed(m,holdOverride?'always':chainMode,engine?.activeChain,{turnPlayer:engine?.player,phase:engine?.phase,card:code=>card(code)})}
 
-function chainLabel(){return rightClickNoChain?'No chain':chainMode==='sometimes'?'Chain sometimes':chainMode==='never'?'No chain':'Chain'}
+function chainLabel(){return heldAlwaysChain?'Always chain (held)':rightClickNoChain?'No chain':chainMode==='sometimes'?'Chain sometimes':chainMode==='never'?'No chain':'Chain'}
+
+function refreshChainToggle(){const original=document.getElementById('chain-toggle');if(!original)return;const temporary=heldAlwaysChain;original.classList.toggle('chain-disabled',!temporary&&(rightClickNoChain||chainMode==='never'));original.classList.toggle('chain-sometimes',!temporary&&!rightClickNoChain&&chainMode==='sometimes');original.setAttribute('aria-pressed',temporary?'true':rightClickNoChain?'false':chainMode==='sometimes'?'mixed':String(chainMode==='always'));original.title=chainLabel();const label=original.querySelector('span');if(label)label.textContent=chainLabel();syncModalChain()}
 
 function setRightClickNoChain(active){
  if(rightClickNoChain===active)return;
  rightClickNoChain=active;
- const original=document.getElementById('chain-toggle');
- if(original){
-  original.classList.toggle('chain-disabled',rightClickNoChain||chainMode==='never');
-  original.classList.toggle('chain-sometimes',!rightClickNoChain&&chainMode==='sometimes');
-  original.setAttribute('aria-pressed',rightClickNoChain?'false':chainMode==='sometimes'?'mixed':String(chainMode==='always'));
-  original.title=chainLabel();
-  const label=original.querySelector('span');if(label)label.textContent=chainLabel();
- }
- syncModalChain();
+ refreshChainToggle();
  if(screen==='duel'&&!busy){renderDuel();scheduleAI();}
+}
+
+function setHeldAlwaysChain(active){
+ if(heldAlwaysChain===active)return;
+ heldAlwaysChain=active;
+ refreshChainToggle();
+ if(screen==='duel'&&!busy)scheduleAI();
+}
+
+function releaseHeldAlwaysChain(e){
+ if(e?.pointerId!=null&&heldChainPointer!=null&&e.pointerId!==heldChainPointer)return;
+ clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;
+ if(!heldAlwaysChain)return;
+ const pending=engine?.pending;
+ heldChainPrompt=pending?.player===0&&pending.type===M.SELECT_CHAIN?pending:null;
+ heldAlwaysChain=false;refreshChainToggle();
+ if(screen==='duel'&&!busy&&!heldChainPrompt){renderDuel();scheduleAI();}
 }
 
 function scheduleAI(){clearTimeout(aiTimer);if(duelEnding)return;if(inspectionPaused())return;const automatic=automaticChainResponse(engine?.pending,!offerChain(engine?.pending),M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.connected)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,!offerChain(pending),M,R);if(current)respond(current)}},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.connected)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?80:220)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
@@ -1215,16 +1226,25 @@ document.addEventListener('pointerdown',e=>{
  },300);
 },true);
 
+document.addEventListener('pointerdown',e=>{
+ if(screen!=='duel'||modal.open||chainMode!=='never'||rightClickNoChain||e.button!==0||!['mouse','touch'].includes(e.pointerType)||e.target.closest('[data-do="toggle-chain"]'))return;
+ heldChainPointer=e.pointerId;clearTimeout(heldChainTimer);
+ heldChainTimer=setTimeout(()=>{
+  heldChainTimer=0;
+  if(heldChainPointer===e.pointerId&&screen==='duel'&&(e.pointerType!=='mouse'||(e.buttons&1)))setHeldAlwaysChain(true);
+ },300);
+},true);
+
 function releaseRightClickNoChain(e){
  if(e?.pointerId!=null&&rightClickPointer!=null&&e.pointerId!==rightClickPointer)return;
  if(e?.type==='pointerup'&&(e.buttons&2))return;
  clearTimeout(rightClickHoldTimer);rightClickHoldTimer=0;rightClickPointer=null;
  setRightClickNoChain(false);
 }
-window.addEventListener('pointerup',releaseRightClickNoChain,true);
-window.addEventListener('pointercancel',releaseRightClickNoChain,true);
-window.addEventListener('blur',()=>releaseRightClickNoChain(),true);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseRightClickNoChain()},true);
+window.addEventListener('pointerup',e=>{releaseHeldAlwaysChain(e);releaseRightClickNoChain(e)},true);
+window.addEventListener('pointercancel',e=>{releaseHeldAlwaysChain(e);releaseRightClickNoChain(e)},true);
+window.addEventListener('blur',()=>{releaseHeldAlwaysChain();releaseRightClickNoChain()},true);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){releaseHeldAlwaysChain();releaseRightClickNoChain()}},true);
 document.addEventListener('contextmenu',e=>{if(screen==='duel')e.preventDefault()},true);
 
 document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[data-do="toggle-chain"]'))return;if(!e.target.closest('[data-do="shopkeeper-secret"]'))shopkeeperTaps=0;const el=e.target.closest('button,[data-do],[data-inspect],[data-open-pack]');if(!el)return;if(screen==='duel'&&el.dataset.preview&&!modal.contains(el))setPreview(el.dataset.preview,el);if(busy&&screen==='duel'&&!modal.contains(el)&&el.dataset.do!=='duel-options'&&el.dataset.do!=='toggle-chain'&&el.dataset.do!=='golden-card'&&el.dataset.do!=='log'&&el.dataset.do!=='duel-emotes'&&el.dataset.do!=='active-curses'&&el.dataset.do!=='curse-info'&&el.dataset.do!=='relic-detail'){
@@ -1359,7 +1379,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='choose-variant'){selectedVariants[selected]=+el.dataset.variant;renderCharacters();return}if(a==='levels'){levelMenu();return}if(a==='choose-level'){await command('remember-level',{character:selected,level:+el.dataset.level});selectedLevels[selected]=rememberedLevel(state.profile,selected);modal.close();renderCharacters();return}
 
- if(a==='tutorial-image'){dialog(el.dataset.label,`<img class="tutorial-enlarged" src="assets/${esc(el.dataset.src)}" alt="${esc(el.dataset.label)}">`);return}if(a==='tutorial'){tutorialReturn=screen;go('tutorial');return}if(a==='tutorial-page'){tutorialPage=+el.dataset.index;renderTutorial();return}if(a==='tutorial-back'){go(tutorialReturn);if(screen==='duel')scheduleAI();return}if(a==='toggle-chain'){chainMode=({always:'never',never:'sometimes',sometimes:'always'})[chainMode];if(!busy){renderDuel();scheduleAI()}const original=document.getElementById('chain-toggle');if(original){original.classList.toggle('chain-disabled',rightClickNoChain||chainMode==='never');original.classList.toggle('chain-sometimes',!rightClickNoChain&&chainMode==='sometimes');original.setAttribute('aria-pressed',rightClickNoChain?'false':chainMode==='sometimes'?'mixed':String(chainMode==='always'));original.title=chainLabel();original.querySelector('span').textContent=chainLabel()}syncModalChain();return}if(a==='close'){closeDialog();return}if(a==='menu-prev'||a==='menu-next'){titleMotion?.step(a==='menu-next'?1:-1);return}
+ if(a==='tutorial-image'){dialog(el.dataset.label,`<img class="tutorial-enlarged" src="assets/${esc(el.dataset.src)}" alt="${esc(el.dataset.label)}">`);return}if(a==='tutorial'){tutorialReturn=screen;go('tutorial');return}if(a==='tutorial-page'){tutorialPage=+el.dataset.index;renderTutorial();return}if(a==='tutorial-back'){go(tutorialReturn);if(screen==='duel')scheduleAI();return}if(a==='toggle-chain'){heldChainPrompt=null;chainMode=({always:'never',never:'sometimes',sometimes:'always'})[chainMode];refreshChainToggle();if(!busy){renderDuel();scheduleAI()}return}if(a==='close'){closeDialog();return}if(a==='menu-prev'||a==='menu-next'){titleMotion?.step(a==='menu-next'?1:-1);return}
 
  if(a==='continue')return showRunSlots();
 

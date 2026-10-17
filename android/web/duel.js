@@ -10,7 +10,7 @@ import {DuelEngine,M,R,I,B,L,P} from './engine.js';
 export {M,R,I,B,L,P};
 export class MobileDuel extends DuelEngine {
  constructor(cards){super(cards);this.fieldKnowledge=new FieldKnowledge();this.rebornMonsters=new Map();this.resolvingChain=0}
- unknownDefense(c){return this.tributeSets?.has(this.fieldKnowledge.key(c))?2000:900}
+ unknownDefense(c){return this.tributeSets?.has(this.fieldKnowledge.key(c))?2000:1600}
  knownFieldCard(viewer,c){return this.fieldKnowledge?.known(viewer,c)||c?.rememberedCode||0}
  wasReborn(c){return this.rebornMonsters.get(this.fieldKnowledge.key(c))===c.code}
  trackReborn(m){
@@ -216,7 +216,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   this.fieldKnowledge.observe(m.player,(p,l)=>this.query(p,l),L);
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
   const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,atk=c=>live(c)?.attack??c.attack??stat(c).attack??0,def=c=>live(c)?.defense??c.defense??stat(c).defense??0;
-  const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):(this.knownFieldCard(p,c)?this.data[this.knownFieldCard(p,c)]?.defense??900:this.unknownDefense(c));
+  const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):(this.knownFieldCard(p,c)?this.data[this.knownFieldCard(p,c)]?.defense??1600:this.unknownDefense(c));
   const threat=Math.max(0,...enemy.map(strength));
   const fodder=own.map(c=>Math.max(0,atk(c))+(stat(c).type&0x4000?-1500:0)).sort((a,b)=>a-b);
   const worthwhile=(c,setting=false)=>{const limit=smart.tributeWorth(c,setting);if(limit!==null)return limit;const level=this.cards.get(c.code)?.level||0,n=level>6?2:level>4?1:0;return !n||own.length<n||smart.projectedAttack(c)>fodder.slice(0,n).reduce((a,b)=>a+b,0)||smart.projectedAttack(c)>threat&&own.every(x=>atk(x)<=threat)};
@@ -302,7 +302,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // Only trade after exhausting every existing winning/direct attack option.
    if(!best){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c,power=atk(a);if(!smart.attackAllowed(a,false))continue;if(enemy.some(t=>tradeTarget(power,t,a))&&(!best||power>best.power))best={i,power};}}
    if(!best&&!this.battleProtected?.[1-p]){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c;if(!smart.attackAllowed(a,false))continue;const v=smart.suicideScore(a);if(v>0&&(!best||v>best.score))best={score:v,i,power:0};}}
-   // Mandatory attacks (e.g. Diffusion Wave-Motion) cannot be declined even under Waboku.
+   // The core may withhold both phase-advance actions when an effect mandates
+   // an attack. Preserve that rule, but never force an attack when the player
+   // can legally move to Main Phase 2 or the End Phase.
    if(!best&&!m.to_m2&&!m.to_ep&&m.attacks.length){const forced=m.attacks.map((c,i)=>({i,power:atk(own.find(x=>x.sequence===c.sequence)||c)})).sort((a,b)=>b.power-a.power);best=forced[0];}
    return best?{type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:best.i}:{type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null}}
   if(m.type===M.SELECT_SUM){
@@ -331,7 +333,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
      if(targetAttack&&field&&this.expertTarget?.turn===this.turn&&this.expertTarget.attacker===this.attacker?.sequence&&this.expertTarget.target===c.sequence){x.score=10000000;continue;}
      if(targetAttack&&field&&visible(field)&&this.battleProtected?.[1-p]){x.score=-Infinity;continue;}
      if(targetAttack&&field&&tradeTarget(this.attacker.attack,field,this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker)){x.score=5000+Math.min(4000,this.attacker.attack);continue;}
-     if(targetAttack&&field){const attacker=this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,power=smart.combatPower(attacker,field),opposing=strength(field),damage=smart.battleDamage((field.position&1)?Math.max(0,power-opposing):smart.pierce(attacker)?Math.max(0,power-opposing):0);const adjustment=smart.attackScore(attacker,field,{dmg:damage});if(adjustment<=-99999||visible(field)&&power<opposing&&smart.suicideScore(attacker,field)<=0){x.score=-Infinity;continue;}}
+     if(targetAttack&&field){const attacker=this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,power=smart.combatPower(attacker,field),opposing=strength(field),damage=smart.battleDamage((field.position&1)?Math.max(0,power-opposing):smart.pierce(attacker)?Math.max(0,power-opposing):0);const adjustment=smart.attackScore(attacker,field,{dmg:damage});if(adjustment<=-99999||power<opposing&&smart.suicideScore(attacker,field)<=0){x.score=-Infinity;continue;}const fAtk=field.attack??this.data[field.code]?.attack??0,fDef=field.defense??this.data[field.code]?.defense??0,base=visible(field)&&!(field.position&1)&&fAtk>attacker.attack&&fDef<attacker.attack?20000+fAtk:opposing<attacker.attack?10000+opposing:-opposing;x.score=base+adjustment;continue;}
      if(fxN==='Dark Coffin'&&c.controller===p&&c.location===L.MZONE){x.score=-smart.coffinMonsterLoss(field||c);continue;}
      if(this.selectionHint===501&&this.phase===512&&!/discard/.test(text)&&m.selects.every(x=>x.controller===p&&x.location===L.HAND)){const value=smart.handLimitScore(c);if(value!==null){x.score=value;continue;}}
      if(m.selects.every(x=>x.controller===p&&x.location===L.HAND)&&(this.selectionHint===501||/discard/.test(text))){x.score=-smart.handLoss(c);continue;}
