@@ -1,1 +1,8 @@
-null
+{
+  "exclusiveAfter": "2026-10-17T17:59:10Z",
+  "scope": "YGO Rogue Duelist Discord messages, Flag behaviour reports and replay submission timestamps",
+  "policy": "Review submissions strictly after this successful release cutoff. Refresh after every published update; older reports may reproduce approved fixes.",
+  "previous": "2026-10-16T14:08:19Z",
+  "release": "0.1.93",
+  "ucRosterUpdatedAt": "2026-10-14T10:37:21.884555+00:00"
+}
