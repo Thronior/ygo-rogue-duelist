@@ -6,6 +6,7 @@ def effect(kind,amount,attribute=''):
  from approved_relic_effects import effect as approved_effect
  result=approved_effect(kind)
  if result is not None:return result
+ if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetTargetRange(LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end'''
  if kind=='this_life_mine':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
 e:SetCondition(function(e,tp,eg,ep,ev) return not used and ep==0 and ev>0 end)

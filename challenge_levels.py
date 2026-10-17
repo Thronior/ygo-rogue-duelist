@@ -1,6 +1,6 @@
 """Shared per-character challenge progression; missing levels remain level zero."""
 import storage
-DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Boss curse penalties doubled; outgoing battle damage curse reduces damage to one third", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Start with a chosen curse. Curses persist through every duel; each boss adds one.", "Opponents receive a thematic combat relic"]
+DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Amplified Boss Curses", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Start with a chosen curse. Curses persist through every duel; each boss adds one.", "Opponents receive a thematic combat relic"]
 def highest(profile, character):
  return max(-1,min(6,int(profile.get('character_levels',{}).get(str(character),-1))))
 def unlocked(profile, character):return min(6,highest(profile,character)+1)

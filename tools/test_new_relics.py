@@ -19,6 +19,10 @@ p["unlocked"] = list(PLAYABLE_IDS)
 storage.write(base / "profile.json", p)
 
 assert "bounty_list" in ARTIFACTS
+assert ARTIFACTS["loyalty"][0:2] == ("Loyalty", 100)
+assert ART_INFO["loyalty"]["effect"] == "loyalty"
+loyalty_art = json.loads((ROOT / "data/relic-custom-art.json").read_text(encoding="utf8")).get("loyalty")
+assert loyalty_art and (ROOT / "assets/relics" / loyalty_art).is_file()
 for key in ["faulty_printer", "golden_sleeve", "magic_mirror", "underdog_clause",
             "traps_no_more", "spells_no_more", "legendary_shackles", "toon_world",
             "ritual_dagger", "fusion_chamber", "phoenix_rebirth", "champion_trophy",
@@ -29,6 +33,8 @@ for key in ["faulty_printer", "golden_sleeve", "magic_mirror", "underdog_clause"
         assert key in custom and (ROOT / "assets/relics" / custom[key]).is_file(), (key, ART_INFO[key]["art"])
 assert reload_tuning() in (True, False)
 assert ART_INFO["traps_no_more"]["effect"] == "trap_negate"
+loyalty_script = passives.script({"artifacts": ["loyalty"], "curses": [], "loop": 0})
+assert "EFFECT_CANNOT_CHANGE_CONTROL" in loyalty_script and "SetTargetRange(LOCATION_MZONE,0)" in loyalty_script
 
 # Duel-script blocks for the engine relics.
 run = {"artifacts": ["traps_no_more", "spells_no_more", "phoenix_rebirth"], "curses": [], "loop": 0}

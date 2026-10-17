@@ -1,5 +1,5 @@
 """Lossless, bounded-size JPEG bundles for the web and itch.io build only."""
-import hashlib,json
+import hashlib,json,re
 
 def pack_artwork(out,templates):
  entries={};packs={};data=bytearray();pending=[]
@@ -23,8 +23,9 @@ def pack_artwork(out,templates):
   if data and len(data)+len(raw)>8*1024*1024:flush()
   pending.append((source,len(data),len(raw)));data.extend(raw)
  flush()
- page=out/'index.html';text=page.read_text(encoding='utf8');old='<script type="module" src="mobile.js"></script><script type="module" src="pwa.js"></script>'
- assert old in text;text=text.replace(old,'<script type="module" src="bundle-boot.js"></script>');page.write_text(text,encoding='utf8')
+ page=out/'index.html';text=page.read_text(encoding='utf8')
+ text,n=re.subn(r'<script type="module" src="mobile\.js(?:\?[^"]*)?"></script><script type="module" src="pwa\.js"></script>','<script type="module" src="bundle-boot.js"></script>',text)
+ assert n==1, 'Expected one mobile.js + pwa.js entrypoint pair';page.write_text(text,encoding='utf8')
  (out/'bundle-boot.js').write_bytes((templates/'bundle-boot.js').read_bytes())
  page=out/'card-assets.js';text=page.read_text(encoding='utf8');start=text.index(' const cache=');end=text.index(';',start)
  text=text[:start]+' const cache=null'+text[end:]

@@ -1,6 +1,7 @@
 // Continuous, cyclic menu movement shared by touch, mouse, arrows and keyboard.
 export function mountMenuMotion(root,count,initial,onSelect){
  const cards=[...root.querySelectorAll('[data-menu]')];
+ const duplicates=cards.length<=5?cards.flatMap(card=>[-1,1].map(copy=>{const clone=card.cloneNode(true);clone.removeAttribute('data-menu');clone.removeAttribute('hidden');clone.dataset.menuDuplicate='';clone.dataset.copy=String(copy);clone.setAttribute('aria-hidden','true');clone.tabIndex=-1;clone.disabled=true;clone.style.pointerEvents='none';root.append(clone);return {node:clone,index:Number(card.dataset.menu),copy};})):[];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  // Compatibility mode drops the per-frame brightness filter that some GPU stacks flicker on.
  const compatibility=()=>document.documentElement.classList.contains('compatibility-mode');
@@ -26,6 +27,10 @@ export function mountMenuMotion(root,count,initial,onSelect){
    card.style.filter=compatibility()?'none':`brightness(${1-.42*Math.min(dist,1)})`;
    card.style.opacity=String(Math.min(1,Math.max(0,2.6-dist)));
    card.style.zIndex=String(100-Math.round(dist*10));
+  }
+  for(const {node,index,copy} of duplicates){
+   const d=wrap(index-position+count/2)-count/2+copy*count,dist=Math.abs(d),near=Math.min(dist,1),offset=Math.sign(d)*(size*(.72*dist+.28*(near-near*near/2))+space*dist),focus=1-Math.min(dist,1);
+   node.hidden=dist>2.6;node.dataset.distance=String(dist);node.style.setProperty('--menu-offset',d);node.style.left=vertical?'50%':`calc(50% + ${offset}px)`;node.style.top=vertical?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;node.style.scale='none';node.style.transform=`translate(-50%,-50%) scale(${1-.28*Math.min(dist,1)})`;node.style.filter=compatibility()?'none':`brightness(${1-.42*Math.min(dist,1)})`;node.style.opacity=String(Math.min(1,Math.max(0,2.6-dist)));node.style.zIndex=String(100-Math.round(dist*10));
   }
  }
  function tick(now){

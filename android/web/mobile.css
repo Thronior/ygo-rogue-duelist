@@ -1923,3 +1923,32 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 
 .relic-ledger-grid .sell-owned-relic{display:block;margin:12px auto 0;padding:5px 10px;min-height:28px;font-size:12px}
 
+/* Color-shift repeated boss-curse symbols so each curse is easier to pick out. */
+.curse-icon.curse-hunger img{filter:hue-rotate(72deg) saturate(1.25)}
+.curse-icon.curse-enemy_power img{filter:hue-rotate(144deg) saturate(1.25)}
+.curse-icon.curse-brittle img{filter:hue-rotate(216deg) saturate(1.25)}
+.curse-icon.curse-mirror_stats img{filter:hue-rotate(288deg) saturate(1.25)}
+.curse-icon.curse-drain img{filter:hue-rotate(120deg) saturate(1.2)}
+.curse-icon.curse-exposed img{filter:invert(1) hue-rotate(35deg) saturate(1.15)}
+
+.active-modifier-list{display:grid;gap:10px;max-height:min(70vh,680px);overflow:auto;padding:2px}
+.active-modifier-row{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;gap:12px}
+.active-modifier-art{width:62px;height:62px;display:grid;place-items:center;flex:none}
+.active-modifier-art .curse-icon{margin:0}
+.active-modifier-art .relic-artwork{width:56px;height:56px;object-fit:contain;border-radius:5px}
+.active-modifier-art .modifier-generic-icon{width:52px;height:52px;object-fit:contain}
+.modifier-level-image{width:54px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px}
+.modifier-level-image>span{font-size:9px}
+.modifier-level-image img{width:16px;height:16px;object-fit:contain}
+.modifier-level-image strong{font-size:20px}
+.active-modifier-copy{min-width:0}
+.active-modifier-copy h3{margin:0 0 4px}
+.active-modifier-copy p{margin:0;line-height:1.35}
+
+
+.title-version{position:absolute;left:max(10px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:30;font-size:10px;line-height:1;color:#b4c5cd;opacity:.78;pointer-events:none}
+
+.title .smooth-menu .menu-card[data-menu-duplicate]{visibility:visible!important}
+.title .smooth-menu .menu-card[data-distance="2"]{visibility:visible!important}
+
+@media(min-width:900px) and (min-height:600px){.title .menu-card>p{font-size:clamp(15px,1.45vw,19px);line-height:1.25;padding:9px}}
