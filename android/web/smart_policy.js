@@ -23,7 +23,7 @@ export function smartContext(e,p,L,prompt=null){
  const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=()=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield');
  const liveStat=(c,key)=>c.location===L.MZONE?rawQuery(c.controller??p,L.MZONE)[c.sequence]?.[key]:undefined;
  const atk=c=>{const live=liveStat(c,'attack');if(live!==undefined)return live;const original=c.attack??data(c).attack??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats()?(c.defense??data(c).defense??original):original};
- const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=def(c);return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats()?(c.attack??data(c).attack??original):original};
+ const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=c.defense??data(c).defense??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats()?(c.attack??data(c).attack??original):original};
  // Damage plans include visible prevention/conversion and the defender's known relics.
  const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);return Math.floor(Math.max(0,raw-reduction)*1.5**relics(1-p).filter(key=>key==='cursed_hollow_chalice').length)};
  const healingAllowed=side=>!relic(side,'cursed_zombies_bargain');
