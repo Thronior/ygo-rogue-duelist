@@ -144,7 +144,7 @@ def install(g):
   common,rare,basic=unique(common),unique(rare),unique(basic)
   all_cards=unique(common+rare+basic)
   if len(all_cards)<9:raise ValueError('Booster needs at least nine different cards.')
-  premium=card_rarity.choose(rare or common,rng);used={g.card_identity(premium)}
+  premium=card_rarity.choose(rare or common,rng,p.get('rarity_weights'));used={g.card_identity(premium)}
   starters=[cid for cid in basic if g.card_identity(cid) not in used]
   count=max(0,min(3,len(basic))-int(g.normal_starter(premium)))
   pulls=card_rarity.sample(starters,min(count,len(starters)),rng)
@@ -183,7 +183,14 @@ def install(g):
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=5:count=1
-  choices=[draw_curses(rng,count) for _ in run['routes']] if boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5) else []
+  draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5))
+  distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5)
+  choices=[]
+  if draw_routes:
+   for _ in run['routes']:
+    blocked=list(run.get('persistent_curses',[]))
+    if distinct_opening:blocked.extend(key for option in choices for key in option)
+    choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening))
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
   challenge_levels.suppress(run)
@@ -280,23 +287,23 @@ def install(g):
   if not run.get('routes'):routes(run,rng)
   if run['opponent'] not in run['routes']:raise ValueError('Choose an available opponent.')
   number=run['round']+1
-  from feedback_update import draw_curses, require_type_choice
+  from feedback_update import draw_curses, dedupe_curses, require_type_choice
   require_type_choice(run)
   persistent=run.get('challenge_level',0)>=5
   if number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop')):
    count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
-   if not selected or len(selected)!=count or any(c not in CURSES for c in selected):
-    selected=draw_curses(rng,count)
+   if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0)):
+    selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]))
     run.setdefault('route_curses',{})[str(run['opponent'])]=selected
    if persistent:
     encounter=str(run.get('loop',0))+':'+str(run['round'])
     if run.get('curse_committed')!=encounter:
-     run['persistent_curses']=run.get('persistent_curses',[]) + selected[:];run['curse_committed']=encounter
-    run['curses']=run['persistent_curses'][:]
-   else:run['curses']=selected[:]
+     run['persistent_curses']=dedupe_curses(run.get('persistent_curses',[]) + selected[:],run.get('challenge_level',0));run['curse_committed']=encounter
+    run['curses']=dedupe_curses(run['persistent_curses'],run.get('challenge_level',0))
+   else:run['curses']=dedupe_curses(selected,run.get('challenge_level',0))
    run['boss_curse']=selected[0]
-  else:run['curses']=run.get('persistent_curses',[])[:] if persistent else []
+  else:run['curses']=dedupe_curses(run.get('persistent_curses',[]),run.get('challenge_level',0)) if persistent else []
   challenge_levels.suppress(run)
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):

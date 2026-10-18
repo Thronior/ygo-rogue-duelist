@@ -70,10 +70,13 @@ def metrics(run,events,by_id):
  opening=(1 if 'rulebook' in run.get('artifacts',[]) else 5)+(1 if 'eye' in run.get('artifacts',[]) else 0)
  m['draws']=max(0,m['draw']-opening)
  m['untouched']=int(known and m['damage_taken']==0);m['close_call']=int(0<run['lp']<=500);m['healthy']=int(run['lp']>=8000)
- m['swift']=int(known and 0<m['turns']<=4);m['blitz']=int(known and 0<m['turns']<=2);m['quick']=int(known and 0<m['turns']<=6)
- m['early_eight']=int(known and 0<m['turns']<=8);m['early_ten']=int(known and 0<m['turns']<=10)
- m['early_twenty']=int(known and 0<m['turns']<=20)
- m['slow_turns']=max(0,m['turns']-10)
+ # Going second displays the opponent's opening turn as 0, so extend every
+ # turn-based coin threshold by one backend turn while keeping its label intact.
+ turn_offset=int(run.get('first_player')==1)
+ m['swift']=int(known and 0<m['turns']<=4+turn_offset);m['blitz']=int(known and 0<m['turns']<=2+turn_offset);m['quick']=int(known and 0<m['turns']<=6+turn_offset)
+ m['early_eight']=int(known and 0<m['turns']<=8+turn_offset);m['early_ten']=int(known and 0<m['turns']<=10+turn_offset)
+ m['early_twenty']=int(known and 0<m['turns']<=20+turn_offset)
+ m['slow_turns']=max(0,m['turns']-10-turn_offset)
  m['destroyed_total']=m['battle_destroy']+m['destroy']
  m['unique_activations']=len(spell_names|trap_names|effect_names)
  battle=max(0,m['damage']-m['effect_damage']);boss=(run.get('round',0)+1)%3==0
@@ -106,15 +109,16 @@ def metrics(run,events,by_id):
 
 # These conditions can only be decided at victory; all other thresholds are monotonic.
 VICTORY_ONLY={'early_twenty','early_eight','early_ten','untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage'}
-def pace_penalty(turns):
+def pace_penalty(turns,turn_offset=0):
  """Continuous brackets: 7/turn after 10, 12/turn after 20, then +3 each decade."""
- extra=max(0,int(turns)-10);blocks,remainder=divmod(extra,10)
- return 70*blocks+15*blocks*(blocks-1)+remainder*(7+3*blocks)+2*max(0,int(turns)-20)
+ turns=int(turns);offset=int(bool(turn_offset))
+ extra=max(0,turns-10-offset);blocks,remainder=divmod(extra,10)
+ return 70*blocks+15*blocks*(blocks-1)+remainder*(7+3*blocks)+2*max(0,turns-20-offset)
 
 def progress(run,events,by_id,victory=False):
  m=metrics(run,events,by_id)
  out={label:coins for metric,threshold,label,coins in RULES if (victory or metric not in VICTORY_ONLY) and m[metric]>=threshold}
- slow=-pace_penalty(m['turns'])
+ slow=-pace_penalty(m['turns'],run.get('first_player')==1)
  if slow:out['Slow duel']=slow
  if victory and sum(out.values())<0:out['Victory minimum']=-sum(out.values())
  from custom_cards import coins
@@ -127,7 +131,7 @@ def score(run,events,by_id):
  m=metrics(run,events,by_id);tally={'Victory':30}
  for metric,threshold,label,coins in RULES:
   if m[metric]>=threshold:tally[label]=coins
- slow=-pace_penalty(m['turns'])
+ slow=-pace_penalty(m['turns'],run.get('first_player')==1)
  if slow:tally['Slow duel']=slow
  # Pace can remove milestone earnings, never the base victory award.
  total=sum(tally.values())

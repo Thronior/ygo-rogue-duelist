@@ -1,4 +1,4 @@
-import {rewardMarkup,mountRewardSlots} from './reward-slots.js';
+import {rewardMarkup,mountRewardSlots} from './reward-slots.js?v=reward-persistent-1';
 // Reuse the card reward reel, timing, sounds and cleanup. Only prize images differ.
 function presentation(run){
  const offer=run.reward_slots,source=offer.source||offer.choices;

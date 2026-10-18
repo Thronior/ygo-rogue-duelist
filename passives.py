@@ -185,7 +185,7 @@ Duel.RegisterEffect(e,0) end''')
  exposed=run.get('curses',[]).count('exposed')
  if exposed:
   multiplier=(2 if scale>=2 else 1.5)**exposed
-  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(function(e,re,val,r) if val<=0 then return val end return math.floor(val*{multiplier}) end) Duel.RegisterEffect(e,0)
+  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(function(e,re,val,r) if val<=0 or (r&REASON_BATTLE)~=0 then return val end return math.floor(val*{multiplier}) end) Duel.RegisterEffect(e,0)
 local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
 
  for code,operations in events.items():

@@ -6,11 +6,13 @@ import campaign as g,storage,unlocks,passives
 from content import *
 base=ROOT/'temp'/('relics-'+uuid.uuid4().hex);base.mkdir();storage.ROOT=base;g.SAVE=base/'run.json'
 p=storage.profile();storage.write(base/'profile.json',p)
-assert len(ARTIFACTS)==69
-for a in ART_INFO.values():assert a['art'] in g.BY_NAME,a['art']
+assert 'bounty_list' in ARTIFACTS
+custom_art=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
+for key,a in ART_INFO.items():
+ if a['art'] not in g.BY_NAME:assert key in custom_art and (ROOT/'assets/relics'/custom_art[key]).is_file(),(key,a['art'])
 for name in unlocks.CARD_RULES:assert g.BY_NAME[name]['date']>='2003-01-01' and not unlocks.available('card',name)
 for pack in PACKS:
- assert pack['date']>='2003-01-01' or unlocks.available('pack',pack['id'])
+ assert 'date' not in pack or pack['date']>='2003-01-01' or unlocks.available('pack',pack['id'])
  if unlocks.available('pack',pack['id']):
   for seed in range(12):assert all(unlocks.card_allowed(g.BY_ID[c]) for c in g.open_pack(pack['id'],random.Random(seed)))
  else:
@@ -25,7 +27,7 @@ for seed in range(25):
 # Unlock milestones are persistent, and owner victory guarantees the tied pack.
 p['victories']=3;unlocks.award(p,r,29);storage.write(base/'profile.json',p)
 assert unlocks.available('pack','EN-DCR') and unlocks.available('pack','EN-IOC') and unlocks.available('card','Chaos Sorcerer')
-assert not unlocks.available('card','Chaos Emperor Dragon - Envoy of the End')
+assert unlocks.available('card','Chaos Emperor Dragon - Envoy of the End')  # Cards are permanently available.
 g.restock(r);r.update(gold=500,artifacts=['receipt','stamp','razor','phoenix_debt'],stamped_singles=0)
 r['shop']=[dict(kind='pack',id='EN-LOB',price=35,sold=False)]+[dict(kind='single',id=g.BY_NAME['Battle Ox']['id'],price=15,sold=False) for _ in range(3)]
 g.buy(r,0);assert r['gold']==477

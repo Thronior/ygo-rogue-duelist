@@ -10,7 +10,7 @@
 .cardbtn{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .cardbtn img{pointer-events:none;-webkit-user-drag:none}
 [data-pick]{touch-action:pan-y}
-.field-selection{position:absolute;bottom:2px;left:4%;right:4%;z-index:15;text-align:center;pointer-events:none;background:#071923e8;border:1px solid #a4e7e2;border-radius:9px;padding:6px;font-size:13px}
+.field-selection{position:absolute;grid-area:2/1;bottom:2px;left:4%;right:4%;z-index:25;text-align:center;pointer-events:none;background:#071923e8;border:1px solid #a4e7e2;border-radius:9px;padding:6px;font-size:13px}
 .field-selection button,.off-field-options{pointer-events:auto}
 .off-field-options{display:flex;overflow-x:auto;max-height:130px;gap:6px}.off-field-options .cardbtn{min-width:65px;width:65px}
 .zone.target-picked{outline:4px solid #ffda64;box-shadow:0 0 24px #ffda64}
@@ -151,7 +151,7 @@
 @media(max-height:500px){.draft-summary{margin-bottom:4px}.draft-summary .draft-count{font-size:11px}.draft-inspect-help{font-size:12px}.draft-next{min-height:34px;padding:6px 14px}}
 
 /* Quiet ambient motes behind the duel, with no input interception. */
-.duel-main{position:relative;isolation:isolate}
+.duel-main{position:relative;isolation:isolate}body.fusion-animating .selection-dialog,body.fusion-animating .field-selection,body.fusion-animating .return-prompt,body.fusion-animating .reaction-prompt,body.fusion-animating .field-reaction,body.fusion-animating .reaction-picker,body.fusion-animating .reaction-orb,body.fusion-animating .prompt,.duel-main.fusion-animating .selection-dialog,.duel-main.fusion-animating .field-selection,.duel-main.fusion-animating .return-prompt,.duel-main.fusion-animating .reaction-prompt,.duel-main.fusion-animating .field-reaction,.duel-main.fusion-animating .reaction-picker,.duel-main.fusion-animating .reaction-orb,.duel-main.fusion-animating .prompt{display:none!important}.duel-main.fusion-animating .fusion-summon-target img{visibility:hidden!important}
 .duel-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
 .duel-particles i{position:absolute;left:var(--x);top:var(--y);width:3px;height:3px;border-radius:50%;background:#ffe4a3;box-shadow:0 0 5px #ffd477;opacity:0;animation:duel-mote var(--duration) linear var(--delay) infinite;pointer-events:none}
 @keyframes duel-mote{0%{transform:translate3d(-8px,35px,0);opacity:0}20%,70%{opacity:.45}100%{transform:translate3d(18px,-65px,0);opacity:0}}
@@ -357,7 +357,7 @@
 .save-slot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0 8px}.save-slot{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px!important;border:0!important;background:transparent!important;min-width:0}.slot-number{font-size:12px;color:#b9d0db}.slot-portrait{display:block;width:clamp(64px,15vw,150px);aspect-ratio:1;border:2px solid #86a9b6;border-radius:20px;overflow:hidden;background:linear-gradient(145deg,#1e4452,#102631);box-shadow:0 5px 14px #0005}.slot-portrait img{width:100%;height:100%;object-fit:contain;padding:5px}.slot-detail{font-size:clamp(10px,1.5vw,14px);color:#f6dfa5;white-space:nowrap}.save-slot:disabled{opacity:.65}.save-slot:focus-visible .slot-portrait,.save-slot:hover:not(:disabled) .slot-portrait{border-color:#ffe19a;box-shadow:0 0 14px #ffe19a55}
 
 /* Keep actions outside the scrolling card-selection panel. */
-.selection-dialog{position:absolute;z-index:20;left:8%;right:5%;top:12%;bottom:8%;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.selection-dialog{position:absolute;z-index:20;grid-area:2/1;left:8%;right:5%;top:12%;bottom:8%;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .selection-dialog>.prompt{position:relative;inset:auto;max-height:none;min-height:0;flex:1;overflow:auto;pointer-events:auto;margin:0}
 .selection-dialog>.prompt .cardgrid{max-height:none;overflow:visible}
 .selection-actions{display:flex;justify-content:center;gap:10px;flex:none;pointer-events:auto}
@@ -583,13 +583,10 @@ dialog:has(.victory-receipt)[open]{display:flex;flex-direction:column;gap:8px}
  .tag-offline-shop .tag-shop-status{left:88px;right:8px;bottom:8px;width:auto;padding:6px;font-size:11px;max-height:70px;overflow:auto}
  .tag-offline-shop .tag-shop-status span{font-size:10px}
 }
-.duel-main:has(.selection-dialog) .field-wrap{position:static;perspective:none}
-.duel-main .selection-dialog{top:45px;bottom:5px}
 @media(orientation:landscape) and (max-height:500px){
  .cursed-options .relic-artwork{height:42px;width:44px}.cursed-options h2{font-size:14px}.cursed-options article{padding:6px}
  .cursed-options .relic-benefit,.cursed-options .relic-drawback{margin:3px 0;padding:3px;font-size:11px}.cursed-options p{line-height:1.25}
  .cursed-options article>button{min-height:36px;padding:6px}.cursed-reward h1{font-size:20px;letter-spacing:1px}
- .duel-main .selection-dialog{top:40px;bottom:4px}
 }
 /* Curse buttons stay in document flow so the fight action never covers them. */
 .opponent>button.primary{position:static;flex-shrink:0;margin-top:6px}
@@ -820,6 +817,8 @@ img.relic-artwork{display:block;object-fit:contain;object-position:center;aspect
 /* Keep the four reference actions in two short rows beside the duel controls. */
 .duel .duel-bonus-pair [data-do=coin-bonuses]{flex:1.65;line-height:1.15}
 dialog:has(.coin-bonuses){width:min(620px,94vw);max-height:88dvh;overflow:hidden}
+dialog:has(.coin-bonuses){background:#10232c;border:1px solid #7798a2;color:#e8f3f1;box-shadow:0 18px 60px #000b}
+dialog:has(.coin-bonuses)::backdrop{background:#020910d9;backdrop-filter:blur(3px)}
 .coin-bonuses{display:flex;flex-direction:column;min-height:0;max-height:calc(88dvh - 100px)}
 .coin-bonus-summary{flex:none;font-size:13px;padding:3px 0 10px;color:#f3d57d}
 .coin-bonus-summary p{color:#c9d7dc;margin:5px 0 0;font-size:12px}
@@ -841,7 +840,7 @@ dialog:has(.coin-bonuses){width:min(620px,94vw);max-height:88dvh;overflow:hidden
 .portrait[data-unlocked-level="1"]{background-color:#284b43}.portrait[data-unlocked-level="2"]{background-color:#28486c}.portrait[data-unlocked-level="3"]{background-color:#523e74}.portrait[data-unlocked-level="4"]{background-color:#713d4e}.portrait[data-unlocked-level="5"]{background-color:#75602b}
 .relic-only-shop .shop-stock{display:none}.relic-only-shop .shop-layout{grid-template-columns:1fr}.relic-only-shop .shop-edit-deck{display:none}
 .enemy-hand button{pointer-events:auto;background:none;border:0;padding:0;height:100%}
-.view-field-button{float:right;padding:5px 9px}.return-prompt{position:absolute;bottom:4px;right:8px;z-index:30}
+.view-field-button{float:right;padding:5px 9px}.return-prompt{position:absolute;grid-area:2/1;bottom:4px;right:8px;z-index:30}
 .sort-cards{display:flex;flex-direction:column;gap:5px}.sort-cards>div{display:flex;align-items:center;gap:6px}.sort-cards span{flex:1}.sort-cards img{height:58px}.sort-cards button{padding:4px}
 .personal-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding:8px}.personal-stat-grid article{display:flex;flex-direction:column;gap:6px}.personal-stat-grid strong{font-size:26px;color:#ffe091}
 @media(orientation:portrait){#modal:has(.inspect) .inspect{grid-template-columns:1fr}#modal:has(.inspect) .inspect>img{width:auto;max-width:100%;height:27dvh;max-height:230px;justify-self:center}.relic-only-shop .shop-layout{display:block}.relic-only-shop .relics{min-height:30dvh}.tag-duel-banner{font-size:10px;line-height:1.2}.portrait-relics:has(.tag-duel-banner){flex-wrap:wrap}.tag-duel-banner{width:100%}}
@@ -1000,8 +999,8 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .shop-reference-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.shop-reference-buttons button{min-width:0;padding-inline:3px}
 
 .shop-compact:not(.tag-offline-shop) .shop-reference-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
-.shop-reroll-counter{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:76px;height:68px;padding:5px;border:2px solid #e69191;border-radius:14px;background:linear-gradient(#a83d4d,#732436);color:#fff3df;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;z-index:2}
-.shop-reroll-counter b{font-size:12px}.shop-reroll-counter span{display:flex;gap:5px;align-items:center;font-size:16px}.shop-reroll-counter img{width:19px;height:19px;object-fit:contain}.shop-reroll-counter:disabled{opacity:.45}
+.shop-reroll-counter{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:76px;height:68px;padding:5px;border:2px solid #efd18e;border-radius:14px;box-shadow:0 3px 8px #0008;background:linear-gradient(#a83d4d,#732436);color:#fff3df;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;z-index:2}
+.shop-reroll-counter b{font-size:9px}.shop-reroll-counter span{display:flex;gap:5px;align-items:center;font-size:16px}.shop-reroll-counter img{width:19px;height:19px;object-fit:contain}.shop-reroll-counter:disabled{opacity:.45}
 @media(orientation:portrait){.shop-counter .shop-reroll-counter{bottom:6px;width:68px;height:58px}}
 
 .shop-reroll-landscape{background:linear-gradient(#a83d4d,#732436);border-color:#e69191;color:#fff3df;display:flex;align-items:center;justify-content:center;gap:min(6px,4cqi);min-width:0;container-type:inline-size;white-space:nowrap}.shop-reroll-landscape b,.shop-reroll-landscape span,.shop-reroll-landscape strong{font-size:min(11px,10cqi);line-height:1.1}.shop-reroll-landscape span{display:flex;align-items:center;gap:min(3px,2cqi)}.shop-reroll-landscape img{width:min(16px,16cqi);height:auto;aspect-ratio:1;flex-shrink:0;object-fit:contain}
@@ -1342,10 +1341,22 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-reroll{display:flex;align-items:center;justify-content:center;gap:4px;min-height:0;padding:5px 2px;font-size:var(--reward-font,12px);line-height:1;border:1px solid #e4b77d;background:linear-gradient(#983954,#632038);color:#fff3d6;border-radius:6px;flex:0 0 auto;min-width:0}
 .reward-reroll img{width:1em;height:1em;object-fit:contain}.reward-reroll:disabled{opacity:.45}
 .reward-status{flex:0 0 auto;font-size:11px;line-height:1.15;margin:0;text-align:center;color:#b9cbd0}
-.reward-screen>footer{display:flex;justify-content:space-between;gap:8px;flex:0 0 auto}
+.reward-screen>footer{display:flex;justify-content:center;align-items:center;gap:8px;flex:0 0 auto}
 .reward-screen>footer button{min-width:0;min-height:0;padding:8px;font-size:clamp(11px,2.5vw,15px);line-height:1.1}
+.reward-shortcuts{display:flex;justify-content:center;gap:10px}
+.reward-screen>footer .reward-shortcut{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:6px;border:1px solid #c9b47c;border-radius:7px;background:linear-gradient(145deg,#214454,#102734);box-shadow:inset 0 1px #ffffff22}
+.reward-shortcut img{display:block;width:100%;height:100%;object-fit:contain}
+.reward-overlay{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;box-sizing:border-box;padding:clamp(10px,3vw,20px);overflow:auto;color:#f2f6f3;background:#07131bcb;backdrop-filter:blur(4px)}
+.reward-overlay>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 8px;border-bottom:1px solid #54717c}
+.reward-overlay>header h2{margin:0;font-size:clamp(17px,4vw,24px)}
+.reward-overlay>header button{flex:0 0 40px;width:40px;height:40px;padding:0;font-size:27px;line-height:1}
+.reward-overlay .relic-ledger{min-height:0}
+.reward-overlay .relic-ledger-grid{grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:10px}
+.reward-overlay .relic-ledger-grid>.panel{padding:10px}
+.reward-overlay .relic-ledger-grid .relic-artwork{width:80px;height:78px;margin-bottom:8px}
+.reward-spin-all{flex:1}
 @keyframes reward-reel{from{transform:translateY(-28%)}to{transform:translateY(28%)}}
-@media(max-height:440px){dialog:has(> .reward-screen){padding:7px;gap:3px}.reward-screen{gap:4px}.reward-screen>header small{font-size:10px}.reward-wallet{font-size:18px}.reward-wallet img{width:20px;height:20px}.reward-screen>footer button{padding:5px}.reward-reroll{padding:4px 1px}.reward-status{font-size:10px}.reward-slot{padding:3px}}
+@media(max-height:440px){dialog:has(> .reward-screen){padding:7px;gap:3px}.reward-screen{gap:4px}.reward-screen>header small{font-size:10px}.reward-wallet{font-size:18px}.reward-wallet img{width:20px;height:20px}.reward-screen>footer button{padding:5px}.reward-screen>footer .reward-shortcut{flex-basis:38px;width:38px;height:38px}.reward-shortcuts{gap:7px}.reward-reroll{padding:4px 1px}.reward-status{font-size:10px}.reward-slot{padding:3px}}
 @media(prefers-reduced-motion:reduce){.reward-slot.spinning .reward-card img{animation:none;filter:none}}
 
 .reward-reroll{min-height:28px;font-size:max(10px,var(--reward-font,12px))}
@@ -1429,7 +1440,8 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 dialog:has(> .reward-screen.single-reward){width:min(380px,calc(100vw - 24px));height:min(640px,calc(var(--modal-viewport-height,100dvh) - 32px))}
 .reward-confirm{flex:0 0 auto;width:100%;min-height:44px;font-size:20px;font-weight:800;padding:8px 12px;line-height:1.1}
 .reward-screen>footer{justify-content:center}
-.reward-screen>footer button{flex:1}
+.reward-screen>footer>.reward-shortcuts{flex:0 0 auto}
+.reward-screen>footer>.reward-spin-all{flex:1}
 .reward-slot.ultra-reward{border-width:1px}
 @media(max-height:440px){.reward-confirm{min-height:32px;padding:5px;font-size:17px}dialog:has(> .reward-screen.single-reward){width:min(420px,calc(100vw - 24px));height:calc(var(--modal-viewport-height,100dvh) - 16px)}}
 @media(orientation:portrait){.ultra-beam.beam-one{--ray-start:-18deg;--ray-mid:-12deg;--ray-end:-16deg}.ultra-beam.beam-two{--ray-start:-6deg;--ray-mid:-10deg;--ray-end:-4deg}.ultra-beam.beam-three{--ray-start:6deg;--ray-mid:11deg;--ray-end:4deg}.ultra-beam.beam-four{--ray-start:18deg;--ray-mid:12deg;--ray-end:16deg}}
@@ -1824,7 +1836,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout>aside>.relics{grid-row:3!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;overflow:auto!important;align-items:stretch!important;min-height:0!important}
 .shop-compact.relic-only-shop:not(.relicless-shop) .relics .shop-product{height:100%!important;max-height:100%!important;aspect-ratio:auto!important}
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-reference-buttons{grid-row:4!important}
-@media(orientation:landscape){.shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout>aside{grid-template-rows:minmax(0,1fr) 18px minmax(0,39%) 28px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:12%!important;bottom:8px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-buy{left:25%!important;bottom:8px!important;height:52px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:auto!important;right:25%!important;bottom:8px!important;height:52px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-next{right:12%!important;bottom:8px!important;height:52px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .keeper{left:38%!important;width:24%!important}.shop-compact.relic-only-shop:not(.relicless-shop) .relics{width:80%;justify-self:center}}
+@media(orientation:landscape){.shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout>aside{grid-template-rows:minmax(0,1fr) 18px minmax(0,39%) 28px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:12%!important;bottom:8px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-buy{left:25%!important;bottom:8px!important;height:52px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:25%!important;right:auto!important;bottom:calc(16px + 52px)!important;height:44px!important;width:clamp(57px,7vw,85px)!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-next{right:12%!important;bottom:8px!important;height:52px!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .keeper{left:38%!important;width:24%!important}.shop-compact.relic-only-shop:not(.relicless-shop) .relics{width:80%;justify-self:center}}
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout{padding:4px!important}
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{transform:none!important;display:flex!important}
 .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-next{padding:0!important;min-width:0!important}
@@ -1952,3 +1964,18 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .title .smooth-menu .menu-card[data-distance="2"]{visibility:visible!important}
 
 @media(min-width:900px) and (min-height:600px){.title .menu-card>p{font-size:clamp(15px,1.45vw,19px);line-height:1.25;padding:9px}}
+
+/* Desktop shop actions: make the shop-wide reroll obvious and stack it above Buy. */
+@media (min-width:900px) and (orientation:landscape){
+ .shop-compact .shop-counter .shop-buy{left:0!important;bottom:8px!important;width:clamp(57px,7vw,85px)!important}
+ .shop-compact .shop-counter .shop-reroll-counter{display:flex!important;left:0!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;transform:none!important;width:clamp(57px,7vw,85px)!important;height:44px!important;min-height:44px!important}
+ .shop-compact .shop-counter .shop-reroll-counter b{font-size:9px!important;white-space:nowrap}
+ .shop-compact .shop-counter .shop-edit-deck{left:0!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
+ .shop-compact .shop-reference-buttons .shop-reroll-landscape{display:none!important}
+ .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-buy{left:0!important;right:auto!important;bottom:8px!important;width:clamp(57px,7vw,85px)!important}
+ .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:0!important;right:auto!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;width:clamp(57px,7vw,85px)!important;height:44px!important}
+ .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:0!important;right:auto!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
+}
+/* Keep the shop behind the duel payout from leaking through its overlay. */
+body:has(#modal[open] .reward-tally) .page.shop{visibility:hidden}
+dialog:has(> .reward-tally)::backdrop{background:#06101cf2!important;backdrop-filter:none}

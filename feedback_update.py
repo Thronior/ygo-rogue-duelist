@@ -1,9 +1,31 @@
 """Shared rules for the desktop usability and challenge-six update."""
 RACE_VALUES=dict(zip(['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'],[1<<i for i in range(26)]))
 ATTRIBUTE_VALUES={'EARTH':1,'WATER':2,'FIRE':4,'WIND':8,'LIGHT':16,'DARK':32,'DIVINE':64}
-def draw_curses(rng,count):
+def nonstackable_curses(challenge_level=0):
+ keys={'relic_seal','mirror_stats'}
+ if challenge_level>=2:keys.add('no_recovery')
+ return keys
+
+def dedupe_curses(curses,challenge_level=0):
+ unique=nonstackable_curses(challenge_level);seen=set();out=[]
+ for key in curses:
+  if key in unique:
+   if key in seen:continue
+   seen.add(key)
+  out.append(key)
+ return out
+
+def draw_curses(rng,count,challenge_level=0,existing=(),distinct=False):
  from content import CURSES
- return rng.choices(list(CURSES),weights=[0.5 if k=='relic_seal' else 1 for k in CURSES],k=count)
+ unique=nonstackable_curses(challenge_level);blocked=set(existing) if distinct else set(existing)&unique;out=[]
+ for _ in range(count):
+  pool=[k for k in CURSES if (k not in unique or k not in blocked) and (not distinct or k not in blocked)]
+  if not pool and not distinct:pool=[k for k in CURSES if k not in unique]
+  if not pool:break
+  key=rng.choices(pool,weights=[0.5 if k=='relic_seal' else 1 for k in pool],k=1)[0]
+  out.append(key)
+  if distinct or key in unique:blocked.add(key)
+ return out
 def require_type_choice(run):
  if run.get('challenge_level')!=-1 and 'dna_rewrite' in run.get('artifacts',[]) and run.get('monster_type') not in RACE_VALUES:raise ValueError('Choose a monster Type for DNA Rewrite first.')
 def choose_type(run,value):

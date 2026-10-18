@@ -12,7 +12,9 @@ ANCIENT_TREASURE_WEIGHT=0.144273
 def weight(cid):
  if cid==190000050:return ANCIENT_TREASURE_WEIGHT
  return ULTRA_WEIGHT if cid in ULTRA else 1.0
-def choose(pool,rng):return rng.choices(pool,weights=[weight(cid) for cid in pool],k=1)[0]
+def choose(pool,rng,overrides=None):
+ overrides=overrides or {}
+ return rng.choices(pool,weights=[weight(cid)*float(overrides.get(str(cid),overrides.get(cid,1))) for cid in pool],k=1)[0]
 def sample(pool,count,rng):
  remaining=list(pool);out=[]
  for _ in range(min(count,len(remaining))):

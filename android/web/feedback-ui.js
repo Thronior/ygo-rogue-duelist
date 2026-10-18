@@ -19,7 +19,7 @@ export function modifiedCard(c,run,index){const m=run.card_mods?.[index];let rac
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
-export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1)return [card.atk,card.defense];if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level;
+export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level;
 
  for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||f===c.attribute||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
