@@ -17,7 +17,7 @@ REGULAR=[
 ('trap_weaver','Trap Weaver',80,'Trap Monsters you control gain 400 ATK/DEF.','Embodiment of Apophis'),
 ('twin_banner','Twin Banner',85,'While you control exactly 2 face-up monsters with different Types and no other monsters, they gain 200 ATK/DEF.','United We Stand'),
 ('quiet_library','Quiet Library',80,'Once per turn, at the start of your End Phase, if you did not declare an attack this turn, gain 250 LP.','Solemn Wishes'),
-('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional general-stock single.','The Eye of Truth')]
+('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional rare card in the general stock.','The Eye of Truth')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),

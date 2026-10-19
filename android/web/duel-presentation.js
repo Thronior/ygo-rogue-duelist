@@ -11,6 +11,8 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // their text often describes a later effect, not a restriction on setting up the Trap.
  if((m?.selects||[]).some(choice=>{
   const c=context.card?.(choice.code),type=Number(c?.data?.type||0);
+  // Metalmorph follows general response windows rather than text-specific timing.
+  if(c?.name==='Metalmorph')return false;
   if((type&4)&&(type&0x20000))return false;
   return /(?:during (?:the |your |your opponent[’']s |either player's |each )?(?:damage step|damage calculation|draw phase|standby phase|end phase|battle phase|main phase(?: [12])?)|(?:when|if) [^.;:]{0,180}(?:summon|declares? an attack|destroyed|sent to the|inflicts?|takes? (?:battle|effect) damage))/i.test(c?.desc||'');
  }))return true;

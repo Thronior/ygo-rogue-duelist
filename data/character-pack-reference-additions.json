@@ -1,116 +1,62 @@
 [
   {
-    "pack": "Yami Yugi",
-    "card": "Silent Swordsman LV5",
-    "pool": "rare",
-    "requiredBy": "Silent Swordsman LV7"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Marshmallon",
-    "pool": "rare",
-    "requiredBy": "Marshmallon Glasses"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Ojama Green",
-    "pool": "common",
-    "requiredBy": "Ojama King"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Ojama Yellow",
-    "pool": "common",
-    "requiredBy": "Ojama King"
-  },
-  {
-    "pack": "Yami Yugi",
-    "card": "Ojama Black",
-    "pool": "common",
-    "requiredBy": "Ojama King"
-  },
-  {
-    "pack": "Anubis",
-    "card": "Great Dezard",
-    "pool": "rare",
-    "requiredBy": "Fushioh Richie"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Big Koala",
-    "pool": "common",
-    "requiredBy": "Master of Oz"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Des Kangaroo",
-    "pool": "common",
-    "requiredBy": "Master of Oz"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Sangan",
-    "pool": "rare",
-    "requiredBy": "Sanwitch"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Witch of the Black Forest",
-    "pool": "rare",
-    "requiredBy": "Sanwitch"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Harpie Lady Sisters",
-    "pool": "rare",
-    "requiredBy": "Cyber Shield"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Harpie Lady",
-    "pool": "common",
-    "requiredBy": "Cyber Shield"
-  },
-  {
-    "pack": "Joey Wheeler",
-    "card": "Elegant Egotist",
-    "pool": "common",
-    "requiredBy": "Harpie Lady Sisters"
-  },
-  {
-    "pack": "Seto Kaiba",
+    "pack": "Paradox Brothers",
     "card": "Umi",
     "pool": "common",
-    "requiredBy": "Forgotten Temple of the Deep"
+    "requiredBy": "A Legendary Ocean"
   },
   {
-    "pack": "Seto Kaiba",
-    "card": "Dark Blade",
+    "pack": "Paradox Brothers",
+    "card": "Tainted Wisdom",
     "pool": "common",
-    "requiredBy": "Dark Blade the Dragon Knight"
+    "requiredBy": "Skull Knight"
   },
   {
-    "pack": "Seto Kaiba",
-    "card": "Pitch-Dark Dragon",
+    "pack": "Paradox Brothers",
+    "card": "Ancient Brain",
     "pool": "common",
-    "requiredBy": "Dark Blade the Dragon Knight"
+    "requiredBy": "Skull Knight"
   },
   {
-    "pack": "Tea Gardner",
-    "card": "Harpie Lady Sisters",
-    "pool": "rare",
-    "requiredBy": "Harpies' Hunting Ground"
-  },
-  {
-    "pack": "Tea Gardner",
-    "card": "Harpie Lady",
-    "pool": "common",
-    "requiredBy": "Harpies' Hunting Ground"
-  },
-  {
-    "pack": "Tea Gardner",
+    "pack": "Paradox Brothers",
     "card": "Elegant Egotist",
     "pool": "common",
     "requiredBy": "Harpie Lady Sisters"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Hibikime",
+    "pool": "common",
+    "requiredBy": "Empress Judge"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Sanga of the Thunder",
+    "pool": "common",
+    "requiredBy": "Gate Guardian"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Ultimate Insect LV1",
+    "pool": "common",
+    "requiredBy": "Ultimate Insect LV3"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Time Wizard",
+    "pool": "common",
+    "requiredBy": "Thousand Dragon"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Baby Dragon",
+    "pool": "common",
+    "requiredBy": "Thousand Dragon"
+  },
+  {
+    "pack": "Paradox Brothers",
+    "card": "Protector of the Throne",
+    "pool": "common",
+    "requiredBy": "Giltia the D. Knight"
   }
 ]

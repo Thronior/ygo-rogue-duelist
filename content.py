@@ -42,7 +42,7 @@ ROSTER=[
  ('Mako Tsunami', 'JP-304', 9, 'Aqua', 'The Legendary Fisherman', 'Umi'),
  ('Duke Devlin', 'JP-305', 34, 'Fiend', 'Dice Jar', 'Dice Re-Roll'),
  ('Noah Kaiba', 'JP-306', 48, 'Fairy', 'Shinato, King of a Higher Plane', "Shinato's Ark"),
- ('Paradox Brothers', 'JP-307', 19, 'Thunder', 'Sanga of the Thunder', 'Monster Gate'),
+ ('Paradox Brothers', 'JP-307', 19, 'Thunder', 'Sanga of the Thunder', 'Kazejin'),
  ('Tea Gardner', 'JP-308', 5, 'Fairy', 'Dark Magician Girl', 'Waboku'),
  ('Solomon Muto', 'JP-309', 16, 'Spellcaster', 'Exodia the Forbidden One', 'Pot of Greed'),
  ('Mokuba Kaiba', 'EN-TP1', 17, 'Dragon', 'Luster Dragon', 'Dragon Treasure'),

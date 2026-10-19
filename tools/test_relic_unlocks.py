@@ -35,6 +35,9 @@ assert len(g.buy(r,1))==2 and len(g.buy(r,2))==2 and len(g.buy(r,3))==2
 r['lp']=1500;tally,total=g.rewards(r,[]);assert tally['Razor Ledger']==30 and tally['Phoenix IOU']==40
 print('PASS: late-only gates, all eligible booster pulls and shops, milestone/owner unlocks, refund/stamp/victory relics')
 # Real core validates dynamic field values and empty-hand draw, not just generated text.
+if not (ROOT/'runtime/core_check.exe').is_file():
+ print('SKIP: native relic-effect checks need runtime/core_check.exe')
+ raise SystemExit(0)
 checks={'last_word':'monster:GetAttack()==2400','solo':'monster:GetAttack()==2500','menagerie':'monster:GetAttack()==1800','epitaph':'monster:GetAttack()==1850','eclipse':'monster:GetAttack()==2050 and monster:GetDefense()==1350','pendulum':'monster:GetAttack()==1700 and monster:GetDefense()==1600','desperate':'monster:GetAttack()==2600','inkwell':'Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==1'}
 for relic,check in checks.items():
  lua="""Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)

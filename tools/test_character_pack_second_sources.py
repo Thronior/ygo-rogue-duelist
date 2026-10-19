@@ -5,7 +5,7 @@ import campaign as g,content,card_rarity
 from pack_odds import inspect_pack
 from complete_character_pack_references import complete
 from copy import deepcopy
-rows=json.loads((ROOT/'data/character-pack-second-sources.json').read_text())
+rows=json.loads((ROOT/'data/character-pack-second-sources.json').read_text(encoding='utf-8'))
 assert len(rows['additions'])==90
 assert not complete(deepcopy(content.PACKS))
 for row in rows['additions']:

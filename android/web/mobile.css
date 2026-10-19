@@ -890,7 +890,7 @@ dialog:has(.coin-bonuses)::backdrop{background:#020910d9;backdrop-filter:blur(3p
 .duel-room-code{align-self:center;color:#ffe39b;font-size:12px;white-space:nowrap;padding:4px}
 .duel .duel-tools-right{width:auto;flex-direction:row;align-items:center}
 .duel .duel-tools-right button{min-width:85px;min-height:36px}
-.tag-trade .draft-scroll{flex:1;min-height:0;overflow:auto}
+.page.tag-trade>.draft-scroll{display:block;flex:1 1 0;min-height:0;overflow:auto;padding:10px 15px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.tag-trade .draft-scroll{flex:1;min-height:0;overflow:auto}
 .tag-trade .trade-cards{align-content:start;align-items:start;grid-auto-rows:auto}
 .tag-trade .trade-cards .cardbtn{height:auto;min-width:0;align-self:start}
 .tag-trade .trade-cards .cardbtn>img{width:100%;height:auto;aspect-ratio:0.685;max-height:none;object-fit:contain}
@@ -1796,7 +1796,10 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
    GPU/browser stacks (notably Firefox on Windows) flicker or blank the duel board. */
 .compatibility-mode .duel.game-vector-host>.duel-main{transform:none}
 .compatibility-mode .duel button,.compatibility-mode .duel .zone>img,.compatibility-mode .duel [data-relic],.compatibility-mode .duel .card-counter,.compatibility-mode .floating-chain-control{will-change:auto}
+.compatibility-mode .duel *{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .compatibility-mode .duel .zone img,.compatibility-mode .duel .field-character{filter:none}
+.compatibility-mode dialog::backdrop,.compatibility-mode .reward-overlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.compatibility-mode .game-vector-background .background-video{display:none!important}
 .compatibility-mode .duel-particles{display:none}
 .compatibility-mode .title .smooth-menu .menu-card{animation:none!important;will-change:auto}
 .compatibility-mode .chain-control.chain-sometimes:before{backdrop-filter:none}
@@ -1979,3 +1982,5 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 /* Keep the shop behind the duel payout from leaking through its overlay. */
 body:has(#modal[open] .reward-tally) .page.shop{visibility:hidden}
 dialog:has(> .reward-tally)::backdrop{background:#06101cf2!important;backdrop-filter:none}
+
+.zone.field-spell-zone.empty .field-spell-icon{position:absolute;inset:18%;background:url('assets/icons/field-spell-placeholder.png') center/contain no-repeat;opacity:.22;mix-blend-mode:multiply;pointer-events:none}

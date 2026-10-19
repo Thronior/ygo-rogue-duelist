@@ -43,13 +43,13 @@ export function effectChoiceCue(e,m,r,M){
  return {kind:'effect-action',text:prefix+text,player:m.player,cards:[],choice:true};
 }
 
-export async function playEffectFeedback(cue,{field,image,esc,reduced=false}){
+export async function playEffectFeedback(cue,{field,image,esc,reduced=false,fast=false}){
  if(cue.statChange)field.querySelectorAll('.stat-feedback').forEach(el=>el.remove());
  const el=document.createElement('div');el.className=(cue.statChange?'stat-feedback ':'')+'effect-feedback'+(cue.random?' random-selection':'');el.setAttribute('role','status');
  const heading=(cue.player===0?'You · ':cue.player===1?'Opponent · ':'')+cue.text;
  el.innerHTML=`<strong>${esc(heading)}</strong><div class="effect-feedback-cards"></div>`;field.append(el);
  const rack=el.querySelector('.effect-feedback-cards');
- const cards=cue.cards||[],wait=ms=>new Promise(r=>setTimeout(r,ms*1.2));
+ const cards=cue.cards||[],wait=ms=>new Promise(r=>setTimeout(r,ms*(fast?0.75:1.2)));
  const pause=cue.excavation?Math.min(180,1200/Math.max(1,cards.length)):0;
  for(const [i,c] of cards.entries()){
   if(!el.isConnected)break;

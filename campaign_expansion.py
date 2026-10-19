@@ -566,7 +566,18 @@ def install(g):
     if tag_rewards[0]['key']=='exodia':slots+=[0,1,2]
     if tag_rewards[1]['key']=='exodia':slots+=[3,4]
    top=shop_rewards.guarantee_exodia(top,eligible,rng,slots)
-  rest=stock_sample([c for c in eligible if c not in top],4+ar.copies(run,'prospector_lens'))+[removal]
+  remaining=[c for c in eligible if c not in top]
+  rest=stock_sample(remaining,4)
+  lens_count=ar.copies(run,'prospector_lens')
+  if lens_count:
+   rare_printings={'rare','super rare','ultra rare','secret rare','ultimate rare'}
+   is_rare=lambda c:any(str(printing.get('rarity','')).casefold() in rare_printings for printing in c.get('sets',[]))
+   rare_pool=[c for c in eligible if is_rare(c)]
+   rare_bonus=stock_sample([c for c in rare_pool if c not in top and c not in rest],lens_count)
+   while len(rare_bonus)<lens_count and rare_pool:
+    rare_bonus.append(card_rarity.choose(rare_pool,rng))
+   rest.extend(rare_bonus)
+  rest.append(removal)
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
   for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))]),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:

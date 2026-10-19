@@ -5,7 +5,7 @@ globalThis.setTimeout=f=>{timers.set(++tick,f);return tick};globalThis.clearTime
 const surface=()=>({events:{},addEventListener(t,f){this.events[t]=f}});
 globalThis.window=surface();globalThis.innerWidth=800;globalThis.innerHeight=600;
 globalThis.document=Object.assign(surface(),{body:{append(){shown++}},querySelector(){return null},createElement(){return {setAttribute(){},style:{},getBoundingClientRect(){return {width:220,height:100}},remove(){removed++}}}});
-globalThis.MutationObserver=class{observe(){}};
+globalThis.MutationObserver=class{observe(){}disconnect(){}};
 const root=surface();const clear=installMouseDetails(root,()=>{described++;return '<p>Pack or curse description</p>'});
 const el={dataset:{pack:'test'},isConnected:true,classList:{add(){throw Error('Pack/curse must not gain card zoom')},remove(){}},matches(){return false},closest(selector){return selector.includes('[data-pack]')?this:null},getBoundingClientRect(){return {right:760,left:650,top:550}},contains(x){return x===this}};
 for(const pointerType of ['touch','pen',''])root.events.pointerover({pointerType,buttons:0,target:el});

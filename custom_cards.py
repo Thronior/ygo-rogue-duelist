@@ -4,6 +4,7 @@ from pathlib import Path
 
 ANCIENT_TREASURE=190000050
 GATE_GUARDIAN_F=190000051
+gate_guardian_id=25833572
 CARDS=json.loads((Path(__file__).parent/'data/custom-cards.json').read_text(encoding='utf8'))
 IDS={c['id'] for c in CARDS}
 
@@ -13,8 +14,8 @@ def install_packs(packs):
   if ANCIENT_TREASURE not in pack['common']:pack['common'].append(ANCIENT_TREASURE)
   pack.setdefault('rarities',{})[str(ANCIENT_TREASURE)]=['Common']
  for pack in packs:
-  if pack['id']!='DRAFT-PARADOX-BROTHERS':continue
-  pack['common']=[cid for cid in pack['common'] if cid!=GATE_GUARDIAN_F]
+  if gate_guardian_id not in pack.get('rare',[]):continue
+  if GATE_GUARDIAN_F in pack.get('common',[]):pack['common'].remove(GATE_GUARDIAN_F)
   if GATE_GUARDIAN_F not in pack['rare']:pack['rare'].append(GATE_GUARDIAN_F)
   pack.setdefault('rarities',{})[str(GATE_GUARDIAN_F)]=['Rare']
   if GATE_GUARDIAN_F not in pack.setdefault('rare_display',[]):pack['rare_display'].append(GATE_GUARDIAN_F)

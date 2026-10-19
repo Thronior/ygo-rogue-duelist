@@ -61,7 +61,7 @@ export function installVectorBackgrounds(app,modal,settings=()=>({})){
  if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=all-videos-10',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
  let frame=0;
  function refresh(){frame=0;
-  const preferences=settings(),simple=!!(preferences.simpleBackgrounds||preferences.performanceMode);document.documentElement.classList.toggle('performance-mode',!!preferences.performanceMode);document.documentElement.classList.toggle('simple-backgrounds',simple);
+  const preferences=settings(),compatibility=preferences.compatibilityMode==null?/firefox/i.test(navigator.userAgent):!!preferences.compatibilityMode,simple=!!(preferences.simpleBackgrounds||preferences.performanceMode||compatibility);document.documentElement.classList.toggle('performance-mode',!!(preferences.performanceMode||compatibility));document.documentElement.classList.toggle('simple-backgrounds',simple);
   const reward=[...document.querySelectorAll('dialog[open]')].find(d=>d.matches('.pack-theatre')||d.querySelector('.reward-screen,.reward-tally'));
   const page=app.firstElementChild;let target=reward||page,kind=null;
   if(reward)kind='gold';

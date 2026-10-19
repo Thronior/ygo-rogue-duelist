@@ -307,7 +307,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // The core may withhold both phase-advance actions when an effect mandates
    // an attack. Preserve that rule, but never force an attack when the player
    // can legally move to Main Phase 2 or the End Phase.
-   if(!best&&!m.to_m2&&!m.to_ep&&m.attacks.length){const forced=m.attacks.map((c,i)=>({i,power:atk(own.find(x=>x.sequence===c.sequence)||c)})).sort((a,b)=>b.power-a.power);best=forced[0];}
+   if(!best&&!m.to_m2&&!m.to_ep&&m.attacks.length){const forced=m.attacks.map((c,i)=>({i,a:own.find(x=>x.sequence===c.sequence)||c,power:atk(own.find(x=>x.sequence===c.sequence)||c)})).filter(x=>{const targets=enemy.filter(t=>x.power>strength(t));return !targets.length||targets.some(t=>!smart.attackBackfires(x.a,t))}).sort((a,b)=>b.power-a.power);best=forced[0]||null;}
    return best?{type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:best.i}:{type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null}}
   if(m.type===M.SELECT_SUM){
    // Keep engine legality checks, but try expendable materials before valuable bodies.
@@ -332,6 +332,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
       const damage=smart.battleDamage((field.position&1)||smart.pierce(attacker)?Math.max(0,power-opposing):0);
       if(damage>0&&damage>=this.lp[1-p]&&smart.attackAllowed(attacker,false)&&smart.attackScore(attacker,field,{dmg:damage})>-99999){x.score=100000000+damage;continue;}
      }
+     if(targetAttack&&field&&smart.attackBackfires(this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker,field)){x.score=-Infinity;continue;}
      if(targetAttack&&field&&this.expertTarget?.turn===this.turn&&this.expertTarget.attacker===this.attacker?.sequence&&this.expertTarget.target===c.sequence){x.score=10000000;continue;}
      if(targetAttack&&field&&visible(field)&&this.battleProtected?.[1-p]){x.score=-Infinity;continue;}
      if(targetAttack&&field&&tradeTarget(this.attacker.attack,field,this.query(p,L.MZONE)[this.attacker.sequence]||this.attacker)){x.score=5000+Math.min(4000,this.attacker.attack);continue;}

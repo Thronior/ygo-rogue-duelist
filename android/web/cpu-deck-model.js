@@ -24,7 +24,7 @@ export function compareCards(a,b,sort='frame',direction=1){
  let result;
  if(sort==='name')result=alpha();
  else if(sort==='level')result=level()||alpha();
- else if(sort==='atk'||sort==='defense')result=(Number(a[sort])||0)-(Number(b[sort])||0)||alpha();
+ else if(sort==='atk'||sort==='defense'){const monsterA=!!(a.data.type&1),monsterB=!!(b.data.type&1);if(monsterA!==monsterB)return monsterA?-1:1;result=(Number(a[sort])||0)-(Number(b[sort])||0)||alpha();return result*direction;}
  else if(sort==='type')result=type()||cardFrame(a)-cardFrame(b)||level()||alpha();
  else result=cardFrame(a)-cardFrame(b)||type()||level()||alpha();
  return result*direction;

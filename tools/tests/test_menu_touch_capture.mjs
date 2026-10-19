@@ -7,7 +7,7 @@ function surface(){
 }
 for(const vertical of [false,true])for(const input of ['touch-card','touch-heading','touch-background','mouse-card']){
  globalThis.matchMedia=q=>({matches:q.includes('reduced-motion')||vertical});
- globalThis.cancelAnimationFrame=()=>{};globalThis.window=surface();globalThis.document={querySelector:()=>null};
+ globalThis.cancelAnimationFrame=()=>{};globalThis.window=surface();globalThis.document={documentElement:{classList:{contains:()=>false}},querySelector:()=>null};
  const root=surface(),cards=Array.from({length:7},(_,i)=>({dataset:{menu:String(i)},style:{setProperty(){}},offsetHeight:300,offsetWidth:200,hidden:false}));
  let captured=false;const selected=[];Object.assign(root,{clientWidth:900,querySelectorAll:()=>cards,closest:()=>root,setPointerCapture(){captured=true},hasPointerCapture:()=>captured,releasePointerCapture(){captured=false}});
  const motion=mountMenuMotion(root,7,2,i=>selected.push(i));

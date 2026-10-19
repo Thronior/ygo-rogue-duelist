@@ -369,11 +369,24 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Raigeki Break'&&offered.some(x=>['Mystical Space Typhoon','Dust Tornado','De-Spell','Remove Trap'].includes(name(x))&&backScore(x)>0))return -1;
   return 98+Math.min(15,best/400);
  }
+ function exiledForceAtRisk(){
+  if(e.player!==p||e.phase>=256)return false;
+  return own.some(c=>{
+   if(name(c)!=='Exiled Force'||!face(c)||c.is_disabled)return false;
+   const battleValue=(c.position&1)?atk(c):def(c),text=e.cards.get(c.code)?.desc||'';
+   if(effectsEnabled(p)&&/cannot be destroyed (?:by|as a result of) battle/i.test(text))return false;
+   const threats=enemy.filter(a=>face(a)&&(a.position&1)&&atk(a)>battleValue&&!attackBlocked(a,1-p,true));
+   return threats.some(threat=>!own.some(ally=>!same(ally,c)&&face(ally)&&(ally.position&1)&&!ally.attack_disabled&&!(ally.attack_count>0)&&attackAllowed(ally,false)&&atk(ally)>atk(threat)));
+  });
+ }
  function removalScore(c){
   const n=name(c),targets=candidates(n);if(!targets.length)return -1;
   if(n==='Thousand Knives'&&!own.some(x=>face(x)&&name(x)==='Dark Magician'))return -1;
   if(n==='Burst Stream of Destruction'&&!own.some(x=>face(x)&&name(x)==='Blue-Eyes White Dragon'))return -1;
-  const cost=resourceCost(c);if(!Number.isFinite(cost))return -1;
+  const doomedExiled=n==='Exiled Force'&&exiledForceAtRisk();
+  const resource=resourceCost(c);if(!Number.isFinite(resource))return -1;
+  // Its 700-point body cost is largely sunk when an opposing attacker will destroy it next turn.
+  const cost=Math.max(0,resource-(doomedExiled?700:0));
   // If a legal board wipe is already worth spending, do not start that same
   // chain with Trap Hole and then spend both on the summoned monster.
   if(['Trap Hole','Bottomless Trap Hole'].includes(n)){
@@ -385,7 +398,7 @@ export function smartContext(e,p,L,prompt=null){
   const urgent=wipes.has(n)?emergency(n,targets):targets.some(x=>emergency(n,[x]));
   if(urgent)return 145;
   const answers=[...hand,...back].filter(x=>resourceRemoval.has(name(x))||wipes.has(name(x)));
-  const lastAnswer=answers.length<=1?450:0;
+  const lastAnswer=answers.length<=1&&!doomedExiled?450:0;
   const valued=targets.map(x=>({c:x,value:targetValue(x)-(safeBattle(x)?2300:0)})).sort((a,b)=>b.value-a.value);
   if(wipes.has(n)){
    const ownLoss=['Dark Hole','Torrential Tribute'].includes(n)?own.reduce((v,x)=>v+targetValue(x),0):0;
@@ -1194,18 +1207,34 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(n==='Slate Warrior')return enemy.some(x=>power(x)<1900);
   if(n==='Shining Angel')return true;
   return null;}
+ function piercingSourceSides(card){
+  const c=typeof card==='string'?q(card?.controller??p,L.MZONE).find(x=>name(x)===card):card;
+  if(!c)return [];
+  const sides=[];
+  for(const controller of [0,1])for(const x of q(controller,L.SZONE)){
+   if(!face(x)||x.is_disabled||(x.status&1))continue;
+   const n=name(x);
+   if(n==="Dragon's Rage"&&!trapNegated&&race(c)==='Dragon'||
+      !spellNegated&&['Fairy Meteor Crush','Big Bang Shot'].includes(n)&&same(x.equipCard||x.equip_card,c))sides.push(x.controller??controller);
+  }
+  return sides;
+ }
  function pierce(card,side=card?.controller??p,future=false){
-  const active=x=>enabled(x)&&!(x.status&1);
   const c=typeof card==='string'?q(side,L.MZONE).find(x=>name(x)===card):card,n=typeof card==='string'?card:name(card);
   if(relic(side,'cursed_reckless_spear')||(e.aiModifiers?.statRelics?.[side]||[]).some(r=>r.effect==='pierce'))return true;
   if((!future||e.player===side)&&e.piercingTurn?.[side]===e.turn)return true;
   if((!future||e.player===side)&&c&&e.piercingCards?.get?.(`${side}:${c.sequence}`)===c.code)return true;
-  if(c&&active(c)&&['Dark Driceratops','Mad Sword Beast','Spear Dragon','Airknight Parshath',"Gravekeeper's Spear Soldier",'Mefist the Infernal General'].includes(n))return true;
-  if(c&&q(side,L.MZONE).some(x=>active(x)&&name(x)==='Enraged Battle Ox')&&['Beast','Beast-Warrior','Winged Beast'].includes(race(c)))return true;
-  return !!c&&q(side,L.SZONE).some(x=>face(x)&&!x.is_disabled&&!(x.status&1)&&(
-   name(x)==="Dragon's Rage"&&!trapNegated&&race(c)==='Dragon'||
-   !spellNegated&&['Fairy Meteor Crush','Big Bang Shot'].includes(name(x))&&same(x.equipCard||x.equip_card,c)));
+  if(c&&face(c)&&!c.is_disabled&&!(c.status&1)&&['Dark Driceratops','Mad Sword Beast','Spear Dragon','Airknight Parshath',"Gravekeeper's Spear Soldier",'Mefist the Infernal General'].includes(n))return true;
+  if(c&&q(side,L.MZONE).some(x=>enabled(x)&&name(x)==='Enraged Battle Ox')&&['Beast','Beast-Warrior','Winged Beast'].includes(race(c)))return true;
+  return !!c&&piercingSourceSides(c).length>0;
  }
+ function attackBackfires(card,target){
+  if(!card||!target||target.location!==L.MZONE||(target.position&1))return false;
+  const sources=piercingSourceSides(card);
+  // An opponent-controlled piercing card can make the CPU take the damage.
+  return sources.includes(1-p)&&(!face(target)||atk(card)>def(target));
+ }
+
  // Compare whole-board damage, including follow-up direct attacks after a defender falls.
  // Only publicly visible opposing monsters enter the forecast; never inspect hidden cards.
  function incomingDamage(c,attackPosition){
@@ -1262,6 +1291,7 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   if(["Queen's Double",'Inaba White Rabbit'].includes(n)&&!direct)return false;
   return true;}
  function attackScore(a,t,ctx){const n=name(a),dmg=(ctx&&ctx.dmg)||0,deckOut=!!(ctx&&ctx.deckOut);let s=0;
+  if(attackBackfires(a,t))return -100000;
   // A face-up Mirror Wall halves the attacking monster's ATK during damage
   // calculation. Avoid trades the board's unmodified ATK would wrongly approve.
   if(t&&face(t)&&e.player===p&&e.cpuReviewRules?.mirrorWall!==false&&!trapNegated&&theirBack.some(x=>enabled(x)&&name(x)==='Mirror Wall')){
@@ -1446,5 +1476,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   return null;}
  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=def(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
- return {attackOpportunity,battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
+ return {attackOpportunity,battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,summonUtility,attackBlocked,tributeWorth,projectedAttack,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore};
 }
