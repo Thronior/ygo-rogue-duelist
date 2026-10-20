@@ -9,11 +9,11 @@ from content import ARTIFACTS,ART_INFO,PLAYABLE_IDS
 
 assert ARTIFACTS['bounty_list'][0]=='Bounty List'
 assert ARTIFACTS['bounty_list'][1]==100
-assert ART_INFO['bounty_list']['amount']==40
+assert ART_INFO['bounty_list']['amount']==0
 assert ART_INFO['bounty_list']['art']=='WANTED: Seeker of Sinful Spoils'
 custom_art=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
 assert (ROOT/'assets/relics'/custom_art['bounty_list']).is_file()
-assert '40 coins' in ARTIFACTS['bounty_list'][2]
+assert '50–120 coins' in ARTIFACTS['bounty_list'][2]
 
 ritual=next(c for c in g.CARDS if c['data']['type']&0x80 and c['data']['type']&1)
 fusion=next(c for c in g.CARDS if c['data']['type']&0x40 and c['data']['type']&1)
@@ -33,13 +33,14 @@ with tempfile.TemporaryDirectory(prefix='bounty-',dir=ROOT/'temp') as tmp:
  run=g.new_run(0,random.Random(18));g.auto_deck(run);run['stage']='shop';run['artifacts']=['bounty_list']
  run['bounty_objective']={'id':'eleven_activations','title':'Keep the Pressure','description':'Activate at least 11 cards or effects this Duel.'}
  g.routes(run,random.Random(2));run['opponent']=run['routes'][0]
- request=g.prepare_duel(run,random.Random(3));before=run['gold']
+ request=g.prepare_duel(run,random.Random(3));before=run['gold'];shown_reward=run['bounty_objective']['reward']
+ assert 50<=shown_reward<=120
  events=[{'kind':'activate','card':g.BY_NAME['Mystical Space Typhoon']['id']} for _ in range(11)]
  g.finish_duel(run,{'protocol':1,'id':request['id'],'winner':0,'lp':7000,'events':events},random.Random(4))
- assert run['last_rewards']['Bounty List']==40
- assert run['last_gold']>=40 and run['gold']>=before+40
+ assert run['last_rewards']['Bounty List']==shown_reward
+ assert run['last_gold']>=shown_reward and run['gold']>=before+shown_reward
  assert run['last_bounty']['completed'] is True
- assert run['bounty_objective']['id']!='eleven_activations'
+ assert run['bounty_objective']['id']!='eleven_activations' and 50<=run['bounty_objective']['reward']<=120
 
  run2=g.new_run(1,random.Random(21));g.auto_deck(run2);run2['stage']='shop';run2['artifacts']=['bounty_list']
  run2['bounty_objective']={'id':'over_3000_atk','title':'Heavy Hitter','description':'Control a monster with over 3,000 ATK this Duel.'}
@@ -50,6 +51,10 @@ with tempfile.TemporaryDirectory(prefix='bounty-',dir=ROOT/'temp') as tmp:
  run3=g.new_run(0,random.Random(31));g.auto_deck(run3);run3['artifacts']=['bounty_list'];run3['stage']='shop';run3.pop('bounty_objective',None)
  g.ensure_bounty(run3,random.Random(32))
  assert run3['bounty_objective']['id'] in {x['id'] for x in g.bounty_objectives}
+ payout=run3['bounty_objective']['reward'];g.ensure_bounty(run3,random.Random(99))
+ assert run3['bounty_objective']['reward']==payout
+ g.ensure_bounty(run3,random.Random(33),force=True)
+ assert 50<=run3['bounty_objective']['reward']<=120
  run3['artifacts']=[];g.ensure_bounty(run3);assert 'bounty_objective' not in run3
 
-print('PASS: five objective rules, one-time +40 reward, rerolls, relic metadata and ownership gate')
+print('PASS: bounty objectives, stable per-duel random payouts, rerolls, relic metadata and ownership gate')

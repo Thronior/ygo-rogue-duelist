@@ -20,7 +20,7 @@ export function smartContext(e,p,L,prompt=null){
  const rawQuery=(side,loc)=>{const key=side+':'+loc;if(!queryCache.has(key))queryCache.set(key,e.query(side,loc));return queryCache.get(key)};
  const q=(side,loc)=>rawQuery(side,loc).map((c,sequence)=>c?(c.controller!==undefined&&c.location!==undefined&&c.sequence!==undefined?c:{controller:side,location:loc,sequence,...c}):null).filter(Boolean),name=c=>e.name(c.code),data=c=>e.data[c.code]||{};
  const openingTurn=e.turn<=1||(e.aiModifiers?.firstPlayer===1&&e.turn===2);
- const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=()=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield');
+ const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=()=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.challengeLevel??0)<2&&(e.aiModifiers?.activeCurses||[]).includes('mirror_stats'));
  const liveStat=(c,key)=>c.location===L.MZONE?rawQuery(c.controller??p,L.MZONE)[c.sequence]?.[key]:undefined;
  const atk=c=>{const live=liveStat(c,'attack');if(live!==undefined)return live;const original=c.attack??data(c).attack??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats()?(c.defense??data(c).defense??original):original};
  const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=c.defense??data(c).defense??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats()?(c.attack??data(c).attack??original):original};
@@ -1026,6 +1026,10 @@ export function smartContext(e,p,L,prompt=null){
  function projectedAttack(c){
   if(c.location===L.MZONE)return atk(c);
   let result=(name(c)==='Fusilier Dragon, the Dual-Mode Beast'&&own.length<2?1400:atk(c))+(p===1?(e.aiModifiers?.enemyAttack||0):0);
+  // The Mage relic is supplied as a generic Spellcaster ATK stat relic. This
+  // forecast is used before the monster reaches the field, so its live ATK is
+  // not available yet when choosing summon position.
+  if(race(c)==='Spellcaster')result+=(e.aiModifiers?.statRelics?.[p]||[]).filter(r=>r.effect==='atk'&&r.filter==='Spellcaster').reduce((n,r)=>n+(r.amount||0),0);
   if(effectsEnabled(p)){
    if(name(c)==='Tyranno Infinity')result=1000*q(p,L.REMOVED).filter(x=>face(x)&&race(x)==='Dinosaur').length+(p===1?(e.aiModifiers?.enemyAttack||0):0);
    if(name(c)==='Element Saurus'&&[...own,...enemy].some(x=>face(x)&&attr(x)==='FIRE'))result+=500;
@@ -1307,6 +1311,11 @@ if(!effectsEnabled(p))return 0;const n=name(c);
   const remembered=t&&e.knownFieldCard?.(p,t),known=t&&(face(t)?t:remembered?{...t,code:remembered}:null);
   const protectedByEffect=known&&!t.is_disabled&&effectsEnabled(t.controller??1-p)&&/cannot be destroyed (?:by|as a result of) battle/i.test(e.cards.get(known.code)?.desc||'');
   if(protectedByEffect&&dmg<=0&&!(pierce(a)&&t&&!(t.position&1)&&atk(a)>(t.defense??data(known).defense??0)))return -100000;
+
+  // Reflect Bounder deals the attacking monster's ATK as effect damage. Do
+  // not commit to an attack that would defeat the CPU before that damage is
+  // resolved, even if the Bounder would also be destroyed in battle.
+  if(known&&face(t)&&name(known)==='Reflect Bounder'&&enabled(t)&&effectsEnabled(t.controller??1-p)&&burnDamage(combatPower(a,t))>=e.lp[p])return -100000;
 
   if(known&&enabled(t)&&['D.D. Assailant','D.D. Warrior Lady'].includes(name(known))&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known))return -100000;
   if(known&&name(known)==='Yomi Ship'&&enabled(t)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known)&&!['Dark Balter the Terrible','Dark Ruler Ha Des'].includes(n))return -100000;

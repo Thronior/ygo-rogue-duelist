@@ -29,6 +29,7 @@ def group_odds(groups):
 def inspect_pack(pid,profile):
  import campaign as g,content,unlocks,card_rarity
  p=content.PACK_BY_ID[pid]
+ overrides=p.get('rarity_weights',{})
  def unique(ids):
   out={}
   for cid in ids:
@@ -36,9 +37,17 @@ def inspect_pack(pid,profile):
   return out
  common=unique(p['common']);rare=unique(p['rare']);basic=unique([cid for cid in (p['common'] if p.get('draft_only') else p['common']+p['rare']+p.get('starter_support',[])) if g.normal_starter(cid)])
  all_cards={**basic,**rare,**common};buckets={}
+ premium=rare or common
+ def effective_weight(pool,identity,apply_override=False):
+  cid=pool[identity]
+  weight=card_rarity.weight(cid)
+  if apply_override:weight*=float(overrides.get(str(cid),overrides.get(cid,1)))
+  return weight
  for identity,cid in all_cards.items():
-  premium=rare or common
-  key=tuple(card_rarity.weight(pool[identity]) if identity in pool else 0 for pool in (common,premium,basic))+(int(g.normal_starter(premium.get(identity,cid))),)
+  key=(effective_weight(common,identity) if identity in common else 0,
+       effective_weight(premium,identity,True) if identity in premium else 0,
+       effective_weight(basic,identity) if identity in basic else 0,
+       int(g.normal_starter(premium.get(identity,cid))))
   buckets.setdefault(key,[]).append(cid)
  groups=tuple((len(ids),*key) for key,ids in buckets.items())
  if len(all_cards)<9:return []

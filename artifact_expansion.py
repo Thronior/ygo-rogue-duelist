@@ -32,5 +32,5 @@ def install(artifact):
  artifact('fusion_time','Fusion Time',120,'Fusion Summon Fusion Monsters from your Extra Deck using materials from your field, without Polymerization.','Metamorphosis','fusion_time',0,'summoning')
  artifact('level_one','Level One',90,'Add a random Level 1–4 LV monster from your Deck to your starting hand.','Ultimate Insect LV1','starting_low_level',0,'draw')
  artifact('level_up_relic','LEVEL UP',90,'Add 1 "Level Up!" to your starting hand.','Level Up!','starting_level_up',0,'draw')
- artifact('bounty_list','Bounty List',100,'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn 40 coins.','WANTED: Seeker of Sinful Spoils','bounty_list',40,'economy')
+ artifact('bounty_list','Bounty List',100,'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.','WANTED: Seeker of Sinful Spoils','bounty_list',0,'economy')
  artifact('loyalty','Loyalty',100,'Your opponent cannot take control of monsters you control.','Blindly Loyal Goblin','loyalty',0,'defense')

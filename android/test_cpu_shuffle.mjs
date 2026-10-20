@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {CPUViewer,shuffleCPUDeck} from './web/cpu-viewer.js';
+// Stub browser globals used only during module initialization so this duel
+// regression can run under a plain Node.js runtime.
+globalThis.document={hidden:false,addEventListener(){}};
+globalThis.location={href:'http://localhost/'};
+globalThis.Audio=class{constructor(src){this.src=src;this.preload='';this.paused=true;this.ended=false}addEventListener(){}};
+const {CPUViewer,shuffleCPUDeck}=await import('./web/cpu-viewer.js');
 const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url)));
 const content=read('content'),resources={'engine-data':read('engine-data'),scripts:read('scripts')};
 const source=Array.from({length:40},(_,i)=>i),original=[...source];

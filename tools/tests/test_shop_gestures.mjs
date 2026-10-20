@@ -22,4 +22,13 @@ for(const mode of ['scroll','move','cancel','hold'])for(const missingUp of [true
  if(!missingUp)emit('pointerup');emit('click');assert.deepEqual(taps,[],mode+' must not select');assert.equal(holds.length,mode==='hold'?1:0);
  emit('pointerdown');emit('pointerup');emit('click');assert.deepEqual(taps,[2],'next tap recovers after '+mode);
 }
+// A shop-card tap may rerender before its compatibility click arrives. That
+// click suppression must never consume a later click on another control.
+{
+ const {emit}=setup(),other={closest(){return null}};let prevented=false,stopped=false;
+ emit('pointerdown');emit('pointerup');
+ emit('click',{target:other,preventDefault(){prevented=true},stopImmediatePropagation(){stopped=true}});
+ assert.equal(prevented,false,'an unrelated click should not be prevented');
+ assert.equal(stopped,false,'an unrelated click should continue to the application handler');
+}
 console.log('PASS shop clicks recover without pointerup; taps select once; scroll, drag, cancellation and inspection do not select; next tap recovers.');

@@ -1,5 +1,12 @@
 import {LIMITS} from './collector-rules.js';
 export const cloneDeck=d=>({main:[...d.main],extra:[...(d.extra||[])]});
+export function cpuMatchDecks(characters,tiers,cpuDecks,testDeck=null){return characters.map((id,p)=>p===testDeck?.side?testDeck.deck:cpuDecks[id][tiers[p]])}
+export function shuffleCPUDeck(cards,seed,seat=0){
+ const result=[...cards];let state=((seed>>>0)^Math.imul(seat+1,0x9e3779b9))>>>0;
+ const random=()=>{state=(state+0x6d2b79f5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296};
+ for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result;
+}
+export function shuffleCPUMainDecks(decks,seed){return decks.map((deck,seat)=>shuffleCPUDeck(deck.main,seed,seat))}
 export const fingerprint=d=>JSON.stringify([d.main,d.extra||[]]);
 export function deckIssues(deck,cards,minimum=40){
  const by=new Map(cards.map(c=>[c.id,c])),counts=new Map(),limits=new Map(),errors=[],warnings=[];

@@ -18,11 +18,13 @@ def award(profile, run):
  levels[str(run['character'])]=new
  if new>before and new+1<=6:run['level_unlocked']=new+1
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
-def curse_opening_hand(run,hand):return max(1,int(hand)-2*curse_scale(run)*run.get('curses',[]).count('short_handed'))
+def curse_opening_hand(run,hand):
+ penalty=3 if run.get('challenge_level',0)>=2 else 2
+ return max(1,int(hand)-penalty*run.get('curses',[]).count('short_handed'))
 
 def curse_description(run,key,default):
  if run.get('challenge_level',0)<2:return default
- return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one third.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.', 'brittle':'Your monsters lose 200 ATK and 400 DEF.', 'short_handed':'Start this duel with 4 fewer cards in your hand, minimum 1.', 'exposed':'You take twice as much damage during this duel.', 'no_recovery':'You cannot recover LP during this duel.', 'mirror_stats':'Swap the original ATK and DEF of only your monsters.'}.get(key,default)
+ return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one third.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.', 'brittle':'Your monsters lose 200 ATK and 400 DEF.', 'short_handed':'Start this duel with 3 fewer cards in your hand, minimum 1.', 'exposed':'You take twice as much damage during this duel.', 'no_recovery':'You cannot recover LP during this duel.', 'mirror_stats':'Swap the original ATK and DEF of only your monsters.'}.get(key,default)
 
 def active_modifiers(run):
  from content import CURSES

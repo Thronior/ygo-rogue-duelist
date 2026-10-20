@@ -1704,6 +1704,11 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 /* Refresh the usable height after mobile browser chrome and orientation changes. */
 body{height:var(--app-viewport-height,100dvh)}
 
+/* Keep Solomon between the relic shelf and the bottom edge on desktop shops. */
+.shop-compact.desktop-shopkeeper-anchored{isolation:isolate}
+.shop-compact.desktop-shopkeeper-anchored>.shop-layout{position:relative;z-index:1}
+.shop-compact.desktop-shopkeeper-anchored>.secret-shopkeeper{display:block}
+
 /* Keep the counter controls in place; only Solomon is anchored to the lower shop. */
 .shop-compact.relicless-shop .shop-layout>aside{position:relative}
 .shop-compact.relicless-shop .shop-layout>aside{isolation:isolate}
@@ -1984,3 +1989,18 @@ body:has(#modal[open] .reward-tally) .page.shop{visibility:hidden}
 dialog:has(> .reward-tally)::backdrop{background:#06101cf2!important;backdrop-filter:none}
 
 .zone.field-spell-zone.empty .field-spell-icon{position:absolute;inset:18%;background:url('assets/icons/field-spell-placeholder.png') center/contain no-repeat;opacity:.22;mix-blend-mode:multiply;pointer-events:none}
+
+dialog.cpu-test-picker{width:min(620px,94vw);max-width:94vw;max-height:90dvh;padding:12px;background:#10232c;border:1px solid #7798a2;color:#e8f3f1;box-shadow:0 18px 60px #000b}
+dialog.cpu-test-picker::backdrop{background:#020910d9;backdrop-filter:blur(3px)}
+.cpu-test-picker>header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 0 8px;margin-bottom:8px;border-bottom:1px solid #52727c;background:none}
+.cpu-test-picker>header h2{font-size:18px;margin:0;color:#f2dc89}
+.cpu-test-picker>p{margin:0 0 10px;color:#b4c5cd}
+.cpu-test-deck-list{display:grid;gap:6px;max-height:68dvh;overflow:auto;overscroll-behavior:contain}
+.cpu-test-deck{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;padding:8px 10px;background:#18343f}
+.cpu-test-deck>span:first-child{display:grid;gap:3px;min-width:0}
+.cpu-test-deck strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cpu-test-deck small{font-size:11px;color:#b4c5cd}
+@media(orientation:portrait){.cpu-test-deck-list{max-height:72dvh}.cpu-test-picker>header h2{font-size:15px}}
+/* Super Rare pulls use a restrained tier above Rare, without the Ultra reveal effects. */
+.pack-pull.turned.super-rare{border:2px solid #d6c4f4;box-shadow:0 0 17px #b89bdf66;background:linear-gradient(140deg,#443755,#171528)}
+.pack-pull.super-rare b{background:linear-gradient(90deg,#f2eaff,#c9aff1,#f7efff);color:#291c37}

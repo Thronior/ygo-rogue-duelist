@@ -522,20 +522,46 @@ let shopkeeperTaps=0,shopkeeperRightClicks=0,shopkeeperRightClickTimer=0,shopkee
 function resetShopkeeperRightClicks(){clearTimeout(shopkeeperRightClickTimer);shopkeeperRightClickTimer=0;shopkeeperRightClicks=0;}
 function cancelShopkeeperShrink(){if(shopkeeperShrinkAnimation){shopkeeperShrinkAnimation.cancel();shopkeeperShrinkAnimation=null}shopkeeperShrinking=false;}
 
-function positionReliclessShopkeeper(){
- if(screen!=='shop'||state?.run?.challenge_level!==-1)return;
- const root=app.querySelector('.shop-compact.relicless-shop'),aside=app.querySelector('.shop-layout>aside');
- const keeper=root?.querySelector('.secret-shopkeeper')||aside?.querySelector('.secret-shopkeeper');
- if(!root||!keeper||!aside)return;
+function positionShopkeeper(){
+ if(screen!=='shop')return;
+ const root=app.querySelector('.shop-compact'),aside=root?.querySelector('.shop-layout>aside'),keeper=root?.querySelector('.secret-shopkeeper');
+ if(!root||!aside||!keeper)return;
+ const relicless=state?.run?.challenge_level===-1,landscape=matchMedia('(orientation: landscape)').matches;
+ if(!landscape&&!relicless){
+  root.classList.remove('desktop-shopkeeper-anchored');
+  const counter=root.querySelector('.shop-counter');
+  if(counter&&keeper.parentElement!==counter)counter.prepend(keeper);
+  keeper.removeAttribute('style');
+  return;
+ }
  if(keeper.parentElement!==root)root.append(keeper);
- if(matchMedia('(orientation: portrait)').matches){keeper.style.display='none';return}
- const asideRect=aside.getBoundingClientRect(),relicButton=aside.querySelector('.shop-reference-buttons [data-do="relic-ledger"]'),relicRect=relicButton?.getBoundingClientRect();
- const viewportHeight=window.innerHeight,imageTopInset=(24/592)*(.94/(561/592))+(1-.94/(561/592))/2;
- const height=shopkeeperSmall?Math.min(230,viewportHeight):viewportHeight/(2*(1-imageTopInset)),top=viewportHeight-height,width=height*.94;
- const center=relicRect?(relicRect.left+relicRect.right)/2:asideRect.left+asideRect.width/2,left=center-width/2;
- Object.assign(keeper.style,{position:'fixed',display:'block',top:`${top}px`,left:`${left}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0'});
+ if(!landscape){keeper.style.display='none';return;}
+ const viewportHeight=window.innerHeight,imageTopInset=24/592,sourceRatio=561/592;
+ let targetTop,center;
+ if(relicless){
+  const asideRect=aside.getBoundingClientRect(),relicButton=aside.querySelector('.shop-reference-buttons [data-do="relic-ledger"]'),relicRect=relicButton?.getBoundingClientRect();
+  const legacyTopInset=(24/592)*(.94/sourceRatio)+(1-.94/sourceRatio)/2;
+  const height=shopkeeperSmall?Math.min(230,viewportHeight):viewportHeight/(2*(1-legacyTopInset)),width=height*.94;
+  targetTop=viewportHeight-height;
+  center=relicRect?(relicRect.left+relicRect.right)/2:asideRect.left+asideRect.width/2;
+  root.classList.remove('desktop-shopkeeper-anchored');
+  Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0'});
+  return;
+ }
+ const shelf=aside.querySelector('.relics');
+ if(!shelf){
+  root.classList.remove('desktop-shopkeeper-anchored');
+  const counter=root.querySelector('.shop-counter');
+  if(counter&&keeper.parentElement!==counter)counter.prepend(keeper);
+  keeper.removeAttribute('style');
+  return;
+ }
+ root.classList.add('desktop-shopkeeper-anchored');
+ const shelfRect=shelf.getBoundingClientRect(),height=Math.max(1,(viewportHeight-shelfRect.top)/(1-imageTopInset)),width=height*sourceRatio;
+ targetTop=shelfRect.top-imageTopInset*height;
+ center=(shelfRect.left+shelfRect.right)/2;
+ Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0',pointerEvents:'none'});
 }
-
 function shrinkShopkeeper(){
  if(screen!=='shop'||state?.run?.challenge_level!==-1||shopkeeperShrinking||shopkeeperSmall)return;
  const keeper=app.querySelector('.secret-shopkeeper'),img=keeper?.querySelector('img');
@@ -543,13 +569,13 @@ function shrinkShopkeeper(){
  shopkeeperShrinking=true;playUISound('shopkeeper-laugh.mp3');
  const scale=Math.min(1,230/Math.max(230,keeper.getBoundingClientRect().height));
  const animation=shopkeeperShrinkAnimation=img.animate([{transform:'scale(1)'},{transform:`scale(${scale})`}],{duration:1800,easing:'ease-in',fill:'forwards'});
- animation.finished.then(()=>{if(shopkeeperShrinkAnimation!==animation)return;shopkeeperSmall=true;shopkeeperShrinking=false;shopkeeperShrinkAnimation=null;animation.cancel();img.style.transform='none';positionReliclessShopkeeper()}).catch(()=>{if(shopkeeperShrinkAnimation===animation)shopkeeperShrinkAnimation=null;shopkeeperShrinking=false});
+ animation.finished.then(()=>{if(shopkeeperShrinkAnimation!==animation)return;shopkeeperSmall=true;shopkeeperShrinking=false;shopkeeperShrinkAnimation=null;animation.cancel();img.style.transform='none';positionShopkeeper()}).catch(()=>{if(shopkeeperShrinkAnimation===animation)shopkeeperShrinkAnimation=null;shopkeeperShrinking=false});
 }
 
-window.addEventListener('resize',()=>requestAnimationFrame(positionReliclessShopkeeper),{passive:true});
-window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(positionReliclessShopkeeper),{passive:true});
-window.addEventListener('scroll',()=>requestAnimationFrame(positionReliclessShopkeeper),{passive:true,capture:true});
-window.visualViewport?.addEventListener('scroll',()=>requestAnimationFrame(positionReliclessShopkeeper),{passive:true});
+window.addEventListener('resize',()=>requestAnimationFrame(positionShopkeeper),{passive:true});
+window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(positionShopkeeper),{passive:true});
+window.addEventListener('scroll',()=>requestAnimationFrame(positionShopkeeper),{passive:true,capture:true});
+window.visualViewport?.addEventListener('scroll',()=>requestAnimationFrame(positionShopkeeper),{passive:true});
 
 document.addEventListener('pointerdown',e=>{
  const keeper=e.target.closest('.secret-shopkeeper');
@@ -632,7 +658,11 @@ function draftOrder(pool,selected){let base=pool.map((_,i)=>i).filter(i=>matches
 
 function markGoldenCards(root,r){const ids=[...(r.golden_cards||[]),r.golden_card];for(const el of root.querySelectorAll('[data-pick]'))if(ids.includes(r.pool[Number(el.dataset.pick)])){el.classList.add('golden-card');el.insertAdjacentHTML('beforeend','<span class="golden-sleeve-mark" title="Golden Sleeve" aria-label="Golden Sleeve">★</span>')}}
 
-function bountyBanner(r){if(!r?.artifacts?.includes('bounty_list')||!r.bounty_objective)return '';const b=r.bounty_objective;return `<section class="bounty-banner" aria-label="Bounty objective"><strong>BOUNTY</strong><span>${esc(b.title||'Objective')}</span><p>${esc(b.description||'Complete this Duel to earn 40 coins.')}</p><small>Reward: +40 coins</small></section>`}
+function bountyBanner(r){
+ if(!r?.artifacts?.includes('bounty_list')||!r.bounty_objective)return '';
+ const b=r.bounty_objective,rawReward=Number(b.reward),reward=Number.isFinite(rawReward)?Math.max(50,Math.min(120,Math.trunc(rawReward))):50;
+ return '<section class="bounty-banner" aria-label="Bounty objective"><strong>BOUNTY</strong><span>'+esc(b.title||'Objective')+'</span><p>'+esc(b.description||'Complete this Duel to earn coins.')+'</p><small>Reward: +'+reward+' coins</small></section>';
+}
 
 function renderDraft(){const r=state.run,copy=(character().copycat||character().engine_deck),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs">${searchButton('draft')}${['All','Monster','Spell','Trap','Deck'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t}</button>`).join('')}<select data-draft-sort>${['Newest','Default','Name','Type','Attribute','ATK','DEF','Level','Oldest'].map(o=>`<option ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select>${btn('Deselect all','deselect-all',copy?'disabled':'')}${btn('Auto-build','auto',copy?'disabled':'')}</div>${bountyBanner(r)}<div class="draft-card-scroll"><div class="cardgrid">${draftOrder(r.pool,r.selected).map(i=>deckCardMarkup(cardButton(r.pool[i],`data-pick="${i}"`,r.selected.includes(i),!!(r.card_mods&&r.card_mods[i]!==undefined)),card(r.pool[i]),r,i,content.artifactInfo)).join('')}</div></div></div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]))}
 
@@ -674,7 +704,7 @@ function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`
 
 function renderShop(){shopkeeperTaps=0;resetShopkeeperRightClicks();const r=state.run,fixed=!!(character().copycat||character().engine_deck);announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,content.cards);if(r.cursed_offer)return renderCursedRelics();const key=JSON.stringify([r.started_at,r.round,r.shop.map(x=>[x.kind,x.id,x.price])]);if(key!==shopInventoryKey){shopSelection.clear();shopInventoryKey=key}for(const i of shopSelection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')shopSelection.delete(i);const product=(x,i)=>{let name,img,description='';if(x.kind==='single'){name=card(x.id).name;img=image(x.id)}else if(x.kind==='deck'){name=x.name+' · Adds to collection';img='assets/decks/'+x.art+'.jpg'}else if(x.kind==='pack'){name=content.packs.find(p=>p.id===x.id).name;img='assets/packs/'+x.id+'.jpg'}else{const a=content.artifacts[x.id];name=a[0];description=a[2];img=relicImage(content.artifactInfo[x.id].art)}return `<div class="shop-product ${x.sold?'sold':''} ${shopSelection.has(i)?'chosen':''} ${isShopUltra(x,content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(img,`data-do="item-info" data-index="${i}"`):`<img ${x.kind==='single'?`data-inspect="${x.id}"`:x.kind==='artifact'||x.kind==='deck'||x.kind==='pack'?`data-do="item-info" data-index="${i}"`:''} src="${img}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span><button class="purchase-check" role="checkbox" aria-checked="${shopSelection.has(i)}" aria-label="Select ${esc(name)}" data-do="select-purchase" data-index="${i}" ${x.sold||((character().copycat||character().engine_deck)&&x.kind!=='artifact')?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`};
 
- shell('',`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,r.shop.filter(x=>x.kind==='single').length-5)}">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-do="shopkeeper-secret" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"></button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-do="buy-selected" ${shopSelection.size&&[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.price||0),0)<=r.gold?'':'disabled'}><b>BUY</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.sold?0:r.shop[i]?.price||0),0)}</strong></span></button><button class="shop-reroll-counter" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button>${fixed?'':'<button class="shop-edit-deck" data-do="draft">Edit deck</button>'}<button class="shop-next" data-do="routes" aria-label="Next Duel!"><span>Next<br>Duel!</span></button></div>${r.challenge_level===-1?'':`<h3>${r.challenge_level===-1?'LVL -1 · Relics disabled':'Relics'} ${(character().copycat||character().engine_deck)?'— relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${btn('Coin scorecard','scorecard')}${btn('Relics','relic-ledger')}<button class="shop-reroll-landscape" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button></div></aside></div>`,`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact'+((character().copycat||character().engine_deck)?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));if(r.challenge_level===-1){const aside=app.querySelector('.shop-layout>aside');aside.append(aside.querySelector('.keeper'));requestAnimationFrame(positionReliclessShopkeeper)};polishShop(app,JSON.stringify([r.started_at,r.character]),r.gold)}
+ shell('',`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,r.shop.filter(x=>x.kind==='single').length-5)}">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-do="shopkeeper-secret" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"></button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-do="buy-selected" ${shopSelection.size&&[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.price||0),0)<=r.gold?'':'disabled'}><b>BUY</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.sold?0:r.shop[i]?.price||0),0)}</strong></span></button><button class="shop-reroll-counter" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button>${fixed?'':'<button class="shop-edit-deck" data-do="draft">Edit deck</button>'}<button class="shop-next" data-do="routes" aria-label="Next Duel!"><span>Next<br>Duel!</span></button></div>${r.challenge_level===-1?'':`<h3>${r.challenge_level===-1?'LVL -1 · Relics disabled':'Relics'} ${(character().copycat||character().engine_deck)?'— relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${btn('Coin scorecard','scorecard')}${btn('Relics','relic-ledger')}<button class="shop-reroll-landscape" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button></div></aside></div>`,`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact'+((character().copycat||character().engine_deck)?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));requestAnimationFrame(positionShopkeeper);polishShop(app,JSON.stringify([r.started_at,r.character]),r.gold)}
 
 function collectionNavigation(active){return `<div class="collection-nav">${['cards','packs','relics','history','personal','global','collectors','achievements'].map(k=>btn(k==='collectors'?'Ultimate Collectors':k==='personal'?'Device Stats':k==='global'?'Global Stats':k==='history'?'Run History':k[0].toUpperCase()+k.slice(1),'collection-kind',`data-kind="${k}"`,k===active?'primary':'')).join('')}</div>`}
 

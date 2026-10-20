@@ -256,6 +256,15 @@
       "card": 102380,
       "signature": "Lava Golem",
       "tint": "#d694b7"
+    },
+    {
+      "id": "DRAFT-DARTZ",
+      "name": "Dartz",
+      "sprite": "dartz.png",
+      "card": 53982768,
+      "signature": "Dark Ruler Ha Des",
+      "tint": "#587a69",
+      "backgroundOpacity": 0.3
     }
   ]
 }

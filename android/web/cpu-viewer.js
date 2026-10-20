@@ -1,27 +1,41 @@
 import {displayCardText} from './card-inspection.js';
 import {CPUDeckEditor} from './cpu-deck-editor.js';
+import {cpuMatchDecks,shuffleCPUMainDecks} from './cpu-deck-model.js';
 import {genreIcons,typeIcon} from './card-search.js';
 import {loadDuelResources} from './engine.js';
 import {MobileDuel,L} from './duel.js';
-// Separate deterministic streams keep each seat shuffled and Replay seed reproducible.
-export function shuffleCPUDeck(cards,seed,seat=0){
- const result=[...cards];let state=((seed>>>0)^Math.imul(seat+1,0x9e3779b9))>>>0;
- const random=()=>{state=(state+0x6d2b79f5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296};
- for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result;
-}
+export {shuffleCPUDeck} from './cpu-deck-model.js';
 const freshSeed=previous=>{const value=globalThis.crypto?.getRandomValues?crypto.getRandomValues(new Uint32Array(1))[0]:Date.now()>>>0;return value===(previous>>>0)?(value+1)>>>0:value};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export class CPUViewer {
  constructor({root,content,inspect,dialog,onExit}){
-  Object.assign(this,{root,content,inspect,dialog,onExit});this.content={...content,characters:{...content.characters,...content.cpuWatchOpponents},cpuDecks:content.cpuWatchDecks||content.cpuDecks};this.ids=Object.keys(this.content.cpuDecks||{}).map(Number).filter(id=>this.content.cpuDecks[id]?.length&&this.content.characters[id]);this.characters=this.ids.slice(0,2);this.tiers=[0,0];this.seed=Date.now()%2147483647;this.speed=700;this.paused=true;this.reveal=true;this.history=[];this.generation=0;
+  Object.assign(this,{root,content,inspect,dialog,onExit});this.content={...content,characters:{...content.characters,...content.cpuWatchOpponents},cpuDecks:content.cpuWatchDecks||content.cpuDecks};this.ids=Object.keys(this.content.cpuDecks||{}).map(Number).filter(id=>this.content.cpuDecks[id]?.length&&this.content.characters[id]);this.characters=this.ids.slice(0,2);this.tiers=[0,0];this.testDeck=null;this.seed=Date.now()%2147483647;this.speed=700;this.paused=true;this.reveal=true;this.history=[];this.generation=0;
   this.listener=e=>{const b=e.target.closest('[data-cpu]');if(!b)return;e.stopImmediatePropagation();this.action(b.dataset.cpu,b).catch(error=>{this.paused=true;this.error=error.message;if(this.state)this.render();else{this.setup();this.dialog('CPU duel',`<p>${esc(error.message)}</p>`)}})};root.addEventListener('click',this.listener,true);this.setup();
  }
- setup(){this.editor?.destroy();this.editor=null;clearTimeout(this.timer);this.paused=true;this.engine?.destroy();this.engine=null;this.generation++;this.state=null;this.editSide??=0;
+ setup(){this.editor?.destroy();this.editor=null;this.testDeck=null;clearTimeout(this.timer);this.paused=true;this.engine?.destroy();this.engine=null;this.generation++;this.state=null;this.editSide??=0;
   for(const side of [0,1])this.tiers[side]=Math.min(this.tiers[side],this.content.cpuDecks[this.characters[side]].length-1);
   const side=this.editSide,id=this.characters[side],ch=this.content.characters[id],deck=this.content.cpuDecks[id][this.tiers[side]];
   this.category??=ch.ultimate_collector?'uc':'regular';
   const visibleIds=this.ids.filter(i=>!!this.content.characters[i].ultimate_collector===(this.category==='uc'));
   this.root.innerHTML=`<section class="page character-select-page cpu-setup"><header><button data-cpu="exit">Exit</button><button data-cpu="editor">Deck editor</button></header><div class="cpu-picker-title"><h2>Watch CPU duel</h2><p>Choose two opponents and their current campaign decks</p><nav class="cpu-category-tabs" aria-label="Opponent category">${[['regular','Characters'],['uc','Ultimate Collector']].map(([key,label])=>`<button data-cpu="category" data-category="${key}" aria-pressed="${this.category===key}" class="${this.category===key?'active':''}">${label}</button>`).join('')}</nav></div><div class="char-layout"><div class="roster" style="--roster-rows:${Math.max(1,Math.ceil(visibleIds.length/6))}">${visibleIds.map(i=>`<button class="portrait ${i===id?'selected':''}" data-cpu="character" data-id="${i}" aria-label="Choose ${esc(this.content.characters[i].name)}" aria-pressed="${i===id}"><img loading="lazy" decoding="async" src="assets/${this.content.characters[i].sprite}" alt=""><span>${esc(this.content.characters[i].name)}</span>${this.characters.includes(i)?`<b class="cpu-seat">CPU ${this.characters.indexOf(i)+1}</b>`:''}</button>`).join('')}</div><div class="duelist-selection"><div class="cpu-side-tabs">${[0,1].map(p=>`<button data-cpu="side" data-side="${p}" class="${side===p?'active':''}" aria-pressed="${side===p}"><small>CPU ${p+1}</small><strong>${esc(this.content.characters[this.characters[p]].name)}</strong></button>`).join('')}</div><aside class="char-details"><div class="duelist-hero" style="background-image:url('assets/${ch.background||'character-backgrounds/'+id+'.jpg'}')"><img src="assets/${ch.sprite}" alt="${esc(ch.name)}"><h2>${esc(ch.name)}</h2></div><div class="cpu-deck-select"><h3>Choose Deck</h3><div class="cpu-tier-tabs">${this.content.cpuDecks[id].map((record,t)=>`<button data-cpu="tier" data-tier="${t}" class="${this.tiers[side]===t?'active':''}" aria-pressed="${this.tiers[side]===t}">${esc(record.label||['Tier 1','Tier 2','Tier 3','Endless'][t]||'Deck')}</button>`).join('')}</div><p>${deck.main.length} main deck cards${deck.extra.length?' · '+deck.extra.length+' Extra Deck':''}</p><button data-cpu="deck">Inspect deck</button></div></aside><p class="cpu-fair-match">8,000 LP each · No relics or curses</p><button class="primary cpu-start" data-cpu="start">Watch duel</button></div></div></section>`;
+ }
+ chooseTestOpponent(deck,title,label=''){
+  const side=this.editSide,opponentSide=1-side,ownCharacter=this.characters[side];
+  const options=this.ids.filter(id=>id!==ownCharacter).flatMap(id=>this.content.cpuDecks[id].map((record,tier)=>({id,tier,record,character:this.content.characters[id]})));
+  if(!options.length)throw Error('No opposing CPU decks are available.');
+  const d=document.createElement('dialog');d.className='cpu-test-picker';
+  d.innerHTML=`<header><h2>Choose an opposing deck</h2><button type="button" data-test-close>Cancel</button></header><p>Testing your edited deck: <strong>${esc(title)}</strong>${label?` · ${esc(label)}`:''}</p><div class="cpu-test-deck-list">${options.map(({id,tier,record,character})=>`<button type="button" class="cpu-test-deck" data-test-character="${id}" data-test-tier="${tier}"><span><strong>${esc(character.name)}</strong><small>${esc(record.label||'Deck '+(tier+1))}</small></span><small>${record.main.length} main${record.extra?.length?' · '+record.extra.length+' extra':''}</small></button>`).join('')}</div>`;
+  d.addEventListener('click',e=>{
+   if(e.target.closest('[data-test-close]')){d.close();return}
+   const button=e.target.closest('[data-test-character]');if(!button)return;
+   const id=Number(button.dataset.testCharacter),tier=Number(button.dataset.testTier);
+   if(!this.content.cpuDecks[id]?.[tier]||id===ownCharacter)return;
+   this.characters[opponentSide]=id;this.tiers[opponentSide]=tier;this.testDeck={deck:structuredClone(deck),title,label,side};
+   d.close();this.editor?.destroy();this.editor=null;
+   this.start().catch(error=>{this.setup();this.dialog('CPU duel',`<p>${esc(error.message)}</p>`)});
+  });
+  d.onclose=()=>{d.remove();if(this.testPicker===d)this.testPicker=null};
+  document.body.append(d);this.testPicker=d;d.showModal();
  }
  async start(repeat=false,{replay=[],paused=false}={}){
   if(!repeat){if(this.characters[0]===this.characters[1])throw Error('Choose two different opponents.');this.seed=freshSeed(this.seed);}
@@ -31,9 +45,9 @@ export class CPUViewer {
   if(generation!==this.generation)return;
   const created=await new MobileDuel([...this.content.cards,...(this.content.tokenCards||[])]).init(resources);
   if(generation!==this.generation){created.destroy();return}this.engine=created;
-  const decks=this.characters.map((id,p)=>this.content.cpuDecks[id][this.tiers[p]]);
+  const decks=cpuMatchDecks(this.characters,this.tiers,this.content.cpuDecks,this.testDeck);
   // Spectator matches deliberately receive no campaign passive script or modifiers.
-  const main=decks.map((deck,seat)=>shuffleCPUDeck(deck.main,this.seed,seat));
+  const main=shuffleCPUMainDecks(decks,this.seed);
   this.state=this.engine.start(main[0],main[1],8000,8000,5,this.seed,decks[0].extra,decks[1].extra,'-- SHADOW_RUN_RNG 2\nif Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end');this.capture();
   for(let i=0;i<replay.length;i++){
    this.applyDecision(replay[i]);
@@ -67,7 +81,7 @@ export class CPUViewer {
   const speed=this.root.querySelector('#cpu-speed');speed.onpointerdown=()=>clearTimeout(this.timer);speed.onblur=()=>this.schedule();speed.onchange=e=>{this.speed=Number(e.target.value);this.schedule()};
  }
  async action(action,button){
-  if(action==='editor'){this.editor=new CPUDeckEditor({root:this.root,content:this.content,inspect:this.inspect,onBack:()=>this.setup(),onExit:()=>this.exitToMenu()});return}
+  if(action==='editor'){this.editor=new CPUDeckEditor({root:this.root,content:this.content,inspect:this.inspect,onBack:()=>this.setup(),onExit:()=>this.exitToMenu(),onTestDeck:(deck,title,label)=>this.chooseTestOpponent(deck,title,label)});return}
   if(action==='exit')return this.exitToMenu()
   if(action==='category'){if(!['regular','uc'].includes(button.dataset.category))return;this.category=button.dataset.category;return this.setup()}
   if(action==='side'){this.editSide=Number(button.dataset.side);this.category=this.content.characters[this.characters[this.editSide]].ultimate_collector?'uc':'regular';return this.setup()}
@@ -85,5 +99,5 @@ export class CPUViewer {
  }
  exitToMenu(){this.destroy();return this.onExit()}
  back(){if(this.editor)return this.editor.back();return this.exitToMenu()}
- destroy(){this.editor?.destroy();this.editor=null;this.generation++;clearTimeout(this.timer);this.engine?.destroy();this.engine=null;this.root.removeEventListener('click',this.listener,true);}
+ destroy(){this.testPicker?.close();this.testPicker?.remove();this.editor?.destroy();this.editor=null;this.generation++;clearTimeout(this.timer);this.engine?.destroy();this.engine=null;this.root.removeEventListener('click',this.listener,true);}
 }

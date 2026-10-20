@@ -19,13 +19,13 @@ assert.ok(markup.includes(`aria-label="ATK ${ox.defense}, DEF ${ox.atk}"`));
 const candidateId = 99000001;
 const candidateData = { attack: 800, defense: 2000, level: 4, race: 'Warrior', attribute: 'EARTH', type: 1 };
 const candidate = { code: candidateId, location: L.HAND, controller: 1, attack: 800, defense: 2000, position: 0 };
-function cpuContext(hasRelic) {
+function cpuContext({ hasRelic = false, activeCurses = [], challengeLevel = 0 } = {}) {
   return {
     turn: 1,
     player: 1,
     phase: 0,
     lp: [8000, 8000],
-    aiModifiers: { activeRelics: [hasRelic ? ['sword_and_shield'] : [], []], statRelics: [[], []] },
+    aiModifiers: { activeRelics: [hasRelic ? ['sword_and_shield'] : [], []], statRelics: [[], []], activeCurses, challengeLevel },
     data: { [candidateId]: candidateData },
     cards: new Map([[candidateId, { name: 'High Defense Test Monster', desc: '' }]]),
     query: () => [],
@@ -34,11 +34,19 @@ function cpuContext(hasRelic) {
   };
 }
 
-const withoutRelic = smartContext(cpuContext(false), 1, L, { to_bp: false });
-const withRelic = smartContext(cpuContext(true), 1, L, { to_bp: false });
+const withoutRelic = smartContext(cpuContext(), 1, L, { to_bp: false });
+const withRelic = smartContext(cpuContext({ hasRelic: true }), 1, L, { to_bp: false });
 assert.equal(withoutRelic.projectedAttack(candidate), 800);
 assert.equal(withoutRelic.preferSet(candidate), true);
 assert.equal(withRelic.projectedAttack(candidate), 2000);
 assert.equal(withRelic.preferSet(candidate), false);
 
-console.log('PASS Sword and Shield deck stats and CPU summon/set forecasts.');
+const normalSwapCurse = smartContext(cpuContext({ activeCurses: ['mirror_stats'] }), 1, L, { to_bp: false });
+assert.equal(normalSwapCurse.projectedAttack(candidate), 2000);
+assert.equal(normalSwapCurse.preferSet(candidate), false);
+
+const amplifiedSwapCurse = smartContext(cpuContext({ activeCurses: ['mirror_stats'], challengeLevel: 2 }), 1, L, { to_bp: false });
+assert.equal(amplifiedSwapCurse.projectedAttack(candidate), 800);
+assert.equal(amplifiedSwapCurse.preferSet(candidate), true);
+
+console.log('PASS Sword and Shield and normal swap curse summon/set forecasts; amplified curse remains player-only.');

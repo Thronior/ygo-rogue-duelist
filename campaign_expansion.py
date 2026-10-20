@@ -56,7 +56,11 @@ def install(g):
   if force or not run.get('bounty_objective'):
    previous=(run.get('last_bounty') or {}).get('id')
    choices=[item for item in BOUNTY_OBJECTIVES if item['id']!=previous] or list(BOUNTY_OBJECTIVES)
-   run['bounty_objective']=dict(rng.choice(choices))
+   objective=dict(rng.choice(choices))
+   objective['reward']=rng.randint(50,120)
+   run['bounty_objective']=objective
+  elif 'reward' not in run['bounty_objective']:
+   run['bounty_objective']=dict(run['bounty_objective'],reward=rng.randint(50,120))
   return run['bounty_objective']
  def load_run(slot=None):
   slot=storage.active_slot() if slot is None else slot
@@ -100,6 +104,7 @@ def install(g):
     r['campaign_rules']=4;r['routes']=[];r['curses']=[];r['boss_curse']=None
     if r['round']>=RUN_LENGTH and r['stage']!='gameover':r['round']=RUN_LENGTH;r['stage']='complete'
    r.setdefault('stats',{});r.setdefault('unlocks_earned',[]);r.setdefault('started_at',time.time())
+   bounty_reward_migrated=r.get('stage')!='duel' and 'bounty_list' in r.get('artifacts',[]) and 'reward' not in (r.get('bounty_objective') or {})
    if r.get('stage')!='duel':ensure_bounty(r)
    # Repair old over-limit decks without discarding owned cards or resetting a run.
    counts=Counter();selected=[]
@@ -113,6 +118,7 @@ def install(g):
     r['reward_rules']=5;save(r)
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
    if r['stage']=='shop' and ensure_shop_packs(r):save(r)
+   if bounty_reward_migrated:save(r)
   if r:
    challenge_levels.suppress(r)
    if cursed_relics.pending(r):cursed_relics.create_offer(r)
@@ -445,6 +451,7 @@ def install(g):
   character_progression.duel(g,run,result,won,boss)
   run['last_rewards']={};run['last_gold']=0
   run['last_boss_heal']=0
+  if 'bounty_list' in run.get('artifacts',[]):ensure_bounty(run,rng)
   active_bounty=dict(run.get('bounty_objective') or {}) if 'bounty_list' in run.get('artifacts',[]) else None
   run['shop_rerolls']=0
   # Curses end with this encounter, including defeats and the final boss.
@@ -489,7 +496,7 @@ def install(g):
     routes(run,rng)
     if not boss:restock(run,rng)
   if active_bounty and bounty_complete(active_bounty,result.get('events',[]),g.BY_ID):
-   reward=int(ART_INFO.get('bounty_list',{}).get('amount',40)) or 40
+   reward=max(50,min(120,int(active_bounty.get('reward',50))))
    run['last_rewards']['Bounty List']=reward
    run['last_gold']+=reward
    run['gold']+=reward

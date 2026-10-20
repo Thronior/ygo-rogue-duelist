@@ -54,7 +54,7 @@ def description(key,info,previous):
  'like_fusion':'Fusion Monsters, "Polymerization", and "Fusion Sage" appear more often in shops.',
  'phoenix':f'Once per Duel, if your LP become 0, your LP become {n(a)} instead and you do not lose the Duel for having 0 LP. After this effect is applied, this relic is consumed.',
  'boss_gold':f'Earn {a} additional coins after each boss victory.',
- 'bounty_list':f'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn {n(a)} coins.',
+ 'bounty_list':'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.',
  'glass':f'Your starting LP become {n(a)} in each Duel, before boss LP penalties. Double your victory coin rewards.',
  'spyglass':"Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
