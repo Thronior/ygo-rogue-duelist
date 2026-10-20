@@ -1,5 +1,5 @@
 {
-  "notes": "Append-only opponent identities. Authoritative tier_decks select the version for each supported first-journey tier; no new opponents in tier-4 loops.",
+  "notes": "Append-only opponent identities. Authoritative tier_decks select first-journey tiers; Tier 4-only identities are listed in tier4-decks.json.",
   "excluded_source_ids": [
     1,
     2,
@@ -416,12 +416,12 @@
       "name": "Princess Adena",
       "tier": 3,
       "deck": "wct2004-princess-adena",
-      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
+      "source": "User-provided 41-card Sanctuary in the Sky / Fairy decklist",
       "original": "Ishizu Ishtar",
       "source_id": 20,
       "fixed": true,
       "sprite": "opponents/princess-adena.png",
-      "theme": "A royal magical encounter for the princess from the original anime's virtual-game arc; a creative deck assignment.",
+      "theme": "Sanctuary in the Sky and LIGHT Fairies, supported by Agent monsters and recovery cards.",
       "background": "character-backgrounds/14.jpg",
       "tier_decks": {
         "2": "wct2004-princess-adena-tier2",
@@ -435,7 +435,10 @@
         "continuous",
         "field"
       ],
-      "reward_pack": "WC4-24"
+      "reward_pack": "WC4-24",
+      "limit_exceptions": {
+        "Graceful Charity": 2
+      }
     },
     {
       "character": 56,
@@ -618,6 +621,52 @@
         "Call of the Haunted": 2
       },
       "source": "User-approved exact 40-card deck; 205/430 wins against current T2 roster."
+    },
+    {
+      "character": 74,
+      "name": "Seeker",
+      "tier": 3,
+      "deck": "seeker-magnet-rock-tier3",
+      "source": "User-provided Magnet Warrior/Rock decklist",
+      "fixed": true,
+      "sprite": "opponents/seeker.png",
+      "theme": "A Magnet Warrior and Rock strategy built around filling the Graveyard and powering up Megarock Dragon.",
+      "background": "character-backgrounds/10.jpg",
+      "tier_decks": {
+        "3": "seeker-magnet-rock-tier3"
+      },
+      "reward_themes": [
+        "Rock",
+        "EARTH",
+        "highlevel",
+        "draw",
+        "discard",
+        "banish"
+      ],
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 75,
+      "name": "Obelisk the Tormenter",
+      "tier": 4,
+      "deck": "opponent-75-tier-4",
+      "source": "User-provided decklist",
+      "fixed": true,
+      "sprite": "opponents/obelisk-the-tormenter.png",
+      "theme": "A stall and draw strategy built around the Egyptian God Cards and Life Point recovery.",
+      "background": "character-backgrounds/0.jpg",
+      "tier_decks": {
+        "4": "opponent-75-tier-4"
+      },
+      "reward_themes": [
+        "Divine-Beast",
+        "draw",
+        "stall",
+        "highlevel",
+        "healing"
+      ],
+      "reward_pack": "WC4-24",
+      "ignore_limited_list": true
     }
   ]
 }

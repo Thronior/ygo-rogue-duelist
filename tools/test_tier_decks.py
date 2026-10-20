@@ -9,6 +9,7 @@ for tiers in content.FIXED_OPPONENTS.values():
   deck=read_ydk(row['deck'],{})
   records.append(dict(name=f"{row['name']} tier {row['tier']}",main=deck['main'],extra=deck['extra']))
 records.append(endless.CHAMPION)
+records.append(content.opponent_record(0,endless.OBELISK_ID,loop=1))
 fixture=Path('temp/deck-fixture.lua');backup=fixture.read_bytes() if fixture.exists() else None
 try:
  for record in records:
@@ -19,7 +20,7 @@ try:
   lines+=['Debug.ReloadFieldEnd()'];fixture.write_text('\n'.join(lines),encoding='utf8')
   r=subprocess.run([str(Path('runtime/core_check.exe').resolve()),'decks'],cwd='runtime',capture_output=True,text=True,timeout=30)
   if r.returncode:raise AssertionError((record['name'],r.stdout[-2000:],r.stderr))
- print('PASS fixed tier decks and championship deck through the real native core')
+ print('PASS fixed tier decks, championship deck, and Obelisk Tier 4 deck through the real native core')
 finally:
  if backup is None:fixture.unlink(missing_ok=True)
  else:fixture.write_bytes(backup)

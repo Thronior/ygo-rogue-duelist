@@ -22,12 +22,24 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
      assert reward['key'] in shop_rewards.reward_keys()
      assert reward['pack'] in content.PACK_BY_ID and not content.PACK_BY_ID[reward['pack']].get('draft_only')
      if i in content.TIER_EXCLUSIVE_OPPONENTS:
-      assert not loop and rd>0
-      seen[rd//3+1].add(i)
+      if content.TIER_EXCLUSIVE_OPPONENTS[i].get('tier')==4:
+       assert loop and content.opponent_record(rd,i,loop=loop)['tier']==4
+      else:
+       assert not loop and rd>0
+       seen[rd//3+1].add(i)
     if rd==0 and not loop:
      assert run['tutorial_variants']=={str(i):content.TUTORIAL_OPPONENTS[i] for i in run['routes']}
     defeated.append(run['routes'][0]);count+=1
  for i,row in content.TIER_EXCLUSIVE_OPPONENTS.items():
+  if row.get('tier')==4:
+   assert i not in content.PLAYABLE_IDS
+   assert i not in content.eligible_opponents(0,0) and i in content.eligible_opponents(0,1)
+   deck=content.opponent_record(0,i,1)
+   assert deck['tier']==4 and deck.get('ignore_limited_list') and len(deck['main'])==52
+   fallback=shop_rewards.reward_for(i);assert fallback['pack'] in content.PACK_BY_ID
+   run=dict(round=0,loop=1,character=37,opponent=i)
+   game.copy_deck(run,random.Random(1));assert run['copied_opponent']==i and len(run['selected'])>=40
+   continue
   tiers={int(t) for t in row.get('tier_decks',{str(row['tier']):row['deck']})}
   assert i not in content.PLAYABLE_IDS
   for rd in range(9):

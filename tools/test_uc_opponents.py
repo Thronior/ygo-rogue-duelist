@@ -3,7 +3,7 @@ from unittest.mock import patch
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import content,campaign as g,storage,fallen_collectors as f
-uc=set(content.UC_OPPONENTS);assert len(uc)==7
+uc=set(content.UC_OPPONENTS);assert len(uc)>=7
 for loop in [1,2,9]:assert uc<=set(content.eligible_opponents(0,loop))
 assert not uc.intersection(content.eligible_opponents(5,0))
 profile=storage.profile();profile['unlocked']=list(content.PLAYABLE_IDS)

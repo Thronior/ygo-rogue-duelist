@@ -2,13 +2,19 @@ import assert from 'node:assert/strict';
 import {installShopGestures} from '../../android/web/shop-gestures.js';
 const timers=new Map();let tid=0;
 globalThis.setTimeout=fn=>{timers.set(++tid,fn);return tid};globalThis.clearTimeout=id=>timers.delete(id);
-function setup(){
+function setup({rerenderOnTap=false}={}){
  timers.clear();const listeners=new Map(),taps=[],holds=[];
  const root={addEventListener(type,fn){listeners.set(type,fn)}};
- const item={dataset:{shopItem:'2'},isConnected:true,closest(){return this}};
- installShopGestures(root,{tap:i=>taps.push(i),hold:i=>holds.push(i)});
+ let item={dataset:{shopItem:'2'},isConnected:true,closest(){return this}};
+ installShopGestures(root,{tap:i=>{taps.push(i);if(rerenderOnTap)item={dataset:{shopItem:String(i)},isConnected:true,closest(){return this}}},hold:i=>holds.push(i)});
  const emit=(type,extra={})=>listeners.get(type)?.({target:item,pointerId:1,button:0,clientX:0,clientY:0,detail:1,preventDefault(){},stopImmediatePropagation(){},...extra});
  return {emit,taps,holds};
+}
+// Pointerup selects the item and rerenders the shop before the browser emits
+// its compatibility click against the replacement DOM node.
+{
+ const {emit,taps}=setup({rerenderOnTap:true});emit('pointerdown');emit('pointerup');emit('click');
+ assert.deepEqual(taps,[2],'rerendered item click must not toggle the selection back off');
 }
 for(const mode of ['normal','missing-up','click-only','keyboard']){
  const {emit,taps}=setup();

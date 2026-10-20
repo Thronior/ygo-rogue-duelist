@@ -249,8 +249,9 @@ def install(g):
   if fallen:
    main=fallen['deck']['main'][:];extra=fallen['deck']['extra'][:]
   else:
-   main=endless.CHAMPION['main'][:] if run.get('encore_active') else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   extra=endless.CHAMPION['extra'][:] if run.get('encore_active') else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
+   encore=endless.encore_record(run) if run.get('encore_active') else None
+   main=encore['main'][:] if encore else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   extra=encore['extra'][:] if encore else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
@@ -350,7 +351,7 @@ def install(g):
    # A saved Collector encounter owns its deck; it may predate roster restrictions.
    enemy=fallen['deck']['main'][:];enemy_extra=fallen['deck']['extra'][:]
   elif run.get('encore_active'):
-   enemy=endless.CHAMPION['main'][:];enemy_extra=endless.CHAMPION['extra'][:]
+   encore=endless.encore_record(run);enemy=encore['main'][:];enemy_extra=encore['extra'][:]
   else:
    enemy=opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    enemy_extra=[] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra']
@@ -361,7 +362,7 @@ def install(g):
   run['opponent_relic']=opponent_relic(dict(run,opponent_cards=request['enemy_deck']))
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
   if fallen:enemy_name='Fallen '+fallen['name']
-  if run.get('encore_active'):enemy_name=endless.CHAMPION['name']
+  if run.get('encore_active'):enemy_name=endless.encore_record(run)['name']
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand0=challenge_levels.curse_opening_hand(run,hand0)
   hand1=1 if owns(duel_run,'rulebook') else 5

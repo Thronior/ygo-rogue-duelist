@@ -1,6 +1,6 @@
 // Rules for the expanded fixed opponent decks. Only public opposing cards are valued.
 export function deckPolicy(x){
- const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,exodiaPieces}=x;
+  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,exodiaPieces,projectedAttack}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>attr(c)==='WATER',sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
  const handCost=(source,n,filter=()=>true)=>hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code)&&filter(c)).length>=n;
@@ -102,7 +102,11 @@ export function deckPolicy(x){
   if(n==='Chiron the Mage')return handCost(c,1,t=>!!(data(t).type&2))&&best(theirBack)>=1000?95:-1;
   if(n==='Lightning Vortex')return handCost(c,1)&&(live(enemy).length>=2||danger&&best(live(enemy))>=2400)?100:-1;
   if(n==='Magical Stone Excavation'||n==='Spell Reproduction')return handCost(c,2,t=>n!=='Spell Reproduction'||!!(data(t).type&2))&&grave.some(t=>data(t).type&2&&spellValue(t)>=3000)?85:-1;
-  if(n==='The Winged Dragon of Ra')return atk(c)>0?e.lp[p]>2000&&enemy.some(t=>face(t)&&atk(t)>=atk(c))?95:-1:e.lp[p]>2000&&enemy.length===0&&e.lp[p]-100>=e.lp[1-p]&&e.player===p?105:-1;
+  if(n==='The Winged Dragon of Ra'){
+   if(atk(c)>0)return e.lp[p]>1000&&enemy.some(t=>face(t)&&atk(t)>=atk(c))?95:-1;
+   const forecast=projectedAttack(c),otherAttacks=attacks.filter(t=>!same(t,c)).reduce((sum,t)=>sum+Math.max(0,atk(t)),0);
+   return e.lp[p]>100&&e.player===p&&e.phase===4&&enemy.length===0&&forecast+otherAttacks>=e.lp[1-p]?105:-1;
+  }
   if(n==='Orb of Yasaka')return e.lp[p]<7000&&live(own).some(t=>spirit(t)&&battleReady(t)&&enemy.some(a=>face(a)&&atk(t)>atk(a)))?65:-1;
   if(n==='Mirror of Yata')return live(own).some(t=>spirit(t)&&atk(t)>=1400)?65:-1;
   if(n==='Water Hazard')return free===5&&hand.some(t=>monster(t)&&water(t)&&lvl(t)<=4)?95:-1;

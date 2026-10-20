@@ -5,7 +5,7 @@ import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
 import {planBattle} from './battle-planner.js';
 import {FieldKnowledge} from './field-knowledge.js';
-import {smartContext,exodiaPieces} from './smart_policy.js';
+import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount} from './smart_policy.js';
 import {DuelEngine,M,R,I,B,L,P} from './engine.js';
 export {M,R,I,B,L,P};
 export class MobileDuel extends DuelEngine {
@@ -253,6 +253,12 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const idle=(action,index=null)=>({type:R.SELECT_IDLECMD,action,index});
   if(m.type===M.SELECT_IDLECMD){
    if(m.to_bp&&!enemy.length&&own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0)>=this.lp[1-p])return idle(I.TO_BP);
+   // Use a legal God special summon first (saving the Normal Summon), then
+   // prioritize a legal three-Tribute Normal Summon over ordinary plays.
+   const godSpecial=m.special_summons.findIndex(c=>egyptianGods.has(this.name(c.code))&&smart.specialOk(c)!==false);
+   if(godSpecial>=0)return idle(I.SELECT_SPECIAL_SUMMON,godSpecial);
+   const godSummon=m.summons.findIndex(c=>egyptianGods.has(this.name(c.code)));
+   if(godSummon>=0)return idle(I.SELECT_SUMMON,godSummon);
    const activate=m.activates.map((c,index)=>({c,index,name:this.name(c.code),text:desc(c)})).filter(x=>safeCost(x.c));
    const planned=activate.map(x=>({...x,score:smart.activation(x.c,false)})).filter(x=>x.score!==null&&x.score>=80).sort(rank);
    if(planned.length)return idle(I.SELECT_ACTIVATE,planned[0].index);
@@ -280,7 +286,20 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const firstMove=own.length===0&&enemy.length===0&&this.query(p,L.GRAVE).filter(Boolean).length===0;
    const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy.some(t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
    if(smart.battleBeforeSummon())return idle(I.TO_BP);
-   const special=ranked(m.special_summons).filter(x=>smart.specialOk(x.c)!==false).find(x=>usefulAttacker(x.c)||smart.summonUtility(x.c));if(special)return idle(I.SELECT_SPECIAL_SUMMON,special.i);
+   const specialCandidates=ranked(m.special_summons).filter(x=>smart.specialOk(x.c)!==false);
+   // Megarock Dragon's printed database ATK is a placeholder; compare its
+   // graveyard-scaled value before allowing a lower-power special summon to
+   // take priority just because the raw card data sorts it last.
+   const megarock=specialCandidates.find(x=>this.name(x.c.code)==='Megarock Dragon');
+   if(megarock){
+    const projected=smart.projectedAttack(megarock.c);
+    if(projected>=1400){
+     specialCandidates.splice(specialCandidates.indexOf(megarock),1);
+     const position=specialCandidates.findIndex(x=>projected>=smart.projectedAttack(x.c));
+     specialCandidates.splice(position<0?specialCandidates.length:position,0,megarock);
+    }
+   }
+   const special=specialCandidates.find(x=>usefulAttacker(x.c)||smart.summonUtility(x.c));if(special)return idle(I.SELECT_SPECIAL_SUMMON,special.i);
    const flip=m.pos_changes.findIndex(c=>{if(exodiaPieces.has(c.code))return false;const field=this.query(p,L.MZONE)[c.sequence];const name=this.name(c.code);if(field&&visible(field)&&smart.attackBlocked(field,p))return false;const useful=name==='Magician of Faith'?this.query(p,L.GRAVE).some(c=>stat(c).type&2):name==='Mask of Darkness'?this.query(p,L.GRAVE).some(c=>stat(c).type&4):['Man-Eater Bug','Penguin Soldier'].includes(name)?enemy.length>0:name==='Morphing Jar'?(this.query(p,L.HAND).length<3&&this.query(p,L.DECK).length>5):false;const extra=smart.flipUseful(name,field);return field&&!(field.position&1)&&(extra===true||smart.saferPosition(field)!==false)&&extra!==false&&(useful||extra===true||m.to_bp&&!smart.attackBlocked(field,p)&&(atk(field)>threat||smart.clearedLane(field)||smart.attackOpportunity(field)))});if(flip>=0)return idle(I.SELECT_POS_CHANGE,flip);
    // Compare all legal defenders before choosing an individually safer ATK summon.
    // A different monster in DEF may be the only line that survives piercing.
@@ -324,6 +343,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
      // This outranks card-specific target heuristics and works without effect text
      // (e.g. hand-size discard), for discard and send-to-GY selections alike.
      if(c.controller===p&&c.location===L.HAND&&exodiaPieces.has(c.code)){x.score=-Infinity;continue;}
+      if(fxN==='Good Goblin Housekeeping'&&c.controller===p&&c.location===L.HAND){x.score=-smart.handLoss(c);continue;}
 
      // A safe, visible lethal attack outranks removal and a previously planned target.
      if(targetAttack&&field&&visible(field)&&!this.battleProtected?.[1-p]){
@@ -352,7 +372,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    candidates.sort(rank);if(targetAttack&&m.can_cancel&&this.attacker.canStop!==false&&candidates.every(x=>x.score===-Infinity))return {type:R.SELECT_CARD,indicies:null};let n=0,indicies=[];
    const held=new Set(this.query(p,L.HAND).filter(Boolean).map(c=>c.code));
    const recoverPieces=fxN==='Backup Soldier'?new Set(m.selects.filter(c=>c.controller===p&&c.location===L.GRAVE&&exodiaPieces.has(c.code)&&!held.has(c.code)).map(c=>c.code)).size:0;
-   const need=fxN==='The Cheerful Coffin'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.score>600).length)):fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):m.min;
+    const need=fxN==='The Cheerful Coffin'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.score>600).length)):fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):fxN==='Megarock Dragon'?preferredSelectionCount(m.min,m.max,candidates.map(x=>x.score),true):m.type===M.SELECT_CARD&&m.max>m.min?preferredSelectionCount(m.min,m.max,candidates.map(x=>x.score)):m.min;
    if(m.type===M.SELECT_TRIBUTE){const selected=tributeSelection(candidates,need);if(selected)return {type:R.SELECT_TRIBUTE,indicies:selected};}
    for(const x of candidates){if(n>=need)break;if(x.score===-Infinity&&n>=m.min)continue;indicies.push(x.i);n+=m.type===M.SELECT_TRIBUTE?(x.c.release_param||1):1}
    return {type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies};

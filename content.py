@@ -186,6 +186,12 @@ def opponent_record(round_index,index,loop=0):
   return dict(UC_OPPONENTS[index]['deck'],tier=4)
  if index in TIER_EXCLUSIVE_OPPONENTS:
   row=TIER_EXCLUSIVE_OPPONENTS[index]
+  if loop:
+   if index not in eligible_opponents(round_index,loop):raise ValueError('Opponent is not eligible for this duel tier.')
+   row4=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8')).get(str(index))
+   if not row4:raise ValueError('Opponent has no Tier 4 deck.')
+   record=dict(row);record.update(row4);record['tier']=4
+   return read(record.get('deck') or row.get('tier_decks',{}).get('4'),record)
   if index not in eligible_opponents(round_index,loop):raise ValueError('Opponent is not eligible for this duel tier.')
   tier=min(3,round_index//3+1)
   return read(row.get('tier_decks',{}).get(str(tier),row['deck']),dict(row,tier=tier))
@@ -284,7 +290,8 @@ def eligible_opponents(round_index,loop=0):
  tier=min(3,round_index//3+1)
  if loop:
   tier4=json.loads((Path(__file__).parent/'data/tier4-decks.json').read_text(encoding='utf8'))
-  return [i for i in GAME_DECKS if str(i) in tier4]+list(UC_OPPONENTS)
+  tier4_only=[i for i,row in TIER_EXCLUSIVE_OPPONENTS.items() if row.get('tier')==4 and str(i) in tier4]
+  return [i for i in GAME_DECKS if str(i) in tier4]+list(UC_OPPONENTS)+tier4_only
  return list(GAME_DECKS)+([] if loop else [i for i,row in TIER_EXCLUSIVE_OPPONENTS.items() if str(tier) in row.get('tier_decks',{str(row['tier']):row['deck']})])
 
 # Each defeated Collector is a separate, permanent NPC identity, not its avatar.

@@ -48,8 +48,8 @@ def opponent_relic(run):
  # Use the opponent's actual deck, including opponents without playable variants.
  try:
   from content import opponent_record
-  from endless import CHAMPION
-  deck=CHAMPION if run.get('encore_active') else opponent_record(run.get('round',0),run['opponent'],run.get('loop',0))
+  import endless
+  deck=endless.encore_record(run) if run.get('encore_active') else opponent_record(run.get('round',0),run['opponent'],run.get('loop',0))
   races=Counter(g.BY_ID[c]['race'] for c in run.get('opponent_cards',deck['main']+deck.get('extra',[])) if c in g.BY_ID and g.BY_ID[c]['data']['type']&1)
  except (KeyError,IndexError,TypeError):races=Counter({CHARACTERS[run.get('opponent',0)].get('race','Spellcaster'):1})
  mapping={'Warrior':'blade','Beast-Warrior':'blade','Spellcaster':'mage','Dragon':'dragon','Winged Beast':'wing','Machine':'gear','Aqua':'shell','Fish':'shell','Sea Serpent':'shell','Dinosaur':'fossil','Reptile':'fossil','Insect':'hive','Plant':'hive','Zombie':'bone','Fairy':'halo','Beast':'fang','Fiend':'horn','Pyro':'storm_core','Thunder':'storm_core','Divine-Beast':'divine_might'}

@@ -94,7 +94,7 @@
     "sections": [
       {
         "title": "Keep your run going",
-        "text": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
+        "text": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. After completing your second loop, Obelisk the Tormenter becomes the required opponent to start further loops. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
         "image": "tutorial/guide/loops.jpg"
       }
     ],
