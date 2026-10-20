@@ -13,14 +13,21 @@ const engine={cards,data:Object.fromEntries(content.cards.map(c=>[c.id,{...c.dat
 const policy=()=>smartContext(engine,0,L,{to_bp:true});
 const fillDeck=(side,count,name='Giant Soldier of Stone')=>{zones[side][L.DECK]=Array.from({length:count},(_,i)=>card(name,side,L.DECK,i));};
 
-// The clock compares expected turns to deck-out; a lead favors defense and a
-// deficit favors dealing damage. A low deck blocks optional draws unless lethal.
+// A deck-out lead never makes the CPU stall: it attacks directly and into set
+// monsters at any deck size. Being behind on the clock favors damage racing.
 const pot=card('Pot of Greed',0,L.HAND);
 zones[0][L.HAND]=[pot];fillDeck(0,20);fillDeck(1,10,'Vorse Raider');
 let smart=policy();
-assert.equal(smart.deckOutClock.mode,'defense');
-assert.equal(smart.activation(pot),-1,'do not spend deck while ahead in the deck-out race');
-assert.equal(smart.attackScore(card('Vorse Raider',0,L.MZONE),null,{dmg:1900}),-100000,'avoid nonlethal direct attacks while playing for deck-out');
+assert.equal(smart.deckOutClock.mode,'neutral','do not enter a defensive stall when ahead on deck-out');
+assert.ok(smart.activation(pot)>=90,'allow normal draw play above the low-deck threshold');
+assert.ok(smart.attackScore(card('Vorse Raider',0,L.MZONE),null,{dmg:1900})>-99999,'allow normal direct attacks above the low-deck threshold');
+const drillago=card('Drillago',0,L.MZONE,0,1),setMonster=card('Goddess with the Third Eye',1,L.MZONE,0,8);
+assert.ok(smart.attackScore(drillago,setMonster,{dmg:0})>-99999,'allow attacks into set monsters while above the low-deck threshold');
+
+fillDeck(0,8);fillDeck(1,5,'Vorse Raider');
+smart=policy();assert.equal(smart.deckOutClock.mode,'neutral','being ahead on deck-out never changes combat into a stall plan');
+assert.ok(smart.attackScore(card('Vorse Raider',0,L.MZONE),null,{dmg:1900})>-99999,'keep direct attacks available at eight cards or fewer');
+assert.ok(smart.attackScore(drillago,setMonster,{dmg:0})>-99999,'keep attacks into set monsters available at eight cards or fewer');
 
 fillDeck(0,9);fillDeck(1,40,'Vorse Raider');
 smart=policy();assert.equal(smart.deckOutClock.mode,'race');

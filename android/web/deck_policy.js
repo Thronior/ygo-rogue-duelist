@@ -13,7 +13,15 @@ export function deckPolicy(x){
  const lethal=attacks.reduce((s,c)=>s+Math.max(0,atk(c)),0)>=e.lp[1-p]&&!enemy.length;
  const board=back.some(c=>face(c)&&name(c)==='Destiny Board');
  const boardPlan=board||has(hand,'Destiny Board')||has(back,'Destiny Board');
- const substitutes=new Set(['Beastking of the Swamps','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer']);
+ const substitutes=new Set(['Beastking of the Swamps','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
+ const lowNormal=c=>!!(data(c).type&1)&&!!(data(c).type&16)&&lvl(c)<=3;
+ const ninjas=own.filter(c=>face(c)&&(/ninja/i.test(name(c))||/"Ninja"|Ninja monster/i.test(e.cards.get(c.code)?.desc||'')));
+ const lvSources=own.filter(c=>face(c)&&/\bLV\d/i.test(name(c)));
+ const lvTargetSources=[...lvSources,...grave.filter(c=>/\bLV\d/i.test(name(c)))];
+ const levelUpTarget=c=>lvTargetSources.some(source=>(e.cards.get(source.code)?.desc||'').includes(name(c)));
+ const transformations=()=>ninjas.some(source=>[...hand,...q(p,L.DECK)].some(c=>monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))&&lvl(c)<=lvl(source)+3));
+ const archfiendDeck=q(p,L.DECK).some(c=>monster(c)&&name(c).includes('Archfiend'));
+ const archfiendBody=[...hand,...own].some(c=>monster(c)&&name(c).includes('Archfiend'));
  function fusionPlan(f,includeGrave=false,borrowed=[]){
   const line=(e.cards.get(f.code)?.desc||'').split('\n')[0],materials=[];
   for(const m of line.matchAll(/(?:(\d+)\s+)?"([^"]+)"/g))for(let i=0;i<Number(m[1]||1);i++)materials.push(m[2]);
@@ -28,6 +36,18 @@ export function deckPolicy(x){
  function activation(c,chain){const n=name(c),d=data(c),spent=c.location===L.GRAVE||c.location===L.REMOVED;
   // Leave room for all four messages. Temporary spells can still resolve normally.
   if(board&&(d.type&(0x20000|0x40000))&&!n.startsWith('Spirit Message')&&n!=='Destiny Board'&&c.location!==L.SZONE)return -1;
+  if(n==='The Agent of Creation - Venus')return free>0&&e.lp[p]>500&&[...hand,...q(p,L.DECK)].some(x=>name(x)==='Mystical Shine Ball')?100:-1;
+  if(n==='Mokey Mokey Smackdown')return own.some(x=>face(x)&&name(x)==='Mokey Mokey')||hand.some(x=>name(x)==='Mokey Mokey')&&free>0?95:-1;
+  if(n==='Rescue Cat'){const targets=q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);return own.some(x=>face(x)&&name(x)==='Rescue Cat')&&free>=1&&targets.length>=2?100:-1;}
+  if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;
+  if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}
+  if(n==='Terraforming')return (archfiendBody||archfiendDeck)&&q(p,L.DECK).some(x=>name(x)==='Pandemonium')?95:-1;
+  if(n==='Pandemonium')return archfiendBody||archfiendDeck?90:-1;
+  if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
+  if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpTarget(x)))?100:-1;
+  if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
+  if(n==='A Hero Emerges')return chain&&!!e.attackCard&&own.length<5&&hand.some(x=>monster(x)&&!(/cannot be Special Summoned/i.test(e.cards.get(x.code)?.desc||'')))?90:-1;
+  if(n==='Riryoku'){const friend=own.some(x=>face(x)&&atk(x)>0),foe=enemy.some(x=>face(x)&&atk(x)>0);return friend&&foe?95:-1;}
   if(n==='Polymerization')return fusionChoices(!!e.fusionSupport?.[p]&&e.fusionSupport[p]===e.turn).length?95:-1;
   if(n==='Cybernetic Fusion Support')return e.lp[p]>3000&&has(hand,'Polymerization')&&fusionChoices(true).some(a=>race(a.c)==='Machine'&&!fusionPlan(a.c))?110:-1;
   if(n==='Fusion Weapon')return live(own).some(c=>data(c).type&64&&lvl(c)<=6)?70:-1;
@@ -144,6 +164,16 @@ export function deckPolicy(x){
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
+  if(n==='The Agent of Creation - Venus')return ownCard&&name(c)==='Mystical Shine Ball'&&[L.HAND,L.DECK].includes(c.location)?50000+atk(c):-100000;
+  if(n==='Rescue Cat'){const eligible=(info.cands||[]).filter(x=>x.controller===p&&x.location===L.DECK&&monster(x)&&race(x)==='Beast'&&lvl(x)<=3).sort((a,b)=>atk(b)-atk(a));return eligible.slice(0,2).some(x=>same(x,c))?50000+atk(c):-100000;}
+  if(n==='Human-Wave Tactics')return ownCard&&c.location===L.DECK&&lowNormal(c)?30000+atk(c):-100000;
+  if(n==='Enchanting Fitting Room')return ownCard&&lowNormal(c)?30000+atk(c):-100000;
+  if(n==='Terraforming')return ownCard&&c.location===L.DECK&&name(c)==='Pandemonium'?50000:-100000;
+  if(n==='Pandemonium')return ownCard&&c.location===L.DECK&&monster(c)&&name(c).includes('Archfiend')?30000+atk(c):-100000;
+  if(n==='Ninjitsu Art of Transformation')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))?30000+projectedAttack(c):-100000;
+  if(n==='Level Up!')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)?50000+projectedAttack(c):-100000;
+  if(n==='Kaibaman')return ownCard&&c.location===L.HAND&&name(c)==='Blue-Eyes White Dragon'?50000+projectedAttack(c):-100000;
+  if(n==='Riryoku'){const cands=(info.cands||[]).filter(x=>x.location===L.MZONE&&face(x)),friends=cands.filter(x=>x.controller===p).sort((a,b)=>atk(b)-atk(a)),foes=cands.filter(x=>x.controller!==p).sort((a,b)=>atk(b)-atk(a)),bestFriend=friends[0],bestFoe=foes[0];if(bestFriend&&bestFoe)return same(c,bestFriend)?100000+atk(c):same(c,bestFoe)?50000+atk(c):-100000;return same(c,friends[0])||same(c,friends[1])||same(c,foes[0])||same(c,foes[1])?30000+atk(c):-100000;}
   if(n==='Cestus of Dagla')return ownCard&&race(c)==='Fairy'&&battleReady(own.find(x=>same(x,c))||c)?20000+atk(c):-100000;
   if(['Polymerization','Cybernetic Fusion Support'].includes(n)){
    if(c.location===L.EXTRA){const plan=fusionPlan(c,n==='Cybernetic Fusion Support'||e.fusionSupport?.[p]===e.turn);return plan?20000+plan.score:-100000;}
