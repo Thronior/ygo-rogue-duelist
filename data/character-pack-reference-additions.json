@@ -58,5 +58,17 @@
     "card": "Protector of the Throne",
     "pool": "common",
     "requiredBy": "Giltia the D. Knight"
+  },
+  {
+    "pack": "Mai Valentine",
+    "card": "King's Knight",
+    "pool": "common",
+    "requiredBy": "Arcana Knight Joker"
+  },
+  {
+    "pack": "Mai Valentine",
+    "card": "Jack's Knight",
+    "pool": "common",
+    "requiredBy": "Arcana Knight Joker"
   }
 ]

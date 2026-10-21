@@ -38,7 +38,13 @@ def complete(packs):
 if __name__=='__main__':
  path=ROOT/'data/packs.json';packs=json.loads(path.read_text(encoding='utf8'));changes=complete(packs)
  if '--apply' in sys.argv:
-  path.write_text(json.dumps(packs,indent=2)+'\n',encoding='utf8')
-  (ROOT/'data/character-pack-reference-additions.json').write_text(json.dumps(changes,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+  path.write_text(json.dumps(packs,indent=1)+'\n',encoding='utf8')
+  log=ROOT/'data/character-pack-reference-additions.json'
+  previous=json.loads(log.read_text(encoding='utf8')) if log.exists() else []
+  seen={(row['pack'],row['card'],row['pool'],row['requiredBy']) for row in previous}
+  for row in changes:
+   key=(row['pack'],row['card'],row['pool'],row['requiredBy'])
+   if key not in seen:previous.append(row);seen.add(key)
+  log.write_text(json.dumps(previous,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
  print(json.dumps(changes,ensure_ascii=True,indent=2))
  print(len(changes),'additions across',len({r['pack'] for r in changes}),'packs')

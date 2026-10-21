@@ -1,11 +1,79 @@
-// Rules for the expanded fixed opponent decks. Only public opposing cards are valued.
+// Shared card-specific CPU policy; opposing hidden cards remain opaque.
 export function deckPolicy(x){
-  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,exodiaPieces,projectedAttack}=x;
+  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,exodiaPieces,projectedAttack,battleDamage}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>attr(c)==='WATER',sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
+ const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));
  const handCost=(source,n,filter=()=>true)=>hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code)&&filter(c)).length>=n;
  const spellValue=c=>({'Raigeki':4000,'Monster Reborn':3500,'Pot of Greed':3200,'Graceful Charity':3000,'Heavy Storm':theirBack.length*1500,'Polymerization':1200}[name(c)]??1000);
  const battleReady=c=>face(c)&&(c.position&1)&&!attackBlocked(c,p)&&!c.attack_disabled;
+ const raBurnCards=new Set(['Bowganian','Coffin Seller','Dark Room of Nightmares','Fire Princess','Poison Mummy','Skull Invitation','Solar Flare Dragon','Stealth Bird','Wave-Motion Cannon']);
+ const raBurnRisk=()=>[...own,...enemy,...back,...theirBack].some(c=>{
+  if(!face(c)||c.is_disabled||((data(c).type&1)&&!effectsEnabled(c.controller??p)))return false;
+  const text=e.cards.get(c.code)?.desc||'';
+  return raBurnCards.has(name(c))||/\b(?:inflict|deal)\b[\s\S]{0,80}\bdamage\b|\b(?:you|your opponent|opponent)\s+(?:will\s+)?take\s+(?:\d[\d,]*\s+)?damage\b/i.test(text);
+ });
+ const faceMonsters=a=>a.filter(c=>monster(c)&&face(c));
+ const diceRollers=new Set(['Blind Destruction','Needle Wall','Dangerous Machine Type-6','Dice Re-Roll','Gamble','Graceful Dice','Skull Dice','Roulette Barrel','Blowback Dragon','Time Wizard','Dice Jar']);
+ const hasDiceRollThisTurn=source=>[...hand,...own,...back,...enemy,...theirBack].some(c=>!same(c,source)&&diceRollers.has(name(c))&&(c.location!==L.SZONE||face(c)))||[...(e.pending?.activates||[]),...(e.pending?.chains||[]),...(e.pending?.selects||[])].some(c=>!same(c,source)&&diceRollers.has(name(c)));
+ const dangerousMachineValue=source=>{
+  const remainingOwn=hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code));
+  const discardRisk=remainingOwn.length?remainingOwn.reduce((sum,c)=>sum+Math.min(1000,Math.max(200,monster(c)?atk(c)*.28:spellValue(c)*.2)),0)/remainingOwn.length:0;
+  const opponentHand=q(1-p,L.HAND).length;
+  const ownDeck=q(p,L.DECK).length,opponentDeck=q(1-p,L.DECK).length;
+  const ownDraw=ownDeck>8?450:ownDeck>0?200:-900;
+  const opponentDraw=opponentDeck>8?-450:opponentDeck>0?-200:700;
+  const opponentDiscard=opponentHand?400:0;
+  const destruction=best(live(enemy));
+  return (-(remainingOwn.length?discardRisk:0)+opponentDiscard+ownDraw+opponentDraw+destruction-250)/6;
+ };
+ const blindDestructionValue=()=>{
+  const mine=faceMonsters(own),theirs=faceMonsters(enemy);
+  if(!theirs.length)return -1;
+  const immune=c=>c.is_immune||/unaffected by (?:the effects of )?(?:all )?trap effects/i.test(e.cards.get(c.code)?.desc||'');
+  const rollValue=roll=>{
+   const affected=c=>!immune(c)&&(roll===6?lvl(c)>=6:lvl(c)===roll);
+   return theirs.filter(affected).reduce((sum,c)=>sum+value(c),0)-mine.filter(affected).reduce((sum,c)=>sum+value(c),0);
+  };
+  const outcomes=[1,2,3,4,5,6].map(rollValue),expected=outcomes.reduce((sum,n)=>sum+n,0)/6;
+  return expected>=300&&Math.max(...outcomes)>=900?Math.round(75+Math.min(20,expected/180)):-1;
+ };
+ const needleWallValue=()=>{
+  // A 6 rerolls, so each of the five opponent zones has a 1/5 chance to be hit.
+  // Value only actual, destroyable occupants; an empty or immune zone is a miss.
+  const expected=enemy.filter(c=>c.sequence>=0&&c.sequence<5&&face(c)&&!c.is_immune&&!/unaffected by (?:the effects of )?(?:all )?trap effects/i.test(e.cards.get(c.code)?.desc||''))
+   .reduce((sum,c)=>sum+value(c)/5,0);
+  return expected>=350?Math.round(75+Math.min(20,expected/160)):-1;
+ };
+ const canyonValue=()=>{
+  if(e.player!==p||e.phase!==4)return -1;
+  const enemyRocks=enemy.filter(c=>race(c)==='Rock'&&face(c)&&!(c.position&1));
+  const ownRocks=own.filter(c=>race(c)==='Rock'&&!(c.position&1));
+  const bonus=enemyRocks.reduce((sum,rock)=>{
+   const defense=rock.defense??data(rock).defense??0;
+   const bestMargin=Math.max(0,...own.filter(c=>face(c)&&(c.position&1)).map(c=>atk(c)-defense));
+   return sum+(bestMargin>0?battleDamage(bestMargin):0);
+  },0);
+  const risk=ownRocks.reduce((sum,rock)=>{
+   const defense=rock.defense??data(rock).defense??0;
+   const bestMargin=Math.max(0,...enemy.filter(c=>face(c)&&(c.position&1)).map(c=>atk(c)-defense));
+   return sum+(bestMargin>0?battleDamage(bestMargin):0);
+  },0);
+  return bonus>risk*1.25&&bonus-risk>=300?90+Math.min(20,(bonus-risk)/250):-1;
+ };
+ function setScore(c){
+  const n=name(c);
+  if(n==='Blind Destruction')return blindDestructionValue();
+  if(n==='Needle Wall')return needleWallValue();
+  if(n==='Des Counterblow'){
+   const attackers=live(enemy).filter(t=>(t.position&1)&&atk(t)>0);
+   if(!attackers.length)return -1;
+   return own.length===0?100+Math.min(15,Math.max(...attackers.map(atk))/250):-1;
+  }
+  if(n==='Dangerous Machine Type-6')return Math.max(0,Math.min(18,dangerousMachineValue(c)/90));
+  if(n==='Dice Re-Roll')return hasDiceRollThisTurn(c)?90:0;
+  return 0;
+ }
  const incoming=e.attackCard?.controller===1-p;
  const incomingTarget=own.find(c=>same(c,e.attackTarget));
  const threatened=c=>incoming&&same(c,incomingTarget)||(e.activeChain||[]).some(a=>a.player!==p&&(a.targets||[]).some(t=>same(t,c)));
@@ -13,8 +81,20 @@ export function deckPolicy(x){
  const lethal=attacks.reduce((s,c)=>s+Math.max(0,atk(c)),0)>=e.lp[1-p]&&!enemy.length;
  const board=back.some(c=>face(c)&&name(c)==='Destiny Board');
  const boardPlan=board||has(hand,'Destiny Board')||has(back,'Destiny Board');
- const substitutes=new Set(['Beastking of the Swamps','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
+ const substitutes=new Set(['Beastking of the Swamps','King of the Swamp','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
  const lowNormal=c=>!!(data(c).type&1)&&!!(data(c).type&16)&&lvl(c)<=3;
+ const rescueCatTargets=()=>q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);
+ const raEffectName=c=>e.description?.(c.description)||'';
+ function raBoostScore(c){
+  if(!face(c)||c.controller!==p||c.is_disabled)return -1;
+  const current=atk(c),boosted=current+1000;
+  if(e.attackCard?.controller===1-p&&e.attackTarget&&same(c,e.attackTarget)&&(c.position&1)&&boosted>atk(e.attackCard)&&current<=atk(e.attackCard))return 2200+targetValue(e.attackCard);
+  if(e.player===p&&e.phase===8&&!c.attack_disabled&&!c.attack_count&&!attackBlocked(c,p)){
+   if(enemy.some(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)))return 1800+Math.max(...enemy.filter(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)).map(targetValue));
+   if(!enemy.length){const others=attacks.filter(a=>!same(a,c)&&!a.attack_count).reduce((sum,a)=>sum+Math.max(0,atk(a)),0),before=battleDamage(current+others),after=battleDamage(boosted+others);if(before<e.lp[1-p]&&after>=e.lp[1-p])return 2600;}
+  }
+  return -1;
+ }
  const ninjas=own.filter(c=>face(c)&&(/ninja/i.test(name(c))||/"Ninja"|Ninja monster/i.test(e.cards.get(c.code)?.desc||'')));
  const lvSources=own.filter(c=>face(c)&&/\bLV\d/i.test(name(c)));
  const lvTargetSources=[...lvSources,...grave.filter(c=>/\bLV\d/i.test(name(c)))];
@@ -34,12 +114,42 @@ export function deckPolicy(x){
  }
  const fusionChoices=(graveOK=false)=>q(p,L.EXTRA).map(c=>({c,plan:fusionPlan(c,graveOK&&race(c)==='Machine')})).filter(a=>a.plan&&a.plan.score>=0&&(atk(a.c)>threat||name(a.c)==='Gatling Dragon'&&enemy.length>=2));
  function activation(c,chain){const n=name(c),d=data(c),spent=c.location===L.GRAVE||c.location===L.REMOVED;
+  if(n==='Blind Destruction')return blindDestructionValue();
+  if(n==='Needle Wall')return needleWallValue();
+  if(n==='Des Counterblow'){
+   const attacker=e.attackCard;
+   if(!chain||!attacker||attacker.controller!==1-p||e.attackTarget)return -1;
+   const attackValue=Math.max(0,atk(attacker));
+   return attackValue>0?130+Math.min(20,attackValue/150):-1;
+  }
+  if(n==='King of the Swamp'){
+   const canSearch=c.location===L.HAND&&!has(hand,'Polymerization')&&q(p,L.DECK).some(x=>name(x)==='Polymerization');
+   return canSearch&&fusionChoices(false).length?104:-1;
+  }
+  if(n==="The Dragon's Bead"){
+   if(!chain||!handCost(c,1))return -1;
+   const protectedDragon=t=>t.controller===p&&t.location===L.MZONE&&face(t)&&race(t)==='Dragon';
+   const incomingTrap=(e.activeChain||[]).some(link=>!link.inactive&&link.player!==p&&!!(data({code:link.code}).type&4)&&(link.targets||[]).some(protectedDragon));
+   return incomingTrap?125:-1;
+  }
+  if(n==='Dangerous Machine Type-6'){
+   const expected=dangerousMachineValue(c);
+   return expected>=100?82+Math.min(18,expected/120):-1;
+  }
+  if(n==='Dice Re-Roll')return hasDiceRollThisTurn(c)?86:-1;
+  if(n==='Sand Moth')return chain&&c.location===L.GRAVE?120:null;
+  if(n==='Canyon')return canyonValue();
   // Leave room for all four messages. Temporary spells can still resolve normally.
   if(board&&(d.type&(0x20000|0x40000))&&!n.startsWith('Spirit Message')&&n!=='Destiny Board'&&c.location!==L.SZONE)return -1;
   if(n==='The Agent of Creation - Venus')return free>0&&e.lp[p]>500&&[...hand,...q(p,L.DECK)].some(x=>name(x)==='Mystical Shine Ball')?100:-1;
   if(n==='Mokey Mokey Smackdown')return own.some(x=>face(x)&&name(x)==='Mokey Mokey')||hand.some(x=>name(x)==='Mokey Mokey')&&free>0?95:-1;
   if(n==='Ojama Delta Hurricane!!')return ['Ojama Green','Ojama Yellow','Ojama Black'].every(part=>own.some(x=>face(x)&&name(x)===part))&&enemyCards.some(Boolean)?150:-1;
-  if(n==='Rescue Cat'){const targets=q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);return own.some(x=>face(x)&&name(x)==='Rescue Cat')&&free>=1&&targets.length>=2?100:-1;}
+  if(n==='Rescue Cat'){const targets=rescueCatTargets();return own.some(x=>face(x)&&!x.is_disabled&&name(x)==='Rescue Cat')&&free>=2&&targets.length>=2?110:-1;}
+  if(n==='Juragedo'){
+   if(e.inDamageStep||e.phase!==8)return -1;
+   if(c.location===L.HAND)return chain&&free>0?105:-1;
+   if(c.location===L.MZONE)return own.filter(t=>!same(t,c)).map(raBoostScore).reduce((best,value)=>Math.max(best,value),-1)>=0?100:-1;
+  }
   if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;
   if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}
   if(n==='Terraforming')return (archfiendBody||archfiendDeck)&&q(p,L.DECK).some(x=>name(x)==='Pandemonium')?95:-1;
@@ -124,6 +234,38 @@ export function deckPolicy(x){
   if(n==='Lightning Vortex')return handCost(c,1)&&(live(enemy).length>=2||danger&&best(live(enemy))>=2400)?100:-1;
   if(n==='Magical Stone Excavation'||n==='Spell Reproduction')return handCost(c,2,t=>n!=='Spell Reproduction'||!!(data(t).type&2))&&grave.some(t=>data(t).type&2&&spellValue(t)>=3000)?85:-1;
   if(n==='The Winged Dragon of Ra'){
+   const effect=raEffectName(c);
+   if(effect==='Increase ATK and DEF'){
+    if(e.player!==p||e.lp[p]<=100||e.phase>=256)return -1;
+    const ra=own.find(t=>face(t)&&name(t)==='The Winged Dragon of Ra');if(!ra)return -1;
+    const forecast=Math.max(0,e.lp[p]-100),current=Math.max(0,atk(ra)),boosted=current+forecast,other=attacks.filter(t=>!same(t,ra)&&!t.attack_count).reduce((sum,t)=>sum+Math.max(0,atk(t)),0);
+    if(!enemy.length&&!theirBack.some(t=>!face(t))&&battleDamage(boosted+other)>=e.lp[1-p])return 130;
+    if(enemy.length===1&&face(enemy[0])&&(enemy[0].position&1)&&!resilient(enemy[0])&&boosted>atk(enemy[0])&&battleDamage(boosted-atk(enemy[0])+other)>=e.lp[1-p])return 130;
+    // Ra's printed effect pays down to 100 LP. Outside a lethal line, only
+    // take that risk when its boost creates real battle/damage value and the
+    // visible field has no active effect-damage source that could finish us.
+    const canBattle=e.player===p&&!ra.attack_disabled&&!ra.attack_count&&!attackBlocked(ra,p,true);
+    if(canBattle&&!raBurnRisk()&&!enemy.some(t=>face(t)&&(t.position&1)&&atk(t)>=boosted)){
+     if(!enemy.length&&!theirBack.some(t=>!face(t))){
+      const before=battleDamage(current+other),after=battleDamage(boosted+other);
+      if(after>before)return 112;
+     }
+     const betterBattle=enemy.some(t=>face(t)&&!resilient(t)&&((t.position&1)?(
+      boosted>atk(t)&&battleDamage(boosted-atk(t))>battleDamage(Math.max(0,current-atk(t)))
+     ):(current<=(t.defense??data(t).defense??0)&&boosted>(t.defense??data(t).defense??0))));
+     if(betterBattle)return 112;
+    }
+    return -1;
+   }
+   if(effect==='Destroy'){
+    if(e.lp[p]<=1600)return -1;
+    const ra=own.find(t=>face(t)&&name(t)==='The Winged Dragon of Ra'),canFight=ra&&e.player===p&&(e.phase===4||e.phase===8)&&!ra.attack_count&&!ra.attack_disabled&&!attackBlocked(ra,p);
+    const targets=enemy.filter(t=>face(t)&&!t.is_immune&&!/unaffected by|cannot be targeted by/i.test(e.cards.get(t.code)?.desc||''));
+    const useful=targets.filter(t=>targetValue(t)>=2200&&!(canFight&&atk(ra)>((t.position&1)?atk(t):(t.defense??data(t).defense??0))));
+    if(useful.length)return Math.min(120,95+Math.max(...useful.map(targetValue))/500);
+    return -1;
+   }
+   // Old cores may omit the effect label; retain the conservative fallback.
    if(atk(c)>0)return e.lp[p]>1000&&enemy.some(t=>face(t)&&atk(t)>=atk(c))?95:-1;
    const forecast=projectedAttack(c),otherAttacks=attacks.filter(t=>!same(t,c)).reduce((sum,t)=>sum+Math.max(0,atk(t)),0);
    return e.lp[p]>100&&e.player===p&&e.phase===4&&enemy.length===0&&forecast+otherAttacks>=e.lp[1-p]?105:-1;
@@ -167,6 +309,7 @@ export function deckPolicy(x){
  function targetScore(n,c,info){const ownCard=c.controller===p;
   if(n==='The Agent of Creation - Venus')return ownCard&&name(c)==='Mystical Shine Ball'&&[L.HAND,L.DECK].includes(c.location)?50000+atk(c):-100000;
   if(n==='Rescue Cat'){const eligible=(info.cands||[]).filter(x=>x.controller===p&&x.location===L.DECK&&monster(x)&&race(x)==='Beast'&&lvl(x)<=3).sort((a,b)=>atk(b)-atk(a));return eligible.slice(0,2).some(x=>same(x,c))?50000+atk(c):-100000;}
+  if(n==='Juragedo')return raBoostScore(c)>=0?30000+raBoostScore(c):-100000;
   if(n==='Human-Wave Tactics')return ownCard&&c.location===L.DECK&&lowNormal(c)?30000+atk(c):-100000;
   if(n==='Enchanting Fitting Room')return ownCard&&lowNormal(c)?30000+atk(c):-100000;
   if(n==='Terraforming')return ownCard&&c.location===L.DECK&&name(c)==='Pandemonium'?50000:-100000;
@@ -201,5 +344,5 @@ export function deckPolicy(x){
  }
  function specialOk(c){return !['The Winged Dragon of Ra','The Wicked Eraser','Doomcaliber Knight'].includes(name(c));}
  function setAllowed(c){return !board||name(c)==='Destiny Board';}
- return {activation,targetScore,fusionChoices,setAllowed,specialOk};
+ return {activation,targetScore,fusionChoices,setAllowed,setScore,specialOk};
 }
