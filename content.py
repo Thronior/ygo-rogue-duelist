@@ -10,6 +10,7 @@ PACK_BY_ID={p['id']:p for p in PACKS}
 # Retired boosters resolve to their collection, but are never offered separately.
 PACK_ALIASES={'EN-TP1':'EN-TP4','EN-TP2':'EN-TP4','EN-TP3':'EN-TP4','EN-TP5':'EN-TP4','JP-P5':'JP-PP7','JP-PP6':'JP-PP7'}
 PACK_ALIASES.update({f'JP-P{n}':'JP-PP7' for n in range(1,5)})
+PACK_ALIASES.update({f'JP-LE{n}':'JP-LEC' for n in range(1,9)})
 PACK_BY_ID.update({old:PACK_BY_ID[new] for old,new in PACK_ALIASES.items()})
 def normalize_pack_references(value):
  if isinstance(value,dict):

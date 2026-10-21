@@ -24,5 +24,10 @@ for pack in packs:
   assert len(cards)==9 and len({g.card_identity(cid) for cid in cards})==9
 assert count==len(additions)
 assert g.BY_NAME['Ultimate Insect LV7']['id']==19877898
+knight_materials={g.BY_NAME[name]['id'] for name in ("Queen's Knight","King's Knight","Jack's Knight")}
+for pack in packs:
+ if not pack['id'].startswith('DRAFT-') or not pack.get('draft_only'):continue
+ ids=set(pack['common']+pack['rare']+pack.get('starter_support',[]))
+ if ids&knight_materials:assert 6150044 in ids,pack['name']
 print('PASS: recursive reference closure,',count,'obtainable additions, and legal pack generation')
 

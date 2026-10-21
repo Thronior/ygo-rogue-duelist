@@ -2,6 +2,8 @@ import sys,json,random,copy
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import campaign as g,content as c
+import campaign_expansion
+campaign_expansion.install(g)
 from pack_odds import inspect_pack
 from PIL import Image
 records=json.loads((ROOT/'data/pack-collections.json').read_text())
@@ -23,7 +25,7 @@ for row in records:
   assert run['pool']==[123] and run['gold']==77
  print(p['name'],len(set(p['common']+p['rare']+p.get('starter_support',[]))),'cards')
 assert not set(c.PACK_ALIASES)&{p['id'] for p in c.PACKS}
-assert len([p for p in c.PACKS if p['name'].startswith(('Tournament Pack','Premium Pack'))])==2
+assert len([p for p in c.PACKS if p['name'].startswith(('Tournament Pack','Premium Pack','Limited Edition Collection'))])==3
 for char in c.CHARACTERS:
  assert char.get('pack') not in c.PACK_ALIASES
  assert not set(char.get('starting_packs',[]))&set(c.PACK_ALIASES)
@@ -35,3 +37,17 @@ for cid in set(c.PACK_BY_ID['JP-PP7']['common']+c.PACK_BY_ID['JP-PP7']['rare']):
  Image.open(ROOT/'assets/cards'/f'{cid}.jpg').verify()
 assert len(next(r for r in records if r['id']=='JP-PP7')['original_packs'])==7
 print('PASS all seven Premium Pack lists, card engine data and card artwork')
+
+limited=next(r for r in records if r['id']=='JP-LEC')
+limited_ids=set(c.PACK_BY_ID['JP-LEC']['common']+c.PACK_BY_ID['JP-LEC']['rare'])
+assert len(limited['original_packs'])==8 and len(limited_ids)==56
+assert all(c.PACK_ALIASES[f'JP-LE{n}']=='JP-LEC' for n in range(1,9))
+assert all(c.PACK_BY_ID[f'JP-LE{n}'] is c.PACK_BY_ID['JP-LEC'] for n in range(1,9))
+for cid in limited_ids:
+ assert cid in g.BY_ID and str(cid) in engine,cid
+ Image.open(ROOT/'assets/cards'/f'{cid}.jpg').verify()
+le_rows=inspect_pack('JP-LEC',{})
+assert {row['id'] for row in le_rows if row['chance']>0}==limited_ids
+assert abs(sum(row['chance'] for row in le_rows)-9)<1e-7
+Image.open(ROOT/'assets/packs'/'JP-LEC.jpg').verify()
+print('PASS all eight Limited Edition lists, all 56 cards, legacy aliases, pack odds and artwork')

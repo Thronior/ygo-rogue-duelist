@@ -1149,5 +1149,484 @@
         ]
       }
     ]
+  },
+  {
+    "id": "JP-LEC",
+    "name": "Limited Edition Collection",
+    "original_packs": [
+      {
+        "id": "JP-LE1",
+        "name": "Limited Edition 1",
+        "region": "JP",
+        "code": "LE1",
+        "common": [
+          71068263,
+          5628232,
+          32012841,
+          7562372,
+          70345785,
+          68401546,
+          71280811,
+          44073668,
+          33734439
+        ],
+        "rare": [
+          71068263,
+          5628232,
+          32012841,
+          7562372,
+          70345785,
+          68401546,
+          71280811,
+          44073668,
+          33734439
+        ],
+        "size": 9,
+        "rarities": {
+          "71068263": [
+            "Ultra Rare"
+          ],
+          "5628232": [
+            "Ultra Rare"
+          ],
+          "32012841": [
+            "Ultra Rare"
+          ],
+          "7562372": [
+            "Ultra Rare"
+          ],
+          "70345785": [
+            "Ultra Rare"
+          ],
+          "68401546": [
+            "Ultra Rare"
+          ],
+          "71280811": [
+            "Ultra Rare"
+          ],
+          "44073668": [
+            "Ultra Rare"
+          ],
+          "33734439": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          71068263,
+          5628232,
+          32012841,
+          7562372,
+          70345785,
+          68401546,
+          71280811,
+          44073668,
+          33734439
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist"
+      },
+      {
+        "id": "JP-LE2",
+        "name": "Limited Edition 2",
+        "region": "JP",
+        "code": "LE2",
+        "common": [
+          6368038,
+          91152256,
+          5818798,
+          41462083,
+          49791927,
+          64428736,
+          87322377,
+          24433920,
+          26302522
+        ],
+        "rare": [
+          6368038,
+          91152256,
+          5818798,
+          41462083,
+          49791927,
+          64428736,
+          87322377,
+          24433920,
+          26302522
+        ],
+        "size": 9,
+        "rarities": {
+          "6368038": [
+            "Ultra Rare"
+          ],
+          "91152256": [
+            "Ultra Rare"
+          ],
+          "5818798": [
+            "Ultra Rare"
+          ],
+          "41462083": [
+            "Ultra Rare"
+          ],
+          "49791927": [
+            "Ultra Rare"
+          ],
+          "64428736": [
+            "Ultra Rare"
+          ],
+          "87322377": [
+            "Ultra Rare"
+          ],
+          "24433920": [
+            "Ultra Rare"
+          ],
+          "26302522": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          6368038,
+          91152256,
+          5818798,
+          41462083,
+          49791927,
+          64428736,
+          87322377,
+          24433920,
+          26302522
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist"
+      },
+      {
+        "id": "JP-LE3",
+        "name": "Limited Edition 3",
+        "region": "JP",
+        "code": "LE3",
+        "common": [
+          70781052,
+          35563539,
+          27827272,
+          42035044,
+          26376390,
+          73915051,
+          97590747,
+          54912977,
+          29267084
+        ],
+        "rare": [
+          70781052,
+          35563539,
+          27827272,
+          42035044,
+          26376390,
+          73915051,
+          97590747,
+          54912977,
+          29267084
+        ],
+        "size": 9,
+        "rarities": {
+          "70781052": [
+            "Ultra Rare"
+          ],
+          "35563539": [
+            "Ultra Rare"
+          ],
+          "27827272": [
+            "Ultra Rare"
+          ],
+          "42035044": [
+            "Ultra Rare"
+          ],
+          "26376390": [
+            "Ultra Rare"
+          ],
+          "73915051": [
+            "Ultra Rare"
+          ],
+          "97590747": [
+            "Ultra Rare"
+          ],
+          "54912977": [
+            "Ultra Rare"
+          ],
+          "29267084": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          70781052,
+          35563539,
+          27827272,
+          42035044,
+          26376390,
+          73915051,
+          97590747,
+          54912977,
+          29267084
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist"
+      },
+      {
+        "id": "JP-LE4",
+        "name": "Limited Edition 4",
+        "region": "JP",
+        "code": "LE4",
+        "common": [
+          25652259,
+          64788463,
+          90876561,
+          38445524,
+          37507488,
+          2047519
+        ],
+        "rare": [
+          25652259,
+          64788463,
+          90876561,
+          38445524,
+          37507488,
+          2047519
+        ],
+        "size": 9,
+        "rarities": {
+          "25652259": [
+            "Ultra Rare"
+          ],
+          "64788463": [
+            "Ultra Rare"
+          ],
+          "90876561": [
+            "Ultra Rare"
+          ],
+          "38445524": [
+            "Ultra Rare"
+          ],
+          "37507488": [
+            "Ultra Rare"
+          ],
+          "2047519": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          25652259,
+          64788463,
+          90876561,
+          38445524,
+          37507488,
+          2047519
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist"
+      },
+      {
+        "id": "JP-LE5",
+        "name": "Limited Edition 5",
+        "region": "JP",
+        "code": "LE5",
+        "common": [
+          98502113,
+          38033121,
+          81510157,
+          67227834,
+          80304126,
+          91998119,
+          14898066,
+          86871614,
+          42534368,
+          44910027
+        ],
+        "rare": [
+          98502113,
+          38033121,
+          81510157,
+          67227834,
+          80304126,
+          91998119,
+          14898066,
+          86871614,
+          42534368,
+          44910027
+        ],
+        "size": 9,
+        "rarities": {
+          "98502113": [
+            "Ultra Rare"
+          ],
+          "38033121": [
+            "Ultra Rare"
+          ],
+          "81510157": [
+            "Ultra Rare"
+          ],
+          "67227834": [
+            "Ultra Rare"
+          ],
+          "80304126": [
+            "Ultra Rare"
+          ],
+          "91998119": [
+            "Ultra Rare"
+          ],
+          "14898066": [
+            "Ultra Rare"
+          ],
+          "86871614": [
+            "Ultra Rare"
+          ],
+          "42534368": [
+            "Ultra Rare"
+          ],
+          "44910027": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          98502113,
+          38033121,
+          81510157,
+          67227834,
+          80304126,
+          91998119,
+          14898066,
+          86871614,
+          42534368,
+          44910027
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist"
+      },
+      {
+        "id": "JP-LE6",
+        "name": "Limited Edition 6",
+        "region": "JP",
+        "code": "LE6",
+        "common": [
+          41172955,
+          86445415,
+          13839120,
+          14778250,
+          75622824
+        ],
+        "rare": [
+          41172955,
+          86445415,
+          13839120,
+          14778250,
+          75622824
+        ],
+        "size": 9,
+        "rarities": {
+          "41172955": [
+            "Ultra Rare"
+          ],
+          "86445415": [
+            "Ultra Rare"
+          ],
+          "13839120": [
+            "Ultra Rare"
+          ],
+          "14778250": [
+            "Ultra Rare"
+          ],
+          "75622824": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          41172955,
+          86445415,
+          13839120,
+          14778250,
+          75622824
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist",
+        "date": "2004-05-01",
+        "image": "https://ms.yugipedia.com//f/f2/LE6-BoosterJP.jpg",
+        "source_set": "f2f93e0a-8641-48e0-8682-cb3754363722"
+      },
+      {
+        "id": "JP-LE7",
+        "name": "Limited Edition 7",
+        "region": "JP",
+        "code": "LE7",
+        "common": [
+          36931229,
+          9720537,
+          34294855,
+          60399954
+        ],
+        "rare": [
+          36931229,
+          9720537,
+          34294855,
+          60399954
+        ],
+        "size": 9,
+        "rarities": {
+          "36931229": [
+            "Ultra Rare"
+          ],
+          "9720537": [
+            "Ultra Rare"
+          ],
+          "34294855": [
+            "Ultra Rare"
+          ],
+          "60399954": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          36931229,
+          9720537,
+          34294855,
+          60399954
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist",
+        "date": "2004-10-21",
+        "image": "https://ms.yugipedia.com//d/d7/LE7-BoosterJP.jpg",
+        "source_set": "46a40e72-5d3d-4090-a1b1-bc2b08f51d80"
+      },
+      {
+        "id": "JP-LE8",
+        "name": "Limited Edition 8",
+        "region": "JP",
+        "code": "LE8",
+        "common": [
+          6150044,
+          423585,
+          30888983,
+          79766336
+        ],
+        "rare": [
+          6150044,
+          423585,
+          30888983,
+          79766336
+        ],
+        "size": 9,
+        "rarities": {
+          "6150044": [
+            "Ultra Rare"
+          ],
+          "423585": [
+            "Ultra Rare"
+          ],
+          "30888983": [
+            "Ultra Rare"
+          ],
+          "79766336": [
+            "Ultra Rare"
+          ]
+        },
+        "rare_display": [
+          6150044,
+          423585,
+          30888983,
+          79766336
+        ],
+        "rarity_source": "Limited Edition original promo printing; published Japanese set checklist",
+        "date": "2005-05-21",
+        "image": "https://ms.yugipedia.com//c/ce/LE8-BoosterJP.jpg",
+        "source_set": "34a0e067-d551-4544-8361-780c67fc4622"
+      }
+    ]
   }
 ]

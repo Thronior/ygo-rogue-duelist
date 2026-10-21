@@ -632,7 +632,9 @@
       "theme": "A Magnet Warrior and Rock strategy built around filling the Graveyard and powering up Megarock Dragon.",
       "background": "character-backgrounds/10.jpg",
       "tier_decks": {
-        "3": "seeker-magnet-rock-tier3"
+        "3": "seeker-magnet-rock-tier3",
+        "1": "seeker-magnet-rock-tier1",
+        "2": "seeker-magnet-rock-tier2"
       },
       "reward_themes": [
         "Rock",
@@ -673,7 +675,9 @@
       "tier": 3,
       "deck": "opponent-76-tier-3",
       "tier_decks": {
-        "3": "opponent-76-tier-3"
+        "3": "opponent-76-tier-3",
+        "1": "arcana-knights-siegfried-tier-1",
+        "2": "arcana-knights-siegfried-tier-2"
       },
       "sprite": "opponents/siegfried-von-schroeder.png",
       "background": "character-backgrounds/4.jpg",
@@ -696,7 +700,8 @@
       "tier": 3,
       "deck": "opponent-77-tier-3",
       "tier_decks": {
-        "3": "opponent-77-tier-3"
+        "3": "opponent-77-tier-3",
+        "2": "archfiends-darkbishop-tier-2"
       },
       "sprite": "opponents/darkbishop-archfiend.png",
       "background": "character-backgrounds/6.jpg",
@@ -719,7 +724,8 @@
       "tier": 1,
       "deck": "opponent-78-tier-1",
       "tier_decks": {
-        "1": "opponent-78-tier-1"
+        "1": "opponent-78-tier-1",
+        "2": "blue-eyes-kisara-tier-2"
       },
       "sprite": "opponents/kisara.png",
       "background": "character-backgrounds/1.jpg",
