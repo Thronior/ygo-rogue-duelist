@@ -527,40 +527,27 @@ function positionShopkeeper(){
  const root=app.querySelector('.shop-compact'),aside=root?.querySelector('.shop-layout>aside'),keeper=root?.querySelector('.secret-shopkeeper');
  if(!root||!aside||!keeper)return;
  const relicless=state?.run?.challenge_level===-1,landscape=matchMedia('(orientation: landscape)').matches;
- if(!landscape&&!relicless){
-  root.classList.remove('desktop-shopkeeper-anchored');
-  const counter=root.querySelector('.shop-counter');
-  if(counter&&keeper.parentElement!==counter)counter.prepend(keeper);
-  keeper.removeAttribute('style');
-  return;
- }
- if(keeper.parentElement!==root)root.append(keeper);
- if(!landscape){keeper.style.display='none';return;}
- const viewportHeight=window.innerHeight,imageTopInset=24/592,sourceRatio=561/592;
- let targetTop,center;
  if(relicless){
+  if(keeper.parentElement!==root)root.append(keeper);
+  if(!landscape){keeper.style.display='none';return;}
+  const viewportHeight=window.innerHeight,sourceRatio=561/592;
+  let targetTop,center;
   const asideRect=aside.getBoundingClientRect(),relicButton=aside.querySelector('.shop-reference-buttons [data-do="relic-ledger"]'),relicRect=relicButton?.getBoundingClientRect();
   const legacyTopInset=(24/592)*(.94/sourceRatio)+(1-.94/sourceRatio)/2;
   const height=shopkeeperSmall?Math.min(230,viewportHeight):viewportHeight/(2*(1-legacyTopInset)),width=height*.94;
   targetTop=viewportHeight-height;
   center=relicRect?(relicRect.left+relicRect.right)/2:asideRect.left+asideRect.width/2;
   root.classList.remove('desktop-shopkeeper-anchored');
-  Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0'});
+  Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0',pointerEvents:'none'});
   return;
  }
+ root.classList.remove('desktop-shopkeeper-anchored');
+ const counter=root.querySelector('.shop-counter');
  const shelf=aside.querySelector('.relics');
- if(!shelf){
-  root.classList.remove('desktop-shopkeeper-anchored');
-  const counter=root.querySelector('.shop-counter');
-  if(counter&&keeper.parentElement!==counter)counter.prepend(keeper);
-  keeper.removeAttribute('style');
-  return;
- }
- root.classList.add('desktop-shopkeeper-anchored');
- const shelfRect=shelf.getBoundingClientRect(),availableHeight=Math.max(1,(viewportHeight-shelfRect.top)/(1-imageTopInset)),height=Math.min(availableHeight,viewportHeight*.5),width=height*sourceRatio;
- targetTop=availableHeight>viewportHeight*.5?viewportHeight-height:shelfRect.top-imageTopInset*height;
- center=(shelfRect.left+shelfRect.right)/2;
- Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,maxHeight:'50dvh',margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0',pointerEvents:'none'});
+ if(counter&&keeper.parentElement!==counter)counter.prepend(keeper);
+ keeper.removeAttribute('style');
+ keeper.style.pointerEvents='none';
+ if(counter&&shelf){const counterRect=counter.getBoundingClientRect(),shelfRect=shelf.getBoundingClientRect();keeper.style.setProperty('--shopkeeper-shelf-offset',`${Math.max(0,counterRect.bottom-shelfRect.top)}px`);keeper.style.setProperty('--shopkeeper-shelf-drop',`${Math.max(0,shelfRect.top-counterRect.bottom)}px`)}
 }
 function shrinkShopkeeper(){
  if(screen!=='shop'||state?.run?.challenge_level!==-1||shopkeeperShrinking||shopkeeperSmall)return;

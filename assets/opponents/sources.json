@@ -107,9 +107,9 @@
   {
     "name": "Johnson",
     "file": "opponents/johnson.png",
-    "source": "https://ms.yugipedia.com//thumb/6/61/Johnson2.png/669px-Johnson2.png",
-    "page": "https://yugipedia.com/wiki/Johnson",
-    "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
   },
   {
     "name": "Princess Adena",
@@ -159,5 +159,54 @@
     "source": "https://ms.yugipedia.com//9/91/MAHADO.png",
     "page": "https://yugipedia.com/wiki/Mahad",
     "edit": "Background removed and square portrait prepared with imagegen from the sourced artwork; character appearance retained."
+  },
+  {
+    "name": "Siegfried von Schroeder",
+    "file": "opponents/siegfried-von-schroeder.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Darkbishop Archfiend",
+    "file": "opponents/darkbishop-archfiend.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Kisara",
+    "file": "opponents/kisara.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Thestalos",
+    "file": "opponents/thestalos.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Lady Ninja Yae",
+    "file": "opponents/lady-ninja-yae.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Breaker",
+    "file": "opponents/breaker.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
+  },
+  {
+    "name": "Cecelia Pegasus",
+    "file": "opponents/cecelia-pegasus.png",
+    "source": "User-provided image attachment (2026-10-21)",
+    "page": "",
+    "edit": "Used as supplied."
   }
 ]

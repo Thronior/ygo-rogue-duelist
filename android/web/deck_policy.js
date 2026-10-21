@@ -38,6 +38,7 @@ export function deckPolicy(x){
   if(board&&(d.type&(0x20000|0x40000))&&!n.startsWith('Spirit Message')&&n!=='Destiny Board'&&c.location!==L.SZONE)return -1;
   if(n==='The Agent of Creation - Venus')return free>0&&e.lp[p]>500&&[...hand,...q(p,L.DECK)].some(x=>name(x)==='Mystical Shine Ball')?100:-1;
   if(n==='Mokey Mokey Smackdown')return own.some(x=>face(x)&&name(x)==='Mokey Mokey')||hand.some(x=>name(x)==='Mokey Mokey')&&free>0?95:-1;
+  if(n==='Ojama Delta Hurricane!!')return ['Ojama Green','Ojama Yellow','Ojama Black'].every(part=>own.some(x=>face(x)&&name(x)===part))&&enemyCards.some(Boolean)?150:-1;
   if(n==='Rescue Cat'){const targets=q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);return own.some(x=>face(x)&&name(x)==='Rescue Cat')&&free>=1&&targets.length>=2?100:-1;}
   if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;
   if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}

@@ -19,7 +19,7 @@ def description(key,info,previous):
  'shop_heal':f'After each victory, gain {n(a)} LP before entering the shop, up to your current healing limit.',
  'coin_heal':f'After each victory, gain {n(a)} LP for every 10 coins you held before the victory payout, up to your current healing limit.',
  'enemy_lp':f'Your opponent starts each Duel with {n(a)} fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).',
- 'archfiend_cost':'At the start of your Main Phase 1, recover half the LP costs paid for Archfiend cards since your previous Standby Phase. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of that cost too.',
+ 'archfiend_cost':'Recover half the LP cost whenever you pay it for an Archfiend card. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of the prevented amount.',
  'standby':f'Once per turn, at the start of your Standby Phase, gain {n(a)} LP.',
  'burn':f'Once per turn, at the start of your End Phase, inflict {n(a)} damage to your opponent.',
  'reduce':f'Each time you would take effect damage, reduce that damage by {n(a)} (min. 0).',

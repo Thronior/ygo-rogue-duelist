@@ -91,7 +91,11 @@ export function smartContext(e,p,L,prompt=null){
   const n=name(c),specialReady=n==='Megarock Dragon'&&grave.some(x=>race(x)==='Rock')||n==='The Rock Spirit'&&grave.some(x=>race(x)==='Rock')||n==='Gigantes'&&grave.some(x=>attr(x)==='EARTH')||n==='Valkyrion the Magna Warrior'&&['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma the Magnet Warrior'].every(piece=>own.some(x=>name(x)===piece));
   const stranded=(type&1)&&!(type&0xc0)&&required>own.length&&!specialReady;
   const monsterCost=stranded?Math.min(expendable(c),250):expendable(c);
-  const comboRetention=n==='Spirit Reaper'?2200:n==='Revival Jam'?1200:n==='Monster Reincarnation'&&grave.some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code))?1800:0;
+  const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];
+  const ojamaPlan=(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')||back.some(x=>name(x)==='Ojama Delta Hurricane!!')||q(p,L.DECK).some(x=>name(x)==='Ojama Delta Hurricane!!'))&&ojamaParts.every(part=>own.some(x=>name(x)===part)||hand.some(x=>name(x)===part)||q(p,L.DECK).some(x=>name(x)===part));
+  const heldOjamaCopies=ojamaPlan&&ojamaParts.includes(n)&&!own.some(x=>name(x)===n)?hand.filter(x=>name(x)===n):[];
+  const reservedOjama=heldOjamaCopies.length&&c.sequence===Math.max(...heldOjamaCopies.map(x=>x.sequence))?5000:0;
+  const comboRetention=(n==='Spirit Reaper'?2200:n==='Revival Jam'?1200:n==='Monster Reincarnation'&&grave.some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code))?1800:0)+reservedOjama;
   const legacy=monsterCost+(type&6?1600:0)+(n==='Raigeki'?5000:0)+comboRetention;
   // Change established rankings only for a verified recovery plan.
   const benefit=['Night Assailant','Sinister Serpent'].includes(name(c))?discardBenefit(c):0;
@@ -1217,7 +1221,12 @@ export function smartContext(e,p,L,prompt=null){
   const live=own.find(x=>same(x,c))||c;
   return e.player===p&&(e.phase===4||e.phase===8)&&(prompt?.to_bp===true||e.turn>1)&&prompt?.to_bp!==false&&!enemy.length&&!battleLocked&&!live?.attack_disabled&&!(live?.attack_count>0)&&!attackBlocked(live,p,true)&&!theirBack.some(x=>!face(x));
  }
-function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))return false;if(clearedLane(c)&&!(data(c).type&0x200000)&&!['Spirit Reaper','Dancing Fairy'].includes(n))return false;const safe=saferPosition(c);if(safe!==null)return !safe;
+ const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];
+ function ojamaComboSummon(c){
+  const n=name(c);
+  return effectsEnabled(p)&&ojamaParts.includes(n)&&!own.some(x=>name(x)===n)&&own.length<5&&hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&ojamaParts.filter(part=>part!==n).every(part=>own.some(x=>name(x)===part));
+ }
+function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))return false;if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return false;if(ojamaComboSummon(c))return false;if(clearedLane(c)&&!(data(c).type&0x200000)&&!['Spirit Reaper','Dancing Fairy'].includes(n))return false;const safe=saferPosition(c);if(safe!==null)return !safe;
 
 
   if((data(c).type&0x200)&&e.turn<=2)return true;
@@ -1258,7 +1267,7 @@ function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))retu
     return hand.some(partner=>isSpell?(!!(data(partner).type&1)&&!!(data(partner).type&128)&&matchesRitual(target,partner)):(!!(data(partner).type&2)&&!!(data(partner).type&128)&&matchesRitual(partner,target)));
    });
   }
-  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;if(!effectsEnabled(p))return false;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -1267,8 +1276,11 @@ function preferSet(c){const n=name(c);if(n==='Viser Des'&&effectsEnabled(p))retu
   }
   if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return enemy.filter(face).reduce((v,x)=>v+targetValue(x),0)>own.filter(face).reduce((v,x)=>v+targetValue(x),0)+700?110:-1;
   if((data(c).type&0x200)&&e.turn<=2)return -1; // early spirits set instead of summoning
-const n=name(c);if(egyptianGods.has(n))return 1000000;
+  const n=name(c);if(egyptianGods.has(n))return 1000000;
 if(!effectsEnabled(p))return 0;
+  if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return 180;
+  if(n==='Exiled Force')return enemy.some(x=>!reservedForRemoval(x)&&targetValue(x)>=1400)?105:-1;
+  if(ojamaComboSummon(c))return 170;
   if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return 120;
   if(n==='The Wicked Eraser')return own.length>=3&&enemy.length+theirBack.length>=4?60:-1;
   if(attackBlocked(c,p,true)&&!['Jinzo','Breaker the Magical Warrior','Exiled Force','Fire Princess','Bowganian'].includes(n))return -1;
@@ -1298,7 +1310,7 @@ if(!effectsEnabled(p))return 0;
   if(hand.length<=2)return deckOutMode!=='race'||hand.length<=1&&ownPower<enemyPower;
   return (ownPower<enemyPower-500||(own.length===0&&enemy.length>0))&&myDeck>10;
  }
- function flipUseful(n,field){if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
+ function flipUseful(n,field){if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];if(field&&!face(field)&&ojamaParts.includes(n)&&ojamaParts.every(part=>own.some(x=>name(x)===part))&&(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')||back.some(x=>name(x)==='Ojama Delta Hurricane!!')))return true;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
   if(!effectsEnabled(p))return false;
   if(n==='Dancing Fairy')return e.phase===4&&prompt?.to_bp!==false&&atk(field)>threat&&!attackBlocked(field,p);
   if(field&&(data(field).type&0x200)&&(e.turn===1||prompt?.to_bp===false||battleLocked)&&!['Tsukuyomi','Otohime','Dark Dust Spirit'].includes(n))return false;

@@ -397,7 +397,7 @@
       "theme": "Punishment and counterplay suit the courtroom-themed Big Five member.",
       "background": "character-backgrounds/15.jpg",
       "tier_decks": {
-        "2": "wct2004-johnson-tier2",
+        "2": "opponent-54-tier-2",
         "3": "wct2004-johnson"
       },
       "reward_themes": [
@@ -497,17 +497,16 @@
       "character": 58,
       "name": "Shimon Muran / Simon",
       "tier": 3,
-      "deck": "wct2004-shimon-muran-simon",
-      "source": "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_World_Championship_Tournament_2004_Opponents",
-      "original": "Simon",
-      "source_id": 24,
+      "deck": "opponent-58-tier-3",
+      "source": "User-directed transfer of Yugi Muto’s former Tier 1–3 decks",
       "fixed": true,
       "sprite": "opponents/shimon-muran-simon.png",
-      "theme": "The original deck owner also has an original-series counterpart.",
+      "theme": "Shimon now uses Yugi Muto’s former Tier 1–3 decks.",
       "background": "character-backgrounds/23.jpg",
       "tier_decks": {
-        "2": "wct2004-shimon-muran-simon-tier2",
-        "3": "wct2004-shimon-muran-simon"
+        "1": "opponent-58-tier-1",
+        "2": "opponent-58-tier-2",
+        "3": "opponent-58-tier-3"
       },
       "reward_themes": [
         "exodia",
@@ -667,6 +666,190 @@
       ],
       "reward_pack": "WC4-24",
       "ignore_limited_list": true
+    },
+    {
+      "character": 76,
+      "name": "Siegfried von Schroeder",
+      "tier": 3,
+      "deck": "opponent-76-tier-3",
+      "tier_decks": {
+        "3": "opponent-76-tier-3"
+      },
+      "sprite": "opponents/siegfried-von-schroeder.png",
+      "background": "character-backgrounds/4.jpg",
+      "theme": "A tactical Arcana Knights deck built around its paired Knight monsters.",
+      "reward_themes": [
+        "Warrior",
+        "Spellcaster",
+        "LIGHT",
+        "battle",
+        "summon",
+        "equip"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 77,
+      "name": "Darkbishop Archfiend",
+      "tier": 3,
+      "deck": "opponent-77-tier-3",
+      "tier_decks": {
+        "3": "opponent-77-tier-3"
+      },
+      "sprite": "opponents/darkbishop-archfiend.png",
+      "background": "character-backgrounds/6.jpg",
+      "theme": "A DARK Fiend deck built around the Archfiends.",
+      "reward_themes": [
+        "archfiend",
+        "Fiend",
+        "DARK",
+        "graveyard",
+        "continuous",
+        "battle"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 78,
+      "name": "Kisara",
+      "tier": 1,
+      "deck": "opponent-78-tier-1",
+      "tier_decks": {
+        "1": "opponent-78-tier-1"
+      },
+      "sprite": "opponents/kisara.png",
+      "background": "character-backgrounds/1.jpg",
+      "theme": "A Blue-Eyes Dragon deck.",
+      "reward_themes": [
+        "Dragon",
+        "LIGHT",
+        "highlevel",
+        "normal",
+        "summon",
+        "draw"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 79,
+      "name": "Thestalos",
+      "tier": 3,
+      "deck": "opponent-79-tier-3",
+      "tier_decks": {
+        "3": "opponent-79-tier-3"
+      },
+      "sprite": "opponents/thestalos.png",
+      "background": "character-backgrounds/15.jpg",
+      "theme": "A Monarch deck focused on tribute summons and pressure.",
+      "reward_themes": [
+        "FIRE",
+        "highlevel",
+        "summon",
+        "destruction",
+        "battle",
+        "control"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 80,
+      "name": "Lady Ninja Yae",
+      "tier": 2,
+      "deck": "opponent-80-tier-2",
+      "tier_decks": {
+        "2": "opponent-80-tier-2"
+      },
+      "sprite": "opponents/lady-ninja-yae.png",
+      "background": "character-backgrounds/3.jpg",
+      "theme": "A Ninja deck built around Warrior support and tactical disruption.",
+      "reward_themes": [
+        "Warrior",
+        "WIND",
+        "battle",
+        "control",
+        "quickplay",
+        "equip"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 81,
+      "name": "Breaker",
+      "tier": 2,
+      "deck": "opponent-81-tier-2",
+      "tier_decks": {
+        "2": "opponent-81-tier-2"
+      },
+      "sprite": "opponents/breaker.png",
+      "background": "character-backgrounds/0.jpg",
+      "theme": "A Spell Counter deck built around Spellcasters and counter growth.",
+      "reward_themes": [
+        "Spellcaster",
+        "DARK",
+        "spellcounter",
+        "control",
+        "summon",
+        "draw"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 82,
+      "name": "Cecelia Pegasus",
+      "tier": 4,
+      "deck": "opponent-82-tier-4",
+      "tier_decks": {
+        "4": "opponent-82-tier-4"
+      },
+      "sprite": "opponents/cecelia-pegasus.png",
+      "background": "character-backgrounds/7.jpg",
+      "theme": "A Spirit monster deck for a late-loop duel.",
+      "reward_themes": [
+        "spirit",
+        "lowlevel",
+        "draw",
+        "control",
+        "battle",
+        "return"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 83,
+      "name": "Mokuba Kaiba",
+      "tier": 2,
+      "deck": "opponent-83-tier-2",
+      "tier_decks": {
+        "2": "opponent-83-tier-2"
+      },
+      "sprite": "dm17.png",
+      "background": "character-backgrounds/17.jpg",
+      "theme": "A Horus Dragon deck.",
+      "reward_themes": [
+        "Dragon",
+        "highlevel",
+        "summon",
+        "draw",
+        "destruction",
+        "FIRE"
+      ],
+      "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
     }
   ]
 }

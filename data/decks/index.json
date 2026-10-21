@@ -7,7 +7,7 @@
   "opponent-12-tier-3": "tristan-taylor-tier-3",
   "opponent-13-tier-1": "yugi-muto-tier-1",
   "opponent-13-tier-2": "yugi-muto-tier-2",
-  "opponent-13-tier-3": "yugi-muto-tier-3",
+  "opponent-13-tier-3": "level-friends-yugi-tier-3",
   "opponent-8-tier-1": "rex-raptor-tier-1",
   "opponent-8-tier-2": "rex-raptor-tier-2",
   "opponent-8-tier-3": "rex-raptor-tier-3",
@@ -73,5 +73,17 @@
   "opponent-20-tier-2": "noah-kaiba-tier-2",
   "opponent-20-tier-3": "noah-kaiba-tier-3",
   "opponent-74-tier-3": "seeker-magnet-rock-tier3",
-  "opponent-75-tier-4": "obelisk-the-tormenter-t4"
+  "opponent-75-tier-4": "obelisk-the-tormenter-t4",
+  "opponent-58-tier-1": "shimon-yugi-muto-tier-1",
+  "opponent-58-tier-2": "shimon-yugi-muto-tier-2",
+  "opponent-58-tier-3": "shimon-yugi-muto-tier-3",
+  "opponent-54-tier-2": "xyz-machines-johnson-tier-2",
+  "opponent-76-tier-3": "arcana-knights-siegfried-tier-3",
+  "opponent-77-tier-3": "archfiends-darkbishop-tier-3",
+  "opponent-78-tier-1": "blue-eyes-kisara-tier-1",
+  "opponent-83-tier-2": "horus-mokuba-tier-2",
+  "opponent-79-tier-3": "monarchs-thestalos-tier-3",
+  "opponent-80-tier-2": "ninja-lady-ninja-yae-tier-2",
+  "opponent-81-tier-2": "spell-counters-breaker-tier-2",
+  "opponent-82-tier-4": "spirits-cecelia-tier-4"
 }

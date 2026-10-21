@@ -31,19 +31,18 @@ e:SetTarget(function(e,c) return c:IsFaceup() and c:IsCode({attribute}) end)
 e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(m) return m~=c and m:IsFaceup() and m:IsSetCard(SET_ARCHFIEND) end,0,LOCATION_MZONE,LOCATION_MZONE,nil) end)
 Duel.RegisterEffect(e,0) end'''
  if kind=='archfiend_cost':return '''do
- local pending=0
  local standby_costs={}
  local function queue(c,amount,is_standby_monster)
   local refund=math.floor((tonumber(amount) or 0)/2)
   if refund<=0 then return end
   if is_standby_monster and standby_costs[c] then return end
   if is_standby_monster then standby_costs[c]=true end
-  pending=pending+refund
+  Duel.Recover(0,refund,REASON_EFFECT)
  end
  local paid=Effect.GlobalEffect()
  paid:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)
  paid:SetCode(EVENT_PAY_LPCOST)
- paid:SetOperation(function(e,tp,eg,ep,ev,re)
+ paid:SetOperation(function(e,tp,eg,ep,ev,re,r,rp)
   local c=re and re:GetHandler()
   if ep==0 and c and c:IsSetCard(SET_ARCHFIEND) then
    local upkeep=Duel.GetTurnPlayer()==0 and Duel.IsPhase(PHASE_STANDBY) and c:IsMonster()
@@ -51,34 +50,23 @@ Duel.RegisterEffect(e,0) end'''
   end
  end)
  Duel.RegisterEffect(paid,0)
- -- Pandemonium replaces Archfiend monster upkeep payments. Observe the cost
- -- before replacement so the same half-refund still applies even when nothing
- -- was actually paid. This effect deliberately leaves the cost unchanged.
- local observed=Effect.GlobalEffect()
- observed:SetType(EFFECT_TYPE_FIELD)
- observed:SetCode(EFFECT_LPCOST_CHANGE)
- observed:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
- observed:SetTargetRange(1,0)
- observed:SetValue(function(e,re,rp,val)
+ -- Pandemonium raises this event from its cost-replacement operation because
+ -- replaced upkeep payments do not emit EVENT_PAY_LPCOST.
+ local prevented=Effect.GlobalEffect()
+ prevented:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)
+ prevented:SetCode(EVENT_CUSTOM+94585852)
+ prevented:SetOperation(function(e,tp,eg,ep,ev,re,r,rp)
   local c=re and re:GetHandler()
-  if c and c:IsControler(0) and c:IsMonster() and c:IsSetCard(SET_ARCHFIEND)
-   and Duel.GetTurnPlayer()==0 and Duel.IsPhase(PHASE_STANDBY)
-   and Duel.IsExistingMatchingCard(function(tc) return tc:IsFaceup() and tc:IsCode(94585852) end,0,LOCATION_FZONE,LOCATION_FZONE,1,nil) then
-   queue(c,val,true)
-  end
-  return val
+  if ep==0 and c and c:IsControler(0) and c:IsMonster() and c:IsSetCard(SET_ARCHFIEND)
+   and Duel.GetTurnPlayer()==0 and Duel.IsPhase(PHASE_STANDBY) then queue(c,ev,true) end
  end)
- Duel.RegisterEffect(observed,0)
- local settle=Effect.GlobalEffect()
- settle:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)
- settle:SetCode(EVENT_PHASE|PHASE_MAIN1)
- settle:SetCondition(function() return Duel.GetTurnPlayer()==0 end)
- settle:SetOperation(function()
-  if pending>0 then Duel.Recover(0,pending,REASON_EFFECT) end
-  pending=0
-  standby_costs={}
- end)
- Duel.RegisterEffect(settle,0)
+ Duel.RegisterEffect(prevented,0)
+ local reset=Effect.GlobalEffect()
+ reset:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)
+ reset:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
+ reset:SetCondition(function() return Duel.GetTurnPlayer()==0 end)
+ reset:SetOperation(function() standby_costs={} end)
+ Duel.RegisterEffect(reset,0)
 end'''
  if kind=='retry_toss':return '''do
  local id=0x7f34a1

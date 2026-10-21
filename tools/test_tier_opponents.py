@@ -35,7 +35,11 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
    assert i not in content.PLAYABLE_IDS
    assert i not in content.eligible_opponents(0,0) and i in content.eligible_opponents(0,1)
    deck=content.opponent_record(0,i,1)
-   assert deck['tier']==4 and deck.get('ignore_limited_list') and len(deck['main'])==52
+   assert deck['tier']==4
+   if row.get('ignore_limited_list'):
+    assert deck.get('ignore_limited_list') and len(deck['main'])==52
+   else:
+    assert 40<=len(deck['main'])<=60 and max(Counter(deck['main']+deck['extra']).values())<=3
    fallback=shop_rewards.reward_for(i);assert fallback['pack'] in content.PACK_BY_ID
    run=dict(round=0,loop=1,character=37,opponent=i)
    game.copy_deck(run,random.Random(1));assert run['copied_opponent']==i and len(run['selected'])>=40

@@ -364,8 +364,8 @@
         "character": 13,
         "name": "Yugi Muto",
         "tier": 3,
-        "deck": "yugi-muto-tier-3",
-        "source": "User supplied exact list",
+        "deck": "opponent-13-tier-3",
+        "source": "User-provided Level Friends deck",
         "fixed": true
       }
     ],

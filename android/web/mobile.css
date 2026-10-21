@@ -992,8 +992,6 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 /* Shopkeeper remains reachable on phones without occupying a stock shelf. */
 .secret-shopkeeper{padding:0;border:0;background:none;cursor:pointer}
 .secret-shopkeeper img{width:100%;height:100%;object-fit:contain;pointer-events:none}
-@media(orientation:portrait){.shop-compact .shop-counter .secret-shopkeeper{display:none}}
-
 .shop-counter .secret-shopkeeper{pointer-events:auto}
 
 .shop-reference-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.shop-reference-buttons button{min-width:0;padding-inline:3px}
@@ -1704,12 +1702,6 @@ button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
 /* Refresh the usable height after mobile browser chrome and orientation changes. */
 body{height:var(--app-viewport-height,100dvh)}
 
-/* Keep Solomon between the relic shelf and the bottom edge on desktop shops. */
-.shop-compact.desktop-shopkeeper-anchored{isolation:isolate}
-.shop-compact.desktop-shopkeeper-anchored>.shop-layout{position:relative;z-index:1}
-.shop-compact.desktop-shopkeeper-anchored>.secret-shopkeeper{display:block;max-height:50dvh;overflow:hidden;pointer-events:none}
-.shop-compact.desktop-shopkeeper-anchored>.secret-shopkeeper>img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
-
 /* Keep the counter controls in place; only Solomon is anchored to the lower shop. */
 .shop-compact.relicless-shop .shop-layout>aside{position:relative}
 .shop-compact.relicless-shop .shop-layout>aside{isolation:isolate}
@@ -2005,3 +1997,9 @@ dialog.cpu-test-picker::backdrop{background:#020910d9;backdrop-filter:blur(3px)}
 /* Super Rare pulls use a restrained tier above Rare, without the Ultra reveal effects. */
 .pack-pull.turned.super-rare{border:2px solid #d6c4f4;box-shadow:0 0 17px #b89bdf66;background:linear-gradient(140deg,#443755,#171528)}
 .pack-pull.super-rare b{background:linear-gradient(90deg,#f2eaff,#c9aff1,#f7efff);color:#291c37}
+
+/* Keep Solomon in the counter's open background area, with shop controls above him. */
+.shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper{display:block!important;position:absolute!important;left:8%!important;bottom:var(--shopkeeper-shelf-offset,-26px)!important;width:66%!important;height:calc(100% - 8px)!important;max-height:50dvh!important;z-index:0!important;pointer-events:none!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;transform:translateY(var(--shopkeeper-shelf-drop,0px))!important}
+.shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper>img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center bottom!important;pointer-events:none!important}
+.shop-compact:not(.relicless-shop) .shop-counter>.shop-balance,.shop-compact:not(.relicless-shop) .shop-counter>button:not(.secret-shopkeeper){z-index:1!important}
+@media(orientation:portrait){.shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop>.secret-shopkeeper{display:none!important;visibility:hidden!important}}

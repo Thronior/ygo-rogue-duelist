@@ -1554,5 +1554,12 @@
     "deck": "opponent-75-tier-4",
     "name": "Obelisk the Tormenter",
     "adaptation": "52-card deck includes Heavy Storm and Harpie's Feather Duster; the limited list is ignored for this opponent."
+  },
+  "82": {
+    "character": 82,
+    "title": "Cecelia Pegasus — Spirits",
+    "tier": 4,
+    "deck": "opponent-82-tier-4",
+    "source": "User-provided Spirits decklist"
   }
 }

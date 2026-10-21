@@ -14,6 +14,7 @@ function s.initial_effect(c)
 	e2:SetRange(LOCATION_FZONE)
 	e2:SetCode(EFFECT_LPCOST_REPLACE)
 	e2:SetCondition(s.lrcon)
+	e2:SetOperation(s.lrop)
 	c:RegisterEffect(e2)
 	--Search an "Archfiend" monster
 	local e4=Effect.CreateEffect(c)
@@ -62,6 +63,9 @@ function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	if not re then return false end
 	local rc=re:GetHandler()
 	return Duel.IsPhase(PHASE_STANDBY) and rc:IsSetCard(SET_ARCHFIEND) and rc:IsMonster()
+end
+function s.lrop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.RaiseEvent(Group.CreateGroup(),EVENT_CUSTOM+id,re,r,rp,ep,ev)
 end
 function s.filter(c,lv)
 	return c:GetLevel()<lv and c:IsSetCard(SET_ARCHFIEND) and c:IsMonster() and c:IsAbleToHand()

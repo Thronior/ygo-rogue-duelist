@@ -25,7 +25,7 @@ def install(artifact):
   ('amazoness_hunters','Amazoness Hunters','Amazoness Archers','0x4','Amazoness'),
   ('harpies_of_a_feather','Harpies of a Feather','Harpie Lady Sisters','0x64','Harpie')]:
   artifact(key,name,90,f'Your {series_name} monsters gain 200 ATK for each face-up matching monster on the field.',art,'archetype_atk',200,'offense',series)
- artifact('demonic_pact','Demonic Pact',90,"At the start of your Main Phase 1, recover half the LP costs paid for Archfiend cards since your previous Standby Phase. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of that cost too.","Archfiend's Oath",'archfiend_cost',0,'healing')
+ artifact('demonic_pact','Demonic Pact',90,"Recover half the LP cost whenever you pay it for an Archfiend card. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of the prevented amount.","Archfiend's Oath",'archfiend_cost',0,'healing')
  artifact('all_for_one_terrorking','All for One Terrorking',100,'Terrorking Archfiend gains 500 ATK for each other Archfiend on the field.','Checkmate','terrorking_atk',500,'offense','35975813')
  artifact('ojama_gang','Ojama Gang',90,'Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.','Ojama Delta Hurricane!!','archetype_atk',1000,'offense','0xf')
  artifact('tribute_free','Tribute Free',110,'Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Ante','tribute_free',0,'other')
