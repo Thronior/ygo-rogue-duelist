@@ -147,9 +147,16 @@ def build():
  run([bt/'aapt2.exe','link',*flat_resources,'-o',linked_resources,'--output-to-dir','--manifest',A/'AndroidManifest.xml','-I',platform,'--replace-version','--version-code',str(code),'--version-name',version])
  with zipfile.ZipFile(BUILD/'unsigned.apk','w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
   for p in sorted(linked_resources.rglob('*')):
-   if p.is_file():archive.write(p,p.relative_to(linked_resources).as_posix())
+   if p.is_file():
+    name=p.relative_to(linked_resources).as_posix()
+    # Android 11+ rejects APKs whose resource table is compressed or not 4-byte aligned.
+    compression=zipfile.ZIP_STORED if name=='resources.arsc' else zipfile.ZIP_DEFLATED
+    archive.write(p,name,compress_type=compression)
   archive.write(BUILD/'classes.dex','classes.dex')
   for p,relative in web_files(WEB):archive.write(p,'assets/web/'+relative.as_posix())
+ with zipfile.ZipFile(BUILD/'unsigned.apk') as archive:
+  if archive.getinfo('resources.arsc').compress_type!=zipfile.ZIP_STORED:
+   raise RuntimeError('Android resource table must be stored uncompressed in the APK')
  unsigned=BUILD/'unsigned.apk';aligned=BUILD/'aligned.apk';zipalign=bt/'zipalign.exe'
  # Don't rewrite a valid archive: this bundled zipalign can crash after truncating its output.
  checked=subprocess.run([str(zipalign),'-c','4',str(unsigned)],cwd=A,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -159,13 +166,18 @@ def build():
   run([zipalign,'-c','4',aligned])
  key=A/'signing/private-experiment.jks';key.parent.mkdir(exist_ok=True)
  if not key.exists():run([jdk/'bin/keytool.exe','-genkeypair','-keystore',key,'-storepass','shadowrun-private','-keypass','shadowrun-private','-alias','shadowrun','-dname','CN=Shadow Run Private Experiment','-keyalg','RSA','-keysize','2048','-validity','10000'])
- release=ROOT/'releases';release.mkdir(exist_ok=True);apk=release/'YGO-Rogue-Android.apk'
+ release=ROOT/'releases';release.mkdir(exist_ok=True)
+ apk=Path(os.environ.get('ANDROID_APK_OUTPUT',str(release/'YGO-Rogue-Android.apk'))).resolve()
+ apk.parent.mkdir(parents=True,exist_ok=True)
  from android_delta import archive_base
  archive_base(apk)
  sign=[jdk/'bin/java.exe','-jar',bt/'lib/apksigner.jar']
  run(sign+['sign','--ks',key,'--ks-key-alias','shadowrun','--ks-pass','pass:shadowrun-private','--out',apk,aligned])
  run(sign+['verify','--verbose',apk])
  run([zipalign,'-c','4',apk])
+ with zipfile.ZipFile(apk) as archive:
+  if archive.getinfo('resources.arsc').compress_type!=zipfile.ZIP_STORED:
+   raise RuntimeError('Signed APK resource table is compressed; refusing to publish an un-installable APK')
  (release/'build.json').write_text((WEB/'build.json').read_text())
  print('APK:',apk,'â€”',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
 
@@ -173,4 +185,3 @@ if __name__=='__main__':
  sync()
  if '--sync-only' not in sys.argv:
   build()
-
