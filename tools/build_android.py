@@ -125,25 +125,47 @@ def sync():
 def build():
  BUILD.mkdir(exist_ok=True);jdk=next((DEP/'jdk').glob('jdk-*'));sdk=DEP/'sdk';bt=sdk/'android-15';platform=sdk/'android-35/android.jar'
  def run(args):subprocess.run([str(x) for x in args],check=True,cwd=A)
+ def reset_build_dir(path):
+  resolved=path.resolve();build_root=BUILD.resolve()
+  if resolved==build_root or build_root not in resolved.parents:raise RuntimeError(f'Refusing to reset non-build directory: {resolved}')
+  if resolved.exists():shutil.rmtree(resolved)
+  resolved.mkdir(parents=True)
+  return resolved
  classes=BUILD/'classes';classes.mkdir(exist_ok=True)
  run([jdk/'bin/javac.exe','-encoding','UTF-8','-source','8','-target','8','-classpath',platform,'-d',classes,*list((A/'src').rglob('*.java'))])
  run([jdk/'bin/jar.exe','cf',BUILD/'classes.jar','-C',classes,'.'])
  run([jdk/'bin/java.exe','-cp',bt/'lib/d8.jar','com.android.tools.r8.D8','--min-api','29','--lib',platform,'--output',BUILD,BUILD/'classes.jar'])
- run([bt/'aapt2.exe','compile','--dir',A/'res','-o',BUILD/'res.zip'])
  code=int(time.time()//60);version=(ROOT/'VERSION').read_text().strip()
- run([bt/'aapt2.exe','link','-o',BUILD/'unsigned.apk','--manifest',A/'AndroidManifest.xml','-I',platform,'--replace-version','--version-code',str(code),'--version-name',version,BUILD/'res.zip'])
- with zipfile.ZipFile(BUILD/'unsigned.apk','a',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
+ # AAPT2 writes .flat resources into an output directory; passing a .zip file here crashes it.
+ compiled_resources=reset_build_dir(BUILD/'compiled-resources')
+ run([bt/'aapt2.exe','compile','--dir',A/'res','-o',compiled_resources])
+ flat_resources=sorted(compiled_resources.glob('*.flat'))
+ if not flat_resources:raise RuntimeError('AAPT2 did not produce any compiled resources')
+ linked_resources=reset_build_dir(BUILD/'linked-resources')
+ for folder in (A/'res').rglob('*'):
+  if folder.is_dir():(linked_resources/'res'/folder.relative_to(A/'res')).mkdir(parents=True,exist_ok=True)
+ run([bt/'aapt2.exe','link',*flat_resources,'-o',linked_resources,'--output-to-dir','--manifest',A/'AndroidManifest.xml','-I',platform,'--replace-version','--version-code',str(code),'--version-name',version])
+ with zipfile.ZipFile(BUILD/'unsigned.apk','w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
+  for p in sorted(linked_resources.rglob('*')):
+   if p.is_file():archive.write(p,p.relative_to(linked_resources).as_posix())
   archive.write(BUILD/'classes.dex','classes.dex')
   for p,relative in web_files(WEB):archive.write(p,'assets/web/'+relative.as_posix())
- run([bt/'zipalign.exe','-f','4',BUILD/'unsigned.apk',BUILD/'aligned.apk'])
+ unsigned=BUILD/'unsigned.apk';aligned=BUILD/'aligned.apk';zipalign=bt/'zipalign.exe'
+ # Don't rewrite a valid archive: this bundled zipalign can crash after truncating its output.
+ checked=subprocess.run([str(zipalign),'-c','4',str(unsigned)],cwd=A,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ if checked.returncode==0:shutil.copy2(unsigned,aligned)
+ else:
+  run([zipalign,'-f','4',unsigned,aligned])
+  run([zipalign,'-c','4',aligned])
  key=A/'signing/private-experiment.jks';key.parent.mkdir(exist_ok=True)
  if not key.exists():run([jdk/'bin/keytool.exe','-genkeypair','-keystore',key,'-storepass','shadowrun-private','-keypass','shadowrun-private','-alias','shadowrun','-dname','CN=Shadow Run Private Experiment','-keyalg','RSA','-keysize','2048','-validity','10000'])
  release=ROOT/'releases';release.mkdir(exist_ok=True);apk=release/'YGO-Rogue-Android.apk'
  from android_delta import archive_base
  archive_base(apk)
  sign=[jdk/'bin/java.exe','-jar',bt/'lib/apksigner.jar']
- run(sign+['sign','--ks',key,'--ks-key-alias','shadowrun','--ks-pass','pass:shadowrun-private','--out',apk,BUILD/'aligned.apk'])
+ run(sign+['sign','--ks',key,'--ks-key-alias','shadowrun','--ks-pass','pass:shadowrun-private','--out',apk,aligned])
  run(sign+['verify','--verbose',apk])
+ run([zipalign,'-c','4',apk])
  (release/'build.json').write_text((WEB/'build.json').read_text())
  print('APK:',apk,'â€”',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
 
@@ -151,3 +173,4 @@ if __name__=='__main__':
  sync()
  if '--sync-only' not in sys.argv:
   build()
+
