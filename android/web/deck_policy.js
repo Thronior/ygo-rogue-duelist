@@ -85,6 +85,9 @@ export function deckPolicy(x){
  const lowNormal=c=>!!(data(c).type&1)&&!!(data(c).type&16)&&lvl(c)<=3;
  const rescueCatTargets=()=>q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);
  const raEffectName=c=>e.description?.(c.description)||'';
+ // Ra has 0 ATK unless its Normal Summon trigger pays LP down to 100. The CPU always summons a
+ // legal God, so take that payment whenever it makes a 3000+ ATK monster that is safe to keep.
+ const raBoostSafe=()=>e.player===p&&e.lp[p]>=3100&&!raBurnRisk()&&!enemy.some(t=>face(t)&&monster(t)&&atk(t)>=e.lp[p]-100);
  function raBoostScore(c){
   if(!face(c)||c.controller!==p||c.is_disabled)return -1;
   const current=atk(c),boosted=current+1000;
@@ -100,7 +103,7 @@ export function deckPolicy(x){
  const lvTargetSources=[...lvSources,...grave.filter(c=>/\bLV\d/i.test(name(c)))];
  const levelUpTarget=c=>lvTargetSources.some(source=>(e.cards.get(source.code)?.desc||'').includes(name(c)));
  const transformations=()=>ninjas.some(source=>[...hand,...q(p,L.DECK)].some(c=>monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))&&lvl(c)<=lvl(source)+3));
- const archfiendDeck=q(p,L.DECK).some(c=>monster(c)&&name(c).includes('Archfiend'));
+ const archfiendDeck=()=>q(p,L.DECK).some(c=>monster(c)&&name(c).includes('Archfiend'));
  const archfiendBody=[...hand,...own].some(c=>monster(c)&&name(c).includes('Archfiend'));
  function fusionPlan(f,includeGrave=false,borrowed=[]){
   const line=(e.cards.get(f.code)?.desc||'').split('\n')[0],materials=[];
@@ -127,9 +130,12 @@ export function deckPolicy(x){
    return canSearch&&fusionChoices(false).length?104:-1;
   }
   if(n==="The Dragon's Bead"){
-   if(!chain||!handCost(c,1))return -1;
+   // Continuous Trap: flip it face-up first (any time we have a face-up Dragon); the negation below is
+   // a separate effect, offered only once it is face-up and a Trap targets our Dragon.
    const protectedDragon=t=>t.controller===p&&t.location===L.MZONE&&face(t)&&race(t)==='Dragon';
-   const incomingTrap=(e.activeChain||[]).some(link=>!link.inactive&&link.player!==p&&!!(data({code:link.code}).type&4)&&(link.targets||[]).some(protectedDragon));
+   const incomingTrap=chain&&(e.activeChain||[]).some(link=>!link.inactive&&link.player!==p&&!!(data({code:link.code}).type&4)&&(link.targets||[]).some(protectedDragon));
+   if(!(c.location===L.SZONE&&face(c)))return incomingTrap&&handCost(c,1)?125:live(own).some(t=>race(t)==='Dragon')?60:-1;
+   if(!chain||!handCost(c,1))return -1;
    return incomingTrap?125:-1;
   }
   if(n==='Dangerous Machine Type-6'){
@@ -152,8 +158,8 @@ export function deckPolicy(x){
   }
   if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;
   if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}
-  if(n==='Terraforming')return (archfiendBody||archfiendDeck)&&q(p,L.DECK).some(x=>name(x)==='Pandemonium')?95:-1;
-  if(n==='Pandemonium')return archfiendBody||archfiendDeck?90:-1;
+  if(n==='Terraforming')return (archfiendBody||archfiendDeck())&&q(p,L.DECK).some(x=>name(x)==='Pandemonium')?95:-1;
+  if(n==='Pandemonium')return archfiendBody||archfiendDeck()?90:-1;
   if(n==='Frontline Base'){
    const unionInHand=hand.some(x=>x.code!==c.code&&(data(x).type&1024)&&lvl(x)<=4);
    return free>0&&unionInHand?c.location===L.HAND?100:c.location===L.SZONE&&face(c)?110:-1:-1;
@@ -252,12 +258,16 @@ export function deckPolicy(x){
   if(n==='Magical Stone Excavation'||n==='Spell Reproduction')return handCost(c,2,t=>n!=='Spell Reproduction'||!!(data(t).type&2))&&grave.some(t=>data(t).type&2&&spellValue(t)>=3000)?85:-1;
   if(n==='The Winged Dragon of Ra'){
    const effect=raEffectName(c);
-   if(effect==='Increase ATK and DEF'){
-    if(e.player!==p||e.lp[p]<=100||e.phase>=256)return -1;
+   // The summon trigger is Ra's only trigger; the core often asks with its generic
+   // "Activate the Trigger Effect of ...?" text instead of the effect's own label.
+   if(effect==='Increase ATK and DEF'||/trigger effect/i.test(effect)){
+    if(e.player!==p||e.lp[p]<=100)return -1;
     const ra=own.find(t=>face(t)&&name(t)==='The Winged Dragon of Ra');if(!ra)return -1;
+    if(e.phase>=256)return atk(ra)<=0&&raBoostSafe()?110:-1;
     const forecast=Math.max(0,e.lp[p]-100),current=Math.max(0,atk(ra)),boosted=current+forecast,other=attacks.filter(t=>!same(t,ra)&&!t.attack_count).reduce((sum,t)=>sum+Math.max(0,atk(t)),0);
     if(!enemy.length&&!theirBack.some(t=>!face(t))&&battleDamage(boosted+other)>=e.lp[1-p])return 130;
     if(enemy.length===1&&face(enemy[0])&&(enemy[0].position&1)&&!resilient(enemy[0])&&boosted>atk(enemy[0])&&battleDamage(boosted-atk(enemy[0])+other)>=e.lp[1-p])return 130;
+    if(current<=0&&raBoostSafe())return 110;
     // Ra's printed effect pays down to 100 LP. Outside a lethal line, only
     // take that risk when its boost creates real battle/damage value and the
     // visible field has no active effect-damage source that could finish us.
@@ -321,9 +331,173 @@ export function deckPolicy(x){
    if(n==='Laser Cannon Armor'||n==='Insect Armor with Laser Cannon')return live(own).some(t=>race(t)==='Insect')?60:-1;
    return 85;
   }
+  const unused=unusedCardValue(c,chain,n);if(unused!==null)return unused;
+  return null;
+ }
+ // Cards the CPU skipped entirely before October 26: they had no rule, so the
+ // generic fallback declined them (any text mentioning "destroy" was refused).
+ const spellCounterUsers=new Set(['Breaker the Magical Warrior','Blast Magician','Magical Marionette','Royal Magical Library','Hannibal Necromancer','Skilled Dark Magician','Skilled White Magician','Apprentice Magician','Silent Magician LV4','Mythical Beast Cerberus','Magical Plant Mandragola','Tower of Babel']);
+ const spellCounters=card=>{const live=[...own,...back].find(x=>same(x,card))||card,raw=live.counters||{};return Array.isArray(raw)?raw.filter(x=>(x.type&0xfff)===1).reduce((s,x)=>s+x.count,0):Number(raw[1]||0)};
+ const counterUserOnField=source=>own.some(x=>!same(x,source)&&face(x)&&spellCounterUsers.has(name(x)));
+ const cardText=card=>e.cards.get(card.code)?.desc||'';
+ const isUnion=card=>monster(card)&&/\bunequip\b/i.test(cardText(card));
+ // Monsters a Union can equip to: the quoted names in its text, or a Type (Heavy Mech Support Platform: Machine).
+ const unionPartners=union=>{const text=cardText(union),names=[...text.matchAll(/"([^"]+)"/g)].map(m=>m[1]),type=/equip(?: it)? to (?:a |an |1 )?(\w[\w-]*)[- ]Type monster/i.exec(text)?.[1];
+  return live(own).filter(x=>!same(x,union)&&monster(x)&&(names.includes(name(x))||(type&&race(x)===type)));};
+ // Contact fusions ("Must first be Special Summoned (from your Extra Deck) by banishing the above cards").
+ const contactMaterials=fusion=>{const text=cardText(fusion);return /Must first be Special Summoned \(from your Extra Deck\) by banishing/i.test(text)?[...text.split('Must first')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]):[]};
+ const contactEffectTarget={'XY-Dragon Cannon':()=>theirBack.some(face),'XZ-Tank Cannon':()=>theirBack.some(x=>!face(x)),'YZ-Tank Dragon':()=>enemy.some(x=>!face(x)),'XYZ-Dragon Cannon':()=>enemyCards.length>0};
+ // Summon a contact fusion when it beats something its materials cannot, or its removal effect has a target.
+ function contactFusionUseful(fusion){
+  const names=contactMaterials(fusion);if(!names.length)return false;
+  const materials=names.map(m=>live(own).find(x=>monster(x)&&name(x)===m));if(materials.some(x=>!x))return false;
+  const power=t=>(t.position&1)?atk(t):(t.defense??data(t).defense??0),strongest=Math.max(...materials.map(atk)),toBeat=Math.max(0,...live(enemy).filter(monster).map(power));
+  const fusionAttack=data(fusion).attack??0,effect=contactEffectTarget[name(fusion)];
+  return (toBeat>=strongest&&fusionAttack>toBeat)||(!!effect&&effect()&&hand.length>0);
+ }
+ function unusedCardValue(c,chain,n){
+  const text=e.cards.get(c.code)?.desc||'',deck=()=>q(p,L.DECK),mainPhase=e.player===p&&(e.phase===4||e.phase===256);
+  // LV monsters: Standby/End Phase level-up triggers are only offered when the next level can be summoned.
+  if(chain&&/ LV\d+$/.test(n)&&c.location===L.MZONE&&(e.phase===2||e.phase===512)&&n!=='Horus the Black Flame Dragon LV8')return 92;
+  // Spell negation; paid negations skip removal that would only hit cards we would not miss.
+  if(['Horus the Black Flame Dragon LV8','Anti-Spell','Cursed Seal of the Forbidden Spell'].includes(n)){
+   if(!chain||e.effect?.player!==1-p)return -1;
+   const link=(e.activeChain||[]).at(-1),incoming=link&&!link.inactive?e.name(link.code):'';
+   if(n!=='Horus the Black Flame Dragon LV8'&&['Mystical Space Typhoon','Heavy Storm',"Harpie's Feather Duster",'Giant Trunade'].includes(incoming)&&!back.some(x=>!same(x,c)&&backValue(x)>=600))return -1;
+   return 100;
+  }
+  if(n==='Divine Wrath'){
+   if(!chain||e.effect?.player!==1-p)return -1;
+   const source=enemy.find(x=>face(x)&&x.code===e.effect.code);
+   return source&&value(source)>=1000?98:-1;
+  }
+  // Union monsters: equip onto a partner (the engine offers only legal equips); keep an equipped Union in place,
+  // and keep it as a monster when it completes a contact fusion worth summoning instead.
+  if(monster(c)&&isUnion(c))return c.location===L.MZONE&&mainPhase&&!q(p,L.EXTRA).some(f=>contactMaterials(f).includes(n)&&contactFusionUseful(f))?82:-1;
+  // Union support.
+  if(n==='Formation Union'){
+   // Equip mode only (resourceOption picks it): when a Union's own equip is not offered this turn.
+   const ownEquip=(prompt?.activates||[]).some(x=>x.location===L.MZONE&&isUnion(x));
+   return mainPhase&&!ownEquip&&live(own).some(x=>isUnion(x)&&unionPartners(x).length)?78:-1;
+  }
+  if(n==='Union Attack'){
+   if(!(e.player===p&&e.phase===4))return -1;
+   const attackers=live(own).filter(battleReady),total=attackers.reduce((sum,x)=>sum+atk(x),0),strongest=Math.max(0,...attackers.map(atk));
+   const power=t=>(t.position&1)?atk(t):(t.defense??data(t).defense??0);
+   return attackers.length>=2&&live(enemy).some(t=>monster(t)&&power(t)>=strongest&&power(t)<total&&value(t)>=1500)?84:-1;
+  }
+  if(n==='Combination Attack'){
+   if(!(e.player===p&&e.phase>=8&&e.phase<=128))return -1;
+   const power=t=>(t.position&1)?atk(t):(t.defense??data(t).defense??0);
+   // The core does not report attack counts; duel.js counts attacks per zone this turn.
+   return live(own).some(x=>(e.attacksThisTurn?.get?.(`${x.controller}:${x.sequence}`)||0)>0&&(x.position&1)&&(!enemy.length||live(enemy).some(t=>atk(x)-600>power(t))))?85:-1;
+  }
+  // Spell Counter effects.
+  if(n==='Blast Magician'){const cap=Math.max(1,spellCounters(c))*700,target=live(enemy).filter(x=>monster(x)&&atk(x)<=cap).sort((a,b)=>value(b)-value(a))[0];return target&&value(target)>=900?90:-1;}
+  if(n==='Magical Marionette')return best(enemy)>=1000?90:-1;
+  if(n==='Hannibal Necromancer')return theirBack.some(x=>face(x)&&(data(x).type&4))?90:-1;
+  if(n==='Mega Ton Magical Cannon')return enemyCards.reduce((sum,x)=>sum+value(x),0)>=2000?115:-1;
+  if(n==='Royal Magical Library')return deck().length>3?85:-1;
+  if(n==='Pitch-Black Power Stone'){
+   if(c.location===L.SZONE&&face(c))return mainPhase&&counterUserOnField(c)?80:-1;
+   return counterUserOnField(c)||hand.some(x=>spellCounterUsers.has(name(x)))?70:-1;
+  }
+  if(n==='Magical Dimension'){
+   const caster=hand.filter(x=>monster(x)&&race(x)==='Spellcaster').sort((a,b)=>atk(b)-atk(a))[0],cheapest=own.filter(face).sort((a,b)=>value(a)-value(b))[0];
+   if(!caster||!cheapest)return -1;
+   return best(enemy)>=1000||atk(caster)>atk(cheapest)+500?98:-1;
+  }
+  // Contact fusions: discard 1 card to destroy an opposing card of the matching kind.
+  const discardDestroy=contactEffectTarget[n];
+  if(discardDestroy)return handCost(c,1)&&discardDestroy()?88:-1;
+  if(n==='Armed Dragon LV5'&&!chain){
+   const fodder=hand.filter(x=>monster(x)&&!exodiaPieces.has(x.code)).sort((a,b)=>atk(b)-atk(a))[0];
+   const target=fodder&&live(enemy).filter(x=>monster(x)&&atk(x)<=atk(fodder)).sort((a,b)=>value(b)-value(a))[0];
+   return target&&value(target)>=1000?85:-1;
+  }
+  if(n==='Twin-Headed Behemoth')return chain&&c.location===L.GRAVE&&free>0?90:-1;
+  if(n==='Archfiend General')return c.location===L.HAND&&!has(hand,'Pandemonium')&&![...back,...theirBack].some(x=>face(x)&&name(x)==='Pandemonium')&&deck().some(x=>name(x)==='Pandemonium')?85:-1;
+  if(n==='Dark Factory of Mass Production')return hand.length<=5?85:-1;
+  if(n==='Last Will')return e.fieldToGraveTurn?.[p]===e.turn&&free>0&&deck().some(x=>monster(x)&&atk(x)<=1500)?90:-1;
+  if(n==='Yu-Jo Friendship')return e.lp[1-p]-e.lp[p]>=2000?85:-1;
+  if(n==='Unity'){
+   if(!chain||!incoming||!incomingTarget||(incomingTarget.position&1))return -1;
+   const total=own.filter(face).reduce((sum,x)=>sum+Math.max(0,data(x).defense??0),0),attacker=enemy.find(x=>same(x,e.attackCard));
+   return attacker&&total>atk(attacker)&&(incomingTarget.defense??0)<=atk(attacker)?95:-1;
+  }
+  if(n==='Judgment of the Pharaoh'){
+   // Only the Unity mode: clear the way for an attack into backrow on our own Main Phase 1.
+   const attackers=live(own).filter(battleReady);
+   return has(grave,'Unity')&&e.player===p&&e.phase===4&&theirBack.length>=2&&attackers.length&&e.lp[p]>=3000?80:-1;
+  }
+  if(n==='Return from the Different Dimension'){
+   const banished=q(p,L.REMOVED).filter(x=>monster(x)&&face(x)).sort((a,b)=>atk(b)-atk(a)).slice(0,free);
+   const damage=banished.reduce((sum,x)=>sum+atk(x),0);
+   return e.player===p&&e.phase===4&&!enemy.length&&damage>=e.lp[1-p]?120:-1;
+  }
+  return existingDeckCardValue(c,chain,n,text,mainPhase);
+ }
+ // Cards from the existing game decks that the CPU also never used in those simulations.
+ function existingDeckCardValue(c,chain,n,text,mainPhase){
+  const defense=x=>x.defense??data(x).defense??0,attacker=enemy.find(x=>same(x,e.attackCard)),ourTurn=e.player===p;
+  const trapMonster=['Tiki Curse','Tiki Soul','Tiki Peace'].includes(n);
+  // Trap monsters: a blocker when an attack comes in on an empty field, otherwise an extra body in our Main Phase.
+  if(trapMonster)return chain&&incoming&&!own.length?85:mainPhase&&free>0?60:-1;
+  if(n==='Ultimate Offering'){
+   if(c.location!==L.SZONE||!face(c))return mainPhase&&e.lp[p]>2000&&hand.some(monster)?60:-1;
+   const summonable=hand.some(x=>monster(x)&&lvl(x)<=4);
+   if(chain&&incoming&&!own.length&&summonable&&e.lp[p]>1000)return 85;
+   return mainPhase&&e.lp[p]>2000&&free>0&&summonable?80:-1;
+  }
+  if(n==='Shadow Spell'){
+   if(chain&&incoming&&attacker&&face(attacker)&&atk(attacker)>=1400)return 90;
+   return mainPhase&&live(enemy).some(x=>monster(x)&&atk(x)>=1900)?80:-1;
+  }
+  if(n==='Micro Ray')return ourTurn&&(e.phase===4||e.phase===8)&&live(own).filter(battleReady).some(a=>live(enemy).some(t=>!(t.position&1)&&defense(t)>=atk(a)&&atk(a)>0))?80:-1;
+  if(n==='Curse of Aging'){
+   if(!ourTurn||!(e.phase===4||e.phase===8)||!handCost(c,1))return -1;
+   const swing=live(own).filter(battleReady).some(a=>live(enemy).some(t=>{const power=(t.position&1)?atk(t):defense(t);return power>=atk(a)&&power-500<atk(a)}));
+   return swing?82:-1;
+  }
+  if(n==='Ojama Trio')return enemy.length<=2&&(chain?e.player===1-p&&e.phase===512:mainPhase&&live(own).some(battleReady))?72:-1;
+  if(n==='Time Seal')return chain&&e.player===1-p&&e.phase===512?70:-1;
+  if(n==='Curse of Anubis'){
+   if(!ourTurn||e.phase!==4)return -1;
+   const effectMonster=x=>monster(x)&&face(x)&&(data(x).type&0x20),gain=enemy.filter(effectMonster).reduce((s,x)=>s+value(x),0),loss=own.filter(effectMonster).reduce((s,x)=>s+value(x),0);
+   return gain-loss>=1000&&live(own).some(x=>battleReady(x)&&!(data(x).type&0x20))?85:-1;
+  }
+  if(n==='Ninjitsu Art of Decoy')return chain&&incoming&&incomingTarget&&/Ninja/.test(name(incomingTarget))&&attacker&&atk(attacker)>=((incomingTarget.position&1)?atk(incomingTarget):defense(incomingTarget))?88:-1;
+  if(n==="Dragon's Rage")return live(own).some(x=>race(x)==='Dragon')?70:-1;
+  if(n==='Dedication through Light and Darkness')return live(own).some(x=>name(x)==='Dark Magician')?95:-1;
+  if(n==='Amazoness Village')return [...own,...hand].some(x=>/Amazoness/.test(name(x)))?70:-1;
+  if(n==="Harpies' Hunting Ground"){const winged=a=>live(a).filter(x=>race(x)==='Winged Beast').length;return winged(own)>winged(enemy)||hand.some(x=>/Harpie Lady/.test(name(x)))?70:-1;}
+  if(n==='Burst Breath'){
+   const dragon=live(own).filter(x=>race(x)==='Dragon').sort((a,b)=>value(a)-value(b))[0];if(!dragon)return -1;
+   const hit=side=>live(side).filter(x=>!same(x,dragon)&&defense(x)<=atk(dragon)).reduce((s,x)=>s+value(x),0);
+   return hit(enemy)-hit(own)-value(dragon)>=1500?85:-1;
+  }
+  if(n==='Soul Resurrection')return free>0&&grave.some(x=>monster(x)&&(data(x).type&0x10)&&Math.max(atk(x),defense(x))>=1500)?75:-1;
+  if(n==='The Warrior Returning Alive')return grave.some(x=>monster(x)&&race(x)==='Warrior')?85:-1;
+  if(n==='Adhesion Trap Hole')return chain&&e.player===1-p&&live(enemy).some(x=>monster(x)&&atk(x)>=1600)?85:-1;
+  if(n==='The Reliable Guardian')return chain&&incoming&&incomingTarget&&!(incomingTarget.position&1)&&attacker&&defense(incomingTarget)<=atk(attacker)&&defense(incomingTarget)+700>atk(attacker)?90:-1;
+  if(n==='Attack and Receive')return chain?90:-1;
+  if(n==='Abyss Soldier')return mainPhase&&hand.some(x=>!same(x,c)&&monster(x)&&hasAttribute(x,'WATER'))&&best(enemyCards)>=1500?85:-1;
+  if(n==='Dark Master - Zorc'){
+   const all=a=>live(a).filter(monster).reduce((s,x)=>s+value(x),0);
+   const expected=all(enemy)*2/6+best(enemy)*3/6-all(own)/6;
+   return mainPhase&&expected>=500?85:-1;
+  }
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
+  if(n==='Pitch-Black Power Stone')return ownCard&&spellCounterUsers.has(name(c))?50000:-100000;
+  // Union support: boost or re-arm our strongest monster; Formation Union picks a Union, then its partner.
+  if(['Union Attack','Combination Attack','Formation Union'].includes(n))return ownCard&&c.location===L.MZONE?30000+atk(c):-100000;
+  if(n==='Magical Dimension'){
+   // First the Tribute (only our monsters are offered): the cheapest. Then the optional destroy: their best.
+   const tribute=(info.cands||[]).every(x=>x.controller===p);
+   return tribute?(ownCard?20000-value(c):-100000):(ownCard?-100000:30000+value(c));
+  }
   if(n==='The Agent of Creation - Venus')return ownCard&&name(c)==='Mystical Shine Ball'&&[L.HAND,L.DECK].includes(c.location)?50000+atk(c):-100000;
   if(n==='Rescue Cat'){const eligible=(info.cands||[]).filter(x=>x.controller===p&&x.location===L.DECK&&monster(x)&&race(x)==='Beast'&&lvl(x)<=3).sort((a,b)=>atk(b)-atk(a));return eligible.slice(0,2).some(x=>same(x,c))?50000+atk(c):-100000;}
   if(n==='Juragedo')return raBoostScore(c)>=0?30000+raBoostScore(c):-100000;
@@ -372,5 +546,5 @@ export function deckPolicy(x){
  }
  function specialOk(c){return !['The Winged Dragon of Ra','The Wicked Eraser','Doomcaliber Knight'].includes(name(c));}
  function setAllowed(c){return !board||name(c)==='Destiny Board';}
- return {activation,targetScore,fusionChoices,setAllowed,setScore,specialOk};
+ return {activation,targetScore,fusionChoices,setAllowed,setScore,specialOk,contactFusionUseful};
 }

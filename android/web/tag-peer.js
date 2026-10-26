@@ -2,16 +2,18 @@
 export class TagPeer {
  constructor(endpoint,{onState=()=>{},onMessage=()=>{},iceServers=null,relayOnly=false}={}){
   const url=new URL(endpoint);if(url.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(url.hostname))throw Error('Use HTTPS for the room service.');
-  this.endpoint=url.href.replace(/\/$/,'');this.onState=onState;this.onMessage=onMessage;this.customIce=iceServers;this.relayOnly=relayOnly;this.cursor=0;this.sequence=0;this.received=0;this.closed=false;this.candidates=[];this.epoch=0;this.inDuel=false;
+  this.endpoint=url.href.replace(/\/$/,'');this.onState=onState;this.onMessage=onMessage;this.customIce=iceServers;this.relayOnly=relayOnly;this.cursor=0;this.sequence=0;this.received=0;this.closed=false;this.candidates=[];this.epoch=0;this.inDuel=false;this.failures=0;this.progressAt=Date.now();
+  // Returning to a backgrounded page checks a slow wait immediately.
+  this.wake=()=>{if(!globalThis.document?.hidden&&this.timer&&this.channel?.readyState!=='open'){clearTimeout(this.timer);this.timer=setTimeout(()=>this.poll(this.epoch),0)}};
  }
  async request(action,body={}){
-  const response=await fetch(`${this.endpoint}/v1/${action}`,{method:'POST',headers:{'Content-Type':'application/json',...(this.token?{Authorization:`Bearer ${this.token}`}:{})},body:JSON.stringify({code:this.code,...body}),signal:AbortSignal.timeout(10000)});
-  const result=await response.json();if(!response.ok)throw Error(result.error||'Room service unavailable.');return result;
+  const response=await fetch(`${this.endpoint}/v2/${action}`,{method:'POST',headers:{'Content-Type':'application/json',...(this.token?{Authorization:`Bearer ${this.token}`}:{})},body:JSON.stringify({code:this.code,...body}),signal:AbortSignal.timeout(10000)});
+  const result=await response.json();if(!response.ok){const error=Error(result.error||'Room service unavailable.');error.status=response.status;throw error}return result;
  }
  async host(){return this.open(await this.request('create'))}
  async join(code){if(!/^[A-Z2-9]{5}$/.test(code.toUpperCase()))throw Error('Enter the five-character room code.');const room=code.toUpperCase();return this.open(await this.request('join',{code:room,resumeToken:localStorage.getItem(this.endpoint+':tag:'+room)||undefined}))}
  async open(session){
-  clearTimeout(this.timer);this.closed=false;Object.assign(this,session);localStorage.setItem(this.endpoint+':tag:'+this.code,this.token);await globalThis.flushDesktopStorage?.();this.resetConnection();
+  clearTimeout(this.timer);this.closed=false;this.failures=0;Object.assign(this,session);localStorage.setItem(this.endpoint+':tag:'+this.code,this.token);await globalThis.flushDesktopStorage?.();this.resetConnection();globalThis.document?.addEventListener('visibilitychange',this.wake);
   this.onState(session.resumed?'reconnecting':'waiting',this.code);this.poll(this.epoch);return {code:this.code,seat:this.seat};
  }
  resetConnection(){
@@ -20,7 +22,7 @@ export class TagPeer {
   if(this.socket){this.socket.onclose=null;this.socket.onmessage=null;this.socket.close();this.socket=null}
   if(this.channel){this.channel.onclose=null;this.channel.onmessage=null;this.channel.onopen=null}
   if(this.pc){this.pc.onconnectionstatechange=null;this.pc.onicecandidate=null;this.pc.ondatachannel=null;this.pc.close()}
-  this.sequence=0;this.received=0;this.cursor=0;this.candidates=[];this.offered=false;this.channel=null;
+  this.sequence=0;this.received=0;this.cursor=0;this.candidates=[];this.offered=false;this.channel=null;this.progressAt=Date.now();
   if(this.relay){this.openRelay();return}
   this.pc=new RTCPeerConnection({iceServers:this.customIce||this.iceServers,iceTransportPolicy:this.relayOnly?'relay':'all'});
   const pc=this.pc,epoch=this.epoch,generation=this.generation;
@@ -39,11 +41,11 @@ export class TagPeer {
   if(this.seat===0)this.attach(this.pc.createDataChannel('shadow-run-tag',{ordered:true}));
  }
  attach(channel){
-  this.channel=channel;const epoch=this.epoch;channel.binaryType='arraybuffer';channel.onopen=()=>this.onState('connected');channel.onclose=()=>{if(this.closed||epoch!==this.epoch)return;this.onState('disconnected');if(this.timer){clearTimeout(this.timer);this.timer=setTimeout(()=>this.poll(epoch),1000)}};
+  this.channel=channel;const epoch=this.epoch;channel.binaryType='arraybuffer';channel.onopen=()=>this.onState('connected');channel.onclose=()=>{if(this.closed||epoch!==this.epoch)return;this.progressAt=Date.now();this.onState('disconnected');if(this.timer){clearTimeout(this.timer);this.timer=setTimeout(()=>this.poll(epoch),1000)}};
   channel.onmessage=e=>{try{if(typeof e.data!=='string'||e.data.length>1048576)throw Error('Invalid peer packet.');const packet=JSON.parse(e.data);if(packet.protocol!==1||!Number.isSafeInteger(packet.sequence)||packet.sequence!==this.received+1)throw Error('Peer sequence mismatch.');this.received=packet.sequence;this.onMessage(packet.payload)}catch(error){this.onState('protocol-error',error.message);this.pc?.close();this.socket?.close()}};
  }
  openRelay(){
-  const epoch=this.epoch,url=this.endpoint.replace(/^http/,'ws')+'/v1/relay';
+  const epoch=this.epoch,url=this.endpoint.replace(/^http/,'ws')+'/v2/relay';
   const socket=this.socket=new WebSocket(url,['shadowrun','room.'+this.code,'auth.'+this.token,'gen.'+this.generation]);
   const channel={readyState:'connecting',get bufferedAmount(){return socket.bufferedAmount},send:data=>socket.send(data),close:()=>socket.close()};this.attach(channel);
   socket.onmessage=e=>{if(epoch!==this.epoch)return;try{const packet=JSON.parse(e.data);if(packet.relay==='ready'){if(channel.readyState!=='open'){channel.readyState='open';channel.onopen()}return}channel.onmessage(e)}catch(error){this.onState('protocol-error',error.message);socket.close()}};
@@ -56,8 +58,11 @@ export class TagPeer {
   try{
    const {joined,messages,generation,relay}=await this.request('poll',{after:this.cursor,generation:this.generation});
    if(this.closed||epoch!==this.epoch)return;
+   this.failures=0;
    if(generation!==this.generation){this.generation=generation;this.relay=!!relay;this.resetConnection();this.onState('reconnecting');return this.poll(this.epoch)}
-   if(joined&&this.relayAvailable&&!this.relay&&!this.fallbackTimer){this.fallbackTimer=setTimeout(()=>{if(epoch===this.epoch&&this.channel?.readyState!=='open')this.request('fallback').catch(error=>this.onState('signaling-error',error.message))},this.relayOnly?0:8000)}
+   if(joined!==this.peerJoined||!this.relay&&messages.some(m=>m.sequence>this.cursor)){this.peerJoined=joined;this.progressAt=Date.now()}
+   // The guest times the relay fallback from the host's offer, so a slow-polling host is not mistaken for a failed P2P route.
+   if(joined&&(this.seat===0||this.relayOnly||this.cursor>0)&&this.relayAvailable&&!this.relay&&!this.fallbackTimer){this.fallbackTimer=setTimeout(()=>{if(epoch===this.epoch&&this.channel?.readyState!=='open')this.request('fallback').catch(error=>this.onState('signaling-error',error.message))},this.relayOnly?0:8000)}
    if(!this.relay&&this.seat===0&&joined&&!this.offered){this.offered=true;await this.pc.setLocalDescription(await this.pc.createOffer());await this.request('signal',{generation:this.generation,message:{type:'offer',sdp:this.pc.localDescription.sdp}})}
    for(const envelope of messages){if(this.closed||epoch!==this.epoch)return;const message=envelope.message;
     if(this.relay)continue;
@@ -69,10 +74,17 @@ export class TagPeer {
     }else if(message.type==='candidate'){if(this.pc.remoteDescription)await this.pc.addIceCandidate(message.candidate);else this.candidates.push(message.candidate)}
     this.cursor=envelope.sequence;
    }
-  }catch(error){if(epoch===this.epoch&&!this.closed)this.onState('signaling-error',error.message)}
+  // 426: this version may no longer play online; stop instead of retrying.
+  }catch(error){if(epoch===this.epoch&&!this.closed){if(error.status===426){this.suspend();this.onState('error',error.message);return}this.failures++;this.onState('signaling-error',error.message)}}
   if(!this.closed&&epoch===this.epoch)this.timer=setTimeout(()=>this.poll(epoch),this.pollDelay());
  }
- pollDelay(){return this.channel?.readyState==='open'?(this.inDuel?15000:60000):1000}
+ // Signalling stays at 1 s for a minute after any progress. A room left waiting (no partner,
+ // lost partner) slows down, most while hidden, and failed polls back off exponentially.
+ pollDelay(){
+  const hidden=!!globalThis.document?.hidden,idle=Date.now()-this.progressAt;
+  const wait=this.channel?.readyState==='open'?(this.inDuel?15000:60000):idle<60000?1000:idle<600000?(hidden?5000:3000):(hidden?30000:15000);
+  return this.failures?Math.max(wait,Math.min(30000,1000*2**this.failures)):wait;
+ }
  setPhase(phase){
   const next=phase==='duel';if(next===this.inDuel)return;this.inDuel=next;
   // Let any in-flight poll finish; only reschedule an outstanding timer.
@@ -91,6 +103,6 @@ export class TagPeer {
   try{return await this.reconnecting}finally{this.reconnecting=null}
  }
  // A temporary disconnect keeps the seat token. Only Leave releases the room.
- suspend(){this.closed=true;this.epoch++;clearTimeout(this.timer);clearTimeout(this.fallbackTimer);clearTimeout(this.disconnectTimer);this.pc?.close();this.socket?.close()}
+ suspend(){this.closed=true;this.epoch++;globalThis.document?.removeEventListener('visibilitychange',this.wake);clearTimeout(this.timer);clearTimeout(this.fallbackTimer);clearTimeout(this.disconnectTimer);this.pc?.close();this.socket?.close()}
  async close(){this.suspend();if(this.token){await this.request('leave');localStorage.removeItem(this.endpoint+':tag:'+this.code);await globalThis.flushDesktopStorage?.();this.token=null}}
 }

@@ -582,7 +582,7 @@
     "faulty_printer": {
       "name": "Faulty Printer",
       "price": 85,
-      "description": "Each monster purchased as a single or pulled from a purchased booster has a 15% chance to become a misprint. A misprint changes that copy's original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0).",
+      "description": "Each monster purchased as a single or pulled from a purchased booster has a 15% chance to become a misprint. A misprint changes that copy's original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0) and gives it a random Type and Attribute.",
       "art": "Machine Conversion Factory",
       "effect": "faulty",
       "amount": 15,
@@ -769,7 +769,7 @@
     "attribute_light": {
       "name": "Light Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as LIGHT monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become LIGHT. With other Surgery relics, they have all of those Attributes.",
       "art": "Luminous Spark",
       "effect": "attribute",
       "amount": 0,
@@ -779,7 +779,7 @@
     "attribute_dark": {
       "name": "Dark Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as DARK monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become DARK. With other Surgery relics, they have all of those Attributes.",
       "art": "Mystic Plasma Zone",
       "effect": "attribute",
       "amount": 0,
@@ -789,7 +789,7 @@
     "attribute_fire": {
       "name": "Fire Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as FIRE monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become FIRE. With other Surgery relics, they have all of those Attributes.",
       "art": "Molten Destruction",
       "effect": "attribute",
       "amount": 0,
@@ -799,7 +799,7 @@
     "attribute_water": {
       "name": "Water Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as WATER monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become WATER. With other Surgery relics, they have all of those Attributes.",
       "art": "Umi",
       "effect": "attribute",
       "amount": 0,
@@ -809,7 +809,7 @@
     "attribute_wind": {
       "name": "Wind Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as WIND monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become WIND. With other Surgery relics, they have all of those Attributes.",
       "art": "Rising Air Current",
       "effect": "attribute",
       "amount": 0,
@@ -819,7 +819,7 @@
     "attribute_earth": {
       "name": "Earth Surgery",
       "price": 90,
-      "description": "Your face-up monsters are also treated as EARTH monsters.",
+      "description": "Your monsters in your hand, Deck, GY and on the field become EARTH. With other Surgery relics, they have all of those Attributes.",
       "art": "Gaia Power",
       "effect": "attribute",
       "amount": 0,

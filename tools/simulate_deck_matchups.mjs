@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {MobileDuel, M, R, I, B, L} from '../android/web/duel.js';
+import {MobileDuel, M, R, I, B} from '../android/web/duel.js';
 import {shuffleCPUDeck} from '../android/web/cpu-deck-model.js';
 import {replayVersion} from '../android/web/replay-version.js';
 
@@ -13,7 +13,7 @@ const MAX_DECISIONS_DEFAULT = 3000;
 const NEUTRAL_PASSIVES = '-- SHADOW_RUN_RNG 2\nif Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end';
 
 function usage() {
-  return `Deck matchup simulator\n\nUsage:\n  node tools/simulate_deck_matchups.mjs --deck <file> [options]\n\nInput formats: .ydk, JSON ({"main":[...],"extra":[...]}), or a text deck list\nwith card names/IDs, optionally prefixed with counts (for example, 3x Card Name [12345678]).\n\nOptions:\n  --deck <file>            Input deck file (required)\n  --games <number>         Duels per matchup (default: 10)\n  --seed <number>          Base random seed (default: generated)\n  --out <directory>        Exact output directory (default: a new folder under ${DEFAULT_OUT_ROOT})\n  --limit-matchups <n>     Run only the first n matchups (for smoke tests)\n  --opponent <text>        Filter matchups by character name or deck ID\n  --trace-decisions        Save AI decision details to decisions.jsonl\n  --max-decisions <n>      Safety cap per duel (default: ${MAX_DECISIONS_DEFAULT})\n  --help                   Show this help\n\nEach run saves native replay JSON files, results.jsonl, overview.json, overview.md,\nand matchups.csv. Aggregate win rate counts each draw as half a win.`;
+  return `Deck matchup simulator\n\nUsage:\n  node tools/simulate_deck_matchups.mjs --deck <file> [options]\n\nInput formats: .ydk, JSON ({"main":[...],"extra":[...]}), or a text deck list\nwith card names/IDs, optionally prefixed with counts (for example, 3x Card Name [12345678]).\n\nOptions:\n  --deck <file>            Input deck file (required)\n  --games <number>         Duels per matchup (default: 10)\n  --seed <number>          Base random seed (default: generated)\n  --out <directory>        Exact output directory (default: a new folder under ${DEFAULT_OUT_ROOT})\n  --limit-matchups <n>     Run only the first n matchups (for smoke tests)\n  --opponent <text>        Filter matchups by character name or deck ID\n  --tier <1|2|3>           Only play the CPU decks of one tier\n  --trace-decisions        Save AI decision details to decisions.jsonl\n  --max-decisions <n>      Safety cap per duel (default: ${MAX_DECISIONS_DEFAULT})\n  --help                   Show this help\n\nEach run saves native replay JSON files, results.jsonl, overview.json, overview.md,\nand matchups.csv. Aggregate win rate counts each draw as half a win.`;
 }
 
 function parseArgs(argv) {
@@ -168,7 +168,7 @@ function validateDeck(deck, lookup) {
   }
 }
 
-function currentMatchups(meta, limit) {
+function currentMatchups(meta) {
   const all = [];
   // cpuWatchDecks is the full catalog exposed by Watch CPU Duel, including
   // standalone character opponents that are absent from the campaign cpuDecks map.
@@ -186,11 +186,6 @@ function currentMatchups(meta, limit) {
   }
   all.sort((a, b) => a.tier - b.tier || a.character.localeCompare(b.character) || a.characterId - b.characterId);
   if (!all.length) throw new Error('No T1, T2, or T3 CPU decks were found in android/web/content.json.');
-  if (limit !== undefined) {
-    const count = Number(limit);
-    if (!Number.isInteger(count) || count < 1) throw new Error('--limit-matchups must be a positive integer.');
-    return all.slice(0, count);
-  }
   return all;
 }
 
@@ -302,6 +297,11 @@ async function main() {
   const deck = readInputDeck(inputPath, lookup);
   validateDeck(deck, lookup);
   let matchups = currentMatchups(meta);
+  if (args.tier !== undefined) {
+    const tier = Number(args.tier);
+    if (![1, 2, 3].includes(tier)) throw new Error('--tier must be 1, 2 or 3.');
+    matchups = matchups.filter(item => item.tier === tier);
+  }
   if (args.opponent) {
     const query = normalizeName(args.opponent);
     matchups = matchups.filter(item => normalizeName(item.character).includes(query) || normalizeName(item.deckId).includes(query));
@@ -333,23 +333,6 @@ async function main() {
     JSON.parse(fs.readFileSync(path.join(ROOT, 'android', 'web', 'scripts.json'), 'utf8'))
   ];
   const engine = await new MobileDuel(allCards).init(resources);
-  let activeGameTrace = null;
-  if (traceFile) {
-    const originalOnMessage = engine.onMessage.bind(engine);
-    const enumName = value => Object.entries(M).find(([, code]) => code === value)?.[0] ?? value;
-    engine.onMessage = message => {
-      originalOnMessage(message);
-      if (!activeGameTrace) return;
-      const code = Number(message.code || message.card || 0);
-      if (code !== 73648243) return; // Sand Moth: audit its destruction and revival path.
-      if (message.type !== M.MOVE && message.type !== M.SPSUMMONING && message.type !== M.SPSUMMONED) return;
-      const reason = message.reason ?? (message.wire?.length >= 29 ? new DataView(Uint8Array.from(message.wire).buffer).getUint32(25, true) : null);
-      activeGameTrace.push({kind: 'card_event', card: 'Sand Moth', code, event: enumName(message.type), turn: engine.turn,
-        phase: engine.phase, controller: message.controller ?? message.from?.controller ?? null, reason,
-        from: message.from ? {controller: message.from.controller, location: message.from.location, sequence: message.from.sequence, position: message.from.position} : undefined,
-        to: message.to ? {controller: message.to.controller, location: message.to.location, sequence: message.to.sequence, position: message.to.position} : undefined});
-    };
-  }
   let completedAttempts = 0;
   const total = matchups.length * games;
   let matchupIndex = 0;
@@ -379,12 +362,10 @@ async function main() {
         let state = null;
         let failure = null;
         const decisionTrace = [];
-        const cardEventTrace = [];
         const replayFile = path.join(replayDir, `game-${String(gameNumber).padStart(2, '0')}.json`);
         const record = {game: gameNumber, tier: matchup.tier, character: matchup.character, characterId: matchup.characterId, deckId: matchup.deckId,
           seed: gameSeed, inputSeat, status, winner, finishReason, turns, decisions, errors, replay: path.relative(outDir, replayFile).split(path.sep).join('/')};
         try {
-          activeGameTrace = cardEventTrace;
           state = engine.start(main0, main1, 8000, 8000, 5, gameSeed, seats[0].extra || [], seats[1].extra || [], NEUTRAL_PASSIVES);
           while (!state.finished && decisions < maxDecisions) {
             const prompt = engine.pending;
@@ -409,15 +390,14 @@ async function main() {
           failure = String(error?.stack || error);
           errors = [...engine.errors, `EXCEPTION: ${String(error?.message || error)}`];
         } finally {
-          activeGameTrace = null;
           if (state?.finished && engine.replayRecord) engine.replayRecord.ended = true;
           const nativeReplay = engine.replayRecord ? JSON.parse(replayStringify(engine.replayRecord)) : null;
           if (nativeReplay) safeWrite(replayFile, `${JSON.stringify(nativeReplay)}\n`);
           try { engine.destroy(); } catch {}
         }
         Object.assign(record, {status, winner, finishReason, turns, decisions, errors, failure});
-        if (traceFile && (decisionTrace.length || cardEventTrace.length)) fs.appendFileSync(traceFile,
-          [...decisionTrace.map(item => ({...record, ...item})), ...cardEventTrace.map(item => ({...record, ...item}))].map(item => JSON.stringify(item)).join('\n') + '\n');
+        if (traceFile && decisionTrace.length) fs.appendFileSync(traceFile,
+          decisionTrace.map(item => JSON.stringify({...record, ...item})).join('\n') + '\n');
         fs.appendFileSync(resultFile, `${JSON.stringify(record)}\n`);
         records.push(record);
         gameResults.push(record);

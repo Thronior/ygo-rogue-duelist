@@ -1,6 +1,7 @@
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {replayVersion} from './replay-version.js';
-import {frameLevelName,deckCardMarkup,monsterTypes,modifiedCard,deckStats,attributeOrder} from './feedback-ui.js';
+import {loadEngineData} from './engine.js';
+import {frameLevelName,deckCardMarkup,monsterTypes,modifiedCard,deckStats,attributeOrder,misprintNoticeLine} from './feedback-ui.js';
 
 import {openDeckPreview} from './deck-preview.js';
 
@@ -16,7 +17,7 @@ import {installMemfsRenameCleanup} from './memfs-cleanup.js';
 
 import {deckMinimum,deckMinimumNotice} from './deck-minimum.js';
 
-import {chooseStartupPreload,preloadVisualPreference,setPreloadVisualPreference} from './startup-choice.js';
+import {chooseStartupPreload,preloadVisualPreference,setPreloadVisualPreference,assetsAreLocal} from './startup-choice.js';
 
 import {installEscapeInspection} from './escape-inspection.js';
 
@@ -717,7 +718,7 @@ async function renderCollectorLeaderboard(){
 
  shell('Ultimate Collectors',`${collectionNavigation('collectors')}<p>Loading surviving duelists…</p>`,btn('Back','collection-collector-back'));
 
- try{const config=await fetch('./multiplayer-config.json').then(r=>r.json());const response=await fetch(config.signalingUrl.replace(/\/$/,'')+'/collector/leaderboard',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!response.ok)throw Error('Leaderboard unavailable.');const result=await response.json();if(screen!=='collection'||collectionKind!=='collectors')return;collectorLeaders=result.leaderboard;shell('Ultimate Collectors',`${collectionNavigation('collectors')}<div class="scroll"><div class="collector-leader-grid">${collectorLeaders.map((d,i)=>{const c=content.characters[d.character],rank=rankFor(d.wins);return btn(`${c?`<img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}">`:''}<span class="collector-rank">${esc(rank)}</span><span class="collector-slot-name">${i+1}. ${esc(d.name)}</span><small>${d.wins} wins</small>`,'collector-decklist',`data-index="${i}" data-rank="${rank.toLowerCase()}"`,'collector-slot')}).join('')||'<p>No surviving match winners yet.</p>'}</div></div>`,btn('Back','collection-collector-back'));}catch(error){if(screen==='collection')shell('Ultimate Collectors',`${collectionNavigation('collectors')}<p>${esc(error.message)}</p>`,btn('Back','collection-collector-back'));}
+ try{const config=await fetch('./multiplayer-config.json').then(r=>r.json());const response=await fetch(config.signalingUrl.replace(/\/$/,'')+'/v2/collector/leaderboard',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!response.ok)throw Error('Leaderboard unavailable.');const result=await response.json();if(screen!=='collection'||collectionKind!=='collectors')return;collectorLeaders=result.leaderboard;shell('Ultimate Collectors',`${collectionNavigation('collectors')}<div class="scroll"><div class="collector-leader-grid">${collectorLeaders.map((d,i)=>{const c=content.characters[d.character],rank=rankFor(d.wins);return btn(`${c?`<img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}">`:''}<span class="collector-rank">${esc(rank)}</span><span class="collector-slot-name">${i+1}. ${esc(d.name)}</span><small>${d.wins} wins</small>`,'collector-decklist',`data-index="${i}" data-rank="${rank.toLowerCase()}"`,'collector-slot')}).join('')||'<p>No surviving match winners yet.</p>'}</div></div>`,btn('Back','collection-collector-back'));}catch(error){if(screen==='collection')shell('Ultimate Collectors',`${collectionNavigation('collectors')}<p>${esc(error.message)}</p>`,btn('Back','collection-collector-back'));}
 
 }
 
@@ -793,7 +794,7 @@ async function startDuel(resume=false,opponent=null){busy=true;app.innerHTML='<s
 
  if(!engine)engine=await new MobileDuel([...content.cards,...content.tokenCards]).init();else engine.destroy();const d=state.run.mobile_duel;if(!d)throw Error('No resumable mobile duel.');
 
- coinMilestones.delete(engine);duelAnimations.delete(engine);if(!resume)summonMusic.delete(engine);snapshot=engine.start(d.deck,d.enemy,d.lp,d.enemyLP,d.draw,d.seed,d.extra,d.enemyExtra,d.passives,d.enemyDraw??5);
+ coinMilestones.delete(engine);coinProgress.delete(engine);duelAnimations.delete(engine);if(!resume)summonMusic.delete(engine);snapshot=engine.start(d.deck,d.enemy,d.lp,d.enemyLP,d.draw,d.seed,d.extra,d.enemyExtra,d.passives,d.enemyDraw??5);
 
  if(resume)for(const r of d.responses)snapshot=engine.respond(decode(r));
 
@@ -857,6 +858,9 @@ document.addEventListener('pointerdown',e=>{
 
 function legalCardActions(player,loc,seq,code){const m=engine.pending;if(m?.player!==0||player!==0)return [];
  if(m.type===M.SELECT_CHAIN&&engine.player!==0)return reactionChoices(m,true).filter(x=>x.choice.code===code&&(x.source?.controller??x.source?.player)===player&&x.source?.location===loc&&x.source?.sequence===seq).map(x=>({...x.choice,index:x.index}));
+ // Only command prompts tie choices to field cards; skip building every other prompt's choices
+ // (a card-name prompt lists the whole card pool) once per zone on each render.
+ if(m.type!==M.SELECT_IDLECMD&&m.type!==M.SELECT_BATTLECMD)return [];
 
  const lists=m.type===M.SELECT_IDLECMD?{[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets,[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_POS_CHANGE]:m.pos_changes}:m.type===M.SELECT_BATTLECMD?{[B.SELECT_BATTLE]:m.attacks,[B.SELECT_CHAIN]:m.chains}:{};
 
@@ -1765,9 +1769,9 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='select-purchase'){const i=+el.dataset.index;const stock=state.run.shop[i];if(!stock||stock.sold||((character().copycat||character().engine_deck)&&stock.kind!=='artifact'))return;if(shopSelection.has(i))shopSelection.delete(i);else {const total=[...shopSelection].reduce((n,j)=>n+state.run.shop[j].price,0)+state.run.shop[i].price;if(total>state.run.gold){playUISound('count-coins');return toast('Not enough gold')}shopSelection.add(i)}playUISound('shop-select');renderShop();return}
 
- if(a==='buy-selected'||a==='confirm-deck-purchase'){if(!shopSelection.size)return;modal.close();busy=true;try{const results=await command('buy-many',[...shopSelection]);packSound('purchase');shopSelection.clear();renderShop();await offerGoldenCards();const pulls=results.flatMap(x=>x.cards);const mis=(state.run.last_misprints||[]).map(m=>`<p>${esc(m.name)}: ATK ${m.atk}&#8594;${m.atk+m.datk}, DEF ${m.defense}&#8594;${m.defense+m.ddef} (misprint)</p>`).join('');const packResults=results.filter(x=>x.kind==='pack');if(packResults.length)await new Promise(resolve=>presentPacks(packResults,resolve));if(pulls.length||mis)dialog('Your purchases',`${mis?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis}</div>`:''}<div class="cardgrid">${pulls.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();offerGoldenCards()}finally{busy=false}return}
+ if(a==='buy-selected'||a==='confirm-deck-purchase'){if(!shopSelection.size)return;modal.close();busy=true;try{const results=await command('buy-many',[...shopSelection]);packSound('purchase');shopSelection.clear();renderShop();await offerGoldenCards();const pulls=results.flatMap(x=>x.cards);const mis=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');const packResults=results.filter(x=>x.kind==='pack');if(packResults.length)await new Promise(resolve=>presentPacks(packResults,resolve));if(pulls.length||mis)dialog('Your purchases',`${mis?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis}</div>`:''}<div class="cardgrid">${pulls.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();offerGoldenCards()}finally{busy=false}return}
 
- if(a==='buy'){const x=state.run.shop[+el.dataset.index],pulled=await command('buy',+el.dataset.index);purchaseCoins();renderShop();const mis1=(state.run.last_misprints||[]).map(m=>`<p>${esc(m.name)}: ATK ${m.atk}&#8594;${m.atk+m.datk}, DEF ${m.defense}&#8594;${m.defense+m.ddef} (misprint)</p>`).join('');if(pulled?.length||mis1)dialog(x.kind==='pack'?'Your pack pulls':'Added to collection',`${mis1?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis1}</div>`:''}<div class="cardgrid">${pulled.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();return}
+ if(a==='buy'){const x=state.run.shop[+el.dataset.index],pulled=await command('buy',+el.dataset.index);purchaseCoins();renderShop();const mis1=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');if(pulled?.length||mis1)dialog(x.kind==='pack'?'Your pack pulls':'Added to collection',`${mis1?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis1}</div>`:''}<div class="cardgrid">${pulled.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();return}
 
  if(a==='import-profile-confirm'){const text=pendingDesktopProfile;if(!text)return;pendingDesktopProfile=null;const result=await command('import-profile',text);closeDialog();renderSettings();toast(`Progress imported: ${result.unlocksAdded} new unlocks, ${result.historyAdded} new history entries.`);return}
 
@@ -1856,7 +1860,9 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
 document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.draftSort!==undefined){draftSort=e.target.value;renderDraft()}});
 
-document.addEventListener('input',async e=>{if(e.target.id==='manual-response-window'){const value=Math.max(0,Math.min(2000,Number(e.target.value)||0));state.settings.manualResponseWindow=value;e.target.nextElementSibling.textContent=`${value} ms`;await command('settings',state.settings)}if(['music','sound'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic());await command('settings',state.settings)}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
+// Sliders preview every movement; the settings are saved once, when the slider is released.
+document.addEventListener('change',e=>{if(['manual-response-window','music','sound'].includes(e.target.id))void command('settings',state.settings)});
+document.addEventListener('input',async e=>{if(e.target.id==='manual-response-window'){const value=Math.max(0,Math.min(2000,Number(e.target.value)||0));state.settings.manualResponseWindow=value;e.target.nextElementSibling.textContent=`${value} ms`}if(['music','sound'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic())}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
 
 installEscapeInspection(()=>modal.open&&!!modal.querySelector('.inspect,.pile-inspection'),closeDialog);
 
@@ -1922,7 +1928,7 @@ async function boot(){try{
 
  document.querySelector('#loading-status').textContent='Step 5 of 6 · Loading sounds and selected assets…';
 
- const effects=await preloadStartupAssets(({loaded,total,bytes})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} assets · ${(bytes/1048576).toFixed(1)} MB`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;},{images:preloadVisuals,music:preloadVisuals});
+ const effects=await preloadStartupAssets(({loaded,total,bytes})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} assets · ${(bytes/1048576).toFixed(1)} MB`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;},{images:preloadVisuals,music:preloadVisuals,local:await assetsAreLocal()});
 
  document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects);
 
@@ -2020,7 +2026,7 @@ async function showTagDuel(s,cues,owner=tagUI){
 
  if(!owner||tagUI!==owner||owner.view?.phase!=='duel')return;if(!owner.isCollector&&(s.tag.responseNumber||0)===0){const key=JSON.stringify([owner.view.run.round,owner.view.opponents]);if(owner.introKey!==key){owner.introKey=key;await playEncounterReveal({content,players:owner.view.characters,opponents:owner.view.opponents.filter(i=>i!=null),lp:s.lp,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>tagUI===owner&&owner.alive})}}const resumedPresentation=!engine?.tagFacade&&(s.tag.responseNumber||0)>0&&!cues.length;snapshot=s;screen='duel';track(screenMusic());
 
- if(!engine?.tagFacade){engine=Object.create(MobileDuel.prototype);engine.tagFacade=true;engine.cards=new Map([...content.cards,...content.tokenCards].map(c=>[c.id,c]));const facade=engine,data=await fetch('engine-data.json').then(r=>r.json());if(tagUI!==owner||engine!==facade||owner.view?.phase!=='duel')return;engine.data=data;for(const c of Object.values(engine.data))c.race=BigInt(c.race);engine.query=(p,loc)=>{const side=snapshot.players[p];return loc===L.EXTRA?(side.extraCards||[]):side[{[L.HAND]:'hand',[L.MZONE]:'monsters',[L.SZONE]:'spells',[L.GRAVE]:'grave',[L.REMOVED]:'banished'}[loc]]||[]};engine.core={duelQueryCount:(_,p,loc)=>loc===L.DECK?snapshot.players[p].deck:loc===L.EXTRA?snapshot.players[p].extra:engine.query(p,loc).length};engine.destroy=()=>{}}
+ if(!engine?.tagFacade){engine=Object.create(MobileDuel.prototype);engine.tagFacade=true;engine.cards=new Map([...content.cards,...content.tokenCards].map(c=>[c.id,c]));const facade=engine,data=await loadEngineData();if(tagUI!==owner||engine!==facade||owner.view?.phase!=='duel')return;engine.data=data;for(const c of Object.values(engine.data))c.race=BigInt(c.race);engine.query=(p,loc)=>{const side=snapshot.players[p];return loc===L.EXTRA?(side.extraCards||[]):side[{[L.HAND]:'hand',[L.MZONE]:'monsters',[L.SZONE]:'spells',[L.GRAVE]:'grave',[L.REMOVED]:'banished'}[loc]]||[]};engine.core={duelQueryCount:(_,p,loc)=>loc===L.DECK?snapshot.players[p].deck:loc===L.EXTRA?snapshot.players[p].extra:engine.query(p,loc).length};engine.destroy=()=>{}}
 
  engine.presentationDuel=s.tag.presentationDuel;Object.assign(engine,s.tag.ui,{pending:s.pending,visuals:cues,turn:s.turn,phase:s.phase,player:s.player,lp:s.lp});renderDuel();
 
@@ -2172,7 +2178,7 @@ async function renderGlobalStats(){
 
 
 
-const coinMilestones=new WeakMap(),duelAnimations=new WeakMap();
+const coinMilestones=new WeakMap(),duelAnimations=new WeakMap(),coinProgress=new WeakMap();
 
 const coinVoicePool=Array.from({length:3},()=>new Audio());let coinVoiceIndex=0;
 
@@ -2218,7 +2224,10 @@ async function updateCoinMilestones(silent=false){
 
  try{
 
-  const earned=await command('reward-progress',{run:{lp:snapshot.lp[0],round:run.round,character:run.character,guaranteed:run.guaranteed,artifacts:run.artifacts,encore_active:run.encore_active},events,victory:snapshot.finished?.player===0});
+  // A pure calculation: skip the Python round trip when none of its inputs changed since the last move.
+  const request={run:{lp:snapshot.lp[0],round:run.round,character:run.character,guaranteed:run.guaranteed,artifacts:run.artifacts,encore_active:run.encore_active},events,victory:snapshot.finished?.player===0};
+  const key=JSON.stringify(request),cached=coinProgress.get(owner),earned=cached?.key===key?cached.earned:await command('reward-progress',request);
+  coinProgress.set(owner,{key,earned});
 
   if(owner!==engine||screen!=='duel')return;
 

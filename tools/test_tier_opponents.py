@@ -22,8 +22,12 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
      assert reward['key'] in shop_rewards.reward_keys()
      assert reward['pack'] in content.PACK_BY_ID and not content.PACK_BY_ID[reward['pack']].get('draft_only')
      if i in content.TIER_EXCLUSIVE_OPPONENTS:
-      if content.TIER_EXCLUSIVE_OPPONENTS[i].get('tier')==4:
-       assert loop and content.opponent_record(rd,i,loop=loop)['tier']==4
+      row=content.TIER_EXCLUSIVE_OPPONENTS[i]
+      if row.get('tier')==4 and loop:
+       assert content.opponent_record(rd,i,loop=loop)['tier']==4
+      elif row.get('tier')==4:
+       # Tier 4 identities can also have first-journey decks (Obelisk T1/T2, Cecelia T3).
+       assert rd>0 and str(rd//3+1) in row.get('tier_decks',{}) and content.opponent_record(rd,i)['tier']==rd//3+1
       else:
        assert not loop and rd>0
        seen[rd//3+1].add(i)

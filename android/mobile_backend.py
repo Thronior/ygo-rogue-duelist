@@ -1,5 +1,5 @@
 """Thin mobile transport over the shared campaign rules."""
-import json, random, re, time
+import json, random, re
 import campaign as g, content, storage, achievement_model, passives
 
 run=None
@@ -11,7 +11,8 @@ def partial(result=None, persist=False, **patch):
 def state():
  storage.registered_cards()
  storage.register_collection(run)
- return dict(registeredCards=storage.registered_cards(),history=storage.run_history(),run=run,slots=storage.run_slots(),activeSlot=storage.active_slot(),profile=storage.profile(),settings=storage.settings(),achievements=achievement_model.entries())
+ cards=storage.registered_cards();history=storage.run_history();slots=storage.run_slots();slot=storage.active_slot();profile=storage.profile()
+ return dict(registeredCards=cards,history=history,run=run,slots=slots,activeSlot=slot,profile=profile,settings=storage.settings(),achievements=achievement_model.entries(profile))
 
 def dispatch(raw):
  global run,tag_session

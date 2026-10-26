@@ -1,4 +1,4 @@
-import card_rarity,random,re
+import card_rarity,functools,random,re
 """Opponent rewards specify card properties, not just monster races.
 
 Every opponent draws its shop theme from one shared list (see reward_keys);
@@ -80,7 +80,8 @@ LABELS.update({key:key+' monsters' for key in MONSTER_TYPES+ATTRIBUTES})
 # Type/Attribute categories also accept any card whose text names that Type or
 # Attribute (longest name wins, so "Winged Beast" never counts as "Beast").
 _MENTION_PATTERN=re.compile(r'(?<![A-Za-z-])('+'|'.join(re.escape(n) for n in sorted(MONSTER_TYPES+ATTRIBUTES,key=len,reverse=True))+r')(?![A-Za-z])')
-def mentioned(text):return {match.group(1) for match in _MENTION_PATTERN.finditer(text or '')}
+@functools.lru_cache(maxsize=4096)
+def mentioned(text):return frozenset(match.group(1) for match in _MENTION_PATTERN.finditer(text or ''))
 # DIVINE is deliberately scarce and carries two iconic supporting Spell Cards.
 DIVINE_SUPPORT={'Solemn Judgment','Swords of Revealing Light'}
 DIVINE_WEIGHT=0.12

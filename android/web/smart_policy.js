@@ -37,7 +37,7 @@ export function smartContext(e,p,L,prompt=null){
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
- const myDeck=q(p,L.DECK).length,oppDeck=q(1-p,L.DECK).length;
+ const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
  const rescueCatReady=()=>5-own.length>=2&&q(p,L.DECK).filter(c=>race(c)==='Beast'&&lvl(c)<=3).length>=2;
  const heldPieces=new Set(hand.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
  e.exodiaPlan??=[false,false];if(heldPieces.size)e.exodiaPlan[p]=true;
@@ -129,6 +129,8 @@ export function smartContext(e,p,L,prompt=null){
  }
  function resourceOption(options){
   const fx=e.name(e.effect?.code),find=v=>options.findIndex(x=>BigInt(x)===BigInt(v));
+  // Formation Union: equip a Union (option 1) rather than Special Summoning an equipped one.
+  if(fx==='Formation Union'){const equip=options.findIndex(x=>(BigInt(x)&0xfffffn)===1n);if(equip>=0)return equip;}
   if(fx==='Dark Scorpion - Cliff the Trap Remover'){
    const mode=v=>options.findIndex(x=>(BigInt(x)&0xfffffn)===BigInt(v));
    const mill=mode(2),destroy=mode(1);
@@ -170,13 +172,24 @@ export function smartContext(e,p,L,prompt=null){
  }
  const allOwn=[...hand,...own];
  const attributeBits={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'};
+ // Surgery relics: the first replaces the attribute of the owner's monsters in these locations,
+ // each further relic adds one (passives.py builds the matching core effect).
+ const SURGERY_LOCATIONS=[L.HAND,L.DECK,L.GRAVE,L.MZONE];
+ const surgeryAttributes=side=>[...new Set(relics(side).filter(key=>/^attribute_(light|dark|fire|water|wind|earth)$/.test(key)).map(key=>key.slice(10).toUpperCase()))];
  const attributeSet=c=>{
   const result=new Set(),base=e.cards.get(c.code)?.attribute;
   const add=value=>{if(typeof value==='number'){for(const [bit,label] of Object.entries(attributeBits))if(value&Number(bit))result.add(label);}else if(value)result.add(String(value).toUpperCase());};
-  if(c.location===L.MZONE&&(c.position&5)){add(c.attribute);add(base);if(effectsEnabled(c.controller??p))for(const key of relics(c.controller??p))if(key.startsWith('attribute_'))add(key.slice(10));}
+  // The core's live value already includes every attribute change on face-up monsters.
+  const live=c.location===L.MZONE&&(c.position&5)?(typeof c.attribute==='number'?c.attribute:liveStat(c,'attribute')):undefined;
+  const surgery=surgeryAttributes(c.controller??p);
+  if(typeof live==='number'&&live)add(live);
+  // Like the core, a face-down monster keeps its printed attribute until it is face-up.
+  else if(surgery.length&&(data(c).type&1)&&SURGERY_LOCATIONS.includes(c.location)&&(c.location!==L.MZONE||(c.position&5)))for(const value of surgery)result.add(value);
   else add(base||c.attribute);
   return result;
  };
+ // Attributes a monster will have once it is on `side`'s field, for summon and relic planning.
+ const fieldAttributes=(c,side)=>{const surgery=surgeryAttributes(side);return surgery.length&&(data(c).type&1)?new Set(surgery):attributeSet(c)};
  const hasAttribute=(c,value)=>attributeSet(c).has(String(value).toUpperCase());
  const attr=c=>attributeSet(c).values().next().value||e.cards.get(c.code)?.attribute;
  const fusionSubstitutes=new Set(['Beastking of the Swamps','King of the Swamp','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
@@ -295,6 +308,8 @@ export function smartContext(e,p,L,prompt=null){
    if(handCards.length-(willLeaveHand?1:0)>=5)return true;
   }
   const targetLock=e.attackLocks?.get?.(`${side}:${c.sequence}`);if(c.location===L.MZONE&&targetLock&&activeLocks.some(x=>same(x,targetLock)&&!same(x,ignore)))return true;
+  // Equips such as Mask of the Accursed, Ekibyo Drakmord and Paralyzing Potion stop the equipped monster attacking.
+  if(c.location===L.MZONE&&[...back,...theirBack].some(x=>face(x)&&enabled(x)&&!same(x,ignore)&&same(x.equipCard||x.equip_card,c)&&(t=>/(?:equipped monster|monster equipped with this card) cannot attack\./i.test(t)&&!(/non Machine-Type/i.test(t)&&race(c)==='Machine'))(e.cards.get(x.code)?.desc||'')))return true;
   return activeLocks.some(x=>!same(x,ignore)&&!(future&&name(c)==='Jinzo'&&(data(x).type&4))&&!(future&&name(c)==='Spell Canceller'&&(data(x).type&2))&&blockedBy(c,side,x,future))||[...own,...enemy].some(x=>enabled(x)&&name(x)==='Thousand-Eyes Restrict'&&!same(x,c));
  }
  const battleLocked=!!e.battleProtected?.[1-p];
@@ -369,6 +384,21 @@ export function smartContext(e,p,L,prompt=null){
  function resilient(c){return known(c)&&enabled(c)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));}
  function relinquishedEquipped(c){return !!(c.equip_cards?.length||[...back,...theirBack].some(x=>same(x.equipCard||x.equip_card,c)));}
  function targetValue(c){c=[...own,...enemy,...back,...theirBack].find(x=>same(x,c))||c;return !known(c)?1000:Math.max(power(c),(face(c)?atk(c):power(c))*(c.location===L.MZONE&&attackBlocked(c,c.controller)? .3:.8),600)+effectThreat(c)+(resilient(c)?2500:0)+(name(c)==='Relinquished'&&enabled(c)&&!relinquishedEquipped(c)?5000:0)+((c.equip_cards?.length||0)*450);}
+ // During the opponent's Battle Phase: damage this monster can still deal this turn, from
+ // public information (attacks already declared and resolved "attack twice" effects).
+ function remainingBattleDamage(c){
+  if(e.player!==1-p||e.phase<8||e.phase>=256||c.controller===p||c.location!==L.MZONE||!face(c)||!(c.position&1)||attackBlocked(c,1-p))return 0;
+  const key=`${c.controller}:${c.sequence}`,umi=[...back,...theirBack].some(x=>enabled(x)&&name(x)==='Umi');
+  const allowed=1+(e.extraAttacks?.get?.(key)===c.code||name(c)==='Twinheaded Beast'||name(c)==='Mermaid Knight'&&umi?1:0);
+  const left=Math.max(0,allowed-(e.attacksThisTurn?.get?.(key)||0));
+  return left*battleDamage(atk(c),1-p);
+ }
+ // A harmful effect forced onto our own cards: keep the most valuable. A flip monster
+ // returned to the hand can be set again, so it is the cheapest bounce.
+ function ownSacrificeScore(c,bounce){
+  const live=own.find(x=>same(x,c))||c,reflip=bounce&&(data(live).type&0x200000)?3000:0;
+  return -100000+reflip-targetValue(live);
+ }
  function safeBattle(c){
   if(e.player!==p||e.phase!==4||prompt?.to_bp===false||battleLocked||!face(c)||(battleHazards.has(name(c))||resilient(c))||effectThreat(c)>=2000)return false;
   // Unknown back row makes a battle plan uncertain; do not assume it is safe.
@@ -601,7 +631,10 @@ export function smartContext(e,p,L,prompt=null){
  }
  function equipUseful(source,target){
   if(!equipCompatible(source,target)||spellCannotAffect(source,target))return false;
-  if(!defenseReducingEquips.has(name(source))||target.position&1)return true;
+  // An ATK-only bonus does nothing for a Defense Position monster that will not attack this turn.
+  const text=e.cards.get(source.code)?.desc||'',atkOnly=/gains? \d+ ATK/i.test(text)&&!/DEF/.test(text);
+  const defending=target.location===L.MZONE&&face(target)&&!(target.position&1);
+  if(!(defenseReducingEquips.has(name(source))||atkOnly&&defending)||target.position&1)return true;
   return (prompt?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
  }
  function controlTarget(c){
@@ -789,8 +822,9 @@ export function smartContext(e,p,L,prompt=null){
   const temporaryBoost=['Limiter Removal','Riryoku','Deal of Phantom'].includes(n)||(!!(d.type&6)&&t.split(/[.!?]/).some(t=>/\b(?:ATK|DEF)\b/i.test(t)&&/(?:until (?:the )?(?:end (?:phase|of (?:this|the) turn))|during the turn this card is activated)/i.test(t)&&/(?:gain|increase|double|add|become|switch)/i.test(t)));
   if(!spent&&e.player===p&&temporaryBoost&&n!=='Mokey Mokey Smackdown'){
    const inBattle=e.attackCard?.controller===p;
-   const candidates=Array.isArray(prompt?.attacks)?prompt.attacks.map(a=>own.find(x=>x.sequence===a.sequence)||a):own;
-   const canAttack=e.turn!==1&&e.phase<256&&!(e.phase===4&&prompt?.to_bp===false)&&!e.battleProtected?.[1-p]&&candidates.some(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(!(a.attack_count>0)||inBattle&&same(a,e.attackCard))&&(n!=='Limiter Removal'||race(a)==='Machine'));
+   // The engine lists only monsters with an attack left, including second attacks.
+   const listed=Array.isArray(prompt?.attacks),candidates=listed?prompt.attacks.map(a=>own.find(x=>x.sequence===a.sequence)||a):own;
+   const canAttack=e.turn!==1&&e.phase<256&&!(e.phase===4&&prompt?.to_bp===false)&&!e.battleProtected?.[1-p]&&candidates.some(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(listed||!(a.attack_count>0)||inBattle&&same(a,e.attackCard))&&(n!=='Limiter Removal'||race(a)==='Machine'));
    if(!canAttack)return -1;
   }
 
@@ -802,6 +836,8 @@ export function smartContext(e,p,L,prompt=null){
   if(chain&&['Waboku','Threatening Roar','Negate Attack'].includes(n)&&e.battleProtected?.[p])return -1;
   if(['Waboku','Negate Attack','Threatening Roar','Enchanted Javelin','Draining Shield'].includes(n)&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&['Negate Attack','Waboku','Threatening Roar','Draining Shield','Magic Cylinder','Mirror Force'].includes(e.name(x.code))))return -1;
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n))return chain&&wabokuWorthUsing()?90:-1;
+  // Draining Shield also gains LP equal to the attacker's ATK, so it is the better stop.
+  if(n==='Draining Shield')return chain&&e.attackCard?.controller===1-p&&wabokuWorthUsing()?92:-1;
   if(isRemoval(n)&&enemy.length){
    const legal=candidates(n,c);
    if(legal.length&&legal.every(reservedForRemoval)&&!(n==='Raigeki Break'&&backScore(c)>=0))return -1;
@@ -968,6 +1004,9 @@ export function smartContext(e,p,L,prompt=null){
   // Recovering an equip is not worth sacrificing a stronger established monster.
   if(n==='Axe of Despair'&&c.location===L.GRAVE)return own.some(x=>atk(x)<=1000&&!exodiaPieces.has(x.code)&&!['Relinquished','Thousand-Eyes Restrict'].includes(name(x)))?35:-1;
   if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&![8,16,32,64,128].includes(e.phase))return -1;
+  // On the opponent's turn the position change only matters while their monster is attacking;
+  // afterwards they simply switch it back in Main Phase 2.
+  if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&e.player!==p&&!(e.attackCard&&e.attackCard.controller!==p))return -1;
   if(n==='Levia-Dragon - Daedalus')return umiActive&&enemyPower+theirBack.length*800>ownPower-atk(c)+back.length*800?115:-1;
   if(n==='Guardian Sphinx')return enemy.length?110:-1;
   if(n==='Swarm of Scarabs')return enemy.length?100:-1;
@@ -993,13 +1032,20 @@ export function smartContext(e,p,L,prompt=null){
   }
   if(['Graceful Dice','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
   if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||((e.data[e.knownFieldCard(p,x)]?.defense??0)<=2000)))?95:-1;
-  if(n==='Temple of the Kings'&&!(c.location===L.SZONE&&face(c))&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
-  if(n==='Temple of the Kings'&&c.location===L.SZONE&&face(c))return templeUpgradeAvailable()?100:-1;
+  // Activation lists carry no position; read it from the card on the field.
+  const templeFaceUp=n==='Temple of the Kings'&&c.location===L.SZONE&&face(back.find(x=>same(x,c))||c);
+  if(n==='Temple of the Kings'&&!templeFaceUp&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
+  if(templeFaceUp)return templeUpgradeAvailable()?100:-1;
   if(['Widespread Ruin','Lightforce Sword','Blast Held by a Tribute','Judgment of Anubis','White Hole','Dark Spirit of the Silent'].includes(n))return chain&&e.player!==p?95:-1;
   if(['Embodiment of Apophis','Metal Reflect Slime'].includes(n))return own.length<5&&(!chain||e.phase>=8&&e.phase<256)?65:-1;
   if(n==='Card of Safe Return')return myDeck>8?45:-1;
   if(n==='Coffin Seller'||n==='Temple of the Kings')return 45;
-  if(["Nightmare's Steelcage",'The Dark Door','Dragon Capture Jar'].includes(n))return danger?70:-1;
+  if(["Nightmare's Steelcage",'The Dark Door'].includes(n))return danger?70:-1;
+  // Dragon Capture Jar locks every face-up Dragon in Defense Position, ours included.
+  if(n==='Dragon Capture Jar'){
+   const attackPower=side=>(side===p?own:enemy).filter(x=>face(x)&&(x.position&1)&&race(x)==='Dragon').reduce((sum,x)=>sum+atk(x),0);
+   return danger&&attackPower(1-p)>attackPower(p)?70:-1;
+  }
   if(n==='Spiritualism')return theirBack.length?90:-1;
   if(equipRaces[n]||equipAttributes[n])return own.some(x=>face(x)&&equipUseful(c,x))?65:-1;
   if(n==='Cyber Shield')return own.some(x=>face(x)&&name(x)==='Harpie Lady')?65:-1;
@@ -1317,7 +1363,7 @@ export function smartContext(e,p,L,prompt=null){
   const fields=[...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000));
   const bonuses={'Yami':[['Fiend','Spellcaster'],['Fairy'],200],'Mountain':[['Dragon','Winged Beast','Thunder'],[],200],'Forest':[['Insect','Beast','Plant','Beast-Warrior'],[],200],'Umi':[['Aqua','Fish','Sea Serpent','Thunder'],['Machine','Pyro'],200],'Wasteland':[['Dinosaur','Zombie','Rock'],[],200],'Sogen':[['Warrior','Beast-Warrior'],[],200]};
   const attributes={'Luminous Spark':'LIGHT','Mystic Plasma Zone':'DARK','Rising Air Current':'WIND','Molten Destruction':'FIRE','Umiiruka':'WATER','Gaia Power':'EARTH'};
-  const futureAttributes=attributeSet(c);if(effectsEnabled(p))for(const key of relics(p))if(key.startsWith('attribute_'))futureAttributes.add(key.slice(10).toUpperCase());
+  const futureAttributes=fieldAttributes(c,p);
   for(const f of fields){const n=name(f),b=bonuses[n];let bonus=b?(b[0].includes(race(c))?b[2]:b[1].includes(race(c))?-b[2]:0):0;
    if(n==='A Legendary Ocean'&&futureAttributes.has('WATER'))bonus+=200;
    if(attributes[n]&&futureAttributes.has(attributes[n]))bonus+=500;
@@ -1370,7 +1416,7 @@ export function smartContext(e,p,L,prompt=null){
    const inHand=c.location===L.HAND&&hand.some(x=>same(x,c));
    result=Math.max(0,result-400*Math.max(0,hand.length-(inHand?1:0)));
   }
-  const attributes=attributeSet(c);if(effectsEnabled(p))for(const key of relics(p))if(key.startsWith('attribute_'))attributes.add(key.slice(10).toUpperCase());
+  const attributes=fieldAttributes(c,p);
   const filterMatch=f=>!f||f===race(c)||f.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(f)||attributes.has(String(f).toUpperCase());
   result+=(e.aiModifiers?.statRelics?.[p]||[]).reduce((sum,r)=>sum+((r.effect==='def'||r.effect==='both')&&filterMatch(r.filter)?(r.amount||0):0),0);
   if(relic(p,'cursed_brittle_armor'))result+=900;
@@ -1393,7 +1439,7 @@ export function smartContext(e,p,L,prompt=null){
  function relicAttack(c,side){
   const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side});
   const monsters=loc=>q(side,loc).filter(x=>(data(x).type&1)&&face(x)),is=t=>!!(data(c).type&t),level=lvl(c);
-  const attributes=attributeSet(c);if(effectsEnabled(side))for(const key of relics(side))if(key.startsWith('attribute_'))attributes.add(key.slice(10).toUpperCase());
+  const attributes=fieldAttributes(c,side);
   return (e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
    const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
    switch(k){
@@ -1473,7 +1519,7 @@ function preferSet(c){const n=name(c);if(n==='Rescue Cat'&&effectsEnabled(p)&&re
     return hand.some(partner=>isSpell?(!!(data(partner).type&1)&&!!(data(partner).type&128)&&matchesRitual(target,partner)):(!!(data(partner).type&2)&&!!(data(partner).type&128)&&matchesRitual(partner,target)));
    });
   }
-  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -1508,13 +1554,14 @@ if(!effectsEnabled(p))return 0;
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return false;
   if((n==='Toon Mermaid'||n==='Blue-Eyes Toon Dragon')&&!toonWorld)return false;
   return true;}
- function cyberJarFlipUseful(){
+ // handSize lets the idle planner ask about the hand left after this turn's other plays.
+ function cyberJarFlipUseful(handSize=hand.length){
   if(myDeck<=8)return false;
   if(oppDeck<=5)return true;
   const largestEnemy=Math.max(0,...enemy.filter(face).map(atk));
   const liveWall=lockUp||own.some(x=>face(x)&&!(x.position&1)&&def(x)>=largestEnemy);
   if(ownPower>=enemyPower&&liveWall)return false;
-  if(hand.length<=2)return deckOutMode!=='race'||hand.length<=1&&ownPower<enemyPower;
+  if(handSize<=2)return deckOutMode!=='race'||handSize<=1&&ownPower<enemyPower;
   return (ownPower<enemyPower-500||(own.length===0&&enemy.length>0))&&myDeck>10;
  }
  function flipUseful(n,field){if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];if(field&&!face(field)&&ojamaParts.includes(n)&&ojamaParts.every(part=>own.some(x=>name(x)===part))&&(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')||back.some(x=>name(x)==='Ojama Delta Hurricane!!')))return true;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
@@ -1553,20 +1600,26 @@ if(!effectsEnabled(p))return 0;
   }
   return sides;
  }
- function pierce(card,side=card?.controller??p,future=false){
+ // Piercing granted by the attacker's own side: its own effect, relics, or that side's cards.
+ function ownPierce(card,side=card?.controller??p,future=false){
   const c=typeof card==='string'?q(side,L.MZONE).find(x=>name(x)===card):card,n=typeof card==='string'?card:name(card);
   if(relic(side,'cursed_reckless_spear')||(e.aiModifiers?.statRelics?.[side]||[]).some(r=>r.effect==='pierce'))return true;
   if((!future||e.player===side)&&e.piercingTurn?.[side]===e.turn)return true;
   if((!future||e.player===side)&&c&&e.piercingCards?.get?.(`${side}:${c.sequence}`)===c.code)return true;
   if(c&&face(c)&&!c.is_disabled&&!(c.status&1)&&['Dark Driceratops','Mad Sword Beast','Spear Dragon','Airknight Parshath',"Gravekeeper's Spear Soldier",'Mefist the Infernal General'].includes(n))return true;
   if(c&&q(side,L.MZONE).some(x=>enabled(x)&&name(x)==='Enraged Battle Ox')&&['Beast','Beast-Warrior','Winged Beast'].includes(race(c)))return true;
-  return !!c&&piercingSourceSides(c).length>0;
+  return !!c&&piercingSourceSides(c).includes(side);
+ }
+ function pierce(card,side=card?.controller??p,future=false){
+  const c=typeof card==='string'?q(side,L.MZONE).find(x=>name(x)===card):card;
+  return ownPierce(card,side,future)||!!c&&piercingSourceSides(c).length>0;
  }
  function attackBackfires(card,target){
   if(!card||!target||target.location!==L.MZONE||(target.position&1))return false;
   const sources=piercingSourceSides(card);
-  // An opponent-controlled piercing card can make the CPU take the damage.
-  return sources.includes(1-p)&&(!face(target)||atk(card)>def(target));
+  // An opponent-controlled piercing card can make the CPU take the damage,
+  // unless the attacker pierces on its own (the core then damages the defender).
+  return sources.includes(1-p)&&!ownPierce(card)&&(!face(target)||atk(card)>def(target));
  }
 
  // Compare whole-board damage, including follow-up direct attacks after a defender falls.
@@ -1644,17 +1697,19 @@ if(!effectsEnabled(p))return 0;
    if(!(t.position&1)&&!pierce(a)&&reduced<targetDef)return -100000;
   }
   // Attacking a visible Defense Position monster without piercing cannot deal
-  // damage. If it has higher DEF than our ATK, the attack only costs LP.
-  if(t&&face(t)&&!(t.position&1)&&!pierce(a)&&atk(a)<(def(t)))return -100000;
+  // damage. With higher DEF the attack costs LP; with equal DEF nothing happens
+  // except handing the defender any battle trigger.
+  if(t&&face(t)&&!(t.position&1)&&!pierce(a)&&combatPower(a,t)<=def(t))return -100000;
   if(n==='Panther Warrior'&&!own.some(c=>pantherTributeAllowed(a,c,!t)))return -100000;
   if(t&&face(t)&&((name(t)==='The Hunter with 7 Weapons'&&(t.position&1))||n==='The Hunter with 7 Weapons')&&combatPower(a,t)<((t.position&1)?combatPower(t,a):(def(t))))return -100000;
   const remembered=t&&e.knownFieldCard?.(p,t),known=t&&(face(t)?t:remembered?{...t,code:remembered}:null);
    // Kelbek returns an attacker to its owner's hand after damage calculation.
-   // If the identity of a set Kelbek is already known, take a safe profitable
-   // face-up battle first instead of handing the opponent a free bounce.
-   if(known&&name(known)==='Kelbek'&&!face(t)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])){
+   // Whenever its identity is known (face-up, or a remembered set card), take a
+   // safe profitable battle elsewhere instead of handing the opponent a free bounce.
+   // The look-ahead below must not repeat this check, or two Kelbeks recurse forever.
+   if(!(ctx&&ctx.alternativeCheck)&&known&&/monster that attacks this card returns to the hand|attacks this card is returned to/i.test(e.cards.get(known.code)?.desc||'')&&!(face(t)&&t.is_disabled)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])){
     const alternative=enemy.some(other=>!same(other,t)&&face(other)&&combatPower(a,other)>power(other)&&
-     attackScore(a,other,{dmg:battleDamage(Math.max(0,combatPower(a,other)-power(other)))})>-99999);
+     attackScore(a,other,{dmg:battleDamage(Math.max(0,combatPower(a,other)-power(other))),alternativeCheck:true})>-99999);
     if(alternative)return -100000;
    }
   const protectedByEffect=known&&!t.is_disabled&&effectsEnabled(t.controller??1-p)&&/cannot be destroyed (?:by|as a result of) battle/i.test(e.cards.get(known.code)?.desc||'');
@@ -1834,13 +1889,15 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   }
   if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.location===L.SZONE&&cand.controller===p&&friendlyRemovalValue(cand)>=4000)return 20000+friendlyRemovalValue(cand);
   if((backRemoval.has(fxN)||fxN==='Raigeki Break')&&cand.controller!==p&&cand.location===L.SZONE)return reservedForRemoval(cand)?-1000000000:20000+backValue(cand);
-  if(isRemoval(fxN)&&fxN!=='Ring of Destruction'&&cand.controller!==p&&cand.location===L.MZONE){const live=enemy.find(x=>same(x,cand))||cand;return !removalAffects(source,live,fxN)?-1000000000:reservedForRemoval(live)?-1000000000:20000+targetValue(live)+(emergency(fxN,[live])?100000:0);}
+  if(isRemoval(fxN)&&fxN!=='Ring of Destruction'&&cand.controller!==p&&cand.location===L.MZONE){const live=enemy.find(x=>same(x,cand))||cand;return !removalAffects(source,live,fxN)?-1000000000:reservedForRemoval(live)?-1000000000:20000+targetValue(live)+remainingBattleDamage(live)+(emergency(fxN,[live])?100000:0);}
   if(['Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap'].includes(fxN)&&cand.controller!==p&&cand.location===L.SZONE&&LOCK.includes(nm))return 25000;
   if(fxN==='Spellbinding Circle'&&cand.location===L.MZONE&&cand.controller!==p){const live=enemy.find(x=>same(x,cand))||cand;return !removalAffects(source,live,fxN,{destroy:false,targeting:true})||reservedForRemoval(live)?-1000000000:20000+atk(live);}
    if(['Mask of Dispel','Enemy Controller','Book of Moon','Nightmare Wheel','Mask of the Accursed','Spellbinding Circle','Stamping Destruction','Thousand Knives','Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts'].includes(fxN)&&[L.MZONE,L.SZONE].includes(cand.location)){
     const live=cand.location===L.MZONE&&cand.controller!==p?(enemy.find(x=>same(x,cand))||cand):cand;
     if(['Nightmare Wheel','Mask of the Accursed','Spellbinding Circle'].includes(fxN)&&cand.location===L.MZONE&&cand.controller!==p&&!removalAffects(source,live,fxN,{destroy:false,targeting:true}))return -1000000000;
-    return (cand.controller!==p?20000:-20000)+atk(cand);
+    // A position change on the opponent's turn is only worth using on the monster attacking us.
+    const stopsAttack=['Enemy Controller','Book of Moon'].includes(fxN)&&e.player!==p&&cand.controller!==p&&same(cand,e.attackCard);
+    return (cand.controller!==p?20000:-20000)+atk(cand)+(stopsAttack?100000:0);
    }
   if(isRemoval(fxN)&&reservedForRemoval(cand))return -1000000000;
   // Activation and targeting must agree: generic removal prefers the largest ATK,
@@ -1856,7 +1913,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(/Chaos Emperor Dragon/.test(fxN||'')&&info.allGrave){const C=info.cands.filter(c=>c.location===L.GRAVE);const cheap=a=>C.filter(c=>(e.cards.get(c.code)?.attribute)===a).sort((x,y)=>expendable(x)-expendable(y))[0];const pick=[cheap('LIGHT'),cheap('DARK')];return pick.includes(cand)?5000-expendable(cand):-expendable(cand);}
   if(/Soul of Purity and Light/.test(fxN||'')&&info.allGrave){if(!hasAttribute(cand,'LIGHT'))return -100000;const Ls=info.cands.filter(c=>hasAttribute(c,'LIGHT')).sort((x,y)=>expendable(x)-expendable(y)).slice(0,2);return Ls.includes(cand)?5000-expendable(cand):-expendable(cand);}
   if(/Newdoria/.test(fxN||''))return (cand.controller!==p?15000:-100000)+atk(cand);
-  if(/Hane-Hane/.test(fxN||'')){if(cand.controller!==p)return 15000+((e.cards.get(cand.code)?.level||0)*500)+atk(cand);return -100000;}
+  if(/Hane-Hane/.test(fxN||'')){if(cand.controller!==p)return 15000+((e.cards.get(cand.code)?.level||0)*500)+atk(cand)+remainingBattleDamage(enemy.find(x=>same(x,cand))||cand);return ownSacrificeScore(cand,true);}
   if(/Shining Angel/.test(fxN||'')){if((e.cards.get(cand.code)?.attribute)!=='LIGHT'||atk(cand)>1500)return -100000;const wall=e.lp[p]<3000||enemyPower>ownPower;return 10000+(wall?((cand.defense??e.data[cand.code]?.defense)??0):atk(cand));}
   if(fxN==='Obelisk the Tormentor')return cand.controller===p&&cand.location===L.MZONE&&nm!==fxN?100000-expendable(cand)-targetValue(cand)*.01:-1000000;
   if(/Nimble Momonga/.test(fxN||''))return nm==='Nimble Momonga'&&optionalMillSafe()?100000:-100000;
@@ -1866,5 +1923,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {attackOpportunity,battleBeforeSummon,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {attackOpportunity,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
 }

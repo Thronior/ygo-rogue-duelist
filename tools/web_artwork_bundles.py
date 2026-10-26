@@ -1,5 +1,5 @@
 """Lossless, bounded-size JPEG bundles for the web and itch.io build only."""
-import hashlib,json,re
+import hashlib,re
 
 def pack_artwork(out,templates):
  entries={};packs={};data=bytearray();pending=[]

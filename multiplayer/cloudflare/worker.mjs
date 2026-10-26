@@ -4,16 +4,26 @@ export {CollectorRegistry,DraftRegistry} from './collector.mjs';
 import {Registry} from './registry.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
+// Online play (tag rooms, relay, Draft Duels, Ultimate Collector) uses /v2 paths. Older clients call /v1, /draft and
+// /collector: LEGACY_MULTIPLAYER in wrangler.jsonc ("allow" or "block"; missing means block) decides whether they may
+// still play online. Blocked calls get 426 here and never reach a Durable Object. Device sync and backups stay
+// unversioned, so every client keeps them.
+const legacy=/^\/(?:v1|draft|collector)\//;
 export default {async fetch(request,env){
- const path=new URL(request.url).pathname;
- if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
+ let path=new URL(request.url).pathname;
+ // Browsers otherwise re-send this preflight every 5 s (Chrome honours up to 2 h).
+ if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Max-Age':'86400'}});
  if(path.startsWith('/backup/')&&request.method==='POST')return env.BACKUP.get(env.BACKUP.idFromName('backups-v1')).fetch(request);
  if(path.startsWith('/progress/')&&request.method==='POST')return env.PROGRESS.get(env.PROGRESS.idFromName('progress-v1')).fetch(request);
- if(path.startsWith('/draft/')&&request.method==='POST')return env.DRAFT.get(env.DRAFT.idFromName('draft-v1')).fetch(request);
- if(path.startsWith('/collector/')&&request.method==='POST')return env.COLLECTOR.get(env.COLLECTOR.idFromName('collectors-v1')).fetch(request);
- if(path==='/health')return reply(200,{service:'shadow-run-rooms',protocol:1,relayConfigured:true,relayTransport:'websocket'});
- if(path==='/v1/relay'&&request.headers.get('Upgrade')?.toLowerCase()==='websocket')return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
- if(request.method!=='POST'||!/^\/v1\/(create|join|started|poll|signal|leave|fallback)$/.test(path))return reply(404,{error:'Unknown room operation.'});
+ if(path==='/health')return reply(200,{service:'shadow-run-rooms',protocol:1,relayConfigured:true,relayTransport:'websocket',legacyClients:env.LEGACY_MULTIPLAYER==='allow'?'allowed':'blocked'});
+ if(legacy.test(path)){
+  if(env.LEGACY_MULTIPLAYER!=='allow')return reply(426,{error:'Online play needs the latest version of the game. Update to keep playing multiplayer.'});
+  path=path.replace(/^\/v1\//,'/v2/').replace(/^\/(draft|collector)\//,'/v2/$1/');
+ }
+ if(path.startsWith('/v2/draft/')&&request.method==='POST')return env.DRAFT.get(env.DRAFT.idFromName('draft-v1')).fetch(request);
+ if(path.startsWith('/v2/collector/')&&request.method==='POST')return env.COLLECTOR.get(env.COLLECTOR.idFromName('collectors-v1')).fetch(request);
+ if(path==='/v2/relay'&&request.headers.get('Upgrade')?.toLowerCase()==='websocket')return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
+ if(request.method!=='POST'||!/^\/v2\/(create|join|started|poll|signal|leave|fallback)$/.test(path))return reply(404,{error:'Unknown room operation.'});
  return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
 }};
 export class RoomRegistry {
@@ -39,7 +49,7 @@ export class RoomRegistry {
  }
  async fetch(request){
   try{
-   if(new URL(request.url).pathname==='/v1/relay'){
+   if(new URL(request.url).pathname.endsWith('/relay')){
     const parts=(request.headers.get('Sec-WebSocket-Protocol')||'').split(',').map(x=>x.trim());
     const code=parts.find(x=>x.startsWith('room.'))?.slice(5),token=parts.find(x=>x.startsWith('auth.'))?.slice(5),generation=Number(parts.find(x=>x.startsWith('gen.'))?.slice(4));
     const room=this.registry.rooms.get(code),seat=room?.tokens.indexOf(token);

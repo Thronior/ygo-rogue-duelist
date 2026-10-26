@@ -348,16 +348,16 @@
         "character": 13,
         "name": "Yugi Muto",
         "tier": 1,
-        "deck": "yugi-muto-tier-1",
-        "source": "User supplied exact list",
+        "deck": "opponent-13-tier-1",
+        "source": "User-provided Level Friends deck (#cpu-decks, 2026-10-21)",
         "fixed": true
       },
       {
         "character": 13,
         "name": "Yugi Muto",
         "tier": 2,
-        "deck": "yugi-muto-tier-2",
-        "source": "User supplied exact list",
+        "deck": "opponent-13-tier-2",
+        "source": "User-provided Level Friends deck (#cpu-decks, 2026-10-21)",
         "fixed": true
       },
       {

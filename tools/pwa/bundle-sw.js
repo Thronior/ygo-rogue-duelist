@@ -57,6 +57,8 @@ async function downloadOffline(){
  }catch(error){await broadcast({type:'CACHE_ERROR',message:error.message});throw error;}
 }
 self.addEventListener('message',event=>{
+ // Switch versions only for a lone window: another open window may be in a duel.
+ if(event.data?.type==='SKIP_WAITING')event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(windows=>windows.length<=1?self.skipWaiting():event.source?.postMessage({type:'UPDATE_BLOCKED',windows:windows.length})));
  if(event.data?.type==='BUNDLE_STATUS')event.waitUntil((async()=>{const cache=await caches.open(CACHE);event.ports[0]?.postMessage({version:VERSION,offlineReady:!!await cache.match(new URL('__offline_ready__',root)),residentBundles:resident.size,residentBytes:[...resident.values()].reduce((n,b)=>n+b.size,0)});})());
  if(event.data?.type==='DOWNLOAD_OFFLINE'){offlineJob??=downloadOffline().finally(()=>offlineJob=null);event.waitUntil(offlineJob.catch(()=>{}));}
 });

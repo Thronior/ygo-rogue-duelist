@@ -3,6 +3,12 @@ from pathlib import Path
 import json
 from collections import Counter
 ROOT=Path(__file__).parent/'data/decks'
+_ERA_CARDS={}
+def _era_cards(path):
+ # Parsed once per file version: opponent records, catalogs and reward slots read many decks.
+ stamp=path.stat().st_mtime_ns
+ if _ERA_CARDS.get(path,(None,))[0]!=stamp:_ERA_CARDS[path]=(stamp,{c['id']:c for c in json.loads(path.read_text(encoding='utf8'))})
+ return _ERA_CARDS[path][1]
 def read(name,fallback):
  mapping=json.loads((ROOT/'index.json').read_text(encoding='utf8')) if (ROOT/'index.json').exists() else {}
  p=ROOT/(mapping.get(name,name)+'.ydk')
@@ -18,7 +24,7 @@ def read(name,fallback):
    result[section].append(int(line))
  if len(result['main'])<20:raise ValueError(str(p)+' needs at least 20 main-deck cards.')
  # Invalid edits should stop before launching the core, rather than strand a run.
- cards={c['id']:c for c in json.loads((ROOT.parent/'era-cards.json').read_text(encoding='utf8'))}
+ cards=_era_cards(ROOT.parent/'era-cards.json')
  aliases={int(k):v for k,v in json.loads((ROOT.parent/'card-aliases.json').read_text(encoding='utf8')).items()}
  all_cards=result['main']+result['extra']+result['side']
  missing=[c for c in all_cards if aliases.get(c,c) not in cards]

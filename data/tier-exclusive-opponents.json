@@ -397,8 +397,9 @@
       "theme": "Punishment and counterplay suit the courtroom-themed Big Five member.",
       "background": "character-backgrounds/15.jpg",
       "tier_decks": {
+        "1": "opponent-54-tier-1",
         "2": "opponent-54-tier-2",
-        "3": "wct2004-johnson"
+        "3": "opponent-54-tier-3"
       },
       "reward_themes": [
         "counter",
@@ -424,7 +425,8 @@
       "theme": "Sanctuary in the Sky and LIGHT Fairies, supported by Agent monsters and recovery cards.",
       "background": "character-backgrounds/14.jpg",
       "tier_decks": {
-        "2": "wct2004-princess-adena-tier2",
+        "1": "opponent-55-tier-1",
+        "2": "opponent-55-tier-2",
         "3": "wct2004-princess-adena"
       },
       "reward_themes": [
@@ -657,6 +659,8 @@
       "theme": "A stall and draw strategy built around the Egyptian God Cards and Life Point recovery.",
       "background": "character-backgrounds/0.jpg",
       "tier_decks": {
+        "1": "opponent-75-tier-1",
+        "2": "opponent-75-tier-2",
         "4": "opponent-75-tier-4"
       },
       "reward_themes": [
@@ -700,8 +704,9 @@
       "tier": 3,
       "deck": "opponent-77-tier-3",
       "tier_decks": {
-        "3": "opponent-77-tier-3",
-        "2": "archfiends-darkbishop-tier-2"
+        "1": "opponent-77-tier-1",
+        "2": "archfiends-darkbishop-tier-2",
+        "3": "opponent-77-tier-3"
       },
       "sprite": "opponents/darkbishop-archfiend.png",
       "background": "character-backgrounds/6.jpg",
@@ -794,7 +799,9 @@
       "tier": 2,
       "deck": "opponent-81-tier-2",
       "tier_decks": {
-        "2": "opponent-81-tier-2"
+        "1": "opponent-81-tier-1",
+        "2": "opponent-81-tier-2",
+        "3": "opponent-81-tier-3"
       },
       "sprite": "opponents/breaker.png",
       "background": "character-backgrounds/0.jpg",
@@ -817,6 +824,9 @@
       "tier": 4,
       "deck": "opponent-82-tier-4",
       "tier_decks": {
+        "1": "opponent-82-tier-1",
+        "2": "opponent-82-tier-2",
+        "3": "opponent-82-tier-3",
         "4": "opponent-82-tier-4"
       },
       "sprite": "opponents/cecelia-pegasus.png",
@@ -832,7 +842,10 @@
       ],
       "source": "User-provided deck assignment",
       "fixed": true,
-      "reward_pack": "WC4-24"
+      "reward_pack": "WC4-24",
+      "limit_exceptions": {
+        "Creature Swap": 3
+      }
     },
     {
       "character": 83,
@@ -840,7 +853,9 @@
       "tier": 2,
       "deck": "opponent-83-tier-2",
       "tier_decks": {
-        "2": "opponent-83-tier-2"
+        "1": "opponent-83-tier-1",
+        "2": "opponent-83-tier-2",
+        "3": "opponent-83-tier-3"
       },
       "sprite": "dm17.png",
       "background": "character-backgrounds/17.jpg",
@@ -854,6 +869,29 @@
         "FIRE"
       ],
       "source": "User-provided deck assignment",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 84,
+      "name": "Ojama King",
+      "tier": 1,
+      "deck": "opponent-84-tier-1",
+      "tier_decks": {
+        "1": "opponent-84-tier-1"
+      },
+      "sprite": "opponents/ojama-king.png",
+      "background": "character-backgrounds/19.jpg",
+      "theme": "Ojama Delta Hurricane, set up by Rescue Cat and backed by Beast attackers.",
+      "reward_themes": [
+        "Beast",
+        "LIGHT",
+        "normal",
+        "destruction",
+        "equip",
+        "summon"
+      ],
+      "source": "User-provided Ojama deck (#cpu-decks, 2026-10-20), balanced 2026-10-26",
       "fixed": true,
       "reward_pack": "WC4-24"
     }

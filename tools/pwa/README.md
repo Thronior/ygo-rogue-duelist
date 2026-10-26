@@ -22,13 +22,17 @@ In game Settings, choose **Install, offline play & save backups**, then **Downlo
 
 Saves, including the three run slots, stay in IndexedDB on this browser/origin. Updates preserve them. Use Export save backup and Import save backup to move progress or protect it before clearing browser data. Browser and Android saves are not automatically synchronized. Import existing saves from the deprecated native desktop edition through webapp Settings. Keep using the same public origin for future releases.
 
-Updates download a complete new cache and activate only after all game windows close. An incomplete download leaves the previous installed version available. Publish the full build as one deployment; do not mix files from different versions.
+Offline files are stored once, keyed by content hash (`ygo-offline-files`), so an update downloads only files whose contents changed. A finished update waits until the player taps **Update ready · Restart** on the main menu (offered only when no other game window is open) or closes every game window. A failed download leaves the previous version in use and keeps the verified files for the retry. Downloaded files must match the build's hashes; a file from another deployment is not stored and loads online.
+
+Saves come first. The worker keeps 64 MiB of browser storage free. If a download runs out of space, it removes what it added (and, if saves still lack room, the whole offline copy); an update then installs online-only and later updates skip downloading until the player downloads again from Settings. The first update to this worker deletes the per-version caches (`ygo-rogue-*`) that older workers left behind, reusing the active copy's unchanged files.
+
+Publish the full build as one deployment; do not mix files from different versions.
 
 ## Validation
 
 - Chrome: campaign startup, real WebAssembly duels, save export/import, offline installation, offline reload and duel, cached audio range responses.
 - Windows WebKit 26.5: campaign startup, real WebAssembly duel, save export/import, offline installation. With the test server unavailable: offline reload and a completed duel without game-engine errors.
-- Service-worker failure/update lifecycle: failed download keeps the previous version; a waiting update does not replace the active game; closing windows allows the next version to activate.
+- Service-worker failure/update lifecycle: failed download keeps the previous version; a waiting update does not replace the active game; closing windows or the main-menu restart activates the next version; updates download only changed files; storage-quota failures leave room for saves; old per-version caches are migrated and removed.
 - All 13,506 card scripts are preserved across four smaller files.
 - Mobile landscape title/settings screenshots inspected.
 

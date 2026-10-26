@@ -24,10 +24,10 @@ def segments(path):
    result[entry.filename]=(offset,len(data),hashlib.sha256(data).digest())
  return result
 
-def create(base,target,output):
- old=segments(base);new=segments(target);size=target.stat().st_size
+def create(base,target,output,base_hash=None,target_hash=None,new=None):
+ old=segments(base);new=new or segments(target);size=target.stat().st_size
  with open(target,'rb') as src,open(output,'wb') as raw,gzip.GzipFile(filename='',mode='wb',fileobj=raw,mtime=0,compresslevel=6) as out:
-  out.write(MAGIC+struct.pack('>Q',base.stat().st_size)+digest(base)+struct.pack('>Q',size)+digest(target))
+  out.write(MAGIC+struct.pack('>Q',base.stat().st_size)+(base_hash or digest(base))+struct.pack('>Q',size)+(target_hash or digest(target)))
   position=0
   def literal(start,length):
    src.seek(start)
@@ -54,13 +54,14 @@ def archive_base(apk):
  for old in bases[3:]:
   if len(old.stem)==64 and all(c in '0123456789abcdef' for c in old.stem) and old.resolve().parent==folder.resolve():old.unlink()
 
-def generate(target):
- rows={};folder=target.parent/'delta-bases';target_hash=digest(target)
+def generate(target,target_hash=None):
+ # Hash and scan the ~330 MB target once, not again for every base.
+ rows={};folder=target.parent/'delta-bases';target_hash=target_hash or digest(target);new=None
  for base in sorted(folder.glob('*.apk'),key=lambda p:p.stat().st_mtime,reverse=True)[:3]:
   base_hash=digest(base)
   if base_hash==target_hash:continue
   patch=target.parent/('ygo-update-'+base_hash.hex()+'.delta.gz')
-  size=create(base,target,patch)
+  new=new or segments(target);size=create(base,target,patch,base_hash,target_hash,new)
   if size>=target.stat().st_size*0.8:patch.unlink();continue
   rows[patch.name]={'bytes':size,'sha256':digest(patch).hex(),'baseSha256':base_hash.hex(),'targetSha256':target_hash.hex()}
  return rows

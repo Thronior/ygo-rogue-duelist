@@ -7,3 +7,5 @@ html,body{overscroll-behavior:none}
 #web-offline-offer{max-width:min(480px,92vw);max-height:88dvh;overflow:auto;color:#e5f4f4;background:#102936;border:1px solid #d8bd76;border-radius:16px;padding:22px}#web-offline-offer::backdrop{background:#000b}#web-offline-offer p{line-height:1.5;margin:12px 0}#web-offline-offer .web-actions{display:flex;gap:10px;flex-wrap:wrap}
 
 #web-save-recovery{max-width:min(520px,92vw);max-height:88dvh;overflow:auto;color:#e5f4f4;background:#102936;border:1px solid #d8bd76;border-radius:16px;padding:22px}#web-save-recovery::backdrop{background:#000c}#web-save-recovery p{line-height:1.5;margin:12px 0}#web-save-recovery .web-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.web-update-ready{position:absolute;right:max(12px,env(safe-area-inset-right));top:calc(46px + 1.2em);z-index:25;border:1px solid #ffe3a6;background:#d8bd76;color:#102936;border-radius:12px;font-size:clamp(11px,1.4vw,15px);font-weight:700;padding:8px 14px;max-width:30vw;box-shadow:0 4px 14px #0008}

@@ -12,11 +12,6 @@ export function collectorSlots(duelists = []) {
  }
  return slots;
 }
-export function nextCollectorSlot(duelists = []) {
- const index = collectorSlots(duelists).findIndex(slot => !slot);
- if (index < 0) throw new Error('All nine Ultimate Collector slots are occupied.');
- return index + 1;
-}
 export function collectorRosterMarkup(duelists, characters) {
  return `<div class="collector-roster" aria-label="Ultimate Collector save slots">${collectorSlots(duelists).map((duelist,index) => {
   const slot=index+1, character=duelist ? characters[duelist.character] : null,rank=duelist?rankFor(duelist.wins):null;

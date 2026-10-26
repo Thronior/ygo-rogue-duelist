@@ -102,6 +102,27 @@ for k, mod in run3["card_mods"].items():
     c = g.BY_ID[run3["pool"][int(k)]]
     assert -1000 <= datk <= 1000 and -1000 <= ddef <= 1000
     assert c["atk"] + datk >= 0 and c["defense"] + ddef >= 0
+# The purchase notice reports the misprint's original and new Type and Attribute.
+from feedback_update import RACE_VALUES, ATTRIBUTE_VALUES
+notice = run3["last_misprints"][-1]
+mod = run3["card_mods"][str(notice["pool"])]
+assert (notice["race"], notice["attribute"]) == (g.BY_ID[ox]["race"], g.BY_ID[ox]["attribute"]), notice
+assert RACE_VALUES[notice["new_race"]] == mod[2] and ATTRIBUTE_VALUES[notice["new_attribute"]] == mod[3], (notice, mod)
+# Misprints only roll Types that monsters in the card pool naturally have.
+pool_types = {RACE_VALUES[c["race"]] for c in g.CARDS if c["data"]["type"] & 1 and c["race"] in RACE_VALUES}
+assert not pool_types & {RACE_VALUES[t] for t in ("Psychic", "Wyrm", "Cyberse", "Illusion", "Creator God")}
+faulty_amount = ART_INFO["faulty_printer"]["amount"]
+ART_INFO["faulty_printer"]["amount"] = 100
+try:
+    run3["card_mods"] = {}
+    for seed in range(300):
+        run3["shop"] = [dict(kind="single", id=ox, price=15, sold=False)]
+        run3["gold"] = 999
+        g.buy(run3, 0, random.Random(1000 + seed))
+finally:
+    ART_INFO["faulty_printer"]["amount"] = faulty_amount
+rolled = {mod[2] for mod in run3["card_mods"].values()}
+assert len(run3["card_mods"]) == 300 and rolled <= pool_types and len(rolled) >= 15, (len(run3["card_mods"]), rolled - pool_types, len(rolled))
 
 # Blank transform + phoenix burn-out through a real duel result.
 run4 = g.new_run(0, random.Random(7))

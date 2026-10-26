@@ -1,5 +1,5 @@
 """Snapshot shared UC opponents at release time, never during gameplay."""
-import json,sys,urllib.request
+import json,sys,urllib.error,urllib.request
 from pathlib import Path
 from datetime import datetime,timezone
 ROOT=Path(__file__).resolve().parents[1]
@@ -9,8 +9,14 @@ def refresh(rows=None):
  import content,fallen_collectors
  if rows is None:
   config=json.loads((ROOT/'android/web/multiplayer-config.json').read_text())
-  req=urllib.request.Request(config['signalingUrl'].rstrip('/')+'/collector/fallen',data=b'{}',headers={'Content-Type':'application/json','User-Agent':'YGO-release'})
-  with urllib.request.urlopen(req,timeout=60) as response:data=json.load(response)
+  # /v2 is the current path; the legacy path still answers on a service deployed before it.
+  for path in ('/v2/collector/fallen','/collector/fallen'):
+   req=urllib.request.Request(config['signalingUrl'].rstrip('/')+path,data=b'{}',headers={'Content-Type':'application/json','User-Agent':'YGO-release'})
+   try:
+    with urllib.request.urlopen(req,timeout=60) as response:data=json.load(response)
+    break
+   except urllib.error.HTTPError as error:
+    if error.code!=404 or path=='/collector/fallen':raise
   if not isinstance(data.get('fallen'),list):raise ValueError('Invalid shared Collector response')
   rows=data['fallen']
  target=ROOT/'data/fallen-collectors.json'

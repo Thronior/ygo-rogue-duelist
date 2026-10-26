@@ -24,9 +24,10 @@ def write(path,value):
  tmp=path.with_name(path.name+'.'+uuid.uuid4().hex+'.tmp')
  try:
   with tmp.open('wb') as f: f.write(encoded(envelope));f.flush();os.fsync(f.fileno())
-  if path.exists() and read(path) is not None:
+  previous=read(path) if path.exists() else None
+  if previous is not None:
    # Back up validated data, never replace a good backup with corrupt bytes.
-   previous=read(path);backup=path.with_suffix('.bak');bt=backup.with_suffix('.tmp')
+   backup=path.with_suffix('.bak');bt=backup.with_suffix('.tmp')
    bt.write_bytes(encoded({'schema':1,'sha256':hashlib.sha256(encoded(previous)).hexdigest(),'payload':previous}));os.replace(bt,backup)
   os.replace(tmp,path)
  finally: tmp.unlink(missing_ok=True)

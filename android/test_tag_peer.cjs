@@ -38,7 +38,7 @@ const relayOnly=process.argv.includes('--relay');const external=process.argv.fin
  await pages[0].evaluate(()=>peer.send({kind:'after-both-reconnect',revision:8}));await pages[1].waitForFunction(()=>messages.some(m=>m.kind==='after-both-reconnect'));
  // Exactly one ready notification for each established data channel.
  for(const page of pages)assert.equal(await page.evaluate(()=>states.filter(s=>s[0]==='connected').length),4);
- const outsider=await fetch(endpoint+'/v1/join',{method:'POST',body:JSON.stringify({code:room.code}),headers:{'Content-Type':'application/json'}});assert.equal(outsider.status,400);
+ const outsider=await fetch(endpoint+'/v2/join',{method:'POST',body:JSON.stringify({code:room.code}),headers:{'Content-Type':'application/json'}});assert.equal(outsider.status,400);
  console.log('PASS real WebRTC ('+(relayOnly?'forced relay':'direct')+'): room code, channel, guest/host/simultaneous same-code reconnect, repeated-click protection, one ready notification per connection, third-player rejection');
  for(const page of pages)await page.evaluate(()=>peer.close());
  }finally{await browser?.close();if(staticServer)await new Promise(r=>staticServer.close(r));python?.kill()}})().catch(e=>{console.error(e);process.exitCode=1});

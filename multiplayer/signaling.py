@@ -111,7 +111,8 @@ class Handler(BaseHTTPRequestHandler):
    body=json.loads(self.rfile.read(size))
    if not isinstance(body,dict):raise ValueError('Expected a JSON object.')
    token=self.headers.get('Authorization','').removeprefix('Bearer ')
-   result=self.server.signaling.request(self.path.removeprefix('/v1/'),body,token,self.client_address[0]);self.reply(200,result)
+   # Local test server: accepts both the current /v2 and legacy /v1 room paths.
+   result=self.server.signaling.request(self.path.removeprefix('/v2/').removeprefix('/v1/'),body,token,self.client_address[0]);self.reply(200,result)
   except PermissionError as e:self.reply(403,{'error':str(e)})
   except (ValueError,TypeError) as e:self.reply(400,{'error':str(e)})
   except OSError:self.reply(503,{'error':'Room storage is temporarily unavailable.'})

@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 BUILD_TEMP=ROOT/'temp/build';BUILD_TEMP.mkdir(parents=True,exist_ok=True)
 os.environ['TMP']=os.environ['TEMP']=str(BUILD_TEMP)
 
-import campaign as game,content,passives
+import campaign as game,content
 A=ROOT/'android';WEB=A/'web';BUILD=A/'build';DEP=ROOT/'dependencies/android'
 
 def copy(source,destination):
@@ -21,7 +21,6 @@ def sync():
  generate()
  WEB.mkdir(exist_ok=True)
  (WEB/'replay-version.js').write_text('export const replayVersion='+json.dumps((ROOT/'VERSION').read_text().strip())+';\n',encoding='utf8')
- import endless
  champion_ids=json.loads((ROOT/'data/champion-ultra.json').read_text(encoding='utf8'))['cards']
  (WEB/'champion-cards.js').write_text('export const championCards='+json.dumps(champion_ids)+';\n',encoding='utf8')
  system_strings={}
@@ -29,20 +28,13 @@ def sync():
   if line.startswith('!system '):
    parts=line.split(maxsplit=2);system_strings[parts[1]]=parts[2] if len(parts)>2 else ''
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
- scripts_path=WEB/'scripts.json'
- if scripts_path.exists():
-  scripts=json.loads(scripts_path.read_text(encoding='utf8'))
-  scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
-  scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
-  for card in (78637313,53119267,93599951,85562745,94585852):
-   scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
-  if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
-  scripts_path.write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  shared=['feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
  shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py','custom_cards.py','pack_merges.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
- for p in (ROOT/'data').glob('*.json'):files['data/'+p.name]=p.read_text(encoding='utf8')
+ # data/cards.json is not read by the game: campaign_expansion loads the pool from data/era-cards.json.
+ for p in (ROOT/'data').glob('*.json'):
+  if p.name!='cards.json':files['data/'+p.name]=p.read_text(encoding='utf8')
  for p in (ROOT/'data/decks').glob('*'):files['data/decks/'+p.name]=p.read_text(encoding='utf8')
  (WEB/'campaign-files.json').write_text(json.dumps(files,ensure_ascii=False),encoding='utf8')
  tokens=json.loads((ROOT/'data/tokens.json').read_text());token_cards=[]
@@ -73,6 +65,11 @@ def sync():
  import custom_cards
  engine_data=json.loads((WEB/'engine-data.json').read_text(encoding='utf8'))
  scripts=json.loads((WEB/'scripts.json').read_text(encoding='utf8'))
+ scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
+ scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
+ for card in (78637313,53119267,93599951,85562745,94585852):
+  scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
+ if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
  for card in custom_cards.CARDS:
   engine_data[str(card['id'])]=card['data']
   scripts[f'c{card["id"]}.lua']=(ROOT/f'runtime/script/custom/c{card["id"]}.lua').read_text(encoding='utf8')
@@ -114,7 +111,9 @@ def sync():
  missing=[cid for cid in ids if not (WEB/'assets/cards'/f'{cid}.jpg').exists()]
  if missing:raise RuntimeError('Missing offline card images: '+str(missing))
  # Enumerate only assets shipped by the shared Android/web packaging policy.
- packaged=[relative for _,relative in web_files(WEB)]
+ from package_assets import unused_textures
+ dropped=unused_textures(WEB)
+ packaged=[relative for _,relative in web_files(WEB) if relative.as_posix() not in dropped]
  audio=[p.as_posix() for p in packaged if p.suffix.lower() in ('.wav','.mp3','.ogg','.m4a')]
  images=[p.as_posix() for p in packaged if p.suffix.lower() in ('.jpg','.png','.webp','.gif','.svg') and p.parts[:2]!=('assets','cards')]
  (WEB/'startup-assets.json').write_text(json.dumps(dict(audio=audio,images=images)),encoding='utf8')
@@ -153,7 +152,11 @@ def build():
     compression=zipfile.ZIP_STORED if name=='resources.arsc' else zipfile.ZIP_DEFLATED
     archive.write(p,name,compress_type=compression)
   archive.write(BUILD/'classes.dex','classes.dex')
-  for p,relative in web_files(WEB):archive.write(p,'assets/web/'+relative.as_posix())
+  # WebP images, only the card scripts/data a duel can reach, no unused textures (tools/package_assets.py).
+  from package_assets import packaged_files
+  for relative,source in packaged_files(WEB,list(web_files(WEB))):
+   if isinstance(source,bytes):archive.writestr('assets/web/'+relative.as_posix(),source)
+   else:archive.write(source,'assets/web/'+relative.as_posix())
  with zipfile.ZipFile(BUILD/'unsigned.apk') as archive:
   if archive.getinfo('resources.arsc').compress_type!=zipfile.ZIP_STORED:
    raise RuntimeError('Android resource table must be stored uncompressed in the APK')
@@ -179,7 +182,7 @@ def build():
   if archive.getinfo('resources.arsc').compress_type!=zipfile.ZIP_STORED:
    raise RuntimeError('Signed APK resource table is compressed; refusing to publish an un-installable APK')
  (release/'build.json').write_text((WEB/'build.json').read_text())
- print('APK:',apk,'â€”',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
+ print('APK:',apk,'-',round(apk.stat().st_size/1024/1024,1),'MiB',flush=True)
 
 if __name__=='__main__':
  sync()

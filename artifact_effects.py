@@ -116,7 +116,11 @@ e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) r
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x41) and c:IsLevelAbove(1) and c:IsLevelBelow(4) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_level_up':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,25290459) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,25290459) if #g>0 then Duel.SendtoHand(g:Select(0,1,1,nil),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
- if kind=='attribute':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_ATTRIBUTE) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() end) e:SetValue(ATTRIBUTE_{attribute}) Duel.RegisterEffect(e,0) end'''
+ # Surgery relics: `attribute` lists every owned Surgery attribute ("LIGHT|FIRE"). The first replaces
+ # your monsters' attribute and each further relic adds one; passives.py emits this once per duel.
+ if kind=='attribute':
+  value='|'.join('ATTRIBUTE_'+a for a in attribute.split('|') if a)
+  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_ATTRIBUTE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
  if kind in ('backrow_atk','banished_atk'):
   location='LOCATION_ONFIELD' if kind=='backrow_atk' else 'LOCATION_REMOVED'
   check='c:IsFaceup() and c:IsSpellTrap()' if kind=='backrow_atk' else 'c:IsFaceup() and c:IsMonster()'

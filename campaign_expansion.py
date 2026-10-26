@@ -124,7 +124,7 @@ def install(g):
    if cursed_relics.pending(r):cursed_relics.create_offer(r)
   return r
  def save(run):
-  run.setdefault('_save_slot',storage.active_slot())
+  if '_save_slot' not in run:run['_save_slot']=storage.active_slot()
   run['last_played_at']=time.time()
   storage.archive_run(run)
   if run.get('stage')=='gameover':storage.clear_run(run['_save_slot'])
@@ -221,8 +221,9 @@ def install(g):
   r['challenge_level']=level
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
-  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved()],1,r,rng)[0]
-  elif relic=='random_archetype':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed_relics.approved() and ART_INFO.get(k,{}).get('effect')=='archetype_stock'],1,r,rng)[0]
+  cursed=cursed_relics.approved()
+  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed],1,r,rng)[0]
+  elif relic=='random_archetype':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and ART_INFO.get(k,{}).get('effect')=='archetype_stock'],1,r,rng)[0]
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -512,9 +513,8 @@ def install(g):
     _c=g.BY_ID.get(_cid)
     if _c and _c['data']['type']&1 and _c.get('attribute'):_attrs[_c['attribute']]=_attrs.get(_c['attribute'],0)+1
    _orb={'LIGHT':'light','DARK':'dark','FIRE':'ember','WATER':'tide','WIND':'gale','EARTH':'earth'}.get(max(_attrs,key=_attrs.get) if _attrs else None)
-   _order=([_orb] if _orb else [])+[o for o in ('light','dark','ember','tide','gale','earth') if o!=_orb]
    _new=_orb or 'earth'
-   if _new:run['artifacts']=[_new if a=='blank_relic' else a for a in run['artifacts']];run['blank_became']=_new
+   run['artifacts']=[_new if a=='blank_relic' else a for a in run['artifacts']];run['blank_became']=_new
   stats=run.setdefault('stats', {})
   stats['coins_earned']=stats.get('coins_earned',0)+run['last_gold']
   if boss and won:stats['bosses_defeated']=stats.get('bosses_defeated',0)+1
@@ -588,7 +588,7 @@ def install(g):
   rest.append(removal)
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
-  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))]),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()]),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
+  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))] if 'archfiend_contract' in _arts else []),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()] if 'toon_world' in _arts else []),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
    if relic in _arts and bonus:singles.append(rng.choice(bonus))
   for relic in sorted(archetype_relics.NEW_IDS & _arts):
    bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c)]
@@ -610,7 +610,8 @@ def install(g):
    # Exclude the original low-power Starter Box lists only from Dueling Engine.
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
-  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed_relics.approved() and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
+  cursed=cursed_relics.approved()
+  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
   chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)
@@ -701,9 +702,12 @@ def install(g):
     if rng.random()<_chance:
      _delta=[max(-(_c['atk'] or 0),rng.randint(-1000,1000)),max(-(_c['defense'] or 0),rng.randint(-1000,1000))]
      from feedback_update import RACE_VALUES, ATTRIBUTE_VALUES
-     _delta.extend([rng.choice(list(RACE_VALUES.values())),rng.choice(list(ATTRIBUTE_VALUES.values()))])
+     # Only Types that monsters in the card pool actually have (no Psychic, Wyrm, Cyberse...).
+     _pool_types=sorted({RACE_VALUES[c['race']] for c in g.CARDS if c['data']['type']&1 and c['race'] in RACE_VALUES})
+     _delta.extend([rng.choice(_pool_types),rng.choice(list(ATTRIBUTE_VALUES.values()))])
      _faulty[str(len(run['pool'])+_offset)]=_delta
-     _fresh.append(dict(pool=len(run['pool'])+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1]))
+     _race={v:k for k,v in RACE_VALUES.items()}.get(_delta[2],_c['race']);_attribute={v:k for k,v in ATTRIBUTE_VALUES.items()}.get(_delta[3],_c['attribute'])
+     _fresh.append(dict(pool=len(run['pool'])+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1],race=_c['race'],new_race=_race,attribute=_c['attribute'],new_attribute=_attribute))
    run['last_misprints']=_fresh
   stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+item['price']
   if item['kind']=='pack':stats['packs_bought']=stats.get('packs_bought',0)+1

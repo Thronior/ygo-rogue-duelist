@@ -43,6 +43,7 @@ end""")
  if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0:
   lines.extend([expanded_effect('approved_champion_stats',0)]*__import__('approved_relics').copies(run,'cursed_champions_burden'))
  events={}
+ surgery=[]
  current_relic=None
  def feedback(text):
   if current_relic is None:return text
@@ -69,10 +70,11 @@ Duel.RegisterEffect(e,0) end''')
    if not copy or copy not in ART_INFO or copy=='magic_mirror':continue
    info=ART_INFO[copy]
   kind=info['effect'];amount=info['amount'];filter=info['filter'];condition='true';params=info.get('parameters',{})
+  if kind=='attribute':surgery.append(filter);continue
   if filter in RACES:condition=f"c:IsRace({RACES[filter] + ('|RACE_BEASTWARRIOR' if filter in ('Warrior','Beast') else '')})"
   elif filter:condition=f'c:IsAttribute(ATTRIBUTE_{filter})'
   expanded=expanded_effect(kind,amount,filter)
-  if kind=='approved_empty_hand_pact' and has(run,'cursed_starving_library'):expanded=expanded.replace('e:SetCode(EFFECT_HAND_LIMIT)', 'e:SetCode(EFFECT_HAND_LIMIT)').replace('e:SetValue(4)','e:SetValue(3)')
+  if kind=='approved_empty_hand_pact' and has(run,'cursed_starving_library'):expanded=expanded.replace('e:SetValue(4)','e:SetValue(3)')
   if expanded is not None:
    lines.append(feedback(expanded));continue
   if kind=='echo':
@@ -82,7 +84,6 @@ e:SetCondition(function(e,tp,eg) return not used and eg:IsExists(function(c) ret
 e:SetOperation(function(e,tp,eg) local g=eg:Filter(function(c) return c:IsControler(1) and c:IsFaceup() and c:IsLevelBelow(4) end,nil) local c=g:GetFirst() if c then used=true local token=Duel.CreateToken(0,c:GetOriginalCode()) Duel.SendtoHand(token,0,REASON_EFFECT) end end)
 Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_SUCCESS) Duel.RegisterEffect(special,0) local flip=e:Clone() flip:SetCode(EVENT_FLIP_SUMMON_SUCCESS) Duel.RegisterEffect(flip,0) end""")
   elif kind=='atk':stat('EFFECT_UPDATE_ATTACK',amount,condition)
-  elif kind=='attribute':stat('EFFECT_ADD_ATTRIBUTE',f'ATTRIBUTE_{filter}')
   elif kind=='def':stat('EFFECT_UPDATE_DEFENSE',amount)
   elif kind=='both':
    stat('EFFECT_UPDATE_ATTACK',amount,condition);stat('EFFECT_UPDATE_DEFENSE',amount,condition)
@@ -158,6 +159,8 @@ end
 """)
  from feedback_update import type_script
  lines.append(type_script(run))
+ # One combined Surgery effect, after card modifications so it also overrides a modified attribute.
+ if surgery:lines.append(expanded_effect('attribute',0,'|'.join(dict.fromkeys(surgery))))
  if run.get('loop',0):
   from endless import LOOP
   stat('EFFECT_UPDATE_ATTACK',run['loop']*LOOP['attack'],enemy=True);stat('EFFECT_UPDATE_DEFENSE',run['loop']*LOOP['defense'],enemy=True)

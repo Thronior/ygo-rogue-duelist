@@ -1,0 +1,8 @@
+import {spawnSync} from 'node:child_process';
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,R,I,B,L} from './web/duel.js';function shuffleCPUDeck(cards,seed,seat){let state=seed+seat*100;return [...cards].map(c=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return [state,c]}).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);}
+const read=p=>JSON.parse(fs.readFileSync(p)),meta=read('android/web/content.json'),deck=JSON.parse(spawnSync('python/python.exe',['-B','-c','import json,content;print(json.dumps(content.opponent_record(1,58)))'],{encoding:'utf8'}).stdout),resources=[read('android/web/engine-data.json'),read('android/web/scripts.json')];
+const pieces=new Set([33396948,70903634,7902349,44519536,8124921]);
+for(const seat of [0,1])for(const seed of [1,2,3,4,5]){const e=await new MobileDuel(meta.cards).init(resources);try{const decks=[Array(60).fill(15025844),Array(60).fill(15025844)];decks[seat]=shuffleCPUDeck(deck.main,seed,seat);let s=e.start(...decks,1000000,1000000,5,seed),n=0;for(;!s.finished&&n<6000;n++){const m=e.pending;let r=e.auto(m);if(m.player!==seat){if(m.type===M.SELECT_IDLECMD)r={type:R.SELECT_IDLECMD,action:I.TO_EP,index:null};else if(m.type===M.SELECT_BATTLECMD)r={type:R.SELECT_BATTLECMD,action:B.TO_EP,index:null};else if(m.type===M.SELECT_CHAIN&&!m.forced)r={type:R.SELECT_CHAIN,index:null};}
+s=e.respond(r);}
+console.log(JSON.stringify({seat,seed,steps:n,turn:s.turn,result:s.finished,lost:e.query(seat,L.GRAVE).filter(c=>pieces.has(c.code)).map(c=>c.code),errors:e.errors}));assert(s.finished);assert.equal(s.finished.player,seat);assert.equal(s.finished.reason,16);assert.deepEqual(e.errors,[]);
+}finally{e.destroy();}}

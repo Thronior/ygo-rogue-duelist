@@ -29,7 +29,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
   this.fusionMaterialCandidates??=[];this.fusionMaterialCandidateKeys??=new Set();
@@ -53,9 +53,11 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SET&&m.location===L.MZONE){if(this.releasedForSet[m.controller])this.tributeSets.add(this.fieldKnowledge.key(m));this.releasedForSet[m.controller]=0;}
   if([M.SUMMONING,M.SPSUMMONING,M.CHAIN_END].includes(m.type))this.releasedForSet=[0,0];
   const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You · ":feedback.player===1?"Opponent · ":"")+feedback.text);}
-  if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();}
-  if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
-  if(m.type===M.CHAIN_SOLVED){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link&&!link.inactive){const n=this.name(link.code);if(n==='Meteorain')(this.piercingTurn??={})[link.player]=this.turn;if(n==='Exarion Universe')(this.piercingCards??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(['Spellbinding Circle','Nightmare Wheel','Shadow Spell','Fiendish Chain'].includes(n))for(const t of link.targets||[])if(t.location===L.MZONE)this.attackLocks.set(`${t.controller}:${t.sequence}`,{code:link.code,controller:link.player,location:link.location,sequence:link.sequence});if(n==='Limiter Removal')for(const c of this.query(link.player,L.MZONE).filter(Boolean))if(this.cards.get(c.code)?.race==='Machine')this.limiterDoom.add(`${link.player}:${c.sequence}`);}}
+  if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();this.attacksThisTurn=new Map();this.extraAttacks=new Map();}
+  // Last Will: a monster went from its controller's field to their GY this turn.
+  if(m.type===M.MOVE&&m.from?.location===L.MZONE&&m.to?.location===L.GRAVE&&m.to.controller===m.from.controller)(this.fieldToGraveTurn??=[0,0])[m.from.controller]=this.turn;
+  if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attacksThisTurn?.delete(`${m.from.controller}:${m.from.sequence}`);this.extraAttacks?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
+  if(m.type===M.CHAIN_SOLVED){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link&&!link.inactive){const n=this.name(link.code);if(n==='Meteorain')(this.piercingTurn??={})[link.player]=this.turn;if(n==='Exarion Universe')(this.piercingCards??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(link.location===L.MZONE&&/can attack twice/i.test(this.cards.get(link.code)?.desc||''))(this.extraAttacks??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(['Spellbinding Circle','Nightmare Wheel','Shadow Spell','Fiendish Chain'].includes(n))for(const t of link.targets||[])if(t.location===L.MZONE)this.attackLocks.set(`${t.controller}:${t.sequence}`,{code:link.code,controller:link.player,location:link.location,sequence:link.sequence});if(n==='Limiter Removal')for(const c of this.query(link.player,L.MZONE).filter(Boolean))if(this.cards.get(c.code)?.race==='Machine')this.limiterDoom.add(`${link.player}:${c.sequence}`);}}
 
   if(m.type===M.MOVE&&m.from?.location===L.SZONE)for(const [target,source] of this.attackLocks||[])if(source.controller===m.from.controller&&source.sequence===m.from.sequence)this.attackLocks.delete(target);
   // Read the core's public turn-counter hints rather than guessing elapsed turns.
@@ -111,7 +113,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.DAMAGE&&m.player===0){this.events.push({kind:'loss_damage',amount:m.amount});if(this.resolutionSource)this.events.push({kind:'loss_source',card:this.resolutionSource,battle:false});}
   if(m.type===M.NEW_PHASE)this.events.push({kind:'loss_source',card:0,battle:false});
   if(m.type===M.NEW_TURN){this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.battleOpen=false;this.chainedSinceAttack=false;}
-  if(m.type===M.ATTACK){this.attackCard=m.card;this.attackTarget=m.target;}
+  if(m.type===M.ATTACK){this.attackCard=m.card;this.attackTarget=m.target;if(m.card){const key=`${m.card.controller}:${m.card.sequence}`;(this.attacksThisTurn??=new Map()).set(key,(this.attacksThisTurn.get(key)||0)+1);}}
   if([M.NEW_PHASE,M.DAMAGE_STEP_END,M.ATTACK_DISABLED].includes(m.type)){this.attackCard=null;this.attackTarget=null;}
   if(m.type===M.ATTACK&&this.player===0){this.battleOpen=true;this.chainedSinceAttack=false;}
   if(m.type===M.CHAINING)this.chainedSinceAttack=true;
@@ -199,8 +201,12 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(this.decisionQueries?.has(key))return this.decisionQueries.get(key);
   const rows=super.query(player,location);
   if(location===L.HAND)for(const c of rows){const stats=c&&this.misprintedHandStats?.[player]?.get(c.sequence);if(stats)Object.assign(c,stats);}
+  // The core does not report attack counts; attacks declared this turn are tracked from M.ATTACK.
+  if(location===L.MZONE)for(const c of rows)if(c)c.attack_count=this.attacksThisTurn?.get(`${player}:${c.sequence}`)||0;
   this.decisionQueries?.set(key,rows);return rows;
  }
+ // Deck size without building ~40 card records; a replaced query() or core (tests, tag facade) answers itself.
+ deckCount(player){return this.query===MobileDuel.prototype.query&&this.core?.duelQueryCount?this.core.duelQueryCount(this.h,player,L.DECK):this.query(player,L.DECK).filter(Boolean).length}
 
  auto(m=this.pending){
   const previous=this.decisionQueries;this.decisionQueries=new Map();
@@ -229,6 +235,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const hostileEquip=['Snatch Steal','Mask of the Accursed'].includes(this.name(this.effect?.code));
   const benefit=!hostileEquip&&/equip|gains? \d+ atk|increase.*atk|recover|increase.*def/.test(text)&&!/destroy.*equip/.test(text);
   const smart=smartContext(this,p,L,m);
+  // Patrician of Darkness: its controller chooses the target of every attack against them.
+  const theyPickTargets=enemy.length>0&&smart.effectsEnabled(1-p)&&enemy.some(c=>visible(c)&&!c.is_disabled&&this.name(c.code)==='Patrician of Darkness');
   const rank=rankedDecision(this,m);
   if(m.type===M.SELECT_OPTION){const index=smart.resourceOption(m.options);if(index!==null)return {type:R.SELECT_OPTION,index};}
   if(m.type===M.ANNOUNCE_RACE&&this.name(this.effect?.code)==='DNA Surgery'&&m.count===1){const race=dnaSurgeryRace(this,p,L,m.available);if(race!==null)return {type:R.ANNOUNCE_RACE,races:[race]};}
@@ -253,7 +261,20 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const tradeTarget=(power,t,attacker=null)=>power>0&&visible(t)&&(t.position&1)&&power===(attacker?smart.combatPower(t,attacker):atk(t))&&!this.battleProtected?.[1-p]&&!/cannot be destroyed (?:by|as a result of) battle/i.test(this.cards.get(t.code)?.desc||'');
   const idle=(action,index=null)=>({type:R.SELECT_IDLECMD,action,index});
   if(m.type===M.SELECT_IDLECMD){
-   if(m.to_bp&&!enemy.length&&own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0)>=this.lp[1-p])return idle(I.TO_BP);
+   // Lethal already on board: attack now, unless set back-row could stop one attacker and a
+   // free extra attacker is available to keep the total lethal.
+   const extraAttacker=m.summons.some(c=>(this.cards.get(c.code)?.level||0)<=4&&smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p,true));
+   if(m.to_bp&&!enemy.length&&own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0)>=this.lp[1-p]&&!(extraAttacker&&this.query(1-p,L.SZONE).some(c=>c&&!visible(c))))return idle(I.TO_BP);
+   // With no defenders, a Normal Summon that makes the direct attacks lethal comes before
+   // anything else (some spells forbid summoning afterwards). Flip monsters included: winning
+   // beats keeping a Flip effect. Only cards that really stop the attack hold it back.
+   if(m.to_bp&&!enemy.length&&!this.battleProtected?.[1-p]&&m.summons.length){
+    const ready=own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0);
+    const lethal=m.summons.map((c,i)=>{const level=this.cards.get(c.code)?.level||0,tributes=level>6?2:level>4?1:0;
+     const damage=smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p,true)?smart.battleDamage(smart.projectedAttack(c)):0;
+     return {i,damage,total:damage+(tributes?0:ready)};}).filter(x=>x.damage>0&&x.total>=this.lp[1-p]).sort((a,b)=>b.damage-a.damage);
+    if(lethal.length)return idle(I.SELECT_SUMMON,lethal[0].i);
+   }
    // Use a legal God special summon first (saving the Normal Summon), then
    // prioritize a legal three-Tribute Normal Summon over ordinary plays.
    const godSpecial=m.special_summons.findIndex(c=>egyptianGods.has(this.name(c.code))&&smart.specialOk(c)!==false);
@@ -279,20 +300,26 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     if(/gain \d+ life|recover|increase your life/.test(x.text))return this.lp[p]<8000;
     if(/equip|gains? \d+ atk/.test(x.text))return own.some(visible);
     if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(x.name))return this.query(p,L.GRAVE).some(c=>c&&atk(c)>threat)||this.query(1-p,L.GRAVE).some(c=>c&&atk(c)>threat);
-    if(['Fissure','Smashing Ground','Swords of Revealing Light'].includes(x.name))return enemy.length>0;
     return false;
    });
    if(helpful)return idle(I.SELECT_ACTIVATE,helpful.index);
    const ranked=list=>list.map((c,i)=>({c,i})).sort((a,b)=>atk(b.c)-atk(a.c));
    const firstMove=own.length===0&&enemy.length===0&&this.query(p,L.GRAVE).filter(Boolean).length===0;
-   const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy.some(t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
+   const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy[theyPickTargets?'every':'some'](t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
    if(smart.battleBeforeSummon())return idle(I.TO_BP);
    // Cyber Jar's reset changes the value of every subsequent summon. Resolve
    // its useful flip first, without imposing a generic flip-before-summon rule.
    const cyberJarFlip=m.pos_changes.findIndex(c=>{
     if(this.name(c.code)!=='Cyber Jar')return false;
     const field=this.query(p,L.MZONE)[c.sequence];
-    return field&&!visible(field)&&smart.flipUseful('Cyber Jar',field)===true;
+    if(!field||visible(field))return false;
+    if(smart.flipUseful('Cyber Jar',field)===true)return true;
+    // This turn's other plays shrink the hand until the flip becomes worthwhile, and the flip
+    // would then destroy any monster Normal Summoned or Set first. Flip it before that monster.
+    if(!m.summons.length&&!m.monster_sets.length)return false;
+    const backrow=this.query(p,L.SZONE).filter((x,i)=>x&&(x.sequence??i)<5).length;
+    const spellSets=Math.min(Math.max(0,(this.aiModifiers?.spellTrapZones??5)-1-backrow),m.spell_sets.filter(x=>smart.setAllowed(x)).length);
+    return smart.cyberJarFlipUseful(this.query(p,L.HAND).filter(Boolean).length-1-spellSets)===true;
    });
    if(cyberJarFlip>=0)return idle(I.SELECT_POS_CHANGE,cyberJarFlip);
    const specialCandidates=ranked(m.special_summons).filter(x=>smart.specialOk(x.c)!==false);
@@ -318,7 +345,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     if(safe.length&&attacks.length&&attacks.every(c=>smart.incomingDamage(c,true)>=this.lp[p]&&!(m.to_bp&&!enemy.length&&!smart.attackBlocked(c,p,true)&&smart.battleDamage(smart.projectedAttack(c))>=this.lp[1-p])))return idle(I.SELECT_MONSTER_SET,safe[0].index);
    }
    const summon=ranked(m.summons).filter(x=>(!(stat(x.c).type&0x200000)||smart.saferPosition(x.c)===true)&&!smart.preferSet(x.c)&&smart.summonScore(x.c)>=0).sort((a,b)=>(smart.summonScore(b.c)-smart.summonScore(a.c))||(atk(b.c)-atk(a.c))).find(x=>(usefulAttacker(x.c)||smart.summonUtility(x.c)||smart.saferPosition(x.c)===true)&&worthwhile(x.c));
-   const summonIsLethal=x=>!!x&&m.to_bp&&!enemy.length&&!this.battleProtected?.[1-p]&&!this.query(1-p,L.SZONE).some(c=>c&&visible(c))&&!smart.attackBlocked(x.c,p,true)&&smart.attackAllowed(x.c,true)&&smart.battleDamage(smart.projectedAttack(x.c))>=this.lp[1-p];
+   const summonIsLethal=x=>!!x&&m.to_bp&&!enemy.length&&!this.battleProtected?.[1-p]&&!smart.attackBlocked(x.c,p,true)&&smart.attackAllowed(x.c,true)&&smart.battleDamage(smart.projectedAttack(x.c))>=this.lp[1-p];
    if(summon&&(!firstMove||smart.projectedAttack(summon.c)>1500||smart.summonUtility(summon.c)||summonIsLethal(summon)))return idle(I.SELECT_SUMMON,summon.i);
 
    if(m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((smart.projectedDefense(b.c)+(stat(b.c).type&0x200000?600:0))-(smart.projectedDefense(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;const candidate=m.monster_sets[index];if(this.cpuReviewRules?.reflectBounder!==false&&this.name(candidate.code)==='Reflect Bounder'&&smart.effectsEnabled(p)&&!smart.attackBlocked(candidate,p,true)&&smart.incomingDamage(candidate,true)<this.lp[p]){const summonIndex=m.summons.findIndex(c=>c.code===candidate.code&&c.sequence===candidate.sequence);if(summonIndex>=0)return idle(I.SELECT_SUMMON,summonIndex)}return idle(I.SELECT_MONSTER_SET,index)}
@@ -329,11 +356,11 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(defend>=0)return idle(I.SELECT_POS_CHANGE,defend);
    return idle(m.to_bp?I.TO_BP:I.TO_EP);
   }
-  if(m.type===M.SELECT_BATTLECMD){if(p===1&&this.aiModifiers?.expertOpponent){const plan=planBattle(this,p,L,m,smart);if(plan&&!this.attackWasCancelled(p,m.attacks[plan.index])){this.expertTarget={...plan,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:plan.index}}}if((m.to_m2||m.to_ep)&&this.battleProtected?.[1-p]&&!enemy.some(t=>!visible(t)))return {type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null};const boosts=(m.chains||[]).map((c,index)=>({index,score:smart.activation(c,true)})).filter(x=>x.score!==null&&x.score>=0).sort((a,b)=>b.score-a.score);if(boosts.length)return {type:R.SELECT_BATTLECMD,action:B.SELECT_CHAIN,index:boosts[0].index};let best=null;const oppDeck=this.query(1-p,L.DECK).length;for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||this.query(p,L.MZONE)[c.sequence],power=smart.combatPower(a||c),an=a||c,nm=this.name(an.code);const direct=!this.battleProtected?.[1-p]&&(c.can_direct||!enemy.length);if(!smart.attackAllowed(an,direct))continue;const noPoke=(nm==='Goblin Attack Force'||nm==='Panther Warrior');let score=direct?smart.battleDamage(power)+(smart.battleDamage(power)>=this.lp[1-p]?100000000:0):-Infinity;let bt=null,bd=0,cands=[];if(direct)bd=smart.battleDamage(power);for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v=strength(t);if(!(power>v))continue;const atkPos=visible(t)&&(t.position&1);const over=atkPos?power-v:0;const edef=visible(t)?(t.defense??this.data[t.code]?.defense??0):v;const dmg=smart.battleDamage(atkPos?over:((!atkPos&&smart.pierce(an))?Math.max(0,power-edef):0));if(dmg<=0&&noPoke)continue;const cand=2000+v+over+(visible(t)&&dmg>0&&dmg>=this.lp[1-p]?100000000:0);cands.push({cand,t,dmg});if(cand>score){score=cand;bt=t;bd=dmg;}}let fb=false;if(score===-Infinity&&(nm==='Goblin Attack Force'||nm==='Panther Warrior')){for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v2=strength(t);if(power>v2){const cand=2000+v2;if(cand>score){score=cand;bt=t;bd=0;fb=true;}}}}if(score>-Infinity){let adj=smart.attackScore(an,bt,{dmg:bd,deckOut:oppDeck<=2});if(adj<=-99999){cands.sort((a,b)=>b.cand-a.cand);let fixed=false;for(const q of cands){if(q.t===bt)continue;const a2=smart.attackScore(an,q.t,{dmg:q.dmg,deckOut:oppDeck<=2});if(a2<=-99999)continue;bt=q.t;bd=q.dmg;score=q.cand;adj=a2;fixed=true;break;}if(!fixed)continue;}score+=adj;const _pw=power,_bw=best?best.power:0;
+  if(m.type===M.SELECT_BATTLECMD){if(p===1&&this.aiModifiers?.expertOpponent&&!theyPickTargets){const plan=planBattle(this,p,L,m,smart);if(plan&&!this.attackWasCancelled(p,m.attacks[plan.index])){this.expertTarget={...plan,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:plan.index}}}if((m.to_m2||m.to_ep)&&this.battleProtected?.[1-p]&&!enemy.some(t=>!visible(t)))return {type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null};const boosts=(m.chains||[]).map((c,index)=>({index,score:smart.activation(c,true)})).filter(x=>x.score!==null&&x.score>=0).sort((a,b)=>b.score-a.score);if(boosts.length)return {type:R.SELECT_BATTLECMD,action:B.SELECT_CHAIN,index:boosts[0].index};let best=null;const oppDeck=this.query(1-p,L.DECK).length;for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||this.query(p,L.MZONE)[c.sequence],power=smart.combatPower(a||c),an=a||c,nm=this.name(an.code);const direct=!this.battleProtected?.[1-p]&&(c.can_direct||!enemy.length);if(!smart.attackAllowed(an,direct))continue;const noPoke=(nm==='Goblin Attack Force'||nm==='Panther Warrior');let score=direct?smart.battleDamage(power)+(smart.battleDamage(power)>=this.lp[1-p]?100000000:0):-Infinity;let bt=null,bd=0,cands=[];if(direct)bd=smart.battleDamage(power);for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v=strength(t);if(!(power>v))continue;const atkPos=visible(t)&&(t.position&1);const over=atkPos?power-v:0;const edef=visible(t)?(t.defense??this.data[t.code]?.defense??0):v;const dmg=smart.battleDamage(atkPos?over:((!atkPos&&smart.pierce(an))?Math.max(0,power-edef):0));if(dmg<=0&&noPoke)continue;const cand=2000+v+over+(visible(t)&&dmg>0&&dmg>=this.lp[1-p]?100000000:0);cands.push({cand,t,dmg});if(cand>score){score=cand;bt=t;bd=dmg;}}if(theyPickTargets&&!direct){const open=enemy.filter(t=>!(this.battleProtected?.[1-p]&&visible(t)));if(cands.length<open.length||cands.some(x=>smart.attackScore(an,x.t,{dmg:x.dmg,deckOut:oppDeck<=2})<=-99999))continue;const worst=cands.reduce((w,x)=>x.cand<w.cand?x:w);score=worst.cand;bt=worst.t;bd=worst.dmg;}let fb=false;if(score===-Infinity&&(nm==='Goblin Attack Force'||nm==='Panther Warrior')){for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v2=strength(t);if(power>v2){const cand=2000+v2;if(cand>score){score=cand;bt=t;bd=0;fb=true;}}}}if(score>-Infinity){let adj=smart.attackScore(an,bt,{dmg:bd,deckOut:oppDeck<=2});if(adj<=-99999){cands.sort((a,b)=>b.cand-a.cand);let fixed=false;for(const q of cands){if(q.t===bt)continue;const a2=smart.attackScore(an,q.t,{dmg:q.dmg,deckOut:oppDeck<=2});if(a2<=-99999)continue;bt=q.t;bd=q.dmg;score=q.cand;adj=a2;fixed=true;break;}if(!fixed)continue;}score+=adj;const _pw=power,_bw=best?best.power:0;
     if(!best||score>best.score||(score===best.score&&((_pw>=1400)?(_bw<1400||_pw<_bw):(_bw<1400&&_pw>_bw))))best={score,i,power:_pw};}}
    // Only trade after exhausting every existing winning/direct attack option.
-   if(!best){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c,power=atk(a);if(!smart.attackAllowed(a,false))continue;if(enemy.some(t=>tradeTarget(power,t,a))&&(!best||power>best.power))best={i,power};}}
-   if(!best&&!this.battleProtected?.[1-p]){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c;if(!smart.attackAllowed(a,false))continue;const v=smart.suicideScore(a);if(v>0&&(!best||v>best.score))best={score:v,i,power:0};}}
+   if(!best&&!theyPickTargets){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c,power=atk(a);if(!smart.attackAllowed(a,false))continue;if(enemy.some(t=>tradeTarget(power,t,a))&&(!best||power>best.power))best={i,power};}}
+   if(!best&&!theyPickTargets&&!this.battleProtected?.[1-p]){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c;if(!smart.attackAllowed(a,false))continue;const v=smart.suicideScore(a);if(v>0&&(!best||v>best.score))best={score:v,i,power:0};}}
    // The core may withhold both phase-advance actions when an effect mandates
    // an attack. Preserve that rule, but never force an attack when the player
    // can legally move to Main Phase 2 or the End Phase.
@@ -345,6 +372,16 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const sorted={...m,selects:order.map(x=>x.c)};
    const indices=this.sumSelection(sorted,c=>c.controller===p&&c.location===L.MZONE&&this.name(c.code)==='Relinquished');
    return {type:R.SELECT_SUM,indicies:indices.map(i=>order[i].i)};
+  }
+  // Patrician of Darkness lets us choose which of our monsters the opponent's attack hits:
+  // one that destroys the attacker, else a defender that survives, else the cheapest loss.
+  if(m.type===M.SELECT_CARD&&this.selectionHint===549&&this.attacker&&this.attacker.player!==p&&m.selects.length&&m.selects.every(c=>c.controller===p&&c.location===L.MZONE)){
+   const a=enemy.find(x=>x.sequence===this.attacker.sequence)||this.attacker,power=smart.combatPower(a),pierce=smart.pierce(a,1-p);
+   const outcome=c=>{const f=own.find(x=>x.sequence===c.sequence)||c;
+    if(f.position&1)return atk(f)>power?300000+atk(f)-power:atk(f)===power?100000-smart.expendable(f):-smart.expendable(f)-2*(power-atk(f));
+    const d=f.defense??def(f);return d>power?200000+d-power:d===power?150000:-smart.expendable(f)-(pierce?2*(power-d):0);};
+   const best=m.selects.map((c,i)=>({i,score:outcome(c)})).sort((x,y)=>y.score-x.score)[0];
+   return {type:R.SELECT_CARD,indicies:[best.i]};
   }
   if(m.type===M.SELECT_CARD||m.type===M.SELECT_TRIBUTE){
    const targetAttack=this.selectionHint===549&&this.attacker?.player===p&&m.selects.every(c=>c.controller!==p&&c.location===L.MZONE);

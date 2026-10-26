@@ -19,7 +19,7 @@ const store=()=>{try{localStorage.setItem(key,JSON.stringify(saved))}catch{}};
 const storeQueue=()=>{try{localStorage.setItem(queueKey,JSON.stringify(queue));return true}catch{return false}};
 export function setStatsEnabled(value){localStorage.setItem(CONSENT,value?'true':'false');if(!value){controller?.abort();void withQueue(()=>{queue={pending:empty(),batch:null};storeQueue();});}}
 
-export function recordStat(kind,id){if(local||!['runs','duels','wins','losses'].includes(kind)||!id)return;void withQueue(()=>{refreshPersonal();const token=kind+':'+id;if(saved.seen.includes(token))return;saved.seen.push(token);saved.counts[kind]=(saved.counts[kind]||0)+1;store();if(statsEnabled()){queue.pending[kind]=(queue.pending[kind]||0)+1;storeQueue();}});void syncStats();}
+export function recordStat(kind,id){if(local||!['runs','duels','wins','losses'].includes(kind)||!id)return;void withQueue(()=>{refreshPersonal();const token=kind+':'+id;if(saved.seen.includes(token))return;saved.seen.push(token);if(saved.seen.length>1000)saved.seen.splice(0,saved.seen.length-1000);saved.counts[kind]=(saved.counts[kind]||0)+1;store();if(statsEnabled()){queue.pending[kind]=(queue.pending[kind]||0)+1;storeQueue();}});void syncStats();}
 export function syncStats(){return withQueue(syncBatch)}
 async function syncBatch(){
  if(local||!statsEnabled()||busy||Date.now()<Math.max(nextSync,queue.nextSyncAt||0))return;
@@ -30,7 +30,8 @@ async function syncBatch(){
  if(!storeQueue())return;
  const batch=queue.batch;busy=true;
  controller=new AbortController();const timer=setTimeout(()=>controller?.abort(),8000);
- try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(batch),signal:controller.signal});if(!r.ok)throw Error('Stats unavailable');if(queue.batch===batch){queue.batch=null;storeQueue();}}catch{}finally{clearTimeout(timer);controller=null;busy=false}
+ // text/plain keeps the upload a CORS simple request, so it costs no OPTIONS preflight.
+ try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(batch),signal:controller.signal});if(!r.ok)throw Error('Stats unavailable');if(queue.batch===batch){queue.batch=null;storeQueue();}}catch{}finally{clearTimeout(timer);controller=null;busy=false}
 }
 export function personalPlaySeconds(){refreshPersonal();return Math.max(0,Number(saved.counts.seconds)||0)}
 export async function fetchStats(){const r=await fetch(endpoint,{signal:AbortSignal.timeout(10000),cache:'no-store'});if(!r.ok)throw Error('Global stats are temporarily unavailable.');return r.json()}

@@ -175,11 +175,11 @@ const make=()=>{
  assert(mobileCss.includes('.deck-preview-overlay>.deck-inspect{display:grid;'),'reward deck details have explicit bounded layout styles');
 }
 
-// Surgery effects add attributes without replacing the printed attribute.
+// Surgery relics: the first replaces the printed attribute, each further relic adds one.
 {
  const monster={attribute:'WATER',data:{type:1}};
  const run={challenge_level:2,artifacts:['attribute_light','attribute_dark'],card_mods:{}};
- assert.deepEqual(effectiveAttributes(monster,run,0),['WATER','LIGHT','DARK']);
+ assert.deepEqual(effectiveAttributes(monster,run,0),['LIGHT','DARK']);
  const info={test:{effect:'atk',amount:200,filter:'DARK'}};
  assert.equal(deckStats({...monster,atk:1000,defense:800}, {...run,artifacts:[...run.artifacts,'test']},0,info)[0],1200,'attribute-filtered relics see all added attributes');
  const base={...monster,race:'Aqua',atk:1000,defense:800,data:{...monster.data,race:8,attribute:2}};

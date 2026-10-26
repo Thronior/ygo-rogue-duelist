@@ -6,7 +6,9 @@ export const originalAssetPath=url=>originalPaths.get(url)||url;
 export async function preloadStartupAssets(onProgress=()=>{},options={}){
  const request=options.fetchAsset||fetch,makeURL=options.makeURL||(b=>URL.createObjectURL(b));
  const response=await request('startup-assets.json');if(!response.ok)throw Error('Could not read startup assets. Retry loading.');
- const manifest=await response.json(),audio=manifest.audio.filter(path=>options.music!==false||!path.startsWith('assets/music/')),paths=[...new Set([...audio,...(options.images===false?[]:manifest.images)])];
+ // Files already on this device (options.local) play straight from it, so only sound effects,
+ // which are decoded up front, are loaded; music and artwork are not copied into memory.
+ const manifest=await response.json(),audio=manifest.audio.filter(path=>(options.music!==false&&!options.local)||!path.startsWith('assets/music/')),paths=[...new Set([...audio,...(options.images===false||options.local?[]:manifest.images)])];
  let next=0,loaded=0,bytes=0,last=0;const failures=[];
  const report=()=>{const now=Date.now();if(loaded===paths.length||now-last>100){last=now;onProgress({loaded,total:paths.length,bytes});}};report();
  await Promise.all(Array.from({length:4},async()=>{while(next<paths.length){const path=paths[next++];

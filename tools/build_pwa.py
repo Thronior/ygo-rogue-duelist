@@ -10,12 +10,16 @@ from PIL import Image
 def build(root,out,templates,bundle_artwork=False):
  sys.path.insert(0,str(root/'tools'))
  from mobile_bundle import web_files
+ from package_assets import packaged_files
  out.mkdir(parents=True,exist_ok=True)
  if any(out.iterdir()):raise SystemExit('Output directory must be empty; choose a new build directory.')
- for source,relative in web_files(root/'android/web'):
-  if relative.as_posix()=='scripts.json':continue
-  target=out/relative;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
- scripts=json.loads((root/'android/web/scripts.json').read_text(encoding='utf8'))
+ web=root/'android/web';scripts=None
+ # WebP images, only the card scripts/data a duel can reach, no unused textures (tools/package_assets.py).
+ for relative,source in packaged_files(web,list(web_files(web))):
+  if relative.as_posix()=='scripts.json':scripts=json.loads(source);continue
+  target=out/relative;target.parent.mkdir(parents=True,exist_ok=True)
+  if isinstance(source,bytes):target.write_bytes(source)
+  else:shutil.copy2(source,target)
  chunks=[];chunk={};size=0
  for name,script in scripts.items():
   cost=len(json.dumps({name:script},ensure_ascii=False).encode())
@@ -58,13 +62,14 @@ def build(root,out,templates,bundle_artwork=False):
  (out/'offline-size.json').write_text(json.dumps(dict(bytes=sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))),encoding='utf8')
  worker=templates/('bundle-sw.js' if bundle_artwork else 'pwa-sw.js')
  files=sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name!='_headers')
- digest=hashlib.sha256()
- for name in files:digest.update(name.encode());digest.update((out/name).read_bytes())
+ # Per-file content hashes let the offline worker keep one shared copy and download only changed files.
+ digest=hashlib.sha256();hashes={}
+ for name in files:data=(out/name).read_bytes();digest.update(name.encode());digest.update(data);hashes[name]=hashlib.sha256(data).hexdigest()[:16]
  digest.update(worker.read_bytes());digest.update(json.dumps(entries,sort_keys=True).encode())
  version=digest.hexdigest()[:16]
  if bundle_artwork:
   boot=out/'bundle-boot.js';boot.write_text(boot.read_text(encoding='utf8').replace('__BUNDLE_VERSION__',version),encoding='utf8')
- sw=worker.read_text(encoding='utf8').replace('__VERSION__',json.dumps(version)).replace('__FILES__',json.dumps(files)).replace('__ARTWORK__',json.dumps(entries,separators=(',',':'))).replace('__PACKS__',json.dumps(packs))
+ sw=worker.read_text(encoding='utf8').replace('__VERSION__',json.dumps(version)).replace('__FILES__',json.dumps(files)).replace('__HASHES__',json.dumps(hashes,separators=(',',':'))).replace('__ARTWORK__',json.dumps(entries,separators=(',',':'))).replace('__PACKS__',json.dumps(packs))
  (out/'sw.js').write_text(sw,encoding='utf8')
  assert len(files)<(998 if bundle_artwork else 20000)
  assert all(p.stat().st_size<=25*1024*1024 for p in out.rglob('*') if p.is_file())

@@ -46,6 +46,9 @@ const button=(text,action,extra='')=>`<button data-tag="${action}" ${extra}>${te
 
 export class TagUI {
 
+ // Card records by id: deck and trade views look cards up inside filters and sorts.
+ cardById(id){if(this.cardIndex?.source!==this.content.cards)this.cardIndex={source:this.content.cards,byId:new Map(this.content.cards.map(c=>[c.id,c]))};return this.cardIndex.byId.get(id)}
+
  constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{}}){
 
   Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort='Newest';this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
@@ -158,7 +161,7 @@ export class TagUI {
 
   const locked=v.ready[v.seat],chosen=r.routes.includes(r.opponent),fixed=c.copycat||c.engine_deck;
 
-  const mainCount=r.selected.filter(i=>!(this.content.cards.find(c=>c.id===r.pool[i])?.data.type&64)).length,validSize=fixed||mainCount>=(deckMinimum(r,this.content.characters[r.character]))&&mainCount<=60;
+  const mainCount=r.selected.filter(i=>!(this.cardById(r.pool[i])?.data.type&64)).length,validSize=fixed||mainCount>=(deckMinimum(r,this.content.characters[r.character]))&&mainCount<=60;
 
   const lockedCount=v.ready.filter(Boolean).length;
 
@@ -166,7 +169,7 @@ export class TagUI {
 
   const tools=`<span>${esc(c.name)} · ${r.lp.toLocaleString()} LP</span>`;
 
-  const lookup=id=>this.content.cards.find(c=>c.id===id),main=r.selected.filter(i=>!(lookup(r.pool[i])?.data.type&64)).length;
+  const lookup=id=>this.cardById(id),main=mainCount;
 
   let order=r.pool.map((_,i)=>i).filter(i=>matchesSearch(lookup(r.pool[i]),'tag-deck'));
 
@@ -268,7 +271,7 @@ export class TagUI {
 
   const total=[...this.selection].reduce((n,i)=>n+r.shop[i].price,0);
 
-  const product=(x,i)=>{const name=x.kind==='single'?this.content.cards.find(c=>c.id===x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name;
+  const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name;
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
@@ -293,13 +296,13 @@ export class TagUI {
 
   const sent=t.sent[v.seat],received=t.status==='received';
 
-  if(received){this.tab='deck';if(v.phase==='shop')this.shop();else this.renderContent(true);const tradeButton=this.root.querySelector('[data-tag="trade-vote"]');if(tradeButton){tradeButton.textContent=t.ack[v.seat]?'Waiting for teammate':'Cards received';tradeButton.dataset.tag='trade-receipt';}if(this.receivedTradeId!==t.id){this.receivedTradeId=t.id;this.dialog('Cards received',`<div class="cardgrid">${t.received.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"><span>${esc(this.content.cards.find(c=>c.id===id)?.name||id)}</span></button>`).join('')||'<p>No cards received.</p>'}</div>${button('Back to deck','trade-ack',`class="primary" ${waiting?'disabled':''}`)}`);document.querySelector('#modal')?.addEventListener('close',()=>this.acknowledgeTrade().catch(e=>this.error(e)),{once:true})}return}
+  if(received){this.tab='deck';if(v.phase==='shop')this.shop();else this.renderContent(true);const tradeButton=this.root.querySelector('[data-tag="trade-vote"]');if(tradeButton){tradeButton.textContent=t.ack[v.seat]?'Waiting for teammate':'Cards received';tradeButton.dataset.tag='trade-receipt';}if(this.receivedTradeId!==t.id){this.receivedTradeId=t.id;this.dialog('Cards received',`<div class="cardgrid">${t.received.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"><span>${esc(this.cardById(id)?.name||id)}</span></button>`).join('')||'<p>No cards received.</p>'}</div>${button('Back to deck','trade-ack',`class="primary" ${waiting?'disabled':''}`)}`);document.querySelector('#modal')?.addEventListener('close',()=>this.acknowledgeTrade().catch(e=>this.error(e)),{once:true})}return}
 
 
 
   const rows=received?t.received.map((id,i)=>({id,i})):r.pool.map((id,i)=>({id,i}));
 
-  const lookup=id=>this.content.cards.find(c=>c.id===id);
+  const lookup=id=>this.cardById(id);
 
   const filtered=rows.filter(({id,i})=>this.tradeFilter==='Selected'?this.tradeSelection.has(i):this.tradeFilter==='All'||lookup(id)?.data.type&({Monster:1,Spell:2,Trap:4}[this.tradeFilter]||0));
 
@@ -438,7 +441,7 @@ export class TagUI {
 
    if(x.kind==='artifact'){this.dialog(this.content.artifacts[x.id][0],`<img height="180" src="${relicImage(this.content.artifactInfo[x.id].art)}"><p>${esc(this.content.artifacts[x.id][2])}</p>`);return}
 
-   const pack=this.content.packs.find(p=>p.id===x.id);const base=x.kind==='deck'?'':allCardsPackDescription(pack),summary=pack?packSummary(this.content,pack.id):'',description=base?[base,...(summary.match(/Archetypes:[^.]+/)||[])].join(' '):summary;if(description){this.dialog(pack.name,`<p>${esc(description)}</p>`);return;}this.dialog(pack?.name||x.name,`<p>${x.kind==='deck'?'Adds these cards to your collection. ':''}${x.price} gold</p><div class="cardgrid">${[...new Set(x.kind==='deck'?x.cards:[...(pack?.common||[]),...(pack?.rare||[])])].map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img loading="lazy" src="${this.image(id)}"><span>${esc(this.content.cards.find(c=>c.id===id)?.name||id)}</span></button>`).join('')}</div>`);return;
+   const pack=this.content.packs.find(p=>p.id===x.id);const base=x.kind==='deck'?'':allCardsPackDescription(pack),summary=pack?packSummary(this.content,pack.id):'',description=base?[base,...(summary.match(/Archetypes:[^.]+/)||[])].join(' '):summary;if(description){this.dialog(pack.name,`<p>${esc(description)}</p>`);return;}this.dialog(pack?.name||x.name,`<p>${x.kind==='deck'?'Adds these cards to your collection. ':''}${x.price} gold</p><div class="cardgrid">${[...new Set(x.kind==='deck'?x.cards:[...(pack?.common||[]),...(pack?.rare||[])])].map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img loading="lazy" src="${this.image(id)}"><span>${esc(this.cardById(id)?.name||id)}</span></button>`).join('')}</div>`);return;
 
   }
 
@@ -482,7 +485,7 @@ export class TagUI {
 
    else if(action==='ready'){
 
-    const run=this.view.run,c=this.content.characters[run.character],main=run.selected.filter(i=>!(this.content.cards.find(c=>c.id===run.pool[i])?.data.type&64)).length;
+    const run=this.view.run,c=this.content.characters[run.character],main=run.selected.filter(i=>!(this.cardById(run.pool[i])?.data.type&64)).length;
 
     const minimum=deckMinimum(run,c);
 
