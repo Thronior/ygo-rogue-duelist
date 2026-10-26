@@ -3,6 +3,8 @@
  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  document.documentElement.classList.toggle('ios-web',ios);
  const scale=1.2,seen=new WeakSet();
+ // Effects that must end inside a fixed wall-clock window divide by this.
+ globalThis.presentationScale=scale;
  const slow=animation=>{if(!seen.has(animation)){seen.add(animation);animation.playbackRate/=scale;}return animation;};
  const animate=Element.prototype.animate;
  Element.prototype.animate=function(...args){return slow(animate.apply(this,args));};

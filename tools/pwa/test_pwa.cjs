@@ -1,4 +1,4 @@
-const {chromium,webkit}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium,webkit}=require('../require-module.cjs').requireModule('playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs');
 (async()=>{const kind=process.argv[2]||'chromium';const browser=await (kind==='webkit'?webkit:chromium).launch({headless:true,...(kind==='chromium'?{channel:'chrome',args:['--mute-audio']}:{} )});
 const context=await browser.newContext({viewport:{width:932,height:430},hasTouch:true,isMobile:true,acceptDownloads:true});

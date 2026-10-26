@@ -3,6 +3,12 @@ import {toss3DMarkup} from './toss-3d.js';
 export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  if(m?.forced||mode==='always')return true;
  if(mode==='never')return false;
+ // These effects have important optional timing windows which the core's
+ // Sometimes mask does not expose consistently across platforms. The core
+ // still supplies only currently legal choices, so honoring these cards here
+ // does not create an illegal activation window.
+ const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Kunai with Chain','Fairy Box','Spell Shield Type-8','Michizure']);
+ if(mode==='sometimes'&&(m?.selects||[]).some(choice=>sometimesExceptions.has(context.card?.(choice.code)?.name)))return true;
  // The core uses 0x7f for optional trigger-effect selection, including effects
  // after a Special Summon resolves. These are decisions, not empty timing windows.
  if(m?.spe_count===0x7f&&m.selects?.length)return true;
@@ -43,7 +49,8 @@ export function automaticChainResponse(m,skipOptional,M,R){
 }
 
 export function liveCardFacts(base,live,cards){
- const attribute={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'}[live.attribute]||base.attribute;
+ const attributes={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'};
+ const attribute=typeof live.attribute==='number'?Object.entries(attributes).filter(([bit])=>live.attribute&Number(bit)).map(([,name])=>name).join(' / ')||base.attribute:live.attribute||base.attribute;
  const race=cards.find(c=>c.race&&String(c.data?.race)===String(live.race))?.race||base.race;
  return {...base,attribute,race,atk:live.attack??base.atk,defense:live.defense??base.defense,level:live.level??base.level,data:{...base.data,race:live.race??base.data.race,attribute:live.attribute??base.data.attribute}};
 }

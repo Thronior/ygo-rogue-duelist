@@ -2,13 +2,18 @@ export const monsterTypes=['Warrior','Spellcaster','Fairy','Fiend','Zombie','Mac
 
 export const attributes={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'};
 
+export function effectiveAttributes(c,run,index){
+ if(!(c.data.type&1))return [];
+ const base=attributes[run.card_mods?.[index]?.[3]]||c.attribute;
+ const values=new Set(base?[base]:[]);
+ for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw;if(/^attribute_(light|dark|fire|water|wind|earth)$/.test(id||''))values.add(id.slice(10).toUpperCase());}
+ return [...values];
+}
+
 export function frameLevelName(a,b){const frame=c=>{const t=c.data.type;return t&1?t&64?3:t&128?2:t&16?0:1:t&2?4:5};return frame(a)-frame(b)||(b.level||0)-(a.level||0)||a.name.localeCompare(b.name)||a.id-b.id;}
 
 export function effectiveAttribute(c,run,index){
- if(!(c.data.type&1)||run.challenge_level===-1)return c.attribute||'';
- let attribute=attributes[run.card_mods?.[index]?.[3]]||c.attribute;
- for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw;if(/^attribute_(light|dark|fire|water|wind|earth)$/.test(id||''))attribute=id.slice(10).toUpperCase();}
- return attribute||'';
+ return effectiveAttributes(c,run,index).join(' / ');
 }
 export function attributeOrder(indices,pool,lookup,run){
  const values=new Map(indices.map(i=>[i,lookup(pool[i]).data.type&1?effectiveAttribute(lookup(pool[i]),run,i):'~']));
@@ -19,9 +24,9 @@ export function modifiedCard(c,run,index){const m=run.card_mods?.[index];let rac
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
-export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level;
+export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index);
 
- for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||f===c.attribute||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
+ for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
  if(k==='atk'&&matches)a+=n;else if(k==='def')d+=n;else if(k==='both'&&matches){a+=n;d+=n;}else if(k==='normal'&&(t&16)||k==='tribute'&&l>=5||k==='small'&&l<=3)a+=n;
 

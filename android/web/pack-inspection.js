@@ -13,6 +13,12 @@ export function allCardsPackDescription(pack) {
   return `This pack includes all ${category ? category + ' ' : ''}cards in the game.`;
 }
 
+export function formatPackChance(chance){
+ const value=Number(chance)||0;
+ if(value>0&&Math.round(value*100)===0)return '<1%';
+ return `${Math.round(value*100)}%`;
+}
+
 export function sortPackCards(entries,sort,card,registered){
  return [...entries].sort((a,b)=>{
   const x=card(a.id),y=card(b.id);

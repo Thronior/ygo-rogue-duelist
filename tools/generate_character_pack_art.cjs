@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const root=path.resolve(__dirname,'..');
 const content=JSON.parse(fs.readFileSync(path.join(root,'android/web/content.json'),'utf8'));
 const themes={
@@ -13,7 +13,7 @@ const css=`*{box-sizing:border-box}html,body{margin:0;background:#fff}#pack{widt
 (async()=>{const server=http.createServer((req,res)=>{if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<style>'+css+'</style><div id="pack"></div>');return}const f=path.resolve(root,'.'+decodeURIComponent(req.url));if(!f.startsWith(root+path.sep)){res.writeHead(403);res.end();return}try{res.end(fs.readFileSync(f))}catch{res.writeHead(404);res.end()}});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
 try{browser=await chromium.launch({headless:true,channel:'chrome'});const page=await browser.newPage({viewport:{width:360,height:720},deviceScaleFactor:2});await page.goto(`http://127.0.0.1:${server.address().port}/`);
 for(const p of packs){await page.evaluate(async p=>{const im=new Image();im.src='/assets/cards/'+p.card+'.jpg';await im.decode();const w=im.naturalWidth,h=im.naturalHeight;const cropH=h*.508,cropW=cropH*(360/676),cropX=(w-cropW)/2,cropY=h*.192;document.querySelector('#pack').style.setProperty('--tint',p.tint);document.querySelector('#pack').style.setProperty('--art-opacity',p.backgroundOpacity??.74);document.querySelector('#pack').innerHTML=`<div class="signature"><svg viewBox="${cropX} ${cropY} ${cropW} ${cropH}" preserveAspectRatio="xMidYMid slice"><image href="${im.src}" x="0" y="0" width="${w}" height="${h}"/></svg></div><div class="wash"></div><img class="logo" src="/assets/rogue-duelist-logo.png"><img class="portrait" src="/assets/${p.sprite}"><div class="seal top"></div><div class="seal bottom"></div>`;await Promise.all([...document.images].map(i=>i.decode()));},p);if(process.argv.includes('--logo-only')){
- const sharp=require(process.env.SHARP_MODULE||'C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp');
+ const sharp=require('./require-module.cjs').requireModule('sharp');
  const destination=path.join(root,'assets/packs',p.id+'.jpg');
  const original=fs.readFileSync(destination),rendered=await page.locator('#pack').screenshot({type:'png'});
  // Re-render only the logo rectangle from the original template. Keep the

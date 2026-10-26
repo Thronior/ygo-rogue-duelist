@@ -49,15 +49,17 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 	for tc in aux.Next(eg) do
 		if s.regfilter(tc) then
 			local tlv=tc:GetLevel()
-			if tc:IsControler(0) then
+			if tc:IsPreviousControler(0) then
+				g1:AddCard(tc)
 				if tlv>lv1 then lv1=tlv end
 			else
+				g2:AddCard(tc)
 				if tlv>lv2 then lv2=tlv end
 			end
 		end
 	end
 	if lv1>0 then Duel.RaiseEvent(g1,EVENT_CUSTOM+id,re,r,rp,0,lv1) end
-	if lv2>0 then Duel.RaiseEvent(g1,EVENT_CUSTOM+id,re,r,rp,1,lv2) end
+	if lv2>0 then Duel.RaiseEvent(g2,EVENT_CUSTOM+id,re,r,rp,1,lv2) end
 end
 function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	if not re then return false end

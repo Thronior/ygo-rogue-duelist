@@ -1,5 +1,5 @@
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict'),{spawn}=require('node:child_process');
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 process.env.TEMP=process.env.TMP=path.resolve('temp');
 const relayOnly=process.argv.includes('--relay');const external=process.argv.find(a=>a.startsWith('--endpoint='))?.slice(11);
 (async()=>{const python=external?null:spawn(path.resolve('python/python.exe'),['-B','-u','-c',"from multiplayer.signaling import server;s=server(port=0);print(s.server_port,flush=True);s.serve_forever()"],{cwd:process.cwd(),windowsHide:true});

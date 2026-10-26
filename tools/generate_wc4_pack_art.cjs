@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const root=path.resolve(__dirname,'..'),content=JSON.parse(fs.readFileSync(path.join(root,'android/web/content.json')));
 const sources=JSON.parse(fs.readFileSync(path.join(root,'data/wc4-pack-sources.json'))).packs;
 const aliases={'Red-Eyes B. Dragon':'Red-Eyes Black Dragon','B. Skull Dragon':'Black Skull Dragon'};

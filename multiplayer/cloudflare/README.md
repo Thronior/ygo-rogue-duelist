@@ -10,4 +10,4 @@ Deploy `wrangler.jsonc` using Wrangler on Workers Free. `/health` reports `relay
 
 Seat tokens authenticate reconnects and relay sockets; knowing a room code cannot steal an occupied seat. Rooms expire after one day of inactivity. Creation/join rate limits, room capacity, signaling queues and packet sizes are bounded. Worker observability is disabled. No user passwords or Cloudflare keys are shipped with the game.
 
-Checks: `node --test test.mjs`; `android/test_tag_peer.cjs --endpoint=<public HTTPS URL>` with and without `--relay`; full `android/test_tag_integration.cjs` using the configured endpoint. Tests use isolated saves.
+Checks: `node --test test.mjs`; `android/test_tag_peer.cjs --endpoint=<public HTTPS URL>` with and without `--relay`. Tests use isolated saves.

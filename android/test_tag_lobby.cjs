@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 const assert=require('node:assert/strict'),path=require('node:path');process.env.TEMP=process.env.TMP=path.resolve('temp');
 (async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});try{
  const pages=await Promise.all([0,1].map(async()=>{const p=await browser.newPage({viewport:{width:924,height:416},hasTouch:true,isMobile:true});await p.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){this.muted=true;return Promise.resolve()}});await p.goto('http://127.0.0.1:4197/?tagtest=1');await p.locator('[data-menu="0"]').waitFor({timeout:120000});await p.locator('[data-menu="0"]').dispatchEvent('click');await p.locator('[data-tag="host"]').waitFor();return p}));

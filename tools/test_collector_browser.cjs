@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const assert=require('node:assert/strict');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome',args:['--mute-audio','--disable-features=LocalNetworkAccessChecks']});const errors=[];
 try{const contexts=await Promise.all([browser.newContext({viewport:{width:390,height:844}}),browser.newContext({viewport:{width:932,height:430}})]);const pages=[];

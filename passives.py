@@ -82,6 +82,7 @@ e:SetCondition(function(e,tp,eg) return not used and eg:IsExists(function(c) ret
 e:SetOperation(function(e,tp,eg) local g=eg:Filter(function(c) return c:IsControler(1) and c:IsFaceup() and c:IsLevelBelow(4) end,nil) local c=g:GetFirst() if c then used=true local token=Duel.CreateToken(0,c:GetOriginalCode()) Duel.SendtoHand(token,0,REASON_EFFECT) end end)
 Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_SUCCESS) Duel.RegisterEffect(special,0) local flip=e:Clone() flip:SetCode(EVENT_FLIP_SUMMON_SUCCESS) Duel.RegisterEffect(flip,0) end""")
   elif kind=='atk':stat('EFFECT_UPDATE_ATTACK',amount,condition)
+  elif kind=='attribute':stat('EFFECT_ADD_ATTRIBUTE',f'ATTRIBUTE_{filter}')
   elif kind=='def':stat('EFFECT_UPDATE_DEFENSE',amount)
   elif kind=='both':
    stat('EFFECT_UPDATE_ATTACK',amount,condition);stat('EFFECT_UPDATE_DEFENSE',amount,condition)

@@ -14,11 +14,11 @@ export function packSummary(content,pid){
   ['Chaos',/\bChaos\b/i],['Amazoness',/\bAmazoness\b/i],['Archfiend',/\bArchfiend\b/i],['Blue-Eyes',/Blue-Eyes/i],['Buster Blader',/Buster Blader/i],
   ['Dark Magician',/Dark Magician/i],['Dark Scorpion',/Dark Scorpion/i],['Destiny Board',/Destiny Board|Spirit Message/i],['Exodia',/Exodia|Forbidden One/i],
   ['Gravekeeper',/Gravekeeper|Necrovalley/i],['Harpie',/Harpie/i],['Horus LV',/Horus.*LV|LV[0-9]/i],['Magnet Warrior',/Magnet Warrior/i],
-  ['Ninja',/Ninja|Ninjitsu/i],['Ojama',/Ojama/i],['Red-Eyes',/Red-Eyes/i],['Relinquished',/Relinquished|Black Illusion Ritual/i],['Toon',/Toon/i],
+  ['Ninja',/Ninja|Ninjitsu/i],['Ojama',/Ojama/i],['Red-Eyes',/Red-Eyes/i],['Relinquished',/Relinquished|Black Illusion Ritual/i],['Spirit',null],['Toon',/Toon/i],
   ['Union',/\bUnion\b|X-Head Cannon|XY-Dragon|XYZ-Dragon|XZ-Tank|YZ-Tank/i],['Umi',/\bUmi\b|Legendary Fisherman/i]
  ];
  const present=new Set();
- for(const c of cards){const text=`${c.name} ${c.desc||''}`;for(const [name,re] of archetypes)if(re.test(text))present.add(name);for(const code of c.data?.setcodes||[]){const series={4:'Amazoness',15:'Ojama',26:'Dark Scorpion',46:'Gravekeeper',65:'LV',69:'Archfiend',100:'Harpie'}[Number(code)&0xfff];if(series)present.add(series)}}
+ for(const c of cards){const text=`${c.name} ${c.desc||''}`;for(const [name,re] of archetypes)if(re?.test(text))present.add(name);if(c.data?.type&0x200)present.add('Spirit');if(c.data?.type&0x400000)present.add('Toon');for(const code of c.data?.setcodes||[]){const series={4:'Amazoness',15:'Ojama',26:'Dark Scorpion',46:'Gravekeeper',65:'LV',69:'Archfiend',100:'Harpie'}[Number(code)&0xfff];if(series)present.add(series)}}
  const isDartz=pid==='DRAFT-DARTZ';
  const series=isDartz?['Chaos','Umi']:archetypes.map(([name])=>name).filter(name=>present.has(name));
  const composition=isDartz?'Attributes: LIGHT, DARK, WATER. ':

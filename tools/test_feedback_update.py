@@ -20,5 +20,14 @@ try:f.choose_type(r,'Dragon')
 except ValueError:pass
 else:raise AssertionError('choice changed')
 from collections import Counter
-counts=Counter(f.draw_curses(random.Random(7),50000));mean=sum(n for k,n in counts.items() if k!='relic_seal')/(len(counts)-1);assert .45<counts['relic_seal']/mean<.55
-print('PASS Type choice validation and half-weight Relic Seal')
+rng=random.Random(7);counts=Counter()
+for _ in range(50000):counts.update(f.draw_curses(rng,1))
+mean=sum(n for k,n in counts.items() if k!='relic_seal')/(len(counts)-1);assert .45<counts['relic_seal']/mean<.55
+for seed in range(40):
+ curses=f.draw_curses(random.Random(seed),40)
+ assert curses.count('mercy')<=1,('Dulled Edge repeated within one opponent',seed,curses)
+assert f.dedupe_curses(['mercy','mercy'],per_encounter=True)==['mercy']
+assert f.dedupe_curses(['mercy','mercy'])==['mercy','mercy'],'Dulled Edge may reappear on a later opponent'
+mercy_seed=next(seed for seed in range(500) if f.draw_curses(random.Random(seed),1)==['mercy'])
+assert f.draw_curses(random.Random(mercy_seed),1,existing=['mercy'])==['mercy'],'previous encounters must not block Dulled Edge'
+print('PASS Type choice validation, half-weight Relic Seal, and one Dulled Edge per opponent')

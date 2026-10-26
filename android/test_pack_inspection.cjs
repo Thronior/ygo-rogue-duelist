@@ -1,5 +1,5 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome',env:{...process.env,TEMP:process.cwd()+'/temp',TMP:process.cwd()+'/temp'}});try{
  const page=await browser.newPage({viewport:{width:924,height:416},hasTouch:true,isMobile:true});
  await page.setContent('<dialog id="modal" style="max-height:250px;overflow:auto"></dialog>');

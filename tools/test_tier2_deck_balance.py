@@ -17,7 +17,7 @@ for character in roster:
  deck=content.opponent_record(4,character)
  used=Counter(cards[c] for s in ('main','extra','side') for c in deck.get(s,[]) if cards[c] in premium)
  assert sum(used.values())<=policy['max_total'],(character,dict(used))
-report=json.loads((ROOT/'docs/deck-balance-oct5.json').read_text(encoding='utf8'))
+report=json.loads((ROOT/'docs/balance/deck-balance-oct5.json').read_text(encoding='utf8'))
 for row in report['decks']:
  deck=deck_files.read(row['deck'],{})
  assert {s:len(deck[s]) for s in ('main','extra','side')}==row['before_sizes'],row['deck']

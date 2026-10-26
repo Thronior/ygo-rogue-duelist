@@ -51,7 +51,7 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 	for tc in aux.Next(eg) do
 		if s.regfilter(tc) then
 			local tlv=tc:GetLevel()
-			if tc:IsControler(0) then
+			if tc:IsPreviousControler(0) then
 				if tlv>lv1 then lv1=tlv end
 			else
 				if tlv>lv2 then lv2=tlv end

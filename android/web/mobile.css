@@ -40,7 +40,6 @@
 .shop-layout>aside>[data-do=scorecard]{padding:3px;font-size:11px}
 @media(max-height:450px){.shop header{min-height:42px}.shop header h2{font-size:15px}.shop header .tools{gap:4px}.shop header button{font-size:11px;padding:5px}.shop header .coins{font-size:22px}.shop-layout{padding:4px;gap:6px}.shop-layout>aside{grid-template-rows:30px minmax(20px,1fr) 18px minmax(110px,1.3fr) 26px 26px;gap:2px}.shop .welcome{height:30px;font-size:13px}.shop-layout h3{font-size:12px}.shop .shop-product small{font-size:9px}}
 
-.activation-cue{top:3%;bottom:3%;display:flex;align-items:center;justify-content:center;gap:15px;animation:cue-in 1s both;background:#051420d9}.activation-cue img{height:95%;max-width:50%;filter:drop-shadow(0 0 16px #fff4bd)}.activation-cue strong{font-size:clamp(15px,2vw,27px);max-width:40%}
 .moving-card{position:fixed;z-index:180;width:44px;height:64px;pointer-events:none;filter:drop-shadow(0 0 8px #fff1ae)}
 .achievement-art{width:65px;height:80px}.unlock-art{display:inline-flex;flex-direction:column;align-items:center;margin:10px;width:115px}.unlock-art img{width:90px;height:110px}.shop-reference-buttons{display:flex;gap:4px}.shop-reference-buttons button{flex:1;padding:3px;font-size:10px}
 
@@ -373,6 +372,7 @@
 .field-selection-panel{background:#071923e8;border:1px solid #a4e7e2;border-radius:9px;padding:6px;min-height:0}
 
 .cursed-reward{height:100dvh;overflow:auto;display:flex;flex-direction:column;padding:20px;background:linear-gradient(#130a1d88,#130a1dbb),url('assets/cursed-relic-background.png') center/cover;color:#f6edf8}.cursed-reward>header{display:block;text-align:center;flex-shrink:0;background:transparent;border:0;padding:0 0 12px}.cursed-reward h1{font-size:clamp(24px,4vw,42px);margin:8px}.cursed-reward small{letter-spacing:.2em;color:#dfb0eb}.cursed-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:min(1100px,100%);margin:auto; padding:20px 0}.cursed-options article{display:flex;flex-direction:column;background:rgba(80, 0, 0, 0.5);border:1px solid #b77fc8;border-radius:18px;padding:16px;box-shadow:0 8px 30px #0008}.cursed-options h2{color:#ffe0a0;text-align:center;font-size:clamp(16px,2vw,24px);margin:0 0 12px}.cursed-options .relic-artwork{width:100%;max-height:150px}.cursed-options article>p{flex:1;line-height:1.45}.cursed-options article>button{width:100%;margin-top:auto}.cursed-reward>footer{text-align:center;position:sticky;bottom:0;padding:8px;background:#170c21dd;border-radius:12px}.cursed-reward>footer button{min-height:44px}@media(max-width:620px) and (orientation:portrait){.cursed-options{grid-template-columns:1fr}.cursed-options article{display:grid;grid-template-columns:90px 1fr;gap:10px}.cursed-options h2{grid-column:1/-1}.cursed-options article>button{grid-column:1/-1}.cursed-options article>p{margin:0}}
+.cursed-reward-topbar{position:sticky;top:0;z-index:4;display:flex;justify-content:flex-end;gap:8px;width:min(1100px,100%);margin:0 auto 8px;padding:6px 8px;flex-shrink:0;background:#170c21ee;border:1px solid #b77fc8;border-radius:12px}.cursed-reward-topbar button{min-height:42px;min-width:112px}
 
 .cursed-reward{overflow:hidden}.cursed-options{flex:1;min-height:0;overflow:auto;margin:0 auto;align-content:center}.cursed-options article>button{min-height:44px}.cursed-reward>footer{position:static;flex-shrink:0}@media(max-width:620px) and (orientation:portrait){.cursed-options{align-content:start}}
 
@@ -758,17 +758,6 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
 .spell-counter{left:auto;right:3px;color:#a9f7ff;border-color:#83e2ff}
 .zone .sword{z-index:5}
 .zone:has(>.sword) .card-counter{top:calc(44% + 3px)}
-.card-removal-fx{position:fixed;z-index:245;pointer-events:none;border-radius:6px}
-.card-removal-fx.destroy{background:radial-gradient(ellipse,#fff7cf 0%,#ff7546aa 30%,transparent 70%)}
-.card-removal-fx.destroy i{position:absolute;left:47%;top:10%;width:6%;height:80%;background:#fff4dc;transform:rotate(35deg)}
-.card-removal-fx.destroy i:nth-child(2){transform:rotate(-35deg)}
-.card-removal-fx.destroy i:nth-child(3){transform:rotate(75deg)}
-.card-removal-fx.destroy i:nth-child(4){transform:rotate(-75deg)}
-.card-removal-fx.tribute{border:3px solid #ffe59a;box-shadow:0 0 12px #ffd66f,inset 0 0 16px #fff1ac;background:linear-gradient(transparent,#fff1ad99,transparent)}
-.card-removal-fx.tribute i{position:absolute;left:20%;top:20%;height:55%;width:3px;background:#fff8d7}
-.card-removal-fx.tribute i:nth-child(2){left:40%;top:0}
-.card-removal-fx.tribute i:nth-child(3){left:60%;top:10%}
-.card-removal-fx.tribute i:nth-child(4){left:80%;top:30%}
 @keyframes counter-pop{from{transform:scale(1.5);filter:brightness(2)}to{transform:scale(1);filter:none}}
 @media(prefers-reduced-motion:reduce){.card-counter{animation:none}}
 
@@ -1861,9 +1850,12 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 
 .engine-rewards .reward-view{flex:none;padding:4px 8px;min-height:28px;max-width:100%;font-size:12px}
 
-.deck-preview-overlay{position:absolute;inset:5%;z-index:20;display:flex;flex-direction:column;gap:10px;padding:12px;min-height:0;border:2px solid #8fb7c8;border-radius:12px;background:#102b36;box-shadow:0 0 0 100vmax #0008;overflow:hidden}
-.deck-preview-overlay>.modal-head{flex:none}.deck-preview-overlay>.cardgrid,.deck-preview-overlay>.inspect{overflow:auto;min-height:0}
+.deck-preview-overlay{position:fixed;inset:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:92vw;max-width:850px;height:90vh;height:90dvh;max-height:900px;z-index:20;display:flex;flex-direction:column;gap:10px;padding:12px;min-height:0;border:2px solid #8fb7c8;border-radius:12px;background:#102b36;box-shadow:0 0 0 100vmax #0008;overflow:hidden}
+.deck-preview-overlay>.modal-head{flex:none}.deck-preview-overlay>.cardgrid,.deck-preview-overlay>.deck-inspect{overflow:auto;min-height:0}
 .deck-preview-overlay .cardgrid{align-content:start;grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+.deck-preview-overlay>.deck-inspect{display:grid;grid-template-columns:minmax(80px,28%) minmax(0,1fr);flex:1 1 auto;gap:12px;align-items:start}
+.deck-preview-overlay>.deck-inspect>img{width:100%;max-height:65dvh;object-fit:contain}
+.deck-preview-overlay>.deck-inspect>div{min-width:0;overflow-wrap:anywhere}
 .character-select-page .portrait[data-completed-level="-1"]{background:#243b46}
 .character-select-page .portrait[data-completed-level="0"],.level-badge[data-challenge-level="0"]{background:linear-gradient(135deg,#31966c,#104a36);border-color:#72deb1}
 .character-select-page .portrait[data-completed-level="1"],.level-badge[data-challenge-level="1"]{background:linear-gradient(135deg,#368cd0,#173c89);border-color:#85c9ff}
@@ -2003,3 +1995,79 @@ dialog.cpu-test-picker::backdrop{background:#020910d9;backdrop-filter:blur(3px)}
 .shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper>img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center bottom!important;pointer-events:none!important}
 .shop-compact:not(.relicless-shop) .shop-counter>.shop-balance,.shop-compact:not(.relicless-shop) .shop-counter>button:not(.secret-shopkeeper){z-index:1!important}
 @media(orientation:portrait){.shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop>.secret-shopkeeper{display:none!important;visibility:hidden!important}}
+
+/* Duel motion (duel-motion.js). Overlays sit above the board, never take input, and animate transform/opacity only. */
+.duel-fx{position:fixed;z-index:245;pointer-events:none}
+.moving-card{object-fit:contain;transform-origin:50% 50%;will-change:transform,opacity}
+.land-ring{border:2px solid var(--fx-color);border-radius:5px;box-shadow:0 0 10px var(--fx-color),inset 0 0 8px var(--fx-color)}
+.shatter-flash{border-radius:8px;background:radial-gradient(ellipse at 48% 42%,#fffbe8 0%,#ffc066dd 24%,#ff5a2e66 48%,transparent 72%)}
+.shatter-card{position:absolute;inset:0}
+.shatter-card.defense{transform:rotate(90deg) scale(.85)}
+.shatter-card i{position:absolute;inset:0;background:center/contain no-repeat;filter:drop-shadow(0 0 3px #ff8a3d)}
+.tribute-rise{border-radius:6px;box-shadow:0 0 14px #ffe08a,inset 0 0 18px #fff1ad99}
+.tribute-rise>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:brightness(1.5) sepia(.35)}
+.tribute-rise>img.defense{transform:rotate(90deg) scale(.85)}
+.tribute-rise i{position:absolute;bottom:12%;width:3px;height:42%;border-radius:2px;background:linear-gradient(transparent,#fff8d7);animation:tribute-mote .5s ease-out both}
+.tribute-rise i:nth-of-type(1){left:22%}.tribute-rise i:nth-of-type(2){left:41%;animation-delay:.05s}.tribute-rise i:nth-of-type(3){left:60%;animation-delay:.02s}.tribute-rise i:nth-of-type(4){left:78%;animation-delay:.08s}
+@keyframes tribute-mote{from{transform:translateY(25%);opacity:0}35%{opacity:1}to{transform:translateY(-95%);opacity:0}}
+.summon-ring{border:2px solid var(--fx-color);border-radius:7px;box-shadow:0 0 14px var(--fx-color),inset 0 0 10px var(--fx-color)}
+.summon-ring.set{border-width:1px;box-shadow:0 0 8px var(--fx-color)}
+.summon-pillar{transform-origin:50% 100%}
+.summon-pillar:before{content:'';position:absolute;left:16%;right:16%;top:-140%;bottom:0;border-radius:50% 50% 6px 6px;background:linear-gradient(to top,var(--fx-color),#ffffffd9 28%,var(--fx-color) 55%,transparent);opacity:.7}
+.summon-dust i{position:absolute;bottom:2%;width:6px;height:6px;border-radius:50%;background:#f1e3c2;box-shadow:0 0 5px #fff4;animation:summon-dust .52s ease-out both}
+.summon-dust i:nth-child(1){left:6%;--dx:-18px}.summon-dust i:nth-child(2){left:24%;--dx:-9px}.summon-dust i:nth-child(3){left:44%;--dx:-3px}.summon-dust i:nth-child(4){left:56%;--dx:3px}.summon-dust i:nth-child(5){left:74%;--dx:9px}.summon-dust i:nth-child(6){left:90%;--dx:18px}
+@keyframes summon-dust{from{transform:translate(0,0) scale(1);opacity:.9}to{transform:translate(var(--dx),-12px) scale(.35);opacity:0}}
+.impact-burst{border-radius:50%;background:radial-gradient(circle,#fff 0%,#ffd27acc 20%,#ff6a3a55 42%,transparent 68%)}
+.impact-burst i{position:absolute;left:50%;top:50%;width:48%;height:3px;margin-top:-1.5px;transform-origin:0 50%;border-radius:2px;background:linear-gradient(90deg,#fff,#ffb25a00)}
+.impact-burst i:nth-child(1){transform:rotate(-18deg) translateX(22%)}.impact-burst i:nth-child(2){transform:rotate(55deg) translateX(22%)}.impact-burst i:nth-child(3){transform:rotate(128deg) translateX(22%)}.impact-burst i:nth-child(4){transform:rotate(200deg) translateX(22%)}.impact-burst i:nth-child(5){transform:rotate(268deg) translateX(22%)}
+.zone.attack-source{z-index:6}
+.life-flash{background:linear-gradient(90deg,#ffffff22,#ffffffcc,#ffffff22)}
+.life-flash.heal{background:linear-gradient(90deg,transparent,#c9ffd9dd,transparent)}
+.life-edge{background:radial-gradient(ellipse 80% 55% at 50% 100%,#ff2b2b70,transparent 70%)}
+.life-edge.enemy{background:radial-gradient(ellipse 80% 55% at 50% 0%,#ff2b2b70,transparent 70%)}
+.life-edge.heal{background:radial-gradient(ellipse 80% 55% at 50% 100%,#47ff8a55,transparent 70%)}
+.life-edge.enemy.heal{background:radial-gradient(ellipse 80% 55% at 50% 0%,#47ff8a55,transparent 70%)}
+.chain-link-badge{position:absolute;z-index:9;left:-7px;top:-7px;min-width:21px;height:21px;padding:0 5px;border-radius:11px;display:grid;place-items:center;font:700 12px/1 Arial,sans-serif;color:#10202a;background:radial-gradient(circle at 35% 30%,#fff,var(--fx-color) 62%);border:1px solid #fffa;box-shadow:0 0 8px var(--fx-color),0 1px 3px #000c;pointer-events:none}
+.chain-link-badge.negated{background:radial-gradient(circle at 35% 30%,#fff,#c64552 62%);box-shadow:0 0 8px #ff4458,0 1px 3px #000c}
+.chain-link-badge.quiet{display:none}
+.activation-flare{border:2px solid var(--fx-color);border-radius:7px;box-shadow:0 0 18px var(--fx-color),inset 0 0 14px var(--fx-color)}
+.activation-flare i{position:absolute;inset:-35%;border-radius:50%;background:repeating-conic-gradient(var(--fx-color) 0deg 5deg,transparent 5deg 30deg);opacity:.4;-webkit-mask-image:radial-gradient(circle,#000 25%,transparent 68%);mask-image:radial-gradient(circle,#000 25%,transparent 68%);animation:flare-turn .5s linear both}
+@keyframes flare-turn{from{transform:rotate(0deg)}to{transform:rotate(45deg)}}
+.chain-cue img{box-shadow:0 0 14px var(--fx-color,#fff4bd)}
+.negation-slash i{position:absolute;left:-6%;right:-6%;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:#ff3b4f;box-shadow:0 0 8px #ff3b4f,0 0 2px #fff;transform:rotate(52deg)}
+.negation-slash i+i{transform:rotate(-52deg)}
+.target-lock i{position:absolute;width:28%;height:20%;border:3px solid #ffe36a;filter:drop-shadow(0 0 3px #ffb800)}
+.target-lock i:nth-child(1){left:-6%;top:-6%;border-right:0;border-bottom:0;border-top-left-radius:4px}
+.target-lock i:nth-child(2){right:-6%;top:-6%;border-left:0;border-bottom:0;border-top-right-radius:4px}
+.target-lock i:nth-child(3){left:-6%;bottom:-6%;border-right:0;border-top:0;border-bottom-left-radius:4px}
+.target-lock i:nth-child(4){right:-6%;bottom:-6%;border-left:0;border-top:0;border-bottom-right-radius:4px}
+.link-beam{transform-origin:0 50%;border-radius:2px;background:linear-gradient(90deg,var(--fx-color),#fff,var(--fx-color));box-shadow:0 0 10px var(--fx-color)}
+.phase-glint{border-radius:3px;background:linear-gradient(90deg,transparent,#fffbd2dd,transparent);box-shadow:0 0 12px #ffff88}
+.duel-cue.managed-cue{animation:none}
+.duel-cue.turn-cue{overflow:hidden;letter-spacing:.06em}
+.duel-cue .cue-sweep{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#fff7b4,transparent);box-shadow:0 0 8px #fff7b4}
+.float-lp{animation-name:lp-pop}
+@keyframes lp-pop{0%{opacity:0;transform:scale(.55)}12%{opacity:1;transform:scale(1.2)}24%{transform:scale(.97)}32%{transform:scale(1)}65%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-34px)}}
+body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.reaction-prompt,.field-reaction,.reaction-picker,.reaction-orb,.prompt,.action-pop,.effect-feedback,.duel-cue){display:none!important}
+.compatibility-mode .duel-fx,.compatibility-mode .duel-fx *,.compatibility-mode .moving-card{filter:none!important}
+.compatibility-mode .moving-card{will-change:auto}
+.performance-mode .summon-dust,.performance-mode .activation-flare i,.performance-mode .impact-burst i,.performance-mode .tribute-rise i{display:none}
+.performance-mode .shatter-card i{filter:none}
+@media(prefers-reduced-motion:reduce){.duel-fx *{animation:none!important}}
+/* Field refresh (2026-10-26). Appearance only: no size, spacing, font size or position changes, so the board
+   resizes exactly as before. <html class="classic-field"> shows the previous look; deleting this block removes it.
+   :where() keeps these at base specificity, so selection, target and attack states still win. */
+:where(html:not(.classic-field)) .zone{border-color:#9ec9cc4d;border-radius:6px;background:radial-gradient(120% 85% at 50% 0%,#b9a8ff33,transparent 60%),linear-gradient(180deg,#373f778c,#1f2552a6);box-shadow:inset 0 0 0 1px #0006,inset 0 0 12px #a99bff2e,0 2px 5px #0007}
+:where(html:not(.classic-field)) .zone:where([data-zone*=",4,"]){background:radial-gradient(120% 85% at 50% 0%,#b9a8ff33,transparent 60%),linear-gradient(180deg,#373f778c,#1f2552a6)}
+:where(html:not(.classic-field)) .zone:where([data-zone*=",8,"]){background:radial-gradient(120% 85% at 50% 0%,#8fb4ff33,transparent 60%),linear-gradient(180deg,#1a46668c,#0d2c47a6)}
+:where(html:not(.classic-field)) .zone.pile{border-color:#d9bd668c;background:radial-gradient(120% 85% at 50% 0%,#b9a8ff33,transparent 60%),linear-gradient(180deg,#373f778c,#1f2552a6);box-shadow:inset 0 0 0 1px #0006,inset 0 0 12px #a99bff2e,0 2px 5px #0007}
+/* Zone labels stay hidden from view; screen readers still read them. */
+:where(html:not(.classic-field)) .zone .zone-name{width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* A deck with more than 10 cards shows a thick stack of card edges (the pile renderer adds .stacked). Drop shadows follow
+   the card itself; the top card shrinks slightly so the stack stays inside its zone. No filters in compatibility mode. */
+:where(html:not(.classic-field):not(.compatibility-mode)) .zone.pile.stacked>img{transform:translate(-1px,-2px) scale(.95);filter:drop-shadow(1px 1px 0 #e9dcbf) drop-shadow(1px 1px 0 #3b2414) drop-shadow(1px 1px 0 #e9dcbf) drop-shadow(1px 1px 0 #3b2414) drop-shadow(1px 1px 0 #e9dcbf) drop-shadow(0 2px 3px #000c)}
+/* The phase timeline: dark segments on a gold track; the current phase lights up. */
+:where(html:not(.classic-field)) .phases{background:linear-gradient(90deg,transparent,#d9bd6666 10%,#d9bd6666 90%,transparent) center/100% 1px no-repeat}
+:where(html:not(.classic-field)) .phases button{border-color:#4f7f8c;border-radius:9px;background:linear-gradient(#173a48,#0a1d26);color:#a9cfd6;text-shadow:0 1px 1px #000a;box-shadow:inset 0 1px 0 #ffffff14,0 1px 3px #0009;letter-spacing:.04em}
+:where(html:not(.classic-field)) .phases button.active{border-color:#fff1b0;background:linear-gradient(#fff4b0,#e5bf4f);color:#203a2a;text-shadow:none;box-shadow:0 0 10px #ffe58a99,inset 0 1px 0 #fffc}
+@media(hover:hover){:where(html:not(.classic-field)) .phases button:not(:disabled,.active):hover{border-color:#e7c77a;color:#ffe9a8}}

@@ -38,7 +38,7 @@ assert.equal(policy().summonUtility(mokey),true,'still summon Mokey after Smackd
 // Ojama support: Rescue Cat's two targets, Human-Wave Tactics and Fitting Room.
 clear();const cat=card('Rescue Cat',0,L.MZONE),momonga1=card('Nimble Momonga',0,L.DECK),momonga2=card('Nimble Momonga',0,L.DECK,1);
 zones[0][L.MZONE]=[cat];zones[0][L.DECK]=[momonga1,momonga2];smart=policy();
-assert.equal(smart.activation(cat),100,'use Rescue Cat when two legal Beasts can be summoned');
+assert.equal(smart.activation(cat),110,'use Rescue Cat when two legal Beasts can be summoned');
 assert.ok(smart.targetScore('Rescue Cat',momonga1,{cands:[momonga1,momonga2]})>0,'select Rescue Cat targets');
 clear();engine.phase=512;const tactics=card('Human-Wave Tactics',0,L.SZONE,0,8),mokeyDeck=card('Mokey Mokey',0,L.DECK);
 zones[0][L.SZONE]=[tactics];zones[0][L.DECK]=[mokeyDeck];smart=policy(0,{to_bp:false});
@@ -89,6 +89,11 @@ zones[0][L.HAND]=[riryoku];zones[0][L.MZONE]=[vorse];zones[1][L.MZONE]=[blue,ene
 assert.ok(smart.activation(riryoku)>=90,'use Riryoku with face-up monsters on both sides');
 assert.ok(smart.targetScore('Riryoku',vorse,{cands:[vorse,blue,enemyVorse]})>0&&smart.targetScore('Riryoku',blue,{cands:[vorse,blue,enemyVorse]})>0,'select one monster from each side for Riryoku');
 assert.ok(smart.targetScore('Riryoku',enemyVorse,{cands:[vorse,blue,enemyVorse]})<0,'do not select two monsters from the same side for Riryoku');
+assert.ok(smart.targetScore('Riryoku',blue,{min:1,cands:[vorse,blue]})>smart.targetScore('Riryoku',vorse,{min:1,cands:[vorse,blue]}),'halve the opponent on Riryoku’s follow-up choice so our monster gets the ATK');
+clear();const michizure=card('Michizure',0,L.SZONE,0,8),michizureTarget=card('Blue-Eyes White Dragon',1,L.MZONE);zones[0][L.SZONE]=[michizure];zones[1][L.MZONE]=[michizureTarget];engine.player=1;engine.phase=8;smart=policy(0,{to_bp:false});
+assert.ok(smart.activation(michizure,true)>=95,'activate Michizure when its trigger is available and it can destroy a valuable opposing monster');
+assert.ok(smart.targetScore('Michizure',michizureTarget,{})>0,'target the opposing monster for Michizure');
+michizureTarget.is_immune=true;smart=policy(0,{to_bp:false});assert.equal(smart.activation(michizure,true),-1,'do not waste Michizure on a monster immune to Trap effects');
 clear();engine.player=1;engine.phase=8;engine.attackCard=card('Vorse Raider',1,L.MZONE);const hero=card('A Hero Emerges',0,L.SZONE,0,8),body=card('Blue-Eyes White Dragon',0,L.HAND);
 zones[0][L.SZONE]=[hero];zones[0][L.HAND]=[body];smart=policy(0,{to_bp:false});
 assert.ok(smart.activation(hero,true)>=90,'accept A Hero Emerges when an opponent attacks and a summonable monster is in hand');

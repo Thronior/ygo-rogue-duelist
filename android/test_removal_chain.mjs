@@ -1,7 +1,7 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,L} from './web/duel.js';import {smartContext} from './web/smart_policy.js';
 const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),meta=read('content'),data=read('engine-data'),id=n=>meta.cards.find(c=>c.name===n).id;
 for(const p of [0,1]){
- const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],player:1-p,activeChain:[],events:[],visuals:[],peak:{}});
+ const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],player:1-p,activeChain:[],events:[],visuals:[],peak:{},fusionMaterialCandidates:[],fusionMaterialCandidateKeys:new Set()});
  // Both targets warrant a discard: this test isolates chain reservations.
  const ox={code:id('Battle Ox'),controller:1-p,location:L.MZONE,sequence:0,position:1,attack:3200};
  const dragon={code:id('Blue-Eyes White Dragon'),controller:1-p,location:L.MZONE,sequence:1,position:1,attack:3000};let monsters=[ox,dragon];

@@ -4,6 +4,8 @@ from pathlib import Path
 PACKS=json.loads((Path(__file__).parent/'data/packs.json').read_text(encoding='utf8'))
 import custom_cards
 custom_cards.install_packs(PACKS)
+from pack_merges import merge_pack_catalog
+PACKS,MERGED_PACK_ALIASES=merge_pack_catalog(PACKS)
 FIXED_OPPONENTS=json.loads((Path(__file__).parent/'data/fixed-opponents.json').read_text(encoding='utf8'))['opponents']
 GAME_DECKS={int(k):v for k,v in FIXED_OPPONENTS.items()}
 PACK_BY_ID={p['id']:p for p in PACKS}
@@ -11,6 +13,7 @@ PACK_BY_ID={p['id']:p for p in PACKS}
 PACK_ALIASES={'EN-TP1':'EN-TP4','EN-TP2':'EN-TP4','EN-TP3':'EN-TP4','EN-TP5':'EN-TP4','JP-P5':'JP-PP7','JP-PP6':'JP-PP7'}
 PACK_ALIASES.update({f'JP-P{n}':'JP-PP7' for n in range(1,5)})
 PACK_ALIASES.update({f'JP-LE{n}':'JP-LEC' for n in range(1,9)})
+PACK_ALIASES.update(MERGED_PACK_ALIASES)
 PACK_BY_ID.update({old:PACK_BY_ID[new] for old,new in PACK_ALIASES.items()})
 def normalize_pack_references(value):
  if isinstance(value,dict):
@@ -129,7 +132,7 @@ artifact('pendulum','Sun and Moon Dial',105,'Your monsters gain 400 ATK during y
 artifact('desperate',"Underdog's Banner",90,'While your LP are lower and you control fewer monsters, your monsters gain 900 ATK.','Banner of Courage','underdog',900,'offense')
 artifact('inkwell','Bottomless Draw',115,'At your End Phase, if your hand is empty, draw 1 card.','Jar of Greed','empty_draw',1,'draw')
 artifact('receipt','Golden Receipt',80,'Buying a booster refunds 12 coins after payment. Cannot make the purchase free.','Upstart Goblin','pack_refund',12)
-artifact('razor','Razor Ledger',85,'Win with exactly 20 main-deck cards to earn 30 extra coins.','Narrow Pass','lean_bonus',30)
+artifact('razor','Razor Ledger',85,'Win a Duel with a Main Deck at this run’s minimum size to earn 30 extra coins.','Narrow Pass','lean_bonus',30)
 artifact('phoenix_debt','Phoenix IOU',90,'After a victory below 2,000 LP, gain 40 coins before healing.','Spirit of the Breeze','clutch_bonus',40)
 artifact('stamp',"Collector's Stamp",80,'Every single you buy includes a free random unlocked card.','Gift of The Mystical Elf','single_stamp',1,'draw')
 

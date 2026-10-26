@@ -1,5 +1,5 @@
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict');
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 (async()=>{const root=path.resolve('android/web');const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.end();return}fs.readFile(file,(err,body)=>{if(err){res.writeHead(404);res.end();return}res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.json')?'application/json':file.endsWith('.jpg')?'image/jpeg':'text/html');res.end(body)})});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
  const browser=await chromium.launch({headless:true,channel:'chrome',env:{...process.env,TEMP:path.resolve('temp'),TMP:path.resolve('temp')}});try{
  const page=await browser.newPage({viewport:{width:924,height:416},hasTouch:true,isMobile:true});await page.route('**/mobile.js',route=>route.fulfill({contentType:'text/javascript',body:''}));await page.goto(origin+'/index.html');

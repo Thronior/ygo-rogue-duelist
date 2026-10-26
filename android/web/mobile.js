@@ -76,7 +76,7 @@ import {collectorResponseOverlay,automaticChainResponse,chainWindowAllowed,liveC
 
 import {playlists,bossTheme} from './music-config.js';
 
-import {allCardsPackDescription,sortPackCards} from './pack-inspection.js';
+import {allCardsPackDescription,formatPackChance,sortPackCards} from './pack-inspection.js';
 
 import {balancedVolume,resumeBalancedAudio,preloadSoundEffects} from './audio-balance.js';
 
@@ -95,6 +95,10 @@ import {shopRerollPrice} from './experience-ui.js';
 import {mountMenuMotion} from './menu-motion.js?v=online-wrap-duplicate-2';
 
 import {playEffectFeedback,removalKind,playRemovalFeedback} from './effect-feedback.js';
+
+import {motionPreferences,wallMs,attributeColor,activationColor,cardFlight,landingPulse,summonImpact,flipCard,attackStrike,shake,lifeImpact,showChainLink,revealChainLinks,resolveChainLink,clearChainLinks,negationSlash,shufflePile,phaseGlint,showBanner,fadeOutWithin} from './duel-motion.js';
+
+import {createDuelSounds,duelSoundPath} from './duel-sfx.js';
 
 import {uploadReplays,replayRows,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
 
@@ -215,7 +219,13 @@ function menuSelectionSound(){if(!state.settings.sound||document.hidden)return;m
 
 function effect(major=false,purchase=false){if(!state.settings.sound||document.hidden)return;setDuelSound('sound/'+(major?'activate.wav':purchase?'coinflip.wav':'flip.wav'));balancedVolume(sfx,state.settings.sound/100,major?1:purchase?.85:.65);sfx.play().catch(()=>{})}
 
-function duelSound(name,gain=.3,duration=0){if(!state.settings.sound||document.hidden)return;setDuelSound('sound/'+name+'.wav');balancedVolume(sfx,state.settings.sound/100,Math.max(.5,Math.min(1,gain/.3)));sfx.play().catch(()=>{});if(duration){sfxStopTimer=setTimeout(()=>sfx.pause(),duration)}}
+// Single-element fallback where Web Audio is unavailable; each sound replaces the last.
+function singleDuelSound(name,gain=.3,duration=0){if(!state.settings.sound||document.hidden)return;setDuelSound(duelSoundPath(name));balancedVolume(sfx,state.settings.sound/100,Math.max(.5,Math.min(1,gain/.3)));sfx.play().catch(()=>{});if(duration){sfxStopTimer=setTimeout(()=>sfx.pause(),duration)}}
+
+// Duel sounds overlap and are trimmed to their animations (duel-sfx.js).
+const duelSfx=createDuelSounds(()=>audioSuspended?0:(state?.settings?.sound||0)/100,singleDuelSound);
+
+function duelSound(name,gain=.3,duration=0){duelSfx.play(name,gain,duration?{duration:duration/1000}:{})}
 
 const summonMusic=new WeakMap();
 
@@ -285,7 +295,7 @@ let audioSuspended=false,packPresentation=false;
 
 configureCounterAudio(()=>audioSuspended?0:(state?.settings?.sound||0)/100);
 
-window.suspendAudio=()=>{stopUISounds();stopPurchaseCoins();stopCounterAudio();audioSuspended=true;music.pause();sfx.pause();menuSfx.pause();stopPackSounds();stopCoinSounds()};window.resumeAudio=()=>{audioSuspended=false;if(state)track(packPresentation?'packs':screenMusic())};
+window.suspendAudio=()=>{stopUISounds();stopPurchaseCoins();stopCounterAudio();audioSuspended=true;music.pause();sfx.pause();duelSfx.stopAll();menuSfx.pause();stopPackSounds();stopCoinSounds()};window.resumeAudio=()=>{audioSuspended=false;if(state)track(packPresentation?'packs':screenMusic())};
 
 document.addEventListener('visibilitychange',()=>document.hidden?window.suspendAudio():window.resumeAudio());
 
@@ -687,7 +697,7 @@ function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;const key=JSON.
 
 let shopSelection=new Set(),shopInventoryKey=null;
 
-function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>Choose 1. Its benefit and drawback last for this run.</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(content.artifactInfo[key].art))}${cursedMarkup(key,text)}${btn('Choose relic','cursed-choose',`data-relic="${esc(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',offer.rerolls_left?'':'disabled')}</footer></section>`}
+function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`<section class="cursed-reward"><nav class="cursed-reward-topbar" aria-label="Run tools">${btn('View deck','draft')}${btn('Relics','relic-ledger')}</nav><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>Choose 1. Its benefit and drawback last for this run.</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(content.artifactInfo[key].art))}${cursedMarkup(key,text)}${btn('Choose relic','cursed-choose',`data-relic="${esc(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',offer.rerolls_left?'':'disabled')}</footer></section>`}
 
 function renderShop(){shopkeeperTaps=0;resetShopkeeperRightClicks();const r=state.run,fixed=!!(character().copycat||character().engine_deck);announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,content.cards);if(r.cursed_offer)return renderCursedRelics();const key=JSON.stringify([r.started_at,r.round,r.shop.map(x=>[x.kind,x.id,x.price])]);if(key!==shopInventoryKey){shopSelection.clear();shopInventoryKey=key}for(const i of shopSelection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')shopSelection.delete(i);const product=(x,i)=>{let name,img,description='';if(x.kind==='single'){name=card(x.id).name;img=image(x.id)}else if(x.kind==='deck'){name=x.name+' · Adds to collection';img='assets/decks/'+x.art+'.jpg'}else if(x.kind==='pack'){name=content.packs.find(p=>p.id===x.id).name;img='assets/packs/'+x.id+'.jpg'}else{const a=content.artifacts[x.id];name=a[0];description=a[2];img=relicImage(content.artifactInfo[x.id].art)}return `<div class="shop-product ${x.sold?'sold':''} ${shopSelection.has(i)?'chosen':''} ${isShopUltra(x,content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(img,`data-do="item-info" data-index="${i}"`):`<img ${x.kind==='single'?`data-inspect="${x.id}"`:x.kind==='artifact'||x.kind==='deck'||x.kind==='pack'?`data-do="item-info" data-index="${i}"`:''} src="${img}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span><button class="purchase-check" role="checkbox" aria-checked="${shopSelection.has(i)}" aria-label="Select ${esc(name)}" data-do="select-purchase" data-index="${i}" ${x.sold||((character().copycat||character().engine_deck)&&x.kind!=='artifact')?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`};
 
@@ -727,13 +737,15 @@ function renderTutorial(){const pages=content.tutorial,p=pages[tutorialPage]||pa
 
 
 
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-faster-animations]'))return;state.settings.fasterAnimations=e.target.checked;await command('settings',state.settings)});
+
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-performance-mode]'))return;state.settings.performanceMode=e.target.checked;document.querySelectorAll('[data-duel-background]').forEach(select=>select.disabled=e.target.checked||state.settings.simpleBackgrounds||compatibilityEnabled());document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-pause-hidden]'))return;state.settings.pauseWhenHidden=e.target.checked;syncInspectionPause();await command('settings',state.settings)});
 
 function manualResponseWindowSetting(){const value=Math.max(0,Math.min(2000,Number(state.settings.manualResponseWindow??200)||0));return `<label for="manual-response-window">Manual Response Window <input id="manual-response-window" type="range" min="0" max="2000" step="50" value="${value}"><output>${value} ms</output></label><small class="muted">Time to respond to an optional chain during the opponent’s turn before it passes automatically.</small>`}
 
-function duelBackgroundSetting(){return `<label>Pause When Tabbed Out <input type="checkbox" data-pause-hidden ${state.settings.pauseWhenHidden!==false?'checked':''}></label><small class="muted">Pause single-player duels when the game is hidden. Your browser may still limit background activity.</small><label>Performance Mode <input type="checkbox" data-performance-mode ${state.settings.performanceMode?'checked':''}></label><small class="muted">Static backgrounds and fewer decorative effects. Keeps gameplay animations.</small><label>Simple Backgrounds <input type="checkbox" data-simple-backgrounds ${state.settings.simpleBackgrounds?'checked':''}></label><small class="muted">Static gradients for lower battery use.</small><label>Compatibility Mode <input type="checkbox" data-compatibility-mode ${compatibilityEnabled()?'checked':''}></label><small class="muted">Uses static backgrounds, reduces decorative effects, and disables filters and blur that can flicker in some browsers. Keeps gameplay movement.</small><label>Duel Background <select data-duel-background ${compatibilityEnabled()||state.settings.simpleBackgrounds||state.settings.performanceMode?'disabled':''}><option value="spiral" ${state.settings.duelBackground!=='tunnel'?'selected':''}>Classic spiral</option><option value="tunnel" ${state.settings.duelBackground==='tunnel'?'selected':''}>Animated tunnel</option></select></label>`}
+function duelBackgroundSetting(){return `<label>Pause When Tabbed Out <input type="checkbox" data-pause-hidden ${state.settings.pauseWhenHidden!==false?'checked':''}></label><small class="muted">Pause single-player duels when the game is hidden. Your browser may still limit background activity.</small><label>Performance Mode <input type="checkbox" data-performance-mode ${state.settings.performanceMode?'checked':''}></label><small class="muted">Static backgrounds and fewer decorative effects. Keeps gameplay animations.</small><label>Faster Animations <input type="checkbox" data-faster-animations ${state.settings.fasterAnimations?'checked':''}></label><small class="muted">Your own actions play out quicker. The opponent's turn keeps its pace.</small><label>Simple Backgrounds <input type="checkbox" data-simple-backgrounds ${state.settings.simpleBackgrounds?'checked':''}></label><small class="muted">Static gradients for lower battery use.</small><label>Compatibility Mode <input type="checkbox" data-compatibility-mode ${compatibilityEnabled()?'checked':''}></label><small class="muted">Uses static backgrounds, reduces decorative effects, and disables filters and blur that can flicker in some browsers. Keeps gameplay movement.</small><label>Duel Background <select data-duel-background ${compatibilityEnabled()||state.settings.simpleBackgrounds||state.settings.performanceMode?'disabled':''}><option value="spiral" ${state.settings.duelBackground!=='tunnel'?'selected':''}>Classic spiral</option><option value="tunnel" ${state.settings.duelBackground==='tunnel'?'selected':''}>Animated tunnel</option></select></label>`}
 
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-simple-backgrounds]'))return;state.settings.simpleBackgrounds=e.target.checked;document.querySelectorAll('[data-duel-background]').forEach(select=>select.disabled=e.target.checked||state.settings.performanceMode||compatibilityEnabled());document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
@@ -906,7 +918,7 @@ function zone(c,player,loc,seq,col,row,label=''){const m=engine.pending,isPlace=
 
 }
 
-function pile(player,kind,col,row){const p=snapshot.players[player],items=p[kind],count=Array.isArray(items)?items.length:items;const name={deck:'Deck',extra:'Extra',grave:'Graveyard',banished:'Banished'}[kind];const top=Array.isArray(items)?items.filter(Boolean).at(-1):null;const shown=kind==='deck'?p.deckTop:top&&(kind==='grave'||top.position&5)?top.code:null;const visible=!!shown;const img=count?(visible?image(shown):'assets/card-back.jpg'):null;return `<button class="zone pile" style="grid-column:${col};grid-row:${row}" data-pile="${player},${kind}" ${visible?`data-preview="${shown}"`:''}>${img?`<img src="${img}">`:''}<span class="count">${count||0}</span><span class="zone-name">${name}</span></button>`}
+function pile(player,kind,col,row){const p=snapshot.players[player],items=p[kind],count=Array.isArray(items)?items.length:items;const name={deck:'Deck',extra:'Extra',grave:'Graveyard',banished:'Banished'}[kind];const top=Array.isArray(items)?items.filter(Boolean).at(-1):null;const shown=kind==='deck'?p.deckTop:top&&(kind==='grave'||top.position&5)?top.code:null;const visible=!!shown;const img=count?(visible?image(shown):'assets/card-back.jpg'):null;return `<button class="zone pile${kind==='deck'&&count>10?' stacked':''}" style="grid-column:${col};grid-row:${row}" data-pile="${player},${kind}" ${visible?`data-preview="${shown}"`:''}>${img?`<img src="${img}">`:''}<span class="count">${count||0}</span><span class="zone-name">${name}</span></button>`}
 
 const phases=[[1,'DP'],[2,'SP'],[4,'MP1'],[8,'BP'],[256,'MP2'],[512,'EP']];
 
@@ -977,11 +989,12 @@ async function playFusionSummonAnimation(cue,field,owner){
  const targetImage=target?.querySelector('img'),oldVisibility=targetImage?.style.visibility;
  if(targetImage)targetImage.style.visibility='hidden';target?.classList.add('fusion-summon-target');
  const overlay=document.createElement('div');
- Object.assign(overlay.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',zIndex:500,pointerEvents:'none',overflow:'visible',perspective:'900px'});
+ Object.assign(overlay.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',zIndex:500,pointerEvents:'none',overflow:'visible',perspective:compatibilityEnabled()?'none':'900px'});
  document.body.append(overlay);
  const animations=[];
  try{
-   const radius=Math.min(box.width*.2,box.height*.3,165),width=Math.min(112,Math.max(54,box.width*.11)),duration=reduced?720:2000;
+  // The wait below is wall-clock time; fit the slowed animations inside it so the result card shows.
+   const radius=Math.min(box.width*.2,box.height*.3,165),width=Math.min(112,Math.max(54,box.width*.11)),duration=reduced?720:2000,span=wallMs(duration);
   const materialTransform=(angle,scale)=>'translate(-50%,-50%) rotate('+angle+'deg) translateX('+radius+'px) rotate('+(-angle)+'deg) scale('+scale+')';
   materials.forEach((code,index)=>{
    const angle=360*index/materials.length-90,cardEl=document.createElement('img');
@@ -1001,28 +1014,30 @@ async function playFusionSummonAnimation(cue,field,owner){
     {opacity:1,transform:'translate(-50%,-50%) scale(.82)',offset:.78},
     {opacity:0,transform:'translate(-50%,-50%) scale(.04)',offset:.95},
     {opacity:0,transform:'translate(-50%,-50%) scale(.04)',offset:1}
-   ],{duration,easing:'cubic-bezier(.45,.05,.55,.95)',fill:'both'});
+   ],{duration:span,easing:'cubic-bezier(.45,.05,.55,.95)',fill:'both'});
    animations.push(anim);
   });
   const flash=document.createElement('div');
   Object.assign(flash.style,{position:'absolute',inset:0,opacity:0,background:'radial-gradient(ellipse at center,#fff 0%,#e9fdffdd 9%,#b9f4ff77 24%,transparent 62%)'});
   overlay.append(flash);
-   animations.push(flash.animate(reduced?[{opacity:0,offset:0},{opacity:0,offset:.48},{opacity:1,offset:.55},{opacity:.35,offset:.63},{opacity:0,offset:1}]:[{opacity:0,offset:0},{opacity:0,offset:.77},{opacity:1,offset:.80},{opacity:.42,offset:.84},{opacity:0,offset:1}],{duration,easing:'ease-out',fill:'both'}));
+   animations.push(flash.animate(reduced?[{opacity:0,offset:0},{opacity:0,offset:.48},{opacity:1,offset:.55},{opacity:.35,offset:.63},{opacity:0,offset:1}]:[{opacity:0,offset:0},{opacity:0,offset:.77},{opacity:1,offset:.80},{opacity:.42,offset:.84},{opacity:0,offset:1}],{duration:span,easing:'ease-out',fill:'both'}));
   const result=document.createElement('img');
   result.alt='Fusion Monster';result.src=image(cue.code);
   Object.assign(result.style,{position:'absolute',left:'50%',top:'50%',width:Math.min(width*1.28,145)+'px',aspectRatio:'421 / 614',objectFit:'cover',border:'2px solid #e2c77e',borderRadius:'6px',boxShadow:'0 0 38px #83edffcc,0 12px 28px #000c',opacity:0,backfaceVisibility:'hidden',transformOrigin:'center'});
   overlay.append(result);
+   // Compatibility mode reveals the result flat: no 3D turn (Firefox flicker).
+   const flip=deg=>compatibilityEnabled()?'':` rotateY(${deg}deg)`;
    animations.push(result.animate(reduced?[
     {opacity:0,transform:'translate(-50%,-50%) scale(.92)',offset:0},
     {opacity:0,transform:'translate(-50%,-50%) scale(.92)',offset:.9},
     {opacity:1,transform:'translate(-50%,-50%) scale(1)',offset:.98},
     {opacity:1,transform:'translate(-50%,-50%) scale(1)',offset:1}
    ]:[
-   {opacity:0,transform:'translate(-50%,-50%) scale(.78) rotateY(90deg)',offset:0},
-   {opacity:0,transform:'translate(-50%,-50%) scale(.78) rotateY(90deg)',offset:.95},
-   {opacity:1,transform:'translate(-50%,-50%) scale(1) rotateY(0deg)',offset:.99},
-   {opacity:1,transform:'translate(-50%,-50%) scale(1) rotateY(0deg)',offset:1}
-  ],{duration,easing:'cubic-bezier(.16,.84,.24,1)',fill:'both'}));
+   {opacity:0,transform:'translate(-50%,-50%) scale(.78)'+flip(90),offset:0},
+   {opacity:0,transform:'translate(-50%,-50%) scale(.78)'+flip(90),offset:.95},
+   {opacity:1,transform:'translate(-50%,-50%) scale(1)'+flip(0),offset:.99},
+   {opacity:1,transform:'translate(-50%,-50%) scale(1)'+flip(0),offset:1}
+  ],{duration:span,easing:'cubic-bezier(.16,.84,.24,1)',fill:'both'}));
   let remaining=duration;
   while(remaining>0&&engine===owner&&screen==='duel'){
    const step=Math.min(100,remaining);await duelDelay(step);remaining-=step;
@@ -1033,21 +1048,203 @@ async function playFusionSummonAnimation(cue,field,owner){
   if(targetImage)targetImage.style.visibility=oldVisibility;for(const [node,visibility] of hiddenMaterials)node.style.visibility=visibility;target?.classList.remove('fusion-summon-target');duelMain?.classList.remove('fusion-animating');document.body.classList.remove('fusion-animating');
  }
 }
-async function playDuelCues(playerAction=false){const presentationOwner=engine,cues=engine.visuals.splice(0),fusionCue=cues.find(c=>c.kind==='fusion-summon'),legendaryShown=new Set();if(fusionCue){for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove();}for(const cue of cues){if(fusionCue&&cue.kind==='summon'&&Number(cue.code)===Number(fusionCue.code))continue;if(fusionCue&&cue.kind==='move'){const targetMove=Number(cue.code)===Number(fusionCue.code)&&cue.from?.location===L.EXTRA&&cue.to?.location===L.MZONE;const materialMove=(fusionCue.materialCards||[]).some(c=>Number(c.code)===Number(cue.code)&&c.controller===cue.from?.controller&&c.location===cue.from?.location&&c.sequence===cue.from?.sequence);if(targetMove||materialMove)continue}await waitForInspection();if(engine!==presentationOwner||screen!=='duel'||document.querySelector('.exodia-finale'))break;const field=document.querySelector('.field-wrap');if(!field)break;if(document.hidden&&!tagUI&&state.settings.pauseWhenHidden===false&&!['reveal','coin','dice'].includes(cue.kind))continue;if(cue.kind==='fusion-summon'){await playFusionSummonAnimation(cue,field,presentationOwner);continue}if(cue.kind==='flip-reveal'){const c=cue.card,z=c&&document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`),live=c&&engine.query(c.controller,c.location)?.[c.sequence],code=Number(cue.code)||Number(live?.code)||Number(z?.dataset.code)||0,img=z?.querySelector('img');if(z&&img&&code){z.classList.remove('empty');z.dataset.code=String(code);z.dataset.preview=String(code);img.src=image(code);img.alt=card(code)?.name||'Revealed card'}continue}if(cue.kind==='lethal-hit'){const life=document.querySelector(cue.player===1?'.life.enemy .life-value, .life.enemy strong':'.life .life-value, .life strong');if(life&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const animation=life.animate([{filter:'brightness(1)',textShadow:'0 0 0 transparent',transform:'scale(1)'},{filter:'brightness(1.8)',textShadow:'0 0 18px #ff583f',transform:'scale(1.13)'},{filter:'brightness(1)',textShadow:'0 0 0 transparent',transform:'scale(1)'}],{duration:520,easing:'ease-out'});await animation.finished.catch(()=>{});animation.cancel()}continue}if(cue.kind==='signature-summon'){if(!legendaryShown.has(cue.code)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const c=cue.card,z=c&&document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);if(z){const animation=z.animate([{boxShadow:'0 0 0 transparent',filter:'brightness(1)'},{boxShadow:'0 0 24px 5px #75e7ff',filter:'brightness(1.35)'},{boxShadow:'0 0 0 transparent',filter:'brightness(1)'}],{duration:620,easing:'ease-out'});await animation.finished.catch(()=>{});animation.cancel()}}continue}if(cue.kind==='summon'&&await playLegendarySummon(cue.code,{field,image,sound:duelSound,music:summonTrack,paused:inspectionPaused,active:()=>engine===presentationOwner&&screen==='duel'&&!(document.hidden&&!tagUI&&state.settings.pauseWhenHidden===false),reduced:matchMedia('(prefers-reduced-motion: reduce)').matches})){legendaryShown.add(cue.code);continue}if(cue.kind==='relic'){pulseRelic(app,cue.relic);continue}if(cue.kind==='chain'){if(cue.stage==='activate')duelSound('activate',.25);const el=document.createElement('div');el.className='duel-cue chain-cue';el.setAttribute('role','status');el.innerHTML=`<img src="${image(cue.code)}" alt=""><div><b>⛓ Chain ${cue.link}</b><strong>${esc(cue.text)}</strong><small>${cue.stage==='resolve'?'Resolving':cue.stage==='negated'?'Negated':'Activated'}</small></div>`;field.append(el);if(cue.stage==='negated'){packSound('negation');const c=cue.card,z=c&&document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);trackDuelAnimation(presentationOwner,negateCard(z&&Number(z.dataset.code)===cue.code?z:el,matchMedia('(prefers-reduced-motion: reduce)').matches));}if(!matchMedia('(prefers-reduced-motion: reduce)').matches)el.animate([{opacity:0,transform:'scale(.94)'},{opacity:1,transform:'scale(1)'}],180);await duelDelay(playerAction?(cue.stage==='resolve'?504:360):(cue.stage==='resolve'?350:250));el.remove();continue}if(cue.kind==='effect-action'||cue.excavation){if(cue.negated){packSound('negation');for(const c of cue.cards||[])trackDuelAnimation(presentationOwner,negateCard(document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`),matchMedia('(prefers-reduced-motion: reduce)').matches));}const feedback=playEffectFeedback(cue,{field,image,esc,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,fast:cue.player===1});if(cue.statChange)trackDuelAnimation(presentationOwner,feedback);else await feedback;continue}if(cue.kind==='reveal'&&!cue.public&&engine.pending?.type===M.SELECT_CARD&&engine.pending.selects?.some(c=>c.controller!==0&&c.location===L.HAND))continue;if(cue.kind==='reveal'){dialog(cue.text,`<div class="cardgrid">${cue.cards.map(c=>cardButton(c.code,`data-inspect="${c.code}"`)).join('')}</div>`);await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));continue}if(cue.kind==='dice'||cue.kind==='coin'){if(cue.player===0&&!await waitForTossStart(field,cue.kind,()=>screen==='duel'&&engine===presentationOwner))break;await play3DToss(field,cue.kind,cue.results,{wait:duelDelay,active:()=>screen==='duel'&&engine===presentationOwner,sound:duelSound});continue}const el=document.createElement('div');el.className='duel-cue';let label=cue.text||'';if(cue.kind==='turn')label=snapshot.tag?`${snapshot.tag.names[cue.player][snapshot.tag.activeSeats[cue.player]]}’S TURN`:cue.player===0?'YOUR TURN':'OPPONENT’S TURN';if(cue.kind==='phase')label=phaseName(cue.phase);if(cue.kind==='lp'){el.className='float-lp '+(cue.player?'enemy ':'')+(cue.amount>0?'heal':'');label=(cue.amount>0?'+':'')+cue.amount}if(['set','summon','attack'].includes(cue.kind))label='';el.textContent=label;if(cue.kind==='lp'){pulseDuelLP(cue.player,presentationOwner);if(cue.directDamage){duelSound('attack',.18,190);if(!compatibilityEnabled()&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const battlefield=document.querySelector('.duel');if(battlefield){const impact=battlefield.animate([{transform:'translate3d(0,0,0)'},{transform:'translate3d(-3px,1px,0)'},{transform:'translate3d(3px,-2px,0)'},{transform:'translate3d(-2px,1px,0)'},{transform:'translate3d(0,0,0)'}],{duration:240,easing:'ease-out'});trackDuelAnimation(presentationOwner,impact.finished.catch(()=>{}).then(()=>impact.cancel()))}}}const r=field.getBoundingClientRect(),nearby=document.querySelectorAll('.float-lp'+(cue.player?'.enemy':':not(.enemy)')).length,lane=nearby%3,delay=lane*100+Math.random()*70;Object.assign(el.style,{position:'fixed',left:r.left+r.width*(.40+lane*.10+(Math.random()-.5)*.025)+'px',top:r.top+r.height*(cue.player?.23:.68)+(Math.random()-.5)*18+'px',zIndex:250,animationDelay:delay+'ms',animationFillMode:'both'});document.body.append(el);trackDuelAnimation(presentationOwner,duelDelay(1800+delay).then(()=>el.remove()));continue}if(label)field.append(el);let beam;let moving;const cueAnimations=[];const cueDuration=(snapshot?.finished&&cue.kind==='attack'?120:0)+(cue.cpuBattleEntry?350:0)+1.2*(playerAction?(cue.kind==='effect'?150:cue.kind==='attack'?180:70):cue.kind==='effect'?420:cue.kind==='phase'?(playerAction?250:[1,2].includes(Number(cue.phase))?30:24):cue.kind==='turn'?(playerAction?400:120):cue.kind==='draw'?(playerAction?170:35):cue.kind==='move'?120:cue.kind==='attack'?300:300);let attackNodes=[];const clearAttack=()=>{for(const [node,cls] of attackNodes)node.classList.remove(cls);attackNodes=[]};
+// Wall-clock time each cue holds the duel; these values set duel pace. Effects that
+// outlast them run in the background (android/test_duel_cue_pacing.cjs guards this).
+// Every action plays at the opponent's pace; with Faster Animations your own actions use
+// the quicker pace (quick), never slower than the opponent's.
+function cueWindow(cue,quick){
+ const cpu=cue.kind==='phase'?([1,2].includes(Number(cue.phase))?30:24):cue.kind==='turn'?120:cue.kind==='draw'?35:cue.kind==='move'?120:300;
+ return (snapshot?.finished&&cue.kind==='attack'?120:0)+(cue.cpuBattleEntry?350:0)+1.2*(quick?Math.min(cpu,cue.kind==='attack'?180:70):cpu);
+}
 
- const sounds={turn:'nextturn',phase:'phase',attack:'attack',summon:'summon',effect:'activate',move:removalKind(cue.reason)==='destroy'?'destroyed':removalKind(cue.reason)==='tribute'?'specialsummon':'flip',set:'set',draw:'draw',lp:cue.amount>0?'gainlp':'damage'};if(sounds[cue.kind])duelSound(sounds[cue.kind],cue.kind==='attack'?.4:.25,cue.kind==='move'&&removalKind(cue.reason)?200:0);
+const cueZone=c=>c&&document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);
 
- if(['summon','set'].includes(cue.kind)&&cue.card){const z=document.querySelector(`[data-zone="${cue.card.controller},${cue.card.location},${cue.card.sequence}"]`);z?.animate([{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 14px #ffeeb9'},{boxShadow:'0 0 0 transparent'}],playerAction?180:500)}
+// Where a cue's card is on screen: a field zone, a pile, or (for flights) a hand row.
+function cueAnchor(c,{hand=true}={}){
+ if(!c)return null;
+ if([L.MZONE,L.SZONE].includes(c.location))return cueZone(c);
+ if(c.location===L.HAND)return hand?document.querySelector(c.controller===0?'.hand':'.enemy-hand'):null;
+ const pile={[L.DECK]:'deck',[L.GRAVE]:'grave',[L.REMOVED]:'banished',[L.EXTRA]:'extra'}[c.location];
+ return pile?document.querySelector(`[data-pile="${c.controller},${pile}"]`):null;
+}
 
- if(cue.kind==='effect'&&cue.code){const z=cue.card&&document.querySelector(`[data-zone="${cue.card.controller},${cue.card.location},${cue.card.sequence}"] img`);if(z)z.src=image(cue.code);el.classList.add('activation-cue');el.innerHTML=`<img src="${image(cue.code)}"><strong>${esc(label)}</strong>`}
+// The floating chain button sits outside the board, so it shakes along with it.
+function shakeBoard(options){return [document.querySelector('.duel'),document.querySelector('.floating-chain-control')].filter(Boolean).map(el=>shake(el,options))}
 
- if(cue.kind==='move'||cue.kind==='draw'){const destinations={[L.HAND]:'hand',[L.DECK]:'Deck',[L.GRAVE]:'Graveyard',[L.REMOVED]:'banished cards',[L.EXTRA]:'Extra Deck',[L.MZONE]:'monster zone',[L.SZONE]:'Spell/Trap zone'};el.textContent=cue.kind==='draw'?'Draw card':removalKind(cue.reason)==='destroy'?'Destroyed':removalKind(cue.reason)==='tribute'?'Tributed':`Card moved to ${destinations[cue.to?.location]||'another zone'}`;field.append(el);const anchor=c=>{if(!c)return null;if([L.MZONE,L.SZONE].includes(c.location))return document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);if(c.location===L.HAND)return document.querySelector(c.controller===0?'.hand':'.enemy-hand');const pile={[L.DECK]:'deck',[L.GRAVE]:'grave',[L.REMOVED]:'banished',[L.EXTRA]:'extra'}[c.location];return pile?document.querySelector(`[data-pile="${c.controller},${pile}"]`):null};const source=anchor(cue.from),target=anchor(cue.to);const removal=removalKind(cue.reason);if(removal&&source)trackDuelAnimation(presentationOwner,playRemovalFeedback(removal,source,{reduced:matchMedia('(prefers-reduced-motion: reduce)').matches}));if(source&&target){const a=source.getBoundingClientRect(),b=target.getBoundingClientRect();moving=document.createElement('img');moving.className='moving-card';moving.src=cue.code?image(cue.code):'assets/card-back.jpg';Object.assign(moving.style,{left:a.x+a.width/2-22+'px',top:a.y+a.height/2-32+'px'});document.body.append(moving);cueAnimations.push(moving.animate([{transform:'translate(0,0)'},{transform:`translate(${b.x+b.width/2-a.x-a.width/2}px,${b.y+b.height/2-a.y-a.height/2}px)`}],{duration:!playerAction&&cue.kind==='draw'?35:playerAction?100:260,fill:'forwards'}))}}
+// Background effects still finish before the victory settlement reads the board.
+function trackMotion(owner,...effects){
+ const list=effects.flat().filter(Boolean);
+ if(list.length)trackDuelAnimation(owner,Promise.all(list.map(x=>(x.finished||Promise.resolve(x)).catch(()=>{}))).then(()=>{}));
+}
 
- if(cue.kind==='attack'){const find=c=>c&&document.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);const source=find(cue.card),target=(cue.target?.location===L.MZONE?find(cue.target):null)||document.querySelector(cue.card.controller===0?'.enemy-hand':'.hand');if(source&&target){attackNodes=[[source,'attack-source'],[target,'attack-target']];for(const [node,cls] of attackNodes)node.classList.add(cls);const a=source.getBoundingClientRect(),b=target.getBoundingClientRect();const x=a.x+a.width/2,y=a.y+a.height/2,dx=b.x+b.width/2-x,dy=b.y+b.height/2-y;beam=document.createElement('div');beam.className='attack-beam';Object.assign(beam.style,{left:x+'px',top:y+'px',width:Math.hypot(dx,dy)+'px',transform:`rotate(${Math.atan2(dy,dx)}rad)`});document.body.append(beam);cueAnimations.push(source.animate(compatibilityEnabled()?[{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 26px #ffd06b'},{boxShadow:'0 0 0 transparent'}]:[{filter:'brightness(1)'},{filter:'brightness(2.5)'},{filter:'brightness(1)'}],Math.min(650,cueDuration)),target.animate([{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 35px #ff593b'},{boxShadow:'0 0 0 transparent'}],Math.min(750,cueDuration)))}}
+async function playDuelCues(playerAction=false){
+ const presentationOwner=engine,cues=engine.visuals.splice(0),fusionCue=cues.find(c=>c.kind==='fusion-summon'),legendaryShown=new Set(),quick=playerAction&&!!state.settings?.fasterAnimations;
+ if(fusionCue){for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove();}
+ const merged=new Set();
+ for(const [index,cue] of cues.entries()){
+  if(merged.has(cue))continue;
+  if(fusionCue&&cue.kind==='summon'&&Number(cue.code)===Number(fusionCue.code))continue;
+  if(fusionCue&&cue.kind==='move'){const targetMove=Number(cue.code)===Number(fusionCue.code)&&cue.from?.location===L.EXTRA&&cue.to?.location===L.MZONE;const materialMove=(fusionCue.materialCards||[]).some(c=>Number(c.code)===Number(cue.code)&&c.controller===cue.from?.controller&&c.location===cue.from?.location&&c.sequence===cue.from?.sequence);if(targetMove||materialMove)continue}
+  await waitForInspection();if(engine!==presentationOwner||screen!=='duel'||document.querySelector('.exodia-finale'))break;
+  const field=document.querySelector('.field-wrap');if(!field)break;
+  if(document.hidden&&!tagUI&&state.settings.pauseWhenHidden===false&&!['reveal','coin','dice'].includes(cue.kind))continue;
+  if(!await playDuelCue(cue,{field,playerAction,quick,owner:presentationOwner,legendaryShown,next:cues.slice(index+1),merged}))break;
+ }
+ if(engine!==presentationOwner||screen!=='duel'){retireChainPanel();return}
+ // Chain markers stay on their cards only while the chain is open.
+ if(!engine.activeChain?.length)clearChainLinks(document);
+ // The chain panel bridges the brief automatic hand-off between chain steps. A closed
+ // chain, or a decision for the player, puts it away so it never covers a prompt.
+ if(chainPanel){const m=engine.pending,decision=m?.player===0&&!automaticChainResponse(m,!offerChain(m),M,R);if(!engine.activeChain?.length||decision)retireChainPanel();else{clearTimeout(chainPanel.timer);chainPanel.timer=setTimeout(retireChainPanel,700)}}
+ if(playerAction)await updateCoinMilestones();else void updateCoinMilestones();if(snapshot?.finished)await finishDuelAnimations(presentationOwner);
+}
 
+// One cue. Returns false when the duel view changed and presentation must stop.
+async function playDuelCue(cue,{field,playerAction,quick=false,owner,legendaryShown,next=[],merged=new Set()}){
+ const motion=motionPreferences(),reduced=motion.reduced;
+ // Any other board action takes the centre stage back from the chain panel.
+ if(chainPanel&&!['chain','effect-action','flip-reveal','relic'].includes(cue.kind)&&!cue.excavation)retireChainPanel();
+ if(cue.kind==='fusion-summon'){duelSfx.cue(cue);await playFusionSummonAnimation(cue,field,owner);return true}
+ if(cue.kind==='flip-reveal'){
+  const c=cue.card,z=cueZone(c),live=c&&engine.query(c.controller,c.location)?.[c.sequence],code=Number(cue.code)||Number(live?.code)||Number(z?.dataset.code)||0,img=z?.querySelector('img');
+  if(z&&img&&code){z.classList.remove('empty');z.dataset.code=String(code);z.dataset.preview=String(code);img.alt=card(code)?.name||'Revealed card';const src=image(code);if(img.getAttribute('src')!==src){duelSfx.cue(cue);trackMotion(owner,flipCard(img,src,{reduced}))}}
+  return true;
+ }
+ if(cue.kind==='lethal-hit'){
+  // One impact: the damage that follows lands now, with a single heavy shake and its number.
+  const hit=next.find(c=>c.kind==='lp'&&c.player===cue.player);if(hit)merged.add(hit);
+  const life=document.querySelector(cue.player===1?'.life.enemy .life-value, .life.enemy strong':'.life .life-value, .life strong');
+  if(hit)playLifeCue(hit,{field,owner,motion,lethal:true});else duelSfx.cue(cue);
+  if(life&&!reduced){
+   if(!hit){if(!compatibilityEnabled())trackMotion(owner,shakeBoard({strength:6,duration:380}));trackMotion(owner,lifeImpact(life.closest('.life'),field,{player:cue.player,heavy:true,...motion}))}
+   const animation=life.animate([{filter:'brightness(1)',textShadow:'0 0 0 transparent',transform:'scale(1)'},{filter:'brightness(1.8)',textShadow:'0 0 18px #ff583f',transform:'scale(1.13)'},{filter:'brightness(1)',textShadow:'0 0 0 transparent',transform:'scale(1)'}],{duration:520,easing:'ease-out'});await animation.finished.catch(()=>{});animation.cancel();
+  }
+  return true;
+ }
+ if(cue.kind==='signature-summon'){
+  if(!legendaryShown.has(cue.code)&&!reduced){const z=cueZone(cue.card);if(z){duelSfx.cue(cue);trackMotion(owner,summonImpact(z,{method:'special',color:'#75e7ff',animateCard:false,...motion}));const animation=z.animate([{boxShadow:'0 0 0 transparent',filter:'brightness(1)'},{boxShadow:'0 0 24px 5px #75e7ff',filter:'brightness(1.35)'},{boxShadow:'0 0 0 transparent',filter:'brightness(1)'}],{duration:620,easing:'ease-out'});await animation.finished.catch(()=>{});animation.cancel()}}
+  return true;
+ }
+ if(cue.kind==='summon'&&await playLegendarySummon(cue.code,{field,image,sound:duelSound,music:summonTrack,paused:inspectionPaused,active:()=>engine===owner&&screen==='duel'&&!(document.hidden&&!tagUI&&state.settings.pauseWhenHidden===false),reduced})){legendaryShown.add(cue.code);return true}
+ if(cue.kind==='relic'){pulseRelic(app,cue.relic);return true}
+ if(cue.kind==='chain')return playChainCue(cue,{field,owner,motion});
+ if(cue.kind==='effect-action'||cue.excavation){
+  duelSfx.cue(cue);
+  if(cue.negated)for(const c of cue.cards||[])trackDuelAnimation(owner,negateCard(cueZone(c),reduced));
+  if(cue.text==='Deck shuffled'&&cue.player!=null)trackMotion(owner,shufflePile(document.querySelector(`[data-pile="${cue.player},deck"]`),{reduced}));
+  const feedback=playEffectFeedback(cue,{field,image,esc,reduced,fast:cue.player===1});if(cue.statChange)trackDuelAnimation(owner,feedback);else await feedback;
+  return true;
+ }
+ if(cue.kind==='reveal'&&!cue.public&&engine.pending?.type===M.SELECT_CARD&&engine.pending.selects?.some(c=>c.controller!==0&&c.location===L.HAND))return true;
+ if(cue.kind==='reveal'){duelSfx.cue(cue);dialog(cue.text,`<div class="cardgrid">${cue.cards.map(c=>cardButton(c.code,`data-inspect="${c.code}"`)).join('')}</div>`);await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));return true}
+ if(cue.kind==='dice'||cue.kind==='coin'){
+  // Nothing competes with a toss: the prompt that called it, other prompts, banners and the
+  // chain panel stay hidden until it lands (mobile.css: body.toss-animating).
+  retireChainPanel();document.body.classList.add('toss-animating');
+  try{if(cue.player===0&&!await waitForTossStart(field,cue.kind,()=>screen==='duel'&&engine===owner))return false;await play3DToss(field,cue.kind,cue.results,{wait:duelDelay,active:()=>screen==='duel'&&engine===owner,sound:duelSound})}
+  finally{document.body.classList.remove('toss-animating')}
+  return true;
+ }
+ if(cue.kind==='lp'){playLifeCue(cue,{field,owner,motion});return true}
+ return playBoardCue(cue,{field,playerAction,quick,owner,motion});
+}
+
+// One chain panel stays up while chain cues follow one another, so an activation and its
+// resolution read as one steady banner that updates in place instead of blinking twice.
+let chainPanel=null;
+function retireChainPanel(){
+ const panel=chainPanel;chainPanel=null;if(!panel)return;clearTimeout(panel.timer);if(!panel.el.isConnected)return;
+ const opacity=Number(getComputedStyle(panel.el).opacity);panel.el.getAnimations().forEach(a=>a.cancel());
+ panel.el.animate([{opacity:Number.isFinite(opacity)?opacity:1},{opacity:0}],{duration:wallMs(160),fill:'forwards'}).finished.catch(()=>{}).finally(()=>panel.el.remove());
+}
+
+// Chain link: a numbered marker on the activating card until the link resolves.
+async function playChainCue(cue,{field,owner,motion}){
+ const reduced=motion.reduced,color=activationColor(engine.data?.[Number(cue.code)]?.type),anchor=cueAnchor(cue.card,{hand:false});
+ duelSfx.cue(cue);
+ // Link numbers only matter once something chains: link 1 stays unnumbered until link 2.
+ if(cue.stage==='activate'){if(anchor)trackMotion(owner,showChainLink(anchor,cue.link,{color,quiet:cue.link===1,...motion}));if(cue.link>1)revealChainLinks(document,{reduced})}
+ else resolveChainLink(document,cue.link,{negated:cue.stage==='negated',reduced});
+ const stage=cue.stage==='resolve'?'Resolving':cue.stage==='negated'?'Negated':'Activated';
+ let panel=chainPanel?.el.isConnected&&chainPanel.field===field&&chainPanel.owner===owner?chainPanel:null;
+ if(panel){
+  clearTimeout(panel.timer);const img=panel.el.querySelector('img'),src=image(cue.code);if(img.getAttribute('src')!==src)img.src=src;
+  panel.el.querySelector('b').textContent=`⛓ Chain ${cue.link}`;panel.el.querySelector('strong').textContent=cue.text;panel.el.querySelector('small').textContent=stage;panel.el.style.setProperty('--fx-color',color);
+ }else{
+  retireChainPanel();
+  const el=document.createElement('div');el.className='duel-cue chain-cue';el.setAttribute('role','status');el.style.setProperty('--fx-color',color);el.innerHTML=`<img src="${image(cue.code)}" alt=""><div><b>⛓ Chain ${cue.link}</b><strong>${esc(cue.text)}</strong><small>${stage}</small></div>`;field.append(el);
+  if(!reduced)el.animate([{opacity:0,transform:'scale(.94)'},{opacity:1,transform:'scale(1)'}],180);
+  panel=chainPanel={el,field,owner,timer:0};
+ }
+ if(cue.stage==='negated'){const z=cueZone(cue.card),subject=z&&Number(z.dataset.code)===cue.code?z:panel.el;trackDuelAnimation(owner,negateCard(subject,reduced));trackMotion(owner,negationSlash(subject===panel.el?panel.el.querySelector('img'):subject,{reduced}))}
+ // The opponent's chain pace is also the quicker one, so it applies to every chain step.
+ await duelDelay(cue.stage==='resolve'?350:250);return true;
+}
+
+// LP change: floating amount, life-bar flash and a glow at that player's side. Never blocks.
+// lethal: the final blow, played by the lethal-hit cue with one heavier shake.
+function playLifeCue(cue,{field,owner,motion,lethal=false}){
+ const el=document.createElement('div');el.className='float-lp '+(cue.player?'enemy ':'')+(cue.amount>0?'heal':'');el.textContent=(cue.amount>0?'+':'')+cue.amount;
+ pulseDuelLP(cue.player,owner);duelSfx.cue(cue);
+ const life=document.querySelector(cue.player===1?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
+ if(life&&!motion.reduced)trackMotion(owner,lifeImpact(life,field,{player:cue.player,heal:cue.amount>0,heavy:lethal||!!cue.directDamage||cue.amount<=-2000,lite:motion.lite||!!cue.cost&&!lethal}));
+ if((cue.directDamage||lethal)&&!compatibilityEnabled()&&!motion.reduced){const impacts=shakeBoard(lethal?{strength:6,duration:380}:{});trackDuelAnimation(owner,Promise.all(impacts.map(a=>a.finished.catch(()=>{}))).then(()=>impacts.forEach(a=>a.cancel())))}
+ const r=field.getBoundingClientRect(),nearby=document.querySelectorAll('.float-lp'+(cue.player?'.enemy':':not(.enemy)')).length,lane=nearby%3,delay=lane*100+Math.random()*70;
+ Object.assign(el.style,{position:'fixed',left:r.left+r.width*(.40+lane*.10+(Math.random()-.5)*.025)+'px',top:r.top+r.height*(cue.player?.23:.68)+(Math.random()-.5)*18+'px',zIndex:250,animationDelay:delay+'ms',animationFillMode:'both'});
+ document.body.append(el);trackDuelAnimation(owner,duelDelay(1800+delay).then(()=>el.remove()));
+}
+
+// Board cues: turns, phases, summons, sets, attacks, draws and moves.
+async function playBoardCue(cue,{field,playerAction,quick,owner,motion}){
+ const reduced=motion.reduced,pace=cueWindow(cue,quick),removal=cue.kind==='move'?removalKind(cue.reason):null,cueAnimations=[];
+ let label=['set','summon','attack','move','draw'].includes(cue.kind)?'':cue.text||'',beam,moving,caption,attackNodes=[];
+ duelSfx.cue(cue,removal);
+ if(cue.kind==='turn')label=snapshot.tag?`${snapshot.tag.names[cue.player][snapshot.tag.activeSeats[cue.player]]}’S TURN`:cue.player===0?'YOUR TURN':'OPPONENT’S TURN';
+ if(cue.kind==='phase'){label=phaseName(cue.phase);trackMotion(owner,phaseGlint(document.querySelector(`.phases [data-phase="${cue.phase>=8&&cue.phase<256?8:cue.phase}"]`),{reduced}))}
+ // Banners fade on their own clock. Rapid CPU phase steps only light the phase strip.
+ if(label&&(cue.kind!=='phase'||playerAction||cue.cpuBattleEntry)){
+  const el=document.createElement('div');el.className='duel-cue'+(cue.kind==='turn'?' turn-cue':'');el.textContent=label;
+  if(cue.kind==='turn')el.insertAdjacentHTML('beforeend','<i class="cue-sweep" aria-hidden="true"></i>');
+  trackMotion(owner,showBanner(field,el,{visibleMs:Math.max(pace,cue.kind==='turn'?950:cue.kind==='phase'?700:1100),priority:cue.kind==='turn'?2:1,reduced}));
+ }
+ if(cue.kind==='summon'||cue.kind==='set'){
+  const z=cueZone(cue.card),method=cue.kind==='summon'?cue.method||'normal':/position/.test(cue.text||'')?'position':'set';
+  if(z)trackMotion(owner,summonImpact(z,{method,color:cue.kind==='set'?'#cfe6ff':attributeColor(engine.data?.[Number(cue.code)]?.attribute),...motion}));
+ }
+ if(cue.kind==='move'||cue.kind==='draw'){
+  const source=cueAnchor(cue.from),target=cueAnchor(cue.to),duration=cue.kind==='draw'?35:quick?100:260;let hold=0;
+  // The move caption stays where it was readable (CPU moves) and fades instead of popping;
+  // shorter windows only ever flashed it.
+  const shown=Math.max(pace,duration*(globalThis.presentationScale||1));
+  if(shown>=200){const destinations={[L.HAND]:'hand',[L.DECK]:'Deck',[L.GRAVE]:'Graveyard',[L.REMOVED]:'banished cards',[L.EXTRA]:'Extra Deck',[L.MZONE]:'monster zone',[L.SZONE]:'Spell/Trap zone'};caption=document.createElement('div');caption.className='duel-cue';caption.textContent=cue.kind==='draw'?'Draw card':removal==='destroy'?'Destroyed':removal==='tribute'?'Tributed':`Card moved to ${destinations[cue.to?.location]||'another zone'}`;field.append(caption);fadeOutWithin(caption,shown,80)}
+  if(removal&&source){const fx=playRemovalFeedback(removal,source,motion);trackMotion(owner,fx.animations);if(fx.hide){cueAnimations.push(fx.hide);hold=removal==='destroy'?.32:.22}}
+  if(source&&target){
+   // A card that lands face-down flies face-down; one landing in Defense Position flies sideways.
+   const faceDown=[L.MZONE,L.SZONE].includes(cue.to?.location)&&!(cue.to.position&5),sideways=cue.to?.location===L.MZONE&&!!(cue.to.position&12);
+   const flight=cardFlight(source,target,{src:cue.code&&!faceDown?image(cue.code):'assets/card-back.jpg',duration,hold,turn:sideways?90:0,endScale:sideways?.85:1,reduced,simple:motion.compat});
+   moving=flight.el;cueAnimations.push(flight.animation);
+   if([L.DECK,L.GRAVE,L.REMOVED,L.EXTRA].includes(cue.to?.location))flight.animation.finished.then(()=>trackMotion(owner,landingPulse(target,{reduced})),()=>{});
+  }
+ }
+ if(cue.kind==='attack'){
+  const source=cueZone(cue.card),target=(cue.target?.location===L.MZONE?cueZone(cue.target):null)||document.querySelector(cue.card.controller===0?'.enemy-hand':'.hand');
+  if(source&&target){
+   attackNodes=[[source,'attack-source'],[target,'attack-target']];for(const [node,cls] of attackNodes)node.classList.add(cls);
+   const a=source.getBoundingClientRect(),b=target.getBoundingClientRect(),x=a.x+a.width/2,y=a.y+a.height/2,dx=b.x+b.width/2-x,dy=b.y+b.height/2-y,strike=Math.min(650,pace);
+   // The streak now spans the attack window instead of being cut at its brightest.
+   beam=document.createElement('div');beam.className='attack-beam';Object.assign(beam.style,{left:x+'px',top:y+'px',width:Math.hypot(dx,dy)+'px',transform:`rotate(${Math.atan2(dy,dx)}rad)`,animationDuration:strike+'ms'});document.body.append(beam);
+   cueAnimations.push(source.animate(compatibilityEnabled()?[{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 26px #ffd06b'},{boxShadow:'0 0 0 transparent'}]:[{filter:'brightness(1)'},{filter:'brightness(2.5)'},{filter:'brightness(1)'}],strike),target.animate([{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 35px #ff593b'},{boxShadow:'0 0 0 transparent'}],Math.min(750,pace)));
+   trackMotion(owner,attackStrike(source,target,{duration:strike,...motion}));
+  }
+ }
  // Let the compositor finish before removing flights or advancing to the next action.
-
- await Promise.all([duelDelay(cueDuration),...cueAnimations.map(animation=>animation.finished.catch(()=>{}))]);for(const animation of cueAnimations)animation.cancel();if(engine!==presentationOwner||screen!=='duel'){clearAttack();el.remove();beam?.remove();moving?.remove();break;}if(cue.kind==='move'&&[L.MZONE,L.SZONE].includes(cue.from?.location)){const source=document.querySelector(`[data-zone="${cue.from.controller},${cue.from.location},${cue.from.sequence}"]`);source?.querySelector('img')?.remove();source?.classList.add('empty')}if(cue.kind==='move'&&[L.MZONE,L.SZONE].includes(cue.to?.location)){const z=document.querySelector(`[data-zone="${cue.to.controller},${cue.to.location},${cue.to.sequence}"]`);if(z){const old=z.querySelector('img');old?.remove();const img=document.createElement('img');img.src=(cue.to.position&5)&&cue.code?image(cue.code):'assets/card-back.jpg';z.prepend(img);z.classList.remove('empty');z.classList.toggle('defense',cue.to.location===L.MZONE&&!!(cue.to.position&12))}}clearAttack();el.remove();beam?.remove();moving?.remove()}if(engine!==presentationOwner||screen!=='duel')return;if(playerAction)await updateCoinMilestones();else void updateCoinMilestones();if(snapshot?.finished)await finishDuelAnimations(presentationOwner);}
+ await Promise.all([duelDelay(pace),...cueAnimations.map(animation=>animation.finished.catch(()=>{}))]);for(const animation of cueAnimations)animation.cancel();
+ const clear=()=>{for(const [node,cls] of attackNodes)node.classList.remove(cls);beam?.remove();moving?.remove();caption?.remove()};
+ if(engine!==owner||screen!=='duel'){clear();return false}
+ if(cue.kind==='move'&&[L.MZONE,L.SZONE].includes(cue.from?.location)){const source=cueZone(cue.from);source?.querySelector('img')?.remove();source?.classList.add('empty')}
+ if(cue.kind==='move'&&[L.MZONE,L.SZONE].includes(cue.to?.location)){const z=cueZone(cue.to);if(z){const old=z.querySelector('img');old?.remove();const img=document.createElement('img');img.src=(cue.to.position&5)&&cue.code?image(cue.code):'assets/card-back.jpg';z.prepend(img);z.classList.remove('empty');z.classList.toggle('defense',cue.to.location===L.MZONE&&!!(cue.to.position&12))}}
+ clear();return true;
+}
 
 function targetKnown(c){return c.code&&(engine.handRevealed?.(0,c)||engine.knownFieldCard?.(0,c)||c.controller===0||c.location===L.GRAVE||((c.location!==L.HAND&&c.location!==L.DECK&&c.location!==L.EXTRA)&&!!(c.position&5)))}
 
@@ -1338,7 +1535,7 @@ function showVictoryReceipt(){
 
 }
 
-function showRewardSlots(){if(character().copycat&&state.run.reward_slots?.kind!=='deck'){void action('reward-accept');return;}rewardMusic=true;track('packs');const r=state.run;rewardPresentation?.destroy();if(r.reward_slots?.kind==='deck'){dialog('Victory deck choice',deckRewardMarkup(r,{esc}),false);rewardPresentation=mountDeckRewards(modal.querySelector('.reward-screen'),{getRun:()=>state.run,esc,volume:()=>state.settings.sound/100,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i)},view:d=>openDeckPreview(modal,d,{card,cardButton,esc,sound:playUISound,details:c=>`<div class="inspect"><img src="${image(c.id)}"><div>${cardFacts(c)}<h4>Effect / card text</h4><p class="inspect-effect">${esc(displayCardText(c.desc))}</p></div></div>`})});return;}dialog('',rewardMarkup(r,{image,name:id=>card(id)?.name||'Card',esc}),false);rewardPresentation=mountRewardSlots(modal.querySelector('.reward-screen'),{getRun:()=>state.run,image,name:id=>card(id)?.name||'Card',volume:()=>state.settings.sound/100,card,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i);playRerollSound()}});}
+function showRewardSlots(){if(character().copycat&&state.run.reward_slots?.kind!=='deck'){void action('reward-accept');return;}rewardMusic=true;track('packs');const r=state.run;rewardPresentation?.destroy();if(r.reward_slots?.kind==='deck'){dialog('Victory deck choice',deckRewardMarkup(r,{esc}),false);rewardPresentation=mountDeckRewards(modal.querySelector('.reward-screen'),{getRun:()=>state.run,esc,volume:()=>state.settings.sound/100,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i)},view:d=>openDeckPreview(modal,d,{card,cardButton,esc,sound:playUISound,details:c=>`<div class="deck-inspect"><img src="${image(c.id)}"><div>${cardFacts(c)}<h4>Effect / card text</h4><p class="inspect-effect">${esc(displayCardText(c.desc))}</p></div></div>`})});return;}dialog('',rewardMarkup(r,{image,name:id=>card(id)?.name||'Card',esc}),false);rewardPresentation=mountRewardSlots(modal.querySelector('.reward-screen'),{getRun:()=>state.run,image,name:id=>card(id)?.name||'Card',volume:()=>state.settings.sound/100,card,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i);playRerollSound()}});}
 
 modal.addEventListener('close',()=>{if(!modal.open){if(rewardDeckReturn)return;rewardPresentation?.destroy();rewardPresentation=null;if(rewardMusic){rewardMusic=false;track(packPresentation?'packs':screenMusic())}}});
 
@@ -1650,7 +1847,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='scorecard'){dialog('Battle coin milestones',`<p>Victory: 30 coins. Each condition is paid once per duel; tiers stack. Total payout cap: 400 coins. Early-win bonuses stack: +205 by turn 2, +105 by turn 4, +70 by turn 6, +60 by turn 8, +50 by turn 10, or +5 by turn 20. After turn 10, lose 7 coins per extra turn; after turn 20, 12; after turn 30, 15; then 3 more per turn each ten-turn bracket. The base victory payout stays at least 30 before relic and difficulty modifiers. Turns count both players.</p>${(content.battleCoinRules||[]).map(x=>`<p>${esc(x.label)} <b>+${x.coins}</b>${state.run.last_rewards?.[x.label]?' ✓':''}</p>`).join('')}`);return}
 
- if(a==='relic-ledger'){if(modal.querySelector('.reward-screen'))showRewardOverlay('Run relics',relicLedgerMarkup(null,false));else dialog('Run relics',relicLedgerMarkup());return}
+ if(a==='relic-ledger'){if(modal.open&&modal.querySelector('.reward-screen'))showRewardOverlay('Run relics',relicLedgerMarkup(null,false));else dialog('Run relics',relicLedgerMarkup());return}
 
  if(a==='online'){menuPage='online';menuPageEntry='tag';menuIndex=0;render();return;}if(a==='main-menu'){menuPage='main';menuPageEntry='continue';menuIndex=baseMenu.findIndex(m=>m[4]==='continue');render();return;}
  if(['title','characters','routes','draft','shop','achievements','relics','collection'].includes(a))go(a);
@@ -1877,7 +2074,7 @@ async function inspectPack(pid){
 
   const select=panel.querySelector('select'),grid=panel.querySelector('.cardgrid'),more=panel.querySelector('[data-pack-more]');let shown=80,sorted=[];
 
-  const draw=()=>{sorted=sortPackCards(entries,select.value,card,registeredCard);grid.innerHTML=sorted.slice(0,shown).map(x=>`<button class="cardbtn" data-preview="${x.id}" data-inspect="${x.id}" aria-label="${esc(card(x.id)?.name||'Card')} · ${x.locked?'Locked':Math.round(x.chance*100)+'%'}"><img draggable="false" loading="lazy" src="${image(x.id)}" alt="${esc(card(x.id)?.name||'Card')}"><span>${x.locked?'Locked':Math.round(x.chance*100)+'%'}</span></button>`).join('');more.hidden=shown>=sorted.length;};
+  const draw=()=>{sorted=sortPackCards(entries,select.value,card,registeredCard);grid.innerHTML=sorted.slice(0,shown).map(x=>`<button class="cardbtn" data-preview="${x.id}" data-inspect="${x.id}" aria-label="${esc(card(x.id)?.name||'Card')} · ${x.locked?'Locked':formatPackChance(x.chance)}"><img draggable="false" loading="lazy" src="${image(x.id)}" alt="${esc(card(x.id)?.name||'Card')}"><span>${x.locked?'Locked':formatPackChance(x.chance)}</span></button>`).join('');more.hidden=shown>=sorted.length;};
 
   select.addEventListener('change',()=>{shown=80;draw()});more.addEventListener('click',()=>{shown+=80;draw()});draw();
 

@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');process.env.TEMP=process.env.TMP=path.resolve('temp');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome',args:['--mute-audio']});try{
  const page=await browser.newPage({viewport:{width:924,height:416}});const errors=[];page.on('pageerror',e=>errors.push(e.message));

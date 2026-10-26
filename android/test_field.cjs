@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');const assert=require('node:assert/strict');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');const assert=require('node:assert/strict');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome'});const p=await browser.newPage({viewport:{width:1280,height:800},hasTouch:true});try{await p.goto('http://127.0.0.1:4181');await p.waitForFunction(()=>window.shadowTest,{timeout:90000});
 await p.evaluate(async()=>{const mod=await import('./duel.js');window.rules=mod;const meta=await fetch('content.json').then(r=>r.json());const id=n=>meta.cards.find(c=>c.name===n).id;const original=mod.MobileDuel.prototype.start;mod.MobileDuel.prototype.start=function(...a){a[0]=Array(25).fill(id('Servant of Catabolism'));a[1]=Array(25).fill(id('Skull Servant'));a[2]=8000;a[3]=8000;a[5]=42;a[8]='';return original.apply(this,a)};await shadowTest.command('new',0);await shadowTest.startDuel(false,shadowTest.state().run.routes[0])});
 let direct=false,target=false,attack=false,turn=false;

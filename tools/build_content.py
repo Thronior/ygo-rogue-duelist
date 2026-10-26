@@ -2,6 +2,7 @@
 import json, sys, urllib.request, concurrent.futures, re, sqlite3
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
 sys.stdout.reconfigure(encoding='utf8')
 old=json.loads((ROOT/'data/cards.json').read_text(encoding='utf-8-sig'))
 cards={c['id']:c for c in old if c['date']<='2004-03-31'}
@@ -75,6 +76,8 @@ for card in json.loads((ROOT/'data/opponent-card-exceptions.json').read_text(enc
  cards[card['id']]=card
 from update_pack_rarities import annotate
 annotate(packs)
+from pack_merges import merge_pack_catalog
+packs,_=merge_pack_catalog(packs,allow_missing=True)
 (ROOT/'data/packs.json').write_text(json.dumps(packs,indent=2),encoding='utf8')
 (ROOT/'data/era-cards.json').write_text(json.dumps(list(cards.values()),ensure_ascii=False),encoding='utf8')
 (ROOT/'data/card-aliases.json').write_text(json.dumps(aliases),encoding='utf8')

@@ -300,7 +300,7 @@ def install(g):
   if number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop')):
    count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
-   if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0)):
+   if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0),per_encounter=True):
     selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]))
     run.setdefault('route_curses',{})[str(run['opponent'])]=selected
    if persistent:

@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome'});const p=await browser.newPage({viewport:{width:1280,height:800}});const errors=[];p.on('pageerror',e=>errors.push(String(e)));try{
  await p.goto('http://127.0.0.1:4181');await p.waitForFunction(()=>window.shadowTest,{timeout:90000});
  await p.evaluate(async()=>{await shadowTest.command('new',0);await shadowTest.startDuel(false,shadowTest.state().run.routes[0]);});

@@ -21,9 +21,11 @@ local.properties
 /python/
 /releases/
 /temp/
-/simulations/deck-matchups/
+/simulations/
+/sim-balance/
+/exports/
+/local/
 /assets/music/potential sound effects/
-/tools/irrlicht.zip
 /android/build/
 /ios/
 node_modules/

@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 process.env.TEMP=process.env.TMP=path.resolve('temp');
 const source=fs.readFileSync('android/web/mobile.js','utf8');

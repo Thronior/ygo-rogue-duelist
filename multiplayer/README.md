@@ -84,9 +84,9 @@ The relay defaults to loopback, requires a secret, rejects expired credentials, 
 
 ## Full-flow integration test
 
-Start `tools/tag_test_server.py`; it prints a temporary desktop RPC token and uses isolated D: saves. Run `android/test_tag_integration.cjs TOKEN`. The `--relay` flag forces relay candidates and asserts that TURN was selected; configure the test server's TURN environment first. `--inspect-native` pauses at the first desktop input to verify a real native click before completing the duel automatically. `--phone` uses the isolated Android test app through CDP port 9223 and requires the phone to remain unlocked.
+The original full-flow integration test drove the retired native desktop client, so it was removed with that client. The browser and core tests under Verification cover the supported web and Android clients.
 
-Audio is suppressed by the browser test harness. Desktop runtime music/sound have been muted at the user's request; the previous configuration is saved in `temp/tag-audio-settings-before-mute.conf`. No normal APK or installer was exported during this test work.
+Audio is suppressed by the browser test harness.
 
 The physical phone subsequently passed a complete TCP-TURN-forced duel/shop/reconnect test. That relay listener was forwarded over USB for isolated testing, not deployed on the public internet. Both direct Wi-Fi hosting directions and Android host reload recovery have passed.
 

@@ -59,7 +59,7 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),duelBackground='tunnel' if p.get('duelBackground')=='tunnel' else 'spiral',resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),manualResponseWindow=bounded('manualResponseWindow',200,0,2000))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),duelBackground='tunnel' if p.get('duelBackground')=='tunnel' else 'spiral',resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),manualResponseWindow=bounded('manualResponseWindow',200,0,2000))
 
 
 def migrate_previous_install():

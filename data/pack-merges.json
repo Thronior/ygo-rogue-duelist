@@ -1,0 +1,57 @@
+[
+  {
+    "canonical": "EN-DR1",
+    "merge": ["JP-EE1"],
+    "reason": "Exact duplicate card pool"
+  },
+  {
+    "canonical": "EN-DB1",
+    "merge": ["JP-BE1"],
+    "reason": "Exact duplicate card pool"
+  },
+  {
+    "canonical": "EN-FET",
+    "merge": ["JP-FET"],
+    "reason": "Exact duplicate card pool"
+  },
+  {
+    "canonical": "EN-RDS",
+    "merge": ["JP-RDS"],
+    "reason": "Exact duplicate card pool"
+  },
+  {
+    "canonical": "EN-SOD",
+    "merge": ["JP-SOD"],
+    "reason": "Exact duplicate card pool"
+  },
+  {
+    "canonical": "JP-DL1",
+    "merge": ["WC4-15"],
+    "reason": "Near-duplicate Yami Yugi card pools"
+  },
+  {
+    "canonical": "JP-DL2",
+    "merge": ["WC4-16"],
+    "reason": "Near-duplicate Yami Yugi card pools"
+  },
+  {
+    "canonical": "JP-DL3",
+    "merge": ["WC4-17"],
+    "reason": "Near-duplicate Yami Yugi card pools"
+  },
+  {
+    "canonical": "JP-DL4",
+    "merge": ["WC4-18"],
+    "reason": "Near-duplicate Yami Yugi card pools"
+  },
+  {
+    "canonical": "WC4-23",
+    "merge": ["WC4-24"],
+    "reason": "Purple Millennium Puzzle is contained in Eye of Wdjat"
+  },
+  {
+    "canonical": "DRAFT-YAMI-YUGI",
+    "merge": ["DRAFT-YUGI-MUTO"],
+    "reason": "Near-duplicate Yugi character pack pools"
+  }
+]

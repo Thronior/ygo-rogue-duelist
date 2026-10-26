@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./require-module.cjs').requireModule('playwright');
 // Accelerated lifecycle soak: controlled victories advance all nine rounds.
 // Card startup preload is bypassed; duels run to completion, with periodic board renders.
 // No external requests or real player saves are used.

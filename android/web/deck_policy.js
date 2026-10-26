@@ -1,7 +1,7 @@
 // Shared card-specific CPU policy; opposing hidden cards remain opaque.
 export function deckPolicy(x){
-  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,exodiaPieces,projectedAttack,battleDamage}=x;
- const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>attr(c)==='WATER',sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
+  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt}=x;
+ const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>hasAttribute(c,'WATER'),sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
  const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));
  const handCost=(source,n,filter=()=>true)=>hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code)&&filter(c)).length>=n;
@@ -154,11 +154,28 @@ export function deckPolicy(x){
   if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}
   if(n==='Terraforming')return (archfiendBody||archfiendDeck)&&q(p,L.DECK).some(x=>name(x)==='Pandemonium')?95:-1;
   if(n==='Pandemonium')return archfiendBody||archfiendDeck?90:-1;
+  if(n==='Frontline Base'){
+   const unionInHand=hand.some(x=>x.code!==c.code&&(data(x).type&1024)&&lvl(x)<=4);
+   return free>0&&unionInHand?c.location===L.HAND?100:c.location===L.SZONE&&face(c)?110:-1:-1;
+  }
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
   if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpTarget(x)))?100:-1;
   if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
   if(n==='A Hero Emerges')return chain&&!!e.attackCard&&own.length<5&&hand.some(x=>monster(x)&&!(/cannot be Special Summoned/i.test(e.cards.get(x.code)?.desc||'')))?90:-1;
-  if(n==='Riryoku'){const friend=own.some(x=>face(x)&&atk(x)>0),foe=enemy.some(x=>face(x)&&atk(x)>0);return friend&&foe?95:-1;}
+  if(n==='Riryoku'){
+   const friends=own.filter(x=>face(x)&&atk(x)>0),foes=enemy.filter(x=>face(x)&&atk(x)>0);
+   const battleSoon=e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!e.battleProtected?.[1-p];
+   if(!battleSoon)return -1;
+   const attackers=friends.filter(x=>battleReady(x)&&!(x.attack_count>0)).sort((a,b)=>atk(b)-atk(a));
+   const attackTargets=foes.filter(x=>x.position&1).sort((a,b)=>atk(b)-atk(a));
+   if(attackers.length&&attackTargets.length)return 95;
+   return -1;
+  }
+  if(n==='Michizure'){
+   if(!chain)return -1;
+   const bestTarget=Math.max(0,...enemy.filter(t=>removalAffects(c,t,n)).map(targetValue));
+   return bestTarget>=1200?95+Math.min(18,bestTarget/300):-1;
+  }
   if(n==='Polymerization')return fusionChoices(!!e.fusionSupport?.[p]&&e.fusionSupport[p]===e.turn).length?95:-1;
   if(n==='Cybernetic Fusion Support')return e.lp[p]>3000&&has(hand,'Polymerization')&&fusionChoices(true).some(a=>race(a.c)==='Machine'&&!fusionPlan(a.c))?110:-1;
   if(n==='Fusion Weapon')return live(own).some(c=>data(c).type&64&&lvl(c)<=6)?70:-1;
@@ -314,10 +331,21 @@ export function deckPolicy(x){
   if(n==='Enchanting Fitting Room')return ownCard&&lowNormal(c)?30000+atk(c):-100000;
   if(n==='Terraforming')return ownCard&&c.location===L.DECK&&name(c)==='Pandemonium'?50000:-100000;
   if(n==='Pandemonium')return ownCard&&c.location===L.DECK&&monster(c)&&name(c).includes('Archfiend')?30000+atk(c):-100000;
+  if(n==='Frontline Base')return ownCard&&c.location===L.HAND&&(data(c).type&1024)&&lvl(c)<=4?50000+projectedAttack(c):-100000;
   if(n==='Ninjitsu Art of Transformation')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))?30000+projectedAttack(c):-100000;
   if(n==='Level Up!')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)?50000+projectedAttack(c):-100000;
   if(n==='Kaibaman')return ownCard&&c.location===L.HAND&&name(c)==='Blue-Eyes White Dragon'?50000+projectedAttack(c):-100000;
-  if(n==='Riryoku'){const cands=(info.cands||[]).filter(x=>x.location===L.MZONE&&face(x)),friends=cands.filter(x=>x.controller===p).sort((a,b)=>atk(b)-atk(a)),foes=cands.filter(x=>x.controller!==p).sort((a,b)=>atk(b)-atk(a)),bestFriend=friends[0],bestFoe=foes[0];if(bestFriend&&bestFoe)return same(c,bestFriend)?100000+atk(c):same(c,bestFoe)?50000+atk(c):-100000;return same(c,friends[0])||same(c,friends[1])||same(c,foes[0])||same(c,foes[1])?30000+atk(c):-100000;}
+  if(n==='Riryoku'){
+   const cands=(info.cands||[]).filter(x=>x.location===L.MZONE&&face(x)),friends=cands.filter(x=>x.controller===p).sort((a,b)=>atk(b)-atk(a)),foes=cands.filter(x=>x.controller!==p).sort((a,b)=>atk(b)-atk(a));
+   const attacker=friends.filter(x=>battleReady(x)&&!(x.attack_count>0)).sort((a,b)=>atk(b)-atk(a))[0];
+   // The first target pair is chosen together; then the card asks which one
+   // loses ATK. Prefer halving the opponent, or the weakest of our two bodies.
+   if(info.min===1&&cands.length===2){const lose=foes.find(x=>x.position&1)||friends.filter(x=>x!==attacker).sort((a,b)=>atk(a)-atk(b))[0];return lose&&same(c,lose)?100000+atk(c):-100000;}
+   const bestFriend=attacker||friends[0],bestFoe=foes.filter(x=>x.position&1).sort((a,b)=>atk(b)-atk(a))[0];
+   if(bestFriend&&bestFoe)return same(c,bestFriend)?100000+atk(c):same(c,bestFoe)?50000+atk(c):-100000;
+   if(friends.length>=2)return same(c,bestFriend)?100000+atk(c):same(c,friends.at(-1))?50000-atk(c):-100000;
+   return -100000;
+  }
   if(n==='Cestus of Dagla')return ownCard&&race(c)==='Fairy'&&battleReady(own.find(x=>same(x,c))||c)?20000+atk(c):-100000;
   if(['Polymerization','Cybernetic Fusion Support'].includes(n)){
    if(c.location===L.EXTRA){const plan=fusionPlan(c,n==='Cybernetic Fusion Support'||e.fusionSupport?.[p]===e.turn);return plan?20000+plan.score:-100000;}

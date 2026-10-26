@@ -6,8 +6,10 @@ def nonstackable_curses(challenge_level=0):
  if challenge_level>=2:keys.add('no_recovery')
  return keys
 
-def dedupe_curses(curses,challenge_level=0):
- unique=nonstackable_curses(challenge_level);seen=set();out=[]
+def dedupe_curses(curses,challenge_level=0,per_encounter=False):
+ unique=nonstackable_curses(challenge_level)
+ if per_encounter:unique.add('mercy')
+ seen=set();out=[]
  for key in curses:
   if key in unique:
    if key in seen:continue
@@ -17,14 +19,14 @@ def dedupe_curses(curses,challenge_level=0):
 
 def draw_curses(rng,count,challenge_level=0,existing=(),distinct=False):
  from content import CURSES
- unique=nonstackable_curses(challenge_level);blocked=set(existing) if distinct else set(existing)&unique;out=[]
+ unique=nonstackable_curses(challenge_level);encounter_unique=unique|{'mercy'};blocked=set(existing) if distinct else set(existing)&unique;out=[]
  for _ in range(count):
-  pool=[k for k in CURSES if (k not in unique or k not in blocked) and (not distinct or k not in blocked)]
+  pool=[k for k in CURSES if (k not in encounter_unique or k not in blocked) and (not distinct or k not in blocked)]
   if not pool and not distinct:pool=[k for k in CURSES if k not in unique]
   if not pool:break
   key=rng.choices(pool,weights=[0.5 if k=='relic_seal' else 1 for k in pool],k=1)[0]
   out.append(key)
-  if distinct or key in unique:blocked.add(key)
+  if distinct or key in encounter_unique:blocked.add(key)
  return out
 def require_type_choice(run):
  if run.get('challenge_level')!=-1 and 'dna_rewrite' in run.get('artifacts',[]) and run.get('monster_type') not in RACE_VALUES:raise ValueError('Choose a monster Type for DNA Rewrite first.')

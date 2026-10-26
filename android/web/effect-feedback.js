@@ -1,20 +1,15 @@
+import {shatterCard,tributeRise,targetLock,landingPulse,linkBeam} from './duel-motion.js';
 // Core-driven feedback: never reveal the identity of a private card selection.
 export function removalKind(reason=0){
  // Core REASON_DESTROY / REASON_RELEASE; ordinary sends, discards and costs do not qualify.
  return reason&2?'tribute':reason&1?'destroy':null;
 }
 
-export function playRemovalFeedback(kind,source,{reduced=false}={}){
- if(!source||!['destroy','tribute'].includes(kind))return;
- const r=source.getBoundingClientRect(),el=document.createElement('div');
- el.className='card-removal-fx '+kind;el.setAttribute('aria-hidden','true');
- Object.assign(el.style,{left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
- el.innerHTML='<i></i><i></i><i></i><i></i>';document.body.append(el);
- const frames=reduced?[{opacity:.8},{opacity:0}]:kind==='tribute'
-  ?[{opacity:0,transform:'translateY(0) scale(.8)'},{opacity:1,offset:.3},{opacity:0,transform:'translateY(-20px) scale(1.15)'}]
-  :[{opacity:1,transform:'scale(.85)'},{opacity:1,transform:'scale(1.12)',offset:.3},{opacity:0,transform:'scale(1.4)'}];
- const animation=el.animate(frames,{duration:180,easing:'ease-out'});
- return animation.finished.catch(()=>{}).finally(()=>el.remove());
+// Field cards only: a hand or pile has no single card to break apart.
+// Returns {animations, hide}; the caller cancels hide when the move cue ends.
+export function playRemovalFeedback(kind,source,{reduced=false,lite=false}={}){
+ if(!source?.matches?.('[data-zone]')||!['destroy','tribute'].includes(kind))return {animations:[],hide:null};
+ return kind==='destroy'?shatterCard(source,{reduced,lite}):tributeRise(source,{reduced,lite});
 }
 
 export function effectMessageCue(e,m,M,L){
@@ -57,7 +52,9 @@ export async function playEffectFeedback(cue,{field,image,esc,reduced=false,fast
   if(!reduced)img.animate([{transform:cue.excavation?'translateY(-20px) rotateY(90deg)':'scale(.8)',opacity:0},{transform:'none',opacity:1}],{duration:180});
   if(cue.excavation){img.title=`${i+1} from the top`;if(rack.children.length>6)rack.firstElementChild.remove();await wait(pause);}
   const zone=field.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`);
-  if(!reduced&&zone&&cue.increase!==false)zone.animate([{boxShadow:'0 0 18px #ffe185'},{boxShadow:'none'}],{duration:450});
+  if(!reduced&&zone&&cue.increase!==false){if(/selected/i.test(cue.text))targetLock(zone);else landingPulse(zone,{color:'#ffe185'})}
  }
+ // Equip cards point at the monster they now belong to.
+ if(cue.text==='Equipped'&&cards.length===2){const [a,b]=cards.map(c=>field.querySelector(`[data-zone="${c.controller},${c.location},${c.sequence}"]`));if(a&&b)linkBeam(a,b,{reduced})}
  await wait(cue.statChange?200:reduced?350:cue.excavation||cue.choice?850:450);el.remove();
 }

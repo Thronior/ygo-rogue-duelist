@@ -1,3 +1,4 @@
+import {wallMs} from './duel-motion.js';
 export const legendarySummons={
  77585513:{name:'Jinzo',color:'#d85bff'},
  38033121:{name:'Dark Magician Girl',color:'#ff72c2',hearts:true},
@@ -28,14 +29,15 @@ export async function playLegendarySummon(code,{field,image,sound=()=>{},music=(
  const light=document.createElement('div');light.className='legendary-summon-light';
  const art=document.createElement('div');art.className='legendary-summon-art';art.style.backgroundImage=`url("${image(code)}")`;
  const label=document.createElement('strong');label.textContent=theme.name;el.append(light,art,label);field.append(el);if(theme.hearts){for(let i=0;i<12;i++){const h=document.createElement('span');h.className='legendary-heart';h.textContent='♥';h.style.setProperty('--heart-x',(8+i*7.4)+'%');h.style.setProperty('--heart-delay',(i%4*.12)+'s');el.append(h)}}
- const animations=[];let timer,watch;
+ // The window is 3 s of wall time; fit the slowed animations inside it so nothing pops.
+ const animations=[],span=wallMs(3000);let timer,watch;
  try{
   music(theme.hearts?'summon-cute':'summon-epic');
   sound('specialsummon',.3);
   if(!reduced)animations.push(field.animate([{transform:'translate(0,0)'},{transform:'translate(-5px,2px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-3px,-1px)'},{transform:'translate(3px,2px)'},{transform:'translate(0,0)'}],{duration:480}));
-  animations.push(light.animate([{opacity:0},{opacity:.75,offset:.16},{opacity:.4,offset:.7},{opacity:0}],{duration:3000,fill:'both'}));
-  animations.push(art.animate([{opacity:0,transform:reduced?'none':'scale(.72)'},{opacity:0,offset:.16},{opacity:1,transform:'scale(1)',offset:.32},{opacity:1,transform:reduced?'none':'scale(1.035)',offset:.78},{opacity:0,transform:reduced?'none':'scale(1.1)'}],{duration:3000,fill:'both',easing:'ease-out'}));
-  animations.push(label.animate([{opacity:0},{opacity:0,offset:.25},{opacity:1,offset:.36},{opacity:1,offset:.8},{opacity:0}],{duration:3000,fill:'both'}));
+  animations.push(light.animate([{opacity:0},{opacity:.75,offset:.16},{opacity:.4,offset:.7},{opacity:0}],{duration:span,fill:'both'}));
+  animations.push(art.animate([{opacity:0,transform:reduced?'none':'scale(.72)'},{opacity:0,offset:.16},{opacity:1,transform:'scale(1)',offset:.32},{opacity:1,transform:reduced?'none':'scale(1.035)',offset:.78},{opacity:0,transform:reduced?'none':'scale(1.1)'}],{duration:span,fill:'both',easing:'ease-out'}));
+  animations.push(label.animate([{opacity:0},{opacity:0,offset:.25},{opacity:1,offset:.36},{opacity:1,offset:.8},{opacity:0}],{duration:span,fill:'both'}));
   await new Promise(resolve=>{let remaining=3000,last=performance.now();watch=setInterval(()=>{const now=performance.now();if(!paused())remaining-=now-last;last=now;if(remaining<=0||!active()||!field.isConnected||document.hidden)resolve()},50)});
  }finally{clearTimeout(timer);clearInterval(watch);for(const a of animations)a.cancel();el.remove()}
  return true;

@@ -7,12 +7,18 @@ from pack_odds import inspect_pack
 assignments=json.loads((g.ROOT/'data/character-pack-coverage-additions.json').read_text(encoding='utf8'))
 count=0
 for owner,groups in assignments.items():
- pack=next(p for p in content.PACKS if p['name']==owner and p.get('draft_only'))
+ pack=next((p for p in content.PACKS if p['name']==owner and p.get('draft_only')),None)
+ if pack is None:
+  character=next(c for c in content.CHARACTERS if c['name']==owner)
+  pack=content.PACK_BY_ID[character['pack']]
  assert not set(pack['common'])&set(pack['rare'])
  odds={r['id']:r for r in inspect_pack(pack['id'],{})}
  for pool,names in groups.items():
   for name in names:
-   cid=g.BY_NAME[name]['id'];assert cid in pack[pool]
+   cid=g.BY_NAME[name]['id']
+   # Across merged editions, a Common card is placed in the Rare bucket if
+   # any source printing marked it Rare.
+   assert cid in pack[pool] or (pool=='common' and cid in pack['rare']), (owner,name,pool)
    assert odds[cid]['chance']>0 and not odds[cid].get('locked'),(owner,name)
    count+=1
  rng=random.Random(84)

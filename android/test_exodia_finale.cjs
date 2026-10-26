@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Win/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');const assert=require('node:assert/strict');
+const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');const assert=require('node:assert/strict');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome',args:['--mute-audio']});try{
  const page=await browser.newPage({viewport:{width:924,height:416}});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:4198/mobile.css');await page.setContent('<link rel="stylesheet" href="/mobile.css"><button id="under">Underlying shop</button>');
  await page.evaluate(async()=>{window.finale=await import('/exodia-finale.js');await finale.playExodiaFinale({player:0,reason:1})});assert.equal(await page.locator('.exodia-finale').count(),0);

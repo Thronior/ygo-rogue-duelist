@@ -549,7 +549,7 @@
     "razor": {
       "name": "Razor Ledger",
       "price": 85,
-      "description": "Win a Duel with exactly the current minimum Main Deck size (20, 30, or 40 cards) to earn 30 additional coins.",
+      "description": "Win a Duel with a Main Deck at this run’s minimum size to earn 30 extra coins.",
       "art": "Narrow Pass",
       "effect": "lean_bonus",
       "amount": 30,
@@ -769,7 +769,7 @@
     "attribute_light": {
       "name": "Light Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become LIGHT.",
+      "description": "Your face-up monsters are also treated as LIGHT monsters.",
       "art": "Luminous Spark",
       "effect": "attribute",
       "amount": 0,
@@ -779,7 +779,7 @@
     "attribute_dark": {
       "name": "Dark Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become DARK.",
+      "description": "Your face-up monsters are also treated as DARK monsters.",
       "art": "Mystic Plasma Zone",
       "effect": "attribute",
       "amount": 0,
@@ -789,7 +789,7 @@
     "attribute_fire": {
       "name": "Fire Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become FIRE.",
+      "description": "Your face-up monsters are also treated as FIRE monsters.",
       "art": "Molten Destruction",
       "effect": "attribute",
       "amount": 0,
@@ -799,7 +799,7 @@
     "attribute_water": {
       "name": "Water Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become WATER.",
+      "description": "Your face-up monsters are also treated as WATER monsters.",
       "art": "Umi",
       "effect": "attribute",
       "amount": 0,
@@ -809,7 +809,7 @@
     "attribute_wind": {
       "name": "Wind Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become WIND.",
+      "description": "Your face-up monsters are also treated as WIND monsters.",
       "art": "Rising Air Current",
       "effect": "attribute",
       "amount": 0,
@@ -819,7 +819,7 @@
     "attribute_earth": {
       "name": "Earth Surgery",
       "price": 90,
-      "description": "All face-up monsters you control become EARTH.",
+      "description": "Your face-up monsters are also treated as EARTH monsters.",
       "art": "Gaia Power",
       "effect": "attribute",
       "amount": 0,

@@ -14,16 +14,17 @@ const make=()=>{
  return {e,card,put};
 };
 
-// Mask of the Accursed should not spend a card when every legal target has a
-// safe battle removal available this turn, but remains usable when attacks are spent.
+// Mask of the Accursed should wait until Main Phase 2, after attacks are spent.
 {
  const {e,card,put}=make(),mask=card('Mask of the Accursed',1,L.HAND,0),attacker=card('Battle Ox',1,L.MZONE,1,0,1700,1000),target=card('Sangan',0,L.MZONE,1,0,1000,600);
  put(1,L.MZONE,attacker);put(0,L.MZONE,target);
  let smart=smartContext(e,1,L,{to_bp:true,attacks:[attacker]});
- assert.equal(smart.activation(mask),-1,'hold Mask when the only target can be safely destroyed by battle');
+ assert.equal(smart.activation(mask),-1,'never activate Mask in Main Phase 1');
  put(1,L.MZONE,{...attacker,attack_count:1});
  smart=smartContext(e,1,L,{to_bp:true,attacks:[]});
- assert(smart.activation(mask)>0,'use Mask when the target cannot be removed in the available battle phase');
+ assert.equal(smart.activation(mask),-1,'keep Mask held until Main Phase 2 even if no attack remains');
+ e.phase=256;smart=smartContext(e,1,L,{to_bp:true,attacks:[]});
+ assert(smart.activation(mask)>0,'activate Mask in Main Phase 2');
 }
 
 // Account for active Mirror Wall before approving a battle that becomes a losing trade.

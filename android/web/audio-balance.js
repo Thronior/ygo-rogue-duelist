@@ -51,20 +51,27 @@ export function bufferedEffects(paths,volume){
  const stop=key=>{
   versions.set(key,(versions.get(key)||0)+1);
   const voice=active.get(key);if(!voice)return;
-  active.delete(key);voice.source.onended=null;voice.source.stop();voice.source.disconnect();voice.gain.disconnect();
+  active.delete(key);
+  // A 25 ms release avoids the click of cutting a waveform mid-cycle.
+  voice.source.onended=()=>{voice.source.disconnect();voice.gain.disconnect()};
+  try{const t=ctx.currentTime,level=voice.gain.gain;level.cancelScheduledValues(t);level.setValueAtTime(level.value,t);level.linearRampToValueAtTime(0,t+.025);voice.source.stop(t+.03)}
+  catch{voice.source.onended=null;try{voice.source.stop()}catch{}voice.source.disconnect();voice.gain.disconnect()}
  };
  return {
   unlock(){resume()},
   playing(key){return active.has(key)},
-  play(key,emphasis=1,rate=1,loop=false){
+  // offset skips a silent lead-in; duration (wall seconds) fades the tail out instead of cutting it.
+  play(key,emphasis=1,rate=1,loop=false,{offset=0,duration=0,fade=.08}={}){
    if(disposed||!ctx||document.hidden||!volume())return;
    stop(key);resume();const version=versions.get(key),path=paths[key];
    load(path).then(buffer=>{
     if(disposed||document.hidden||versions.get(key)!==version)return;
     const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=buffer;source.loop=loop;source.playbackRate.value=rate;
-    gain.gain.value=Math.max(0,Math.min(1,Number(volume())||0))*emphasis*(audioGains[path]??1);
+    const level=Math.max(0,Math.min(1,Number(volume())||0))*emphasis*(audioGains[path]??1);gain.gain.value=level;
     source.connect(gain);gain.connect(master);active.set(key,{source,gain});
-    source.onended=()=>{source.disconnect();gain.disconnect();if(active.get(key)?.source===source)active.delete(key)};source.start();
+    source.onended=()=>{source.disconnect();gain.disconnect();if(active.get(key)?.source===source)active.delete(key)};
+    source.start(0,Math.min(Math.max(0,offset),Math.max(0,buffer.duration-.02)));
+    if(duration>0&&!loop){const t=ctx.currentTime;gain.gain.setValueAtTime(level,Math.max(t,t+duration-fade));gain.gain.linearRampToValueAtTime(0,t+duration);source.stop(t+duration+.02)}
    }).catch(()=>{});
   },
   stop,
