@@ -133,8 +133,6 @@ function edges(ctx,d,t,shape){
 function header(ctx,d,t){
  if(d.eyebrow)text(ctx,t,d.eyebrow,W/2,104,{size:22,spacing:3,align:'center',color:d.won?t.accent:t.bad});
  text(ctx,t,d.title,W/2,d.eyebrow?166:150,{size:62,family:DISPLAY,weight:'normal',spacing:1,fit:R-L,min:36,align:'center',color:d.won?'#ffe066':t.ink,glow:t.flair&&rgba(t.accent,.85)});
- ctx.save();ctx.strokeStyle=t.line;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(L+40,190);ctx.lineTo(W/2-18,190);ctx.moveTo(W/2+18,190);ctx.lineTo(R-40,190);ctx.stroke();
- ctx.fillStyle=d.won?t.accent:t.bad;path(ctx,c=>addPoly(c,[[W/2,181],[W/2+9,190],[W/2,199],[W/2-9,190]]));ctx.fill();ctx.restore()
 }
 
 function niche(c,x,y,w,h){const a=64;c.moveTo(x,y+a);c.quadraticCurveTo(x,y,x+w/2,y);c.quadraticCurveTo(x+w,y,x+w,y+a);c.lineTo(x+w,y+h);c.lineTo(x,y+h);c.closePath()}
@@ -191,15 +189,16 @@ function finalDeck(ctx,d,t,x,y,w,h){
   ctx.save();ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=3;ctx.shadowOffsetY=1.5;ctx.fillStyle='#0b1820';ctx.fillRect(cx,cy,cw,ch);ctx.restore();if(img)ctx.drawImage(img,cx,cy,cw,ch)});
   return Math.ceil(list.length/cols)*(ch+g)};
  top+=lay(main);
- if(extra.length){top+=split-g;ctx.save();ctx.strokeStyle=t.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(ax+20,top-split/2);ctx.lineTo(ax+aw-20,top-split/2);ctx.stroke();ctx.restore();lay(extra)}
+ if(extra.length){top+=split-g;lay(extra)}
 }
 
 function relicGrid(ctx,d,t,x,y,w,h){
  panel(ctx,t,x,y,w,h);const total=d.relics.reduce((n,r)=>n+(r.count||1),0);heading(ctx,t,`RELICS · ${total}`,x+w/2,y+36);
  const n=d.relics.length,slots=[];if(!n){text(ctx,t,'No relics this run',x+w/2,y+h/2+8,{size:22,align:'center',weight:'normal',color:t.soft});return slots}
- const ax=x+24,ay=y+58,aw=w-48,ah=h-78,g=14;let best={s:0,cols:1};
- for(let cols=1;cols<=n;cols++){const rows=Math.ceil(n/cols),s=Math.min((aw-g*(cols-1))/cols,(ah-g*(rows-1))/rows,84);if(s>best.s)best={s,cols}}
- const {s,cols}=best,rows=Math.ceil(n/cols);
+ // The gap is a sixth of the icon (14px at full size), so long relic lists shrink evenly instead of leaving wide gaps.
+ const ax=x+24,ay=y+58,aw=w-48,ah=h-78,k=1/6;let best={s:0,cols:1};
+ for(let cols=1;cols<=n;cols++){const rows=Math.ceil(n/cols),s=Math.min(aw/(cols+k*(cols-1)),ah/(rows+k*(rows-1)),84);if(s>best.s)best={s,cols}}
+ const {s,cols}=best,rows=Math.ceil(n/cols),g=s*k;
  d.relics.forEach((r,i)=>{const row=Math.floor(i/cols),inRow=row===rows-1?n-row*cols:cols,ox=ax+(aw-(inRow*s+(inRow-1)*g))/2;slots.push({r,x:ox+(i-row*cols)*(s+g),y:ay+(ah-(rows*s+(rows-1)*g))/2+row*(s+g),s})});
  return slots
 }
@@ -297,17 +296,30 @@ async function withImages(d){
 export async function mountRunCard(canvas,run,deps){
  const data=runCardData(run,deps);canvas.setAttribute('aria-label',data.label);
  const ready=await withImages(data);if(!canvas.isConnected)return;
- drawRunCard(canvas,ready);canvas.dataset.ready='1';return ready
+ drawRunCard(canvas,ready);canvas.dataset.ready='1';
+ // The finished card is shown as an <img>, so the browser's own "Copy image" works even where scripts may not copy (itch.io's embed).
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+ if(blob&&canvas.isConnected){const img=new Image();img.className='run-card-image';img.alt=data.label;img.src=URL.createObjectURL(blob);await img.decode().catch(()=>{});if(canvas.isConnected){canvas.style.display='none';canvas.after(img)}}
+ return ready
 }
 
-// Copy puts the PNG on the clipboard; where image copying is unavailable it falls back to a share sheet, then a save.
+const base64=blob=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('Could not prepare the image.'));r.readAsDataURL(blob)});
+// Copy puts the PNG on the clipboard. The Android app copies natively and opens its share sheet; phones fall back to the
+// share sheet. Desktop browsers never open the system share window: where copying is blocked they explain "Copy image".
 export async function copyRunCard(canvas,name){
  if(!canvas?.dataset.ready)return 'The image is still being drawn. Try again in a moment.';
  const png=new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image export failed.')),'image/png'));
+ const native=globalThis.ShadowNative;
+ if(native?.shareImage)return native.shareImage(name,await base64(await png))?'Copied! Paste it into Discord, or pick an app to share it.':'Could not prepare the image. Try again.';
+ let blocked=false;
  // Safari needs the clipboard write to start inside the tap, so the blob is passed as a promise.
- if(navigator.clipboard?.write&&typeof ClipboardItem!=='undefined'){try{await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);return 'Copied! Paste it into Discord or any chat.'}catch{}}
- const blob=await png,native=!!globalThis.ShadowNative?.saveDeckImage;
- if(!native&&typeof File!=='undefined'){const file=new File([blob],name+'.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'YGO Rogue Duelist run'});return 'Shared.'}catch(e){if(e?.name==='AbortError')return 'Share cancelled.'}}}
- const saved=await saveDeckImage(blob,name);
- return native?`Image copying isn't available in the app. ${saved}`:"This browser can't copy images, so the image was downloaded instead."
+ if(!native&&navigator.clipboard?.write&&typeof ClipboardItem!=='undefined'){try{await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);return 'Copied! Paste it into Discord or any chat.'}catch(e){blocked=e?.name==='NotAllowedError'||e?.name==='SecurityError'}}
+ const blob=await png;
+ if(native?.saveDeckImage)return `Image copying needs the latest app version. ${await saveDeckImage(blob,name)}`;
+ const touch=!!globalThis.matchMedia?.('(pointer:coarse)').matches;
+ if(touch&&typeof File!=='undefined'){const file=new File([blob],name+'.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'YGO Rogue Duelist run'});return 'Shared.'}catch(e){if(e?.name==='AbortError')return 'Share cancelled.'}}}
+ const embedded=globalThis.top!==globalThis.self;
+ if(blocked||embedded)return `${embedded?'This embedded page':'Your browser'} can't copy images. ${touch?'Long-press':'Right-click'} the card and choose Copy image.`;
+ await saveDeckImage(blob,name);
+ return "This browser can't copy images, so the image was downloaded instead."
 }

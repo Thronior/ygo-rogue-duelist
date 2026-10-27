@@ -81,12 +81,40 @@ public final class MainActivity extends Activity {
         });
         web.loadUrl("https://"+HOST+"/index.html");
     }
+    private static byte[] png(String base64) {
+        if(base64==null || base64.length()>16000000)return null;
+        final byte[] bytes;
+        try{bytes=android.util.Base64.decode(base64,android.util.Base64.DEFAULT);}catch(IllegalArgumentException e){return null;}
+        return bytes.length<8 || bytes[0]!=(byte)137 || bytes[1]!=80 || bytes[2]!=78 || bytes[3]!=71 ? null : bytes;
+    }
     public final class SaveStore {
+        /** Puts the image on the clipboard and opens the share sheet, since the WebView cannot copy images itself. */
+        @JavascriptInterface public boolean shareImage(String name,String base64) {
+            final byte[] bytes=png(base64);
+            if(bytes==null)return false;
+            final String base=(name==null?"Image":name.replaceAll("[^a-zA-Z0-9 _.()-]","_"));
+            final String filename=base.substring(0,Math.min(90,base.length()))+".png";
+            final File folder=ShareImageProvider.directory(MainActivity.this);
+            if(!folder.isDirectory() && !folder.mkdirs())return false;
+            File[] old=folder.listFiles();
+            if(old!=null)for(File f:old)f.delete();
+            try(FileOutputStream out=new FileOutputStream(new File(folder,filename))){out.write(bytes);}catch(IOException e){return false;}
+            final Uri uri=ShareImageProvider.uri(filename);
+            runOnUiThread(() -> {
+                try{
+                    android.content.ClipData clip=android.content.ClipData.newUri(getContentResolver(),"Run card",uri);
+                    ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clip);
+                    android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND).setType("image/png").putExtra(android.content.Intent.EXTRA_STREAM,uri).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    send.setClipData(clip);
+                    startActivity(android.content.Intent.createChooser(send,"Share image"));
+                }catch(RuntimeException e){exportNotice("Could not share the image. Please try again.");}
+            });
+            return true;
+        }
+
         @JavascriptInterface public boolean saveDeckImage(String name,String base64) {
-            if(base64==null || base64.length()>16000000)return false;
-            final byte[] bytes;
-            try{bytes=android.util.Base64.decode(base64,android.util.Base64.DEFAULT);}catch(IllegalArgumentException e){return false;}
-            if(bytes.length<8 || bytes[0]!=(byte)137 || bytes[1]!=80 || bytes[2]!=78 || bytes[3]!=71)return false;
+            final byte[] bytes=png(base64);
+            if(bytes==null)return false;
             synchronized(MainActivity.this){if(pendingDeckImage!=null)return false;pendingDeckImage=bytes;}
             final String filename=(name==null?"Deck.png":name.replaceAll("[^a-zA-Z0-9 _.()-]","_")).substring(0,Math.min(100,name==null?8:name.length()));
             runOnUiThread(() -> {

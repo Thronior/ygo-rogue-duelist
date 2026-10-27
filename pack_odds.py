@@ -44,7 +44,7 @@ def inspect_pack(pid,profile):
   if apply_override:weight*=float(overrides.get(str(cid),overrides.get(cid,1)))
   return weight
  for identity,cid in all_cards.items():
-  key=(effective_weight(common,identity) if identity in common else 0,
+  key=(effective_weight(common,identity,True) if identity in common else 0,
        effective_weight(premium,identity,True) if identity in premium else 0,
        effective_weight(basic,identity) if identity in basic else 0,
        int(g.normal_starter(premium.get(identity,cid))))

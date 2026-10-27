@@ -279,10 +279,10 @@
     "buckler": {
       "name": "Millennium Shield",
       "price": 60,
-      "description": "Monsters you control gain 200 DEF.",
+      "description": "Monsters you control gain 600 DEF.",
       "art": "Giant Soldier of Stone",
       "effect": "def",
-      "amount": 200,
+      "amount": 600,
       "tag": "defense",
       "filter": "",
       "parameters": {}
@@ -411,10 +411,10 @@
     "interest": {
       "name": "Golden Scale",
       "price": 90,
-      "description": "After each victory, earn additional coins equal to 10% of your held coins, rounded down (max. 30).",
+      "description": "After each victory, earn additional coins equal to 30% of your held coins, rounded down (max. 90).",
       "art": "Multiply",
       "effect": "interest",
-      "amount": 10,
+      "amount": 30,
       "tag": "economy",
       "filter": "",
       "parameters": {}

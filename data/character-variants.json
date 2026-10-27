@@ -3,10 +3,10 @@
   "variants": {
     "0": {
       "name": "Fusion Master",
-      "starting_relic": "fusion_insignia",
+      "starting_relic": "fusion_time",
       "supporting_packs": [
-        "EN-MRD",
-        "EN-DCR"
+        "EN-DB1",
+        "EN-LOB"
       ],
       "cards": [
         "Dark Paladin",
@@ -30,9 +30,9 @@
     },
     "1": {
       "name": "Union Commander",
-      "starting_relic": "union_dock",
+      "starting_relic": "union_hangar",
       "supporting_packs": [
-        "JP-302",
+        "EN-DB1",
         "EN-DR1"
       ],
       "cards": [
@@ -139,8 +139,8 @@
       "name": "Masked Ritual",
       "starting_relic": "ritual_vestment",
       "supporting_packs": [
-        "EN-MRL",
-        "EN-DCR"
+        "JP-SM",
+        "EN-LON"
       ],
       "cards": [
         "The Masked Beast",
@@ -239,9 +239,9 @@
     },
     "9": {
       "name": "Restless Crypt",
-      "starting_relic": "quiet_library",
+      "starting_relic": "restless_dead",
       "supporting_packs": [
-        "EN-IOC",
+        "JP-BE2",
         "EN-AST"
       ],
       "cards": [
@@ -264,10 +264,10 @@
     },
     "10": {
       "name": "Insect Evolution",
-      "starting_relic": "chitin_carapace",
+      "starting_relic": "level_one",
       "supporting_packs": [
         "EN-SOD",
-        "EN-FET"
+        "JP-DL4"
       ],
       "cards": [
         "Ultimate Insect LV1",
@@ -289,27 +289,28 @@
       "background": "character-backgrounds/variant-10.jpg"
     },
     "11": {
-      "name": "Tribute Tyrant",
-      "starting_relic": "tribute_dividend",
+      "name": "Inferno",
+      "starting_relic": "storm_core",
       "supporting_packs": [
-        "EN-PGD",
-        "EN-AST"
+        "JP-EE2",
+        "EN-RDS"
       ],
       "cards": [
-        "Zaborg the Thunder Monarch",
-        "Double Coston",
-        "Soul Exchange"
+        "Solar Flare Dragon",
+        "Flame Ruler",
+        "Thestalos the Firestorm Monarch"
       ],
       "pack_additions": [
-        "Zaborg the Thunder Monarch",
-        "Double Coston",
-        "Soul Exchange",
-        "Mobius the Frost Monarch",
+        "Solar Flare Dragon",
+        "Flame Ruler",
         "Thestalos the Firestorm Monarch",
-        "Granmarg the Rock Monarch",
-        "Gilasaurus"
+        "Gaia Soul the Combustible Collective",
+        "Infernal Flame Emperor",
+        "Raging Flame Sprite",
+        "Fox Fire",
+        "Spirit of Flames"
       ],
-      "background_card": "Zaborg the Thunder Monarch",
+      "background_card": "Thestalos the Firestorm Monarch",
       "background": "character-backgrounds/variant-11.jpg"
     },
     "12": {
@@ -409,28 +410,28 @@
       "background": "character-backgrounds/variant-15.jpg"
     },
     "16": {
-      "name": "Machine Meltdown",
-      "starting_relic": "static_coil",
+      "name": "Power Grid",
+      "starting_relic": "overcharge",
       "supporting_packs": [
-        "EN-IOC",
-        "EN-AST"
+        "EN-MRD",
+        "JP-BE2"
       ],
       "cards": [
-        "Needle Burrower",
-        "KA-2 Des Scissors",
-        "Limiter Removal"
+        "Batteryman AA",
+        "Batteryman C",
+        "Battery Charger"
       ],
       "pack_additions": [
-        "Needle Burrower",
-        "KA-2 Des Scissors",
-        "Limiter Removal",
-        "Cannon Soldier",
-        "Blowback Dragon",
-        "Reflect Bounder",
-        "Machine Duplication",
-        "Heavy Mech Support Platform"
+        "Batteryman AA",
+        "Batteryman C",
+        "Battery Charger",
+        "Batteryman D",
+        "Thunder Dragon",
+        "Thunder Nyan Nyan",
+        "Electric Virus",
+        "Zaborg the Thunder Monarch"
       ],
-      "background_card": "Needle Burrower",
+      "background_card": "Batteryman AA",
       "background": "character-backgrounds/variant-16.jpg"
     },
     "17": {
@@ -459,79 +460,78 @@
       "background": "character-backgrounds/variant-17.jpg"
     },
     "18": {
-      "name": "Ocean Sovereign",
-      "starting_relic": "ocean_relic",
+      "name": "Penguin Patrol",
+      "starting_relic": "small",
       "supporting_packs": [
         "EN-LOD",
         "EN-SOD"
       ],
       "cards": [
-        "Levia-Dragon - Daedalus",
-        "Umi",
-        "Mother Grizzly"
+        "Penguin Soldier",
+        "Nightmare Penguin",
+        "A Legendary Ocean"
       ],
       "pack_additions": [
-        "Levia-Dragon - Daedalus",
-        "Umi",
-        "Mother Grizzly",
-        "Ocean Dragon Lord - Neo-Daedalus",
-        "Big Wave Small Wave",
+        "Penguin Soldier",
+        "Nightmare Penguin",
+        "A Legendary Ocean",
+        "Penguin Knight",
+        "Star Boy",
+        "Jellyfish",
         "Mermaid Knight",
-        "Tornado Wall",
-        "Forgotten Temple of the Deep"
+        "Unshaven Angler"
       ],
-      "background_card": "Levia-Dragon - Daedalus",
+      "background_card": "Nightmare Penguin",
       "background": "character-backgrounds/variant-18.jpg"
     },
     "19": {
-      "name": "Jar Collector",
-      "starting_relic": "jar_of_echoes",
+      "name": "Dark Scorpion Gang",
+      "starting_relic": "dark_scorpion_squad",
       "supporting_packs": [
-        "EN-PGD",
-        "EN-AST"
+        "EN-DR1",
+        "JP-BE2"
       ],
       "cards": [
-        "Morphing Jar",
-        "Dice Jar",
-        "Pot of Greed"
+        "Don Zaloog",
+        "Dark Scorpion - Chick the Yellow",
+        "Mustering of the Dark Scorpions"
       ],
       "pack_additions": [
-        "Morphing Jar",
-        "Dice Jar",
-        "Pot of Greed",
-        "Morphing Jar #2",
-        "Cyber Jar",
-        "Avatar of The Pot",
-        "Spirit of the Pot of Greed",
-        "Book of Moon",
-        "Book of Taiyou"
+        "Don Zaloog",
+        "Dark Scorpion - Chick the Yellow",
+        "Mustering of the Dark Scorpions",
+        "Dark Scorpion - Cliff the Trap Remover",
+        "Dark Scorpion - Meanae the Thorn",
+        "Dark Scorpion - Gorg the Strong",
+        "Dark Scorpion Burglars",
+        "Dark Scorpion Combination"
       ],
-      "background_card": "Morphing Jar",
+      "background_card": "Don Zaloog",
       "background": "character-backgrounds/variant-19.jpg"
     },
     "20": {
-      "name": "Ritual Ascension",
-      "starting_relic": "ritual_incense",
+      "name": "Spirit Ascension",
+      "starting_relic": "good_spirits",
       "supporting_packs": [
-        "EN-DCR",
+        "EN-LOD",
         "EN-SOD"
       ],
       "cards": [
-        "Shinato, King of a Higher Plane",
-        "Shinato's Ark",
-        "Manju of the Ten Thousand Hands"
+        "Yamata Dragon",
+        "Hino-Kagu-Tsuchi",
+        "Maharaghi"
       ],
       "pack_additions": [
-        "Shinato, King of a Higher Plane",
-        "Shinato's Ark",
-        "Manju of the Ten Thousand Hands",
-        "Senju of the Thousand Hands",
-        "Sonic Bird",
-        "Ritual Weapon",
-        "Fulfillment of the Contract",
-        "Contract with the Abyss"
+        "Yamata Dragon",
+        "Hino-Kagu-Tsuchi",
+        "Maharaghi",
+        "Susa Soldier",
+        "Inaba White Rabbit",
+        "Otohime",
+        "Fushi No Tori",
+        "Spiritual Energy Settle Machine"
       ],
-      "background_card": "Manju of the Ten Thousand Hands",
+      "background_card": "Yamata Dragon",
       "background": "character-backgrounds/variant-20.jpg"
     },
     "21": {
@@ -561,7 +561,7 @@
     },
     "22": {
       "name": "Kindred Spirits",
-      "starting_relic": "twin_banner",
+      "starting_relic": "kindred_bond",
       "supporting_packs": [
         "EN-AST",
         "EN-FET"
@@ -612,7 +612,7 @@
     },
     "24": {
       "name": "Dragon Hatchlings",
-      "starting_relic": "small",
+      "starting_relic": "swordsman_oath",
       "supporting_packs": [
         "EN-SOD",
         "EN-FET"
@@ -691,29 +691,28 @@
       "background": "character-backgrounds/variant-29.jpg"
     },
     "30": {
-      "name": "Offering to Ra",
-      "starting_relic": "healing_echo",
+      "name": "Egyptian Gods",
+      "starting_relic": "divine_might",
       "supporting_packs": [
         "EN-LOD",
         "EN-AST"
       ],
       "cards": [
-        "The Winged Dragon of Ra",
-        "Nimble Momonga",
-        "Soul Exchange"
+        "Obelisk the Tormentor",
+        "Slifer the Sky Dragon",
+        "The Winged Dragon of Ra"
       ],
       "pack_additions": [
+        "Obelisk the Tormentor",
+        "Slifer the Sky Dragon",
         "The Winged Dragon of Ra",
-        "Nimble Momonga",
         "Soul Exchange",
         "Stray Lambs",
         "Soul Rope",
-        "Solemn Wishes",
-        "Mystik Wok",
         "Double Coston",
         "Gilasaurus"
       ],
-      "background_card": "Nimble Momonga",
+      "background_card": "The Winged Dragon of Ra",
       "background": "character-backgrounds/variant-30.jpg"
     },
     "31": {

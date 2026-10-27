@@ -96,6 +96,7 @@ import {collectorIntroduction,collectorIntroductionMarkup} from './collector-int
 import {shopRerollPrice} from './experience-ui.js';
 
 import {mountMenuMotion} from './menu-motion.js?v=online-wrap-duplicate-2';
+import {mountMenuFeel} from './menu-feel.js';
 
 import {playEffectFeedback,removalKind,playRemovalFeedback} from './effect-feedback.js';
 
@@ -166,6 +167,9 @@ const image=id=>cardImages.get(Number(id))||`assets/cards/${id}.jpg`;
 const character=()=>content.characters[state.run.character];
 
 const uiIcons={settings:'settings',draft:'deck',start:'duel','buy-selected':'coins',shop:'shop',achievements:'achievements',tutorial:'tutorial'};
+
+// Card stack in the deck editor's icon style, for icon-only "Edit deck" buttons.
+const deckEditIcon='<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="2.5" width="12" height="16" rx="1.8"/><path d="M5 6v13.5A2 2 0 0 0 7 21.5h9"/><path d="m11.5 9.5 2.5-2.5 2.5 2.5-2.5 2.5Z"/></svg>';
 
 const navigationIcons={
 
@@ -504,11 +508,14 @@ async function showCollectionSources(id,target){
 
 }
 
-function setPreview(id,element=null){if(!id)return;preview=Number(id);previewLocation=element?.dataset.zone?element.dataset.zone.split(',').map(Number):element?.dataset.hand!==undefined?[0,L.HAND,Number(element.dataset.hand)]:null;const box=document.querySelector('.inspection');if(box){const location=previewLocation?.join(',')||'',previous=previewRenders.get(box);if(previous?.id===preview&&previous.location===location&&previous.snapshot===snapshot)return;const markup=previewMarkup();if(box.innerHTML!==markup)box.innerHTML=markup;previewRenders.set(box,{id:preview,location,snapshot})}}
+function setPreview(id,element=null){if(!id)return;preview=Number(id);previewLocation=element?.dataset.zone?element.dataset.zone.split(',').map(Number):element?.dataset.hand!==undefined?[0,L.HAND,Number(element.dataset.hand)]:element?.dataset.location?element.dataset.location.split(',').map(Number):pileLocation(element);const box=document.querySelector('.inspection');if(box){const location=previewLocation?.join(',')||'',previous=previewRenders.get(box);if(previous?.id===preview&&previous.location===location&&previous.snapshot===snapshot)return;const markup=previewMarkup();if(box.innerHTML!==markup)box.innerHTML=markup;previewRenders.set(box,{id:preview,location,snapshot})}}
+
+// Graveyard and banished piles show their top card; inspect it live so relics like Surgery show.
+function pileLocation(element){const [player,kind]=(element?.dataset.pile||'').split(','),loc={grave:L.GRAVE,banished:L.REMOVED}[kind];if(!snapshot||loc===undefined)return null;const items=snapshot.players[+player]?.[kind]||[];const seq=items.findLastIndex(Boolean);return seq<0?null:[+player,loc,seq]}
 
 function previewMarkup(){let c=card(preview);
 
- if(c&&snapshot&&screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const zone=loc===L.HAND?'hand':loc===L.MZONE?'monsters':'spells';const live=snapshot.players[p]?.[zone]?.[seq];if(live?.code===c.id&&(p===0||live.position&5)){c=liveCardFacts(c,live,content.cards);if(p===0&&loc===L.HAND)c.summoned=summonedStats(live,seq)}}
+ if(c&&snapshot&&screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const zone={[L.HAND]:'hand',[L.MZONE]:'monsters',[L.GRAVE]:'grave',[L.REMOVED]:'banished'}[loc]||'spells';const live=snapshot.players[p]?.[zone]?.[seq];if(live?.code===c.id&&(p===0||live.position&5)){c=liveCardFacts(c,live,content.cards);if(p===0&&loc===L.HAND)c.summoned=summonedStats(live,seq)}}
 
 if(!c)return '<p>Tap a card to inspect it. Tap it again or choose an action to play.</p>';return `<img src="${image(c.id)}"><h3>${esc(c.name)}</h3><div class="badges">${cardBadges(c)}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}${c.summoned&&(c.summoned.atk!==c.atk||c.summoned.defense!==c.defense)?`<br><span class="summoned-stats">On the field: ATK ${c.summoned.atk} / DEF ${c.summoned.defense}</span>`:''}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(displayCardText(c.desc))}</div>`}
 
@@ -703,7 +710,7 @@ function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;const key=JSON.
 
 let shopSelection=new Set(),shopInventoryKey=null;
 
-function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`<section class="cursed-reward"><nav class="cursed-reward-topbar" aria-label="Run tools">${btn('View deck','draft')}${btn('Relics','relic-ledger')}</nav><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>Choose 1. Its benefit and drawback last for this run.</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(content.artifactInfo[key].art))}${cursedMarkup(key,text)}${btn('Choose relic','cursed-choose',`data-relic="${esc(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',offer.rerolls_left?'':'disabled')}</footer></section>`}
+function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`<section class="cursed-reward"><nav class="cursed-reward-topbar" aria-label="Run tools"><button class="navigation-icon-button" data-do="draft" aria-label="Edit deck" title="Edit deck">${deckEditIcon}</button>${btn(relicEyeIcon,'relic-ledger','aria-label="Relics" title="Relics"','navigation-icon-button')}</nav><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>Choose 1. Its benefit and drawback last for this run.</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(content.artifactInfo[key].art))}${cursedMarkup(key,text)}${btn('Choose relic','cursed-choose',`data-relic="${esc(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',offer.rerolls_left?'':'disabled')}</footer></section>`}
 
 function renderShop(){shopkeeperTaps=0;resetShopkeeperRightClicks();const r=state.run,fixed=!!(character().copycat||character().engine_deck);announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,content.cards);if(r.cursed_offer)return renderCursedRelics();const key=JSON.stringify([r.started_at,r.round,r.shop.map(x=>[x.kind,x.id,x.price])]);if(key!==shopInventoryKey){shopSelection.clear();shopInventoryKey=key}for(const i of shopSelection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')shopSelection.delete(i);const product=(x,i)=>{let name,img,description='';if(x.kind==='single'){name=card(x.id).name;img=image(x.id)}else if(x.kind==='deck'){name=x.name+' · Adds to collection';img='assets/decks/'+x.art+'.jpg'}else if(x.kind==='pack'){name=content.packs.find(p=>p.id===x.id).name;img='assets/packs/'+x.id+'.jpg'}else{const a=content.artifacts[x.id];name=a[0];description=a[2];img=relicImage(content.artifactInfo[x.id].art)}return `<div class="shop-product ${x.sold?'sold':''} ${shopSelection.has(i)?'chosen':''} ${isShopUltra(x,content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(img,`data-do="item-info" data-index="${i}"`):`<img ${x.kind==='single'?`data-inspect="${x.id}"`:x.kind==='artifact'||x.kind==='deck'||x.kind==='pack'?`data-do="item-info" data-index="${i}"`:''} src="${img}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span><button class="purchase-check" role="checkbox" aria-checked="${shopSelection.has(i)}" aria-label="Select ${esc(name)}" data-do="select-purchase" data-index="${i}" ${x.sold||((character().copycat||character().engine_deck)&&x.kind!=='artifact')?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`};
 
@@ -1555,7 +1562,7 @@ modal.addEventListener('close',()=>{if(!modal.open){if(rewardDeckReturn)return;r
 
 function confirmTargets(){const m=engine.pending,indices=[...pickSet];if(m.type===M.SELECT_UNSELECT_CARD)return respond({type:R.SELECT_UNSELECT_CARD,index:null});if(m.type===M.SELECT_SUM){if(!engine.sumValid(m,indices))return toast('Choose materials with a valid total.');return respond({type:R.SELECT_SUM,indicies:indices})}const n=indices.reduce((sum,i)=>sum+(m.type===M.SELECT_TRIBUTE?m.selects[i].release_param||1:1),0);if(n<m.min||indices.length>m.max)return toast('Choose the required number of cards.');respond({type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies:indices})}
 
-function showPile(player,kind){previewLocation=null;if(kind==='deck'||(kind==='extra'&&player===1))return toast('This pile is hidden.');let cards=kind==='extra'?engine.query(player,L.EXTRA):snapshot.players[player][kind];cards=cards.filter(Boolean);dialog((player?'Opponent’s ':'Your ')+({extra:'Extra Deck',grave:'Graveyard',banished:'Banished cards'}[kind]),`<div class="cardgrid pile-inspection">${cards.map(c=>(player===0||kind==='grave'||c.position&5)?`<div>${cardButton(c.code,`data-inspect="${c.code}"`)}${!busy?legalCardActions(player,c.location??({extra:L.EXTRA,grave:L.GRAVE,banished:L.REMOVED}[kind]),c.sequence,c.code).map(a=>`<button data-do="pile-action" data-address="${player},${c.location??({extra:L.EXTRA,grave:L.GRAVE,banished:L.REMOVED}[kind])},${c.sequence},${c.code}" data-action="${a.response.action}" data-index="${a.response.index}">${esc(a.label.split(' · ')[0])}</button>`).join(''):''}</div>`:'<img src="assets/card-back.jpg" alt="Face-down banished card">').join('')}</div>${cards.length?'':'<p>This pile is empty.</p>'}`)}
+function showPile(player,kind){previewLocation=null;if(kind==='deck'||(kind==='extra'&&player===1))return toast('This pile is hidden.');let cards=kind==='extra'?engine.query(player,L.EXTRA):snapshot.players[player][kind];cards=cards.filter(Boolean);dialog((player?'Opponent’s ':'Your ')+({extra:'Extra Deck',grave:'Graveyard',banished:'Banished cards'}[kind]),`<div class="cardgrid pile-inspection">${cards.map(c=>(player===0||kind==='grave'||c.position&5)?`<div>${cardButton(c.code,`data-inspect="${c.code}" data-location="${player},${c.location??({extra:L.EXTRA,grave:L.GRAVE,banished:L.REMOVED}[kind])},${c.sequence}"`)}${!busy?legalCardActions(player,c.location??({extra:L.EXTRA,grave:L.GRAVE,banished:L.REMOVED}[kind]),c.sequence,c.code).map(a=>`<button data-do="pile-action" data-address="${player},${c.location??({extra:L.EXTRA,grave:L.GRAVE,banished:L.REMOVED}[kind])},${c.sequence},${c.code}" data-action="${a.response.action}" data-index="${a.response.index}">${esc(a.label.split(' · ')[0])}</button>`).join(''):''}</div>`:'<img src="assets/card-back.jpg" alt="Face-down banished card">').join('')}</div>${cards.length?'':'<p>This pile is empty.</p>'}`)}
 
 
 
@@ -1603,7 +1610,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
  // Busy blocks duel commands, never read-only card inspection.
 
- if(el.dataset.inspect){setPreview(+el.dataset.inspect);inspect(+el.dataset.inspect)}
+ if(el.dataset.inspect){setPreview(+el.dataset.inspect,el);inspect(+el.dataset.inspect)}
 
  else if(el.dataset.pile){const [p,k]=el.dataset.pile.split(',');showPile(+p,k)}
 
@@ -1625,7 +1632,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
  if(el.dataset.character!==undefined){const next=+el.dataset.character;if(next!==selected)copycatTaps=0;selected=next;effect();renderCharacters();if(selected===37)await copycatSecret();return}
 
- if(el.dataset.inspect){if(screen==='duel')setPreview(+el.dataset.inspect);inspect(+el.dataset.inspect);return}
+ if(el.dataset.inspect){if(screen==='duel')setPreview(+el.dataset.inspect,el);inspect(+el.dataset.inspect);return}
 
  if(el.dataset.openPack!==undefined){effect(true);openDraftPack(+el.dataset.openPack,true);return}
 
@@ -1965,6 +1972,8 @@ boot();
 let tagCloudPhase=null;
 
 let tagUI=null,tagOffline=null,tagDuelQueue=Promise.resolve(),tagFinalePlayed=false;
+// A screen entrance plays when this key changes; online screens count their phase, tab and view.
+mountMenuFeel(app,root=>screen==='tag'?['tag',tagUI?.mode??tagUI?.view?.phase,tagUI?.tab,root.classList[0],root.querySelector(':scope>:is(section,div):not(.tag-status,.game-vector-background)')?.classList[0]].join(':'):screen==='title'?'title:'+menuPage:screen);
 
 const desktopToken=new URLSearchParams(location.search).get('desktop');
 

@@ -108,7 +108,7 @@ for key,name,art,race in [
  artifact(key,name,70,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
  artifact(key,name,65,f'Your {attr} monsters gain 200 ATK and DEF.',art,'both',200,'offense',attr)
-artifact('buckler','Millennium Shield',60,'Your monsters gain 250 DEF.','Giant Soldier of Stone','def',250,'defense')
+artifact('buckler','Millennium Shield',60,'Monsters you control gain 600 DEF.','Giant Soldier of Stone','def',600,'defense')
 artifact('sword','Demonic Sword',110,'Your monsters gain 200 ATK.','Sword of Deep-Seated','atk',200,'offense')
 artifact('normal','Normal Power',65,'Your Normal Monsters gain 400 ATK.','Battle Ox','normal',400,'offense')
 artifact('tribute','Tribute Power',75,'Your Level 5+ monsters gain 400 ATK.','Summoned Skull','tribute',400,'offense')
@@ -120,7 +120,7 @@ artifact('pierce','Lancer Spear',125,'Your monsters inflict piercing battle dama
 artifact('chalice','Silver Chalice',65,'Heal 600 LP after each victory.','Dian Keto the Cure Master','victory_heal',600,'healing')
 artifact('satchel','Travel Satchel',70,'Each victory grants one additional random card from the opponent\'s deck.','Graceful Charity','reward_card',1,'draw')
 artifact('bargain','Merchant Sigil',80,'All future shop prices are reduced by 20%.','Upstart Goblin','discount',20)
-artifact('interest','Golden Scale',90,'Earn 10% of held gold after victory (maximum 30).','Pot of Greed','interest',10)
+artifact('interest','Golden Scale',90,'Earn 30% of held gold after victory (maximum 90).','Pot of Greed','interest',30)
 artifact('bandage','Red Medicine',55,'After each victory, gain 200 LP for every 10 coins you held before the victory payout, up to your current healing limit.','Dian Keto the Cure Master','coin_heal',200,'healing')
 artifact('map','Treasure Map',75,'Shops offer a fourth artifact.','Sangan','extra_artifact',1)
 

@@ -160,7 +160,8 @@ def install(g):
   while len(pulls)<8:
    available=[cid for cid in common if g.card_identity(cid) not in used]
    if not available:available=[cid for cid in all_cards if g.card_identity(cid) not in used]
-   cid=card_rarity.choose(available,rng);pulls.append(cid);used.add(g.card_identity(cid))
+   # A pack's rarity_weights also tune its common draws, e.g. Polymerization in fusion packs.
+   cid=card_rarity.choose(available,rng,p.get('rarity_weights'));pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
  def routes(run,rng=random,exclude=()):
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0
@@ -383,7 +384,7 @@ def install(g):
  def rewards(run,events):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
-  if amount(run,'interest'):tally['Interest']=min(30,int(run['gold']*amount(run,'interest')/100))
+  if amount(run,'interest'):tally['Interest']=min(90,int(run['gold']*amount(run,'interest')/100))
   if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==ar.minimum(run):tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
   if owns(run,'golden_sleeve'):

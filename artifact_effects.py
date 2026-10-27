@@ -114,6 +114,13 @@ end'''
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_low_level':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x41) and c:IsLevelAbove(1) and c:IsLevelBelow(4) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+ if kind=='standby_zombie_revive':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1)
+e:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
+e:SetOperation(function(e) local g=Duel.GetMatchingGroup(function(c) return c:IsRace(RACE_ZOMBIE) and c:IsCanBeSpecialSummoned(e,0,0,false,false,POS_FACEUP_DEFENSE) end,0,LOCATION_GRAVE,0,nil) if #g>0 then Duel.SpecialSummon(g:RandomSelect(0,1),0,0,0,false,false,POS_FACEUP_DEFENSE) end end) Duel.RegisterEffect(e,0) end'''
+ if kind=='starting_union':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsType(TYPE_UNION) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+ if kind=='starting_ritual':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsType(TYPE_RITUAL) and (c:IsMonster() or c:IsSpell()) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_level_up':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,25290459) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,25290459) if #g>0 then Duel.SendtoHand(g:Select(0,1,1,nil),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  # Surgery relics: `attribute` lists every owned Surgery attribute ("LIGHT|FIRE"). The first replaces
@@ -121,6 +128,10 @@ e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,
  if kind=='attribute':
   value='|'.join('ATTRIBUTE_'+a for a in attribute.split('|') if a)
   return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_ATTRIBUTE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
+ if kind=='overcharge':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() and c:IsRace(RACE_THUNDER) end) e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(x) return x:IsFaceup() and x~=c and x:IsRace(RACE_THUNDER) end,0,LOCATION_MZONE,0,nil) end) Duel.RegisterEffect(e,0) end'''
+ if kind=='kindred_bond':
+  bonus=f'function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(x) return x:IsFaceup() and x~=c and x:IsRace(c:GetRace()) end,0,LOCATION_MZONE,0,nil) end'
+  return '\n'.join(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() end) e:SetValue({bonus}) Duel.RegisterEffect(e,0) end''' for code in ('EFFECT_UPDATE_ATTACK','EFFECT_UPDATE_DEFENSE'))
  if kind in ('backrow_atk','banished_atk'):
   location='LOCATION_ONFIELD' if kind=='backrow_atk' else 'LOCATION_REMOVED'
   check='c:IsFaceup() and c:IsSpellTrap()' if kind=='backrow_atk' else 'c:IsFaceup() and c:IsMonster()'

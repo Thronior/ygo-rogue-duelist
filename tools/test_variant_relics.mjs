@@ -27,7 +27,7 @@ try{
  local group={IsExists=function(self,f) return f(card) end}
  if dragonEffect:GetCondition()(dragonEffect,0,group,0,0,nil,0,0) then dragonEffect:GetOperation()(dragonEffect,0,group,0,0,nil,0,0) end end
  battle(true,true,true) battle(true,true,true) battle(true,false,true) battle(false,true,true) battle(true,true,false)`);
- assert.equal(e.lp[0],8000);assert.equal(e.lp[1],7400);console.log('PASS dragon_triumph: repeat damage; excludes non-Dragons, enemy Dragons and friendly targets');
+ assert.equal(e.lp[0],8000);assert.equal(e.lp[1],7000);console.log('PASS dragon_triumph: repeat damage; excludes non-Dragons, enemy Dragons and friendly targets');
  start('jar_of_echoes',put('Morphing Jar'));assert.equal(e.query(0,L.MZONE).find(c=>c?.code===card('Morphing Jar').id).position,8);assert.equal(e.query(0,L.HAND).length,6);console.log('PASS Jar of Echoes: Standby Phase sets a face-up monster without drawing');
  start('ritual_incense',`for i=1,2 do local c=Duel.CreateToken(0,${card('Black Luster Soldier').id}) Duel.SpecialSummon(c,SUMMON_TYPE_RITUAL,0,0,true,false,POS_FACEUP_ATTACK) end`);assert.equal(e.query(0,L.HAND).length,8);console.log('PASS Ritual Incense: repeated Ritual Summons each draw');
 }finally{e.destroy()}

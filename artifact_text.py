@@ -26,7 +26,7 @@ def description(key,info,previous):
  'pierce':'If a monster you control attacks a Defense Position monster, inflict piercing battle damage.',
  'reward_card':"After each victory, add 1 additional random card from your opponent's duel decklist to your card pool. Dueling Engine gains 1 additional deck choice instead. Does not apply to Copycat.",
  'discount':f'Shop prices are reduced by {a}%.',
- 'interest':f'After each victory, earn additional coins equal to {a}% of your held coins, rounded down (max. 30).',
+ 'interest':f'After each victory, earn additional coins equal to {a}% of your held coins, rounded down (max. 90).',
  'extra_artifact':f'Shops offer {a} additional relic'+('s.' if a!=1 else '.'),
  'empty_hand':f'While you have no cards in your hand, monsters you control gain {n(a)} ATK.',
  'solo':f'While you control exactly 1 monster, it gains {n(a)} ATK.',

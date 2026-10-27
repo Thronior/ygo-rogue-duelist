@@ -8,7 +8,7 @@ ROWS=[
  ('jar_of_echoes','Jar of Echoes',90,'Once per turn, during your Standby Phase, change 1 face-up monster you control to face-down Defense Position.','Morphing Jar',''),
  ('ritual_incense','Ritual Incense',90,'Each time you Ritual Summon, draw 1 card.','Black Illusion Ritual',''),
  ('village_banner',"Veteran's Might",85,'Level 4 Normal Monsters you control gain 200 ATK/DEF.','Gagagigo','normal'),
- ('dragon_triumph',"Dragon's Claws",90,"Each time a Dragon monster you control destroys an opponent's monster by battle, inflict 300 damage to your opponent.","Dragon's Rage",'Dragon'),
+ ('dragon_triumph',"Dragon's Claws",90,"Each time a Dragon monster you control destroys an opponent's monster by battle, inflict 500 damage to your opponent.","Dragon's Rage",'Dragon'),
  ('armory_crest','Armory Crest',85,'Equipped monsters you control gain 300 ATK.','Maha Vailo',''),
 ]
 def install(artifact):
@@ -30,7 +30,7 @@ def effect(kind):
   return event('EVENT_PHASE|PHASE_STANDBY',f'Duel.Hint(HINT_SELECTMSG,0,HINTMSG_POSCHANGE) local g=Duel.SelectMatchingCard(0,{valid},0,LOCATION_MZONE,0,1,1,nil) if #g>0 then Duel.ChangePosition(g,POS_FACEDOWN_DEFENSE) end',f'Duel.GetTurnPlayer()==0 and Duel.IsExistingMatchingCard({valid},0,LOCATION_MZONE,0,1,nil)',True)
  if key=='ritual_incense':return event('EVENT_SPSUMMON_SUCCESS','Duel.Draw(0,1,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,1,nil)')
  if key=='village_banner':return stat('EFFECT_UPDATE_ATTACK',200,'c:IsType(TYPE_NORMAL) and c:IsLevel(4)')+'\n'+stat('EFFECT_UPDATE_DEFENSE',200,'c:IsType(TYPE_NORMAL) and c:IsLevel(4)')
- if key=='dragon_triumph':return event('EVENT_BATTLE_DESTROYING','Duel.Damage(1,300,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsRace(RACE_DRAGON) and c:IsStatus(STATUS_OPPO_BATTLE) end,1,nil)')
+ if key=='dragon_triumph':return event('EVENT_BATTLE_DESTROYING','Duel.Damage(1,500,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsRace(RACE_DRAGON) and c:IsStatus(STATUS_OPPO_BATTLE) end,1,nil)')
  if key=='armory_crest':return stat('EFFECT_UPDATE_ATTACK',300,'c:GetEquipCount()>0')
  return None
 

@@ -1492,9 +1492,9 @@ dialog:has(> .reward-tally)::backdrop,dialog:has(> .reward-screen)::backdrop{bac
 .draft-character-select .duelist-hero h2{bottom:-16px;font-size:clamp(16px,2.5vw,26px);line-height:1.1}
 
 /* Presentation polish: no additional layout rows or persistent particle loops. */
-button{transition:filter .12s,box-shadow .12s,background-color .12s}
+button{transition:filter .12s,box-shadow .12s,background-color .12s,scale .22s cubic-bezier(.3,1.6,.5,1)}
 button:active:not(:disabled){filter:brightness(1.2)}
-button:disabled{cursor:default;filter:saturate(.35);opacity:.55}
+button:disabled{cursor:not-allowed;filter:saturate(.35);opacity:.55}
 .cardbtn,.shop-product{transition:border-color .16s,box-shadow .16s}
 .cardbtn>img,.shop-product .product-art>img{transition:translate .16s,filter .16s}
 .cardbtn.selected,.shop-product.chosen{border-color:#ffe09b;box-shadow:inset 0 0 0 1px #ffe09b,0 0 10px #e8c36570}
@@ -1946,7 +1946,8 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
  .shop-compact .shop-counter .shop-reroll-counter{display:flex!important;left:0!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;transform:none!important;width:clamp(57px,7vw,85px)!important;height:44px!important;min-height:44px!important}
  .shop-compact .shop-counter .shop-reroll-counter b{font-size:9px!important;white-space:nowrap}
  .shop-compact .shop-counter .shop-edit-deck{left:0!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
- .shop-compact .shop-reference-buttons .shop-reroll-landscape{display:none!important}
+ /* Tag shops have no counter reroll, so they keep this one. */
+ .shop-compact:not(.tag-offline-shop) .shop-reference-buttons .shop-reroll-landscape{display:none!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-buy{left:0!important;right:auto!important;bottom:8px!important;width:clamp(57px,7vw,85px)!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:0!important;right:auto!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;width:clamp(57px,7vw,85px)!important;height:44px!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:0!important;right:auto!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
@@ -2054,8 +2055,41 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 :where(html:not(.classic-field)) .phases button.active{border-color:#fff1b0;background:linear-gradient(#fff4b0,#e5bf4f);color:#203a2a;text-shadow:none;box-shadow:0 0 10px #ffe58a99,inset 0 1px 0 #fffc}
 @media(hover:hover){:where(html:not(.classic-field)) .phases button:not(:disabled,.active):hover{border-color:#e7c77a;color:#ffe9a8}}
 .run-card{margin:8px auto 0;max-width:560px}
-.run-card-canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1350;border-radius:10px;background:#06121a;box-shadow:0 10px 28px #0009}
+.run-card-canvas,.run-card-image{display:block;width:100%;height:auto;aspect-ratio:1080/1350;border-radius:10px;background:#06121a;box-shadow:0 10px 28px #0009}
 .run-card-share{display:flex;flex-direction:column;align-items:center;gap:6px;margin:12px 0 4px}
 .run-card-copy{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:220px;font-size:16px;font-weight:700}
 .run-card-copy svg{width:18px;height:18px}
 .run-card-status{min-height:18px;margin:0;text-align:center;color:#b9d7c4}
+
+/* Menu feel: shared press, hover and focus states, then dialog, overlay and toast transitions.
+   Compositor-only properties. :where() keeps these below any button's own filter or scale,
+   hover needs a fine pointer so touch never sticks, and the duel board keeps its own feedback.
+   Screen entrances are in menu-feel.js; it also sets --press so every button sinks about 5 px. */
+:where(button:not(:disabled,.duel *)):active{scale:var(--press,.96);transition-duration:.06s}
+@media(hover:hover) and (pointer:fine){:where(button:not(:disabled,.duel *)):hover{filter:brightness(1.15)}}
+:where(button,a,summary,select,input,textarea,[tabindex]:not([tabindex="-1"])):focus-visible{outline:2px solid #ffe7a8;outline-offset:2px}
+#modal{--modal-in-scale:.96;--modal-in-shift:0 8px;--modal-out-scale:.98}
+@media(prefers-reduced-motion:reduce){:where(button):active{scale:none}#modal{--modal-in-scale:none;--modal-in-shift:none;--modal-out-scale:none}}
+/* Fixed overlays inside the dialog would follow a scaling box, so those dialogs only fade. */
+#modal.golden-choice-modal,.performance-mode #modal{--modal-in-scale:none;--modal-in-shift:none;--modal-out-scale:none}
+#modal:has(>.floating-chain-control,.deck-preview-overlay){--modal-in-scale:none;--modal-in-shift:none;--modal-out-scale:none}
+/* The dialog closes at once for input and code; only its picture fades out. */
+@supports(overlay:auto){
+ #modal{transition:opacity .16s ease-out,scale .2s cubic-bezier(.2,.9,.3,1.15),translate .2s cubic-bezier(.2,.9,.3,1),overlay .2s allow-discrete,display .2s allow-discrete}
+ #modal:not([open]){opacity:0;scale:var(--modal-out-scale);pointer-events:none;transition-duration:.12s;transition-timing-function:ease-in}
+ #modal::backdrop{transition:opacity .16s ease-out,overlay .16s allow-discrete,display .16s allow-discrete}
+ #modal:not([open])::backdrop{opacity:0;transition-duration:.12s}
+ @starting-style{#modal[open]{opacity:0;scale:var(--modal-in-scale);translate:var(--modal-in-shift)}#modal[open]::backdrop{opacity:0}}
+ /* The fade-out costs one extra frame on software rendering; Performance Mode closes at once. */
+ .performance-mode #modal:not([open]),.performance-mode #modal:not([open])::backdrop{transition:none}
+}
+@supports not (overlay:auto){#modal[open],#modal[open]::backdrop{animation:modal-fade .16s ease-out}}
+@keyframes modal-fade{from{opacity:0}}
+.reward-overlay{animation:overlay-rise .18s cubic-bezier(.2,.7,.3,1)}
+@keyframes overlay-rise{from{opacity:0;translate:0 10px}}
+.performance-mode .reward-overlay{animation-name:modal-fade}
+@media(prefers-reduced-motion:reduce){.reward-overlay{animation-name:modal-fade}}
+@supports(transition-behavior:allow-discrete){
+ #toast{transition:opacity .22s ease-in,translate .22s ease-in,display .22s allow-discrete}
+ #toast:not(.show){opacity:0;translate:0 -6px}
+}
