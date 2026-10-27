@@ -26,3 +26,5 @@ Opponent difficulty adaptations: data/opponent-tiers.json retains each NPC list 
 September 2026 replacements: PaniK and Shadi portraits from official yugioh.com character profiles (uploads1.yugioh.com/character/145/detail/detail/panik-lrg.png; uploads4.yugioh.com/character/15/detail/detail/shadi-l.png). Anubis movie still: https://i.pinimg.com/originals/d4/f9/ed/d4f9ed042c13355da60349248c9efb69.png . Copyright Konami / respective movie rights holders.
 
 October 2026 tier-exclusive opponents: 23 portraits prepared from existing anime stills and monster card artwork, with imagegen background removal and square framing. Per-portrait source URLs are recorded in `opponents/sources.json`. Copyright remains with the original Yu-Gi-Oh! rights holders.
+
+End-of-run share card textures (`ui/run-card-stone.jpg`, `ui/run-card-cracks.jpg`): cropped and relit from Poly Haven "Grey Plaster 02" by Rob Tuytel (https://polyhaven.com/a/grey_plaster_02) and "Cracked Concrete" (https://polyhaven.com/a/cracked_concrete), both CC0.

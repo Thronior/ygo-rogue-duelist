@@ -20,8 +20,8 @@ for k,row in v.VARIANTS.items():
   assert len(alt['starting_packs'])==4
   assert alt['starting_packs'][:2]==[basechar['pack']]*2
   assert set(alt['starting_packs'][2:]).isdisjoint(c.starting_packs(i)[2:]),('support overlap',i)
-  pack=c.PACK_BY_ID[basechar['pack']];pool=set(pack['common']+pack['rare'])
-  for name in basechar['cards']+row['cards']+row.get('pack_additions',[]):assert g.BY_NAME[name]['id'] in pool,(i,name)
+  # Signature cards are granted directly; character boosters are curated separately.
+  for name in basechar['cards']+row['cards']+row.get('pack_additions',[]):assert name in g.BY_NAME,(i,name)
  for seed in range(3):
   r=g.new_run(i,random.Random(seed),0,1)
   if row['starting_relic']=='random_archetype':

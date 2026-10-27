@@ -2,6 +2,9 @@ import {draftPool} from './draft-pool.mjs';
 import {validateDeck,validateDraftDeck,deckCards,rankFor} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
+// Both clients run the duel engine themselves, so a room only pairs players on the same game version.
+// Clients before 0.2.4 send none and still pair with each other.
+const gameVersion=v=>typeof v.version==='string'&&/^\d[\w.+-]{0,23}$/.test(v.version)?v.version:null;
 // Shuffle once on the server at each game boundary. Both clients and reconnects
 // receive the same persisted order; editor order and prize snapshots stay intact.
 export function shuffleCollectorDeck(deck,randomWord=()=>crypto.getRandomValues(new Uint32Array(1))[0]){
@@ -65,8 +68,8 @@ export class CollectorRegistry {
  if(op==='deck'){if(room&&room.phase!=='complete'&&!(this.draftMode&&room.phase==='drafting'&&!room.ready?.[seat]))throw Error('Finish your active match first.');const errors=this.validate(v.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));p.deck=v.deck;}
  if(op==='host'||op==='join'){
  if(room&&room.phase!=='complete')throw Error('Reconnect to your existing room.');if(!this.draftMode){const errors=this.validate(p.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));}
- if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0};this.data.rooms[code]=room;p.room=code;seat=0;}
- else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
+ if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0,version:gameVersion(v)};this.data.rooms[code]=room;p.room=code;seat=0;}
+ else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');if((room.version??null)!==gameVersion(v))throw Error(`This room is on ${room.version?'version '+room.version:'an older version'} of the game. Both players need the same version: update or refresh the game.`);room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
  }
  if(room&&room.phase!=='complete'){
  room.seen[seat]=Date.now();room.charged??=[0,0];room.charged[seat]=0;

@@ -47,6 +47,8 @@ def shop_relic_eligible(run,key):
 def install(g):
  g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))+custom_cards.CARDS
  g.BY_ID={c['id']:c for c in g.CARDS};g.BY_NAME={c['name']:c for c in g.CARDS}
+ # Pre-errata cards keep their passcode; the build bundles the matching script.
+ for cid,row in json.loads((g.ROOT/'data/pre-errata.json').read_text(encoding='utf8'))['cards'].items():g.BY_ID[int(cid)]['desc']=row['desc']
  aliases={int(k):v for k,v in json.loads((g.ROOT/'data/card-aliases.json').read_text()).items()}
  g.CHARACTERS=CHARACTERS;g.ARTIFACTS=ARTIFACTS;g.OPPONENTS=['Act I']*3+['Act II']*3+['Act III']*3
  def ensure_bounty(run,rng=random,force=False):

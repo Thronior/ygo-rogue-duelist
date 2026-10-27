@@ -52,6 +52,7 @@ import {remindReplayUpload} from './replay-upload-reminder.js';
 import {polishDuel,polishShop,duelFinish} from './presentation-polish.js';
 
 import {showShadowVictory,clearShadowVictory} from './shadow-victory.js';
+import {mountRunCard,copyRunCard} from './run-card.js';
 
 import {DraftUI} from './draft-ui.js';
 
@@ -74,6 +75,7 @@ import {DeviceSync} from './device-sync.js';
 import {checkAndroidUpdate,startupAndroidUpdate} from './android-update.js';
 
 import {collectorResponseOverlay,automaticChainResponse,chainWindowAllowed,liveCardFacts,waitForTossStart,mandatoryChainResponse} from './duel-presentation.js';
+import {smartContext} from './smart_policy.js';
 
 import {playlists,bossTheme} from './music-config.js';
 
@@ -506,9 +508,12 @@ function setPreview(id,element=null){if(!id)return;preview=Number(id);previewLoc
 
 function previewMarkup(){let c=card(preview);
 
- if(c&&snapshot&&screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const zone=loc===L.HAND?'hand':loc===L.MZONE?'monsters':'spells';const live=snapshot.players[p]?.[zone]?.[seq];if(live?.code===c.id&&(p===0||live.position&5))c=liveCardFacts(c,live,content.cards);}
+ if(c&&snapshot&&screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const zone=loc===L.HAND?'hand':loc===L.MZONE?'monsters':'spells';const live=snapshot.players[p]?.[zone]?.[seq];if(live?.code===c.id&&(p===0||live.position&5)){c=liveCardFacts(c,live,content.cards);if(p===0&&loc===L.HAND)c.summoned=summonedStats(live,seq)}}
 
-if(!c)return '<p>Tap a card to inspect it. Tap it again or choose an action to play.</p>';return `<img src="${image(c.id)}"><h3>${esc(c.name)}</h3><div class="badges">${cardBadges(c)}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(displayCardText(c.desc))}</div>`}
+if(!c)return '<p>Tap a card to inspect it. Tap it again or choose an action to play.</p>';return `<img src="${image(c.id)}"><h3>${esc(c.name)}</h3><div class="badges">${cardBadges(c)}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}${c.summoned&&(c.summoned.atk!==c.atk||c.summoned.defense!==c.defense)?`<br><span class="summoned-stats">On the field: ATK ${c.summoned.atk} / DEF ${c.summoned.defense}</span>`:''}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(displayCardText(c.desc))}</div>`}
+
+// Relic and Field Spell bonuses apply only on the field, so a monster in hand also shows the stats it would be summoned with.
+function summonedStats(live,seq){if(tagUI||typeof engine?.query!=='function')return null;try{const smart=smartContext(engine,0,L),c={...live,controller:0,location:L.HAND,sequence:seq};return {atk:smart.projectedAttack(c),defense:smart.projectedDefense(c)}}catch{return null}}
 
 let titleMotion=null;
 
@@ -782,7 +787,9 @@ let shadowVictoryKey=null;
 
 function finalChallengeName(r){const opponent=r.encore_opponent??(r.encore_won?0:r.loop>=1?75:0);return opponent===75?(content.characters[opponent]?.name||'Obelisk the Tormenter'):'2004 World Champion'}
 
-function renderEnding(){const r=state.run,won=r.stage==='complete';const victoryKey=String(r.started_at)+':'+r.character;if(won&&r.challenge_level===6&&!r.secret_challenge&&shadowVictoryKey!==victoryKey&&!r.reward_slots?.pending){shadowVictoryKey=victoryKey;showShadowVictory(()=>(state.settings?.sound??65)/100);}shell(won?'RUN COMPLETE':'GAME OVER',`<div class="scroll" data-run-outcome="${won?'victory':'defeat'}"><div class="panel">${won&&r.level_unlocked!=null?`<section class="level-unlock" aria-label="Challenge level unlocked"><div class="unlock-lights"></div><div class="unlock-motes">${Array.from({length:40},(_,i)=>`<i style="--x:${(i*37+11)%100}%;--y:${(i*53+5)%100}%;--delay:-${(i*0.35).toFixed(2)}s;--duration:${(2.2+(i%7)*0.3).toFixed(2)}s"></i>`).join('')}</div><h2>CHALLENGE LVL ${r.level_unlocked} UNLOCKED</h2><p>Clear a full run to unlock the next level for ${esc(character().name)}.</p></section>`:''}<h1>${won?`You Beat Challenge Level ${r.challenge_level??0}`:'The shadows claim this run'}</h1><div class="row"><img style="height:200px" src="assets/${character().sprite}"><div><h2>${esc(character().name)}</h2><p>${r.round} / 9 victories · ${r.gold} coins · ${r.lp} LP</p>${Object.entries(r.stats||{}).map(([k,v])=>`<p>${esc(k.replaceAll('_',' '))}: <b>${v}</b></p>`).join('')}</div></div>${!won&&r.loss?`<section class="loss-cause">${r.loss.card?`<img style="height:150px" src="${image(r.loss.card)}">`:""}<p>${esc(r.loss.text)}</p></section>`:""}<h3>Run relics (${(r.artifacts||[]).length})</h3>${relicIndicatorMarkup()}${runTimelineMarkup(r)}<h3>Unlocked during this run</h3><p>${state.achievements.filter(a=>r.content_unlocks_earned?.includes(a.id)||(a.id.startsWith('character:')&&r.unlocks_earned?.includes(+a.id.split(':')[1]))).map(a=>`<span class="unlock-art"><img src="assets/${a.image}"><span>${esc(a.name)}</span></span>`).join('')||'No new unlocks this run.'}</p>${won&&!r.secret_challenge?`<section class="panel"><h3>${r.encore_won?`${esc(finalChallengeName(r))} DEFEATED`:`Face ${esc(finalChallengeName(r))}`}</h3>${r.encore_won?'<p>Keep your cards, coins and relics. Each loop adds 100 enemy ATK/DEF and 2,000 enemy LP.</p>':''}${btn(r.encore_won?'Begin next loop':'Start Looping',r.encore_won?'next-loop':'champion','','primary')}</section>`:''}${r.secret_challenge&&won?'<p>Gallery unlocked!</p>':''}${btn('New game','characters','','primary')}</div></div>`)}
+function renderEnding(){const r=state.run,won=r.stage==='complete';const victoryKey=String(r.started_at)+':'+r.character;if(won&&r.challenge_level===6&&!r.secret_challenge&&shadowVictoryKey!==victoryKey&&!r.reward_slots?.pending){shadowVictoryKey=victoryKey;showShadowVictory(()=>(state.settings?.sound??65)/100);}shell(won?'RUN COMPLETE':'GAME OVER',`<div class="scroll" data-run-outcome="${won?'victory':'defeat'}"><div class="panel">${won&&r.level_unlocked!=null?`<section class="level-unlock" aria-label="Challenge level unlocked"><div class="unlock-lights"></div><div class="unlock-motes">${Array.from({length:40},(_,i)=>`<i style="--x:${(i*37+11)%100}%;--y:${(i*53+5)%100}%;--delay:-${(i*0.35).toFixed(2)}s;--duration:${(2.2+(i%7)*0.3).toFixed(2)}s"></i>`).join('')}</div><h2>CHALLENGE LVL ${r.level_unlocked} UNLOCKED</h2><p>Clear a full run to unlock the next level for ${esc(character().name)}.</p></section>`:''}<figure class="run-card"><canvas class="run-card-canvas" width="1080" height="1350" role="img" aria-label="Run summary"></canvas></figure><div class="run-card-share"><button class="primary run-card-copy" data-do="copy-run-card" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Copy image</button><p class="run-card-status" role="status" aria-live="polite"></p></div><h3>Unlocked during this run</h3><p>${state.achievements.filter(a=>r.content_unlocks_earned?.includes(a.id)||(a.id.startsWith('character:')&&r.unlocks_earned?.includes(+a.id.split(':')[1]))).map(a=>`<span class="unlock-art"><img src="assets/${a.image}"><span>${esc(a.name)}</span></span>`).join('')||'No new unlocks this run.'}</p>${won&&!r.secret_challenge?`<section class="panel"><h3>${r.encore_won?`${esc(finalChallengeName(r))} DEFEATED`:`Face ${esc(finalChallengeName(r))}`}</h3>${r.encore_won?'<p>Keep your cards, coins and relics. Each loop adds 100 enemy ATK/DEF and 2,000 enemy LP.</p>':''}${btn(r.encore_won?'Begin next loop':'Start Looping',r.encore_won?'next-loop':'champion','','primary')}</section>`:''}${r.secret_challenge&&won?'<p>Gallery unlocked!</p>':''}${btn('New game','characters','','primary')}</div></div>`);mountEndingCard(r)}
+// The share card draws once its artwork loads; Copy stays disabled until then.
+function mountEndingCard(r){const canvas=app.querySelector('.run-card-canvas');if(!canvas)return;mountRunCard(canvas,r,{content,character:character(),card,cardImage:image,relicImage,assetURL,finalChallengeName}).then(()=>{const b=app.querySelector('.run-card-copy');if(b&&canvas.isConnected)b.disabled=false}).catch(e=>{console.error(e);const s=app.querySelector('.run-card-status');if(s)s.textContent='The run summary image could not be drawn.'})}
 
 
 
@@ -1081,9 +1088,10 @@ function trackMotion(owner,...effects){
  if(list.length)trackDuelAnimation(owner,Promise.all(list.map(x=>(x.finished||Promise.resolve(x)).catch(()=>{}))).then(()=>{}));
 }
 
-async function playDuelCues(playerAction=false){
+async function playDuelCues(playerAction=false,answered=false){
  const presentationOwner=engine,cues=engine.visuals.splice(0),fusionCue=cues.find(c=>c.kind==='fusion-summon'),legendaryShown=new Set(),quick=playerAction&&!!state.settings?.fasterAnimations;
- if(fusionCue){for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove();}
+ // A summon plays over the board, so the prompt the player just answered leaves first.
+ if(fusionCue||answered&&cues.some(c=>c.kind==='summon'||c.kind==='signature-summon')){for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove();}
  const merged=new Set();
  for(const [index,cue] of cues.entries()){
   if(merged.has(cue))continue;
@@ -1486,7 +1494,7 @@ function ensureFusionCue(owner,before,after){
  else owner.visuals.push({kind:'fusion-summon',code:Number(summoned.code),materials,materialCards,card:{controller:0,location:L.MZONE,sequence:summoned.sequence}});
 }
 
-async function respond(response){if(inspectionPaused())return;clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;heldChainPrompt=null;stagedChoice=null;promptHidden=false;tributeDefaultPrompt=null;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const beforeSnapshot=snapshot,before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);ensureFusionCue(engine,beforeSnapshot,snapshot);await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
+async function respond(response){if(inspectionPaused())return;clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;heldChainPrompt=null;stagedChoice=null;promptHidden=false;tributeDefaultPrompt=null;if(tagUI&&screen==='duel'){if(!tagUI.session?.connected)return toast('Paused — reconnect with the same code.');pickSet.clear();placeSet=[];try{await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response})}catch(error){toast(error.message)}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const beforeSnapshot=snapshot,before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);ensureFusionCue(engine,beforeSnapshot,snapshot);await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction,true);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction,true);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
 
 let chainMode='sometimes',chainOverride=false,rightClickNoChain=false,rightClickPointer=null,rightClickHoldTimer=0,heldAlwaysChain=false,heldChainPointer=null,heldChainTimer=0,heldChainPrompt=null,manualChainTimer=0,manualChainPrompt=null;
 
@@ -1674,6 +1682,8 @@ async function showCoinBonuses(){
 }
 
 async function action(a,el={dataset:{}},silent=false){
+ // Before any await: browsers only allow an image clipboard write during the tap.
+ if(a==='copy-run-card'){const status=app.querySelector('.run-card-status'),name=`YGO Rogue Duelist - ${character().name} - ${state.run.stage==='complete'?'Win':'Loss'}`;copyRunCard(app.querySelector('.run-card-canvas'),name).then(m=>{if(status)status.textContent=m}).catch(e=>{if(status)status.textContent=e.message||'Could not copy the image.'});return}
 
  if(!silent&&['settings','duel-settings'].includes(a)){playUISound('inspect-open');silent=true;}else if(!silent&&['title','pause-title','pause'].includes(a)){menuSelectionSound();silent=true;}
 

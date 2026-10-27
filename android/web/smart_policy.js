@@ -891,7 +891,8 @@ export function smartContext(e,p,L,prompt=null){
   if(exodiaPlan){
    if(['Reload','Magical Mallet','Fiber Jar','Morphing Jar #2','Cyber Jar','Dragged Down into the Grave','Exchange'].includes(n))return -1;
    const draws={'Pot of Greed':2,'Graceful Charity':3,'Upstart Goblin':1,'Jar of Greed':1,'Reckless Greed':2};
-    if(draws[n])return optionalDrawSafe(draws[n])?125:-1;
+    // Drawing the missing pieces is the win, so keep drawing near deck end unless it only empties the deck.
+    if(draws[n]){const k=draws[n],reach=new Set(q(p,L.DECK).filter(missingPiece).map(x=>x.code)).size;return optionalDrawSafe(k)||reach&&myDeck>=k&&(myDeck>k||heldPieces.size+reach>=5)?125:-1}
    if(handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return 135;
    if(handRecovery.has(n)&&grave.some(x=>missingPiece(x)&&(n!=='Backup Soldier'&&n!=='Dark Factory of Mass Production'||!(data(x).type&0x20))))return 135;
   }

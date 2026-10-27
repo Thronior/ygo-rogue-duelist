@@ -13,6 +13,8 @@ PACK_BY_ID={p['id']:p for p in PACKS}
 PACK_ALIASES={'EN-TP1':'EN-TP4','EN-TP2':'EN-TP4','EN-TP3':'EN-TP4','EN-TP5':'EN-TP4','JP-P5':'JP-PP7','JP-PP6':'JP-PP7'}
 PACK_ALIASES.update({f'JP-P{n}':'JP-PP7' for n in range(1,5)})
 PACK_ALIASES.update({f'JP-LE{n}':'JP-LEC' for n in range(1,9)})
+# Only the WC2004 "all X cards" packs stay; saved runs holding the others open the all-Monster pack.
+PACK_ALIASES.update({f'WC4-{n:02}':'WC4-23' for n in [*range(1,15),19]})
 PACK_ALIASES.update(MERGED_PACK_ALIASES)
 PACK_BY_ID.update({old:PACK_BY_ID[new] for old,new in PACK_ALIASES.items()})
 def normalize_pack_references(value):

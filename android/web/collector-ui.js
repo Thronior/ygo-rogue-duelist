@@ -9,6 +9,7 @@ import {collectorRosterMarkup} from './collector-roster.js';
 import {validateDeck,deckCards,rankFor,LIMITS,moveSideCard} from './collector-rules.js';
 import {decode} from './tag-session.js';
 import {TagDuel} from './tag-duel.js';
+import {replayVersion} from './replay-version.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(text,action,extra='')=>`<button data-collector="${action}" ${extra}>${text}</button>`;
 const collectorLimitIcon=limit=>limit<3?`<i class="collector-limit-icon limit-${limit}" title="${limit===1?'Limited':'Semi-limited'}: maximum ${limit} across all decks" aria-label="${limit===1?'Limited':'Semi-limited'}, maximum ${limit} copies">${limit}</i>`:'';
@@ -38,7 +39,7 @@ export class CollectorUI {
  }
 
  // text/plain keeps this a CORS simple request (no OPTIONS preflight); the service parses the raw body.
- async api(op,body={},d=this.duelist){const response=await fetch(`${this.endpoint}/v2/collector/${op}`,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({id:d.id,token:d.token,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Collector service unavailable.');error.status=response.status;throw error;}return result;}
+ async api(op,body={},d=this.duelist){const response=await fetch(`${this.endpoint}/v2/collector/${op}`,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({id:d.id,token:d.token,version:replayVersion,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Collector service unavailable.');error.status=response.status;throw error;}return result;}
  async sync(result){this.data=await this.backend('collector-sync',{id:this.duelist.id,record:result.record});this.duelist=this.data.duelists.find(d=>d.id===this.duelist.id);}
  schedule(){clearTimeout(this.timer);if(!this.alive||!this.room||this.room.phase==='complete')return;this.timer=setTimeout(()=>this.enqueue(async()=>{if(!this.alive||!this.room||this.room.phase==='complete')return;try{await this.accept(await this.api('poll'));this.session.connected=true;}catch(e){this.session.connected=false;if(e.status===426){this.updateRequired=true;throw e;}this.status='Connection interrupted. Reconnecting automatically…';if(this.mode!=='duel')this.render();}finally{if(!this.updateRequired)this.schedule();}}),this.pollDelay());}
  // The waiting seat polls quickly; while this seat must act, or outside a duel, nothing urgent can change.

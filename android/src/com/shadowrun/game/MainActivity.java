@@ -26,7 +26,7 @@ public final class MainActivity extends Activity {
         new Thread(() -> {
             try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")) {
                 if(out==null)throw new IOException("No output stream");
-                out.write(bytes);out.flush();exportNotice("Deck image saved.");
+                out.write(bytes);out.flush();exportNotice("Image saved.");
             }catch(IOException | SecurityException e){exportNotice("Could not save the image. Please try again.");}
         },"Deck-image-export").start();
     }

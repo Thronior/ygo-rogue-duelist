@@ -535,28 +535,28 @@
       "background": "character-backgrounds/variant-20.jpg"
     },
     "21": {
-      "name": "Flame Labyrinth",
-      "starting_relic": "storm_core",
+      "name": "Labyrinth Giants",
+      "starting_relic": "tribute_free",
       "supporting_packs": [
-        "EN-PSV",
-        "EN-AST"
+        "EN-IOC",
+        "EN-DR1"
       ],
       "cards": [
-        "Solar Flare Dragon",
-        "Solar Flare Dragon",
-        "Backfire"
+        "Guardian Angel Joan",
+        "Invader of Darkness",
+        "Black Tyranno"
       ],
       "pack_additions": [
-        "Solar Flare Dragon",
-        "Backfire",
-        "Ultimate Baseball Kid",
-        "Firebird",
-        "Flame Ruler",
-        "Infernal Flame Emperor",
-        "Molten Destruction",
-        "Raging Flame Sprite"
+        "Guardian Angel Joan",
+        "Invader of Darkness",
+        "Black Tyranno",
+        "Cost Down",
+        "Soul Exchange",
+        "Ultimate Offering",
+        "Double Coston",
+        "Kaiser Sea Horse"
       ],
-      "background_card": "Solar Flare Dragon",
+      "background_card": "Invader of Darkness",
       "background": "character-backgrounds/variant-21.jpg"
     },
     "22": {

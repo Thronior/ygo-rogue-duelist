@@ -5,7 +5,7 @@ DATA=json.loads((Path(__file__).parent/'data/character-variants.json').read_text
 VARIANTS=DATA['variants']
 def install(characters):
  # Pegasus's Ritual loadout is now standard; his alternate is the Toon build.
- characters[7].update(starting_relic='ritual_dagger',cards=['Relinquished','Black Illusion Ritual','Thousand-Eyes Idol'],starting_packs=[characters[7]['pack']]*2+['WC4-06','EN-MFC'])
+ characters[7].update(starting_relic='ritual_dagger',cards=['Relinquished','Black Illusion Ritual','Thousand-Eyes Idol'],starting_packs=[characters[7]['pack']]*2+['JP-DL1','EN-MFC'])
  characters[30]['starting_relic']='ominous_clock'
  for index,row in VARIANTS.items():
   c=characters[int(index)]
