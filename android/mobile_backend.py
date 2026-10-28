@@ -17,6 +17,11 @@ def state():
 def dispatch(raw):
  global run,tag_session
  req=json.loads(raw);action=req['action'];value=req.get('value');result=None
+ if action in ('relic-pick','relic-pick-reroll','card-pick','name-change'):
+  import choice_relics
+  {'relic-pick':lambda:choice_relics.choose_relic(run,str(value)),'relic-pick-reroll':lambda:choice_relics.reroll_relic(run),
+   'card-pick':lambda:choice_relics.pick_card(run,value),'name-change':lambda:choice_relics.change_name(run,value)}[action]()
+  g.save(run);return json.dumps(state(),ensure_ascii=False)
  if action=='choose-monster-type':
   from feedback_update import choose_type
   choose_type(run,value);g.save(run);return json.dumps(state(),ensure_ascii=False)
@@ -115,7 +120,9 @@ def dispatch(raw):
   if index in run['selected']:run['selected'].remove(index)
   else:
    cid=run['pool'][index]
-   if 'broken_limiter' not in run.get('artifacts',[]) and sum(g.card_identity(run['pool'][i])==g.card_identity(cid) for i in run['selected'])>=3:raise ValueError('Maximum three copies of a card.')
+   from approved_relics import copy_limit
+   limit=copy_limit(run)
+   if limit is not None and sum(g.card_identity(run['pool'][i])==g.card_identity(cid) for i in run['selected'])>=limit:raise ValueError('Maximum three copies of a card.' if limit==3 else 'Singleton Pact allows only 1 copy of each card.')
    run['selected'].append(index)
  elif action=='choose':
   if int(value) not in run['routes']:raise ValueError('Unavailable opponent')

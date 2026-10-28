@@ -34,13 +34,17 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
  'archetype_stock','like_archfiend','like_exodia','like_toon','like_ritual',
  'single_stamp','pack_refund','purchase_clone','faulty',
  'approved_booster_shelf','approved_duelist_catalogue','approved_prospector_lens',
- 'approved_morphing_jar_2',
+ 'approved_morphing_jar_2','approved_deck_thinning','approved_card_picker',
 })
 
 def shop_relic_eligible(run,key):
  character=CHARACTERS[run['character']]
  effect=ART_INFO[key]['effect']
  if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS:return False
+ if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
+ # Singleton Pact fixes the deck rules these relics would change.
+ if key in ('deck_thinning','broken_limiter') and ar.has(run,'cursed_singleton_pact'):return False
+ if key=='deck_thinning' and run.get('secret_challenge'):return False
  # Engine converts this bonus into an extra reward-deck choice.
  return not (character.get('copycat') and effect=='reward_card')
 
@@ -112,7 +116,7 @@ def install(g):
    counts=Counter();selected=[]
    for i in sorted(set(r['selected'])):
     key=g.card_identity(r['pool'][i])
-    if 'broken_limiter' in r.get('artifacts',[]) or counts[key]<3:selected.append(i);counts[key]+=1
+    if ar.copy_limit(r) is None or counts[key]<ar.copy_limit(r):selected.append(i);counts[key]+=1
    r['selected']=selected
    if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
@@ -321,7 +325,8 @@ def install(g):
   run['encounter_curses']=([c for c in selected if c in run['curses']] if persistent else list(run['curses'])) if boss else []
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):
-   others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic')]
+   # Run-level deck rules and choice relics have nothing to copy for one duel.
+   others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic','deck_thinning','cursed_singleton_pact',*ar.CHOICE_RELICS)]
    run['mirror_copy']=rng.choice(others) if others else None
   else:run['mirror_copy']=None
   duel_run=ar.duel_run(run)
@@ -617,7 +622,7 @@ def install(g):
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
-  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20)]
+  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20) and (a!='almighty' or rng.random()<0.10)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
   chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)
@@ -656,9 +661,31 @@ def install(g):
   price=ARTIFACTS[key][1]//2
   run['artifacts'].remove(key);run['gold']+=price
   if key=='bounty_list':run.pop('bounty_objective',None)
+  if key=='name_changer' and run.get('name_changes'):run['name_changes'].pop()
   stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+price
   save(run)
   return dict(relic=key,coins=price,gold=run['gold'])
+ def acquire_relic(run,key,rng=random):
+  """Add a relic and run its on-acquire effects; returns any cards it grants."""
+  import choice_relics
+  _pre_discount=amount(run,'discount');obtained=[]
+  run['artifacts'].append(key)
+  if key=='bounty_list':ensure_bounty(run,rng,force=True)
+  if key=='booster_shelf':ensure_shop_packs(run,rng)
+  if key=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
+  if key=='stamp':run['stamped_singles']=0
+  if key=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
+  if ART_INFO.get(key,{}).get('effect')=='discount':
+   _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
+   if _old_mod>0:
+    for _it in run['shop']:
+     if not _it.get('sold'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
+  # Choice relics wait for the player's pick; Relic Picker and Card Picker are used up by it.
+  if key in ar.CONSUMED_RELICS:run['artifacts'].remove(key)
+  if key=='relic_picker':choice_relics.queue_relic_pick(run,rng)
+  if key=='card_picker':run['card_picks']=run.get('card_picks',0)+1
+  if key=='name_changer':run['name_change_picks']=run.get('name_change_picks',0)+1
+  return obtained
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)
   if run['stage']!='shop':raise ValueError('Shop is closed.')
@@ -684,19 +711,7 @@ def install(g):
    if not obtained or any(cid not in g.BY_ID for cid in obtained):raise ValueError('This starter deck is invalid.')
   if item['kind']=='deck':
    _prof=storage.profile();_prof['decks_bought']=_prof.get('decks_bought',0)+1;storage.write(storage.ROOT/'profile.json',_prof)
-  elif item['kind']=='artifact':
-   _pre_discount=amount(run,'discount')
-   run['artifacts'].append(item['id'])
-   if item['id']=='bounty_list':ensure_bounty(run,rng,force=True)
-   if item['id']=='booster_shelf':ensure_shop_packs(run,rng)
-   if item['id']=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
-   if item['id']=='stamp':run['stamped_singles']=0
-   if item['id']=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
-   if ART_INFO.get(item['id'],{}).get('effect')=='discount':
-    _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
-    if _old_mod>0:
-     for _it in run['shop']:
-      if not _it.get('sold'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
+  elif item['kind']=='artifact':obtained+=acquire_relic(run,item['id'],rng)
   if item['kind'] in ('single','pack') and amount(run,'purchase_clone'):
    obtained+= [cid for cid in obtained[:] if rng.random()<amount(run,'purchase_clone')/100]
   run['last_misprints']=[]
@@ -741,7 +756,7 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
  g.bounty_complete=bounty_complete
  g.ensure_bounty=ensure_bounty

@@ -1,0 +1,249 @@
+{
+ "archetypes": [
+  {
+   "setcode": 117,
+   "name": "Abyss-",
+   "monsters": 2
+  },
+  {
+   "setcode": 4,
+   "name": "Amazoness",
+   "monsters": 10
+  },
+  {
+   "setcode": 205,
+   "name": "Aqua",
+   "monsters": 4
+  },
+  {
+   "setcode": 69,
+   "name": "Archfiend",
+   "monsters": 21
+  },
+  {
+   "setcode": 273,
+   "name": "Armed Dragon",
+   "monsters": 3
+  },
+  {
+   "setcode": 40,
+   "name": "Batteryman",
+   "monsters": 3
+  },
+  {
+   "setcode": 8568,
+   "name": "Battleguard",
+   "monsters": 2
+  },
+  {
+   "setcode": 4303,
+   "name": "Black Luster Soldier",
+   "monsters": 2
+  },
+  {
+   "setcode": 221,
+   "name": "Blue-Eyes",
+   "monsters": 4
+  },
+  {
+   "setcode": 228,
+   "name": "Celtic Guard",
+   "monsters": 2
+  },
+  {
+   "setcode": 207,
+   "name": "Chaos",
+   "monsters": 8
+  },
+  {
+   "setcode": 147,
+   "name": "Cyber",
+   "monsters": 5
+  },
+  {
+   "setcode": 4258,
+   "name": "Dark Magician",
+   "monsters": 2
+  },
+  {
+   "setcode": 12450,
+   "name": "Dark Magician Girl",
+   "monsters": 2
+  },
+  {
+   "setcode": 94,
+   "name": "Dark Mimic",
+   "monsters": 2
+  },
+  {
+   "setcode": 26,
+   "name": "Dark Scorpion",
+   "monsters": 5
+  },
+  {
+   "setcode": 109,
+   "name": "Djinn",
+   "monsters": 10
+  },
+  {
+   "setcode": 222,
+   "name": "Exodia",
+   "monsters": 2
+  },
+  {
+   "setcode": 64,
+   "name": "Forbidden One",
+   "monsters": 5
+  },
+  {
+   "setcode": 81,
+   "name": "Gadget",
+   "monsters": 4
+  },
+  {
+   "setcode": 189,
+   "name": "Gaia The Fierce Knight",
+   "monsters": 2
+  },
+  {
+   "setcode": 4178,
+   "name": "Gate Guardian",
+   "monsters": 2
+  },
+  {
+   "setcode": 172,
+   "name": "Goblin",
+   "monsters": 9
+  },
+  {
+   "setcode": 46,
+   "name": "Gravekeeper's",
+   "monsters": 9
+  },
+  {
+   "setcode": 82,
+   "name": "Guardian",
+   "monsters": 12
+  },
+  {
+   "setcode": 100,
+   "name": "Harpie",
+   "monsters": 8
+  },
+  {
+   "setcode": 4099,
+   "name": "Horus the Black Flame Dragon",
+   "monsters": 3
+  },
+  {
+   "setcode": 188,
+   "name": "Jinzo",
+   "monsters": 2
+  },
+  {
+   "setcode": 103,
+   "name": "Koala",
+   "monsters": 2
+  },
+  {
+   "setcode": 65,
+   "name": "LV",
+   "monsters": 20
+  },
+  {
+   "setcode": 8294,
+   "name": "Magnet Warrior",
+   "monsters": 2
+  },
+  {
+   "setcode": 422,
+   "name": "Millennium",
+   "monsters": 3
+  },
+  {
+   "setcode": 388,
+   "name": "Mokey Mokey",
+   "monsters": 2
+  },
+  {
+   "setcode": 95,
+   "name": "Mystic Swordsman",
+   "monsters": 3
+  },
+  {
+   "setcode": 287,
+   "name": "Nephthys",
+   "monsters": 2
+  },
+  {
+   "setcode": 43,
+   "name": "Ninja",
+   "monsters": 5
+  },
+  {
+   "setcode": 15,
+   "name": "Ojama",
+   "monsters": 4
+  },
+  {
+   "setcode": 90,
+   "name": "Penguin",
+   "monsters": 5
+  },
+  {
+   "setcode": 27,
+   "name": "Phantom Beast",
+   "monsters": 2
+  },
+  {
+   "setcode": 110,
+   "name": "Prophecy",
+   "monsters": 12
+  },
+  {
+   "setcode": 232,
+   "name": "Silent Magician",
+   "monsters": 2
+  },
+  {
+   "setcode": 231,
+   "name": "Silent Swordsman",
+   "monsters": 3
+  },
+  {
+   "setcode": 92,
+   "name": "Sphinx",
+   "monsters": 6
+  },
+  {
+   "setcode": 68,
+   "name": "The Agent",
+   "monsters": 4
+  },
+  {
+   "setcode": 284,
+   "name": "Thunder Dragon",
+   "monsters": 2
+  },
+  {
+   "setcode": 98,
+   "name": "Toon",
+   "monsters": 10
+  },
+  {
+   "setcode": 93,
+   "name": "Ultimate Insect",
+   "monsters": 4
+  },
+  {
+   "setcode": 142,
+   "name": "Vampire",
+   "monsters": 5
+  },
+  {
+   "setcode": 62,
+   "name": "Worm",
+   "monsters": 6
+  }
+ ]
+}

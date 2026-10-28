@@ -12,7 +12,8 @@ for loop in [0,1,5]:
   for level in [-1,0,5]:
    r={'character':0,'round':rd,'loop':loop,'challenge_level':level,'artifacts':[]}
    want=40 if loop else min(40,20+10*(rd//3));assert ar.minimum(r)==want
-   r['artifacts']=['cursed_collectors_burden'];assert ar.minimum(r)==(want if level==-1 else 50)
+   # Collector's Burden adds 10 to the minimum (offered from round 6, where that makes 50).
+   r['artifacts']=['cursed_collectors_burden'];assert ar.minimum(r)==(want if level==-1 else want+10)
 for c in content.PLAYABLE_IDS:
  if content.CHARACTERS[c].get('copycat') or content.CHARACTERS[c].get('engine_deck'):
   assert ar.minimum({'character':c,'round':8,'loop':2})==20
@@ -31,7 +32,8 @@ for rd,delta,want in [(0,0,20),(1,0,20),(2,10,30),(3,0,30),(5,10,40),(8,0,40)]:
  except ValueError:pass
 r=run_at(2);r['last_deck_minimum_increase']=10;finish(r,1);assert ar.minimum(r)==20 and r['last_deck_minimum_increase']==0
 r=finish(run_at(2,1));assert ar.minimum(r)==40 and r['last_deck_minimum_increase']==0
-r=run_at(2);r['artifacts'].append('cursed_collectors_burden');finish(r);assert r['last_deck_minimum_increase']==0
+r=run_at(2);r['artifacts'].append('cursed_collectors_burden');finish(r);assert r['last_deck_minimum_increase']==10,'the boss step still raises the minimum on top of the relic'
+r=run_at(8);r['artifacts'].append('cursed_collectors_burden');finish(r);assert ar.minimum(r)==50 and r['last_deck_minimum_increase']==0
 # A broad card pool lets auto-build satisfy each new minimum without duplicate copies.
 r=run_at(0);r['pool']=list(dict.fromkeys(r['guaranteed']+[c['id'] for c in g.CARDS if not g.is_extra(c['id'])]))
 for rd,want in [(0,20),(3,30),(6,40)]:

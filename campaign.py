@@ -40,7 +40,9 @@ def validate(run):
     from approved_relics import minimum
     if main < minimum(run) or main > 60: return f'Your main deck needs {minimum(run)} to 60 cards.'
     if extra > 15 and not (CHARACTERS[run['character']].get('copycat') and run.get('encore_active')): return 'Your Extra Deck can contain at most 15 cards.'
-    if 'broken_limiter' not in run.get('artifacts',[]) and max(Counter(card_identity(c) for c in cards).values(), default=0) > 3: return 'You can use at most three copies of a card.'
+    from approved_relics import copy_limit
+    limit=copy_limit(run)
+    if limit is not None and max(Counter(card_identity(c) for c in cards).values(), default=0) > limit: return 'You can use at most three copies of a card.' if limit==3 else 'Singleton Pact: your Deck can contain only 1 copy of each card.'
     return None
 
 def auto_deck(run):
@@ -56,7 +58,8 @@ def auto_deck(run):
         return 2500
     for i in sorted(options, key=score, reverse=True):
         cid=run['pool'][i]
-        if ('broken_limiter' in run.get('artifacts',[]) or counts[card_identity(cid)]<3) and not is_extra(cid):
+        limit=__import__('approved_relics').copy_limit(run)
+        if (limit is None or counts[card_identity(cid)]<limit) and not is_extra(cid):
             chosen.append(i); counts[card_identity(cid)]+=1
         if sum(not is_extra(run['pool'][j]) for j in chosen)>=__import__('approved_relics').minimum(run): break
     run['selected']=sorted(chosen)

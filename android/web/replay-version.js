@@ -1,1 +1,1 @@
-export const replayVersion="0.2.6";
+export const replayVersion="0.2.7";

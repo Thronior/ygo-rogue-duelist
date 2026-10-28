@@ -65,6 +65,23 @@ def effect(kind):
  elif key=='narrow_gate':
   out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
  elif key=='trapbound_idol':atk(1000,'c:IsType(TYPE_TRAPMONSTER)');defense(-1000,'c:IsType(TYPE_TRAPMONSTER)')
+ elif key=='burn_proficiency':
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(0,1) e:SetValue(function(e,re,val,r,rp) if val<=0 or rp~=0 or (r&REASON_EFFECT)==0 then return val end return math.floor(val*1.5) end) Duel.RegisterEffect(e,0) end')
+ elif key=='defense_proficiency':
+  # Battle damage both ways is halved in battle_rules; this halves the effect damage you take.
+  out.append(player_rule('EFFECT_CHANGE_DAMAGE','function(e,re,val,r,rp) if val<=0 or (r&REASON_BATTLE)~=0 then return val end return math.floor(val/2) end'))
+ elif key=='straw_doll':
+  out.append('do local used=-1 '+event('EVENT_PRE_BATTLE_DAMAGE','used=Duel.GetTurnCount() --[[relic-hint]] Duel.ChangeBattleDamage(0,0)','ep==0 and Duel.GetTurnPlayer()==1 and used~=Duel.GetTurnCount() and Duel.GetBattleDamage(0)>0')+' end')
+ elif key=='almighty':
+  # Immune only to fixed ATK/DEF losses and to the opponent's fixed "becomes" values, so no rescans are needed.
+  out.append('''do local up={[EFFECT_UPDATE_ATTACK]=true,[EFFECT_UPDATE_DEFENSE]=true} local set={[EFFECT_SET_ATTACK]=true,[EFFECT_SET_ATTACK_FINAL]=true,[EFFECT_SET_BASE_ATTACK]=true,[EFFECT_SET_DEFENSE]=true,[EFFECT_SET_DEFENSE_FINAL]=true,[EFFECT_SET_BASE_DEFENSE]=true}
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_IMMUNE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetValue(function(e,te) local code=te:GetCode() local v=te:GetValue() if type(v)~='number' then return false end if up[code] then return v<0 end return set[code]==true and te:GetOwnerPlayer()==1 end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='anime_rule':
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_LIGHT_OF_INTERVENTION) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) Duel.RegisterEffect(e,0) end')
+ elif key=='mind_reader':
+  out.append(phase('STANDBY','--[[relic-hint]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_CONFIRM) local g=Duel.SelectMatchingCard(0,Card.IsFacedown,0,0,LOCATION_ONFIELD,1,1,nil) if #g>0 then Duel.ConfirmCards(0,g) end','Duel.IsExistingMatchingCard(Card.IsFacedown,0,0,LOCATION_ONFIELD,1,nil)'))
  elif key=='jesters_coin':
   # The last call holds until the next Standby Phase: +1 right, -1 wrong, 0 before the first toss.
   # --[[relic-hint]] marks where passives.py shows the relic, since the call's result is assigned.
@@ -76,7 +93,8 @@ def effect(kind):
 
 def battle_rules(run):
  from approved_relics import copies
- out=1.5**copies(run,'cursed_duelists_wager')
- inc=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'cursed_reckless_spear'))
+ shield=.5**copies(run,'cursed_defense_proficiency')
+ out=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'battle_proficiency'))*shield
+ inc=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'cursed_reckless_spear'))*shield
  if out==1 and inc==1:return ''
  return event('EVENT_PRE_BATTLE_DAMAGE',f'Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*(ep==0 and {inc} or {out})))')

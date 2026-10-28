@@ -32,10 +32,10 @@ export function smartContext(e,p,L,prompt=null){
  const atk=c=>{const live=liveStat(c,'attack');if(live!==undefined)return live;const original=c.attack??data(c).attack??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??data(c).defense??original):original};
  const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=c.defense??data(c).defense??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??data(c).attack??original):original};
  // Damage plans include visible prevention/conversion and the defender's known relics.
- const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);return Math.floor(Math.max(0,raw-reduction)*1.5**relics(1-p).filter(key=>key==='cursed_hollow_chalice').length)};
+ const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);const count=(side,key)=>relics(side).filter(k=>k===key).length;return Math.floor(Math.max(0,raw-reduction)*1.5**(count(1-p,'cursed_hollow_chalice')+count(p,'burn_proficiency'))*.5**count(1-p,'cursed_defense_proficiency'))};
  const healingAllowed=side=>!relic(side,'cursed_zombies_bargain');
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
- const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;}return Math.floor(Math.max(0,raw)*factor)};
+ const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
  const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
  const rescueCatReady=()=>5-own.length>=2&&q(p,L.DECK).filter(c=>race(c)==='Beast'&&lvl(c)<=3).length>=2;
@@ -1012,6 +1012,8 @@ export function smartContext(e,p,L,prompt=null){
    const attacker=e.attackCard&&e.attackCard.controller!==p?q(e.attackCard.controller,L.MZONE).find(x=>x.sequence===e.attackCard.sequence):null;
    if(!attacker||!(attacker.position&1))return -1;
   }
+  // Almighty makes these fixed ATK/DEF losses fail against the opponent's monsters.
+  if(relic(1-p,'almighty')&&['Shrink','Mask of Weakness','Curse of Aging','Micro Ray','Bark of Dark Ruler'].includes(n))return -1;
   // Its optional effect may destroy any Spell/Trap, so only use it on the opponent's.
   if(n==='Mobius the Frost Monarch')return theirBack.length?100:-1;
   if(n==='Levia-Dragon - Daedalus')return umiActive&&enemyPower+theirBack.length*800>ownPower-atk(c)+back.length*800?115:-1;
@@ -1410,7 +1412,7 @@ export function smartContext(e,p,L,prompt=null){
    if(n==='A Legendary Ocean'&&future.has('WATER'))bonus+=200;
    if(attributes[n]&&future.has(attributes[n]))bonus+=stat==='attack'?500:-400;
    if(bonus>0)bonus*=1+relics(f.controller).filter(k=>k==='field_amplifier').length;
-   total+=bonus;
+   total+=relic(p,'almighty')?Math.max(0,bonus):bonus;
   }
   return total;
  }
@@ -1429,7 +1431,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
     case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-200;break;
-   }return sum+v;
+   }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
  }
  function relicAttack(c,side){
@@ -1464,7 +1466,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
     case 'approved_crowded_crypt':v=Math.min(750,75*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
-   }return sum+v;
+   }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
  }
  function controlledAttack(c,side=p){return Math.max(0,atk(c)-relicAttack(c,c.controller??1-p)+relicAttack(c,side)-(c.controller===1?(e.aiModifiers?.enemyAttack||0):0)+(side===1?(e.aiModifiers?.enemyAttack||0):0));}

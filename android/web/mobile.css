@@ -2151,3 +2151,25 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
  .sc-pace,.sc-group{padding:10px}
  .sc-track{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.sc-track li{padding:6px 2px}.sc-track li b{font-size:15px}.sc-track li span{font-size:10px}
 }
+
+/* Relic Picker, Card Picker and Name Changer prompts (choice-relics-ui.js). */
+.relic-offer>p,.name-pick>p{margin:0 0 10px;color:#b9cdd6}
+.relic-offer-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.relic-offer-options article{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border:1px solid #3f6571;border-radius:10px;background:#0b1f29e6;text-align:center}
+.relic-offer-options h3{margin:0;font-size:16px;color:#efca79}
+.relic-offer-options p{flex:1;margin:0;font-size:13px;line-height:1.35}
+.relic-offer-options small{color:#8fb0bb}
+.relic-offer-options .relic-artwork,.relic-offer-options img{max-width:96px;max-height:96px}
+.relic-offer footer{display:flex;justify-content:center;margin-top:10px}
+.pick-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pick-tools input{flex:1 1 220px;min-height:38px;padding:6px 10px;border:1px solid #3f6571;border-radius:8px;background:#0a1a22;color:#e8f3f1;font-size:15px}
+.pick-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pick-chips button{min-height:34px;padding:5px 12px;border:1px solid #2e4f5b;border-radius:999px;background:#10262f;color:#cfe2e7}
+.pick-chips button.active{border-color:#efca79;background:#efca79;color:#1b1407;font-weight:bold}
+.card-pick-results .cardgrid{max-height:min(52vh,480px);overflow-y:auto}
+.card-pick-results .cardbtn.selected,.name-pick-list button.selected{outline:3px solid #efca79;outline-offset:1px}
+.pick-more,.pick-empty{margin:8px 0 0;font-size:12px;color:#9fbac3;text-align:center}
+.name-pick-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:min(52vh,480px);overflow-y:auto}
+.name-pick-list button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;border:1px solid #2e4f5b;border-radius:8px;background:#10262f;color:#e8f3f1;text-align:left}
+.name-pick-list small{color:#8fb0bb}
+.pick-confirm{display:flex;justify-content:center;margin-top:10px}

@@ -17,7 +17,18 @@ REGULAR=[
 ('trap_weaver','Trap Weaver',80,'Trap Monsters you control gain 400 ATK/DEF.','Embodiment of Apophis'),
 ('twin_banner','Twin Banner',85,'While you control exactly 2 face-up monsters with different Types and no other monsters, they gain 200 ATK/DEF.','United We Stand'),
 ('quiet_library','Quiet Library',80,'Once per turn, at the start of your End Phase, if you did not declare an attack this turn, gain 250 LP.','Solemn Wishes'),
-('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional ultra rare card in the general stock.','The Eye of Truth')]
+('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional ultra rare card in the general stock.','The Eye of Truth'),
+# Muniqui's relic suggestions, reviewed with Thronior on 2026-10-28.
+('battle_proficiency','Battle Proficiency',110,'Increase battle damage your opponent takes by 50% (rounded down).','Lightning Blade'),
+('burn_proficiency','Burn Proficiency',100,'Increase effect damage you inflict to your opponent by 50% (rounded down).','Hinotama'),
+('straw_doll','Straw Doll',130,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
+('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced. This relic appears less often than other relics.','Gate Guardian'),
+('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Upstart Goblin'),
+('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.','Magical Merchant'),
+('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
+('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
+('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
+('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Ancient Telescope')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -39,7 +50,7 @@ CURSED=[
 (24,'wounded_merchant','Wounded Merchant','Shop prices are reduced by 50%. You start each Duel with 1000 fewer LP (min. 1).','Goblin of Greed'),
 (25,'rusted_compass','Rusted Compass','Each shop offers 2 additional regular relics. All shop prices are increased by 15%.','Different Dimension Capsule'),
 (26,'cursed_refund','Cursed Refund','After buying a booster pack, receive a refund of 20 coins (up to its price minus 1). Single-card prices are increased by 50%.','Jar of Greed'),
-(28,'collectors_burden',"Collector's Burden",'After each victory, add 2 additional random cards from the defeated opponent\'s Deck to your card pool. Your Main Deck must contain at least 50 cards.','Card Destruction'),
+(28,'collectors_burden',"Collector's Burden",'After each victory, add 2 additional random cards from the defeated opponent\'s Deck to your card pool. Your Main Deck minimum is 10 cards higher.','Card Destruction'),
 (29,'golden_grave','Golden Grave','After each victory, earn 2 additional coins for each monster in your GY (max. 30). Monsters you control lose 200 DEF.','Foolish Burial'),
 (33,'scorched_clock','Scorched Clock','Once per turn, at the start of your Standby Phase, inflict 400 damage to your opponent. Once per turn, at the start of your End Phase, take 300 damage.','Ookazi'),
 (35,'duelists_wager',"Duelist's Wager",'Increase battle damage either player takes by 50% (rounded down).','Gamble'),
@@ -52,6 +63,8 @@ CURSED=[
 (48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 1).','Time Wizard'),
 (49,'black_market_seal','Black Market Seal','Single-card prices are reduced by 40%. Booster-pack prices are increased by 40%.','Goblin of Greed'),
 (50,'champions_burden',"Champion's Burden",'Earn 60 additional coins after each boss victory. During boss Duels, monsters your opponent controls gain 300 ATK/DEF.','Blue-Eyes White Dragon'),
+(52,'defense_proficiency','Defense Proficiency','Halve all damage you take (rounded down). Halve all battle damage your opponent takes (rounded down).','Spirit Barrier'),
+(53,'singleton_pact','Singleton Pact','Your Main Deck minimum is always 20 cards. Your Deck can contain only 1 copy of each card.','Prohibition'),
 (51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, call a coin toss. If you call it right, monsters you control gain 300 ATK/DEF until your next Standby Phase. If you call it wrong, they lose 300 ATK/DEF until then.','Fairy Box')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 
@@ -75,7 +88,19 @@ def minimum(run):
  if character.get('copycat') or character.get('engine_deck'):return 20
  # Derive from completed rounds so existing saves and repeat loops agree.
  progress=run.get('secret_deck_minimum',40) if run.get('secret_challenge') else 40 if run.get('loop',0)>0 else min(40,20+10*(max(0,run.get('round',0))//BOSS_EVERY))
- return max(progress,50 if has(run,'cursed_collectors_burden') else 20)
+ if has(run,'cursed_singleton_pact'):return 20
+ # A secret challenge keeps its own minimum, so Deck Thinning does not lower it.
+ thinning=0 if run.get('secret_challenge') else copies(run,'deck_thinning')
+ return max(20,progress+10*copies(run,'cursed_collectors_burden')-10*thinning)
+
+def copy_limit(run):
+ """Copies of one card a deck may hold; None means no limit (Broken Limiter)."""
+ if 'broken_limiter' in run.get('artifacts',[]):return None
+ return 1 if has(run,'cursed_singleton_pact') else 3
+
+# Relics that ask for a choice when acquired; Tag Duels and Magic Mirror never use them.
+CHOICE_RELICS=('relic_picker','card_picker','name_changer')
+CONSUMED_RELICS=('relic_picker','card_picker')
 
 def opening(run,normal):return max(1,normal-3*copies(run,'cursed_crowded_crypt')-2*copies(run,'cursed_premature_triumph'))
 
@@ -99,13 +124,19 @@ def eligible(run,key):
  fixed=CHARACTERS[run.get('character',0)]
  if (fixed.get('copycat') or fixed.get('engine_deck')) and key in {'cursed_cursed_refund','cursed_black_market_seal','cursed_collectors_burden'}:return False
  if key=='cursed_collectors_burden':
-  if run.get('round',0)<6:return False
+  if run.get('round',0)<6 or has(run,'cursed_singleton_pact'):return False
   # Never impose an impossible minimum on the two characters with fixed decks.
   from content import CHARACTERS
   if CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'):return False
   import campaign
   from collections import Counter
-  if sum(min(3,n) for n in Counter(campaign.card_identity(c) for c in run.get('pool',[]) if not campaign.is_extra(c)).values())<40:return False
+  if sum(min(3,n) for n in Counter(campaign.card_identity(c) for c in run.get('pool',[]) if not campaign.is_extra(c)).values())<minimum(run)+10:return False
+ if key=='cursed_singleton_pact':
+  # Its fixed 20-card minimum would cancel these, and highlander needs 20 different cards.
+  if fixed.get('copycat') or fixed.get('engine_deck') or run.get('history_mode')=='tag' or run.get('secret_challenge'):return False
+  if 'broken_limiter' in run.get('artifacts',[]) or has(run,'cursed_collectors_burden'):return False
+  import campaign
+  if len({campaign.card_identity(c) for c in run.get('pool',[]) if not campaign.is_extra(c)})<20:return False
  if key=='cursed_blind_fortune' and has(run,'cursed_premature_triumph'):return False
  if key=='cursed_premature_triumph' and has(run,'cursed_blind_fortune'):return False
  return True
