@@ -8,14 +8,12 @@ export function planBattle(e,p,L,prompt,smart){
  let visited=0;const maxNodes=14000,memo=new Map();
  const defense=t=>{
   if(t.position&1)return t.attack;
-  if(!(t.position&5)){
-   const known=e.knownFieldCard?.(p,t);
-   return known?e.data[known]?.defense??1000:e.unknownDefense?.(t)??1000;
-  }
+  if(!(t.position&5))return smart.hiddenDefense(t);
   return t.defense??1000;
  };
  function walk(left,targets,damage){
-  if(damage>=e.lp[1-p])return {score:1000000+damage,line:[]};
+  // Of the lethal lines, prefer the one with the fewest attacks: each attack is a chance for a trap.
+  if(damage>=e.lp[1-p])return {score:1000000+left.length*10000+damage,line:[]};
   if(!left.length||++visited>maxNodes)return {score:damage,line:[]};
   const key=left.map(a=>a.index).join(',')+'|'+targets.map(t=>t.sequence).join(',')+'|'+damage;if(memo.has(key))return memo.get(key);
   let best={score:damage,line:[]};
@@ -36,5 +34,5 @@ export function planBattle(e,p,L,prompt,smart){
   }
   memo.set(key,best);return best;
  }
- const result=walk(attackers,enemy,0);return result.line[0]||null;
+ const result=walk(attackers,enemy,0);return result.line[0]?{...result.line[0],lethal:result.score>=1000000}:null;
 }

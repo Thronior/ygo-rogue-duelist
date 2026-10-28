@@ -205,14 +205,14 @@ function relicGrid(ctx,d,t,x,y,w,h){
  d.relics.forEach((r,i)=>{const row=Math.floor(i/cols),inRow=row===rows-1?n-row*cols:cols,ox=ax+(aw-(inRow*s+(inRow-1)*g))/2;slots.push({r,x:ox+(i-row*cols)*(s+g),y:ay+(ah-(rows*s+(rows-1)*g))/2+row*(s+g),s})});
  return slots
 }
-// The curses bosses added this loop, at the foot of the relic panel, drawn like the duel's curse buttons.
+// The curses of the final duel, at the foot of the relic panel, drawn like the duel's curse buttons.
 // Returns the height it takes.
 const CURSE_EDGE={enemy_power:'#ffd06c',drain:'#af8fff'};
 function curseStrip(ctx,t,curses,x,bottom,w){
  if(!curses.length)return 0;
  const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+64,top=bottom-strip;
  ctx.save();ctx.strokeStyle='rgba(255,110,120,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+24,top);ctx.lineTo(x+w-24,top);ctx.stroke();ctx.restore();
- text(ctx,t,`BOSS CURSES · ${curses.reduce((sum,c)=>sum+c.count,0)}`,x+w/2,top+26,{size:15,spacing:2,align:'center',color:'#ff8a92'});
+ text(ctx,t,`FINAL DUEL CURSES · ${curses.reduce((sum,c)=>sum+c.count,0)}`,x+w/2,top+26,{size:15,spacing:2,align:'center',color:'#ff8a92'});
  const ox=x+(w-(n*s+(n-1)*g))/2,oy=top+40;
  curses.forEach((c,i)=>{
   const cx=ox+i*(s+g),pad=s*.14;
@@ -290,7 +290,8 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  // Boss rewards record their cursed picks; older runs only have the cursed_ prefix to go on.
  const cursedIds=new Set([...(r.cursed_artifacts||[]),...(r.artifacts||[]).filter(id=>id.startsWith('cursed_'))]);
  const relics=[...counts].filter(([id])=>content.artifacts[id]&&content.artifactInfo[id]).map(([id,n])=>({src:relicImage(content.artifactInfo[id].art),count:n,cursed:cursedIds.has(id)}));
- const curseCounts=new Map();for(const x of latest)for(const k of x.curses||[])curseCounts.set(k,(curseCounts.get(k)||0)+1);
+ // Only the curses of the duel that ended the run (the loss, or the final win).
+ const curseCounts=new Map();for(const k of latest.at(-1)?.curses||[])curseCounts.set(k,(curseCounts.get(k)||0)+1);
  const curses=[...curseCounts].map(([k,count])=>({key:k,name:content.curses?.[k]?.[0]||k,count,src:assetURL(curseIconFile(k))}));
  const s=r.stats||{},stats=[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]].map(([k,v])=>[k,count(v)]);
  const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);

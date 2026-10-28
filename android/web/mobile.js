@@ -50,6 +50,8 @@ import {configureCounterAudio,stopCounterAudio,purchaseCoins,stopPurchaseCoins} 
 import {remindReplayUpload} from './replay-upload-reminder.js';
 
 import {polishDuel,polishShop,duelFinish} from './presentation-polish.js';
+import * as juice from './juice.js';
+import * as keeperTalk from './shopkeeper-talk.js';
 
 import {showShadowVictory,clearShadowVictory} from './shadow-victory.js';
 import {mountRunCard,copyRunCard,saveRunCard} from './run-card.js';
@@ -245,6 +247,11 @@ const slotTick=new Audio('sound/draw.wav');
 function slotTickSound(){if(!state.settings.sound||document.hidden)return;slotTick.pause();slotTick.currentTime=0;balancedVolume(slotTick,state.settings.sound/100,.5);slotTick.play().catch(()=>{})}
 
 document.addEventListener('visibilitychange',()=>{if(document.hidden)slotTick.pause()});
+
+// Finisher voice lines, the reroll reel loop and the tally coins (juice.js), at the game's balanced loudness.
+const juiceVoices=Array.from({length:3},()=>new Audio());let juiceVoiceIndex=0;
+juice.setJuiceSound((path,{loop=false,gain=1}={})=>{if(!state?.settings?.sound||document.hidden)return null;const voice=juiceVoices[juiceVoiceIndex++%juiceVoices.length];voice.pause();voice.loop=loop;voice.src=assetURL(path);voice.load();balancedVolume(voice,state.settings.sound/100,gain);voice.play().catch(()=>{});return voice});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const voice of juiceVoices)voice.pause()});
 
 let musicContext='',previousTrack={};
 
@@ -543,7 +550,7 @@ let titleMotion=null;
 
 function render(){if(screen!=='shop'&&(shopkeeperSmall||shopkeeperShrinking)){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}syncBackgroundAnimations();if(screen!=='duel')clearDuelDOM(app);if(screen!=='ending')clearShadowVictory();titleMotion?.destroy();titleMotion=null;if(screen==='tag'){tagUI?.render();return}removeActions();if(screen!=='duel')clearTimeout(aiTimer);({title:renderTitle,characters:renderCharacters,draft:renderDraft,routes:renderRoutes,shop:renderShop,achievements:renderAchievements,relics:renderRelics,settings:renderSettings,tutorial:renderTutorial,collection:renderCollection,gallery:renderGallery,ending:renderEnding,duel:renderDuel})[screen]();track(screenMusic())}
 
-function go(name){if(name==='routes'&&state.run?.reward_slots?.pending){if(rewardDeckReturn)go(state.run.stage==='shop'?'shop':'ending');return;}if(rewardDeckReturn&&!['draft','shop','ending'].includes(name))rewardDeckReturn=false;if(name!=='duel'){clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;heldAlwaysChain=false;heldChainPrompt=null;}cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;screen=name;syncBackgroundAnimations();render();if(name==='shop')settleViewport();if(['draft','shop'].includes(name)&&(state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type||pendingRelicChoice(state.run))&&!modal.open)void offerGoldenCards();if(pendingRewards){if(rewardDeckReturn){rewardDeckReturn=false;if(modal.querySelector('.reward-screen')){modal.showModal();rewardPresentation?.refresh()}else showRewardSlots()}else showVictoryReceipt()}}
+function go(name){if(name==='routes'&&state.run?.reward_slots?.pending){if(rewardDeckReturn)go(state.run.stage==='shop'?'shop':'ending');return;}if(rewardDeckReturn&&!['draft','shop','ending'].includes(name))rewardDeckReturn=false;if(name!=='duel'){clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;heldAlwaysChain=false;heldChainPrompt=null;}cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop')keeperTalk.hush();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;screen=name;syncBackgroundAnimations();render();if(name==='shop')settleViewport();if(['draft','shop'].includes(name)&&(state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type||pendingRelicChoice(state.run))&&!modal.open)void offerGoldenCards();if(pendingRewards){if(rewardDeckReturn){rewardDeckReturn=false;if(modal.querySelector('.reward-screen')){modal.showModal();rewardPresentation?.refresh()}else showRewardSlots()}else showVictoryReceipt()}}
 
 let menu=baseMenu,menuPage='main',menuPageEntry=null;
 
@@ -557,7 +564,7 @@ let copycatTaps=0,deviceSecretTaps=0,secretPlaying=false;
 
 function renderGallery(){if(!state.profile.gallery_unlocked){go('title');return}shell('Gallery',`<div class="gallery-view"><img src="assets/Meerkat.png" alt="Meerkat"><h2>Under construction</h2></div>`)}
 
-let shopkeeperTaps=0,shopkeeperRightClicks=0,shopkeeperRightClickTimer=0,shopkeeperShrinking=false,shopkeeperSmall=false,shopkeeperShrinkAnimation=null;
+let shopVisitKey='',shopkeeperTaps=0,shopkeeperRightClicks=0,shopkeeperRightClickTimer=0,shopkeeperShrinking=false,shopkeeperSmall=false,shopkeeperShrinkAnimation=null;
 
 function resetShopkeeperRightClicks(){clearTimeout(shopkeeperRightClickTimer);shopkeeperRightClickTimer=0;shopkeeperRightClicks=0;}
 function cancelShopkeeperShrink(){if(shopkeeperShrinkAnimation){shopkeeperShrinkAnimation.cancel();shopkeeperShrinkAnimation=null}shopkeeperShrinking=false;}
@@ -569,7 +576,7 @@ function positionShopkeeper(){
  const relicless=state?.run?.challenge_level===-1,landscape=matchMedia('(orientation: landscape)').matches;
  if(relicless){
   if(keeper.parentElement!==root)root.append(keeper);
-  if(!landscape){keeper.style.display='none';return;}
+  if(!landscape){keeper.style.display='none';keeperTalk.hush();return;}
   const viewportHeight=window.innerHeight,sourceRatio=561/592;
   let targetTop,center;
   const asideRect=aside.getBoundingClientRect(),relicButton=aside.querySelector('.shop-reference-buttons [data-do="relic-ledger"]'),relicRect=relicButton?.getBoundingClientRect();
@@ -579,6 +586,7 @@ function positionShopkeeper(){
   center=relicRect?(relicRect.left+relicRect.right)/2:asideRect.left+asideRect.width/2;
   root.classList.remove('desktop-shopkeeper-anchored');
   Object.assign(keeper.style,{position:'fixed',display:'block',top:`${targetTop}px`,left:`${center-width/2}px`,right:'auto',bottom:'0px',width:`${width}px`,height:`${height}px`,margin:'0',padding:'0',border:'0',borderRadius:'0',background:'transparent',transform:'none',zIndex:'0',pointerEvents:'none'});
+  keeperTalk.place();
   return;
  }
  root.classList.remove('desktop-shopkeeper-anchored');
@@ -588,6 +596,7 @@ function positionShopkeeper(){
  keeper.removeAttribute('style');
  keeper.style.pointerEvents='none';
  if(counter&&shelf){const counterRect=counter.getBoundingClientRect(),shelfRect=shelf.getBoundingClientRect();keeper.style.setProperty('--shopkeeper-shelf-offset',`${Math.max(0,counterRect.bottom-shelfRect.top)}px`);keeper.style.setProperty('--shopkeeper-shelf-drop',`${Math.max(0,shelfRect.top-counterRect.bottom)}px`)}
+ keeperTalk.placeHitArea(keeper);keeperTalk.place();
 }
 function shrinkShopkeeper(){
  if(screen!=='shop'||state?.run?.challenge_level!==-1||shopkeeperShrinking||shopkeeperSmall)return;
@@ -639,9 +648,10 @@ async function shopkeeperSecret(){
 
  if(screen!=='shop'||secretPlaying||tagUI)return;
 
- if(++shopkeeperTaps<10)return;
+ // Every poke gets a complaint; the tenth still opens the secret.
+ if(++shopkeeperTaps<10){keeperTalk.say('poke');return}
 
- shopkeeperTaps=0;secretPlaying=true;busy=true;
+ shopkeeperTaps=0;keeperTalk.hush();secretPlaying=true;busy=true;
 
  try{await meerkatSecretAnimation();await command('secret-relicless');await startDuel(false,0)}catch(error){toast(error.message)}finally{secretPlaying=false;busy=false}
 
@@ -732,9 +742,9 @@ function renderCursedRelics(){const offer=state.run.cursed_offer;app.innerHTML=`
 // A small count of copies already in your card pool, so a fourth copy is not bought by mistake.
 function ownedBadge(n,limit){const label=`You own ${n} ${n===1?'copy':'copies'}`;return `<span class="owned-badge${limit&&n>=limit?' full':''}" role="img" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="7" y="3" width="13" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h9"/></svg>${limit?`${n}/${limit}`:n}</span>`}
 
-function renderShop(){shopkeeperTaps=0;resetShopkeeperRightClicks();const r=state.run,fixed=!!(character().copycat||character().engine_deck);announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,content.cards);if(r.cursed_offer)return renderCursedRelics();const key=JSON.stringify([r.started_at,r.round,r.shop.map(x=>[x.kind,x.id,x.price])]);if(key!==shopInventoryKey){shopSelection.clear();shopInventoryKey=key}for(const i of shopSelection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')shopSelection.delete(i);const owned=new Map();for(const id of r.pool||[])owned.set(id,(owned.get(id)||0)+1);const copyLimit=r.artifacts.includes('broken_limiter')?0:3;const product=(x,i)=>{let name,img,description='';if(x.kind==='single'){name=card(x.id).name;img=image(x.id)}else if(x.kind==='deck'){name=x.name+' · Adds to collection';img='assets/decks/'+x.art+'.jpg'}else if(x.kind==='pack'){name=content.packs.find(p=>p.id===x.id).name;img='assets/packs/'+x.id+'.jpg'}else{const a=content.artifacts[x.id];name=a[0];description=a[2];img=relicImage(content.artifactInfo[x.id].art)}return `<div class="shop-product ${x.sold?'sold':''} ${shopSelection.has(i)?'chosen':''} ${isShopUltra(x,content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(img,`data-do="item-info" data-index="${i}"`):`<img ${x.kind==='single'?`data-inspect="${x.id}"`:x.kind==='artifact'||x.kind==='deck'||x.kind==='pack'?`data-do="item-info" data-index="${i}"`:''} src="${img}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}<button class="purchase-check" role="checkbox" aria-checked="${shopSelection.has(i)}" aria-label="Select ${esc(name)}" data-do="select-purchase" data-index="${i}" ${x.sold||((character().copycat||character().engine_deck)&&x.kind!=='artifact')?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`};
+function renderShop(){shopkeeperTaps=0;resetShopkeeperRightClicks();const r=state.run,fixed=!!(character().copycat||character().engine_deck);announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,content.cards);if(r.cursed_offer)return renderCursedRelics();const key=JSON.stringify([r.started_at,r.round,r.shop.map(x=>[x.kind,x.id,x.price])]);if(key!==shopInventoryKey){shopSelection.clear();shopInventoryKey=key}for(const i of shopSelection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')shopSelection.delete(i);const owned=new Map();for(const id of r.pool||[])owned.set(id,(owned.get(id)||0)+1);const copyLimit=r.artifacts.includes('broken_limiter')?0:3;const product=(x,i)=>{let name,img,description='';if(x.kind==='single'){name=card(x.id).name;img=image(x.id)}else if(x.kind==='deck'){name=x.name+' · Adds to collection';img='assets/decks/'+x.art+'.jpg'}else if(x.kind==='pack'){name=content.packs.find(p=>p.id===x.id).name;img='assets/packs/'+x.id+'.jpg'}else{const a=content.artifacts[x.id];name=a[0];description=a[2];img=relicImage(content.artifactInfo[x.id].art)}return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${shopSelection.has(i)?'chosen':''} ${isShopUltra(x,content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(img,`data-do="item-info" data-index="${i}"`):`<img ${x.kind==='single'?`data-inspect="${x.id}"`:x.kind==='artifact'||x.kind==='deck'||x.kind==='pack'?`data-do="item-info" data-index="${i}"`:''} src="${img}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}<button class="purchase-check" role="checkbox" aria-checked="${shopSelection.has(i)}" aria-label="Select ${esc(name)}" data-do="select-purchase" data-index="${i}" ${x.sold||((character().copycat||character().engine_deck)&&x.kind!=='artifact')?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`};
 
- shell('',`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,r.shop.filter(x=>x.kind==='single').length-5)}">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-do="shopkeeper-secret" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"></button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-do="buy-selected" ${shopSelection.size&&[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.price||0),0)<=r.gold?'':'disabled'}><b>BUY</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.sold?0:r.shop[i]?.price||0),0)}</strong></span></button><button class="shop-reroll-counter" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button>${fixed?'':'<button class="shop-edit-deck" data-do="draft">Edit deck</button>'}<button class="shop-next" data-do="routes" aria-label="Next Duel!"><span>Next<br>Duel!</span></button></div>${r.challenge_level===-1?'':`<h3>${r.challenge_level===-1?'LVL -1 · Relics disabled':'Relics'} ${(character().copycat||character().engine_deck)?'— relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${btn('Coin scorecard','scorecard')}${btn('Relics','relic-ledger')}<button class="shop-reroll-landscape" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button></div></aside></div>`,`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact'+((character().copycat||character().engine_deck)?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));requestAnimationFrame(positionShopkeeper);polishShop(app,JSON.stringify([r.started_at,r.character]),r.gold)}
+ shell('',`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,r.shop.filter(x=>x.kind==='single').length-5)}">${r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single').slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-do="shopkeeper-secret" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper">${r.challenge_level===-1?'':'<span class="keeper-hit" data-do="shopkeeper-secret" aria-hidden="true"></span>'}</button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-do="buy-selected" ${shopSelection.size&&[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.price||0),0)<=r.gold?'':'disabled'}><b>BUY</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${[...shopSelection].reduce((n,i)=>n+(r.shop[i]?.sold?0:r.shop[i]?.price||0),0)}</strong></span></button><button class="shop-reroll-counter" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button>${fixed?'':'<button class="shop-edit-deck" data-do="draft">Edit deck</button>'}<button class="shop-next" data-do="routes" aria-label="Next Duel!"><span>Next<br>Duel!</span></button></div>${r.challenge_level===-1?'':`<h3>${r.challenge_level===-1?'LVL -1 · Relics disabled':'Relics'} ${(character().copycat||character().engine_deck)?'— relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${btn('Coin scorecard','scorecard')}${btn('Relics','relic-ledger')}<button class="shop-reroll-landscape" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${shopRerollPrice(r)} coins" data-do="shop-reroll" ${r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${shopRerollPrice(r)}</strong></span></button></div></aside></div>`,`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact'+((character().copycat||character().engine_deck)?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));requestAnimationFrame(positionShopkeeper);polishShop(app,JSON.stringify([r.started_at,r.character]),r.gold);const visit=JSON.stringify([r.started_at,r.loop,r.round]);if(visit!==shopVisitKey){shopVisitKey=visit;keeperTalk.say('welcome')}}
 
 function collectionNavigation(active){return `<div class="collection-nav">${['cards','packs','relics','history','personal','global','collectors','achievements'].map(k=>btn(k==='collectors'?'Ultimate Collectors':k==='personal'?'Device Stats':k==='global'?'Global Stats':k==='history'?'Run History':k[0].toUpperCase()+k.slice(1),'collection-kind',`data-kind="${k}"`,k===active?'primary':'')).join('')}</div>`}
 
@@ -997,6 +1007,7 @@ function renderDuel(){if(!snapshot)return;const inspectionScroll=document.queryS
 renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()}</aside><div class="portrait-relics">${duelCurseMarkup()}${relicIndicatorMarkup()}</div><section class="duel-main"><div class="duel-particles" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37+7)%100}%;--y:${(i*19+3)%100}%;--delay:-${i*1.7}s;--duration:${10+i%6}s"></i>`).join('')}</div><div class="lpbar"><div class="life"><strong>${s.lp[0]}</strong><span>${esc(own.name)}</span></div><div class="turn">TURN<b>${displayTurn}</b></div><div class="life enemy"><span>${r.encore_active?'World Champion':esc(opponent.name)}</span><strong>${s.lp[1]}</strong></div></div><div class="field-wrap"><div class="enemy-hand">${s.players[1].hand.map(c=>engine.handRevealed?.(0,c)?`<button data-inspect="${c.code}" aria-label="Inspect revealed card"><img src="${image(c.code)}" alt="${esc(engine.name(c.code))}"></button>`:'<img src="assets/card-back.jpg" alt="Hidden card">').join('')}</div><img class="field-character" src="assets/${opponent.sprite}">${r.fallen_routes?.[r.opponent]?'<span class="uc-opponent-tag uc-field-tag" title="Ultimate Collector opponent">UC</span>':''}<img class="field-character own" data-do="duel-emotes" role="button" tabindex="0" aria-label="Send an emote" src="assets/${own.sprite}"><div class="mat">${rows.join('')}</div></div>${promptMarkup(m)}<div class="hand"${handStyle}>${s.players[0].hand.map((c,i)=>c?`<button data-hand="${i}" data-code="${c.code}" data-preview="${c.code}"><img src="${image(c.code)}" alt="${esc(card(c.code)?.name)}">${levelChangeMarkup(c)}${engine.misprintedHands?.[0]?.has(i)?`<span class="hand-misprint" aria-label="Misprinted card">Misprint · ${c.attack} / ${c.defense}</span>`:''}</button>`:'').join('')}</div><div class="duel-tools duel-tools-left">${relicIndicatorMarkup()}</div><div class="duel-tools duel-tools-right">${tagUI?`<span class="duel-room-code" aria-label="Room code">${esc(tagUI.session?.code||'')}</span>`:''}${btn('Options','duel-options')}</div></section></div>`);
 
  polishDuel(app,engine,s,card);
+ juice.syncDuel(app,{turnPlayer:s.player,deck:Array.isArray(s.players[0].deck)?s.players[0].deck.length:s.players[0].deck,handLimit:handSizeLimit(s)});
 
  tagUI?.drawTurnTimer?.();positionDuelEmotes();
 
@@ -1014,6 +1025,15 @@ renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()
 
  const field=[...s.players[0].spells.slice(5,6),...s.players[1].spells.slice(5,6)].find(c=>c&&c.position&5);if(field){const duel=document.querySelector('.duel');if(!duel.classList.contains('has-field'))duel.classList.add('has-field');const art=`linear-gradient(#04171988,#031017aa),url('assets/fields/${field.code}.jpg')`;if(duel.dataset.fieldArt!==String(field.code)){duel.style.setProperty('--active-field-art',art);duel.dataset.fieldArt=String(field.code)}}else{const duel=document.querySelector('.duel');if(duel.classList.contains('has-field'))duel.classList.remove('has-field');if(duel.style.getPropertyValue('--active-field-art'))duel.style.removeProperty('--active-field-art');if(duel.dataset.fieldArt)delete duel.dataset.fieldArt}
 
+}
+
+// Your hand size limit, as the run's relics set it (approved_relic_effects.py, passives.py): Starving
+// Library 3, Empty-Hand Pact 4, none on turn 1 when the opponent goes first. Tag duels keep the rule's 6.
+function handSizeLimit(s){
+ const r=state.run;if(snapshot?.tag||!r)return 6;
+ if(r.first_player===1&&s.turn===1)return 99;
+ const has=key=>r.challenge_level!==-1&&(r.artifacts?.includes(key)||r.mirror_copy===key);
+ return has('cursed_starving_library')?3:has('cursed_empty_hand_pact')?4:6;
 }
 
 const lpPulseAnimations=new WeakMap();
@@ -1131,7 +1151,7 @@ async function playDuelCues(playerAction=false,answered=false){
  }
  if(engine!==presentationOwner||screen!=='duel'){retireChainPanel();return}
  // Chain markers stay on their cards only while the chain is open.
- if(!engine.activeChain?.length)clearChainLinks(document);
+ if(!engine.activeChain?.length){clearChainLinks(document);juice.clearChain()}
  // The chain panel bridges the brief automatic hand-off between chain steps. A closed
  // chain, or a decision for the player, puts it away so it never covers a prompt.
  if(chainPanel){const m=engine.pending,decision=m?.player===0&&!automaticChainResponse(m,!offerChain(m),M,R);if(!engine.activeChain?.length||decision)retireChainPanel();else{clearTimeout(chainPanel.timer);chainPanel.timer=setTimeout(retireChainPanel,700)}}
@@ -1208,7 +1228,7 @@ async function playChainCue(cue,{field,owner,motion}){
  const reduced=motion.reduced,color=activationColor(engine.data?.[Number(cue.code)]?.type),anchor=cueAnchor(cue.card,{hand:false});
  duelSfx.cue(cue);
  // Link numbers only matter once something chains: link 1 stays unnumbered until link 2.
- if(cue.stage==='activate'){if(anchor)trackMotion(owner,showChainLink(anchor,cue.link,{color,quiet:cue.link===1,...motion}));if(cue.link>1)revealChainLinks(document,{reduced})}
+ if(cue.stage==='activate'){if(anchor)trackMotion(owner,showChainLink(anchor,cue.link,{color,quiet:cue.link===1,...motion}));if(cue.link>1)revealChainLinks(document,{reduced});juice.chainLink(anchor,cue.link)}
  else resolveChainLink(document,cue.link,{negated:cue.stage==='negated',reduced});
  const stage=cue.stage==='resolve'?'Resolving':cue.stage==='negated'?'Negated':'Activated';
  let panel=chainPanel?.el.isConnected&&chainPanel.field===field&&chainPanel.owner===owner?chainPanel:null;
@@ -1226,14 +1246,18 @@ async function playChainCue(cue,{field,owner,motion}){
  await duelDelay(cue.stage==='resolve'?350:250);return true;
 }
 
-// LP change: floating amount, life-bar flash and a glow at that player's side. Never blocks.
-// lethal: the final blow, played by the lethal-hit cue with one heavier shake.
+// LP change: floating amount sized by the amount, life-bar flash and a glow at that player's side. Never
+// blocks. From 1000 damage the board shakes, harder for bigger blows; exact lethal (lethal: played by the
+// lethal-hit cue) is a clean blade cut instead. A blow that takes the opponent's last LP starts a finisher
+// (juice.js), which finishDuelAnimations waits for.
 function playLifeCue(cue,{field,owner,motion,lethal=false}){
- const el=document.createElement('div');el.className='float-lp '+(cue.player?'enemy ':'')+(cue.amount>0?'heal':'');el.textContent=(cue.amount>0?'+':'')+cue.amount;
+ const damage=cue.amount<0?-cue.amount:0,tier=damage?juice.damageTier(damage):0,perfect=lethal||cue.player===1&&damage>0&&damage===cue.before;
+ const el=document.createElement('div');el.className='float-lp '+(cue.player?'enemy ':'')+(cue.amount>0?'heal':'');el.textContent=(cue.amount>0?'+':'')+cue.amount;juice.scaleNumber(el,Math.abs(cue.amount),cue.amount>0);
  pulseDuelLP(cue.player,owner);duelSfx.cue(cue);
  const life=document.querySelector(cue.player===1?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
  if(life&&!motion.reduced)trackMotion(owner,lifeImpact(life,field,{player:cue.player,heal:cue.amount>0,heavy:lethal||!!cue.directDamage||cue.amount<=-2000,lite:motion.lite||!!cue.cost&&!lethal}));
- if((cue.directDamage||lethal)&&!compatibilityEnabled()&&!motion.reduced){const impacts=shakeBoard(lethal?{strength:6,duration:380}:{});trackDuelAnimation(owner,Promise.all(impacts.map(a=>a.finished.catch(()=>{}))).then(()=>impacts.forEach(a=>a.cancel())))}
+ if(tier>=3&&!perfect&&!compatibilityEnabled()&&!motion.reduced&&!motion.lite){const impacts=shakeBoard({strength:[5,8,11][tier-3],duration:wallMs([300,380,480][tier-3])});trackDuelAnimation(owner,Promise.all(impacts.map(a=>a.finished.catch(()=>{}))).then(()=>impacts.forEach(a=>a.cancel())))}
+ if(damage&&!cue.cost)juice.hit(cue.player,damage,cue.before);else if(cue.amount>0)juice.heal(cue.player,cue.amount);
  const r=field.getBoundingClientRect(),nearby=document.querySelectorAll('.float-lp'+(cue.player?'.enemy':':not(.enemy)')).length,lane=nearby%3,delay=lane*100+Math.random()*70;
  Object.assign(el.style,{position:'fixed',left:r.left+r.width*(.40+lane*.10+(Math.random()-.5)*.025)+'px',top:r.top+r.height*(cue.player?.23:.68)+(Math.random()-.5)*18+'px',zIndex:250,animationDelay:delay+'ms',animationFillMode:'both'});
  document.body.append(el);trackDuelAnimation(owner,duelDelay(1800+delay).then(()=>el.remove()));
@@ -1255,6 +1279,8 @@ async function playBoardCue(cue,{field,playerAction,quick,owner,motion}){
  if(cue.kind==='summon'||cue.kind==='set'){
   const z=cueZone(cue.card),method=cue.kind==='summon'?cue.method||'normal':/position/.test(cue.text||'')?'position':'set';
   if(z)trackMotion(owner,summonImpact(z,{method,color:cue.kind==='set'?'#cfe6ff':attributeColor(engine.data?.[Number(cue.code)]?.attribute),...motion}));
+  // Level 5+ lands heavier (dust, then a shake from 7); the low byte holds the Level, Rank or Link rating.
+  if(z&&cue.kind==='summon')juice.summonWeight(z,Number(engine.data?.[Number(cue.code)]?.level)&0xff);
  }
  if(cue.kind==='move'||cue.kind==='draw'){
   const source=cueAnchor(cue.from),target=cueAnchor(cue.to),duration=cue.kind==='draw'?35:quick?100:260;let hold=0;
@@ -1578,6 +1604,9 @@ function showVictoryReceipt(){
 
  dialog('',`<section class="reward-tally">${deckMinimumNotice(state.run)}<strong class="reward-tally-total">+${Number(state.run.last_gold||0).toLocaleString()} <img class="earned-coin" src="assets/ui/coins.png" alt="coins"></strong><div class="reward-tally-lines">${victoryRewardsMarkup(state.run.last_rewards,content.battleBonusLabels)}</div><button class="primary" data-do="reward-slots">Continue</button></section>`,false);
 
+ // The total counts up and the window celebrates by tier (juice.js), all inside the window.
+ requestAnimationFrame(()=>juice.coinTally(modal.querySelector('.reward-tally'),Number(state.run.last_gold||0)));
+
 }
 
 function showRewardSlots(){if(character().copycat&&state.run.reward_slots?.kind!=='deck'){void action('reward-accept');return;}rewardMusic=true;track('packs');const r=state.run;rewardPresentation?.destroy();if(r.reward_slots?.kind==='deck'){dialog('Victory deck choice',deckRewardMarkup(r,{esc}),false);rewardPresentation=mountDeckRewards(modal.querySelector('.reward-screen'),{getRun:()=>state.run,esc,volume:()=>state.settings.sound/100,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i)},view:d=>openDeckPreview(modal,d,{card,cardButton,esc,sound:playUISound,details:c=>`<div class="deck-inspect"><img src="${image(c.id)}"><div>${cardFacts(c)}<h4>Effect / card text</h4><p class="inspect-effect">${esc(displayCardText(c.desc))}</p></div></div>`})});return;}dialog('',rewardMarkup(r,{image,name:id=>card(id)?.name||'Card',esc}),false);rewardPresentation=mountRewardSlots(modal.querySelector('.reward-screen'),{getRun:()=>state.run,image,name:id=>card(id)?.name||'Card',volume:()=>state.settings.sound/100,card,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,reroll:async i=>{if(tagUI)await tagUI.session.request('reward-reroll',i);else await command('reward-reroll',i);playRerollSound()}});}
@@ -1768,7 +1797,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='sell-relic'){const fromShopRelics=screen==='shop'&&!!el.closest('.relic-ledger');if(!fromShopRelics)return;const result=await command('sell-relic',el.dataset.relic);shopSelection.clear();renderShop();dialog('Run relics',relicLedgerMarkup());toast(`Sold ${content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`);return}
 
- if(a==='shop-reroll'){busy=true;try{await command('shop-reroll');shopSelection.clear();playRerollSound();renderShop()}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}
+ if(a==='shop-reroll'){busy=true;try{const previous=juice.shopArt(app);await command('shop-reroll');shopSelection.clear();renderShop();if(!juice.reroll(app,previous))playRerollSound();keeperTalk.say('reroll')}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}
 
  if(a==='choose-variant'){selectedVariants[selected]=+el.dataset.variant;renderCharacters();return}if(a==='levels'){levelMenu();return}if(a==='choose-level'){await command('remember-level',{character:selected,level:+el.dataset.level});selectedLevels[selected]=rememberedLevel(state.profile,selected);modal.close();renderCharacters();return}
 
@@ -1812,9 +1841,9 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='select-purchase'){const i=+el.dataset.index;const stock=state.run.shop[i];if(!stock||stock.sold||((character().copycat||character().engine_deck)&&stock.kind!=='artifact'))return;if(shopSelection.has(i))shopSelection.delete(i);else {const total=[...shopSelection].reduce((n,j)=>n+state.run.shop[j].price,0)+state.run.shop[i].price;if(total>state.run.gold){playUISound('count-coins');return toast('Not enough gold')}shopSelection.add(i)}playUISound('shop-select');renderShop();return}
 
- if(a==='buy-selected'||a==='confirm-deck-purchase'){if(!shopSelection.size)return;modal.close();busy=true;try{const results=await command('buy-many',[...shopSelection]);packSound('purchase');shopSelection.clear();renderShop();await offerGoldenCards();const pulls=results.flatMap(x=>x.cards);const mis=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');const packResults=results.filter(x=>x.kind==='pack');if(packResults.length)await new Promise(resolve=>presentPacks(packResults,resolve));if(pulls.length||mis)dialog('Your purchases',`${mis?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis}</div>`:''}<div class="cardgrid">${pulls.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();offerGoldenCards()}finally{busy=false}return}
+ if(a==='buy-selected'||a==='confirm-deck-purchase'){if(!shopSelection.size)return;modal.close();busy=true;try{const bought=[...shopSelection],items=bought.map(i=>({...state.run.shop[i],ultra:isShopUltra(state.run.shop[i],content.cards)}));const results=await command('buy-many',bought);packSound('purchase');shopSelection.clear();renderShop();juice.buy(bought.map(i=>app.querySelector(`[data-shop-item="${i}"]`)?.closest('.shop-product')),app.querySelector('.shop-balance'),items.map(x=>x.price));await offerGoldenCards();const pulls=results.flatMap(x=>x.cards);const mis=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');const packResults=results.filter(x=>x.kind==='pack');if(packResults.length)await new Promise(resolve=>presentPacks(packResults,resolve));if(pulls.length||mis)dialog('Your purchases',`${mis?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis}</div>`:''}<div class="cardgrid">${pulls.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();keeperTalk.say(keeperTalk.purchaseLine(items));offerGoldenCards()}finally{busy=false}return}
 
- if(a==='buy'){const x=state.run.shop[+el.dataset.index],pulled=await command('buy',+el.dataset.index);purchaseCoins();renderShop();const mis1=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');if(pulled?.length||mis1)dialog(x.kind==='pack'?'Your pack pulls':'Added to collection',`${mis1?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis1}</div>`:''}<div class="cardgrid">${pulled.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();return}
+ if(a==='buy'){const index=+el.dataset.index,x=state.run.shop[index],ultra=isShopUltra(x,content.cards),pulled=await command('buy',index);purchaseCoins();renderShop();juice.buy([app.querySelector(`[data-shop-item="${index}"]`)?.closest('.shop-product')],app.querySelector('.shop-balance'),[x.price]);const mis1=(state.run.last_misprints||[]).map(misprintNoticeLine).join('');if(pulled?.length||mis1)dialog(x.kind==='pack'?'Your pack pulls':'Added to collection',`${mis1?`<div class="misprints"><b>Faulty Printer misprints:</b>${mis1}</div>`:''}<div class="cardgrid">${pulled.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);await notices();keeperTalk.say(keeperTalk.purchaseLine([{...x,ultra}]));return}
 
  if(a==='import-profile-confirm'){const text=pendingDesktopProfile;if(!text)return;pendingDesktopProfile=null;const result=await command('import-profile',text);closeDialog();renderSettings();toast(`Progress imported: ${result.unlocksAdded} new unlocks, ${result.historyAdded} new history entries.`);return}
 
@@ -1981,7 +2010,8 @@ async function boot(){try{
 
  const effects=await preloadStartupAssets(({loaded,total,bytes})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} assets · ${(bytes/1048576).toFixed(1)} MB`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;},{images:preloadVisuals,music:preloadVisuals,local:await assetsAreLocal()});
 
- document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects);
+ // Finisher voice lines play from their downloaded files (juice.js), so they skip the up-front decode.
+ document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects.filter(path=>!/\/kill-[a-z]+\.wav$/.test(path)));
 
  screen='title';render();await notices();document.dispatchEvent(new CustomEvent('game-startup-ready',{detail:{newDevice:Object.keys(saved).length===0}}));if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
 
@@ -2255,6 +2285,8 @@ function trackDuelAnimation(owner,promise){const state=duelAnimationState(owner)
 
 async function finishDuelAnimations(owner){
 
+ // The PERFECT or overkill finisher has the screen to itself before the victory banners.
+ await juice.finisherDone();
  const animations=duelAnimationState(owner);let banner;
  if(!animations.bossVictoryShown&&snapshot?.finished?.player===0&&!isCardWin(snapshot.finished)&&(state.run?.encore_active||((state.run?.round||0)+1)%3===0)){animations.bossVictoryShown=true;if(!matchMedia('(prefers-reduced-motion: reduce)').matches){const field=document.querySelector('.field-wrap');if(field){const box=field.getBoundingClientRect(),flash=document.createElement('div');flash.setAttribute('aria-hidden','true');Object.assign(flash.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',zIndex:300,pointerEvents:'none',background:'radial-gradient(ellipse at center, #ffe28c88 0%, #ffd45b33 52%, transparent 78%)'});document.body.append(flash);const animation=flash.animate([{opacity:0},{opacity:.9,offset:.35},{opacity:0}],{duration:760,easing:'ease-out'});await animation.finished.catch(()=>{});flash.remove()}}}
  if(animations.pending.size&&snapshot?.finished?.player===0&&!isCardWin(snapshot.finished)&&!document.querySelector('.victory-settlement')){

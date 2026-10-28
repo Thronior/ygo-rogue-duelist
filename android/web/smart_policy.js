@@ -45,7 +45,7 @@ export function smartContext(e,p,L,prompt=null){
  const handSearch=new Set(['Sangan','Witch of the Black Forest','Emissary of the Afterlife','Different Dimension Capsule']);
  const handRecovery=new Set(['Backup Soldier','Dark Factory of Mass Production','Monster Reincarnation','Dark Eruption','Return of the Doomed']);
  const revival=new Set(['Monster Reborn','Premature Burial','Call of the Haunted','The Shallow Grave','Soul Charge']);
- const face=c=>!!(c.position&5),known=c=>face(c)||!!e.knownFieldCard?.(p,c),power=c=>face(c)?Math.max(0,c.position&1?atk(c):def(c)):(known(c)?e.data[e.knownFieldCard(p,c)]?.defense??900:e.unknownDefense?.(c)??900);
+ const face=c=>!!(c.position&5),known=c=>face(c)||!!e.knownFieldCard?.(p,c),power=c=>face(c)?Math.max(0,c.position&1?atk(c):def(c)):hiddenDefense(c);
  // Compare remaining turns to deck-out rather than assuming both decks draw at
  // the same rate. Revival Jam plus an active Card of Safe Return is a recurring
  // extra draw each turn while its owner has enough LP to revive it.
@@ -70,9 +70,7 @@ export function smartContext(e,p,L,prompt=null){
   return myDeck>8;
  }
  function optionalMillSafe(){return myDeck>10;}
- const threat=Math.max(0,...enemy.map(power)),ownPower=own.reduce((n,c)=>n+atk(c),0),enemyPower=enemy.reduce((n,c)=>n+power(c),0);
  const has=(arr,n)=>arr.some(c=>name(c)===n),types=(arr,t)=>arr.filter(c=>(data(c).type&t)!==0);
- const danger=battleDamage(enemyPower,1-p)>=e.lp[p]||enemyPower>ownPower+1000;
  const LOCK=['Gravity Bind','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage",'Level Limit - Area B'];
  const lockUp=theirBack.some(x=>face(x)&&!x.is_disabled&&LOCK.includes(name(x)));
  const expendable=c=>effectsEnabled(p)&&name(c)==='Relinquished'?1000000:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))?500:Math.max(0,atk(c));
@@ -255,6 +253,9 @@ export function smartContext(e,p,L,prompt=null){
  const battleHazards=new Set(['Spirit Reaper','Marshmallon','Wall of Illusion','Newdoria','Yomi Ship','Reflect Bounder','D.D. Warrior Lady','D.D. Assailant']);
  const survivalDeck=[...hand,...own,...grave].some(c=>/Forbidden One|Exodia/.test(name(c)))||back.some(c=>face(c)&&LOCK.includes(name(c)));
  const same=(a,b)=>a&&b&&a.controller===b.controller&&a.location===b.location&&a.sequence===b.sequence;
+ // After the relic and attribute helpers that hiddenDefense reads.
+ const threat=Math.max(0,...enemy.map(power)),ownPower=own.reduce((n,c)=>n+atk(c),0),enemyPower=enemy.reduce((n,c)=>n+power(c),0);
+ const danger=battleDamage(enemyPower,1-p)>=e.lp[p]||enemyPower>ownPower+1000;
  const enabled=c=>face(c)&&!c.is_disabled&&(!(data(c).type&1)||effectsEnabled(c.controller??p));
  const trapNegated=[0,1].some(s=>relic(s,'traps_no_more'))||[...own,...enemy].some(c=>enabled(c)&&name(c)==='Jinzo')||[...back,...theirBack].some(c=>enabled(c)&&name(c)==='Royal Decree');
  const imperialUp=[...back,...theirBack].some(c=>enabled(c)&&name(c)==='Imperial Order');
@@ -283,7 +284,8 @@ export function smartContext(e,p,L,prompt=null){
    }
    if(targeting&&opponentSource&&/cannot be targeted by (?:your opponent's|your opponent’s) (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
    if(targeting&&/cannot be targeted by (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
-   if(destroy&&/(?:cannot|can't) be destroyed by (?:battle|card effects?|monster effects?|spell effects?|trap effects?|(?:your opponent's|your opponent’s) (?:card )?effects?)/i.test(text))return false;
+   // Battle-only protection (Marshmallon, Spirit Reaper, Celtic Guard) does not stop destruction effects.
+   if(destroy&&/(?:cannot|can't) be destroyed by (?:battle (?:or|and) (?:by )?)?(?:card effects?|monster effects?|spell effects?|trap effects?|(?:your opponent's|your opponent’s) (?:card )?effects?)/i.test(text))return false;
    return true;
   }
  const umi=activeLocks.some(c=>['Umi','A Legendary Ocean'].includes(name(c)));
@@ -330,7 +332,8 @@ export function smartContext(e,p,L,prompt=null){
   const n=name(c);
   // A God offered in the engine's normal-summon list is already a legal
   // three-Tribute summon. Do not reject it for ordinary strategic tradeoffs.
-  if(egyptianGods.has(n))return !setting&&(prompt?.summons||[]).some(x=>same(x,c));
+  // A God is never paid for with another God: with a God out, it needs three other Tributes.
+  if(egyptianGods.has(n))return !setting&&!(own.some(x=>egyptianGods.has(name(x)))&&own.filter(x=>!egyptianGods.has(name(x))).length<3)&&(prompt?.summons||[]).some(x=>same(x,c));
   const required=n==='The Wicked Eraser'?3:effectiveLevel(c,true)>6?2:effectiveLevel(c,true)>4?1:0;
   if(required){
    const eligible=own.filter(x=>!(effectsEnabled(p)&&name(x)==='Relinquished')).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
@@ -405,12 +408,33 @@ export function smartContext(e,p,L,prompt=null){
   if(theirBack.some(x=>!face(x)))return false;
   return activeAttackers(p).some(a=>attackAllowed(a,false)&&!a.attack_disabled&&!(a.attack_count>0)&&atk(a)>power(c));
  }
+ // Lethal battle plan (2026-10-28 replay review): each blocker is taken by the weakest attacker that beats
+ // it, and the rest attack directly. extra: ATK of monsters we can still add this turn; removed: blockers
+ // taken away first. Returns the damage, or 0 when a blocker cannot be cleared in battle.
+ function planDamage(extra=[],removed=[]){
+  const window=e.phase===4?prompt?.to_bp!==false:(e.phase===8||e.phase===16)&&!e.attackCard&&!e.inDamageStep;
+  if(e.player!==p||!window||battleLocked)return 0;
+  const blockers=enemy.filter(c=>!removed.some(x=>same(x,c))).sort((a,b)=>power(b)-power(a));
+  const strikers=[...activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&!(c.attack_count>0)).map(atk),...extra].sort((a,b)=>a-b);
+  let damage=0;
+  for(const t of blockers){
+   if(face(t)&&(resilient(t)||['Newdoria','Reflect Bounder'].includes(name(t))))return 0;
+   const i=strikers.findIndex(v=>v>power(t));if(i<0)return 0;
+   if(face(t)&&(t.position&1))damage+=battleDamage(strikers[i]-power(t));
+   strikers.splice(i,1);
+  }
+  return damage+strikers.reduce((v,x)=>v+battleDamage(x),0);
+ }
+ const planLethal=(extra=[],removed=[])=>planDamage(extra,removed)>=e.lp[1-p];
+ // The strongest monster we could still Normal Summon without Tributes to join this turn's attack.
+ function freeSummon(){const a=(prompt?.summons||[]).filter(x=>effectiveLevel(x,true)<=4&&attackAllowed(x,true)&&!attackBlocked(x,p,true)).map(projectedAttack);return a.length?[Math.max(...a)]:[];}
  function candidates(n,source=null){
   source??=[...hand,...back,...own].find(x=>name(x)===n)||null;
   let list=enemy.filter(c=>!reservedForRemoval(c));
   if(['Fissure','Smashing Ground','Ring of Destruction','Dark Core','Trap Hole','Bottomless Trap Hole'].includes(n))list=list.filter(face);
   if(n==='Nobleman of Crossout'||n==='Acid Trap Hole')list=list.filter(c=>!face(c));
-  if(n==='Ring of Destruction')list=list.filter(c=>atk(c)<e.lp[p]&&atk(c)<=e.lp[1-p]);
+  // The game uses the pre-errata Ring: no limit on the target's ATK, so it can win. We only must survive it.
+  if(n==='Ring of Destruction')list=list.filter(c=>atk(c)<e.lp[p]);
   if(n==='Sakuretsu Armor')list=list.filter(c=>same(c,e.attackCard));
   if(n==='Mirror Force')list=list.filter(c=>c.position&1);
   if(n==='Widespread Ruin')list=list.filter(c=>c.position&1);
@@ -433,10 +457,9 @@ export function smartContext(e,p,L,prompt=null){
    const damage=battleDamage(t?((t.position&1)?Math.max(0,atk(a)-atk(t)):0):atk(a),1-p);
    if(damage>=e.lp[p])return true;
   }
-  // Only claim an opening for lethal when every blocker is removed and attacks are available.
-  if(e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!battleLocked&&!theirBack.length&&enemy.every(c=>targets.includes(c))&&!['Dark Hole','Torrential Tribute','Burst Stream of Destruction'].includes(n)){
-   if(activeAttackers(p).filter(c=>attackAllowed(c,true)&&!c.attack_disabled&&!(c.attack_count>0)).reduce((v,c)=>v+atk(c),0)>=e.lp[1-p])return true;
-  }
+  // Removal opens lethal when the remaining blockers fall in battle, counting a free Normal Summon.
+  // A face-down back row could still stop the attack, so only claim it against a known back row.
+  if(!theirBack.some(x=>!face(x))&&!['Dark Hole','Torrential Tribute','Burst Stream of Destruction'].includes(n)&&planLethal(freeSummon(),targets))return true;
   return !a&&!own.length&&activeAttackers(1-p).reduce((v,c)=>v+atk(c),0)>=e.lp[p]&&targets.some(c=>face(c)&&(c.position&1));
  }
  function resourceCost(c){
@@ -485,6 +508,12 @@ export function smartContext(e,p,L,prompt=null){
   return (e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&link.code===live.code&&link.location===L.SZONE&&link.sequence===live.sequence)?6000:0;
  }
  function friendlyRemovalValue(c){return Math.max(lockValue(c),mirageEscapeValue(c));}
+ // What Heavy Storm costs us per own card: our Snatch Steal hands the stolen monster back.
+ function ownBackLoss(x){
+  if(face(x)&&name(x)==='Snatch Steal'){const stolen=own.find(m=>same(x.equipCard||x.equip_card,m)||(m.equip_cards||[]).some(y=>same(y,x)));return 1500+2*(stolen?targetValue(stolen):1000);}
+  if(face(x)&&name(x)==='Swords of Revealing Light')return 2500;
+  return backValue(x);
+ }
  function backScore(c){
   const n=name(c);let targets=[...theirBack,...back.filter(x=>friendlyRemovalValue(x)>=4000)].filter(x=>!reservedForRemoval(x));
   if(n==='De-Spell')targets=targets.filter(x=>face(x)&&(data(x).type&2));
@@ -495,7 +524,7 @@ export function smartContext(e,p,L,prompt=null){
   const cost=resourceCost(c);if(!Number.isFinite(cost))return -1;
   const best=Math.max(...targets.map(x=>x.controller===p?friendlyRemovalValue(x):backValue(x)));
   if(n==='Heavy Storm'||n==="Harpie's Feather Duster"){
-   targets=targets.filter(x=>x.controller!==p||n==='Heavy Storm'&&lockValue(x)>=4000);const loss=n==='Heavy Storm'?back.filter(x=>!same(x,c)&&lockValue(x)<4000).reduce((v,x)=>v+backValue(x),0):0;
+   targets=targets.filter(x=>x.controller!==p||n==='Heavy Storm'&&lockValue(x)>=4000);const loss=n==='Heavy Storm'?back.filter(x=>!same(x,c)&&lockValue(x)<4000).reduce((v,x)=>v+ownBackLoss(x),0):0;
    const gain=targets.reduce((v,x)=>v+backValue(x),0)-loss;
    return gain>=2300&&(targets.length>=2||lockUp||targets.some(x=>lockValue(x)>=4000))?110:-1;
   }
@@ -560,7 +589,7 @@ export function smartContext(e,p,L,prompt=null){
   if(cheaper)return -1;
   return 95+Math.min(20,(target.value-threshold)/200);
  }
- const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt});
+ const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
  function wabokuWorthUsing(){
@@ -656,6 +685,8 @@ export function smartContext(e,p,L,prompt=null){
   const usefulAttack=attackAllowed(a,!rest.length)&&!c.attack_count&&strength>0&&(!rest.length?battleDamage(strength)>0:rest.some(t=>face(t)&&strength>power(t)&&attackScore(a,t,{dmg:battleDamage((t.position&1)?strength-power(t):0)})>-99999));
   // Stealing a blocker can also enable a real attack by an existing monster.
   const opensLane=!rest.length&&own.some(x=>face(x)&&(x.position&1)&&!x.attack_count&&attackAllowed(x,true)&&battleDamage(atk(x))>0);
+  // Taking this blocker, and attacking with it, wins: prefer it over any other target.
+  if(!theirBack.some(x=>!face(x))&&planLethal([...freeSummon(),...(attackAllowed(a,true)&&!c.attack_count&&strength>0?[strength]:[])],[c]))return 20000+strength;
   return usefulAttack||opensLane?10000+strength:-1;
  }
   function snatchStealWorthy(c){
@@ -846,7 +877,8 @@ export function smartContext(e,p,L,prompt=null){
    // Inspect the live back row before committing any spell/trap activation.
    // Ignore the source itself: an already-set card must remain activatable.
    const duplicates=back.filter(x=>x.code===c.code&&face(x)&&!(c.location===L.SZONE&&c.controller===p&&x.sequence===c.sequence));
-   if((e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&x.code===c.code))return -1;
+   // A card's own yes/no prompt (Fairy Box's coin toss) is not a second activation of it.
+   if(c!==prompt&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&x.code===c.code))return -1;
    // A second face-up continuous/field copy ordinarily adds no useful action.
    if(duplicates.length&&(d.type&(0x20000|0x80000))&&!['Wave-Motion Cannon',"Gravekeeper's Servant"].includes(n))return -1;
   }
@@ -1040,7 +1072,7 @@ export function smartContext(e,p,L,prompt=null){
    return (target.position&1?reduced<limit:reduced<=limit)?80:-1;
   }
   if(['Graceful Dice','Enemy Controller'].includes(n))return chain&&enemy.length&&own.some(face)?80:-1;
-  if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||((e.data[e.knownFieldCard(p,x)]?.defense??0)<=2000)))?95:-1;
+  if(n==='Acid Trap Hole')return enemy.some(x=>!face(x)&&!reservedForRemoval(x)&&(!e.knownFieldCard?.(p,x)||hiddenDefense(x)<=2000))?95:-1;
   // Activation lists carry no position; read it from the card on the field.
   const templeFaceUp=n==='Temple of the Kings'&&c.location===L.SZONE&&face(back.find(x=>same(x,c))||c);
   if(n==='Temple of the Kings'&&!templeFaceUp&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
@@ -1098,6 +1130,8 @@ export function smartContext(e,p,L,prompt=null){
   if(['Fissure','Smashing Ground','Tribute to the Doomed'].includes(n))return enemy.length&&(!/Tribute/.test(n)||hand.length>=2)?105:-1;
   if(n==='Two-Pronged Attack')return own.length>=2&&own.map(expendable).sort((a,b)=>a-b).slice(0,2).reduce((a,b)=>a+b,0)<threat?100:-1;
 
+  // A Heavy Storm we are about to cast would destroy Snatch Steal or Swords: cast the Storm first.
+  if((n==='Snatch Steal'||n==='Swords of Revealing Light')&&!chain&&(prompt?.activates||[]).some(x=>!same(x,c)&&name(x)==='Heavy Storm'&&backScore(x)>0))return -1;
   if(n==='Snatch Steal')return enemy.some(x=>snatchStealWorthy(x))?110:-1;
   if(n==='Mind Control')return enemy.some(x=>face(x))&&(canBattle||hand.some(t=>effectiveLevel(t,true)>4&&effectiveLevel(t,true)<=6))?105:-1;
   if(n==='Nobleman of Crossout')return enemy.some(c=>!face(c))?105:-1;
@@ -1105,7 +1139,10 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Block Attack')return canBattle&&enemy.some(x=>blockAttackUseful(x))?85:-1;
     if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'){
    const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
-   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));const best=Math.max(0,...elig.map(atk));if(!(own.length<5&&elig.some(x=>atk(x)>threat)&&(n!=='Premature Burial'||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
+   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));const best=Math.max(0,...elig.map(atk));
+   // One more attacker can be lethal even when it is weaker than their strongest monster.
+   if(n!=='The Shallow Grave'&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&elig.some(x=>planLethal([...freeSummon(),atk(x)])))return 100;
+   if(!(own.length<5&&elig.some(x=>atk(x)>threat)&&(n!=='Premature Burial'||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
   }
   if(n==='Polymerization')return fusionReady()?95:-1;
   if(n==='Fusion Sage')return !has(hand,'Polymerization')&&has(q(p,L.DECK),'Polymerization')?95:-1;
@@ -1120,7 +1157,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Scapegoat')return chain&&e.player!==p&&own.length<=1&&danger?90:-1;
   if(n==='Limiter Removal')return chain&&e.player===p&&own.some(x=>e.cards.get(x.code)?.race==='Machine')?95:-1;
   if(n==="Nightmare's Steelcage"&&back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x))))return -1;
-  if(n==='Swords of Revealing Light')return enemy.length&&danger&&!back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x)))?70:-1;
+  // Swords buys three turns: cast it in our Main Phase 2 against any board, or when behind, not only once in danger.
+  if(n==='Swords of Revealing Light')return (enemy.length&&danger||e.player===p&&e.phase===256&&(enemy.length||e.lp[p]<e.lp[1-p]))&&!back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x)))?70:-1;
   if(n==='Enchanted Javelin'&&chain&&wabokuWorthUsing()&&(prompt?.selects||[]).some(x=>name(x)==='Negate Attack'))return -1;
   if(n==='Enchanted Javelin'){
    if(!chain||e.player===p||!e.attackCard||e.attackCard.controller!==1-p)return -1;
@@ -1188,7 +1226,7 @@ export function smartContext(e,p,L,prompt=null){
   }
   if(n==='Seven Tools of the Bandit')return chain&&e.effect?.player===1-p&&e.lp[p]>1500?100:-1;
   if(n==='Dark Balter the Terrible'||n==='Ryu Senshi')return chain&&e.effect?.player!==p&&e.lp[p]>1000?92:-1;
-  if(n==='Ring of Destruction')return enemy.some(x=>face(x)&&atk(x)<e.lp[p]&&atk(x)<=e.lp[1-p])?100:-1;
+  if(n==='Ring of Destruction')return enemy.some(x=>face(x)&&atk(x)<e.lp[p])?100:-1;
   if(n==='Reckless Greed')return chain&&hand.length<=1&&q(p,L.DECK).length>2?65:-1;
   // Ceasefire had no activation rule at all: 500 damage per face-up monster.
   if(n==='Ceasefire'){const burn=500*[...own,...enemy].filter(x=>face(x)).length;return burn>=e.lp[1-p]?120:(chain||e.phase===4)&&burn>=1000?80:-1;}
@@ -1220,6 +1258,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Destiny Board')return back.length<=1?80:-1;
   if(n.startsWith('Spirit Message'))return -1;
   if(n==='Gravity Bind')return own.every(x=>(e.cards.get(x.code)?.level||0)<4)&&enemy.some(x=>(e.cards.get(x.code)?.level||0)>=4)?75:-1;
+  // Royal Decree clears the way for a lethal attack into set cards, unless we hold a set trap worth more.
+  if(n==='Royal Decree'&&theirBack.some(x=>!face(x))&&!back.some(x=>!same(x,c)&&!face(x)&&(data(x).type&4))&&planLethal(freeSummon()))return 100;
   if(n==='Royal Decree')return theirBack.length>back.length?65:-1;
   if(n==='Infinite Cards'){
    const sliferInHand=hand.some(x=>name(x)==='Slifer the Sky Dragon');
@@ -1417,6 +1457,13 @@ export function smartContext(e,p,L,prompt=null){
   return total;
  }
  const setMatch=(c,set)=>(data(c).setcodes||[]).some(x=>(x&0xfff)===(set&0xfff)&&(x&set&0xf000)===(set&0xf000));
+ // A set monster is flipped face-up before damage, so its controller's stat relics and Field
+ // Spells, which skip face-down cards, apply again. A card never seen face-up stays anonymous.
+ function hiddenDefense(c){
+  const code=e.knownFieldCard?.(p,c)||0,card=code?{...c,code,position:4}:{controller:c.controller,location:c.location,sequence:c.sequence,code,position:4};
+  const base=code?e.data[code]?.defense??900:e.unknownDefense?.(c)??900;
+  return Math.max(0,base+relicDefense(card,c.controller??1-p)+(code?fieldSpellBonus(card,'defense'):0));
+ }
  // The DEF half of the stat relics in passives.py and approved_relic_effects.py.
  function relicDefense(c,side){
   const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
@@ -1431,6 +1478,11 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
     case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-200;break;
+    case 'approved_grave_lantern':v=Math.min(800,100*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
+    case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
+    case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
+    case 'variant_village_banner':v=is(0x10)&&lvl(c)===4?200:0;break;
+    case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
    }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
  }
@@ -1466,6 +1518,13 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
     case 'approved_crowded_crypt':v=Math.min(750,75*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
+    case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
+    case 'variant_swordsman_oath':v=setMatch(c,0x41)?400:0;break;
+    case 'variant_village_banner':v=is(0x10)&&level===4?200:0;break;
+    case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
+    case 'overcharge':v=race(c)==='Thunder'?a*field.filter(x=>!same(x,c)&&face(x)&&race(x)==='Thunder').length:0;break;
+    case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
+    case 'terrorking_atk':v=c.code===Number(r.filter)?a*[...field,...q(1-side,L.MZONE)].filter(x=>!same(x,c)&&face(x)&&setMatch(x,0x45)).length:0;break;
    }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
  }
@@ -1926,5 +1985,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {attackOpportunity,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
 }

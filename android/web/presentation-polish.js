@@ -1,4 +1,5 @@
 import {counterTick,stopCounterAudio} from './counter-audio.js';
+import {lpDanger,lpGhost,statPop} from './juice.js';
 // Finite, shared animation scheduler; detached nodes never retain a frame loop.
 const jobs=new Map(), duels=new WeakMap();
 let frame=0,shopKey,shopValue;
@@ -44,12 +45,16 @@ export function polishDuel(root,owner,s,lookup){
    meter.getAnimations().forEach(a=>a.cancel());meter.style.transform=`scaleX(${to})`;meter.dataset.target=String(target);
    const job=jobs.get(el),remaining=job?Math.max(0,job.start+job.duration-performance.now()):0;
    if(!reduced()&&from!==to&&remaining)meter.animate([{transform:`scaleX(${from})`},{transform:`scaleX(${to})`}],{duration:remaining,easing:'cubic-bezier(.22,.61,.36,1)'});
+   // Damage leaves a pale ghost of the old length that drains a beat later.
+   if(!fresh&&changed)lpGhost(el,from,to);
   }
   if(changed&&!reduced()){
    const portrait=root.querySelector(i?'.field-character:not(.own)':'.field-character.own');
    portrait?.animate([{opacity:.65},{opacity:1}],{duration:480});
   }
  });
+ // Each side of the field reddens as that player's LP drains, against the most LP they have had.
+ lpDanger(root.querySelector('.duel-main'),s.lp,d.lp.map(x=>x.max));
  const live=new Set();
  root.querySelectorAll('.zone[data-code] .power [data-stat]').forEach(el=>{
   const zone=el.closest('.zone'),code=Number(zone.dataset.code),stat=el.dataset.stat,key=zone.dataset.zone+':'+code+':'+stat,target=Number(el.dataset.value);
@@ -57,7 +62,10 @@ export function polishDuel(root,owner,s,lookup){
   el.classList.toggle('stat-up',knownBase&&target>base);
   el.classList.toggle('stat-down',knownBase&&target<base);
   live.add(key);let state=d.stats.get(key);
-  if(!state){state={value:knownBase?base:target};d.stats.set(key,state)}
+  if(!state){state={value:knownBase?base:target,target};d.stats.set(key,state)}
+  // A change to a monster already on the field pops over it, sized by the change.
+  else if(stat==='attack'&&state.target!==target)statPop(zone,target-state.target);
+  state.target=target;
   count(el,state,target,v=>el.textContent=Math.round(v),130,target>state.value?'stat-boost':'stat-nerf');
  });
  for(const key of d.stats.keys())if(!live.has(key))d.stats.delete(key);

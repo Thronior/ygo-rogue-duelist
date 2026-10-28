@@ -1907,8 +1907,12 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 }
 @media(orientation:portrait){
  .duel>.portrait-relics{max-height:15dvh;overflow-y:auto;overflow-x:hidden;align-items:flex-start}
- .duel>.portrait-relics>.active-relic-strip{overflow:visible;max-height:none}
- .duel>.portrait-relics>.active-curse-strip{overflow:visible;max-height:none;flex:0 0 auto}
+ /* A full line scrolls sideways instead of stacking another row; auto margins keep short lines centred. */
+ .duel>.portrait-relics>.active-relic-strip,.duel>.portrait-relics>.active-curse-strip{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-height:none;justify-content:flex-start}
+ .duel>.portrait-relics>.active-relic-strip>button:first-child{margin-left:auto}.duel>.portrait-relics>.active-relic-strip>button:last-child{margin-right:auto}
+ /* Curses share the relic row at relic size; up to four fit, and a fifth peeks out to show the group scrolls. */
+ .duel>.portrait-relics>.active-curse-strip{flex:0 0 auto;max-width:calc(4*28px + 4*3px + 6px + 12px);padding:0 3px;border:0;border-radius:5px;gap:3px}
+ .duel>.portrait-relics>.active-curse-strip button{flex:0 0 28px;width:28px;height:28px;min-height:28px;padding:2px}
 }
 
 .relic-ledger-grid .sell-owned-relic{display:block;margin:12px auto 0;padding:5px 10px;min-height:28px;font-size:12px}
@@ -1955,9 +1959,6 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:0!important;right:auto!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;width:clamp(57px,7vw,85px)!important;height:44px!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:0!important;right:auto!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
 }
-/* Keep the shop behind the duel payout from leaking through its overlay. */
-body:has(#modal[open] .reward-tally) .page.shop{visibility:hidden}
-dialog:has(> .reward-tally)::backdrop{background:#06101cf2!important;backdrop-filter:none}
 
 .zone.field-spell-zone.empty .field-spell-icon{position:absolute;inset:18%;background:url('assets/icons/field-spell-placeholder.png') center/contain no-repeat;opacity:.22;mix-blend-mode:multiply;pointer-events:none}
 
@@ -2173,3 +2174,161 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 .name-pick-list button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;border:1px solid #2e4f5b;border-radius:8px;background:#10262f;color:#e8f3f1;text-align:left}
 .name-pick-list small{color:#8fb0bb}
 .pick-confirm{display:flex;justify-content:center;margin-top:10px}
+
+/* Scaled effects (juice.js). Only opacity and transforms animate; loops are few and stop under reduced
+   motion and Performance Mode, which keep the information (colours, badges, still flames). */
+:root{--fx-pop:cubic-bezier(.2,1.5,.4,1)}
+/* LP danger: one static gradient per side whose opacity and height change only when LP does. It sits over
+   the field and under the hand and LP bar. Under 1000 LP it beats like a heart. */
+.duel-main>.lpbar,.duel-main>.hand{position:relative;z-index:3}
+.fx-danger{position:absolute;left:0;right:0;height:58%;z-index:2;pointer-events:none;opacity:0;transform:scaleY(.6);transition:opacity .9s ease,transform .9s ease}
+.fx-danger.own{bottom:0;transform-origin:bottom;background:linear-gradient(to top,rgba(225,10,32,.9),rgba(190,0,28,.42) 30%,rgba(150,0,22,.14) 58%,rgba(120,0,20,0))}
+.fx-danger.enemy{top:0;transform-origin:top;background:linear-gradient(to bottom,rgba(225,10,32,.9),rgba(190,0,28,.42) 30%,rgba(150,0,22,.14) 58%,rgba(120,0,20,0))}
+.fx-danger::after{content:"";position:absolute;inset:0;background:inherit;opacity:0}
+.fx-danger.critical::after{animation:fx-heartbeat 1.15s ease-in-out infinite}
+@keyframes fx-heartbeat{0%,100%{opacity:0}10%{opacity:.75}22%{opacity:.18}34%{opacity:.6}58%{opacity:0}}
+.life.fx-critical strong{color:#ff6b6b}
+.fx-ghost{position:absolute;inset:0;z-index:-1;transform-origin:left;background:#ffe1b0;opacity:.85;pointer-events:none}
+.life.enemy .fx-ghost{transform-origin:right}
+/* Strong monsters: a flame behind the card from 2000 ATK that grows to 8000 and burns blue from 5000.
+   All flames share one layer behind every card on the mat, so they never cover a card or its numbers; the
+   burning card's own slot turns see-through so its flame shows around it. */
+.mat{position:relative}
+.fx-flame-layer{position:absolute;inset:0;pointer-events:none}
+.zone[data-fx-power]{background:transparent;box-shadow:none;border-color:transparent}
+.fx-blaze{position:absolute;pointer-events:none;transform-origin:50% 100%}
+.fx-blaze .fx-glow{position:absolute;inset:38% -4% -4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,140,40,.7),rgba(255,60,0,.25) 60%,transparent)}
+.fx-blaze.blue .fx-glow{background:radial-gradient(closest-side,rgba(130,210,255,.75),rgba(70,90,255,.28) 60%,transparent)}
+.fx-flame{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:fill}
+.zone[data-fx-power] [data-stat=attack]{display:inline-block;transition:scale .3s var(--fx-pop)}
+.zone[data-fx-power="1"] [data-stat=attack]{color:#ffd27a}
+.zone[data-fx-power="2"] [data-stat=attack]{color:#ffab3d;scale:1.08}
+.zone[data-fx-power="3"] [data-stat=attack]{color:#ff7a2a;scale:1.16}
+.zone[data-fx-power="4"] [data-stat=attack]{color:#9fdcff;scale:1.24}
+.zone[data-fx-power="5"] [data-stat=attack]{color:#e6f7ff;scale:1.32}
+/* Hand over the limit: one stepped shake for the whole row in three strengths (1, 2, 3+ over). Literal
+   keyframe values keep it on the compositor. */
+.hand.fx-overflow{animation:fx-jitter-1 .42s steps(6) infinite}
+.hand.fx-overflow.fx-jitter-2{animation-name:fx-jitter-2}
+.hand.fx-overflow.fx-jitter-3{animation-name:fx-jitter-3}
+@keyframes fx-jitter-1{0%,100%{rotate:0deg;translate:0 0}20%{rotate:1.1deg;translate:1px 0}45%{rotate:-1.1deg;translate:-1px 0}70%{rotate:.8deg;translate:.5px 0}88%{rotate:-.45deg}}
+@keyframes fx-jitter-2{0%,100%{rotate:0deg;translate:0 0}20%{rotate:1.6deg;translate:1px 0}45%{rotate:-1.6deg;translate:-1px 0}70%{rotate:1.1deg;translate:.5px 0}88%{rotate:-.65deg}}
+@keyframes fx-jitter-3{0%,100%{rotate:0deg;translate:0 0}20%{rotate:2.3deg;translate:1.5px 0}45%{rotate:-2.3deg;translate:-1.5px 0}70%{rotate:1.6deg;translate:.75px 0}88%{rotate:-.9deg}}
+.hand.fx-overflow>button.fx-excess>img{outline:2px solid #ff4a4a;outline-offset:-2px}
+.fx-hand-count{position:absolute;z-index:30;padding:2px 9px;border-radius:10px;font:800 14px/1.4 Arial,sans-serif;color:#fff;background:#b3121fe6;border:1px solid #ff9a9a;pointer-events:none}
+.fx-hand-count.pop{animation:fx-badge-pop .35s var(--fx-pop)}
+@keyframes fx-badge-pop{from{scale:1.6;opacity:0}}
+/* The ambient motes run on the main thread; half as many halve their cost. */
+.duel-particles>i:nth-child(2n){display:none}
+/* Damage: the number, flash and shockwave grow with the amount. Big glows are a gradient plate behind the
+   text (blurred text shadows were the costliest frames). Rings are drawn large and scaled down. */
+.float-lp.fx-dmg{transform-origin:center;white-space:nowrap}
+.float-lp.fx-dmg.t3,.float-lp.fx-dmg.t4,.float-lp.fx-dmg.t5{font-weight:900;letter-spacing:.02em}
+.float-lp.fx-dmg.t4{color:#ff3434;text-shadow:3px 3px #000,0 0 10px #ff1a1a}
+.float-lp.fx-dmg.t5{color:#fff;text-shadow:3px 3px #000,0 0 10px #ff1a1a}
+.float-lp.fx-dmg.t4::before,.float-lp.fx-dmg.t5::before,.fx-banner::before{content:"";position:absolute;inset:-35% -18%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(255,60,20,.55),rgba(255,40,0,.18) 60%,transparent)}
+.float-lp.fx-dmg.t5::before{background:radial-gradient(closest-side,rgba(255,170,60,.7),rgba(255,30,0,.3) 55%,transparent)}
+.fx-hit-flash{position:fixed;inset:0;z-index:2100;pointer-events:none;background:radial-gradient(ellipse at 50% var(--y,70%),rgba(255,230,220,.9),rgba(255,40,40,.55) 40%,rgba(120,0,0,0) 75%);opacity:0}
+.fx-hit-flash.fx-white{background:radial-gradient(ellipse at 50% 55%,rgba(255,255,255,.9),rgba(170,230,255,.35) 45%,transparent 75%)}
+.fx-shockwave{position:fixed;z-index:2101;width:800px;height:800px;margin:-400px 0 0 -400px;border-radius:50%;pointer-events:none;border:8px solid rgba(255,200,170,.9);opacity:0}
+/* Finishers: PERFECT for exact lethal, then a new word for every 1000 overkill, each fancier. */
+.fx-banner{position:fixed;left:50%;top:60%;z-index:2102;pointer-events:none;font:900 calc(clamp(30px,6vw,64px)*(1 + var(--lv,0)*.09))/1 Georgia,serif;letter-spacing:.06em;color:#fff2c4;text-shadow:0 0 8px #ff3b1a,3px 3px #000;white-space:nowrap;translate:-50% -50%}
+.fx-banner small{display:block;margin-top:6px;font:800 .38em/1 Arial,sans-serif;letter-spacing:.12em;color:#ffd2a8;text-align:center}
+.fx-banner .word{position:relative;display:inline-block}
+.fx-banner .word b{display:inline-block;font-weight:inherit}
+.fx-banner.lv1{color:#ffd27a}
+.fx-banner.lv2{color:#ff9a3d}.fx-banner.lv2 .word{border-block:3px double #ffb070;padding:0 .2em}
+.fx-banner:is(.lv3,.lv4,.lv5,.lv6,.lv7) .word b{-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1px #1a0400;text-shadow:none}
+.fx-banner.lv3 .word b{background-image:linear-gradient(180deg,#fff3c0 15%,#ff7a2a 60%,#c81e00)}
+.fx-banner.lv4 .word b{background-image:linear-gradient(180deg,#fff 10%,#ffd34d 40%,#e8141e 75%,#5a0010)}
+.fx-banner.lv5 .word b{background-image:linear-gradient(180deg,#ffe9ff 10%,#d26bff 45%,#6a1bd8 85%)}
+.fx-banner.lv6 .word b{background-image:linear-gradient(180deg,#ffd9b0 5%,#ff3d00 45%,#2a0000 92%)}
+.fx-banner.lv7 .word b{background-image:linear-gradient(180deg,#fff 0%,#fff2a8 25%,#7ce8ff 55%,#c58bff 82%)}
+.fx-banner:is(.lv4,.lv5,.lv6,.lv7) small{letter-spacing:.24em}
+.fx-banner:is(.lv6,.lv7) .word::before,.fx-banner:is(.lv6,.lv7) .word::after{content:attr(data-text);position:absolute;inset:0;z-index:-1;letter-spacing:inherit}
+.fx-banner:is(.lv6,.lv7) .word::before{color:rgba(60,220,255,.5);translate:4px -2px}
+.fx-banner:is(.lv6,.lv7) .word::after{color:rgba(255,40,90,.5);translate:-4px 2px}
+.fx-banner.lv5::before,.fx-banner.lv7::before{background:radial-gradient(closest-side,rgba(200,120,255,.5),rgba(120,40,255,.18) 60%,transparent)}
+.fx-finish-ring{border-width:6px}
+.fx-finish-ring.lv5{border-color:rgba(210,140,255,.85)}
+.fx-finish-ring.lv6{border-color:rgba(255,90,40,.85)}
+.fx-finish-ring.lv7{border-color:rgba(160,235,255,.9)}
+.fx-perfect{color:#f4fbff;letter-spacing:.16em;text-shadow:0 0 8px #7fd8ff,3px 3px #000}
+.fx-perfect::before{background:radial-gradient(closest-side,rgba(120,210,255,.45),rgba(60,140,255,.12) 60%,transparent)}
+.fx-perfect .word{visibility:hidden}
+.fx-perfect .slice{position:absolute;left:0;right:0;top:0;line-height:1;text-align:center}
+.fx-perfect .slice.top{clip-path:inset(0 0 51% 0)}
+.fx-perfect .slice.bottom{clip-path:inset(49% 0 0 0)}
+.fx-perfect small{color:#bfefff}
+.fx-cut{position:fixed;left:0;right:0;z-index:2103;height:3px;pointer-events:none;transform-origin:left;background:linear-gradient(90deg,transparent,#fff 12%,#c8f1ff 50%,#fff 88%,transparent);box-shadow:0 0 10px #9fe6ff}
+/* Heals, stat changes, the deck-out warning, chain escalation and summon weight. */
+.fx-spark{position:fixed;z-index:2100;width:7px;height:7px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#eaffef,#4dff88 60%,transparent);opacity:0}
+.fx-edge{position:absolute;left:0;right:0;height:38%;z-index:2;pointer-events:none;opacity:0}
+.fx-edge.own{bottom:0;background:linear-gradient(to top,rgba(60,255,140,.55),transparent)}
+.fx-edge.enemy{top:0;background:linear-gradient(to bottom,rgba(60,255,140,.55),transparent)}
+.fx-stat-pop{position:fixed;z-index:2100;pointer-events:none;font:900 18px/1 Arial,sans-serif;white-space:nowrap;text-shadow:2px 2px #000;translate:-50% -50%}
+.fx-stat-pop.up{color:#ffe04a}.fx-stat-pop.down{color:#ff5b64}
+.zone.pile[data-fx-deck] .count{display:inline-block;transition:color .3s}
+.zone.pile[data-fx-deck="warn"] .count{color:#ffc74a}
+.zone.pile:is([data-fx-deck="danger"],[data-fx-deck="critical"]) .count{color:#ff4d4d}
+.zone.pile>.fx-pile-glow{position:absolute;inset:-12%;z-index:-1;border-radius:14px;pointer-events:none;background:radial-gradient(closest-side,rgba(255,40,40,.75),transparent 75%);opacity:0}
+.zone.pile[data-fx-deck="danger"]>.fx-pile-glow{animation:fx-pile-pulse 1.6s ease-in-out infinite}
+.zone.pile[data-fx-deck="critical"]>.fx-pile-glow{animation:fx-pile-pulse .8s ease-in-out infinite}
+@keyframes fx-pile-pulse{0%,100%{opacity:.25}50%{opacity:.9}}
+.fx-chain-tint{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(90,60,255,.55));opacity:0;transition:opacity .35s ease}
+.fx-dust{position:fixed;z-index:2100;border-radius:50%;pointer-events:none;border:3px solid rgba(255,240,210,.85);opacity:0}
+/* Portraits: a lit plate in the side's colour (blue you, red opponent) with a steady 3:4 shape on every
+   screen, a gold rim on the turn player's side and a rim that reddens as LP drops. Same element and click
+   as before, so emotes (anchored to its box) and the emote picker are unchanged. */
+.duel .field-character{aspect-ratio:3/4;width:auto;max-width:13%;opacity:1;filter:none;object-fit:contain;object-position:center bottom;--side:119 185 214;border:2px solid rgb(var(--side));border-color:color-mix(in srgb,rgb(var(--side)) calc(100% - var(--danger,0)*100%),#ff3a3a);border-radius:10px;background:radial-gradient(ellipse 85% 55% at 50% 100%,rgb(var(--side) / .45),transparent 72%),linear-gradient(#10293a,#050d16);box-shadow:0 0 0 1px #000a,0 6px 14px #000b,inset 0 0 14px rgb(var(--side) / .3);transform-origin:50% 100%}
+.duel .field-character:not(.own){--side:214 120 110}
+.duel .field-character.fx-turn{border-color:#ffd77a;box-shadow:0 0 0 1px #000a,0 0 16px rgb(255 210 110 / .6),0 6px 14px #000b,inset 0 0 14px rgb(255 210 110 / .35)}
+@media(orientation:portrait){.duel .field-character{height:19%;max-width:13%}}
+/* Phones on their side: the hand row is 20% shorter (its cards size from it), so the field gets the room. */
+@media(orientation:landscape) and (max-height:500px){.duel-main{grid-template-rows:34px 1fr 22%}}
+@media(orientation:landscape) and (max-height:440px){.duel-main{grid-template-rows:27px 1fr 23%}}
+/* Coin tally: a window over the shop. Everything happens inside it (it clips its overflow), and the screen
+   behind is neither hidden nor darkened. */
+dialog:has(> .reward-tally)::backdrop{background:transparent!important;backdrop-filter:none}
+.reward-tally{position:relative}
+.reward-tally-total{position:relative;display:block;transform-origin:center}
+.reward-tally-total.fx-gold{color:#ffd54d}
+.reward-tally-total.fx-radiant{background:linear-gradient(180deg,#fffbe0 10%,#ffd34d 50%,#d98a00 90%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1px #4a2a00}
+.fx-tally-ring{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,215,110,.55),rgba(255,180,60,.18) 55%,transparent 72%);opacity:0;z-index:-1}
+.reward-tally-lines .row{position:relative;overflow:hidden}
+.fx-row-light{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,220,130,.4),transparent)}
+.fx-in-coin{position:absolute;z-index:3;width:22px;height:22px;pointer-events:none}
+.fx-frame{position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;padding:3px;overflow:hidden;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.fx-frame>i{position:absolute;left:50%;top:50%;width:160%;aspect-ratio:1;translate:-50% -50%;background:conic-gradient(from 0deg,transparent 0 58%,#fff4c0 74%,#ffc23a 84%,transparent 100%);animation:fx-spin 1.3s linear 2}
+@keyframes fx-spin{to{rotate:360deg}}
+.fx-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:3}
+.fx-shine::before{content:"";position:absolute;top:-20%;bottom:-20%;width:30%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,240,190,.35),transparent);animation:fx-shine 1.1s ease-out forwards}
+@keyframes fx-shine{to{translate:480% 0}}
+/* Shop: what you can't afford dims; buying streams coins into the item and slams a SOLD stamp; a reroll
+   spins every item like a slot reel. */
+.shop-product.fx-cant-afford .price-badge{color:#ff7a7a}
+.shop-product.fx-cant-afford .product-art>img{opacity:.42}
+.product-art{position:relative}
+.fx-coin{position:fixed;z-index:3000;width:26px;height:26px;pointer-events:none}
+.fx-stamp{position:absolute;left:50%;top:46%;z-index:6;padding:2px 10px;border:3px solid #ff4d4d;border-radius:6px;font:900 clamp(13px,1.7vw,22px)/1.1 Arial,sans-serif;letter-spacing:.12em;color:#ff4d4d;background:rgba(30,0,0,.35);rotate:-14deg;translate:-50% -50%;pointer-events:none}
+.fx-burst{position:fixed;z-index:3001;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,236,160,.95),rgba(255,190,70,.4) 50%,transparent 72%)}
+.fx-reel{position:absolute;overflow:hidden;pointer-events:none;border-radius:inherit}
+.fx-reel>div{display:flex;flex-direction:column}
+.product-art .fx-reel img{position:static!important;inset:auto!important;display:block!important;flex:none;width:100%!important;height:var(--h)!important;max-width:none!important;max-height:none!important;margin:0!important;object-fit:contain!important;transform:none!important;opacity:1!important}
+.product-art.fx-spinning>img{visibility:hidden}
+.fx-glint{position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none}
+.fx-glint::before{content:"";position:absolute;top:-30%;bottom:-30%;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,210,.85),transparent);animation:fx-shine .6s ease-out forwards}
+/* Reduced motion and Performance Mode: no loops. */
+html.performance-mode .fx-danger.critical::after{animation:none;opacity:.35}
+html.performance-mode .hand.fx-overflow{animation:none}
+html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
+@media(prefers-reduced-motion:reduce){.fx-danger.critical::after{animation:none;opacity:.35}.hand.fx-overflow{animation:none}.zone.pile>.fx-pile-glow{animation:none;opacity:.6}.fx-frame>i,.fx-shine::before,.fx-glint::before{animation:none}}
+
+/* The shopkeeper's speech bubble (shopkeeper-talk.js): pixel art, with stepped corners from four offset
+   shadows, a hard drop shadow and a stepped tail pointing at his head. Landscape only, like him. */
+.keeper-bubble{position:fixed;z-index:45;box-sizing:border-box;max-width:min(240px,36vw);padding:6px 10px 7px;background:#fff6dc;color:#2b1a0e;font:700 13px/1.3 "Courier New",Courier,monospace;text-align:center;pointer-events:none;box-shadow:0 -3px #2b1a0e,0 3px #2b1a0e,-3px 0 #2b1a0e,3px 0 #2b1a0e,inset -3px -3px #ead2a0,3px 6px 0 #00000059}
+.keeper-bubble::after{content:"";position:absolute;top:100%;left:calc(var(--tail-x,50%) - 7.5px);width:15px;height:9px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3' shape-rendering='crispEdges'%3E%3Cpath fill='%232b1a0e' d='M0 0h1v1H0zM4 0h1v1H4zM1 1h1v1H1zM3 1h1v1H3zM2 2h1v1H2z'/%3E%3Cpath fill='%23fff6dc' d='M1 0h3v1H1zM2 1h1v1H2z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.keeper-bubble[hidden]{display:none}
+@media(orientation:portrait){.keeper-bubble{display:none!important}}
+/* Where he can be poked: his head and body only, so his empty corners never steal a click. */
+.secret-shopkeeper>.keeper-hit{position:absolute;pointer-events:auto!important;cursor:pointer}

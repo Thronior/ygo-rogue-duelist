@@ -50,3 +50,24 @@ def matches(key,c):
  if key=='evolution_tablet':return (bool(typ&1) and bool(re.search(r' LV[0-9]+$',n))) or n in {'Level Up!','The Graveyard in the Fourth Dimension',"Horus' Servant"}
  if key=='destiny_hourglass':return n in {'Destiny Board','Spirit Message "I"','Spirit Message "N"','Spirit Message "A"','Spirit Message "L"','Final Countdown'}
  return False
+
+# Archetype relics only appear once your card pool holds a card they help (Thronior, 2026-10-28).
+EXODIA={'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'}
+def _setcode(c,code):return any(int(x)&0xfff==code for x in c.get('data',{}).get('setcodes',[]))
+def has_member(key,run):
+ """False for an archetype relic whose cards are missing from the run's pool; True for every other relic."""
+ from content import ART_INFO
+ info=ART_INFO.get(key,{});effect=info.get('effect')
+ if key in NEW_IDS:test=lambda c:matches(key,c)
+ elif effect=='like_toon':test=lambda c:'toon' in c['name'].lower()
+ elif effect=='like_exodia':test=lambda c:c['name'] in EXODIA
+ elif effect=='like_archfiend':test=lambda c:'archfiend' in c['name'].lower() or _setcode(c,0x45)
+ elif effect=='terrorking_atk':test=lambda c:c['id']==int(info.get('filter') or 0)
+ elif effect in ('archetype_atk','variant_swordsman_oath'):
+  code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
+  # Name Changer can already make every monster a member.
+  if code in run.get('name_changes',[]):return True
+  test=lambda c:bool(c['data']['type']&1) and _setcode(c,code)
+ else:return True
+ import campaign as g
+ return any(test(g.BY_ID[cid]) for cid in set(run.get('pool',[])) if cid in g.BY_ID)

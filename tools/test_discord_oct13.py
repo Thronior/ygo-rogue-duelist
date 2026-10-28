@@ -13,7 +13,9 @@ for char in (37,38):
  for relic in ('dice_jar','cyber_jar','bargain','map','urn','interest','golden_sleeve','final_hour'):
   assert shop_relic_eligible({'character':char},relic),(char,relic)
 assert shop_relic_eligible({'character':38},'satchel') and not shop_relic_eligible({'character':37},'satchel')
-for relic in c.ARTIFACTS:assert shop_relic_eligible({'character':0},relic),relic
+# Only the archetype gate (no matching card in the pool) may hide a relic from an ordinary character.
+import archetype_relics
+for relic in c.ARTIFACTS:assert shop_relic_eligible({'character':0},relic) or not archetype_relics.has_member(relic,{'character':0}),relic
 print('PASS exact unused-stock exclusions, useful economy relics retained, Engine Satchel exception, ordinary pool unchanged')
 profile=storage.profile();profile['unlocked']=list(c.PLAYABLE_IDS);storage.write(storage.ROOT/'profile.json',profile)
 for char in (37,38,0):

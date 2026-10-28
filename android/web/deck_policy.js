@@ -1,6 +1,6 @@
 // Shared card-specific CPU policy; opposing hidden cards remain opaque.
 export function deckPolicy(x){
-  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt}=x;
+  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal=()=>false,freeSummon=()=>[]}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>hasAttribute(c,'WATER'),sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
  const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));
@@ -236,7 +236,8 @@ export function deckPolicy(x){
   if(n==='Nobleman of Extermination'||n==='Bait Doll')return theirBack.some(t=>!face(t))?75:-1;
   if(n==='Double Snare')return live(enemyCards).some(t=>['Jinzo','Royal Decree'].includes(name(t)))?90:-1;
   if(n==='Malevolent Catastrophe')return incoming&&theirBack.length>back.filter(t=>!same(t,c)).length?100:-1;
-  if(n==='Ceasefire'){const effects=[...own,...enemy].filter(t=>face(t)&&(data(t).type&32)).length;return effects>=3||effects*500>=e.lp[1-p]?90:-1;}
+  // Ceasefire flips every monster first, so our own set Effect Monsters also count toward lethal.
+  if(n==='Ceasefire'){const effects=[...own,...enemy].filter(t=>face(t)&&(data(t).type&32)).length,ownSet=own.filter(t=>!face(t)&&(data(t).type&32)).length;return effects>=3||(effects+ownSet)*500>=e.lp[1-p]?90:-1;}
   if(n==='Riryoku Field'||n==='Curse of Royal')return chain&&e.effect?.player===1-p?95:-1;
   if(n==='Imperial Order')return e.lp[p]>1400&&chain&&e.effect?.player===1-p&&!!(data({code:e.effect.code}).type&2)?95:-1;
   if(n==='Cold Wave')return ownPower>enemyPower+1500&&theirBack.length>0&&!hand.some(t=>data(t).type&6&&!same(t,c))?65:-1;
@@ -263,7 +264,8 @@ export function deckPolicy(x){
   if(n==='Ectoplasmer')return has(own,'Malice Doll of Demise')||live(own).some(t=>Math.max(0,data(t).attack||0)/2>=e.lp[1-p])?75:-1;
   if(n==='Abyssal Designator')return -1; // A blind declaration usually feeds the enemy graveyard for 1000 LP.
   if(n==='Chiron the Mage')return handCost(c,1,t=>!!(data(t).type&2))&&best(theirBack)>=1000?95:-1;
-  if(n==='Lightning Vortex')return handCost(c,1)&&(live(enemy).length>=2||danger&&best(live(enemy))>=2400)?100:-1;
+  // Also when clearing the face-up blockers opens lethal; the discard must not be the monster we summon.
+  if(n==='Lightning Vortex')return handCost(c,1)&&(live(enemy).length>=2||danger&&best(live(enemy))>=2400||live(enemy).length&&!theirBack.some(t=>!face(t))&&planLethal(hand.filter(t=>!same(t,c)).length>=2?freeSummon():[],live(enemy)))?100:-1;
   if(n==='Magical Stone Excavation'||n==='Spell Reproduction')return handCost(c,2,t=>n!=='Spell Reproduction'||!!(data(t).type&2))&&grave.some(t=>data(t).type&2&&spellValue(t)>=3000)?85:-1;
   if(n==='The Winged Dragon of Ra'){
    const effect=raEffectName(c);

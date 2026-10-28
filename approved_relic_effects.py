@@ -74,7 +74,7 @@ def effect(kind):
   out.append('do local used=-1 '+event('EVENT_PRE_BATTLE_DAMAGE','used=Duel.GetTurnCount() --[[relic-hint]] Duel.ChangeBattleDamage(0,0)','ep==0 and Duel.GetTurnPlayer()==1 and used~=Duel.GetTurnCount() and Duel.GetBattleDamage(0)>0')+' end')
  elif key=='almighty':
   # Immune only to fixed ATK/DEF losses and to the opponent's fixed "becomes" values, so no rescans are needed.
-  out.append('''do local up={[EFFECT_UPDATE_ATTACK]=true,[EFFECT_UPDATE_DEFENSE]=true} local set={[EFFECT_SET_ATTACK]=true,[EFFECT_SET_ATTACK_FINAL]=true,[EFFECT_SET_BASE_ATTACK]=true,[EFFECT_SET_DEFENSE]=true,[EFFECT_SET_DEFENSE_FINAL]=true,[EFFECT_SET_BASE_DEFENSE]=true}
+  out.append('''do RogueAlmighty=true local up={[EFFECT_UPDATE_ATTACK]=true,[EFFECT_UPDATE_DEFENSE]=true} local set={[EFFECT_SET_ATTACK]=true,[EFFECT_SET_ATTACK_FINAL]=true,[EFFECT_SET_BASE_ATTACK]=true,[EFFECT_SET_DEFENSE]=true,[EFFECT_SET_DEFENSE_FINAL]=true,[EFFECT_SET_BASE_DEFENSE]=true}
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_IMMUNE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetValue(function(e,te) local code=te:GetCode() local v=te:GetValue() if type(v)~='number' then return false end if up[code] then return v<0 end return set[code]==true and te:GetOwnerPlayer()==1 end)
 Duel.RegisterEffect(e,0) end''')
@@ -85,7 +85,8 @@ Duel.RegisterEffect(e,0) end''')
  elif key=='jesters_coin':
   # The last call holds until the next Standby Phase: +1 right, -1 wrong, 0 before the first toss.
   # --[[relic-hint]] marks where passives.py shows the relic, since the call's result is assigned.
-  out.append('do local call=0 '+phase('STANDBY','--[[relic-hint]] call=Duel.CallCoin(0) and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','function() return 300*call end')+' '+stat('EFFECT_UPDATE_DEFENSE','function() return 300*call end')+' end')
+  # Almighty (RogueAlmighty) keeps a wrong call from lowering your monsters.
+  out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.CallCoin(0) and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])

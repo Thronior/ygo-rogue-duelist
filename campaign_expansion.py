@@ -42,6 +42,7 @@ def shop_relic_eligible(run,key):
  effect=ART_INFO[key]['effect']
  if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS:return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
+ if not archetype_relics.has_member(key,run):return False
  # Singleton Pact fixes the deck rules these relics would change.
  if key in ('deck_thinning','broken_limiter') and ar.has(run,'cursed_singleton_pact'):return False
  if key=='deck_thinning' and run.get('secret_challenge'):return False
@@ -321,8 +322,8 @@ def install(g):
    run['boss_curse']=selected[0]
   else:run['curses']=dedupe_curses(run.get('persistent_curses',[]),run.get('challenge_level',0)) if persistent else []
   challenge_levels.suppress(run)
-  # The run card lists the curses each encounter added; a persistent curse counts once, where it was drawn.
-  run['encounter_curses']=([c for c in selected if c in run['curses']] if persistent else list(run['curses'])) if boss else []
+  # Every curse active in this duel, for the run card; finish_duel clears run['curses'] before the timeline is written.
+  run['duel_curses']=list(run['curses'])
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):
    # Run-level deck rules and choice relics have nothing to copy for one duel.
@@ -533,7 +534,7 @@ def install(g):
    key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt'}.get(event.get('kind'))
    if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key=='damage_dealt' else 1)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
-  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('encounter_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
+  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('duel_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
   run['last_healing']={'before':int(result.get('lp',0)),'after':run['lp']}
   run['history'].append(result)
   if not won:update_profile(run)
