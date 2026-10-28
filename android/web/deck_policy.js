@@ -84,6 +84,7 @@ export function deckPolicy(x){
  const substitutes=new Set(['Beastking of the Swamps','King of the Swamp','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
  const lowNormal=c=>!!(data(c).type&1)&&!!(data(c).type&16)&&lvl(c)<=3;
  const rescueCatTargets=()=>q(p,L.DECK).filter(x=>monster(x)&&race(x)==='Beast'&&lvl(x)<=3);
+ const ojamaMissing=()=>['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));
  const raEffectName=c=>e.description?.(c.description)||'';
  // Ra has 0 ATK unless its Normal Summon trigger pays LP down to 100. The CPU always summons a
  // legal God, so take that payment whenever it makes a 3000+ ATK monster that is safe to keep.
@@ -150,7 +151,15 @@ export function deckPolicy(x){
   if(n==='The Agent of Creation - Venus')return free>0&&e.lp[p]>500&&[...hand,...q(p,L.DECK)].some(x=>name(x)==='Mystical Shine Ball')?100:-1;
   if(n==='Mokey Mokey Smackdown')return own.some(x=>face(x)&&name(x)==='Mokey Mokey')||hand.some(x=>name(x)==='Mokey Mokey')&&free>0?95:-1;
   if(n==='Ojama Delta Hurricane!!')return ['Ojama Green','Ojama Yellow','Ojama Black'].every(part=>own.some(x=>face(x)&&name(x)===part))&&enemyCards.some(Boolean)?150:-1;
-  if(n==='Rescue Cat'){const targets=rescueCatTargets();return own.some(x=>face(x)&&!x.is_disabled&&name(x)==='Rescue Cat')&&free>=2&&targets.length>=2?110:-1;}
+  if(n==='Rescue Cat'){
+   const targets=rescueCatTargets();if(!(own.some(x=>face(x)&&!x.is_disabled&&name(x)==='Rescue Cat')&&free>=2&&targets.length>=2))return -1;
+   // The two Beasts are destroyed in the End Phase, so only call them for something this turn.
+   const main=e.player===p&&(e.phase===4||e.phase===256),best=[...targets].sort((a,b)=>atk(b)-atk(a)).slice(0,2),missing=ojamaMissing();
+   const tribute=main&&e.normalSummonTurn?.[p]!==e.turn&&hand.some(x=>monster(x)&&lvl(x)>=5);
+   const hurricane=main&&has(hand,'Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>has(targets,part));
+   const attack=e.player===p&&e.phase===4&&e.turn>1&&!enemy.length&&best.reduce((sum,x)=>sum+atk(x),0)>=1000;
+   return tribute||hurricane||attack?110:-1;
+  }
   if(n==='Juragedo'){
    if(e.inDamageStep||e.phase!==8)return -1;
    if(c.location===L.HAND)return chain&&free>0?105:-1;
@@ -447,7 +456,8 @@ export function deckPolicy(x){
    if(c.location!==L.SZONE||!face(c))return mainPhase&&e.lp[p]>2000&&hand.some(monster)?60:-1;
    const summonable=hand.some(x=>monster(x)&&lvl(x)<=4);
    if(chain&&incoming&&!own.length&&summonable&&e.lp[p]>1000)return 85;
-   return mainPhase&&e.lp[p]>2000&&free>0&&summonable?80:-1;
+   // 500 LP buys an additional summon: spend the free Normal Summon first.
+   return mainPhase&&e.normalSummonTurn?.[p]===e.turn&&e.lp[p]>2000&&free>0&&summonable?80:-1;
   }
   if(n==='Shadow Spell'){
    if(chain&&incoming&&attacker&&face(attacker)&&atk(attacker)>=1400)return 90;
@@ -499,7 +509,7 @@ export function deckPolicy(x){
    return tribute?(ownCard?20000-value(c):-100000):(ownCard?-100000:30000+value(c));
   }
   if(n==='The Agent of Creation - Venus')return ownCard&&name(c)==='Mystical Shine Ball'&&[L.HAND,L.DECK].includes(c.location)?50000+atk(c):-100000;
-  if(n==='Rescue Cat'){const eligible=(info.cands||[]).filter(x=>x.controller===p&&x.location===L.DECK&&monster(x)&&race(x)==='Beast'&&lvl(x)<=3).sort((a,b)=>atk(b)-atk(a));return eligible.slice(0,2).some(x=>same(x,c))?50000+atk(c):-100000;}
+  if(n==='Rescue Cat'){const missing=has(hand,'Ojama Delta Hurricane!!')?ojamaMissing():[],key=x=>(missing.includes(name(x))?100000:0)+atk(x);const eligible=(info.cands||[]).filter(x=>x.controller===p&&x.location===L.DECK&&monster(x)&&race(x)==='Beast'&&lvl(x)<=3).sort((a,b)=>key(b)-key(a)).filter((x,i,a)=>!missing.includes(name(x))||a.findIndex(y=>name(y)===name(x))===i);return eligible.slice(0,2).some(x=>same(x,c))?50000+atk(c):-100000;}
   if(n==='Juragedo')return raBoostScore(c)>=0?30000+raBoostScore(c):-100000;
   if(n==='Human-Wave Tactics')return ownCard&&c.location===L.DECK&&lowNormal(c)?30000+atk(c):-100000;
   if(n==='Enchanting Fitting Room')return ownCard&&lowNormal(c)?30000+atk(c):-100000;

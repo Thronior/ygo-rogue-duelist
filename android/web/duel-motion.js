@@ -125,6 +125,8 @@ export function summonImpact(zone,{method='normal',color='#ffeeb9',reduced=false
 // Face-down to face-up: turn the card edge-on, swap the art, turn back.
 export function flipCard(img,src,{reduced=false}={}){
  if(!img)return Promise.resolve();
+ // Records where a running flip ends, so a later flip back is not skipped mid-turn.
+ img.dataset.flipTo=src;
  if(boardStill(reduced)||!img.isConnected){img.src=src;return Promise.resolve()}
  const first=img.animate([{rotate:'y 0deg'},{rotate:'y 90deg'}],{duration:110,easing:'ease-in'});
  return first.finished.then(()=>{img.src=src;return img.animate([{rotate:'y -90deg'},{rotate:'y 0deg'}],{duration:130,easing:'ease-out'}).finished}).catch(()=>{img.src=src});

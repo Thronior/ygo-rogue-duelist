@@ -70,10 +70,10 @@
     "seal": {
       "name": "Broken Seal",
       "price": 90,
-      "description": "Your opponent starts each Duel with 1,000 fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).",
+      "description": "Your opponent starts each Duel with 2,000 fewer LP. Apply this reduction after challenge-level starting LP rules (minimum 1 LP).",
       "art": "Spellbinding Circle",
       "effect": "enemy_lp",
-      "amount": 1000,
+      "amount": 2000,
       "tag": "offense",
       "filter": "",
       "parameters": {}

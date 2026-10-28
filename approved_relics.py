@@ -17,7 +17,7 @@ REGULAR=[
 ('trap_weaver','Trap Weaver',80,'Trap Monsters you control gain 400 ATK/DEF.','Embodiment of Apophis'),
 ('twin_banner','Twin Banner',85,'While you control exactly 2 face-up monsters with different Types and no other monsters, they gain 200 ATK/DEF.','United We Stand'),
 ('quiet_library','Quiet Library',80,'Once per turn, at the start of your End Phase, if you did not declare an attack this turn, gain 250 LP.','Solemn Wishes'),
-('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional rare card in the general stock.','The Eye of Truth')]
+('prospector_lens',"Prospector's Lens",80,'Each shop visit and reroll offers 1 additional ultra rare card in the general stock.','The Eye of Truth')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -51,7 +51,8 @@ CURSED=[
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
 (48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 1).','Time Wizard'),
 (49,'black_market_seal','Black Market Seal','Single-card prices are reduced by 40%. Booster-pack prices are increased by 40%.','Goblin of Greed'),
-(50,'champions_burden',"Champion's Burden",'Earn 60 additional coins after each boss victory. During boss Duels, monsters your opponent controls gain 300 ATK/DEF.','Blue-Eyes White Dragon')]
+(50,'champions_burden',"Champion's Burden",'Earn 60 additional coins after each boss victory. During boss Duels, monsters your opponent controls gain 300 ATK/DEF.','Blue-Eyes White Dragon'),
+(51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, call a coin toss. If you call it right, monsters you control gain 300 ATK/DEF until your next Standby Phase. If you call it wrong, they lose 300 ATK/DEF until then.','Fairy Box')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 
 def install(artifact):

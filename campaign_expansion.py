@@ -301,7 +301,8 @@ def install(g):
   from feedback_update import draw_curses, dedupe_curses, require_type_choice
   require_type_choice(run)
   persistent=run.get('challenge_level',0)>=5
-  if number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop')):
+  boss=number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))
+  if boss:
    count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
    if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0),per_encounter=True):
@@ -316,6 +317,8 @@ def install(g):
    run['boss_curse']=selected[0]
   else:run['curses']=dedupe_curses(run.get('persistent_curses',[]),run.get('challenge_level',0)) if persistent else []
   challenge_levels.suppress(run)
+  # The run card lists the curses each encounter added; a persistent curse counts once, where it was drawn.
+  run['encounter_curses']=([c for c in selected if c in run['curses']] if persistent else list(run['curses'])) if boss else []
   lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
   if 'magic_mirror' in run.get('artifacts',[]):
    others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic')]
@@ -525,7 +528,7 @@ def install(g):
    key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt'}.get(event.get('kind'))
    if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key=='damage_dealt' else 1)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
-  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
+  run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('encounter_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
   run['last_healing']={'before':int(result.get('lp',0)),'after':run['lp']}
   run['history'].append(result)
   if not won:update_profile(run)
@@ -581,13 +584,13 @@ def install(g):
   rest=stock_sample(remaining,4)
   lens_count=ar.copies(run,'prospector_lens')
   if lens_count:
-   rare_printings={'rare','super rare','ultra rare','secret rare','ultimate rare'}
-   is_rare=lambda c:any(str(printing.get('rarity','')).casefold() in rare_printings for printing in c.get('sets',[]))
-   rare_pool=[c for c in eligible if is_rare(c)]
-   rare_bonus=stock_sample([c for c in rare_pool if c not in top and c not in rest],lens_count)
-   while len(rare_bonus)<lens_count and rare_pool:
-    rare_bonus.append(card_rarity.choose(rare_pool,rng))
-   rest.extend(rare_bonus)
+   # The same cards the shop shows with the ultra rare finish (shop-ultra.js).
+   is_ultra=lambda c:c['id'] in card_rarity.ULTRA or any(str(printing.get('rarity',''))=='Ultra Rare' for printing in c.get('sets',[]))
+   ultra_pool=[c for c in eligible if is_ultra(c)]
+   ultra_bonus=stock_sample([c for c in ultra_pool if c not in top and c not in rest],lens_count)
+   while len(ultra_bonus)<lens_count and ultra_pool:
+    ultra_bonus.append(rng.choice(ultra_pool))
+   rest.extend(ultra_bonus)
   rest.append(removal)
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.

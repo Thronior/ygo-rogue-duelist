@@ -2,9 +2,11 @@
 // Stone and crack textures: Poly Haven "Grey Plaster 02" and "Cracked Concrete" (CC0), see assets/CREDITS.md.
 import {replayVersion} from './replay-version.js';
 import {saveDeckImage} from './save-deck-image.js';
+import {curseIconFile} from './experience-ui.js';
 export const RUN_CARD_SIZE={width:1080,height:1350};
 const W=1080,H=1350,L=80,R=1000,BOSS_EVERY=3;// BOSS_EVERY mirrors content.py.
-const DISPLAY='Impact,"Arial Black",sans-serif',UI='Arial,"Helvetica Neue",sans-serif',SERIF='Georgia,"Noto Serif",serif';
+// Android has no Impact, so the card bundles Bebas Neue (SIL OFL 1.1, notice inside the font file) as the fallback.
+const DISPLAY='Impact,"YGO Display","Arial Black",sans-serif',UI='Arial,"Helvetica Neue",sans-serif',SERIF='Georgia,"Noto Serif",serif';
 // Challenge level colours from the level badges in mobile.css: [light, dark, edge].
 const LEVEL_COLORS={'-1':['#3a5866','#1c2f38','#7fa3b0'],0:['#31966c','#104a36','#72deb1'],1:['#368cd0','#173c89','#85c9ff'],2:['#9860cf','#4b2379','#d5a5ff'],3:['#d14f70','#7d183c','#ff95b1'],4:['#dc853d','#8b3c12','#ffc18c'],5:['#d9a441','#8a5612','#ffe182'],6:['#448ebc','#1f5a80','#b8ecff']};
 const LOSS={rim:28,frame:[[0,'#a3aeb7'],[.5,'#7c8892'],[1,'#56616b']],
@@ -194,6 +196,7 @@ function finalDeck(ctx,d,t,x,y,w,h){
 
 function relicGrid(ctx,d,t,x,y,w,h){
  panel(ctx,t,x,y,w,h);const total=d.relics.reduce((n,r)=>n+(r.count||1),0);heading(ctx,t,`RELICS · ${total}`,x+w/2,y+36);
+ h-=curseStrip(ctx,t,d.curses||[],x,y+h,w);
  const n=d.relics.length,slots=[];if(!n){text(ctx,t,'No relics this run',x+w/2,y+h/2+8,{size:22,align:'center',weight:'normal',color:t.soft});return slots}
  // The gap is a sixth of the icon (14px at full size), so long relic lists shrink evenly instead of leaving wide gaps.
  const ax=x+24,ay=y+58,aw=w-48,ah=h-78,k=1/6;let best={s:0,cols:1};
@@ -202,12 +205,32 @@ function relicGrid(ctx,d,t,x,y,w,h){
  d.relics.forEach((r,i)=>{const row=Math.floor(i/cols),inRow=row===rows-1?n-row*cols:cols,ox=ax+(aw-(inRow*s+(inRow-1)*g))/2;slots.push({r,x:ox+(i-row*cols)*(s+g),y:ay+(ah-(rows*s+(rows-1)*g))/2+row*(s+g),s})});
  return slots
 }
+// The curses bosses added this loop, at the foot of the relic panel, drawn like the duel's curse buttons.
+// Returns the height it takes.
+const CURSE_EDGE={enemy_power:'#ffd06c',drain:'#af8fff'};
+function curseStrip(ctx,t,curses,x,bottom,w){
+ if(!curses.length)return 0;
+ const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+64,top=bottom-strip;
+ ctx.save();ctx.strokeStyle='rgba(255,110,120,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+24,top);ctx.lineTo(x+w-24,top);ctx.stroke();ctx.restore();
+ text(ctx,t,`BOSS CURSES · ${curses.reduce((sum,c)=>sum+c.count,0)}`,x+w/2,top+26,{size:15,spacing:2,align:'center',color:'#ff8a92'});
+ const ox=x+(w-(n*s+(n-1)*g))/2,oy=top+40;
+ curses.forEach((c,i)=>{
+  const cx=ox+i*(s+g),pad=s*.14;
+  ctx.save();path(ctx,p=>addRR(p,cx,oy,s,s,7));ctx.fillStyle='rgba(73,25,43,.85)';ctx.fill();
+  ctx.lineWidth=1.5;ctx.strokeStyle=CURSE_EDGE[c.key]||'#dc879a';if(c.key==='hunger')ctx.setLineDash([4,3]);ctx.stroke();ctx.restore();
+  if(c.img){ctx.save();ctx.imageSmoothingEnabled=false;if(c.key==='hunger'&&'filter' in ctx)ctx.filter='hue-rotate(72deg) saturate(1.25)';ctx.drawImage(c.img,cx+pad,oy+pad,s-2*pad,s-2*pad);ctx.restore()}
+  if(c.count>1){const bx=cx+s-3,by=oy+3;ctx.save();ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.shadowOffsetY=2;path(ctx,p=>addCircle(p,bx,by,12));ctx.fillStyle='#ff8a92';ctx.fill();ctx.restore();
+   ctx.save();ctx.font=`bold 13px ${UI}`;ctx.textAlign='center';ctx.fillStyle='#2a0710';ctx.fillText('×'+c.count,bx,by+4.5);ctx.restore()}
+ });
+ return strip;
+}
 function drawRelics(ctx,d,t,slots){
  for(const {r,x,y,s} of slots){
   ctx.save();path(ctx,c=>addRR(c,x,y,s,s,6));ctx.clip();ctx.fillStyle='#0b1820';ctx.fillRect(x,y,s,s);
   if(r.img){const k=Math.max(s/r.img.width,s/r.img.height);if('filter' in ctx)ctx.filter='saturate(1.3) contrast(1.06)';ctx.drawImage(r.img,x+(s-r.img.width*k)/2,y+(s-r.img.height*k)/2,r.img.width*k,r.img.height*k)}
   ctx.restore();
-  ctx.save();path(ctx,c=>addRR(c,x,y,s,s,6));ctx.lineWidth=2;ctx.strokeStyle=d.won?t.accent:'#628994';ctx.stroke();ctx.restore();
+  // Cursed relics keep a red edge so their drawback reads at a glance.
+  ctx.save();path(ctx,c=>addRR(c,x,y,s,s,6));ctx.lineWidth=r.cursed?3:2;ctx.strokeStyle=r.cursed?'#ff4d5a':d.won?t.accent:'#628994';if(r.cursed){ctx.shadowColor='rgba(255,60,75,.55)';ctx.shadowBlur=8}ctx.stroke();ctx.restore();
   if(r.count>1){const bx=x+s-4,by=y+4;ctx.save();ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.shadowOffsetY=2;path(ctx,c=>addCircle(c,bx,by,15));ctx.fillStyle=d.won?t.accent:'#e8f3f1';ctx.fill();ctx.restore();
    ctx.save();ctx.font=`bold 15px ${UI}`;ctx.textAlign='center';ctx.fillStyle='#06121a';ctx.fillText('×'+r.count,bx,by+5);ctx.restore()}
  }
@@ -264,10 +287,14 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  const duels=Array.from({length:runLength},(_,i)=>{const x=latest.find(x=>x.duel===i+1);return x?{name:names(x.opponent),won:!!x.won,lp:+x.lp_after_healing||0}:i<played?{missing:true}:null});
  const lost=latest.find(x=>!x.won),lostDuel=lost?.duel||played;
  const counts=new Map();for(const id of r.artifacts||[])counts.set(id,(counts.get(id)||0)+1);
- const relics=[...counts].filter(([id])=>content.artifacts[id]&&content.artifactInfo[id]).map(([id,n])=>({src:relicImage(content.artifactInfo[id].art),count:n}));
+ // Boss rewards record their cursed picks; older runs only have the cursed_ prefix to go on.
+ const cursedIds=new Set([...(r.cursed_artifacts||[]),...(r.artifacts||[]).filter(id=>id.startsWith('cursed_'))]);
+ const relics=[...counts].filter(([id])=>content.artifacts[id]&&content.artifactInfo[id]).map(([id,n])=>({src:relicImage(content.artifactInfo[id].art),count:n,cursed:cursedIds.has(id)}));
+ const curseCounts=new Map();for(const x of latest)for(const k of x.curses||[])curseCounts.set(k,(curseCounts.get(k)||0)+1);
+ const curses=[...curseCounts].map(([k,count])=>({key:k,name:content.curses?.[k]?.[0]||k,count,src:assetURL(curseIconFile(k))}));
  const s=r.stats||{},stats=[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]].map(([k,v])=>[k,count(v)]);
  const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
- const d={won,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,stats,
+ const d={won,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
   recordTitle:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
   textures:{backdrop:assetURL('assets/character-select-background.png'),stone:assetURL('assets/ui/run-card-stone.jpg'),cracks:assetURL('assets/ui/run-card-cracks.jpg')}};
  if(won){
@@ -290,12 +317,19 @@ const load=src=>src?new Promise(resolve=>{const img=new Image(),done=v=>{clearTi
 async function withImages(d){
  const [portrait,stone,cracks,backdrop,relics,main,extra,card]=await Promise.all([load(d.portrait),load(d.textures.stone),load(d.textures.cracks),load(d.textures.backdrop),
   Promise.all(d.relics.map(async r=>({...r,img:await load(r.src)}))),Promise.all((d.deck?.main||[]).map(load)),Promise.all((d.deck?.extra||[]).map(load)),load(d.outcome?.card)]);
- return {...d,portrait,textures:{stone,cracks,backdrop},relics,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
+ const curses=await Promise.all((d.curses||[]).map(async c=>({...c,img:await load(c.src)})));
+ return {...d,portrait,textures:{stone,cracks,backdrop},relics,curses,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
 }
 
+let displayFace=null;
+// Loaded once, only when a card is drawn; a slow or offline load falls back to the system fonts.
+function displayFont(){
+ displayFace??=(async()=>{try{if(typeof FontFace!=='function'||!globalThis.document?.fonts)return;const face=new FontFace('YGO Display','url(assets/fonts/BebasNeue-Regular.ttf)');document.fonts.add(await Promise.race([face.load(),new Promise((_,reject)=>setTimeout(()=>reject(Error('Font timed out')),2500))]))}catch{}})();
+ return displayFace;
+}
 export async function mountRunCard(canvas,run,deps){
  const data=runCardData(run,deps);canvas.setAttribute('aria-label',data.label);
- const ready=await withImages(data);if(!canvas.isConnected)return;
+ const [ready]=await Promise.all([withImages(data),displayFont()]);if(!canvas.isConnected)return;
  drawRunCard(canvas,ready);canvas.dataset.ready='1';
  // The finished card is shown as an <img>, so the browser's own "Copy image" works even where scripts may not copy (itch.io's embed).
  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
@@ -304,12 +338,13 @@ export async function mountRunCard(canvas,run,deps){
 }
 
 const base64=blob=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('Could not prepare the image.'));r.readAsDataURL(blob)});
-// Copy puts the PNG on the clipboard. The Android app copies natively and opens its share sheet; phones fall back to the
-// share sheet. Desktop browsers never open the system share window: where copying is blocked they explain "Copy image".
+// Copy puts the PNG on the clipboard. The Android app copies natively (older apps also open the share sheet); phones
+// fall back to the share sheet. Desktop browsers never open the system share window: where copying is blocked they explain "Copy image".
 export async function copyRunCard(canvas,name){
  if(!canvas?.dataset.ready)return 'The image is still being drawn. Try again in a moment.';
  const png=new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image export failed.')),'image/png'));
  const native=globalThis.ShadowNative;
+ if(native?.copyImage)return native.copyImage(name,await base64(await png))?'Copied! Paste it into Discord or any chat.':'Could not prepare the image. Try again.';
  if(native?.shareImage)return native.shareImage(name,await base64(await png))?'Copied! Paste it into Discord, or pick an app to share it.':'Could not prepare the image. Try again.';
  let blocked=false;
  // Safari needs the clipboard write to start inside the tap, so the blob is passed as a promise.
@@ -322,4 +357,11 @@ export async function copyRunCard(canvas,name){
  if(blocked||embedded)return `${embedded?'This embedded page':'Your browser'} can't copy images. ${touch?'Long-press':'Right-click'} the card and choose Copy image.`;
  await saveDeckImage(blob,name);
  return "This browser can't copy images, so the image was downloaded instead."
+}
+
+// Download saves the PNG: the Android app asks where to save it, browsers download it.
+export async function saveRunCard(canvas,name){
+ if(!canvas?.dataset.ready)return 'The image is still being drawn. Try again in a moment.';
+ const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image export failed.')),'image/png'));
+ return saveDeckImage(blob,name);
 }

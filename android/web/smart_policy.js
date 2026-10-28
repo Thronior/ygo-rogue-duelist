@@ -1007,7 +1007,13 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&![8,16,32,64,128].includes(e.phase))return -1;
   // On the opponent's turn the position change only matters while their monster is attacking;
   // afterwards they simply switch it back in Main Phase 2.
-  if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&e.player!==p&&!(e.attackCard&&e.attackCard.controller!==p))return -1;
+  if(n==='Enemy Controller'&&BigInt(c.description||0)%1048576n===0n&&e.player!==p){
+   // Once the attacker is in Defense Position the attack is already stopped; another copy would switch it back.
+   const attacker=e.attackCard&&e.attackCard.controller!==p?q(e.attackCard.controller,L.MZONE).find(x=>x.sequence===e.attackCard.sequence):null;
+   if(!attacker||!(attacker.position&1))return -1;
+  }
+  // Its optional effect may destroy any Spell/Trap, so only use it on the opponent's.
+  if(n==='Mobius the Frost Monarch')return theirBack.length?100:-1;
   if(n==='Levia-Dragon - Daedalus')return umiActive&&enemyPower+theirBack.length*800>ownPower-atk(c)+back.length*800?115:-1;
   if(n==='Guardian Sphinx')return enemy.length?110:-1;
   if(n==='Swarm of Scarabs')return enemy.length?100:-1;
@@ -1111,7 +1117,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Elegant Egotist')return has(own,'Harpie Lady')&&own.length<5?95:-1;
   if(n==='Scapegoat')return chain&&e.player!==p&&own.length<=1&&danger?90:-1;
   if(n==='Limiter Removal')return chain&&e.player===p&&own.some(x=>e.cards.get(x.code)?.race==='Machine')?95:-1;
-  if(n==='Swords of Revealing Light')return enemy.length&&danger?70:-1;
+  if(n==="Nightmare's Steelcage"&&back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x))))return -1;
+  if(n==='Swords of Revealing Light')return enemy.length&&danger&&!back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x)))?70:-1;
   if(n==='Enchanted Javelin'&&chain&&wabokuWorthUsing()&&(prompt?.selects||[]).some(x=>name(x)==='Negate Attack'))return -1;
   if(n==='Enchanted Javelin'){
    if(!chain||e.player===p||!e.attackCard||e.attackCard.controller!==1-p)return -1;
@@ -1351,26 +1358,16 @@ export function smartContext(e,p,L,prompt=null){
    // In this game's script Ra gains ATK/DEF equal to the LP paid, leaving 100 LP.
    if(monsterName==='The Winged Dragon of Ra')baseAttack=Math.max(0,(e.lp?.[p]??0)-100);
    let result=baseAttack+(p===1?(e.aiModifiers?.enemyAttack||0):0)+handEquipBonus(c);
-  // The Mage relic is supplied as a generic Spellcaster ATK stat relic. This
-  // forecast is used before the monster reaches the field, so its live ATK is
-  // not available yet when choosing summon position.
-  if(race(c)==='Spellcaster')result+=(e.aiModifiers?.statRelics?.[p]||[]).filter(r=>r.effect==='atk'&&r.filter==='Spellcaster').reduce((n,r)=>n+(r.amount||0),0);
+  // Relic bonuses apply only on the field, so a forecast adds them as if the monster had landed.
+  result+=relicAttack(c,p);
   if(effectsEnabled(p)){
    if(name(c)==='Tyranno Infinity')result=1000*q(p,L.REMOVED).filter(x=>face(x)&&race(x)==='Dinosaur').length+(p===1?(e.aiModifiers?.enemyAttack||0):0);
    if(name(c)==='Element Saurus'&&[...own,...enemy].some(x=>face(x)&&hasAttribute(x,'FIRE')))result+=500;
    if(monsterName==='The Agent of Force - Mars'&&e.lp[p]>e.lp[1-p]&&back.some(x=>x.sequence===5&&enabled(x)&&name(x)==='The Sanctuary in the Sky'))result+=e.lp[p]-e.lp[1-p];
   }
   // Only face-up field cards affect a future summon; do not copy equipped monsters' bonuses.
-  const fields=[...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000));
-  const bonuses={'Yami':[['Fiend','Spellcaster'],['Fairy'],200],'Mountain':[['Dragon','Winged Beast','Thunder'],[],200],'Forest':[['Insect','Beast','Plant','Beast-Warrior'],[],200],'Umi':[['Aqua','Fish','Sea Serpent','Thunder'],['Machine','Pyro'],200],'Wasteland':[['Dinosaur','Zombie','Rock'],[],200],'Sogen':[['Warrior','Beast-Warrior'],[],200]};
-  const attributes={'Luminous Spark':'LIGHT','Mystic Plasma Zone':'DARK','Rising Air Current':'WIND','Molten Destruction':'FIRE','Umiiruka':'WATER','Gaia Power':'EARTH'};
   const futureAttributes=fieldAttributes(c,p);
-  for(const f of fields){const n=name(f),b=bonuses[n];let bonus=b?(b[0].includes(race(c))?b[2]:b[1].includes(race(c))?-b[2]:0):0;
-   if(n==='A Legendary Ocean'&&futureAttributes.has('WATER'))bonus+=200;
-   if(attributes[n]&&futureAttributes.has(attributes[n]))bonus+=500;
-   if(bonus>0)bonus*=1+relics(f.controller).filter(k=>k==='field_amplifier').length;
-   result+=bonus;
-  }
+  result+=fieldSpellBonus(c,'attack');
   for(const x of [...own,...enemy,...back,...theirBack].filter(enabled)){
    const n=name(x),a=futureAttributes;
    const auras={'Hoshiningen':['LIGHT',500,'DARK',-400],"Witch's Apprentice":['DARK',500,'LIGHT',-400],'Little Chimera':['FIRE',500,'WATER',-400],'Star Boy':['WATER',500,'FIRE',-400],'Bladefly':['WIND',500,'EARTH',-400],'Milus Radiant':['EARTH',500,'WIND',-400]};
@@ -1382,31 +1379,6 @@ export function smartContext(e,p,L,prompt=null){
    const knights=own.filter(x=>enabled(x)&&name(x)==='Command Knight').length+(c.location!==L.MZONE&&monsterName==='Command Knight'?1:0);
    result+=400*knights;
   }
-  for(const key of relics(p)){
-   const type=data(c).type||0,level=effectiveLevel(c,true);
-   if(key==='small'&&level<=3)result+=(e.aiModifiers?.statRelics?.[p]||[]).find(r=>r.effect==='small')?.amount??400;
-   if(['cursed_blood_crown'].includes(key))result+=500;
-   if(['cursed_cracked_sword'].includes(key))result+=300;
-   if(key==='cursed_brittle_armor')result-=300;
-   if(key==='cursed_zombies_bargain')result+=400;
-   if(key==='cursed_warriors_vow')result+=200;
-   if(key==='cursed_iron_silence')result+=600;
-   if(key==='ritual_vestment'&&(type&0x80))result+=300;
-   if(key==='fusion_insignia'&&(type&0x40))result+=300;
-   if(key==='cursed_ritual_scar'&&(type&0x80))result+=1000;
-   if(key==='cursed_fusion_fever'&&(type&0x40))result+=800;
-   if(key==='cursed_commoners_chain')result+=(type&16)?300:(type&32)?-200:0;
-   if(key==='cursed_ashen_nursery')result+=level<=3?700:level>=5?-700:0;
-   if(key==='cursed_giants_oath')result+=level>=5?800:-400;
-   if(key==='cursed_solitary_tyrant')result+=own.length===0?400:-500;
-   if(key==='cursed_nocturnal_guard'&&e.player===p)result-=300;
-   if(key==='cursed_crowded_crypt')result+=Math.min(750,75*grave.filter(x=>data(x).type&1).length);
-   if(key==='cursed_trapbound_idol')result+=(type&0x100)?1000:0;
-   if(key==='trap_weaver'&&(type&0x100))result+=400;
-   if(key==='cursed_empty_hand_pact'&&c.location===L.HAND&&hand.length===1)result+=1000;
-   if(key==='arcane_resonance')result+=100*[...back,...theirBack].filter(face).length;
-   if(key==='exile_standard')result+=50*[...q(0,L.REMOVED),...q(1,L.REMOVED)].filter(x=>face(x)&&(data(x).type&1)).length;
-  }
   return Math.max(0,result);
  }
  function projectedDefense(c){
@@ -1417,16 +1389,7 @@ export function smartContext(e,p,L,prompt=null){
    const inHand=c.location===L.HAND&&hand.some(x=>same(x,c));
    result=Math.max(0,result-400*Math.max(0,hand.length-(inHand?1:0)));
   }
-  const attributes=fieldAttributes(c,p);
-  const filterMatch=f=>!f||f===race(c)||f.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(f)||attributes.has(String(f).toUpperCase());
-  result+=(e.aiModifiers?.statRelics?.[p]||[]).reduce((sum,r)=>sum+((r.effect==='def'||r.effect==='both')&&filterMatch(r.filter)?(r.amount||0):0),0);
-  if(relic(p,'cursed_brittle_armor'))result+=900;
-  const fields=[...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000));
-  for(const field of fields){const n=name(field);let bonus=0;
-   if(n==='A Legendary Ocean'&&attributes.has('WATER'))bonus+=200;
-   if(n==='Umiiruka'&&attributes.has('WATER'))bonus-=400;
-   result+=bonus*(bonus>0?1+relics(field.controller).filter(k=>k==='field_amplifier').length:1);
-  }
+  result+=relicDefense(c,p)+fieldSpellBonus(c,'defense');
   const equipDefense={'Horn of Light':800};
   if(c.location===L.HAND&&!spellNegated){
    const slots=Math.max(0,(e.aiModifiers?.spellTrapZones??5)-back.filter(x=>x.sequence<5).length);
@@ -1437,9 +1400,43 @@ export function smartContext(e,p,L,prompt=null){
   }
   return Math.max(0,result);
  }
+ // Face-up Field Spells, as the card scripts apply them; only positive bonuses are amplified.
+ function fieldSpellBonus(c,stat){
+  const races={'Yami':[['Fiend','Spellcaster'],['Fairy']],'Mountain':[['Dragon','Winged Beast','Thunder'],[]],'Forest':[['Insect','Beast','Plant','Beast-Warrior'],[]],'Umi':[['Aqua','Fish','Sea Serpent','Thunder'],['Machine','Pyro']],'Wasteland':[['Dinosaur','Zombie','Rock'],[]],'Sogen':[['Warrior','Beast-Warrior'],[]]};
+  const attributes={'Luminous Spark':'LIGHT','Mystic Plasma Zone':'DARK','Rising Air Current':'WIND','Molten Destruction':'FIRE','Umiiruka':'WATER','Gaia Power':'EARTH'};
+  const future=fieldAttributes(c,p);let total=0;
+  for(const f of [...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000))){
+   const n=name(f),r=races[n];let bonus=r?(r[0].includes(race(c))?200:r[1].includes(race(c))?-200:0):0;
+   if(n==='A Legendary Ocean'&&future.has('WATER'))bonus+=200;
+   if(attributes[n]&&future.has(attributes[n]))bonus+=stat==='attack'?500:-400;
+   if(bonus>0)bonus*=1+relics(f.controller).filter(k=>k==='field_amplifier').length;
+   total+=bonus;
+  }
+  return total;
+ }
+ const setMatch=(c,set)=>(data(c).setcodes||[]).some(x=>(x&0xfff)===(set&0xfff)&&(x&set&0xf000)===(set&0xf000));
+ // The DEF half of the stat relics in passives.py and approved_relic_effects.py.
+ function relicDefense(c,side){
+  const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
+  const is=t=>!!(data(c).type&t),attributes=fieldAttributes(c,side);
+  return (e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
+   const a=r.amount||0,match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
+   switch(r.effect){
+    case 'def':v=a;break;case 'both':v=match?a:0;break;
+    case 'approved_brittle_armor':v=900;break;case 'approved_cracked_sword':v=-1000;break;case 'approved_iron_silence':v=600;break;
+    case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
+    case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?-1000:0;break;
+    case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
+    case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
+    case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-200;break;
+   }return sum+v;
+  },0);
+ }
  function relicAttack(c,side){
-  const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side});
+  const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
   const monsters=loc=>q(side,loc).filter(x=>(data(x).type&1)&&face(x)),is=t=>!!(data(c).type&t),level=lvl(c);
+  // A forecast for a card still in hand counts the hand it leaves behind.
+  const handAfter=q(side,L.HAND).filter(x=>!same(x,c)).length;
   const attributes=fieldAttributes(c,side);
   return (e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
    const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
@@ -1447,14 +1444,15 @@ export function smartContext(e,p,L,prompt=null){
     case 'atk':case 'both':v=match?a:0;break;
     case 'small':v=level<=3?a:0;break;
     case 'normal':v=is(0x10)?a:0;break;case 'tribute':v=level>=5?a:0;break;
-    case 'empty_hand':v=q(side,L.HAND).length===0?a:0;break;case 'solo':v=field.length===1?a:0;break;
+    case 'empty_hand':v=handAfter===0?a:0;break;case 'solo':v=field.length===1?a:0;break;
+    case 'archetype_atk':{const set=Number(r.filter);v=setMatch(c,set)?a*[...field,...q(1-side,L.MZONE)].filter(x=>face(x)&&setMatch(x,set)).length:0;break;}
     case 'diversity':v=Math.min(r.parameters?.cap??500,new Set(field.filter(face).map(race)).size*a);break;
     case 'normal_grave':v=Math.min(r.parameters?.cap??600,monsters(L.GRAVE).filter(x=>data(x).type&0x10).length*a);break;
     case 'eclipse':v=['LIGHT','DARK'].every(at=>monsters(L.GRAVE).some(x=>hasAttribute(x,at)))?a:0;break;
     case 'dial':v=e.player===side?a:0;break;case 'underdog':v=e.lp[side]<e.lp[1-side]&&field.length<q(1-side,L.MZONE).filter(x=>!same(x,c)).length?a:0;break;
     case 'backrow_atk':v=[0,1].flatMap(s=>q(s,L.SZONE)).filter(face).length*a;break;
     case 'banished_atk':v=[0,1].flatMap(s=>q(s,L.REMOVED)).filter(x=>face(x)&&(data(x).type&1)).length*a;break;
-    case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=100;break;
+    case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=300;break;
     case 'approved_zombies_bargain':v=800;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
     case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
     case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?1000:0;break;
@@ -1462,9 +1460,9 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_ashen_nursery':v=level<=3?700:level>=5?-700:0;break;case 'approved_giants_oath':v=level>=5?800:level<=4?-400:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
     case 'approved_ritual_scar':v=is(0x80)?1000:0;break;case 'approved_fusion_fever':v=is(0x40)?800:0;break;
-    case 'approved_empty_hand_pact':v=q(side,L.HAND).length===0?1000:0;break;
+    case 'approved_empty_hand_pact':v=handAfter===0?1000:0;break;
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
-    case 'approved_crowded_crypt':v=Math.min(1500,150*monsters(L.GRAVE).length);break;
+    case 'approved_crowded_crypt':v=Math.min(750,75*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
    }return sum+v;
   },0);
@@ -1821,6 +1819,8 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(fxN==='Acid Trap Hole')return cand.controller!==p&&cand.location===L.MZONE?20000+targetValue(cand):-1000000000;
   if(fxN==='Temple of the Kings'&&[L.HAND,L.DECK,L.EXTRA].includes(cand.location))return cand.controller===p&&nm!=='Mystical Beast of Serket'?templeSummonValue(cand):-1000000000;
 
+  if(['Unity','The Reliable Guardian'].includes(fxN))return cand.controller!==p?-1000000000:same(cand,e.attackTarget)?100000:1000+((own.find(x=>same(x,cand))?.position&12)?2000:0)+(own.find(x=>same(x,cand))?.defense??0);
+  if(fxN==='Mobius the Frost Monarch')return cand.controller!==p?20000+backValue(cand):-1000000000;
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
   if(['Change of Heart','Brain Control'].includes(fxN))return cand.controller!==p?temporaryControlValue(enemy.find(x=>same(x,cand))||cand,fxN):-1000000000;

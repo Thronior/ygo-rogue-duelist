@@ -88,18 +88,37 @@ public final class MainActivity extends Activity {
         return bytes.length<8 || bytes[0]!=(byte)137 || bytes[1]!=80 || bytes[2]!=78 || bytes[3]!=71 ? null : bytes;
     }
     public final class SaveStore {
-        /** Puts the image on the clipboard and opens the share sheet, since the WebView cannot copy images itself. */
-        @JavascriptInterface public boolean shareImage(String name,String base64) {
+        /** Writes the PNG where ShareImageProvider serves it; only the latest image is kept. */
+        private Uri shareableImage(String name,String base64) {
             final byte[] bytes=png(base64);
-            if(bytes==null)return false;
+            if(bytes==null)return null;
             final String base=(name==null?"Image":name.replaceAll("[^a-zA-Z0-9 _.()-]","_"));
             final String filename=base.substring(0,Math.min(90,base.length()))+".png";
             final File folder=ShareImageProvider.directory(MainActivity.this);
-            if(!folder.isDirectory() && !folder.mkdirs())return false;
+            if(!folder.isDirectory() && !folder.mkdirs())return null;
             File[] old=folder.listFiles();
             if(old!=null)for(File f:old)f.delete();
-            try(FileOutputStream out=new FileOutputStream(new File(folder,filename))){out.write(bytes);}catch(IOException e){return false;}
-            final Uri uri=ShareImageProvider.uri(filename);
+            try(FileOutputStream out=new FileOutputStream(new File(folder,filename))){out.write(bytes);}catch(IOException e){return null;}
+            return ShareImageProvider.uri(filename);
+        }
+
+        /** Puts the image on the clipboard, since the WebView cannot copy images itself. */
+        @JavascriptInterface public boolean copyImage(String name,String base64) {
+            final Uri uri=shareableImage(name,base64);
+            if(uri==null)return false;
+            runOnUiThread(() -> {
+                try{
+                    android.content.ClipData clip=android.content.ClipData.newUri(getContentResolver(),"Run card",uri);
+                    ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clip);
+                }catch(RuntimeException e){exportNotice("Could not copy the image. Please try again.");}
+            });
+            return true;
+        }
+
+        /** Older web builds call this: copy, then open the share sheet. */
+        @JavascriptInterface public boolean shareImage(String name,String base64) {
+            final Uri uri=shareableImage(name,base64);
+            if(uri==null)return false;
             runOnUiThread(() -> {
                 try{
                     android.content.ClipData clip=android.content.ClipData.newUri(getContentResolver(),"Run card",uri);

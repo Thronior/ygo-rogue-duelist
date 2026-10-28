@@ -45,4 +45,11 @@ assert.deepEqual(won.deck.main,[pool[2],pool[5],pool[1],pool[0],pool[3]].map(id=
 assert.deepEqual(won.deck.extra,[`assets/cards/${pool[4]}.jpg`]);
 assert.match(won.label,/won the run at Challenge Level 3 with 9 of 9 victories/);
 assert.equal(runCardData({stage:'complete',character:1,challenge_level:6,encore_won:true,round:9},{...deps,character:content.characters[1]}).title,'2004 WORLD CHAMPION DEFEATED');
+assert.deepEqual(won.curses,[],'runs from before curse tracking show no curse strip');
+
+// Cursed relics are flagged (boss picks, or the cursed_ prefix on older runs), and boss curses are totalled for the latest loop.
+const cursed=runCardData({stage:'complete',character:1,round:9,artifacts:[relicIds[0],'cursed_giants_oath','glass_shard'],cursed_artifacts:['glass_shard'],
+ timeline:[{...duel(3,10,true,8000,1),curses:['frailty']},{...duel(3,10,true,8000,2),curses:['relic_seal']},{...duel(6,10,true,8000,2),curses:['relic_seal','exposed']}]},{...deps,character:content.characters[1]});
+assert.deepEqual(cursed.relics.map(r=>r.cursed),[false,true,true]);
+assert.deepEqual(cursed.curses.map(({key,name,count,src})=>[key,name,count,src]),[['relic_seal',content.curses.relic_seal[0],2,'assets/icons/yugipedia/genres-cancel-out-effect.png'],['exposed',content.curses.exposed[0],1,'assets/icons/yugipedia/genres-reduce-life-points.png']]);
 console.log('run card data ok');

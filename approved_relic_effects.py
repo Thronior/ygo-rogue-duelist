@@ -65,6 +65,10 @@ def effect(kind):
  elif key=='narrow_gate':
   out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
  elif key=='trapbound_idol':atk(1000,'c:IsType(TYPE_TRAPMONSTER)');defense(-1000,'c:IsType(TYPE_TRAPMONSTER)')
+ elif key=='jesters_coin':
+  # The last call holds until the next Standby Phase: +1 right, -1 wrong, 0 before the first toss.
+  # --[[relic-hint]] marks where passives.py shows the relic, since the call's result is assigned.
+  out.append('do local call=0 '+phase('STANDBY','--[[relic-hint]] call=Duel.CallCoin(0) and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','function() return 300*call end')+' '+stat('EFFECT_UPDATE_DEFENSE','function() return 300*call end')+' end')
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])

@@ -46,7 +46,7 @@ def sync():
  meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,retiredArtifacts=sorted(content.RETIRED_ARTIFACTS),artifactInfo={key:dict(value,art=custom_relic_art.get(key) or next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id'])) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
  from duel_rewards import RULES, VICTORY_ONLY
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
- meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY) for metric,_,label,coins in RULES]
+ meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES]
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
  from campaign_catalog import watch_catalog
  meta.update(watch_catalog())

@@ -36,7 +36,7 @@ export function cueSounds(cue,removal=null){
  if(cue.kind==='set')return [['set',.25]];
  if(cue.kind==='attack')return [['attack',.4]];
  if(cue.kind==='summon')return [[cue.method==='special'?'specialsummon':cue.method==='flip'?'flip':'summon',.25]];
- if(cue.kind==='flip-reveal')return [['flip',.22]];
+ if(cue.kind==='flip-reveal'||cue.kind==='flip-hide')return [['flip',.22]];
  if(cue.kind==='reveal')return [['card-reveal',.22]];
  if(cue.kind==='move'){
   if(removal==='destroy')return [['destroyed',.25]];

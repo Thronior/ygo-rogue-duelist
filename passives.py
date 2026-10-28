@@ -49,6 +49,7 @@ end""")
   if current_relic is None:return text
   import re
   hint=f'Duel.Hint(HINT_MESSAGE,0,{1800000000+list(ART_INFO).index(current_relic)}) '
+  text=text.replace('--[[relic-hint]]',hint)
   text=re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
   if current_relic=='solemn_relic' or current_relic=='magic_mirror' and run.get('mirror_copy')=='solemn_relic':text=text.replace('then used=true end',f'then used=true {hint}end')
   return text

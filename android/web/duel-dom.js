@@ -33,7 +33,9 @@ export function renderDuelDOM(container,html){
   }
   const attrs=new Set([...old.attributes,...v.attributes].map(a=>a.name));
   for(const name of attrs){
-   const before=old.getAttribute(name),after=v.getAttribute(name);if(before===after)continue;
+   const before=old.getAttribute(name),after=v.getAttribute(name);
+   // Flip cues swap a card image in place; an unchanged template must still restore it.
+   if(before===after&&(name!=='src'||live.getAttribute(name)===after))continue;
    if(name==='class'){
     const a=new Set((before||'').split(/\s+/).filter(Boolean)),b=new Set((after||'').split(/\s+/).filter(Boolean));
     for(const x of a)if(!b.has(x))live.classList.remove(x);

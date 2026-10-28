@@ -37,7 +37,7 @@ def description(key,info,previous):
  'underdog':f'While your LP are lower than your opponent\'s and you control fewer monsters than they do, monsters you control gain {n(a)} ATK.',
  'empty_draw':f'Once per turn, at the start of your End Phase, if you have no cards in your hand, draw {a} card'+('s.' if a!=1 else '.'),
  'pack_refund':f'After buying a booster pack, receive a refund of {a} coins (up to the price paid minus 1).',
- 'lean_bonus':f'If you win a Duel with exactly 20 cards in your Main Deck, earn {a} additional coins.',
+ 'lean_bonus':f'If you win a Duel while your Main Deck has exactly this run’s current minimum number of cards, earn {a} additional coins.',
  'clutch_bonus':f'If you win a Duel with less than 2000 LP, earn {a} additional coins. Check your LP before post-duel healing.',
  'single_stamp':('Each single-card purchase' if a==1 else f'Every {a} single-card purchases')+' includes 1 additional random unlocked card at no cost.',
  'echo':'Once per Duel, the first time your opponent Normal, Flip, or Special Summons a face-up Level 4 or lower monster, add a copy of 1 such monster to your hand.',

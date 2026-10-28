@@ -104,7 +104,9 @@ const yes=v=>v>=0,no=v=>v===-1||v===null;
  check(value(duel({1:{[L.HAND]:[returning],[L.GRAVE]:[card('Command Knight',L.GRAVE,1,0)]}}),returning),yes,'The Warrior Returning Alive retrieves a Warrior');
  check(value(duel({1:{[L.HAND]:[returning]}}),returning),no,'The Warrior Returning Alive needs a Warrior in the GY');
  const offering=back('Ultimate Offering',1,0);
- check(value(duel({1:{[L.SZONE]:[offering],[L.HAND]:[inHand('Vorse Raider',1)]}}),offering),yes,'Ultimate Offering grants an extra summon');
+ // Behaviour flag 2026-10-28: 500 LP buys an additional summon, so the free Normal Summon comes first.
+ check(value(duel({1:{[L.SZONE]:[offering],[L.HAND]:[inHand('Vorse Raider',1)]}}),offering),no,'Ultimate Offering waits for the Normal Summon');
+ check(value(duel({1:{[L.SZONE]:[offering],[L.HAND]:[inHand('Vorse Raider',1)]}},{normalSummonTurn:[0,5]}),offering),yes,'Ultimate Offering grants an extra summon after the Normal Summon');
 }
 // Union support: Union Attack, Combination Attack, Formation Union and contact fusions.
 {
