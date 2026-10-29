@@ -2215,9 +2215,6 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 @keyframes fx-jitter-2{0%,100%{rotate:0deg;translate:0 0}20%{rotate:1.6deg;translate:1px 0}45%{rotate:-1.6deg;translate:-1px 0}70%{rotate:1.1deg;translate:.5px 0}88%{rotate:-.65deg}}
 @keyframes fx-jitter-3{0%,100%{rotate:0deg;translate:0 0}20%{rotate:2.3deg;translate:1.5px 0}45%{rotate:-2.3deg;translate:-1.5px 0}70%{rotate:1.6deg;translate:.75px 0}88%{rotate:-.9deg}}
 .hand.fx-overflow>button.fx-excess>img{outline:2px solid #ff4a4a;outline-offset:-2px}
-.fx-hand-count{position:absolute;z-index:30;padding:2px 9px;border-radius:10px;font:800 14px/1.4 Arial,sans-serif;color:#fff;background:#b3121fe6;border:1px solid #ff9a9a;pointer-events:none}
-.fx-hand-count.pop{animation:fx-badge-pop .35s var(--fx-pop)}
-@keyframes fx-badge-pop{from{scale:1.6;opacity:0}}
 /* The ambient motes run on the main thread; half as many halve their cost. */
 .duel-particles>i:nth-child(2n){display:none}
 /* Damage: the number, flash and shockwave grow with the amount. Big glows are a gradient plate behind the
@@ -2287,9 +2284,11 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 /* Phones on their side: the hand row is 20% shorter (its cards size from it), so the field gets the room. */
 @media(orientation:landscape) and (max-height:500px){.duel-main{grid-template-rows:34px 1fr 22%}}
 @media(orientation:landscape) and (max-height:440px){.duel-main{grid-template-rows:27px 1fr 23%}}
-/* Coin tally: a window over the shop. Everything happens inside it (it clips its overflow), and the screen
-   behind is neither hidden nor darkened. */
+/* Coin tally: a window whose effects all stay inside it (it clips its overflow). The shop's wares, counter
+   and shopkeeper stay hidden behind it, but not its room picture, so the screen around the window is the
+   shop's room rather than a dark sheet. */
 dialog:has(> .reward-tally)::backdrop{background:transparent!important;backdrop-filter:none}
+body:has(#modal[open] .reward-tally) .page.shop>*{visibility:hidden}
 .reward-tally{position:relative}
 .reward-tally-total{position:relative;display:block;transform-origin:center}
 .reward-tally-total.fx-gold{color:#ffd54d}

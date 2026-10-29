@@ -76,7 +76,7 @@ export async function duelFinish(winner,reason=0,settled=Promise.resolve()){
  if(defeatPresentation)return defeatPresentation;
  const board=document.querySelector('.duel');if(!board)return;
  const overlay=document.createElement('div');overlay.className='duel-defeat-transition';overlay.setAttribute('role','status');overlay.innerHTML='<div class="defeat-rays" aria-hidden="true"></div><div class="defeat-title"><span>DUEL LOST</span><div class="defeat-rule" aria-hidden="true"></div><strong>DEFEAT</strong><div class="defeat-rule" aria-hidden="true"></div></div>';board.append(overlay);
- defeatPresentation=(async()=>{try{const animation=overlay.animate([{opacity:0},{opacity:1,offset:.55},{opacity:1}],{duration:reduced()?300:1400,fill:'forwards',easing:'ease-out'});await animation.finished.catch(()=>{});}finally{overlay.remove();defeatPresentation=null;}})();
+ defeatPresentation=(async()=>{try{const animation=overlay.animate([{opacity:0},{opacity:1,offset:.55},{opacity:1}],{duration:reduced()?300:1400,fill:'forwards',easing:'ease-out'});await animation.finished.catch(()=>{});await new Promise(resolve=>setTimeout(resolve,150));}finally{overlay.remove();defeatPresentation=null;}})();
  return defeatPresentation;
 }
 

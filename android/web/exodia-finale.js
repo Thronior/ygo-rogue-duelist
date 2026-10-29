@@ -18,7 +18,8 @@ export function playCardWin(result){
    panel.showModal();
    [...cards.children].forEach((img,i)=>animations.push(img.animate([{opacity:0,offset:0},{opacity:0,offset:i*.1},{opacity:1,offset:i*.1+.2},{opacity:1,offset:1}],{duration:EXODIA_DURATION,fill:'both',easing:'linear'})));
    const text=title.animate([{opacity:0,offset:0},{opacity:0,offset:.6},{opacity:1,offset:.7},{opacity:1,offset:1}],{duration:EXODIA_DURATION,fill:'both',easing:'linear'});animations.push(text);
-   await text.finished;
+   // Held 150 ms past the animation so the last sounds finish.
+   await text.finished;await new Promise(resolve=>setTimeout(resolve,150));
   }finally{for(const animation of animations)animation.cancel();panel.close();panel.remove()}
  })().finally(()=>{playing=null});return playing;
 }

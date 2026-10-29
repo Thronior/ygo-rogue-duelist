@@ -19,7 +19,8 @@ const later=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const SOUNDS={blade:'assets/sfx/negation.wav',coin:'assets/sfx/purchase-coins.wav',ding:'assets/sfx/reward-ding.wav','reroll-loop':'assets/sfx/reward-reel.wav'};
 let player=()=>null;
 export function setJuiceSound(play){player=play}
-function sound(name,{loop=false}={}){const path=SOUNDS[name]||(name.startsWith('kill-')?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:1}):null}
+// Finisher voices sit 3 dB above the other effects so they carry over the hit and the coin pickups.
+function sound(name,{loop=false}={}){const voice=name.startsWith('kill-'),path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1}):null}
 function fadeOut(voice,ms=90){if(!voice?.pause)return;const from=voice.volume,t0=performance.now();const step=()=>{const k=Math.min(1,(performance.now()-t0)/ms);voice.volume=from*(1-k);if(k<1)requestAnimationFrame(step);else voice.pause()};requestAnimationFrame(step)}
 
 // LP danger: each side of the field reddens as that player's LP drains; under 1000 it beats like a heart.
@@ -82,24 +83,18 @@ function placeBlaze(blaze,zone,img){
  const g=growth(Number(blaze.dataset.atk)),w=img.offsetWidth,h=img.offsetHeight,x=zone.offsetLeft+img.offsetLeft,y=zone.offsetTop+img.offsetTop,W=Math.round(w*(1.45+g)),H=Math.round(W/.8);
  Object.assign(blaze.style,{left:Math.round(x+w/2-W/2)+'px',top:Math.round(y+h*1.02-H)+'px',width:W+'px',height:H+'px'});
 }
-// Flames and the hand-limit badge follow layout changes (rotation, window resize) without a re-render.
+// Flames follow layout changes (rotation, window resize) without a re-render.
 let placing=0;
-addEventListener('resize',()=>{if(placing||!document.querySelector('.fx-blaze,.fx-hand-count'))return;placing=requestAnimationFrame(()=>{placing=0;for(const b of document.querySelectorAll('.fx-blaze')){const zone=b.closest('.mat')?.querySelector(`.zone[data-zone="${b.dataset.for}"]`),img=zone?.querySelector(':scope>img');if(img)placeBlaze(b,zone,img)}const badge=document.querySelector('.duel-main>.fx-hand-count');if(badge)placeBadge(badge,badge.parentElement.querySelector(':scope>.hand'))})});
+addEventListener('resize',()=>{if(placing||!document.querySelector('.fx-blaze'))return;placing=requestAnimationFrame(()=>{placing=0;for(const b of document.querySelectorAll('.fx-blaze')){const zone=b.closest('.mat')?.querySelector(`.zone[data-zone="${b.dataset.for}"]`),img=zone?.querySelector(':scope>img');if(img)placeBlaze(b,zone,img)}})});
 
 // Hand over the limit: the whole hand row shakes (one animation, not one per card), harder the more cards
-// are over; the extra cards get a red rim and a "Hand 8 / 6" badge.
-function handLimit(main,hand,limit){
+// are over; the extra cards get a red rim.
+function handLimit(hand,limit){
  if(!hand)return;
  const cards=[...hand.querySelectorAll(':scope>button')],excess=cards.length-limit;
  hand.classList.toggle('fx-overflow',excess>0);hand.classList.toggle('fx-jitter-2',excess===2);hand.classList.toggle('fx-jitter-3',excess>=3);
  cards.forEach((b,i)=>b.classList.toggle('fx-excess',excess>0&&i>=limit));
- let badge=main.querySelector(':scope>.fx-hand-count');
- if(excess<=0){badge?.remove();return}
- if(!badge){badge=document.createElement('div');badge.className='fx-hand-count pop';badge.setAttribute('role','status');main.append(badge)}
- const text=`Hand ${cards.length} / ${limit}`;if(badge.textContent!==text)badge.textContent=text;
- placeBadge(badge,hand);
 }
-function placeBadge(badge,hand){if(hand){badge.style.left=hand.offsetLeft+8+'px';badge.style.top=Math.max(0,hand.offsetTop-10)+'px'}}
 
 // Deck-out warning on your deck pile: amber at 10, a red pulse at 5, faster at 2.
 function deckWarning(pile,count){
@@ -116,7 +111,7 @@ export function syncDuel(root,{turnPlayer,deck,handLimit:limit=6}={}){
  const zones=[...root.querySelectorAll('.mat .zone[data-zone^="0,4,"],.mat .zone[data-zone^="1,4,"]')];
  for(const zone of zones){const stat=zone.dataset.code?zone.querySelector('[data-stat=attack]'):null;powerFlame(zone,stat?Number(stat.dataset.value):0)}
  for(const b of root.querySelectorAll('.fx-blaze'))if(!b.closest('.mat')?.querySelector(`.zone[data-zone="${b.dataset.for}"][data-code]`))b.remove();
- handLimit(main,main.querySelector(':scope>.hand'),limit);
+ handLimit(main.querySelector(':scope>.hand'),limit);
  deckWarning(root.querySelector('.zone.pile[data-pile="0,deck"]'),deck);
  portraitTurn(turnPlayer);
 }
@@ -148,6 +143,9 @@ export function hit(player,amount,before){
 export const KILL_WORDS=['OVERKILL','BRUTAL','SAVAGE','DEVASTATING','ANNIHILATION','CATACLYSM','APOCALYPSE','GODLIKE'];
 let finishing=null;
 export const finisherDone=()=>finishing||Promise.resolve();
+export const finisherPlaying=()=>!!finishing;
+// Voice lines start 200 ms after the blow, clear of the hit and coin sounds that land with it.
+const VOICE_DELAY=200;
 function finisher(overkill){
  const {reduced,lite}=prefs();
  if(overkill<=0)return finishing=perfect(reduced,lite);
@@ -160,13 +158,13 @@ function finisher(overkill){
  if(!reduced&&!lite&&level>=5){const r=banner.getBoundingClientRect();for(let i=0;i<level-4;i++){const ring=temp('div','fx-shockwave fx-finish-ring lv'+level);Object.assign(ring.style,{left:r.left+r.width/2+'px',top:r.top+r.height*.4+'px'});play(ring,[{opacity:.9,scale:.045},{opacity:0,scale:(7+i*2)*.15}],{duration:wall(700+i*140),delay:wall(120+i*160),easing:'cubic-bezier(.1,.6,.3,1)',fill:'backwards'})}}
  // A 120 ms freeze-frame, then a final shake that grows with the word.
  const duel=document.querySelector('.duel');if(!reduced&&!lite&&duel)later(120).then(()=>shake(duel,{strength:Math.min(18,12+level),duration:wall(480+level*30)}));
- later(wall(90)).then(()=>sound('kill-'+word.toLowerCase()));
+ later(wall(90)+VOICE_DELAY).then(()=>sound('kill-'+word.toLowerCase()));
  return finishing=show.finished.catch(()=>{}).then(()=>{finishing=null});
 }
 function perfect(reduced,lite){
  const banner=temp('div','fx-banner fx-perfect');banner.setAttribute('role','status');banner.removeAttribute('aria-hidden');
  banner.innerHTML='<span class="word">PERFECT</span><span class="slice top" aria-hidden="true">PERFECT</span><span class="slice bottom" aria-hidden="true">PERFECT</span><small>EXACT LETHAL</small>';
- const duration=wall(1900);later(wall(380)).then(()=>sound('kill-perfect'));
+ const duration=wall(1900);later(wall(380)+VOICE_DELAY).then(()=>sound('kill-perfect'));
  if(reduced)return play(banner,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.8},{opacity:0}],{duration}).finished.catch(()=>{}).then(()=>{finishing=null});
  const show=play(banner,[{opacity:0,scale:1.12},{opacity:1,scale:1,offset:.1},{opacity:1,scale:1,offset:.85},{opacity:0,scale:1}],{duration,easing:'ease-out'});
  const word=banner.querySelector('.word').getBoundingClientRect(),line=temp('div','fx-cut');line.style.top=word.top+word.height*.5-1+'px';
