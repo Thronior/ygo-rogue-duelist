@@ -1,0 +1,3 @@
+# Line endings: git stores every text file with LF and ignores how an editor saved it, so CRLF/LF
+# flips never show up as changes. Binary files are detected automatically.
+* text=auto
