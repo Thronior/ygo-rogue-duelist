@@ -57,7 +57,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  else if(k==='variant_chitin_carapace'&&c.race==='Insect')d+=400;
 
- else if(k==='variant_village_banner'&&l===4&&(t&16)){a+=200;d+=200;}
+ else if(k==='variant_village_banner'&&l===4){a+=200;d+=200;}
 
  else if(k==='approved_ritual_vestment'&&(t&128)||k==='approved_fusion_insignia'&&(t&64)){a+=300;d+=300;}
 

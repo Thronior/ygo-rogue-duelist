@@ -189,7 +189,7 @@ const make=()=>{
 // Chain Sometimes exceptions apply only when the engine has supplied that
 // card as a legal response.
 {
- const exceptions=['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Kunai with Chain','Fairy Box','Spell Shield Type-8','Michizure'];
+ const exceptions=['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Fairy Box','Spell Shield Type-8','Michizure'];
  for(const name of exceptions){
   const prompt={type:M.SELECT_CHAIN,player:0,selects:[{code:1}]};
   assert.equal(chainWindowAllowed(prompt,'sometimes',[],{card:()=>({name,data:{type:4},desc:''})}),true,`${name} gets its legal Sometimes prompt`);

@@ -3,8 +3,12 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {MobileDuel,L} from './web/duel.js';
-import {shuffleCPUDeck} from './web/cpu-viewer.js';
+// audio-balance.js registers page listeners on import; stub the browser globals (document, location, window, Audio) first.
+globalThis.document??={hidden:false,addEventListener(){}};globalThis.location??={href:'http://localhost/'};
+globalThis.window??={addEventListener(){}};
+globalThis.Audio??=class{constructor(src){this.src=src;this.preload='';this.paused=true;this.ended=false}addEventListener(){}play(){return Promise.resolve()}pause(){}load(){}};
+const {MobileDuel,L}=await import('./web/duel.js');
+const {shuffleCPUDeck}=await import('./web/cpu-viewer.js');
 
 if (!process.argv.includes('--child')) {
   const run=spawnSync(process.execPath,[fileURLToPath(import.meta.url),'--child'],{timeout:30000,encoding:'utf8'});

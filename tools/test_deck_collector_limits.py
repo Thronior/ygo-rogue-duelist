@@ -7,11 +7,27 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import deck_files
 cards={c['id']:c for c in json.loads((ROOT/'data/era-cards.json').read_text(encoding='utf8'))}
 limits=json.loads((ROOT/'data/collector-banlist.json').read_text(encoding='utf8'))['names']
-def verify(d,label):
+def verify(d,label,rules={}):
  counts=Counter(cards[c]['name']for s in ('main','extra','side')for c in d.get(s,[]))
- assert all(n<=limits.get(name,3)for name,n in counts.items()),label
+ maximum=lambda name:3 if rules.get('ignore_limited_list') else min(3,rules.get('limit_exceptions',{}).get(name,limits.get(name,3)))
+ assert all(n<=maximum(name)for name,n in counts.items()),label
+# Some user-approved opponent records relax the list for their own deck (e.g. Amazoness Paladin T2 may run
+# 2 Call of the Haunted and 2 Mystical Space Typhoon via limit_exceptions; Obelisk T4 ignores it). The game
+# reads those decks with the record as fallback, so check them the same way.
+index=json.loads((ROOT/'data/decks/index.json').read_text(encoding='utf8'))
+rules={}
+def scan(node):
+ if isinstance(node,dict):
+  if node.get('limit_exceptions') or node.get('ignore_limited_list'):
+   for name in [node.get('deck'),*(node.get('tier_decks') or {}).values()]:
+    if isinstance(name,str):rules[index.get(name,name)]={k:node[k] for k in ('limit_exceptions','ignore_limited_list') if k in node}
+  for v in node.values():scan(v)
+ elif isinstance(node,list):
+  for v in node:scan(v)
+for f in (ROOT/'data').glob('*.json'):
+ if f.name!='era-cards.json':scan(json.loads(f.read_text(encoding='utf8')))
 paths=list((ROOT/'data/decks').glob('*.ydk'))
-for p in paths:verify(deck_files.read(p.stem,{}),p.name)
+for p in paths:verify(deck_files.read(p.stem,rules.get(p.stem,{})),p.name,rules.get(p.stem,{}))
 pre=json.loads((ROOT/'data/preconstructed.json').read_text(encoding='utf8'))['decks']
 for d in pre:verify(d,d.get('name'))
 # Check name-grouping, combined sections, and future forbidden entries without editing real decks.

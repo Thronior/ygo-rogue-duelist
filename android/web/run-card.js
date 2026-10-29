@@ -179,8 +179,7 @@ function defeat(ctx,d,t,x,y,w,h){
 // The deck from the final duel, laid out like the game's deck export: monsters by ATK, then spells, traps, Extra Deck.
 function finalDeck(ctx,d,t,x,y,w,h){
  panel(ctx,t,x,y,w,h);const {main=[],extra=[]}=d.deck||{};
- heading(ctx,t,`FINAL DECK · ${main.length}${extra.length?` + ${extra.length} EXTRA`:''}`,x+w/2,y+36);
- const ax=x+14,ay=y+52,aw=w-28,ah=h-64,g=4,split=extra.length?10:0;let best=null;
+ const ax=x+14,ay=y+16,aw=w-28,ah=h-32,g=4,split=extra.length?10:0;let best=null;
  for(let cols=4;cols<=16;cols++){
   const cw=(aw-g*(cols-1))/cols,ch=cw*1.46,rows=Math.ceil(main.length/cols)+Math.ceil(extra.length/cols),used=rows*ch+Math.max(0,rows-1)*g+split;
   if(used<=ah){best={cols,cw,ch,used};break}
@@ -195,30 +194,31 @@ function finalDeck(ctx,d,t,x,y,w,h){
 }
 
 function relicGrid(ctx,d,t,x,y,w,h){
- panel(ctx,t,x,y,w,h);const total=d.relics.reduce((n,r)=>n+(r.count||1),0);heading(ctx,t,`RELICS · ${total}`,x+w/2,y+36);
+ panel(ctx,t,x,y,w,h);
  h-=curseStrip(ctx,t,d.curses||[],x,y+h,w);
  const n=d.relics.length,slots=[];if(!n){text(ctx,t,'No relics this run',x+w/2,y+h/2+8,{size:22,align:'center',weight:'normal',color:t.soft});return slots}
  // The gap is a sixth of the icon (14px at full size), so long relic lists shrink evenly instead of leaving wide gaps.
- const ax=x+24,ay=y+58,aw=w-48,ah=h-78,k=1/6;let best={s:0,cols:1};
+ const ax=x+24,ay=y+22,aw=w-48,ah=h-40,k=1/6;let best={s:0,cols:1};
  for(let cols=1;cols<=n;cols++){const rows=Math.ceil(n/cols),s=Math.min(aw/(cols+k*(cols-1)),ah/(rows+k*(rows-1)),84);if(s>best.s)best={s,cols}}
  const {s,cols}=best,rows=Math.ceil(n/cols),g=s*k;
  d.relics.forEach((r,i)=>{const row=Math.floor(i/cols),inRow=row===rows-1?n-row*cols:cols,ox=ax+(aw-(inRow*s+(inRow-1)*g))/2;slots.push({r,x:ox+(i-row*cols)*(s+g),y:ay+(ah-(rows*s+(rows-1)*g))/2+row*(s+g),s})});
  return slots
 }
-// The curses of the final duel, at the foot of the relic panel, drawn like the duel's curse buttons.
+// The curses of the final duel, at the foot of the relic panel, drawn like the duel's curse buttons with the same
+// tints (mobile.css .curse-icon.curse-*), so curses sharing an icon stay apart. No labels: icons and art only.
 // Returns the height it takes.
 const CURSE_EDGE={enemy_power:'#ffd06c',drain:'#af8fff'};
+const CURSE_TINTS={hunger:'hue-rotate(72deg) saturate(1.25)',enemy_power:'hue-rotate(144deg) saturate(1.25)',brittle:'hue-rotate(216deg) saturate(1.25)',mirror_stats:'hue-rotate(288deg) saturate(1.25)',drain:'hue-rotate(120deg) saturate(1.2)',exposed:'invert(1) hue-rotate(35deg) saturate(1.15)'};
 function curseStrip(ctx,t,curses,x,bottom,w){
  if(!curses.length)return 0;
- const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+64,top=bottom-strip;
+ const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+40,top=bottom-strip;
  ctx.save();ctx.strokeStyle='rgba(255,110,120,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+24,top);ctx.lineTo(x+w-24,top);ctx.stroke();ctx.restore();
- text(ctx,t,`FINAL DUEL CURSES · ${curses.reduce((sum,c)=>sum+c.count,0)}`,x+w/2,top+26,{size:15,spacing:2,align:'center',color:'#ff8a92'});
- const ox=x+(w-(n*s+(n-1)*g))/2,oy=top+40;
+ const ox=x+(w-(n*s+(n-1)*g))/2,oy=top+18;
  curses.forEach((c,i)=>{
   const cx=ox+i*(s+g),pad=s*.14;
   ctx.save();path(ctx,p=>addRR(p,cx,oy,s,s,7));ctx.fillStyle='rgba(73,25,43,.85)';ctx.fill();
   ctx.lineWidth=1.5;ctx.strokeStyle=CURSE_EDGE[c.key]||'#dc879a';if(c.key==='hunger')ctx.setLineDash([4,3]);ctx.stroke();ctx.restore();
-  if(c.img){ctx.save();ctx.imageSmoothingEnabled=false;if(c.key==='hunger'&&'filter' in ctx)ctx.filter='hue-rotate(72deg) saturate(1.25)';ctx.drawImage(c.img,cx+pad,oy+pad,s-2*pad,s-2*pad);ctx.restore()}
+  if(c.img){ctx.save();ctx.imageSmoothingEnabled=false;if(CURSE_TINTS[c.key]&&'filter' in ctx)ctx.filter=CURSE_TINTS[c.key];ctx.drawImage(c.img,cx+pad,oy+pad,s-2*pad,s-2*pad);ctx.restore()}
   if(c.count>1){const bx=cx+s-3,by=oy+3;ctx.save();ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.shadowOffsetY=2;path(ctx,p=>addCircle(p,bx,by,12));ctx.fillStyle='#ff8a92';ctx.fill();ctx.restore();
    ctx.save();ctx.font=`bold 13px ${UI}`;ctx.textAlign='center';ctx.fillStyle='#2a0710';ctx.fillText('×'+c.count,bx,by+4.5);ctx.restore()}
  });

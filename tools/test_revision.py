@@ -8,16 +8,21 @@ from content import *
 base=ROOT/'temp'/('revision-'+uuid.uuid4().hex);base.mkdir();storage.ROOT=base;g.SAVE=base/'run.json';g.RUNTIME=base/'runtime';g.RUNTIME.mkdir()
 p=storage.profile();p['unlocked']=PLAYABLE_IDS;storage.write(base/'profile.json',p)
 assert len(PLAYABLE_IDS)==36 and not set([25,26,27])&set(PLAYABLE_IDS)
-r=g.new_run(24,random.Random(1));assert r['pack_ids']==['EN-TP1','EN-TP2','EN-TP3','EN-TP4']
+# Mokuba's start moved from the four Tournament Packs (now one merged EN-TP4 alias) to his own draft
+# pack plus shared core sets (data/character-drafts.json, reworked in v0.2.2).
+r=g.new_run(24,random.Random(1));assert r['pack_ids']==starting_packs(24)==['DRAFT-MOKUBA-KAIBA','DRAFT-MOKUBA-KAIBA','EN-LOB','EN-LOD']
 for pack,ids in zip(r['packs'],r['pack_ids']):assert set(pack)<=set(PACK_BY_ID[ids]['common']+PACK_BY_ID[ids]['rare'])
+# Late routes use the core boss pool; tier-exclusive and UC opponents (added 2026-10-02) join it.
 seen=set()
 for seed in range(50):
- r=g.new_run(0,random.Random(seed));r['round']=6;g.routes(r,random.Random(seed));assert set(r['routes'])<=set([0,1,6,15,17,27])
+ r=g.new_run(0,random.Random(seed));r['round']=6;g.routes(r,random.Random(seed));assert set(r['routes'])<=set([0,1,6,15,17,27])|set(TIER_EXCLUSIVE_OPPONENTS)|set(UC_OPPONENTS)
  for reward in r['route_rewards'].values():
   seen.add(reward['key']);r['bias']=reward['key'];r['shop_reward']=reward;g.restock(r,random.Random(seed))
   singles=[g.BY_ID[x['id']] for x in r['shop'] if x['kind']=='single']
   assert sum(shop_rewards.matches(c,reward['key']) for c in singles[:5])==5
-  packs=[x for x in r['shop'] if x['kind']=='pack'];assert 1<=len(packs)<=2 and packs[0]['id']==reward['pack'] and packs[0]['opponent_pack'] and (len(packs)==1 or packs[0]['id']!=packs[1]['id'])
+  # Shops now stock three boosters (four with Booster Shelf): the tied opponent pack first, then
+  # random packs, with the character's own pack in the third slot.
+  packs=[x for x in r['shop'] if x['kind']=='pack'];assert 3<=len(packs)<=4 and packs[0]['id']==reward['pack'] and packs[0]['opponent_pack'] and not any(x['opponent_pack'] or x['id']==packs[0]['id'] for x in packs[1:])
 assert len(seen)>=4
 assert any(k in seen for k in ('DARK','LIGHT'))
 for lp,expected in [(4321,6321),(6500,8000),(7900,8000),(8500,8500)]:
@@ -33,5 +38,6 @@ r=g.new_run(0);g.auto_deck(r);cid=g.BY_NAME['Battle Ox']['id'];r['pool'] += [cid
 assert len(recovered['pool'])==len(r['pool']) and Counter(g.card_identity(c) for c in g.deck(recovered))[g.card_identity(cid)]<=3
 # Unlocks persist on the run itself, including purchases and final victory.
 storage.write(base/'profile.json',dict(storage.profile(),unlocked=[0,1],wins=0,won_as=[],victories=0,max_gold=0,max_bought=0,max_artifacts=0))
-r=g.new_run(0);r['gold']=250;g.update_profile(r);assert 2 in r['unlocks_earned'];r['stage']='complete';g.update_profile(r);assert 3 in r['unlocks_earned']
-print('PASS: varied rewards and tied packs, 36-character TP roster, capped boss healing, both deck shuffles, legacy copy repair, run unlocks/stats')
+# data/character-progression.json: character 24 unlocks at 300 coins held, character 2 by winning as Yami Yugi.
+r=g.new_run(0);r['gold']=300;g.update_profile(r);assert 24 in r['unlocks_earned'] and 2 not in r['unlocks_earned'];r['stage']='complete';g.update_profile(r);assert {2,24}<=set(r['unlocks_earned'])
+print('PASS: varied rewards and tied packs, 36-character roster, Mokuba draft start, capped boss healing, both deck shuffles, legacy copy repair, run unlocks/stats')

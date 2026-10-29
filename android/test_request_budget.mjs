@@ -75,12 +75,14 @@ assert(hiddenDay<=3100,`24 hidden hours: ${hiddenDay} polls (was 86,400)`);
 
 // Draft/Collector: fast only while the other seat is expected to act; always far inside the 15 s presence window.
 const collectorSource=fs.readFileSync('android/web/collector-ui.js','utf8').replace(/^import .*\r?\n/gm,'').replace('export class CollectorUI','class CollectorUI');
-let sent;const env={structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
+// collector-ui.js imports replayVersion, so the import-stripped harness must provide it.
+const replayVersion=fs.readFileSync('android/web/replay-version.js','utf8').match(/"(.+?)"/)[1];
+let sent;const env={replayVersion,structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
 vm.createContext(env);vm.runInContext(collectorSource+'\nglobalThis.C=CollectorUI',env);
 const ui=Object.create(env.C.prototype);ui.seat=1;
 for(const [room,delay] of [[{phase:'duel',actor:0},1500],[{phase:'duel',actor:null},1500],[{phase:'duel',actor:1},3000],[{phase:'waiting'},3000],[{phase:'drafting'},3000],[{phase:'siding'},3000],[null,3000]]){ui.room=room;assert.equal(ui.pollDelay(),delay,JSON.stringify(room))}
 ui.endpoint='https://rooms.example';ui.duelist={id:'d',token:'k'};await ui.api('poll');
-assert.equal(sent.url,'https://rooms.example/v2/collector/poll');assert.equal(sent.init.headers['Content-Type'],'text/plain');assert.deepEqual(JSON.parse(sent.init.body),{id:'d',token:'k'});
+assert.equal(sent.url,'https://rooms.example/v2/collector/poll');assert.equal(sent.init.headers['Content-Type'],'text/plain');assert.deepEqual(JSON.parse(sent.init.body),{id:'d',token:'k',version:replayVersion},'Collector requests carry the client version so the Worker can 426 old builds');
 
 // A 426 stops Draft/Collector polling and is shown once.
 let polls=0,shown=0;const stopped=Object.create(env.C.prototype);

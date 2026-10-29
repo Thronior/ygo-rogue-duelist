@@ -1,0 +1,2 @@
+// "You own N" on shop singles, shared by the solo and Tag shops; with a copy limit it reads N/limit.
+export function ownedBadge(n,limit){const label=`You own ${n} ${n===1?'copy':'copies'}`;return `<span class="owned-badge${limit&&n>=limit?' full':''}" role="img" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="7" y="3" width="13" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h9"/></svg>${limit?`${n}/${limit}`:n}</span>`}

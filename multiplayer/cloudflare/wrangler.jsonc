@@ -10,7 +10,9 @@
   // "block" refuses online play (426) from clients that predate the /v2 multiplayer paths.
   // Blocked since v0.2.3 (the first /v2 release) was published on 2026-10-26.
   "vars": {
-    "LEGACY_MULTIPLAYER": "block"
+    "LEGACY_MULTIPLAYER": "block",
+    // "block" refuses unencrypted cloud backups (426) from clients before the encrypted cloud save code.
+    "LEGACY_BACKUPS": "block"
   },
   "durable_objects": {
     "bindings": [

@@ -52,7 +52,7 @@
 .ui-icon{width:25px;height:25px;object-fit:contain;vertical-align:middle;margin-right:6px;pointer-events:none}.tutorial-layout{display:grid;grid-template-columns:24% 1fr;gap:16px;overflow:auto;padding:16px;min-height:0}.tutorial-layout nav{display:flex;flex-direction:column;gap:8px}.tutorial-layout article p{font-size:clamp(14px,1.7vw,21px);line-height:1.6}.tutorial-picture{display:block;max-width:100%;height:32vh;object-fit:contain;margin:auto}.tutorial-layout article{overflow:auto}.shop-product .product-art img{cursor:pointer}@media(prefers-reduced-motion:reduce){.menu-card,.particles{animation:none!important}}
 
 /* Explicit areas prevent hidden welcome text from shifting every shop row. */
-.shop-layout>aside{grid-template-rows:minmax(60px,1fr) 20px minmax(130px,1fr) 28px 32px;position:relative}.shop-layout>aside>.keeper{grid-row:1;width:100%;height:100%;display:block;align-self:end;object-position:center bottom}.shop-layout>aside>h3{grid-row:2}.shop-layout>aside>.relics{grid-row:3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:100%;min-height:0}.shop-layout>aside>.notice{grid-row:4}.shop-layout>aside>.shop-reference-buttons{grid-row:5}.shop .relics .shop-product{height:100%;min-height:0}.duel-tools{left:0;right:auto;bottom:0;max-width:100%;display:flex;gap:4px}.duel-tools button{padding:6px 9px;font-size:12px}.duel-tools .ui-icon{width:20px;height:20px}.hand{padding-bottom:43px}.choice-art{height:100px;display:block;margin:0 auto 7px}.choices button:has(.choice-art){min-width:100px}.chain-control{position:relative;touch-action:manipulation}.chain-control span{position:absolute;bottom:-16px;left:-9px;right:-9px;font-size:11px;white-space:nowrap;text-shadow:1px 1px 3px #000}.chain-disabled{filter:grayscale(1);border-color:#ff6666}.chain-disabled:after{content:'';position:absolute;left:8%;top:48%;width:84%;height:4px;transform:rotate(-45deg);background:#ff6565}.coin-toss{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:20px;z-index:90;background:#07182288;pointer-events:none}.toss-result{display:grid;place-items:center;gap:8px;font-size:22px;color:#ffdf81}.toss-result img{height:90px;animation:coin-spin .18s linear infinite}.toss-result b{visibility:hidden}.settled .toss-result img{animation:none}.settled .toss-result b{visibility:visible}@keyframes coin-spin{to{transform:rotateY(360deg)}}
+.shop-layout>aside{grid-template-rows:minmax(60px,1fr) 20px minmax(130px,1fr) 28px 32px;position:relative}.shop-layout>aside>.keeper{grid-row:1;width:100%;height:100%;display:block;align-self:end;object-position:center bottom}.shop-layout>aside>h3{grid-row:2}.shop-layout>aside>.relics{grid-row:3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:100%;min-height:0}.shop-layout>aside>.notice{grid-row:4}.shop-layout>aside>.shop-reference-buttons{grid-row:5}.shop .relics .shop-product{height:100%;min-height:0}.duel-tools{left:0;right:auto;bottom:0;max-width:100%;display:flex;gap:4px}.duel-tools button{padding:6px 9px;font-size:12px}.duel-tools .ui-icon{width:20px;height:20px}.hand{padding-bottom:43px}.choice-art{height:100px;display:block;margin:0 auto 7px}.choices button:has(.choice-art){min-width:100px}.chain-control{position:relative;touch-action:manipulation}.chain-control span{position:absolute;bottom:-16px;left:-9px;right:-9px;font-size:11px;white-space:nowrap;text-shadow:1px 1px 3px #000}.chain-disabled{filter:grayscale(1);border-color:#ff6666}.chain-disabled:after{content:'';position:absolute;left:8%;top:48%;width:84%;height:4px;transform:rotate(-45deg);background:#ff6565}/* Coin tosses sit in the same framed window as dice throws instead of greying the whole field (2026-10-29). */.coin-toss{position:absolute;z-index:260;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:15px;background:#102732f5;border:2px solid #efca79;border-radius:12px;min-width:160px;pointer-events:none}.toss-result{display:grid;place-items:center;gap:8px;font-size:22px;color:#ffdf81}.toss-result img{height:90px;animation:coin-spin .18s linear infinite}.toss-result b{visibility:hidden}.settled .toss-result img{animation:none}.settled .toss-result b{visibility:visible}@keyframes coin-spin{to{transform:rotateY(360deg)}}
 
 .collection-nav,footer{padding:10px;display:flex;gap:8px;align-items:center;justify-content:center}.collection-nav input{min-width:100px;max-width:30%}.collection-nav{flex-wrap:wrap}
 
@@ -198,6 +198,8 @@
 
 .price-badge{display:inline-flex;align-items:center;gap:3px}
 .shop .price-badge img.price-coin{position:static;width:13px;height:13px;min-height:0;object-fit:contain}
+/* Blood Toll prices: LP in blood red where the coin icon would be. */
+.price-lp{font:800 11px/1 Arial,sans-serif;color:#ff6b6b;letter-spacing:.04em;margin-left:2px}
 .purchase-tick{display:block;width:12px;height:12px;border:1px solid currentColor;margin:auto;border-radius:2px}
 .purchase-check[aria-checked="true"] .purchase-tick{width:7px;height:12px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);border-radius:0}
 
@@ -239,7 +241,7 @@
 
 .duel-reference-pair{display:flex;gap:3px;width:100%}.duel-reference-pair button{flex:1;min-width:0;padding:3px;font-size:10px}.duel-reference-pair .ui-icon{display:none}
 /* Shared tag campaign controls; the duel renderer stays platform-specific. */
-.tag-lobby{display:grid;grid-template-columns:2fr 1fr;gap:16px;min-height:0;padding:10px;overflow:auto}.tag-character-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.tag-character-grid button{position:relative;padding:0;aspect-ratio:4/3;overflow:hidden}.tag-character-grid img{height:100%;width:100%;object-fit:contain}.tag-character-grid span{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-shadow:0 2px 2px #000;background:#0008}.tag-connect{display:flex;flex-direction:column;gap:8px}.tag-connect label{display:flex;gap:8px;align-items:center}.tag-connect input{min-width:0;width:100%}.tag-status{padding:6px 14px;background:#77374b;flex:none}.tag-draft-controls{display:flex;align-items:center;gap:10px;padding:8px;flex:none}.tag-page .cardgrid{grid-template-columns:repeat(7,minmax(0,1fr))}.tag-shop{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding:8px;min-height:0;overflow:auto}.tag-shop h3{margin:4px 0}.tag-stock-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.tag-stock{position:relative;min-width:0;background:#0a1928bb;border:1px solid #94b4bf;border-radius:6px;text-align:center}.tag-stock>button:first-child{border:0;background:none;padding:3px;width:100%;height:100%}.tag-stock>button:first-child>img{height:clamp(55px,20vh,160px);max-width:100%;object-fit:contain}.tag-stock .price{position:absolute;top:3px;left:3px;pointer-events:none;background:#00191cdd;color:#fff0ac;padding:3px;border-radius:4px;display:flex;align-items:center;text-shadow:1px 2px #000}.tag-stock .price img{width:15px;height:15px}.tag-check{position:absolute;right:3px;bottom:4px;padding:4px;min-width:32px;min-height:32px}.tag-stock span{display:block;font-size:11px;padding-bottom:6px}.tag-pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tag-relic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.tag-ending{margin:auto;text-align:center}.tag-page button.selected{border-color:#ffd47b;box-shadow:0 0 6px #ffd47b}.tag-page .routes{overflow:auto}.tag-duel-banner{position:absolute;top:48px;left:23%;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;background:#08242aca;padding:3px 8px;font-size:12px}.tag-duel-banner button{padding:3px 8px}.tag-duel-paused{position:absolute;inset:55px 0 0 22%;z-index:300;background:#071720bb;display:grid;place-content:center;text-align:center}.tag-duel-paused button{min-height:44px}
+.tag-lobby{display:grid;grid-template-columns:2fr 1fr;gap:16px;min-height:0;padding:10px;overflow:auto}.tag-character-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.tag-character-grid button{position:relative;padding:0;aspect-ratio:4/3;overflow:hidden}.tag-character-grid img{height:100%;width:100%;object-fit:contain}.tag-character-grid span{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-shadow:0 2px 2px #000;background:#0008}.tag-connect{display:flex;flex-direction:column;gap:8px}.tag-connect label{display:flex;gap:8px;align-items:center}.tag-connect input{min-width:0;width:100%}.tag-status{padding:6px 14px;background:#77374b;flex:none}.tag-draft-controls{display:flex;align-items:center;gap:10px;padding:8px;flex:none}.tag-page .cardgrid{grid-template-columns:repeat(7,minmax(0,1fr))}.tag-stock-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.tag-stock{position:relative;min-width:0;background:#0a1928bb;border:1px solid #94b4bf;border-radius:6px;text-align:center}.tag-stock>button:first-child{border:0;background:none;padding:3px;width:100%;height:100%}.tag-stock>button:first-child>img{height:clamp(55px,20vh,160px);max-width:100%;object-fit:contain}.tag-stock .price{position:absolute;top:3px;left:3px;pointer-events:none;background:#00191cdd;color:#fff0ac;padding:3px;border-radius:4px;display:flex;align-items:center;text-shadow:1px 2px #000}.tag-stock .price img{width:15px;height:15px}.tag-check{position:absolute;right:3px;bottom:4px;padding:4px;min-width:32px;min-height:32px}.tag-stock span{display:block;font-size:11px;padding-bottom:6px}.tag-pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tag-relic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.tag-ending{margin:auto;text-align:center}.tag-page button.selected{border-color:#ffd47b;box-shadow:0 0 6px #ffd47b}.tag-page .routes{overflow:auto}.tag-duel-banner{position:absolute;top:48px;left:23%;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;background:#08242aca;padding:3px 8px;font-size:12px}.tag-duel-banner button{padding:3px 8px}.tag-duel-paused{position:absolute;inset:55px 0 0 22%;z-index:300;background:#071720bb;display:grid;place-content:center;text-align:center}.tag-duel-paused button{min-height:44px}
 
 /* Keep room controls scrollable above Android's on-screen keyboard. */
 .tag-page{height:var(--tag-visible-height,100%);max-height:100%;box-sizing:border-box}.tag-connect>*{flex-shrink:0}
@@ -280,16 +282,10 @@
 .tag-offline-draft .tag-opponent .reward img{width:30px;height:42px;object-fit:contain}
 .tag-offline-draft .tag-opponent .reward span{font-size:12px}
 .tag-offline-draft .tag-opponent .opponent-curses:empty{display:none}
-.tag-offline-shop .shop-product img[data-tag]{cursor:pointer}
-.tag-shop-status{position:absolute;left:0;right:0;bottom:0;text-align:center;padding:3px;background:#102832e8;font-size:11px;z-index:2}
-.tag-offline-shop .shop-buy{bottom:28px}
+.tag-shop .shop-product img[data-tag]{cursor:pointer}
 .tag-ending-portraits{display:flex;gap:12px;height:220px;width:min(650px,90vw)}
 @media(max-height:500px){.tag-offline-draft .tag-opponent .encounter-hero{aspect-ratio:2.8/1}.tag-offline-draft .tag-opponent .reward{gap:5px;min-height:24px}.tag-offline-draft .tag-opponent .reward img{height:28px;width:23px}.tag-offline-draft .tag-opponent .reward span{font-size:10px}.tag-offline-select .duelist-selection .char-details{gap:3px}.tag-offline-select .duelist-loadout{min-height:48px}.tag-offline-select .tag-connect-buttons button{min-height:28px;font-size:17px}.tag-level-label{font-size:10px}}
 
-.tag-shop-status{min-height:40px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #91b6ba;border-radius:6px;box-sizing:border-box;text-align:left}
-.tag-shop-status img{width:36px;height:38px;object-fit:contain}.tag-shop-status b{display:block;font-size:13px;color:#fff0b5}.tag-shop-status span{display:block;font-size:10px;color:#cee5e6;margin-top:2px}
-.tag-shop-status.your-turn{border-color:#f0cf78;background:#314637f2}.tag-shop-status.teammate-turn{background:#102832f2}
-.tag-offline-shop .shop-buy{bottom:48px}
 
 .tag-hidden-deck{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;flex:1;min-height:0;text-align:center;padding:15px}.tag-hidden-deck>img{height:min(38vh,240px);width:auto}.tag-hidden-deck h2{color:#efca79;font-size:clamp(18px,2.5vw,30px);margin:0}
 
@@ -412,9 +408,6 @@
 
 .run-history{padding:12px}.run-history-row{display:flex;align-items:start;gap:16px;margin-bottom:12px}.run-history-row>img{width:clamp(70px,12vw,125px);height:135px;object-fit:contain}.run-history-row>div{flex:1;min-width:0}.run-history-row h2{margin:0;color:#f7d998}.run-history-row p{line-height:1.45}.run-history-row summary{cursor:pointer;color:#b2e6df}
 
-/* Keep tag shop actions in one stack, independent of Buy/status offsets. */
-.tag-offline-shop .tag-shop-actions{position:absolute;left:0;bottom:48px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
-.tag-offline-shop .tag-shop-actions>.shop-edit-deck,.tag-offline-shop .tag-shop-actions>.shop-buy{position:static;transform:none;margin:0;flex:none}
 .tag-lock-in>.tag-edit-deck{background:#d8b463;border:2px solid #ffe6a7;color:#142735;font-weight:800;min-width:200px;min-height:52px;font-size:20px}
 /* Relic descriptions need readable columns, not narrow playing-card cells. */
 dialog:has(.relic-ledger){width:min(920px,94vw);max-width:94vw;max-height:90dvh}
@@ -559,8 +552,6 @@ dialog:has(.victory-receipt)[open]{display:flex;flex-direction:column;gap:8px}
  .shop-counter .shop-balance{top:8px;right:8px}.shop-counter .shop-buy{left:8px;bottom:8px;width:68px;height:68px}
  .shop-counter .shop-edit-deck{left:8px;bottom:84px;right:auto;width:110px;min-height:40px}
  .shop-counter .shop-next{bottom:8px;right:8px;width:75px;height:75px}
- .tag-offline-shop .tag-shop-actions{position:static;display:flex;gap:5px}.tag-offline-shop .tag-shop-actions>.shop-buy{position:absolute;left:8px;bottom:8px}.tag-offline-shop .tag-shop-actions>.shop-edit-deck{position:absolute;left:8px;bottom:84px}
- .tag-offline-shop .tag-shop-counter-status{position:static;max-width:none;margin:0}
  .cursed-options article{display:flex;gap:0}.cursed-options .relic-artwork{width:90px;height:88px;align-self:center}
  .victory-receipt{grid-template-columns:1fr}.victory-loot .duel-loot img{height:100px}
 }
@@ -583,10 +574,6 @@ dialog:has(.victory-receipt)[open]{display:flex;flex-direction:column;gap:8px}
 }
 /* Only the shortest landscape pack stage needs smaller gaps/cards. */
 @media(orientation:landscape) and (max-height:380px){.pack-stage{padding:6px 12px}.pack-pulls{gap:6px}.pack-pull{padding:3px}.pack-pull img{max-height:21dvh}.pack-pull span{margin-top:2px;font-size:10px}.pack-theatre header,.pack-theatre footer{padding:8px 12px}}
-@media(orientation:portrait){
- .tag-offline-shop .tag-shop-status{left:88px;right:8px;bottom:8px;width:auto;padding:6px;font-size:11px;max-height:70px;overflow:auto}
- .tag-offline-shop .tag-shop-status span{font-size:10px}
-}
 @media(orientation:landscape) and (max-height:500px){
  .cursed-options .relic-artwork{height:42px;width:44px}.cursed-options h2{font-size:14px}.cursed-options article{padding:6px}
  .cursed-options .relic-benefit,.cursed-options .relic-drawback{margin:3px 0;padding:3px;font-size:11px}.cursed-options p{line-height:1.25}
@@ -669,10 +656,9 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
  .shop-compact .purchase-check{width:24px;height:24px;min-height:24px;line-height:22px;right:1px;bottom:1px}
  .shop-compact .price-badge{font-size:9px;gap:1px;padding:2px;left:1px;top:1px}.shop-compact .price-badge img.price-coin{width:10px;height:10px}
  .shop-compact .shop-counter{height:112px}
- .shop-compact .shop-counter .shop-buy,.tag-offline-shop .tag-shop-actions>.shop-buy{bottom:6px;left:8px;width:58px;height:58px}
- .shop-compact .shop-counter .shop-edit-deck,.tag-offline-shop .tag-shop-actions>.shop-edit-deck{bottom:70px;left:8px;min-height:34px;width:110px}
+ .shop-compact .shop-counter .shop-buy{bottom:6px;left:8px;width:58px;height:58px}
+ .shop-compact .shop-counter .shop-edit-deck{bottom:70px;left:8px;min-height:34px;width:110px}
  .shop-compact .shop-counter .shop-next{bottom:6px;width:70px;height:65px}
- .tag-offline-shop .tag-shop-status{max-height:58px;bottom:6px}
 }
 @media(orientation:portrait) and (max-aspect-ratio:1/2){
  .shop-compact .shop-layout{gap:3px;padding-left:3px;padding-right:3px}.shop-compact .shop-layout>.shop-stock{gap:2px}
@@ -749,6 +735,16 @@ dialog:has(.inspect) .inspect{min-height:0;overflow:auto;flex:1}
 @media(prefers-reduced-motion:reduce){.shop-product.shop-ultra,.shop-ultra .product-art::after{animation:none}}
 
 .global-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}.global-stats-grid h2{color:var(--gold)}
+/* Character Stats: one row per character; the names stay in view while the levels scroll sideways on phones. */
+.character-stats-wrap{overflow:auto;max-width:100%;margin:12px 0;border:1px solid #537984;border-radius:10px}
+.character-stats-table{border-collapse:separate;border-spacing:0;width:100%;min-width:620px;font-size:14px;font-variant-numeric:tabular-nums}
+.character-stats-table th,.character-stats-table td{padding:7px 10px;border-bottom:1px solid #26495566;text-align:center;white-space:nowrap}
+.character-stats-table thead th{position:sticky;top:0;z-index:2;background:#173a46;color:#ffe2a3;font-weight:600}
+.character-stats-table tbody th{position:sticky;left:0;z-index:1;background:linear-gradient(90deg,#163a46 85%,#163a4600);text-align:left;font-weight:600}
+.character-stats-table thead th:first-child{left:0;z-index:3;text-align:left}
+.character-stats-table tbody tr:nth-child(even) td{background:#ffffff08}
+.character-stats-table .cs-rate{font-weight:700;color:#ffe2a3;border-left:1px solid #53798466}.cs-rate small{display:block;font-size:11px;font-weight:400;color:#9fb8c1}
+.cs-w{color:#8fe39b;font-weight:700}.cs-l{color:#ff9a8f;font-weight:700}.cs-sep{color:#7f9aa4;margin:0 3px}.cs-none{color:#5f7a84}
 
 .float-coins{position:fixed;z-index:255;display:flex;align-items:center;gap:4px;color:#ffe28b;font:bold clamp(16px,3vw,25px) Arial;text-shadow:0 2px 3px #000;pointer-events:none;animation:coin-rise 1.7s ease-out forwards}
 .float-coins img{width:1em;height:1em;object-fit:contain;filter:drop-shadow(0 0 4px #ffc857)}
@@ -1203,6 +1199,11 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 }
 
 .device-link-code{font-size:2rem;font-weight:bold;letter-spacing:.15em;text-align:center;user-select:all;color:#ffdf88}
+/* Cloud save code: big, selectable and in a font where every character is distinct. */
+.cloud-code{margin:14px 0;padding:12px;border:1px dashed #c2a66a;border-radius:10px;font:800 clamp(26px,7vw,40px)/1.2 "Courier New",monospace;letter-spacing:.12em;text-align:center;user-select:all;color:#ffdf88;background:#0c1f28}
+.cloud-code-inline{font-family:"Courier New",monospace;letter-spacing:.08em;color:#ffdf88;user-select:all;white-space:nowrap}
+.cloud-code-actions{display:flex;flex-wrap:wrap;gap:8px}.cloud-code-actions button{flex:1 1 140px}
+.cloud-restore-field{display:grid;gap:6px}.cloud-restore-field input{font:700 22px "Courier New",monospace;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:8px}
 
 .legendary-summon{position:absolute;inset:0;z-index:320;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none;overflow:hidden;background:#02081255}
 .legendary-summon-light{position:absolute;inset:0;background:radial-gradient(ellipse at center,var(--summon-color),transparent 72%)}
@@ -1210,6 +1211,13 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .legendary-summon strong{position:relative;color:#fff;text-shadow:0 2px 4px #000,0 0 12px var(--summon-color);font-size:clamp(16px,3vw,30px);text-align:center}
 /* Encounter selection and cinematic reveals */
 .encounter-mystery{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse,#384764,#0a1020 70%);border:1px solid #72829d55;border-radius:10px;color:#bdcadd}.encounter-mystery>span{font:bold 88px Georgia;color:#c9bd93;text-shadow:0 0 30px #8194c9}.encounter-mystery h2{font-size:18px;margin:0 0 6px}.encounter-mystery small{font-size:11px;letter-spacing:2px}.boss{background:radial-gradient(ellipse at 50% 35%,#66193677,transparent 55%),linear-gradient(#06030be8,#190618eb),url('assets/character-select-background.png') center/cover}.boss .routes{flex:1;min-height:0;padding-top:4px}.boss .opponent{width:min(420px,90vw);max-width:420px;border:1px solid #cf715b;background:linear-gradient(135deg,#341425ed,#100d20f5);box-shadow:0 0 45px #a12b4c44,inset 0 0 35px #ffb35a0c}.boss-banner{background:none;text-align:center;padding:12px 10px 4px}.boss-banner>span{font-size:10px;letter-spacing:5px;color:#df947b}.boss-banner h2{font:28px Georgia;color:#ffe4b9;margin:7px 0}.boss-banner p{font-size:13px;margin:3px}.boss-banner small{font-size:11px;color:#bfa9b5}.boss .encounter-hero{height:160px;min-height:0}.boss .reward{margin:8px 0}.boss .opponent>.primary{width:100%;border-color:#e9ae77;background:linear-gradient(#9b4e37,#4e2230)}.boss-reroll{color:#ffe0aa;border-color:#93604c}.encounter-cinematic{position:fixed;inset:0;z-index:1200;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#04070ef5;color:#fff1ce;pointer-events:auto}.encounter-aura{position:absolute;inset:-40%;background:conic-gradient(from 30deg,transparent,#93689433,transparent,#ecd29122,transparent);transform:rotate(-15deg)}.boss-reel .encounter-aura{background:radial-gradient(ellipse,#a3244666,transparent 55%)}.cinematic-copy{z-index:1;text-align:center}.cinematic-copy small{letter-spacing:6px;font-size:11px;color:#cfa889}.cinematic-copy h1{font:bold clamp(24px,5vw,60px) Georgia;letter-spacing:4px;text-shadow:0 0 24px #b84850}.cinematic-reels{display:flex;gap:20px;position:relative;max-height:55vh}.cinematic-window{position:relative;width:min(280px,35vw);height:min(330px,50vh);overflow:hidden;border-block:2px solid #c38c58;background:linear-gradient(#131226,#48203255,#131226);text-align:center;box-shadow:0 0 40px #bd637322}.cinematic-window img{height:90%;width:100%;object-fit:contain;filter:drop-shadow(0 0 20px #cd9e75aa)}.cinematic-window strong{position:absolute;bottom:4%;left:0;right:0;font-size:clamp(14px,2.5vw,24px);text-shadow:0 2px 6px black}.boss-reel:not(.landed) .cinematic-window img{filter:blur(3px);transform:scale(1.1)}.cinematic-line{width:70%;height:1px;background:linear-gradient(90deg,transparent,#ffdeb1,transparent);margin-top:24px}.landed .cinematic-window{border-color:#ffe3a2;box-shadow:0 0 55px #dc7b5266}.legendary-heart{position:absolute;z-index:3;left:var(--heart-x);bottom:5%;color:#ffacd9;font-size:clamp(18px,4vw,45px);text-shadow:0 0 18px #ff329b;pointer-events:none;animation:heart-float 2.8s ease-out both;animation-delay:var(--heart-delay)}@keyframes heart-float{0%{opacity:0;transform:translateY(0) scale(.5)}20%{opacity:.9}100%{opacity:0;transform:translateY(-55vh) rotate(15deg) scale(1.2)}}@media(orientation:landscape) and (max-height:650px){.boss-banner{padding:3px}.boss-banner h2{font-size:21px;margin:2px}.boss .opponent{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;width:min(650px,85vw);max-width:650px;text-align:left;padding:10px}.boss .encounter-hero{grid-row:span 4;height:100%;min-height:140px}.boss .reward{margin:0}.boss .opponent>.primary{grid-column:2}.boss .routes{overflow:auto}}@media(prefers-reduced-motion:reduce){.legendary-heart{animation:none;opacity:.65;bottom:25%}}
+/* The unknown portrait is the reveal button: the frame lifts on hover and its cost sits on a tab at the bottom. */
+button.encounter-reveal{position:relative;cursor:pointer;font:inherit;color:inherit;appearance:none;transition:border-color .15s,box-shadow .15s,translate .15s}
+button.encounter-reveal:hover:not(:disabled),button.encounter-reveal:focus-visible{border-color:#e8c778;box-shadow:0 0 0 1px #e8c77888,0 0 18px #e8c77833;translate:0 -1px}
+button.encounter-reveal:disabled{cursor:not-allowed;opacity:.65}
+.encounter-reveal .reveal-cost{position:absolute;left:50%;bottom:8px;translate:-50% 0;display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:#0c222dee;border:1px solid #c2a66a;color:#ffe2a3;font:700 13px/1.2 Arial,sans-serif;letter-spacing:.04em;white-space:nowrap}
+.encounter-reveal .reveal-cost img,.reveal-cost-inline img{width:14px;height:14px;vertical-align:-2px;margin-right:3px}
+.encounter-reveal:disabled .reveal-cost{border-color:#7f6b4a;color:#c8b48a}
 /* One boss fills the center, independently of the five-choice route grid. */
 .page.boss .routes{display:flex;justify-content:center;align-items:flex-start;padding:12px;overflow:auto;grid-template-columns:none}
 .page.boss .routes .opponent{flex:none;display:flex;flex-direction:column;align-items:stretch;width:min(420px,100%);max-width:420px;min-height:0;height:auto;overflow:visible;padding:14px;gap:8px}
@@ -1275,6 +1283,42 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 .settings-organized .settings-danger{color:#ffc1ba}.settings-organized .danger{border-color:#c67572;background:#642d3a}.settings-organized .settings-advanced{grid-column:1/-1;margin:0;border-radius:10px;padding:6px 18px}.settings-advanced label{display:block;margin:8px 0}.settings-code{display:flex;gap:8px;margin-bottom:10px}.settings-code input{flex:1;min-width:0}
 .settings-organized .settings-about{grid-column:1/-1;text-align:center;font-size:11px;color:#92aeb9;margin:0}.settings-footer{flex:none;padding:10px 18px;display:flex;justify-content:center;border-top:1px solid #53798466;background:#0c222d}.settings-footer button{min-width:140px}
 @media(max-width:620px){.settings-page .settings-organized{grid-template-columns:1fr;padding:12px;gap:12px}.settings-organized .settings-section{padding:15px}}
+/* Settings (2026-10-29 redesign): a section rail beside one pane on wide screens, a scrolling tab strip on
+   phones. Each setting is a row: name and one-line description on the left, its control on the right. */
+.settings-v2{flex:1;min-height:0;display:grid;grid-template-columns:200px minmax(0,1fr);gap:18px;width:min(980px,100%);margin:0 auto;padding:18px;box-sizing:border-box}
+.settings-tabs{display:flex;flex-direction:column;gap:6px;align-content:start}
+.settings-tabs button{justify-content:flex-start;min-height:42px;padding:0 14px;border-radius:8px;border:1px solid transparent;background:transparent;color:#cfe0e6;font-size:15px;text-align:left}
+.settings-tabs button:hover{background:#173a4699}
+.settings-tabs button.active{background:linear-gradient(90deg,#2b4b57,#173a46);border-color:#c2a66a99;color:#ffe2a3;box-shadow:inset 3px 0 0 #e8c778}
+.settings-pane{min-height:0;overflow:auto;padding:4px 18px 18px;border:1px solid #537984;border-top:2px solid #c2a66a;border-radius:12px;background:linear-gradient(135deg,#173a46,#102833)}
+.settings-pane h2{font:600 22px Georgia,serif;color:#ffe2a3;margin:16px 0 6px;letter-spacing:.3px}
+.settings-pane>p,.settings-pane .set-group p{font-size:13px;line-height:1.5}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #53798444;cursor:pointer}
+.set-row:last-child{border-bottom:0}
+.settings-v2 label.set-row,.settings-v2 .set-row{margin:0;padding:14px 0;background:none;border-radius:0;min-height:0;width:auto;grid-template-columns:none}
+.set-text{display:grid;gap:3px;min-width:0}.set-text b{font-size:15px;color:#f2f6f3;font-weight:600}.set-text small{font-size:12.5px;line-height:1.4;color:#9fb8c1}
+.set-slider{flex-wrap:wrap;cursor:default}.set-slider .set-text{flex:1 1 220px}.set-control{flex:1 1 260px;display:flex;align-items:center;gap:12px}
+.set-control input[type=range]{flex:1;margin:0;accent-color:#e8c778}.set-control output{min-width:62px;text-align:right;font-variant-numeric:tabular-nums;color:#ffe2a3}
+.set-row select{min-height:38px;max-width:50%;padding:0 10px;border-radius:7px;background:#0c222d;color:#f2f6f3;border:1px solid #537984}
+/* Toggles as switches: the checkbox keeps its role and keyboard behaviour. */
+input.switch{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:46px;height:26px;margin:0;border-radius:13px;background:#284450;border:1px solid #537984;cursor:pointer;transition:background .15s}
+input.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cfe0e6;transition:translate .15s}
+input.switch:checked{background:#a8853f;border-color:#e8c778}input.switch:checked::after{translate:20px 0;background:#fff4d2}
+input.switch:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
+.settings-pane .set-group{margin:14px 0;padding:14px;border:1px solid #53798466;border-radius:10px;background:#0c222d66}
+.settings-pane .set-group>summary{cursor:pointer;font-weight:600}
+.set-text label{display:block;margin:0;padding:0}
+.settings-pane .settings-actions{display:grid;gap:9px;margin-top:12px}.settings-pane button{min-height:42px}
+.settings-pane .settings-danger{color:#ffc1ba}.settings-pane .danger{border-color:#c67572;background:#642d3a}
+.settings-pane .set-file{display:grid;gap:8px;margin-top:10px}.settings-pane .settings-code{display:flex;gap:8px;margin-top:8px}.settings-pane .settings-code input{flex:1;min-width:0}
+.settings-pane .settings-about{text-align:left;font-size:13px;color:#b9d2da;margin:8px 0}
+.settings-v2.settings-dialog{display:block;width:min(520px,100%);padding:0 4px}.settings-dialog .set-row{padding:10px 0}
+@media(max-width:700px){
+ .settings-v2{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:10px}
+ .settings-tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:6px;padding-bottom:2px}.settings-tabs::-webkit-scrollbar{display:none}
+ .settings-tabs button{flex:none;min-height:38px;white-space:nowrap}.settings-tabs button.active{box-shadow:inset 0 -3px 0 #e8c778}
+ .settings-pane{padding:2px 14px 14px}.set-row{gap:12px}.set-row select{max-width:46%}
+}
 /* Keep inspection controls visible; only the detail pane scrolls for long effects. */
 #modal.card-inspect-modal[open]{display:flex;flex-direction:column;overflow:hidden}
 #modal.card-inspect-modal .modal-head{position:static;flex:0 0 auto;min-width:0;gap:8px}
@@ -1421,7 +1465,8 @@ dialog:has(> .reward-tally){width:min(460px,calc(100vw - 24px));max-height:calc(
 .reward-tally>button{flex-shrink:0;min-height:44px;font-size:20px}
 /* Coins and cards are one reward sequence; hide the shop until confirmation. */
 dialog:has(> .reward-tally),dialog:has(> .reward-screen){background:radial-gradient(ellipse at 50% 100%,#443626,#142331 60%,#09121e);border-color:#cfb77e}
-dialog:has(> .reward-tally)::backdrop,dialog:has(> .reward-screen)::backdrop{background:radial-gradient(ellipse at 50% 100%,#493725,#142331 55%,#06101c)}
+/* Card reward and coin payout: an opaque gradient so nothing behind them shows through (Discord 2026-10-29). */
+dialog:has(.reward-tally)::backdrop,dialog:has(.reward-screen)::backdrop{background:radial-gradient(ellipse at 50% 100%,#493725,#142331 55%,#06101c)}
 
 .field-character.own[data-do="duel-emotes"]{pointer-events:auto;cursor:pointer;z-index:15}
 .duel-emote-picker{position:fixed;z-index:3000;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;width:min(280px,94vw);padding:6px;box-sizing:border-box;border:2px solid #cfb874;border-radius:12px;background:#102c3bf5;box-shadow:0 4px 20px #0008}
@@ -1531,9 +1576,6 @@ button:disabled{cursor:not-allowed;filter:saturate(.35);opacity:.55}
 .zone.attack-source{outline:3px solid #7af3ff;outline-offset:2px;box-shadow:0 0 18px #39dce8!important}
 .zone.attack-target,.life.attack-target{outline:3px solid #ff695e;outline-offset:2px;box-shadow:0 0 18px #ff593b!important}
 
-/* Tag uses the same shop control styling while keeping the shared-turn banner. */
-.tag-offline-shop .tag-shop-reroll{display:flex}
-.tag-offline-shop .shop-stock[hidden]{display:none}
 
 /* Keep the compact duel header above the opponent hand on every layout. */
 .duel .lpbar{position:relative;z-index:3;min-height:0}
@@ -2196,6 +2238,8 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 .mat{position:relative}
 .fx-flame-layer{position:absolute;inset:0;pointer-events:none}
 .zone[data-fx-power]{background:transparent;box-shadow:none;border-color:transparent}
+/* A burning card that can be selected keeps the yellow selection frame on top of its flame. */
+.zone[data-fx-power].selectable{border-color:#ffeb86;box-shadow:0 0 14px #fffbd2,inset 0 0 12px #fff5a366;z-index:2}
 .fx-blaze{position:absolute;pointer-events:none;transform-origin:50% 100%}
 .fx-blaze .fx-glow{position:absolute;inset:38% -4% -4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,140,40,.7),rgba(255,60,0,.25) 60%,transparent)}
 .fx-blaze.blue .fx-glow{background:radial-gradient(closest-side,rgba(130,210,255,.75),rgba(70,90,255,.28) 60%,transparent)}
@@ -2208,12 +2252,12 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 .zone[data-fx-power="5"] [data-stat=attack]{color:#e6f7ff;scale:1.32}
 /* Hand over the limit: one stepped shake for the whole row in three strengths (1, 2, 3+ over). Literal
    keyframe values keep it on the compositor. */
-.hand.fx-overflow{animation:fx-jitter-1 .42s steps(6) infinite}
+.hand.fx-overflow{animation:fx-jitter-1 .6s steps(6) infinite}
 .hand.fx-overflow.fx-jitter-2{animation-name:fx-jitter-2}
 .hand.fx-overflow.fx-jitter-3{animation-name:fx-jitter-3}
-@keyframes fx-jitter-1{0%,100%{rotate:0deg;translate:0 0}20%{rotate:1.1deg;translate:1px 0}45%{rotate:-1.1deg;translate:-1px 0}70%{rotate:.8deg;translate:.5px 0}88%{rotate:-.45deg}}
-@keyframes fx-jitter-2{0%,100%{rotate:0deg;translate:0 0}20%{rotate:1.6deg;translate:1px 0}45%{rotate:-1.6deg;translate:-1px 0}70%{rotate:1.1deg;translate:.5px 0}88%{rotate:-.65deg}}
-@keyframes fx-jitter-3{0%,100%{rotate:0deg;translate:0 0}20%{rotate:2.3deg;translate:1.5px 0}45%{rotate:-2.3deg;translate:-1.5px 0}70%{rotate:1.6deg;translate:.75px 0}88%{rotate:-.9deg}}
+@keyframes fx-jitter-1{0%,100%{rotate:0deg;translate:0 0}20%{rotate:.25deg}45%{rotate:-.25deg}70%{rotate:.18deg}88%{rotate:-.1deg}}
+@keyframes fx-jitter-2{0%,100%{rotate:0deg;translate:0 0}20%{rotate:.35deg}45%{rotate:-.35deg}70%{rotate:.25deg}88%{rotate:-.15deg}}
+@keyframes fx-jitter-3{0%,100%{rotate:0deg;translate:0 0}20%{rotate:.5deg;translate:.5px 0}45%{rotate:-.5deg;translate:-.5px 0}70%{rotate:.35deg}88%{rotate:-.2deg}}
 .hand.fx-overflow>button.fx-excess>img{outline:2px solid #ff4a4a;outline-offset:-2px}
 /* The ambient motes run on the main thread; half as many halve their cost. */
 .duel-particles>i:nth-child(2n){display:none}
@@ -2284,10 +2328,8 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 /* Phones on their side: the hand row is 20% shorter (its cards size from it), so the field gets the room. */
 @media(orientation:landscape) and (max-height:500px){.duel-main{grid-template-rows:34px 1fr 22%}}
 @media(orientation:landscape) and (max-height:440px){.duel-main{grid-template-rows:27px 1fr 23%}}
-/* Coin tally: a window whose effects all stay inside it (it clips its overflow). The shop's wares, counter
-   and shopkeeper stay hidden behind it, but not its room picture, so the screen around the window is the
-   shop's room rather than a dark sheet. */
-dialog:has(> .reward-tally)::backdrop{background:transparent!important;backdrop-filter:none}
+/* Coin tally: a window whose effects all stay inside it (it clips its overflow). The shop stays hidden behind
+   it, and the gradient backdrop (below) covers the rest, as for the card reward. */
 body:has(#modal[open] .reward-tally) .page.shop>*{visibility:hidden}
 .reward-tally{position:relative}
 .reward-tally-total{position:relative;display:block;transform-origin:center}
@@ -2331,3 +2373,11 @@ html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
 @media(orientation:portrait){.keeper-bubble{display:none!important}}
 /* Where he can be poked: his head and body only, so his empty corners never steal a click. */
 .secret-shopkeeper>.keeper-hit{position:absolute;pointer-events:auto!important;cursor:pointer}
+
+/* Tag shop: whose turn it is, in the header beside LP (the rest is the solo shop's layout). */
+.tag-shop-turn{display:inline-flex;align-items:center;gap:6px;max-width:min(360px,46vw);padding:2px 10px 2px 3px;border:1px solid #91b6ba;border-radius:999px;background:#102832e8;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden}
+.tag-shop-turn img{width:26px;height:26px;object-fit:contain;flex:none}
+.tag-shop-turn b{color:#fff0b5;overflow:hidden;text-overflow:ellipsis}
+.tag-shop-turn small{color:#cee5e6;font-size:10px;overflow:hidden;text-overflow:ellipsis}
+.tag-shop-turn.your-turn{border-color:#f0cf78;background:#314637f2}
+@media(max-width:1100px){.tag-shop-turn small{display:none}}

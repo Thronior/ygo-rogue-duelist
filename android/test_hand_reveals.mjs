@@ -22,7 +22,9 @@ try{const deck={main:Array(30).fill(id('Battle Ox')),extra:[]};e.startTag({teams
  assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===0));
  const hand=e.query(1,L.HAND).map((c,sequence)=>({...c,controller:1,location:L.HAND,sequence}));
  e.onMessage({type:M.CONFIRM_CARDS,player:0,cards:hand});assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===id('Battle Ox')));
- e.onMessage({type:M.CHAIN_END});assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===0));
+ // Since 0.1.48 private reveals persist past CHAIN_END/NEW_TURN and clear only when that hand changes.
+ e.onMessage({type:M.CHAIN_END});assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===id('Battle Ox')),'reveal survives chain end');
+ e.onMessage({type:M.SHUFFLE_HAND,player:1,cards:[]});assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===0),'hand shuffle clears the reveal');
  e.onMessage({type:M.CONFIRM_CARDS,player:1,cards:hand});assert(e.snapshotFor(1).players[1].hand.every(c=>c.code===0));
  console.log('PASS tag snapshot reveal authorization and cleanup; hidden hand remains hidden');
 }finally{e.destroy()}

@@ -7,8 +7,12 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // Sometimes mask does not expose consistently across platforms. The core
  // still supplies only currently legal choices, so honoring these cards here
  // does not create an illegal activation window.
- const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Kunai with Chain','Fairy Box','Spell Shield Type-8','Michizure']);
+ const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Fairy Box','Spell Shield Type-8','Michizure']);
  if(mode==='sometimes'&&(m?.selects||[]).some(choice=>sometimesExceptions.has(context.card?.(choice.code)?.name)))return true;
+ // Kunai with Chain answers an attack, a summon or an activation; its text matches the timing words below in
+ // every window, so it waits for those events (Discord 2026-10-29: "Chain sometimes" asked too often).
+ const eventOnly=new Set(['Kunai with Chain']),selects=m?.selects||[];
+ if(mode==='sometimes'&&selects.length&&selects.every(choice=>eventOnly.has(context.card?.(choice.code)?.name))){const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0}
  // The core uses 0x7f for optional trigger-effect selection, including effects
  // after a Special Summon resolves. These are decisions, not empty timing windows.
  if(m?.spe_count===0x7f&&m.selects?.length)return true;
@@ -34,16 +38,26 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0;
 }
 
+// A face-down Spell/Trap listed without an effect description is a plain card activation, which is always
+// optional. A forced window lists those beside the mandatory trigger (Cure Mermaid's Standby next to a set
+// Mirror Wall), so the player saw the Trap as forced. With exactly one other entry, that one is mandatory.
+const SZONE=0x08;
+const optionalActivation=c=>c?.location===SZONE&&!(Number(c.position)&5)&&String(c.description??'')==='0';
+function soleMandatory(m){const left=(m.selects||[]).map((c,i)=>({c,i})).filter(x=>!optionalActivation(x.c));return left.length===1&&m.selects.length>1?left[0].i:null}
+
 export function mandatoryChainResponse(m){
  if(m?.type!==Message.SELECT_CHAIN||!m.forced)return null;
  const total=m.selects?.length||0,optional=Number(m.spe_count)||0;
- return total>1&&optional===total-1?{type:Response.SELECT_CHAIN,index:0}:null;
+ if(total>1&&optional===total-1)return {type:Response.SELECT_CHAIN,index:0};
+ const index=soleMandatory(m);return index===null?null:{type:Response.SELECT_CHAIN,index};
 }
 
-// Only collapse prompts with no timing/order decision left to make.
+// Only collapse prompts with no timing/order decision left to make. The optional activations of a forced
+// window come back in the next chain window, after the mandatory trigger starts the chain.
 export function automaticChainResponse(m,skipOptional,M,R){
  if(m?.player!==0||m.type!==M.SELECT_CHAIN)return null;
  if(m.forced&&m.selects?.length===1)return {type:R.SELECT_CHAIN,index:0};
+ if(m.forced){const index=soleMandatory(m);if(index!==null)return {type:R.SELECT_CHAIN,index}}
  if(!m.forced&&skipOptional)return {type:R.SELECT_CHAIN,index:null};
  return null;
 }

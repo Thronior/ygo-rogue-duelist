@@ -37,7 +37,8 @@ for key,v in ART_INFO.items():
  elif f:test=lambda c,f=races.get(f,f):c['race']==f or (f in ('Warrior','Beast') and c['race']=='Beast-Warrior')
  else:test=lambda c:c['name']=='Vorse Raider'
  card=find(test)
- if card:out.append(dict(key=key,card=card,name=g.BY_ID[card]['name'],script=s))
+ # Also at challenge level 6, the hardest, where other rules and curse strengths change.
+ if card:out+=[dict(key=key,card=card,name=g.BY_ID[card]['name'],script=s),dict(key=key+' LVL 6',card=card,name=g.BY_ID[card]['name'],script=passives.script({'curses':[],'artifacts':[key],'challenge_level':6,'character':0}))]
 print(json.dumps(out))`],{cwd:root,maxBuffer:1<<28}).toString());
 
 // The game's own card list: the forecast reads Types and Attributes from it.
@@ -66,4 +67,4 @@ for(const {key,card,name,script} of cases){
 duel.destroy();
 assert.ok(checked>=cases.length,`each relic was checked at least once (${checked} summons for ${cases.length} relics)`);
 assert.deepEqual(mismatches,[],`hand forecasts disagree with the field:\n${mismatches.join('\n')}`);
-console.log(`PASS hand "On the field" forecast matches the field for ${cases.length} stat relics (${checked} summons)`);
+console.log(`PASS hand "On the field" forecast matches the field for ${cases.length/2} stat relics at LVL 0 and LVL 6 (${checked} summons)`);

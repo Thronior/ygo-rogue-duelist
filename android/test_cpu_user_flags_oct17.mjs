@@ -35,8 +35,12 @@ const make=(p=1)=>{
  put(1,L.HAND,vortex);put(0,L.MZONE,horus);
  assert.equal(smartContext(e,1,L,{activates:[]}).activation(vortex),-1,'hold Lightning Vortex against an all-Horus board');
  put(1,L.HAND,card('Smashing Ground',1,L.HAND,0),card('Battle Ox',1,L.HAND,0,1));
+ // Smashing Ground is not targeted: it hits the highest-DEF face-up monster. Next to Horus (1600 DEF) a
+ // Battle Ox (1000 DEF) is never hit, so holding the spell is correct; a higher-DEF threat (Blue-Eyes) keeps it live.
  put(0,L.MZONE,horus,card('Battle Ox',0,L.MZONE,1,1));
- assert.notEqual(smartContext(e,1,L,{activates:[]}).activation(card('Smashing Ground',1,L.HAND,0)),-1,'keep targeted removal live when another affected monster is present');
+ assert.equal(smartContext(e,1,L,{activates:[]}).activation(card('Smashing Ground',1,L.HAND,0)),-1,'hold Smashing Ground when Horus has the highest DEF');
+ put(0,L.MZONE,horus,card('Blue-Eyes White Dragon',0,L.MZONE,1,1));
+ assert.notEqual(smartContext(e,1,L,{activates:[]}).activation(card('Smashing Ground',1,L.HAND,0)),-1,'keep removal live when the affected monster is the one it hits');
 }
 
 // Preserve Cylinder for a meaningful hit when Negate Attack can cover a small

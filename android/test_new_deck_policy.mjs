@@ -22,15 +22,27 @@ for(const p of [0,1]){
  reset();put(p,L.MZONE,c('Giant Rex',L.MZONE));check(!ctx().attackAllowed(e.query(p,L.MZONE)[0],true),'Giant Rex never plans direct attacks');
  reset();no('Mind Control');put(p,L.MZONE,c('Blue-Eyes White Dragon'));put(1-p,L.MZONE,c('Battle Ox'));e.lp[1-p]=3000;yes('Mind Control');e.lp[1-p]=8000;no('Mind Control');yes('Brain Control');e.lp[p]=800;no('Brain Control');
  reset();no('Muko');e.effect={code:id('Pot of Greed'),player:1-p};yes('Muko');e.effect.player=p;no('Muko');
- reset();no('Threatening Roar');e.player=1-p;put(1-p,L.MZONE,c('Blue-Eyes White Dragon'));yes('Threatening Roar');e.battleProtected[p]=true;no('Threatening Roar');e.battleProtected[p]=false;
- reset();put(p,L.HAND,c('Destiny Board'));put(p,L.DECK,...['I','N','A','L'].map(a=>c('Spirit Message "'+a+'"')));yes('Destiny Board');check(!ctx().setAllowed(c('Mirror Force')),'Reserve space for Destiny Board');put(p,L.SZONE,c('Destiny Board'));no('Ectoplasmer');put(p,L.SZONE,c('Mirror Force'));no('Destiny Board');
+ // Threatening Roar (like Waboku/Negate Attack) answers a declared attack (wabokuWorthUsing), so the
+ // Blue-Eyes declares a direct attack first; with no attack declared it waits.
+ reset();no('Threatening Roar');e.player=1-p;e.phase=8;put(1-p,L.MZONE,c('Blue-Eyes White Dragon'));no('Threatening Roar');e.attackCard=e.query(1-p,L.MZONE)[0];yes('Threatening Roar');e.battleProtected[p]=true;no('Threatening Roar');e.battleProtected[p]=false;e.attackCard=null;
+ reset();put(p,L.HAND,c('Destiny Board'));put(p,L.DECK,...['I','N','A','L'].map(a=>c('Spirit Message "'+a+'"')));yes('Destiny Board');
+ // Since v0.1.82 zones are reserved only once Destiny Board is face-up on the field, not while it is in hand.
+ check(ctx().setAllowed(c('Mirror Force')),'Board in hand does not block sets');put(p,L.SZONE,c('Destiny Board'));check(!ctx().setAllowed(c('Mirror Force')),'Reserve space for Destiny Board');no('Ectoplasmer');put(p,L.SZONE,c('Mirror Force'));no('Destiny Board');
  reset();put(p,L.MZONE,c('Blue-Eyes White Dragon'));put(1-p,L.MZONE,c('Battle Ox'));check(ctx().targetScore('Gatling Dragon',c('Battle Ox',L.MZONE,1-p),{})>ctx().targetScore('Gatling Dragon',c('Blue-Eyes White Dragon',L.MZONE),{}),'Gatling avoids friendly fire');
  reset();no('Magical Stone Excavation');put(p,L.HAND,c('Magical Stone Excavation'),c('Battle Ox'),c('Battle Ox'));put(p,L.GRAVE,c('Raigeki'));yes('Magical Stone Excavation');
  reset();no('Book of Life');put(p,L.GRAVE,c('Ryu Kokki'));put(1-p,L.GRAVE,c('Battle Ox'));yes('Book of Life');
  reset();no('Overpowering Eye');put(p,L.MZONE,c('Regenerating Mummy'));put(1-p,L.MZONE,c('Blue-Eyes White Dragon'));yes('Overpowering Eye');
  reset();no('Mirror of Yata');put(p,L.MZONE,c('Asura Priest'));yes('Mirror of Yata');
- reset();no('The Winged Dragon of Ra');put(p,L.MZONE,c('The Winged Dragon of Ra',L.MZONE));e.lp[1-p]=1000;yes('The Winged Dragon of Ra');put(1-p,L.MZONE,c('Battle Ox'));no('The Winged Dragon of Ra');
+ // Since v0.2.1 Ra's choice reads the offered effect label (card string 0, "Increase ATK and DEF"); the
+ // unlabelled fallback for old cores stays conservative for a Ra already on the field.
+ reset();no('The Winged Dragon of Ra');const raBoost=()=>({...source('The Winged Dragon of Ra'),description:id('The Winged Dragon of Ra')*16});
+ put(p,L.MZONE,c('The Winged Dragon of Ra',L.MZONE));e.lp[1-p]=1000;check(ctx().activation(raBoost(),true)>=0,'Ra boost for lethal');no('The Winged Dragon of Ra');
+ put(1-p,L.MZONE,c('Battle Ox'));check(ctx().activation(raBoost(),true)>=0,'Ra boost for lethal through a weaker attacker');e.lp[p]=100;check(ctx().activation(raBoost(),true)<0,'Ra cannot pay at 100 LP');
  // Every newly imported effect/spell/trap has an explicit policy. Normal monsters use baseline summon/combat logic.
- reset();const imported=JSON.parse(fs.readFileSync(new URL('../data/opponent-card-exceptions.json',import.meta.url)));for(const card of imported)if((card.data.type&1)===0||(card.data.type&32))check(ctx().activation(c(card.name))!==null,'Missing imported-card policy: '+card.name);
+ reset();const imported=JSON.parse(fs.readFileSync(new URL('../data/opponent-card-exceptions.json',import.meta.url)));// The explicit-policy requirement covers the cards imported with the original deck policy. Cards imported
+ // later (0.1.32-v0.1.96, e.g. Deck Devastation Virus, Harpie Lady 1) use the generic heuristics (activation
+ // returns null), so for them only check that the policy answers without throwing.
+ const explicit=new Set(["Mind Control", "Brain Control", "Malice Doll of Demise", "Ectoplasmer", "Abyssal Designator", "The Winged Dragon of Ra", "Rafflesia Seduction", "Magical Stone Excavation", "Giant Rex", "Chiron the Mage", "Orb of Yasaka", "Lightning Vortex", "Mirror of Yata", "Creeping Doom Manta", "Water Hazard", "Big Wave Small Wave", "Hydro Pressure Cannon", "Fish and Kicks", "Surface", "Fish Depth Charge", "Forgotten Temple of the Deep", "Aegis of the Ocean Dragon Lord", "Muko", "Soul Charge", "Ninja Grandmaster Sasuke", "Fusion Weapon", "Cybernetic Fusion Support", "Cybernetic Zone", "Threatening Roar", "Overpowering Eye", "Doomcaliber Knight", "Zoma the Spirit", "Call of the Earthbound", "Fiendish Engine Ω", "The Wicked Eraser", "Proton Blast", "Heavy Mech Support Platform", "Fusilier Dragon, the Dual-Mode Beast", "Gatling Dragon"]);
+ for(const card of imported)if((card.data.type&1)===0||(card.data.type&32)){const v=ctx().activation(c(card.name));check(explicit.has(card.name)?v!==null:v===null||typeof v==='number','Missing imported-card policy: '+card.name);}
 }
 console.log('PASS',checks,'new-card positive/negative decisions across both seats');

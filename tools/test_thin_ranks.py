@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+# Campaign modules live at the repo root; make the test runnable as a plain script.
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import challenge_levels
 from content import CURSES
 

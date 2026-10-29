@@ -16,4 +16,13 @@ class QA(SimpleHTTPRequestHandler):
    data=text.encode();self.send_response(200);self.send_header('Content-Type','text/javascript; charset=utf-8');self.end_headers();self.wfile.write(data)
   else:super().do_GET()
 QA.extensions_map.update({'.js':'text/javascript','.mjs':'text/javascript','.wasm':'application/wasm'})
-ThreadingHTTPServer(('127.0.0.1',4191),QA).serve_forever()
+def serve(handler,default):
+ """Serve on $PORT, else the default port, moving to the next free one so parallel sessions don't collide."""
+ import os,socket
+ wanted=os.environ.get('PORT')
+ for port in ([int(wanted)] if wanted else range(default,default+20)):
+  try:server=ThreadingHTTPServer(('127.0.0.1',port),handler)
+  except OSError:continue
+  print(f'Serving on http://127.0.0.1:{port}',flush=True);server.serve_forever();return
+ raise SystemExit(f'No free port from {wanted or default}')
+serve(QA,4191)

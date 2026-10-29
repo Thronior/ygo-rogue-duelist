@@ -3,10 +3,14 @@ const meta=JSON.parse(fs.readFileSync(new URL('./web/content.json',import.meta.u
 for(const p of [0,1]){
  const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],player:p,phase:4,activeChain:[],battleProtected:[false,false]});let zones={};e.query=(s,l)=>zones[s+':'+l]||[];
  const c=(n,s=p,l=L.MZONE,x={})=>({code:id(n),controller:s,location:l,sequence:0,position:1,attack:data[id(n)].attack,defense:data[id(n)].defense,...x});
- const put=(s,l,...a)=>zones[s+':'+l]=a,check=(v,msg)=>{assert(v,msg);count++};const ctx=()=>smartContext(e,p,L);const reset=()=>{zones={};e.lp=[8000,8000];e.player=p;e.attackCard=null};
+ // Engine boards are zone-indexed and the policy reads live stats by sequence (v0.1.94+), so each card
+ // put on a zone takes its index as sequence.
+ const put=(s,l,...a)=>{a.forEach((x,i)=>x.sequence=i);zones[s+':'+l]=a},check=(v,msg)=>{assert(v,msg);count++};const ctx=()=>smartContext(e,p,L);const reset=()=>{zones={};e.lp=[8000,8000];e.player=p;e.attackCard=null};
  for(const lock of ['Level Limit - Area B','Gravity Bind'])for(const owner of [p,1-p]){
   reset();put(owner,L.SZONE,c(lock,owner,L.SZONE));let high=c('Battle Ox'),low=c('Sangan');put(p,L.MZONE,high,low);
-  check(ctx().attackBlocked(high),'level 4 blocked');check(!ctx().attackBlocked(low),'level 3 can battle');check(ctx().position('Battle Ox',high)===false,'choose defense');
+  check(ctx().attackBlocked(high),'level 4 blocked');check(!ctx().attackBlocked(low),'level 3 can battle');check(ctx().position('Battle Ox',high)===true,'unthreatened locked monster keeps attack position');
+  // Since v0.1.91 a locked monster defends only when a visible opposing attacker would beat it.
+  put(1-p,L.MZONE,c('Gemini Elf',1-p));check(ctx().position('Battle Ox',high)===false,'choose defense');
   const prompt={type:M.SELECT_IDLECMD,player:p,activates:[],summons:[],special_summons:[],pos_changes:[{...high,position:4}],monster_sets:[],spell_sets:[],to_bp:true,to_ep:true};put(p,L.MZONE,{...high,position:4});check(e.auto(prompt).action!==I.SELECT_POS_CHANGE,'no repeated attack-position change');
   put(p,L.MZONE,c('Sangan'),c('Petit Dragon',p,L.MZONE,{sequence:1}));check(ctx().tributeWorth(c('Blue-Eyes White Dragon',p,L.HAND))===false,'keep useful low-level bodies');
   put(owner,L.SZONE,c(lock,owner,L.SZONE,{is_disabled:true}));check(!ctx().attackBlocked(high),'negated lock ignored');
@@ -24,10 +28,13 @@ for(const p of [0,1]){
  reset();const ownBind=c('Gravity Bind',p,L.SZONE);put(p,L.SZONE,ownBind);put(p,L.MZONE,c('Blue-Eyes White Dragon'));e.lp[1-p]=2000;check(ctx().activation(mst)>=0,'remove own obsolete lock for lethal');check(ctx().targetScore('Mystical Space Typhoon',ownBind,{})>20000,'own lock valid priority target');put(1-p,L.MZONE,c('Blue-Eyes White Dragon',1-p,L.MZONE,{attack:5000}));check(ctx().activation(mst)<0,'keep own protective lock');
 }
 console.log('PASS '+count+' restriction-specific AI decisions for both seats');
+// The core draws decks in the given order (callers shuffle, as the CPU viewer does with shuffleCPUDeck);
+// unshuffled, player 0 only ever drew Sangan and never saw the lock.
+const {shuffleCPUDeck}=await import('./web/cpu-deck-model.js');
 const scripts=JSON.parse(fs.readFileSync(new URL('./web/scripts.json',import.meta.url)));
 for(const lock of ['Level Limit - Area B','Gravity Bind','Messenger of Peace',"Nightmare's Steelcage",'Stumbling']){
  const e=await new MobileDuel(meta.cards).init([data,scripts]);let active=false,stale=0,lastTurn=-1;
- try{let state=e.start([...Array(12).fill(id(lock)),...Array(10).fill(id('Battle Ox')),...Array(8).fill(id('Sangan'))],[...Array(20).fill(id('Battle Ox')),...Array(10).fill(id('Sangan'))],8000,8000,5,29);
+ try{let state=e.start(shuffleCPUDeck([...Array(12).fill(id(lock)),...Array(10).fill(id('Battle Ox')),...Array(8).fill(id('Sangan'))],29,0),shuffleCPUDeck([...Array(20).fill(id('Battle Ox')),...Array(10).fill(id('Sangan'))],29,1),8000,8000,5,29);
  for(let i=0;i<600&&!state.finished;i++){
   const m=e.pending;let r=e.auto();
   if(!active&&m.player===0&&m.type===M.SELECT_IDLECMD){const index=m.activates.findIndex(c=>c.code===id(lock));if(index>=0)r={type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index};}

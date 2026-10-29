@@ -15,4 +15,28 @@ const count=rows.size;time+=31000;assert((await call('put',{code,token,backup:ch
 const malformed=structuredClone(backup);malformed.files['../escape.json']='{}';time+=31000;assert.equal((await call('put',{code,token,backup:malformed})).status,400);
 for(let i=0;i<45;i++){time+=86400000;changed.files['run.json']=JSON.stringify({gold:i});assert.equal((await call('put',{code,token,backup:changed})).status,200)}
 const meta=rows.get('meta:'+code);assert(meta.snapshots.length<=34);assert(meta.snapshots.some(s=>s.id===first));assert.equal((await call('export',{code,revision:first},'admin-test')).backup.files['run.json'],'{"gold":123}');
-console.log('PASS full UC credentials/large saves round-trip, admin-only access, ownership authorization, no credentials in listing, historical recovery, bounded retention, no-op dedupe, invalid filenames rejected');
+// Encrypted cloud saves: the server stores an opaque blob under a derived id, readable back only with the
+// matching write password; a wrong password and a missing save look the same.
+let alarm=null;storage.getAlarm=async()=>alarm;storage.setAlarm=async t=>{alarm=t};
+const id='d'.repeat(64),auth='e'.repeat(64),blob='ygo1g.'+'A'.repeat(16)+'.'+'QUJD'.repeat(20000);
+time+=31000;assert.equal((await call('save',{id,auth,blob})).status,200);assert(alarm>time,'the daily retention sweep is scheduled');
+const stored=JSON.stringify([...rows].filter(([k])=>k.startsWith('enc:')||k.startsWith('blob:')));assert(!stored.includes(auth),'only a hash of the write password is kept');
+assert.deepEqual((await call('load',{id,auth})).blob,blob);
+const wrongAuth=await call('load',{id,auth:'f'.repeat(64)}),noSave=await call('load',{id:'9'.repeat(64),auth});
+assert.equal(wrongAuth.status,404);assert.equal(noSave.status,404);assert.equal(wrongAuth.error,noSave.error);assert(!wrongAuth.blob);
+assert.equal((await call('save',{id,auth:'f'.repeat(64),blob})).status,409,'another code cannot overwrite a save');
+time+=31000;const blob2='ygo1n.'+'B'.repeat(16)+'.'+'REVG';assert.equal((await call('save',{id,auth,blob:blob2})).status,200);assert.equal((await call('load',{id,auth})).blob,blob2);
+assert.equal([...rows.keys()].filter(k=>k.startsWith('blob:')).length,1,'the previous upload is removed');
+assert.equal((await call('save',{id:'1'.repeat(64),auth,blob:'not encrypted'})).status,400);
+assert.equal((await call('delete',{id,auth:'f'.repeat(64)})).status,404);assert.equal((await call('delete',{id,auth})).status,200);
+assert.equal((await call('load',{id,auth})).status,404);assert(![...rows.keys()].some(k=>k.startsWith('enc:')||k.startsWith('blob:')));
+// Saves untouched for a year are swept; fresh ones stay.
+const oldId='2'.repeat(64),newId='3'.repeat(64);time+=31000;await call('save',{id:oldId,auth,blob:blob2});time+=366*86400000;await call('save',{id:newId,auth,blob:blob2});
+await registry.alarm();assert.equal((await call('load',{id:oldId,auth})).status,404);assert.equal((await call('load',{id:newId,auth})).status,200);
+// A migrated device deletes its old unencrypted backup with the old token; nobody else can.
+assert.equal((await call('forget',{code,token:'c'.repeat(64)})).status,404);assert.equal((await call('forget',{code,token})).status,200);
+assert(![...rows.keys()].some(k=>k.startsWith('meta:'+code)||k.startsWith('data:'+code)));
+// Once blocked, old clients' unencrypted uploads are refused.
+const blocked=new BackupRegistry({storage},{LEGACY_BACKUPS:'block'});
+const legacy=await blocked.fetch(new Request('https://test/backup/put',{method:'POST',headers:{'CF-Connecting-IP':'legacy'},body:JSON.stringify({code,token,backup})}));assert.equal(legacy.status,426);
+console.log('PASS full UC credentials/large saves round-trip, admin-only access, ownership authorization, no credentials in listing, historical recovery, bounded retention, no-op dedupe, invalid filenames rejected, encrypted saves by derived id, one-year sweep, legacy forget and block');

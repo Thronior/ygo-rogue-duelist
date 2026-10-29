@@ -18,5 +18,8 @@ for char in (37,38):
  r={'character':char,'artifacts':[],'round':3,'cursed_offer':{'options':['cursed_cursed_refund','cursed_black_market_seal','cursed_collectors_burden'],'rerolls_left':1}}
  cursed_relics.create_offer(r,random.Random(2));assert all(ar.eligible(r,k) for k in r['cursed_offer']['options'])
 r=g.new_run(0,random.Random(4));g.auto_deck(r);r.update(stage='shop',round=1);before=ar.minimum(r);secret=secret_challenge.relicless(g,r);assert ar.minimum(secret)==before;assert g.validate(secret) is None
-assert 'swordsman_oath' in content.RETIRED_ARTIFACTS
+# v0.1.88 un-retired swordsman_oath as the 'Level Bonus' variant relic; only 'feather' stays retired.
+import variant_relics
+assert 'swordsman_oath' not in content.RETIRED_ARTIFACTS and 'feather' in content.RETIRED_ARTIFACTS
+assert any(row[0]=='swordsman_oath' for row in variant_relics.ROWS)
 print('PASS alias limits, 600 legal deck offers, cursed eligibility/migration, early secret challenge and retired relic')

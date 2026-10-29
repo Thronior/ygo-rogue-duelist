@@ -1,5 +1,11 @@
-import fs from 'node:fs';import assert from 'node:assert/strict';import {CPUViewer} from './web/cpu-viewer.js';
-const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),content=read('content'),resources={'engine-data':read('engine-data'),scripts:read('scripts')};globalThis.fetch=async name=>({json:async()=>resources[name.replace('.json','')]});
+import fs from 'node:fs';import assert from 'node:assert/strict';
+// audio-balance.js registers page listeners on import; stub the browser globals (document, location, window, Audio) first.
+globalThis.document??={hidden:false,addEventListener(){}};globalThis.location??={href:'http://localhost/'};
+globalThis.window??={addEventListener(){}};
+globalThis.Audio??=class{constructor(src){this.src=src;this.preload='';this.paused=true;this.ended=false}addEventListener(){}play(){return Promise.resolve()}pause(){}load(){}};
+const {CPUViewer}=await import('./web/cpu-viewer.js');
+const read=n=>JSON.parse(fs.readFileSync(new URL('./web/'+n+'.json',import.meta.url))),content=read('content'),resources={'engine-data':read('engine-data'),scripts:read('scripts')};// engine.js now checks response.ok before parsing shared duel data.
+globalThis.fetch=async name=>({ok:true,json:async()=>resources[name.replace('.json','')]});
 const viewer=Object.assign(Object.create(CPUViewer.prototype),{root:{innerHTML:''},content,characters:[4,12],tiers:[2,2],seed:123,generation:0,render(){},schedule(){}});
 const snapshot=()=>JSON.stringify({state:viewer.state,history:viewer.history,plan:viewer.engine.exodiaPlan},(_,v)=>typeof v==='bigint'?String(v):v);
 try{

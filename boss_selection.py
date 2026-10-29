@@ -14,13 +14,14 @@ def reroll(game,run,rng=random):
  if run.get('stage') not in ('draft','shop') or (run['round']+1)%3 or run.get('cursed_offer'):
   raise ValueError('Boss rerolls are only available before a boss duel.')
  cost=price(run)
- if run['gold']<cost:raise ValueError('Not enough coins to reroll the boss.')
+ import payment
+ if not payment.can_pay(run,cost):payment.pay(run,cost,'a boss reroll')
  # Generate and validate before charging, without mutating the live save on failure.
  candidate=deepcopy(run)
  game.routes(candidate,rng,exclude=run.get('routes',[]))
  from content import opponent_record
  for cid in candidate['routes']:opponent_record(candidate['round'],cid,candidate.get('loop',0))
- candidate['gold']-=cost
+ payment.pay(candidate,cost,'a boss reroll')
  if cost==0:ar.use_free(candidate,'boss')
  else:candidate['boss_rerolls']=candidate.get('boss_rerolls',0)+1
  run.update(candidate)
@@ -35,7 +36,7 @@ def reveal(run,opponent):
  known=run.setdefault('revealed_opponents',[])
  if opponent in known or ar.has(run,'deck_spyglass') or (run['round']+1)%3==0:return 0
  cost=reveal_price(run)
- if run['gold']<cost:raise ValueError('Not enough coins to reveal this opponent.')
- run['gold']-=cost;known.append(opponent)
+ import payment
+ payment.pay(run,cost,'revealing this opponent');known.append(opponent)
  if cost==0:ar.use_free(run,'reveal')
  return cost

@@ -140,7 +140,7 @@ class TagCampaign:
 
      from feedback_update import draw_curses
 
-     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=5 else min(3,(run['round']+1)//3))
+     run['route_curses'][str(opponent)]=draw_curses(self.rng,(1 if run.get('challenge_level',0)>=5 else min(3,(run['round']+1)//3))+ar.extra_curses(run))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
 

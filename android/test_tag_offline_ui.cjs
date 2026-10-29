@@ -11,7 +11,7 @@ const code=fs.readFileSync('android/web/tag-ui.js','utf8').replace("import {TagS
  for(const [name,size] of [['phone',{width:924,height:416}],['desktop',{width:1280,height:720}]]){
  await page.setViewportSize(size);await page.evaluate(view=>{ui.session={code:'TEST2',seat:view.seat,peer:{seat:view.seat},connected:true,request:async()=>{throw Error('Should not submit')}};ui.update(view)},views[0]);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));
  assert(await page.getByText('Your turn to shop',{exact:true}).isVisible());assert(await page.locator('.keeper').isVisible());await page.screenshot({path:path.resolve('temp/tag-offline-shop-'+name+'-final.png')});
- for(const selector of ['.shop-stock','.relics','.shop-reference-buttons','.tag-shop-status']){const b=await page.locator(selector).boundingBox();assert(b.x>=0&&b.y>=0&&b.x+b.width<=size.width+1&&b.y+b.height<=size.height+1,selector)}
+ for(const selector of ['.shop-stock','.relics','.shop-reference-buttons','.tag-shop-turn']){const b=await page.locator(selector).boundingBox();assert(b.x>=0&&b.y>=0&&b.x+b.width<=size.width+1&&b.y+b.height<=size.height+1,selector)}
  }
  await page.evaluate(view=>ui.update(view),views[1]);assert(await page.getByText(/Waiting for /).isVisible());assert(await page.locator('[data-tag=buy]').isDisabled());
  for(const character of [37,38]){await page.evaluate(({view,character})=>{view.phase='draft';view.run.character=character;ui.tab='deck';ui.update(view)},{view:structuredClone(views[0]),character});assert.equal(await page.locator('[data-tag=card]').count(),0);assert(await page.locator('.tag-hidden-deck').isVisible());await page.locator('[data-tag=opponents]').click();assert(await page.locator('.tag-routes').isVisible())}

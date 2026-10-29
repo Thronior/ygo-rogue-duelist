@@ -27,13 +27,15 @@ export function smartContext(e,p,L,prompt=null){
  const rawQuery=(side,loc)=>{const key=side+':'+loc;if(!queryCache.has(key))queryCache.set(key,e.query(side,loc));return queryCache.get(key)};
  const q=(side,loc)=>rawQuery(side,loc).map((c,sequence)=>c?(c.controller!==undefined&&c.location!==undefined&&c.sequence!==undefined?c:{controller:side,location:loc,sequence,...c}):null).filter(Boolean),name=c=>e.name(c.code),data=c=>e.data[c.code]||{};
  const openingTurn=e.turn<=1||(e.aiModifiers?.firstPlayer===1&&e.turn===2);
- const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0));
+ const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0||!!e.aiModifiers?.sharedHex));
+ // Reversed Remedy (either owner): effect damage heals and healing hurts, for both players.
+ const remedy=relic(0,'cursed_reversed_remedy')||relic(1,'cursed_reversed_remedy');
  const liveStat=(c,key)=>c.location===L.MZONE?rawQuery(c.controller??p,L.MZONE)[c.sequence]?.[key]:undefined;
  const atk=c=>{const live=liveStat(c,'attack');if(live!==undefined)return live;const original=c.attack??data(c).attack??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??data(c).defense??original):original};
  const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=c.defense??data(c).defense??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??data(c).attack??original):original};
  // Damage plans include visible prevention/conversion and the defender's known relics.
- const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);const count=(side,key)=>relics(side).filter(k=>k===key).length;return Math.floor(Math.max(0,raw-reduction)*1.5**(count(1-p,'cursed_hollow_chalice')+count(p,'burn_proficiency'))*.5**count(1-p,'cursed_defense_proficiency'))};
- const healingAllowed=side=>!relic(side,'cursed_zombies_bargain');
+ const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);const count=(side,key)=>relics(side).filter(k=>k===key).length;const dealt=Math.floor(Math.max(0,raw-reduction)*1.5**(count(1-p,'cursed_hollow_chalice')+count(p,'burn_proficiency'))*.5**count(1-p,'cursed_defense_proficiency'));return remedy?-dealt:dealt};
+ const healingAllowed=side=>!relic(side,'cursed_zombies_bargain')&&!remedy;
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
@@ -302,6 +304,8 @@ export function smartContext(e,p,L,prompt=null){
   return false;
  }
  function attackBlocked(c,side=p,future=false,ignore=null){
+  // Shield Bash: only Defense Position monsters attack.
+  if(c.location===L.MZONE&&(c.position&1)&&relic(side,'cursed_shield_bash'))return true;
   // Flash Assailant loses 400 ATK/DEF per card in its controller's hand and
   // cannot attack while that hand contains five or more cards. Account for
   // the card leaving hand when evaluating a Normal Summon.
@@ -407,6 +411,17 @@ export function smartContext(e,p,L,prompt=null){
   // Unknown back row makes a battle plan uncertain; do not assume it is safe.
   if(theirBack.some(x=>!face(x)))return false;
   return activeAttackers(p).some(a=>attackAllowed(a,false)&&!a.attack_disabled&&!(a.attack_count>0)&&atk(a)>power(c));
+ }
+ // The most battle damage the opponent can still deal this turn: each of our blockers is taken by their weakest
+ // attacker that beats it, the rest attack directly; a blocker nobody beats stops all direct attacks. extra: the
+ // ATK of a monster we would add in Attack Position.
+ function incomingBattleDamage(extra=null){
+  if(e.battleProtected?.[p])return 0;
+  const strikers=activeAttackers(1-p).filter(a=>!a.attack_disabled&&(!(a.attack_count>0)||same(a,e.attackCard))).map(atk).sort((a,b)=>a-b);
+  const blockers=[...own.map(c=>({v:power(c),atk:face(c)&&!!(c.position&1)})),...(extra===null?[]:[{v:extra,atk:true}])].sort((a,b)=>b.v-a.v);
+  let damage=0;
+  for(const t of blockers){const i=strikers.findIndex(v=>v>t.v);if(i<0)return damage;if(t.atk)damage+=battleDamage(strikers[i]-t.v,1-p);strikers.splice(i,1)}
+  return damage+strikers.reduce((v,x)=>v+battleDamage(x,1-p),0);
  }
  // Lethal battle plan (2026-10-28 replay review): each blocker is taken by the weakest attacker that beats
  // it, and the rest attack directly. extra: ATK of monsters we can still add this turn; removed: blockers
@@ -560,8 +575,11 @@ export function smartContext(e,p,L,prompt=null){
    const offered=prompt?.selects||[];
    if(offered.some(x=>name(x)==='Torrential Tribute'&&removalScore(x)>=0))return -1;
   }
-  // Preserve narrow removal when an offered, worthwhile wipe already covers its targets.
-  if(!wipes.has(n)&&e.player===p&&!(e.activeChain||[]).length&&(prompt?.activates||[]).some(x=>['Dark Hole','Raigeki','Burst Stream of Destruction'].includes(name(x))&&targets.every(t=>candidates(name(x),x).some(y=>same(y,t)))&&removalScore(x)>=0))return -1;
+  // Preserve narrow removal when an offered, worthwhile wipe already covers its targets and more. Against a
+  // lone monster the narrow card does the same job, so the wipe is kept instead (flag 2026-10-29: Raigeki on
+  // one face-up monster while holding Fissure).
+  if(!wipes.has(n)&&e.player===p&&!(e.activeChain||[]).length&&(prompt?.activates||[]).some(x=>['Dark Hole','Raigeki','Burst Stream of Destruction'].includes(name(x))&&candidates(name(x),x).length>=2&&targets.every(t=>candidates(name(x),x).some(y=>same(y,t)))&&removalScore(x)>=0))return -1;
+  if(wipes.has(n)&&targets.length===1&&e.player===p&&!(e.activeChain||[]).length&&(prompt?.activates||[]).some(x=>!same(x,c)&&isRemoval(name(x))&&!wipes.has(name(x))&&candidates(name(x),x).some(t=>same(t,targets[0]))&&removalScore(x)>=0))return -1;
   const urgent=wipes.has(n)?emergency(n,targets):targets.some(x=>emergency(n,[x]));
   if(urgent)return 145;
   const answers=[...hand,...back].filter(x=>resourceRemoval.has(name(x))||wipes.has(name(x)));
@@ -1135,11 +1153,15 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Snatch Steal')return enemy.some(x=>snatchStealWorthy(x))?110:-1;
   if(n==='Mind Control')return enemy.some(x=>face(x))&&(canBattle||hand.some(t=>effectiveLevel(t,true)>4&&effectiveLevel(t,true)<=6))?105:-1;
   if(n==='Nobleman of Crossout')return enemy.some(c=>!face(c))?105:-1;
-  if(n==='Stop Defense'&&enemy.filter(x=>face(x)&&!(x.position&1)).every(x=>activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l))))return -1;
+  // Skip Stop Defense only when no defender is worth switching: face-down defenders are targets too, and a
+  // face-up one is not when Level Limit - Area B would send it straight back (2026-10-29: an empty list skipped it).
+  if(n==='Stop Defense'&&!enemy.some(x=>!(x.position&1)&&!(face(x)&&activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l)))))return -1;
   if(n==='Block Attack')return canBattle&&enemy.some(x=>blockAttackUseful(x))?85:-1;
     if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'){
    const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
    const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));const best=Math.max(0,...elig.map(atk));
+   // Facing lethal on the opponent's turn: any monster that stops it is worth reviving, however weak (2026-10-29).
+   if(n!=='The Shallow Grave'&&e.player!==p&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&incomingBattleDamage()>=e.lp[p]&&elig.some(x=>incomingBattleDamage(atk(x))<e.lp[p]))return 115;
    // One more attacker can be lethal even when it is weaker than their strongest monster.
    if(n!=='The Shallow Grave'&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&elig.some(x=>planLethal([...freeSummon(),atk(x)])))return 100;
    if(!(own.length<5&&elig.some(x=>atk(x)>threat)&&(n!=='Premature Burial'||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
@@ -1316,7 +1338,7 @@ export function smartContext(e,p,L,prompt=null){
   // --- board wipes with 2004-correct valuation ---
   if(n==='Chaos Emperor Dragon - Envoy of the Beginning'||n==='Chaos Emperor Dragon - Envoy of the End'){if(e.lp[p]<=1000)return -1;const total=hand.length+own.length+back.length+enemy.length+theirBack.length+q(1-p,L.HAND).length;if(300*total>=e.lp[1-p])return 120;const oppTotal=enemy.length+theirBack.length+q(1-p,L.HAND).length,ownTotal=own.length+back.length+hand.length;if(oppTotal>=ownTotal+3)return 96;if(ownPower>enemyPower+1500)return -1;return 90;}
   if(n==='Cannon Soldier'||n==='Toon Cannon Soldier'){
-   const damage=burnDamage(500);if(!damage||!effectsEnabled(p)||own.find(x=>same(x,c))?.is_disabled)return -1;
+   const damage=burnDamage(500);if(damage<=0||!effectsEnabled(p)||own.find(x=>same(x,c))?.is_disabled)return -1;
    if(damage*own.filter(x=>name(x)!=='Relinquished').length>=e.lp[1-p])return 180;
    return n==='Cannon Soldier'&&own.some(x=>expendable(x)<=800)?55:-1;
   }
@@ -1401,7 +1423,7 @@ export function smartContext(e,p,L,prompt=null){
    if(monsterName==='The Winged Dragon of Ra')baseAttack=Math.max(0,(e.lp?.[p]??0)-100);
    let result=baseAttack+(p===1?(e.aiModifiers?.enemyAttack||0):0)+handEquipBonus(c);
   // Relic bonuses apply only on the field, so a forecast adds them as if the monster had landed.
-  result+=relicAttack(c,p);
+  result+=relicAttack(c,p)+curseStat(p,'attack');
   if(effectsEnabled(p)){
    if(name(c)==='Tyranno Infinity')result=1000*q(p,L.REMOVED).filter(x=>face(x)&&race(x)==='Dinosaur').length+(p===1?(e.aiModifiers?.enemyAttack||0):0);
    if(name(c)==='Element Saurus'&&[...own,...enemy].some(x=>face(x)&&hasAttribute(x,'FIRE')))result+=500;
@@ -1423,6 +1445,12 @@ export function smartContext(e,p,L,prompt=null){
   }
   return Math.max(0,result);
  }
+ // Your own stat curses (passives.py): Cracked Blade, Brittle Guard and Empty Scabbard, doubled from challenge
+ // level 2. The opponent's side is already in aiModifiers.enemyAttack.
+ function curseStat(side,stat){
+  if(side!==0)return 0;const curses=e.aiModifiers?.activeCurses||[],scale=(e.aiModifiers?.challengeLevel??0)>=2?2:1,n=k=>curses.filter(x=>x===k).length;
+  return scale*(stat==='attack'?-200*n('frailty')-100*n('brittle'):-300*n('hunger')-200*n('brittle'));
+ }
  function projectedDefense(c){
   if(c.location===L.MZONE)return def(c);
   let result=def(c);
@@ -1431,7 +1459,7 @@ export function smartContext(e,p,L,prompt=null){
    const inHand=c.location===L.HAND&&hand.some(x=>same(x,c));
    result=Math.max(0,result-400*Math.max(0,hand.length-(inHand?1:0)));
   }
-  result+=relicDefense(c,p)+fieldSpellBonus(c,'defense');
+  result+=relicDefense(c,p)+curseStat(p,'defense')+fieldSpellBonus(c,'defense');
   const equipDefense={'Horn of Light':800};
   if(c.location===L.HAND&&!spellNegated){
    const slots=Math.max(0,(e.aiModifiers?.spellTrapZones??5)-back.filter(x=>x.sequence<5).length);
@@ -1481,7 +1509,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_grave_lantern':v=Math.min(800,100*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
-    case 'variant_village_banner':v=is(0x10)&&lvl(c)===4?200:0;break;
+    case 'variant_village_banner':v=lvl(c)===4?200:0;break;
     case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
    }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
@@ -1520,7 +1548,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_swordsman_oath':v=setMatch(c,0x41)?400:0;break;
-    case 'variant_village_banner':v=is(0x10)&&level===4?200:0;break;
+    case 'variant_village_banner':v=level===4?200:0;break;
     case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
     case 'overcharge':v=race(c)==='Thunder'?a*field.filter(x=>!same(x,c)&&face(x)&&race(x)==='Thunder').length:0;break;
     case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
@@ -1643,11 +1671,22 @@ if(!effectsEnabled(p))return 0;
    if(n==='Cyber Jar')return cyberJarFlipUseful();
   if(n==='Night Assailant'||n==='Electromagnetic Bagworm'||n==='Parasite Paracide')return enemy.length>0;
   if(n==='Morphing Jar'&&hand.some(c=>exodiaPieces.has(c.code)))return false;
+  if(n==='Morphing Jar #2')return morphingJar2Useful(field);
   if(n==='Rafflesia Seduction')return e.player===p&&enemy.some(face);
   if(n==='Blast Sphere'||n==='Kiseitai')return false;
   if(n==='Slate Warrior')return enemy.some(x=>power(x)<1900);
   if(n==='Shining Angel')return true;
   return null;}
+ // Morphing Jar #2 (flag 2026-10-29): every monster goes back to its OWNER's Deck, and each player gets one random
+ // face-down monster per monster they own that left. A stolen monster therefore refills the opponent's side,
+ // and the new monsters cannot attack this turn, so the CPU attacks first and flips in Main Phase 2.
+ function morphingJar2Useful(jar){
+  if(e.player===p&&e.phase===4&&prompt?.to_bp&&activeAttackers(p).some(a=>!same(a,jar)&&attackAllowed(a,!enemy.length)&&!a.attack_disabled))return false;
+  const replacement=1000,all=[...own,...enemy],owner=c=>c.owner??c.controller;
+  const ours=all.filter(c=>owner(c)===p).length,theirs=all.filter(c=>owner(c)!==p).length;
+  const lost=own.filter(c=>!same(c,jar)).reduce((v,c)=>v+targetValue(c),0),removed=enemy.reduce((v,c)=>v+targetValue(c),0);
+  return removed-lost+replacement*(ours-theirs)>=800;
+ }
  function piercingSourceSides(card){
   const c=typeof card==='string'?q(card?.controller??p,L.MZONE).find(x=>name(x)===card):card;
   if(!c)return [];
@@ -1688,7 +1727,10 @@ if(!effectsEnabled(p))return 0;
   const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine');
   const defenders=own.filter(x=>!same(x,c)&&!(face(x)&&returns(x))).concat(attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
    attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}]);
-  const attackers=enemy.filter(x=>face(x)&&atk(x)>0&&!attackBlocked(x,1-p,true)).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:atk(x)}));
+  // Shield Bash attacks with DEF from Defense Position; Berserker's Pact gives each monster a second attack (capped to keep the search small).
+  const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
+  const attackers=enemy.filter(x=>face(x)&&swing(x)>0&&!attackBlocked(x,1-p,true)).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:swing(x)}));
+  if(relic(1-p,'cursed_berserkers_pact'))attackers.push(...attackers.slice(0,Math.max(0,6-attackers.length)).map(x=>({...x})));
   const memo=new Map();
   function visit(am,dm){const key=am+':'+dm;if(memo.has(key))return memo.get(key);let best=0;
    for(let i=0;i<attackers.length;i++)if(am&(1<<i)){

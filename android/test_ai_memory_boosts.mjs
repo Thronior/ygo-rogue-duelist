@@ -1,7 +1,9 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,L,B} from './web/duel.js';import {smartContext} from './web/smart_policy.js';
 const meta=JSON.parse(fs.readFileSync(new URL('./web/content.json',import.meta.url))),data=JSON.parse(fs.readFileSync(new URL('./web/engine-data.json',import.meta.url))),id=n=>meta.cards.find(c=>c.name===n).id;let checks=0;
 for(const p of [0,1]){
- const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],turn:3,player:p,phase:8,events:[],visuals:[],peak:{turns:0},pendingSummons:[],activeChain:[],battleProtected:[false,false]});
+ const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],turn:3,player:p,phase:8,events:[],visuals:[],peak:{turns:0},pendingSummons:[],activeChain:[],battleProtected:[false,false],
+  // Per-duel bookkeeping that start() creates; MOVE handling reads tributeSets since 0.1.32.
+  tributeSets:new Set(),releasedForSet:[0,0],cancelledAttacks:new Map(),piercingTurn:{},piercingCards:new Map(),feedbackStats:new Map(),misprintedHands:[new Set(),new Set()],misprintedHandStats:[new Map(),new Map()]});
  const mon=(name,controller,position=1,sequence=0)=>({code:id(name),controller,location:L.MZONE,sequence,position,attack:data[id(name)].attack,defense:data[id(name)].defense});
  let own=[mon('Mechanicalchaser',p)],enemy=[mon('Mystical Elf',1-p,8)],back=[];
  e.query=(s,l)=>l===L.MZONE?(s===p?own:enemy):l===L.SZONE?(s===p?[]:back):[];
@@ -23,7 +25,11 @@ for(const p of [0,1]){
   }
  }
  e.player=p;e.turn=3;e.phase=8;e.battleProtected=[false,false];own[0].position=1;own[0].attack_disabled=false;back=[];
- assert(smartContext(e,p,L).activation({code:id('Limiter Removal'),controller:p,location:L.HAND},true)>0);checks++;
+ // Limiter Removal needs lethal or a known breakthrough: the set Elf was shuffled (unknown) above, so reveal it
+ // first; doubled Mechanicalchaser (3700) then breaks its 2000 DEF.
+ assert.equal(smartContext(e,p,L).activation({code:id('Limiter Removal'),controller:p,location:L.HAND},true),-1,'no breakthrough into an unknown set monster');
+ e.onMessage({type:M.CONFIRM_CARDS,player:p,cards:enemy});
+ assert(smartContext(e,p,L).activation({code:id('Limiter Removal'),controller:p,location:L.HAND},true)>0);checks+=2;
  e.player=1-p;e.lp[p]=100;enemy=[mon('Blue-Eyes White Dragon',1-p)];
  const waboku={code:id('Waboku'),controller:p,location:L.SZONE,sequence:0};
  for(const phase of [1,2,4,8,16,32,64,128,256,512]){

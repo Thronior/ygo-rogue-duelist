@@ -78,7 +78,7 @@ r=run_at();g.buy(r,shop_with(r,'name_changer'))
 assert 'name_changer' in r['artifacts'] and r['name_change_picks']==1
 ojama=next(a['setcode'] for a in choice_relics.archetypes() if a['name']=='Ojama')
 choice_relics.change_name(r,ojama);assert r['name_changes']==[ojama]
-assert f'EFFECT_ADD_SETCODE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({ojama})' in passives.script(r)
+assert f'EFFECT_ADD_SETCODE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({ojama})' in passives.script(r)
 g.sell_relic(r,'name_changer');assert r['name_changes']==[] and 'EFFECT_ADD_SETCODE' not in passives.script(r)
 try:choice_relics.change_name(r,ojama);raise AssertionError('no pick waiting')
 except ValueError:pass

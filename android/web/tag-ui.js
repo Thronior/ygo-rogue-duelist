@@ -18,7 +18,7 @@ import {polishShop} from './presentation-polish.js';
 
 import {rememberedLevel} from './difficulty-preference.js';
 
-import {encounterPortrait,hasSpyglass,bossBanner,bossControls,bossRerollPrice,playEncounterReveal,playPortraitReveal} from './encounter-reveal.js';
+import {encounterPortrait,hasSpyglass,bossBanner,bossControls,bossRerollPrice,playEncounterReveal,playPortraitReveal,revealCost,revealCostLabel} from './encounter-reveal.js';
 
 import {allCardsPackDescription} from './pack-inspection.js';
 
@@ -35,6 +35,9 @@ import {searchButton,matchesSearch,openSearch} from './card-search.js';
 import {relicImage,relicArtwork} from './ui-art.js';
 
 import {TagSession} from './tag-session.js';
+import * as juice from './juice.js';
+import * as keeperTalk from './shopkeeper-talk.js';
+import {ownedBadge} from './shop-badges.js';
 
 const tagDeckScroller=root=>root?.querySelector('.tag-deck-scroll .draft-card-scroll')||root?.querySelector('.tag-deck-scroll');
 
@@ -89,7 +92,7 @@ export class TagUI {
 
   const v=this.view,offer=v.run.cursed_offer,disabled=this.working||v.seat!==0||v.paused?'disabled':'';
 
-  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>${v.seat===0?'Choose 1 relic for your shared pool.':'Your teammate is choosing your shared relic.'}</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}</footer></section>`;
+  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>${v.seat===0?'Choose 1 relic for your shared pool.':'Your teammate is choosing your shared relic.'}</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}</footer></section>`;
 
  }
 
@@ -189,7 +192,7 @@ export class TagUI {
 
   const cards=order.map(i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo)).join('');
 
-  const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=v.ready[1-v.seat]&&v.opponents[1-v.seat]===i;return `<section data-encounter="${i}" class="opponent tag-opponent ${r.opponent===i?'selected':''}">${encounterPortrait(this.content,r,i)}<small>${r.challenge_level>=1?'Challenge LVL '+r.challenge_level+' · 8,000 LP':r.round===0?'Practice duel · 3,000 LP':'Duel '+(r.round+1)}</small><div class="reward"><img src="textures/attack.png"><span>SHOP BOOST<br><b>${esc(reward?.label||'')}</b></span></div>${pack?`<div class="reward"><img src="assets/packs/${pack.id}.jpg"><span>GUARANTEED PACK<br>${esc(pack.name)}</span></div>`:''}${curseIcons(this.content,r.route_curses?.[i]||[],true)}${(r.round+1)%3!==0&&!hasSpyglass(r)&&!(r.revealed_opponents||[]).includes(i)?button('<span>Reveal</span><img src="assets/ui/coins.png" alt="Coins"><b>'+revealPrice(r)+'</b>','reveal-opponent',`data-id="${i}" class="opponent-reveal" ${r.gold<revealPrice(r)||waiting?'disabled':''}`):''}${hasSpyglass(r)?button('View deck','peek-deck',`data-id="${i}"`):''}${button(taken?'Teammate’s opponent':r.opponent===i?'Selected':'Choose','choose',`data-id="${i}" class="primary" ${locked||taken?'disabled':''}`)}</section>`}).join('');
+  const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=v.ready[1-v.seat]&&v.opponents[1-v.seat]===i;return `<section data-encounter="${i}" class="opponent tag-opponent ${r.opponent===i?'selected':''}">${encounterPortrait(this.content,r,i,{revealAttr:'data-id',disabled:waiting})}<small>${r.challenge_level>=1?'Challenge LVL '+r.challenge_level+' · 8,000 LP':r.round===0?'Practice duel · 3,000 LP':'Duel '+(r.round+1)}</small><div class="reward"><img src="textures/attack.png"><span>SHOP BOOST<br><b>${esc(reward?.label||'')}</b></span></div>${pack?`<div class="reward"><img src="assets/packs/${pack.id}.jpg"><span>GUARANTEED PACK<br>${esc(pack.name)}</span></div>`:''}${curseIcons(this.content,r.route_curses?.[i]||[],true)}${hasSpyglass(r)?button('View deck','peek-deck',`data-id="${i}"`):''}${button(taken?'Teammate’s opponent':r.opponent===i?'Selected':'Choose','choose',`data-id="${i}" class="primary" ${locked||taken?'disabled':''}`)}</section>`}).join('');
 
   const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div></div><div class="draft-tabs">${searchButton('tag-deck')}${['All','Monster','Spell','Trap','Deck'].map(t=>button(t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-sort" aria-label="Sort cards">${['Newest','Default','Name','Attribute','ATK','DEF','Level'].map(t=>`<option ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select>${button('Deselect all','deselect-all',locked?'disabled':'')}${button('Auto-build','auto',locked?'disabled':'')}</div><div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div></div>`:`${(r.round+1)%3===0?bossBanner(r)+bossControls(r,{tag:true,disabled:waiting||v.ready.some(Boolean)}):''}<div class="tag-draft-controls">${locked?'Waiting for your teammate':chosen?'Opponent selected. Lock in when your deck is finished.':'Choose your next opponent'}</div><div class="routes tag-routes">${opponents}</div>`;
 
@@ -263,27 +266,40 @@ export class TagUI {
 
  }
 
+ // The solo shop's layout, badges, effects and shopkeeper, with Tag's rules: shared gold, one shopper at a
+ // time (the host first), and buying or finishing ends your turn.
  shop(){const v=this.view,r=v.run,own=v.shopSeat===v.seat&&this.session.connected&&!v.paused,c=this.content.characters[r.character],fixed=c.copycat||c.engine_deck;
 
   announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,this.content.cards);
 
   for(const i of this.selection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')this.selection.delete(i);
 
-  const total=[...this.selection].reduce((n,i)=>n+r.shop[i].price,0);
+  const total=[...this.selection].reduce((n,i)=>n+r.shop[i].price,0),coins='<img src="assets/ui/coins.png" alt="Gold">',reroll=shopRerollPrice(r);
+  const owned=new Map();for(const id of r.pool||[])owned.set(id,(owned.get(id)||0)+1);const copyLimit=r.artifacts?.includes('broken_limiter')?0:3;
 
   const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name;
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
-   return `<div class="shop-product ${x.sold?'sold':''} ${this.selection.has(i)?'chosen':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span><button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="Select ${esc(name)}" data-tag="select" data-index="${i}" ${!own||x.sold||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
+   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="Select ${esc(name)}" data-tag="select" data-index="${i}" ${!own||x.sold||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
 
   };
 
-  const singles=r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single');
+  const singles=r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single'),shopper=this.content.characters[v.characters[v.shopSeat]];
+  const rerollButton=cls=>`<button class="${cls}" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${reroll} coins" data-tag="shop-reroll" ${!own||this.working||r.gold<reroll||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span>${coins}<strong>${reroll}</strong></span></button>`;
+  // Whose turn it is sits in the header, where the solo shop shows only LP.
+  const turn=`<span class="tag-shop-turn ${own?'your-turn':'teammate-turn'}" role="status"><img src="assets/${shopper?.sprite||''}" alt=""><b>${own?'Your turn to shop':'Waiting for '+esc(shopper?.name||'teammate')}</b><small>${v.shopSeat===0?'Host · first shopper':'Player 2 · final shopper'}${own?' · Buying ends your turn':''}</small></span>`;
+  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
+  requestAnimationFrame(()=>{keeperTalk.placeHitArea(this.root.querySelector('.secret-shopkeeper'));keeperTalk.place()});
+  // He greets each shop visit once the duel's card reward is done, like in solo play.
+  const visit=[this.session?.code,r.started_at,r.loop,r.round].join(':');if(visit!==this.shopVisit&&!r.reward_slots?.pending){this.shopVisit=visit;keeperTalk.say('welcome')}
 
-  const cursedRelics=new Set(r.cursed_artifacts||[]);
-  this.root.innerHTML=this.header(`<div class="shop-layout"><div class="shop-stock" ${fixed?'hidden':''}><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div><aside><div class="shop-counter"><img class="keeper" src="assets/shopkeeper.png"><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><div class="tag-shop-actions"><button class="primary shop-buy" data-tag="buy" ${own?'':'disabled'}><b>${!own?'WAIT':this.selection.size?'BUY':'SKIP'}</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>${total}</strong></span></button></div><div class="tag-shop-status ${own?'your-turn':'teammate-turn'}" role="status"><img src="assets/${this.content.characters[v.characters[v.shopSeat]]?.sprite||''}" alt=""><div><b>${own?'Your turn to shop':'Waiting for '+esc(this.content.characters[v.characters[v.shopSeat]]?.name||'teammate')}</b><span>${v.shopSeat===0?'Host · first shopper':'Player 2 · final shopper'}${own?' · Buy or skip when finished':''}</span></div></div></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>${r.artifacts?.length?`<h3>Sell a Relic</h3><div class="owned-relic-sales">${[...new Set(r.artifacts)].filter(id=>!cursedRelics.has(id)).map(id=>`<button data-tag="sell-relic" data-relic="${esc(id)}" ${!own||this.working?'disabled':''}>${esc(this.content.artifacts[id]?.[0]||id)} · ${Math.floor((this.content.artifacts[id]?.[1]||0)/2)} coins${r.artifacts.filter(x=>x===id).length>1?' · ×'+r.artifacts.filter(x=>x===id).length:''}</button>`).join('')}</div>`:''}` }<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${button('<b>REROLL</b><span><img src="assets/ui/coins.png" alt="Gold"><strong>'+shopRerollPrice(r)+'</strong></span>','shop-reroll',`class="shop-reroll-landscape tag-shop-reroll" ${!own||this.working||r.gold<shopRerollPrice(r)||fixed&&r.challenge_level===-1?'disabled':''}`)}</div></aside></div>`,`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>${button('View deck','view-deck')}`,'shop shop-compact tag-offline-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
+ }
 
+ // Owned relics as in the solo Relics window; on your shop turn each one can be sold for half its price.
+ relicsDialog(){
+  const v=this.view,r=v.run,sell=v.phase==='shop'&&v.shopSeat===v.seat&&this.session.connected&&!v.paused,cursed=new Set(r.cursed_artifacts||[]),ids=[...new Set(r.artifacts||[])];
+  this.dialog('Run relics',`<div class="relic-ledger"><p>Shared run relics · Effects apply when their listed conditions are met.</p><div class="relic-ledger-grid">${ids.map(id=>{const [name,price=0,text='']=this.content.artifacts[id]||[id],count=r.artifacts.filter(x=>x===id).length,coins=Math.floor(price/2);return `<section class="panel">${relicArtwork(relicImage(this.content.artifactInfo[id]?.art))}<h3>${esc(name)}${count>1?' ×'+count:''}</h3><b>OWNED · CONDITIONAL EFFECTS</b><p>${esc(text)}</p>${sell&&!cursed.has(id)?`<button class="sell-owned-relic" data-tag="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(name)} for ${coins} coins">Sell · ${coins} coins</button>`:''}</section>`}).join('')}</div></div>`);
  }
 
 
@@ -314,6 +330,7 @@ export class TagUI {
 
  async action(action,el){
 
+  if(action==='poke'){keeperTalk.say('poke');return}
   if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(this.content,el.dataset.curse,this.view?.run?.challenge_level))}</p>`);return}
 
 
@@ -396,8 +413,8 @@ export class TagUI {
 
   if(action==='cursed-choose'||action==='cursed-reroll'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}
 
-  if(action==='sell-relic'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{const result=await this.session.request('sell-relic',el.dataset.relic);this.notice?.(`Sold ${this.content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`)}finally{this.working=false;this.render()}return}
-  if(action==='shop-reroll'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{await this.session.request('shop-reroll');this.selection.clear();playRerollSound()}finally{this.working=false;this.render()}return}
+  if(action==='sell-relic'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{const result=await this.session.request('sell-relic',el.dataset.relic);this.notice?.(`Sold ${this.content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`)}finally{this.working=false;this.render()}if(document.querySelector('#modal[open] .relic-ledger'))this.relicsDialog();return}
+  if(action==='shop-reroll'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;const previous=juice.shopArt(this.root);this.working=true;try{await this.session.request('shop-reroll');this.selection.clear()}finally{this.working=false;this.render()}if(!juice.reroll(this.root,previous))playRerollSound();keeperTalk.say('reroll');return}
 
   if(action==='start'){this.working=true;try{await this.session.request('start')}finally{this.working=false;this.render()}return}
 
@@ -445,7 +462,7 @@ export class TagUI {
 
   }
 
-  if(action==='relics'){this.dialog('Owned relics',this.view.run.artifacts.map(k=>`<h3>${esc(this.content.artifacts[k][0])}</h3><p>${esc(this.content.artifacts[k][2])}</p>`).join(''));return}
+  if(action==='relics'){this.relicsDialog();return}
 
   if(action==='scorecard'){if(this.showScorecard)await this.showScorecard();return}
 
@@ -473,7 +490,8 @@ export class TagUI {
 
   try{
 
-   if(action==='reveal-opponent'){await playPortraitReveal({before:el.closest('.opponent').querySelector('.encounter-hero'),update:async()=>{await this.session.request('reveal-opponent',id);this.render()},after:()=>this.root.querySelector(`[data-encounter="${id}"] .encounter-hero`),active:()=>this.alive&&this.view?.phase==='draft'})}
+   if(action==='reveal-opponent'&&!el.dataset.confirmed){this.dialog('Confirm Reveal',`<div class="settings-actions">${button(`Reveal · <span class="reveal-cost-inline">${revealCostLabel(revealCost(this.view.run))}</span>`,'reveal-opponent',`data-id="${id}" data-confirmed="1" class="primary"`)}${button('Cancel','cancel-exit')}</div>`);return}
+   if(action==='reveal-opponent'){document.querySelector('#modal')?.close();await playPortraitReveal({before:this.root.querySelector(`[data-encounter="${id}"] .encounter-hero`),update:async()=>{await this.session.request('reveal-opponent',id);this.render()},after:()=>this.root.querySelector(`[data-encounter="${id}"] .encounter-hero`),active:()=>this.alive&&this.view?.phase==='draft'})}
 
    else if(action==='boss-reroll'){await this.session.request('boss-reroll');this.render()}
 
@@ -497,17 +515,22 @@ export class TagUI {
 
    else if(action==='buy'){
 
-    const chosen=[...this.selection];
+    const chosen=[...this.selection],items=chosen.map(i=>({...this.view.run.shop[i],ultra:isShopUltra(this.view.run.shop[i],this.content.cards)}));
 
     const result=await this.session.request(chosen.length?'buy':'skip',chosen);if(chosen.length)purchaseCoins();this.selection.clear();const cards=(result||[]).flatMap(p=>p.cards||[]);
+
+    // Coins fly to what was bought and SOLD stamps land on the shop as the new view draws it.
+    if(chosen.length)requestAnimationFrame(()=>juice.buy(chosen.map(i=>this.root.querySelector(`[data-shop-item="${i}"]`)?.closest('.shop-product')),this.root.querySelector('.shop-balance'),items.map(x=>x.price)));
 
     await this.packQueue;await this.onGoldenCards();
 
     if(!(result||[]).some(x=>x.kind==='pack')&&cards.length)this.dialog('Your purchases',`<div class="cardgrid">${cards.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"></button>`).join('')}</div>`);
 
+    if(chosen.length)keeperTalk.say(keeperTalk.purchaseLine(items));
 
+   }else if(action==='skip'){this.selection.clear();await this.session.request('skip',[])}
 
-   }else if(action==='inspect')this.inspect(id);
+   else if(action==='inspect')this.inspect(id);
 
    else if(['unready'].includes(action))await this.session.request(action);
 
@@ -545,7 +568,7 @@ export class TagUI {
 
   const before=this.view?.phase,scroll=tagDeckScroller(this.root)?.scrollTop||0;
 
-  if(before==='duel'&&view.phase!=='duel'){this.deckFilter='All';this.deckSort='Newest';delete deckSearches['tag-deck'];}this.view=view;this.updateRoomBadge();this.profile=view.profile;this.onView(view);
+  if(before==='duel'&&view.phase!=='duel'){this.deckFilter='All';this.deckSort='Newest';delete deckSearches['tag-deck'];}this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.onView(view);
 
   if(view.phase!=='duel'){this.render();const list=tagDeckScroller(this.root);if(list)list.scrollTop=scroll}
 

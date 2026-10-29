@@ -28,7 +28,7 @@ REGULAR=[
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
 ('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
-('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Ancient Telescope')]
+('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -65,8 +65,24 @@ CURSED=[
 (50,'champions_burden',"Champion's Burden",'Earn 60 additional coins after each boss victory. During boss Duels, monsters your opponent controls gain 300 ATK/DEF.','Blue-Eyes White Dragon'),
 (52,'defense_proficiency','Defense Proficiency','Halve all damage you take (rounded down). Halve all battle damage your opponent takes (rounded down).','Spirit Barrier'),
 (53,'singleton_pact','Singleton Pact','Your Main Deck minimum is always 20 cards. Your Deck can contain only 1 copy of each card.','Prohibition'),
-(51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, call a coin toss. If you call it right, monsters you control gain 300 ATK/DEF until your next Standby Phase. If you call it wrong, they lose 300 ATK/DEF until then.','Fairy Box')]
+(51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase. Tails: they lose 300 ATK/DEF until then.','Fairy Box'),
+(54,'blood_toll','Blood Toll','You pay with LP instead of coins: 10 LP for every coin a purchase or reroll costs, after discounts. You cannot pay if it would leave you below 1 LP.','Toll'),
+# Thronior's picks from the 2026-10-29 cursed relic ideas.
+(55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. They must attack as many times as able.','Berserk Gorilla'),
+(56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
+(59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
+(61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),
+(73,'shared_hex','Shared Hex','Boss curses also apply to your opponent where they can. Each boss Duel has 1 additional boss curse.','Curse of Anubis')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
+# How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
+# split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
+CURSED_PARTS={
+ 'cursed_trapbound_idol':('Your Trap Monsters gain 1000 ATK.','They lose 1000 DEF.'),
+ 'cursed_jesters_coin':('At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase.','Tails: they lose 300 ATK/DEF until then.'),
+ 'glass_shard':('Coin rewards are doubled.','You start every duel with 2000 LP.'),
+ 'cursed_duelists_wager':('Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'),
+ 'cursed_narrow_gate':('Your opponent has only 3 Main Monster Zones and 3 Spell & Trap Zones.','You also have only 3 of each. Field Zones are unaffected.'),
+}
 
 def install(artifact):
  for key,name,price,text,art in REGULAR:artifact(key,name,price,text,art,'approved_'+key,0,'economy')
@@ -110,6 +126,9 @@ def first(run,random_first):
  if has(run,'cursed_premature_triumph'):return 0
  return random_first
 
+# Shared Hex adds one curse to every boss Duel's draw.
+def extra_curses(run):return int(run.get('challenge_level')!=-1 and 'cursed_shared_hex' in run.get('artifacts',[]))
+
 def can_heal(run,between=False):return not has(run,'cursed_zombies_bargain') and not (between and has(run,'cursed_glass_treasury'))
 
 def price(run,kind,value):
@@ -138,6 +157,9 @@ def eligible(run,key):
   import campaign
   if len({campaign.card_identity(c) for c in run.get('pool',[]) if not campaign.is_extra(c)})<20:return False
  if key=='cursed_blind_fortune' and has(run,'cursed_premature_triumph'):return False
+ # Zombie's Bargain's own reversal would cancel Reversed Remedy's in the core.
+ if key=='cursed_reversed_remedy' and has(run,'cursed_zombies_bargain'):return False
+ if key=='cursed_zombies_bargain' and has(run,'cursed_reversed_remedy'):return False
  if key=='cursed_premature_triumph' and has(run,'cursed_blind_fortune'):return False
  return True
 

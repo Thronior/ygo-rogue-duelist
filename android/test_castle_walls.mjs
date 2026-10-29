@@ -5,7 +5,10 @@ const trap={code:1,controller:1,location:L.SZONE,sequence:0,position:8};
 const attacker={code:2,controller:0,location:L.MZONE,sequence:2,position:1,attack:2600};
 const defender={code:3,controller:1,location:L.MZONE,sequence:1,position:4,defense:2000};
 const other={code:4,controller:1,location:L.MZONE,sequence:3,position:4,defense:3000};
-const e={player:0,phase:32,data:{1:{type:4}},cards:new Map(),lp:[8000,8000],name:c=>c===1?'Castle Walls':'Monster',query:(p,l)=>l===L.MZONE?(p===1?[defender,other]:[attacker]):l===L.SZONE&&p===1?[trap]:[],activeChain:[],battleProtected:[false,false],attackCard:attacker,attackTarget:defender};
+// The engine returns zone-indexed arrays; since v0.1.94 the policy reads live stats by sequence
+// (rawQuery(side,MZONE)[sequence]), so the fake board must be zone-indexed too.
+const zones=cards=>{const z=Array(5).fill(null);for(const c of cards)z[c.sequence]=c;return z};
+const e={player:0,phase:32,data:{1:{type:4}},cards:new Map(),lp:[8000,8000],name:c=>c===1?'Castle Walls':'Monster',query:(p,l)=>l===L.MZONE?zones(p===1?[defender,other]:[attacker]):l===L.SZONE&&p===1?[trap]:[],activeChain:[],battleProtected:[false,false],attackCard:attacker,attackTarget:defender};
 let count=0;
 function score(expected,label){assert.equal(smartContext(e,1,L).activation(trap,true)>0,expected,label);count++;}
 score(false,'2600 ATK versus 2000 DEF: cannot save');

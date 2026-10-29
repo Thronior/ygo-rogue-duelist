@@ -197,6 +197,7 @@ def install(g):
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=5:count=1
+  count+=ar.extra_curses(run)
   draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5))
   distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5)
   choices=[]
@@ -308,7 +309,7 @@ def install(g):
   persistent=run.get('challenge_level',0)>=5
   boss=number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))
   if boss:
-   count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
+   count=(1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0))+ar.extra_curses(run)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
    if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0),per_encounter=True):
     selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]))
@@ -339,6 +340,7 @@ def install(g):
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
   char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
   enemy_lp=max(1,enemy_lp+2000*ar.copies(duel_run,'cursed_loaded_purse'))
+  if ar.has(duel_run,'cursed_shared_hex'):enemy_lp=max(1,enemy_lp-1000*challenge_levels.curse_scale(run)*run['curses'].count('drain'))
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
   rng.shuffle(main_pairs)
@@ -379,6 +381,7 @@ def install(g):
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand0=challenge_levels.curse_opening_hand(run,hand0)
   hand1=1 if owns(duel_run,'rulebook') else 5
+  if ar.has(duel_run,'cursed_shared_hex'):hand1=challenge_levels.curse_opening_hand(run,hand1)
   lua=['-- Shadow Run: native EDOPro campaign.','Debug.SetAIName('+json.dumps(enemy_name)+')','Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)',f'Debug.SetPlayerInfo(0,{lp},{hand0},1)',f'Debug.SetPlayerInfo(1,{enemy_lp},{hand1},1)']
   for p,cards,loc in [(0,main,'LOCATION_DECK'),(0,extra,'LOCATION_EXTRA'),(1,enemy,'LOCATION_DECK'),(1,enemy_extra,'LOCATION_EXTRA')]:
    lua += [f'Debug.AddCard({cid},{p},{p},{loc},0,POS_FACEDOWN_DEFENSE)' for cid in cards]
@@ -488,11 +491,17 @@ def install(g):
    run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
-   cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh')
+   cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh');overflow=0
    if boss and ar.can_heal(run,between=True):
-    healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed
+    healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed;overflow=2000-healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')+(coins_before_rewards//10)*amount(run,'coin_heal')) if ar.can_heal(run,between=True) else 0
+   # Silver Chalice: all post-duel healing past the limit (boss, relic and coin healing) is not lost; every
+   # 100 LP over becomes 3 coins.
+   overflow+=max(0,run['lp']+heal-max(cap,run['lp']))
    run['lp']=max(run['lp'],min(cap,run['lp']+heal))
+   if ar.has(run,'chalice') and overflow>=100:
+    coins=3*(overflow//100);run['gold']+=coins;run['last_gold']=run.get('last_gold',0)+coins;run['last_rewards']['Silver Chalice']=run['last_rewards'].get('Silver Chalice',0)+coins
+    stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+coins
    for _ in range(int(amount(run,'reward_card')) if defeated_deck and not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
    for _ in range(2*ar.copies(run,'cursed_collectors_burden') if defeated_deck else 0):
@@ -643,11 +652,12 @@ def install(g):
   if run.get('stage')!='shop':raise ValueError('Shop is closed.')
   if run.get('challenge_level')==-1 and run.get('history_mode')!='tag' and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):raise ValueError('There is no purchasable stock to reroll at LVL -1.')
   price=reroll_price(run)
-  if run['gold']<price:raise ValueError('Not enough coins to reroll.')
+  import payment
+  if not payment.can_pay(run,price):payment.pay(run,price,'a reroll')
   # Rerolls replace the encounter's featured singles with general stock.
   # Generate first so a failed restock cannot charge the player.
   restock(run,rng,general_stock=True)
-  run['gold']-=price
+  payment.pay(run,price,'a reroll')
   if price==0:ar.use_free(run,'shop')
   else:run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
   return price
@@ -694,7 +704,9 @@ def install(g):
   if run.get('challenge_level')==-1 and item['kind']=='artifact':raise ValueError('Relics are disabled at LVL -1.')
   if CHARACTERS[run['character']].get('copycat') and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine uses reward decks and can only buy relics.')
-  if item['sold'] or item['price']>run['gold']:raise ValueError('Item unavailable or not enough coins.')
+  import payment
+  if item['sold']:raise ValueError('Item unavailable.')
+  if not payment.can_pay(run,item['price']):payment.pay(run,item['price'],'this item')
   if item['kind']=='artifact' and item['id']=='golden_sleeve':
    from golden_cards import choices,pending
    available=set(run['pool'][i] for i in run.get('selected',[]))-set(choices(run))
@@ -731,13 +743,14 @@ def install(g):
      _race={v:k for k,v in RACE_VALUES.items()}.get(_delta[2],_c['race']);_attribute={v:k for k,v in ATTRIBUTE_VALUES.items()}.get(_delta[3],_c['attribute'])
      _fresh.append(dict(pool=len(run['pool'])+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1],race=_c['race'],new_race=_race,attribute=_c['attribute'],new_attribute=_attribute))
    run['last_misprints']=_fresh
-  stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+item['price']
+  stats=run.setdefault('stats',{})
+  if not payment.in_lp(run):stats['coins_spent']=stats.get('coins_spent',0)+item['price']
   if item['kind']=='pack':stats['packs_bought']=stats.get('packs_bought',0)+1
   if item['kind']=='single':run['singles_bought']=run.get('singles_bought',0)+1
   if item['kind']=='artifact':run['relics_bought']=run.get('relics_bought',0)+1
   if item['kind']=='pack':run['bought_pack_ids']=sorted(set(run.get('bought_pack_ids',[]))|{item['id']})
   if item['kind'] in ('single','pack','deck'):run['card_purchases']=run.get('card_purchases',0)+1
-  run['pool']+=obtained;run['purchased']+=len(obtained);run['gold']-=item['price'];item['sold']=True
+  run['pool']+=obtained;run['purchased']+=len(obtained);payment.pay(run,item['price'],'this item');item['sold']=True
   if item['kind']=='pack' and (amount(run,'pack_refund') or ar.has(run,'cursed_cursed_refund')):
    refund=min(item['price']-1,amount(run,'pack_refund')+20*ar.copies(run,'cursed_cursed_refund'));run['gold']+=refund;stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+refund
   update_profile(run);save(run);return obtained
@@ -746,7 +759,8 @@ def install(g):
   if not indices:return []
   if any(i<0 or i>=len(run['shop']) for i in indices):raise ValueError('Unknown shop item.')
   items=[run['shop'][i] for i in indices]
-  if sum(x['price'] for x in items)>run['gold']:raise ValueError('Not enough gold')
+  import payment
+  if not payment.can_pay(run,sum(x['price'] for x in items)):payment.pay(run,sum(x['price'] for x in items),'these items')
   if run['stage']!='shop' or any(x['sold'] for x in items):raise ValueError('Item unavailable.')
   if CHARACTERS[run['character']].get('copycat') and any(x['kind']!='artifact' for x in items):raise ValueError('Copycat can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and any(x['kind']!='artifact' for x in items):raise ValueError('The Dueling Engine can only buy relics.')

@@ -20,11 +20,29 @@ const storeQueue=()=>{try{localStorage.setItem(queueKey,JSON.stringify(queue));r
 export function setStatsEnabled(value){localStorage.setItem(CONSENT,value?'true':'false');if(!value){controller?.abort();void withQueue(()=>{queue={pending:empty(),batch:null};storeQueue();});}}
 
 export function recordStat(kind,id){if(local||!['runs','duels','wins','losses'].includes(kind)||!id)return;void withQueue(()=>{refreshPersonal();const token=kind+':'+id;if(saved.seen.includes(token))return;saved.seen.push(token);if(saved.seen.length>1000)saved.seen.splice(0,saved.seen.length-1000);saved.counts[kind]=(saved.counts[kind]||0)+1;store();if(statsEnabled()){queue.pending[kind]=(queue.pending[kind]||0)+1;storeQueue();}});void syncStats();}
+// Character Stats: each finished run once, by character and challenge level. A run is won when its first loop is
+// cleared, and dying in a later loop keeps it a win; it is lost only when it ends inside the first loop.
+export function runResult(run){
+ if(!run||run.secret_challenge||run.history_mode==='tag')return null;
+ const character=Number(run.character),level=Number(run.challenge_level??0),looped=Number(run.loop)>0;
+ if(!Number.isInteger(character)||character<0||character>999||!Number.isInteger(level)||level<-1||level>6)return null;
+ if(run.stage==='complete'||run.stage==='gameover'&&looped)return `${character}:${level}:w`;
+ return run.stage==='gameover'?`${character}:${level}:l`:null;
+}
+export function recordRunResult(run){
+ const result=runResult(run),id=run?.started_at||run?.history_id;if(local||!result||!id)return;
+ void withQueue(()=>{refreshPersonal();const token='result:'+id;if(saved.seen.includes(token))return;saved.seen.push(token);if(saved.seen.length>1000)saved.seen.splice(0,saved.seen.length-1000);store();if(statsEnabled()){const results=queue.pending.results||={};results[result]=(results[result]||0)+1;storeQueue();}});void syncStats();
+}
 export function syncStats(){return withQueue(syncBatch)}
 async function syncBatch(){
  if(local||!statsEnabled()||busy||Date.now()<Math.max(nextSync,queue.nextSyncAt||0))return;
  if(queue.batch&&queue.batch.expiresAt<=Date.now()){queue.batch=null;storeQueue();}
- if(!queue.batch){if(!fields.some(k=>queue.pending[k]>0))return;queue.batch={batchId:crypto.randomUUID(),expiresAt:Date.now()+batchLifetime,counts:queue.pending};queue.pending=empty();}
+ if(!queue.batch){
+  // Run results ride along with the counters, at most 32 per batch (the Worker's limit); any rest waits.
+  const results=Object.entries(queue.pending.results||{}),sent=Object.fromEntries(results.slice(0,32)),rest=Object.fromEntries(results.slice(32));
+  if(!fields.some(k=>queue.pending[k]>0)&&!results.length)return;
+  queue.batch={batchId:crypto.randomUUID(),expiresAt:Date.now()+batchLifetime,counts:Object.fromEntries(fields.map(k=>[k,queue.pending[k]||0])),...(results.length?{results:sent}:{})};queue.pending={...empty(),...(results.length>32?{results:rest}:{})};
+ }
  // Persist the exact retry payload before sending; never regenerate a lost acknowledgement.
  nextSync=Date.now()+syncInterval;queue.nextSyncAt=nextSync;
  if(!storeQueue())return;

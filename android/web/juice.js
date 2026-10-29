@@ -20,7 +20,7 @@ const SOUNDS={blade:'assets/sfx/negation.wav',coin:'assets/sfx/purchase-coins.wa
 let player=()=>null;
 export function setJuiceSound(play){player=play}
 // Finisher voices sit 3 dB above the other effects so they carry over the hit and the coin pickups.
-function sound(name,{loop=false}={}){const voice=name.startsWith('kill-'),path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1}):null}
+function sound(name,{loop=false}={}){const voice=name.startsWith('kill-')||name==='you-lose',path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1}):null}
 function fadeOut(voice,ms=90){if(!voice?.pause)return;const from=voice.volume,t0=performance.now();const step=()=>{const k=Math.min(1,(performance.now()-t0)/ms);voice.volume=from*(1-k);if(k<1)requestAnimationFrame(step);else voice.pause()};requestAnimationFrame(step)}
 
 // LP danger: each side of the field reddens as that player's LP drains; under 1000 it beats like a heart.
@@ -146,6 +146,8 @@ export const finisherDone=()=>finishing||Promise.resolve();
 export const finisherPlaying=()=>!!finishing;
 // Voice lines start 200 ms after the blow, clear of the hit and coin sounds that land with it.
 const VOICE_DELAY=200;
+// Losing a duel gets its own voice line, through the same voice path and delay as the finishers.
+export function defeatVoice(){later(VOICE_DELAY).then(()=>sound('you-lose'))}
 function finisher(overkill){
  const {reduced,lite}=prefs();
  if(overkill<=0)return finishing=perfect(reduced,lite);

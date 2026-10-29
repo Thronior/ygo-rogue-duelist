@@ -117,7 +117,7 @@ artifact('spring','Healing Spring',85,'Recover 200 LP at each of your Standby Ph
 artifact('flame','Eternal Flame',100,'Deal 200 damage at each of your End Phases.','Ookazi','burn',200,'offense')
 artifact('prism','Life Shield',100,'Reduce incoming effect damage by 400, minimum zero.','Waboku','reduce',400,'defense')
 artifact('pierce','Lancer Spear',125,'Your monsters inflict piercing battle damage.','Spear Dragon','pierce',1,'offense')
-artifact('chalice','Silver Chalice',65,'Heal 600 LP after each victory.','Dian Keto the Cure Master','victory_heal',600,'healing')
+artifact('chalice','Silver Chalice',65,'Heal 600 LP after each victory. All after-duel healing past your limit becomes 3 coins per 100 LP.','Dian Keto the Cure Master','victory_heal',600,'healing')
 artifact('satchel','Travel Satchel',70,'Each victory grants one additional random card from the opponent\'s deck.','Graceful Charity','reward_card',1,'draw')
 artifact('bargain','Merchant Sigil',80,'All future shop prices are reduced by 20%.','Upstart Goblin','discount',20)
 artifact('interest','Golden Scale',90,'Earn 30% of held gold after victory (maximum 90).','Pot of Greed','interest',30)

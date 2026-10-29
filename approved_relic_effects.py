@@ -83,10 +83,23 @@ Duel.RegisterEffect(e,0) end''')
  elif key=='mind_reader':
   out.append(phase('STANDBY','--[[relic-hint]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_CONFIRM) local g=Duel.SelectMatchingCard(0,Card.IsFacedown,0,0,LOCATION_ONFIELD,1,1,nil) if #g>0 then Duel.ConfirmCards(0,g) end','Duel.IsExistingMatchingCard(Card.IsFacedown,0,0,LOCATION_ONFIELD,1,nil)'))
  elif key=='jesters_coin':
-  # The last call holds until the next Standby Phase: +1 right, -1 wrong, 0 before the first toss.
-  # --[[relic-hint]] marks where passives.py shows the relic, since the call's result is assigned.
-  # Almighty (RogueAlmighty) keeps a wrong call from lowering your monsters.
-  out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.CallCoin(0) and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
+  # The last toss holds until the next Standby Phase: +1 heads, -1 tails, 0 before the first toss. No call,
+  # so the duel does not stop for a prompt (2026-10-29).
+  # --[[relic-hint]] marks where passives.py shows the relic, since the toss's result is assigned.
+  # Almighty (RogueAlmighty) keeps tails from lowering your monsters.
+  out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.TossCoin(0,1)==COIN_HEADS and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
+ elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),stat('EFFECT_MUST_ATTACK',1)])
+ elif key=='shield_bash':
+  # Total Defense Shogun's rule: a face-up Defense Position monster attacks and uses its DEF.
+  out.extend([stat('EFFECT_DEFENSE_ATTACK',1,'c:IsDefensePos()'),stat('EFFECT_CANNOT_ATTACK',1,'c:IsAttackPos()')])
+ elif key=='reversed_remedy':
+  # Both players. The core cancels REVERSE_DAMAGE when REVERSE_RECOVER is also active, so healing is turned into
+  # damage by wrapping the global Duel.Recover instead (as the Withered Hope curse does). That damage carries
+  # REASON_RRECOVER, which the reversal skips, so the two rules never loop. Once per Duel, even if both players own it.
+  out.append('if not RogueReversedRemedy then RogueReversedRemedy=true local D=(_G and _G.Duel) or Duel local damage=D.Damage D.Recover=function(p,val,r,...) return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_REVERSE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,1) e:SetValue(function(e,re,r,rp,rc) return (r&REASON_EFFECT)~=0 and (r&REASON_RRECOVER)==0 end) D.RegisterEffect(e,0) end')
+ elif key=='conscription_drum':
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_SUMMON_COUNT) e:SetTargetRange(LOCATION_HAND|LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end')
+  out.append(stat('EFFECT_CANNOT_ATTACK',1,'c:IsStatus(STATUS_SUMMON_TURN) and c:IsSummonType(SUMMON_TYPE_NORMAL)'))
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])

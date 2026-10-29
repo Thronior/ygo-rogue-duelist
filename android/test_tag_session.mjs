@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import {TagSession} from './web/tag-session.js';
+// audio-balance.js registers page listeners on import; stub the browser globals (document, location, window, Audio) first.
+globalThis.document??={hidden:false,addEventListener(){}};globalThis.location??={href:'http://localhost/'};
+globalThis.window??={addEventListener(){}};
+globalThis.Audio??=class{constructor(src){this.src=src;this.preload='';this.paused=true;this.ended=false}addEventListener(){}play(){return Promise.resolve()}pause(){}load(){}};
+const {TagSession}=await import('./web/tag-session.js');
 const values=new Map();globalThis.localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
 const content={cards:[],tokenCards:[]};let saved={phase:'draft',paused:true,revision:4,receipts:{},duel:null};let creates=0,restores=0,commands=0;
 const backend=async(action,value)=>{

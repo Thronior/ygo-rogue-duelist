@@ -499,6 +499,56 @@ export function deckPolicy(x){
    const expected=all(enemy)*2/6+best(enemy)*3/6-all(own)/6;
    return mainPhase&&expected>=500?85:-1;
   }
+  return importedCardValue(c,chain,n,mainPhase,attacker,defense);
+ }
+ // Imported opponent cards (data/opponent-card-exceptions.json) that had no rule: without one the CPU
+ // never chained them and skipped most of them in its Main Phase.
+ const beneficialTriggers=new Set(['Dark Blade the Dragon Knight','Howling Insect','Warrior Lady of the Wasteland','Peten the Dark Clown','Amazoness Sage','Amazoness Trainee','Mystic Swordsman LV2','Silent Magician LV4','Silent Swordsman LV3','Ancient Dragon','Sacred Phoenix of Nephthys','Dekoichi the Battlechanted Locomotive','Gearfried the Swordmaster','Andro Sphinx','Sphinx Teleia','Theinen the Great Sphinx']);
+ const sphinxes=new Set(['Andro Sphinx','Sphinx Teleia','Theinen the Great Sphinx']);
+ function importedCardValue(c,chain,n,mainPhase,attacker,defense){
+  const deck=q(p,L.DECK),others=a=>a.filter(x=>!same(x,c));
+  // Damage the current attack would deal us.
+  const incomingDamage=()=>{if(!incoming||!attacker||!face(attacker))return 0;const t=incomingTarget;return !t?battleDamage(atk(attacker),1-p):(t.position&1)?battleDamage(Math.max(0,atk(attacker)-atk(t)),1-p):0;};
+  // Flip-down monsters: Medusa Worm and Guardian Statue reuse their Flip Summon removal next turn; the others would only skip attacks.
+  if(['Medusa Worm','Guardian Statue','Moai Interceptor Cannons','Great Spirit'].includes(n)&&c.location===L.MZONE&&!chain)return ['Medusa Worm','Guardian Statue'].includes(n)&&e.player===p&&e.phase===256&&face(c)&&live(enemy).length?82:-1;
+  if(beneficialTriggers.has(n)||n==='Medusa Worm'||n==='Guardian Statue')return 85;
+  if(n==='King Dragun')return mainPhase&&free>0&&hand.some(x=>monster(x)&&race(x)==='Dragon')?88:-1;
+  if(n==='Blue-Eyes Shining Dragon')return chain&&e.effect?.player===1-p?100:-1;
+  if(n==='Amazoness Scouts')return chain&&(e.activeChain||[]).some(link=>!link.inactive&&link.player!==p&&(link.targets||[]).some(t=>t.controller===p&&!same(t,c)&&/Amazoness/.test(name(t))))?95:-1;
+  if(n==='Hand of Nephthys')return mainPhase&&[...hand,...deck].some(x=>name(x)==='Sacred Phoenix of Nephthys')&&own.some(x=>!same(x,c)&&face(x)&&value(x)<=1400)?85:-1;
+  if(n==='Gandora the Dragon of Destruction'){
+   if(!mainPhase||e.lp[p]<2000)return -1;
+   const loss=[...others(own),...back].reduce((s,x)=>s+value(x),0),gain=enemyCards.reduce((s,x)=>s+value(x),0);
+   return enemyCards.length>=2&&gain>=loss+2000?90:-1;
+  }
+  if(n==='Electric Virus')return mainPhase&&free>0&&live(enemy).some(t=>['Machine','Dragon'].includes(race(t))&&value(t)>=1200)?95:-1;
+  if(n==='Deck Devastation Virus'){
+   const tribute=own.filter(x=>face(x)&&hasAttribute(x,'DARK')&&atk(x)>=2000).sort((a,b)=>value(a)-value(b))[0];if(!tribute)return -1;
+   const gain=live(enemy).filter(t=>monster(t)&&atk(t)<=1500).reduce((s,t)=>s+value(t),0)+q(1-p,L.HAND).length*300;
+   return gain>=value(tribute)?85:-1; // It also hits their draws for two turns.
+  }
+  if(n==='Phoenix Wing Wind Blast')return handCost(c,1)&&best(enemyCards)>=1500?90:-1;
+  if(n==='Xing Zhen Hu')return (chain||mainPhase)&&theirBack.filter(x=>!face(x)).length>=2?80:-1;
+  if(n==='Gorgon\'s Eye')return chain&&live(enemy).some(t=>!(t.position&1)&&(data(t).type&32)&&value(t)>=1200)?75:-1;
+  if(n==='Pyramid of Light')return c.location!==L.SZONE&&free>0&&[...hand,...deck].some(x=>sphinxes.has(name(x)))?80:-1;
+  if(n==='Dark Renewal'){
+   const caster=own.filter(x=>face(x)&&race(x)==='Spellcaster').sort((a,b)=>value(a)-value(b))[0];
+   return chain&&caster&&grave.some(x=>monster(x)&&race(x)==='Spellcaster')&&best(live(enemy))>=value(caster)+600?90:-1;
+  }
+  if(n==='Damage Condenser')return chain&&handCost(c,1)&&free>0&&deck.some(monster)?80:-1;
+  if(n==='Release Restraint')return mainPhase&&own.some(x=>face(x)&&name(x)==='Gearfried the Iron Knight')&&[...hand,...deck].some(x=>name(x)==='Gearfried the Swordmaster')?90:-1;
+  // A random die: only worth it against an attack that would otherwise finish us.
+  if(n==='Roulette Spider')return chain&&incomingDamage()>=e.lp[p]?90:-1;
+  if(n==='Meteor of Destruction')return e.lp[1-p]>3000?85:-1;
+  if(n==='Stronghold the Moving Fortress'||n==='Swamp Mirrorer')return chain&&incoming&&free>0&&(!own.length||incomingDamage()>=700)?85:mainPhase&&free>0?60:-1;
+  if(n==='Attack Guidance Armor')return chain&&incoming&&attacker&&face(attacker)&&value(attacker)>=1200?95:-1;
+  // Draws to 3 but the opponent takes no damage this turn and the hand is lost at the End Phase.
+  if(n==='Card of Demise')return mainPhase&&!lethal&&others(hand).length<=1&&deck.length>=4?85:-1;
+  if(n==='Card of Sanctity'){const rest=[...others(hand),...own,...others(back)];return rest.length===1&&value(rest[0])<1200&&deck.length>=2?85:-1;}
+  if(n==='Gold Sarcophagus')return mainPhase&&deck.length>3?80:-1;
+  if(n==='Battery Charger')return e.lp[p]>1500&&free>0&&grave.some(x=>/^Batteryman/.test(name(x)))?85:-1;
+  // Choosing what to shuffle back needs a hand-quality judgement the CPU does not make yet.
+  if(n==='Magical Mallet'||n==='Shifting Shadows')return -1;
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
@@ -541,8 +591,8 @@ export function deckPolicy(x){
   if(n==='Soul Charge')return ownCard&&c.location===L.GRAVE?atk(c)+(['Jinzo','Pyramid Turtle'].includes(name(c))?800:0):-100000;
   if(['Magical Stone Excavation','Spell Reproduction'].includes(n)&&c.location===L.GRAVE)return spellValue(c);
   if(['Night Assailant','Electromagnetic Bagworm','Dark Jeroid','Otohime','Bait Doll','Nobleman of Extermination','Double Snare'].includes(n)&&[L.MZONE,L.SZONE].includes(c.location))return ownCard?-100000:20000+value(c);
-  if(['Gatling Dragon','Blowback Dragon','Roulette Barrel','Fish and Kicks','Lightning Vortex','Chiron the Mage','The Winged Dragon of Ra','Proton Blast'].includes(n)&&[L.MZONE,L.SZONE].includes(c.location))return ownCard?-100000:20000+value(c);
-  if(['Mind Control','Brain Control','Rafflesia Seduction'].includes(n)&&c.location===L.MZONE)return ownCard?-100000:20000+(face(c)?atk(c):900);
+  if(['Gatling Dragon','Blowback Dragon','Roulette Barrel','Fish and Kicks','Lightning Vortex','Chiron the Mage','The Winged Dragon of Ra','Proton Blast','Phoenix Wing Wind Blast','Xing Zhen Hu','Attack Guidance Armor'].includes(n)&&[L.MZONE,L.SZONE].includes(c.location))return ownCard?-100000:20000+value(c);
+  if(['Mind Control','Brain Control','Rafflesia Seduction','Electric Virus'].includes(n)&&c.location===L.MZONE)return ownCard?-100000:20000+(face(c)?atk(c):900);
   if(n==='Fish Depth Charge'&&ownCard&&c.location===L.MZONE)return (threatened(c)?50000:0)-atk(c);
   if(n==='Ectoplasmer'&&ownCard&&c.location===L.MZONE)return name(c)==='Malice Doll of Demise'?100000:(data(c).attack||0)/2>=e.lp[1-p]?90000:-atk(c);
   if(['Pinch Hopper','Pyramid Turtle','Flying Kamakiri #1','Goblin Zombie','Call of the Mummy','Water Hazard','Surface','Big Wave Small Wave','Book of Life'].includes(n)){

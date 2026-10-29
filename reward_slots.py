@@ -1,5 +1,5 @@
 """Persisted victory-card slots. Rerolls replace one awarded copy in place."""
-import random
+import random,payment
 
 PRICE = 15
 
@@ -21,8 +21,8 @@ def reroll(run, slot, rng=random):
     indices = offer.get('indices', [])
     if type(slot) is not int or not 0 <= slot < len(indices):
         raise ValueError('Invalid reward slot.')
-    if run['gold'] < PRICE:
-        raise ValueError('You need 15 coins to reroll.')
+    if not payment.can_pay(run, PRICE):
+        payment.pay(run, PRICE, 'a reroll')
     index = indices[slot]
     if not 0 <= index < len(run['pool']) or run['pool'][index] != run['last_reward_cards'][slot]:
         raise ValueError('This reward has already moved.')
@@ -31,7 +31,7 @@ def reroll(run, slot, rng=random):
     # Draw from the defeated deck, preserving duplicate-card weighting. The same
     # card may appear again: no rarity, pity, strength or previous-result bias.
     card = rng.choice(offer['source'])
-    run['gold'] -= PRICE
+    payment.pay(run, PRICE, 'a reroll')
     run['pool'][index] = card
     run['last_reward_cards'][slot] = card
     run['last_reward_card'] = run['last_reward_cards'][0]
@@ -84,7 +84,7 @@ def validate_deck_offer(run, slot):
 
 def reroll_deck(run, slot, rng=random):
     offer=validate_deck_offer(run,slot)
-    if run['gold']<PRICE:raise ValueError('You need 15 coins to reroll.')
+    if not payment.can_pay(run,PRICE):payment.pay(run,PRICE,'a reroll')
     choice=rng.choice(offer['source'])
-    run['gold']-=PRICE;offer['choices'][slot]=choice
+    payment.pay(run,PRICE,'a reroll');offer['choices'][slot]=choice
     return choice
