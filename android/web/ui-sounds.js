@@ -1,12 +1,14 @@
 import {purchaseCoins} from './counter-audio.js';
 import {assetURL} from './startup-assets.js';
 import {balancedVolume} from './audio-balance.js';
-let volume=()=>0,voice,rerollTimer;
-export function setUISoundVolume(read){volume=read;}
-export function playUISound(name){
- if(document.hidden||!volume())return;
+let volume=()=>0,voiceVolume=()=>0,voice,rerollTimer;
+export function setUISoundVolume(read,readVoice=read){volume=read;voiceVolume=readVoice;}
+// spoken lines follow the Voice Lines slider; everything else here follows Menu Sounds.
+export function playUISound(name,{spoken=false}={}){
+ const level=spoken?voiceVolume():volume();
+ if(document.hidden||!level)return;
  voice??=new Audio();voice.pause();voice.src=assetURL('assets/sfx/'+(/\.(?:wav|mp3)$/i.test(name)?name:name+'.wav'));
- balancedVolume(voice,volume(),name==='deck-select'?.5:name==='shop-select'?.8:1);voice.play().catch(()=>{});
+ balancedVolume(voice,level,name==='deck-select'?.5:name==='shop-select'?.8:1);voice.play().catch(()=>{});
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUISounds();});
 export function stopUISounds(){clearTimeout(rerollTimer);voice?.pause();}

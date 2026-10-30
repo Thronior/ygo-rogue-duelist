@@ -1,5 +1,5 @@
 // Thronior's 2026-10-29 cursed relics, in real engine duels: Berserker's Pact, Shield Bash,
-// Reversed Remedy and Conscription Drum, plus the CPU forecast and Shared Hex's mirrored curses.
+// Reversed Remedy and Conscription Drum, plus the CPU forecast.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -103,17 +103,5 @@ let checks=0;const ok=(v,msg)=>{assert.ok(v,msg);checks++};
  ok(forecast(['cursed_shield_bash'],{...gardna,position:1}).attackBlocked({...gardna,position:1},0)===true,'forecast: Shield Bash blocks Attack Position');
  ok(forecast(['cursed_shield_bash','cursed_berserkers_pact'],gardna).incomingDamage(wall,false)===2600,'forecast: Shield Bash Gardna attacks with 2600 DEF');
  ok(forecast([],vorse).healingAllowed(1)&&!forecast(['cursed_reversed_remedy'],vorse).healingAllowed(1),'forecast: Reversed Remedy makes healing harmful for the CPU too');
-}
-// Shared Hex mirrors boss curses onto the opponent; without it they stay one-sided.
-{
- const plain=script([],['frailty','tax','exposed']),hex=script(['cursed_shared_hex'],['frailty','tax','exposed']);
- ok(!plain.includes('Duel.Damage(1,200')&&hex.includes('Duel.Damage(1,200'),'Shadow Toll also hits the opponent');
- ok((hex.match(/EFFECT_UPDATE_ATTACK/g)||[]).length===(plain.match(/EFFECT_UPDATE_ATTACK/g)||[]).length+1,'Cracked Blade also weakens the opponent');
- ok(hex.includes('SetTargetRange(1,1) e:SetValue(function(e,re,val,r) if val<=0'),'Open Wound also exposes the opponent');
- const sealed=script(['cursed_shared_hex'],['frailty','relic_seal']);
- ok((sealed.match(/EFFECT_UPDATE_ATTACK/g)||[]).length===1,'Relic Seal also seals Shared Hex');
- const rows=JSON.parse(py(`import json,approved_relics as ar
-print(json.dumps([ar.extra_curses(dict(artifacts=['cursed_shared_hex'])),ar.extra_curses(dict(artifacts=[])),ar.extra_curses(dict(artifacts=['cursed_shared_hex'],challenge_level=-1))]))`));
- ok(JSON.stringify(rows)==='[1,0,0]','Shared Hex adds one curse, never at LVL -1');
 }
 console.log(`PASS cursed relics (2026-10-29): ${checks} checks`);

@@ -71,8 +71,7 @@ CURSED=[
 (55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. They must attack as many times as able.','Berserk Gorilla'),
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
 (59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
-(61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),
-(73,'shared_hex','Shared Hex','Boss curses also apply to your opponent where they can. Each boss Duel has 1 additional boss curse.','Curse of Anubis')]
+(61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
@@ -87,6 +86,16 @@ CURSED_PARTS={
 def install(artifact):
  for key,name,price,text,art in REGULAR:artifact(key,name,price,text,art,'approved_'+key,0,'economy')
  for number,key,name,text,art in CURSED:artifact('cursed_'+key,name,0,text,art,'approved_'+key,0,'offense')
+
+# Relics no longer in the game. Saved runs and Tag rooms can still hold them, so drop them on load.
+REMOVED=frozenset({'purse','cursed_shared_hex'})
+
+def drop_removed(run):
+ run['artifacts']=[a for a in run.get('artifacts',[]) if a not in REMOVED]
+ run['cursed_artifacts']=[a for a in run.get('cursed_artifacts',[]) if a not in REMOVED]
+ run['shop']=[item for item in run.get('shop',[]) if not (item.get('kind')=='artifact' and item.get('id') in REMOVED)]
+ if run.get('mirror_copy') in REMOVED:run.pop('mirror_copy',None)
+ if run.get('starting_relic') in REMOVED:run['starting_relic']='none'
 
 def has(run,key):return run.get('challenge_level')!=-1 and (key in run.get('artifacts',[]) or run.get('mirror_copy')==key)
 
@@ -126,9 +135,6 @@ def first(run,random_first):
  if has(run,'cursed_premature_triumph'):return 0
  return random_first
 
-# Shared Hex adds one curse to every boss Duel's draw.
-def extra_curses(run):return int(run.get('challenge_level')!=-1 and 'cursed_shared_hex' in run.get('artifacts',[]))
-
 def can_heal(run,between=False):return not has(run,'cursed_zombies_bargain') and not (between and has(run,'cursed_glass_treasury'))
 
 def price(run,kind,value):
@@ -138,7 +144,7 @@ def price(run,kind,value):
  return max(1,round(value*mult))
 
 def eligible(run,key):
- if key in run.get('blocked_cursed',[]):return False
+ if key in REMOVED or key in run.get('blocked_cursed',[]):return False
  from content import CHARACTERS
  fixed=CHARACTERS[run.get('character',0)]
  if (fixed.get('copycat') or fixed.get('engine_deck')) and key in {'cursed_cursed_refund','cursed_black_market_seal','cursed_collectors_burden'}:return False

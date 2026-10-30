@@ -6,6 +6,7 @@
 // board elements. Callers keep their own pacing: nothing here blocks a duel cue.
 import {shake,wallMs as wall} from './duel-motion.js';
 import {assetURL} from './startup-assets.js';
+import {effectOn} from './effect-options.js';
 
 const html=document.documentElement;
 const prefs=()=>{const compat=html.classList.contains('compatibility-mode');return {reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,lite:compat||html.classList.contains('performance-mode'),compat}};
@@ -20,13 +21,14 @@ const SOUNDS={blade:'assets/sfx/negation.wav',coin:'assets/sfx/purchase-coins.wa
 let player=()=>null;
 export function setJuiceSound(play){player=play}
 // Finisher voices sit 3 dB above the other effects so they carry over the hit and the coin pickups.
-function sound(name,{loop=false}={}){const voice=name.startsWith('kill-')||name==='you-lose',path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1}):null}
+function sound(name,{loop=false}={}){const voice=name.startsWith('kill-')||name==='you-lose',path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1,voice}):null}
 function fadeOut(voice,ms=90){if(!voice?.pause)return;const from=voice.volume,t0=performance.now();const step=()=>{const k=Math.min(1,(performance.now()-t0)/ms);voice.volume=from*(1-k);if(k<1)requestAnimationFrame(step);else voice.pause()};requestAnimationFrame(step)}
 
 // LP danger: each side of the field reddens as that player's LP drains; under 1000 it beats like a heart.
 // Static gradients whose opacity changes only when LP does.
 export function lpDanger(main,lp,max){
  if(!main)return;
+ if(!effectOn('lp')){main.querySelectorAll(':scope>.fx-danger').forEach(el=>el.remove());main.querySelectorAll('.lpbar .life.fx-critical').forEach(el=>el.classList.remove('fx-critical'));for(const player of [0,1])portraitOf(player)?.style.removeProperty('--danger');return}
  for(const [player,side] of [[0,'own'],[1,'enemy']]){
   let el=main.querySelector(':scope>.fx-danger.'+side);
   if(!el){el=document.createElement('div');el.className='fx-danger '+side;el.setAttribute('aria-hidden','true');main.prepend(el)}
@@ -109,10 +111,11 @@ function deckWarning(pile,count){
 export function syncDuel(root,{turnPlayer,deck,handLimit:limit=6}={}){
  const main=root.querySelector('.duel-main');if(!main)return;
  const zones=[...root.querySelectorAll('.mat .zone[data-zone^="0,4,"],.mat .zone[data-zone^="1,4,"]')];
- for(const zone of zones){const stat=zone.dataset.code?zone.querySelector('[data-stat=attack]'):null;powerFlame(zone,stat?Number(stat.dataset.value):0)}
+ for(const zone of zones){const stat=zone.dataset.code?zone.querySelector('[data-stat=attack]'):null;powerFlame(zone,stat&&effectOn('flames')?Number(stat.dataset.value):0)}
  for(const b of root.querySelectorAll('.fx-blaze'))if(!b.closest('.mat')?.querySelector(`.zone[data-zone="${b.dataset.for}"][data-code]`))b.remove();
- handLimit(main.querySelector(':scope>.hand'),limit);
- deckWarning(root.querySelector('.zone.pile[data-pile="0,deck"]'),deck);
+ const warnings=effectOn('warnings');
+ handLimit(main.querySelector(':scope>.hand'),warnings?limit:Infinity);
+ deckWarning(root.querySelector('.zone.pile[data-pile="0,deck"]'),warnings?deck:Infinity);
  portraitTurn(turnPlayer);
 }
 
@@ -120,15 +123,16 @@ export function syncDuel(root,{turnPlayer,deck,handLimit:limit=6}={}){
 // Shaking the board stays with the caller (it owns the duel's shake rules).
 export const damageTier=n=>n>=4000?5:n>=2000?4:n>=1000?3:n>=500?2:1;
 export function scaleNumber(el,amount,heal=false){
+ if(!effectOn('impact'))return;
  const tier=damageTier(amount);el.classList.add('fx-dmg','t'+(heal?1:tier));
  el.style.scale=String(heal?clamp(.75+.25*Math.log2(amount/250),.75,1.8):clamp(.75+.32*Math.log2(amount/250),.75,2.3));
 }
 export function hit(player,amount,before){
  const {reduced,lite,compat}=prefs(),tier=damageTier(amount),life=document.querySelector(player?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
- if(!compat)portraitHit(player,tier);
+ if(!compat&&effectOn('portrait'))portraitHit(player,tier);
  const killed=Number.isFinite(before)&&before-amount<=0;
- if(killed)portraitKO(player);
- if(!reduced&&!lite){
+ if(killed&&effectOn('portrait'))portraitKO(player);
+ if(!reduced&&!lite&&effectOn('impact')){
   const {x,y}=life?center(life):{x:innerWidth/2,y:innerHeight/2};
   if(tier>=3){const flash=temp('div','fx-hit-flash');flash.style.setProperty('--y',player?'15%':'85%');play(flash,[{opacity:[0,0,.16,.26,.4][tier-1]},{opacity:0}],{duration:wall(140+tier*60),easing:'ease-out'})}
   if(tier>=4){const ring=temp('div','fx-shockwave');Object.assign(ring.style,{left:x+'px',top:y+'px'});play(ring,[{opacity:.95,scale:.03},{opacity:0,scale:tier===5?1.35:.9}],{duration:wall(520),easing:'cubic-bezier(.1,.6,.3,1)'})}
@@ -148,8 +152,11 @@ export const finisherPlaying=()=>!!finishing;
 const VOICE_DELAY=200;
 // Losing a duel gets its own voice line, through the same voice path and delay as the finishers.
 export function defeatVoice(){later(VOICE_DELAY).then(()=>sound('you-lose'))}
+// Boss monsters announce themselves during their summon animation (legendary-summon.js).
+export function summonVoice(code){return player(`assets/sfx/summon-${code}.mp3`,{gain:1.4,voice:true})}
 function finisher(overkill){
  const {reduced,lite}=prefs();
+ if(!effectOn('finisher')){const word=overkill<=0?'perfect':KILL_WORDS[Math.min(KILL_WORDS.length-1,Math.floor(overkill/1000))].toLowerCase();later(VOICE_DELAY).then(()=>sound('kill-'+word));return null}
  if(overkill<=0)return finishing=perfect(reduced,lite);
  const level=Math.min(KILL_WORDS.length-1,Math.floor(overkill/1000)),word=KILL_WORDS[level],banner=temp('div','fx-banner lv'+level);
  banner.style.setProperty('--lv',level);banner.setAttribute('role','status');banner.removeAttribute('aria-hidden');
@@ -180,8 +187,8 @@ function perfect(reduced,lite){
 // Heal: green sparkles rise from the LP bar (more for bigger heals), a green edge, and the portrait bobs.
 export function heal(player,amount){
  const {reduced,lite,compat}=prefs(),life=document.querySelector(player?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
- const portrait=portraitOf(player);if(portrait&&!reduced&&!compat)portrait.animate([{translate:'0 0'},{translate:'0 -6px',offset:.35},{translate:'0 0'}],{duration:wall(420),easing:'ease-out',composite:'add'});
- if(reduced||lite||!life)return;
+ const portrait=portraitOf(player);if(portrait&&!reduced&&!compat&&effectOn('portrait'))portrait.animate([{translate:'0 0'},{translate:'0 -6px',offset:.35},{translate:'0 0'}],{duration:wall(420),easing:'ease-out',composite:'add'});
+ if(reduced||lite||!life||!effectOn('impact'))return;
  const {r}=center(life),n=clamp(Math.round(amount/300),4,16);
  for(let i=0;i<n;i++){const s=temp('div','fx-spark');Object.assign(s.style,{left:r.left+Math.random()*r.width+'px',top:r.top+r.height/2+'px'});play(s,[{opacity:0,translate:'0 0',scale:.6},{opacity:1,offset:.2},{opacity:0,translate:`${(Math.random()-.5)*30}px ${player?60+Math.random()*60:-(60+Math.random()*80)}px`,scale:1.2}],{duration:wall(700+Math.random()*500),delay:wall(i*40),easing:'ease-out',fill:'backwards'})}
  const main=document.querySelector('.duel-main');if(main){const edge=temp('div','fx-edge '+(player?'enemy':'own'),main);main.prepend(edge);play(edge,[{opacity:0},{opacity:clamp(amount/3000,.35,1),offset:.25},{opacity:0}],{duration:wall(900),easing:'ease-out'})}
@@ -189,7 +196,7 @@ export function heal(player,amount){
 
 // Stat change: "▲ +500 ATK" over the card, sized by the change (the counter already plays its sound).
 export function statPop(zone,delta){
- if(!zone?.isConnected||!delta)return;
+ if(!zone?.isConnected||!delta||!effectOn('stat'))return;
  const {reduced,compat}=prefs(),{x,r}=center(zone),pop=temp('div','fx-stat-pop '+(delta>0?'up':'down'));
  pop.textContent=(delta>0?'▲ +':'▼ ')+Math.abs(delta)+' ATK';pop.style.left=x+'px';pop.style.top=r.top+'px';pop.style.fontSize=clamp(13+Math.abs(delta)/120,14,34)+'px';
  play(pop,reduced?[{opacity:0},{opacity:1,offset:.2},{opacity:0}]:[{opacity:0,translate:'-50% 0',scale:.5},{opacity:1,translate:'-50% -60%',scale:1.15,offset:.18},{opacity:1,translate:'-50% -90%',scale:1,offset:.7},{opacity:0,translate:'-50% -130%',scale:1}],{duration:wall(1100),easing:'ease-out'});
@@ -198,6 +205,7 @@ export function statPop(zone,delta){
 
 // Chain escalation: each link's badge is bigger and the field darkens toward violet; links 4+ rattle it.
 export function chainLink(anchor,link){
+ if(!effectOn('chain'))return;
  const {reduced,lite,compat}=prefs(),badge=anchor?.querySelector(`.chain-link-badge[data-link="${link}"]`);
  if(badge)badge.style.scale=String(1+.18*Math.min(link-1,5));
  // The tint lives in the duel screen (under the hand and LP bar), so it leaves with the duel.
@@ -209,7 +217,7 @@ export function clearChain(){const tint=document.querySelector('.duel-main>.fx-c
 
 // Summon weight: higher Levels land heavier, with dust rings, a board shake from 7 and a flash from 10.
 export function summonWeight(zone,level){
- if(!zone||!(level>=5))return;
+ if(!zone||!(level>=5)||!effectOn('summon'))return;
  const {reduced,lite,compat}=prefs(),heavy=level>=7,huge=level>=10;
  later(wall(heavy?360:260)).then(()=>{
   if(!zone.isConnected)return;const {x,y,r}=center(zone);
@@ -225,7 +233,7 @@ export function summonWeight(zone,level){
 export const coinTier=n=>n>=300?4:n>=150?3:n>=60?2:1;
 export function coinTally(tally,amount){
  const total=tally?.querySelector('.reward-tally-total');if(!total)return;
- const {reduced,lite}=prefs(),box=tally.closest('dialog')||tally,number=total.firstChild,tier=coinTier(amount);
+ const {reduced,lite}=prefs(),box=tally.closest('dialog')||tally,number=total.firstChild,tier=effectOn('coins')?coinTier(amount):1;
  box.querySelectorAll('.fx-tally-ring,.fx-frame,.fx-shine,.fx-in-coin,.fx-row-light').forEach(e=>e.remove());total.classList.remove('fx-gold','fx-radiant');
  const rows=[...tally.querySelectorAll('.reward-tally-lines .row,.reward-tally-lines summary')];
  if(!reduced)rows.forEach((row,i)=>row.animate([{opacity:0,translate:'-12px 0'},{opacity:1,translate:'0 0'}],{duration:wall(260),delay:wall(i*70),easing:'ease-out',fill:'backwards'}));
@@ -266,7 +274,7 @@ function coinsInside(box,from,n,cascade){
 // Buying: coins stream from the balance into each bought item, which lifts while a SOLD stamp slams down
 // and then fades into the shop's own sold look. Called after the shop re-renders.
 export function buy(products,balance,prices){
- const {reduced,lite}=prefs(),to=balance?center(balance):null,coin=assetURL('assets/ui/coins.png');
+ const {reduced}=prefs(),lite=prefs().lite||!effectOn('coins'),to=balance?center(balance):null,coin=assetURL('assets/ui/coins.png');
  products.forEach((product,k)=>{
   const art=product?.querySelector('.product-art');if(!art)return;
   const {x,y}=center(art),price=prices[k]||10,delay=k*180;
@@ -293,7 +301,7 @@ export function shopArt(root){return [...root.querySelectorAll('.shop-product .p
 export function reroll(root,previous){
  const {reduced,lite}=prefs(),token=++spinToken,arts=[...root.querySelectorAll('.shop-product .product-art')];
  fadeOut(reelVoice,40);reelVoice=null;
- if(reduced)return;
+ if(reduced||!effectOn('coins'))return;
  const pools={};for(const src of [...previous,...shopArt(root)])if(src)(pools[kindOf(src)]??=new Set()).add(src);
  let spinning=0;
  arts.forEach((art,i)=>{

@@ -9,21 +9,18 @@ def ai_modifiers(run):
  from approved_relics import has
  from feedback_update import opponent_relic
  enemy=opponent_relic(run)
- return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[enemy])] if enemy else []],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[enemy] if enemy else []],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))-(100*(2 if run.get('challenge_level',0)>=2 else 1)*(2*run.get('curses',[]).count('frailty')+run.get('curses',[]).count('brittle')) if has(run,'cursed_shared_hex') else 0),'sharedHex':has(run,'cursed_shared_hex')}
+ return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[enemy])] if enemy else []],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[enemy] if enemy else []],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
  run=duel_run(run)
  import json
  lines=['-- SHADOW_RUN_RNG 2','if Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end', '-- Persistent run effects. Registered with the core, not UI-only bonuses.', '-- SHADOW_RUN_AI '+json.dumps(ai_modifiers(run))]
- # Shared Hex: boss curses also apply to the opponent where they can (Relic Seal also seals the Hex).
- from approved_relics import has as owns
- shared=owns(run,'cursed_shared_hex')
  recovery=run.get('curses',[]).count('no_recovery')
  if recovery:
   factor=0 if run.get('challenge_level',0)>=2 else 0.5**recovery
   lines.append(f'''do local recover=Duel.Recover
-Duel.Recover=function(p,val,...) if p==0{' or p==1' if shared else ''} then val=math.floor(val*{factor}) if val<=0 then return 0 end end return recover(p,val,...) end end''')
+Duel.Recover=function(p,val,...) if p==0 then val=math.floor(val*{factor}) if val<=0 then return 0 end end return recover(p,val,...) end end''')
  if run.get('first_player')==1:lines.append('-- Coin toss: opponent starts\nDuel.SkipPhase(0,PHASE_DRAW,RESET_PHASE+PHASE_END,1)\nDuel.SkipPhase(0,PHASE_STANDBY,RESET_PHASE+PHASE_END,1)\nDuel.SkipPhase(0,PHASE_END,RESET_PHASE+PHASE_END,1)\nDuel.SkipPhase(0,PHASE_MAIN1,RESET_PHASE+PHASE_END,1)\nDuel.SkipPhase(1,PHASE_BATTLE,RESET_PHASE+PHASE_END,1)')
  if telemetry:lines.append('\n-- Compact private telemetry, consumed by both clients instead of shown as hints.\ndo\n local d=Effect.GlobalEffect()\n d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_DAMAGE)\n d:SetOperation(function(e,tp,eg,ep,ev,re,r,rp)\n  if ep~=0 then return end\n  local battle=e:GetCode()==EVENT_PRE_BATTLE_DAMAGE or (r&REASON_BATTLE)~=0\n  local c=re and re:GetHandler() or nil\n  if battle then\n   local a=Duel.GetAttacker() local t=Duel.GetAttackTarget()\n   c=(a and a:IsControler(1)) and a or t\n  end\n  Duel.Hint(HINT_MESSAGE,0,(battle and 1100000000 or 1000000000)+(c and c:GetOriginalCode() or 0))\n  Duel.Hint(HINT_MESSAGE,0,1200000000+ev)\n end)\n Duel.RegisterEffect(d,0)\n local bd=d:Clone() bd:SetCode(EVENT_PRE_BATTLE_DAMAGE) Duel.RegisterEffect(bd,0)\n local ch=Effect.GlobalEffect()\n ch:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) ch:SetCode(EVENT_CHAIN_SOLVING)\n ch:SetOperation(function(e,tp,eg,ep,ev)\n  local ce=Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_EFFECT)\n  local c=ce and ce:GetHandler()\n  Duel.Hint(HINT_MESSAGE,0,1300000000+(c and c:GetOriginalCode() or 0))\n end)\n Duel.RegisterEffect(ch,0)\n local en=Effect.GlobalEffect()\n en:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) en:SetCode(EVENT_CHAIN_END)\n en:SetOperation(function() Duel.Hint(HINT_MESSAGE,0,1300000000) end)\n Duel.RegisterEffect(en,0)\nend\n')
  if telemetry:lines.append("""do
@@ -181,15 +178,8 @@ end
   elif curse=='tax':event('EVENT_PHASE|PHASE_END',f'Duel.Damage(0,{500 if scale>=2 else 200},REASON_EFFECT)')
   elif curse=='brittle':
    stat('EFFECT_UPDATE_ATTACK',-100*scale);stat('EFFECT_UPDATE_DEFENSE',-200*scale)
-  if shared:
-   # The same curse, seen from the opponent's side.
-   if curse=='frailty':stat('EFFECT_UPDATE_ATTACK',-200*scale,enemy=True)
-   elif curse=='enemy_power':stat('EFFECT_UPDATE_ATTACK',200*scale)
-   elif curse=='hunger':stat('EFFECT_UPDATE_DEFENSE',-300*scale,enemy=True)
-   elif curse=='tax':lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_END) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end) e:SetOperation(function() Duel.Damage(1,{500 if scale>=2 else 200},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end''')
-   elif curse=='brittle':stat('EFFECT_UPDATE_ATTACK',-100*scale,enemy=True);stat('EFFECT_UPDATE_DEFENSE',-200*scale,enemy=True)
   if curse=='mirror_stats':
-   target_range='LOCATION_MZONE,0' if scale>=2 and not shared else 'LOCATION_MZONE,LOCATION_MZONE'
+   target_range='LOCATION_MZONE,0' if scale>=2 else 'LOCATION_MZONE,LOCATION_MZONE'
    lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD) e:SetTargetRange({target_range}) Duel.RegisterEffect(e,0) end''')
  # HALF_DAMAGE is a non-stacking engine flag. Apply the combined divisor once.
  mercy=run.get('curses',[]).count('mercy')
@@ -197,14 +187,14 @@ end
   divisor=(3 if scale==2 else 2)**mercy
   lines.append(f'''do local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PRE_BATTLE_DAMAGE)
-e:SetCondition(function(e,tp,eg,ep) return ep==1{' or ep==0' if shared else ''} end)
+e:SetCondition(function(e,tp,eg,ep) return ep==1 end)
 e:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)/{divisor})) end)
 Duel.RegisterEffect(e,0) end''')
  exposed=run.get('curses',[]).count('exposed')
  if exposed:
   multiplier=(2 if scale>=2 else 1.5)**exposed
-  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,{int(shared)}) e:SetValue(function(e,re,val,r) if val<=0 or (r&REASON_BATTLE)~=0 then return val end return math.floor(val*{multiplier}) end) Duel.RegisterEffect(e,0)
-local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0{' or ep==1' if shared else ''} end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
+  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(function(e,re,val,r) if val<=0 or (r&REASON_BATTLE)~=0 then return val end return math.floor(val*{multiplier}) end) Duel.RegisterEffect(e,0)
+local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
 
  for code,operations in events.items():
   # Phase-start continuous events resolve without an optional activation prompt.

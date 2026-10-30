@@ -2246,8 +2246,17 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 .mat{position:relative}
 .fx-flame-layer{position:absolute;inset:0;pointer-events:none}
 .zone[data-fx-power]{background:transparent;box-shadow:none;border-color:transparent}
-/* A burning card that can be selected keeps the yellow selection frame on top of its flame. */
+/* A burning card keeps its frames on top of its flame: card selection, activation (reaction-available, which is
+   a separate class from selectable), a picked activation and a picked target. */
 .zone[data-fx-power].selectable{border-color:#ffeb86;box-shadow:0 0 14px #fffbd2,inset 0 0 12px #fff5a366;z-index:2}
+.zone[data-fx-power].reaction-available{border-color:#ffdf31;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;z-index:2}
+.zone[data-fx-power].reaction-picked{border-color:#fff8c4;box-shadow:0 0 0 2px #ffe52b,0 0 20px #fff47e,inset 0 0 14px #fff47e99;z-index:2}
+.zone[data-fx-power].target-picked{box-shadow:0 0 24px #ffda64;z-index:2}
+/* The floating Chain button would sit over the in-duel settings' toggles. */
+body:has(#modal[open] .settings-dialog) .floating-chain-control{visibility:hidden}
+/* Settings → Effects: hidden at once, even mid-duel; the effect code itself stops on the next redraw. */
+.no-fx-flames .fx-flame-layer,.no-fx-lp .fx-danger,.no-fx-particles .duel-particles{display:none}
+.no-fx-flames .zone[data-fx-power]:not(.selectable,.reaction-available,.reaction-picked){background:#062b36b3;border-color:#a3afaa}
 .fx-blaze{position:absolute;pointer-events:none;transform-origin:50% 100%}
 .fx-blaze .fx-glow{position:absolute;inset:38% -4% -4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,140,40,.7),rgba(255,60,0,.25) 60%,transparent)}
 .fx-blaze.blue .fx-glow{background:radial-gradient(closest-side,rgba(130,210,255,.75),rgba(70,90,255,.28) 60%,transparent)}

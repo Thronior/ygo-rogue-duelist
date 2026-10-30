@@ -1,3 +1,4 @@
+import {effectOn} from './effect-options.js';
 // Duel motion effects. Helpers own their overlay nodes and remove them when finished.
 // Only transform and opacity animate, so the Android WebView stays on the compositor.
 // Callers decide what blocks the duel: helpers never wait on game state.
@@ -148,7 +149,7 @@ export function attackStrike(source,target,{duration,reduced=false,lite=false}){
 
 // Whole-board shake for heavy hits.
 export function shake(el,{strength=3,duration=240}={}){
- if(!el)return null;const s=strength;
+ if(!el||!effectOn('shake'))return null;const s=strength;
  return el.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(${-s}px,${s/3}px,0)`},{transform:`translate3d(${s}px,${-s*2/3}px,0)`},{transform:`translate3d(${-s*2/3}px,${s/3}px,0)`},{transform:'translate3d(0,0,0)'}],{duration,easing:'ease-out'});
 }
 

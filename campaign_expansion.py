@@ -78,7 +78,7 @@ def install(g):
      and len(r['pool'])<=10000 and all(aliases.get(c,c) in g.BY_ID for c in r['pool'])
      and all(isinstance(i,int) and 0<=i<len(r['pool']) for i in r['selected'])
      and len(set(r['selected']))==len(r['selected'])
-     and all(a in ARTIFACTS or a=='purse' for a in r.get('artifacts',[]))
+     and all(a in ARTIFACTS or a in ar.REMOVED for a in r.get('artifacts',[]))
      and r.get('stage','draft') in ('draft','shop','duel','gameover','complete'))
    except (KeyError,TypeError): return False
   r=storage.read(storage.run_path(slot),None,valid)
@@ -87,11 +87,8 @@ def install(g):
    normalize_pack_references(r)
    if r.get('challenge_level',0)>=6:r.setdefault('persistent_curses',list(r.get('curses',[])))
    shop_rewards.normalize_run(r)
-   # Retire Silken Purse without invalidating an existing run.
-   r['artifacts']=[a for a in r.get('artifacts',[]) if a!='purse']
-   r['shop']=[item for item in r.get('shop',[]) if not (item.get('kind')=='artifact' and item.get('id')=='purse')]
-   if r.get('mirror_copy')=='purse':r.pop('mirror_copy',None)
-   if r.get('starting_relic')=='purse':r['starting_relic']='none'
+   # Retire removed relics without invalidating an existing run.
+   ar.drop_removed(r)
    ar.reconcile_turn_order(r)
    r['_save_slot']=slot
    r['content_unlocks_earned']=[]
@@ -197,7 +194,6 @@ def install(g):
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=6:count=1
-  count+=ar.extra_curses(run)
   draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6))
   distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6)
   choices=[]
@@ -309,7 +305,7 @@ def install(g):
   persistent=run.get('challenge_level',0)>=6
   boss=number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))
   if boss:
-   count=(1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0))+ar.extra_curses(run)
+   count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
    if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0),per_encounter=True):
     selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]))
@@ -340,7 +336,6 @@ def install(g):
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
   char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
   enemy_lp=max(1,enemy_lp+2000*ar.copies(duel_run,'cursed_loaded_purse'))
-  if ar.has(duel_run,'cursed_shared_hex'):enemy_lp=max(1,enemy_lp-1000*challenge_levels.curse_scale(run)*run['curses'].count('drain'))
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
   rng.shuffle(main_pairs)
@@ -381,7 +376,6 @@ def install(g):
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand0=challenge_levels.curse_opening_hand(run,hand0)
   hand1=1 if owns(duel_run,'rulebook') else 5
-  if ar.has(duel_run,'cursed_shared_hex'):hand1=challenge_levels.curse_opening_hand(run,hand1)
   lua=['-- Shadow Run: native EDOPro campaign.','Debug.SetAIName('+json.dumps(enemy_name)+')','Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)',f'Debug.SetPlayerInfo(0,{lp},{hand0},1)',f'Debug.SetPlayerInfo(1,{enemy_lp},{hand1},1)']
   for p,cards,loc in [(0,main,'LOCATION_DECK'),(0,extra,'LOCATION_EXTRA'),(1,enemy,'LOCATION_DECK'),(1,enemy_extra,'LOCATION_EXTRA')]:
    lua += [f'Debug.AddCard({cid},{p},{p},{loc},0,POS_FACEDOWN_DEFENSE)' for cid in cards]

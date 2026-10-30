@@ -140,7 +140,7 @@ class TagCampaign:
 
      from feedback_update import draw_curses
 
-     run['route_curses'][str(opponent)]=draw_curses(self.rng,(1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3))+ar.extra_curses(run))
+     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
 
@@ -306,7 +306,25 @@ class TagCampaign:
 
   self.shared.setdefault('shop_rerolls',0);self.shared.setdefault('cursed_offer',None);self.shared.setdefault('cursed_artifacts',[])
 
-  self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']));self.sync()
+  self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']))
+
+  for run in (self.shared,*self.players):ar.drop_removed(run)
+
+  # Finale drafts index into the pool, so keep those indices on the same relics.
+
+  pool=self.finale.get('pool',[]);kept=[i for i,a in enumerate(pool) if a not in ar.REMOVED]
+
+  if len(kept)<len(pool):self.finale.update(pool=[pool[i] for i in kept],remaining=[kept.index(i) for i in self.finale.get('remaining',[]) if i in kept])
+
+  if 'picks' in self.finale:self.finale['picks']=[[a for a in picks if a not in ar.REMOVED] for picks in self.finale['picks']]
+
+  self.sync()
+
+  offer=self.shared.get('cursed_offer')
+
+  if offer and any(k in ar.REMOVED for k in offer['options']):
+
+   cursed_relics.create_offer(self.players[0],self.rng);self.shared['cursed_offer']=deepcopy(self.players[0].get('cursed_offer'));self.sync()
 
   if self.phase=='draft' and (self.shared['round']+1)%3==0 and any(len(r.get('routes',[]))>1 for r in self.players):self.ready=[False,False];self.routes()
 
