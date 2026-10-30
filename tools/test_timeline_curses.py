@@ -12,7 +12,7 @@ def play(r,seed):
  g.finish_duel(r,dict(protocol=1,id=r['duel']['id'],winner=0,lp=8000,events=[]),random.Random(seed+1))
  return r['timeline'][-1]
 
-for level in (0,5):
+for level in (0,6):
  r=g.new_run(1,random.Random(level));g.auto_deck(r);r.update(stage='shop',challenge_level=level)
  seen=[]
  for duel in range(1,4):
@@ -21,5 +21,5 @@ for level in (0,5):
   seen.append(row['curses'])
  assert seen[2] and all(k in c.CURSES for k in seen[2]),(level,seen)
  if level==0:assert seen[0]==seen[1]==[],seen
- else:assert len(seen[0])==1 and seen[1]==seen[0] and set(seen[0])<=set(seen[2]),seen  # LVL 5+: curses carry over
-print('PASS each duel records its active curses: boss duels at LVL 0, carried-over curses at LVL 5+')
+ else:assert len(seen[0])==1 and seen[1]==seen[0] and set(seen[0])<=set(seen[2]),seen  # LVL 6+: curses carry over
+print('PASS each duel records its active curses: boss duels at LVL 0, carried-over curses at LVL 6+')

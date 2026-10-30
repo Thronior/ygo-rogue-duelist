@@ -1121,7 +1121,12 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Kuriboh')return chain?95:-1;
   if(n==='Gilasaurus')return own.length<4&&!q(1-p,L.GRAVE).some(x=>(data(x).type&1)&&atk(x)>1400)?80:-1;
   if(n==='Viser Des')return enemy.length?80:-1;
-  if(n==='Little-Winguard')return e.player===p&&enemy.some(x=>face(x)&&atk(x)>atk(c))?60:-1;
+  // Little-Winguard's End Phase switch (and any optional switch of this card): only into the position
+  // that fares better, so it never undoes a manual switch to Defense.
+  if(n==='Little-Winguard'||c.location===L.MZONE&&/You can change (?:the battle position of this card|this card's battle position)/i.test(t)){
+   const live=own.find(x=>same(x,c)),better=live&&face(live)?betterPosition(live):null;
+   return better!==null&&better!==!!(live.position&1)?60:-1;
+  }
   if(n==='Cyber Raider')return theirBack.some(x=>face(x)&&(data(x).type&0x40000))?80:-1;
   if(n==='Mystic Plasma Zone')return own.filter(x=>face(x)&&hasAttribute(x,'DARK')).length>enemy.filter(x=>face(x)&&hasAttribute(x,'DARK')).length?60:-1;
   if(n==='Yami'||n==='Mountain'){
@@ -1410,7 +1415,8 @@ export function smartContext(e,p,L,prompt=null){
   for(const t of [...enemy].sort((a,b)=>power(b)-power(a))){const i=strikers.findIndex(a=>atk(a)>power(t));if(i<0)return false;strikers.splice(i,1);}
   return true;
  }
-  function projectedAttack(c){
+  // equips:false is the hand display's "On the field" forecast: equip Spells still in hand are not on the monster yet.
+  function projectedAttack(c,{equips=true}={}){
   if(c.location===L.MZONE)return atk(c);
    const monsterName=name(c);
    let baseAttack=monsterName==='Megarock Dragon'?700*grave.filter(x=>race(x)==='Rock').length:monsterName==='Fusilier Dragon, the Dual-Mode Beast'&&own.length<2?1400:atk(c);
@@ -1421,7 +1427,7 @@ export function smartContext(e,p,L,prompt=null){
    if(monsterName==='Slifer the Sky Dragon')baseAttack=1000*Math.max(0,hand.length-(c.location===L.HAND?1:0));
    // In this game's script Ra gains ATK/DEF equal to the LP paid, leaving 100 LP.
    if(monsterName==='The Winged Dragon of Ra')baseAttack=Math.max(0,(e.lp?.[p]??0)-100);
-   let result=baseAttack+(p===1?(e.aiModifiers?.enemyAttack||0):0)+handEquipBonus(c);
+   let result=baseAttack+(p===1?(e.aiModifiers?.enemyAttack||0):0)+(equips?handEquipBonus(c):0);
   // Relic bonuses apply only on the field, so a forecast adds them as if the monster had landed.
   result+=relicAttack(c,p)+curseStat(p,'attack');
   if(effectsEnabled(p)){
@@ -1429,6 +1435,7 @@ export function smartContext(e,p,L,prompt=null){
    if(name(c)==='Element Saurus'&&[...own,...enemy].some(x=>face(x)&&hasAttribute(x,'FIRE')))result+=500;
    if(monsterName==='The Agent of Force - Mars'&&e.lp[p]>e.lp[1-p]&&back.some(x=>x.sequence===5&&enabled(x)&&name(x)==='The Sanctuary in the Sky'))result+=e.lp[p]-e.lp[1-p];
   }
+  if(effectsEnabled(p))result+=selfStat(c,'attack');
   // Only face-up field cards affect a future summon; do not copy equipped monsters' bonuses.
   const futureAttributes=fieldAttributes(c,p);
   result+=fieldSpellBonus(c,'attack');
@@ -1439,6 +1446,9 @@ export function smartContext(e,p,L,prompt=null){
    if(n==='Burden of the Mighty'&&x.controller!==p)result-=100*effectiveLevel(c,true);
    if(n==='Banner of Courage'&&x.controller===p&&e.player===p)result+=200;
   }
+  // A summoned aura monster (Star Boy, Hoshiningen, ...) also boosts itself.
+  {const aura=effectsEnabled(p)&&{'Hoshiningen':['LIGHT',500,'DARK',-400],"Witch's Apprentice":['DARK',500,'LIGHT',-400],'Little Chimera':['FIRE',500,'WATER',-400],'Star Boy':['WATER',500,'FIRE',-400],'Bladefly':['WIND',500,'EARTH',-400],'Milus Radiant':['EARTH',500,'WIND',-400]}[monsterName];
+   if(aura)result+=(futureAttributes.has(aura[0])?aura[1]:0)+(futureAttributes.has(aura[2])?aura[3]:0);}
   if(race(c)==='Warrior'){
    const knights=own.filter(x=>enabled(x)&&name(x)==='Command Knight').length+(c.location!==L.MZONE&&monsterName==='Command Knight'?1:0);
    result+=400*knights;
@@ -1451,7 +1461,7 @@ export function smartContext(e,p,L,prompt=null){
   if(side!==0)return 0;const curses=e.aiModifiers?.activeCurses||[],scale=(e.aiModifiers?.challengeLevel??0)>=2?2:1,n=k=>curses.filter(x=>x===k).length;
   return scale*(stat==='attack'?-200*n('frailty')-100*n('brittle'):-300*n('hunger')-200*n('brittle'));
  }
- function projectedDefense(c){
+ function projectedDefense(c,{equips=true}={}){
   if(c.location===L.MZONE)return def(c);
   let result=def(c);
   const type=data(c).type||0;if(!(type&1))return result;
@@ -1459,9 +1469,9 @@ export function smartContext(e,p,L,prompt=null){
    const inHand=c.location===L.HAND&&hand.some(x=>same(x,c));
    result=Math.max(0,result-400*Math.max(0,hand.length-(inHand?1:0)));
   }
-  result+=relicDefense(c,p)+curseStat(p,'defense')+fieldSpellBonus(c,'defense');
+  result+=relicDefense(c,p)+curseStat(p,'defense')+fieldSpellBonus(c,'defense')+(effectsEnabled(p)?selfStat(c,'defense'):0);
   const equipDefense={'Horn of Light':800};
-  if(c.location===L.HAND&&!spellNegated){
+  if(equips&&c.location===L.HAND&&!spellNegated){
    const slots=Math.max(0,(e.aiModifiers?.spellTrapZones??5)-back.filter(x=>x.sequence<5).length);
    if(slots){const future={...c,controller:p,location:L.MZONE,sequence:5,position:1};
     const bonus=hand.filter(x=>x.code!==c.code&&friendlyEquip(x)&&equipUseful(x,future)).map(x=>equipDefense[name(x)]||0).filter(x=>x>0).sort((a,b)=>b-a).slice(0,slots);
@@ -1469,6 +1479,30 @@ export function smartContext(e,p,L,prompt=null){
    }
   }
   return Math.max(0,result);
+ }
+ // Monsters a Tribute Summon from hand sends to the GY before it lands; Gigantes banishes one from the GY as its cost.
+ function tributesToGrave(c){if(c.location!==L.HAND)return 0;if(name(c)==='Gigantes')return -1;const level=lvl(c);return level>=7?2:level>=5?1:0}
+ // The forecast monster's own continuous ATK/DEF effects, counted as it will be once summoned from hand
+ // (it is then one of your monsters and no longer in your hand). Random ones (Maximum Six) stay unforecast.
+ function selfStat(c,stat){
+  if(c.location===L.MZONE)return 0;
+  const n=name(c),mine=[...own.filter(x=>face(x)&&!same(x,c)),c],handAfter=hand.filter(x=>!same(x,c)).length,graveMonsters=grave.filter(x=>data(x).type&1),graveCount=graveMonsters.length+tributesToGrave(c),fire=[...own,...enemy].filter(x=>face(x)&&hasAttribute(x,'FIRE'));
+  if(stat==='attack')switch(n){
+   case 'Mudora':return 200*graveMonsters.filter(x=>race(x)==='Fairy').length;
+   case 'Amazoness Tiger':return 400*mine.filter(x=>setMatch(x,0x4)).length;
+   case 'Amazoness Paladin':return 100*mine.filter(x=>setMatch(x,0x4)).length;
+   case 'Chaos Necromancer':return 300*graveCount;
+   case 'Shadow Ghoul':return 100*graveCount;
+   case 'Dark Magician Girl':return 300*[0,1].flatMap(s=>q(s,L.GRAVE)).filter(x=>['Dark Magician','Magician of Black Chaos'].includes(name(x))).length;
+   case 'Muka Muka':return 300*handAfter;
+   case 'Blade Knight':return handAfter<=1?400:0;
+   case 'Breaker the Magical Warrior':return 300;// Its Spell Counter is placed when it is Normal Summoned.
+   case 'Gyaku-Gire Panda':return 500*enemy.length;
+   case 'Ultimate Baseball Kid':return 1000*fire.length;
+   case 'Element Valkyrie':return fire.length?500:0;
+  }
+  if(stat==='defense'&&n==='Muka Muka')return 300*handAfter;
+  return 0;
  }
  // Face-up Field Spells, as the card scripts apply them; only positive bonuses are amplified.
  function fieldSpellBonus(c,stat){
@@ -1478,6 +1512,7 @@ export function smartContext(e,p,L,prompt=null){
   for(const f of [...back,...theirBack].filter(x=>face(x)&&!x.is_disabled&&(data(x).type&0x80000))){
    const n=name(f),r=races[n];let bonus=r?(r[0].includes(race(c))?200:r[1].includes(race(c))?-200:0):0;
    if(n==='A Legendary Ocean'&&future.has('WATER'))bonus+=200;
+   if(n==='Necrovalley'&&setMatch(c,0x2e))bonus+=500;
    if(attributes[n]&&future.has(attributes[n]))bonus+=stat==='attack'?500:-400;
    if(bonus>0)bonus*=1+relics(f.controller).filter(k=>k==='field_amplifier').length;
    total+=relic(p,'almighty')?Math.max(0,bonus):bonus;
@@ -1506,10 +1541,11 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
     case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-200;break;
-    case 'approved_grave_lantern':v=Math.min(800,100*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
+    case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
     case 'variant_village_banner':v=lvl(c)===4?200:0;break;
+    case 'eclipse':v=['LIGHT','DARK'].every(at=>q(side,L.GRAVE).some(x=>(data(x).type&1)&&face(x)&&hasAttribute(x,at)))?a:0;break;
     case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
    }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
@@ -1544,7 +1580,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_ritual_scar':v=is(0x80)?1000:0;break;case 'approved_fusion_fever':v=is(0x40)?800:0;break;
     case 'approved_empty_hand_pact':v=handAfter===0?1000:0;break;
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
-    case 'approved_crowded_crypt':v=Math.min(750,75*q(side,L.GRAVE).filter(x=>data(x).type&1).length);break;
+    case 'approved_crowded_crypt':v=Math.min(750,75*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_swordsman_oath':v=setMatch(c,0x41)?400:0;break;
@@ -1755,6 +1791,17 @@ if(!effectsEnabled(p))return 0;
   if(!enemy.some(x=>face(x)&&(pierce(x,1-p,true)||enabled(x)&&name(x)==='Exarion Universe')))return null;
   const attack=incomingDamage(c,true),defense=incomingDamage(c,false);
   const result=attack===defense?null:attack<defense;safetyCache.set(key,result);return result;
+ }
+ // The position that fares better through the opponent's next turn: true for Attack, false for Defense,
+ // null when it makes no difference. As in the manual switch (duel.js), a visible attacker that beats
+ // this monster's ATK means Defense; saferPosition weighs piercing damage.
+ function betterPosition(c){
+  const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
+  const attackers=enemy.filter(x=>face(x)&&!attackBlocked(x,1-p,true));
+  const losesAttack=attackers.some(x=>swing(x)>atk(c)),losesDefense=attackers.some(x=>swing(x)>def(c));
+  if(losesAttack!==losesDefense)return losesDefense;
+  const safer=saferPosition(c);
+  return safer!==null?safer:losesAttack?false:null;
  }
 
  function combatPower(a,target=null){

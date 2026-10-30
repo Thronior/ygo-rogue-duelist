@@ -21,7 +21,7 @@ REGULAR=[
 # Muniqui's relic suggestions, reviewed with Thronior on 2026-10-28.
 ('battle_proficiency','Battle Proficiency',110,'Increase battle damage your opponent takes by 50% (rounded down).','Lightning Blade'),
 ('burn_proficiency','Burn Proficiency',100,'Increase effect damage you inflict to your opponent by 50% (rounded down).','Hinotama'),
-('straw_doll','Straw Doll',130,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
+('straw_doll','Straw Doll',250,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
 ('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced. This relic appears less often than other relics.','Gate Guardian'),
 ('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Upstart Goblin'),
 ('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.','Magical Merchant'),

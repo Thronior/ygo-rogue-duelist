@@ -4,7 +4,7 @@ Usage: python tools/build_pwa.py --output <directory>
 Run tools/build_android.py --sync-only first when campaign/assets have changed.
 """
 from pathlib import Path
-import argparse,hashlib,json,shutil,sys,zipfile
+import argparse,hashlib,json,re,shutil,sys,zipfile
 from PIL import Image
 
 def build(root,out,templates,bundle_artwork=False):
@@ -54,14 +54,21 @@ def build(root,out,templates,bundle_artwork=False):
  manifest=dict(id='./',name='Yu-Gi-Oh: Rogue Duelist',short_name='YGO Rogue',start_url='./',scope='./',display='standalone',background_color='#081923',theme_color='#102936',orientation='any',icons=[dict(src=f'icon-{s}.png',sizes=f'{s}x{s}',type='image/png',purpose='any') for s in [192,512]])
  (out/'manifest.webmanifest').write_text(json.dumps(manifest,indent=2),encoding='utf8')
  page=out/'index.html';text=page.read_text(encoding='utf8').replace('</head>','<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="theme-color" content="#102936"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="YGO Rogue"><link rel="stylesheet" href="pwa.css"></head>').replace('</body>','<script type="module" src="pwa.js"></script></body>');page.write_text(text,encoding='utf8')
- (out/'_headers').write_text('/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/sw.js\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/manifest.webmanifest\n  Content-Type: application/manifest+json\n/*.wasm\n  Content-Type: application/wasm\n/*.mjs\n  Content-Type: text/javascript\n',encoding='utf8')
+ (out/'_headers').write_text('/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/sw.js\n  Cache-Control: no-cache\n/live-version.json\n  Cache-Control: no-store\n/index.html\n  Cache-Control: no-cache\n/manifest.webmanifest\n  Content-Type: application/manifest+json\n/*.wasm\n  Content-Type: application/wasm\n/*.mjs\n  Content-Type: text/javascript\n',encoding='utf8')
  entries={};packs={}
  if bundle_artwork:
   from web_artwork_bundles import pack_artwork
   entries,packs=pack_artwork(out,templates)
+ else:
+  # Hosted builds compare with the live version before booting (web-boot.js). Each itch upload has its own URL.
+  text,n=re.subn(r'<script type="module" src="mobile\.js(?:\?[^"]*)?"></script><script type="module" src="pwa\.js"></script>','<script type="module" src="web-boot.js"></script>',page.read_text(encoding='utf8'))
+  assert n==1,'Expected one mobile.js + pwa.js entrypoint pair';page.write_text(text,encoding='utf8')
+  shutil.copy2(templates/'web-boot.js',out/'web-boot.js')
+  # Never stored by the offline worker, so it always reflects the deployment.
+  (out/'live-version.json').write_text(json.dumps(dict(version=(root/'VERSION').read_text(encoding='utf8').strip())),encoding='utf8')
  (out/'offline-size.json').write_text(json.dumps(dict(bytes=sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))),encoding='utf8')
  worker=templates/('bundle-sw.js' if bundle_artwork else 'pwa-sw.js')
- files=sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name!='_headers')
+ files=sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name not in ('_headers','live-version.json'))
  # Per-file content hashes let the offline worker keep one shared copy and download only changed files.
  digest=hashlib.sha256();hashes={}
  for name in files:data=(out/name).read_bytes();digest.update(name.encode());digest.update(data);hashes[name]=hashlib.sha256(data).hexdigest()[:16]

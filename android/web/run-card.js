@@ -8,19 +8,21 @@ const W=1080,H=1350,L=80,R=1000,BOSS_EVERY=3;// BOSS_EVERY mirrors content.py.
 // Android has no Impact, so the card bundles Bebas Neue (SIL OFL 1.1, notice inside the font file) as the fallback.
 const DISPLAY='Impact,"YGO Display","Arial Black",sans-serif',UI='Arial,"Helvetica Neue",sans-serif',SERIF='Georgia,"Noto Serif",serif';
 // Challenge level colours from the level badges in mobile.css: [light, dark, edge].
-const LEVEL_COLORS={'-1':['#3a5866','#1c2f38','#7fa3b0'],0:['#31966c','#104a36','#72deb1'],1:['#368cd0','#173c89','#85c9ff'],2:['#9860cf','#4b2379','#d5a5ff'],3:['#d14f70','#7d183c','#ff95b1'],4:['#dc853d','#8b3c12','#ffc18c'],5:['#d9a441','#8a5612','#ffe182'],6:['#448ebc','#1f5a80','#b8ecff']};
+const LEVEL_COLORS={'-1':['#3a5866','#1c2f38','#7fa3b0'],0:['#31966c','#104a36','#72deb1'],1:['#368cd0','#173c89','#85c9ff'],2:['#9860cf','#4b2379','#d5a5ff'],3:['#d14f70','#7d183c','#ff95b1'],4:['#dc853d','#8b3c12','#ffc18c'],5:['#d9a441','#8a5612','#ffe182'],6:['#b46cff','#3a1f6e','#ffc4f2']};
 const LOSS={rim:28,frame:[[0,'#a3aeb7'],[.5,'#7c8892'],[1,'#56616b']],
  tint:'rgba(14,32,42,.46)',glow:'rgba(160,182,196,.1)',panel:'rgba(10,25,34,.86)',line:'rgba(98,137,148,.8)',row:'rgba(25,49,61,.92)',
  ink:'#e8f3f1',soft:'#a9c1c8',accent:'#ff838a',good:'#85ceaa',bad:'#ff838a',edgeLight:'rgba(240,244,248,.55)',edgeDark:'rgba(0,0,0,.6)'};
 
+// Level 6 frame, matching the rolling rainbow on the roster in mobile.css.
+const RAINBOW=[[0,'#ff4f8b'],[.15,'#ff9f43'],[.3,'#ffe45c'],[.45,'#5cf08f'],[.6,'#45c8ff'],[.75,'#8f6bff'],[.9,'#ff5fd2'],[1,'#ff4f8b']];
 function rgb(hex){const n=parseInt(hex.slice(1),16);return [n>>16,n>>8&255,n&255]}
 function rgba(hex,a){return `rgba(${rgb(hex).join(',')},${a})`}
 function mix(a,b,k){const x=rgb(a),y=rgb(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('')}
 // A won run's tablet is polished metal in the colour of the challenge level it cleared.
 function winStyle(level){
  const [a,b,edge]=LEVEL_COLORS[level]||LEVEL_COLORS[0],shine=mix(edge,'#ffffff',.65);
- // The top two levels get a rarity-style foil on top of the metal: gold glitter, then prismatic secret-rare foil.
- return {rim:44,frame:[[0,b],[.18,edge],[.34,a],[.5,shine],[.66,a],[.84,edge],[1,b]],metal:[a,edge,shine],flair:level===6?'prism':level===5?'glitter':null,
+ // The top two levels get a rarity-style foil on top of the metal: gold glitter, then a rainbow frame with prismatic secret-rare foil.
+ return {rim:44,frame:level===6?RAINBOW:[[0,b],[.18,edge],[.34,a],[.5,shine],[.66,a],[.84,edge],[1,b]],metal:[a,edge,shine],flair:level===6?'prism':level===5?'glitter':null,
   tint:'rgba(14,34,46,.42)',glow:rgba(a,.22),panel:'rgba(10,27,37,.84)',line:rgba(edge,.55),row:'rgba(25,49,61,.9)',
   ink:'#f4f8f8',soft:mix(edge,'#e8f3f1',.55),accent:edge,good:edge,bad:'#ff838a',edgeLight:'rgba(255,255,255,.9)',edgeDark:rgba(mix(b,'#000000',.4),.85)}
 }
@@ -112,7 +114,7 @@ function fieldFoil(ctx,t,field){
   // Faint rays of light fanning out from behind the title.
   ctx.fillStyle=rgba(t.accent,.07);for(let i=0;i<32;i++){const a=i/32*Math.PI*2;ctx.beginPath();ctx.moveTo(W/2,140);ctx.arc(W/2,140,1700,a,a+Math.PI/64);ctx.fill()}
  }else{
-  const g=gradient(ctx,[[0,'rgba(255,255,255,0)'],[.3,'rgba(255,120,200,.08)'],[.42,'rgba(120,230,255,.12)'],[.54,'rgba(140,255,190,.08)'],[.66,'rgba(255,255,255,0)']],0,0,W,H);
+  const g=gradient(ctx,[[0,'rgba(255,80,140,.16)'],[.18,'rgba(255,170,70,.14)'],[.34,'rgba(255,230,90,.12)'],[.5,'rgba(90,240,150,.14)'],[.66,'rgba(70,200,255,.16)'],[.82,'rgba(145,110,255,.16)'],[1,'rgba(255,95,210,.16)']],0,0,W,H);
   ctx.globalCompositeOperation='screen';ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over'
  }
  // Light spilling in from the frame onto the field.

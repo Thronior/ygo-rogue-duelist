@@ -133,9 +133,20 @@ top = Counter(g.BY_ID[c].get("attribute") for c in g.deck(run4)
               if g.BY_ID[c]["data"]["type"] & 1 and g.BY_ID[c].get("attribute")).most_common(1)[0][0]
 expect = {"LIGHT": "light", "DARK": "dark", "FIRE": "ember",
           "WATER": "tide", "WIND": "gale", "EARTH": "earth"}[top]
+import copy
+saved_run = copy.deepcopy(run4)
+# A low-LP win that Phoenix Feather never saved (e.g. Straw Doll took the hit) keeps it.
 g.finish_duel(run4, dict(protocol=1, id=run4["duel"]["id"], winner=0, lp=800, events=[]))
 assert "blank_relic" not in run4["artifacts"] and expect in run4["artifacts"], run4["artifacts"]
-assert "phoenix_rebirth" not in run4["artifacts"] and run4.get("phoenix_spent")
+assert "phoenix_rebirth" in run4["artifacts"] and not run4.get("phoenix_spent")
+# The save itself spends it.
+run5 = copy.deepcopy(saved_run)
+g.finish_duel(run5, dict(protocol=1, id=run5["duel"]["id"], winner=0, lp=800, events=[{"kind": "relic_used", "relic": "phoenix_rebirth"}]))
+assert "phoenix_rebirth" not in run5["artifacts"] and run5.get("phoenix_spent")
+# Tag duels carry no save signal, so a Tag win at 1,000 LP or less still counts as the save.
+run6 = copy.deepcopy(saved_run)
+g.finish_duel(run6, dict(protocol=1, id=run6["duel"]["id"], winner=0, lp=800, events=[], phoenix_signal=False))
+assert "phoenix_rebirth" not in run6["artifacts"] and run6.get("phoenix_spent")
 
 # Rulebook opening hands in the generated duel script.
 run5 = g.new_run(0, random.Random(8))

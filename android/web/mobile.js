@@ -110,7 +110,8 @@ import {motionPreferences,wallMs,attributeColor,activationColor,cardFlight,landi
 
 import {createDuelSounds,duelSoundPath} from './duel-sfx.js';
 
-import {uploadReplays,replayRows,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
+import {uploadReplays,replayRows,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags,runReplayIndex,loadReplay} from './replays.js';
+import {ReplayViewer} from './duel-replay-viewer.js';
 
 import {recordStat,recordRunResult,startStats,fetchStats,observeTagStats,personalPlaySeconds,statsEnabled,setStatsEnabled} from './global-stats.js';
 
@@ -154,7 +155,7 @@ setEmoteVolumeReader(()=>state?.settings?.sound/100||0);
 
 let selectedLevels={},selectedVariants={};
 
-const levelText=['No modifiers','All enemies start with 8000 LP','Amplified Boss Curses','Coin rewards reduced by 25%','Start with 4000 LP; between-duel healing cap 4000 LP','Start with a chosen curse; curses persist and each boss adds one','Opponents receive a thematic combat relic'];
+const levelText=['No modifiers','All enemies start with 8000 LP','Amplified Boss Curses','Coin rewards reduced by 25%','Start with 4000 LP; between-duel healing cap 4000 LP','Opponents receive a thematic combat relic','Start with a chosen curse; curses persist and each boss adds one'];
 
 function levelMenu(){const beaten=state.profile.character_levels?.[selected]??-1;const row=(level,text,locked=false)=>`<button data-do="choose-level" data-level="${level}" ${locked?'disabled':''}><span class="level-badge challenge-level-badge" aria-label="Level ${level}"><span>LVL</span><strong>${level}</strong></span><span class="challenge-level-copy"><b>${locked?'Beat lvl '+(level-1)+' to unlock':text}</b>${locked?'<small>??????????</small>':level>0?'<small>Includes all previous modifiers</small>':''}${level>=0&&level<=beaten?'<small>Completed</small>':''}</span></button>`;dialog('Challenge level',`<p>Modifiers accumulate. Clear a full run to unlock the next level for this character.</p><div class="level-list">${state.profile.relicless_unlocked?row(-1,'Disable all relics or curses'):''}${levelText.map((text,i)=>row(i,text,i>beaten+1)).join('')}</div>`)}
 
@@ -546,7 +547,7 @@ function previewMarkup(){let c=card(preview);
 if(!c)return '<p>Tap a card to inspect it. Tap it again or choose an action to play.</p>';return `<img src="${image(c.id)}"><h3>${esc(c.name)}</h3><div class="badges">${cardBadges(c)}</div>${c.data.type&1?`<div class="stats"><img class="genre-icon" src="assets/icons/level-star.png" alt="Level"> ${c.level}<br>ATK ${c.atk} / DEF ${c.defense}${c.summoned&&(c.summoned.atk!==c.atk||c.summoned.defense!==c.defense)?`<br><span class="summoned-stats">On the field: ATK ${c.summoned.atk} / DEF ${c.summoned.defense}</span>`:''}</div>`:''}${genreIcons(c)}<div class="card-text">${esc(displayCardText(c.desc))}</div>`}
 
 // Relic and Field Spell bonuses apply only on the field, so a monster in hand also shows the stats it would be summoned with.
-function summonedStats(live,seq){if(tagUI||typeof engine?.query!=='function')return null;try{const smart=smartContext(engine,0,L),c={...live,controller:0,location:L.HAND,sequence:seq};return {atk:smart.projectedAttack(c),defense:smart.projectedDefense(c)}}catch{return null}}
+function summonedStats(live,seq){if(tagUI||typeof engine?.query!=='function')return null;try{const smart=smartContext(engine,0,L),c={...live,controller:0,location:L.HAND,sequence:seq};return {atk:smart.projectedAttack(c,{equips:false}),defense:smart.projectedDefense(c,{equips:false})}}catch{return null}}
 
 let titleMotion=null;
 
@@ -856,7 +857,7 @@ async function startDuel(resume=false,opponent=null){busy=true;app.innerHTML='<s
 
  if(!engine)engine=await new MobileDuel([...content.cards,...content.tokenCards]).init();else engine.destroy();const d=state.run.mobile_duel;if(!d)throw Error('No resumable mobile duel.');
 
- coinMilestones.delete(engine);coinProgress.delete(engine);duelAnimations.delete(engine);if(!resume)summonMusic.delete(engine);snapshot=engine.start(d.deck,d.enemy,d.lp,d.enemyLP,d.draw,d.seed,d.extra,d.enemyExtra,d.passives,d.enemyDraw??5);
+ coinMilestones.delete(engine);coinProgress.delete(engine);duelAnimations.delete(engine);if(!resume)summonMusic.delete(engine);snapshot=engine.start(d.deck,d.enemy,d.lp,d.enemyLP,d.draw,d.seed,d.extra,d.enemyExtra,d.passives,d.enemyDraw??5);if(engine.replayRecord)engine.replayRecord.meta={started_at:state.run.started_at,character:state.run.character,loop:(state.run.loop||0)+1,duel:(state.run.round||0)+1,opponent:state.run.duel?.opponent??state.run.opponent};
 
  if(resume)for(const r of d.responses)snapshot=engine.respond(decode(r));
 
@@ -1836,7 +1837,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='champion'){await command('champion');return startDuel(false,0)}if(a==='next-loop'){await command('next-loop');go('shop');return}
 
- if(a==='collection-kind'){collectionKind=el.dataset.kind;collectionPage=0;renderCollection();return}if(a==='collection-search'){collectionQuery=document.querySelector('#collection-search').value;collectionPage=0;renderCollection();return}if(a==='collection-prev'||a==='collection-next'){collectionPage+=a==='collection-next'?1:-1;renderCollection();return}if(a==='collection-item'){const id=el.dataset.id;if(collectionKind==='packs'){inspectPack(id)}else{const r=content.artifacts[id];dialog(r[0],`<div class="collection-relic-art relic-detail-art">${relicArtwork(relicImage(content.artifactInfo[id].art))}${relicCountBadge(id)}</div><p>${esc(r[2])}</p>`)}return}
+ if(a==='watch-replay'){if(el.dataset.replay)await watchReplay(el.dataset.replay);return}if(a==='collection-kind'){collectionKind=el.dataset.kind;collectionPage=0;renderCollection();return}if(a==='collection-search'){collectionQuery=document.querySelector('#collection-search').value;collectionPage=0;renderCollection();return}if(a==='collection-prev'||a==='collection-next'){collectionPage+=a==='collection-next'?1:-1;renderCollection();return}if(a==='collection-item'){const id=el.dataset.id;if(collectionKind==='packs'){inspectPack(id)}else{const r=content.artifacts[id];dialog(r[0],`<div class="collection-relic-art relic-detail-art">${relicArtwork(relicImage(content.artifactInfo[id].art))}${relicCountBadge(id)}</div><p>${esc(r[2])}</p>`)}return}
 
  if(a==='new')return newRun();
 
@@ -2219,6 +2220,12 @@ function relicLedgerMarkup(only=null,allowSell=true){const ids=ownedRelics().fil
 
 function liveCardDetails(code){if(screen!=='duel'||!snapshot)return '';const rows=[];for(let p=0;p<2;p++)snapshot.players[p].monsters.forEach((c,i)=>{if(!c||c.code!==code||p===1&&!(c.position&5))return;const base=card(code);const delta=c.attack-base.atk;const defenseDelta=c.defense-base.defense;const attacking=engine.pending?.player===p&&engine.pending?.type===M.SELECT_BATTLECMD;const available=attacking&&engine.pending.attacks?.some(x=>x.sequence===i);rows.push(`<p class="live-stats">${p?'Opponent':'Your'} zone ${i+1}: ATK ${c.attack} (${delta>=0?'+':''}${delta}) · DEF ${c.defense} (${defenseDelta>=0?'+':''}${defenseDelta}) versus printed stats.${c.position&12?' Defense Position.':''}${attacking?(available?' Attack available.':' Cannot declare an attack right now.'):''}${engine.battleProtected?.[1-p]?' Opposing monsters and LP are protected by Waboku this turn.':''}${p===0&&relicNegated()?' Relic bonuses and penalties are negated.':''}</p>`)});return rows.join('')}
 
+// One portrait per opponent; a stored replay of that duel (the newest 100 are kept) makes it playable.
+const replayKey=(started,character,loop,duel)=>[started,character,loop,duel].join(':');
+function runReplayStrip(r){if(r.mode==='tag'||!r.timeline?.length)return '';return `<div class="run-replays" data-run-started="${esc(r.started_at)}" data-run-character="${r.character}">${r.timeline.map(x=>{const c=content.characters[x.opponent];return `<button class="run-replay ${x.won?'won':'lost'}" data-do="watch-replay" data-key="${esc(replayKey(r.started_at,r.character,x.loop,x.duel))}" disabled aria-label="${esc(c?.name||'Opponent')}, duel ${x.duel}: no replay"><img loading="lazy" src="assets/${esc(c?.sprite)}" alt=""><span>${x.loop>1?'L'+x.loop+' · ':''}${x.duel}</span></button>`}).join('')}<small class="run-replay-note">Replays of your last 100 duels can be watched. Older ones are deleted automatically.</small></div>`}
+async function markRunReplays(){let rows;try{rows=await runReplayIndex()}catch{return}const keys=new Map(rows.map(x=>[replayKey(x.meta.started_at,x.meta.character,x.meta.loop,x.meta.duel),x.id]));for(const b of document.querySelectorAll('.run-replay[data-key]')){const id=keys.get(b.dataset.key);if(!id)continue;b.disabled=false;b.dataset.replay=id;b.classList.add('available');b.setAttribute('aria-label',b.getAttribute('aria-label').replace(': no replay',': watch replay'))}}
+async function watchReplay(id){const record=await loadReplay(id).catch(()=>null),meta=(await runReplayIndex()).find(x=>x.id===id)?.meta;if(!record||!meta){toast('This replay is no longer available.');return}
+ screen='cpu';clearTimeout(aiTimer);track('duel');cpuViewer=new ReplayViewer({root:app,content,inspect,dialog,record,characters:[meta.character,meta.opponent],onExit:async()=>{cpuViewer=null;collectionKind='history';go('collection')}});}
 function runTimelineMarkup(r){return `<section class="run-timeline"><h3>Run timeline</h3>${(r.timeline||[]).map(x=>`<span class="${x.won?'won':'lost'}">${x.loop>1?'Loop '+x.loop+' · ':''}Duel ${x.duel}: ${esc(content.characters[x.opponent]?.name)} — ${x.won?'Win':'Loss'} · ${x.lp_after_healing.toLocaleString()} LP</span>`).join('')||'<p>Detailed timeline is available for duels played after this update.</p>'}</section>`}
 
 
@@ -2233,7 +2240,7 @@ installShopGestures(document,{
 
 
 
-function renderRunHistory(){const rows=state.history||state.profile.run_history||[];shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k==='history'?'primary':'')).join('')}</div><div class="scroll run-history">${rows.map(r=>{const c=content.characters[r.character],date=r.finished_at||r.started_at;return `<article class="panel run-history-row ${r.result==='complete'?'run-won':'run-lost'}"><img loading="lazy" src="assets/${c?.sprite}" alt=""><div><h2>${esc(c?.name||'Unknown character')} · ${r.result==='complete'?'Completed':'Lost'}</h2><p>${r.mode==='tag'?'Tag with '+esc(content.characters[r.partner]?.name||'teammate'):'Solo'} · LVL ${r.challenge_level||0} · Loop ${(r.loop||0)+1} · ${r.round||0}/9 victories</p><p>${date?new Date(date*1000).toLocaleString():'Date not recorded'} · ${r.lp||0} LP · ${r.gold||0} coins</p>${r.loss?.text?`<p>${esc(r.loss.text)}</p>`:''}<details><summary>Run details</summary><p>Relics: ${(r.artifacts||[]).map(id=>esc(content.artifacts[id]?.[0]||id)).join(', ')||'None'}</p>${r.encore_won?'<p>Optional champion defeated.</p>':''}${runTimelineMarkup(r)}</details></div></article>`}).join('')||'<div class="panel"><h2>No recorded runs yet</h2><p>Completed and lost runs will appear here. Older runs that were already deleted cannot be reconstructed.</p></div>'}</div>`)}
+function renderRunHistory(){const rows=state.history||state.profile.run_history||[];shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k==='history'?'primary':'')).join('')}</div><div class="scroll run-history">${rows.map(r=>{const c=content.characters[r.character],date=r.finished_at||r.started_at;return `<article class="panel run-history-row ${r.result==='complete'?'run-won':'run-lost'}"><img loading="lazy" src="assets/${c?.sprite}" alt=""><div><h2>${esc(c?.name||'Unknown character')} · ${r.result==='complete'?'Completed':'Lost'}</h2><p>${r.mode==='tag'?'Tag with '+esc(content.characters[r.partner]?.name||'teammate'):'Solo'} · LVL ${r.challenge_level||0} · Loop ${(r.loop||0)+1} · ${r.round||0}/9 victories</p><p>${date?new Date(date*1000).toLocaleString():'Date not recorded'} · ${r.lp||0} LP · ${r.gold||0} coins</p>${r.loss?.text?`<p>${esc(r.loss.text)}</p>`:''}<details><summary>Run details &amp; replays</summary>${runReplayStrip(r)}<p>Relics: ${(r.artifacts||[]).map(id=>esc(content.artifacts[id]?.[0]||id)).join(', ')||'None'}</p>${r.encore_won?'<p>Optional champion defeated.</p>':''}${runTimelineMarkup(r)}</details></div></article>`}).join('')||'<div class="panel"><h2>No recorded runs yet</h2><p>Completed and lost runs will appear here. Older runs that were already deleted cannot be reconstructed.</p></div>'}</div>`);void markRunReplays()}
 
 
 

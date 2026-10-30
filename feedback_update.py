@@ -42,7 +42,7 @@ e:SetTargetRange(LOCATION_ALL,0) e:SetTarget(function(e,c) return c:IsMonster() 
 e:SetValue({RACE_VALUES[run['monster_type']]}) Duel.RegisterEffect(e,0) end'''
 
 def opponent_relic(run):
- if run.get('challenge_level',0)<6:return None
+ if run.get('challenge_level',0)<5:return None
  if run.get('opponent_relic') and 'opponent_cards' not in run:return run['opponent_relic']
  from content import CHARACTERS,ART_INFO
  import campaign as g

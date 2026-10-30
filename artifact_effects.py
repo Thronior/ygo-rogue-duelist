@@ -50,11 +50,11 @@ Duel.RegisterEffect(e,0) end'''
   end
  end)
  Duel.RegisterEffect(paid,0)
- -- Pandemonium raises this event from its cost-replacement operation because
- -- replaced upkeep payments do not emit EVENT_PAY_LPCOST.
+ -- Pandemonium raises this event (its ID + 1; its search uses its ID) from its cost-replacement
+ -- operation because replaced upkeep payments do not emit EVENT_PAY_LPCOST.
  local prevented=Effect.GlobalEffect()
  prevented:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)
- prevented:SetCode(EVENT_CUSTOM+94585852)
+ prevented:SetCode(EVENT_CUSTOM+94585853)
  prevented:SetOperation(function(e,tp,eg,ep,ev,re,r,rp)
   local c=re and re:GetHandler()
   if ep==0 and c and c:IsControler(0) and c:IsMonster() and c:IsSetCard(SET_ARCHFIEND)

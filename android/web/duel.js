@@ -177,6 +177,11 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   for(const c of own){this.peak.peak_attack=Math.max(this.peak.peak_attack,c.attack||0);this.peak.peak_defense=Math.max(this.peak.peak_defense,c.defense||0)}return s;
  }
  // A cancelled legal-target prompt must not restart the same attack on an unchanged board.
+ // A trigger that resolves without changing anything (e.g. a negated Sinister Serpent) is offered
+ // again at once; saying yes again would loop forever, so a repeat with an unchanged board is declined.
+ effectYesKey(m){return [m.code,m.player,this.turn,this.phase].join(':')}
+ effectYesBoard(){return this.attackBoardKey()+JSON.stringify([0,1].map(p=>[L.HAND,L.GRAVE,L.REMOVED].map(loc=>this.query(p,loc).filter(Boolean).map(c=>c.code))))}
+ effectYesRepeats(m){return this.lastEffectYes?.key===this.effectYesKey(m)&&this.lastEffectYes.board===this.effectYesBoard()}
  attackBoardKey(){return JSON.stringify([this.turn,this.phase,this.lp,[0,1].map(p=>[L.MZONE,L.SZONE].map(loc=>this.query(p,loc).map(c=>c?[c.code,c.position,c.attack,c.defense,c.status,c.equipTarget,c.counters]:null)))]);}
  attackWasCancelled(p,c){const previous=this.cancelledAttacks?.get(p+':'+c.sequence);return previous!==undefined&&previous===this.attackBoardKey();}
  respond(r){const m=this.pending;
@@ -185,7 +190,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
 
   if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
   if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined)this.effect={code:m.selects[r.index]?.code,player:m.player};
-  if(m?.type===M.SELECT_EFFECTYN&&r.yes)this.effect={code:m.code,player:m.player};
+  if(m?.type===M.SELECT_EFFECTYN&&r.yes){this.effect={code:m.code,player:m.player};this.lastEffectYes={key:this.effectYesKey(m),board:this.effectYesBoard()};}
   if(m?.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
    const text=(m.player===0?'You':'Opponent')+' guessed '+(['Monster','Spell','Trap'][r.index]||this.description(m.options[r.index]));
    this.logs.unshift(text);this.visuals.push({kind:'announcement',text});
@@ -499,7 +504,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const pool=publicCards.length&&max>0?best:[...counts.keys()];
    if(pool.length){const seed=((this.turn*1103515245+this.query(p,L.DECK).length*12345+(this.ominousGuesses=(this.ominousGuesses||0)+1)*2654435761)>>>0);const wanted=pool[seed%pool.length],index=m.options.findIndex(v=>Number(v)===wanted);if(index>=0)return {type:R.SELECT_OPTION,index};}
   }
-  if(m.type===M.SELECT_EFFECTYN){const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
+  if(m.type===M.SELECT_EFFECTYN){if(this.effectYesRepeats(m))return {type:R.SELECT_EFFECTYN,yes:false};const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
   if(m.type===M.SELECT_POSITION){const _pos=smart.position(this.name(m.code),{code:m.code,controller:p,location:L.HAND});const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
   return super.auto(m);
  }

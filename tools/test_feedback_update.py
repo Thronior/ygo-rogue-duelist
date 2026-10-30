@@ -11,6 +11,13 @@ for round_,expected in [(0,1),(1,1),(2,2),(3,2),(5,3),(8,4)]:
  r['round']=round_;r['stage']='draft';r['lp']=4000;g.routes(r,random.Random(round_));r['opponent']=r['routes'][0];g.prepare_duel(r,random.Random(round_));assert len(r['curses'])==expected,(round_,r['curses']);assert r['opponent_relic'] in content.ART_INFO
  g.prepare_duel(r,random.Random(round_));assert len(r['curses'])==expected,'duplicate curse';assert r['new_cards_from']==len(r['pool'])
 print('PASS persistent curses across ordinary and boss duels, no double commit; Level 6 and opponent relic')
+# Level 5 adds the opponent relic; curses persist only from Level 6 (swapped 2026-10-29).
+r=g.new_run(0,random.Random(3),5);r['pool']=[c['id'] for c in g.CARDS if c['data']['type']&1 and not c['data']['type']&64][:40];r['selected']=list(range(40))
+for round_,expected in [(0,0),(1,0),(2,1),(3,0)]:
+ r['round']=round_;r['stage']='draft';r['lp']=4000;g.routes(r,random.Random(round_));r['opponent']=r['routes'][0];g.prepare_duel(r,random.Random(round_));assert len(r['curses'])==expected,(round_,r['curses']);assert r['opponent_relic'] in content.ART_INFO
+assert 'persistent_curses' not in r
+assert f.opponent_relic({'challenge_level':4,'opponent':r['opponent']}) is None
+print('PASS Level 5 opponent relic without persistent curses')
 r['artifacts']=['dna_rewrite'];r.pop('monster_type',None)
 try:f.require_type_choice(r)
 except ValueError:pass

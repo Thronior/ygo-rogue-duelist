@@ -66,8 +66,10 @@ function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	local rc=re:GetHandler()
 	return Duel.IsPhase(PHASE_STANDBY) and rc:IsSetCard(SET_ARCHFIEND) and rc:IsMonster()
 end
+--Announce the waived cost for Demonic Pact. EVENT_CUSTOM+id is the search trigger, so a waived cost
+--must use its own event or it offers a search with the LP amount as the Level limit.
 function s.lrop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.RaiseEvent(Group.CreateGroup(),EVENT_CUSTOM+id,re,r,rp,ep,ev)
+	Duel.RaiseEvent(Group.CreateGroup(),EVENT_CUSTOM+id+1,re,r,rp,ep,ev)
 end
 function s.filter(c,lv)
 	return c:GetLevel()<lv and c:IsSetCard(SET_ARCHFIEND) and c:IsMonster() and c:IsAbleToHand()

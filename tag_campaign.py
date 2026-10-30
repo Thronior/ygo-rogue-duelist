@@ -136,11 +136,11 @@ class TagCampaign:
 
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
 
-    if run.get('challenge_level')!=-1 and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=5):
+    if run.get('challenge_level')!=-1 and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=6):
 
      from feedback_update import draw_curses
 
-     run['route_curses'][str(opponent)]=draw_curses(self.rng,(1 if run.get('challenge_level',0)>=5 else min(3,(run['round']+1)//3))+ar.extra_curses(run))
+     run['route_curses'][str(opponent)]=draw_curses(self.rng,(1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3))+ar.extra_curses(run))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
 
@@ -642,7 +642,7 @@ class TagCampaign:
 
   self.shared['curses']=combined['curses']
 
-  if combined.get('challenge_level',0)>=5:self.shared['persistent_curses']=combined['curses'][:]
+  if combined.get('challenge_level',0)>=6:self.shared['persistent_curses']=combined['curses'][:]
 
   self.shared['opponent_relic']=combined.get('opponent_relic');self.sync()
 
@@ -750,7 +750,7 @@ class TagCampaign:
 
    run['blocked_cursed']=[] if burden_allowed else ['cursed_collectors_burden']
 
-   result={'protocol':1,'id':run['duel']['id'],'winner':winner,'lp':lp,'events':events,'reason':reason}
+   result={'protocol':1,'id':run['duel']['id'],'winner':winner,'lp':lp,'events':events,'reason':reason,'phoenix_signal':False}
 
    with self.scope(seat):game.finish_duel(run,result,self.rng)
 

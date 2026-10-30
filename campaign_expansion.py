@@ -85,7 +85,7 @@ def install(g):
   if r and r.get('stage')=='gameover':storage.archive_run(r);storage.clear_run(slot);return None
   if r:
    normalize_pack_references(r)
-   if r.get('challenge_level',0)>=5:r.setdefault('persistent_curses',list(r.get('curses',[])))
+   if r.get('challenge_level',0)>=6:r.setdefault('persistent_curses',list(r.get('curses',[])))
    shop_rewards.normalize_run(r)
    # Retire Silken Purse without invalidating an existing run.
    r['artifacts']=[a for a in r.get('artifacts',[]) if a!='purse']
@@ -196,10 +196,10 @@ def install(g):
   run['route_rewards']=shop_rewards.route_rewards(run['routes'],rng,storage.profile())
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
-  if run.get('challenge_level',0)>=5:count=1
+  if run.get('challenge_level',0)>=6:count=1
   count+=ar.extra_curses(run)
-  draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5))
-  distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=5)
+  draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6))
+  distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6)
   choices=[]
   if draw_routes:
    for _ in run['routes']:
@@ -306,7 +306,7 @@ def install(g):
   number=run['round']+1
   from feedback_update import draw_curses, dedupe_curses, require_type_choice
   require_type_choice(run)
-  persistent=run.get('challenge_level',0)>=5
+  persistent=run.get('challenge_level',0)>=6
   boss=number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))
   if boss:
    count=(1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0))+ar.extra_curses(run)
@@ -462,7 +462,11 @@ def install(g):
   duel_opponent=run.get('duel',{}).get('opponent',run['opponent'])
   boss=duel_number%BOSS_EVERY==0
   run['lp']=max(0,int(result['lp']));won=result['winner']==0 and run['lp']>0
-  if 'relic_seal' not in run.get('curses',[]) and 'phoenix_rebirth' in run.get('artifacts',[]) and (any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in result.get('events',[])) or (result.get('winner')==0 and run['lp']<=1000)):
+  # Solo duels report the save itself (passives.py hint 900000001). Only Tag duels, whose relic scripts carry no
+  # such signal, still treat a win at 1,000 LP or less as the save; a plain low-LP win must not spend it.
+  saved=any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in result.get('events',[]))
+  if not saved and result.get('phoenix_signal') is False:saved=result.get('winner')==0 and run['lp']<=1000
+  if 'relic_seal' not in run.get('curses',[]) and 'phoenix_rebirth' in run.get('artifacts',[]) and saved:
    run['artifacts']=[a for a in run['artifacts'] if a!='phoenix_rebirth'];run['phoenix_spent']=True
   import character_progression
   character_progression.duel(g,run,result,won,boss)
@@ -472,7 +476,7 @@ def install(g):
   active_bounty=dict(run.get('bounty_objective') or {}) if 'bounty_list' in run.get('artifacts',[]) else None
   run['shop_rerolls']=0
   # Curses end with this encounter, including defeats and the final boss.
-  run['curses']=run.get('persistent_curses',[])[:] if run.get('challenge_level',0)>=5 else [];run['boss_curse']=None
+  run['curses']=run.get('persistent_curses',[])[:] if run.get('challenge_level',0)>=6 else [];run['boss_curse']=None
   if not won:
    import loss_reason
    run['stage']='gameover';run['loss']=loss_reason.describe(result,g.BY_ID)
