@@ -68,6 +68,19 @@ Duel.RegisterEffect(e,0) end'''
  reset:SetOperation(function() standby_costs={} end)
  Duel.RegisterEffect(reset,0)
 end'''
+ if kind=='rock_reposition':return '''do
+ -- The core blocks position changes through these statuses, so clear them for your Rock monsters.
+ local function free(e,tp,eg)
+  for c in eg:Iter() do
+   if c:IsControler(0) and c:IsRace(RACE_ROCK) then
+    c:SetStatus(STATUS_SUMMON_TURN,false) c:SetStatus(STATUS_SPSUMMON_TURN,false) c:SetStatus(STATUS_FLIP_SUMMON_TURN,false) c:SetStatus(STATUS_FORM_CHANGED,false)
+   end
+  end
+ end
+ for _,code in ipairs({EVENT_SUMMON_SUCCESS,EVENT_SPSUMMON_SUCCESS,EVENT_FLIP_SUMMON_SUCCESS,EVENT_MSET}) do
+  local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(code) e:SetOperation(free) Duel.RegisterEffect(e,0)
+ end
+end'''
  if kind=='retry_toss':return '''do
  local id=0x7f34a1
  local coin=Effect.GlobalEffect() coin:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) coin:SetCode(EVENT_TOSS_COIN_NEGATE)

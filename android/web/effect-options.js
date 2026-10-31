@@ -12,7 +12,8 @@ export const VISUAL_EFFECTS=[
  ['stat','Stat Change Pop-ups','The "+500 ATK" text over a monster when its ATK changes.'],
  ['warnings','Hand & Deck Warnings','The hand shaking over the limit and the deck glowing when low.'],
  ['particles','Floating Particles','Slow particles drifting over the duel background.'],
- ['coins','Coin & Shop Effects','Coin bursts, reward celebrations and the shop reroll reels.']
+ ['coins','Coin & Shop Effects','Coin bursts, reward celebrations and the shop reroll reels.'],
+ ['vibration','Vibration','A short pulse on big hits and chain prompts.']
 ];
 let off=new Set();
 export const effectOn=key=>!off.has(key);

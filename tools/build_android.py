@@ -29,7 +29,7 @@ def sync():
    parts=line.split(maxsplit=2);system_strings[parts[1]]=parts[2] if len(parts)>2 else ''
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
  shared=['feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','card_rarity.py','custom_cards.py','pack_merges.py'])
+ shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  # data/cards.json is not read by the game: campaign_expansion loads the pool from data/era-cards.json.

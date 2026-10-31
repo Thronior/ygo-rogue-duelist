@@ -18,6 +18,17 @@ if not Duel.RogueAntiStreak then
   else history[key]={last=value,count=1} end
   return value
  end
+ -- Weighted relics: the chosen face counts as `share` faces, and bypasses the anti-streak so the odds stay exact.
+ local weights={}
+ local function roll(kind,player,lo,hi)
+  local weight=weights[kind..':'..player]
+  if not weight then return draw(kind..':'..player,lo,hi) end
+  local result=random_number(1,hi-lo+weight.share)
+  if result<=weight.share then return weight.face end
+  local value=lo+result-weight.share-1
+  if value>=weight.face then value=value+1 end
+  return value
+ end
  Duel.GetRandomNumber=function(lo,hi)
   if not enabled then if hi==nil then return random_number(lo) else return random_number(lo,hi) end end
   if hi==nil then hi=lo lo=0 end
@@ -36,12 +47,16 @@ if not Duel.RogueAntiStreak then
    local results={}
    for i=1,count1+count2 do
     local player=i<=count1 and ep or 1-ep
-    results[i]=draw(kind..':'..player,kind=='coin' and 0 or 1,kind=='coin' and 1 or 6)
+    results[i]=roll(kind,player,kind=='coin' and 0 or 1,kind=='coin' and 1 or 6)
    end
    if kind=='coin' then Duel.SetCoinResult(table.unpack(results))
    else Duel.SetDiceResult(table.unpack(results)) end
   end)
   Duel.RegisterEffect(e,0)
+ end
+ Duel.SetRogueWeight=function(player,kind,face,share)
+  weights[kind..':'..player]={face=face,share=share}
+  install(kind)
  end
  local coin,dice=Duel.TossCoin,Duel.TossDice
  Duel.TossCoin=function(...) if enabled then install('coin') end return coin(...) end

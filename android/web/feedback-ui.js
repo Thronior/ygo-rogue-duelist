@@ -47,9 +47,10 @@ export function misprintBadges(c,run,index){
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
-export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index);
+export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}// From Level 6 curses stay for the whole run, so the deck editor shows them too (doubled, as in passives.py).
+ const sticky=run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index);
 
- for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
+ for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
  if(k==='atk'&&matches)a+=n;else if(k==='def')d+=n;else if(k==='both'&&matches){a+=n;d+=n;}else if(k==='normal'&&(t&16)||k==='tribute'&&l>=5||k==='small'&&l<=3)a+=n;
 
@@ -82,6 +83,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  }
 
+ a-=400*curses('frailty')+200*curses('brittle');d-=600*curses('hunger')+400*curses('brittle');
  return [Math.max(0,a),Math.max(0,d)];
 
 }

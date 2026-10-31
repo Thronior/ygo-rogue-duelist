@@ -8,6 +8,8 @@ export function logCards(text,cards){
  if(!index){const names=new Map();for(const card of cards)if(card.name&&!names.has(card.name))names.set(card.name,card.id);index={names,pattern:new RegExp('(^|[^\\p{L}\\p{N}])('+[...names.keys()].sort((a,b)=>b.length-a.length).map(escapePattern).join('|')+')(?=$|[^\\p{L}\\p{N}])','gu')};indexes.set(cards,index)}
  index.pattern.lastIndex=0;return [...new Set([...String(text).matchAll(index.pattern)].map(match=>index.names.get(match[2])))];
 }
-export function duelLogMarkup(logs,cards){
- return `<div class="duel-log"><p class="log-help">Tap a highlighted action to read the cards involved.</p>${logs.map(text=>{const ids=logCards(text,cards);return ids.length?`<button class="log-action" data-do="log-action" data-cards="${ids.join(',')}"><span>${esc(text)}</span><small>Card details ›</small></button>`:`<p class="log-event">${esc(text)}</p>`}).join('')||'<p>No actions yet.</p>'}</div>`;
+const side=text=>/^You\b/.test(text)?' log-you':/^Opponent\b/.test(text)?' log-opponent':'';
+const thumbs=(ids,image)=>`<span class="log-thumbs">${ids.slice(0,3).map(id=>`<img src="${image(id)}" alt="" loading="lazy" decoding="async">`).join('')}</span>`;
+export function duelLogMarkup(logs,cards,image=null){
+ return `<div class="duel-log"><p class="log-help">Tap a highlighted action to read the cards involved.</p>${logs.map(text=>{if(/^Turn \d+ · /.test(text))return `<h4 class="log-turn">${esc(text)}</h4>`;const ids=logCards(text,cards);return ids.length?`<button class="log-action${side(text)}" data-do="log-action" data-cards="${ids.join(',')}">${image?thumbs(ids,image):''}<span class="log-text">${esc(text)}</span><small>›</small></button>`:`<p class="log-event${side(text)}">${esc(text)}</p>`}).join('')||'<p>No actions yet.</p>'}</div>`;
 }

@@ -504,6 +504,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const pool=publicCards.length&&max>0?best:[...counts.keys()];
    if(pool.length){const seed=((this.turn*1103515245+this.query(p,L.DECK).length*12345+(this.ominousGuesses=(this.ominousGuesses||0)+1)*2654435761)>>>0);const wanted=pool[seed%pool.length],index=m.options.findIndex(v=>Number(v)===wanted);if(index>=0)return {type:R.SELECT_OPTION,index};}
   }
+  // Mirror of Yata lets a Spirit stay on the field: decline its End Phase return.
+  if(m.type===M.SELECT_EFFECTYN&&this.phase===512&&(this.data[m.code]?.type&0x200)&&this.query(p,L.SZONE).some(x=>{const t=x&&(x.position&5)&&this.name(x.code)==='Mirror of Yata'&&(x.equipCard||x.equip_card);return t&&t.controller===p&&this.query(p,L.MZONE)[t.sequence]?.code===m.code}))return {type:R.SELECT_EFFECTYN,yes:false};
+  // Dust Tornado's optional Set: never Set a Field Spell over your own active one.
+  if(m.type===M.SELECT_YESNO&&this.name(this.effect?.code)==='Dust Tornado'&&this.query(p,L.SZONE)[5]?.position&5&&this.query(p,L.HAND).filter(c=>c&&this.data[c.code]?.type&6).every(c=>this.data[c.code].type&0x80000))return {type:R.SELECT_YESNO,yes:false};
   if(m.type===M.SELECT_EFFECTYN){if(this.effectYesRepeats(m))return {type:R.SELECT_EFFECTYN,yes:false};const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
   if(m.type===M.SELECT_POSITION){const _pos=smart.position(this.name(m.code),{code:m.code,controller:p,location:L.HAND});const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
   return super.auto(m);

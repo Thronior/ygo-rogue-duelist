@@ -2,6 +2,7 @@
 from pathlib import Path
 import json,random
 import approved_relics as ar
+import archetype_relics
 from content import ARTIFACTS
 
 def approved():
@@ -16,19 +17,19 @@ def create_offer(run,rng=random):
   offer=run['cursed_offer']
   if all(ar.eligible(run,k) for k in offer['options']):return
   choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
-  if len(choices)>=3:offer['options']=rng.sample(choices,3)
+  if len(choices)>=3:offer['options']=archetype_relics.sample(choices,3,run,rng)
   else:run.pop('cursed_offer',None)
   return
  choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
  if len(choices)<6:return
- run['cursed_offer']={'options':rng.sample(choices,3),'rerolls_left':1+int(ar.has(run,'dice_jar')),'boss_round':run['round']}
+ run['cursed_offer']={'options':archetype_relics.sample(choices,3,run,rng),'rerolls_left':1+int(ar.has(run,'dice_jar')),'boss_round':run['round']}
 
 def reroll(run,rng=random):
  offer=run.get('cursed_offer')
  if not offer or offer['rerolls_left']<=0:raise ValueError('No cursed-relic reroll remains.')
  eligible=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[]) and k not in offer['options']]
  if len(eligible)<3:raise ValueError('There are not enough different cursed relics to reroll.')
- offer['options']=rng.sample(eligible,3);offer['rerolls_left']-=1
+ offer['options']=archetype_relics.sample(eligible,3,run,rng);offer['rerolls_left']-=1
 
 def choose(run,key,rng=random):
  offer=run.get('cursed_offer')

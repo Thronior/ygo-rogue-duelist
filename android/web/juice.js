@@ -121,6 +121,7 @@ export function syncDuel(root,{turnPlayer,deck,handLimit:limit=6}={}){
 
 // Damage. The number grows with the amount; 1000+ adds a flash, 2000+ a shockwave; the portrait flinches.
 // Shaking the board stays with the caller (it owns the duel's shake rules).
+export const buzz=ms=>{if(effectOn('vibration'))globalThis.ShadowNative?.vibrate?.(ms)};
 export const damageTier=n=>n>=4000?5:n>=2000?4:n>=1000?3:n>=500?2:1;
 export function scaleNumber(el,amount,heal=false){
  if(!effectOn('impact'))return;
@@ -129,7 +130,7 @@ export function scaleNumber(el,amount,heal=false){
 }
 export function hit(player,amount,before){
  const {reduced,lite,compat}=prefs(),tier=damageTier(amount),life=document.querySelector(player?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
- if(!compat&&effectOn('portrait'))portraitHit(player,tier);
+ if(tier>=3)buzz(40);if(!compat&&effectOn('portrait'))portraitHit(player,tier);
  const killed=Number.isFinite(before)&&before-amount<=0;
  if(killed&&effectOn('portrait'))portraitKO(player);
  if(!reduced&&!lite&&effectOn('impact')){

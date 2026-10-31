@@ -40,7 +40,7 @@ export function smartContext(e,p,L,prompt=null){
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='cursed_reckless_spear'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
  const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
- const rescueCatReady=()=>5-own.length>=2&&q(p,L.DECK).filter(c=>race(c)==='Beast'&&lvl(c)<=3).length>=2;
+ const rescueCatReady=()=>{const beasts=q(p,L.DECK).filter(c=>(data(c).type&1)&&race(c)==='Beast'&&lvl(c)<=3);if(5-own.length<2||beasts.length<2||e.turn<=1)return false;const missing=['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));if(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>beasts.some(x=>name(x)===part)))return true;return !enemy.length&&beasts.map(atk).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)>=1000};
  const heldPieces=new Set(hand.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
  e.exodiaPlan??=[false,false];if(heldPieces.size)e.exodiaPlan[p]=true;
  const exodiaPlan=e.exodiaPlan[p],missingPiece=c=>exodiaPieces.has(c.code)&&!heldPieces.has(c.code);
@@ -271,6 +271,7 @@ export function smartContext(e,p,L,prompt=null){
    const sourceCard=source&&typeof source==='object'?source:null,sourceType=Number((sourceCard&&data(sourceCard).type)||0);
    const sourceController=sourceCard?.controller??p,targetController=target.controller??1-p;
    const opponentSource=sourceController!==targetController,text=e.cards.get(target.code)?.desc||'';
+   if(targeting&&/neither player can target this card|cannot be targeted/i.test(text))return false;
    if(opponentSource&&/unaffected by (?:your opponent's|your opponent’s) (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
    if(/unaffected by (?:the effects of )?(?:(?:all|any|other) )*(?:card|card effects)(?: effects)?/i.test(text))return false;
    const effectKind=sourceType&2?'spell':sourceType&4?'trap':sourceType&1?'monster':null;
@@ -1149,8 +1150,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='De-Spell'&&theirBack.some(x=>face(x)&&(name(x)==='Messenger of Peace'||name(x)==='Swords of Revealing Light')))return 112;
   if(n==='De-Spell')return theirBack.some(x=>face(x)&&(data(x).type&2))?105:-1;
   if(n==='Remove Trap')return theirBack.some(x=>face(x)&&(data(x).type&4))?105:-1;
-  if(n==='Raigeki Break')return hand.length>=2&&[...enemy,...theirBack].some(x=>face(x)&&targetValue(x)>=1800)?105:-1;
-  if(['Fissure','Smashing Ground','Tribute to the Doomed'].includes(n))return enemy.length&&(!/Tribute/.test(n)||hand.length>=2)?105:-1;
+  if(n==='Raigeki Break')return hand.length>=2&&[...enemy,...theirBack].some(x=>face(x)&&targetValue(x)>=1800&&removalAffects(c,x,n))?105:-1;
+  if(n==='Tribute to the Doomed')return hand.length>=2&&enemy.some(x=>removalAffects(c,x,n))?105:-1;
+  if(['Fissure','Smashing Ground'].includes(n))return enemy.length?105:-1;
   if(n==='Two-Pronged Attack')return own.length>=2&&own.map(expendable).sort((a,b)=>a-b).slice(0,2).reduce((a,b)=>a+b,0)<threat?100:-1;
 
   // A Heavy Storm we are about to cast would destroy Snatch Steal or Swords: cast the Storm first.
@@ -1730,7 +1732,7 @@ if(!effectsEnabled(p))return 0;
   for(const controller of [0,1])for(const x of q(controller,L.SZONE)){
    if(!face(x)||x.is_disabled||(x.status&1))continue;
    const n=name(x);
-   if(n==="Dragon's Rage"&&!trapNegated&&race(c)==='Dragon'||
+   if(n==="Dragon's Rage"&&!trapNegated&&race(c)==='Dragon'&&(c.controller??p)===controller||
       !spellNegated&&['Fairy Meteor Crush','Big Bang Shot'].includes(n)&&same(x.equipCard||x.equip_card,c))sides.push(x.controller??controller);
   }
   return sides;
@@ -2066,6 +2068,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(/Newdoria/.test(fxN||''))return (cand.controller!==p?15000:-100000)+atk(cand);
   if(/Hane-Hane/.test(fxN||'')){if(cand.controller!==p)return 15000+((e.cards.get(cand.code)?.level||0)*500)+atk(cand)+remainingBattleDamage(enemy.find(x=>same(x,cand))||cand);return ownSacrificeScore(cand,true);}
   if(/Shining Angel/.test(fxN||'')){if((e.cards.get(cand.code)?.attribute)!=='LIGHT'||atk(cand)>1500)return -100000;const wall=e.lp[p]<3000||enemyPower>ownPower;return 10000+(wall?((cand.defense??e.data[cand.code]?.defense)??0):atk(cand));}
+  if(fxN==='Dust Tornado'&&cand.location===L.HAND)return data(cand).type&0x80000?-100000:(data(cand).type&4?20000:10000)+expendable(cand)*-.01;
   if(fxN==='Obelisk the Tormentor')return cand.controller===p&&cand.location===L.MZONE&&nm!==fxN?100000-expendable(cand)-targetValue(cand)*.01:-1000000;
   if(/Nimble Momonga/.test(fxN||''))return nm==='Nimble Momonga'&&optionalMillSafe()?100000:-100000;
   if(/Bubonic Vermin/.test(fxN||''))return cand.controller===p&&cand.location===L.DECK&&nm==='Bubonic Vermin'&&optionalMillSafe()?100000:-100000;

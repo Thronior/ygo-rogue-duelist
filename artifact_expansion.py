@@ -17,7 +17,10 @@ def install(artifact):
  artifact('sword_and_shield','Sword and Shield',90,'Swap the original ATK and DEF of all monsters.','Shield & Sword','swap_base_ad',0,'offense')
  artifact('broken_limiter','Broken Limiter',110,'There is no three-copy limit for cards in your Deck.','Limiter Removal','broken_limiter',0,'other')
  artifact('lets_go_gambling',"Let's Go Gambling",85,'Once per turn, retry a coin toss or dice roll.','Roulette Barrel','retry_toss',0,'other')
+ artifact('weighted_coins','Weighted Coins',100,'When acquired, choose heads or tails. Your coins are twice as likely to land on the chosen face.','Second Coin Toss','weighted_coins',0,'other')
+ artifact('weighted_dice','Weighted Dice',100,'When acquired, choose a number from 1 to 6. Your dice are three times as likely to land on the chosen number.','Dice Re-Roll','weighted_dice',0,'other')
  artifact('terraforming_relic','Terraforming',90,'Add a random Field Spell from your Deck to your starting hand.','Terraforming','starting_field_spell',0,'draw')
+ artifact('restless_stone','Restless Stone',120,'Rock monsters you control can change their battle position the turn they are Summoned or Set.','Stone Statue of the Aztecs','rock_reposition',0,'other')
  artifact('good_spirits','Good Spirits',80,'Spirit monsters you control do not return to the hand at the end of the turn.','Spiritual Energy Settle Machine','no_spirit_return',0,'defense')
  for key,name,art,series,series_name in [
   ('dark_scorpion_squad','Dark Scorpion Squad','Mustering of the Dark Scorpions','0x1a','Dark Scorpion'),

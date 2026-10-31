@@ -22,4 +22,12 @@ const kunai={code:1,controller:0,location:8,sequence:0,position:10,description:'
 const window=(timing,chain=[])=>chainWindowAllowed({type:M.SELECT_CHAIN,player:0,selects:[kunai],hint_timing:timing,hint_timing_other:0},'sometimes',chain,{card});
 assert.equal(window(Timing.MAIN_END||0),false,'no window when nothing happened');
 assert.equal(window(Timing.ATTACK),true,'attack declared');assert.equal(window(Timing.SUMMON),true,'monster summoned');assert.equal(window(0,[{code:5}]),true,'card activated');
+// Threatening Roar under "Chain sometimes": a window as the opponent ends Main Phase 1, if they have an attacker.
+const roarCard=()=>({name:'Threatening Roar',data:{type:4},desc:'Your opponent cannot declare an attack this turn.'});
+const roar=(timing,context={})=>chainWindowAllowed({type:M.SELECT_CHAIN,player:0,selects:[{code:2}],hint_timing:0,hint_timing_other:timing},'sometimes',[],{turnPlayer:1,phase:4,attackers:1,card:roarCard,...context});
+assert.equal(roar(Timing.MAIN_END),true,'the opponent ends their Main Phase');
+assert.equal(roar(Timing.MAIN_END,{attackers:0}),false,'nothing can attack');
+assert.equal(roar(Timing.MAIN_END,{turnPlayer:0}),false,'your own turn');
+assert.equal(roar(Timing.MAIN_END,{phase:256}),false,'Main Phase 2 has no attacks left');
+assert.equal(roar(Timing.STANDBY_PHASE||0,{phase:2}),false,'no window in other phases');
 console.log('PASS forced chain windows pick the sole mandatory trigger; set-card activations stay optional');

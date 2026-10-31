@@ -35,7 +35,7 @@ async function play(artifacts,deck,enemy,{summons=1,defend=false,turns=6,watch=(
 }
 let checks=0;const ok=(v,msg)=>{assert.ok(v,msg);checks++};
 
-// Berserker's Pact: each monster attacks twice, and the Battle Phase cannot end while an attack is left.
+// Berserker's Pact: each monster may attack twice, and attacking stays optional (its downside is no Sets or Defense Position Special Summons).
 {
  let attacks=new Map(),escape=false;
  const {duel}=await play(['cursed_berserkers_pact'],Array(40).fill(VORSE),Array(40).fill(KURIBOH),{watch:(d,m)=>{
@@ -44,7 +44,7 @@ let checks=0;const ok=(v,msg)=>{assert.ok(v,msg);checks++};
   }}});
  duel.destroy();
  ok(Math.max(0,...attacks.values())===2,`each Vorse Raider declares 2 attacks per turn (${[...attacks.values()]})`);
- ok(!escape,'while an attack is left, the Battle Phase cannot be ended');
+ ok(escape,'you can still end the Battle Phase with an attack left');
 }
 // Without the relic, the same monster attacks once.
 {

@@ -23,6 +23,14 @@ try:f.require_type_choice(r)
 except ValueError:pass
 else:raise AssertionError('Type choice missing')
 f.choose_type(r,'Divine-Beast');f.require_type_choice(r);assert '2097152' in f.type_script(r)
+# Selling DNA Rewrite forgets the Type, so buying it again asks again (Discord, 2026-10-31).
+held=dict(r,stage='shop',gold=0,artifacts=['dna_rewrite','dna_rewrite'])
+g.sell_relic(held,'dna_rewrite');assert held['monster_type']=='Divine-Beast','a second copy keeps the Type'
+g.sell_relic(held,'dna_rewrite');assert 'monster_type' not in held,'the last copy forgets it'
+held['artifacts'].append('dna_rewrite')
+try:f.require_type_choice(held)
+except ValueError:pass
+else:raise AssertionError('Buying it again must ask for a Type')
 try:f.choose_type(r,'Dragon')
 except ValueError:pass
 else:raise AssertionError('choice changed')

@@ -88,7 +88,7 @@ Duel.RegisterEffect(e,0) end''')
   # --[[relic-hint]] marks where passives.py shows the relic, since the toss's result is assigned.
   # Almighty (RogueAlmighty) keeps tails from lowering your monsters.
   out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.TossCoin(0,1)==COIN_HEADS and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
- elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),stat('EFFECT_MUST_ATTACK',1)])
+ elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),player_rule('EFFECT_FORCE_SPSUMMON_POSITION','POS_FACEUP_ATTACK')])
  elif key=='shield_bash':
   # Total Defense Shogun's rule: a face-up Defense Position monster attacks and uses its DEF.
   out.extend([stat('EFFECT_DEFENSE_ATTACK',1,'c:IsDefensePos()'),stat('EFFECT_CANNOT_ATTACK',1,'c:IsAttackPos()')])

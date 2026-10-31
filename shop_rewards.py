@@ -252,7 +252,7 @@ def _tied_pack(deck,rng=None):
  from collections import Counter
  from content import PACKS
  frequency=Counter(deck);total=max(1,sum(frequency.values()))
- eligible=[p for p in PACKS if not p.get('draft_only')]
+ eligible=[p for p in PACKS if not p.get('draft_only') and not p.get('shop_chance')]
  # Reward both deck coverage and concentration. Broad all-card packs remain
  # possible without always winning merely because they contain more cards.
  weights=[]
@@ -290,12 +290,17 @@ def reward_from_deck(deck,byid,rng,options=None):
 EXODIA_PIECES=frozenset({'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'})
 
 
+def pack_offered(pack,rng):
+ """Packs with a shop_chance, such as Stinkers, only join some shops' pools."""
+ return rng.random()<pack.get('shop_chance',1)
+
+
 def random_reward(rng,profile=None):
  """Draw one reward without taking an opponent or deck as input."""
  from content import PACKS
  import unlocks
  keys=reward_keys();key=rng.choices(keys,weights=reward_weights(keys),k=1)[0]
- packs=[p['id'] for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'],profile)]
+ packs=[p['id'] for p in PACKS if not p.get('draft_only') and pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=rng.choice(packs or ['EN-LOB']))
 
 
@@ -309,7 +314,7 @@ def route_rewards(routes,rng,profile=None):
   if not keys:keys=reward_keys();weights=reward_weights(keys)
   pick=rng.choices(range(len(keys)),weights=weights,k=1)[0]
   chosen_keys.append(keys.pop(pick));weights.pop(pick)
- packs=[p['id'] for p in PACKS if not p.get('draft_only') and unlocks.available('pack',p['id'],profile)]
+ packs=[p['id'] for p in PACKS if not p.get('draft_only') and pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
  if len(packs)>=count:chosen_packs=rng.sample(packs,count)
  else:
   chosen_packs=rng.sample(packs,len(packs));chosen_packs+=[rng.choice(packs or ['EN-LOB']) for _ in range(count-len(chosen_packs))]

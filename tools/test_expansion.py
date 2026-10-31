@@ -18,7 +18,7 @@ for i in PLAYABLE_IDS:
 for pack in PACKS:
  # The card era was extended to May 29, 2005 in v0.1.61 (docs/CONTENT-EXPANSION-2005.md). Character
  # draft packs and merged collections (e.g. JP-LEC) carry no release date.
- assert (pack.get('date') or '')<='2005-05-29' and (pack.get('date') or pack['id'].startswith('DRAFT-') or pack['id'] in PACK_ALIASES.values()),pack['id']
+ assert (pack.get('date') or '')<='2005-05-29' and (pack.get('date') or pack['id'].startswith(('DRAFT-','CUSTOM-')) or pack['id'] in PACK_ALIASES.values()),pack['id']
  assert all(cid in g.BY_ID for cid in pack['common']+pack['rare'])
 for opponent in GAME_DECKS:
  for rd in [0,3,7,11]:
@@ -45,7 +45,7 @@ for rd in range(9):
  try:g.finish_duel(r,result);raise AssertionError('duplicate accepted')
  except ValueError:pass
  # Boss wins now open a mandatory cursed-relic offer; the shop is stocked once one is chosen.
- if cursed_relics.pending(r):cursed_relics.choose(r,r['cursed_offer']['options'][0],random.Random(rd))
+ if cursed_relics.pending(r):cursed_relics.choose(r,next(k for k in r['cursed_offer']['options'] if k not in ('cursed_glass_treasury','cursed_zombies_bargain')),random.Random(rd))  # These block the healing checked above
  if rd<8:
   # Five-choice encounters (2026-10-02) narrow to the single boss before each boss duel; shops stock
   # ten singles (plus relic bonus stock) and three boosters (four with Booster Shelf).

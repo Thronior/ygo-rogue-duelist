@@ -50,7 +50,7 @@ const idle=(o={})=>({type:M.SELECT_IDLECMD,player:1,summons:[],special_summons:[
  }
 }
 
-// 4. ATK equal to a face-up DEF achieves nothing; a self-piercing Dragon is not stopped by the opponent's Dragon's Rage.
+// 4. ATK equal to a face-up DEF achieves nothing; the opponent's Dragon's Rage never affects your Dragons (it pierces only for its owner).
 {
  const apophis=mon('Embodiment of Apophis',1,3,1,{attack:1600}),lady=mon('D.D. Warrior Lady',0,3,4,{defense:1600});
  let e=duel({1:{[L.MZONE]:[apophis]},0:{[L.MZONE]:[lady]}},{phase:8});
@@ -59,7 +59,7 @@ const idle=(o={})=>({type:M.SELECT_IDLECMD,player:1,summons:[],special_summons:[
  e=duel({1:{[L.MZONE]:[spear,eyes]},0:{[L.MZONE]:[hidden],[L.SZONE]:[rage]}},{phase:8});
  const smart=smartContext(e,1,L,{type:M.SELECT_BATTLECMD,player:1,attacks:[spear,eyes]});
  assert.equal(smart.attackBackfires(spear,hidden),false,"Spear Dragon's own piercing damages the defender");
- assert.equal(smart.attackBackfires(eyes,hidden),true,"a non-piercing Dragon still respects the opponent's Dragon's Rage");
+ assert.equal(smart.attackBackfires(eyes,hidden),false,"the opponent's Dragon's Rage does not touch a non-piercing Dragon either");
 }
 
 // 5. Temple of the Kings on the field: do not trade Serket and the Temple for a vanilla monster.

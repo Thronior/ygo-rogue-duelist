@@ -1,3 +1,4 @@
+import {applyDisplayOptions} from './display-options.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {replayVersion} from './replay-version.js';
 import {loadEngineData} from './engine.js';
@@ -20,6 +21,7 @@ import {deckMinimum,deckMinimumNotice,copyLimitText} from './deck-minimum.js';
 import {chooseStartupPreload,preloadVisualPreference,setPreloadVisualPreference,assetsAreLocal} from './startup-choice.js';
 
 import {installEscapeInspection} from './escape-inspection.js';
+import {installDuelKeys} from './duel-keys.js';
 
 import {installHandHover} from './hand-hover.js';
 
@@ -58,7 +60,7 @@ import {ownedBadge} from './shop-badges.js';
 import {showShadowVictory,clearShadowVictory} from './shadow-victory.js';
 import {mountRunCard,copyRunCard,saveRunCard} from './run-card.js';
 import {coinScorecardMarkup} from './coin-scorecard.js';
-import {pendingRelicChoice,relicOfferMarkup,cardPick,cardPickMarkup,cardPickResults,namePick,namePickMarkup,namePickResults} from './choice-relics-ui.js';
+import {pendingRelicChoice,relicOfferMarkup,weightPickMarkup,cardPick,cardPickMarkup,cardPickResults,namePick,namePickMarkup,namePickResults} from './choice-relics-ui.js';
 
 import {DraftUI} from './draft-ui.js';
 
@@ -232,7 +234,7 @@ function setDuelSound(url){clearTimeout(sfxStopTimer);sfx.pause();sfx.src=assetU
 
 function menuSelectionSound(){if(!state.settings.menu||document.hidden)return;menuSfx.pause();menuSfx.src=assetURL('assets/sfx/menu-coin-ring.wav');balancedVolume(menuSfx,state.settings.menu/100);menuSfx.play().catch(()=>{});}
 
-function effect(major=false,purchase=false){if(!state.settings.sound||document.hidden)return;setDuelSound('sound/'+(major?'activate.wav':purchase?'coinflip.wav':'flip.wav'));balancedVolume(sfx,state.settings.sound/100,major?1:purchase?.85:.65);sfx.play().catch(()=>{})}
+function effect(major=false,purchase=false){if(!state?.settings?.sound||document.hidden)return;setDuelSound('sound/'+(major?'activate.wav':purchase?'coinflip.wav':'flip.wav'));balancedVolume(sfx,state.settings.sound/100,major?1:purchase?.85:.65);sfx.play().catch(()=>{})}
 
 // Single-element fallback where Web Audio is unavailable; each sound replaces the last.
 function singleDuelSound(name,gain=.3,duration=0){if(!state.settings.sound||document.hidden)return;setDuelSound(duelSoundPath(name));balancedVolume(sfx,state.settings.sound/100,Math.max(.5,Math.min(1,gain/.3)));sfx.play().catch(()=>{});if(duration){sfxStopTimer=setTimeout(()=>sfx.pause(),duration)}}
@@ -457,10 +459,11 @@ function dialog(title,body,showClose=true){if(desktopToken&&tagUI)desktopRPC('na
 
 function cardBadges(c){const t=c.data.type,key=t&2?'spell':t&4?'trap':t&64?'fusion':t&128?'ritual':t&16?'normal':'effect';const icon=(name)=>`<img class="pixel-badge" alt="" src="assets/icons/pixel/${name}.png">`;return `${typeIcon(c)}${icon('type-'+key)}${esc(c.type)} · ${esc(c.race)} ${c.attribute?'· '+icon('attribute-'+c.attribute.toLowerCase())+esc(c.attribute):''}`}
 
-// Relic Picker, Card Picker and Name Changer: required prompts, like the Golden Card Sleeve.
+// Relic Picker, Card Picker, Name Changer and weighted relics: required prompts, like the Golden Card Sleeve.
 function showRelicChoice(r){
  if(r.relic_offer?.options?.length)dialog('Relic Picker',relicOfferMarkup(content,r.relic_offer,{relicImage,relicArtwork,btn}),false);
  else if(r.card_picks>0){cardPick.selected=null;dialog('Card Picker',cardPickMarkup(btn),false);refreshCardPick()}
+ else if(r.weight_picks?.length)dialog(content.artifacts[r.weight_picks[0]][0],weightPickMarkup(r.weight_picks[0],btn),false);
  else{namePick.selected=null;dialog('Name Changer',namePickMarkup(btn),false);refreshNamePick()}
  modal.dataset.goldenRequired='true';modal.classList.add('relic-choice-modal');
 }
@@ -789,6 +792,7 @@ function renderTutorial(){const pages=content.tutorial,p=pages[tutorialPage]||pa
 
 
 
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-reduce-motion]'))return;state.settings.reduceMotion=e.target.checked;applyDisplayOptions(state.settings);await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-faster-animations]'))return;state.settings.fasterAnimations=e.target.checked;await command('settings',state.settings)});
 
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-performance-mode]'))return;state.settings.performanceMode=e.target.checked;syncDuelBackgroundSelect();document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
@@ -803,9 +807,10 @@ document.addEventListener('change',async e=>{if(!e.target.matches('[data-pause-h
 const settingToggle=(title,desc,attr,on)=>`<label class="set-row"><span class="set-text"><b>${title}</b><small>${desc}</small></span><input type="checkbox" class="switch" ${attr} ${on?'checked':''}></label>`;
 const settingSlider=(title,desc,id,value,min,max,step,unit)=>`<div class="set-row set-slider"><span class="set-text"><label for="${id}"><b>${title}</b></label><small>${desc}</small></span><span class="set-control"><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"><output>${value}${unit}</output></span></div>`;
 function soundSettings(){return settingSlider('Music','Background music in menus and duels.','music',state.settings.music,0,100,1,'%')+settingSlider('Sound Effects','Cards, attacks, summons and coins.','sound',state.settings.sound,0,100,1,'%')+settingSlider('Voice Lines','Boss summons, finishing blows, "You lose", emotes and the shopkeeper.','voice',state.settings.voice,0,100,1,'%')+settingSlider('Menu Sounds','Buttons and menu navigation.','menu',state.settings.menu,0,100,1,'%')}
-const effectSettings=()=>VISUAL_EFFECTS.map(([key,title,desc])=>settingToggle(title,desc,`data-visual-effect="${key}"`,effectOn(key))).join('');
+const effectSettings=()=>VISUAL_EFFECTS.filter(([key])=>key!=='vibration'||window.ShadowNative?.vibrate).map(([key,title,desc])=>settingToggle(title,desc,`data-visual-effect="${key}"`,effectOn(key))).join('');
+const displaySettings=()=>settingSlider('Text Size','Card text, prompts, settings and the duel log.','text-size',state.settings.textSize,100,150,10,'%')+settingToggle('Reduce Motion','Calm animations, the same as your device’s reduced motion setting.','data-reduce-motion',state.settings.reduceMotion);
 function manualResponseWindowSetting(){const value=Math.max(0,Math.min(2000,Number(state.settings.manualResponseWindow??200)||0));return settingSlider('Response Window','How long you have to respond to an optional chain on the opponent’s turn before it passes.','manual-response-window',value,0,2000,50,' ms')}
-function gameplaySettings(){return settingToggle('Pause When Tabbed Out','Pause single-player duels while the game is hidden.','data-pause-hidden',state.settings.pauseWhenHidden!==false)+settingToggle('Faster Animations','Your own actions play out quicker. The opponent keeps its pace.','data-faster-animations',state.settings.fasterAnimations)+manualResponseWindowSetting()}
+function gameplaySettings(){return settingToggle('Pause When Tabbed Out','Pause single-player duels while the game is hidden.','data-pause-hidden',state.settings.pauseWhenHidden!==false)+settingToggle('Faster Animations','Your own actions play out quicker. The opponent keeps its pace.','data-faster-animations',state.settings.fasterAnimations)+manualResponseWindowSetting()+'<div class="set-row keyboard-shortcuts"><span class="set-text"><b>Keyboard Shortcuts</b><small>Space: next phase · Enter: confirm · C: chain prompts · L: duel log</small></span></div>'}
 function duelBackgroundSetting(){return settingToggle('Performance Mode','Fewer decorative effects and still backgrounds. Gameplay animations stay.','data-performance-mode',state.settings.performanceMode)+settingToggle('Simple Backgrounds','Static gradients for lower battery use.','data-simple-backgrounds',state.settings.simpleBackgrounds)+settingToggle('Compatibility Mode','Turns off filters and blur that flicker in some browsers.','data-compatibility-mode',compatibilityEnabled())+`<label class="set-row"><span class="set-text"><b>Duel Background</b><small>Off while a mode above uses still backgrounds.</small></span><select data-duel-background ${duelBackgroundLocked()?'disabled':''}><option value="spiral" ${state.settings.duelBackground!=='tunnel'?'selected':''}>Classic spiral</option><option value="tunnel" ${state.settings.duelBackground==='tunnel'?'selected':''}>Animated tunnel</option></select></label>`}
 const SETTINGS_TABS=[['sound','Sound'],['effects','Effects'],['gameplay','Gameplay'],['display','Display'],['saves','Saved Data'],['devices','Devices & App'],['replays','Replays & Stats'],['about','About']];let settingsTab='sound';
 
@@ -831,7 +836,7 @@ function renderSettings(){
   sound:`<h2>Sound</h2>${soundSettings()}`,
   effects:`<h2>Effects</h2><p class="muted">Turn off anything you would rather not see. Duels play out the same either way.</p>${effectSettings()}`,
   gameplay:`<h2>Gameplay</h2>${gameplaySettings()}`,
-  display:`<h2>Display</h2>${duelBackgroundSetting()}${window.ShadowNative?'':settingToggle('Preload Game Assets','Load music, artwork and backgrounds at startup. Sound effects always preload.','data-preload-visuals',preloadVisualPreference()==='all')}`,
+  display:`<h2>Display</h2>${displaySettings()}${duelBackgroundSetting()}${window.ShadowNative?'':settingToggle('Preload Game Assets','Load music, artwork and backgrounds at startup. Sound effects always preload.','data-preload-visuals',preloadVisualPreference()==='all')}`,
   saves:`<h2>Saved Data</h2><p class="muted">Your progress is always saved on this device, and updating the app keeps it.</p><div class="set-group">${cloudSettingsMarkup({enabled:deviceBackup.isEnabled(),...deviceBackup.status()},btn,esc)}</div><details class="set-group"><summary>Other recovery options</summary><label class="set-file">Restore an admin recovery file <input id="device-recovery-file" type="file" accept=".json,application/json"></label></details><details class="set-group settings-danger"><summary>Reset Progress</summary><p>Remove all saved progress on this device.</p>${btn('Delete All Progress','reset-progress','','danger')}${deviceBackup.status().code?`<p>Remove your cloud save from the server. Progress on this device stays.</p>${btn('Delete My Cloud Save','cloud-delete','','danger')}`:''}</details>`,
   devices:`<h2>Devices &amp; App</h2><p class="muted">Link Devices shares unlocks, achievements and challenge levels between your devices.</p><div class="settings-actions">${window.ShadowNative?.openUpdate?btn('Check for Updates','android-update'):''}${btn('Link Devices','device-sync-open')}${btn('How to Play','tutorial')}</div>`,
   replays:`<h2>Replays &amp; Stats</h2><div class="set-row"><span class="set-text"><b>Duel Replays</b><small>Your latest 100 duels are kept on this device. Uploading them helps improve the CPU: decks, actions and results only, no account details.</small></span>${btn('Upload Replays','upload-replays')}</div><p id="replay-status" role="status" aria-live="polite"></p>${settingToggle('Share Global Statistics','Anonymous totals for Global Stats and Character Stats. No names or save files.','data-usage-stats',statsEnabled())}`,
@@ -995,7 +1000,7 @@ const phases=[[1,'DP'],[2,'SP'],[4,'MP1'],[8,'BP'],[256,'MP2'],[512,'EP']];
 
 function phaseName(phase){return phase>=8&&phase<256?'BATTLE PHASE':({1:'DRAW PHASE',2:'STANDBY PHASE',4:'MAIN PHASE 1',256:'MAIN PHASE 2',512:'END PHASE'})[phase]||'DUEL'}
 
-let battleBlockedUntil=0,battleUnlockTimer;
+let battleBlockedUntil=0,battleUnlockTimer,chainBuzzed=null;
 
 function guardBattleAfterCancel(){battleBlockedUntil=performance.now()+500;clearTimeout(battleUnlockTimer);document.querySelectorAll('[data-phase="8"]').forEach(b=>b.disabled=true);battleUnlockTimer=setTimeout(()=>{if(screen==='duel')document.querySelectorAll('[data-phase="8"]').forEach(b=>b.disabled=!phaseAction(8))},510)}
 
@@ -1028,6 +1033,8 @@ function renderDuel(){if(!snapshot)return;const inspectionScroll=document.queryS
  rows.push(`<div class="phases">${phases.map(([n,label])=>`<button data-phase="${n}" class="${(n===8?s.phase>=8&&s.phase<256:s.phase===n)?'active':''}" ${phaseAction(n)?'':'disabled'}>${label}</button>`).join('')}${fieldSelectBare(m)&&!attackTargetSelection(m)&&selectionEntries(m).every(x=>fieldEntry(x.c))?fieldSelectionControls(m):''}</div>`);
 
 renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()}</aside><div class="portrait-relics">${duelCurseMarkup()}${relicIndicatorMarkup()}</div><section class="duel-main"><div class="duel-particles" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37+7)%100}%;--y:${(i*19+3)%100}%;--delay:-${i*1.7}s;--duration:${10+i%6}s"></i>`).join('')}</div><div class="lpbar"><div class="life"><strong>${s.lp[0]}</strong><span>${esc(own.name)}</span></div><div class="turn">TURN<b>${displayTurn}</b></div><div class="life enemy"><span>${r.encore_active?'World Champion':esc(opponent.name)}</span><strong>${s.lp[1]}</strong></div></div><div class="field-wrap"><div class="enemy-hand">${s.players[1].hand.map(c=>engine.handRevealed?.(0,c)?`<button data-inspect="${c.code}" aria-label="Inspect revealed card"><img src="${image(c.code)}" alt="${esc(engine.name(c.code))}"></button>`:'<img src="assets/card-back.jpg" alt="Hidden card">').join('')}</div><img class="field-character" src="assets/${opponent.sprite}">${r.fallen_routes?.[r.opponent]?'<span class="uc-opponent-tag uc-field-tag" title="Ultimate Collector opponent">UC</span>':''}<img class="field-character own" data-do="duel-emotes" role="button" tabindex="0" aria-label="Send an emote" src="assets/${own.sprite}"><div class="mat">${rows.join('')}</div></div>${promptMarkup(m)}<div class="hand"${handStyle}>${s.players[0].hand.map((c,i)=>c?`<button data-hand="${i}" data-code="${c.code}" data-preview="${c.code}"><img src="${image(c.code)}" alt="${esc(card(c.code)?.name)}">${levelChangeMarkup(c)}${engine.misprintedHands?.[0]?.has(i)?`<span class="hand-misprint" aria-label="Misprinted card">Misprint · ${c.attack} / ${c.defense}</span>`:''}</button>`:'').join('')}</div><div class="duel-tools duel-tools-left">${relicIndicatorMarkup()}</div><div class="duel-tools duel-tools-right">${tagUI?`<span class="duel-room-code" aria-label="Room code">${esc(tagUI.session?.code||'')}</span>`:''}${btn('Options','duel-options')}</div></section></div>`);
+
+ if(m?.type===M.SELECT_CHAIN&&m.player===0&&m!==chainBuzzed&&offerChain(m)){chainBuzzed=m;juice.buzz(25)}
 
  polishDuel(app,engine,s,card);
  juice.syncDuel(app,{turnPlayer:s.player,deck:Array.isArray(s.players[0].deck)?s.players[0].deck.length:s.players[0].deck,handLimit:handSizeLimit(s)});
@@ -1515,11 +1522,11 @@ function advancedMarkup(m){if(m.type===M.SELECT_COUNTER)return `${m.cards.map((c
 
 let behaviourDraft=null,behaviourSending=false,behaviourSession=null;
 
-async function openBehaviourReport(){
+async function openBehaviourReport(capture=null){
 
- const session=tagUI?.session;
+ const session=capture?null:tagUI?.session;
 
- const draft={session,capture:session?null:captureBehaviour(engine?.replayRecord,{mode:'solo',seat:0,turn:snapshot?.turn,phase:snapshot?.phase})};
+ const draft={session,capture:capture||(session?null:captureBehaviour(engine?.replayRecord,{mode:'solo',seat:0,turn:snapshot?.turn,phase:snapshot?.phase}))};
 
  behaviourDraft=draft;behaviourSession=session;
 
@@ -1581,7 +1588,7 @@ async function respond(response){if(inspectionPaused())return;clearTimeout(manua
 
 let chainMode='sometimes',chainOverride=false,rightClickNoChain=false,rightClickPointer=null,rightClickHoldTimer=0,heldAlwaysChain=false,heldChainPointer=null,heldChainTimer=0,heldChainPrompt=null,manualChainTimer=0,manualChainPrompt=null;
 
-function offerChain(m){const holdOverride=heldAlwaysChain||m===heldChainPrompt;return (holdOverride||!rightClickNoChain)&&chainWindowAllowed(m,holdOverride?'always':chainMode,engine?.activeChain,{turnPlayer:engine?.player,phase:engine?.phase,card:code=>card(code)})}
+function offerChain(m){const holdOverride=heldAlwaysChain||m===heldChainPrompt;return (holdOverride||!rightClickNoChain)&&chainWindowAllowed(m,holdOverride?'always':chainMode,engine?.activeChain,{turnPlayer:engine?.player,phase:engine?.phase,attackers:m&&engine?.query?.(1-m.player,L.MZONE)?.filter(c=>c&&c.position&1).length,card:code=>card(code)})}
 
 function chainLabel(){return heldAlwaysChain?'Always chain (held)':rightClickNoChain?'No chain':chainMode==='sometimes'?'Chain sometimes':chainMode==='never'?'No chain':'Chain'}
 
@@ -1777,7 +1784,7 @@ async function action(a,el={dataset:{}},silent=false){
 
  if(!silent&&['settings','duel-settings'].includes(a)){playUISound('inspect-open');silent=true;}else if(!silent&&['title','pause-title','pause'].includes(a)){menuSelectionSound();silent=true;}
 
- if(a==='log'){dialog('Duel log',duelLogMarkup(engine?.logs||[],content.cards));return}
+ if(a==='log'){dialog('Duel log',duelLogMarkup(engine?.logs||[],content.cards,image));return}
 
  if(a==='log-action'){
 
@@ -1819,7 +1826,7 @@ async function action(a,el={dataset:{}},silent=false){
 
  if(a==='duel-settings'){dialog('Settings',`<div class="settings settings-v2 settings-dialog">${soundSettings()}${effectSettings()}${duelBackgroundSetting()}</div>`);return}
 
-if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);return;}if(a==='collection-collector-back'){collectionKind='cards';renderCollection();return;}if(a==='collector-decklist'){const d=collectorLeaders[+el.dataset.index];if(d)dialog(d.name,Object.entries(d.deck).map(([zone,ids])=>`<h3>${esc(zone==='extra'?'Fusion':zone)}</h3><div class="cardgrid collector-decklist-grid">${ids.map(id=>`<button data-inspect="${id}"><img src="${image(id)}" alt="${esc(card(id)?.name)}"></button>`).join('')}</div>`).join(''));return;}if(a==='coin-bonuses'){await showCoinBonuses();return}if(a==='curse-info'){dialog(content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(content,el.dataset.curse,state.run?.challenge_level))}</p>`);return}if(a==='cpu'){if(state.profile.cpu_viewer_unlocked)await openCPU();return}if(a==='tag'){await openTag();return}if(a==='draft-pvp'){await openCollector(true);return}if(a==='collector'){await openCollector();return}if(tagUI){if(a==='active-curses'){dialog('Curses & LVL modifiers',modifierRowsMarkup(tagUI.view.modifiers));return}if(a==='pause'||a==='pause-title'||a==='title'){await tagUI.action('exit',{dataset:{}});return}if(a==='surrender'){dialog(tagUI.isCollector?'Surrender this duel?':'Surrender the team’s run?',tagUI.isCollector?`<p>This concedes the current duel. Your opponent gains one win in the best-of-three match.</p><div class="collector-surrender-actions">${duelConfirm('Confirm surrender','confirm-surrender')}${duelDecision('Cancel surrender','close','',true)}</div>`:duelConfirm('Confirm surrender','confirm-surrender'));return}if(a==='confirm-surrender'){modal.close();await tagUI.session.request('surrender');return}}if(busy&&!['close','toggle-chain','choose-monster-type','golden-card','relic-pick','relic-pick-reroll','card-pick-type','card-pick-select','card-pick-confirm','name-pick-select','name-pick-confirm','relic-ledger','relic-detail','active-curses','curse-info','surrender','confirm-surrender','resume-duel'].includes(a))return;if(!silent&&!['buy','close','select-purchase','shop-reroll','sell-relic'].includes(a)){if((screen==='shop'&&a==='draft')||(screen==='draft'&&a==='shop'))playUISound('window-close');else effect(['start','new','confirm-new'].includes(a));}
+if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);return;}if(a==='collection-collector-back'){collectionKind='cards';renderCollection();return;}if(a==='collector-decklist'){const d=collectorLeaders[+el.dataset.index];if(d)dialog(d.name,Object.entries(d.deck).map(([zone,ids])=>`<h3>${esc(zone==='extra'?'Fusion':zone)}</h3><div class="cardgrid collector-decklist-grid">${ids.map(id=>`<button data-inspect="${id}"><img src="${image(id)}" alt="${esc(card(id)?.name)}"></button>`).join('')}</div>`).join(''));return;}if(a==='coin-bonuses'){await showCoinBonuses();return}if(a==='curse-info'){dialog(content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(content,el.dataset.curse,state.run?.challenge_level))}</p>`);return}if(a==='cpu'){if(state.profile.cpu_viewer_unlocked)await openCPU();return}if(a==='tag'){await openTag();return}if(a==='draft-pvp'){await openCollector(true);return}if(a==='collector'){await openCollector();return}if(tagUI){if(a==='active-curses'){dialog('Curses & LVL modifiers',modifierRowsMarkup(tagUI.view.modifiers));return}if(a==='pause'||a==='pause-title'||a==='title'){await tagUI.action('exit',{dataset:{}});return}if(a==='surrender'){dialog(tagUI.isCollector?'Surrender this duel?':'Surrender the team’s run?',tagUI.isCollector?`<p>This concedes the current duel. Your opponent gains one win in the best-of-three match.</p><div class="collector-surrender-actions">${duelConfirm('Confirm surrender','confirm-surrender')}${duelDecision('Cancel surrender','close','',true)}</div>`:duelConfirm('Confirm surrender','confirm-surrender'));return}if(a==='confirm-surrender'){modal.close();await tagUI.session.request('surrender');return}}if(busy&&!['close','toggle-chain','choose-monster-type','golden-card','relic-pick','relic-pick-reroll','weight-pick','card-pick-type','card-pick-select','card-pick-confirm','name-pick-select','name-pick-confirm','relic-ledger','relic-detail','active-curses','curse-info','surrender','confirm-surrender','resume-duel'].includes(a))return;if(!silent&&!['buy','close','select-purchase','shop-reroll','sell-relic'].includes(a)){if((screen==='shop'&&a==='draft')||(screen==='draft'&&a==='shop'))playUISound('window-close');else effect(['start','new','confirm-new'].includes(a));}
 
  if(a==='active-curses'){const rows=await command('active-curses');dialog('This duel: curses & difficulty',modifierRowsMarkup(rows));return}
 
@@ -1887,6 +1894,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
  if(a==='choose-monster-type'){if(tagUI)await tagUI.session.request(a,el.dataset.type);else await command(a,el.dataset.type);modal.close();render();return;}
 
  if(a==='relic-pick'){await command(a,el.dataset.relic);finishRelicChoice();return}
+ if(a==='weight-pick'){await command(a,+el.dataset.face);finishRelicChoice();return}
  if(a==='relic-pick-reroll'){await command(a);if(state.run.relic_offer)showRelicChoice(state.run);else finishRelicChoice();return}
  if(a==='card-pick-type'){cardPick.type=el.dataset.type;refreshCardPick();return}
  if(a==='card-pick-select'){cardPick.selected=+el.dataset.code;refreshCardPick();return}
@@ -1930,7 +1938,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  }
 
- if(a==='android-download'){await persist();ShadowNative.openUpdate();return;}
+ if(a==='android-download'){if(state)await persist();ShadowNative.openUpdate();return;}
 
  if(a==='settings'){returnScreen=screen;go('settings');return}if(a==='settings-back'){go(returnScreen);if(screen==='duel')scheduleAI();return}
 
@@ -1986,10 +1994,13 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.draftSort!==undefined){draftSort=e.target.value;renderDraft()}});
 
 // Sliders preview every movement; the settings are saved once, when the slider is released.
-document.addEventListener('change',e=>{if(e.target.id==='voice')playUISound('kill-perfect.wav',{spoken:true});if(e.target.id==='menu')menuSelectionSound();if(['manual-response-window','music','sound','voice','menu'].includes(e.target.id))void command('settings',state.settings)});
-document.addEventListener('input',async e=>{if(e.target.id==='card-pick-search'||e.target.id==='name-pick-search'){const cardSearch=e.target.id==='card-pick-search';(cardSearch?cardPick:namePick).q=e.target.value;clearTimeout(pickSearchTimer);pickSearchTimer=setTimeout(cardSearch?refreshCardPick:refreshNamePick,120);return}if(e.target.id==='manual-response-window'){const value=Math.max(0,Math.min(2000,Number(e.target.value)||0));state.settings.manualResponseWindow=value;e.target.nextElementSibling.textContent=`${value} ms`}if(['music','sound','voice','menu'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic())}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
+document.addEventListener('change',e=>{if(e.target.id==='voice')playUISound('kill-perfect.wav',{spoken:true});if(e.target.id==='menu')menuSelectionSound();if(['manual-response-window','text-size','music','sound','voice','menu'].includes(e.target.id))void command('settings',state.settings)});
+document.addEventListener('input',async e=>{if(e.target.id==='card-pick-search'||e.target.id==='name-pick-search'){const cardSearch=e.target.id==='card-pick-search';(cardSearch?cardPick:namePick).q=e.target.value;clearTimeout(pickSearchTimer);pickSearchTimer=setTimeout(cardSearch?refreshCardPick:refreshNamePick,120);return}if(e.target.id==='manual-response-window'){const value=Math.max(0,Math.min(2000,Number(e.target.value)||0));state.settings.manualResponseWindow=value;e.target.nextElementSibling.textContent=`${value} ms`}if(e.target.id==='text-size'){state.settings.textSize=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';applyDisplayOptions(state.settings)}if(['music','sound','voice','menu'].includes(e.target.id)){state.settings[e.target.id]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value+'%';track(screenMusic())}if(e.target.id==='announce-search'){const q=e.target.value.toLowerCase();document.querySelectorAll('.prompt [data-response]').forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))}});
 
 installEscapeInspection(()=>modal.open&&!!modal.querySelector('.inspect,.pile-inspection'),closeDialog);
+
+// Space never skips Battle while the cancel guard has it disabled.
+installDuelKeys({root:app,inDuel:()=>screen==='duel'&&!cpuViewer,canAct:()=>!busy&&performance.now()>=battleBlockedUntil&&!document.querySelector('.encounter-cinematic,.legendary-summon,.exodia-finale'),logOpen:()=>modal.open&&!!modal.querySelector('.duel-log'),openLog:()=>action('log'),closeLog:()=>{closeDialog();scheduleAI()}});
 
 window.androidBack=()=>{const reminder=document.querySelector('.replay-upload-reminder[open]');if(reminder){reminder.close();return}if(screen==='loading'||document.querySelector('.exodia-finale'))return;if(modal.open){closeDialog();if(screen==='duel')scheduleAI()}else if(cpuViewer){cpuViewer.back()}else if(tagUI)tagUI.action('exit',{dataset:{}});else if(screen==='duel')action('pause');else if(screen==='settings')action('settings-back');else go('title')};
 
@@ -2016,6 +2027,15 @@ window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target
 
 
 async function boot(){try{
+
+ // Ask about an update first: it would replace everything loaded below. A slow check must not hold up the game.
+ let updatePromptOpen=false;
+ const updateCheck=startupAndroidUpdate({native:window.ShadowNative,online:navigator.onLine,prompt:async version=>{
+  while(modal.open)await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));
+  updatePromptOpen=true;dialog('Update',`<p>Would you like to update to version ${esc(version)}?</p><div class="actions">${btn('Update','android-download')}${btn('Close','close')}</div>`,false);
+  await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));updatePromptOpen=false;
+ }});
+ await Promise.race([updateCheck,new Promise(resolve=>setTimeout(resolve,2500))]);if(updatePromptOpen)await updateCheck;
 
  document.querySelector('#loading-status').textContent='Step 1 of 6 · Reading game data and saved progress…';
 
@@ -2049,7 +2069,7 @@ async function boot(){try{
 
  document.querySelector('#loading-status').textContent='Step 4 of 6 · Restoring campaign…';
 
- await py.runPythonAsync("import sys\nsys.path.insert(0,'/game')\nimport mobile_backend");await command('init');applyCompatibilityMode();applyEffectOptions(state.settings.effectsOff);if(preloadVisuals&&!state.settings.simpleBackgrounds&&!state.settings.performanceMode&&!compatibilityEnabled()){document.querySelector('#loading-status').textContent='Step 4 of 6 · Loading background videos…';await preloadAllBackgrounds(({loaded,total})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} backgrounds loaded`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});}
+ await py.runPythonAsync("import sys\nsys.path.insert(0,'/game')\nimport mobile_backend");await command('init');applyCompatibilityMode();applyEffectOptions(state.settings.effectsOff);applyDisplayOptions(state.settings);if(preloadVisuals&&!state.settings.simpleBackgrounds&&!state.settings.performanceMode&&!compatibilityEnabled()){document.querySelector('#loading-status').textContent='Step 4 of 6 · Loading background videos…';await preloadAllBackgrounds(({loaded,total})=>{document.querySelector('#loading-count').textContent=`${loaded} / ${total} backgrounds loaded`;const bar=document.querySelector('#loading-progress');bar.max=total;bar.value=loaded;});}
 
  document.querySelector('#loading-status').textContent='Step 5 of 6 · Loading sounds and selected assets…';
 
@@ -2059,15 +2079,6 @@ async function boot(){try{
  document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects.filter(path=>!/\/(?:kill-[a-z]+|you-lose)\.wav$/.test(path)));
 
  screen='title';render();await notices();document.dispatchEvent(new CustomEvent('game-startup-ready',{detail:{newDevice:Object.keys(saved).length===0}}));if(!new URLSearchParams(location.search).has('desktop'))cloudStartup(Object.keys(saved).length===0);if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
-
- void startupAndroidUpdate({native:window.ShadowNative,online:navigator.onLine,prompt:async version=>{
-
-  while(modal.open)await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));
-
-  dialog('Update',`<p>Would you like to update to version ${esc(version)}?</p><div class="actions">${btn('Update','android-download')}${btn('Close','close')}</div>`,false);
-
- }});
-
  startDeviceSync();
 
  window.shadowTest={command,state:()=>state,collector:()=>tagUI?.isCollector?tagUI:null,engine:()=>engine,screen:()=>screen,go,startDuel,respond};
@@ -2229,7 +2240,7 @@ const replayKey=(started,character,loop,duel)=>[started,character,loop,duel].joi
 function runReplayStrip(r){if(r.mode==='tag'||!r.timeline?.length)return '';return `<div class="run-replays" data-run-started="${esc(r.started_at)}" data-run-character="${r.character}">${r.timeline.map(x=>{const c=content.characters[x.opponent];return `<button class="run-replay ${x.won?'won':'lost'}" data-do="watch-replay" data-key="${esc(replayKey(r.started_at,r.character,x.loop,x.duel))}" disabled aria-label="${esc(c?.name||'Opponent')}, duel ${x.duel}: no replay"><img loading="lazy" src="assets/${esc(c?.sprite)}" alt=""><span>${x.loop>1?'L'+x.loop+' · ':''}${x.duel}</span></button>`}).join('')}<small class="run-replay-note">Replays of your last 100 duels can be watched. Older ones are deleted automatically.</small></div>`}
 async function markRunReplays(){let rows;try{rows=await runReplayIndex()}catch{return}const keys=new Map(rows.map(x=>[replayKey(x.meta.started_at,x.meta.character,x.meta.loop,x.meta.duel),x.id]));for(const b of document.querySelectorAll('.run-replay[data-key]')){const id=keys.get(b.dataset.key);if(!id)continue;b.disabled=false;b.dataset.replay=id;b.classList.add('available');b.setAttribute('aria-label',b.getAttribute('aria-label').replace(': no replay',': watch replay'))}}
 async function watchReplay(id){const record=await loadReplay(id).catch(()=>null),meta=(await runReplayIndex()).find(x=>x.id===id)?.meta;if(!record||!meta){toast('This replay is no longer available.');return}
- screen='cpu';clearTimeout(aiTimer);track('duel');cpuViewer=new ReplayViewer({root:app,content,inspect,dialog,record,characters:[meta.character,meta.opponent],onExit:async()=>{cpuViewer=null;collectionKind='history';go('collection')}});}
+ screen='cpu';clearTimeout(aiTimer);track('duel');cpuViewer=new ReplayViewer({root:app,content,inspect,dialog,record,characters:[meta.character,meta.opponent],onFlag:(duel,context)=>openBehaviourReport(captureBehaviour(duel,context)),onExit:async()=>{cpuViewer=null;collectionKind='history';go('collection')}});}
 function runTimelineMarkup(r){return `<section class="run-timeline"><h3>Run timeline</h3>${(r.timeline||[]).map(x=>`<span class="${x.won?'won':'lost'}">${x.loop>1?'Loop '+x.loop+' · ':''}Duel ${x.duel}: ${esc(content.characters[x.opponent]?.name)} — ${x.won?'Win':'Loss'} · ${x.lp_after_healing.toLocaleString()} LP</span>`).join('')||'<p>Detailed timeline is available for duels played after this update.</p>'}</section>`}
 
 

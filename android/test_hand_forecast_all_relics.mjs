@@ -17,8 +17,8 @@ import passives,campaign as g
 from content import ART_INFO
 base=passives.script({'curses':[],'artifacts':[]})
 pool=[c for c in g.CARDS if c['data']['type']&1 and not c['data']['type']&0x40c0 and 1<=c['level']<=4]
-# Prefer monsters without their own stat effect, so only the relic changes the numbers.
-plain=lambda c:c['data']['type']&0x10 or not any(w in c['desc'] for w in ('ATK','DEF'))
+# Prefer monsters without their own stat effect or a way to turn face-down, so only the relic changes the numbers.
+plain=lambda c:c['data']['type']&0x10 or not any(w in c['desc'] for w in ('ATK','DEF','face-down'))
 def find(test):return next((c['id'] for c in sorted(pool,key=lambda c:(not plain(c),c['id'])) if test(c)),None)
 races={'Aqua/Fish/Sea Serpent':'Aqua','Dinosaur/Reptile':'Dinosaur','Insect/Plant':'Insect','Pyro/Thunder':'Thunder'}
 sets={'0x1a':0x1a,'0x2e':0x2e,'0x4':0x4,'0x64':0x64,'0xf':0xf}

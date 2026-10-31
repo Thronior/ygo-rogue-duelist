@@ -104,7 +104,7 @@ for key,name,art,race in [
  ('fossil','Amber Fossil','Two-Headed King Rex','Dinosaur/Reptile'),('hive','Wildwood Charm','Prickle Fairy','Insect/Plant'),
  ('bone','Zombie Crystal','Dragon Zombie','Zombie'),('halo','Silver Halo','Mystical Elf','Fairy'),
  ('fang','Beast Fang','Silver Fang','Beast'),('horn','Fiend Horn','Summoned Skull','Fiend'),
- ('storm_core','Lightning Fire','Lightning Storm','Pyro/Thunder')]:
+ ('storm_core','Lightning Fire','Lightning Storm','Pyro/Thunder'),('stone','Granite Heart','Giant Soldier of Stone','Rock')]:
  artifact(key,name,70,f"Your {race + ' and Beast-Warrior' if race in ('Warrior','Beast') else race} monsters gain 300 ATK in every duel.",art,'atk',300,'offense',race)
 for key,name,art,attr in [('ember','Ember Orb','Flame Swordsman','FIRE'),('tide','Tide Orb','Umi','WATER'),('gale','Gale Orb','Mountain','WIND'),('earth','Earth Orb','Gaia The Fierce Knight','EARTH'),('light','Light Orb','Mystical Elf','LIGHT'),('dark','Dark Orb','Dark Magician','DARK')]:
  artifact(key,name,65,f'Your {attr} monsters gain 200 ATK and DEF.',art,'both',200,'offense',attr)
@@ -182,7 +182,7 @@ def starting_packs(index,rng=None):
   import random
   rng=rng or random
   # Bakura can draw any pack, including character and shop boosters.
-  return [p['id'] for p in rng.sample(PACKS,4)]
+  return [p['id'] for p in rng.sample([p for p in PACKS if not p.get('shop_chance')],4)]
  return CHARACTERS[index].get('starting_packs',DRAFTS.get(str(index),[CHARACTERS[index]['pack']]*4))
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):

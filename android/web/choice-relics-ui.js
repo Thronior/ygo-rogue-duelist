@@ -1,4 +1,4 @@
-// Prompts for relics that ask for a choice when acquired: Relic Picker, Card Picker and Name Changer.
+// Prompts for relics that ask for a choice when acquired: Relic Picker, Card Picker, Name Changer and the weighted relics.
 // The run holds the pending choice (choice_relics.py); these only draw it. Lists stay short so typing stays smooth.
 import {safe} from './experience-ui.js';
 
@@ -6,7 +6,12 @@ const ANCIENT_TREASURE=190000050,RESULTS=60;
 export const cardPick={q:'',type:'all',selected:null};
 export const namePick={q:'',selected:null};
 
-export function pendingRelicChoice(r){return !!r&&r.challenge_level!==-1&&(!!r.relic_offer?.options?.length||(r.card_picks||0)>0||(r.name_change_picks||0)>0)}
+export function pendingRelicChoice(r){return !!r&&r.challenge_level!==-1&&(!!r.relic_offer?.options?.length||(r.card_picks||0)>0||(r.name_change_picks||0)>0||(r.weight_picks?.length||0)>0)}
+
+export function weightPickMarkup(key,btn){
+ const faces=key==='weighted_coins'?[['Heads',1],['Tails',0]]:[1,2,3,4,5,6].map(n=>[n,n]);
+ return `<div class="weight-pick"><p>${key==='weighted_coins'?'Choose the face your coins will favour.':'Choose the number your dice will favour.'}</p><div class="weight-pick-options">${faces.map(([label,face])=>btn(label,'weight-pick',`data-face="${face}"`)).join('')}</div></div>`;
+}
 
 export function relicOfferMarkup(content,offer,{relicImage,relicArtwork,btn}){
  return `<div class="relic-offer"><p>Choose 1 relic to keep for this run.</p><div class="relic-offer-options">${offer.options.map(key=>{const [name,price,text]=content.artifacts[key];return `<article><h3>${safe(name)}</h3>${relicArtwork(relicImage(content.artifactInfo[key].art))}<p>${safe(text)}</p><small>Shop price ${price}</small>${btn('Choose relic','relic-pick',`data-relic="${safe(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'relic-pick-reroll',offer.rerolls_left?'':'disabled')}</footer></div>`;

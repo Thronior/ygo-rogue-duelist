@@ -23,7 +23,7 @@ REGULAR=[
 ('burn_proficiency','Burn Proficiency',100,'Increase effect damage you inflict to your opponent by 50% (rounded down).','Hinotama'),
 ('straw_doll','Straw Doll',250,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
 ('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced. This relic appears less often than other relics.','Gate Guardian'),
-('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Upstart Goblin'),
+('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Magical Mallet'),
 ('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.','Magical Merchant'),
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
 ('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
@@ -68,7 +68,7 @@ CURSED=[
 (51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase. Tails: they lose 300 ATK/DEF until then.','Fairy Box'),
 (54,'blood_toll','Blood Toll','You pay with LP instead of coins: 10 LP for every coin a purchase or reroll costs, after discounts. You cannot pay if it would leave you below 1 LP.','Toll'),
 # Thronior's picks from the 2026-10-29 cursed relic ideas.
-(55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. They must attack as many times as able.','Berserk Gorilla'),
+(55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. You cannot Set monsters or Special Summon them in Defense Position.','Berserk Gorilla'),
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
 (59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
 (61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering')]
@@ -124,7 +124,7 @@ def copy_limit(run):
  return 1 if has(run,'cursed_singleton_pact') else 3
 
 # Relics that ask for a choice when acquired; Tag Duels and Magic Mirror never use them.
-CHOICE_RELICS=('relic_picker','card_picker','name_changer')
+CHOICE_RELICS=('relic_picker','card_picker','name_changer','weighted_coins','weighted_dice')
 CONSUMED_RELICS=('relic_picker','card_picker')
 
 def opening(run,normal):return max(1,normal-3*copies(run,'cursed_crowded_crypt')-2*copies(run,'cursed_premature_triumph'))

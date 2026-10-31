@@ -1,14 +1,17 @@
-"""Relics that ask for a choice when acquired: Relic Picker, Card Picker and Name Changer.
+"""Relics that ask for a choice when acquired: Relic Picker, Card Picker, Name Changer and the weighted relics.
 
-Pending choices live on the run (relic_offer/relic_picks, card_picks, name_change_picks), so a reload
+Pending choices live on the run (relic_offer/relic_picks, card_picks, name_change_picks, weight_picks), so a reload
 or another device shows the same prompt until it is answered.
 """
 import json,random
 from pathlib import Path
 import approved_relics as ar
+import archetype_relics
 
 ANCIENT_TREASURE=190000050  # The 50-coin card stays exclusive to the All Spells pack.
 VERY_RARE=('almighty',)
+# relic: (run field, Lua toss kind, legal faces, how many plain faces the chosen one counts as)
+WEIGHTED={'weighted_coins':('weighted_coin','coin',(0,1),2),'weighted_dice':('weighted_die','dice',(1,2,3,4,5,6),3)}
 
 def archetypes():
  return json.loads((Path(__file__).parent/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
@@ -25,7 +28,7 @@ def relic_pool(run,exclude=()):
 
 def _offer(run,rng,exclude=()):
  pool=relic_pool(run,exclude)
- run['relic_offer']={'options':rng.sample(pool,min(3,len(pool))),'rerolls_left':1} if pool else None
+ run['relic_offer']={'options':archetype_relics.sample(pool,min(3,len(pool)),run,rng),'rerolls_left':1} if pool else None
  if not pool:run['relic_picks']=0
 
 def queue_relic_pick(run,rng=random):
@@ -63,3 +66,25 @@ def change_name(run,setcode):
  if setcode not in {a['setcode'] for a in archetypes()}:raise ValueError('Unknown archetype.')
  run['name_change_picks']-=1;run.setdefault('name_changes',[]).append(setcode)
  return setcode
+
+def queue_weight_pick(run,key):
+ run.setdefault('weight_picks',[]).append(key)
+
+def choose_weight(run,face):
+ face=int(face)
+ if not run.get('weight_picks'):raise ValueError('No weighted relic choice is waiting.')
+ field,_,faces,_=WEIGHTED[run['weight_picks'][0]]
+ if face not in faces:raise ValueError('Choose a valid face.')
+ run[field]=face;run['weight_picks'].pop(0)
+ return face
+
+def clear_weight(run,key):
+ run.pop(WEIGHTED[key][0],None)
+ if key in run.get('weight_picks',[]):run['weight_picks'].remove(key)
+
+def weight_script(run):
+ lines=[]
+ for key,(field,kind,_,share) in WEIGHTED.items():
+  if ar.has(run,key) and run.get(field) is not None:
+   lines.append(f"if Duel.SetRogueWeight then Duel.SetRogueWeight(0,'{kind}',{run[field]},{share}) end")
+ return '\n'.join(lines)

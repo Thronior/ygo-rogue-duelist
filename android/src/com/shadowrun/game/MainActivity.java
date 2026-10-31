@@ -146,6 +146,11 @@ public final class MainActivity extends Activity {
             return true;
         }
 
+        @JavascriptInterface public void vibrate(int ms) {
+            android.os.Vibrator vibrator=getSystemService(android.os.Vibrator.class);
+            if(vibrator!=null)vibrator.vibrate(android.os.VibrationEffect.createOneShot(Math.max(1,Math.min(ms,200)),android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+        }
+
         @JavascriptInterface public void openUpdate() {
             runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class)));
         }

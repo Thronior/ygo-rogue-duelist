@@ -20,9 +20,18 @@ const out=execFileSync(python,['-B','-c',`
 import sys,json,tempfile;from pathlib import Path;sys.path.insert(0,'.')
 import storage;storage.ROOT=Path(tempfile.mkdtemp())
 f=lambda v:(storage.write(storage.ROOT/'settings.json',v),storage.settings())[1]
-print(json.dumps([f({'sound':55}),f({'sound':55,'voice':10,'menu':0,'effectsOff':['flames',3]}),f({'effectsOff':'flames','voice':900})]))`],{cwd:root}).toString();
+print(json.dumps([f({'sound':55}),f({'sound':55,'voice':10,'menu':0,'effectsOff':['flames',3]}),f({'effectsOff':'flames','voice':900,'textSize':900,'reduceMotion':1})]))`],{cwd:root}).toString();
 const [old,chosen,junk]=JSON.parse(out);
 assert.deepEqual([old.voice,old.menu,old.effectsOff],[55,55,[]],'an existing save keeps its balance');
 assert.deepEqual([chosen.sound,chosen.voice,chosen.menu,chosen.effectsOff],[55,10,0,['flames']]);
 assert.deepEqual([junk.voice,junk.effectsOff],[100,[]]);
+assert.deepEqual([old.textSize,old.reduceMotion],[100,false],'Display options start off');assert.deepEqual([junk.textSize,junk.reduceMotion],[150,true]);
+// Vibration only reaches the native bridge while its option is on, and the row needs that bridge.
+let pulses=0;globalThis.ShadowNative={vibrate:()=>pulses++};
+globalThis.addEventListener=()=>{};
+const {buzz}=await import('./web/juice.js');buzz(25);assert.equal(pulses,1);applyEffectOptions(['vibration']);buzz(25);assert.equal(pulses,1);applyEffectOptions([]);delete globalThis.ShadowNative;buzz(25);assert.match(mobile,/key!=='vibration'\|\|window\.ShadowNative\?\.vibrate/);
+// The duel log marks turns and sides, and shows only cards already named in the text.
+const {duelLogMarkup}=await import('./web/duel-log-ui.js');
+const log=duelLogMarkup(['Turn 3 · Your turn','You summon Dark Magician.','Opponent takes 300 LP.'],[{id:46986414,name:'Dark Magician'}],id=>`card-${id}.jpg`);
+assert.match(log,/<h4 class="log-turn">Turn 3 · Your turn<\/h4>/);assert.match(log,/class="log-action log-you"/);assert.match(log,/src="card-46986414\.jpg"/);assert.match(log,/class="log-event log-opponent"/);
 console.log(`PASS ${VISUAL_EFFECTS.length} visual options, voice and menu channels, saved settings`);

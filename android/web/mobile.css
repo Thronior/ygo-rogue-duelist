@@ -2204,7 +2204,9 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 }
 
 /* Relic Picker, Card Picker and Name Changer prompts (choice-relics-ui.js). */
-.relic-offer>p,.name-pick>p{margin:0 0 10px;color:#b9cdd6}
+.relic-offer>p,.name-pick>p,.weight-pick>p{margin:0 0 10px;color:#b9cdd6}
+.weight-pick-options{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.weight-pick-options button{min-width:72px}
 .relic-offer-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
 .relic-offer-options article{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border:1px solid #3f6571;border-radius:10px;background:#0b1f29e6;text-align:center}
 .relic-offer-options h3{margin:0;font-size:16px;color:#efca79}
@@ -2408,3 +2410,15 @@ html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
 .run-replay.available:hover,.run-replay.available:focus-visible{transform:translateY(-1px);box-shadow:0 0 8px #ffe3a688}
 .run-replay.available::after{content:"▶";position:absolute;right:3px;top:2px;color:#ffe3a6;font-size:10px;text-shadow:0 1px 2px #000}
 .run-replay-note{flex-basis:100%;color:#9fb6bd}
+/* Run History replays: the duel's relics and curses, tap for details. */
+.replay-modifiers{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;max-height:112px;overflow:auto}
+.replay-modifiers button{width:32px;height:32px;min-height:0;padding:0;border-radius:6px;overflow:hidden;flex:none}
+.replay-modifiers img{width:100%;height:100%;object-fit:cover}
+.replay-modifiers .replay-curse{border-color:#d9727a;background:#2a1520}
+.replay-modifiers .replay-curse img{object-fit:contain;padding:3px}
+@media (hover:none){.keyboard-shortcuts{display:none}}
+.duel-log .log-action{justify-content:flex-start}.duel-log .log-action .log-text{flex:1}
+.duel-log .log-thumbs{display:flex;flex:0 0 auto;gap:3px}.duel-log .log-thumbs img{width:30px;height:44px;object-fit:cover;border-radius:3px}
+.duel-log .log-turn{position:sticky;top:0;z-index:1;margin:12px 0 5px;padding:5px 12px;border-radius:5px;background:#16323d;color:#f2dc89;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.duel-log .log-you{border-left:3px solid #6fb7e0}.duel-log .log-opponent{border-left:3px solid #d9727a}
+html.text-scaled :is(.card-text,.inspect-effect,.mouse-details-effect,.prompt-context,.reaction-context,.prompt .notice,.prompt button,.selection-actions button,.set-text,.muted,.log-text,.log-event,.log-help){zoom:var(--text-scale)}

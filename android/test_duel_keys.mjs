@@ -1,0 +1,33 @@
+// Duel keyboard shortcuts: which button each key presses, and when a key must do nothing.
+import assert from 'node:assert/strict';
+import {nextPhaseButton,confirmButton,installDuelKeys} from './web/duel-keys.js';
+const button=(cls='',phase=0,disabled=false)=>({disabled,dataset:{phase},clicks:0,click(){this.clicks++},checkVisibility:()=>true,classList:{contains:c=>c===cls}});
+const board=(phases,confirms=[])=>({querySelectorAll:s=>s.includes('phases')?phases:confirms,querySelector:s=>s==='#chain-toggle'?board.chain:null});
+const phaseRow=(active,...enabled)=>[1,2,4,8,256,512].map(n=>button(n===active?'active':'',n,!enabled.includes(n)));
+assert.equal(nextPhaseButton(board(phaseRow(4,8,512))).dataset.phase,8,'Main Phase 1 goes to Battle');
+assert.equal(nextPhaseButton(board(phaseRow(4,512))).dataset.phase,512,'no Battle available goes to End');
+assert.equal(nextPhaseButton(board(phaseRow(8,256,512))).dataset.phase,256,'Battle goes to Main Phase 2');
+assert.equal(nextPhaseButton(board(phaseRow(4))),null,'nothing while a prompt is open');
+const one=button();assert.equal(confirmButton(board([],[one])),one);
+assert.equal(confirmButton(board([],[one,button()])),null,'two confirm buttons are ambiguous');
+assert.equal(confirmButton(board([],[button('',0,true)])),null,'a disabled confirm is not pressed');
+// Key handling.
+let listener;globalThis.window={addEventListener:(_,f)=>listener=f,removeEventListener(){}};
+let dialogs=false;globalThis.document={body:{},querySelector:()=>dialogs?{}:null};
+const row=phaseRow(4,8,512),confirm=button(),chain=button();board.chain=chain;
+let acting=true,duel=true,logged=0,closed=0,log=false;
+installDuelKeys({root:board(row,[confirm]),inDuel:()=>duel,canAct:()=>acting,logOpen:()=>log,openLog:()=>logged++,closeLog:()=>closed++});
+const press=(key,extra={})=>{let prevented=false;listener({key,target:document.body,preventDefault(){prevented=true},...extra});return prevented};
+const battle=row[3];
+assert.equal(press(' '),true,'Space never also presses a focused button');assert.equal(battle.clicks,1);
+press(' ',{repeat:true});assert.equal(battle.clicks,1,'holding Space moves one phase');
+press('Enter');assert.equal(confirm.clicks,1);
+press('C');assert.equal(chain.clicks,1);
+press('l');assert.equal(logged,1);log=true;press('l');assert.equal(closed,1,'L closes the log');log=false;
+acting=false;press(' ');press('Enter');assert.equal(battle.clicks+confirm.clicks,2,'busy duels ignore Space and Enter');press('c');assert.equal(chain.clicks,2,'chain prompts change even while busy');acting=true;
+press('c',{ctrlKey:true});assert.equal(chain.clicks,2,'browser shortcuts are left alone');
+press(' ',{target:{closest:()=>({})}});assert.equal(battle.clicks,1,'typing in a field is left alone');
+press('Enter',{target:{closest:()=>null,matches:()=>true}});assert.equal(confirm.clicks,1,'a button reached with Tab keeps its own key');
+dialogs=true;assert.equal(press(' '),false);press('Enter');press('c');press('l');assert.deepEqual([battle.clicks,confirm.clicks,chain.clicks,logged],[1,1,2,1],'open dialogs block every shortcut');dialogs=false;
+duel=false;press(' ');assert.equal(battle.clicks,1,'only in a duel');
+console.log('PASS duel keyboard shortcuts');

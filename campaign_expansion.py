@@ -233,6 +233,9 @@ def install(g):
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
    if relic=='ankh':r['lp']+=2000
+   if relic in ('weighted_coins','weighted_dice'):
+    import choice_relics
+    choice_relics.queue_weight_pick(r,relic)
   ensure_bounty(r,rng)
   if relic=='final_hour':r['pool'].append(g.BY_NAME['Final Countdown']['id'])
   routes(r,rng)
@@ -556,7 +559,7 @@ def install(g):
   count=(4 if ar.has(run,'booster_shelf') else 3)-len(current)
   if count<=0:return
   profile=storage.profile()
-  options=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in current and unlocks.available('pack',p['id'],profile)]
+  options=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in current and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
   price=ar.price(run,'pack',max(1,round(35*max(0,1-amount(run,'discount')/100))))
   for pid in rng.sample(options,min(count,len(options))):run['shop'].append(dict(kind='pack',id=pid,price=price,sold=False,opponent_pack=False))
   return bool(options)
@@ -618,7 +621,7 @@ def install(g):
    # Old shops/routes can predate progression; an unlocked early pack is the fallback.
    tied='EN-LOB'
   pack_count=4 if ar.has(run,'booster_shelf') else 3
-  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and unlocks.available('pack',p['id'],profile)],pack_count-1)
+  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)],pack_count-1)
   pack_ids=[tied]+others
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
   if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
@@ -670,7 +673,11 @@ def install(g):
   price=ARTIFACTS[key][1]//2
   run['artifacts'].remove(key);run['gold']+=price
   if key=='bounty_list':run.pop('bounty_objective',None)
+  if key=='dna_rewrite' and key not in run['artifacts']:run.pop('monster_type',None)
   if key=='name_changer' and run.get('name_changes'):run['name_changes'].pop()
+  if key in ('weighted_coins','weighted_dice'):
+   import choice_relics
+   choice_relics.clear_weight(run,key)
   stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+price
   save(run)
   return dict(relic=key,coins=price,gold=run['gold'])
@@ -694,6 +701,7 @@ def install(g):
   if key=='relic_picker':choice_relics.queue_relic_pick(run,rng)
   if key=='card_picker':run['card_picks']=run.get('card_picks',0)+1
   if key=='name_changer':run['name_change_picks']=run.get('name_change_picks',0)+1
+  if key in ('weighted_coins','weighted_dice'):choice_relics.queue_weight_pick(run,key)
   return obtained
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)

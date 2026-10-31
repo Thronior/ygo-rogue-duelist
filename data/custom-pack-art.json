@@ -1,0 +1,68 @@
+{
+  "layout": "Character pack template: silver seals, tinted wrapper and logo, with boss-card art at full strength and no portrait",
+  "packs": [
+    {
+      "id": "CUSTOM-NIGHTMARE-LEGION",
+      "name": "Nightmare Legion",
+      "card": 62180201,
+      "boss": "The Wicked Dreadroot",
+      "tint": "#9a7fb8",
+      "theme": "Fiends, Zombies and masked horrors"
+    },
+    {
+      "id": "CUSTOM-KNIGHTS-AND-MAGI",
+      "name": "Knights and Magi",
+      "card": 50725996,
+      "boss": "Dark Magician Knight",
+      "tint": "#d6a85e",
+      "theme": "Warriors, Spellcasters and Amazoness"
+    },
+    {
+      "id": "CUSTOM-HEAVENS-WRATH",
+      "name": "Heaven's Wrath",
+      "card": 10000020,
+      "boss": "Slifer the Sky Dragon",
+      "tint": "#e0b15f",
+      "theme": "Divine-Beasts, Dragons, Fairies and fire from the sky"
+    },
+    {
+      "id": "CUSTOM-SAVAGE-WILDS",
+      "name": "Savage Wilds",
+      "card": 4796100,
+      "boss": "Chimera the Flying Mythical Beast",
+      "tint": "#8fb56a",
+      "theme": "Beasts, Insects, Plants and Dinosaurs"
+    },
+    {
+      "id": "CUSTOM-STONE-AND-STEEL",
+      "name": "Stone and Steel",
+      "card": 75347539,
+      "boss": "Valkyrion the Magna Warrior",
+      "tint": "#9fa9b2",
+      "theme": "Machines, Rocks, Magnet Warriors and ancient monuments"
+    },
+    {
+      "id": "CUSTOM-STORM-TIDE",
+      "name": "Storm Tide",
+      "card": 10485110,
+      "boss": "Ocean Dragon Lord - Neo-Daedalus",
+      "tint": "#6db4d8",
+      "theme": "Aqua, Fish, Reptiles and Thunder"
+    },
+    {
+      "id": "CUSTOM-FORTUNES-GAMBIT",
+      "name": "Fortune's Gambit",
+      "card": 2196767,
+      "boss": "Gambler of Legend",
+      "tint": "#7fa894",
+      "theme": "Chance, risk, mind games and big swings"
+    },
+    {
+      "id": "CUSTOM-STINKERS",
+      "name": "Stinkers",
+      "art": "poop",
+      "tint": "#c9a26b",
+      "theme": "Useless Normal Monsters and weak tributes"
+    }
+  ]
+}

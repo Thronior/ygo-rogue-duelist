@@ -1,7 +1,7 @@
 """Generate real core field effects for the run's artifacts and boss curses."""
 from content import ART_INFO
 from artifact_effects import effect as expanded_effect
-RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Aqua/Fish':'RACE_AQUA|RACE_FISH','Aqua/Fish/Sea Serpent':'RACE_AQUA|RACE_FISH|RACE_SEASERPENT','Insect/Plant':'RACE_INSECT|RACE_PLANT','Pyro/Thunder':'RACE_PYRO|RACE_THUNDER','Dinosaur':'RACE_DINOSAUR','Dinosaur/Reptile':'RACE_DINOSAUR|RACE_REPTILE','Divine-Beast':'RACE_DIVINE','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND'}
+RACES={'Warrior':'RACE_WARRIOR','Spellcaster':'RACE_SPELLCASTER','Dragon':'RACE_DRAGON','Winged Beast':'RACE_WINGEDBEAST','Machine':'RACE_MACHINE','Aqua':'RACE_AQUA','Aqua/Fish':'RACE_AQUA|RACE_FISH','Aqua/Fish/Sea Serpent':'RACE_AQUA|RACE_FISH|RACE_SEASERPENT','Insect/Plant':'RACE_INSECT|RACE_PLANT','Pyro/Thunder':'RACE_PYRO|RACE_THUNDER','Dinosaur':'RACE_DINOSAUR','Dinosaur/Reptile':'RACE_DINOSAUR|RACE_REPTILE','Divine-Beast':'RACE_DIVINE','Insect':'RACE_INSECT','Zombie':'RACE_ZOMBIE','Fairy':'RACE_FAIRY','Beast':'RACE_BEAST','Fiend':'RACE_FIEND','Rock':'RACE_ROCK'}
 def ai_modifiers(run):
  from approved_relics import duel_run
  run=duel_run(run)
@@ -163,6 +163,8 @@ end
  # Name Changer: every monster you own, wherever it is (hand, Deck, Extra Deck, GY, banished, field).
  for setcode in run.get('name_changes',[])[:run.get('artifacts',[]).count('name_changer')]:
   lines.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_SETCODE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({int(setcode)}) Duel.RegisterEffect(e,0) end')
+ from choice_relics import weight_script
+ lines.append(weight_script(run))
  # One combined Surgery effect, after card modifications so it also overrides a modified attribute.
  if surgery:lines.append(expanded_effect('attribute',0,'|'.join(dict.fromkeys(surgery))))
  if run.get('loop',0):

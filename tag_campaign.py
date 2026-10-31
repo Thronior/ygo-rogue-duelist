@@ -514,6 +514,9 @@ class TagCampaign:
    if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
    with self.scope(seat):result=game.sell_relic(run,str(value))
    for key in ('gold','artifacts'):self.shared[key]=deepcopy(run.get(key))
+   if 'monster_type' not in run:
+    self.shared.pop('monster_type',None)
+    for other in self.players:other.pop('monster_type',None)
    self.sync();return result
 
   if action=='shop-reroll':

@@ -30,9 +30,10 @@ def weight(key,run):
  return weight
 
 def sample(options,count,run,rng):
- remaining=list(options);result=[]
+ import relic_affinity
+ remaining=list(options);result=[];boost=relic_affinity.multipliers(remaining,run)
  for _ in range(min(count,len(remaining))):
-  key=rng.choices(remaining,weights=[weight(k,run) for k in remaining],k=1)[0]
+  key=rng.choices(remaining,weights=[weight(k,run)*boost[k] for k in remaining],k=1)[0]
   result.append(key);remaining.remove(key)
  return result
 
@@ -54,20 +55,27 @@ def matches(key,c):
 # Archetype relics only appear once your card pool holds a card they help (Thronior, 2026-10-28).
 EXODIA={'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'}
 def _setcode(c,code):return any(int(x)&0xfff==code for x in c.get('data',{}).get('setcodes',[]))
-def has_member(key,run):
- """False for an archetype relic whose cards are missing from the run's pool; True for every other relic."""
+def member_test(key,run):
+ """The card test for an archetype relic, True if Name Changer already covers it, None for every other relic."""
  from content import ART_INFO
  info=ART_INFO.get(key,{});effect=info.get('effect')
  if key in NEW_IDS:test=lambda c:matches(key,c)
  elif effect=='like_toon':test=lambda c:'toon' in c['name'].lower()
  elif effect=='like_exodia':test=lambda c:c['name'] in EXODIA
- elif effect=='like_archfiend':test=lambda c:'archfiend' in c['name'].lower() or _setcode(c,0x45)
+ elif effect in ('like_archfiend','archfiend_cost'):test=lambda c:'archfiend' in c['name'].lower() or _setcode(c,0x45)
+ elif effect in ('starting_low_level','starting_level_up'):test=lambda c:matches('evolution_tablet',c)
  elif effect=='terrorking_atk':test=lambda c:c['id']==int(info.get('filter') or 0)
  elif effect in ('archetype_atk','variant_swordsman_oath'):
   code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
   # Name Changer can already make every monster a member.
   if code in run.get('name_changes',[]):return True
   test=lambda c:bool(c['data']['type']&1) and _setcode(c,code)
- else:return True
+ else:return None
+ return test
+
+def has_member(key,run):
+ """False for an archetype relic whose cards are missing from the run's pool; True for every other relic."""
+ test=member_test(key,run)
+ if test is None or test is True:return True
  import campaign as g
  return any(test(g.BY_ID[cid]) for cid in set(run.get('pool',[])) if cid in g.BY_ID)

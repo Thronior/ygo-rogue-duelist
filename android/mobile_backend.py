@@ -17,10 +17,11 @@ def state():
 def dispatch(raw):
  global run,tag_session
  req=json.loads(raw);action=req['action'];value=req.get('value');result=None
- if action in ('relic-pick','relic-pick-reroll','card-pick','name-change'):
+ if action in ('relic-pick','relic-pick-reroll','card-pick','name-change','weight-pick'):
   import choice_relics
   {'relic-pick':lambda:choice_relics.choose_relic(run,str(value)),'relic-pick-reroll':lambda:choice_relics.reroll_relic(run),
-   'card-pick':lambda:choice_relics.pick_card(run,value),'name-change':lambda:choice_relics.change_name(run,value)}[action]()
+   'card-pick':lambda:choice_relics.pick_card(run,value),'name-change':lambda:choice_relics.change_name(run,value),
+   'weight-pick':lambda:choice_relics.choose_weight(run,value)}[action]()
   g.save(run);return json.dumps(state(),ensure_ascii=False)
  if action=='choose-monster-type':
   from feedback_update import choose_type

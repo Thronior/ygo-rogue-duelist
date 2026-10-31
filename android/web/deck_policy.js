@@ -349,7 +349,7 @@ export function deckPolicy(x){
  // generic fallback declined them (any text mentioning "destroy" was refused).
  const spellCounterUsers=new Set(['Breaker the Magical Warrior','Blast Magician','Magical Marionette','Royal Magical Library','Hannibal Necromancer','Skilled Dark Magician','Skilled White Magician','Apprentice Magician','Silent Magician LV4','Mythical Beast Cerberus','Magical Plant Mandragola','Tower of Babel']);
  const spellCounters=card=>{const live=[...own,...back].find(x=>same(x,card))||card,raw=live.counters||{};return Array.isArray(raw)?raw.filter(x=>(x.type&0xfff)===1).reduce((s,x)=>s+x.count,0):Number(raw[1]||0)};
- const counterUserOnField=source=>own.some(x=>!same(x,source)&&face(x)&&spellCounterUsers.has(name(x)));
+ const spellCounterRoom=x=>Number(x.counters?.[1]??x.counters?.['1']??0)<({'Skilled Dark Magician':3,'Skilled White Magician':3,'Breaker the Magical Warrior':1,'Hannibal Necromancer':1,'Apprentice Magician':1}[name(x)]??Infinity),counterUserOnField=source=>own.some(x=>!same(x,source)&&face(x)&&spellCounterUsers.has(name(x))&&spellCounterRoom(x));
  const cardText=card=>e.cards.get(card.code)?.desc||'';
  const isUnion=card=>monster(card)&&/\bunequip\b/i.test(cardText(card));
  // Monsters a Union can equip to: the quoted names in its text, or a Type (Heavy Mech Support Platform: Machine).
@@ -410,7 +410,8 @@ export function deckPolicy(x){
   if(n==='Mega Ton Magical Cannon')return enemyCards.reduce((sum,x)=>sum+value(x),0)>=2000?115:-1;
   if(n==='Royal Magical Library')return deck().length>3?85:-1;
   if(n==='Pitch-Black Power Stone'){
-   if(c.location===L.SZONE&&face(c))return mainPhase&&counterUserOnField(c)?80:-1;
+   // Prompt entries carry no position, so read the card on the field: a face-up Stone moves counters, a set one starts.
+   if(c.location===L.SZONE&&face(back.find(x=>same(x,c))||c))return mainPhase&&counterUserOnField(c)?80:-1;
    return counterUserOnField(c)||hand.some(x=>spellCounterUsers.has(name(x)))?70:-1;
   }
   if(n==='Magical Dimension'){

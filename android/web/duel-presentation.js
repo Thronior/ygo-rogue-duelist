@@ -13,6 +13,9 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // every window, so it waits for those events (Discord 2026-10-29: "Chain sometimes" asked too often).
  const eventOnly=new Set(['Kunai with Chain']),selects=m?.selects||[];
  if(mode==='sometimes'&&selects.length&&selects.every(choice=>eventOnly.has(context.card?.(choice.code)?.name))){const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0}
+ // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
+ // while they have a monster that could attack.
+ if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;
  // The core uses 0x7f for optional trigger-effect selection, including effects
  // after a Special Summon resolves. These are decisions, not empty timing windows.
  if(m?.spe_count===0x7f&&m.selects?.length)return true;
@@ -65,7 +68,8 @@ export function automaticChainResponse(m,skipOptional,M,R){
 export function liveCardFacts(base,live,cards){
  const attributes={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'};
  const attribute=typeof live.attribute==='number'?Object.entries(attributes).filter(([bit])=>live.attribute&Number(bit)).map(([,name])=>name).join(' / ')||base.attribute:live.attribute||base.attribute;
- const race=cards.find(c=>c.race&&String(c.data?.race)===String(live.race))?.race||base.race;
+ // Only monsters have a live Type. Spells and Traps keep their own subtype (race 0 would match the first such card).
+ const race=base.data?.type&1?cards.find(c=>c.data?.type&1&&c.race&&String(c.data?.race)===String(live.race))?.race||base.race:base.race;
  return {...base,attribute,race,atk:live.attack??base.atk,defense:live.defense??base.defense,level:live.level??base.level,data:{...base.data,race:live.race??base.data.race,attribute:live.attribute??base.data.attribute}};
 }
 
