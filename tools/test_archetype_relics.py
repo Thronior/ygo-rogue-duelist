@@ -8,7 +8,7 @@ r=g.new_run(0,random.Random(7));r.update(stage='shop',gold=1000,artifacts=[])
 for key,name,label,art in a.DEFINITIONS:
  assert art in g.BY_NAME,art
  pool=[c for c in g.CARDS if a.matches(key,c)];assert pool,key
- assert content.ARTIFACTS[key][1]==(80 if key=='fusion_chamber' else 85)
+ assert content.ARTIFACTS[key][1]==(80 if key in ('fusion_chamber','ritual_dagger') else 85)
  for reroll in [False,True]:
   r['artifacts']=[key];g.restock(r,random.Random(10),general_stock=reroll)
   singles=[x for x in r['shop'] if x['kind']=='single'];assert len(singles)==11,(key,len(singles))

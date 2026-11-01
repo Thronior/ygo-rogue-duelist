@@ -72,6 +72,7 @@ export class TagUI {
 
  }
 
+ netStatus(){const stats=this.session?.stats();return stats?{online:stats.route!=='connecting',partnerOnline:stats.linked,rtt:stats.rtt,route:stats.route,partner:this.view?.duel?.mode==='pvp'?'Opponent':'Teammate'}:null}
  error(error){this.status=friendlyError(error);this.onStatus('error',this.status);if(this.view?.phase!=='duel')this.render()}
 
  header(body,tools='',classes=''){return `<div class="page tag-page ${classes}"><header><h2>Tag duels${this.session?.code?' · '+this.session.code:''}</h2><div class="tools">${tools} ${this.session&&(this.session.seat??this.session.peer.seat)===0&&(!this.view||this.view.phase==='lobby')?button('Back','back'):''}${button('Exit','exit')}</div></header>${this.status?`<div class="tag-status" role="status">${esc(this.status)}</div>`:''}${body}</div>`}
@@ -432,7 +433,7 @@ export class TagUI {
 
     this.status=state==='connected'||state==='waiting'?'':state==='error'?friendlyError(detail):['disconnected','failed','reconnecting'].includes(state)?'':state==='signaling-error'?'Room service unavailable — retrying':'';
 
-    this.onStatus(state,detail);if(this.view?.phase!=='duel')this.render();
+    this.onStatus(state,detail);if(this.view?.phase!=='duel'&&state!=='route')this.render();
 
    }});
 

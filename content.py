@@ -85,7 +85,7 @@ CHARACTERS.append(dict(name='Copycat',pack='COPY',sprite='copycat-portrait.png',
 CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='dueling-engine-portrait.png',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='Start with a random starter deck. After each victory, choose a random opponent deck from your next duel tier. Reroll each offer for 15 coins. Extra-card reward relics add more deck choices.'))
 
 # Retain definitions for existing saves; exclude these from new offers and the collection.
-RETIRED_ARTIFACTS=frozenset({'feather'})
+RETIRED_ARTIFACTS=frozenset({'feather','ominous_clock'})
 ARTIFACTS={}
 ART_INFO={}
 def artifact(key,name,price,desc,art,effect='',amount=0,tag='economy',filter=''):
@@ -219,7 +219,6 @@ artifact('traps_no_more','Traps No More',300,'Negate all Trap card effects (both
 artifact('spells_no_more','Spells No More',300,'Negate all Spell card effects (both players). Very rare.','Imperial Order','spell_negate',0,'defense')
 artifact('legendary_shackles','Legendary Shackles',85,'Exodia pieces appear more often in shops. Every third shop visit or reroll while active guarantees a random Exodia piece in general stock.','Kunai with Chain','like_exodia',0,'draw')
 artifact('toon_world','Toon World',85,'Toon cards appear more often in shops.','Toon World','like_toon',0,'draw')
-artifact('ritual_dagger','Ritual Dagger',80,'Ritual monsters and Ritual Spells appear more often in shops.','Curse of the Masked Beast','like_ritual',0,'draw')
 artifact('fusion_chamber','Fusion Chamber',80,'Fusion monsters, Polymerization and Fusion Sage appear more often in shops.','Polymerization','like_fusion',0,'draw')
 artifact('phoenix_rebirth','Phoenix Feather',120,'Once per duel, if your LP would reach 0 they become 1000 instead. Consumed as soon as it saves you.','Fire Princess','phoenix',1000,'healing')
 artifact('champion_trophy','Champion Trophy',60,'Increase the coin reward from boss duel victories by 40.','Victory Dragon','boss_gold',40,'economy')

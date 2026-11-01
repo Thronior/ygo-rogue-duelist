@@ -24,7 +24,7 @@ export function planBattle(e,p,L,prompt,smart){
     if(smart.attackScore(a.c,t,{dmg:dealt})<=-99999)continue;
     // Avoid assuming battle immunity or floating monsters vanish for a future direct attack.
     const text=t&&(t.position&5)?e.cards.get(t.code)?.desc||'':'';
-    const immune=t&&!t.is_disabled&&/cannot be destroyed (?:by|as a result of) battle/i.test(text);
+    const immune=t&&!t.is_disabled&&!!text&&smart.battleProof(t,a.c);
     const floats=t&&!t.is_disabled&&/destroyed by battle.*(?:special summon|destroy|return)/is.test(text);
     const remaining=t&&!immune&&!floats?targets.filter(x=>x!==t):targets;
     const next=walk(rest,remaining,damage+dealt),gain=t&&!immune&&!floats?5000+((t.position&5)?Math.max(0,t.attack||0):0)*.3:0;

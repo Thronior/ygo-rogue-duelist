@@ -39,6 +39,14 @@
       {
         "name": "BACKUP",
         "class_name": "BackupRegistry"
+      },
+      {
+        "name": "TAG_HUB",
+        "class_name": "TagHub"
+      },
+      {
+        "name": "MATCH_HUB",
+        "class_name": "MatchHub"
       }
     ]
   },
@@ -77,6 +85,13 @@
       "tag": "v6",
       "new_sqlite_classes": [
         "BackupRegistry"
+      ]
+    },
+    {
+      "tag": "v7",
+      "new_sqlite_classes": [
+        "TagHub",
+        "MatchHub"
       ]
     }
   ]

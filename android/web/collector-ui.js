@@ -10,11 +10,15 @@ import {validateDeck,deckCards,rankFor,LIMITS,moveSideCard} from './collector-ru
 import {decode} from './tag-session.js';
 import {TagDuel} from './tag-duel.js';
 import {replayVersion} from './replay-version.js';
+import {HubSocket} from './hub-socket.js';
+// With the room hub open, polls only guard against a missed nudge.
+const SAFETY_POLL=120000,OFFLINE_POLL=30000,PARTNER_CHECK=20000,PROBE_AFTER=4000;
+const wire=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(text,action,extra='')=>`<button data-collector="${action}" ${extra}>${text}</button>`;
 const collectorLimitIcon=limit=>limit<3?`<i class="collector-limit-icon limit-${limit}" title="${limit===1?'Limited':'Semi-limited'}: maximum ${limit} across all decks" aria-label="${limit===1?'Limited':'Semi-limited'}, maximum ${limit} copies">${limit}</i>`:'';
 export class CollectorUI {
- constructor(options){Object.assign(this,{validateDeck},options);this.mode='roster';this.isCollector=true;this.alive=true;this.queue=Promise.resolve();this.session={connected:false,code:'',request:(a,v)=>this.enqueue(()=>this.request(a,v))};this.click=e=>{const el=e.target.closest('[data-collector],[data-collector-slot]');if(!el)return;e.stopImmediatePropagation();if(this.held){this.held=false;return;}this.enqueue(()=>this.action(el.dataset.collector||(el.dataset.do==='collector-select'?'select':'import'),el));};document.addEventListener('click',this.click,true);this.down=e=>{const card=e.target.closest('[data-collector=toggle],[data-collector=prize]');if(!card||e.button!==0)return;this.origin=[e.clientX,e.clientY];this.held=false;this.hold=setTimeout(()=>{this.held=true;this.inspect(+card.dataset.id)},450);};this.cancelHold=()=>clearTimeout(this.hold);this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10)this.cancelHold();};document.addEventListener('pointerdown',this.down);document.addEventListener('pointermove',this.move);document.addEventListener('pointerup',this.cancelHold);document.addEventListener('pointercancel',this.cancelHold);}
+ constructor(options){Object.assign(this,{validateDeck},options);this.mode='roster';this.isCollector=true;this.alive=true;this.queue=Promise.resolve();const ui=this;this.session={connected:false,code:'',request:(a,v)=>this.enqueue(()=>this.request(a,v)),get duelReady(){return !!ui.game}};this.click=e=>{const el=e.target.closest('[data-collector],[data-collector-slot]');if(!el)return;e.stopImmediatePropagation();if(this.held){this.held=false;return;}this.enqueue(()=>this.action(el.dataset.collector||(el.dataset.do==='collector-select'?'select':'import'),el));};document.addEventListener('click',this.click,true);this.down=e=>{const card=e.target.closest('[data-collector=toggle],[data-collector=prize]');if(!card||e.button!==0)return;this.origin=[e.clientX,e.clientY];this.held=false;this.hold=setTimeout(()=>{this.held=true;this.inspect(+card.dataset.id)},450);};this.cancelHold=()=>clearTimeout(this.hold);this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10)this.cancelHold();};document.addEventListener('pointerdown',this.down);document.addEventListener('pointermove',this.move);document.addEventListener('pointerup',this.cancelHold);document.addEventListener('pointercancel',this.cancelHold);}
  enqueue(fn){const next=this.queue.then(()=>this.alive?fn():undefined);this.queue=next.catch(e=>{if(!this.alive)return;this.status=e.message;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector',`<p>${esc(e.message)}</p>`)});return this.queue;}
  init(){const pending=this.queue.then(()=>this.initialize());this.queue=pending.catch(()=>{});return pending;}
  async initialize(){
@@ -39,21 +43,90 @@ export class CollectorUI {
  }
 
  // text/plain keeps this a CORS simple request (no OPTIONS preflight); the service parses the raw body.
- async api(op,body={},d=this.duelist){const response=await fetch(`${this.endpoint}/v2/collector/${op}`,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({id:d.id,token:d.token,version:replayVersion,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Collector service unavailable.');error.status=response.status;throw error;}return result;}
+ async api(op,body={},d=this.duelist){const response=await fetch(`${this.endpoint}/v2/collector/${op}`,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({id:d.id,token:d.token,version:replayVersion,net:3,...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Collector service unavailable.');error.status=response.status;throw error;}return result;}
  async sync(result){this.data=await this.backend('collector-sync',{id:this.duelist.id,record:result.record});this.duelist=this.data.duelists.find(d=>d.id===this.duelist.id);}
  schedule(){clearTimeout(this.timer);if(!this.alive||!this.room||this.room.phase==='complete')return;this.timer=setTimeout(()=>this.enqueue(async()=>{if(!this.alive||!this.room||this.room.phase==='complete')return;try{await this.accept(await this.api('poll'));this.session.connected=true;}catch(e){this.session.connected=false;if(e.status===426){this.updateRequired=true;throw e;}this.status='Connection interrupted. Reconnecting automatically…';if(this.mode!=='duel')this.render();}finally{if(!this.updateRequired)this.schedule();}}),this.pollDelay());}
- // The waiting seat polls quickly; while this seat must act, or outside a duel, nothing urgent can change.
- // Stay well inside the server's 15 s presence window and the 5 s emote window.
- // A 426 (this version may no longer play online) stops polling and is shown by enqueue().
- pollDelay(){const r=this.room;return r?.phase==='duel'&&r.actor!==this.seat?1500:3000;}
- async accept(result){if(!this.alive)return;const ended=result.room&&result.room.phase!=='duel'&&result.room.game>0&&result.room.phase!=='waiting'&&result.room.phase!=='drafting';const checkpoint=ended?result.room.code+':'+result.room.game:null;await this.sync(result);if(checkpoint&&checkpoint!==this.cloudCheckpoint){this.cloudCheckpoint=checkpoint;try{await this.onCheckpoint?.();}catch(error){console.warn('Post-duel backup:',error.message);}}if(!this.alive)return;this.room=result.record.room?result.room:null;this.seat=result.seat;this.serverOffset=result.now-Date.now();this.updateReconnectTimer();this.session.code=this.room?.code||'';this.session.connected=true;
+ // Everything live arrives on the hub. A 426 (this version may no longer play online) stops polling and is shown by enqueue().
+ pollDelay(){return this.hub?.isOpen?SAFETY_POLL:OFFLINE_POLL;}
+ // Hub state outranks a poll reply, which can be older and never carries the duel log.
+ hydrate(result){
+ const r=result.room;if(!r?.hub)return;
+ if(r.phase==='duel'){
+  const log=this.duelLog;
+  if(log?.code!==r.code||log.game!==r.game){this.duelLog={code:r.code,game:r.game,events:[],confirmed:0,outbox:new Map()};this.helloDue=true;}
+  r.events=this.duelLog.events;
+ }
+ this.overlay(r);
+ }
+ overlay(r){
+ const h=this.hubInfo;if(!r)return;
+ if(!h?.online||h.code!==r.code){r.seen=[Infinity,Infinity];return;}
+ r.seen=h.online.map((on,seat)=>on?Infinity:h.offlineAt[seat]??Infinity);r.charged=h.online.map((_,seat)=>h.chargedAt[seat]&&h.offlineAt[seat]?h.chargedAt[seat]-h.offlineAt[seat]:h.grace);r.disconnectLeft=h.disconnectLeft;
+ if(r.phase==='duel'&&h.game===r.game){r.actor=h.actor;r.turn=h.turn;r.turnLeft=h.turnLeft;r.clockAt=h.clockAt;}
+ }
+ connectHub(){
+ const r=this.room;if(!r?.hub||r.phase==='complete'){this.closeHub();return;}
+ if(this.hub&&this.hubCode===r.code){if(this.helloDue)this.hubHello();return;}
+ this.closeHub();this.hubCode=r.code;
+ this.hub=new HubSocket(`${this.endpoint.replace(/^http/,'ws')}/v3/${this.isDraft?'draft':'collector'}/hub`,['shadowrun','id.'+this.duelist.id,'auth.'+this.duelist.token],{onOpen:()=>{this.session.connected=true;this.hubHello();this.schedule();},onClose:()=>{this.session.connected=false;this.schedule();},onMessage:text=>this.hubMessage(text)});
+ this.hub.start();
+ }
+ closeHub(){this.hub?.stop();this.hub=null;this.hubCode=null;}
+ hubSend(data){return !!this.hub?.send(JSON.stringify(data));}
+ hubHello(){if(this.hubSend({t:'hello',game:this.room?.game,after:this.duelLog?.confirmed||0}))this.helloDue=false;}
+ hubClock(m){
+ this.hubInfo={...this.hubInfo,code:this.room?.code,game:m.game??this.hubInfo?.game??this.room?.game};
+ for(const key of ['online','offlineAt','chargedAt','disconnectLeft','grace','actor','turn','turnLeft','clockAt'])if(m[key]!==undefined)this.hubInfo[key]=m[key];
+ if(m.now)this.serverOffset=m.now-Date.now();
+ this.overlay(this.room);
+ }
+ nudge(){if(this.nudging)return;this.nudging=true;this.enqueue(async()=>{this.nudging=false;if(this.alive&&this.room){await this.accept(await this.api('poll'));this.schedule();}});}
+ hubMessage(text){
+ let m;try{m=JSON.parse(text)}catch{return;}
+ if(!this.alive)return;
+ this.session.connected=true;
+ if(m.t==='presence'){
+  const before=this.paired?.();this.hubClock(m);
+  if(this.isDraft&&(before!==this.paired()||this.mode==='paused'))this.nudge();
+  return;
+ }
+ if(m.t==='room'){this.nudge();return;}
+ if(m.t==='emote'){if(this.room?.phase==='duel')showDuelEmote(m.emoji,m.seat===this.seat);return;}
+ if(m.t==='desync'){this.resultSent=[];this.rebuild();return;}
+ const log=this.duelLog;
+ if(m.t==='sync'){
+  this.hubClock(m);
+  if(m.game!==this.room?.game||m.phase!==this.room?.phase){this.nudge();return;}
+  if(!log||log.game!==m.game)return;
+  let split=false;
+  m.events.forEach((event,i)=>{const n=m.from+i,mine=log.events[n];if(!mine)log.events[n]=event;else if(mine.seat!==event.seat||JSON.stringify(mine.response)!==JSON.stringify(event.response))split=true;});
+  log.confirmed=Math.max(log.confirmed,m.count);for(const n of log.outbox.keys())if(n<log.confirmed)log.outbox.delete(n);
+  if(split){this.rebuild();return;}
+  for(const packet of log.outbox.values())this.hubSend(packet);
+  this.enqueue(()=>this.updateDuel(this.room));return;
+ }
+ if(m.t==='ev'){
+  this.hubClock(m);
+  if(!log||log.game!==m.game){this.nudge();return;}
+  if(m.n>log.events.length){this.hubHello();return;}
+  if(m.n===log.events.length)log.events.push({seat:m.seat,response:m.response,...(m.h===undefined?{}:{h:m.h})});
+  log.confirmed=Math.max(log.confirmed,m.n+1);log.outbox.delete(m.n);
+  this.enqueue(()=>this.updateDuel(this.room));return;
+ }
+ if(m.t==='reject'){if(log&&m.game===log.game)this.rebuild();else this.nudge();}
+ }
+ // Replays the confirmed log into a fresh engine. Anything the hub refused is dropped and its prompt returns.
+ rebuild(){const log=this.duelLog;this.game?.destroy();this.game=null;if(log){log.events.length=log.confirmed;log.outbox.clear();}this.hubHello();this.enqueue(()=>this.updateDuel(this.room));}
+ netStatus(){return {online:!!this.hub?.isOpen,partnerOnline:this.hubInfo?.online?.[1-this.seat]??true,rtt:this.hub?.rtt==null?null:this.hub.rtt,route:'relay',partner:'Opponent'};}
+ async accept(result){if(!this.alive)return;this.hydrate(result);const ended=result.room&&result.room.phase!=='duel'&&result.room.game>0&&result.room.phase!=='waiting'&&result.room.phase!=='drafting';const checkpoint=ended?result.room.code+':'+result.room.game:null;await this.sync(result);if(checkpoint&&checkpoint!==this.cloudCheckpoint){this.cloudCheckpoint=checkpoint;try{await this.onCheckpoint?.();}catch(error){console.warn('Post-duel backup:',error.message);}}if(!this.alive)return;this.room=result.record.room?result.room:null;this.seat=result.seat;this.serverOffset=result.now-Date.now();this.connectHub();this.updateReconnectTimer();this.session.code=this.room?.code||'';this.session.connected=true;
  if(this.duelist.status!=='alive'){this.game?.destroy();this.game=null;this.mode='shadow';this.view={phase:'gameover'};this.onView(this.view);this.onResult?.(false);this.render();return;}
- const r=this.room;if(r?.phase!=='duel')clearDuelEmotes();if(r?.phase==='duel'){this.seenEmotes??={};for(const [seat,event] of Object.entries(r.emotes||{})){const key=r.code+':'+seat;if(this.seenEmotes[key]===event.id)continue;this.seenEmotes[key]=event.id;if(!this.restoring&&event.game===r.game&&result.now-event.at<5000)showDuelEmote(event.emoji,+seat===this.seat);}}if(!r){this.mode='home';this.render();return;}
+ const r=this.room;if(r?.phase!=='duel')clearDuelEmotes();if(r?.phase==='duel'){this.seenEmotes??={};for(const [seat,event] of Object.entries(r.emotes||{})){const key=r.code+':'+seat;if(this.seenEmotes[key]===event.id)continue;this.seenEmotes[key]=event.id;if(!this.restoring&&event.game===r.game&&result.now-event.at<5000)showDuelEmote(event.emoji,+seat===this.seat);}}if(!r){this.closeHub();this.mode='home';this.render();return;}
  if(r.phase==='duel'){if(this.restoring)this.coinRoom=r.code;if(!this.restoring&&r.game===1&&!r.events.length&&this.coinRoom!==r.code){this.coinRoom=r.code;const coin=document.createElement('div');coin.className='collector-coin-toss';document.body.append(coin);try{await play3DToss(coin,'coin',[r.first===this.seat?1:0],{active:()=>this.alive,sound:this.sound||(()=>{})});if(this.alive){coin.textContent=r.first===this.seat?'You go first':'Opponent goes first';await new Promise(resolve=>setTimeout(resolve,650));}}finally{coin.remove();}}if(!this.alive)return;this.mode='duel';this.view={phase:'duel',characters:r.players.map(p=>p.character),modifiers:[],run:{character:this.duelist.character,opponent:r.players[1-this.seat].character,pool:this.duelist.pool,selected:[],artifacts:[],curses:[],challenge_level:0,lp:8000,gold:0,round:1,stats:{},duel:{id:r.code+'-'+r.game}}};this.onView(this.view);await this.updateDuel(r);return;}
  this.game?.destroy();this.game=null;this.view={phase:r.phase};this.onView(this.view);this.mode=r.phase==='siding'?'siding':r.phase==='waiting'?'waiting':r.claimed?'home':this.prizeRoom===r.code?'prizes':'victory';if(this.mode==='victory')this.onResult?.(true);if(this.mode==='siding'&&this.sidingGame!==r.game){this.sidingGame=r.game;this.draft=structuredClone(r.decks[this.seat]);this.section='main';this.filter='All';this.search='';}this.render();}
  updateReconnectTimer(){
  clearInterval(this.countdown);if(!this.alive)return;const draw=()=>{
   const r=this.room,last=r?.seen?.[1-this.seat],now=Date.now()+(this.serverOffset||0);
+  if(r?.phase==='duel'&&r.actor===1-this.seat&&Date.now()-(this.checkedAt||0)>=PARTNER_CHECK){this.checkedAt=Date.now();this.hubSend({t:'check'});}
   const visible=this.alive&&this.session.connected&&r?.players.length===2&&r.phase!=='complete'&&Number.isFinite(last)&&now-last>20000;
   let el=document.getElementById('collector-reconnect-timer');
   if(!visible){el?.remove();return;}
@@ -75,15 +148,31 @@ export class CollectorUI {
   const box=portrait.getBoundingClientRect(),width=Math.max(38,box.width);el.style.width=width+'px';el.style.left=Math.max(2,Math.min(innerWidth-width-2,box.left+(box.width-width)/2))+'px';el.style.top=Math.min(innerHeight-22,box.bottom+3)+'px';
  }
  }
- async updateDuel(r){if(!this.alive)return;const key=r.code+':'+r.game,engineSeat=this.seat^r.first;let fresh=false;
+ async updateDuel(r){if(!this.alive||r?.phase!=='duel'||r!==this.room)return;if(!r.hub){if(!this.oldMatchNotice){this.oldMatchNotice=true;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector','<p>This match started on an older version of the game, so it cannot continue here. Reopen it on the version it started on, or surrender it from there.</p>');}return;}const key=r.code+':'+r.game,engineSeat=this.seat^r.first;let fresh=false;
  if(this.gameKey!==key||!this.game){this.game?.destroy();this.game=new TagDuel([...this.content.cards,...this.content.tokenCards]);const created=this.game;await created.init();if(!this.alive){created.destroy();return;}this.gameKey=key;this.applied=0;this.shown=-1;const order=[r.first,1-r.first];this.game.startTag({teams:order.map(i=>[{main:r.decks[i].main,extra:r.decks[i].extra}]),lp:8000,enemyLP:8000,seed:r.seed,mode:'pvp',rules:2,names:order.map(i=>[this.content.characters[r.players[i].character].name])});fresh=true;}
- while(this.applied<r.events.length){const event=r.events[this.applied];this.game.respondFor(event.seat^r.first,this.applied,decode(structuredClone(event.response)));this.applied++;}
+ while(this.applied<r.events.length){const event=r.events[this.applied];try{this.game.respondFor(event.seat^r.first,this.applied,decode(structuredClone(event.response)));}catch(error){console.warn('Duel step refused:',error.message);if(this.applied<this.duelLog.confirmed){this.status=error.message;return;}this.rebuild();return;}this.applied++;if(event.h!==undefined&&event.h!==this.game.checksum()&&!this.splitSeen?.has(key+':'+this.applied)){(this.splitSeen??=new Set()).add(key+':'+this.applied);console.warn('Duel state split at step',this.applied);this.rebuild();return;}}
  if(fresh||this.shown!==this.applied){const visuals=this.game.visuals.splice(0),cues=(this.restoring||fresh&&this.applied)?[]:this.game.cuesFor(engineSeat,visuals);const snap=this.game.snapshotFor(engineSeat);await this.onDuel(snap,cues);if(!this.alive)return;this.shown=this.applied;}
- const clockKey=key+':'+this.applied;if(this.clockSent!==clockKey){try{await this.api('clock',{number:this.applied,turn:this.game.turn||1,actor:this.game.respondingSeat===null?null:this.game.respondingSeat^r.first});this.clockSent=clockKey;}catch(error){this.status=error.message;}}
- if(!this.alive)return;
- if(this.game.finished&&!this.resultSent?.includes(key)){const winner=this.game.finished.player;await this.api('result',{number:this.applied,winner:winner===0||winner===1?winner^r.first:2});this.resultSent=[...(this.resultSent||[]),key];}
+ if(!this.alive||this.gameKey!==key||!this.game)return;
+ // Responses already carry the next actor, so the timer needs a vote only when the two disagree.
+ const confirmed=this.duelLog.confirmed===this.applied,actor=this.game.respondingSeat===null?null:this.game.respondingSeat^r.first,turn=this.game.turn||1,clockKey=key+':'+this.applied;
+ if(confirmed&&this.hubInfo?.game===r.game&&(this.hubInfo.actor!==actor||this.hubInfo.turn!==turn)&&this.clockSent!==clockKey&&this.hubSend({t:'clock',game:r.game,number:this.applied,turn,actor}))this.clockSent=clockKey;
+ if(this.game.finished&&confirmed&&!this.resultSent?.includes(key)){const winner=this.game.finished.player;if(this.hubSend({t:'result',game:r.game,n:this.applied,winner:winner===0||winner===1?winner^r.first:2}))this.resultSent=[...(this.resultSent||[]),key];}
  }
- async request(action,value){if(action==='emote'){if(this.room?.phase!=='duel'||!validEmote(value))return;if(Date.now()-(this.lastEmote||0)<1500)return;this.lastEmote=Date.now();await this.accept(await this.api('emote',{emoji:value,game:this.room.game}));}else if(action==='duel-response'){if(!this.game||this.game.respondingSeat!==(this.seat^this.room.first))throw Error('Wait for your opponent.');const number=this.applied;if(value.number!==number)throw Error('That choice is stale. Refresh the duel.');try{this.game.respondFor(this.seat^this.room.first,number,value.response);this.applied++;await this.accept(await this.api('response',{seat:this.seat,number,response:value.response,nextActor:this.game.respondingSeat===null?null:this.game.respondingSeat^this.room.first,turn:this.game.turn||1}));}catch(error){this.game?.destroy();this.game=null;await this.accept(await this.api('poll'));throw error;}}else if(action==='surrender'){await this.accept(await this.api('surrender',{game:this.room.game}));}this.schedule();}
+ async request(action,value){if(action==='emote'){if(this.room?.phase!=='duel'||!validEmote(value))return;if(Date.now()-(this.lastEmote||0)<1500)return;this.lastEmote=Date.now();this.hubSend({t:'emote',emoji:value,game:this.room.game});}else if(action==='duel-response'){
+ // A repeated tap lands here after the prompt was answered, so it is ignored rather than reported.
+ const r=this.room,log=this.duelLog,number=this.applied;if(!this.game||this.game.respondingSeat!==(this.seat^r.first)||value.number!==number)return;
+ const response=wire(value.response);
+ // The prompt was cleared on the tap, so a refused answer has to put it back.
+ try{this.game.respondFor(this.seat^r.first,number,decode(structuredClone(response)));}catch(error){this.shown=-1;await this.updateDuel(r);throw error;}
+ this.applied++;
+ const nextActor=this.game.respondingSeat===null?null:this.game.respondingSeat^r.first,turn=this.game.turn||1,h=this.game.checksum(),packet={t:'r',game:r.game,n:number,response,nextActor,turn,h};
+ log.events[number]={seat:this.seat,response};log.outbox.set(number,packet);this.hubSend(packet);
+ // No echo soon means a dead socket; finding out now beats the next routine ping.
+ clearTimeout(this.probe);this.probe=setTimeout(()=>{if(log.outbox.size)this.hub?.ping();},PROBE_AFTER);
+ // The answer is already on screen; it reaches the hub when the link allows. The clock display follows at once.
+ if(this.hubInfo){this.hubInfo.actor=nextActor;this.hubInfo.turn=Math.max(this.hubInfo.turn||1,turn);this.overlay(r);}
+ await this.updateDuel(r);return;
+ }else if(action==='surrender'){await this.accept(await this.api('surrender',{game:this.room.game,turn:this.game?.turn}));}this.schedule();}
  render(){if(!this.alive||this.mode==='duel')return;document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();const oldScroll=this.root.querySelector('.collector-content')?.scrollTop||0,oldCards=this.root.querySelector('.cardgrid')?.scrollTop||0,keepScroll=this.lastRenderedMode===this.mode;this.lastRenderedMode=this.mode;const d=this.duelist,r=this.room;let body='';
  if(this.mode==='roster'){body=(collectorLanding(this.data.duelists)==='introduction'?collectorIntroductionMarkup():'')+collectorRosterMarkup(this.data.duelists,this.content.characters);}
  else if(this.mode==='import'){body='<h2>Choose a saved run</h2><p>This permanently moves the selected save out of single player.</p><div class="save-slot-grid">'+this.getSlots().map(s=>{const r=s.run,c=r?this.content.characters[r.character]:null,inDuel=r?.stage==='duel',eligible=r&&c&&!c.copycat&&!inDuel;return `<button class="save-slot" data-collector="select-import" data-source="${s.slot}" ${eligible?'':'disabled'}><span class="slot-number">Slot ${s.slot}${c?' · '+esc(c.name):''}</span><span class="slot-portrait">${c?`<img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}">`:''}</span><span class="slot-detail">${r?`Loop ${(r.loop||0)+1} · Duel ${Math.min(9,(r.round||0)+1)}/9<br>${Number(r.lp||0).toLocaleString()} LP<br><small>Last played: ${esc(lastPlayed(r.last_played_at))}</small>`:'Empty'}</span><b class="slot-action">${inDuel?'finish your duel to import this collector':eligible?'Select this run':r?'Copycat cannot be imported':'Empty'}</b></button>`}).join('')+'</div>';}
@@ -154,5 +243,5 @@ export class CollectorUI {
  if(action==='prize'){this.prizeSet??=new Set();const i=+x.index;if(this.prizeSet.has(i))this.prizeSet.delete(i);else if(this.prizeSet.size<5)this.prizeSet.add(i);}
  if(action==='claim'){await this.accept(await this.api('prizes',{indices:[...this.prizeSet]}));this.prizeSet.clear();return;}
  this.render();}
- destroy(){this.alive=false;clearInterval(this.countdown);document.getElementById('collector-reconnect-timer')?.remove();document.getElementById('collector-turn-timer')?.remove();document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();clearTimeout(this.timer);this.game?.destroy();document.removeEventListener('click',this.click,true);clearTimeout(this.hold);document.removeEventListener('pointerdown',this.down);document.removeEventListener('pointermove',this.move);document.removeEventListener('pointerup',this.cancelHold);document.removeEventListener('pointercancel',this.cancelHold);}
+ destroy(){this.alive=false;this.closeHub();clearInterval(this.countdown);document.getElementById('collector-reconnect-timer')?.remove();document.getElementById('collector-turn-timer')?.remove();document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();clearTimeout(this.timer);this.game?.destroy();document.removeEventListener('click',this.click,true);clearTimeout(this.hold);document.removeEventListener('pointerdown',this.down);document.removeEventListener('pointermove',this.move);document.removeEventListener('pointerup',this.cancelHold);document.removeEventListener('pointercancel',this.cancelHold);}
 }

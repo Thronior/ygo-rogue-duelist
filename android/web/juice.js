@@ -17,7 +17,7 @@ function play(el,frames,options){const a=el.animate(frames,options);a.finished.c
 const later=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 // The game supplies its player: (path,{loop,gain}) => voice or null. The blade is the negation slash;
 // finisher voice lines are assets/sfx/kill-<word>.wav.
-const SOUNDS={blade:'assets/sfx/negation.wav',coin:'assets/sfx/purchase-coins.wav',ding:'assets/sfx/reward-ding.wav','reroll-loop':'assets/sfx/reward-reel.wav'};
+const SOUNDS={perfect:'assets/sfx/perfect-chime.wav',coin:'assets/sfx/purchase-coins.wav',ding:'assets/sfx/reward-ding.wav','reroll-loop':'assets/sfx/reward-reel.wav'};
 let player=()=>null;
 export function setJuiceSound(play){player=play}
 // Finisher voices sit 3 dB above the other effects so they carry over the hit and the coin pickups.
@@ -174,14 +174,13 @@ function finisher(overkill){
 function perfect(reduced,lite){
  const banner=temp('div','fx-banner fx-perfect');banner.setAttribute('role','status');banner.removeAttribute('aria-hidden');
  banner.innerHTML='<span class="word">PERFECT</span><span class="slice top" aria-hidden="true">PERFECT</span><span class="slice bottom" aria-hidden="true">PERFECT</span><small>EXACT LETHAL</small>';
- const duration=wall(1900);later(wall(380)+VOICE_DELAY).then(()=>sound('kill-perfect'));
+ const duration=wall(1900);later(wall(250)).then(()=>sound('perfect'));later(wall(380)+VOICE_DELAY).then(()=>sound('kill-perfect'));
  if(reduced)return play(banner,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.8},{opacity:0}],{duration}).finished.catch(()=>{}).then(()=>{finishing=null});
  const show=play(banner,[{opacity:0,scale:1.12},{opacity:1,scale:1,offset:.1},{opacity:1,scale:1,offset:.85},{opacity:0,scale:1}],{duration,easing:'ease-out'});
  const word=banner.querySelector('.word').getBoundingClientRect(),line=temp('div','fx-cut');line.style.top=word.top+word.height*.5-1+'px';
  play(line,[{scale:'0 1',opacity:1},{scale:'0 1',opacity:1,offset:.12},{scale:'1 1',opacity:1,offset:.24},{scale:'1 1',opacity:1,offset:.5},{scale:'1 .1',opacity:0}],{duration:wall(1100),easing:'cubic-bezier(.7,0,.3,1)'});
  for(const [cls,dx,dy] of [['top',-16,-3],['bottom',16,3]])banner.querySelector('.slice.'+cls).animate([{translate:'0 0'},{translate:'0 0',offset:.22},{translate:`${dx}px ${dy}px`,offset:.4},{translate:`${dx*1.2}px ${dy*1.2}px`}],{duration,easing:'ease-out',fill:'forwards'});
  if(!lite){const flash=temp('div','fx-hit-flash fx-white');play(flash,[{opacity:0},{opacity:0,offset:.2},{opacity:.4,offset:.26},{opacity:0}],{duration:wall(1000)})}
- later(wall(250)).then(()=>sound('blade'));
  return show.finished.catch(()=>{}).then(()=>{finishing=null});
 }
 

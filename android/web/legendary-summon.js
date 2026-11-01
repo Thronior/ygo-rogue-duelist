@@ -25,6 +25,7 @@ export const legendarySummons={
  89631139:{"name": "Blue-Eyes White Dragon", "color": "#68d0f3"},
  74677422:{"name": "Red-Eyes Black Dragon", "color": "#ff5252"},
  46986414:{"name": "Dark Magician", "color": "#a97bff"},
+ 98502113:{"name": "Dark Paladin", "color": "#8f6bff"},
  40737112:{"name": "Dark Magician of Chaos", "color": "#f3d068"},
  30208479:{"name": "Magician of Black Chaos", "color": "#f3d068"},
  88619463:{"name": "Sorcerer of Dark Magic", "color": "#f38b68"},

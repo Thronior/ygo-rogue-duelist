@@ -1189,6 +1189,10 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 @media(prefers-reduced-motion:reduce){.toss-coin{animation:none}}
 
 .collector-response-wait{grid-column:3/8;grid-row:1/3;align-self:center;justify-self:center;z-index:12;display:flex;align-items:center;gap:8px;max-width:96%;padding:9px 13px;border:1px solid #dbc17a;border-radius:9px;background:#102632ed;color:#ffe7a3;box-shadow:0 3px 12px #0008;pointer-events:none;text-align:center;font-size:clamp(11px,1.7vw,15px)}
+#net-status{position:fixed;top:max(3px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:5px;max-width:92vw;padding:2px 8px;border-radius:9px;background:#0b1a22c4;color:#d2e1e6;font-size:11px;line-height:1.3;pointer-events:none;white-space:nowrap}
+#net-status i{flex:none;width:7px;height:7px;border-radius:50%;background:#6fd08c}#net-status[data-quality="slow"] i{background:#e8c25a}#net-status[data-quality="lost"] i{background:#e0605a}#net-status[data-quality="lost"]{color:#ffe7a3}
+#net-status span{overflow:hidden;text-overflow:ellipsis}#net-status span:empty{display:none}
+.collector-response-wait{animation:net-wait-in .2s .7s both}@keyframes net-wait-in{from{opacity:0}to{opacity:1}}
 .collector-response-wait strong,.collector-response-wait small{display:block}.collector-response-wait small{margin-top:3px;color:#d2e1e6;font-size:.8em}
 
 .relic-ledger-grid .panel,.active-relic-strip button{position:relative}.relic-count{position:absolute;top:3px;right:3px;z-index:3;padding:2px 5px;border:1px solid #ebce78;border-radius:9px;background:#102632;color:#ffe7a3;font-size:12px;font-weight:bold;line-height:1.2}
@@ -2422,3 +2426,6 @@ html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
 .duel-log .log-turn{position:sticky;top:0;z-index:1;margin:12px 0 5px;padding:5px 12px;border-radius:5px;background:#16323d;color:#f2dc89;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .duel-log .log-you{border-left:3px solid #6fb7e0}.duel-log .log-opponent{border-left:3px solid #d9727a}
 html.text-scaled :is(.card-text,.inspect-effect,.mouse-details-effect,.prompt-context,.reaction-context,.prompt .notice,.prompt button,.selection-actions button,.set-text,.muted,.log-text,.log-event,.log-help){zoom:var(--text-scale)}
+body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
+#modal.card-inspect-modal .collection-card-sources:not([hidden]){flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+.zone.pile.summon-ready{border:2px solid #ffdf31;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;cursor:pointer}

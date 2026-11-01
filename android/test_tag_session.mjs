@@ -17,27 +17,31 @@ const backend=async(action,value)=>{
  throw Error(action);
 };
 const options={endpoint:'http://localhost:8765',character:0,profile:{},content,backend};
-const host=new TagSession(options),sent=[];host.code='ABCDE';host.seat=0;host.peer.resumed=true;host.peer.started=true;host.peer.send=m=>sent.push(m);
-await host.receive({kind:'hello',version:3,contentHash:await host.contentHash,character:1,profile:{}});
+const hello=async session=>({kind:'hello',version:4,contentHash:await session.contentHash,character:1,profile:{},duel:{key:null,applied:0}});
+const host=new TagSession(options),sent=[];host.code='ABCDE';host.seat=0;host.peer.resumed=true;host.peer.started=true;host.peer.peerSid='x';host.peer.send=m=>sent.push(m);
+await host.receive(await hello(host));
 assert.equal(restores,1);assert.equal(creates,0);assert.equal(saved.paused,false);assert(host.connected);
-// An RTC disconnect stops new commands before the queued save finishes.
-host.status('disconnected');await assert.rejects(host.perform(0,{id:'new',action:'auto'}),/reconnect/);await host.queue;assert(saved.paused);
-await host.receive({kind:'hello',version:3,contentHash:await host.contentHash});assert.equal(restores,1);assert(!saved.paused);
+// Commands stop at once on a drop, while the saved run only pauses for a real absence.
+host.status('disconnected');await assert.rejects(host.perform(0,{id:'new',action:'auto'}),/reconnect/);await new Promise(r=>setTimeout(r,20));assert.equal(saved.paused,false,'short drops do not rewrite the save');
+host.status('connected');await host.queue;assert.equal(host.pauseTimer,null,'a quick return cancels the pause');
+await host.receive(await hello(host));assert.equal(restores,1);assert(!saved.paused);
 const guest=new TagSession(options);guest.open({code:'ABCDE',seat:1});guest.connected=true;guest.view={revision:4};let dropped;
 guest.peer.send=p=>{dropped=p};const purchase=guest.request('buy',[0]);assert.equal(guest.pending.size,1);assert(values.has(guest.outboxKey));
 await new Promise(r=>setTimeout(r,0));const first=await host.perform(1,dropped.request);assert.equal(commands,1);
 // Lose the receipt, reload the guest, then resend the saved request ID.
 const resumed=new TagSession(options);resumed.open({code:'ABCDE',seat:1});resumed.peer.send=p=>{dropped=p};assert.equal(resumed.pending.size,1);
-await resumed.receive({kind:'hello',version:3,contentHash:await resumed.contentHash});
+await resumed.receive(await hello(resumed));
 assert.deepEqual(await host.perform(1,dropped.request),first);assert.equal(commands,1);
 await resumed.receive({kind:'receipt',id:dropped.request.id,result:first});assert.equal(resumed.pending.size,0);assert(!values.has(resumed.outboxKey));
 await guest.receive({kind:'receipt',id:dropped.request.id,result:first});assert.deepEqual(await purchase,['owned-card']);
-// A lost final duel response receipt survives the transition to the shop.
-saved.phase='shop';saved.receipts['1:winning-response']={result:{ok:true}};host.engine=null;host.view={phase:'shop'};
-assert.deepEqual(await host.perform(1,{id:'winning-response',action:'duel-response'}),{ok:true});
-const incompatible=new TagSession(options);await assert.rejects(incompatible.receive({kind:'hello',version:3,contentHash:'different'}),/incompatible/);assert(!incompatible.connected);
+// A duel answer saved in an outbox by an older page is acknowledged, never replayed.
+saved.phase='shop';host.engine=null;host.view={phase:'shop'};
+assert.deepEqual(await host.perform(1,{id:'old-response',action:'duel-response'}),{ok:true,stale:true});
+const incompatible=new TagSession(options);await assert.rejects(incompatible.receive({...await hello(incompatible),contentHash:'different'}),/incompatible/);assert(!incompatible.connected);
+const older=new TagSession(options);await assert.rejects(older.receive({...await hello(older),version:3}),/incompatible/);
 // A host can reconnect while still waiting for the first teammate: no run exists yet.
 const waiting=new TagSession({...options,backend:async(action,value)=>action==='tag-restore'?null:backend(action,value)});
-waiting.code='ABCDE';waiting.seat=0;waiting.peer.resumed=true;waiting.peer.send=()=>{};let marked=false;waiting.peer.request=async action=>{assert.equal(action,'started');marked=true};
-await waiting.receive({kind:'hello',version:3,contentHash:await waiting.contentHash,character:1,profile:{}});assert.equal(creates,1);assert(marked);
-console.log('PASS session recovery: host restores once, handshake gates resume, disconnect pauses actions, durable guest outbox, purchase and winning-response retries, version mismatch rejection');
+waiting.code='ABCDE';waiting.seat=0;waiting.peer.resumed=true;waiting.peer.peerSid='x';waiting.peer.send=()=>{};let marked=false;waiting.peer.request=async action=>{assert.equal(action,'started');marked=true};
+await waiting.receive(await hello(waiting));assert.equal(creates,1);assert(marked);
+console.log('PASS session recovery: host restores once, handshake gates resume, drops stop commands without pausing the save, durable guest outbox, purchase retries, version mismatch rejection');
+process.exit(0);

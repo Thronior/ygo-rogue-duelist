@@ -30,6 +30,8 @@ export function renderDuelDOM(container,html){
     if(!owned.has(image)){image.remove();stats.removed++;}
    }
    for(const name of ['empty','defense'])live.classList.toggle(name,v.classList.contains(name));
+   // Flip cues write these on the live zone. A face-down card landing there must not inherit them.
+   for(const name of ['data-code','data-preview']){const after=v.getAttribute(name);if(after===null)live.removeAttribute(name);else if(live.getAttribute(name)!==after)live.setAttribute(name,after)}
   }
   const attrs=new Set([...old.attributes,...v.attributes].map(a=>a.name));
   for(const name of attrs){

@@ -2,7 +2,7 @@
 
 > **Platform status:** The native Windows desktop edition is deprecated and is no longer maintained or distributed. The supported clients are the webapp and Android app. Any native desktop test details below describe historical validation only; running the webapp in a desktop browser remains supported.
 
-The game now uses the deployed Cloudflare room service automatically. Players only choose Host or Join and share the five-character code. Direct WebRTC is attempted first; a secure WebSocket relay handles blocked connections without a TURN subscription. Same-device reconnect keeps the seat and saved run. See [Cloudflare deployment](cloudflare/README.md).
+The game now uses the deployed Cloudflare room service automatically. Players only choose Host or Join and share the five-character code. Play starts on the room's secure WebSocket hub and moves to direct WebRTC when a route opens, without a TURN subscription. Same-device reconnect keeps the seat and saved run. See [Cloudflare deployment](cloudflare/README.md). The self-hosted `signaling.py` service below predates the hub and no longer serves current clients.
 
 The self-hosted STUN/TURN instructions below are optional alternatives, not steps required for players.
 

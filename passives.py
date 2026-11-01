@@ -37,9 +37,10 @@ Duel.Recover=function(p,val,...) if p==0 then val=math.floor(val*{factor}) if va
  local r=Effect.GlobalEffect() r:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) r:SetCode(EVENT_REMOVE)
  r:SetOperation(function(e,tp,eg) if #eg>0 then Duel.Hint(HINT_MESSAGE,0,1600000000+#eg) end end) Duel.RegisterEffect(r,0)
 end""")
- from approved_relic_effects import battle_rules
+ from approved_relic_effects import battle_rules,ominous_clock
  from approved_relics import has
  lines.append(battle_rules(run))
+ lines.append(ominous_clock(run))
  if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0:
   lines.extend([expanded_effect('approved_champion_stats',0)]*__import__('approved_relics').copies(run,'cursed_champions_burden'))
  events={}

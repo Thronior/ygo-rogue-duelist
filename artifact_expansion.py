@@ -21,13 +21,16 @@ def install(artifact):
  artifact('weighted_dice','Weighted Dice',100,'When acquired, choose a number from 1 to 6. Your dice are three times as likely to land on the chosen number.','Dice Re-Roll','weighted_dice',0,'other')
  artifact('terraforming_relic','Terraforming',90,'Add a random Field Spell from your Deck to your starting hand.','Terraforming','starting_field_spell',0,'draw')
  artifact('restless_stone','Restless Stone',120,'Rock monsters you control can change their battle position the turn they are Summoned or Set.','Stone Statue of the Aztecs','rock_reposition',0,'other')
+ artifact('token_regiment','Token Regiment',90,'Tokens you control gain 750 ATK.','Scapegoat','token_atk',750,'offense')
+ artifact('token_resonance','Token Resonance',100,'Tokens you control gain double the ATK and DEF from any card or relic.','Multiply','token_double',0,'offense')
+ artifact('token_martyrs','Token Martyrs',90,'Each time a Token you control is destroyed, inflict 500 damage to your opponent.','Stray Lambs','token_burn',500,'offense')
  artifact('good_spirits','Good Spirits',80,'Spirit monsters you control do not return to the hand at the end of the turn.','Spiritual Energy Settle Machine','no_spirit_return',0,'defense')
  for key,name,art,series,series_name in [
   ('dark_scorpion_squad','Dark Scorpion Squad','Mustering of the Dark Scorpions','0x1a','Dark Scorpion'),
   ('gravekeepers_union',"Gravekeeper's Union","Gravekeeper's Spy",'0x2e',"Gravekeeper's"),
   ('amazoness_hunters','Amazoness Hunters','Amazoness Archers','0x4','Amazoness'),
   ('harpies_of_a_feather','Harpies of a Feather','Harpie Lady Sisters','0x64','Harpie')]:
-  artifact(key,name,90,f'Your {series_name} monsters gain 200 ATK for each face-up matching monster on the field.',art,'archetype_atk',200,'offense',series)
+  artifact(key,name,90,f'Your {series_name} monsters{" and Don Zaloog" if series=="0x1a" else ""} gain 200 ATK for each face-up matching monster on the field.',art,'archetype_atk',200,'offense',series)
  artifact('demonic_pact','Demonic Pact',90,"Recover half the LP cost whenever you pay it for an Archfiend card. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of the prevented amount.","Archfiend's Oath",'archfiend_cost',0,'healing')
  artifact('all_for_one_terrorking','All for One Terrorking',100,'Terrorking Archfiend gains 500 ATK for each other Archfiend on the field.','Checkmate','terrorking_atk',500,'offense','35975813')
  artifact('ojama_gang','Ojama Gang',90,'Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.','Ojama Delta Hurricane!!','archetype_atk',1000,'offense','0xf')

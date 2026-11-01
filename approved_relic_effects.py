@@ -8,6 +8,9 @@ def event(code,operation,condition='true',phase=False):
 def phase(which,op,condition='true'):
  return event('EVENT_PHASE_START|PHASE_'+which,op,'Duel.GetTurnPlayer()==0 and ('+condition+')',True)
 
+# Spells and Traps that can only Special Summon in Defense Position; Berserker's Pact would leave them doing nothing.
+DEFENSE_ONLY_SUMMONS='26905245,40703222,29843091,73915051,42534368,92924317,60764581,13955608,33057951,75622824,79852326'
+
 def player_rule(code,value):
  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
 
@@ -88,15 +91,17 @@ Duel.RegisterEffect(e,0) end''')
   # --[[relic-hint]] marks where passives.py shows the relic, since the toss's result is assigned.
   # Almighty (RogueAlmighty) keeps tails from lowering your monsters.
   out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.TossCoin(0,1)==COIN_HEADS and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
- elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),player_rule('EFFECT_FORCE_SPSUMMON_POSITION','POS_FACEUP_ATTACK')])
+ elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),player_rule('EFFECT_FORCE_SPSUMMON_POSITION','POS_FACEUP_ATTACK'),player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:GetHandler():IsCode({DEFENSE_ONLY_SUMMONS}) end')])
  elif key=='shield_bash':
   # Total Defense Shogun's rule: a face-up Defense Position monster attacks and uses its DEF.
   out.extend([stat('EFFECT_DEFENSE_ATTACK',1,'c:IsDefensePos()'),stat('EFFECT_CANNOT_ATTACK',1,'c:IsAttackPos()')])
  elif key=='reversed_remedy':
   # Both players. The core cancels REVERSE_DAMAGE when REVERSE_RECOVER is also active, so healing is turned into
   # damage by wrapping the global Duel.Recover instead (as the Withered Hope curse does). That damage carries
-  # REASON_RRECOVER, which the reversal skips, so the two rules never loop. Once per Duel, even if both players own it.
-  out.append('if not RogueReversedRemedy then RogueReversedRemedy=true local D=(_G and _G.Duel) or Duel local damage=D.Damage D.Recover=function(p,val,r,...) return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_REVERSE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,1) e:SetValue(function(e,re,r,rp,rc) return (r&REASON_EFFECT)~=0 and (r&REASON_RRECOVER)==0 end) D.RegisterEffect(e,0) end')
+  # REASON_RRECOVER, which the reversal skips, so the two rules never loop. LP costs heal through the original Recover,
+  # and are always affordable because they no longer cost anything. Once per Duel, even if both players own it.
+  out.append('if not RogueReversedRemedy then RogueReversedRemedy=true local D=(_G and _G.Duel) or Duel local damage,recover=D.Damage,D.Recover D.PayLPCost=function(p,cost) return recover(p,cost,REASON_EFFECT) end D.CheckLPCost=function() return true end D.Recover=function(p,val,r,...) return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_REVERSE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,1) e:SetValue(function(e,re,r,rp,rc) return (r&REASON_EFFECT)~=0 and (r&REASON_RRECOVER)==0 end) D.RegisterEffect(e,0) end')
+ elif key=='ominous_clock':pass # Needs the run's turn count: see ominous_clock below.
  elif key=='conscription_drum':
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_SUMMON_COUNT) e:SetTargetRange(LOCATION_HAND|LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end')
   out.append(stat('EFFECT_CANNOT_ATTACK',1,'c:IsStatus(STATUS_SUMMON_TURN) and c:IsSummonType(SUMMON_TYPE_NORMAL)'))
@@ -104,6 +109,12 @@ Duel.RegisterEffect(e,0) end''')
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])
  return '\n'.join(out)
+
+def ominous_clock(run):
+ from approved_relics import copies
+ base=int(run.get('clock_turns',0))
+ return '\n'.join([f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end)
+e:SetOperation(function() local amount=600-100*math.floor(({base}+Duel.GetTurnCount())/10) if amount>0 then Duel.Damage(1,amount,REASON_EFFECT) elseif amount<0 then Duel.Recover(1,-amount,REASON_EFFECT) end end) Duel.RegisterEffect(e,0) end''']*copies(run,'cursed_ominous_clock'))
 
 def battle_rules(run):
  from approved_relics import copies

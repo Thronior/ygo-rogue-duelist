@@ -32,6 +32,7 @@ RULES={
  'arcane_resonance':(('continuous',),COMMON),'counterweight':(('spell_counter',),NARROW),
  'burn_proficiency':(('burn',),NARROW),'static_coil':(('burn',),NARROW),'healing_echo':(('heal',),NARROW),
  'this_life_mine':(('lp_cost',),NARROW),'exile_standard':(('banish',),NARROW),
+ 'token_regiment':(('token',),NARROW),'token_resonance':(('token',),NARROW),'token_martyrs':(('token',),NARROW),
  'lets_go_gambling':(('coin','dice'),NARROW),'weighted_coins':(('coin',),NARROW),'weighted_dice':(('dice',),NARROW),
 }
 
@@ -67,6 +68,7 @@ def card_tags(c):
   if re.search(r'\bpay(?:ing)? \d[\d,]* (?:LP|Life Points)\b',desc,re.I):tags.add('lp_cost')
   if re.search(r'\bbanish|\bremoved? [^.]{0,30}from play\b',desc,re.I):tags.add('banish')
   if 'Spell Counter' in desc:tags.add('spell_counter')
+  if re.search(r'\bTokens?\b',desc):tags.add('token')
   if re.search(r'\bcoin\b',desc,re.I):tags.add('coin')
   if re.search(r'\bsix-sided\b|\bdice\b|\ba die\b',desc,re.I):tags.add('dice')
  result=frozenset(tags);_tags[c['id']]=result

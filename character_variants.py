@@ -6,7 +6,7 @@ VARIANTS=DATA['variants']
 def install(characters):
  # Pegasus's Ritual loadout is now standard; his alternate is the Toon build.
  characters[7].update(starting_relic='ten_thousand_hands',cards=['Relinquished','Black Illusion Ritual','Thousand-Eyes Idol'],starting_packs=[characters[7]['pack']]*2+['JP-DL1','EN-MFC'])
- characters[30]['starting_relic']='ominous_clock'
+ characters[30]['starting_relic']='burn_proficiency'
  for index,row in VARIANTS.items():
   c=characters[int(index)]
   alternate=dict(row)

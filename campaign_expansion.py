@@ -544,6 +544,7 @@ def install(g):
    key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt'}.get(event.get('kind'))
    if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key=='damage_dealt' else 1)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
+  if ar.has(run,'cursed_ominous_clock'):run['clock_turns']=run.get('clock_turns',0)+int(next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0) or 0)
   run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('duel_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
   run['last_healing']={'before':int(result.get('lp',0)),'after':run['lp']}
   run['history'].append(result)
@@ -575,7 +576,6 @@ def install(g):
   like=set();_arts=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
   # Legendary Shackles likewise grants its own slot below.
   # Toon World now grants a separate guaranteed slot instead of weighting general stock.
-  if 'ritual_dagger' in _arts:like|={c['id'] for c in eligible if shop_rewards.matches(c,'ritual')}
   def stock_sample(cards,count):
    return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id']))),reverse=True)[:count]
   themed=[c for c in eligible if c['id'] not in custom_cards.IDS]

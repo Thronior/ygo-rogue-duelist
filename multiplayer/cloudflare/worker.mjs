@@ -1,6 +1,7 @@
 export {BackupRegistry} from './backup.mjs';
 export {ProgressRegistry} from './progress.mjs';
 export {CollectorRegistry,DraftRegistry} from './collector.mjs';
+export {TagHub,MatchHub} from './hub.mjs';
 import {Registry} from './registry.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -20,6 +21,12 @@ export default {async fetch(request,env){
   if(env.LEGACY_MULTIPLAYER!=='allow')return reply(426,{error:'Online play needs the latest version of the game. Update to keep playing multiplayer.'});
   path=path.replace(/^\/v1\//,'/v2/').replace(/^\/(draft|collector)\//,'/v2/$1/');
  }
+ // Hubs only ever accept WebSockets here; hub-report is reachable from hub objects alone.
+ const socket=request.headers.get('Upgrade')?.toLowerCase()==='websocket';
+ if(path==='/v3/hub'&&socket)return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
+ if(path==='/v3/draft/hub'&&socket)return env.DRAFT.get(env.DRAFT.idFromName('draft-v1')).fetch(request);
+ if(path==='/v3/collector/hub'&&socket)return env.COLLECTOR.get(env.COLLECTOR.idFromName('collectors-v1')).fetch(request);
+ if(path.endsWith('/hub-report'))return reply(404,{error:'Unknown room operation.'});
  if(path.startsWith('/v2/draft/')&&request.method==='POST')return env.DRAFT.get(env.DRAFT.idFromName('draft-v1')).fetch(request);
  if(path.startsWith('/v2/collector/')&&request.method==='POST')return env.COLLECTOR.get(env.COLLECTOR.idFromName('collectors-v1')).fetch(request);
  if(path==='/v2/relay'&&request.headers.get('Upgrade')?.toLowerCase()==='websocket')return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
@@ -49,6 +56,14 @@ export class RoomRegistry {
  }
  async fetch(request){
   try{
+   if(new URL(request.url).pathname==='/v3/hub'){
+    const parts=(request.headers.get('Sec-WebSocket-Protocol')||'').split(',').map(x=>x.trim());
+    const code=parts.find(x=>x.startsWith('room.'))?.slice(5),token=parts.find(x=>x.startsWith('auth.'))?.slice(5);
+    const room=this.registry.rooms.get(code),seat=room?.tokens.indexOf(token);
+    if(!token||!room||seat<0||Date.now()-room.touched>=86400000)return reply(403,{error:'Invalid hub session.'});
+    room.touched=Date.now();
+    return this.env.TAG_HUB.get(this.env.TAG_HUB.idFromName(code)).fetch(new Request(request,{headers:{...Object.fromEntries(request.headers),'X-Seat':String(seat)}}));
+   }
    if(new URL(request.url).pathname.endsWith('/relay')){
     const parts=(request.headers.get('Sec-WebSocket-Protocol')||'').split(',').map(x=>x.trim());
     const code=parts.find(x=>x.startsWith('room.'))?.slice(5),token=parts.find(x=>x.startsWith('auth.'))?.slice(5),generation=Number(parts.find(x=>x.startsWith('gen.'))?.slice(4));

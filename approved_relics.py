@@ -70,8 +70,9 @@ CURSED=[
 # Thronior's picks from the 2026-10-29 cursed relic ideas.
 (55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. You cannot Set monsters or Special Summon them in Defense Position.','Berserk Gorilla'),
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
-(59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
-(61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering')]
+(59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage or pay LP, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
+(61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),
+(62,'ominous_clock','Ominous Clock',"At the start of your opponent's Standby Phase, inflict 600 damage to them. Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.",'Ominous Fortunetelling')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
@@ -80,6 +81,7 @@ CURSED_PARTS={
  'cursed_jesters_coin':('At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase.','Tails: they lose 300 ATK/DEF until then.'),
  'glass_shard':('Coin rewards are doubled.','You start every duel with 2000 LP.'),
  'cursed_duelists_wager':('Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'),
+ 'cursed_ominous_clock':("At the start of your opponent's Standby Phase, inflict 600 damage to them.",'Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.'),
  'cursed_narrow_gate':('Your opponent has only 3 Main Monster Zones and 3 Spell & Trap Zones.','You also have only 3 of each. Field Zones are unaffected.'),
 }
 

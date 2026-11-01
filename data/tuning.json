@@ -670,11 +670,11 @@
     "ritual_dagger": {
       "name": "Ritual Dagger",
       "price": 80,
-      "description": "Ritual Monsters and Ritual Spells appear more often in shops.",
+      "description": "Every shop and reroll offers one additional random card from this pool: Ritual monsters and Ritual Spells.",
       "art": "Curse of the Masked Beast",
-      "effect": "like_ritual",
-      "amount": 0,
-      "tag": "draw",
+      "effect": "archetype_stock",
+      "amount": 1,
+      "tag": "economy",
       "filter": "",
       "parameters": {}
     },

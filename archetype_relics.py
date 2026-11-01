@@ -12,15 +12,17 @@ DEFINITIONS=[
  ('ocean_relic','Ocean Relic','Umi cards and dedicated support','A Legendary Ocean'),
  ('evolution_tablet','Evolution Tablet','LV monsters and dedicated support','Level Up!'),
  ('destiny_hourglass','Destiny Hourglass','Destiny Board, Spirit Messages, or Final Countdown','Final Countdown'),
+ ('ritual_dagger','Ritual Dagger','Ritual monsters and Ritual Spells','Curse of the Masked Beast'),
 ]
 NEW_IDS={x[0] for x in DEFINITIONS}
 FAMILY=NEW_IDS|{'toon_world','legendary_shackles','archfiend_contract'}
 def install(artifact):
  for key,name,label,art in DEFINITIONS:
-  artifact(key,name,80 if key=='fusion_chamber' else 85,f'Every shop and reroll offers one additional random card from this pool: {label}.',art,'archetype_stock',1,'economy')
+  artifact(key,name,80 if key in ('fusion_chamber','ritual_dagger') else 85,f'Every shop and reroll offers one additional random card from this pool: {label}.',art,'archetype_stock',1,'economy')
 def weight(key,run):
  weight=1.0
  if key in FAMILY:weight*=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
+ if key=='cursed_reversed_remedy':weight*=.6
  from content import ART_INFO
  owned=[ART_INFO.get(x,{}) for x in run.get('artifacts',[]) if ART_INFO.get(x,{}).get('effect') in ('attribute','both') and ART_INFO.get(x,{}).get('filter') in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'}]
  if owned:
@@ -39,6 +41,7 @@ def sample(options,count,run,rng):
 
 def matches(key,c):
  n=c['name'];t=c.get('desc','');typ=c['data']['type']
+ if key=='ritual_dagger':return bool(typ&0x80 and typ&3)
  if key=='fusion_chamber':return bool(typ&0x40) or n in {'Polymerization','Fusion Sage','Fusion Gate','Fusion Recovery','De-Fusion','King of the Swamp','Goddess with the Third Eye','Versago the Destroyer','Mystical Sheep #1','The Dark - Hex-Sealed Fusion','The Light - Hex-Sealed Fusion','The Earth - Hex-Sealed Fusion','Beastking of the Swamps'}
  if key=='amazoness_standard':return 'Amazoness' in n or n=='Dramatic Rescue'
  if key=='necrovalley_tablet':return n.startswith("Gravekeeper's") or n in {'Necrovalley','Royal Tribute','Rite of Spirit','Charm of Shabti','A Cat of Ill Omen','An Owl of Luck'}
@@ -69,7 +72,7 @@ def member_test(key,run):
   code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
   # Name Changer can already make every monster a member.
   if code in run.get('name_changes',[]):return True
-  test=lambda c:bool(c['data']['type']&1) and _setcode(c,code)
+  test=lambda c:bool(c['data']['type']&1) and (_setcode(c,code) or (code==0x1a and c['name']=='Don Zaloog'))
  else:return None
  return test
 

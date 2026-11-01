@@ -22,9 +22,12 @@ Duel.RegisterEffect(e,0) end'''
 e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE) Duel.RegisterEffect(e,0) end'''
  if kind=='no_spirit_return':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPIRIT_DONOT_RETURN)
 e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsType(TYPE_SPIRIT) end) Duel.RegisterEffect(e,0) end'''
- if kind=='archetype_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
-e:SetTarget(function(e,c) return c:IsFaceup() and c:IsSetCard({attribute}) end)
-e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(m) return m:IsFaceup() and m:IsSetCard({attribute}) end,0,LOCATION_MZONE,LOCATION_MZONE,nil) end)
+ if kind=='archetype_atk':
+  # Don Zaloog leads the Dark Scorpions but has no archetype code of his own.
+  zaloog=lambda v:f' or {v}:IsCode(76922029)' if attribute=='0x1a' else ''
+  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetTarget(function(e,c) return c:IsFaceup() and (c:IsSetCard({attribute}){zaloog('c')}) end)
+e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(m) return m:IsFaceup() and (m:IsSetCard({attribute}){zaloog('m')}) end,0,LOCATION_MZONE,LOCATION_MZONE,nil) end)
 Duel.RegisterEffect(e,0) end'''
  if kind=='terrorking_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsFaceup() and c:IsCode({attribute}) end)
@@ -157,6 +160,18 @@ e:SetOperation(function()
  local c=g:RandomSelect(0,1):GetFirst()
  local d=Effect.CreateEffect(c) d:SetType(EFFECT_TYPE_SINGLE) d:SetCode(EFFECT_UPDATE_LEVEL) d:SetValue(-1) d:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(d)
 end) Duel.RegisterEffect(e,0) end'''
+ if kind=='token_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue({amount}) Duel.RegisterEffect(e,0) end'''
+ # Reads every other boost on the Token and adds it again, so relics, equips and Field Spells all double.
+ if kind=='token_double':return '''do local function double(code) return function(e,c) local total=0
+ for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then v=v(other,c) end if type(v)=='number' and v>0 then total=total+v end end end
+ return total end end
+for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0)
+ e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue(double(code)) Duel.RegisterEffect(e,0) end end'''
+ if kind=='token_burn':return f'''do local function lost(c) return c:IsType(TYPE_TOKEN) and c:IsReason(REASON_DESTROY) and c:IsPreviousControler(0) end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_LEAVE_FIELD)
+e:SetCondition(function(e,tp,eg) return eg:IsExists(lost,1,nil) end)
+e:SetOperation(function(e,tp,eg) Duel.Damage(1,{amount}*eg:FilterCount(lost,nil),REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
  if kind=='enemy_standby_burn':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end) e:SetOperation(function() Duel.Damage(1,{amount},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
  if kind=='standby_bounce':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end)
 e:SetOperation(function()

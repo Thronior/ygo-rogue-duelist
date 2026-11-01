@@ -1,9 +1,9 @@
 // Shared card-specific CPU policy; opposing hidden cards remain opaque.
 export function deckPolicy(x){
-  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal=()=>false,freeSummon=()=>[]}=x;
+  const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal=()=>false,freeSummon=()=>[],battleProof=c=>/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||'')}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>hasAttribute(c,'WATER'),sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
- const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||''));
+ const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||battleProof(c));
  const handCost=(source,n,filter=()=>true)=>hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code)&&filter(c)).length>=n;
  const spellValue=c=>({'Raigeki':4000,'Monster Reborn':3500,'Pot of Greed':3200,'Graceful Charity':3000,'Heavy Storm':theirBack.length*1500,'Polymerization':1200}[name(c)]??1000);
  const battleReady=c=>face(c)&&(c.position&1)&&!attackBlocked(c,p)&&!c.attack_disabled;
@@ -359,12 +359,13 @@ export function deckPolicy(x){
  const contactMaterials=fusion=>{const text=cardText(fusion);return /Must first be Special Summoned \(from your Extra Deck\) by banishing/i.test(text)?[...text.split('Must first')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]):[]};
  const contactEffectTarget={'XY-Dragon Cannon':()=>theirBack.some(face),'XZ-Tank Cannon':()=>theirBack.some(x=>!face(x)),'YZ-Tank Dragon':()=>enemy.some(x=>!face(x)),'XYZ-Dragon Cannon':()=>enemyCards.length>0};
  // Summon a contact fusion when it beats something its materials cannot, or its removal effect has a target.
- function contactFusionUseful(fusion){
+ // `missing` names a piece still to be summoned from the hand this turn.
+ function contactFusionUseful(fusion,missing=[]){
   const names=contactMaterials(fusion);if(!names.length)return false;
-  const materials=names.map(m=>live(own).find(x=>monster(x)&&name(x)===m));if(materials.some(x=>!x))return false;
+  const materials=names.map(m=>live(own).find(x=>monster(x)&&name(x)===m)||(missing.includes(m)?hand.find(x=>name(x)===m):null));if(materials.some(x=>!x))return false;
   const power=t=>(t.position&1)?atk(t):(t.defense??data(t).defense??0),strongest=Math.max(...materials.map(atk)),toBeat=Math.max(0,...live(enemy).filter(monster).map(power));
   const fusionAttack=data(fusion).attack??0,effect=contactEffectTarget[name(fusion)];
-  return (toBeat>=strongest&&fusionAttack>toBeat)||(!!effect&&effect()&&hand.length>0);
+  return (toBeat>=strongest&&fusionAttack>toBeat)||(!!effect&&effect()&&hand.length>missing.length);
  }
  function unusedCardValue(c,chain,n){
   const text=e.cards.get(c.code)?.desc||'',deck=()=>q(p,L.DECK),mainPhase=e.player===p&&(e.phase===4||e.phase===256);
@@ -384,7 +385,7 @@ export function deckPolicy(x){
   }
   // Union monsters: equip onto a partner (the engine offers only legal equips); keep an equipped Union in place,
   // and keep it as a monster when it completes a contact fusion worth summoning instead.
-  if(monster(c)&&isUnion(c))return c.location===L.MZONE&&mainPhase&&!q(p,L.EXTRA).some(f=>contactMaterials(f).includes(n)&&contactFusionUseful(f))?82:-1;
+  if(monster(c)&&isUnion(c))return c.location===L.MZONE&&mainPhase&&!q(p,L.EXTRA).some(f=>contactMaterials(f).includes(n)&&contactFusionUseful(f,contactMaterials(f).filter(m=>!live(own).some(x=>name(x)===m)&&prompt?.summons?.some(x=>name(x)===m))))?82:-1;
   // Union support.
   if(n==='Formation Union'){
    // Equip mode only (resourceOption picks it): when a Union's own equip is not offered this turn.
@@ -428,6 +429,13 @@ export function deckPolicy(x){
    return target&&value(target)>=1000?85:-1;
   }
   if(n==='Twin-Headed Behemoth')return chain&&c.location===L.GRAVE&&free>0?90:-1;
+  // Blue-Eyes cannot attack the turn it arrives: swap after the attacks, or at once if Paladin has none worth making.
+  if(n==='Paladin of White Dragon'){
+   if(!mainPhase||![...hand,...deck()].some(x=>name(x)==='Blue-Eyes White Dragon'))return -1;
+   return e.phase===256||live(enemy).some(t=>(t.position&1)&&atk(t)>=atk(c))?90:-1;
+  }
+  if(n==="Knight's Title")return mainPhase&&live(own).some(x=>name(x)==='Dark Magician')&&[...hand,...deck(),...grave].some(x=>name(x)==='Dark Magician Knight')&&enemyCards.length>0?95:-1;
+  if(n==="Sage's Stone")return mainPhase&&free>0&&live(own).some(x=>name(x)==='Dark Magician Girl')&&[...hand,...deck()].some(x=>name(x)==='Dark Magician')?95:-1;
   if(n==='Archfiend General')return c.location===L.HAND&&!has(hand,'Pandemonium')&&![...back,...theirBack].some(x=>face(x)&&name(x)==='Pandemonium')&&deck().some(x=>name(x)==='Pandemonium')?85:-1;
   if(n==='Dark Factory of Mass Production')return hand.length<=5?85:-1;
   if(n==='Last Will')return e.fieldToGraveTurn?.[p]===e.turn&&free>0&&deck().some(x=>monster(x)&&atk(x)<=1500)?90:-1;
@@ -609,5 +617,5 @@ export function deckPolicy(x){
  }
  function specialOk(c){return !['The Winged Dragon of Ra','The Wicked Eraser','Doomcaliber Knight'].includes(name(c));}
  function setAllowed(c){return !board||name(c)==='Destiny Board';}
- return {activation,targetScore,fusionChoices,setAllowed,setScore,specialOk,contactFusionUseful};
+ return {activation,targetScore,fusionChoices,fusionPlan,setAllowed,setScore,specialOk,contactFusionUseful,contactMaterials};
 }

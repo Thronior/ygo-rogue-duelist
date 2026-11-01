@@ -89,6 +89,8 @@ export function waitForTossStart(field,kind,isCurrent){
 }
 
 export function collectorResponseOverlay(snapshot,isCollector){
- if(!isCollector||snapshot?.finished||snapshot?.player!==0||!snapshot?.tag?.waitingForOpponent)return '';
- return '<div class="collector-response-wait" role="status" aria-live="polite"><span aria-hidden="true">⌛</span><span><strong>Waiting for opponent…</strong><small>Your opponent is choosing a response.</small></span></div>';
+ if(snapshot?.finished||!snapshot?.tag)return '';
+ const tag=snapshot.tag,teammate=tag.waitingForPartner,opponent=tag.waitingForOpponent&&(isCollector?snapshot.player===0:true);if(!teammate&&!opponent)return '';
+ const who=teammate?'teammate':'opponent';
+ return `<div class="collector-response-wait" role="status" aria-live="polite"><span aria-hidden="true">⌛</span><span><strong>Waiting for ${who}…</strong><small>Your ${who} is choosing a response.</small></span></div>`;
 }
