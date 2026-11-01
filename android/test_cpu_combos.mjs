@@ -147,6 +147,24 @@ r=play({cpu:{hand:['Green Gadget'],deck:['Red Gadget']}});inOrder(r,'summon Gree
 r=play({cpu:{field:['Paladin of White Dragon'],deck:[BEWD]},opp:{field:['Summoned Skull']}});ok(r.field.includes(BEWD),'Paladin swaps for Blue-Eyes');
 r=play({cpu:{field:['Paladin of White Dragon']},opp:{field:['Summoned Skull']}});never(r,'activate Paladin of White Dragon');
 
+// Sequences human players repeat in recorded duels.
+r=play({cpu:{hand:['Reinforcement of the Army','Warrior Dai Grepher'],deck:['Marauding Captain','Command Knight']},opp:{field:['Hitotsu-Me Giant']}});inOrder(r,'activate Reinforcement of the Army','summon Marauding Captain');ok(r.field.length===2,'the search starts the line');
+r=play({cpu:{hand:['Reinforcement of the Army'],deck:['Marauding Captain','Warrior Dai Grepher']},opp:{field:['Hitotsu-Me Giant']}});ok(!r.field.includes('Marauding Captain'),'with no partner the strongest Warrior is better');
+r=play({cpu:{hand:['Call of the Mummy','Pyramid Turtle','Master Kyonshee']},opp:{field:['Hitotsu-Me Giant']}});inOrder(r,'activate Call of the Mummy','summon Master Kyonshee');ok(r.field.length===2,'a free Zombie and the Normal Summon');
+r=play({cpu:{hand:['Call of the Mummy','Master Kyonshee']},opp:{field:['Hitotsu-Me Giant']}});never(r,'activate Call of the Mummy');
+r=play({cpu:{hand:['A Legendary Ocean','The Legendary Fisherman']},opp:{field:['Hitotsu-Me Giant']}});inOrder(r,'activate A Legendary Ocean','summon The Legendary Fisherman');
+r=play({cpu:{hand:['Lava Golem',"Nightmare's Steelcage"]},opp:{field:[BEWD,'Summoned Skull']}});inOrder(r,"activate Nightmare's Steelcage",'special Lava Golem');
+r=play({cpu:{hand:['Soul Exchange','Summoned Skull']},opp:{field:['Vorse Raider']}});inOrder(r,'activate Soul Exchange','summon Summoned Skull');ok(!r.theirs.length,'their monster pays the Tribute');
+r=play({cpu:{hand:['Soul Exchange','Dark Magician'],field:['Rogue Doll']},opp:{field:['Vorse Raider']}});inOrder(r,'activate Soul Exchange','summon Dark Magician');
+r=play({cpu:{hand:['Soul Exchange','Dark Magician'],field:['Rogue Doll']},opp:{field:['Hitotsu-Me Giant']}});never(r,'activate Soul Exchange');
+r=play({cpu:{hand:['Soul Exchange','Battle Ox']},opp:{field:['Vorse Raider']}});never(r,'activate Soul Exchange');
+// Attacks made for their effect.
+r=play({cpu:{field:['Rocket Warrior','Axe Raider']},opp:{field:['Vorse Raider']}});ok(!r.theirs.length,'Rocket Warrior weakens Vorse Raider and Axe Raider finishes it');ok(r.field.length===2,'nobody dies');
+r=play({cpu:{field:['Rocket Warrior']},opp:{field:[BEWD]}});ok(r.field.includes('Rocket Warrior')&&r.lp[1]===8000,'no follow-up, no pointless attack');
+r=play({cpu:{field:['Hyper Hammerhead']},opp:{field:[BEWD]}});ok(!r.theirs.length&&e.query(0,L.HAND).filter(Boolean).length===1,'Hammerhead sends Blue-Eyes back');
+r=play({cpu:{field:['Hyper Hammerhead']},opp:{field:['Battle Ox']}});ok(r.theirs.includes('Battle Ox'),'a Level 4 is not worth the trade');
+r=play({cpu:{field:['D.D. Warrior']},opp:{field:[BEWD]}});ok(!r.theirs.length,'D.D. Warrior removes Blue-Eyes');
+r=play({cpu:{field:['D.D. Warrior']},opp:{field:[BEWD]},lp:[8000,1500]});ok(r.theirs.includes(BEWD),'not when the battle damage would be lethal-adjacent');
 // Hidden information: their hand and Set cards change nothing the CPU does.
 const board=extra=>play({cpu:{hand:[LORD,FLUTE,BEWD,'Kaibaman']},opp:{field:['Vorse Raider'],...extra}}).steps.join();
 assert.equal(board({}),board({hand:['Raigeki','Mirror Force',BEWD],back:[['Mirror Force','b']]}),'hidden cards do not steer the line');checks++;

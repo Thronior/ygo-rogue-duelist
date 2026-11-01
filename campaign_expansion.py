@@ -323,8 +323,12 @@ def install(g):
   else:run['curses']=dedupe_curses(run.get('persistent_curses',[]),run.get('challenge_level',0)) if persistent else []
   challenge_levels.suppress(run)
   # Every curse active in this duel, for the run card; finish_duel clears run['curses'] before the timeline is written.
+  # Protection Charm lifts one curse for this duel only; persistent curses return with the next one.
+  if ar.has(run,'protection_charm') and run['curses'] and 'relic_seal' not in run['curses']:
+   run['charmed_curse']=random.Random(f"{run.get('started_at')}:{run.get('loop',0)}:{run['round']}").choice(run['curses']);run['curses'].remove(run['charmed_curse'])
+  else:run.pop('charmed_curse',None)
   run['duel_curses']=list(run['curses'])
-  lp=max(1,run['lp']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
+  lp=challenge_levels.drained_lp(run,run['lp'])
   if 'magic_mirror' in run.get('artifacts',[]):
    # Run-level deck rules and choice relics have nothing to copy for one duel.
    others=[a for a in run['artifacts'] if a not in ('magic_mirror','blank_relic','deck_thinning','cursed_singleton_pact',*ar.CHOICE_RELICS)]
@@ -332,7 +336,7 @@ def install(g):
   else:run['mirror_copy']=None
   duel_run=ar.duel_run(run)
   if duel_run.get('mirror_copy')=='ankh' and ar.can_heal(duel_run,between=True):lp=lp+2000
-  if owns(duel_run,'glass_shard'):lp=max(1,ART_INFO['glass_shard']['amount']-(1000*challenge_levels.curse_scale(run)*run['curses'].count('drain')))
+  if owns(duel_run,'glass_shard'):lp=challenge_levels.drained_lp(run,ART_INFO['glass_shard']['amount'])
   run['golden_hits']=0
   run['first_player']=ar.first(duel_run,0 if rng.random()<0.5 else 1)
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
@@ -404,7 +408,7 @@ def install(g):
    pups=0
    for _cid in g.deck(run):
     _c=g.BY_ID.get(_cid)
-    if _c and _c['data']['type']&1 and _c['data']['type']&16 and _c['level']<=2:pups+=1
+    if _c and _c['data']['type']&1 and _c['level']<=3:pups+=1
    if pups:tally["Underdog's Clause"]=pups*amount(run,'underdog_gold')
   if (run['round']+1)%BOSS_EVERY==0 and amount(run,'boss_gold'):tally['Champion Trophy']=amount(run,'boss_gold')
   tally.update(ar.rewards(run,events,(run['round']+1)%BOSS_EVERY==0))
@@ -633,7 +637,8 @@ def install(g):
    choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
-  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20) and (a!='almighty' or rng.random()<0.10)]
+  import choice_relics
+  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20) and (a not in choice_relics.VERY_RARE or rng.random()<0.10)]
   preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
   chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)

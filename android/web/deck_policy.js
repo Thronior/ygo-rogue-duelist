@@ -260,7 +260,7 @@ export function deckPolicy(x){
   if(n==='Garma Sword Oath')return has(hand,'Garma Sword')&&[...hand,...own].filter(t=>monster(t)&&name(t)!=='Garma Sword'&&!exodiaPieces.has(t.code)).reduce((v,t)=>v+lvl(t),0)>=7?90:-1;
   if(n==='Gamble')return q(1-p,L.HAND).length>=6&&hand.filter(t=>!same(t,c)).length<=1&&q(p,L.DECK).length>=5&&!lethal?55:-1;
   if(n==='Mind Control')return e.player===p&&(enemy.length===1&&attacks.reduce((v,t)=>v+atk(t),0)>=e.lp[1-p]||has(hand,'Polymerization')&&enemy.some(t=>face(t)&&q(p,L.EXTRA).some(f=>fusionPlan(f,false,[{...t,controller:p}]))))?95:-1;
-  if(n==='Brain Control')return e.player===p&&e.lp[p]>1800&&live(enemy).some(t=>!(data(t).type&(0x40|0x80|0x2000000|0x800000|0x4000000))&&(!attackBlocked(t,p,true)||hand.some(h=>monster(h)&&lvl(h)>4)))?90:-1;
+  if(n==='Brain Control')return e.player===p&&e.lp[p]>1800&&live(enemy).some(t=>!attackBlocked(t,p,true)||hand.some(h=>monster(h)&&lvl(h)>4))?90:-1;
   if(n==='Ectoplasmer')return has(own,'Malice Doll of Demise')||live(own).some(t=>Math.max(0,data(t).attack||0)/2>=e.lp[1-p])?75:-1;
   if(n==='Abyssal Designator')return -1; // A blind declaration usually feeds the enemy graveyard for 1000 LP.
   if(n==='Chiron the Mage')return handCost(c,1,t=>!!(data(t).type&2))&&best(theirBack)>=1000?95:-1;
@@ -561,6 +561,8 @@ export function deckPolicy(x){
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
+  // A search takes the card that starts a line with what is already in hand.
+  if(n==='Reinforcement of the Army'&&ownCard&&c.location===L.DECK&&name(c)==='Marauding Captain'&&hand.some(x=>monster(x)&&lvl(x)<=4&&!same(x,c)))return 60000;
   if(n==='Pitch-Black Power Stone')return ownCard&&spellCounterUsers.has(name(c))?50000:-100000;
   // Union support: boost or re-arm our strongest monster; Formation Union picks a Union, then its partner.
   if(['Union Attack','Combination Attack','Formation Union'].includes(n))return ownCard&&c.location===L.MZONE?30000+atk(c):-100000;

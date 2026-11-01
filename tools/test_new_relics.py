@@ -69,7 +69,7 @@ events = [{"kind": "summon", "card": golden} for _ in range(6)]
 tally, total = g.rewards(run, events)
 assert tally["Golden Card"] == 50, tally.get("Golden Card")
 pups = sum(1 for c in g.deck(run) if g.BY_ID[c]["data"]["type"] & 1
-           and g.BY_ID[c]["data"]["type"] & 16 and g.BY_ID[c]["level"] <= 2)
+           and g.BY_ID[c]["level"] <= 3)
 assert tally.get("Underdog's Clause", 0) == pups * ART_INFO["underdog_clause"]["amount"], (tally.get("Underdog's Clause"), pups)
 assert tally["Glass Shard"] > 0 and total == tally["Glass Shard"] * 2
 run["round"] = 2

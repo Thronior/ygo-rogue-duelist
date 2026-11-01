@@ -160,6 +160,32 @@ e:SetOperation(function()
  local c=g:RandomSelect(0,1):GetFirst()
  local d=Effect.CreateEffect(c) d:SetType(EFFECT_TYPE_SINGLE) d:SetCode(EFFECT_UPDATE_LEVEL) d:SetValue(-1) d:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(d)
 end) Duel.RegisterEffect(e,0) end'''
+ if kind=='normal_spell_immune':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_IMMUNE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) end) e:SetValue(function(e,te) return te:IsActiveType(TYPE_SPELL) and te:GetOwnerPlayer()==1 end) Duel.RegisterEffect(e,0) end'''
+ # Reads every lowering effect on the monster and gives half of it back. Same reader as Token Resonance.
+ if kind=='halve_debuffs':return '''do local function soften(code) return function(e,c) local total=0
+ for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then v=v(other,c) end if type(v)=='number' and v<0 then total=total-v end end end
+ return math.floor(total/2) end end
+for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0) e:SetValue(soften(code)) Duel.RegisterEffect(e,0) end end'''
+ if kind in ('guard_weakest','guard_strongest'):
+  better='<' if kind=='guard_weakest' else '>'
+  # One monster only, so equal ATK can never leave a whole field that cannot be attacked.
+  return f'''do local function guarded() if Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)<2 then return nil end local best=nil
+ for c in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATION_MZONE,0,nil):Iter() do if not best or c:GetAttack(){better}best:GetAttack() then best=c end end return best end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_BE_BATTLE_TARGET) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c==guarded() end) e:SetValue(aux.imval1) Duel.RegisterEffect(e,0) end'''
+ if kind=='protection_charm':return ''
+ # Only an activated card effect counts: relic and curse damage comes from continuous global effects.
+ if kind=='first_effect_damage':return '''do local last=-1 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0)
+e:SetValue(function(e,re,val,r) if val>0 and (r&REASON_EFFECT)~=0 and re and re:IsActivated() and last~=Duel.GetTurnCount() then last=Duel.GetTurnCount() return 0 end return val end) Duel.RegisterEffect(e,0) end'''
+ if kind=='token_defender':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_END) e:SetCountLimit(1)
+e:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
+e:SetOperation(function() Duel.SpecialSummon(Duel.CreateToken(0,60764582),0,0,0,false,false,POS_FACEUP_DEFENSE) end) Duel.RegisterEffect(e,0) end'''
+ if kind=='standby_revive':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1)
+local function can(c,e) return c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,0,false,false) end
+e:SetCondition(function(e) return Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(can,0,LOCATION_GRAVE,0,1,nil,e) end)
+e:SetOperation(function(e) Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) Duel.SpecialSummon(Duel.SelectMatchingCard(0,can,0,LOCATION_GRAVE,0,1,1,nil,e),0,0,0,false,false,POS_FACEUP) end) Duel.RegisterEffect(e,0) end'''
+ if kind=='weak_normals_stand':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) and c:IsLevelBelow(3) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
  if kind=='token_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue({amount}) Duel.RegisterEffect(e,0) end'''
  # Reads every other boost on the Token and adds it again, so relics, equips and Field Spells all double.

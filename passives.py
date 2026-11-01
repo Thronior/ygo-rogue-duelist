@@ -181,6 +181,10 @@ end
   elif curse=='tax':event('EVENT_PHASE|PHASE_END',f'Duel.Damage(0,{500 if scale>=2 else 200},REASON_EFFECT)')
   elif curse=='brittle':
    stat('EFFECT_UPDATE_ATTACK',-100*scale);stat('EFFECT_UPDATE_DEFENSE',-200*scale)
+  # Spell, Trap and Monster Jammer: paid as the card activates, so a card you cannot afford cannot be activated.
+  jammed={'spell_jammer':'te:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_SPELL)','trap_jammer':'te:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_TRAP)','monster_jammer':'te:IsActiveType(TYPE_MONSTER)'}.get(curse)
+  if jammed:lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ACTIVATE_COST) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0)
+e:SetTarget(function(e,te,tp) return {jammed} end) e:SetCost(function(e,te,tp) return Duel.CheckLPCost(tp,{300*scale}) end) e:SetOperation(function(e,tp) Duel.PayLPCost(tp,{300*scale}) end) Duel.RegisterEffect(e,0) end''')
   if curse=='mirror_stats':
    target_range='LOCATION_MZONE,0' if scale>=2 else 'LOCATION_MZONE,LOCATION_MZONE'
    lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD) e:SetTargetRange({target_range}) Duel.RegisterEffect(e,0) end''')
@@ -193,11 +197,14 @@ e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PRE_BATTLE_D
 e:SetCondition(function(e,tp,eg,ep) return ep==1 end)
 e:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)/{divisor})) end)
 Duel.RegisterEffect(e,0) end''')
+ vests=run.get('curses',[]).count('fireproof_vest')
+ if vests:
+  factor=0 if scale>=2 else .5**vests
+  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(0,1) e:SetValue(function(e,re,val,r) if (r&REASON_EFFECT)~=0 then return math.floor(val*{factor}) end return val end) Duel.RegisterEffect(e,0) end''')
  exposed=run.get('curses',[]).count('exposed')
  if exposed:
   multiplier=(2 if scale>=2 else 1.5)**exposed
-  lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(function(e,re,val,r) if val<=0 or (r&REASON_BATTLE)~=0 then return val end return math.floor(val*{multiplier}) end) Duel.RegisterEffect(e,0)
-local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
+  lines.append(f'''do local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
 
  for code,operations in events.items():
   # Phase-start continuous events resolve without an optional activation prompt.

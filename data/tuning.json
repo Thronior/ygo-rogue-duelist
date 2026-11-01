@@ -615,7 +615,7 @@
     "underdog_clause": {
       "name": "The Underdog Clause",
       "price": 70,
-      "description": "After each victory, earn 3 additional coins for each Level 2 or lower Normal Monster in your Main Deck.",
+      "description": "After each victory, earn 3 additional coins for each Level 3 or lower monster in your Main Deck.",
       "art": "Heart of the Underdog",
       "effect": "underdog_gold",
       "amount": 3,

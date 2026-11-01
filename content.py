@@ -147,12 +147,16 @@ CURSES={
  'mercy':('Dulled Edge','Your outgoing battle damage is halved.'),
  'hunger':('Empty Scabbard','Your monsters lose 300 DEF.'),
  'enemy_power':('Empowered Rival','The boss\'s monsters gain 200 ATK.'),
- 'drain':('Withering Soul','Start this boss duel with 1000 fewer LP, minimum 1.'),
+ 'drain':('Withering Soul','Start this boss duel with 1000 fewer LP, minimum 2000.'),
  'brittle':('Brittle Guard','Your monsters lose 100 ATK and 200 DEF.'),
  'short_handed':('Thin Ranks','Start this duel with 2 fewer cards in your hand, minimum 1.'),
- 'exposed':('Open Wound','You take 50% more damage during this duel.'),
+ 'exposed':('Open Wound','You take 50% more battle damage during this duel.'),
  'no_recovery':('Withered Hope','Your LP recovery is halved during this duel.'),
  'mirror_stats':('Reversed Might','Swap the original ATK and DEF of all monsters.'),
+ 'fireproof_vest':('Fireproof Vest','Effect damage to your opponent is halved during this duel.'),
+ 'spell_jammer':('Spell Jammer','Activating a Spell Card costs 300 LP.'),
+ 'trap_jammer':('Trap Jammer','Activating a Trap Card costs 300 LP.'),
+ 'monster_jammer':('Monster Jammer','Activating a monster effect costs 300 LP.'),
 }
 # Factual card themes from early WCT 2004 deck lists; shortened/rebalanced
 # for the 20-card format. Later acts add stronger staples and tribute threats.
@@ -214,7 +218,7 @@ artifact('faulty_printer','Faulty Printer',85,'Each purchased card has a 15% cha
 artifact('carbon_copy','Carbon Copy',85,'Each card obtained from a booster pack or single-card purchase has a 15% chance to grant an extra copy.','Cloning','purchase_clone',15,'economy')
 artifact('golden_sleeve','Golden Card Sleeve',90,'Permanently choose a card when purchased. Win: gain 10 coins each time you summon, set, or activate it (max 5 per duel per chosen card).','Graceful Charity','golden',10,'economy')
 artifact('magic_mirror','Magic Mirror',110,'Copies the effect of a random other relic you own each duel.','Morphing Jar','mirror',0,'economy')
-artifact('underdog_clause','The Underdog Clause',70,'Earn 5 extra coins per Level 2 or lower Normal Monster in your deck after each victory.','Banner of Courage','underdog_gold',5,'economy')
+artifact('underdog_clause','The Underdog Clause',70,'Earn 5 extra coins per Level 3 or lower monster in your deck after each victory.','Banner of Courage','underdog_gold',5,'economy')
 artifact('traps_no_more','Traps No More',300,'Negate all Trap card effects (both players). Very rare.','Royal Decree','trap_negate',0,'defense')
 artifact('spells_no_more','Spells No More',300,'Negate all Spell card effects (both players). Very rare.','Imperial Order','spell_negate',0,'defense')
 artifact('legendary_shackles','Legendary Shackles',85,'Exodia pieces appear more often in shops. Every third shop visit or reroll while active guarantees a random Exodia piece in general stock.','Kunai with Chain','like_exodia',0,'draw')

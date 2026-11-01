@@ -1978,6 +1978,10 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .curse-icon.curse-mirror_stats img{filter:hue-rotate(288deg) saturate(1.25)}
 .curse-icon.curse-drain img{filter:hue-rotate(120deg) saturate(1.2)}
 .curse-icon.curse-exposed img{filter:invert(1) hue-rotate(35deg) saturate(1.15)}
+.curse-icon.curse-fireproof_vest img{filter:hue-rotate(150deg) saturate(1.25)}
+.curse-icon.curse-spell_jammer img{filter:hue-rotate(120deg) saturate(1.25)}
+.curse-icon.curse-trap_jammer img{filter:hue-rotate(240deg) saturate(1.25)}
+.curse-icon.curse-monster_jammer img{filter:hue-rotate(40deg) saturate(1.25)}
 
 .active-modifier-list{display:grid;gap:10px;max-height:min(70vh,680px);overflow:auto;padding:2px}
 .active-modifier-row{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;gap:12px}

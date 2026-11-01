@@ -44,7 +44,7 @@ def description(key,info,previous):
  'faulty':f'Each monster purchased as a single or pulled from a purchased booster has a {a}% chance to become a misprint. A misprint changes that copy\'s original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0) and gives it a random Type and Attribute.',
  'golden':f'Designate 1 card in the deck editor. If you win a Duel, earn {a} additional coins for each time you Summoned, Set, or activated a card with that name during that Duel (max. 5 times).',
  'mirror':'At the start of each Duel, copy the effects of 1 random other relic you own, except "Blank Relic". Keep those effects until the next Duel starts.',
- 'underdog_gold':f'After each victory, earn {a} additional coins for each Level 2 or lower Normal Monster in your Main Deck.',
+ 'underdog_gold':f'After each victory, earn {a} additional coins for each Level 3 or lower monster in your Main Deck.',
  'trap_negate':'Negate all Trap effects on the field and all activated Trap effects.',
  'spell_negate':'Negate all Spell effects on the field and all activated Spell effects.',
  'like_exodia':'Adds one extra random Exodia piece to every shop and reroll.',

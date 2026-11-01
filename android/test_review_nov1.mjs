@@ -32,6 +32,14 @@ put(1,L.MZONE,c('Stealth Bird',L.MZONE,1,{position:4}));assert.notEqual(smartCon
  assert.deepEqual([e.auto(idle()).action,e.auto(idle()).index],[I.SELECT_SUMMON,0],'summoned to break your Equip Card');checks++;
  ok(smart().targetScore('Cyber Raider',e.query(0,L.SZONE)[0],{})>smart().targetScore('Cyber Raider',e.query(1,L.SZONE)[0],{}),'it hits your Equip Card first');
  e.effect={code:id('Cyber Raider'),player:1};assert.equal(smart().resourceOption([BigInt(id('Cyber Raider'))*16n+1n,BigInt(id('Cyber Raider'))*16n+2n]),0,'an enemy Equip Card: destroy it');checks++;e.effect=null}
+// Pre-errata rules: Brain Control has no summon limit, and each Serpent and Assailant works alone.
+{reset();e.phase=4;put(0,L.MZONE,c('Blue-Eyes Ultimate Dragon',L.MZONE,0));put(1,L.HAND,c('Brain Control',L.HAND,1));put(1,L.MZONE,c('Battle Ox',L.MZONE,1));
+ ok(smartContext(e,1,L).activation(e.query(1,L.HAND)[0],false)>=0,'Brain Control can take a Fusion Monster');
+ reset();put(1,L.GRAVE,c('Sinister Serpent',L.GRAVE,1));put(1,L.HAND,c('Sinister Serpent',L.HAND,1));put(1,L.GRAVE,c('Sinister Serpent',L.GRAVE,1),c('Night Assailant',L.GRAVE,1));
+ ok(smartContext(e,1,L).discardBenefit(e.query(1,L.HAND)[0])>0,'a second Serpent still wants the Graveyard');
+ put(1,L.HAND,c('Night Assailant',L.HAND,1));ok(smartContext(e,1,L).discardBenefit(e.query(1,L.HAND)[0])>0,'Night Assailant can return another Night Assailant');
+ reset();e.lp=[1000,8000];e.phase=4;put(1,L.SZONE,c('Ring of Destruction',L.SZONE,1));put(1,L.MZONE,c('Battle Ox',L.MZONE,1));
+ ok(smartContext(e,1,L).activation(e.query(1,L.SZONE)[0],false)>=0,'Ring burns with your own monster for lethal')}
 // Tribe-Infecting Virus names the Type that hits you, not its own.
 const ALL=(1<<25)-1,BEAST=BigInt(data[id('Hyena')].race),AQUA=BigInt(data[id('Tribe-Infecting Virus')].race);
 reset();put(0,L.MZONE,c('Hyena',L.MZONE,0),c('Hyena',L.MZONE,0));put(1,L.MZONE,c('Tribe-Infecting Virus',L.MZONE,1));

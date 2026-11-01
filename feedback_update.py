@@ -3,7 +3,7 @@ RACE_VALUES=dict(zip(['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine'
 ATTRIBUTE_VALUES={'EARTH':1,'WATER':2,'FIRE':4,'WIND':8,'LIGHT':16,'DARK':32,'DIVINE':64}
 def nonstackable_curses(challenge_level=0):
  keys={'relic_seal','mirror_stats'}
- if challenge_level>=2:keys.add('no_recovery')
+ if challenge_level>=2:keys|={'no_recovery','fireproof_vest'}
  return keys
 
 def dedupe_curses(curses,challenge_level=0,per_encounter=False):

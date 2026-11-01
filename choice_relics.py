@@ -9,7 +9,7 @@ import approved_relics as ar
 import archetype_relics
 
 ANCIENT_TREASURE=190000050  # The 50-coin card stays exclusive to the All Spells pack.
-VERY_RARE=('almighty',)
+VERY_RARE=('almighty','the_creator')
 # relic: (run field, Lua toss kind, legal faces, how many plain faces the chosen one counts as)
 WEIGHTED={'weighted_coins':('weighted_coin','coin',(0,1),2),'weighted_dice':('weighted_die','dice',(1,2,3,4,5,6),3)}
 
@@ -17,13 +17,13 @@ def archetypes():
  return json.loads((Path(__file__).parent/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
 
 def relic_pool(run,exclude=()):
- """Regular relics a Relic Picker may offer: shop-eligible, unowned, never very rare or another choice relic."""
+ """Regular relics a Relic Picker may offer: shop-eligible, unowned, and never another choice relic. Very rare relics are as likely as any other here."""
  from content import ARTIFACTS,RETIRED_ARTIFACTS
  from campaign_expansion import shop_relic_eligible
  import cursed_relics
  cursed=set(cursed_relics.approved())
  return [a for a in ARTIFACTS if a not in cursed and not a.startswith('cursed_') and a not in RETIRED_ARTIFACTS
-         and a not in run.get('artifacts',[]) and a not in VERY_RARE and a not in ar.CHOICE_RELICS and a!='golden_sleeve'
+         and a not in run.get('artifacts',[]) and a not in ar.CHOICE_RELICS and a!='golden_sleeve'
          and a not in exclude and shop_relic_eligible(run,a)]
 
 def _offer(run,rng,exclude=()):

@@ -91,7 +91,7 @@ Duel.RegisterEffect(e,0) end''')
   # --[[relic-hint]] marks where passives.py shows the relic, since the toss's result is assigned.
   # Almighty (RogueAlmighty) keeps tails from lowering your monsters.
   out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.TossCoin(0,1)==COIN_HEADS and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
- elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),player_rule('EFFECT_FORCE_SPSUMMON_POSITION','POS_FACEUP_ATTACK'),player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:GetHandler():IsCode({DEFENSE_ONLY_SUMMONS}) end')])
+ elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_FORCE_SPSUMMON_POSITION) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c,sump,sumtype,sumpos) return not sumpos or (sumpos&POS_FACEUP_ATTACK)~=0 end) e:SetValue(POS_FACEUP_ATTACK) Duel.RegisterEffect(e,0) end',player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:GetHandler():IsCode({DEFENSE_ONLY_SUMMONS}) end')])
  elif key=='shield_bash':
   # Total Defense Shogun's rule: a face-up Defense Position monster attacks and uses its DEF.
   out.extend([stat('EFFECT_DEFENSE_ATTACK',1,'c:IsDefensePos()'),stat('EFFECT_CANNOT_ATTACK',1,'c:IsAttackPos()')])

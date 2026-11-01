@@ -210,7 +210,7 @@ function relicGrid(ctx,d,t,x,y,w,h){
 // tints (mobile.css .curse-icon.curse-*), so curses sharing an icon stay apart. No labels: icons and art only.
 // Returns the height it takes.
 const CURSE_EDGE={enemy_power:'#ffd06c',drain:'#af8fff'};
-const CURSE_TINTS={hunger:'hue-rotate(72deg) saturate(1.25)',enemy_power:'hue-rotate(144deg) saturate(1.25)',brittle:'hue-rotate(216deg) saturate(1.25)',mirror_stats:'hue-rotate(288deg) saturate(1.25)',drain:'hue-rotate(120deg) saturate(1.2)',exposed:'invert(1) hue-rotate(35deg) saturate(1.15)'};
+const CURSE_TINTS={fireproof_vest:'hue-rotate(150deg) saturate(1.25)',spell_jammer:'hue-rotate(120deg) saturate(1.25)',trap_jammer:'hue-rotate(240deg) saturate(1.25)',monster_jammer:'hue-rotate(40deg) saturate(1.25)',hunger:'hue-rotate(72deg) saturate(1.25)',enemy_power:'hue-rotate(144deg) saturate(1.25)',brittle:'hue-rotate(216deg) saturate(1.25)',mirror_stats:'hue-rotate(288deg) saturate(1.25)',drain:'hue-rotate(120deg) saturate(1.2)',exposed:'invert(1) hue-rotate(35deg) saturate(1.15)'};
 function curseStrip(ctx,t,curses,x,bottom,w){
  if(!curses.length)return 0;
  const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+40,top=bottom-strip;

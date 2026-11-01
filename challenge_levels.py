@@ -24,7 +24,7 @@ def curse_opening_hand(run,hand):
 
 def curse_description(run,key,default):
  if run.get('challenge_level',0)<2:return default
- return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one third.', 'drain':'Start this duel with 2000 fewer LP, minimum 1.', 'brittle':'Your monsters lose 200 ATK and 400 DEF.', 'short_handed':'Start this duel with 3 fewer cards in your hand, minimum 1.', 'exposed':'You take twice as much damage during this duel.', 'no_recovery':'You cannot recover LP during this duel.', 'mirror_stats':'Swap the original ATK and DEF of only your monsters.'}.get(key,default)
+ return {'frailty':'Your monsters lose 400 ATK during this duel.', 'enemy_power':"The opponent's monsters gain 400 ATK.", 'hunger':'Your monsters lose 600 DEF.', 'tax':'Take 500 damage at the end of each of your turns.', 'mercy':'Your outgoing battle damage is reduced to one third.', 'drain':'Start this duel with 2000 fewer LP, minimum 1000.', 'brittle':'Your monsters lose 200 ATK and 400 DEF.', 'short_handed':'Start this duel with 3 fewer cards in your hand, minimum 1.', 'exposed':'You take twice as much battle damage during this duel.', 'fireproof_vest':'Your opponent takes no effect damage during this duel.','spell_jammer':'Activating a Spell Card costs 600 LP.','trap_jammer':'Activating a Trap Card costs 600 LP.','monster_jammer':'Activating a monster effect costs 600 LP.','no_recovery':'You cannot recover LP during this duel.', 'mirror_stats':'Swap the original ATK and DEF of only your monsters.'}.get(key,default)
 
 def active_modifiers(run):
  from content import CURSES
@@ -60,3 +60,9 @@ def sync_engine_unlock(profile):
  profile['highest_challenge_level']=best
  if best>=5:
   profile['unlocked']=sorted(set(profile.get('unlocked',[0,1]))|{i for i,c in enumerate(CHARACTERS) if c.get('engine_deck')})
+
+def drained_lp(run,start):
+ """Starting LP after Withering Soul. It never takes you below its floor, and LP already below that stay put."""
+ scale=curse_scale(run)
+ cost=1000*scale*run.get('curses',[]).count('drain')
+ return max(min(start,1000 if scale>=2 else 2000),start-cost) if cost else start

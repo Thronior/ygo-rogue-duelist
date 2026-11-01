@@ -110,6 +110,41 @@
       "name": "Crush Card Virus",
       "script": "pre-errata/c511000822.lua",
       "desc": "Tribute 1 DARK monster with 1000 or less ATK; Check all monsters your opponent controls, your opponent's hand, and all cards they draw (until the end of your opponent's 3rd turn after this card's activation), and destroy all monsters with 1500 or more ATK."
+    },
+    "88789641": {
+      "name": "Hallowed Life Barrier",
+      "script": "goat/c504700153.lua",
+      "desc": "Discard 1 card from your hand. During this turn, any damage you take from your opponent becomes 0."
+    },
+    "47355498": {
+      "name": "Necrovalley",
+      "script": "pre-errata/c511002998.lua",
+      "desc": "All \"Gravekeeper's\" monsters gain 500 ATK/DEF. Cards in the Graveyard cannot be banished. Negate any card effect that would move a card in the Graveyard, other than itself, to a different place."
+    },
+    "65622692": {
+      "name": "Y-Dragon Head",
+      "script": "pre-errata/c511002852.lua",
+      "desc": "Once per turn, you can either: Target 1 \"X-Head Cannon\" you control; equip this card to that target, OR: Unequip this card and Special Summon it in face-up Attack Position. While equipped by this effect, the equipped monster gains 400 ATK/DEF. (A monster can only be equipped with 1 Union monster at a time. If the equipped monster would be destroyed by battle, destroy this card instead.)"
+    },
+    "64500000": {
+      "name": "Z-Metal Tank",
+      "script": "pre-errata/c511002853.lua",
+      "desc": "Once per turn, you can either: Target 1 \"X-Head Cannon\" or \"Y-Dragon Head\" you control; equip this card to that target, OR: Unequip this card and Special Summon it in face-up Attack Position. While equipped by this effect, the equipped monster gains 600 ATK/DEF. (A monster can only be equipped with 1 Union monster at a time. If the equipped monster would be destroyed by battle, destroy this card instead.)"
+    },
+    "23265594": {
+      "name": "Heavy Mech Support Platform",
+      "script": "pre-errata/c511002851.lua",
+      "desc": "Once per turn, you can either: Target 1 Machine-Type monster you control, equip this card to that target, OR: Unequip this card and Special Summon it in Attack Position. While equipped by this effect, the equipped monster gains 500 ATK/DEF. (A monster can only be equipped with 1 Union monster at a time. If the equipped monster would be destroyed, destroy this card instead.)"
+    },
+    "10035717": {
+      "name": "Weapon Change",
+      "script": "goat/c504700014.lua",
+      "desc": "Only once during each of your Standby Phases, you can pay 700 Life Points to activate this card's effect. Switch the ATK and DEF of 1 Warrior-Type or Machine-Type monster on your side of the field until the end of your opponent's next End Phase. When this card is destroyed, the effect is negated."
+    },
+    "15800838": {
+      "name": "Mind Crush",
+      "script": "pre-errata/c511003026.lua",
+      "desc": "Declare 1 card name; if that card is in your opponent's hand, they must discard all copies of it, otherwise you discard 1 random card and look at your opponent's hand."
     }
   }
 }

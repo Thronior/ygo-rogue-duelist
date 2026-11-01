@@ -3,6 +3,8 @@ import re
 from collections import Counter
 
 MAX_MULTIPLIER=3
+# A card in the current Deck counts this many times as much as one that only sits in the collection.
+DECK_WEIGHT=3
 # Share of the card pool that earns the full multiplier. Narrow themes need fewer cards to count as a plan.
 BROAD,COMMON,NARROW=.35,.25,.10
 
@@ -17,7 +19,7 @@ RULES={
  'overcharge':(_races('Thunder'),COMMON),'restless_dead':(_races('Zombie'),COMMON),'divine_might':(_races('Divine-Beast'),NARROW),
  'ember':(('attr:FIRE',),BROAD),'tide':(('attr:WATER',),BROAD),'gale':(('attr:WIND',),BROAD),'earth':(('attr:EARTH',),BROAD),
  'light':(('attr:LIGHT',),BROAD),'dark':(('attr:DARK',),BROAD),'eclipse':(('attr:LIGHT','attr:DARK'),BROAD),
- 'normal':(('normal',),COMMON),'epitaph':(('normal',),COMMON),'underdog_clause':(('normal:small',),NARROW),
+ 'normal':(('normal',),COMMON),'epitaph':(('normal',),COMMON),'underdog_clause':(('level:low',),COMMON),
  'cursed_commoners_chain':(('normal',),COMMON),'cursed_iron_silence':(('normal',),COMMON),
  'tribute':(('level:high',),COMMON),'tribute_dividend':(('level:high',),COMMON),'waning_star':(('level:high',),COMMON),
  'cursed_giants_oath':(('level:high',),COMMON),'tribute_free':(('level:7+',),NARROW),'boss_monster':(('level:7+',),NARROW),
@@ -32,7 +34,8 @@ RULES={
  'arcane_resonance':(('continuous',),COMMON),'counterweight':(('spell_counter',),NARROW),
  'burn_proficiency':(('burn',),NARROW),'static_coil':(('burn',),NARROW),'healing_echo':(('heal',),NARROW),
  'this_life_mine':(('lp_cost',),NARROW),'exile_standard':(('banish',),NARROW),
- 'token_regiment':(('token',),NARROW),'token_resonance':(('token',),NARROW),'token_martyrs':(('token',),NARROW),
+ 'token_regiment':(('token',),NARROW),'token_resonance':(('token',),NARROW),'token_martyrs':(('token',),NARROW),'token_defender':(('token',),NARROW),
+ 'tenacity_of_the_weak':(('normal:small',),NARROW),'normal_barrier':(('normal',),COMMON),
  'lets_go_gambling':(('coin','dice'),NARROW),'weighted_coins':(('coin',),NARROW),'weighted_dice':(('dice',),NARROW),
 }
 
@@ -51,7 +54,7 @@ def card_tags(c):
   if level>=7:tags.add('level:7+')
   if kind&0x10:
    tags.add('normal')
-   if level<=2:tags.add('normal:small')
+   if level<=3:tags.add('normal:small')
   if kind&0x200:tags.add('spirit')
   if kind&0x400:tags.add('union')
   if kind&0x200000:tags.add('flip')
@@ -78,7 +81,11 @@ def multipliers(keys,run):
  """Offer multiplier per relic, from 1 (no matching cards) to 3 (a dedicated collection)."""
  import archetype_relics
  import campaign as g
- pool=Counter(cid for cid in run.get('pool',[]) if cid in g.BY_ID);total=sum(pool.values())
+ pool=Counter(cid for cid in run.get('pool',[]) if cid in g.BY_ID)
+ for index in run.get('selected',[]):
+  cid=run['pool'][index] if isinstance(index,int) and 0<=index<len(run.get('pool',[])) else None
+  if cid in pool:pool[cid]+=DECK_WEIGHT-1
+ total=sum(pool.values())
  if not total:return {key:1.0 for key in keys}
  tags=Counter()
  for cid,copies in pool.items():

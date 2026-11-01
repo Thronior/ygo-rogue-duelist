@@ -4,8 +4,8 @@
 // interrupted simply stops being offered. Only the CPU's own hand, Deck and Extra Deck are read.
 const HARPIES=new Set(['Harpie Lady','Harpie Lady 1','Cyber Harpie Lady']);
 const HEALS=new Set(['Dian Keto the Cure Master','Poison of the Old Man','Gift of The Mystical Elf','Numinous Healer','Soul of the Pure','Mooyan Curry',"Goblin's Secret Remedy",'Red Medicine','Blue Medicine']);
-const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light']);
-const LIGHT=0x10;
+const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage"]);
+const LIGHT=0x10,WATER=0x2;
 export function comboPlanner(x){
  const {e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),monster=c=>!!(data(c).type&1);
@@ -24,7 +24,7 @@ export function comboPlanner(x){
  // The step that gets `n` face-up on the field, or null. A set copy is flipped; otherwise it needs the Normal Summon.
  const reveal=n=>{const down=set(n);return down?flipStep(down):summonStep(n)};
  const setStep=n=>{const index=fromPrompt('monster_sets',n);return index<0?null:{kind:'set',index,code:n}};
- const normalLeft=()=>list('summons').length>0||list('monster_sets').length>0;
+ const normalLeft=()=>list('summons').length>0||list('monster_sets').length>0||e.normalSummonTurn?.[p]!==e.turn;
  const normalSummonable=c=>monster(c)&&!(data(c).type&0xc0)&&!/cannot be Normal Summoned/i.test(e.cards.get(c.code)?.desc||'');
  const tributes=c=>{const level=lvl(c);return /^(?:Slifer the Sky Dragon|Obelisk the Tormentor|The Winged Dragon of Ra)$/.test(name(c))?3:level>6?2:level>4?1:0};
  const cheapest=()=>[...own].sort((a,b)=>Math.max(0,atk(a))-Math.max(0,atk(b)));
@@ -170,6 +170,28 @@ export function comboPlanner(x){
   const plan=burnPlan(),start=plan&&useStep(name(plan.body));
   return start?[{id:'burn',start,payoff:[],normal:false,lost:[],burn:plan.total,onlyLethal:true}]:[];
  }
+ // With an empty field Call of the Mummy puts a Zombie out for free, leaving the Normal Summon for a second body.
+ function mummyLine(){
+  const start=spellsOk&&!own.length&&useStep('Call of the Mummy');if(!start)return [];
+  const zombies=bestOf(hand.filter(c=>monster(c)&&race(c)==='Zombie'&&specialOk(c))),rest=bestOf(hand.filter(c=>monster(c)&&c.code!==zombies[0]?.code&&tributes(c)<=1));
+  return zombies.length&&rest.length?[{id:'mummy',start,payoff:[zombies[0]],kept:rest.slice(0,1),normal:false,lost:[]}]:[];
+ }
+ // A Legendary Ocean drops WATER monsters one Level, which can cancel a Tribute.
+ function oceanLine(){
+  const start=spellsOk&&!back.some(c=>c.sequence===5)&&useStep('A Legendary Ocean');if(!start)return [];
+  const lower=c=>{const level=lvl(c)-1;return level>6?2:level>4?1:0};
+  const target=bestOf(hand.filter(c=>normalSummonable(c)&&(data(c).attribute&WATER)&&lower(c)<tributes(c)&&lower(c)<=own.length))[0];
+  return target&&normalLeft()?[{id:'ocean',start,payoff:[target],normal:true,lost:[]}]:[];
+ }
+ // Soul Exchange pays a Tribute with their monster. It costs the Battle Phase, so nothing that can win a fight may be waiting.
+ function soulExchangeLine(){
+  const paid=list('summons').map((c,index)=>({c,index})).filter(({c})=>tributes(c)>own.length&&tributes(c)<=own.length+1);
+  if(paid.length){const {c,index}=bestOf(paid.map(x=>x.c)).map(y=>paid.find(x=>x.c===y))[0];return [{id:'soul-exchange',start:{kind:'summon',index,code:name(c)},payoff:[c],normal:true,tribute:true,lost:[]}]}
+  const start=spellsOk&&useStep('Soul Exchange');if(!start||!enemy.length||!normalLeft())return [];
+  if(own.some(c=>face(c)&&(c.position&1)&&(!enemy.length||enemy.some(t=>!face(t)||atk(c)>(t.position&1?atk(t):t.defense??data(t).defense??0)))))return [];
+  const target=bestOf(hand.filter(c=>normalSummonable(c)&&tributes(c)>own.length&&tributes(c)<=own.length+1))[0];
+  return target?[{id:'soul-exchange',start,payoff:[target],normal:true,tribute:true,lost:[],bonus:Math.max(...enemy.map(targetValue))}]:[];
+ }
  // Kaiser Sea Horse pays both Tributes of a LIGHT monster alone.
  function kaiserLine(){
   const kaiser=up('Kaiser Sea Horse');if(!kaiser)return [];
@@ -221,11 +243,34 @@ export function comboPlanner(x){
   const taken=[...enemy].sort((a,b)=>targetValue(b)-targetValue(a)).slice(0,2).reduce((sum,c)=>sum+targetValue(c),0);
   return taken>=1500?[{id:'lava-golem',start,payoff:[],normal:false,lost:[],bonus:taken}]:[];
  }
+ // Attacks that are worth making because of what they do, not the damage. A monster that could win a fight fights normally.
+ const TRADES=new Set(['Hyper Hammerhead','D.D. Warrior']);
+ function battleLine(ready){
+  if(e.battleProtected?.[1-p]||!effectsEnabled(p))return null;
+  const shown=t=>face(t)&&(t.position&1),guard=t=>t.position&1?atk(t):(t.defense??data(t).defense??0);
+  const rocket=ready.find(c=>name(c)==='Rocket Warrior');
+  if(rocket){
+   const best=Math.max(0,...ready.filter(c=>!same(c,rocket)).map(atk));
+   const weakened=enemy.filter(t=>shown(t)&&atk(t)>=best&&atk(t)-500<best).sort((a,b)=>targetValue(b)-targetValue(a))[0];
+   if(weakened)return {card:rocket,target:weakened};
+  }
+  for(const c of ready.filter(y=>TRADES.has(name(y))&&!enemy.some(t=>face(t)&&atk(y)>guard(t)))){
+   const bounce=name(c)==='Hyper Hammerhead';
+   const target=enemy.filter(t=>{
+    if(!face(t)||x.resilient(t)||x.attackBackfires(c,t))return false;
+    if(!(t.position&1))return bounce;
+    const loss=atk(t)-atk(c);
+    return loss>=0&&loss<e.lp[p]/3&&atk(t)>=2000&&(!bounce||lvl(t)>=5||!!(data(t).type&0xc0));
+   }).sort((a,b)=>targetValue(b)-targetValue(a))[0];
+   if(target)return {card:c,target};
+  }
+  return null;
+ }
  let cached=null;
  function lines(){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
-  const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine];
+  const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine];
   const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
   for(const line of cached){line.kept??=[];line.lost??=[];line.strikers=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
@@ -248,5 +293,5 @@ export function comboPlanner(x){
  }
  // The attackers a Normal Summon of `c` really adds, follow-ups included; null when it starts nothing.
  const strikersFor=c=>lines().find(l=>l.start.kind==='summon'&&l.start.code===name(c))?.strikers||null;
- return {lines,choose,strikersFor,metamorphosisPick,burnPlan};
+ return {lines,choose,strikersFor,metamorphosisPick,burnPlan,battleLine};
 }
