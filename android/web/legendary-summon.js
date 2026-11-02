@@ -52,7 +52,8 @@ export const legendarySummons={
  66889139:{"name": "Gaia the Dragon Champion", "color": "#68d0f3"},
  91512835:{"name": "Insect Queen", "color": "#adf368"},
  49064413:{"name": "The Masked Beast", "color": "#8b68f3"},
- 39674352:{"name": "Gogiga Gagagigo", "color": "#f38b68"}
+ 39674352:{"name": "Gogiga Gagagigo", "color": "#f38b68"},
+ 55737443:{"name": "Exxod, Master of The Guard", "color": "#d9a441"}
 };
 // Each monster's name is spoken as its art fades in. Long names and their echo may outlast the window.
 const VOICE_AT=500;

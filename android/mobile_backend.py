@@ -53,7 +53,7 @@ def dispatch(raw):
    preview=deepcopy(value);g.auto_deck(preview);result=preview['selected']
   elif action=='tag-profile':storage.write(storage.ROOT/'profile.json',value)
   elif action=='tag-create':
-   tag_session=TagCampaign(value['characters'],value['profiles'],value.get('level',0),lobby=value.get('lobby',False));tag_session.room_code=value['code'];checkpoint();result=tag_session.view(0)
+   tag_session=TagCampaign(value['characters'],value['profiles'],value.get('level',0),lobby=value.get('lobby',False),variants=value.get('variants',(0,0)));tag_session.room_code=value['code'];checkpoint();result=tag_session.view(0)
   elif action=='tag-restore':
    data=storage.read(storage.ROOT/'tag-host.json')
    code=value['code'] if isinstance(value,dict) else value
@@ -111,12 +111,11 @@ def dispatch(raw):
   endless.next_loop(g,run)
  elif action=='auto':g.auto_deck(run)
  elif action=='deselect-all':
-  c=content.CHARACTERS[run['character']]
-  if c.get('copycat') or c.get('engine_deck'):raise ValueError('This character uses a fixed deck.')
+  if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
   run['selected']=[]
  elif action=='toggle':
   if content.CHARACTERS[run['character']].get('copycat'):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
-  if content.CHARACTERS[run['character']].get('engine_deck'):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
+  if content.fixed_deck(run):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
   index=int(value)
   if index<0 or index>=len(run['pool']):raise ValueError('Unknown card')
   if index in run['selected']:run['selected'].remove(index)

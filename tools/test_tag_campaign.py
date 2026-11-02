@@ -79,4 +79,17 @@ for fixed_char in (37,38):
    expected.append(g.BY_NAME['Copycat']['id'])
    assert Counter(fixed.duel['teams'][0][fixed_seat]['main'])==Counter(expected)
    assert run['copied_opponent']==choices[fixed_seat]
+# Second variants: each player's choice reaches their own run, and is gated by their own profile.
+import random,content,character_variants as cv
+vp=storage.profile();vp['unlocked']=list(range(len(content.CHARACTERS)));vp['character_levels']={str(i):2 for i in range(len(content.CHARACTERS))}
+for key,row in cv.VARIANTS.items():
+ i=int(key);v=TagCampaign([i,0],[vp,vp],seed=9,variants=[1,0])
+ assert v.players[0]['variant']==1 and v.players[0]['variant_name']==row['name'],key
+ assert v.players[1]['variant']==0,key
+ assert row['starting_relic'] in ('random_archetype','none') or row['starting_relic'] in v.shared['artifacts'],key
+v=TagCampaign([1,0],[vp,vp],seed=9,variants=[0,1]);assert v.players[1]['variant']==1 and 'fusion_time' in v.shared['artifacts']
+locked=storage.profile();locked['unlocked']=[0,1];locked['character_levels']={}
+try:TagCampaign([0,1],[locked,vp],seed=9,variants=[1,0]);raise AssertionError('locked variant accepted')
+except ValueError as error:assert 'Beat Challenge' in str(error)
+assert TagCampaign([0,1],[vp,vp],seed=9).players[0]['variant']==0
 print('PASS Copycat copies one chosen opponent only; both fixed characters start tag duels in either seat')

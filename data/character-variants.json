@@ -878,6 +878,14 @@
       "supporting_packs": [],
       "background_card": "Morphing Jar",
       "background": "character-backgrounds/variant-36.jpg"
+    },
+    "38": {
+      "name": "Deck Assembler",
+      "starting_relic": "none",
+      "cards": [],
+      "theme": "Start with a random Structure Deck and build your own deck from your card pool. After each victory, add every card from an additional random starter or structure deck to your card pool. Reroll each offer for 15 coins. Extra-card reward relics add more deck choices. The shop only sells you relics.",
+      "background_card": "Machine Conversion Factory",
+      "background": "character-backgrounds/variant-38.jpg"
     }
   }
 }

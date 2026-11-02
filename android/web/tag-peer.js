@@ -2,7 +2,7 @@ import {HubSocket} from './hub-socket.js';
 // Reliable partner link. Frames start on the room hub, so play begins as soon as both players are there, and move to a
 // direct WebRTC channel when one opens. Numbered, acknowledged frames survive any change of route or a dropped socket.
 const DIRECT_PING=2000,DIRECT_SILENCE=5000,DIRECT_LIMIT=200000,ATTEMPT_WAIT=15000,TOUCH_EVERY=7200000;
-const ACK_DIRECT=150,ACK_HUB=1200,RESEND_CHECK=2000,RESEND_AFTER=4000,PROBE_AFTER=4000,PARTNER_CHECK=15000;
+const ACK_DIRECT=150,ACK_HUB=1200,RESEND_CHECK=2000,RESEND_AFTER=4000,PROBE_AFTER=4000,PARTNER_CHECK=15000,QUIET_PROBE=5000;
 export class TagPeer {
  constructor(endpoint,{onState=()=>{},onMessage=()=>{},iceServers=null,relayOnly=false}={}){
   const url=new URL(endpoint);if(url.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(url.hostname))throw Error('Use HTTPS for the room service.');
@@ -44,6 +44,7 @@ export class TagPeer {
  announce(){this.hub?.send(JSON.stringify({l:this.sid,to:this.peerSid}))}
  linkDown(){if(!this.linked)return;this.linked=false;this.onState('disconnected')}
  frame(packet){
+  this.heardAt=Date.now();
   if(packet.ping){this.rawDirect({pong:packet.ping});return}
   if(packet.pong){this.directRtt=Date.now()-packet.pong;return}
   if(packet.l){
@@ -75,6 +76,8 @@ export class TagPeer {
   if(this.wasDirect&&!this.directUp){this.wasDirect=false;this.directLost()}
   // An unanswered frame is the fastest sign of a dead socket, well ahead of the next routine ping.
   if(oldest&&now-oldest.first>=PROBE_AFTER)this.hub?.ping();
+  // A player who is only waiting has no frame to go unanswered, so silence when a move is due has to do the same job.
+  if(!this.directUp&&this.expecting?.()&&now-Math.max(this.heardAt||0,this.probedAt||0)>=QUIET_PROBE){this.probedAt=now;this.hub?.ping()}
   if(oldest&&now-oldest.at>=Math.max(RESEND_AFTER,(this.rtt()||0)*3))this.resend();
   if(oldest&&now-(oldest.first||now)>=PARTNER_CHECK&&now-(this.checkAt||0)>=PARTNER_CHECK){this.checkAt=now;this.hub?.send('check')}
   // Rooms expire a day after the last contact, and a direct game may not touch the service for hours.

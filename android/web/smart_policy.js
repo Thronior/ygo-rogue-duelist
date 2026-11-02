@@ -22,6 +22,7 @@ export function preferredSelectionCount(min,max,scores,preferMaximum=false){
  const favorable=(scores||[]).filter(score=>Number.isFinite(score)&&score>=0).length;
  return Math.max(lower,Math.min(upper,favorable));
 }
+const BATTLEGUARD_PARTNER={'Lava Battleguard':'Swamp Battleguard','Swamp Battleguard':'Lava Battleguard'};
 export function smartContext(e,p,L,prompt=null){
  const replayRule=key=>e.cpuTrialRules?e.cpuTrialRules.includes(key):acceptedReplayRules.has(key);
  const queryCache=new Map(),safetyCache=new Map();
@@ -31,7 +32,8 @@ export function smartContext(e,p,L,prompt=null){
  const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0));
  // Reversed Remedy (either owner) and base Effect Reverser: effect damage heals and healing hurts, for both players.
  // Amplified Effect Reverser only flips what the player does to the CPU, so the CPU's own plans stay the same.
- const remedy=relic(0,'cursed_reversed_remedy')||relic(1,'cursed_reversed_remedy')||((e.aiModifiers?.activeCurses||[]).includes('effect_reverser')&&(e.aiModifiers?.challengeLevel??0)<2);
+ // Reversed Remedy and the base Effect Reverser cancel out.
+ const remedyRelic=!!(relic(0,'cursed_reversed_remedy')||relic(1,'cursed_reversed_remedy')),remedyCurse=(e.aiModifiers?.activeCurses||[]).includes('effect_reverser')&&(e.aiModifiers?.challengeLevel??0)<2,remedy=remedyRelic!==remedyCurse;
  const liveStat=(c,key)=>c.location===L.MZONE?rawQuery(c.controller??p,L.MZONE)[c.sequence]?.[key]:undefined;
  const atk=c=>{const live=liveStat(c,'attack');if(live!==undefined)return live;const original=c.attack??data(c).attack??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??data(c).defense??original):original};
  const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;const original=c.defense??data(c).defense??0;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??data(c).attack??original):original};
@@ -346,7 +348,7 @@ export function smartContext(e,p,L,prompt=null){
   if(egyptianGods.has(n))return !setting&&!(own.some(x=>egyptianGods.has(name(x)))&&own.filter(x=>!egyptianGods.has(name(x))).length<3)&&(prompt?.summons||[]).some(x=>same(x,c));
   const required=n==='The Wicked Eraser'?3:effectiveLevel(c,true)>6?2:effectiveLevel(c,true)>4?1:0;
   if(required){
-   const eligible=own.filter(x=>!(effectsEnabled(p)&&name(x)==='Relinquished')).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
+   const eligible=own.filter(x=>!(effectsEnabled(p)&&(name(x)==='Relinquished'||face(x)&&name(x)===BATTLEGUARD_PARTNER[n]))).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
    if(eligible.length<required)return false;
    const paid=eligible.slice(0,required),newAtk=projectedAttack(c),newDef=projectedDefense(c);
    const freed=x=>attackBlocked(x,p)&&!attackBlocked(c,p,true)&&newAtk>0;
@@ -819,8 +821,6 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Nimble Momonga')return optionalMillSafe()&&q(p,L.DECK).some(x=>name(x)===n)?85:-1;
   if(n==='Cyber Jar')return cyberJarFlipUseful()?85:-1;
 
-  if(spell&&(d.type&0x80)&&relic(p,'cursed_ritual_scar')&&e.lp[p]<=1000*relics(p).filter(k=>k==='cursed_ritual_scar').length)return -1;
-  if(n==='Polymerization'&&relic(p,'cursed_fusion_fever')&&hand.some(x=>exodiaPieces.has(x.code))&&!hand.some(x=>!same(x,c)&&!(data(x).type&1)&&!exodiaPieces.has(x.code)))return -1;
   // Save Waboku for the Battle Phase, including its start/end steps.
   if(n==='Waboku'&&![8,16,32,64,128].includes(e.phase))return -1;
   // Protect the five actual win-condition pieces, including send-to-GY costs.
@@ -1429,7 +1429,7 @@ export function smartContext(e,p,L,prompt=null){
  // Reserve a distinct stronger attacker for each obstacle before exposing a
  // weaker monster. Never assume a hidden defender/back row is harmless.
  function clearedLane(c){
-  if(e.cpuOffenseTrial===false||openingTurn||e.player!==p||e.phase!==4||prompt?.to_bp!==true||battleLocked||attackBlocked(c,p,true)||theirBack.some(x=>!face(x))||enemy.some(x=>!face(x)||resilient(x)||battleHazards.has(name(x))||enabled(x)&&/destroyed by battle.*(?:special summon|destroy|return)/is.test(e.cards.get(x.code)?.desc||'')))return false;
+  if(e.cpuOffenseTrial===false||openingTurn||e.player!==p||e.phase!==4||prompt?.to_bp!==true||battleLocked||attackBlocked(c,p,true)||theirBack.some(x=>!face(x))||enemy.some(x=>!face(x)||attackLocked(x)||resilient(x)||battleHazards.has(name(x))||enabled(x)&&/destroyed by battle.*(?:special summon|destroy|return)/is.test(e.cards.get(x.code)?.desc||'')))return false;
   if(projectedAttack(c)<=0||exodiaPieces.has(c.code)||!attackAllowed(c,true))return false;
   const strikers=activeAttackers(p).filter(x=>!same(x,c)&&attackAllowed(x,false)&&!x.attack_disabled&&!x.attack_count).sort((a,b)=>atk(a)-atk(b));
   for(const t of [...enemy].sort((a,b)=>power(b)-power(a))){const i=strikers.findIndex(a=>atk(a)>power(t));if(i<0)return false;strikers.splice(i,1);}
@@ -1509,6 +1509,7 @@ export function smartContext(e,p,L,prompt=null){
   const n=name(c),mine=[...own.filter(x=>face(x)&&!same(x,c)),c],handAfter=hand.filter(x=>!same(x,c)).length,graveMonsters=grave.filter(x=>data(x).type&1),graveCount=graveMonsters.length+tributesToGrave(c),fire=[...own,...enemy].filter(x=>face(x)&&hasAttribute(x,'FIRE'));
   if(stat==='attack')switch(n){
    case 'Mudora':return 200*graveMonsters.filter(x=>race(x)==='Fairy').length;
+   case 'Lava Battleguard':case 'Swamp Battleguard':return 500*mine.filter(x=>name(x)===BATTLEGUARD_PARTNER[n]).length;
    case 'Amazoness Tiger':return 400*mine.filter(x=>setMatch(x,0x4)).length;
    case 'Amazoness Paladin':return 100*mine.filter(x=>setMatch(x,0x4)).length;
    case 'Chaos Necromancer':return 300*graveCount;
@@ -1561,7 +1562,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_trapbound_idol':v=is(0x100)?-1000:0;break;
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
-    case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-200;break;
+    case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-400;break;
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
@@ -1598,7 +1599,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_ashen_nursery':v=level<=3?700:level>=5?-700:0;break;case 'approved_giants_oath':v=level>=5?800:level<=4?-400:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
-    case 'approved_ritual_scar':v=is(0x80)?1000:0;break;case 'approved_fusion_fever':v=is(0x40)?800:0;break;
+    case 'approved_ritual_scar':v=100*(e.aiModifiers?.ritualScar||0)-500;break;case 'approved_fusion_fever':v=is(0x40)?1000:0;break;
     case 'approved_empty_hand_pact':v=handAfter===0?1000:0;break;
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
     case 'approved_crowded_crypt':v=Math.min(750,75*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
@@ -1895,7 +1896,7 @@ if(!effectsEnabled(p))return 0;
  function betterPosition(c){
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
   const attackers=enemy.filter(x=>face(x)&&!attackBlocked(x,1-p,true));
-  const losesAttack=attackers.some(x=>swing(x)>atk(c)),losesDefense=attackers.some(x=>swing(x)>def(c));
+  const losesAttack=attackers.some(x=>swing(x)>projectedAttack(c)),losesDefense=attackers.some(x=>swing(x)>projectedDefense(c));
   if(losesAttack!==losesDefense)return losesDefense;
   const safer=saferPosition(c);
   return safer!==null?safer:losesAttack?false:null;
@@ -1933,7 +1934,23 @@ if(!effectsEnabled(p))return 0;
   if(['Zombyra the Dark','Giant Rex'].includes(n)&&direct)return false;
   if(["Queen's Double",'Inaba White Rabbit'].includes(n)&&!direct)return false;
   return true;}
+ // Cards that keep a monster out of attack range. The core never offers it as a target, so it can't justify a
+ // summon or an attack: a 0 DEF Relinquished beside Magician's Valkyria only looks like a free kill.
+ function attackLocked(t){
+  const side=own.some(x=>same(x,t))?own:enemy,others=side.filter(x=>!same(x,t)),field=side===own?back:theirBack,n=name(t);
+  const guard=(card,covers)=>covers&&others.some(x=>name(x)===card&&enabled(x));
+  if(!face(t))return t.position===8&&guard('Hieracosphinx',true);
+  if(guard("Magician's Valkyria",race(t)==='Spellcaster')||guard('Marauding Captain',race(t)==='Warrior')||guard('Amazoness Tiger',n.includes('Amazoness'))||guard('Vilepawn Archfiend',n.includes('Archfiend')&&n!=='Vilepawn Archfiend')||guard('Batteryman D',race(t)==='Thunder'&&n!=='Batteryman D'))return true;
+  if(others.some(x=>name(x)==='Marshmallon')&&n!=='Marshmallon'&&field.some(x=>enabled(x)&&name(x)==='Marshmallon Glasses'))return true;
+  if(field.some(x=>enabled(x)&&name(x)==='Raregold Armor'&&others.some(o=>same(x.equipCard||x.equip_card,o))))return true;
+  if(!enabled(t))return false;
+  if(n==='Guardian Kay\'est'||n==='Command Knight'&&others.length)return true;
+  if(n==='Emissary of the Oasis')return others.some(x=>face(x)&&lvl(x)<=3&&(data(x).type&0x10));
+  if(n==='Soul-Absorbing Bone Tower')return others.some(x=>face(x)&&race(x)==='Zombie');
+  return n==='The Legendary Fisherman'&&[...back,...theirBack].some(x=>face(x)&&['Umi','A Legendary Ocean'].includes(name(x)));
+ }
  function attackScore(a,t,ctx){const n=name(a),dmg=(ctx&&ctx.dmg)||0,deckOut=!!(ctx&&ctx.deckOut);let s=0;
+  if(t&&attackLocked(t))return -100000;
   if(attackBackfires(a,t))return -100000;
   // Our Spirit on their side comes back to our hand at the End Phase; destroying it throws the card away.
   if(t&&t.owner===p&&t.controller!==p&&face(t)&&(data(t).type&0x200)&&dmg<e.lp[1-p])return -100000;
@@ -1992,10 +2009,13 @@ if(!effectsEnabled(p))return 0;
   return s;}
  function suicideScore(a,target=null){const n=name(a);if(!['Witch of the Black Forest','Sangan'].includes(n))return 0;
   if(!enabled(a)||!effectsEnabled(p)||e.lp[p]<=2000||q(p,L.DECK).length<=3||[...own,...enemy].some(x=>enabled(x)&&name(x)==='Banisher of the Light'))return 0;
-  return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500)?800:0;}
+  // Baou negates what it destroys, so dying to its holder finds nothing.
+  const baou=x=>[...back,...theirBack].some(y=>enabled(y)&&name(y)==='Wicked-Breaking Flamberge - Baou'&&same(y.equipCard||y.equip_card,x));
+  return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500&&!baou(x))?800:0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
   if(subject&&projectedAttack(subject)<atk(c)&&!(attackBlocked(c,p)&&!attackBlocked(subject,p,true)))return -100000000;
+  if(subject&&effectsEnabled(p)&&face(c)&&BATTLEGUARD_PARTNER[e.name(e.materialSubject)]===n)return -100000000;
 if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(c))-atk(c));
   if(n==='Zolga')s-=firePrincess?1000:500;
   if(n==='Darklord Marie'||n==='Magician of Black Chaos')s+=5000;
@@ -2182,5 +2202,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
 }

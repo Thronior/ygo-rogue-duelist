@@ -3,7 +3,7 @@ import {relicEyeIcon} from './relic-eye-icon.js';
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
 import {revealPrice} from './jar-relics.js';
 
-import {deckMinimum} from './deck-minimum.js';
+import {deckMinimum,fixedDeck} from './deck-minimum.js';
 
 import {playUISound,playRerollSound} from './ui-sounds.js';
 
@@ -16,8 +16,9 @@ import {deckReadyFeedback} from './selection-feedback.js';
 import {purchaseCoins} from './counter-audio.js';
 
 import {polishShop} from './presentation-polish.js';
+import {coinLabel} from './coin-label.js';
 
-import {rememberedLevel} from './difficulty-preference.js';
+import {rememberedLevel,alternateUnlocked} from './difficulty-preference.js';
 
 import {encounterPortrait,hasSpyglass,bossBanner,bossControls,bossRerollPrice,playEncounterReveal,playPortraitReveal,revealCost,revealCostLabel} from './encounter-reveal.js';
 
@@ -156,7 +157,7 @@ export class TagUI {
 
    const result=finale.status==='finished'?`<h2>${finale.winner===null?'Final duel: Draw':finale.winner===v.seat?'You won the final duel':'Your opponent won the final duel'}</h2><p>Your shared campaign victory is saved.</p>`:'';
 
-   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-ending-portraits">${v.characters.map(i=>this.portrait(i)).join('')}</div><p>${r.round} victories · ${r.gold} gold</p>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${button('Exit','exit')}</section>`);return
+   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-ending-portraits">${v.characters.map(i=>this.portrait(i)).join('')}</div><p>${r.round} victories · ${coinLabel(r.gold)} gold</p>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${button('Exit','exit')}</section>`);return
 
   }
 
@@ -164,7 +165,7 @@ export class TagUI {
 
   if(c.copycat)this.tab='opponents';
 
-  const locked=v.ready[v.seat],chosen=r.routes.includes(r.opponent),fixed=c.copycat||c.engine_deck;
+  const locked=v.ready[v.seat],chosen=r.routes.includes(r.opponent),fixed=fixedDeck(r,c);
 
   const mainCount=r.selected.filter(i=>!(this.cardById(r.pool[i])?.data.type&64)).length,validSize=fixed||mainCount>=(deckMinimum(r,this.content.characters[r.character]))&&mainCount<=60;
 
@@ -230,6 +231,7 @@ export class TagUI {
 
  }
 
+ chosenVariant(){return this.content.characters[this.character]?.alternate&&alternateUnlocked(this.profile,this.character)?this.variants?.[this.character]||0:0}
  portrait(id,label=''){
 
   const c=this.content.characters[id];return `<div class="tag-player-portrait" style="background-image:url('assets/${c.background||'character-backgrounds/'+id+'.jpg'}')"><img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}"><strong>${esc(c.name)}</strong>${label?`<small>${esc(label)}</small>`:''}</div>`;
@@ -256,13 +258,13 @@ export class TagUI {
 
   }
 
-  const c=this.content.characters[this.character],packs=c.copycat||c.engine_deck||c.random_packs?[]:c.starting_packs||[c.pack,c.pack,c.pack,c.pack];
+  const base=this.content.characters[this.character],unlocked=alternateUnlocked(this.profile,this.character),variant=this.chosenVariant(),c=variant?{...base,...base.alternate,name:base.name}:base,packs=c.copycat||c.engine_deck||c.random_packs?[]:c.starting_packs||[c.pack,c.pack,c.pack,c.pack];
 
-  const relic=c.starting_relic,info=this.content.artifactInfo[relic],relicName=relic==='none'?'No relic':relic==='random'?'Random relic':this.content.artifacts[relic]?.[0]||'',relicText=relic==='none'?'The Dueling Engine starts with no relic.':relic==='random'?'A different relic is rolled for each new run.':this.content.artifacts[relic]?.[2]||'';
+  const relic=c.starting_relic,info=this.content.artifactInfo[relic],relicName=relic==='none'?'No relic':relic==='random'?'Random relic':relic==='random_archetype'?'Random archetype relic':this.content.artifacts[relic]?.[0]||'',relicText=relic==='none'?'The Dueling Engine starts with no relic.':relic==='random'?'A different relic is rolled for each new run.':relic==='random_archetype'?'Start with a random relic that adds cards from an archetype to shop stock.':this.content.artifacts[relic]?.[2]||'';
 
   const packArt=packs.length?packs.map((id,n)=>`<img src="assets/packs/${id}.jpg" style="--n:${n}" alt="Starting pack">`).join(''):`<img src="assets/card-back.jpg" style="--n:1"><span>${c.copycat?'Borrowed deck':c.engine_deck?'Victory deck choices':'4 random packs'}</span>`;
 
-  this.root.innerHTML=this.header(`<div class="char-layout"><div class="roster tag-character-grid" style="--roster-rows:${Math.ceil(this.content.playable.length/6)}">${this.content.playable.map(i=>{const x=this.content.characters[i];return `<button class="portrait ${i===this.character?'selected':''} ${(this.profile.character_levels?.[i]??-1)>=5?'golden-complete':''} ${this.profile.unlocked.includes(i)?'':'locked'}" data-tag="character" data-id="${i}" data-completed-level="${this.profile.character_levels?.[i]??-1}" data-unlocked-level="${Math.min(6,(this.profile.character_levels?.[i]??-1)+1)}" aria-label="${esc(x.name)}" ${this.profile.unlocked.includes(i)?'':'disabled'}><img src="assets/${x.sprite}"><span>${esc(x.name)}</span></button>`}).join('')}</div><div class="duelist-selection"><aside class="char-details"><div class="duelist-hero" style="background-image:url('assets/character-backgrounds/${this.character}.jpg')"><img src="assets/${c.sprite}"><h2>${esc(c.name)}</h2></div><h3 class="loadout-heading">${c.copycat?'BORROWED DECK':c.engine_deck?'VICTORY DECK CHOICES':'GUARANTEED CARDS'}</h3><div class="duelist-loadout"><div class="draft-pack-fan">${packArt}</div><div class="signature-cards">${(c.cards||[]).map(name=>{const id=this.content.cards.find(x=>x.name===name)?.id;return `<button data-tag="inspect" data-id="${id}" aria-label="Inspect ${esc(name)}"><img src="${this.image(id)}"></button>`}).join('')}</div></div><div class="starting-relic"><div class="starting-relic-art">${info?relicArtwork(relicImage(info.art)):relic==='none'?'':'<img class="random-relic" src="assets/card-back.jpg">'}</div><div><h3>${esc(relicName)}</h3><p>${esc(relicText)}</p></div></div></aside><label class="tag-level-label">Host LVL <select id="tag-level">${this.profile.relicless_unlocked?`<option value="-1" ${this.level===-1?'selected':''}>-1 · Disable all relics or curses</option>`:''}${Array.from({length:Math.min(6,(this.profile.character_levels?.[this.character]??-1)+1)+1},(_,i)=>`<option ${i===this.level?'selected':''}>${i}</option>`).join('')}</select></label><div class="tag-connect-buttons">${button(this.working?'Creating…':'Host','host',`class="start-run" ${this.working?'disabled':''}`)}${button('Join','join',`class="start-run" ${this.working?'disabled':''}`)}</div></div></div>`,'','character-select-page tag-offline-select');
+  this.root.innerHTML=this.header(`<div class="char-layout"><div class="roster tag-character-grid" style="--roster-rows:${Math.ceil(this.content.playable.length/6)}">${this.content.playable.map(i=>{const x=this.content.characters[i];return `<button class="portrait ${i===this.character?'selected':''} ${(this.profile.character_levels?.[i]??-1)>=5?'golden-complete':''} ${this.profile.unlocked.includes(i)?'':'locked'}" data-tag="character" data-id="${i}" data-completed-level="${this.profile.character_levels?.[i]??-1}" data-unlocked-level="${Math.min(6,(this.profile.character_levels?.[i]??-1)+1)}" aria-label="${esc(x.name)}" ${this.profile.unlocked.includes(i)?'':'disabled'}><img src="assets/${x.sprite}"><span>${esc(x.name)}</span></button>`}).join('')}</div><div class="duelist-selection"><aside class="char-details"><div class="duelist-hero" style="background-image:url('assets/${c.background||`character-backgrounds/${this.character}.jpg`}')"><img src="assets/${c.sprite}"><h2>${esc(c.name)}</h2></div>${base.alternate?`<div class="variant-selector"><button data-tag="variant" data-id="0" class="${variant?'':'active'}">Standard</button><button data-tag="variant" data-id="1" class="${variant?'active':''}" ${unlocked?'':'disabled'}>${esc(base.alternate.name)}</button>${unlocked?'':'<small>Beat Challenge LVL 2 or LVL -1</small>'}</div>`:''}<h3 class="loadout-heading">${c.copycat?'BORROWED DECK':c.engine_deck?'VICTORY DECK CHOICES':'GUARANTEED CARDS'}</h3><div class="duelist-loadout"><div class="draft-pack-fan">${packArt}</div><div class="signature-cards">${(c.cards||[]).map(name=>{const id=this.content.cards.find(x=>x.name===name)?.id;return `<button data-tag="inspect" data-id="${id}" aria-label="Inspect ${esc(name)}"><img src="${this.image(id)}"></button>`}).join('')}</div></div><div class="starting-relic"><div class="starting-relic-art">${info?relicArtwork(relicImage(info.art)):relic==='none'?'':'<img class="random-relic" src="assets/card-back.jpg">'}</div><div><h3>${esc(relicName)}</h3><p>${esc(relicText)}</p></div></div></aside><label class="tag-level-label">Host LVL <select id="tag-level">${this.profile.relicless_unlocked?`<option value="-1" ${this.level===-1?'selected':''}>-1 · Disable all relics or curses</option>`:''}${Array.from({length:Math.min(6,(this.profile.character_levels?.[this.character]??-1)+1)+1},(_,i)=>`<option ${i===this.level?'selected':''}>${i}</option>`).join('')}</select></label><div class="tag-connect-buttons">${button(this.working?'Creating…':'Host','host',`class="start-run" ${this.working?'disabled':''}`)}${button('Join','join',`class="start-run" ${this.working?'disabled':''}`)}</div></div></div>`,'','character-select-page tag-offline-select');
 
   this.root.querySelector('#tag-level').addEventListener('change',async e=>{const character=this.character,level=+e.target.value;try{await this.backend('remember-level',{character,level});(this.profile.character_last_levels??={})[character]=level;if(this.character===character)this.level=level}catch(error){this.error(error)}});
 
@@ -291,7 +293,7 @@ export class TagUI {
   const rerollButton=cls=>`<button class="${cls}" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${reroll} coins" data-tag="shop-reroll" ${!own||this.working||r.gold<reroll||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span>${coins}<strong>${reroll}</strong></span></button>`;
   // Whose turn it is sits in the header, where the solo shop shows only LP.
   const turn=`<span class="tag-shop-turn ${own?'your-turn':'teammate-turn'}" role="status"><img src="assets/${shopper?.sprite||''}" alt=""><b>${own?'Your turn to shop':'Waiting for '+esc(shopper?.name||'teammate')}</b><small>${v.shopSeat===0?'Host · first shopper':'Player 2 · final shopper'}${own?' · Buying ends your turn':''}</small></span>`;
-  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${r.gold} gold"><img src="assets/ui/coins.png" alt=""><strong>${r.gold.toLocaleString()}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
+  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${coinLabel(r.gold)} gold"><img src="assets/ui/coins.png" alt=""><strong>${coinLabel(r.gold)}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
   requestAnimationFrame(()=>{keeperTalk.placeHitArea(this.root.querySelector('.secret-shopkeeper'));keeperTalk.place()});
   // He greets each shop visit once the duel's card reward is done, like in solo play.
   const visit=[this.session?.code,r.started_at,r.loop,r.round].join(':');if(visit!==this.shopVisit&&!r.reward_slots?.pending){this.shopVisit=visit;keeperTalk.say('welcome')}
@@ -382,6 +384,7 @@ export class TagUI {
   if(action==='exit'||action==='confirm-exit'){this.working=true;try{if(this.session)await this.session.exit();this.destroy();await this.onExit()}finally{this.working=false;if(this.alive)this.render()}return}
 
   if(action==='character'){if(this.session)return;this.character=id;this.level=rememberedLevel(this.profile,id);this.render();return}
+  if(action==='variant'){if(this.session)return;(this.variants??={})[this.character]=id;this.render();return}
 
   if(action==='reconnect'){await this.session?.reconnect();return}
 
@@ -430,7 +433,7 @@ export class TagUI {
 
    const endpoint=await this.endpoint();
 
-   this.session=new TagSession({endpoint,character:this.character,profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
+   this.session=new TagSession({endpoint,character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
 
     this.status=state==='connected'||state==='waiting'?'':state==='error'?friendlyError(detail):['disconnected','failed','reconnecting'].includes(state)?'':state==='signaling-error'?'Room service unavailable — retrying':'';
 
@@ -446,7 +449,7 @@ export class TagUI {
 
   if(action==='deck-filter'){this.deckFilter=el.dataset.filter;this.render();return}
 
-  if(action==='view-deck'&&(this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)){this.dialog('Your deck',`<p>${this.content.characters[this.view.run.character].copycat?"Copy of opponent's deck":'Chosen reward deck'}</p>`);return}
+  if(action==='view-deck'&&fixedDeck(this.view.run,this.content.characters[this.view.run.character])){this.dialog('Your deck',`<p>${this.content.characters[this.view.run.character].copycat?"Copy of opponent's deck":'Chosen reward deck'}</p>`);return}
 
   if(action==='view-deck'){this.dialog('Your deck',`<div class="cardgrid">${this.view.run.selected.map(i=>`<button data-tag="inspect" data-id="${this.view.run.pool[i]}"><img src="${this.image(this.view.run.pool[i])}"></button>`).join('')}</div>`);return}
 
@@ -472,13 +475,13 @@ export class TagUI {
 
   if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold){playUISound('count-coins');throw Error('Not enough gold')}this.selection.add(index)}playUISound('shop-select');this.render();return}
 
-  if(action==='deselect-all'){const c=this.content.characters[this.view.run.character];if(this.view.ready[this.view.seat]||c.copycat||c.engine_deck)return;this.view.run.selected=[];this.saveDraft();this.render();return}
+  if(action==='deselect-all'){const c=this.content.characters[this.view.run.character];if(this.view.ready[this.view.seat]||fixedDeck(this.view.run,c))return;this.view.run.selected=[];this.saveDraft();this.render();return}
 
   if(action==='card'){
 
    if(this.view.ready[this.view.seat])return;
 
-   if(this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)return;
+   if(fixedDeck(this.view.run,this.content.characters[this.view.run.character]))return;
 
    const selected=[...this.view.run.selected],at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);
 
@@ -509,7 +512,7 @@ export class TagUI {
 
     const minimum=deckMinimum(run,c);
 
-    if(!c.copycat&&!c.engine_deck&&(main<minimum||main>60)){this.tab='deck';throw Error(`Your main deck has ${main} cards. Choose ${minimum} to 60 cards or use Auto-build.`)}
+    if(!fixedDeck(run,c)&&(main<minimum||main>60)){this.tab='deck';throw Error(`Your main deck has ${main} cards. Choose ${minimum} to 60 cards or use Auto-build.`)}
 
     await this.session.request('ready',{selected:run.selected,opponent:run.opponent});
 

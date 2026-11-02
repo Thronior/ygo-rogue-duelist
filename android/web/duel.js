@@ -37,8 +37,9 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.HINT&&m.hint_type===2){const packed=Number(m.hint)-2100000000000;if(packed>=0&&packed<1000000000000){const sequence=Math.floor(packed/10000000000),stats=packed%10000000000;this.misprintedHandStats?.[m.player]?.set(sequence,{attack:Math.floor(stats/100000),defense:stats%100000});return;}}
   trackEffectTargets(this,m,M);
   if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000050&&m.player===0)this.events.push({kind:'ancient_treasure',card:190000050});
+  if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000051&&m.player===0)this.events.push({kind:'ritual_scar'});
   this.trackReborn(m);
-  if(m.type===M.HINT&&m.hint_type===2){const id=Number(m.hint)-1800000000,relic=this.aiModifiers?.relicFeedback?.[id];if(relic)this.visuals.push({kind:'relic',relic});}
+  if(m.type===M.HINT&&m.hint_type===2){const id=Number(m.hint)-1800000000,relic=this.aiModifiers?.relicFeedback?.[id];if(relic)this.visuals.push({kind:'relic',relic});const asking=this.aiModifiers?.relicFeedback?.[Number(m.hint)-1850000000];if(asking)this.visuals.push({kind:'relic-ask',relic:asking});}
   if([M.NEW_TURN,M.NEW_PHASE].includes(m.type))this.cancelledAttacks?.clear();
   if(m.type===M.NEW_TURN)this.releasedForSet=[0,0];
   if(m.type===M.MOVE){
@@ -283,7 +284,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(choices.length)return {type:R.SELECT_UNSELECT_CARD,index:choices[0].i};
   }
   // Equal positive ATK destroys both Attack Position monsters; equal DEF does not.
-  const tradeTarget=(power,t,attacker=null)=>power>0&&visible(t)&&(t.position&1)&&power===(attacker?smart.combatPower(t,attacker):atk(t))&&!this.battleProtected?.[1-p]&&!smart.battleProof(t,attacker);
+  const tradeTarget=(power,t,attacker=null)=>power>0&&visible(t)&&(t.position&1)&&power===(attacker?smart.combatPower(t,attacker):atk(t))&&!this.battleProtected?.[1-p]&&!smart.battleProof(t,attacker)&&!smart.attackLocked(t);
   const idle=(action,index=null)=>({type:R.SELECT_IDLECMD,action,index});
   if(m.type===M.SELECT_IDLECMD){
    const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy[theyPickTargets?'every':'some'](t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
@@ -531,7 +532,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   // Dust Tornado's optional Set: never Set a Field Spell over your own active one.
   if(m.type===M.SELECT_YESNO&&this.name(this.effect?.code)==='Dust Tornado'&&this.query(p,L.SZONE)[5]?.position&5&&this.query(p,L.HAND).filter(c=>c&&this.data[c.code]?.type&6).every(c=>this.data[c.code].type&0x80000))return {type:R.SELECT_YESNO,yes:false};
   if(m.type===M.SELECT_EFFECTYN){if(this.effectYesRepeats(m))return {type:R.SELECT_EFFECTYN,yes:false};const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
-  if(m.type===M.SELECT_POSITION){const _pos=smart.position(this.name(m.code),{code:m.code,controller:p,location:L.HAND});const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
+  if(m.type===M.SELECT_POSITION){const _forecast={code:m.code,controller:p,location:L.HAND},_pos=smart.position(this.name(m.code),_forecast)??smart.betterPosition(_forecast);const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
   return super.auto(m);
  }
 }

@@ -20,7 +20,7 @@ import cursed_relics,approved_relics as ar
 
 class TagCampaign:
 
- def __init__(self, characters, profiles, level=0, seed=None, lobby=False):
+ def __init__(self, characters, profiles, level=0, seed=None, lobby=False, variants=(0,0)):
 
   if len(characters)!=2 or len(profiles)!=2:raise ValueError('Two players are required.')
 
@@ -32,7 +32,7 @@ class TagCampaign:
 
   for seat,character in enumerate(characters):
 
-   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0)
+   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variants[seat])
 
    run['history_mode']='tag';run['history_partner']=characters[1-seat]
 
@@ -93,6 +93,8 @@ class TagCampaign:
    self.routes()
 
  def sync(self):
+
+  self.shared['gold']=min(self.shared['gold'],content.MAX_COINS)
 
   ar.reconcile_turn_order(self.shared)
 
@@ -175,7 +177,7 @@ class TagCampaign:
 
   t=self.trade
 
-  return dict(id=t['id'],status=t['status'],votes=t['votes'][:],sent=t['sent'][:],selected=t['offers'][seat][:],received=t['received'][seat][:],ack=t['ack'][:],available=not any(content.CHARACTERS[r['character']].get('copycat') or content.CHARACTERS[r['character']].get('engine_deck') for r in self.players))
+  return dict(id=t['id'],status=t['status'],votes=t['votes'][:],sent=t['sent'][:],selected=t['offers'][seat][:],received=t['received'][seat][:],ack=t['ack'][:],available=not any(content.fixed_deck(r) for r in self.players))
 
  def trade_command(self,seat,action,value):
 
@@ -593,7 +595,7 @@ class TagCampaign:
 
   if action=='deck':
 
-   if content.CHARACTERS[run['character']].get('copycat') or content.CHARACTERS[run['character']].get('engine_deck'):raise ValueError('This character uses a fixed deck.')
+   if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
 
    if not isinstance(value,list) or len(value)>100 or len(value)!=len(set(value)) or any(type(i)!=int or not 0<=i<len(run['pool']) for i in value):raise ValueError('Invalid deck selection.')
 
@@ -623,9 +625,7 @@ class TagCampaign:
 
     self.apply(seat,'choose',value.get('opponent'))
 
-    character=content.CHARACTERS[run['character']]
-
-    if not (character.get('copycat') or character.get('engine_deck')):self.apply(seat,'deck',value.get('selected'))
+    if not content.fixed_deck(run):self.apply(seat,'deck',value.get('selected'))
 
    if run['opponent'] is None:raise ValueError('Choose an opponent first.')
 

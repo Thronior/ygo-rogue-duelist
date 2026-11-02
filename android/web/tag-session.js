@@ -10,11 +10,14 @@ const PROTOCOL=4,AI_PACE_LIMIT=2500,PAUSE_AFTER=5000,MAX_RESYNCS=3;
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
 export class TagSession {
- constructor({endpoint,character,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
-  Object.assign(this,{character,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
+ constructor({endpoint,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
+  Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
   this.contentHash=crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(bytes=>Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join(''));
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
+  // The CPU never stops to think, so a quiet link during its turn means something is wrong. A partner's turn can be
+  // silent for minutes, and pinging through those would spend requests.
+  this.peer.expecting=()=>{const e=this.engine;return !!e&&!e.pvp&&!e.finished&&e.player===1&&e.respondingSeat!==this.seat};
  }
  enqueue(job){const next=this.queue.then(job);this.queue=next.catch(error=>this.onStatus('error',error.message));return next}
  get outboxKey(){return this.peer.endpoint+':tag-outbox:'+this.code}
@@ -46,7 +49,7 @@ export class TagSession {
    clearTimeout(this.pauseTimer);this.pauseTimer=null;
    // Do not resume merely because a route opened. Both clients must complete the
    // version handshake before queued actions can change the saved run.
-   this.enqueue(async()=>{this.seat=this.peer.seat;this.code=this.peer.code;this.send({kind:'hello',character:this.character,profile:this.profile,version:PROTOCOL,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}})});
+   this.enqueue(async()=>{this.seat=this.peer.seat;this.code=this.peer.code;this.send(await this.greeting())});
   }else{
    if(['disconnected','failed','closed','reconnecting','protocol-error'].includes(state)){
     this.connected=false;
@@ -56,6 +59,7 @@ export class TagSession {
    this.onStatus(state,detail);
   }
  }
+ async greeting(answer=false){return {kind:'hello',answer,character:this.character,variant:this.variant,profile:this.profile,version:PROTOCOL,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}}}
  async receive(message){
   if(message.kind==='partner-left-ack'){if(message.id===this.exitNotice?.id)this.exitNotice.resolve();return}
   if(message.kind==='partner-left'){
@@ -66,14 +70,18 @@ export class TagSession {
   }
   if(message.kind==='hello'){
    if(message.version!==PROTOCOL||message.contentHash!==await this.contentHash)throw Error('These tag versions or card collections are incompatible. Update both players to the same version.');
+   // A socket can die without the hub or the partner noticing, so only the returning side says hello. The answer goes
+   // first: this client's view must not overtake the handshake it is waiting for.
+   if(message.answer&&this.connected)return;
+   if(!message.answer)this.tell(await this.greeting(true));
    this.partnerLeft=false;this.connected=true;
    try{
    if(this.seat===0){
     // Lobby seats are replaceable. Never reuse the departed guest's loadout.
-    if(this.active&&this.view?.phase==='lobby')await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],profiles:[this.profile,message.profile],level:this.level,lobby:true});
+    if(this.active&&this.view?.phase==='lobby')await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,lobby:true});
     if(!this.active){
      const restored=this.peer.resumed?await this.backend('tag-restore',{code:this.code,optional:!this.peer.started}):null;
-     if(!restored)await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],profiles:[this.profile,message.profile],level:this.level,lobby:true});
+     if(!restored)await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,lobby:true});
      if(!this.peer.started){await this.peer.request('started');this.peer.started=true}
      this.active=true;
     }

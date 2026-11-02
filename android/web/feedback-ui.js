@@ -74,10 +74,10 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='approved_commoners_chain'){const v=t&16?300:t&32?-200:0;a+=v;d+=v;}
  else if(k==='approved_zombies_bargain')a+=800;
  else if(k==='approved_warriors_vow')a+=200;
- else if(k==='approved_ritual_scar'&&(t&128))a+=1000;
- else if(k==='approved_fusion_fever'&&(t&64))a+=800;
+ else if(k==='approved_ritual_scar')a+=100*(run.ritual_scar_count||0)-500;
+ else if(k==='approved_fusion_fever'&&(t&64))a+=1000;
  else if(k==='variant_swordsman_oath'&&c.data.setcodes?.some(code=>(Number(code)&0xfff)===0x41))a+=400;
- else if(k==='approved_golden_grave')d-=200;
+ else if(k==='approved_golden_grave')d-=400;
 
  else if(k==='approved_iron_silence'){a+=600;d+=600;}
 

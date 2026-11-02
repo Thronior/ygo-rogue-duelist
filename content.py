@@ -95,7 +95,7 @@ artifact('ankh','Diamond Ankh',75,'Gain 2,000 LP now; healing cap becomes 10,000
 artifact('feather','Phoenix Feather',65,'Heal 400 LP after each victory.',"Harpie's Feather Duster",'victory_heal',400,'healing')
 artifact('urn','Merchant Urn',60,'Earn 20 additional coins after each victory.','Pot of Greed','gold',20)
 artifact('eye','Millennium Eye',100,'Draw one extra opening card.','Sangan','opening',1,'draw')
-artifact('scarab','Jade Pendant',100,'Heal 1,000 LP after each victory.','Man-Eater Bug','shop_heal',1000,'healing')
+artifact('scarab','Jade Pendant',80,'Heal 1,000 LP after each victory.','Man-Eater Bug','shop_heal',1000,'healing')
 artifact('seal','Broken Seal',90,'Opponents start with 500 fewer LP.','Spellbinding Circle','enemy_lp',500,'offense')
 for key,name,art,race in [
  ('dragon','Dragon Crest','Blue-Eyes White Dragon','Dragon'),('mage','Magician Staff','Dark Magician','Spellcaster'),
@@ -182,6 +182,8 @@ THEMES={
 }
 
 RUN_LENGTH=9
+MAX_COINS=999999
+MAX_LP=999999
 BOSS_EVERY=3
 # Keep stable save/opponent IDs; the three retired TP slots are not selectable.
 PLAYABLE_IDS=[i for i in range(len(CHARACTERS)) if i not in (25,26,27)]
@@ -194,6 +196,10 @@ def starting_packs(index,rng=None):
   # Bakura can draw any pack, including character and shop boosters.
   return [p['id'] for p in rng.sample([p for p in PACKS if not p.get('shop_chance')],4)]
  return CHARACTERS[index].get('starting_packs',DRAFTS.get(str(index),[CHARACTERS[index]['pack']]*4))
+def fixed_deck(run):
+ # Copycat and the Standard Dueling Engine play a deck they cannot edit.
+ c=CHARACTERS[run.get('character',0)]
+ return bool(c.get('copycat') or (c.get('engine_deck') and not run.get('variant')))
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):
  from deck_files import read

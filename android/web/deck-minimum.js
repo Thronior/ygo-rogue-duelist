@@ -1,7 +1,9 @@
 // Keep the campaign display in step with approved_relics.minimum.
 const copies=(run,key)=>run.challenge_level===-1?0:(run.artifacts||[]).filter(k=>k===key).length+(run.mirror_copy===key?1:0);
+// Keep in step with content.fixed_deck: the Deck Assembler variant edits his own deck.
+export function fixedDeck(run,character={}){return !!(character.copycat||character.engine_deck&&!run?.variant)}
 export function deckMinimum(run,character={}){
- if(character.copycat||character.engine_deck)return 20;
+ if(fixedDeck(run,character))return 20;
  const progress=run.secret_challenge?(run.secret_deck_minimum??40):run.loop>0?40:Math.min(40,20+10*Math.floor(Math.max(0,run.round||0)/3));
  if(copies(run,'cursed_singleton_pact'))return 20;
  return Math.max(20,progress+10*copies(run,'cursed_collectors_burden')-(run.secret_challenge?0:10*copies(run,'deck_thinning')));

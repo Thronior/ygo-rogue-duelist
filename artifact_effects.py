@@ -72,27 +72,41 @@ Duel.RegisterEffect(e,0) end'''
  Duel.RegisterEffect(reset,0)
 end'''
  if kind=='rock_reposition':return '''do
- -- The core blocks position changes through these statuses, so clear them for your Rock monsters.
+ -- The core blocks position changes through these statuses, so clear them for your Rock monsters until one
+ -- uses the freedom. That spends it for the turn and blocks the others again.
+ local used,freed=0x7f34a3,0x7f34a4
+ local function marked(c) return c:GetFlagEffect(freed)>0 end
  local function free(e,tp,eg)
+  if Duel.GetFlagEffect(0,used)>0 then return end
   for c in eg:Iter() do
    if c:IsControler(0) and c:IsRace(RACE_ROCK) then
     c:SetStatus(STATUS_SUMMON_TURN,false) c:SetStatus(STATUS_SPSUMMON_TURN,false) c:SetStatus(STATUS_FLIP_SUMMON_TURN,false) c:SetStatus(STATUS_FORM_CHANGED,false)
+    c:RegisterFlagEffect(freed,RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END,0,1)
    end
   end
  end
- for _,code in ipairs({EVENT_SUMMON_SUCCESS,EVENT_SPSUMMON_SUCCESS,EVENT_FLIP_SUMMON_SUCCESS,EVENT_MSET}) do
+ local function spend()
+  Duel.RegisterFlagEffect(0,used,RESET_PHASE|PHASE_END,0,1)
+  for c in Duel.GetMatchingGroup(marked,0,LOCATION_MZONE,0,nil):Iter() do c:SetStatus(STATUS_SUMMON_TURN,true) c:ResetFlagEffect(freed) end
+ end
+ for _,code in ipairs({EVENT_SUMMON_SUCCESS,EVENT_SPSUMMON_SUCCESS,EVENT_MSET}) do
   local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(code) e:SetOperation(free) Duel.RegisterEffect(e,0)
  end
+ -- A monster Set this turn flips with the relic's help; one Set earlier flips normally and may still move once.
+ local flip=Effect.GlobalEffect() flip:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) flip:SetCode(EVENT_FLIP_SUMMON_SUCCESS)
+ flip:SetOperation(function(e,tp,eg) if eg:IsExists(marked,1,nil) then spend() else free(e,tp,eg) end end) Duel.RegisterEffect(flip,0)
+ local pos=Effect.GlobalEffect() pos:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) pos:SetCode(EVENT_CHANGE_POS)
+ pos:SetOperation(function(e,tp,eg) if Duel.GetFlagEffect(0,used)==0 and eg:IsExists(marked,1,nil) then spend() end end) Duel.RegisterEffect(pos,0)
 end'''
  if kind=='retry_toss':return '''do
  local id=0x7f34a1
  local coin=Effect.GlobalEffect() coin:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) coin:SetCode(EVENT_TOSS_COIN_NEGATE)
  coin:SetCondition(function(e,tp,eg,ep) return ep==0 and Duel.GetFlagEffect(0,id)==0 end)
- coin:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 or not Duel.SelectYesNo(0,0) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossCoin(ep,ev) end)
+ coin:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossCoin(ep,ev) end)
  Duel.RegisterEffect(coin,0)
  local dice=Effect.GlobalEffect() dice:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) dice:SetCode(EVENT_TOSS_DICE_NEGATE)
  dice:SetCondition(function(e,tp,eg,ep) return ep==0 and Duel.GetFlagEffect(0,id)==0 end)
- dice:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 or not Duel.SelectYesNo(0,0) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossDice(ep,ev&0xff,ev>>16) end)
+ dice:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossDice(ep,ev&0xff,ev>>16) end)
  Duel.RegisterEffect(dice,0)
 end'''
  if kind=='tribute_free':return '''do
@@ -138,7 +152,7 @@ e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) r
  if kind=='starting_ritual':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsType(TYPE_RITUAL) and (c:IsMonster() or c:IsSpell()) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_level_up':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
-e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,25290459) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,25290459) if #g>0 then Duel.SendtoHand(g:Select(0,1,1,nil),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,25290459) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,25290459) if #g>0 then Duel.SendtoHand(g:GetFirst(),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  # Surgery relics: `attribute` lists every owned Surgery attribute ("LIGHT|FIRE"). The first replaces
  # your monsters' attribute and each further relic adds one; passives.py emits this once per duel.
  if kind=='attribute':
@@ -186,7 +200,7 @@ e:SetOperation(function() Duel.SpecialSummon(Duel.CreateToken(0,60764582),0,0,0,
  if kind=='standby_revive':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1)
 local function can(c,e) return c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,0,false,false) end
 e:SetCondition(function(e) return Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(can,0,LOCATION_GRAVE,0,1,nil,e) end)
-e:SetOperation(function(e) Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) Duel.SpecialSummon(Duel.SelectMatchingCard(0,can,0,LOCATION_GRAVE,0,1,1,nil,e),0,0,0,false,false,POS_FACEUP) end) Duel.RegisterEffect(e,0) end'''
+e:SetOperation(function(e) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) Duel.SpecialSummon(Duel.SelectMatchingCard(0,can,0,LOCATION_GRAVE,0,1,1,nil,e),0,0,0,false,false,POS_FACEUP) end) Duel.RegisterEffect(e,0) end'''
  if kind=='weak_normals_stand':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) and c:IsLevelBelow(3) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
  if kind=='token_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
@@ -206,7 +220,7 @@ e:SetOperation(function(e,tp,eg) Duel.Damage(1,{amount}*eg:FilterCount(lost,nil)
 e:SetOperation(function()
  local g=Duel.GetMatchingGroup(function(c) return c:IsSpellTrap() and c:IsAbleToHand() end,0,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
  if #g==0 then return end
- Duel.Hint(HINT_SELECTMSG,0,HINTMSG_RTOHAND)
+ --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_RTOHAND)
  local chosen=g:Select(0,1,1,nil)
  Duel.SendtoHand(chosen,nil,REASON_EFFECT)
 end) Duel.RegisterEffect(e,0) end'''

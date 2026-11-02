@@ -5,7 +5,7 @@ export function deckPreviewCards(deck,card){
 export function openDeckPreview(modal,deck,{card,cardButton,esc,details,sound=()=>{}}){
  const focus=document.activeElement,background=[...modal.children];
  const overlay=document.createElement('section');overlay.className='deck-preview-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Deck preview');
- const title=esc(deck.name)+' - Tier '+Number(deck.tier),grid=`<div class="cardgrid pile-inspection">${deckPreviewCards(deck,card).map(id=>cardButton(id,`data-deck-inspect="${id}"`)).join('')}</div>`;
+ const title=esc(deck.name)+(deck.tier?' - Tier '+Number(deck.tier):''),grid=`<div class="cardgrid pile-inspection">${deckPreviewCards(deck,card).map(id=>cardButton(id,`data-deck-inspect="${id}"`)).join('')}</div>`;
  let inspecting=false;
  const show=()=>{inspecting=false;overlay.innerHTML=`<div class="modal-head"><h2>${title}</h2><button data-preview-close>Close</button></div>${grid}`;overlay.querySelector('button').focus()};
  const cleanup=()=>{overlay.remove();background.forEach(el=>el.inert=false);modal.removeEventListener('close',cleanup);focus?.focus?.({preventScroll:true})};

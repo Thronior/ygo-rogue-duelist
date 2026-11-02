@@ -42,7 +42,9 @@ ok(theirs(GOBLIN,amplified)[0]>8000,'amplified: LP they give you still heals you
 same(theirs(OX,amplified),theirs(OX,script([],2)),'amplified: battle damage is untouched');
 
 // Alongside other reversal and LP rules.
-same(mine(OOKAZI,'Ookazi',script(['effect_reverser'],0,['cursed_reversed_remedy'])),[8000,8800],'Reversed Remedy does not flip it back');
+same(mine(OOKAZI,'Ookazi',script(['effect_reverser'],0,['cursed_reversed_remedy'])),[8000,7200],'Reversed Remedy cancels the curse: back to normal');
+same(mine(KETO,'Dian Keto the Cure Master',script(['effect_reverser'],0,['cursed_reversed_remedy'])),[9000,8000],'healing is back to normal too, without looping');
+same(mine(OOKAZI,'Ookazi',script(['effect_reverser'],2,['cursed_reversed_remedy'])),[8000,7200],'at Level 2 your burn is flipped twice as well');
 same(mine(KETO,'Dian Keto the Cure Master',script(['effect_reverser'],2,['cursed_reversed_remedy'])),[7000,8000],'the relic still hurts your healing at Level 2');
 start(POT,OX,script(['effect_reverser','spell_jammer'],0,['cursed_reversed_remedy']));activate('Pot of Greed');same(e.lp,[8300,8000],'the relic still turns LP costs into healing');
 same(mine(KETO,'Dian Keto the Cure Master',script(['effect_reverser','no_recovery'])),[7000,8000],'Withered Hope does not soften the reversed healing');

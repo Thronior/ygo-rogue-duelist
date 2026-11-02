@@ -40,7 +40,8 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
 def shop_relic_eligible(run,key):
  character=CHARACTERS[run['character']]
  effect=ART_INFO[key]['effect']
- if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS:return False
+ # Deck Assembler still cannot buy cards, but he edits his deck, so a lower minimum helps him.
+ if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
  if not archetype_relics.has_member(key,run):return False
  # Singleton Pact fixes the deck rules these relics would change.
@@ -74,7 +75,7 @@ def install(g):
   def valid(r):
    try:
     return (isinstance(r,dict) and 0<=r['character']<len(CHARACTERS) and 0<=r['round']<=12
-     and 0<=r['lp']<=999999 and 0<=r['gold']<=99999999
+     and 0<=r['lp'] and 0<=r['gold']
      and len(r['pool'])<=10000 and all(aliases.get(c,c) in g.BY_ID for c in r['pool'])
      and all(isinstance(i,int) and 0<=i<len(r['pool']) for i in r['selected'])
      and len(set(r['selected']))==len(r['selected'])
@@ -82,6 +83,8 @@ def install(g):
      and r.get('stage','draft') in ('draft','shop','duel','gameover','complete'))
    except (KeyError,TypeError): return False
   r=storage.read(storage.run_path(slot),None,valid)
+  # Older runs could outgrow the caps; bring them back in rather than refuse the save.
+  if r:r['gold']=min(r['gold'],MAX_COINS);r['lp']=min(r['lp'],MAX_LP)
   if r and r.get('stage')=='gameover':storage.archive_run(r);storage.clear_run(slot);return None
   if r:
    normalize_pack_references(r)
@@ -129,6 +132,7 @@ def install(g):
   return r
  def save(run):
   if '_save_slot' not in run:run['_save_slot']=storage.active_slot()
+  run['gold']=min(run['gold'],MAX_COINS)
   run['last_played_at']=time.time()
   storage.archive_run(run)
   if run.get('stage')=='gameover':storage.clear_run(run['_save_slot'])
@@ -269,12 +273,15 @@ def install(g):
  def engine_deck(run,rng=random):
    if not CHARACTERS[run['character']].get('engine_deck'):return
    if run.get('engine_reward_selected'):return
-   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
-   # Exclude the original low-power Starter Box lists only from Dueling Engine.
-   choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
+   # Deck Assembler rolls once; his pool then only grows through victory decks.
+   if run.get('variant') and run.get('engine_deck'):return
+   import reward_slots
+   decks=reward_slots.engine_decks()
+   choice=rng.choice([d for d in decks if d['name'].startswith('Structure Deck')] if run.get('variant') else decks)
    main=[c for c in choice['cards'] if not g.is_extra(c)];extra=[c for c in choice['cards'] if g.is_extra(c)]
    main,extra=g.legal_fixed_cards(main,extra)
    run['pool']=main+extra;run['selected']=list(range(len(run['pool'])));run['guaranteed']=[];run['engine_deck']=choice['id']
+   if run.get('variant'):run['assembled_decks']=[choice['id']]
  def owns(run,key):return ar.has(run,key)
  def amount(run,kind):
   if run.get('challenge_level')==-1:return 0
@@ -341,10 +348,10 @@ def install(g):
   run['golden_hits']=0
   run['first_player']=ar.first(duel_run,0 if rng.random()<0.5 else 1)
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
-  lp=max(1,lp-amount(mirror,'enemy_lp')+2000*ar.copies(mirror,'cursed_loaded_purse'))
+  lp=max(1,lp-amount(mirror,'enemy_lp')+4000*ar.copies(mirror,'cursed_loaded_purse'))
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
   char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
-  enemy_lp=max(1,enemy_lp+2000*ar.copies(duel_run,'cursed_loaded_purse'))
+  enemy_lp=max(1,enemy_lp+4000*ar.copies(duel_run,'cursed_loaded_purse'))
   if owns(mirror,'glass_shard'):enemy_lp=ART_INFO['glass_shard']['amount']
   enemy_lp=max(1,enemy_lp-1000*ar.copies(mirror,'cursed_wounded_merchant'))
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
@@ -475,6 +482,7 @@ def install(g):
    run['artifacts']=[a for a in run['artifacts'] if a!='phoenix_rebirth'];run['phoenix_spent']=True
   import character_progression
   character_progression.duel(g,run,result,won,boss)
+  run['ritual_scar_count']=run.get('ritual_scar_count',0)+sum(e.get('kind')=='ritual_scar' for e in result.get('events',[]))
   run['last_rewards']={};run['last_gold']=0
   run['last_boss_heal']=0
   if 'bounty_list' in run.get('artifacts',[]):ensure_bounty(run,rng)
@@ -637,8 +645,7 @@ def install(g):
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
   if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
-   # Exclude the original low-power Starter Box lists only from Dueling Engine.
-   choice=rng.choice([d for d in pre['decks'] if d['id'] not in {'SB99','SBTH'}])
+   choice=rng.choice(pre['decks'])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
   import choice_relics

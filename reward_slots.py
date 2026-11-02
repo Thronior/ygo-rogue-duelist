@@ -1,7 +1,15 @@
 """Persisted victory-card slots. Rerolls replace one awarded copy in place."""
-import random,payment
+import json,random,payment
 
 PRICE = 15
+# The original low-power Starter Box lists are left out only for Dueling Engine.
+ENGINE_SKIPPED_DECKS = {'SB99','SBTH'}
+
+
+def engine_decks():
+    import campaign
+    pre=json.loads((campaign.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
+    return [d for d in pre['decks'] if d['id'] not in ENGINE_SKIPPED_DECKS]
 
 
 def prepare(run, source, start):
@@ -44,19 +52,37 @@ def accept(run, slot=None):
         if not offer.get('pending'):return
         validate_deck_offer(run, slot)
         chosen=offer['choices'][slot]
-        import campaign
-        main,extra=campaign.legal_fixed_cards(chosen['main'],chosen['extra'])
-        run['pool']=main+extra
-        run['new_cards_from']=0
-        run['selected']=list(range(len(run['pool'])))
-        run['guaranteed']=[]
-        run['engine_deck']='opponent:'+str(chosen['opponent'])
-        run['engine_reward_selected']=True
+        if run.get('variant'):
+            # Deck Assembler keeps his current deck; every card joins his card pool.
+            run['pool']+=chosen['main']+chosen['extra']
+            run['assembled_decks']=run.get('assembled_decks',[])+[chosen['id']]
+        else:
+            import campaign
+            main,extra=campaign.legal_fixed_cards(chosen['main'],chosen['extra'])
+            run['pool']=main+extra
+            run['new_cards_from']=0
+            run['selected']=list(range(len(run['pool'])))
+            run['guaranteed']=[]
+            run['engine_deck']='opponent:'+str(chosen['opponent'])
+            run['engine_reward_selected']=True
     offer['pending'] = False
     offer.pop('source', None)
 
 
+def prepare_structure_decks(run, count, rng=random):
+    import campaign
+    # A deck he already received comes back only once he has received all of them.
+    decks=engine_decks();owned=set(run.get('assembled_decks',[]))
+    source=[dict(id=d['id'],name=d['name'],sprite='decks/'+d['art']+'.jpg',
+        main=[c for c in d['cards'] if not campaign.is_extra(c)],extra=[c for c in d['cards'] if campaign.is_extra(c)])
+        for d in ([d for d in decks if d['id'] not in owned] or decks)]
+    run['last_reward_cards']=[];run['last_reward_card']=None
+    run['reward_slots']=dict(kind='deck',duel=run['duel']['id'],source=source,choices=rng.sample(source,min(max(1,count),len(source))),pending=True)
+
+
 def prepare_decks(run, count, rng=random):
+    if run.get('variant'):
+        return prepare_structure_decks(run, count, rng)
     from content import eligible_opponents, opponent_record, CHARACTERS
     round_index=run['round'];loop=run.get('loop',0)
     source=[]
@@ -85,6 +111,8 @@ def validate_deck_offer(run, slot):
 def reroll_deck(run, slot, rng=random):
     offer=validate_deck_offer(run,slot)
     if not payment.can_pay(run,PRICE):payment.pay(run,PRICE,'a reroll')
-    choice=rng.choice(offer['source'])
+    # Starter and structure decks reroll into a deck not on screen, if one remains.
+    shown={d.get('id') for d in offer['choices']}
+    choice=rng.choice([d for d in offer['source'] if d.get('id') not in shown] or offer['source'])
     payment.pay(run,PRICE,'a reroll');offer['choices'][slot]=choice
     return choice

@@ -11,7 +11,7 @@ def ai_modifiers(run):
  enemy=opponent_relic(run)
  from approved_relics import mirror_view
  rivals=([enemy] if enemy else [])+mirror_view(run)['artifacts']
- return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[key]) for key in rivals]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),rivals],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
+ return {'relicFeedback':list(ART_INFO),'ritualScar':run.get('ritual_scar_count',0),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[key]) for key in rivals]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),rivals],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
@@ -39,12 +39,10 @@ Duel.Recover=function(p,val,...) if p==0 then val=math.floor(val*{factor}) if va
  local r=Effect.GlobalEffect() r:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) r:SetCode(EVENT_REMOVE)
  r:SetOperation(function(e,tp,eg) if #eg>0 then Duel.Hint(HINT_MESSAGE,0,1600000000+#eg) end end) Duel.RegisterEffect(r,0)
 end""")
- from approved_relic_effects import battle_rules,ominous_clock,effect_reverser,shield_breaker,no_specials,hand_limiter,miller
+ from approved_relic_effects import battle_rules,ominous_clock,effect_reverser,shield_breaker,no_specials,hand_limiter,miller,relic_hand_limit
  from approved_relics import has
  lines.append(battle_rules(run))
  lines.append(ominous_clock(run))
- if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0:
-  lines.extend([expanded_effect('approved_champion_stats',0)]*__import__('approved_relics').copies(run,'cursed_champions_burden'))
  events={}
  surgery=[]
  current_relic=None
@@ -53,6 +51,8 @@ end""")
   import re
   hint=f'Duel.Hint(HINT_MESSAGE,0,{1800000000+list(ART_INFO).index(current_relic)}) '
   text=text.replace('--[[relic-hint]]',hint)
+  # A prompt of the relic's own: the client shows the relic's art first (visual only).
+  text=text.replace('--[[relic-ask]]',f'Duel.Hint(HINT_MESSAGE,0,{1850000000+list(ART_INFO).index(current_relic)}) ')
   text=re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
   if current_relic=='solemn_relic' or current_relic=='magic_mirror' and run.get('mirror_copy')=='solemn_relic':text=text.replace('then used=true end',f'then used=true {hint}end')
   return text
@@ -78,7 +78,10 @@ Duel.RegisterEffect(e,0) end''')
   if filter in RACES:condition=f"c:IsRace({RACES[filter] + ('|RACE_BEASTWARRIOR' if filter in ('Warrior','Beast') else '')})"
   elif filter:condition=f'c:IsAttribute(ATTRIBUTE_{filter})'
   expanded=expanded_effect(kind,amount,filter)
-  if kind=='approved_empty_hand_pact' and has(run,'cursed_starving_library'):expanded=expanded.replace('e:SetValue(4)','e:SetValue(3)')
+  # The core uses the last hand limit registered, so both relics write the combined limit.
+  if kind=='approved_ritual_scar':expanded=expanded.replace('RITUAL_SCAR_COUNT',str(run.get('ritual_scar_count',0)))
+  limit_marker={'approved_empty_hand_pact':4,'approved_starving_library':3,'approved_crowded_crypt':2}.get(kind)
+  if limit_marker:expanded=expanded.replace(f'e:SetValue({limit_marker})',f'e:SetValue({relic_hand_limit(run)})')
   if expanded is not None:
    lines.append(feedback(expanded));continue
   if kind=='echo':

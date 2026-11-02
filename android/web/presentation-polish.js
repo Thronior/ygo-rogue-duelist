@@ -1,4 +1,5 @@
 import {counterTick,stopCounterAudio} from './counter-audio.js';
+import {coinLabel} from './coin-label.js';
 import {lpDanger,lpGhost,statPop,defeatVoice} from './juice.js';
 // Finite, shared animation scheduler; detached nodes never retain a frame loop.
 const jobs=new Map(), duels=new WeakMap();
@@ -28,7 +29,7 @@ function count(el,state,target,paint,duration=440,sound){
 }
 export function polishShop(root,key,gold){
  if(key!==shopKey){shopKey=key;shopValue={value:gold}}
- count(root.querySelector('.shop-balance strong'),shopValue,gold,v=>{const el=root.querySelector('.shop-balance strong');if(el)el.textContent=Math.round(v).toLocaleString()},560,'coins');
+ count(root.querySelector('.shop-balance strong'),shopValue,gold,v=>{const el=root.querySelector('.shop-balance strong');if(el)el.textContent=coinLabel(Math.round(v))},560,'coins');
 }
 export function polishDuel(root,owner,s,lookup){
  let d=duels.get(owner);const fresh=!d||d.duel!==owner.presentationDuel;

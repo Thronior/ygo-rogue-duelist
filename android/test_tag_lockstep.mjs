@@ -91,6 +91,28 @@ for(const [rtt,jitter,hostExtra] of grid){
  for(const s of [w.host,w.guest])s.stopBot();await sleep(300);await until(()=>w.guest.log.length===w.host.log.length,8000,'logs converged after drop');same(w);
  await finish(w);console.log('PASS half-open drop: play continues and the logs merge');
 }
+// 3b. A drop whose close never reaches the hub, common on long routes: the partner sees nothing, so it must answer the
+// returning player's hello or that player stays paused on a working link until they leave and rejoin.
+for(const who of ['guest','host']){
+ const w=await world({seed:99}),other=who==='host'?w.guest:w.host,errors=[];for(const s of [w.host,w.guest])s.onStatus=(state,detail)=>{if(state==='error')errors.push(detail)};
+ await until(settled(w,20),20000,'warm up');for(const s of [w.host,w.guest])s.stopBot();
+ w.net.cut(who);await sleep(300);w[who].peer.hub.lost();w.net.restore(who);
+ assert.equal(w[who].connected,false);assert.equal(other.connected,true,'only one side saw the drop');
+ await until(()=>w[who].connected,15000,`the ${who} stayed paused after its socket returned`);
+ await sleep(500);await w.host.enqueue(()=>w.host.broadcast());await sleep(500);assert.deepEqual(errors,[],'the next screen reaches the guest');
+ await until(()=>w.guest.log.length===w.host.log.length,8000,'logs converged after a one-sided drop');same(w);
+ await finish(w);console.log(`PASS one-sided ${who} drop: the partner answers the hello and the run carries on`);
+}
+// 3c. A socket dies while its owner only waits for the CPU. Nothing unanswered exposes it, so the silence has to, well
+// ahead of the next routine ping, or the turn looks frozen for up to 26 s.
+{
+ const w=await world({seed:99});await until(settled(w,20),20000,'warm up');
+ await until(()=>{const e=w.guest.engine;return e?.player===1&&e.pending?.player===1},20000,'the CPU\'s turn');
+ const hub=w.guest.peer.hub,dead=hub.socket,from=Date.now();hub.schedulePing();w.net.silence('guest');
+ await until(()=>hub.isOpen&&hub.socket!==dead,16000,'the guest stayed on a dead socket through the CPU\'s turn');const found=Date.now()-from;
+ for(const s of [w.host,w.guest])s.stopBot();await until(()=>w.guest.log.length===w.host.log.length,8000,'logs converged after the dead socket');same(w);
+ await finish(w);console.log(`PASS dead socket found during the CPU's turn after ${(found/1000).toFixed(1)} s, with nothing to send`);
+}
 // 4. A hard close of both players, then recovery with no reconnect button.
 {
  const w=await world({seed:7});await until(settled(w,15),20000,'warm up');
@@ -125,6 +147,6 @@ for(const [rtt,jitter,hostExtra] of grid){
 {
  const w=await world({seed:17,hostLag:80,guestLag:80});await until(settled(w,70),30000,'budget duel');for(const s of [w.host,w.guest])s.stopBot();await until(()=>w.guest.log.length===w.host.log.length,5000,'budget converge');
  const equivalent=w.net.requests+w.net.hubMessages/20;assert(w.net.requests<=8,`${w.net.requests} HTTP/connect requests`);assert(equivalent<=20,`${equivalent} request equivalents`);
- console.log(`PASS budget: ${w.net.requests} requests and ${w.net.hubMessages} hub messages for ${w.host.log.length} steps on relay`);await finish(w);
+ console.log(`PASS budget: ${w.net.requests} requests, ${w.net.hubMessages} hub messages and ${w.net.pings||0} pings for ${w.host.log.length} steps on relay`);await finish(w);
 }
 process.exit(0);

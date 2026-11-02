@@ -5,9 +5,9 @@ globalThis.window??={addEventListener(){}};
 globalThis.Audio??=class{constructor(src){this.src=src;this.preload='';this.paused=true;this.ended=false}addEventListener(){}play(){return Promise.resolve()}pause(){}load(){}};
 const {TagSession,decode}=await import('./web/tag-session.js');
 const values=new Map();globalThis.localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
-const content={cards:[],tokenCards:[]};let saved={phase:'draft',paused:true,revision:4,receipts:{},duel:null};let creates=0,restores=0,commands=0;
+const content={cards:[],tokenCards:[]};let saved={phase:'draft',paused:true,revision:4,receipts:{},duel:null};let creates=0,restores=0,commands=0,lastVariants=null;
 const backend=async(action,value)=>{
- if(action==='tag-create'){creates++;return}
+ if(action==='tag-create'){creates++;lastVariants=value.variants;return}
  if(action==='tag-restore'){assert.equal(value.code,'ABCDE');restores++;return structuredClone(saved)}
  if(action==='tag-pause'){saved.paused=value;return}
  if(action==='tag-view')return structuredClone({...saved,seat:value});
@@ -43,6 +43,7 @@ const older=new TagSession(options);await assert.rejects(older.receive({...await
 const waiting=new TagSession({...options,backend:async(action,value)=>action==='tag-restore'?null:backend(action,value)});
 waiting.code='ABCDE';waiting.seat=0;waiting.peer.resumed=true;waiting.peer.peerSid='x';waiting.peer.send=()=>{};let marked=false;waiting.peer.request=async action=>{assert.equal(action,'started');marked=true};
 await waiting.receive(await hello(waiting));assert.equal(creates,1);assert(marked);
+const variantHost=new TagSession({...options,variant:1});variantHost.code='ABCDE';variantHost.seat=0;variantHost.peer.resumed=false;variantHost.peer.started=true;variantHost.peer.peerSid='x';variantHost.peer.send=()=>{};await variantHost.receive({...await hello(variantHost),variant:1});assert.deepEqual(lastVariants,[1,1],'each player variant reaches the campaign');
 // Tribe-Infecting Virus: a guest's declared monster type is a BigInt, and the real backend is plain JSON. The host must
 // journal the step, show it and let the CPU continue. Losing this froze a live run with "Waiting for teammate".
 {

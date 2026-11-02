@@ -27,7 +27,7 @@ def effect(kind):
  if key=='counterweight':return stat('EFFECT_UPDATE_ATTACK','function() return 100*Duel.GetCounter(0,1,0,0x1) end')
  if key=='jar_of_echoes':
   valid='function(c) return c:IsFaceup() and c:IsCanTurnSet() end'
-  return event('EVENT_PHASE|PHASE_STANDBY',f'Duel.Hint(HINT_SELECTMSG,0,HINTMSG_POSCHANGE) local g=Duel.SelectMatchingCard(0,{valid},0,LOCATION_MZONE,0,1,1,nil) if #g>0 then Duel.ChangePosition(g,POS_FACEDOWN_DEFENSE) end',f'Duel.GetTurnPlayer()==0 and Duel.IsExistingMatchingCard({valid},0,LOCATION_MZONE,0,1,nil)',True)
+  return event('EVENT_PHASE|PHASE_STANDBY',f'--[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_POSCHANGE) local g=Duel.SelectMatchingCard(0,{valid},0,LOCATION_MZONE,0,1,1,nil) if #g>0 then Duel.ChangePosition(g,POS_FACEDOWN_DEFENSE) end',f'Duel.GetTurnPlayer()==0 and Duel.IsExistingMatchingCard({valid},0,LOCATION_MZONE,0,1,nil)',True)
  if key=='ritual_incense':return event('EVENT_SPSUMMON_SUCCESS','Duel.Draw(0,1,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,1,nil)')
  if key=='village_banner':return stat('EFFECT_UPDATE_ATTACK',200,'c:IsLevel(4)')+'\n'+stat('EFFECT_UPDATE_DEFENSE',200,'c:IsLevel(4)')
  if key=='dragon_triumph':return event('EVENT_BATTLE_DESTROYING','Duel.Damage(1,500,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsRace(RACE_DRAGON) and c:IsStatus(STATUS_OPPO_BATTLE) end,1,nil)')

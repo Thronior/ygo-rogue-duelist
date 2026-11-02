@@ -43,6 +43,8 @@ export class FakeNet{
  // Packets vanish with no close event: the half-open case phones hit when they change network.
  cut(name){this.client(name).up=false}
  restore(name){this.client(name).up=true}
+ // One socket dies with no close event while the network stays up, so the next connect works.
+ silence(name){for(const socket of this.client(name).sockets)socket.dead=true}
  // The transport reports its failure, as when airplane mode is toggled.
  kill(name){const c=this.client(name);c.up=false;for(const socket of [...c.sockets])socket.fail()}
 }
@@ -58,15 +60,15 @@ class ClientSocket{
   },wait);
  }
  // One-way packets keep their order on a socket, like TCP, however much jitter a packet gets.
- later(job){const at=Math.max(this.tail,Date.now()+this.net.delay(this.c));this.tail=at;setTimeout(()=>{if(this.c.up)job()},at-Date.now())}
+ later(job){const at=Math.max(this.tail,Date.now()+this.net.delay(this.c));this.tail=at;setTimeout(()=>{if(this.c.up&&!this.dead)job()},at-Date.now())}
  fromServer(text){this.later(()=>{if(this.readyState!==1){(this.early??=[]).push(text);return}this.onmessage?.({data:text})})}
  closedByServer(code,reason){this.later(()=>this.finish(code,reason))}
  send(text){
   if(this.readyState!==1)throw Error('Socket is not open.');
-  if(text==='ping'){this.later(()=>{this.server.pongAt=Date.now();this.later(()=>this.onmessage?.({data:'pong'}))});return}
+  if(text==='ping'){this.net.pings=(this.net.pings||0)+1;this.later(()=>{this.server.pongAt=Date.now();this.later(()=>this.onmessage?.({data:'pong'}))});return}
   this.net.hubMessages++;this.later(()=>{if(this.server.readyState===1)this.hub.webSocketMessage(this.server,text)});
  }
- close(){if(this.readyState>=2)return;this.readyState=3;this.c.sockets.delete(this);if(this.server?.readyState===1){this.server.readyState=3;if(this.c.up)this.hub.webSocketClose(this.server,1000,'')}}
+ close(){if(this.readyState>=2)return;this.readyState=3;this.c.sockets.delete(this);if(this.server?.readyState===1){this.server.readyState=3;if(this.c.up&&!this.dead)this.hub.webSocketClose(this.server,1000,'')}}
  fail(){if(this.readyState===3)return;this.readyState=3;this.c.sockets.delete(this);if(this.server?.readyState===1){this.server.readyState=3;this.hub.webSocketClose(this.server,1006,'')}this.onclose?.({code:1006})}
  finish(code,reason){if(this.readyState===3)return;this.readyState=3;this.c.sockets.delete(this);this.onclose?.({code,reason})}
 }

@@ -1,3 +1,4 @@
+import {wallMs} from './duel-motion.js';
 // Track public locations only; target frames must never expose hidden card identities.
 const address=c=>c&&({controller:c.controller,location:c.location,sequence:c.sequence});
 const same=(a,b)=>!!b&&a.controller===b.controller&&a.location===b.location&&a.sequence===b.sequence;
@@ -21,6 +22,14 @@ export function decorateEffectTargets(root,targets=[]){
   const frame=document.createElement('span');frame.className='effect-target-frame';frame.textContent='Selected';el.append(frame);
  }
 }
+// Controller 0 is always the local side: Tag flips seats before a prompt reaches the client.
+const privatePlace=(c,L)=>({[L.DECK]:'Deck',[L.HAND]:'Hand',[L.EXTRA]:'Extra'})[c.location];
+const sharedPlace=(c,L)=>c.location&L.OVERLAY?'Material':({[L.MZONE]:'Field',[L.SZONE]:'Field',[L.GRAVE]:'GY',[L.REMOVED]:'Banished'})[c.location];
+export function cardPlace(c,L){
+ const own=(c?.controller??c?.player)===0,name=c&&(privatePlace(c,L)||sharedPlace(c,L));
+ if(!name)return null;
+ return {own,text:!own?`Opp ${name}`:privatePlace(c,L)?name:`Your ${name}`};
+}
 // Compatibility mode avoids CSS filters: some GPU/browser stacks flicker when a filter starts.
 const compatibility=()=>document.documentElement.classList.contains('compatibility-mode');
 const feedbackAnimations=new WeakMap();
@@ -30,6 +39,15 @@ function feedbackAnimation(el,frames,options){
 }
 export function pulseRelic(root,id){
  for(const el of root.querySelectorAll('[data-relic]'))if(el.dataset.relic===id)feedbackAnimation(el,compatibility()?[{scale:'1'},{scale:'1.12',offset:.35},{scale:'1'}]:[{filter:'brightness(1)',scale:'1'},{filter:'brightness(1.8) drop-shadow(0 0 8px #ffd86b)',scale:'1.12',offset:.35},{filter:'brightness(1)',scale:'1'}],{duration:500});
+}
+// A relic that needs an answer shows its art over the board first, so the prompt has a visible cause.
+export async function relicAskArt(field,{src,name,reduced=false}){
+ const el=document.createElement('div');el.className='relic-ask';el.setAttribute('role','status');el.setAttribute('aria-label',name);
+ const art=new Image();art.alt='';art.src=src;const label=document.createElement('strong');label.textContent=name;el.append(art,label);field.append(el);
+ try{
+  if(!reduced)el.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1)',offset:.25},{opacity:1,offset:.8},{opacity:0}],{duration:wallMs(500),fill:'both'});
+  await new Promise(resolve=>setTimeout(resolve,500));
+ }finally{el.remove()}
 }
 export function negateCard(el,reduced=false){
  if(!el)return Promise.resolve();

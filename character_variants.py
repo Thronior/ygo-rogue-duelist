@@ -10,7 +10,7 @@ def install(characters):
  for index,row in VARIANTS.items():
   c=characters[int(index)]
   alternate=dict(row)
-  if not c.get('random_packs'):alternate['starting_packs']=[c['pack']]*2+row.get('supporting_packs',[])
+  if not c.get('random_packs') and not c.get('engine_deck'):alternate['starting_packs']=[c['pack']]*2+row.get('supporting_packs',[])
   c['alternate']=alternate
   c['alternate'].pop('pack_additions',None)
 def unlocked(profile,index):

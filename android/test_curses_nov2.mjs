@@ -63,6 +63,8 @@ const graveOx=`local g=Effect.GlobalEffect() g:SetType(EFFECT_TYPE_FIELD+EFFECT_
  same(hand(['hand_limiter','hand_limiter'],2),0,'amplified: down to the minimum of 0');
  same(hand(['hand_limiter','hand_limiter','hand_limiter'],2),0,'and never below it');
  same(hand(['hand_limiter'],0,['cursed_empty_hand_pact']),2,'it comes off a relic limit');
+ same(hand([],0,['cursed_crowded_crypt']),2,'Crowded Crypt: limit reduced by 4');
+ same(hand([],0,['cursed_crowded_crypt','cursed_empty_hand_pact']),0,'relic reductions stack, min. 0');
  start(OX,OX,script(['hand_limiter'],2,[],{first_player:1}));until(2);same(count(0,L.HAND),5,'the skipped first turn discards nothing');
 }
 

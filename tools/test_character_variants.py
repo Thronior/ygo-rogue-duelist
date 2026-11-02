@@ -7,6 +7,8 @@ p=storage.profile();p['unlocked']=list(c.PLAYABLE_IDS);p['character_levels']={st
 relics=[c.CHARACTERS[i]['starting_relic'] for i in c.PLAYABLE_IDS]
 for k,row in v.VARIANTS.items():
  i=int(k);basechar=c.CHARACTERS[i]
+ # Deck Assembler starts from a Structure Deck, not boosters; see tools/test_deck_assembler.py.
+ if basechar.get('engine_deck'):continue
  if row['starting_relic'] in c.ARTIFACTS:relics.append(row['starting_relic'])
  else:assert row['starting_relic']=='random_archetype'
  for level in [-1,0,1]:
