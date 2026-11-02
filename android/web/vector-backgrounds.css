@@ -7,7 +7,13 @@
 .game-vector-background>.bg-stage[data-scene=jade]{background:radial-gradient(ellipse at 50% 80%,#184638,#061b1b 85%)}
 .game-vector-background>.bg-stage[data-scene=embers]{background:radial-gradient(ellipse at 50% 100%,#5b2420,#140d17 85%)}
 .game-vector-background>.bg-stage[data-scene=duel]{background:radial-gradient(ellipse at center,#090709,#291411 90%)}
-.game-vector-background>.bg-stage[data-scene=tunnel]{background:radial-gradient(ellipse at center,#0b1527,#27334b 100%)}
+.game-vector-background>.bg-stage[data-scene=duel-summoning]{background:radial-gradient(ellipse at center,#22323c,#0b1218 75%)}
+.game-vector-background>.bg-stage[data-scene=duel-stars]{background:radial-gradient(ellipse at center,#1b2748,#070a16 80%)}
+.game-vector-background>.bg-stage[data-scene=duel-embers]{background:radial-gradient(ellipse at 50% 100%,#7a2a14,#1a0a0a 75%)}
+.game-vector-background>.bg-stage[data-scene=duel-aurora]{background:linear-gradient(#07101e,#143049 60%,#0a1d26)}
+.game-vector-background>.bg-stage[data-scene=duel-ripples]{background:radial-gradient(ellipse at center,#0f3a48,#061319 80%)}
+.game-vector-background>.bg-stage[data-scene=duel-rays]{background:radial-gradient(ellipse at 50% 0,#5f4618,#120d07 80%)}
+.game-vector-background>.bg-stage[data-scene=duel-glyphs]{background:radial-gradient(ellipse at center,#2a2413,#0b0d0a 80%)}
 .game-vector-background>.bg-stage[data-scene=vortex-victory]{background:radial-gradient(ellipse at center,#332b18,#10151a 80%)}
 .game-vector-background>.bg-stage[data-scene=vortex-defeat]{background:radial-gradient(ellipse at center,#351215,#110b10 80%)}
 .game-vector-background>.bg-stage[data-scene=shop]{background:radial-gradient(ellipse at center,#29444b,#091923 90%)}
@@ -15,18 +21,16 @@
 .game-vector-host:not(dialog){position:relative}
 .game-vector-host>.game-vector-background{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict;border-radius:inherit}
 .game-vector-background .background-video{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center;display:block;pointer-events:none;filter:none}
-.game-vector-background .duel-tunnel{opacity:.45}
 .game-vector-host.title>.particle{display:none}
 .collector-result.game-vector-host>.collector-result-aura,.collector-result.game-vector-host>.collector-defeat-particles{display:none}
 /* Field art and the video remain independent of the foreground board. */
 .duel.has-field,.duel.has-field .duel-main{background-image:none!important}
+/* An active field spell's art fills the backdrop in every background mode. The clip keeps running over it, blended
+   so its bright parts glow on the art and its dark parts leave the art untouched. */
 .duel.has-field>.game-vector-background:before{content:"";position:absolute;inset:0;background:var(--active-field-art) center/cover no-repeat}
-.duel.has-field>.game-vector-background>.bg-stage[data-scene=duel]{opacity:.5}
-.duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}
+.duel.has-field>.game-vector-background>.bg-stage{background:none;mix-blend-mode:screen}
 .duel.game-vector-host>.game-vector-background{z-index:0}
 .duel.game-vector-host>.inspection,.duel.game-vector-host>.portrait-relics,.duel.game-vector-host>.duel-main{position:relative;z-index:1}
 .duel.game-vector-host>.duel-main{transform:translateZ(0)}
-.simple-backgrounds .duel.has-field>.game-vector-background.simple:before{display:none}
-.simple-backgrounds .duel>.game-vector-background.simple>.bg-stage{opacity:1}
 .simple-backgrounds .page:not(.game-vector-host){background:radial-gradient(ellipse at center,#173846,#06121a 85%)!important}
 .simple-backgrounds .duel,.simple-backgrounds .duel-main{background-image:none!important}

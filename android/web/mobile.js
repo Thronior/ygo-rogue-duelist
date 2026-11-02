@@ -55,6 +55,7 @@ import {remindReplayUpload} from './replay-upload-reminder.js';
 import {polishDuel,polishShop,duelFinish} from './presentation-polish.js';
 import * as juice from './juice.js';
 import * as keeperTalk from './shopkeeper-talk.js';
+import {opponentScene} from './opponent-backgrounds.js';
 import {ownedBadge} from './shop-badges.js';
 
 import {showShadowVictory,clearShadowVictory} from './shadow-victory.js';
@@ -151,7 +152,8 @@ import {MobileDuel,M,R,I,B,L,P} from './duel.js';
 
 const app=document.querySelector('#app'),modal=document.querySelector('#modal');
 
-installVectorBackgrounds(app,modal,()=>state?.settings||{});
+let duelScene=null,duelSceneOwner=null,duelSceneNumber=0;
+installVectorBackgrounds(app,modal,()=>({...state?.settings,duelScene:duelSceneOwner&&snapshot&&duelSceneOwner===engine?duelScene:null}));
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -743,7 +745,7 @@ document.addEventListener('dragstart',e=>{if(e.target.closest('.cardbtn'))e.prev
 
 const seenBossReveals=new Set();
 
-function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;const key=JSON.stringify([r.started_at,r.character,r.loop,r.round,r.boss_rerolls||0,r.routes]);shell(`Loop ${(r.loop||0)+1} · Duel ${r.round+1} / 9 — ${boss?'BOSS ENCOUNTER':'Select next opponent'}`,`${boss?bossBanner(r):''}<div class="routes">${r.routes.map(i=>encounterCard(content,r,i,{button:btn,curseIcons})).join('')}</div>${boss?bossControls(r):''}`,`${!boss?`<span class="route-coins"><img src="assets/ui/coins.png" alt="Coins"><b>${r.gold}</b></span>`:''}${btn('Edit deck','draft')}`,boss?'boss':'');if(boss&&!seenBossReveals.has(key)){seenBossReveals.add(key);if(seenBossReveals.size>64)seenBossReveals.delete(seenBossReveals.values().next().value);busy=true;playEncounterReveal({content,collectors:r.fallen_routes,opponents:r.routes,slot:true,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'}).finally(()=>busy=false)}}
+function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;const key=JSON.stringify([r.started_at,r.character,r.loop,r.round,r.boss_rerolls||0,r.routes]);shell(`Loop ${(r.loop||0)+1} · Duel ${r.round+1} / 9${boss?'<span class="header-extra"> — BOSS ENCOUNTER</span>':''}`,`${boss?bossBanner(r):''}<div class="routes">${r.routes.map(i=>encounterCard(content,r,i,{button:btn,curseIcons})).join('')}</div>${boss?bossControls(r):''}`,`${!boss?`<span class="route-coins"><img src="assets/ui/coins.png" alt="Coins"><b>${r.gold}</b></span>`:''}<button class="navigation-icon-button" data-do="draft" aria-label="Edit deck" title="Edit deck">${deckEditIcon}</button>`,`route-page${boss?' boss':''}`);if(boss&&!seenBossReveals.has(key)){seenBossReveals.add(key);if(seenBossReveals.size>64)seenBossReveals.delete(seenBossReveals.values().next().value);busy=true;playEncounterReveal({content,collectors:r.fallen_routes,opponents:r.routes,slot:true,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'}).finally(()=>busy=false)}}
 
 let shopSelection=new Set(),shopInventoryKey=null;
 
@@ -798,7 +800,7 @@ function renderTutorial(){const pages=content.tutorial,p=pages[tutorialPage]||pa
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-reduce-motion]'))return;state.settings.reduceMotion=e.target.checked;applyDisplayOptions(state.settings);await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-faster-animations]'))return;state.settings.fasterAnimations=e.target.checked;await command('settings',state.settings)});
 
-document.addEventListener('change',async e=>{if(!e.target.matches('[data-performance-mode]'))return;state.settings.performanceMode=e.target.checked;syncDuelBackgroundSelect();document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-performance-mode]'))return;state.settings.performanceMode=e.target.checked;document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-visual-effect]'))return;const off=new Set(state.settings.effectsOff||[]);off[e.target.checked?'delete':'add'](e.target.dataset.visualEffect);state.settings.effectsOff=[...off];applyEffectOptions(state.settings.effectsOff);await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-pause-hidden]'))return;state.settings.pauseWhenHidden=e.target.checked;syncInspectionPause();await command('settings',state.settings)});
@@ -814,23 +816,19 @@ const effectSettings=()=>VISUAL_EFFECTS.filter(([key])=>key!=='vibration'||windo
 const displaySettings=()=>settingSlider('Text Size','Card text, prompts, settings and the duel log.','text-size',state.settings.textSize,100,150,10,'%')+settingToggle('Reduce Motion','Calm animations, the same as your device’s reduced motion setting.','data-reduce-motion',state.settings.reduceMotion);
 function manualResponseWindowSetting(){const value=Math.max(0,Math.min(2000,Number(state.settings.manualResponseWindow??200)||0));return settingSlider('Response Window','How long you have to respond to an optional chain on the opponent’s turn before it passes.','manual-response-window',value,0,2000,50,' ms')}
 function gameplaySettings(){return settingToggle('Pause When Tabbed Out','Pause single-player duels while the game is hidden.','data-pause-hidden',state.settings.pauseWhenHidden!==false)+settingToggle('Faster Animations','Your own actions play out quicker. The opponent keeps its pace.','data-faster-animations',state.settings.fasterAnimations)+manualResponseWindowSetting()+'<div class="set-row keyboard-shortcuts"><span class="set-text"><b>Keyboard Shortcuts</b><small>Space: next phase · Enter: confirm · C: chain prompts · L: duel log</small></span></div>'}
-function duelBackgroundSetting(){return settingToggle('Performance Mode','Fewer decorative effects and still backgrounds. Gameplay animations stay.','data-performance-mode',state.settings.performanceMode)+settingToggle('Simple Backgrounds','Static gradients for lower battery use.','data-simple-backgrounds',state.settings.simpleBackgrounds)+settingToggle('Compatibility Mode','Turns off filters and blur that flicker in some browsers.','data-compatibility-mode',compatibilityEnabled())+`<label class="set-row"><span class="set-text"><b>Duel Background</b><small>Off while a mode above uses still backgrounds.</small></span><select data-duel-background ${duelBackgroundLocked()?'disabled':''}><option value="spiral" ${state.settings.duelBackground!=='tunnel'?'selected':''}>Classic spiral</option><option value="tunnel" ${state.settings.duelBackground==='tunnel'?'selected':''}>Animated tunnel</option></select></label>`}
+function duelBackgroundSetting(){return settingToggle('Performance Mode','Fewer decorative effects and still backgrounds. Gameplay animations stay.','data-performance-mode',state.settings.performanceMode)+settingToggle('Simple Backgrounds','Static gradients for lower battery use.','data-simple-backgrounds',state.settings.simpleBackgrounds)+settingToggle('Compatibility Mode','Turns off filters and blur that flicker in some browsers.','data-compatibility-mode',compatibilityEnabled())}
 const SETTINGS_TABS=[['sound','Sound'],['effects','Effects'],['gameplay','Gameplay'],['display','Display'],['saves','Saved Data'],['devices','Devices & App'],['replays','Replays & Stats'],['about','About']];let settingsTab='sound';
 
-document.addEventListener('change',async e=>{if(!e.target.matches('[data-simple-backgrounds]'))return;state.settings.simpleBackgrounds=e.target.checked;syncDuelBackgroundSelect();document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-simple-backgrounds]'))return;state.settings.simpleBackgrounds=e.target.checked;document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
-document.addEventListener('change',async e=>{if(!e.target.matches('[data-duel-background]'))return;state.settings.duelBackground=e.target.value==='tunnel'?'tunnel':'spiral';document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
-// The duel background choice is locked while any still-background mode is on.
-const duelBackgroundLocked=()=>!!(state.settings.performanceMode||state.settings.simpleBackgrounds||compatibilityEnabled());
-function syncDuelBackgroundSelect(){document.querySelectorAll('[data-duel-background]').forEach(select=>select.disabled=duelBackgroundLocked())}
 
 // Compatibility mode is off by default, but auto-enables on Firefox where GPU compositing flickers.
 const compatibilityBrowser=()=>/firefox/i.test(navigator.userAgent);
 const compatibilityEnabled=()=>state.settings.compatibilityMode==null?compatibilityBrowser():!!state.settings.compatibilityMode;
 function applyCompatibilityMode(){document.documentElement.classList.toggle('compatibility-mode',compatibilityEnabled());document.dispatchEvent(new Event('duel-background-change'))}
 
-document.addEventListener('change',async e=>{if(!e.target.matches('[data-compatibility-mode]'))return;state.settings.compatibilityMode=e.target.checked;applyCompatibilityMode();syncDuelBackgroundSelect();await command('settings',state.settings)});
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-compatibility-mode]'))return;state.settings.compatibilityMode=e.target.checked;applyCompatibilityMode();await command('settings',state.settings)});
 
 document.addEventListener('change',e=>{if(e.target.matches('[data-usage-stats]'))setStatsEnabled(e.target.checked)});
 
@@ -1022,6 +1020,9 @@ function fieldSelectBare(m){return !!m&&m.player===0&&selectionEntries(m).some(x
 function fieldSelectionControls(m){if(m?.type===M.SELECT_UNSELECT_CARD)return `${m.can_finish?duelConfirm('Finish selection','unselect-done'):''}${m.can_cancel?duelCancel('Cancel','cancel-target'):''}`;const status=materialStatus(m,pickSet,engine,M);return `${duelConfirm('Confirm selection','confirm-target',status.valid?'':'disabled')}${m.can_cancel?duelCancel('Cancel','cancel-target'):''}`}
 
 function renderDuel(){if(!snapshot)return;const inspectionScroll=document.querySelector('.duel>.inspection')?.scrollTop||0;const previousCounters=new Map([...document.querySelectorAll('.zone .card-counter')].map(el=>[el.closest('.zone').dataset.zone+':'+el.dataset.counterKind,Number(el.dataset.count)]));const s=snapshot,r=state.run,m=engine.pending;defaultTributeSelection(m);const displayTurn=Math.max(0,s.turn-(r.first_player===1?1:0));const handCount=s.players[0].hand.filter(Boolean).length;const handCardWidth=Math.min(100/7,100/(handCount-.3*(handCount-1)));const handOverlap=Math.max(0,(handCount*handCardWidth-100)/Math.max(1,handCount-1));const handStyle=handCount>7?' style="--hand-card-width:'+handCardWidth.toFixed(4)+'%;--hand-overlap:'+handOverlap.toFixed(4)+'%"':'';const [own,opponent]=s.tag?activeTagCharacters(content,tagUI.view,s.tag):[character(),content.characters[r.opponent]];const rows=[];
+ // The backdrop belongs to the first opponent shown, and stays for the whole duel even as Tag seats alternate.
+ if(duelSceneOwner!==engine||duelSceneNumber!==engine.presentationDuel){duelSceneOwner=engine;duelSceneNumber=engine.presentationDuel;duelScene=opponentScene(opponent?.name);document.dispatchEvent(new Event('duel-background-change'))}
+
 
  rows.push(collectorResponseOverlay(s,!!tagUI?.isCollector));
 
@@ -2158,7 +2159,7 @@ async function openTag(){
 
  onDuel:(s,cues)=>{tagDuelQueue=tagDuelQueue.then(async()=>{if(!s.finished)tagFinalePlayed=false;await showTagDuel(s,cues);if(isCardWin(s.finished)&&!tagFinalePlayed){tagFinalePlayed=true;clearTimeout(aiTimer);removeActions();if(modal.open)modal.close();await playCardWin(s.finished)}}).catch(error=>toast(error.message));return tagDuelQueue;},
 
- onStatus:()=>{if(screen==='duel')tagConnectionBanner()},
+ onStatus:(state,detail)=>{if(screen!=='duel')return;tagConnectionBanner();if(state==='error'&&detail)toast(detail)},
 
  onBack:async profile=>{clearTimeout(aiTimer);engine=null;snapshot=null;screen='tag';busy=false;state={...tagOffline,profile};if(modal.open)modal.close();if(desktopToken)await desktopRPC('native-stop');track('characters')},
 
@@ -2569,5 +2570,5 @@ document.addEventListener('change',e=>{if(e.target.id!=='cloud-saves-enabled')re
 document.addEventListener('contextmenu',e=>{if(e.pointerType==='touch'||!modal.open||!modal.querySelector('.inspect,.pile-inspection'))return;e.preventDefault();e.stopImmediatePropagation();closeDialog();},true);
 
 function modifierRowsMarkup(rows=[]){if(!rows.length)return '<p>No active curses or LVL modifiers.</p>';return `<div class="active-modifier-list">${rows.map(row=>{let art='';if(row.kind==='curse'&&row.key)art=`<span class="curse-icon curse-${esc(row.key)}" aria-hidden="true"><img src="${curseIconFile(row.key)}" alt=""></span>`;else if(row.kind==='opponent-relic'&&row.id){const info=content.artifactInfo[row.id];art=info?.art?relicArtwork(relicImage(info.art)):'<img class="modifier-generic-icon" src="assets/ui/relics.png" alt="">';}else if(row.kind==='level'){const level=Number(row.name.match(/-?\d+/)?.[0]??0);art=`<span class="level-badge challenge-level-badge modifier-level-image" data-challenge-level="${level}" aria-hidden="true"><span>LVL</span><img src="assets/icons/level-star.png" alt=""><strong>${level}</strong></span>`;}return `<section class="panel active-modifier-row"><div class="active-modifier-art">${art}</div><div class="active-modifier-copy"><h3>${esc(row.name)}</h3><p>${esc(row.description)}</p></div></section>`;}).join('')}</div>`;}
-function duelCurseMarkup(){const r=state.run||{},enemy=r.opponent_relic;return (r.curses?.length||enemy)?`<div class="active-curse-strip" aria-label="Active curses and opponent relics">${curseIcons(content,r.curses||[])}${enemy?`<button data-do="active-curses" data-enemy-relic="${enemy}" aria-label="Opponent relic: ${esc(content.artifacts[enemy]?.[0])}">${relicArtwork(relicImage(content.artifactInfo[enemy].art))}</button>`:''}</div>`:'';}
+function duelCurseMarkup(){const r=state.run||{},enemies=[...new Set([r.opponent_relic,...((r.curses||[]).includes('relic_mirror')?r.mirrored_relics||[]:[])])].filter(id=>content.artifactInfo[id]);return (r.curses?.length||enemies.length)?`<div class="active-curse-strip" aria-label="Active curses and opponent relics">${curseIcons(content,r.curses||[])}${enemies.map(enemy=>`<button data-do="active-curses" data-enemy-relic="${enemy}" aria-label="Opponent relic: ${esc(content.artifacts[enemy]?.[0])}">${relicArtwork(relicImage(content.artifactInfo[enemy].art))}</button>`).join('')}</div>`:'';}
 

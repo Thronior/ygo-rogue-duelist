@@ -272,6 +272,12 @@ class TagCampaign:
 
   return deepcopy(self.receipts.get(str(seat)+':'+key))
 
+ def trim_journal(self,count):
+
+  if self.phase!='duel' or self.duel is None:raise ValueError('No active tag duel.')
+
+  self.duel['responses']=self.duel['responses'][:int(count)]
+
  def journal(self,entry):
 
   if self.phase!='duel' or self.duel is None:raise ValueError('No active tag duel.')
@@ -665,7 +671,7 @@ class TagCampaign:
 
   if combined.get('challenge_level',0)>=6:self.shared['persistent_curses']=combined['curses'][:]
 
-  self.shared['opponent_relic']=combined.get('opponent_relic');self.sync()
+  self.shared['opponent_relic']=combined.get('opponent_relic');self.shared['mirrored_relics']=combined.get('mirrored_relics',[]);self.sync()
 
   self.duel={'teams':[[c['teams'][t] for c in configurations] for t in (0,1)],'lp':min(c['lp'] for c in configurations),'enemyLP':max(c['enemyLP'] for c in configurations),'draw':max(c['draw'] for c in configurations),'enemyDraw':max(c['enemyDraw'] for c in configurations),'seed':self.rng.randrange(1,2**31),'passives':passives.script(combined),'names':[[content.CHARACTERS[r[key]]['name'] for r in self.players] for key in ('character','opponent')],'responses':[]}
 

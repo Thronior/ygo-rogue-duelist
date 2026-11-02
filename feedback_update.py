@@ -2,7 +2,7 @@
 RACE_VALUES=dict(zip(['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'],[1<<i for i in range(26)]))
 ATTRIBUTE_VALUES={'EARTH':1,'WATER':2,'FIRE':4,'WIND':8,'LIGHT':16,'DARK':32,'DIVINE':64}
 def nonstackable_curses(challenge_level=0):
- keys={'relic_seal','mirror_stats'}
+ keys={'relic_seal','mirror_stats','effect_reverser','shield_breaker','relic_mirror','no_specials','miller'}
  if challenge_level>=2:keys|={'no_recovery','fireproof_vest'}
  return keys
 

@@ -30,7 +30,7 @@ function resizeVideo(){
  const next=backgroundSpec(scene,bounds.height>bounds.width);if(!next||next.key===spec?.key)return;
  const previousTime=video?.currentTime||0,hadSource=!!video?.hasAttribute('src');spec=next;setActiveBackground(next.key);const generation=++loadGeneration;
  if(!video){
-  video=document.createElement('video');video.className='background-video'+(scene==='duel'?' duel-video duel-spiral':scene==='tunnel'?' duel-video duel-tunnel':'');
+  video=document.createElement('video');video.className='background-video'+(scene==='duel'?' duel-video duel-spiral':scene.startsWith('duel-')?' duel-video':'');
   video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='auto';
   video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
   video.addEventListener('ended',()=>{if(video&&spec?.loopStart){video.currentTime=spec.loopStart;if(!paused())video.play().catch(()=>{})}});
@@ -47,6 +47,14 @@ function resizeVideo(){
   player.src=url;syncPause();
  }).catch(()=>{/* The static poster/gradient keeps the screen usable offline. */});
 }
+// A duel clip is square and drawn around its centre, so it sits on the board wherever the layout puts it, and
+// is sized to still reach every edge of the screen. Measured only when the layout changes.
+export function centreOnBoard(player,area,board){
+ const bounds=area?.getBoundingClientRect(),box=board?.getBoundingClientRect();if(!player||!bounds?.width||!box?.width)return;
+ const x=box.left+box.width/2-bounds.left,y=box.top+box.height/2-bounds.top,size=2*Math.max(x,bounds.width-x,y,bounds.height-y);
+ Object.assign(player.style,{left:x-size/2+'px',top:y-size/2+'px',width:size+'px',height:size+'px'});
+}
+const placeDuelVideo=()=>{if(video?.classList.contains('duel-video'))centreOnBoard(video,stage,host?.querySelector('.mat'))};
 export function setVectorBackground(target,kind,simple=false){
  if(kind===scene&&simple===simpleMode&&root&&target){
   if(target!==host||!root.isConnected){host?.classList.remove('game-vector-host');host=target;host.classList.add('game-vector-host');host.prepend(root);}
@@ -55,10 +63,10 @@ export function setVectorBackground(target,kind,simple=false){
  clearBackground();simpleMode=simple;if(!target||!kind)return;
  host=target;scene=kind;host.classList.add('game-vector-host');root=document.createElement('div');root.className='game-vector-background'+(simple?' simple':'');root.setAttribute('aria-hidden','true');
  stage=document.createElement('div');stage.className='bg-stage ready';stage.dataset.scene=kind;root.append(stage);host.prepend(root);
- if(!simple){resizeVideo();observer=new ResizeObserver(resizeVideo);observer.observe(stage);}
+ if(!simple){resizeVideo();placeDuelVideo();observer=new ResizeObserver(()=>{resizeVideo();placeDuelVideo()});observer.observe(stage);}
 }
 export function installVectorBackgrounds(app,modal,settings=()=>({})){
- if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=all-videos-10',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
+ if(!document.querySelector('link[data-vector-backgrounds]')){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./vector-backgrounds.css?v=all-videos-14',import.meta.url).href;link.dataset.vectorBackgrounds='';document.head.append(link);}
  let frame=0;
  function refresh(){frame=0;
   const preferences=settings(),compatibility=preferences.compatibilityMode==null?/firefox/i.test(navigator.userAgent):!!preferences.compatibilityMode,simple=!!(preferences.simpleBackgrounds||preferences.performanceMode||compatibility);document.documentElement.classList.toggle('performance-mode',!!(preferences.performanceMode||compatibility));document.documentElement.classList.toggle('simple-backgrounds',simple);
@@ -70,7 +78,7 @@ export function installVectorBackgrounds(app,modal,settings=()=>({})){
    const collectorResult=!page.matches('.draft-pvp')&&page.querySelector('.collector-result');
    if(runOutcome)kind='vortex-'+runOutcome;
    else if(collectorResult){target=collectorResult;kind=collectorResult.classList.contains('triumph')?'vortex-victory':'vortex-defeat';}
-   else if(page.matches('.duel'))kind=settings().duelBackground==='tunnel'?'tunnel':'duel';
+   else if(page.matches('.duel'))kind=settings().duelScene||'duel';
    else if(page.matches('.title'))kind='hex';
    else if(page.matches('.boss')||page.querySelector('.boss-banner'))kind='embers';
    else if(page.matches('.character-select-page')||page.querySelector('.char-layout'))kind='crystals';

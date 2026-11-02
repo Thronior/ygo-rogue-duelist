@@ -11,6 +11,11 @@ def phase(which,op,condition='true'):
 # Spells and Traps that can only Special Summon in Defense Position; Berserker's Pact would leave them doing nothing.
 DEFENSE_ONLY_SUMMONS='26905245,40703222,29843091,73915051,42534368,92924317,60764581,13955608,33057951,75622824,79852326'
 
+# Cards whose Special Summon effects only summon in Defense Position, Spells and Traps or not.
+DEFENSE_SUMMON_EFFECTS='6104968,9074847,9156135,13386503,13955608,22567609,26905245,27911549,29843091,31709826,33057951,34124316,40703222,42534368,43434803,58551308,60764581,73915051,75622824,79106360,79852326,81210420,92924317'
+# A summon that could go either way goes to Attack Position.
+ATTACK_ONLY_SUMMONS='do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_FORCE_SPSUMMON_POSITION) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c,sump,sumtype,sumpos) return not sumpos or (sumpos&POS_FACEUP_ATTACK)~=0 end) e:SetValue(POS_FACEUP_ATTACK) Duel.RegisterEffect(e,0) end'
+
 def player_rule(code,value):
  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
 
@@ -91,7 +96,7 @@ Duel.RegisterEffect(e,0) end''')
   # --[[relic-hint]] marks where passives.py shows the relic, since the toss's result is assigned.
   # Almighty (RogueAlmighty) keeps tails from lowering your monsters.
   out.append('do local call=0 local function value() local v=300*call if RogueAlmighty and v<0 then return 0 end return v end '+phase('STANDBY','--[[relic-hint]] call=Duel.TossCoin(0,1)==COIN_HEADS and 1 or -1')+' '+stat('EFFECT_UPDATE_ATTACK','value')+' '+stat('EFFECT_UPDATE_DEFENSE','value')+' end')
- elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_FORCE_SPSUMMON_POSITION) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c,sump,sumtype,sumpos) return not sumpos or (sumpos&POS_FACEUP_ATTACK)~=0 end) e:SetValue(POS_FACEUP_ATTACK) Duel.RegisterEffect(e,0) end',player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:GetHandler():IsCode({DEFENSE_ONLY_SUMMONS}) end')])
+ elif key=='berserkers_pact':out.extend([stat('EFFECT_EXTRA_ATTACK',1),player_rule('EFFECT_CANNOT_MSET','1'),ATTACK_ONLY_SUMMONS,player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:GetHandler():IsCode({DEFENSE_ONLY_SUMMONS}) end')])
  elif key=='shield_bash':
   # Total Defense Shogun's rule: a face-up Defense Position monster attacks and uses its DEF.
   out.extend([stat('EFFECT_DEFENSE_ATTACK',1,'c:IsDefensePos()'),stat('EFFECT_CANNOT_ATTACK',1,'c:IsAttackPos()')])
@@ -114,7 +119,35 @@ def ominous_clock(run):
  from approved_relics import copies
  base=int(run.get('clock_turns',0))
  return '\n'.join([f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end)
-e:SetOperation(function() local amount=600-100*math.floor(({base}+Duel.GetTurnCount())/10) if amount>0 then Duel.Damage(1,amount,REASON_EFFECT) elseif amount<0 then Duel.Recover(1,-amount,REASON_EFFECT) end end) Duel.RegisterEffect(e,0) end''']*copies(run,'cursed_ominous_clock'))
+e:SetOperation(function() local amount=600-100*math.floor(({base}+Duel.GetTurnCount())/10) if amount>0 then Duel.Damage(1,amount,REASON_EFFECT) elseif amount<0 then Duel.Recover(1,-amount,REASON_EFFECT,false,0) end end) Duel.RegisterEffect(e,0) end''']*copies(run,'cursed_ominous_clock'))
+
+def effect_reverser(scale):
+ # Reversed Remedy's method, without its LP-cost rule, so the two agree when both are active. Emitted after the relics
+ # so Reversed Remedy keeps the real Duel.Recover for LP costs. At Level 2+ only what player 0 does to the opponent flips.
+ if scale>=2:wrapper='local recover=D.Recover D.Recover=function(p,val,r,...) local _,rp=... if rp==nil and D.GetCurrentChain()>0 then rp=D.GetChainInfo(0,CHAININFO_TRIGGERING_PLAYER) end if p==1 and rp==0 then return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end return recover(p,val,r,...) end';players,only='0,1','rp==0 and '
+ else:wrapper='D.Recover=function(p,val,r,...) return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end';players,only='1,1',''
+ return f'do local D=(_G and _G.Duel) or Duel local damage=D.Damage {wrapper} local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_REVERSE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange({players}) e:SetValue(function(e,re,r,rp,rc) return {only}(r&REASON_EFFECT)~=0 and (r&REASON_RRECOVER)==0 end) D.RegisterEffect(e,0) end'
+
+def shield_breaker(scale):
+ out=[player_rule('EFFECT_CANNOT_MSET','1')]
+ if scale>=2:
+  out.extend([ATTACK_ONLY_SUMMONS,player_rule('EFFECT_CANNOT_ACTIVATE',f'function(e,re,tp) return re:IsHasCategory(CATEGORY_SPECIAL_SUMMON) and re:GetHandler():IsCode({DEFENSE_SUMMON_EFFECTS}) end')])
+  # Anything the list misses still cannot put a monster in Defense Position.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c,sump,sumtype,sumpos) return sumpos and (sumpos&POS_ATTACK)==0 end) Duel.RegisterEffect(e,0) end')
+ return '\n'.join(out)
+
+def no_specials(scale):
+ return f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,{0 if scale>=2 else 1}) Duel.RegisterEffect(e,0) end'
+
+def hand_limiter(run,scale):
+ from approved_relics import has
+ # The core uses the last hand limit registered, so this one starts from any relic's limit.
+ limit=3 if has(run,'cursed_starving_library') else 4 if has(run,'cursed_empty_hand_pact') else 6
+ return player_rule('EFFECT_HAND_LIMIT',max(0,limit-(3 if scale>=2 else 2)*run['curses'].count('hand_limiter')))
+
+def miller(scale):
+ count='math.floor(Duel.GetFieldGroupCount(0,LOCATION_DECK,0)/2)' if scale>=2 else '10'
+ return f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end) e:SetOperation(function(e) e:Reset() Duel.DiscardDeck(0,{count},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'
 
 def battle_rules(run):
  from approved_relics import copies

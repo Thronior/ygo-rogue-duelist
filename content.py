@@ -157,6 +157,12 @@ CURSES={
  'spell_jammer':('Spell Jammer','Activating a Spell Card costs 300 LP.'),
  'trap_jammer':('Trap Jammer','Activating a Trap Card costs 300 LP.'),
  'monster_jammer':('Monster Jammer','Activating a monster effect costs 300 LP.'),
+ 'effect_reverser':('Effect Reverser','For both players, effect damage becomes healing and healing becomes damage during this duel.'),
+ 'shield_breaker':('Shield Breaker','You cannot Set monsters, except by Special Summon.'),
+ 'relic_mirror':('Relic Mirror','Your opponent gets 2 random relics you have during this duel.'),
+ 'hand_limiter':('Hand Limiter','Your hand size limit is reduced by 2 (min. 0).'),
+ 'no_specials':('No Specials Allowed','Neither player can Special Summon monsters.'),
+ 'miller':('Miller','Once per Duel, during your Standby Phase, send the top 10 cards of your Deck to the GY.'),
 }
 # Factual card themes from early WCT 2004 deck lists; shortened/rebalanced
 # for the 20-card format. Later acts add stronger staples and tribute threats.

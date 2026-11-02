@@ -70,6 +70,7 @@ def dispatch(raw):
    tag_session.journal(value)
    if value.get('checkpoint',True):checkpoint()
    return partial(persist=value.get('checkpoint',True))
+  elif action=='tag-journal-trim':tag_session.trim_journal(value['count']);checkpoint()
   elif action=='tag-finish':tag_session.finish(value['winner'],value['lp'],value['events'],value.get('reason',0));checkpoint()
   else:raise ValueError('Unknown tag operation.')
  elif action=='import-profile':result=storage.merge_desktop_profile(value,[g.unlock_rule(i)[0] for i in content.PLAYABLE_IDS[2:]])

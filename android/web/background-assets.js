@@ -1,14 +1,15 @@
 import {downloadBlob} from './asset-download.js';
+import {duelScenes} from './opponent-backgrounds.js';
 // Fixed set of compressed background files, preloaded once at startup.
 // Only the visible scene creates a video decoder; no hidden players are retained.
 const loaded=new Map(),pending=new Map();let activeKey=null;
 export function backgroundSpec(scene,portrait=false){
  if(scene==='duel'||scene==='spiral')return {key:'spiral',path:'assets/duel-spiral.mp4',poster:'assets/duel-spiral-still.png',type:'video/mp4',loopStart:0};
- if(scene==='tunnel')return {key:'tunnel',path:'assets/duel-tunnel.mp4',poster:'assets/duel-tunnel-poster.png',type:'video/mp4',loopStart:0};
+ if(String(scene).startsWith('duel-'))return {key:scene,path:'assets/backgrounds/'+scene+'.mp4',poster:'assets/backgrounds/'+scene+'.jpg',type:'video/mp4',loopStart:0};
  if(!['hex','rings','crystals','gold','jade','embers','vortex-victory','vortex-defeat'].includes(scene))return null;
  const key=scene+'-'+(portrait?'portrait':'landscape');return {key,path:'assets/backgrounds/'+key+'.mp4',poster:'assets/backgrounds/'+key+'.png',type:'video/mp4',loopStart:0};
 }
-function trim(){while(loaded.size>18){const key=[...loaded.keys()].find(k=>k!==activeKey);if(!key)break;URL.revokeObjectURL(loaded.get(key));loaded.delete(key)}}
+function trim(){while(loaded.size>24){const key=[...loaded.keys()].find(k=>k!==activeKey);if(!key)break;URL.revokeObjectURL(loaded.get(key));loaded.delete(key)}}
 export function setActiveBackground(key){activeKey=key;trim()}
 export function preloadBackground(spec){
  if(!spec)return Promise.resolve(null);
@@ -21,12 +22,10 @@ export function preloadBackground(spec){
   const url=URL.createObjectURL(new Blob([blob],{type:spec.type}));loaded.set(spec.key,url);trim();return url;
  })().finally(()=>pending.delete(spec.key));pending.set(spec.key,task);return task;
 }
-export const duelBackgroundURL=kind=>{const spec=backgroundSpec(kind==='tunnel'?'tunnel':'duel');return loaded.get(spec.key)||spec.path};
-export const preloadDuelBackground=kind=>preloadBackground(backgroundSpec(kind==='tunnel'?'tunnel':'duel'));
 
 export async function preloadAllBackgrounds(onProgress=()=>{}){
  const scenes=['hex','rings','crystals','gold','jade','embers','vortex-victory','vortex-defeat'];
- const queue=[backgroundSpec('duel'),backgroundSpec('tunnel'),...scenes.flatMap(scene=>[backgroundSpec(scene,true),backgroundSpec(scene,false)])];
+ const queue=[...duelScenes.map(scene=>backgroundSpec(scene)),...scenes.flatMap(scene=>[backgroundSpec(scene,true),backgroundSpec(scene,false)])];
  let loadedCount=0;const total=queue.length;onProgress({loaded:0,total});
  // Three reads at a time avoid competing with the rest of startup on mobile.
  await Promise.all(Array.from({length:3},async()=>{while(queue.length){const spec=queue.shift();await preloadBackground(spec).catch(()=>{});onProgress({loaded:++loadedCount,total});}}));

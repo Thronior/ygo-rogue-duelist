@@ -9,7 +9,9 @@ def ai_modifiers(run):
  from approved_relics import has
  from feedback_update import opponent_relic
  enemy=opponent_relic(run)
- return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[enemy])] if enemy else []],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),[enemy] if enemy else []],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
+ from approved_relics import mirror_view
+ rivals=([enemy] if enemy else [])+mirror_view(run)['artifacts']
+ return {'relicFeedback':list(ART_INFO),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[key]) for key in rivals]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),rivals],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
@@ -37,7 +39,7 @@ Duel.Recover=function(p,val,...) if p==0 then val=math.floor(val*{factor}) if va
  local r=Effect.GlobalEffect() r:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) r:SetCode(EVENT_REMOVE)
  r:SetOperation(function(e,tp,eg) if #eg>0 then Duel.Hint(HINT_MESSAGE,0,1600000000+#eg) end end) Duel.RegisterEffect(r,0)
 end""")
- from approved_relic_effects import battle_rules,ominous_clock
+ from approved_relic_effects import battle_rules,ominous_clock,effect_reverser,shield_breaker,no_specials,hand_limiter,miller
  from approved_relics import has
  lines.append(battle_rules(run))
  lines.append(ominous_clock(run))
@@ -205,6 +207,12 @@ Duel.RegisterEffect(e,0) end''')
  if exposed:
   multiplier=(2 if scale>=2 else 1.5)**exposed
   lines.append(f'''do local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
+ lines.append(mirrored_script(run))
+ if 'effect_reverser' in run.get('curses',[]):lines.append(effect_reverser(scale))
+ if 'shield_breaker' in run.get('curses',[]):lines.append(shield_breaker(scale))
+ if 'no_specials' in run.get('curses',[]):lines.append(no_specials(scale))
+ if 'hand_limiter' in run.get('curses',[]):lines.append(hand_limiter(run,scale))
+ if 'miller' in run.get('curses',[]):lines.append(miller(scale))
 
  for code,operations in events.items():
   # Phase-start continuous events resolve without an optional activation prompt.
@@ -219,6 +227,35 @@ Duel.RegisterEffect(e,0) end''')
  return '\n'.join(lines)
 
 
+def duel_rules(source):
+ return [line for line in source.split('\n') if line.strip() and not line.startswith('-- SHADOW_RUN')]
+
+
+def acts_in_duel(key):
+ """Whether a relic changes a duel, not just shops, coins or the deck editor."""
+ if ART_INFO[key]['effect'] in ('opening','enemy_lp','glass') or key in ('cursed_loaded_purse','cursed_wounded_merchant'):return True
+ plain=dict(curses=[],artifacts=[],round=2)
+ return duel_rules(script(dict(plain,artifacts=[key]),telemetry=False))!=duel_rules(script(plain,telemetry=False))
+
+
+def mirror_relics(run):
+ """Relics Relic Mirror gives the opponent this duel. Sealed relics have nothing to copy."""
+ if 'relic_mirror' not in run.get('curses',[]):return []
+ from approved_relics import duel_run
+ import random
+ sealed=duel_run(run);copy=sealed.get('mirror_copy')
+ usable=[key for key in sealed.get('artifacts',[]) if (bool(copy) and acts_in_duel(copy) if key=='magic_mirror' else acts_in_duel(key))]
+ if run.get('challenge_level',0)>=2:return usable
+ usable=list(dict.fromkeys(usable))
+ return random.Random(f"{run.get('started_at')}:{run.get('loop',0)}:{run.get('round',0)}:relic-mirror").sample(usable,min(2,len(usable)))
+
+
+def mirrored_script(run):
+ from approved_relics import mirror_view
+ view=mirror_view(run)
+ return '\n'.join(duel_rules(multiplayer_script(view,1))) if view['artifacts'] else ''
+
+
 def multiplayer_script(run, side):
  """Apply the same relic rules to either human, with independent once-only effects."""
  if side not in (0,1):raise ValueError('Invalid player.')
@@ -227,11 +264,12 @@ def multiplayer_script(run, side):
  # The campaign script is written relative to player 0. Local wrappers translate
  # player arguments, while effect target ranges remain relative to their owner.
  import re
- source=re.sub(r'IsControler\(([01])\)',lambda m:'IsControler('+str(1-int(m[1]))+')',source)
+ source=re.sub(r'(Is(?:Previous)?Controler\()([01])\)',lambda m:m[1]+str(1-int(m[2]))+')',source)
+ source=re.sub(r'(Duel\.(?:GetCounter|GetBattleDamage|ChangeBattleDamage|ConfirmCards|TossCoin|GetFlagEffect|RegisterFlagEffect|SelectYesNo|GetLocationCount)\()([01])\b',lambda m:m[1]+str(1-int(m[2])),source)
  source=re.sub(r'(Duel.GetTurnPlayer\(\)\s*==\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
  source=source.replace(':Select(0,',':Select(1,').replace(':RandomSelect(0,',':RandomSelect(1,')
  source=re.sub(r'(\b(?:ep|rp)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
- positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2}
+ positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1}
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():
   wrappers.append(f'Duel.{name}=function(...) local a=table.pack(...) if a[{index}]==0 or a[{index}]==1 then a[{index}]=1-a[{index}] end return originalDuel.{name}(table.unpack(a,1,a.n)) end')

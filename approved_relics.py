@@ -197,6 +197,11 @@ def reconcile_turn_order(run):
  if run.get('mirror_copy') in pair and run['mirror_copy']!=newest:run.pop('mirror_copy',None)
 
 
+def mirror_view(run):
+ """Relic Mirror's copied relics, shaped like a run so the usual relic rules can read them."""
+ keys=run.get('mirrored_relics',[]) if 'relic_mirror' in run.get('curses',[]) else []
+ return dict(run,artifacts=list(keys),curses=[],boss_curse=None,mirrored_relics=[],first_player=0,mirror_copy=run.get('mirror_copy') if 'magic_mirror' in keys else None)
+
 def duel_run(run):
  """A duel-only view; never remove owned relics from the saved campaign."""
  if run.get('challenge_level')==-1:return dict(run,artifacts=[],curses=[],boss_curse=None,mirror_copy=None,duel_modifications=[],relics_suppressed=True)

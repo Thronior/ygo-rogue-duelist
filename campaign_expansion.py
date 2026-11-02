@@ -335,14 +335,18 @@ def install(g):
    run['mirror_copy']=rng.choice(others) if others else None
   else:run['mirror_copy']=None
   duel_run=ar.duel_run(run)
+  run['mirrored_relics']=passives.mirror_relics(run);mirror=ar.mirror_view(run)
   if duel_run.get('mirror_copy')=='ankh' and ar.can_heal(duel_run,between=True):lp=lp+2000
   if owns(duel_run,'glass_shard'):lp=challenge_levels.drained_lp(run,ART_INFO['glass_shard']['amount'])
   run['golden_hits']=0
   run['first_player']=ar.first(duel_run,0 if rng.random()<0.5 else 1)
   lp=max(1,lp-1000*ar.copies(duel_run,'cursed_wounded_merchant'))
+  lp=max(1,lp-amount(mirror,'enemy_lp')+2000*ar.copies(mirror,'cursed_loaded_purse'))
   request=dict(protocol=1,id=uuid.uuid4().hex,lp=lp,round=run['round'],opponent=run['opponent'])
   char=CHARACTERS[run['opponent']];enemy_lp=(8000 if run.get('encore_active') or run.get('challenge_level',0)>=1 else encounters.LP[run['round']])+run.get('loop',0)*endless.LOOP['lp']-amount(duel_run,'enemy_lp')
   enemy_lp=max(1,enemy_lp+2000*ar.copies(duel_run,'cursed_loaded_purse'))
+  if owns(mirror,'glass_shard'):enemy_lp=ART_INFO['glass_shard']['amount']
+  enemy_lp=max(1,enemy_lp-1000*ar.copies(mirror,'cursed_wounded_merchant'))
   main_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if not g.is_extra(run['pool'][i])]
   extra_pairs=[(i,run['pool'][i]) for i in sorted(run['selected']) if g.is_extra(run['pool'][i])]
   rng.shuffle(main_pairs)
@@ -382,7 +386,7 @@ def install(g):
   if run.get('encore_active'):enemy_name=endless.encore_record(run)['name']
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand0=challenge_levels.curse_opening_hand(run,hand0)
-  hand1=1 if owns(duel_run,'rulebook') else 5
+  hand1=ar.opening(mirror,1 if owns(duel_run,'rulebook') else 5+amount(mirror,'opening'))
   lua=['-- Shadow Run: native EDOPro campaign.','Debug.SetAIName('+json.dumps(enemy_name)+')','Debug.ReloadFieldBegin(DUEL_MODE_MR1|DUEL_SIMPLE_AI,1)',f'Debug.SetPlayerInfo(0,{lp},{hand0},1)',f'Debug.SetPlayerInfo(1,{enemy_lp},{hand1},1)']
   for p,cards,loc in [(0,main,'LOCATION_DECK'),(0,extra,'LOCATION_EXTRA'),(1,enemy,'LOCATION_DECK'),(1,enemy_extra,'LOCATION_EXTRA')]:
    lua += [f'Debug.AddCard({cid},{p},{p},{loc},0,POS_FACEDOWN_DEFENSE)' for cid in cards]

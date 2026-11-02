@@ -742,28 +742,53 @@
       "background": "character-backgrounds/variant-31.jpg"
     },
     "32": {
-      "name": "Ritual Judgment",
-      "starting_relic": "solemn_relic",
+      "name": "Sands of Judgment",
+      "starting_relic": "hot_deck",
       "supporting_packs": [
-        "EN-MRL",
-        "EN-DCR"
+        "EN-DB1",
+        "EN-AST"
       ],
       "cards": [
-        "Black Luster Soldier",
-        "Black Luster Ritual",
-        "Manju of the Ten Thousand Hands"
+        "Morphing Jar #2",
+        "Needle Worm",
+        "Book of Taiyou"
       ],
       "pack_additions": [
-        "Black Luster Soldier",
-        "Black Luster Ritual",
-        "Manju of the Ten Thousand Hands",
-        "Senju of the Thousand Hands",
-        "Sonic Bird",
-        "Shinato, King of a Higher Plane",
-        "Contract with the Abyss",
-        "Ritual Weapon"
+        "Morphing Jar #2",
+        "Needle Worm",
+        "Book of Taiyou",
+        "Morphing Jar",
+        "Assault on GHQ",
+        "Gravekeeper's Servant",
+        "Robbin' Zombie",
+        "Goblin Zombie",
+        "Don Zaloog",
+        "Dark Scorpion - Cliff the Trap Remover",
+        "Dark Scorpion Burglars",
+        "Vampire Lady",
+        "Vampire Lord",
+        "Virus Cannon",
+        "Soul-Absorbing Bone Tower",
+        "Abyssal Designator",
+        "Arsenal Robber",
+        "Sasuke Samurai #3",
+        "The Bistro Butcher",
+        "Hiro's Shadow Scout",
+        "Card Destruction",
+        "Disturbance Strategy",
+        "Mind Wipe",
+        "Heavy Slump",
+        "Fiber Jar",
+        "Cup of Ace",
+        "DNA Checkup",
+        "Dragged Down into the Grave",
+        "Dangerous Machine Type-6",
+        "Dark Scorpion - Gorg the Strong",
+        "Dark Designator",
+        "Emissary of the Afterlife",
+        "Exchange"
       ],
-      "background_card": "Black Luster Soldier",
+      "background_card": "Needle Worm",
       "background": "character-backgrounds/variant-32.jpg"
     },
     "33": {

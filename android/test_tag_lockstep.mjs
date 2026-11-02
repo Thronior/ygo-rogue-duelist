@@ -14,7 +14,7 @@ const ydk=f=>{let z='main';const o={main:[],extra:[]};for(const l of fs.readFile
 const decks=['arcana-knights-siegfried-tier-3','archfiends-darkbishop-tier-3','tea-gardner-tier-3','rex-raptor-tier-3'].map(ydk);
 const cueTime=cues=>Math.min(300,cues.length*60);
 
-async function world({seed=17,hostLag=0,guestLag=0,jitter=0,hostExtra=0}={}){
+async function world({seed=17,hostLag=0,guestLag=0,jitter=0,hostExtra=0,teams=null}={}){
  const registry=new Registry({}),hubs=new Map(),peers=new Map();
  const net=new FakeNet(async(url,protocols,name)=>{
   const code=protocols.find(p=>p.startsWith('room.')).slice(5),token=protocols.find(p=>p.startsWith('auth.')).slice(5),room=registry.rooms.get(code),seat=room?.tokens.indexOf(token);
@@ -25,10 +25,11 @@ async function world({seed=17,hostLag=0,guestLag=0,jitter=0,hostExtra=0}={}){
  net.client('host').latency=hostLag;net.client('guest').latency=guestLag;net.client('host').jitter=net.client('guest').jitter=jitter;
  globalThis.RTCPeerConnection=undefined;
  globalThis.fetch=async(url,init)=>{net.requests++;const action=new URL(url).pathname.split('/').pop(),auth=(init.headers.Authorization||'').replace('Bearer ','');try{const data=await registry.request(action,JSON.parse(init.body),auth,'a');return {ok:true,status:200,json:async()=>structuredClone({...data,relayAvailable:true})}}catch(e){return {ok:false,status:400,json:async()=>({error:e.message})}}};
- const config={teams:[[decks[0],decks[1]],[decks[2],decks[3]]],lp:8000,enemyLP:8000,seed,mode:'tag',draw:5,enemyDraw:5,responses:[]};
+ const config={teams:teams||[[decks[0],decks[1]],[decks[2],decks[3]]],lp:8000,enemyLP:8000,seed,mode:'tag',draw:5,enemyDraw:5,responses:[]};
  const state={view:{phase:'duel',revision:1,duel:config,run:{},seat:0},finished:false,journal:config.responses};
  const backend=async(action,value)=>{
-  if(action==='tag-create'||action==='tag-pause')return;if(action==='tag-receipt')return null;if(action==='tag-restore')return state.view;
+  JSON.stringify(value);// The real backend is plain JSON.
+  if(action==='tag-create'||action==='tag-pause')return;if(action==='tag-journal-trim'){state.journal.length=value.count;return}if(action==='tag-receipt')return null;if(action==='tag-restore')return state.view;
   if(action==='tag-view')return value===0?structuredClone(state.view):{...structuredClone(state.view),duel:null,seat:1};
   if(action==='tag-journal'){state.journal.push(structuredClone(value));return}
   if(action==='tag-finish'){state.finished=value;state.view={phase:'shop',revision:2,run:{},seat:0};return}
@@ -111,7 +112,16 @@ for(const [rtt,jitter,hostExtra] of grid){
  assert.equal(reborn.engine.checksum(),checksum,'repaired host matches the guest');assert.equal(w.state.journal.length,full,'journal repaired');
  w.guest.stopBot();w.guest.peer.suspend();w.guest.engine.destroy();reborn.peer.suspend();reborn.engine.destroy();console.log('PASS host reload: the guest log repairs lost journal steps');
 }
-// 6. Budget: a whole idle hour and a played duel stay nearly free.
+// 6. The live freeze: a guest declares a monster type with Tribe-Infecting Virus, a BigInt answer.
+{
+ const virus=meta.cards.find(c=>c.name==='Tribe-Infecting Virus').id,w=await world({seed:21,teams:[[decks[0],{main:Array(40).fill(virus),extra:[]}],[decks[2],decks[3]]]});
+ const declared=()=>w.host.log.findIndex(entry=>entry.seat===1&&entry.response?.races);
+ await until(()=>declared()>=0||w.state.finished,45000,'guest declared a type');assert(declared()>=0,'the guest used Tribe-Infecting Virus');
+ const mark=declared();await until(()=>w.host.log.length>mark+6||w.state.finished,20000,'duel moved on after the declaration');
+ assert.equal(typeof w.host.log[mark].response.races[0],'object','the log keeps the JSON form');assert.deepEqual(w.state.journal[mark],{...w.host.log[mark],checkpoint:w.state.journal[mark].checkpoint});
+ for(const s of [w.host,w.guest])s.stopBot();await finish(w);console.log('PASS Tribe-Infecting Virus: a guest type declaration is journaled and the duel continues');
+}
+// 7. Budget: a whole idle hour and a played duel stay nearly free.
 {
  const w=await world({seed:17,hostLag:80,guestLag:80});await until(settled(w,70),30000,'budget duel');for(const s of [w.host,w.guest])s.stopBot();await until(()=>w.guest.log.length===w.host.log.length,5000,'budget converge');
  const equivalent=w.net.requests+w.net.hubMessages/20;assert(w.net.requests<=8,`${w.net.requests} HTTP/connect requests`);assert(equivalent<=20,`${equivalent} request equivalents`);

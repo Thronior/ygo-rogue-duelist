@@ -86,10 +86,7 @@ dialog.game-vector-host{background:#100f0a!important}
 @keyframes gv-outcome-card{0%{transform:translateX(0) rotate(34deg);opacity:0}45%{opacity:.28}100%{transform:translateX(var(--reach)) rotate(34deg);opacity:0}}
 .collector-result.game-vector-host>.collector-result-aura,.collector-result.game-vector-host>.collector-defeat-particles{display:none}
 
-.game-vector-background .duel-tunnel{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;pointer-events:none}
 
-/* High-resolution video needs no blur or sharpening. */
-.game-vector-background .duel-tunnel{image-rendering:auto;opacity:.45;filter:none}
 
 /* Keep the grid static; animate one lighting layer instead of every SVG tile. */
 .game-vector-background .hex-cell{animation:gv-hex-enter .3s var(--enter) backwards!important;animation-iteration-count:1!important}
@@ -101,8 +98,6 @@ dialog.game-vector-host{background:#100f0a!important}
 .duel.has-field,.duel.has-field .duel-main{background-image:none!important}
 .duel.has-field>.game-vector-background:before{content:"";position:absolute;inset:0;background:var(--active-field-art) center/cover no-repeat}
 .duel.has-field>.game-vector-background>.bg-stage[data-scene=duel]{opacity:.5}
-.game-vector-background .bg-stage[data-scene=tunnel]{background:#100707}
-.duel.has-field>.game-vector-background>.bg-stage[data-scene=tunnel]{background:transparent}
 
 /* Explicit sibling layers prevent animated scenery from painting over board tiles. */
 .duel.game-vector-host>.game-vector-background{z-index:0}
@@ -120,7 +115,6 @@ dialog.game-vector-host{background:#100f0a!important}
 .game-vector-background.simple>.bg-stage[data-scene=jade]{background:radial-gradient(ellipse at 50% 80%,#184638,#061b1b 85%)}
 .game-vector-background.simple>.bg-stage[data-scene=embers]{background:radial-gradient(ellipse at 50% 100%,#5b2420,#140d17 85%)}
 .game-vector-background.simple>.bg-stage[data-scene=duel]{background:radial-gradient(ellipse at center,#090709,#291411 90%)}
-.game-vector-background.simple>.bg-stage[data-scene=tunnel]{background:radial-gradient(ellipse at center,#0b1527,#27334b 100%)}
 .game-vector-background.simple>.bg-stage[data-scene=vortex-victory]{background:radial-gradient(ellipse at center,#332b18,#10151a 80%)}
 .game-vector-background.simple>.bg-stage[data-scene=vortex-defeat]{background:radial-gradient(ellipse at center,#351215,#110b10 80%)}
 .game-vector-background.simple>.bg-stage[data-scene=shop]{background:radial-gradient(ellipse at center,#29444b,#091923 90%)}

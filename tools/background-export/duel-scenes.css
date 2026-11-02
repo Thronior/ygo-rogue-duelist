@@ -1,0 +1,33 @@
+/* Offline only: styles for duel-scenes.js. The stage is 1024 x 1024; the exporter steps every animation by hand. */
+html,body{margin:0;width:1024px;height:1024px;overflow:hidden;background:#000}
+.bgx{position:absolute;inset:0;overflow:hidden;--c:512px}
+.bgx .l{position:absolute;pointer-events:none}
+.bgx .still{position:absolute;inset:0;pointer-events:none}
+.bgx .scroll{left:0;top:0;animation:bgx-scroll linear infinite}
+@keyframes bgx-scroll{to{transform:translate(var(--to))}}
+.bgx .round{left:calc(var(--c) - var(--r));top:calc(var(--c) - var(--r));width:calc(var(--r)*2);height:calc(var(--r)*2);background:center/100% 100% no-repeat;animation:bgx-turn linear infinite}
+@keyframes bgx-turn{to{rotate:var(--turn)}}
+.bgx.summoning{background:radial-gradient(circle at 50% 50%,#22323c,#0b1218 58%,#05080c)}
+.bgx.summoning .glow{background:radial-gradient(circle at 50% 50%,rgba(232,190,105,.24),transparent 42%);animation:bgx-breathe 6s ease-in-out infinite alternate}
+@keyframes bgx-breathe{from{opacity:.4}to{opacity:1}}
+.bgx.stars{background:radial-gradient(ellipse at 50% 42%,#1b2748,#070a16 72%)}
+.bgx.embers{background:radial-gradient(ellipse 70% 62% at 50% 92%,#7a2a14,#2e100d 56%,#0d0808 92%)}
+.bgx.aurora{background:linear-gradient(#050913,#0a1426 62%,#0a1d26)}
+.bgx.aurora .band{left:-30%;width:160%;height:62%;border-radius:50%}
+.bgx.aurora .a{top:8%;background:radial-gradient(closest-side,rgba(50,225,170,.38),transparent);animation:bgx-sway-a 48s ease-in-out infinite alternate}
+.bgx.aurora .b{top:24%;background:radial-gradient(closest-side,rgba(130,90,255,.34),transparent);animation:bgx-sway-b 24s ease-in-out infinite alternate}
+.bgx.aurora .c{top:40%;background:radial-gradient(closest-side,rgba(40,170,240,.28),transparent);animation:bgx-sway-c 16s ease-in-out infinite alternate}
+@keyframes bgx-sway-a{from{transform:translate(-14%,0) scaleY(.8)}to{transform:translate(12%,6%) scaleY(1.15)}}
+@keyframes bgx-sway-b{from{transform:translate(16%,4%) scaleY(1.1)}to{transform:translate(-12%,-6%) scaleY(.75)}}
+@keyframes bgx-sway-c{from{transform:translate(-8%,6%) scaleY(.9)}to{transform:translate(14%,-4%) scaleY(1.2)}}
+.bgx.ripples{background:radial-gradient(circle at 50% 50%,#0f3a48,#061319 70%)}
+.bgx.ripples .ring{left:calc(var(--c) - 760px);top:calc(var(--c) - 760px);width:1520px;height:1520px;box-sizing:border-box;border:9px solid #7fe0e6;border-radius:50%;opacity:0;animation:bgx-ripple 16s linear infinite}
+@keyframes bgx-ripple{0%{transform:scale(.03);opacity:0}12%{opacity:.55}100%{transform:scale(1);opacity:0}}
+.bgx.rays{background:radial-gradient(ellipse at 50% 4%,#5f4618,#1d150a 60%,#0a0806)}
+.bgx.rays .fan{left:calc(var(--c) - 1500px);top:-1560px;width:3000px;height:3000px;border-radius:50%;animation:bgx-rays linear infinite}
+.bgx.rays .a{background:repeating-conic-gradient(transparent 0,rgba(255,214,120,.13) 5deg,transparent 11deg,transparent 22deg);animation-duration:24s;--to:22deg}
+.bgx.rays .b{background:repeating-conic-gradient(transparent 0,rgba(255,235,180,.1) 8deg,transparent 16deg,transparent 31deg);animation-duration:24s;--to:-31deg}
+@keyframes bgx-rays{to{rotate:var(--to)}}
+.bgx.rays .fade{background:linear-gradient(transparent 40%,#0a0806 98%)}
+.bgx.glyphs{background:radial-gradient(ellipse at 50% 50%,#2a2413,#0b0d0a 78%)}
+.bgx.glyphs .fade{background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 40%,#0b0d0acc)}

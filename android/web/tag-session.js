@@ -129,12 +129,13 @@ export class TagSession {
  }
  async broadcast(rebuild=false){
   this.view=await this.backend('tag-view',0);if(this.view.phase!=='duel')clearDuelEmotes();this.peer.setPhase(this.view.phase);this.onView(this.view);
+  // The guest replays this journal too, so a damaged one must be repaired before it is sent.
+  if(this.view.phase==='duel'&&!this.engine&&await this.startEngine(this.view.duel))this.view=await this.backend('tag-view',0);
   if(this.connected){
    const packet={kind:'view',view:await this.backend('tag-view',1)};
    if(this.view.phase==='duel'){packet.duel=this.view.duel;if(rebuild)packet.rebuild=true}
    this.tell(packet);
   }
-  if(this.view.phase==='duel'&&!this.engine)await this.startEngine(this.view.duel);
  }
  request(action,value){
   if(action==='emote'){if(!this.connected||this.view?.phase!=='duel'||!validEmote(value))return Promise.reject(Error('Emotes are available during a connected duel.'));if(Date.now()-(this.lastEmote||0)<1500)return Promise.resolve();this.lastEmote=Date.now();this.tell({kind:'emote',emoji:value});showDuelEmote(value,true,{ally:this.view?.duel?.mode!=='pvp'});return Promise.resolve();}
@@ -165,15 +166,17 @@ export class TagSession {
   if(i>this.log.length){this.requestRebuild();return}
   const before={turn:e.turn,phase:e.phase},response=decode(structuredClone(entry.response));
   try{if(entry.seat===null)e.respond(response);else e.respondFor(entry.seat,entry.number,response)}
-  catch(error){console.warn('Duel step refused:',error.message);this.requestRebuild();return}
+  catch(error){console.warn('Duel step refused:',error.message);await this.requestRebuild();return}
   await this.commit(entry,before,true);
-  if(h!==undefined&&h!==e.checksum()&&!e.finished){console.warn('Duel state split at step',i);this.requestRebuild()}
+  if(h!==undefined&&h!==e.checksum()&&!e.finished){console.warn('Duel state split at step',i);await this.requestRebuild()}
  }
- // A guest that drifted rebuilds from the host's log. The host's engine stays the reference for the result.
- requestRebuild(){if(this.seat===1&&this.resyncs<MAX_RESYNCS){this.resyncs++;this.tell({kind:'duel-resync'})}}
- async commit(entry,before,remote=false){
-  const e=this.engine;this.log.push(entry);
-  if(this.seat===0)await this.backend('tag-journal',{...entry,checkpoint:phaseCheckpoint(before,e)});
+ // Whoever drifted rebuilds from the host's log. The host's engine stays the reference for the result.
+ async requestRebuild(){if(this.resyncs>=MAX_RESYNCS)return;this.resyncs++;if(this.seat===1)this.tell({kind:'duel-resync'});else await this.broadcast(true)}
+ // The engine has already moved, so nothing here may stop the duel. Decoded messages hold BigInts, which only the
+ // engine accepts: the log and the JSON journal keep the encoded form.
+ async commit(step,before,remote=false){
+  const e=this.engine,entry=encode(step);this.log.push(entry);
+  if(this.seat===0)try{await this.backend('tag-journal',{...entry,checkpoint:phaseCheckpoint(before,e)})}catch(error){console.warn('Duel journal:',error.message);this.onStatus('error',error.message)}
   if(!remote)this.tell({kind:'step',i:this.log.length-1,entry,h:e.checksum()});
   this.present();
   if(this.seat===0){if(e.finished)this.finishWhenShown();else this.schedule()}
@@ -234,10 +237,22 @@ export class TagSession {
  }
  async startEngine(config){
   this.engine=this.duelFactory?await this.duelFactory():await new TagDuel([...this.content.cards,...this.content.tokenCards]).init();
-  this.engine.startTag(config);this.duelSeed=config.seed;this.log=[];this.resyncs=0;
-  for(const entry of config.responses||[]){const response=decode(structuredClone(entry.response));if(entry.seat===null)this.engine.respond(response);else this.engine.respondFor(entry.seat,entry.number,response);this.log.push(entry)}
+  this.engine.startTag(config);this.duelSeed=config.seed;this.log=[];this.resyncs=0;let trimmed=false;
+  for(const [index,entry] of (config.responses||[]).entries()){
+   try{
+    const response=decode(structuredClone(entry.response));
+    if(entry.seat===null){if(this.engine.pending?.player!==1)throw Error('CPU answer without a CPU prompt.');this.engine.respond(response)}else this.engine.respondFor(entry.seat,entry.number,response);
+   }catch(error){
+    // A journal with a missing step cannot be replayed past it. The host resumes from that point, and a guest
+    // still holding the full log restores the rest through the handshake.
+    if(this.seat!==0)throw error;
+    console.warn('Duel journal stops at step',index,error.message);await this.backend('tag-journal-trim',{count:index});trimmed=true;break;
+   }
+   this.log.push(entry);
+  }
   this.engine.visuals=[];this.present();
   if(this.seat===0){if(this.engine.finished)this.finishWhenShown();else this.schedule()}
+  return trimmed;
  }
  // The CPU keeps pace with the host's animations, but never waits long on them: an open card or a hidden page on
  // one device must not freeze the other player.

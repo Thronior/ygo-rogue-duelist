@@ -3,13 +3,12 @@ const artworkCache=new Map();
 const polygon=(x,y,r,n=6,offset=0)=>Array.from({length:n},(_,i)=>{const a=(i/n*Math.PI*2)+offset;return `${(x+Math.cos(a)*r).toFixed(1)},${(y+Math.sin(a)*r).toFixed(1)}`}).join(' ');
 
 function draw(stage){
- if(stage.dataset.scene==='tunnel'||stage.dataset.scene==='duel'){
+ if(stage.dataset.scene==='duel'){
   if(!stage.querySelector('.duel-video')){
-   const kind=stage.dataset.scene==='tunnel'?'tunnel':'spiral';
-   const video=document.createElement('video');video.className='duel-video '+(kind==='tunnel'?'duel-tunnel':'duel-spiral');
+   const video=document.createElement('video');video.className='duel-video duel-spiral';
    video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.autoplay=!paused;video.preload='auto';
    video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
-   if(kind==='spiral')video.poster='assets/duel-spiral-still.png';
+   video.poster='assets/duel-spiral-still.png';
    stage.append(video);
    video.addEventListener('loadeddata',()=>{if(video.isConnected)syncPause()},{once:true});
    preloadDuelBackground(kind).then(()=>{if(video.isConnected){video.src=duelBackgroundURL(kind);syncPause()}}).catch(()=>{
@@ -121,8 +120,8 @@ export function setVectorBackground(target,kind,simple=false){
 }
 function syncPause(){
  paused=document.hidden||reduced.matches||!!document.querySelector('dialog[open] .inspect,.inspection-modal[open]');if(root&&root.classList.contains('paused')!==paused)root.classList.toggle('paused',paused);
- const tunnel=root?.querySelector('.duel-video');
- if(tunnel){if(paused)tunnel.pause();else if(tunnel.paused)tunnel.play().catch(()=>{});}
+ const video=root?.querySelector('.duel-video');
+ if(video){if(paused)video.pause();else if(video.paused)video.play().catch(()=>{});}
  if(paused){lightningAnimation?.pause();clearInterval(strikeTimer);strikeTimer=null;}
  else {lightningAnimation?.play();if(!simpleMode&&scene==='embers'&&!strikeTimer)strikeTimer=setInterval(strike,1000);}
 }
@@ -139,7 +138,7 @@ export function installVectorBackgrounds(app,modal,settings=()=>({})){
    const collectorResult=!page.matches('.draft-pvp')&&page.querySelector('.collector-result');
    if(runOutcome)kind='vortex-'+runOutcome;
    else if(collectorResult){target=collectorResult;kind=collectorResult.classList.contains('triumph')?'vortex-victory':'vortex-defeat';}
-   else if(page.matches('.duel'))kind=settings().duelBackground==='tunnel'?'tunnel':'duel';
+   else if(page.matches('.duel'))kind='duel';
    else if(page.matches('.title'))kind='hex';
    else if(page.matches('.boss')||page.querySelector('.boss-banner'))kind='embers';
    else if(page.matches('.character-select-page')||page.querySelector('.char-layout'))kind='crystals';

@@ -241,7 +241,7 @@
 
 .duel-reference-pair{display:flex;gap:3px;width:100%}.duel-reference-pair button{flex:1;min-width:0;padding:3px;font-size:10px}.duel-reference-pair .ui-icon{display:none}
 /* Shared tag campaign controls; the duel renderer stays platform-specific. */
-.tag-lobby{display:grid;grid-template-columns:2fr 1fr;gap:16px;min-height:0;padding:10px;overflow:auto}.tag-character-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.tag-character-grid button{position:relative;padding:0;aspect-ratio:4/3;overflow:hidden}.tag-character-grid img{height:100%;width:100%;object-fit:contain}.tag-character-grid span{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-shadow:0 2px 2px #000;background:#0008}.tag-connect{display:flex;flex-direction:column;gap:8px}.tag-connect label{display:flex;gap:8px;align-items:center}.tag-connect input{min-width:0;width:100%}.tag-status{padding:6px 14px;background:#77374b;flex:none}.tag-draft-controls{display:flex;align-items:center;gap:10px;padding:8px;flex:none}.tag-page .cardgrid{grid-template-columns:repeat(7,minmax(0,1fr))}.tag-stock-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.tag-stock{position:relative;min-width:0;background:#0a1928bb;border:1px solid #94b4bf;border-radius:6px;text-align:center}.tag-stock>button:first-child{border:0;background:none;padding:3px;width:100%;height:100%}.tag-stock>button:first-child>img{height:clamp(55px,20vh,160px);max-width:100%;object-fit:contain}.tag-stock .price{position:absolute;top:3px;left:3px;pointer-events:none;background:#00191cdd;color:#fff0ac;padding:3px;border-radius:4px;display:flex;align-items:center;text-shadow:1px 2px #000}.tag-stock .price img{width:15px;height:15px}.tag-check{position:absolute;right:3px;bottom:4px;padding:4px;min-width:32px;min-height:32px}.tag-stock span{display:block;font-size:11px;padding-bottom:6px}.tag-pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tag-relic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.tag-ending{margin:auto;text-align:center}.tag-page button.selected{border-color:#ffd47b;box-shadow:0 0 6px #ffd47b}.tag-page .routes{overflow:auto}.tag-duel-banner{position:absolute;top:48px;left:23%;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;background:#08242aca;padding:3px 8px;font-size:12px}.tag-duel-banner button{padding:3px 8px}.tag-duel-paused{position:absolute;inset:55px 0 0 22%;z-index:300;background:#071720bb;display:grid;place-content:center;text-align:center}.tag-duel-paused button{min-height:44px}
+.tag-lobby{display:grid;grid-template-columns:2fr 1fr;gap:16px;min-height:0;padding:10px;overflow:auto}.tag-character-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.tag-character-grid button{position:relative;padding:0;aspect-ratio:4/3;overflow:hidden}.tag-character-grid img{height:100%;width:100%;object-fit:contain}.tag-character-grid span{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-shadow:0 2px 2px #000;background:#0008}.tag-connect{display:flex;flex-direction:column;gap:8px}.tag-connect label{display:flex;gap:8px;align-items:center}.tag-connect input{min-width:0;width:100%}.tag-status{padding:6px 14px;background:#77374b;flex:none}.tag-draft-controls{display:flex;align-items:center;gap:10px;padding:8px;flex:none}.tag-stock-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.tag-stock{position:relative;min-width:0;background:#0a1928bb;border:1px solid #94b4bf;border-radius:6px;text-align:center}.tag-stock>button:first-child{border:0;background:none;padding:3px;width:100%;height:100%}.tag-stock>button:first-child>img{height:clamp(55px,20vh,160px);max-width:100%;object-fit:contain}.tag-stock .price{position:absolute;top:3px;left:3px;pointer-events:none;background:#00191cdd;color:#fff0ac;padding:3px;border-radius:4px;display:flex;align-items:center;text-shadow:1px 2px #000}.tag-stock .price img{width:15px;height:15px}.tag-check{position:absolute;right:3px;bottom:4px;padding:4px;min-width:32px;min-height:32px}.tag-stock span{display:block;font-size:11px;padding-bottom:6px}.tag-pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tag-relic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.tag-ending{margin:auto;text-align:center}.tag-page button.selected{border-color:#ffd47b;box-shadow:0 0 6px #ffd47b}.tag-page .routes{overflow:auto}.tag-duel-banner{position:absolute;top:48px;left:23%;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;background:#08242aca;padding:3px 8px;font-size:12px}.tag-duel-banner button{padding:3px 8px}.tag-duel-paused{position:absolute;inset:55px 0 0 22%;z-index:300;background:#071720bb;display:grid;place-content:center;text-align:center}.tag-duel-paused button{min-height:44px}
 
 /* Keep room controls scrollable above Android's on-screen keyboard. */
 .tag-page{height:var(--tag-visible-height,100%);max-height:100%;box-sizing:border-box}.tag-connect>*{flex-shrink:0}
@@ -537,7 +537,7 @@ dialog:has(.victory-receipt)[open]{display:flex;flex-direction:column;gap:8px}
  .duel .duel-reference-pair{flex:2}.duel .duel-tools-left>[data-do=log]{flex:1}
  .duel .selection-dialog{left:2%;right:2%;top:0;bottom:0;gap:4px}
  .duel .selection-actions{gap:5px;padding:5px}.duel .selection-status{font-size:11px}
- .draft-scroll .cardgrid,.tag-deck-scroll .cardgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+ :is(.draft-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
  .draft-scroll .cardbtn,.tag-deck-scroll .cardbtn{min-width:0;overflow:hidden}
  .draft-scroll .cardbtn span,.tag-deck-scroll .cardbtn span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;max-width:100%;min-height:30px}
  .draft-tabs{flex-wrap:wrap}.draft-summary{align-items:flex-start}.draft-count{font-size:12px}
@@ -1948,6 +1948,12 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 @media(max-width:480px){.type-choice-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.type-choice-grid button{font-size:10px;min-height:70px}.type-choice-grid .genre-icon{width:30px;height:30px}}
 .draft-scroll .cardbtn .new-card-marker{inset:-7px auto auto 3px;width:auto;max-width:none;background:none;border:0;border-radius:0;box-shadow:none;color:#ffe46b;padding:0;font-size:11px;font-weight:800;line-height:1.2;text-shadow:0 1px 3px #000,1px 0 2px #000;z-index:4;pointer-events:none}
 .draft-scroll .cardgrid{padding-top:9px;row-gap:14px}
+/* Phones fit more of the deck on screen, in solo, Tag and Collector decks alike. */
+@media(orientation:landscape) and (max-height:500px){:is(.draft-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));column-gap:6px}}
+@media(orientation:portrait) and (max-width:480px){:is(.draft-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+/* ATK / DEF stays on one line on the narrowest of those cards. */
+@media(orientation:portrait) and (max-width:380px){:is(.draft-scroll,.collector-deck-editor) .deck-card-stats{font-size:10px!important;white-space:nowrap}}
+@media(orientation:portrait) and (max-width:340px){:is(.draft-scroll,.collector-deck-editor) .deck-card-stats{font-size:9px!important}}
 .draft-scroll .cardbtn{overflow:visible}
 /* Curses and relics share one rail; only the rail scrolls, without visible chrome. */
 .duel>.portrait-relics,.duel>.portrait-relics *{scrollbar-width:none}
@@ -1982,6 +1988,8 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .curse-icon.curse-spell_jammer img{filter:hue-rotate(120deg) saturate(1.25)}
 .curse-icon.curse-trap_jammer img{filter:hue-rotate(240deg) saturate(1.25)}
 .curse-icon.curse-monster_jammer img{filter:hue-rotate(40deg) saturate(1.25)}
+.curse-icon.curse-hand_limiter img{filter:hue-rotate(200deg) saturate(1.25)}
+.curse-icon.curse-effect_reverser img{filter:invert(1) hue-rotate(270deg) saturate(1.25)}
 
 .active-modifier-list{display:grid;gap:10px;max-height:min(70vh,680px);overflow:auto;padding:2px}
 .active-modifier-row{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;gap:12px}
@@ -2433,3 +2441,105 @@ html.text-scaled :is(.card-text,.inspect-effect,.mouse-details-effect,.prompt-co
 body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #modal.card-inspect-modal .collection-card-sources:not([hidden]){flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
 .zone.pile.summon-ready{border:2px solid #ffdf31;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;cursor:pointer}
+.start-swords{display:none}
+.opponent .reward .boost-icon,.tag-opponent .reward .boost-icon{object-fit:contain;image-rendering:auto}
+/* Portrait next-opponent rows: the rewards set each row's height, so a View deck button takes room from the portrait instead of the row. */
+@media(orientation:portrait) and (max-width:639px){
+ .page:not(.boss) .routes:not(.tag-routes){flex:1;grid-auto-rows:minmax(min-content,1fr);align-content:stretch;gap:6px;padding:6px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent{--hero:92px;--pad:6px;--deck:22px;position:relative;grid-template-columns:var(--hero) minmax(0,1fr) 88px;grid-template-rows:auto minmax(0,1fr);gap:0 8px;padding:var(--pad);height:auto;min-height:124px;align-self:center;align-items:center}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-hero{position:absolute;top:var(--pad);left:var(--pad);overflow:hidden;width:var(--hero)!important;height:calc(100% - var(--pad)*2)!important;min-height:0!important;max-height:none!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent.can-peek .encounter-hero{height:calc(100% - var(--pad)*2 - var(--deck) - 3px)!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-hero>img{max-height:100%}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{grid-column:2;font-size:12px;line-height:1.2;min-width:0}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:28px!important;height:28px!important;flex:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{grid-column:2;grid-row:2;align-self:stretch;gap:8px;min-height:0;height:auto;margin-top:4px;padding:3px 6px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.reward):not(.encounter-hero){position:absolute;left:var(--pad);bottom:var(--pad);width:var(--hero)!important;height:var(--deck)!important;min-height:0!important;margin:0!important;padding:0!important;font-size:11px;line-height:1}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack img{width:auto!important;height:clamp(40px,6.5dvh,60px)!important;flex:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack small{display:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.opponent-curses{grid-column:2/4}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{grid-column:3!important;grid-row:1/3!important;width:88px!important;align-self:stretch;display:grid;place-items:center;height:auto!important;min-height:0!important;padding:0!important;margin:0!important;background:#7a2b5ccc;border:2px solid #dd71a4;border-radius:16px;color:#fff;box-shadow:inset 0 0 0 1px #ffffff14}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .ui-icon,.page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-label{display:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-swords{display:block;width:60px;height:60px;stroke-width:1.7}
+}
+@media(orientation:portrait) and (max-width:639px) and (max-height:740px){
+ .page:not(.boss) .routes:not(.tag-routes){grid-template-rows:none;gap:4px;padding:4px}.page:not(.boss) .routes:not(.tag-routes) .opponent{--hero:78px;--pad:4px;min-height:92px;gap:0 6px;grid-template-columns:var(--hero) minmax(0,1fr) 66px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{font-size:11px}.page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:20px!important;height:20px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack img{height:36px!important}.page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{width:66px!important;border-radius:12px}.page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-swords{width:44px;height:44px}
+}
+@media(orientation:portrait) and (max-width:350px),(orientation:portrait) and (max-width:639px) and (max-height:600px){
+ .page:not(.boss) .routes:not(.tag-routes){gap:3px;padding:3px}.page:not(.boss) .routes:not(.tag-routes) .opponent{--hero:62px;--pad:3px;--deck:18px;min-height:74px;grid-template-columns:var(--hero) minmax(0,1fr) 50px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{font-size:10px;line-height:1.1}.page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:16px!important;height:16px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{gap:5px;margin-top:2px;padding:1px 4px}.page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack img{height:32px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.reward):not(.encounter-hero){font-size:10px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{width:50px!important;border-radius:10px}.page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-swords{width:34px;height:34px}
+}
+
+/* Landscape, desktop and wide portrait next-opponent rows: the same layout across the full width. */
+@media(orientation:landscape),(min-width:640px){
+ .page:not(.boss) .routes:not(.tag-routes){display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:repeat(5,minmax(0,1fr))!important;flex:1;min-height:0;height:auto!important;overflow:hidden!important;gap:8px!important;padding:10px!important;align-items:stretch!important;align-content:stretch!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent{display:grid!important;grid-template-columns:clamp(180px,17vw,320px) minmax(0,.9fr) minmax(0,1.3fr) clamp(130px,11vw,190px)!important;align-self:stretch!important;max-height:none!important;grid-template-rows:minmax(0,1fr) auto!important;align-items:center!important;gap:0 22px!important;padding:6px!important;min-height:0!important;height:auto!important;overflow:hidden!important;margin:0!important;max-width:none!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-hero{grid-column:1!important;grid-row:1/3!important;align-self:stretch;justify-self:stretch;width:100%!important;height:100%!important;aspect-ratio:auto!important;min-height:0!important;max-height:none!important;margin:0!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{grid-row:1;margin:0!important;min-height:0!important;min-width:0;font-size:clamp(16px,1.9dvh,22px)!important;line-height:1.2!important;gap:12px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack){grid-column:2!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:clamp(44px,6dvh,72px)!important;height:clamp(44px,6dvh,72px)!important;flex:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{grid-column:3!important;height:auto!important;padding:4px 12px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack img{height:clamp(36px,11.5dvh,136px)!important;width:auto!important;flex:none}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.opponent-curses{grid-column:2;grid-row:2;min-width:0;margin:0}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.reward):not(.encounter-hero){grid-column:3;grid-row:1;justify-self:end;margin:0 10px 0 0;padding:6px 12px;z-index:1}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{grid-column:4!important;grid-row:1/3!important;width:100%!important;height:100%!important;min-height:0!important;align-self:stretch;display:grid!important;place-items:center;padding:0!important;margin:0!important;position:static!important;background:#7a2b5ccc!important;border:2px solid #dd71a4!important;border-radius:16px!important;color:#fff;box-shadow:inset 0 0 0 1px #ffffff14!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .ui-icon,.page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-label{display:none!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-swords{display:block!important;width:clamp(72px,9dvh,104px);height:clamp(72px,9dvh,104px);stroke-width:1.7}
+}
+@media(orientation:landscape) and (max-height:650px){
+ .page:not(.boss) .routes:not(.tag-routes){gap:4px!important;padding:4px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent{grid-template-columns:128px minmax(0,.9fr) minmax(0,1.3fr) 84px!important;column-gap:10px!important;padding:3px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{font-size:12px!important;gap:7px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:28px!important;height:28px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{padding:1px 6px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.reward):not(.encounter-hero){margin-right:6px;padding:3px 7px;font-size:11px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary{border-radius:12px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button.primary .start-swords{width:40px;height:40px}
+}
+/* Rows too short to stack: the question mark and reveal price sit side by side. */
+@media(orientation:landscape) and (max-height:450px){
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-mystery>span{justify-content:flex-start;padding-left:12px;font-size:30px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-reveal .reveal-cost{top:0;left:30px;justify-content:flex-start;align-items:center;gap:6px;padding:0 2px;background:none;font-size:11px;letter-spacing:0}.page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-reveal .reveal-sep{display:none}
+}
+@media(orientation:portrait) and (min-width:640px){
+ .page:not(.boss) .routes:not(.tag-routes) .opponent{grid-template-columns:clamp(150px,22vw,260px) minmax(0,.9fr) minmax(0,1.3fr) clamp(100px,14vw,170px)!important;column-gap:14px!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward{font-size:clamp(14px,1.9vw,20px)!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.reward:not(.encounter-pack) img{width:clamp(36px,5.6vw,60px)!important;height:clamp(36px,5.6vw,60px)!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack{grid-row:1/3}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>.encounter-pack img{height:clamp(64px,9dvh,120px)!important}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent>button:not(.primary):not(.reward):not(.encounter-hero){grid-column:2!important;grid-row:2!important;justify-self:start;width:auto!important;height:auto!important;min-height:0!important;margin:6px 0 0!important;padding:5px 12px!important;font-size:13px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-mystery>span{font-size:clamp(56px,8vw,96px)}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-reveal .reveal-cost{flex-direction:row;gap:5px;padding:14px 4px 7px;font-size:13px}
+ .page:not(.boss) .routes:not(.tag-routes) .opponent .encounter-reveal .reveal-sep{display:inline}
+}
+/* The next-opponent header always stays on one line and shrinks to fit. */
+.route-page>header{flex-wrap:nowrap}
+.route-page>header h2{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.route-page>header .tools{flex:none;flex-wrap:nowrap}
+.route-coins{display:inline-flex;align-items:center;flex:none}
+@media(max-width:650px){
+ .route-page>header{gap:6px;min-height:0;padding:4px 8px}
+ .route-page>header h2{font-size:clamp(11px,3.7vw,16px)}
+ .route-page>header .header-extra{display:none}
+ .route-page>header .tools{gap:clamp(2px,1vw,6px)}
+ .route-page>header .route-coins{gap:3px;font-size:clamp(14px,5vw,20px)}.route-page>header .route-coins b{font-size:inherit}.route-page>header .route-coins img{width:1em;height:1em}
+ .route-page>header button{width:clamp(30px,9.5vw,38px);height:clamp(30px,9.5vw,38px);min-width:0;min-height:0;padding:0;display:inline-flex;align-items:center;justify-content:center}
+ .route-page>header button .navigation-icon,.route-page>header button .ui-icon{width:58%;height:58%;margin:0}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .route-page>header{min-height:0;padding:3px 10px}
+ .route-page>header h2{font-size:15px}
+ .route-page>header .route-coins{gap:3px;font-size:17px}.route-page>header .route-coins b{font-size:inherit}.route-page>header .route-coins img{width:1em;height:1em}
+ .route-page>header button{width:34px;height:34px;min-width:0;min-height:0;padding:0;display:inline-flex;align-items:center;justify-content:center}
+ .route-page>header button .navigation-icon,.route-page>header button .ui-icon{width:58%;height:58%;margin:0}
+}
+@media(max-width:340px){
+ .route-page>header{gap:4px;padding-inline:6px}
+ .route-page>header h2{font-size:10px}
+ .route-page>header .route-coins{font-size:13px}
+ .route-page>header button{width:28px;height:28px}
+}
