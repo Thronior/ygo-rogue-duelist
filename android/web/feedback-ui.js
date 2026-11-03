@@ -88,5 +88,5 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
 }
 
-export function deckCardMarkup(html,c,r,i,info){const fresh=i>=(r.new_cards_from??r.pool.length),stats=c.data.type&1?deckStats(c,r,i,info):null;return html.replace('</button>',`${misprintBadges(c,r,i)}${fresh?'<b class="new-card-marker">NEW</b>':''}${stats?`<span class="deck-card-stats" aria-label="ATK ${stats[0]}, DEF ${stats[1]}">${stats[0]} / ${stats[1]}</span>`:''}</button>`);}
+export function deckCardMarkup(html,c,r,i,info){const fresh=i>=(r.new_cards_from??r.pool.length),stats=c.data.type&1?deckStats(c,r,i,info).map((v,n)=>(n?c.defense:c.atk)<0?'?':v):null;return html.replace('</button>',`${misprintBadges(c,r,i)}${fresh?'<b class="new-card-marker">NEW</b>':''}${stats?`<span class="deck-card-stats" aria-label="ATK ${stats[0]}, DEF ${stats[1]}">${stats[0]} / ${stats[1]}</span>`:''}</button>`);}
 

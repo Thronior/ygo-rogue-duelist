@@ -2,6 +2,7 @@
 import json,sys,urllib.error,urllib.request
 from pathlib import Path
 from datetime import datetime,timezone
+import safe_write;safe_write.install()
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 

@@ -3,6 +3,7 @@ from pathlib import Path
 import sys,json,shutil,zipfile,subprocess,hashlib,time,os,sqlite3
 from PIL import Image
 from mobile_bundle import web_files
+import safe_write;safe_write.install()
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 BUILD_TEMP=ROOT/'temp/build';BUILD_TEMP.mkdir(parents=True,exist_ok=True)
 os.environ['TMP']=os.environ['TEMP']=str(BUILD_TEMP)
@@ -37,6 +38,8 @@ def sync():
   if p.name!='cards.json':files['data/'+p.name]=p.read_text(encoding='utf8')
  for p in (ROOT/'data/decks').glob('*'):files['data/decks/'+p.name]=p.read_text(encoding='utf8')
  (WEB/'campaign-files.json').write_text(json.dumps(files,ensure_ascii=False),encoding='utf8')
+ from cache_tokens import audit
+ audit(game.CARDS)
  tokens=json.loads((ROOT/'data/tokens.json').read_text());token_cards=[]
  with sqlite3.connect(ROOT/'runtime/expansions/cards.cdb') as db:
   for token in tokens:
@@ -48,6 +51,10 @@ def sync():
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES]
+ meta['bossDeckNames']=json.loads((ROOT/'data/boss-deck-names.json').read_text(encoding='utf8'))['names']
+ voices=ROOT/'assets/sfx/boss'
+ meta['ultimateCollectors']=sorted(content.UC_OPPONENTS)
+ meta['bossVoices']=sorted(p.name for p in voices.iterdir() if p.suffix in ('.mp3','.wav')) if voices.exists() else []
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
  from campaign_catalog import watch_catalog
  meta.update(watch_catalog())
@@ -68,7 +75,7 @@ def sync():
  scripts=json.loads((WEB/'scripts.json').read_text(encoding='utf8'))
  scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
  scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
- for card in (78637313,53119267,93599951,85562745,94585852):
+ for card in (78637313,53119267,93599951,85562745,94585852,49511705):
   scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
  if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
  # Pre-errata versions run under the original passcode, so they must not name their own EDOPro variant ID.

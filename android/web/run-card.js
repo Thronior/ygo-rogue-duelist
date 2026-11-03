@@ -13,18 +13,24 @@ const LOSS={rim:28,frame:[[0,'#a3aeb7'],[.5,'#7c8892'],[1,'#56616b']],
  tint:'rgba(14,32,42,.46)',glow:'rgba(160,182,196,.1)',panel:'rgba(10,25,34,.86)',line:'rgba(98,137,148,.8)',row:'rgba(25,49,61,.92)',
  ink:'#e8f3f1',soft:'#a9c1c8',accent:'#ff838a',good:'#85ceaa',bad:'#ff838a',edgeLight:'rgba(240,244,248,.55)',edgeDark:'rgba(0,0,0,.6)'};
 
-// Level 6 frame, matching the rolling rainbow on the roster in mobile.css.
-const RAINBOW=[[0,'#ff4f8b'],[.15,'#ff9f43'],[.3,'#ffe45c'],[.45,'#5cf08f'],[.6,'#45c8ff'],[.75,'#8f6bff'],[.9,'#ff5fd2'],[1,'#ff4f8b']];
 function rgb(hex){const n=parseInt(hex.slice(1),16);return [n>>16,n>>8&255,n&255]}
 function rgba(hex,a){return `rgba(${rgb(hex).join(',')},${a})`}
 function mix(a,b,k){const x=rgb(a),y=rgb(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('')}
 // A won run's tablet is polished metal in the colour of the challenge level it cleared.
-function winStyle(level){
+// Special clears. Champion beats Flawless, then Relicless, then Level 6.
+const SPECIAL={
+ relicless:{frame:[[0,'#2b2f33'],[.2,'#8d969e'],[.4,'#4a5157'],[.5,'#d6dde2'],[.6,'#4a5157'],[.8,'#8d969e'],[1,'#2b2f33']],metal:['#4a5157','#8d969e','#d6dde2'],flair:null,accent:'#d6dde2',good:'#d6dde2',soft:'#c3ccd2',line:'rgba(141,150,158,.6)',glow:'rgba(214,221,226,.12)'},
+ champion:{frame:[[0,'#120d05'],[.18,'#b8862a'],[.34,'#2a1e0a'],[.5,'#ffe9a3'],[.66,'#2a1e0a'],[.84,'#b8862a'],[1,'#120d05']],metal:['#2a1e0a','#b8862a','#ffe9a3'],flair:'glitter',accent:'#ffd76e',good:'#ffd76e',soft:'#e8d7a8',line:'rgba(184,134,42,.6)',glow:'rgba(255,215,110,.16)',tint:'rgba(8,6,2,.62)',panel:'rgba(14,10,4,.88)',row:'rgba(34,26,12,.92)'},
+ flawless:{frame:[[0,'#8fa5c9'],[.2,'#ffffff'],[.4,'#c9d8ee'],[.5,'#ffffff'],[.6,'#c9d8ee'],[.8,'#ffffff'],[1,'#8fa5c9']],metal:['#c9d8ee','#ffffff','#ffffff'],flair:'prism',accent:'#e6f0ff',good:'#bfe0ff',soft:'#dbe6f5',line:'rgba(201,216,238,.7)',glow:'rgba(255,255,255,.2)'},
+ shadow:{frame:[[0,'#160622'],[.18,'#7a3fd1'],[.34,'#2a0f4a'],[.5,'#e6c8ff'],[.66,'#2a0f4a'],[.84,'#7a3fd1'],[1,'#160622']],metal:['#2a0f4a','#7a3fd1','#e6c8ff'],flair:'prism',accent:'#d9b0ff',good:'#d9b0ff',soft:'#d8c6ec',line:'rgba(122,63,209,.65)',glow:'rgba(166,107,255,.2)',tint:'rgba(14,4,24,.6)',panel:'rgba(16,6,28,.88)',row:'rgba(34,16,54,.92)'}
+};
+export const runCardVariant=(r,level)=>r.stage!=='complete'?null:r.encore_won?'champion':r.stats?.damage_taken===0?'flawless':level<0?'relicless':level===6?'shadow':null;
+function winStyle(level,variant=null){
  const [a,b,edge]=LEVEL_COLORS[level]||LEVEL_COLORS[0],shine=mix(edge,'#ffffff',.65);
- // The top two levels get a rarity-style foil on top of the metal: gold glitter, then a rainbow frame with prismatic secret-rare foil.
- return {rim:44,frame:level===6?RAINBOW:[[0,b],[.18,edge],[.34,a],[.5,shine],[.66,a],[.84,edge],[1,b]],metal:[a,edge,shine],flair:level===6?'prism':level===5?'glitter':null,
+ // Level 5 gets a rarity-style gold glitter on top of the metal.
+ return {rim:44,frame:[[0,b],[.18,edge],[.34,a],[.5,shine],[.66,a],[.84,edge],[1,b]],metal:[a,edge,shine],flair:level===5?'glitter':null,
   tint:'rgba(14,34,46,.42)',glow:rgba(a,.22),panel:'rgba(10,27,37,.84)',line:rgba(edge,.55),row:'rgba(25,49,61,.9)',
-  ink:'#f4f8f8',soft:mix(edge,'#e8f3f1',.55),accent:edge,good:edge,bad:'#ff838a',edgeLight:'rgba(255,255,255,.9)',edgeDark:rgba(mix(b,'#000000',.4),.85)}
+  ink:'#f4f8f8',soft:mix(edge,'#e8f3f1',.55),accent:edge,good:edge,bad:'#ff838a',edgeLight:'rgba(255,255,255,.9)',edgeDark:rgba(mix(b,'#000000',.4),.85),...SPECIAL[variant]}
 }
 
 function addRR(ctx,x,y,w,h,r){ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
@@ -239,23 +245,34 @@ function drawRelics(ctx,d,t,slots){
 }
 
 // Same rows as the in-game run timeline: dark teal with a win or loss stripe.
+const BOSS_TINT='#ffd76e';
 function duelRecord(ctx,d,t,x,y,w){
  heading(ctx,t,d.recordTitle,x+w/2,y);
  const gap=10,tw=(w-gap*2)/3,th=64,top=y+16;
  for(let i=0;i<d.runLength;i++){
   const entry=d.duels[i],duel=entry?.name?entry:null,boss=(i+1)%BOSS_EVERY===0,tx=x+(i%3)*(tw+gap),ty=top+Math.floor(i/3)*(th+gap);
   ctx.save();if(!duel)ctx.globalAlpha=.55;path(ctx,c=>addRR(c,tx,ty,tw,th,4));ctx.fillStyle=t.row;ctx.fill();
+  // Boss rows carry the card's accent colour.
+  if(boss){ctx.fillStyle=rgba(BOSS_TINT,.2);ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=rgba(BOSS_TINT,.75);ctx.stroke()}
   if(duel){ctx.fillStyle=duel.won?t.good:t.bad;ctx.fillRect(tx,ty,5,th)}ctx.restore();
-  text(ctx,t,roman(i+1),tx+34,ty+41,{size:24,family:SERIF,align:'center',fit:48,min:14,color:boss?t.accent:t.soft});
-  text(ctx,t,duel?duel.name:entry?.missing?'Not recorded':'Not reached',tx+66,ty+29,{size:21,max:tw-76,weight:duel?'bold':'normal',color:duel?t.ink:t.soft});
+  if(duel?.img){
+   // The whole sprite, fitted inside the square.
+   const size=52,bx=tx+11,by=ty+6,img=duel.img,fit=(size-4)/Math.max(img.width,img.height),iw=img.width*fit,ih=img.height*fit;
+   ctx.save();path(ctx,c=>addRR(c,bx,by,size,size,6));ctx.fillStyle=t.panel;ctx.fill();ctx.clip();ctx.imageSmoothingQuality='high';ctx.drawImage(img,bx+(size-iw)/2,by+(size-ih)/2,iw,ih);ctx.restore();
+   ctx.save();path(ctx,c=>addRR(c,bx,by,size,size,6));ctx.lineWidth=boss?2.5:1;ctx.strokeStyle=boss?BOSS_TINT:t.line;ctx.stroke();ctx.restore();
+   // The duel number stays readable in the portrait's corner.
+   ctx.save();path(ctx,c=>addCircle(c,bx+1,by+1,11));ctx.fillStyle=boss?BOSS_TINT:'#0a1b25';ctx.fill();ctx.lineWidth=1;ctx.strokeStyle=boss?'#fff3c4':t.line;ctx.stroke();ctx.restore();
+   text(ctx,t,String(i+1),bx+1,by+6,{size:15,align:'center',weight:'bold',color:boss?'#20180a':t.ink});
+  }else text(ctx,t,roman(i+1),tx+34,ty+41,{size:24,family:SERIF,align:'center',fit:48,min:14,color:boss?t.accent:t.soft});
+  text(ctx,t,duel?duel.name:entry?.missing?'Not recorded':'Not reached',tx+72,ty+29,{size:21,max:tw-82,weight:duel?'bold':'normal',color:duel?(boss?BOSS_TINT:t.ink):t.soft});
   const result=duel?`${duel.won?'Win':'Loss'} · ${duel.lp.toLocaleString('en-US')} LP${boss?' · Boss':''}`:boss?'Boss':'';
-  if(result)text(ctx,t,result,tx+66,ty+53,{size:18,weight:'normal',color:duel&&!duel.won?t.bad:t.soft,max:tw-76})
+  if(result)text(ctx,t,result,tx+72,ty+53,{size:18,weight:'normal',color:duel&&!duel.won?t.bad:t.soft,max:tw-82})
  }
 }
 
 export function drawRunCard(canvas,d){
  canvas.width=W;canvas.height=H;
- const ctx=canvas.getContext('2d'),t=d.won?winStyle(d.challengeLevel):LOSS,tex=d.textures||{};
+ const ctx=canvas.getContext('2d'),t=d.won?winStyle(d.challengeLevel,d.variant):LOSS,tex=d.textures||{};
  let seed=(d.seed>>>0)||1;const rand=()=>{seed^=seed<<13;seed>>>=0;seed^=seed>>>17;seed^=seed<<5;seed>>>=0;return seed/4294967296};
  const shape=slabShape(d.won,rand),top=206;
  ctx.fillStyle='#030a0f';ctx.fillRect(0,0,W,H);
@@ -286,7 +303,7 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  const timeline=r.timeline||[],loop=Math.max(1,...timeline.map(x=>x.loop||1)),latest=timeline.filter(x=>(x.loop||1)===loop);
  // Runs that started before the timeline existed still show which duels were played.
  const played=won?runLength:Math.min(runLength,(r.round||0)+1);
- const duels=Array.from({length:runLength},(_,i)=>{const x=latest.find(x=>x.duel===i+1);return x?{name:names(x.opponent),won:!!x.won,lp:+x.lp_after_healing||0}:i<played?{missing:true}:null});
+ const duels=Array.from({length:runLength},(_,i)=>{const x=latest.find(x=>x.duel===i+1);return x?{name:names(x.opponent),sprite:content.characters[x.opponent]?.sprite?assetURL(`assets/${content.characters[x.opponent].sprite}`):null,won:!!x.won,lp:+x.lp_after_healing||0}:i<played?{missing:true}:null});
  const lost=latest.find(x=>!x.won),lostDuel=lost?.duel||played;
  const counts=new Map();for(const id of r.artifacts||[])counts.set(id,(counts.get(id)||0)+1);
  // Boss rewards record their cursed picks; older runs only have the cursed_ prefix to go on.
@@ -297,11 +314,12 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  const curses=[...curseCounts].map(([k,count])=>({key:k,name:content.curses?.[k]?.[0]||k,count,src:assetURL(curseIconFile(k))}));
  const s=r.stats||{},stats=[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]].map(([k,v])=>[k,count(v)]);
  const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
- const d={won,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
+ const variant=runCardVariant(r,level),d={won,variant,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
   recordTitle:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
   textures:{backdrop:assetURL('assets/character-select-background.png'),stone:assetURL('assets/ui/run-card-stone.jpg'),cracks:assetURL('assets/ui/run-card-cracks.jpg')}};
  if(won){
-  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`.toUpperCase():`CHALLENGE LEVEL ${level} CLEARED`;
+  if(variant==='flawless')d.eyebrow='FLAWLESS RUN · NO DAMAGE TAKEN';
+  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`.toUpperCase():level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
   // Card artwork is already cached by the startup preload, so the deck uses the same images as the rest of the game.
   const ids=(r.selected||[]).map(i=>r.pool?.[i]).filter(id=>card(id)),extra=id=>card(id).data.type&64;
   d.deck={main:deckOrder(ids.filter(id=>!extra(id)),card).map(cardImage),extra:deckOrder(ids.filter(extra),card).map(cardImage)};
@@ -320,8 +338,8 @@ const load=src=>src?new Promise(resolve=>{const img=new Image(),done=v=>{clearTi
 async function withImages(d){
  const [portrait,stone,cracks,backdrop,relics,main,extra,card]=await Promise.all([load(d.portrait),load(d.textures.stone),load(d.textures.cracks),load(d.textures.backdrop),
   Promise.all(d.relics.map(async r=>({...r,img:await load(r.src)}))),Promise.all((d.deck?.main||[]).map(load)),Promise.all((d.deck?.extra||[]).map(load)),load(d.outcome?.card)]);
- const curses=await Promise.all((d.curses||[]).map(async c=>({...c,img:await load(c.src)})));
- return {...d,portrait,textures:{stone,cracks,backdrop},relics,curses,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
+ const curses=await Promise.all((d.curses||[]).map(async c=>({...c,img:await load(c.src)}))),duels=await Promise.all(d.duels.map(async x=>x?.sprite?{...x,img:await load(x.sprite)}:x));
+ return {...d,duels,portrait,textures:{stone,cracks,backdrop},relics,curses,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
 }
 
 let displayFace=null;

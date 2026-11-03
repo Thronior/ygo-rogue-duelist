@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {runCardData} from './web/run-card.js';
+import {runCardData,runCardVariant} from './web/run-card.js';
 
 const content=JSON.parse(fs.readFileSync(new URL('./web/content.json',import.meta.url),'utf8'));
 const cards=new Map(content.cards.map(c=>[c.id,c]));
@@ -56,4 +56,17 @@ assert.deepEqual(cursed.curses.map(({key,name,count,src})=>[key,name,count,src])
 const stacked=runCardData({stage:'gameover',character:1,round:5,timeline:[{...duel(3,10,true,8000,1),curses:['tax','tax']},{...duel(6,10,false,0,1),curses:['drain','drain','tax']}],loss:{text:'x',card:null}},{...deps,character:content.characters[1]});
 assert.deepEqual(stacked.curses.map(({key,count})=>[key,count]),[['drain',2],['tax',1]]);
 assert.deepEqual(runCardData({stage:'gameover',character:1,round:4,timeline:[{...duel(3,10,true,8000,1),curses:['tax']},{...duel(4,10,false,0,1),curses:[]}],loss:{text:'x',card:null}},{...deps,character:content.characters[1]}).curses,[],'a final duel without curses shows no strip');
+// Special clears, in priority order. Old runs have no damage record, so they are never Flawless.
+{
+ const c=(stage,level,extra={})=>runCardVariant({stage,...extra},level);
+ assert.equal(c('complete',3,{stats:{damage_taken:0},encore_won:true}),'champion');
+ assert.equal(c('complete',6,{stats:{damage_taken:0}}),'flawless');
+ assert.equal(c('complete',-1,{stats:{damage_taken:900}}),'relicless');
+ assert.equal(c('complete',6,{stats:{damage_taken:900}}),'shadow');
+ assert.equal(c('complete',3,{stats:{}}),null,'no record, no Flawless');
+ assert.equal(c('complete',4,{stats:{damage_taken:1}}),null);
+ assert.equal(c('gameover',6,{stats:{damage_taken:0}}),null,'losses keep the stone tablet');
+ const d=runCardData({stage:'complete',character:1,round:9,challenge_level:2,stats:{damage_taken:0},timeline:[]},{...deps,character:content.characters[1]});
+ assert.equal(d.variant,'flawless');assert.equal(d.eyebrow,'FLAWLESS RUN · NO DAMAGE TAKEN');
+}
 console.log('run card data ok');

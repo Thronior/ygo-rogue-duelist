@@ -102,11 +102,11 @@ end'''
  local id=0x7f34a1
  local coin=Effect.GlobalEffect() coin:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) coin:SetCode(EVENT_TOSS_COIN_NEGATE)
  coin:SetCondition(function(e,tp,eg,ep) return ep==0 and Duel.GetFlagEffect(0,id)==0 end)
- coin:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossCoin(ep,ev) end)
+ coin:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end --[[relic-hint]] Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossCoin(ep,ev) end)
  Duel.RegisterEffect(coin,0)
  local dice=Effect.GlobalEffect() dice:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) dice:SetCode(EVENT_TOSS_DICE_NEGATE)
  dice:SetCondition(function(e,tp,eg,ep) return ep==0 and Duel.GetFlagEffect(0,id)==0 end)
- dice:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossDice(ep,ev&0xff,ev>>16) end)
+ dice:SetOperation(function(e,tp,eg,ep,ev) if Duel.GetFlagEffect(0,id)>0 then return end --[[relic-ask]] if not Duel.SelectYesNo(0,id) then return end --[[relic-hint]] Duel.RegisterFlagEffect(0,id,RESET_PHASE|PHASE_END,0,1) Duel.TossDice(ep,ev&0xff,ev>>16) end)
  Duel.RegisterEffect(dice,0)
 end'''
  if kind=='tribute_free':return '''do
@@ -171,7 +171,7 @@ e:SetCondition(function() return Duel.GetTurnPlayer()==0 end)
 e:SetOperation(function()
  local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsLevelAbove(2) end,0,LOCATION_HAND,0,nil)
  if #g==0 then return end
- local c=g:RandomSelect(0,1):GetFirst()
+ --[[relic-hint]] local c=g:RandomSelect(0,1):GetFirst()
  local d=Effect.CreateEffect(c) d:SetType(EFFECT_TYPE_SINGLE) d:SetCode(EFFECT_UPDATE_LEVEL) d:SetValue(-1) d:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(d)
 end) Duel.RegisterEffect(e,0) end'''
  if kind=='normal_spell_immune':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_IMMUNE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)

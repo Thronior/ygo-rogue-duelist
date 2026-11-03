@@ -55,6 +55,8 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 	c:RegisterEffect(e2)
 end
 function s.coinregop(e,tp,eg,ep,ev,re,r,rp)
+	--A re-toss reports once itself, then again as the toss it replaced
+	if re and re:GetCode()==EVENT_TOSS_COIN_NEGATE then return end
 	local ct=aux.GetCoinHeadsFromEv(ev)
 	for i=1,ct do
 		--Register a flag for every head

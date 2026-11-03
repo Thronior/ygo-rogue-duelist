@@ -19,7 +19,7 @@ def effect(kind):
  from approved_relic_effects import stat,event
  key=kind[8:]
  if key=='chitin_carapace':return stat('EFFECT_UPDATE_DEFENSE',400,'c:IsRace(RACE_INSECT)')
- if key=='machine_foundry':return event('EVENT_SPSUMMON_SUCCESS','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_FUSION) end,nil) for i=1,n do Duel.Hint(HINT_MESSAGE,0,900000003) end')
+ if key=='machine_foundry':return event('EVENT_SPSUMMON_SUCCESS','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_FUSION) end,nil) if n>0 then --[[relic-hint]] end for i=1,n do Duel.Hint(HINT_MESSAGE,0,900000003) end')
  if key=='swordsman_oath':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(SET_LV)')
  if key=='static_coil':
   # Shared label prevents mirrored copies from triggering one another forever.

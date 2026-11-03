@@ -33,7 +33,7 @@ def effect(kind):
  elif key=='ritual_vestment':both(300,'c:IsType(TYPE_RITUAL)')
  elif key=='fusion_insignia':both(300,'c:IsType(TYPE_FUSION)')
  elif key=='tribute_dividend':
-  out.append(event('EVENT_SUMMON_SUCCESS','Duel.Hint(HINT_MESSAGE,0,900000002)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) end,1,nil)'))
+  out.append(event('EVENT_SUMMON_SUCCESS','--[[relic-hint]] Duel.Hint(HINT_MESSAGE,0,900000002)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) end,1,nil)'))
  elif key=='patient_guardian':out.append(phase('STANDBY','Duel.Recover(0,300,REASON_EFFECT)','not Duel.IsExistingMatchingCard(Card.IsAttackPos,0,LOCATION_MZONE,0,1,nil)'))
  elif key=='healing_echo':
   # Shared label excludes every Echo instance, including Magic Mirror, from recursion.
@@ -62,7 +62,7 @@ def effect(kind):
   # Each copy keeps its own count, as Tag seats and Relic Mirror register separately. RITUAL_SCAR_COUNT comes from passives.py;
   # the hint tells finish_duel to carry this duel's summons over.
   out.append('do local n=RITUAL_SCAR_COUNT');atk('function() return 100*n-500 end')
-  out.append(event('EVENT_SPSUMMON_SUCCESS','local g=eg:Filter(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,nil) n=n+#g for c in g:Iter() do Duel.Hint(HINT_MESSAGE,c:GetControler(),1900000051) end'));out.append('end')
+  out.append(event('EVENT_SPSUMMON_SUCCESS','local g=eg:Filter(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,nil) n=n+#g if #g>0 then --[[relic-hint]] end for c in g:Iter() do Duel.Hint(HINT_MESSAGE,c:GetControler(),1900000051) end'));out.append('end')
  elif key=='fusion_fever':
   atk(1000,'c:IsType(TYPE_FUSION)');out.append(stat('EFFECT_PIERCE',1,'c:IsType(TYPE_FUSION)'))
   for code in ('EFFECT_CANNOT_SUMMON','EFFECT_CANNOT_MSET'):out.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c) return c:GetTributeRequirement()>0 end) Duel.RegisterEffect(e,0) end')
@@ -71,11 +71,14 @@ def effect(kind):
  elif key=='crowded_crypt':atk('function() return math.min(750,75*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end');handlimit(2)
  elif key=='golden_grave':defense(-400)
  elif key=='scorched_clock':out.extend([phase('STANDBY','Duel.Damage(1,400,REASON_EFFECT)'),phase('END','Duel.Damage(0,300,REASON_EFFECT)')])
- elif key=='reckless_spear':out.append(stat('EFFECT_PIERCE',1))
+ elif key=='reckless_spear':out.append(stat('EFFECT_DIRECT_ATTACK',1));atk(-1000)
  elif key=='nocturnal_guard':defense(600,'Duel.GetTurnPlayer()==1');atk(-300,'Duel.GetTurnPlayer()==0')
  elif key=='narrow_gate':
   out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
- elif key=='trapbound_idol':atk(1000,'c:IsType(TYPE_TRAPMONSTER)');defense(-1000,'c:IsType(TYPE_TRAPMONSTER)')
+ elif key=='trapbound_idol':
+  out.append(stat('EFFECT_INDESTRUCTABLE_BATTLE',1,'c:IsType(TYPE_TRAPMONSTER)'))
+  # Paid as the card activates, so a Spell you cannot afford cannot be activated.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ACTIVATE_COST) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,te,tp) return te:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_SPELL) end) e:SetCost(function(e,te,tp) return Duel.CheckLPCost(tp,300) end) e:SetOperation(function(e,tp) Duel.PayLPCost(tp,300) end) Duel.RegisterEffect(e,0) end')
  elif key=='burn_proficiency':
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(0,1) e:SetValue(function(e,re,val,r,rp) if val<=0 or rp~=0 or (r&REASON_EFFECT)==0 then return val end return math.floor(val*1.5) end) Duel.RegisterEffect(e,0) end')
  elif key=='defense_proficiency':
@@ -119,11 +122,11 @@ Duel.RegisterEffect(e,0) end''')
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])
  return '\n'.join(out)
 
-def ominous_clock(run):
+def ominous_clock(run,hint=''):
  from approved_relics import copies
  base=int(run.get('clock_turns',0))
  return '\n'.join([f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end)
-e:SetOperation(function() local amount=600-100*math.floor(({base}+Duel.GetTurnCount())/10) if amount>0 then Duel.Damage(1,amount,REASON_EFFECT) elseif amount<0 then Duel.Recover(1,-amount,REASON_EFFECT,false,0) end end) Duel.RegisterEffect(e,0) end''']*copies(run,'cursed_ominous_clock'))
+e:SetOperation(function() {hint}local amount=600-100*math.floor(({base}+Duel.GetTurnCount())/10) if amount>0 then Duel.Damage(1,amount,REASON_EFFECT) elseif amount<0 then Duel.Recover(1,-amount,REASON_EFFECT,false,0) end end) Duel.RegisterEffect(e,0) end''']*copies(run,'cursed_ominous_clock'))
 
 def effect_reverser(scale):
  # Reversed Remedy's method, without its LP-cost rule. Emitted after the relics, where RogueRemedyUndo means Reversed
@@ -162,10 +165,11 @@ def miller(scale):
  count='math.floor(Duel.GetFieldGroupCount(0,LOCATION_DECK,0)/2)' if scale>=2 else '10'
  return f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end) e:SetOperation(function(e) e:Reset() Duel.DiscardDeck(0,{count},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'
 
-def battle_rules(run):
+def battle_rules(run,relic_hint=lambda key:''):
  from approved_relics import copies
  shield=.5**copies(run,'cursed_defense_proficiency')
  out=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'battle_proficiency'))*shield
- inc=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'cursed_reckless_spear'))*shield
+ inc=1.5**copies(run,'cursed_duelists_wager')*shield
  if out==1 and inc==1:return ''
- return event('EVENT_PRE_BATTLE_DAMAGE',f'Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*(ep==0 and {inc} or {out})))')
+ def shown(*keys):return ''.join(relic_hint(key) for key in keys if copies(run,key))
+ return event('EVENT_PRE_BATTLE_DAMAGE',f"if Duel.GetBattleDamage(ep)>0 then if ep==0 then {shown('cursed_duelists_wager','cursed_defense_proficiency')}else {shown('cursed_duelists_wager','battle_proficiency','cursed_defense_proficiency')}end end Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*(ep==0 and {inc} or {out})))")

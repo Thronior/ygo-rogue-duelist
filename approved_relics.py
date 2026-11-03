@@ -54,10 +54,10 @@ CURSED=[
 (29,'golden_grave','Golden Grave','After each victory, earn 6 additional coins for each monster in your GY (max. 90). Monsters you control lose 400 DEF.','Foolish Burial'),
 (33,'scorched_clock','Scorched Clock','Once per turn, at the start of your Standby Phase, inflict 400 damage to your opponent. Once per turn, at the start of your End Phase, take 300 damage.','Ookazi'),
 (35,'duelists_wager',"Duelist's Wager",'Increase battle damage either player takes by 50% (rounded down).','Gamble'),
-(37,'reckless_spear','Reckless Spear','If a monster you control attacks a Defense Position monster, inflict piercing battle damage. Increase battle damage you take by 50% (rounded down).','Fairy Meteor Crush'),
+(37,'reckless_spear','Reckless Spear','Monsters you control can attack directly. They lose 1000 ATK.','Fairy Meteor Crush'),
 (38,'nocturnal_guard','Nocturnal Guard','During your opponent\'s turn, monsters you control gain 600 DEF. During your turn, monsters you control lose 300 ATK.','Castle Walls'),
 (40,'narrow_gate','Narrow Gate','Neither player can use the fourth or fifth Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
-(42,'trapbound_idol','Trapbound Idol','Your Trap Monsters gain 1000 ATK. They lose 1000 DEF.','Embodiment of Apophis'),
+(42,'trapbound_idol','Trapbound Idol','Your Trap Monsters cannot be destroyed by battle. You pay 300 LP to activate each Spell Card.','Embodiment of Apophis'),
 (44,'iron_silence','Iron Silence','Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate your activated monster effects in all locations.','Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
 (48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 1).','Time Wizard'),
@@ -76,7 +76,7 @@ CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
 CURSED_PARTS={
- 'cursed_trapbound_idol':('Your Trap Monsters gain 1000 ATK.','They lose 1000 DEF.'),
+ 'cursed_trapbound_idol':('Your Trap Monsters cannot be destroyed by battle.','You pay 300 LP to activate each Spell Card.'),
  'cursed_jesters_coin':('At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase.','Tails: they lose 300 ATK/DEF until then.'),
  'glass_shard':('Coin rewards are doubled.','You start every duel with 2000 LP.'),
  'cursed_duelists_wager':('Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'),

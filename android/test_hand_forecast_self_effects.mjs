@@ -21,6 +21,13 @@ reset();put(0,L.HAND,c('Amazoness Tiger',L.HAND));put(0,L.MZONE,c('Amazoness Swo
 // Field Spells and relics.
 reset();put(0,L.HAND,c("Gravekeeper's Spy",L.HAND));put(0,L.SZONE,{...c('Necrovalley',L.SZONE),sequence:5});is("Gravekeeper's Spy",[1700,2500],'Necrovalley +500/+500');
 reset([{effect:'eclipse',amount:350}]);put(0,L.HAND,c('Battle Ox',L.HAND));put(0,L.GRAVE,c('Shining Angel',L.GRAVE),c('Ryu-Kishin',L.GRAVE));is('Battle Ox',[2050,1350],'Eclipse ATK and DEF');
+// Printed ? stats forecast their real value, never the raw -2.
+reset();put(0,L.HAND,c('Gren Maju Da Eiza',L.HAND));is('Gren Maju Da Eiza',[0,0],'nothing banished');
+reset();put(0,L.HAND,c('Gren Maju Da Eiza',L.HAND));put(0,L.REMOVED,c('Battle Ox',L.REMOVED),c('Battle Ox',L.REMOVED),c('Battle Ox',L.REMOVED));is('Gren Maju Da Eiza',[1200,1200],'400 per banished card');
+reset();put(0,L.HAND,c('The Wicked Eraser',L.HAND));put(1,L.MZONE,c('Battle Ox',L.MZONE,1),c('Battle Ox',L.MZONE,1));put(1,L.SZONE,c('Dark Hole',L.SZONE,1));is('The Wicked Eraser',[3000,3000],'1000 per card your opponent controls');
+reset();put(0,L.HAND,c('Slifer the Sky Dragon',L.HAND),c('Battle Ox',L.HAND),c('Battle Ox',L.HAND));is('Slifer the Sky Dragon',[2000,2000],'1000 per other card in hand');
+reset();put(0,L.HAND,c('Maju Garzett',L.HAND));put(0,L.MZONE,c('Battle Ox',L.MZONE),c('Axe Raider',L.MZONE),c('Summoned Skull',L.MZONE));is('Maju Garzett',[3400,0],'its two cheapest Tributes, and its printed DEF');
+reset([{effect:'eclipse',amount:350}]);put(0,L.HAND,c('Gren Maju Da Eiza',L.HAND));put(0,L.GRAVE,c('Shining Angel',L.GRAVE),c('Ryu-Kishin',L.GRAVE));put(0,L.REMOVED,c('Battle Ox',L.REMOVED));is('Gren Maju Da Eiza',[750,750],'relic bonuses add on top');
 // A Tribute Summon's tribute is in the GY when it lands.
 reset([{effect:'approved_crowded_crypt'}]);put(0,L.HAND,c('Summoned Skull',L.HAND));put(0,L.MZONE,c('Battle Ox',L.MZONE));is('Summoned Skull',[2575,1200],'75 per GY monster, tribute included');
 console.log(`PASS hand forecast own effects, Field Spells, Eclipse and tribute counts: ${checks} checks`);

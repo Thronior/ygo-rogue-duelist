@@ -4,13 +4,16 @@ from pathlib import Path
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 # Variant ranges are the actual IDs in the bundled summoning scripts.
-SUMMONERS={75622824:[75622825],86871614:[86871615],86801871:[86801872],12965761:[12965762],24874630:[24874631],91512835:[91512836],21770260:[21770261],62543393:[62543394],22493811:[22493812],40703222:[40703223],29843091:[29843092,29843093,29843094],63442604:[63442605],73915051:[73915052,73915053,73915054,73915055],65810489:[65810490],60764581:[60764582,60764583]}
-def manifest():
- cards=json.loads((ROOT/'data/era-cards.json').read_text(encoding='utf8'));byid={c['id']:c for c in cards}
+SUMMONERS={75622824:[75622825],86871614:[86871615],86801871:[86801872],12965761:[12965762],24874630:[24874631],91512835:[91512836],21770260:[21770261],62543393:[62543394],22493811:[22493812],40703222:[40703223],29843091:[29843092,29843093,29843094],63442604:[63442605],73915051:[73915052,73915053,73915054,73915055],65810489:[65810490],60764581:[60764582,60764583],82556058:[82556059]}
+def audit(cards):
+ # The client only has a name and art for catalogued tokens; any other token looks like an empty zone.
  for card in cards:
   path=ROOT/'runtime/script/official'/f'c{card["id"]}.lua'
   if path.exists() and 'Duel.CreateToken' in path.read_text(encoding='utf8'):
    assert card['id'] in SUMMONERS,('Uncatalogued token summoner',card['name'])
+def manifest():
+ cards=json.loads((ROOT/'data/era-cards.json').read_text(encoding='utf8'));byid={c['id']:c for c in cards}
+ audit(cards)
  db=sqlite3.connect(ROOT/'runtime/expansions/cards.cdb');entries=[]
  for summoner,ids in SUMMONERS.items():
   assert summoner in byid

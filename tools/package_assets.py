@@ -21,6 +21,8 @@ IMAGE_TYPES = {'.jpg', '.jpeg', '.png', '.gif'}
 MIN_SAVING = 0.10
 LOSSLESS_MAX = 128
 CARD_ID = re.compile(r'(?<![A-Za-z0-9_.])c?(\d{4,9})(?![0-9])')  # also matches c12345.lua
+CARD_NAME = re.compile(r'\b(?:CARD|TOKEN)_\w+')
+CARD_CONSTANT = re.compile(r'^\s*((?:CARD|TOKEN)_\w+)\s*=\s*(\d+)', re.M)
 
 
 def _quality(relative):
@@ -95,6 +97,11 @@ def _numbers(text):
     return {int(n) for n in CARD_ID.findall(text)}
 
 
+def _named_cards(scripts):
+    """Card IDs that scripts use by name, such as TOKEN_ENGINE, so no number appears in the script itself."""
+    return {name: int(code) for name, code in CARD_CONSTANT.findall(scripts.get('card_counter_constants.lua', ''))}
+
+
 def duel_card_ids(web, engine_data, scripts):
     """Every card a duel can reach, starting from everything the game and its catalogs mention."""
     web = Path(web)
@@ -104,6 +111,7 @@ def duel_card_ids(web, engine_data, scripts):
         if path.is_file():
             seeds |= _numbers(path.read_text(encoding='utf8', errors='ignore'))
     known = {int(k) for k in engine_data}
+    named = _named_cards(scripts)
     keep, queue = set(), [n for n in seeds if n in known]
     while queue:
         code = queue.pop()
@@ -112,7 +120,8 @@ def duel_card_ids(web, engine_data, scripts):
         keep.add(code)
         row = engine_data.get(str(code)) or {}
         found = {int(row['alias'])} if row.get('alias') else set()
-        found |= _numbers(scripts.get(f'c{code}.lua', ''))
+        script = scripts.get(f'c{code}.lua', '')
+        found |= _numbers(script) | {named[name] for name in CARD_NAME.findall(script) if name in named}
         queue.extend(n for n in found if n in known and n not in keep)
     return keep
 

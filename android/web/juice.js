@@ -7,6 +7,7 @@
 import {shake,wallMs as wall} from './duel-motion.js';
 import {assetURL} from './startup-assets.js';
 import {effectOn} from './effect-options.js';
+import {rewardWeight,rewardTextSpot} from './reward-text-layout.js';
 
 const html=document.documentElement;
 const prefs=()=>{const compat=html.classList.contains('compatibility-mode');return {reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,lite:compat||html.classList.contains('performance-mode'),compat}};
@@ -155,6 +156,7 @@ const VOICE_DELAY=200;
 export function defeatVoice(){later(VOICE_DELAY).then(()=>sound('you-lose'))}
 // Boss monsters announce themselves during their summon animation (legendary-summon.js).
 export function summonVoice(code){return player(`assets/sfx/summon-${code}.mp3`,{gain:1.4,voice:true})}
+export function bossNameVoice(file){return player(`assets/sfx/boss/${file}`,{gain:1.4,voice:true})}
 function finisher(overkill){
  const {reduced,lite}=prefs();
  if(!effectOn('finisher')){const word=overkill<=0?'perfect':KILL_WORDS[Math.min(KILL_WORDS.length-1,Math.floor(overkill/1000))].toLowerCase();later(VOICE_DELAY).then(()=>sound('kill-'+word));return null}
@@ -231,6 +233,33 @@ export function summonWeight(zone,level){
 // clips its overflow). 0-59 count and pop; 60+ a gold total and a coin burst; 150+ a glow ring and each
 // line lights up in turn; 300+ a light runs around the frame, the total turns radiant and coins cascade.
 export const coinTier=n=>n>=300?4:n>=150?3:n>=60?2:1;
+// Coin reward text: every reward pops up behind the window, smallest first. The window's backdrop can't sit under other
+// content, so while this runs the layer draws the same gradient and the backdrop goes clear (.reward-text-stage).
+let stopText=null;
+export function stopRewardText(){stopText?.();stopText=null}
+export function rewardText(box,rewards,onPop=()=>{}){
+ stopRewardText();
+ const {reduced,lite}=prefs();if(reduced||!effectOn('coins'))return;
+ document.fonts?.load('32px "YGO Display"').catch(()=>{});
+ const rows=Object.entries(rewards||{}).filter(([,value])=>value>0).sort((a,b)=>b[1]-a[1]).slice(0,lite?10:30).reverse();
+ if(!rows.length)return;
+ const layer=temp('div','reward-text-layer'),timers=[],top=rows.at(-1)[1],step=clamp(3600/rows.length,130,420);
+ box.classList.add('reward-text-stage');
+ stopText=()=>{timers.forEach(clearTimeout);layer.remove();box.classList.remove('reward-text-stage')};
+ const width=innerWidth,height=innerHeight,frame=box.getBoundingClientRect(),tight=frame.width*frame.height/(width*height)>.4,largest=clamp(Math.min(width,height)*(tight?.065:.1),22,64);let taken=[];
+ rows.forEach(([label,value],i)=>{timers.push(setTimeout(()=>{
+  const weight=rewardWeight(value,top),el=temp('div','reward-text',layer),duration=wall((1300+3200*weight)*(tight?.7:1)),now=performance.now();
+  el.textContent=`+${value.toLocaleString('en-US')} ${label}`;el.classList.toggle('big',weight>=.6);el.style.zIndex=Math.round(weight*10);
+  let size=12+(largest-12)*weight**1.5;el.style.fontSize=size+'px';
+  // Long lines shrink to fit the screen rather than being cut off.
+  if(el.scrollWidth>width-12){size=Math.max(12,size*(width-12)/el.scrollWidth);el.style.fontSize=size+'px'}
+  const spot=rewardTextSpot(el.offsetWidth,el.offsetHeight,width,height,frame,taken=taken.filter(x=>x.until>now),weight);
+  taken.push({...spot,until:now+duration*.85});el.style.left=spot.x+'px';el.style.top=spot.y+'px';
+  const peak=.3+.7*weight;
+  play(el,[{opacity:0,scale:.72,translate:'0 8px'},{opacity:peak,scale:1,translate:'0 0',offset:.12},{opacity:peak,scale:1,translate:'0 -6px',offset:.8},{opacity:0,scale:1,translate:'0 -12px'}],{duration,easing:'ease-out',fill:'both'});
+  onPop(weight);
+ },wall(250+i*step)))});
+}
 export function coinTally(tally,amount){
  const total=tally?.querySelector('.reward-tally-total');if(!total)return;
  const {reduced,lite}=prefs(),box=tally.closest('dialog')||tally,number=total.firstChild,tier=effectOn('coins')?coinTier(amount):1;

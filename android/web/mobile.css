@@ -282,7 +282,7 @@
 .tag-offline-draft .tag-opponent .reward img{width:30px;height:42px;object-fit:contain}
 .tag-offline-draft .tag-opponent .reward span{font-size:12px}
 .tag-offline-draft .tag-opponent .opponent-curses:empty{display:none}
-.tag-shop .shop-product img[data-tag]{cursor:pointer}
+.tag-shop .shop-product img[data-tag],img[data-tag="pack"]{cursor:pointer}
 .tag-ending-portraits{display:flex;gap:12px;height:220px;width:min(650px,90vw)}
 @media(max-height:500px){.tag-offline-draft .tag-opponent .encounter-hero{aspect-ratio:2.8/1}.tag-offline-draft .tag-opponent .reward{gap:5px;min-height:24px}.tag-offline-draft .tag-opponent .reward img{height:28px;width:23px}.tag-offline-draft .tag-opponent .reward span{font-size:10px}.tag-offline-select .duelist-selection .char-details{gap:3px}.tag-offline-select .duelist-loadout{min-height:48px}.tag-offline-select .tag-connect-buttons button{min-height:28px;font-size:17px}.tag-level-label{font-size:10px}}
 
@@ -1294,8 +1294,9 @@ button.encounter-reveal:disabled{cursor:not-allowed;opacity:.65}
 @media(max-width:620px){.settings-page .settings-organized{grid-template-columns:1fr;padding:12px;gap:12px}.settings-organized .settings-section{padding:15px}}
 /* Settings (2026-10-29 redesign): a section rail beside one pane on wide screens, a scrolling tab strip on
    phones. Each setting is a row: name and one-line description on the left, its control on the right. */
-.settings-v2{flex:1;min-height:0;display:grid;grid-template-columns:200px minmax(0,1fr);gap:18px;width:min(980px,100%);margin:0 auto;padding:18px;box-sizing:border-box}
-.settings-tabs{display:flex;flex-direction:column;gap:6px;align-content:start}
+.settings-v2{flex:1;min-height:0;display:grid;grid-template-columns:200px minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:18px;width:min(980px,100%);margin:0 auto;padding:18px;box-sizing:border-box}
+.settings-tabs{display:flex;flex-direction:column;gap:6px;align-content:start;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.settings-tabs button{flex:none}
 .settings-tabs button{justify-content:flex-start;min-height:42px;padding:0 14px;border-radius:8px;border:1px solid transparent;background:transparent;color:#cfe0e6;font-size:15px;text-align:left}
 .settings-tabs button:hover{background:#173a4699}
 .settings-tabs button.active{background:linear-gradient(90deg,#2b4b57,#173a46);border-color:#c2a66a99;color:#ffe2a3;box-shadow:inset 3px 0 0 #e8c778}
@@ -1324,7 +1325,7 @@ input.switch:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
 .settings-v2.settings-dialog{display:block;width:min(520px,100%);padding:0 4px}.settings-dialog .set-row{padding:10px 0}
 @media(max-width:700px){
  .settings-v2{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:10px}
- .settings-tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:6px;padding-bottom:2px}.settings-tabs::-webkit-scrollbar{display:none}
+ .settings-tabs{flex-direction:row;overflow:auto hidden;scrollbar-width:none;gap:6px;padding-bottom:2px}.settings-tabs::-webkit-scrollbar{display:none}
  .settings-tabs button{flex:none;min-height:38px;white-space:nowrap}.settings-tabs button.active{box-shadow:inset 0 -3px 0 #e8c778}
  .settings-pane{padding:2px 14px 14px}.set-row{gap:12px}.set-row select{max-width:46%}
 }
@@ -2553,3 +2554,229 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
  .route-page>header .route-coins{font-size:13px}
  .route-page>header button{width:28px;height:28px}
 }
+/* Deck Card Size setting: fixed cards per row, with the stat labels scaled to fit. */
+:root[data-deck-columns] :is(.draft-scroll,.tag-deck-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(var(--deck-columns),minmax(0,1fr))}
+:root[data-deck-columns] :is(.draft-scroll,.tag-deck-scroll,.collector-deck-editor) .deck-card-stats{font-size:min(16px,calc(100vw/var(--deck-columns)/7.4))!important;white-space:nowrap}
+/* Inspection window: what is changing this monster right now. */
+.active-effects{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:6px}
+.active-effect{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:12px;line-height:1.2;color:#9fe0ff}
+.active-effect img{flex:none;width:22px;height:22px;margin:0;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px #ffffff33}
+.active-effect.card img{width:18px;height:26px;border-radius:2px}
+.active-effect.curse img{object-fit:contain;box-shadow:none}
+.active-effect b{font-weight:700;white-space:nowrap}
+/* Tips on the loading screens. */
+.loading-tip{max-width:min(520px,86vw);margin:14px auto 0;font-size:14px;line-height:1.4;text-align:center;color:#ffe2a3}
+/* Run history: the portrait opens the run card. */
+.run-history-card{position:relative;flex:none;padding:0;min-height:0;border:0;background:none;box-shadow:none;cursor:pointer}
+.run-history-card>img{display:block;width:clamp(70px,12vw,125px);height:135px;object-fit:contain}
+.run-history-card svg{position:absolute;right:2px;bottom:2px;width:22px;height:22px;padding:3px;border-radius:6px;background:#0c222dd9;color:#ffe2a3}
+.run-history-card:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
+#modal.run-card-modal{width:min(560px,94vw);max-height:94dvh}
+.run-card-dialog .run-card{margin-top:0}
+/* Boss deck name on the reveal. */
+.boss-deck-name{display:block;margin-top:2px;font:italic 600 clamp(13px,2.2vw,20px) Georgia,serif;color:#ffe2a3;text-shadow:0 1px 4px #000;letter-spacing:.3px}
+.boss-reel .boss-deck-name{opacity:0;transition:opacity .25s}.boss-reel.landed .boss-deck-name{opacity:1}
+
+.versus-portrait .boss-deck-name{position:absolute;left:0;right:0;bottom:4px;margin:0;font-size:clamp(11px,1.6vw,16px);text-align:center}
+.versus-portrait:has(.boss-deck-name) strong{bottom:26px}
+.slot-window .boss-deck-name{text-align:center}
+
+/* ==== Shared look for non-duel screens ====
+   One header, one bottom bar, one tab style, one form control, one panel.
+   Close and Settings stay top right; Back stays in the bottom bar. No blur, filters or animation here.
+   Everything below is scoped to .page and to named menu widgets, never to the duel board. */
+:root{--ui-bar-h:56px;--ui-bar:#0c222d;--ui-line:#53798466;--ui-active:#946539;--ui-active-line:#f2cf83}
+@media(max-height:550px){:root{--ui-bar-h:50px}}
+
+/* Header: same height, title and tool size everywhere it is a full bar. */
+.page:not(.shop-compact):not(.character-select-page)>header,.page:has(.draft-scroll)>header{min-height:var(--ui-bar-h);padding:3px 12px;gap:8px;flex-wrap:nowrap;background:#061018d9;border-bottom:1px solid #668290}
+.page>header h2{flex:0 1 auto;min-width:0;margin:0;font-size:18px;font-weight:700;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page>header .tools,.page:has(.draft-scroll)>header .tools{flex:none;flex-wrap:nowrap;justify-content:flex-end;gap:6px}
+.page>header .tools>button,.page:has(.draft-scroll)>header .tools>button{display:inline-flex;align-items:center;justify-content:center;width:auto;height:44px;min-width:44px;min-height:44px;padding:0 10px}
+.page>header .tools>button:has(svg,img),.page:has(.draft-scroll)>header .tools>button:has(svg,img){width:44px;padding:0}
+.page>header .tools>button :is(.navigation-icon,.ui-icon){width:25px;height:25px;margin:0}
+.route-page>header .route-coins{flex:none}
+@media(max-width:650px) and (orientation:portrait){.page>header h2{font-size:16px}}
+@media(max-width:340px){.page>header .tools{gap:3px}.route-page>header h2{font-size:13px}.route-page>header .tools>button{width:40px;min-width:40px;height:40px;min-height:40px}}
+/* Tag toolbars can hold several text buttons, so they may still wrap on phones. */
+@media(max-width:650px) and (orientation:portrait){.tag-page:not(.character-select-page)>header,.tag-page>header .tools{flex-wrap:wrap}}
+
+/* Character select: title shares the free strip above the details column. */
+.character-select-page:not(.draft-character-select):not(.cpu-setup)>header{top:0;right:0;width:calc(max(260px,(100% - 26px)/3) + 8px);padding:2px 8px}
+.character-select-page:not(.draft-character-select):not(.cpu-setup)>header h2{display:block}
+.draft-character-select>header h2{display:none}
+@media(max-width:650px) and (orientation:portrait){
+ .character-select-page:not(.draft-character-select):not(.cpu-setup)>header{align-self:stretch;width:auto;min-height:var(--ui-bar-h);padding:3px 12px;background:#061018d9;border-bottom:1px solid #668290}
+ .character-select-page:not(.draft-character-select):not(.cpu-setup) .char-layout{padding-top:8px}
+}
+@media(orientation:portrait){.draft-character-select .char-layout{padding-top:52px}}
+
+/* Bottom bar: Back, and the collection pager, sit in the same strip. */
+.page:not(.shop)>footer,.settings-footer{flex:none;min-height:var(--ui-bar-h);padding:5px 12px max(5px,env(safe-area-inset-bottom,0px));gap:10px;background:var(--ui-bar);border-top:1px solid var(--ui-line)}
+.page:not(.shop)>footer>button{min-height:40px}
+.settings-footer>button{min-width:140px;min-height:40px}
+
+/* Tabs: Collection, Settings, How to play and deck filters share one idle and one active state. */
+.collection-nav{padding:8px 10px;gap:6px}
+.collection-nav>button{min-height:40px;padding:0 12px}
+.draft-tabs>button{min-height:40px;padding:0 10px}
+.draft-tabs button.active{background:var(--ui-active);border-color:var(--ui-active-line);color:#fff4d7}
+.settings-tabs button{min-height:40px;border:1px solid #537e8b;border-radius:5px;background:#183f50;color:inherit;font-size:14px}
+.settings-tabs button.active{background:var(--ui-active);border-color:var(--ui-active-line);color:#fff4d7;box-shadow:none}
+.collection-nav>[data-effect-search],.draft-tabs>[data-effect-search]{min-width:40px;min-height:40px;padding:4px}
+
+/* Search boxes and dropdowns replace the native white controls. */
+.collection-nav input,.collection-nav select,.draft-tabs select,.tag-level-label select{min-height:40px;padding:0 8px;background:var(--ui-bar);color:#e8f3f1;border:1px solid #537e8b;border-radius:5px;font-size:14px;color-scheme:dark}
+.collection-nav input::placeholder{color:#9fb8bf;opacity:1}
+.collection-nav .registration-progress{flex-basis:100%;text-align:center}
+@media(max-width:650px) and (orientation:portrait){
+ .collection-nav>[data-do="collection-kind"]{flex:1 1 calc(33.33% - 4px);min-width:0;padding:0 4px;line-height:1.1}
+ .collection-nav>input{flex:1 1 40%;min-width:0;max-width:none}
+ .draft-tabs>button{padding:0 8px}
+ .collection-nav>label{flex:1 1 calc(50% - 3px);min-width:0;justify-content:space-between}
+ .collection-nav>label select{flex:1;min-width:0;max-width:none}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .collection-nav{padding:5px 8px;gap:4px 5px}
+ .collection-nav>button{padding:0 6px}
+ .collection-nav input{max-width:150px}
+ .collection-nav .registration-progress{flex-basis:auto}
+}
+
+/* Panels: Settings and How to play use the plain panel; stats tiles share one grid. */
+.settings-organized .settings-section{padding:16px;border:1px solid var(--border);border-radius:9px;background:var(--panel)}
+.settings-pane h2,.settings-organized h2,.tutorial-page article>h2{font-family:inherit;font-size:18px;font-weight:700;letter-spacing:0;color:#ffe2a3}
+.personal-stat-grid,.global-stats-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;padding:0;margin:0 0 16px}
+.global-stats-grid h2,.personal-stat-grid strong{margin:0;font-size:26px;color:#ffe091}
+
+/* Character panel and Tag lobby actions reach the 40px target. */
+.variant-selector>button{min-height:40px}
+.char-layout .start-run,.tag-offline-select .tag-connect-buttons button,.page.boss .routes .opponent>button:not(.encounter-pack):not(.encounter-reveal){min-height:40px}
+@media(orientation:portrait){.tag-offline-select .tag-level-label{height:44px}.tag-offline-select .char-layout{padding-bottom:calc(128px + env(safe-area-inset-bottom,0px))}}
+
+/* Ending: actions line up under the run card. */
+[data-run-outcome] button{min-height:40px}
+[data-run-outcome] [data-do="characters"],[data-run-outcome] [data-do="champion"]{display:block;width:min(100%,280px);margin-inline:auto}
+
+/* Shop: the scene is packed, so small buttons get a larger invisible hit area instead of growing. */
+.shop-reference-buttons button{position:relative}
+.shop-reference-buttons button::before,.shop-compact [data-do="draft"]::before{content:"";position:absolute;inset:-7px 0}
+
+/* Bebas Neue, bundled because Android has no Impact. */
+@font-face{font-family:"YGO Display";src:url(assets/fonts/BebasNeue-Regular.ttf);font-display:swap}
+/* Coin reward text behind the window. The layer takes over the backdrop's gradient (juice.js rewardText). */
+#modal.reward-text-stage::backdrop{background:transparent;backdrop-filter:none}
+.reward-text-layer{position:fixed;inset:0;z-index:2147483000;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,#493725,#142331 55%,#06101c)}
+.reward-text{position:absolute;max-width:92vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"YGO Display",Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.05em;line-height:1.15;text-transform:uppercase;color:#b9d2da;opacity:0}
+.reward-text.big{color:#ffe066;text-shadow:0 2px 6px #000}
+
+/* Duel Look setting (Settings, Display). No attribute means the default look. Static colours and overlays only: no filters on the video. */
+:root[data-duel-theme="duel-disk"] .duel{background:#0a0e14!important}
+:root[data-duel-theme="duel-disk"] .duel .lpbar{gap:0!important;background:linear-gradient(#2a2f38,#14171d)!important;border-bottom:2px solid #c9a24a!important;box-shadow:0 2px 0 #000}
+:root[data-duel-theme="duel-disk"] .duel .life,:root[data-duel-theme="duel-disk"] .duel .life.enemy{background:linear-gradient(#20252e,#0f1218)!important;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%)}
+:root[data-duel-theme="duel-disk"] .duel .life.enemy{clip-path:polygon(0 0,100% 0,100% 100%,16px 100%)}
+:root[data-duel-theme="duel-disk"] .duel .life-meter{background:linear-gradient(#e0b64e,#8c6a1f)!important;opacity:.35}
+:root[data-duel-theme="duel-disk"] .duel .life.enemy .life-meter{background:linear-gradient(#c94f4f,#6e1f24)!important;opacity:.45}
+:root[data-duel-theme="duel-disk"] .duel .life strong{color:#ffe08a!important;text-shadow:0 1px 0 #000}
+:root[data-duel-theme="duel-disk"] .duel .turn{background:#14171d!important;border:2px solid #c9a24a!important;border-radius:0!important;clip-path:polygon(10% 0,90% 0,100% 100%,0 100%)}
+:root[data-duel-theme="duel-disk"] .duel .phases button{background:linear-gradient(#2d333d,#191c23)!important;color:#c7cdd6!important;border:1px solid #6c6048!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);opacity:1!important}
+:root[data-duel-theme="duel-disk"] .duel .phases button.active{background:linear-gradient(#ffd976,#c9962e)!important;color:#20180a!important;box-shadow:none!important}
+:root[data-duel-theme="duel-disk"] .duel .zone{background:linear-gradient(160deg,#20252ecc,#10131acc)!important;border:1px solid #6c6048!important;border-radius:3px!important;box-shadow:inset 0 0 0 1px #0007!important}
+:root[data-duel-theme="duel-disk"] .duel .zone .power{background:#0c0f14e6!important;color:#ffe08a!important;border-top:1px solid #c9a24a}
+:root[data-duel-theme="duel-disk"] .duel .inspection{background:#0d1016f2!important;border-right:2px solid #c9a24a!important}
+:root[data-duel-theme="duel-disk"] .duel .inspection h3{color:#ffe08a!important}
+:root[data-duel-theme="shadow-realm"] .duel{background:#0a0512!important}
+:root[data-duel-theme="shadow-realm"] .duel .lpbar{background:#0d0618!important;border-bottom:1px solid #7a3fd1!important;gap:6px!important}
+:root[data-duel-theme="shadow-realm"] .duel .life,:root[data-duel-theme="shadow-realm"] .duel .life.enemy{background:#150a24!important;border-radius:0 0 14px 0!important}
+:root[data-duel-theme="shadow-realm"] .duel .life.enemy{border-radius:0 0 0 14px!important}
+:root[data-duel-theme="shadow-realm"] .duel .life-meter{background:linear-gradient(90deg,#3a1a78,#8f4fff)!important}
+:root[data-duel-theme="shadow-realm"] .duel .life.enemy .life-meter{background:linear-gradient(90deg,#ff3f7f,#6a1240)!important}
+:root[data-duel-theme="shadow-realm"] .duel .life strong{color:#f2e6ff!important;text-shadow:0 0 8px #a56bff}
+:root[data-duel-theme="shadow-realm"] .duel .turn{background:#150a24!important;border:1px solid #a56bff!important;border-radius:50%!important;color:#f2e6ff!important}
+:root[data-duel-theme="shadow-realm"] .duel .phases button{background:transparent!important;color:#b9a3d9!important;border:0!important;border-bottom:2px solid #3a2560!important;border-radius:0!important;opacity:1!important}
+:root[data-duel-theme="shadow-realm"] .duel .phases button.active{color:#fff!important;background:transparent!important;border-bottom-color:#b77bff!important;box-shadow:0 2px 6px -2px #b77bff!important}
+:root[data-duel-theme="shadow-realm"] .duel .zone{background:#1209208c!important;border:1px solid #5a2fa8aa!important;border-radius:10px!important;box-shadow:inset 0 0 14px #6a33d133!important}
+:root[data-duel-theme="shadow-realm"] .duel .zone .power{background:#0d0618e6!important;color:#e6d4ff!important}
+:root[data-duel-theme="shadow-realm"] .duel .inspection{background:#0d0618f2!important;border-right:1px solid #7a3fd1!important}
+:root[data-duel-theme="shadow-realm"] .duel .inspection h3{color:#d9bfff!important}
+:root[data-duel-theme="shadow-realm"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#14082cc4;pointer-events:none}
+:root[data-duel-theme="clean-tournament"] .duel{background:#0e1419!important}
+:root[data-duel-theme="clean-tournament"] .duel .lpbar{background:transparent!important;gap:10px!important;padding:4px 8px!important;height:auto!important}
+:root[data-duel-theme="clean-tournament"] .duel .life,:root[data-duel-theme="clean-tournament"] .duel .life.enemy{background:#18212a!important;border-radius:8px!important;box-shadow:none!important;border:0!important}
+:root[data-duel-theme="clean-tournament"] .duel .life-meter{background:#2f7fd6!important;opacity:.28;border-radius:8px}
+:root[data-duel-theme="clean-tournament"] .duel .life.enemy .life-meter{background:#d6455a!important}
+:root[data-duel-theme="clean-tournament"] .duel .life strong{color:#fff!important;text-shadow:none!important;font-weight:700}
+:root[data-duel-theme="clean-tournament"] .duel .turn{background:#18212a!important;border:0!important;border-radius:8px!important;color:#fff!important}
+:root[data-duel-theme="clean-tournament"] .duel .phases button{background:transparent!important;color:#8ea0ad!important;border:0!important;border-radius:6px!important;opacity:1!important;font-weight:600}
+:root[data-duel-theme="clean-tournament"] .duel .phases button.active{background:#fff!important;color:#0e1419!important;box-shadow:none!important}
+:root[data-duel-theme="clean-tournament"] .duel .zone{background:#ffffff0a!important;border:1px solid #ffffff24!important;border-radius:6px!important;box-shadow:none!important}
+:root[data-duel-theme="clean-tournament"] .duel .zone .power{background:#0e1419e6!important;color:#fff!important;border-radius:0 0 5px 5px}
+:root[data-duel-theme="clean-tournament"] .duel .inspection{background:#121a21!important;border-right:1px solid #ffffff1f!important}
+:root[data-duel-theme="clean-tournament"] .duel .inspection h3{color:#fff!important}
+:root[data-duel-theme="clean-tournament"] .duel .field-wrap{perspective:none!important}
+:root[data-duel-theme="clean-tournament"] .duel .mat{transform:none!important}
+:root[data-duel-theme="clean-tournament"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0e1419d9;pointer-events:none}
+:root[data-duel-theme="millennium-stone"] .duel{background:#1a140c!important}
+:root[data-duel-theme="millennium-stone"] .duel .lpbar{background:linear-gradient(#5c4f3c,#3a3024)!important;border-bottom:3px solid #d9b45c!important;box-shadow:inset 0 1px 0 #8a7a60,0 2px 6px #000}
+:root[data-duel-theme="millennium-stone"] .duel .life,:root[data-duel-theme="millennium-stone"] .duel .life.enemy{background:linear-gradient(#4a3f30,#2c241a)!important;border-radius:0!important}
+:root[data-duel-theme="millennium-stone"] .duel .life-meter{background:linear-gradient(#e7c56b,#a67c2a)!important;opacity:.4}
+:root[data-duel-theme="millennium-stone"] .duel .life.enemy .life-meter{background:linear-gradient(#b5482f,#6b2414)!important;opacity:.55}
+:root[data-duel-theme="millennium-stone"] .duel .life strong{font-family:Georgia,serif!important;color:#ffe9b0!important;text-shadow:0 1px 0 #000}
+:root[data-duel-theme="millennium-stone"] .duel .turn{background:linear-gradient(#6b5c45,#3a3024)!important;border:2px solid #d9b45c!important;border-radius:4px 4px 16px 16px!important;color:#ffe9b0!important}
+:root[data-duel-theme="millennium-stone"] .duel .phases button{background:linear-gradient(#584b39,#372d21)!important;color:#e6d6b0!important;border:1px solid #8a7450!important;border-radius:3px!important;font-family:Georgia,serif;opacity:1!important}
+:root[data-duel-theme="millennium-stone"] .duel .phases button.active{background:linear-gradient(#f2d27c,#c0953b)!important;color:#2a1e0c!important;box-shadow:0 0 0 1px #fff3 inset!important}
+:root[data-duel-theme="millennium-stone"] .duel .zone{background:linear-gradient(160deg,#54473699,#2e261b99)!important;border:1px solid #a68a56!important;border-radius:2px!important;box-shadow:inset 0 0 0 2px #0005,inset 0 0 0 3px #d9b45c33!important}
+:root[data-duel-theme="millennium-stone"] .duel .zone .power{background:#231b11e6!important;color:#ffe9b0!important;font-family:Georgia,serif}
+:root[data-duel-theme="millennium-stone"] .duel .inspection{background:linear-gradient(#2c241af2,#1a140cf2)!important;border-right:3px solid #a68a56!important}
+:root[data-duel-theme="millennium-stone"] .duel .inspection h3{color:#ffe9b0!important;font-family:Georgia,serif}
+:root[data-duel-theme="millennium-stone"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#2a1c0cb8;pointer-events:none}
+:root[data-duel-theme="kaiba-hologram"] .duel{background:#030c16!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .lpbar{background:#04121ecc!important;border-bottom:1px solid #2fd0ff!important;box-shadow:0 1px 8px #2fd0ff55}
+:root[data-duel-theme="kaiba-hologram"] .duel .life,:root[data-duel-theme="kaiba-hologram"] .duel .life.enemy{background:#061a2bcc!important;border-radius:0!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .life-meter{background:repeating-linear-gradient(90deg,#2fd0ff 0 10px,#2fd0ff33 10px 12px)!important;opacity:.55}
+:root[data-duel-theme="kaiba-hologram"] .duel .life.enemy .life-meter{background:repeating-linear-gradient(90deg,#ff5a6e 0 10px,#ff5a6e33 10px 12px)!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .life strong{font-family:Consolas,monospace!important;color:#d9f6ff!important;text-shadow:0 0 6px #2fd0ff}
+:root[data-duel-theme="kaiba-hologram"] .duel .turn{background:#04121e!important;border:1px solid #2fd0ff!important;border-radius:0!important;color:#d9f6ff!important;font-family:Consolas,monospace}
+:root[data-duel-theme="kaiba-hologram"] .duel .phases button{background:#04121ecc!important;color:#7fd8f2!important;border:1px solid #2fd0ff66!important;border-radius:0!important;font-family:Consolas,monospace;opacity:1!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .phases button.active{background:#2fd0ff!important;color:#04121e!important;box-shadow:0 0 8px #2fd0ff!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .zone{background:#2fd0ff0d!important;border:1px solid #2fd0ff88!important;border-radius:0!important;box-shadow:inset 0 0 12px #2fd0ff22!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .zone .power{background:#04121ee6!important;color:#d9f6ff!important;font-family:Consolas,monospace}
+:root[data-duel-theme="kaiba-hologram"] .duel .inspection{background:#04121ef2!important;border-right:1px solid #2fd0ff!important}
+:root[data-duel-theme="kaiba-hologram"] .duel .inspection h3{color:#d9f6ff!important}
+:root[data-duel-theme="kaiba-hologram"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#021222c9;pointer-events:none}
+/* The floating Chain button is in the top layer, so the clear backdrop would no longer cover it. */
+body:has(#modal.reward-text-stage) .floating-chain-control{display:none!important}
+
+/* Portrait hand: takes the spare height above the Options row and the row's full width. The field keeps its size. */
+@media(orientation:portrait){
+ .duel>.duel-main{grid-template-rows:28px minmax(0,1fr) 129px;padding-bottom:41px!important}
+ .duel .hand img{object-position:center top}
+ .duel .hand:not(:has(>button:nth-child(8))) button{max-width:calc((100% - (var(--hand-count,7) - 1)*var(--hand-gap))/var(--hand-count,7))}
+}
+.reward-best{margin:-6px 0 0;text-align:center;font:400 22px "YGO Display",Impact,"Arial Black",sans-serif;letter-spacing:.05em;color:#ffe066}
+
+/* Duel Look picker in Settings: the checked look keeps a gold edge, so the choice doesn't rely on the thumbnail. */
+.set-row.set-looks{flex-direction:column;align-items:stretch;cursor:default}
+.duel-looks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.duel-look{position:relative;display:block;min-width:0;margin:0;padding:0;border:2px solid #53798466;border-radius:8px;overflow:hidden;background:#0c222d;cursor:pointer}
+.duel-look input{position:absolute;opacity:0;pointer-events:none}
+.duel-look img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.duel-look span{display:block;padding:5px 4px;font-size:12px;line-height:1.2;text-align:center;color:#cfe0e6}
+.duel-look:has(input:checked){border-color:#e8c778}.duel-look:has(input:checked) span{color:#ffe2a3;font-weight:700}
+.duel-look:has(input:focus-visible){outline:2px solid #ffe2a3;outline-offset:2px}
+@media(max-width:520px){.duel-looks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.settings-v2 label.duel-look{display:block;width:auto;min-height:0;margin:0;padding:0;background:#0c222d;border-radius:8px;grid-template-columns:none}
+.settings-v2 .duel-look img{margin:0;padding:0;max-width:none;height:auto}
+.settings-v2 .duel-look>span{position:static;display:block;width:auto;height:auto;padding:5px 4px;opacity:1;visibility:visible}
+
+/* Duel 9's boss reveal: a silhouette, then the light comes up. */
+.final-title{position:absolute;top:7%;left:0;right:0;margin:0;text-align:center;font:400 clamp(38px,10vmin,96px) "YGO Display",Impact,"Arial Black",sans-serif;letter-spacing:.04em;color:#ffe066;text-shadow:0 3px 10px #000}
+.final-figure{position:absolute;left:0;right:0;bottom:0;height:74%;margin:0}
+.final-figure::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36%;background:linear-gradient(transparent,#05080de0 70%)}
+.final-figure img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom;filter:brightness(0)}
+.final-figure .final-lit{position:absolute;inset:0;filter:none;opacity:0;transition:opacity .26s}
+.final-reveal.landed .final-lit{opacity:1}
+.final-name{position:absolute;left:0;right:0;bottom:11%;text-align:center;font:400 clamp(30px,8vmin,72px) "YGO Display",Impact,"Arial Black",sans-serif;color:#ffe066;text-shadow:0 2px 8px #000;opacity:0;transition:opacity .26s}
+.final-reveal.landed .final-name{opacity:1}
+.final-reveal .boss-deck-name{position:absolute;left:0;right:0;bottom:6%;text-align:center}
+.compatibility-mode .final-figure img:not(.final-lit){filter:none;opacity:.25}

@@ -6,6 +6,7 @@ Run tools/build_android.py --sync-only first when campaign/assets have changed.
 from pathlib import Path
 import argparse,hashlib,json,re,shutil,sys,zipfile
 from PIL import Image
+import safe_write;safe_write.install()
 
 def build(root,out,templates,bundle_artwork=False):
  sys.path.insert(0,str(root/'tools'))

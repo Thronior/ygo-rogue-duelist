@@ -16,7 +16,9 @@ def award(profile, run):
  new=max(before,level)
  levels=profile.setdefault('character_levels',{})
  levels[str(run['character'])]=new
- if new>before and new+1<=6:run['level_unlocked']=new+1
+ if new>before and new+1<=6:
+  run['level_unlocked']=new+1
+  profile.setdefault('character_last_levels',{})[str(run['character'])]=new+1
 def curse_scale(run):return 2 if run.get('challenge_level',0)>=2 else 1
 def curse_opening_hand(run,hand):
  penalty=3 if run.get('challenge_level',0)>=2 else 2

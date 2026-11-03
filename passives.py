@@ -11,7 +11,7 @@ def ai_modifiers(run):
  enemy=opponent_relic(run)
  from approved_relics import mirror_view
  rivals=([enemy] if enemy else [])+mirror_view(run)['artifacts']
- return {'relicFeedback':list(ART_INFO),'ritualScar':run.get('ritual_scar_count',0),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[key]) for key in rivals]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),rivals],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
+ return {'relicFeedback':list(ART_INFO),'ritualScar':run.get('ritual_scar_count',0),'expertOpponent':bool(run.get('encore_active') or run.get('secret_challenge')),'firstPlayer':run.get('first_player',0),'statRelics':[[dict(info,key=key) for key in run.get('artifacts',[]) for info in [ART_INFO.get(run.get('mirror_copy') if key=='magic_mirror' else key,{})]],[dict(ART_INFO[key],key=key) for key in rivals]],'activeRelics':[run.get('artifacts',[])+([run['mirror_copy']] if run.get('mirror_copy') else []),rivals],'activeCurses':list(run.get('curses',[])),'challengeLevel':run.get('challenge_level',0),'spellTrapZones':3 if has(run,'cursed_narrow_gate') else 5,'enemyAttack':(300 if has(run,'cursed_champions_burden') and (run.get('round',0)+1)%3==0 else 0)+int(run.get('loop',0))*LOOP['attack']+(200*(2 if run.get('challenge_level',0)>=2 else 1)*run.get('curses',[]).count('enemy_power'))}
 
 def script(run,telemetry=True):
  from approved_relics import duel_run
@@ -41,8 +41,9 @@ Duel.Recover=function(p,val,...) if p==0 then val=math.floor(val*{factor}) if va
 end""")
  from approved_relic_effects import battle_rules,ominous_clock,effect_reverser,shield_breaker,no_specials,hand_limiter,miller,relic_hand_limit
  from approved_relics import has
- lines.append(battle_rules(run))
- lines.append(ominous_clock(run))
+ relic_hint=lambda key:f'Duel.Hint(HINT_MESSAGE,0,{1800000000+list(ART_INFO).index(key)}) '
+ lines.append(battle_rules(run,relic_hint))
+ lines.append(ominous_clock(run,relic_hint('cursed_ominous_clock')))
  events={}
  surgery=[]
  current_relic=None
@@ -54,6 +55,11 @@ end""")
   # A prompt of the relic's own: the client shows the relic's art first (visual only).
   text=text.replace('--[[relic-ask]]',f'Duel.Hint(HINT_MESSAGE,0,{1850000000+list(ART_INFO).index(current_relic)}) ')
   text=re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
+  # These are often used as values, where a statement can't go: only mark the ones that stand alone.
+  def alone(m):
+   before=text[:m.start()].rstrip()
+   return m.group(0) if re.search(r'(=|\(|,|\bif|\band|\bor|\bnot|\breturn)$',before) else hint+m.group(0)
+  text=re.sub(r'Duel\.(SpecialSummon|DiscardDeck|ChangePosition)\(',alone,text)
   if current_relic=='solemn_relic' or current_relic=='magic_mirror' and run.get('mirror_copy')=='solemn_relic':text=text.replace('then used=true end',f'then used=true {hint}end')
   return text
  def stat(code,value,condition='true',enemy=False):

@@ -160,6 +160,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.MOVE&&m.to?.location!==L.MZONE)this.pendingSummons=this.pendingSummons.filter(c=>c.card!==m.card);
   if(m.type===M.CHAINING){this.effect={code:m.code,player:m.controller??m.player};if(this.effect.player===0)add('activate',{card:m.code})}
   if(m.type===M.DAMAGE)add(m.player===1?'damage':'damage_taken',{amount:m.amount});
+  if(m.player===0&&([M.DAMAGE,M.PAY_LPCOST].includes(m.type)&&m.amount>0||m.type===M.LPUPDATE&&m.lp<this.lp[0]))add('lp_lost');
   if(m.type===M.DAMAGE&&m.player===1&&!(this.battleOpen&&!this.chainedSinceAttack))this.events.push({kind:'effect_damage',amount:m.amount});
   if(m.type===M.RECOVER&&m.player===0)add('recover',{amount:m.amount});
   if(m.type===M.DRAW&&m.player===0)add('draw',{amount:m.drawn?.length??m.cards?.length??m.count??1});
@@ -213,6 +214,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const key=player+':'+location;
   if(this.decisionQueries?.has(key))return this.decisionQueries.get(key);
   const rows=super.query(player,location);
+  // Off the field the core reports a ? stat (-2) as unsigned.
+  for(const c of rows)if(c)for(const key of ['attack','defense'])if(c[key]>=0x80000000)c[key]-=0x100000000;
   if(location===L.HAND)for(const c of rows){const stats=c&&this.misprintedHandStats?.[player]?.get(c.sequence);if(stats)Object.assign(c,stats);}
   // The core does not report attack counts; attacks declared this turn are tracked from M.ATTACK.
   if(location===L.MZONE)for(const c of rows)if(c)c.attack_count=this.attacksThisTurn?.get(`${player}:${c.sequence}`)||0;

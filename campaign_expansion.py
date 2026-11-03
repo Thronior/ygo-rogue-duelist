@@ -409,6 +409,9 @@ def install(g):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
   if amount(run,'interest'):tally['Interest']=min(90,int(run['gold']*amount(run,'interest')/100))
+  if amount(run,'lp_loss_coins'):
+   losses=sum(1 for e in events if e.get('kind')=='lp_lost')
+   if losses:tally['No Pain No Gain']=losses*amount(run,'lp_loss_coins')
   if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==ar.minimum(run):tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
   if owns(run,'golden_sleeve'):
@@ -556,9 +559,20 @@ def install(g):
   stats=run.setdefault('stats', {})
   stats['coins_earned']=stats.get('coins_earned',0)+run['last_gold']
   if boss and won:stats['bosses_defeated']=stats.get('bosses_defeated',0)+1
+  # Flawless needs a full record, so only runs counted from their first duel get this stat.
+  if not run.get('timeline'):stats.setdefault('damage_taken',0)
   for event in result.get('events',[]):
-   key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt'}.get(event.get('kind'))
-   if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key=='damage_dealt' else 1)
+   key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt','damage_taken':'damage_taken'}.get(event.get('kind'))
+   if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key in ('damage_dealt','damage_taken') else 1)
+  run['personal_bests']=[]
+  if won:
+   # A first win only sets the records: there is nothing to beat yet.
+   p=storage.profile();hit=max([e.get('amount',0) for e in result.get('events',[]) if e.get('kind')=='damage'],default=0)
+   for key,label,value in (('best_payout','New best payout!',run['last_gold']),('best_hit','New biggest hit!',hit)):
+    if value>p.get(key,0):
+     if p.get(key):run['personal_bests'].append(label)
+     p[key]=value
+   storage.write(storage.ROOT/'profile.json',p)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
   if ar.has(run,'cursed_ominous_clock'):run['clock_turns']=run.get('clock_turns',0)+int(next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0) or 0)
   run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('duel_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))

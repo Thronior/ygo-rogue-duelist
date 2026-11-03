@@ -27,6 +27,7 @@ def install(artifact):
  artifact('protection_charm','Protection Charm',120,'If curses are active, 1 random curse is disabled until the end of the Duel. Relic Seal stops this.','Hallowed Life Barrier','protection_charm',0,'defense')
  artifact('fire_extinguisher','Fire Extinguisher',110,'Once per turn, negate the first effect damage you would take from a card. LP costs and relics are not affected.','Damage Condenser','first_effect_damage',0,'defense')
  artifact('hot_deck','Hot Deck',100,'Each time your opponent draws 1 or more cards, they also send that many cards from the top of their Deck to the GY.','Needle Worm','hot_deck',0,'offense')
+ artifact('no_pain_no_gain','No Pain No Gain',100,'Earn 5 coins every time you lose LP, paid after each victory.','Attack and Receive','lp_loss_coins',5,'other')
  artifact('token_defender','Token Defender',90,'During your End Phase, if you control no monsters, Special Summon a Lamb Token (Beast/EARTH/Level 1/ATK 0/DEF 0) in Defense Position.','Stray Lambs','token_defender',0,'defense')
  artifact('the_creator','The Creator',300,'Once per turn, during your Standby Phase, Special Summon 1 monster from your GY. This relic appears less often than other relics.','The Creator','standby_revive',0,'other')
  artifact('normal_barrier','Normal Barrier',150,"Normal Monsters you control are unaffected by your opponent's Spell Cards.",'Spell Shield Type-8','normal_spell_immune',0,'defense')

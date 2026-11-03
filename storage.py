@@ -60,7 +60,7 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),reduceMotion=bool(p.get('reduceMotion',False)),textSize=bounded('textSize',100,100,150),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],manualResponseWindow=bounded('manualResponseWindow',200,0,2000))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),reduceMotion=bool(p.get('reduceMotion',False)),deckColumns=bounded('deckColumns',0,0,10),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram') else '',textSize=bounded('textSize',100,100,150),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],manualResponseWindow=bounded('manualResponseWindow',200,0,2000))
 
 
 def migrate_previous_install():
@@ -130,7 +130,7 @@ def archive_run(run):
  stable=run.get('history_id') or hashlib.sha256(encoded([run.get('started_at'),run.get('character'),run.get('_save_slot'),run.get('packs',[])])).hexdigest()[:24]
  run['history_id']=stable;key=stable+':'+str(run.get('loop',0))
  row={k:run.get(k) for k in ('character','challenge_level','round','loop','lp','gold','started_at','finished_at','stats','loss','artifacts','encore_won','unlocks_earned','content_unlocks_earned')}
- row.update(id=key,mode=run.get('history_mode','solo'),partner=run.get('history_partner'),result='complete' if run.get('round',0)>=9 or run.get('stage')=='complete' else 'lost',timeline=[x for x in run.get('timeline',[]) if x.get('loop',1)==run.get('loop',0)+1])
+ row.update(id=key,cursed_artifacts=run.get('cursed_artifacts'),secret_challenge=run.get('secret_challenge'),deck=[run['pool'][i] for i in run.get('selected',[]) if 0<=i<len(run.get('pool',[]))],mode=run.get('history_mode','solo'),partner=run.get('history_partner'),result='complete' if run.get('round',0)>=9 or run.get('stage')=='complete' else 'lost',timeline=[x for x in run.get('timeline',[]) if x.get('loop',1)==run.get('loop',0)+1])
  p=profile();rows=p.setdefault('run_history',[])
  old=next((i for i,x in enumerate(rows) if x.get('id')==key),None)
  if old is not None:
@@ -164,7 +164,7 @@ def merge_desktop_profile(raw, metrics=()):
   values=incoming.get(key,[])
   if not isinstance(values,list) or any(type(x)!=int or x<0 or x>1000 for x in values):raise ValueError('Invalid character unlock data.')
   merged[key]=sorted(set(current.get(key,[]))|set(values))
- keys=set(metrics)|{'wins','runs','victories','max_gold','max_bought','max_artifacts','decks_bought','packs_variety','relic_variety','singles_bought'}
+ keys=set(metrics)|{'best_payout','best_hit','wins','runs','victories','max_gold','max_bought','max_artifacts','decks_bought','packs_variety','relic_variety','singles_bought'}
  for key in keys:
   if key.startswith('won_as:') or key not in incoming:continue
   value=incoming[key]

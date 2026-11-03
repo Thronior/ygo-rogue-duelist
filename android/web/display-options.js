@@ -16,8 +16,14 @@ function applyReducedCSS(){
   }
  }
 }
-export function applyDisplayOptions({reduceMotion:reduce=false,textSize=100}={}){
+export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=10;
+// '' is the default look; storage.py keeps the same list.
+export const DUEL_THEMES=[['','Default'],['duel-disk','Duel Disk'],['shadow-realm','Shadow Realm'],['clean-tournament','Clean Tournament'],['millennium-stone','Millennium Stone'],['kaiba-hologram','Kaiba Hologram']];
+export function applyDisplayOptions({reduceMotion:reduce=false,textSize=100,deckColumns=0,duelTheme=''}={}){
  if(reduce!==reduceMotion){reduceMotion=reduce;applyReducedCSS()}
  const html=document.documentElement;
  html.classList.toggle('text-scaled',textSize!==100);html.style.setProperty('--text-scale',textSize/100);
+ if(duelTheme)html.dataset.duelTheme=duelTheme;else delete html.dataset.duelTheme;
+ // 0 keeps each screen's own automatic grid.
+ html.toggleAttribute('data-deck-columns',deckColumns>=DECK_COLUMNS_MIN);html.style.setProperty('--deck-columns',deckColumns||'');
 }
