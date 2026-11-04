@@ -6,6 +6,8 @@ export function effectiveAttributes(c,run,index){
  if(!(c.data.type&1))return [];
  // Surgery relics: the first replaces the attribute, each further relic adds one.
  const surgery=new Set();
+ // Attribute Mutation (a fused relic): every Attribute.
+ if((run.artifacts||[]).includes('attribute_mutation'))return Object.values(attributes);
  for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw;if(/^attribute_(light|dark|fire|water|wind|earth)$/.test(id||''))surgery.add(id.slice(10).toUpperCase());}
  if(surgery.size)return [...surgery];
  const base=attributes[run.card_mods?.[index]?.[3]]||c.attribute;
@@ -80,6 +82,14 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='approved_golden_grave')d-=400;
 
  else if(k==='approved_iron_silence'){a+=600;d+=600;}
+ // Fused relics (relic_fusions.py) with permanent bonuses.
+ else if(k==='fused_gaia_plate')d+=1500;
+ else if(k==='fused_masterwork_blade')a+=700;
+ else if(k==='fused_giant_killers_cradle'&&l<=3)a+=1000;
+ else if(k==='fused_titans_covenant'&&l>=5)a+=1200;
+ else if(k==='fused_commoners_crown'&&(t&16)){a+=1000;d+=1000;}
+ else if(k==='fused_undying_legion'&&c.race==='Zombie')a+=1200;
+ else if(k==='fused_grand_ritual_altar')a+=200*(run.ritual_scar_count||0);
 
  }
 

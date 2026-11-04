@@ -18,6 +18,9 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // (Discord 2026-11-03: they asked too often).
  const attackOnly=new Set(['Fairy Box','Half or Nothing']);
  if(mode==='sometimes'&&selects.length&&selects.every(choice=>attackOnly.has(context.card?.(choice.code)?.name)))return !!((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.ATTACK);
+ // A Feint Plan only asks during the opponent's Battle Phase (user request 2026-11-04). Phase bits 0x08-0x80 are the
+ // Battle Phase's steps, from its start to its end.
+ if(mode==='sometimes'&&selects.length&&selects.every(choice=>context.card?.(choice.code)?.name==='A Feint Plan'))return context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&!!(Number(context.phase||0)&0xf8);
  // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
  // while they have a monster that could attack.
  if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;

@@ -28,7 +28,9 @@ REGULAR=[
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
 ('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
-('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz')]
+('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz'),
+# Requested by the user on 2026-11-04.
+('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -139,10 +141,14 @@ def first(run,random_first):
  if has(run,'cursed_premature_triumph'):return 0
  return random_first
 
+def heal_scale(run):return .5**copies(run,'undying_legion')
+
 def can_heal(run,between=False):return not has(run,'cursed_zombies_bargain') and not (between and has(run,'cursed_glass_treasury'))
 
+def price_mult(run):return (.5**copies(run,'cursed_wounded_merchant'))*(1.15**copies(run,'cursed_rusted_compass'))*(.85**copies(run,'grand_bazaar'))
+
 def price(run,kind,value):
- mult=(.5**copies(run,'cursed_wounded_merchant'))*(1.15**copies(run,'cursed_rusted_compass'))
+ mult=price_mult(run)
  if kind=='single':mult*=1.5**copies(run,'cursed_cursed_refund')*.6**copies(run,'cursed_black_market_seal')
  if kind=='pack':mult*=1.4**copies(run,'cursed_black_market_seal')
  return max(1,round(value*mult))

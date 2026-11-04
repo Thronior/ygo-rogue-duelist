@@ -7,7 +7,7 @@ const HEALS=new Set(['Dian Keto the Cure Master','Poison of the Old Man','Gift o
 const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage"]);
 const LIGHT=0x10,WATER=0x2;
 export function comboPlanner(x){
- const {e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan}=x;
+ const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),monster=c=>!!(data(c).type&1);
  const list=key=>prompt?.[key]||[],free=5-own.length;
  const fromPrompt=(key,n)=>list(key).findIndex(c=>name(c)===n);
@@ -18,7 +18,7 @@ export function comboPlanner(x){
  const bestOf=a=>[...a].sort((b,c)=>power(c)-power(b));
  const deck=()=>q(p,L.DECK),extra=()=>q(p,L.EXTRA);
  const summonStep=n=>{const index=fromPrompt('summons',n);return index<0?null:{kind:'summon',index,code:name(list('summons')[index])}};
- const useStep=n=>{const index=fromPrompt('activates',n);return index<0?null:{kind:'activate',index,code:n}};
+ const useStep=n=>{const index=fromPrompt('activates',n);return index<0||lethalCost(list('activates')[index])?null:{kind:'activate',index,code:n}};
  const specialStep=n=>{const index=fromPrompt('special_summons',n);return index<0?null:{kind:'special',index,code:n}};
  const flipStep=c=>{const index=flip(c);return index<0?null:{kind:'flip',index,code:name(c)}};
  // The step that gets `n` face-up on the field, or null. A set copy is flipped; otherwise it needs the Normal Summon.

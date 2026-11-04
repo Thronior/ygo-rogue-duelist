@@ -10,6 +10,7 @@ ROWS=[
  ('village_banner',"Veteran's Might",85,'Level 4 monsters you control gain 200 ATK/DEF.','Gagagigo',''),
  ('dragon_triumph',"Dragon's Claws",90,"Each time a Dragon monster you control destroys an opponent's monster by battle, inflict 500 damage to your opponent.","Dragon's Rage",'Dragon'),
  ('armory_crest','Armory Crest',85,'Equipped monsters you control gain 300 ATK.','Maha Vailo',''),
+ ('field_of_attraction','Field of Attraction',90,'Each time you Normal Summon a "Magnet Warrior" monster, add 1 "Magnet Warrior" monster with a different name from your Deck to your hand.','Valkyrion the Magna Warrior',''),
 ]
 def install(artifact):
  for key,name,price,text,art,filter in ROWS:artifact(key,name,price,text,art,'variant_'+key,0,'offense',filter)
@@ -31,6 +32,10 @@ def effect(kind):
  if key=='ritual_incense':return event('EVENT_SPSUMMON_SUCCESS','Duel.Draw(0,1,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,1,nil)')
  if key=='village_banner':return stat('EFFECT_UPDATE_ATTACK',200,'c:IsLevel(4)')+'\n'+stat('EFFECT_UPDATE_DEFENSE',200,'c:IsLevel(4)')
  if key=='dragon_triumph':return event('EVENT_BATTLE_DESTROYING','Duel.Damage(1,500,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsRace(RACE_DRAGON) and c:IsStatus(STATUS_OPPO_BATTLE) end,1,nil)')
+ # Magnet Warrior is set code 0x3066 (Alpha, Beta, Gamma); Valkyrion is a Magna Warrior (0x1066) and isn't searched.
+ if key=='field_of_attraction':
+  magnet='function(c) return c:IsControler(0) and c:IsSetCard(0x3066) end'
+  return event('EVENT_SUMMON_SUCCESS',f'local sc=eg:Filter({magnet},nil):GetFirst() if not sc then return end local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x3066) and not c:IsCode(sc:GetCode()) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g==0 then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil) --[[relic-hint]] Duel.SendtoHand(s,nil,REASON_EFFECT) Duel.ConfirmCards(1,s)',f'eg:IsExists({magnet},1,nil)')
  if key=='armory_crest':return stat('EFFECT_UPDATE_ATTACK',300,'c:GetEquipCount()>0')
  return None
 

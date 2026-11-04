@@ -40,6 +40,8 @@ import * as juice from './juice.js';
 import * as keeperTalk from './shopkeeper-talk.js';
 import {ownedBadge} from './shop-badges.js';
 import {mountRunProgress} from './run-progress.js';
+import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
+import {assetURL} from './startup-assets.js';
 
 const tagDeckScroller=root=>root?.querySelector('.tag-deck-scroll .draft-card-scroll')||root?.querySelector('.tag-deck-scroll');
 
@@ -162,7 +164,7 @@ export class TagUI {
 
    const result=finale.status==='finished'?`<h2>${finale.winner===null?'Final duel: Draw':finale.winner===v.seat?'You won the final duel':'Your opponent won the final duel'}</h2><p>Your shared campaign victory is saved.</p>`:'';
 
-   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-ending-portraits">${v.characters.map(i=>this.portrait(i)).join('')}</div><p>${r.round} victories · ${coinLabel(r.gold)} gold</p>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${button('Exit','exit')}</section>`);return
+   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-run-card-slot"></div>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${button('Exit','exit')}</section>`);this.endCard(r);return
 
   }
 
@@ -350,6 +352,8 @@ export class TagUI {
  }
 
  async action(action,el){
+  // No await before copying: Safari only allows the clipboard write inside the tap.
+  if(action==='copy-run-card'||action==='save-run-card'){const card=this.runCard,status=card?.box.querySelector('.run-card-status');if(!card)return;(action==='save-run-card'?saveRunCard:copyRunCard)(card.box.querySelector('.run-card-canvas'),runCardName(card.run,this.content)).then(m=>{if(status)status.textContent=m}).catch(e=>{if(status)status.textContent=e.message||'Could not copy the image.'});return}
 
   if(action==='poke'){keeperTalk.say('poke');return}
   if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(this.content,el.dataset.curse,this.view?.run?.challenge_level))}</p>`);return}
@@ -605,6 +609,24 @@ export class TagUI {
 
   if((!before||before==='duel')&&['shop','complete'].includes(view.phase)&&view.run.reward_slots?.pending)this.showRewards?.();
 
+ }
+
+ // The shareable run card, as on the solo ending. View updates re-render the ending, so the drawn card is kept and put back.
+ endCard(r){
+  const slot=this.root.querySelector('.tag-run-card-slot');if(!slot)return;
+  const key=[this.session?.code,r.started_at,r.character,r.stage,r.round,r.gold,(r.artifacts||[]).join()].join(':');
+  if(this.runCard?.key!==key){
+   const box=document.createElement('div');box.className='tag-run-card';
+   box.innerHTML=`<figure class="run-card"><canvas class="run-card-canvas" width="1080" height="1350" role="img" aria-label="Run summary"></canvas></figure><div class="run-card-share">${button('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Copy image','copy-run-card','class="primary run-card-copy" disabled')}${button('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download','save-run-card','class="run-card-copy run-card-save" disabled')}<p class="run-card-status" role="status" aria-live="polite"></p></div>`;
+   const canvas=box.querySelector('canvas'),card=id=>this.cardById(Number(id))||this.content.tokenCards?.find(c=>c.id===Number(id));this.runCard={key,box,run:r};
+   mountRunCard(canvas,r,{content:this.content,character:this.content.characters[r.character],card,cardImage:this.image,relicImage,assetURL}).then(ready=>{
+    if(this.runCard?.box!==box)return;
+    // Left the ending before the artwork loaded: draw it again on the way back.
+    if(!ready){this.runCard=null;return}
+    box.querySelectorAll('.run-card-copy').forEach(b=>b.disabled=false);
+   }).catch(error=>{console.error(error);const status=box.querySelector('.run-card-status');if(status)status.textContent='The run summary image could not be drawn.'});
+  }
+  slot.replaceWith(this.runCard.box);
  }
 
  openStartingPacks(view,entrance){

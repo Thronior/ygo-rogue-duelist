@@ -16,7 +16,7 @@ const COLUMNS = 6, CARD_W = 200, GAP = 18, CARD_H = 352, HEAD_H = 236, PAD = 34;
 const WIDTH = COLUMNS * CARD_W + (COLUMNS - 1) * GAP + PAD * 2;
 
 const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe'].find(p => fs.existsSync(p));
-const asset = rel => pathToFileURL(path.join(WEB, rel)).href;
+export const asset = rel => pathToFileURL(path.join(WEB, rel)).href;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 const rateOf = x => x && x.w + x.l + x.d ? (x.w + x.d / 2) / (x.w + x.l + x.d) : null;
 const pct = x => { const r = rateOf(x); return r === null ? '—' : `${(r * 100).toFixed(1)}%`; };
@@ -91,12 +91,13 @@ function page(report, tier, look) {
   return {html, height};
 }
 
-function screenshot(htmlFile, pngFile, height) {
-  if (!EDGE) return Promise.reject(new Error('Microsoft Edge was not found, so tier images could not be rendered.'));
+// Shared with deck_diff_images.mjs.
+export function screenshot(htmlFile, pngFile, height, width = WIDTH) {
+  if (!EDGE) return Promise.reject(new Error('Microsoft Edge was not found, so images could not be rendered.'));
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'deck-sim-edge-'));
   return new Promise((resolve, reject) => {
     execFile(EDGE, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--allow-file-access-from-files', `--user-data-dir=${profile}`,
-      '--virtual-time-budget=4000', `--window-size=${WIDTH},${height}`, `--screenshot=${pngFile}`, pathToFileURL(htmlFile).href], {timeout: 60000}, error => {
+      '--virtual-time-budget=4000', `--window-size=${width},${height}`, `--screenshot=${pngFile}`, pathToFileURL(htmlFile).href], {timeout: 60000}, error => {
       fs.rmSync(profile, {recursive: true, force: true});
       if (error || !fs.existsSync(pngFile)) reject(error || new Error(`Edge did not write ${pngFile}`)); else resolve(pngFile);
     });

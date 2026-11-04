@@ -405,8 +405,13 @@ export function deckPolicy(x){
   // Union support.
   if(n==='Formation Union'){
    // Equip mode only (resourceOption picks it): when a Union's own equip is not offered this turn.
+   // Never as a chain response: right after a Union is summoned its own free equip is on the chain,
+   // and Formation Union would resolve first and leave that effect with nothing to do.
+   if(chain||(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&isUnion(x)))return -1;
    const ownEquip=(prompt?.activates||[]).some(x=>x.location===L.MZONE&&isUnion(x));
-   return mainPhase&&!ownEquip&&live(own).some(x=>isUnion(x)&&unionPartners(x).length)?78:-1;
+   // The equip mode needs a free Spell & Trap Zone; without one only the pointless unequip mode is left.
+   const zones=e.aiModifiers?.spellTrapZones??5,freeZone=back.filter(x=>x.sequence<5).length+(c.location===L.SZONE?0:1)<zones;
+   return mainPhase&&!ownEquip&&freeZone&&live(own).some(x=>isUnion(x)&&unionPartners(x).length)?78:-1;
   }
   if(n==='Union Attack'){
    if(!(e.player===p&&e.phase===4))return -1;
@@ -432,7 +437,8 @@ export function deckPolicy(x){
    return counterUserOnField(c)||hand.some(x=>spellCounterUsers.has(name(x)))?70:-1;
   }
   if(n==='Magical Dimension'){
-   const caster=hand.filter(x=>monster(x)&&race(x)==='Spellcaster').sort((a,b)=>atk(b)-atk(a))[0],cheapest=own.filter(face).sort((a,b)=>value(a)-value(b))[0];
+   // A face-down monster can be the Tribute too; the Quick-Play removal is worth it whenever there is a target.
+   const caster=hand.filter(x=>monster(x)&&race(x)==='Spellcaster').sort((a,b)=>atk(b)-atk(a))[0],cheapest=own.slice().sort((a,b)=>value(a)-value(b))[0];
    if(!caster||!cheapest)return -1;
    return best(enemy)>=1000||atk(caster)>atk(cheapest)+500?98:-1;
   }
@@ -583,8 +589,12 @@ export function deckPolicy(x){
   // Union support: boost or re-arm our strongest monster; Formation Union picks a Union, then its partner.
   if(['Union Attack','Combination Attack','Formation Union'].includes(n))return ownCard&&c.location===L.MZONE?30000+atk(c):-100000;
   if(n==='Magical Dimension'){
-   // First the Tribute (only our monsters are offered): the cheapest. Then the optional destroy: their best.
-   const tribute=(info.cands||[]).every(x=>x.controller===p);
+   // Three choices: the Tribute (our monsters on the field): the cheapest; the Spellcaster to Special Summon
+   // (from our hand): the strongest; then the optional destroy: their best. Hand cards are ours too, so the
+   // location tells the summon apart from the Tribute (user, 2026-11-04).
+   const cands=info.cands||[];
+   if(cands.length&&cands.every(x=>x.controller===p&&x.location===L.HAND))return 30000+value(c);
+   const tribute=cands.every(x=>x.controller===p);
    return tribute?(ownCard?20000-value(c):-100000):(ownCard?-100000:30000+value(c));
   }
   if(n==='The Agent of Creation - Venus')return ownCard&&name(c)==='Mystical Shine Ball'&&[L.HAND,L.DECK].includes(c.location)?50000+atk(c):-100000;

@@ -80,8 +80,13 @@ def sync():
  for card in (78637313,53119267,93599951,85562745,94585852,49511705):
   scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
  if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
+ # scripts.json builds on its last version, so a card taken off the pre-errata list gets its official script back.
+ pre_errata=json.loads((ROOT/'data/pre-errata.json').read_text(encoding='utf8'))['cards']
+ for name,text in list(scripts.items()):
+  official=ROOT/'runtime/script/official'/name
+  if '(Pre-Errata)' in text[:200] and name[1:-4] not in pre_errata and official.is_file():scripts[name]=official.read_text(encoding='utf8')
  # Pre-errata versions run under the original passcode, so they must not name their own EDOPro variant ID.
- for card,row in json.loads((ROOT/'data/pre-errata.json').read_text(encoding='utf8'))['cards'].items():
+ for card,row in pre_errata.items():
   text=(ROOT/'runtime/script'/row['script']).read_text(encoding='utf8')
   assert Path(row['script']).stem[1:] not in text,row['script']
   scripts[f'c{card}.lua']=text

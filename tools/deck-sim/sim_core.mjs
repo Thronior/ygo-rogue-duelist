@@ -274,6 +274,44 @@ export async function addTierImages(report, jsonFile) {
   return report;
 }
 
+// Quick re-test: only the bottom `perTier` decks of each tier in a previous full-list report play, each against
+// every deck in its own tier. Only those decks get win rates; the others play fewer games and are not reported.
+// `only` ([{tier, characterId}]) tests exactly those decks instead of the bottom ones.
+export async function runFocus(settings, {reportFile, perTier = 5, only = null}, hooks = {}) {
+  const previous = readReport(settings, reportFile);
+  // Picking the bottom decks needs a full list; a chosen list can take its "before" rates from a focus report too.
+  if (previous.mode !== 'full' && !(only && previous.mode === 'focus')) throw new Error('Focus mode needs a full-list report to pick the bottom decks from.');
+  const {source, decks} = loadOpponentDecks(settings);
+  checkDecks(decks, cardCatalog());
+  const before = new Map(previous.decks.map(d => [`${d.tier}:${d.characterId}`, rateOf(d.record.all)]));
+  const focus = new Set();
+  if (only) decks.forEach((d, i) => { if (only.some(o => o.tier === d.tier && o.characterId === d.characterId)) focus.add(i); });
+  else for (const tier of [1, 2, 3]) {
+    decks.map((d, i) => ({i, rate: before.get(`${tier}:${d.characterId}`)})).filter(({i, rate}) => decks[i].tier === tier && rate !== undefined && rate !== null)
+      .sort((x, y) => x.rate - y.rate).slice(0, perTier).forEach(({i}) => focus.add(i));
+  }
+  const games = settings.gamesPerMatchup;
+  const seed = Date.now() >>> 0;
+  const jobs = [];
+  for (let a = 0; a < decks.length; a++) for (let b = a + 1; b < decks.length; b++) {
+    if (decks[a].tier === decks[b].tier && (focus.has(a) || focus.has(b))) jobs.push({a, b, games, seed: seedFor(seed, jobs.length)});
+  }
+  hooks.onInfo?.(`Focus test: ${only ? `${focus.size} chosen decks` : `the bottom ${perTier} decks of each tier`} from ${path.basename(path.dirname(exportPath(settings, reportFile)))} each play every deck in their own tier ${games} times: ${jobs.length.toLocaleString()} pairings.`);
+  const run = await runJobs(decks, jobs, settings, hooks);
+  const records = tally(decks, run.results);
+  const rows = [...focus].map(i => ({...(({main, extra, ...d}) => d)(decks[i]), record: records[i], before: before.get(`${decks[i].tier}:${decks[i].characterId}`)}))
+    .sort((x, y) => x.tier - y.tier || (rateOf(y.record.all) ?? -1) - (rateOf(x.record.all) ?? -1));
+  const header = [`Deck balance simulation — focus test (${new Date().toLocaleString()})`,
+    `${only ? `${focus.size} chosen decks` : `Bottom ${perTier} decks per tier`} (before = ${reportFile}), each against every deck in its own tier, ${games} duels per pairing, ${run.total} duels total, seed ${seed}.`,
+    `Both sides use the game CPU; 8,000 LP, 5-card hands, no relics or curses. Duels past turn ${settings.maxTurns} count as draws. Run time ${fmtTime(run.seconds)} on ${run.workers} workers.`].join('\n');
+  const width = Math.max(10, ...rows.map(r => `T${r.tier} ${r.character}`.length));
+  const body = [`${'Deck'.padEnd(width)}  ${'Before'.padStart(7)}  ${'Now'.padStart(7)}  ${'W-L-D'.padStart(11)}`, '-'.repeat(width + 34),
+    ...rows.map(r => `${`T${r.tier} ${r.character}`.padEnd(width)}  ${(r.before === null || r.before === undefined ? '—' : `${(r.before * 100).toFixed(1)}%`).padStart(7)}  ${pct(r.record.all).padStart(7)}  ${`${r.record.all.w}-${r.record.all.l}-${r.record.all.d}`.padStart(11)}`)].join('\n');
+  const csvText = ['tier,character,deck_id,before_pct,win_rate_pct,wins,losses,draws', ...rows.map(r => [r.tier, r.character, r.deckId, r.before == null ? '' : (r.before * 100).toFixed(1), csvRate(r.record.all), r.record.all.w, r.record.all.l, r.record.all.d].map(csvCell).join(','))].join('\r\n') + '\r\n';
+  const report = save(settings, 'focus', header, body, csvText, {mode: 'focus', scope: 'within-tier', createdAt: new Date().toISOString(), source, seed, settings, seconds: run.seconds, workers: run.workers, totalDuels: run.total, basedOn: reportFile, perTier, decks: rows});
+  return {...report, text: `${header}\n\n${body}`};
+}
+
 // One .ydk (path or pasted/uploaded text) against every active T1-T3 deck.
 export async function runCustom(settings, {file, text, name}, hooks = {}) {
   const catalog = cardCatalog();

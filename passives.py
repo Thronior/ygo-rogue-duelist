@@ -85,8 +85,8 @@ Duel.RegisterEffect(e,0) end''')
   elif filter:condition=f'c:IsAttribute(ATTRIBUTE_{filter})'
   expanded=expanded_effect(kind,amount,filter)
   # The core uses the last hand limit registered, so both relics write the combined limit.
-  if kind=='approved_ritual_scar':expanded=expanded.replace('RITUAL_SCAR_COUNT',str(run.get('ritual_scar_count',0)))
-  limit_marker={'approved_empty_hand_pact':4,'approved_starving_library':3,'approved_crowded_crypt':2}.get(kind)
+  if kind in ('approved_ritual_scar','fused_grand_ritual_altar'):expanded=expanded.replace('RITUAL_SCAR_COUNT',str(run.get('ritual_scar_count',0)))
+  limit_marker={'approved_empty_hand_pact':4,'approved_starving_library':3,'approved_crowded_crypt':2,'approved_deep_pockets':9,'fused_endless_archive':8,'fused_mass_grave':4}.get(kind)
   if limit_marker:expanded=expanded.replace(f'e:SetValue({limit_marker})',f'e:SetValue({relic_hand_limit(run)})')
   if expanded is not None:
    lines.append(feedback(expanded));continue
@@ -278,6 +278,8 @@ def multiplayer_script(run, side):
  source=re.sub(r'(Duel.GetTurnPlayer\(\)\s*==\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
  source=source.replace(':Select(0,',':Select(1,').replace(':RandomSelect(0,',':RandomSelect(1,')
  source=re.sub(r'(\b(?:ep|rp)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
+ # Immunity checks such as Normal Barrier and Commoner's Crown read the owner of the other effect.
+ source=re.sub(r'(:GetOwnerPlayer\(\)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
  positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1,'AnnounceCoin':1,'AnnounceNumber':1}
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():

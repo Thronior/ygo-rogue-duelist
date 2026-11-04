@@ -4,7 +4,7 @@ const {MobileDuel,M,R,I,B,L}=await import('./web/duel.js');
 const root=fileURLToPath(new URL('../',import.meta.url)),json=p=>JSON.parse(fs.readFileSync(root+p,'utf8').replace(/^﻿/,''));
 const meta=json('android/web/content.json'),data=json('android/web/engine-data.json'),id=n=>meta.cards.find(c=>c.name===n).id;
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';
-const KEYS=['chaos_orb','four_elements','harpie_nest','zaloog_hideout','amazoness_village','necrovalley_throne','fusion_gate','jar_of_greed','second_coin_toss','scapegoat_pasture','sacred_phoenix','invincible'];
+const KEYS=['chaos_orb','four_elements','harpie_nest','zaloog_hideout','amazoness_village','necrovalley_throne','fusion_gate','jar_of_greed','second_coin_toss','scapegoat_pasture','sacred_phoenix','invincible','attribute_mutation','gaia_plate','masterwork_blade','endless_archive','giant_killers_cradle','titans_covenant','commoners_crown','undying_legion','tyrants_throne','mass_grave','bottomless_purse','grand_bazaar'];
 const scripts=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
 print(json.dumps({k:passives.script({'curses':[],'artifacts':[k] if k else [],'challenge_level':0,'character':0}) for k in ${JSON.stringify(['',...KEYS])}}))`],{cwd:root,encoding:'utf8',maxBuffer:1<<26}));
 const e=await new MobileDuel([...meta.cards,...meta.tokenCards]).init([data,json('android/web/scripts.json')]);
@@ -29,6 +29,9 @@ const fill=(...names)=>Array.from({length:40},(_,i)=>id(names[i%names.length])),
 duel('chaos_orb',fill('Mystical Elf'),WALL);
 assert.equal(named('Mystical Elf')?.attack,1200,'Chaos Orb: a LIGHT monster gains 400 ATK');
 assert.equal(named('Mystical Elf')?.defense,2000,'Chaos Orb: no DEF bonus');
+
+duel('attribute_mutation',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.attribute,0x7f,'Attribute Mutation: the monster has every Attribute');
 
 duel('four_elements',fill('Mystical Elf','Celtic Guardian'),WALL,{turns:3});
 assert.equal(mine().length,2,'Four Elements: both monsters are out');
@@ -101,6 +104,54 @@ for(const key of ['','invincible']){
  if(key)assert.ok(named('Mystical Elf',1),"Invincible: the opponent's Raigeki does not destroy the relic owner's monster");
  else assert.ok(!named('Mystical Elf',1),'without the relic Raigeki destroys it');
 }
+
+// Cursed fusions (2026-11-04).
+duel('masterwork_blade',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.attack,800+700,'Masterwork Blade: +700 ATK');
+assert.equal(named('Mystical Elf')?.defense,2000,'Masterwork Blade: no DEF loss');
+duel('gaia_plate',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.defense,2000+1500,'Gaia Plate: +1,500 DEF');
+assert.equal(named('Mystical Elf')?.attack,800,'Gaia Plate: no ATK loss');
+duel('giant_killers_cradle',fill('Kuriboh','Mystical Elf'),WALL,{summon:[id('Kuriboh')]});
+assert.equal(named('Kuriboh')?.attack,300+1000,"Giant-Killer's Cradle: a Level 1 gains 1,000 ATK");
+duel('tyrants_throne',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.attack,800+1200,"Tyrant's Throne: a lone monster gains 1,200 ATK");
+duel('tyrants_throne',fill('Mystical Elf'),WALL,{turns:3});
+assert.equal(mine().length,2,"Tyrant's Throne: two monsters are out");
+for(const c of mine())assert.equal(c.attack,meta.cards.find(x=>x.id===c.code).atk,"Tyrant's Throne: no bonus and no penalty with 2 monsters");
+duel('commoners_crown',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.attack,1800,"Commoner's Crown: a Normal Monster gains 1,000 ATK");
+assert.equal(named('Mystical Elf')?.defense,3000,"Commoner's Crown: and 1,000 DEF");
+duel('undying_legion',fill('Armored Zombie'),WALL);
+assert.equal(named('Armored Zombie')?.attack,1500+1200,'Undying Legion: a Zombie gains 1,200 ATK');
+for(const key of ['','undying_legion']){let healed=false;
+ duel(key,fill('Dian Keto the Cure Master'),WALL,{summon:[],step:m=>{
+  if(m.type===M.SELECT_IDLECMD&&!healed){const k=m.activates.findIndex(c=>c.code===id('Dian Keto the Cure Master'));if(k>=0){healed=true;return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}}
+  return null}});
+ assert.ok(healed,'Dian Keto was played');
+ assert.equal(e.lp[0],key?8500:9000,key?'Undying Legion: 1,000 LP gained becomes 500':'without the relic Dian Keto gains 1,000');}
+// Titan's Covenant: Dark Magician (Level 7) needs only 1 Tribute and gains 1,200 ATK.
+duel('titans_covenant',fill('Mystical Elf','Dark Magician'),WALL,{turns:3,step:m=>{
+ if(m.type===M.SELECT_IDLECMD&&e.turn===3){const k=m.summons.findIndex(c=>c.code===id('Dark Magician'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_SUMMON,index:k}}
+ return null}});
+assert.equal(named('Dark Magician')?.attack,2500+1200,"Titan's Covenant: a 1-Tribute Dark Magician with +1,200 ATK");
+// Endless Archive draws 2 a turn: 2 more cards gone from the Deck by turn 3 (draws on turns 1 and 3).
+for(const key of ['','endless_archive']){duel(key,fill('Mystical Elf'),WALL,{turns:3});globalThis['deck_'+(key||'base')]=e.query(0,L.DECK).length}
+assert.equal(globalThis.deck_endless_archive,globalThis.deck_base-2,'Endless Archive: 1 additional card in each draw');
+// Grand Ritual Altar: 200 ATK per Ritual Summon so far this run (3 here), no penalty.
+scripts.altar=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
+print(json.dumps(passives.script({'curses':[],'artifacts':['grand_ritual_altar'],'challenge_level':0,'character':0,'ritual_scar_count':3})))`],{cwd:root,encoding:'utf8'}));
+duel('altar',fill('Mystical Elf'),WALL);
+assert.equal(named('Mystical Elf')?.attack,800+600,'Grand Ritual Altar: 3 Ritual Summons give 600 ATK');
+// Commoner's Crown, given to the CPU's side: your Raigeki cannot destroy its Normal Monster.
+{const crown=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
+print(json.dumps(passives.multiplayer_script({'curses':[],'artifacts':['commoners_crown'],'challenge_level':0,'character':0},1)))`],{cwd:root,encoding:'utf8'}));
+ scripts.crown=scripts['']+'\n'+crown;let cast=false;
+ duel('crown',fill('Raigeki'),fill('Gemini Elf'),{turns:3,summon:[],step:m=>{
+  if(m.type===M.SELECT_IDLECMD&&e.turn===3&&!cast&&mine(1).length){const k=m.activates.findIndex(c=>c.code===id('Raigeki'));if(k>=0){cast=true;return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}}
+  return null}});
+ assert.ok(cast,"Commoner's Crown: Raigeki was cast");
+ assert.ok(named('Gemini Elf',1),"Commoner's Crown: the Normal Monster is unaffected by the opponent's Raigeki");}
 
 // Sacred Phoenix: from 300 LP, the first lethal Hinotama is survived at 1,000 LP; only a second one ends the duel.
 duel('sacred_phoenix',fill('Pot of Greed'),fill('Hinotama'),{turns:2,lp:300,summon:[]});

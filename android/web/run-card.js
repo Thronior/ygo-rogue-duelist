@@ -56,7 +56,7 @@ function wrap(ctx,str,max,size,weight='normal'){ctx.save();ctx.font=`${weight} $
  const n=lines.length;if(n>1&&lines[n-1].length<5){const prev=lines[n-2].split(' ');if(prev.length>1){lines[n-1]=prev.pop()+' '+lines[n-1];lines[n-2]=prev.join(' ')}}
  ctx.restore();return lines}
 function panel(ctx,t,x,y,w,h,r=8){ctx.save();path(ctx,c=>addRR(c,x,y,w,h,r));ctx.fillStyle=t.panel;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=t.line;ctx.stroke();ctx.restore()}
-function heading(ctx,t,str,cx,y){text(ctx,t,str,cx,y,{size:20,spacing:2,align:'center',color:t.accent})}
+function heading(ctx,t,str,cx,y){text(ctx,t,str,cx,y,{size:20,spacing:2,align:'center',color:t.accent,fit:R-L,min:14})}
 
 function slabShape(won,rand){
  const m=14;
@@ -155,10 +155,8 @@ function portrait(ctx,d,t,x,y,w,h){
  ctx.save();path(ctx,add);ctx.lineWidth=d.won?4:2;ctx.strokeStyle=d.won?gradient(ctx,[[0,t.metal[2]],[.5,t.metal[0]],[1,t.metal[1]]],0,y,0,y+h):t.line;ctx.stroke();ctx.restore()
 }
 
-function identity(ctx,d,t,x,y,w){
- text(ctx,t,d.name.toUpperCase(),x,y+60,{size:66,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:34});
- if(d.subtitle)text(ctx,t,d.subtitle,x,y+98,{size:24,weight:'normal',color:t.soft,max:w});
- const ty=y+(d.subtitle?136:112);text(ctx,t,'VICTORIES',x,ty,{size:19,spacing:2,color:t.soft});text(ctx,t,`${d.victories} / ${d.runLength}`,x+w,ty+1,{size:28,align:'right'});
+function victories(ctx,d,t,x,ty,w){
+ text(ctx,t,'VICTORIES',x,ty,{size:19,spacing:2,color:t.soft});text(ctx,t,`${d.victories} / ${d.runLength}`,x+w,ty+1,{size:28,align:'right'});
  const step=w/d.runLength;
  for(let i=0;i<d.runLength;i++){
   const duel=d.duels[i]?.name?d.duels[i]:null,boss=bossDuel(i+1),cx=x+step*(i+.5),cy=ty+30,r=boss?13:9;
@@ -166,6 +164,11 @@ function identity(ctx,d,t,x,y,w){
   if(duel){ctx.fillStyle=duel.won?t.good:t.bad;ctx.shadowColor=duel.won?t.good:t.bad;ctx.shadowBlur=d.won?10:0;ctx.fill()}
   else{ctx.lineWidth=2;ctx.strokeStyle=t.line;ctx.stroke()}ctx.restore()
  }
+}
+function identity(ctx,d,t,x,y,w){
+ text(ctx,t,d.name.toUpperCase(),x,y+60,{size:66,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:34});
+ if(d.subtitle)text(ctx,t,d.subtitle,x,y+98,{size:24,weight:'normal',color:t.soft,max:w});
+ const ty=y+(d.subtitle?136:112);victories(ctx,d,t,x,ty,w);
  // Attribute block of the character sheet.
  const gy=ty+56,gap=8,bw=(w-gap*2)/3,bh=d.subtitle?72:80,pad=(bh-72)/2;
  d.stats.forEach(([label,value],i)=>{
@@ -173,6 +176,41 @@ function identity(ctx,d,t,x,y,w){
   text(ctx,t,value,bx+bw/2,by+pad+40,{size:d.subtitle?33:36,align:'center',fit:bw-16,min:20});
   text(ctx,t,label,bx+bw/2,by+pad+62,{size:15,spacing:.5,align:'center',color:t.soft,fit:bw-12,min:12})
  })
+}
+
+// The visible figure inside a sprite, found on a quarter-size copy: sprites are framed differently, so placing them by
+// this box keeps every pair at the same size.
+function figureBox(img){
+ const c=document.createElement('canvas'),w=c.width=Math.max(1,img.width>>2),h=c.height=Math.max(1,img.height>>2),x=c.getContext('2d',{willReadFrequently:true});
+ let a;try{x.drawImage(img,0,0,w,h);a=x.getImageData(0,0,w,h).data}catch{return {x:0,y:0,w:img.width,h:img.height}}let l=w,r=-1,t=h,b=-1;
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(a[(j*w+i)*4+3]>40){if(i<l)l=i;if(i>r)r=i;if(j<t)t=j;if(j>b)b=j}
+ return r<0?{x:0,y:0,w:img.width,h:img.height}:{x:l*4,y:t*4,w:(r-l+1)*4,h:(b-t+1)*4};
+}
+// Tag: the teammate stands behind the card's owner, each fitted into its own area of the niche.
+function duo(ctx,d,t,x,y,w,h){
+ const add=c=>niche(c,x,y,w,h),fig=(img,ax,bottom,aw,ah)=>{if(!img)return;const f=figureBox(img),k=Math.min(aw/f.w,ah/f.h),fx=ax+(aw-f.w*k)/2;ctx.drawImage(img,fx-f.x*k,bottom-(f.y+f.h)*k,img.width*k,img.height*k)};
+ ctx.save();path(ctx,add);ctx.clip();ctx.fillStyle=t.panel;ctx.fillRect(x,y,w,h);
+ const glow=ctx.createRadialGradient(x+w/2,y+h*.42,10,x+w/2,y+h*.42,w*.75);glow.addColorStop(0,d.won?rgba(t.metal[1],.4):'rgba(133,206,170,.16)');glow.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=glow;ctx.fillRect(x,y,w,h);
+ fig(d.tag.portrait,x+w-238,y+h-92,226,290);
+ const shade=ctx.createLinearGradient(0,y+h-210,0,y+h);shade.addColorStop(0,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,.4)');ctx.fillStyle=shade;ctx.fillRect(x,y,w,h);
+ fig(d.portrait,x-6,y+h,258,320);
+ ctx.restore();
+ ctx.save();path(ctx,add);ctx.lineWidth=d.won?4:2;ctx.strokeStyle=d.won?gradient(ctx,[[0,t.metal[2]],[.5,t.metal[0]],[1,t.metal[1]]],0,y,0,y+h):t.line;ctx.stroke();ctx.restore()
+}
+// Duel stats are the team's, because a Tag duel counts both teammates as one side. The last row is this player's own.
+function tagIdentity(ctx,d,t,x,y,w){
+ text(ctx,t,d.name.toUpperCase(),x,y+56,{size:58,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:30});
+ text(ctx,t,`& ${d.tag.name.toUpperCase()}`,x,y+100,{size:36,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:22,color:t.soft});
+ if(d.subtitle)text(ctx,t,d.subtitle,x,y+132,{size:22,weight:'normal',color:t.soft,max:w});
+ const ty=y+(d.subtitle?164:142),gap=8,bw=(w-gap*2)/3,bh=62,gy=ty+50;victories(ctx,d,t,x,ty,w);
+ d.stats.forEach(([label,value],i)=>{
+  const bx=x+(i%3)*(bw+gap),by=gy+Math.floor(i/3)*(bh+gap);panel(ctx,t,bx,by,bw,bh,6);
+  text(ctx,t,value,bx+bw/2,by+bh/2+8,{size:30,align:'center',fit:bw-16,min:18});
+  text(ctx,t,label,bx+bw/2,by+bh/2+30,{size:15,spacing:.5,align:'center',color:t.soft,fit:bw-12,min:11})
+ });
+ const py=gy+2*(bh+gap),ph=y+422-py,cw=(w-32)/3;panel(ctx,t,x,py,w,ph,6);
+ text(ctx,t,d.name.toUpperCase(),x+16,py+21,{size:14,spacing:1.5,color:t.accent,max:w-32});
+ d.tag.own.forEach(([label,value],i)=>{const cx=x+16+cw*(i+.5);text(ctx,t,value,cx,py+ph-24,{size:26,align:'center',fit:cw-8,min:16});text(ctx,t,label,cx,py+ph-7,{size:13,spacing:.5,align:'center',color:t.soft,fit:cw-8,min:10})})
 }
 
 function defeat(ctx,d,t,x,y,w,h){
@@ -280,8 +318,8 @@ export function drawRunCard(canvas,d){
  tablet(ctx,d,t,shape,tex);
  ctx.save();path(ctx,shape);ctx.clip();
  header(ctx,d,t);
- portrait(ctx,d,t,L,top+8,356,414);
- identity(ctx,d,t,L+380,top,R-L-380);
+ if(d.tag){duo(ctx,d,t,L,top+8,356,414);tagIdentity(ctx,d,t,L+380,top,R-L-380)}
+ else{portrait(ctx,d,t,L,top+8,356,414);identity(ctx,d,t,L+380,top,R-L-380)}
  (d.won?finalDeck:defeat)(ctx,d,t,L,top+430,356,336);
  drawRelics(ctx,d,t,relicGrid(ctx,d,t,L+380,top+430,R-L-380,336));
  duelRecord(ctx,d,t,L,top+804,R-L);
@@ -298,6 +336,12 @@ function runTime(r){const start=+r.started_at||0,end=+r.finished_at||0;if(!start
 function deckOrder(ids,card){const kind=id=>{const c=card(id);return c.data.type&1?[0,-(c.atk||0)]:c.data.type&2?[1,0]:[2,0]};return [...ids].sort((a,b)=>{const x=kind(a),y=kind(b);return x[0]-y[0]||x[1]-y[1]})}
 
 export const bossDuel=n=>n%BOSS_EVERY===0;
+// A Tag run's teammate: a history row keeps mode/partner, the live run history_mode/history_partner.
+export const tagPartner=r=>(r?.mode??r?.history_mode)==='tag'?(r.partner??r.history_partner??null):null;
+export function runCardName(r,content){
+ const name=id=>content.characters[id]?.name||'Unknown duelist',mate=tagPartner(r),result=r.stage==='complete'||r.result==='complete'?'Win':'Loss';
+ return mate==null?`YGO Rogue Duelist - ${name(r.character)} - ${result}`:`YGO Rogue Duelist - ${name(r.character)} and ${name(mate)} - Tag ${result}`;
+}
 // One entry per duel of a loop from the run timeline, null where not reached. The card and the between-duel run progress
 // strip (run-progress.js) both draw from it. The loop defaults to the latest one recorded.
 export function runDuels(r,{content,assetURL=p=>p,loop,played}){
@@ -320,23 +364,31 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  // Only the curses of the duel that ended the run (the loss, or the final win).
  const curseCounts=new Map();for(const k of latest.at(-1)?.curses||[])curseCounts.set(k,(curseCounts.get(k)||0)+1);
  const curses=[...curseCounts].map(([k,count])=>({key:k,name:content.curses?.[k]?.[0]||k,count,src:assetURL(curseIconFile(k))}));
- const s=r.stats||{},stats=[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]].map(([k,v])=>[k,count(v)]);
+ const mate=tagPartner(r),s=r.stats||{},stats=(mate==null?[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]]
+  // Tag leaves out coins earned: each teammate's run counts its own payout, which can differ from the team's.
+  :[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['COINS LEFT',r.gold]]).map(([k,v])=>[k,count(v)]);
  const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
  const variant=runCardVariant(r,level),d={won,variant,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
-  recordTitle:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
+  recordTitle:mate!=null?`DUEL RECORD · ${character.name.toUpperCase()}’S OPPONENTS`:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
   textures:{backdrop:assetURL('assets/character-select-background.png'),stone:assetURL('assets/ui/run-card-stone.jpg'),cracks:assetURL('assets/ui/run-card-cracks.jpg')}};
+ if(mate!=null){
+  // Only this player's deck, shopping and opponents are saved on their device; the teammate is a character.
+  const other=content.characters[mate],deckSize=(r.selected||[]).filter(i=>r.pool?.[i]!=null).length;
+  d.tag={name:other?.name||'Teammate',portrait:other?.sprite?assetURL(`assets/${other.sprite}`):null,own:[['PACKS BOUGHT',count(s.packs_bought)],['COINS SPENT',count(s.coins_spent)],['DECK',deckSize?`${deckSize} cards`:'—']]};
+ }
  if(won){
-  if(variant==='flawless')d.eyebrow='FLAWLESS RUN · NO DAMAGE TAKEN';
+  if(variant==='flawless')d.eyebrow=d.tag?'FLAWLESS TAG RUN · NO DAMAGE TAKEN':'FLAWLESS RUN · NO DAMAGE TAKEN';
+  else if(d.tag)d.eyebrow='TAG RUN';
   d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`.toUpperCase():level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
   // Card artwork is already cached by the startup preload, so the deck uses the same images as the rest of the game.
   const ids=(r.selected||[]).map(i=>r.pool?.[i]).filter(id=>card(id)),extra=id=>card(id).data.type&64;
   d.deck={main:deckOrder(ids.filter(id=>!extra(id)),card).map(cardImage),extra:deckOrder(ids.filter(extra),card).map(cardImage)};
-  d.label=`${d.name} won the run at Challenge Level ${level} with ${d.victories} of ${runLength} victories: ${d.title.toLowerCase()}.`
+  d.label=`${d.tag?`${d.name} and ${d.tag.name} won the Tag run`:`${d.name} won the run`} at Challenge Level ${level} with ${d.victories} of ${runLength} victories: ${d.title.toLowerCase()}.`
  }else{
-  d.eyebrow=`RUN LOST · DUEL ${lostDuel} OF ${runLength}`;d.title='THE SHADOWS CLAIM THIS RUN';d.subtitle=`Challenge LVL ${level}`;
+  d.eyebrow=`${d.tag?'TAG RUN':'RUN'} LOST · DUEL ${lostDuel} OF ${runLength}`;d.title='THE SHADOWS CLAIM THIS RUN';d.subtitle=`${d.tag?'Tag · ':''}Challenge LVL ${level}`;
   const killer=r.loss?.card?card(r.loss.card):null,text=String(r.loss?.text||'Your life points reached 0').replace(/\s+—\s+[\d,]+ damage$/,''),at=killer?text.lastIndexOf(killer.name):-1;
   d.outcome={lead:at>0?text.slice(0,at).trim():text,cardName:at>0?killer.name:'',amount:r.loss?.damage>0?count(r.loss.damage):'',detail:lost?`Duel ${lost.duel} · ${names(lost.opponent)}`:`Duel ${lostDuel}`,card:killer?cardImage(killer.id):''};
-  d.label=`${d.name} lost on duel ${lostDuel} of ${runLength} at Challenge Level ${level}. ${r.loss?.text||''}`.trim()
+  d.label=`${d.tag?`${d.name} and ${d.tag.name} lost the Tag run`:`${d.name} lost`} on duel ${lostDuel} of ${runLength} at Challenge Level ${level}. ${r.loss?.text||''}`.trim()
  }
  return d
 }
@@ -347,7 +399,8 @@ async function withImages(d){
  const [portrait,stone,cracks,backdrop,relics,main,extra,card]=await Promise.all([load(d.portrait),load(d.textures.stone),load(d.textures.cracks),load(d.textures.backdrop),
   Promise.all(d.relics.map(async r=>({...r,img:await load(r.src)}))),Promise.all((d.deck?.main||[]).map(load)),Promise.all((d.deck?.extra||[]).map(load)),load(d.outcome?.card)]);
  const curses=await Promise.all((d.curses||[]).map(async c=>({...c,img:await load(c.src)}))),duels=await Promise.all(d.duels.map(async x=>x?.sprite?{...x,img:await load(x.sprite)}:x));
- return {...d,duels,portrait,textures:{stone,cracks,backdrop},relics,curses,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
+ const tag=d.tag&&{...d.tag,portrait:await load(d.tag.portrait)};
+ return {...d,tag,duels,portrait,textures:{stone,cracks,backdrop},relics,curses,deck:d.deck&&{main,extra},outcome:d.outcome&&{...d.outcome,card}}
 }
 
 let displayFace=null;

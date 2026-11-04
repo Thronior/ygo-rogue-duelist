@@ -36,6 +36,8 @@ def choose(run,key,rng=random):
  if not offer or key not in offer['options'] or key not in approved() or key not in ARTIFACTS:raise ValueError('Choose one of the offered cursed relics.')
  if key in run['artifacts']:raise ValueError('You already own that relic.')
  run['artifacts'].append(key);run.setdefault('cursed_artifacts',[]).append(key)
+ import relic_fusions
+ relic_fusions.fuse(run)
  ar.reconcile_turn_order(run)
  run.pop('cursed_offer',None)
  import campaign

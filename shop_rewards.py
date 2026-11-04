@@ -237,11 +237,46 @@ def matches(card,key):
   return 'six-sided die' in d or 'toss a coin' in d or 'coin toss' in d or 'roll a die' in d or 'die roll' in d or 'heads or tails' in d
  return (bool(t&1) and card.get('race','').casefold()==key.casefold()) or key in mentioned(card.get('desc'))
 
-def artifact_matches(key,artifact):
- info=ART_INFO[artifact]
- if info['filter']==key or key in info['filter'].split('/'):return True
- tags={'normal':'normal','effect':'offense','flip':'defense','normal_spell':'draw','quick_counter':'defense','continuous':'healing','ritual':'draw'}
- return info['tag']==tags.get(key,'')
+# Relics that suit each reward category. After a duel the chosen category makes
+# these 5 times as likely in that shop's relic slots; rerolls use normal weights.
+CATEGORY_RELIC_BOOST=5
+CATEGORY_RELICS={
+ 'Aqua':('shell','ocean_relic','tide'),'Beast':('fang','kindred_bond'),'Beast-Warrior':('blade','fang'),
+ 'Dinosaur':('fossil','earth'),'Dragon':('dragon','dragon_triumph'),'Fairy':('halo','light'),
+ 'Fiend':('horn','dark'),'Fish':('shell','ocean_relic','tide'),'Insect':('hive','chitin_carapace'),
+ 'Machine':('gear','union_dock','union_hangar'),'Plant':('hive','earth'),'Pyro':('storm_core','ember'),
+ 'Reptile':('fossil','kindred_bond'),'Rock':('stone','restless_stone'),'Sea Serpent':('shell','ocean_relic','tide'),
+ 'Spellcaster':('mage','counterweight'),'Thunder':('storm_core','overcharge'),'Warrior':('blade','armory_crest'),
+ 'Winged Beast':('wing','gale'),'Zombie':('bone','restless_dead'),
+ 'DARK':('dark','attribute_dark','eclipse'),'LIGHT':('light','attribute_light','eclipse'),
+ 'EARTH':('earth','attribute_earth'),'FIRE':('ember','attribute_fire'),'WATER':('tide','attribute_water','ocean_relic'),
+ 'WIND':('gale','attribute_wind'),'DIVINE':('divine_might','tribute_free','boss_monster'),
+ 'amazoness':('amazoness_standard','amazoness_hunters'),'archfiend':('archfiend_contract','demonic_pact','all_for_one_terrorking'),
+ 'darkmagician':('mage','counterweight'),'darkscorpion':('scorpion_emblem','dark_scorpion_squad'),
+ 'exodia':('legendary_shackles','deep_pockets','eye'),'gravekeeper':('necrovalley_tablet','gravekeepers_union'),
+ 'guardian':('guardian_arsenal','armory_crest'),'harpie':('harpie_feather','harpies_of_a_feather','wing'),
+ 'toon':('toon_world','this_life_mine'),'union':('union_dock','union_hangar'),
+ 'fusion':('fusion_chamber','fusion_insignia','fusion_time','machine_foundry'),
+ 'ritual':('ritual_dagger','ritual_vestment','ritual_incense','ten_thousand_hands'),
+ 'spirit':('good_spirits','deep_pockets'),'flip':('jar_of_echoes','buckler'),
+ 'normal':('normal','epitaph','normal_barrier','tenacity_of_the_weak'),'effect':('menagerie','kindred_bond'),
+ 'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass'),
+ 'highlevel':('tribute','tribute_dividend'),'toplevel':('tribute_free','boss_monster','tribute'),
+ 'burn':('flame','burn_proficiency','static_coil'),'heal':('healing_echo','spring','quiet_library'),
+ 'stall':('patient_guardian','quiet_library','buckler','straw_doll'),'pierce':('pierce','battle_proficiency'),
+ 'direct':('battle_proficiency','seal'),'draw':('eye','second_wind','deep_pockets'),
+ 'discard':('last_word','second_wind','inkwell'),'gambling':('lets_go_gambling','weighted_coins','weighted_dice'),
+ 'jar':('dice_jar','cyber_jar','morphing_jar_2','jar_of_echoes'),'negation':('solemn_relic','boss_monster'),
+ 'quick_counter':('solemn_relic','this_life_mine'),'continuous':('arcane_resonance','trap_weaver'),
+ 'normal_trap':('returning_tide','trap_weaver'),'hole':('returning_tide','patient_guardian'),
+ 'normal_spell':('final_hour','level_up_relic','eye'),'field':('terraforming_relic','field_amplifier','ocean_relic'),
+ 'equip':('armory_crest','guardian_arsenal'),'banish':('third_gate','exile_standard'),
+ 'graveyard':('grave_lantern','the_creator','epitaph'),'destruction':('grave_lantern','the_creator'),
+ 'summon':('the_creator','tribute_free'),'control':('loyalty','tribute_dividend'),
+ 'bounce':('returning_tide','jar_of_echoes'),
+}
+
+def category_relics(key):return frozenset(CATEGORY_RELICS.get(RETIRED_THEMES.get(key,key),()))
 
 def description(index,reward=None):
  reward=reward or reward_for(index)

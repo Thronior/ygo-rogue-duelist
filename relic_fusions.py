@@ -20,12 +20,29 @@ FUSED=[
  ('scapegoat_pasture','Scapegoat Pasture',"During your opponent's Standby Phase, Special Summon 1 Sheep Token in Defense Position. Once per turn, during your Standby Phase, select 1 face-up monster on either side of the field. All Tokens you control receive the same Type, Level, Attribute, name, and original ATK and DEF as that monster until the End Phase.",'Sogen',('token_defender','token_martyrs','token_regiment','token_resonance')),
  ('sacred_phoenix','Sacred Phoenix','Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.','Sacred Phoenix of Nephthys',('phoenix_rebirth','phoenix_debt','second_wind')),
  ('gold_sarcophagus',"Pharaoh's Hoard",'Shop prices are reduced by 50%. Earn 50 additional coins after each victory.',"Pharaoh's Treasure",('bargain','urn','receipt','interest')),
+ ('attribute_mutation','Attribute Mutation','All your monsters are treated as having every Attribute.','DNA Transplant',tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
+ # Cursed fusions (2026-11-04): one cursed relic and its regular partners. A relic may belong to several sets;
+ # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
+ ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
+ ('gaia_plate','Gaia Plate','Monsters you control gain 1,500 DEF. Once per turn, a Defense Position monster you control cannot be destroyed by battle.','Big Shield Gardna',('cursed_brittle_armor','buckler')),
+ ('masterwork_blade','Masterwork Blade','Monsters you control gain 700 ATK.','Legendary Sword',('cursed_cracked_sword','blade','sword')),
+ ('endless_archive','Endless Archive','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 8.','Graceful Charity',('cursed_starving_library','deep_pockets','inkwell')),
+ ('giant_killers_cradle',"Giant-Killer's Cradle",'Level 3 or lower monsters you control gain 1,000 ATK and cannot be destroyed by battle with Level 5 or higher monsters.','Little-Winguard',('cursed_ashen_nursery','small','protect_the_weak')),
+ ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
+ ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and are unaffected by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
+ ('undying_legion','Undying Legion','Zombie monsters you control gain 1,200 ATK. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.','Book of Life',('cursed_zombies_bargain','bone','restless_dead')),
+ ('grand_ritual_altar','Grand Ritual Altar','Monsters you control gain 200 ATK for each time you Ritual Summon a monster during this run, across all Duels. Each time you Ritual Summon, draw 1 card.',"Shinato's Ark",('cursed_ritual_scar','ritual_incense','ritual_vestment')),
+ ('tyrants_throne',"Tyrant's Throne","While you control exactly 1 monster, it gains 1,200 ATK, can make a second attack during each Battle Phase, and is unaffected by your opponent's Spell Cards.",'Dark Master - Zorc',('cursed_solitary_tyrant','solo','sword')),
+ ('mass_grave','Mass Grave','Monsters you control gain 100 ATK/DEF for each monster in your GY (max. 1,500). Your hand size limit is reduced by 2.','Skull Lair',('cursed_crowded_crypt','grave_lantern')),
+ ('grand_bazaar','Grand Bazaar','Each shop offers 3 additional regular relics and a fourth booster pack. All shop prices are reduced by 15%.','Upstart Goblin',('cursed_rusted_compass','map','booster_shelf')),
  ('invincible','Invincible',"Monsters you control cannot be targeted or destroyed by your opponent's Spell and Trap effects.",'Royal Decree',('spells_no_more','traps_no_more')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
+# Sets that fuse once this many of their pieces are owned (2026-11-04: any 3 of the 6 Surgery relics), instead of all of them.
+NEEDED={'attribute_mutation':3}
 # Jar of Greed keeps its jars' shop and encounter effects; every other fused relic replaces its pieces.
-INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2')}
+INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2'),'grand_bazaar':('booster_shelf',)}
 # Fused relics whose rules live with the base effect they share (passives.py or the shop/coin code).
 SHARED_EFFECT={'gold_sarcophagus':('discount',50),'sacred_phoenix':('phoenix',1000)}
 SHEEP_TOKEN=73915052
@@ -35,7 +52,8 @@ def install(artifact):
  for key,name,text,art,pieces in FUSED:
   effect,amount=SHARED_EFFECT.get(key,('fused_'+key,0))
   tag=next((ART_INFO[p]['tag'] for p in pieces if ART_INFO[p]['tag']!='economy'),'economy')
-  artifact(key,name,sum(ARTIFACTS[p][1] for p in pieces),text,art,effect,amount,tag)
+  price=sorted(ARTIFACTS[p][1] for p in pieces)[:NEEDED.get(key,len(pieces))]
+  artifact(key,name,sum(price),text,art,effect,amount,tag)
 
 def includes(run,key):
  """Whether a fused relic the run owns carries this piece's own effect (Jar of Greed's jars)."""
@@ -43,24 +61,32 @@ def includes(run,key):
  return any(fused in owned and key in pieces for fused,pieces in INCLUDES.items())
 
 def absorbed(run,key):
- """A piece of a set this run already fused: it is not offered again."""
- owned=run.get('artifacts',[])
- return any(fused in owned and key in pieces for fused,pieces in RECIPES.items())
+ """A piece whose every set this run already fused: it is not offered again."""
+ owned=run.get('artifacts',[]);sets=[fused for fused,pieces in RECIPES.items() if key in pieces]
+ return bool(sets) and all(fused in owned for fused in sets)
 
 def fuse(run):
  """Fuse every complete set in the run's relics. Returns the fusions made, also queued for the shop animation."""
  made=[]
  for key,pieces in RECIPES.items():
   artifacts=run.get('artifacts',[])
-  if key in artifacts or not all(p in artifacts for p in pieces):continue
-  for p in pieces:artifacts.remove(p)
+  owned=[p for p in pieces if p in artifacts]
+  if key in artifacts:
+   if key not in NEEDED:continue
+   # A Surgery that arrives after its set fused (Blank Relic) joins the fused relic quietly.
+   for p in owned:artifacts.remove(p)
+   continue
+  if len(owned)<NEEDED.get(key,len(pieces)):continue
+  for p in owned:
+   artifacts.remove(p)
+   if p in run.get('cursed_artifacts',[]):run['cursed_artifacts'].remove(p)
   artifacts.append(key)
-  for p in pieces:
+  for p in owned:
    if p in ('weighted_coins','weighted_dice'):
     import choice_relics
     choice_relics.clear_weight(run,p)
    if run.get('mirror_copy')==p:run.pop('mirror_copy',None)
-  made.append(dict(relic=key,pieces=list(pieces)))
+  made.append(dict(relic=key,pieces=owned))
  if made:run.setdefault('fusion_events',[]).extend(made)
  return made
 
@@ -74,9 +100,9 @@ def greed_free_relic(run,rng):
 
 def effect(kind):
  if not kind.startswith('fused_'):return None
- from approved_relic_effects import stat,phase
+ from approved_relic_effects import stat,phase,event,player_rule
  key=kind[6:]
- both=lambda v,t:stat('EFFECT_UPDATE_ATTACK',v,t)+'\n'+stat('EFFECT_UPDATE_DEFENSE',v,t)
+ both=lambda v,t='true':stat('EFFECT_UPDATE_ATTACK',v,t)+'\n'+stat('EFFECT_UPDATE_DEFENSE',v,t)
  if key=='chaos_orb':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsAttribute(ATTRIBUTE_LIGHT|ATTRIBUTE_DARK)')
  if key=='four_elements':return stat('EFFECT_UPDATE_ATTACK','''function(e,c) local seen,n=0,0
  for m in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATION_MZONE,0,nil):Iter() do seen=seen|m:GetAttribute() end
@@ -117,6 +143,40 @@ Duel.RegisterEffect(dice,0) end'''
    local x=Effect.CreateEffect(token) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(row[1]) x:SetValue(row[2]) x:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) token:RegisterEffect(x)
   end
  end''',f'Duel.IsExistingMatchingCard({mine},0,LOCATION_MZONE,0,1,nil)')
+ if key=='attribute_mutation':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_ATTRIBUTE)
+e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(ATTRIBUTE_ALL) Duel.RegisterEffect(e,0) end'''
+ if key in ('bottomless_purse','grand_bazaar'):return '' # shop and coin rules only (campaign_expansion, approved_relics.price)
+ if key=='gaia_plate':return stat('EFFECT_UPDATE_DEFENSE',1500)+'''
+do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_COUNT) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetValue(function(e,re,r) return (r&REASON_BATTLE)~=0 end) Duel.RegisterEffect(e,0) end'''
+ if key=='masterwork_blade':return stat('EFFECT_UPDATE_ATTACK',700)
+ # Hand limits are rewritten by passives.py from approved_relic_effects.relic_hand_limit (8 and 4 are the markers).
+ if key=='endless_archive':return player_rule('EFFECT_DRAW_COUNT',2)+'\n'+player_rule('EFFECT_HAND_LIMIT',8)
+ if key=='giant_killers_cradle':return stat('EFFECT_UPDATE_ATTACK',1000,'c:IsLevelBelow(3)')+'\n'+stat('EFFECT_INDESTRUCTABLE_BATTLE','function(e,c) return c:IsLevelAbove(5) end','c:IsLevelBelow(3)')
+ if key=='titans_covenant':
+  from artifact_effects import effect as base
+  return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsLevelAbove(5)')+'\n'+base('tribute_free',0,'')
+ if key=='commoners_crown':return both(1000,'c:IsType(TYPE_NORMAL)')+'\n'+stat('EFFECT_IMMUNE_EFFECT','function(e,te) return te:GetOwnerPlayer()==1 end','c:IsType(TYPE_NORMAL)')
+ if key=='undying_legion':
+  fallen='function(c) return c:IsPreviousControler(0) and c:IsLocation(LOCATION_GRAVE) and c:IsRace(RACE_ZOMBIE) end'
+  return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsRace(RACE_ZOMBIE)')+f'''
+do local fallen,turn=nil,-1
+local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_BATTLE_DESTROYED)
+d:SetCondition(function(e,tp,eg) return turn~=Duel.GetTurnCount() and eg:IsExists({fallen},1,nil) end)
+d:SetOperation(function(e,tp,eg) turn=Duel.GetTurnCount() fallen=eg:Filter({fallen},nil):GetFirst() end) Duel.RegisterEffect(d,0)
+local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(EVENT_PHASE|PHASE_BATTLE)
+s:SetCondition(function() return fallen~=nil end)
+s:SetOperation(function(e) local c=fallen fallen=nil if c:IsLocation(LOCATION_GRAVE) and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,0,false,false) then Duel.SpecialSummon(c,0,0,0,false,false,POS_FACEUP) end end) Duel.RegisterEffect(s,0)
+local h=Effect.GlobalEffect() h:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) h:SetCode(EVENT_RECOVER)
+h:SetCondition(function(e,tp,eg,ep,ev) return ep==0 and ev>1 end)
+h:SetOperation(function(e,tp,eg,ep,ev) Duel.SetLP(0,Duel.GetLP(0)-math.floor(ev/2)) end) Duel.RegisterEffect(h,0) end'''
+ if key=='grand_ritual_altar':
+  # Shares Ritual Scar's run-long count (RITUAL_SCAR_COUNT from passives.py, carried over by its 1900000051 hints).
+  return 'do local n=RITUAL_SCAR_COUNT '+stat('EFFECT_UPDATE_ATTACK','function() return 200*n end')+' '+event('EVENT_SPSUMMON_SUCCESS','local g=eg:Filter(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,nil) n=n+#g for c in g:Iter() do Duel.Hint(HINT_MESSAGE,c:GetControler(),1900000051) end if #g>0 then Duel.Draw(0,1,REASON_EFFECT) end')+' end'
+ if key=='tyrants_throne':
+  alone='Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1'
+  return stat('EFFECT_UPDATE_ATTACK',1200,alone)+'\n'+stat('EFFECT_EXTRA_ATTACK',1,alone)+'\n'+stat('EFFECT_IMMUNE_EFFECT','function(e,te) return te:IsActiveType(TYPE_SPELL) and te:GetOwnerPlayer()==1 end',alone)
+ if key=='mass_grave':return both('function() return math.min(1500,100*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end')+'\n'+player_rule('EFFECT_HAND_LIMIT',4)
  if key=='invincible':return '''do local function spelltrap(e,re,rp) return rp==1 and re~=nil and re:IsActiveType(TYPE_SPELL|TYPE_TRAP) end
 local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET) t:SetProperty(EFFECT_FLAG_SET_AVAILABLE) t:SetTargetRange(LOCATION_MZONE,0) t:SetValue(spelltrap) Duel.RegisterEffect(t,0)
 local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,0) end'''

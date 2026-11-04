@@ -55,8 +55,10 @@ export class MobileDuel extends DuelEngine {
   if([M.SUMMONING,M.SPSUMMONING,M.CHAIN_END].includes(m.type))this.releasedForSet=[0,0];
   const feedback=effectMessageCue(this,m,M,L);if(feedback){this.visuals.push(feedback);this.logs.unshift((feedback.player===0?"You · ":feedback.player===1?"Opponent · ":"")+feedback.text);}
   if(m.type===M.NEW_TURN){this.limiterDoom=new Set();this.piercingTurn={};this.piercingCards=new Map();this.attacksThisTurn=new Map();this.extraAttacks=new Map();}
-  // Last Will: a monster went from its controller's field to their GY this turn.
-  if(m.type===M.MOVE&&m.from?.location===L.MZONE&&m.to?.location===L.GRAVE&&m.to.controller===m.from.controller)(this.fieldToGraveTurn??=[0,0])[m.from.controller]=this.turn;
+  // Last Will: a monster went from its controller's field to their GY this turn. A monster whose
+  // Summon was negated (Horn of Heaven, Solemn Judgment) never was on the field, and the card ignores it.
+  const negatedSummon=m.type===M.MOVE&&this.summoningPlayer===m.from?.controller&&this.lastSummoned?.some(x=>x.controller===m.from.controller&&x.location===m.from.location&&x.sequence===m.from.sequence);
+  if(m.type===M.MOVE&&m.from?.location===L.MZONE&&m.to?.location===L.GRAVE&&m.to.controller===m.from.controller&&!negatedSummon)(this.fieldToGraveTurn??=[0,0])[m.from.controller]=this.turn;
   if(m.type===M.MOVE&&m.from?.location===L.MZONE){this.piercingCards?.delete(`${m.from.controller}:${m.from.sequence}`);this.attacksThisTurn?.delete(`${m.from.controller}:${m.from.sequence}`);this.extraAttacks?.delete(`${m.from.controller}:${m.from.sequence}`);this.attackLocks?.delete(`${m.from.controller}:${m.from.sequence}`);this.limiterDoom?.delete(`${m.from.controller}:${m.from.sequence}`);}
   if(m.type===M.CHAIN_SOLVED){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link&&!link.inactive){const n=this.name(link.code);if(n==='Meteorain')(this.piercingTurn??={})[link.player]=this.turn;if(n==='Exarion Universe')(this.piercingCards??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(link.location===L.MZONE&&/can attack twice/i.test(this.cards.get(link.code)?.desc||''))(this.extraAttacks??=new Map()).set(`${link.player}:${link.sequence}`,link.code);if(['Spellbinding Circle','Nightmare Wheel','Shadow Spell','Fiendish Chain'].includes(n))for(const t of link.targets||[])if(t.location===L.MZONE)this.attackLocks.set(`${t.controller}:${t.sequence}`,{code:link.code,controller:link.player,location:link.location,sequence:link.sequence});if(n==='Limiter Removal')for(const c of this.query(link.player,L.MZONE).filter(Boolean))if(this.cards.get(c.code)?.race==='Machine')this.limiterDoom.add(`${link.player}:${c.sequence}`);}}
 
@@ -245,7 +247,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):smart.hiddenDefense(c);
   const threat=Math.max(0,...enemy.map(strength));
   const fodder=own.map(c=>Math.max(0,atk(c))+(stat(c).type&0x4000?-1500:0)).sort((a,b)=>a-b);
-  const worthwhile=(c,setting=false)=>{const limit=smart.tributeWorth(c,setting);if(limit!==null)return limit;const level=this.cards.get(c.code)?.level||0,n=level>6?2:level>4?1:0;return !n||own.length<n||smart.projectedAttack(c)>fodder.slice(0,n).reduce((a,b)=>a+b,0)||smart.projectedAttack(c)>threat&&own.every(x=>atk(x)<=threat)};
+  // Once the Tributes can no longer attack this turn (Main Phase 2), their combined ATK is no reason to keep
+  // them; tributeWorth has already required a real upgrade (deck-sim, 2026-11-04).
+  const worthwhile=(c,setting=false)=>{const limit=smart.tributeWorth(c,setting);if(limit!==null)return limit;const level=this.cards.get(c.code)?.level||0,n=level>6?2:level>4?1:0;return !n||own.length<n||!(this.phase===4&&m.to_bp)||smart.projectedAttack(c)>fodder.slice(0,n).reduce((a,b)=>a+b,0)||smart.projectedAttack(c)>threat&&own.every(x=>atk(x)<=threat)};
   const safeCost=c=>{const cost=/pay ([\d,]+) (?:LP|Life Points)/i.exec(this.cards.get(c.code)?.desc||'');return !cost||this.lp[p]-Number(cost[1].replaceAll(',',''))>Math.max(500,enemy.length&&!own.length?threat:0)};
   const desc=c=>this.cards.get(c.code)?.desc?.toLowerCase()||'';
   const text=this.cards.get(this.effect?.code)?.desc?.toLowerCase()||'';
@@ -390,7 +394,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     const safe=m.monster_sets.map((c,index)=>({c,index,damage:smart.incomingDamage(c,false)})).filter(x=>!exodiaPieces.has(x.c.code)&&worthwhile(x.c,true)&&x.damage<this.lp[p]).sort((a,b)=>a.damage-b.damage);
     if(safe.length&&attacks.length&&attacks.every(c=>smart.incomingDamage(c,true)>=this.lp[p]&&!(m.to_bp&&!enemy.length&&!smart.attackBlocked(c,p,true)&&smart.battleDamage(smart.projectedAttack(c))>=this.lp[1-p])))return idle(I.SELECT_MONSTER_SET,safe[0].index);
    }
-   const summon=ranked(m.summons).filter(x=>(!(stat(x.c).type&0x200000)||smart.saferPosition(x.c)===true)&&!smart.preferSet(x.c)&&smart.summonScore(x.c)>=0).sort((a,b)=>(smart.summonScore(b.c)-smart.summonScore(a.c))||(atk(b.c)-atk(a.c))).find(x=>(usefulAttacker(x.c)||smart.summonUtility(x.c)||smart.saferPosition(x.c)===true)&&worthwhile(x.c));
+   // A Flip monster is summoned face-up only when that is safer, or when a card rule says to (preferSet false, e.g. Slate Warrior).
+   const summon=ranked(m.summons).filter(x=>(!(stat(x.c).type&0x200000)||smart.saferPosition(x.c)===true||!smart.preferSet(x.c))&&!smart.preferSet(x.c)&&smart.summonScore(x.c)>=0).sort((a,b)=>(smart.summonScore(b.c)-smart.summonScore(a.c))||(atk(b.c)-atk(a.c))).find(x=>(usefulAttacker(x.c)||smart.summonUtility(x.c)||smart.saferPosition(x.c)===true)&&worthwhile(x.c));
    const summonIsLethal=x=>!!x&&m.to_bp&&!enemy.length&&!this.battleProtected?.[1-p]&&!smart.attackBlocked(x.c,p,true)&&smart.attackAllowed(x.c,true)&&smart.battleDamage(smart.projectedAttack(x.c))>=this.lp[1-p];
    if(summon&&(!firstMove||smart.projectedAttack(summon.c)>1500||smart.summonUtility(summon.c)||summonIsLethal(summon)))return idle(I.SELECT_SUMMON,summon.i);
 
@@ -534,6 +539,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m.type===M.SELECT_EFFECTYN&&this.phase===512&&(this.data[m.code]?.type&0x200)&&this.query(p,L.SZONE).some(x=>{const t=x&&(x.position&5)&&this.name(x.code)==='Mirror of Yata'&&(x.equipCard||x.equip_card);return t&&t.controller===p&&this.query(p,L.MZONE)[t.sequence]?.code===m.code}))return {type:R.SELECT_EFFECTYN,yes:false};
   // Dust Tornado's optional Set: never Set a Field Spell over your own active one.
   if(m.type===M.SELECT_YESNO&&this.name(this.effect?.code)==='Dust Tornado'&&this.query(p,L.SZONE)[5]?.position&5&&this.query(p,L.HAND).filter(c=>c&&this.data[c.code]?.type&6).every(c=>this.data[c.code].type&0x80000))return {type:R.SELECT_YESNO,yes:false};
+  // Standby Phase upkeep: never pay the last of our LP to keep a card (the core allows paying down to 0).
+  if(m.type===M.SELECT_YESNO&&this.phase===2&&m.description!==undefined&&smart.lethalUpkeep(Number(BigInt(m.description)>>20n)))return {type:R.SELECT_YESNO,yes:false};
   if(m.type===M.SELECT_EFFECTYN){if(this.effectYesRepeats(m))return {type:R.SELECT_EFFECTYN,yes:false};const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
   if(m.type===M.SELECT_POSITION){const _forecast={code:m.code,controller:p,location:L.HAND},_pos=smart.position(this.name(m.code),_forecast)??smart.betterPosition(_forecast);const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
   return super.auto(m);

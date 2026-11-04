@@ -15,9 +15,13 @@ for(const p of [0,1]){
  assert(smartContext(e,p,L).activation(jar,true)>0,'A new chain may use the card again');
  e.activeChain=[{code:jar.code,player:1-p}];assert(smartContext(e,p,L).activation(jar,true)>0,'Opponent copy is not our own activation');e.activeChain=[];
  const wishes={code:id('Solemn Wishes'),controller:p,location:L.SZONE,sequence:1,position:1};back=[wishes];
- assert(smartContext(e,p,L).activation({...wishes,sequence:2},true)<0,'Reject redundant face-up continuous copy');
+ // Solemn Wishes stacks (each copy gains LP, each gain is a Fire Princess burn), so a second copy is wanted (2026-11-04).
+ assert(smartContext(e,p,L).activation({...wishes,sequence:2},true)>0,'Stacking Solemn Wishes copy is allowed');
+ const goblin={code:id("Robbin' Goblin"),controller:p,location:L.SZONE,sequence:3,position:1};
+ assert(smartContext(e,p,L).activation(goblin,true)>0,"Robbin' Goblin alone is worth activating");
+ back=[wishes,goblin];assert(smartContext(e,p,L).activation({...goblin,sequence:4},true)<0,'Reject redundant face-up continuous copy');back=[wishes];
  assert(smartContext(e,p,L).activation(wishes,true)>0,'Do not suppress the source itself');
  back=[{...wishes,position:8}];assert(smartContext(e,p,L).activation({...wishes,sequence:2},true)>0,'Face-down copy does not provide an active effect');
- checks+=7;
+ checks+=9;
 }
 console.log(`PASS ${checks} duplicate activation/chain cases for both sides`);

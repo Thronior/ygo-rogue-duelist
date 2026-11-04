@@ -180,10 +180,15 @@ end) Duel.RegisterEffect(e,0) end'''
  if kind=='normal_spell_immune':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_IMMUNE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) end) e:SetValue(function(e,te) return te:IsActiveType(TYPE_SPELL) and te:GetOwnerPlayer()==1 end) Duel.RegisterEffect(e,0) end'''
  # Reads every lowering effect on the monster and gives half of it back. Same reader as Token Resonance.
- if kind=='halve_debuffs':return '''do local function soften(code) return function(e,c) local total=0
- for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then v=v(other,c) end if type(v)=='number' and v<0 then total=total-v end end end
+ # Relics that read every other bonus on a monster (Stand Tall, Token Resonance) skip each other's value functions, listed
+ # in a shared weak table. Reading them called back and forth until Lua's stack overflowed, on every stat check
+ # (2026-11-04: Magic Mirror copying Stand Tall). Stand Tall also applies once per duel, however many copies there are.
+ if kind=='halve_debuffs':return '''do local readers=__stat_readers or setmetatable({},{__mode='k'}) __stat_readers=readers
+ local function soften(code) return function(e,c) local total=0
+ for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then if readers[v] then v=nil else v=v(other,c) end end if type(v)=='number' and v<0 then total=total-v end end end
  return math.floor(total/2) end end
-for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0) e:SetValue(soften(code)) Duel.RegisterEffect(e,0) end end'''
+if Duel.GetFlagEffect(0,95381720)==0 then Duel.RegisterFlagEffect(0,95381720,0,0,1)
+for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local f=soften(code) readers[f]=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0) e:SetValue(f) Duel.RegisterEffect(e,0) end end end'''
  if kind in ('guard_weakest','guard_strongest'):
   better='<' if kind=='guard_weakest' else '>'
   # One monster only, so equal ATK can never leave a whole field that cannot be attacked.
@@ -209,11 +214,12 @@ e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) and c:IsLevelBelow(3) end
  if kind=='token_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue({amount}) Duel.RegisterEffect(e,0) end'''
  # Reads every other boost on the Token and adds it again, so relics, equips and Field Spells all double.
- if kind=='token_double':return '''do local function double(code) return function(e,c) local total=0
- for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then v=v(other,c) end if type(v)=='number' and v>0 then total=total+v end end end
+ if kind=='token_double':return '''do local readers=__stat_readers or setmetatable({},{__mode='k'}) __stat_readers=readers
+ local function double(code) return function(e,c) local total=0
+ for _,other in ipairs({c:GetCardEffect(code)}) do if other~=e then local v=other:GetValue() if type(v)=='function' then if readers[v] then v=nil else v=v(other,c) end end if type(v)=='number' and v>0 then total=total+v end end end
  return total end end
-for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0)
- e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue(double(code)) Duel.RegisterEffect(e,0) end end'''
+for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local f=double(code) readers[f]=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(code) e:SetTargetRange(LOCATION_MZONE,0)
+ e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue(f) Duel.RegisterEffect(e,0) end end'''
  if kind=='token_burn':return f'''do local function lost(c) return c:IsType(TYPE_TOKEN) and c:IsReason(REASON_DESTROY) and c:IsPreviousControler(0) end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_LEAVE_FIELD)
 e:SetCondition(function(e,tp,eg) return eg:IsExists(lost,1,nil) end)

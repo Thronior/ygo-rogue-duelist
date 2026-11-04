@@ -8,7 +8,7 @@ def save_if_changed(image,dest,**options):
     # Unchanged crops keep their timestamp, so build_android does not re-copy them every sync.
     data=io.BytesIO();image.save(data,'JPEG',**options);data=data.getvalue()
     if not dest.exists() or dest.read_bytes()!=data:dest.write_bytes(data)
-MENU=[3549275,17375316,28566710,81332143,30834988,71625222,75500286,23171610,32012841,91595718]
+MENU=[3549275,17375316,28566710,81332143,30834988,71625222,75500286,23171610,32012841,91595718,67048711]
 def generate():
     custom=json.loads((ROOT/'data/relic-custom-art.json').read_text())
     for key,v in content.ART_INFO.items():

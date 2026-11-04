@@ -79,6 +79,58 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
  g.buy(run,offer(run,'weighted_dice'),rng)
  assert run['artifacts'].count('second_coin_toss')==1 and not run.get('weight_picks') and 'weighted_coin' not in run,run.get('weight_picks')
 
+ # Attribute Mutation: any 3 of the 6 Surgery relics fuse; a later Surgery joins it quietly and none is offered again.
+ run=shop_run(['attribute_fire','attribute_water'])
+ g.buy(run,offer(run,'attribute_dark'),rng)
+ assert run['artifacts'].count('attribute_mutation')==1 and not any(a.startswith('attribute_') and a!='attribute_mutation' for a in run['artifacts']),run['artifacts']
+ assert run['fusion_events']==[{'relic':'attribute_mutation','pieces':['attribute_dark','attribute_fire','attribute_water']}],run['fusion_events']
+ assert ARTIFACTS['attribute_mutation'][1]==3*ARTIFACTS['attribute_fire'][1]
+ assert not shop_relic_eligible(run,'attribute_light')
+ run['artifacts'].append('attribute_light');rf.fuse(run)
+ assert run['artifacts'].count('attribute_mutation')==1 and 'attribute_light' not in run['artifacts']
+ run=shop_run(['attribute_fire','attribute_water']);rf.fuse(run)
+ assert 'attribute_mutation' not in run['artifacts'],'two Surgery relics do not fuse'
+
+ # Cursed fusions: a cursed relic choice can complete a set; the curse leaves the cursed list too.
+ import cursed_relics,passives
+ run=shop_run(['blade','sword']);run['cursed_offer']={'options':['cursed_cracked_sword'],'rerolls_left':0,'boss_round':1}
+ approved=cursed_relics.approved;cursed_relics.approved=lambda:('cursed_cracked_sword',)
+ try:cursed_relics.choose(run,'cursed_cracked_sword',rng)
+ finally:cursed_relics.approved=approved
+ assert run['artifacts'].count('masterwork_blade')==1 and 'cursed_cracked_sword' not in run['artifacts'] and 'cursed_cracked_sword' not in run.get('cursed_artifacts',[]),run['artifacts']
+ assert run['fusion_events'][-1]['relic']=='masterwork_blade'
+ # A relic in two sets (Demonic Sword) is still offered until both sets are fused, and the first set completed uses it up.
+ assert shop_relic_eligible(run,'sword'),"Tyrant's Throne still needs Demonic Sword"
+ assert not shop_relic_eligible(run,'blade')
+ run['artifacts']+=['cursed_solitary_tyrant','solo'];rf.fuse(run)
+ assert 'tyrants_throne' not in run['artifacts'],'its Demonic Sword went into Masterwork Blade'
+ g.buy(run,offer(run,'sword'),rng)
+ assert run['artifacts'].count('tyrants_throne')==1 and not shop_relic_eligible(run,'sword')
+ # Merchant Urn is in Pharaoh's Hoard and Bottomless Purse.
+ run=shop_run(['cursed_loaded_purse','champion_trophy']);run['cursed_artifacts']=['cursed_loaded_purse']
+ g.buy(run,offer(run,'urn'),rng)
+ assert run['artifacts'].count('bottomless_purse')==1 and run['cursed_artifacts']==[],run['artifacts']
+ run['round']=1;tally,_=g.rewards(run,[]);assert tally.get('Bottomless Purse')==80 and 'Loaded Purse' not in tally,tally
+ run['round']=2;tally,_=g.rewards(run,[]);assert tally.get('Bottomless Purse')==160,('80 more after a boss victory',tally)
+ assert shop_relic_eligible(run,'urn'),"Pharaoh's Hoard still needs Merchant Urn"
+ # Grand Bazaar: 6 relics and 4 packs per shop, 15% off, repricing the open shop when it fuses.
+ run=shop_run(['cursed_rusted_compass','map'])
+ single=next(x for x in run['shop'] if x['kind']=='single');before=single['price']
+ g.buy(run,offer(run,'booster_shelf'),rng)
+ assert run['artifacts'].count('grand_bazaar')==1
+ assert single['price']==max(1,round(before*.85/1.15)),(before,single['price'])
+ assert sum(x['kind']=='pack' for x in run['shop'])==4
+ g.restock(run,rng,general_stock=True)
+ assert sum(x['kind']=='artifact' for x in run['shop'])==6,[x['id'] for x in run['shop'] if x['kind']=='artifact']
+ # Hand limits: Endless Archive 8, Mass Grave 4 (written into the duel script).
+ from approved_relic_effects import relic_hand_limit
+ assert relic_hand_limit({'artifacts':['endless_archive']})==8 and relic_hand_limit({'artifacts':['mass_grave']})==4
+ for key,limit in (('endless_archive',8),('mass_grave',4)):
+  assert f'e:SetCode(EFFECT_HAND_LIMIT) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({limit})' in passives.script({'curses':[],'artifacts':[key],'challenge_level':0,'character':0}),key
+ # Undying Legion halves healing after a duel.
+ run=shop_run(['undying_legion'])
+ assert ar.heal_scale(run)==.5 and ar.can_heal(run,between=True)
+
  # Relic Picker can complete a set too.
  run=shop_run(['tide','gale','earth']);run['relic_offer']={'options':['ember'],'rerolls_left':0};run['relic_picks']=1
  choice_relics.choose_relic(run,'ember',rng)
@@ -99,4 +151,4 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
  shared={'artifacts':['light','dark']};rf.fuse(shared)
  assert shared['artifacts']==['chaos_orb'] and shared['fusion_events']
 
-print("PASS relic fusions: fusing, offers, secret recipes, Jar of Greed, Pharaoh's Hoard, Sacred Phoenix, Tag")
+print("PASS relic fusions: fusing, offers, secret recipes, Jar of Greed, Pharaoh's Hoard, Sacred Phoenix, Attribute Mutation, cursed fusions, Tag")

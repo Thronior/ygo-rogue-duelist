@@ -1,6 +1,6 @@
 {
   "useActiveGameDecks": true,
-  "gamesPerMatchup": 20,
+  "gamesPerMatchup": 10,
   "customGamesPerMatchup": 10,
   "maxTurns": 80,
   "maxDecisionsPerDuel": 10000,

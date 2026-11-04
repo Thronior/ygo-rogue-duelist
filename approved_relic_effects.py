@@ -67,6 +67,7 @@ def effect(kind):
   atk(1000,'c:IsType(TYPE_FUSION)');out.append(stat('EFFECT_PIERCE',1,'c:IsType(TYPE_FUSION)'))
   for code in ('EFFECT_CANNOT_SUMMON','EFFECT_CANNOT_MSET'):out.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c) return c:GetTributeRequirement()>0 end) Duel.RegisterEffect(e,0) end')
  elif key=='empty_hand_pact':atk(1000,'Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==0');handlimit(4)
+ elif key=='deep_pockets':handlimit(9)
  elif key=='solitary_tyrant':atk(400,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1');atk(-500,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)>1')
  elif key=='crowded_crypt':atk('function() return math.min(750,75*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end');handlimit(2)
  elif key=='golden_grave':defense(-400)
@@ -155,7 +156,7 @@ def no_specials(scale):
 
 def relic_hand_limit(run):
  from approved_relics import has,copies
- return max(0,(3 if has(run,'cursed_starving_library') else 6)-2*copies(run,'cursed_empty_hand_pact')-4*copies(run,'cursed_crowded_crypt'))
+ return max(0,(3 if has(run,'cursed_starving_library') else 6)+3*copies(run,'deep_pockets')+2*copies(run,'endless_archive')-2*copies(run,'mass_grave')-2*copies(run,'cursed_empty_hand_pact')-4*copies(run,'cursed_crowded_crypt'))
 
 def hand_limiter(run,scale):
  # The core uses the last hand limit registered, so this one starts from any relic's limit.

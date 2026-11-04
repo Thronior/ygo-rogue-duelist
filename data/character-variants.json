@@ -536,28 +536,28 @@
       "background": "character-backgrounds/variant-20.jpg"
     },
     "21": {
-      "name": "Labyrinth Giants",
-      "starting_relic": "tribute_free",
+      "name": "Magnet Warriors",
+      "starting_relic": "field_of_attraction",
       "supporting_packs": [
         "EN-IOC",
         "EN-DR1"
       ],
       "cards": [
-        "Guardian Angel Joan",
-        "Invader of Darkness",
-        "Black Tyranno"
+        "Alpha The Magnet Warrior",
+        "Beta The Magnet Warrior",
+        "Gamma the Magnet Warrior",
+        "Valkyrion the Magna Warrior"
       ],
       "pack_additions": [
-        "Guardian Angel Joan",
-        "Invader of Darkness",
-        "Black Tyranno",
-        "Cost Down",
-        "Soul Exchange",
-        "Ultimate Offering",
-        "Double Coston",
-        "Kaiser Sea Horse"
+        "Alpha The Magnet Warrior",
+        "Beta The Magnet Warrior",
+        "Gamma the Magnet Warrior",
+        "Valkyrion the Magna Warrior",
+        "Wasteland",
+        "Gaia Power",
+        "Giant Rat"
       ],
-      "background_card": "Invader of Darkness",
+      "background_card": "Valkyrion the Magna Warrior",
       "background": "character-backgrounds/variant-21.jpg"
     },
     "22": {

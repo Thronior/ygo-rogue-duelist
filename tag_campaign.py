@@ -502,7 +502,7 @@ class TagCampaign:
 
     else:cursed_relics.reroll(run,self.rng)
 
-   for field in ('artifacts','cursed_artifacts','cursed_offer','shop'):self.shared[field]=deepcopy(run.get(field))
+   for field in ('artifacts','cursed_artifacts','cursed_offer','shop','fusion_events'):self.shared[field]=deepcopy(run.get(field))
 
    self.sync();return
 
@@ -800,4 +800,12 @@ class TagCampaign:
   for run in self.players:run['defeated_opponents']=defeated[:];run['last_rewards']=deepcopy(host['last_rewards']);run['last_gold']=host['last_gold']
 
   self.sync();self.phase=host['stage'];self.shop_seat=0;self.ready=[False,False];self.duel=None;self.revision+=1
+
+  # finish_duel saved each player's history row before the team's coins, LP and relics came from the host.
+
+  if self.phase in ('complete','gameover'):
+
+   for seat,run in enumerate(self.players):
+
+    with self.scope(seat):storage.archive_run(run)
 

@@ -418,6 +418,7 @@ def install(g):
    if losses:tally['No Pain No Gain']=losses*amount(run,'lp_loss_coins')
   if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==ar.minimum(run):tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
+  if owns(run,'bottomless_purse'):tally['Bottomless Purse']=(80+(80 if (run['round']+1)%BOSS_EVERY==0 else 0))*ar.copies(run,'bottomless_purse')
   if owns(run,'gold_sarcophagus'):tally["Pharaoh's Hoard"]=50*ar.copies(run,'gold_sarcophagus')
   if owns(run,'sacred_phoenix') and any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in events):tally['Sacred Phoenix']=40
   if owns(run,'golden_sleeve'):
@@ -522,8 +523,9 @@ def install(g):
    if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
    cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh');overflow=0
    if boss and ar.can_heal(run,between=True):
-    healed=max(0,min(2000,cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed;overflow=2000-healed
+    healed=max(0,min(int(2000*ar.heal_scale(run)),cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed;overflow=2000-healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')+(coins_before_rewards//10)*amount(run,'coin_heal')) if ar.can_heal(run,between=True) else 0
+   heal=int(heal*ar.heal_scale(run))
    # Silver Chalice: all post-duel healing past the limit (boss, relic and coin healing) is not lost; every
    # 100 LP over becomes 3 coins.
    overflow+=max(0,run['lp']+heal-max(cap,run['lp']))
@@ -681,9 +683,10 @@ def install(g):
   cursed=cursed_relics.approved()
   import choice_relics
   available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20) and (a not in choice_relics.VERY_RARE or rng.random()<0.10)]
-  preferred_art=[a for a in available if shop_rewards.artifact_matches(bias,a)]
-  count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass'),len(available));chosen=archetype_relics.sample(preferred_art,min(1,len(preferred_art)),run,rng)
-  chosen+=archetype_relics.sample([a for a in available if a not in chosen],count-len(chosen),run,rng)
+  # The chosen category favours its relics after a duel; rerolls use normal weights.
+  favored=frozenset() if general_stock else shop_rewards.category_relics(bias)
+  count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass')+3*ar.copies(run,'grand_bazaar'),len(available))
+  chosen=archetype_relics.sample(available,count,run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST)
   items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   modifier=max(0,1-amount(run,'discount')/100)
   for item in items:
@@ -732,17 +735,18 @@ def install(g):
  def acquire_relic(run,key,rng=random):
   """Add a relic and run its on-acquire effects; returns any cards it grants."""
   import choice_relics
-  _pre_discount=amount(run,'discount');obtained=[]
+  _price_mod=lambda:max(0,1-amount(run,'discount')/100)*ar.price_mult(run)
+  _pre_mod=_price_mod();obtained=[]
   run['artifacts'].append(key)
   if key=='bounty_list':ensure_bounty(run,rng,force=True)
   if key=='booster_shelf':ensure_shop_packs(run,rng)
   if key=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
   if key=='stamp':run['stamped_singles']=0
   if key=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
-  relic_fusions.fuse(run)
+  if any(f['relic']=='grand_bazaar' for f in relic_fusions.fuse(run)):ensure_shop_packs(run,rng)
   # A new discount relic, or a fusion that changes the total discount, reprices the unsold stock.
-  if amount(run,'discount')!=_pre_discount:
-   _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
+  if _price_mod()!=_pre_mod:
+   _new_mod=_price_mod();_old_mod=_pre_mod
    if _old_mod>0:
     for _it in run['shop']:
      if not _it.get('sold') and not _it.get('greed'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))

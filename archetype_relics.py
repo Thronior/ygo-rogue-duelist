@@ -31,11 +31,11 @@ def weight(key,run):
   if candidate.get('effect')=='attribute' or (candidate.get('effect')=='both' and filt in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'} and any(filt!=owned_relic.get('filter','') for owned_relic in owned)):weight*=0.5
  return weight
 
-def sample(options,count,run,rng):
+def sample(options,count,run,rng,favored=(),favor=1):
  import relic_affinity
  remaining=list(options);result=[];boost=relic_affinity.multipliers(remaining,run)
  for _ in range(min(count,len(remaining))):
-  key=rng.choices(remaining,weights=[weight(k,run)*boost[k] for k in remaining],k=1)[0]
+  key=rng.choices(remaining,weights=[weight(k,run)*boost[k]*(favor if k in favored else 1) for k in remaining],k=1)[0]
   result.append(key);remaining.remove(key)
  return result
 
@@ -68,6 +68,8 @@ def member_test(key,run):
  elif effect in ('like_archfiend','archfiend_cost'):test=lambda c:'archfiend' in c['name'].lower() or _setcode(c,0x45)
  elif effect in ('starting_low_level','starting_level_up'):test=lambda c:matches('evolution_tablet',c)
  elif effect=='terrorking_atk':test=lambda c:c['id']==int(info.get('filter') or 0)
+ # Field of Attraction (Paradox Brothers' Magnet Warriors): Alpha, Beta, Gamma and Valkyrion share set code 0x66.
+ elif effect=='variant_field_of_attraction':test=lambda c:bool(c['data']['type']&1) and _setcode(c,0x66)
  elif effect in ('archetype_atk','variant_swordsman_oath'):
   code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
   # Name Changer can already make every monster a member.
