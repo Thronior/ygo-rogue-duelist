@@ -1,0 +1,9 @@
+{
+  "useActiveGameDecks": true,
+  "gamesPerMatchup": 20,
+  "customGamesPerMatchup": 10,
+  "maxTurns": 80,
+  "maxDecisionsPerDuel": 10000,
+  "workers": 0,
+  "outputFolder": "exports/deck-sim"
+}

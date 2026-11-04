@@ -10,7 +10,6 @@ def install(artifact):
  artifact('exile_standard','Exile Standard',100,'Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.','Soul Release','banished_atk',50,'offense')
  artifact('field_amplifier','Field Amplifier',120,'Double ATK/DEF increases applied by the effects of face-up Field Spells you control. ATK/DEF decreases are unchanged.','Terraforming','field_double',1,'offense')
  artifact('returning_tide','Returning Tide',300,'Once per turn, at the start of your Standby Phase, return 1 Spell/Trap on the field to the hand.','Giant Trunade','standby_bounce',1,'defense')
- artifact('ominous_clock','Ominous Clock',120,'Once per turn, at the start of your opponent\'s Standby Phase, inflict 200 damage to them.','Ookazi','enemy_standby_burn',200,'offense')
  artifact('final_hour','Final Hour',150,'When acquired, add 1 "Final Countdown" to your card pool. At the start of each Duel, add 1 "Final Countdown" to your hand.','Final Countdown','countdown',1,'draw')
  artifact('this_life_mine','This Life Is Mine',90,'The first time you pay LP to activate a card each Duel, recover the same amount.','Snatch Steal','this_life_mine',0,'healing')
  artifact('boss_monster','Boss Monster',100,"Once per Duel, negate the first opponent's effect that targets a Level 7 or higher monster you control.",'Tri-Horned Dragon','boss_monster',0,'defense')

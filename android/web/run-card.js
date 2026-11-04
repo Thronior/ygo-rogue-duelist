@@ -161,7 +161,7 @@ function identity(ctx,d,t,x,y,w){
  const ty=y+(d.subtitle?136:112);text(ctx,t,'VICTORIES',x,ty,{size:19,spacing:2,color:t.soft});text(ctx,t,`${d.victories} / ${d.runLength}`,x+w,ty+1,{size:28,align:'right'});
  const step=w/d.runLength;
  for(let i=0;i<d.runLength;i++){
-  const duel=d.duels[i]?.name?d.duels[i]:null,boss=(i+1)%BOSS_EVERY===0,cx=x+step*(i+.5),cy=ty+30,r=boss?13:9;
+  const duel=d.duels[i]?.name?d.duels[i]:null,boss=bossDuel(i+1),cx=x+step*(i+.5),cy=ty+30,r=boss?13:9;
   ctx.save();path(ctx,boss?c=>addPoly(c,[[cx,cy-r],[cx+r,cy],[cx,cy+r],[cx-r,cy]]):c=>addCircle(c,cx,cy,r));
   if(duel){ctx.fillStyle=duel.won?t.good:t.bad;ctx.shadowColor=duel.won?t.good:t.bad;ctx.shadowBlur=d.won?10:0;ctx.fill()}
   else{ctx.lineWidth=2;ctx.strokeStyle=t.line;ctx.stroke()}ctx.restore()
@@ -250,7 +250,7 @@ function duelRecord(ctx,d,t,x,y,w){
  heading(ctx,t,d.recordTitle,x+w/2,y);
  const gap=10,tw=(w-gap*2)/3,th=64,top=y+16;
  for(let i=0;i<d.runLength;i++){
-  const entry=d.duels[i],duel=entry?.name?entry:null,boss=(i+1)%BOSS_EVERY===0,tx=x+(i%3)*(tw+gap),ty=top+Math.floor(i/3)*(th+gap);
+  const entry=d.duels[i],duel=entry?.name?entry:null,boss=bossDuel(i+1),tx=x+(i%3)*(tw+gap),ty=top+Math.floor(i/3)*(th+gap);
   ctx.save();if(!duel)ctx.globalAlpha=.55;path(ctx,c=>addRR(c,tx,ty,tw,th,4));ctx.fillStyle=t.row;ctx.fill();
   // Boss rows carry the card's accent colour.
   if(boss){ctx.fillStyle=rgba(BOSS_TINT,.2);ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=rgba(BOSS_TINT,.75);ctx.stroke()}
@@ -297,13 +297,21 @@ function runTime(r){const start=+r.started_at||0,end=+r.finished_at||0;if(!start
 // Monsters by ATK (highest first), then spells, then traps, as in deck-image.js.
 function deckOrder(ids,card){const kind=id=>{const c=card(id);return c.data.type&1?[0,-(c.atk||0)]:c.data.type&2?[1,0]:[2,0]};return [...ids].sort((a,b)=>{const x=kind(a),y=kind(b);return x[0]-y[0]||x[1]-y[1]})}
 
+export const bossDuel=n=>n%BOSS_EVERY===0;
+// One entry per duel of a loop from the run timeline, null where not reached. The card and the between-duel run progress
+// strip (run-progress.js) both draw from it. The loop defaults to the latest one recorded.
+export function runDuels(r,{content,assetURL=p=>p,loop,played}){
+ const runLength=content.runLength||9,timeline=r.timeline||[],names=id=>content.characters[id]?.name||'Unknown duelist';
+ loop??=Math.max(1,...timeline.map(x=>x.loop||1));const latest=timeline.filter(x=>(x.loop||1)===loop);
+ // Runs that started before the timeline existed still show which duels were played.
+ const duels=Array.from({length:runLength},(_,i)=>{const x=latest.find(x=>x.duel===i+1);return x?{name:names(x.opponent),sprite:content.characters[x.opponent]?.sprite?assetURL(`assets/${content.characters[x.opponent].sprite}`):null,won:!!x.won,lp:+x.lp_after_healing||0}:i<played?{missing:true}:null});
+ return {runLength,loop,latest,duels}
+}
+
 // Everything the card shows, as plain data with image URLs; deps come from the client (mobile.js).
 export function runCardData(r,{content,character,card,cardImage,relicImage,assetURL=p=>p,finalChallengeName=()=>''}){
  const won=r.stage==='complete',level=r.challenge_level??0,runLength=content.runLength||9,names=id=>content.characters[id]?.name||'Unknown duelist';
- const timeline=r.timeline||[],loop=Math.max(1,...timeline.map(x=>x.loop||1)),latest=timeline.filter(x=>(x.loop||1)===loop);
- // Runs that started before the timeline existed still show which duels were played.
- const played=won?runLength:Math.min(runLength,(r.round||0)+1);
- const duels=Array.from({length:runLength},(_,i)=>{const x=latest.find(x=>x.duel===i+1);return x?{name:names(x.opponent),sprite:content.characters[x.opponent]?.sprite?assetURL(`assets/${content.characters[x.opponent].sprite}`):null,won:!!x.won,lp:+x.lp_after_healing||0}:i<played?{missing:true}:null});
+ const played=won?runLength:Math.min(runLength,(r.round||0)+1),{loop,latest,duels}=runDuels(r,{content,assetURL,played});
  const lost=latest.find(x=>!x.won),lostDuel=lost?.duel||played;
  const counts=new Map();for(const id of r.artifacts||[])counts.set(id,(counts.get(id)||0)+1);
  // Boss rewards record their cursed picks; older runs only have the cursed_ prefix to go on.

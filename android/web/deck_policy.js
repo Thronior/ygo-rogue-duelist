@@ -90,8 +90,11 @@ export function deckPolicy(x){
  // legal God, so take that payment whenever it makes a 3000+ ATK monster that is safe to keep.
  const raBoostSafe=()=>e.player===p&&e.lp[p]>=3100&&!raBurnRisk()&&!enemy.some(t=>face(t)&&monster(t)&&atk(t)>=e.lp[p]-100);
  function raBoostScore(c){
-  if(!face(c)||c.controller!==p||c.is_disabled)return -1;
-  const current=atk(c),boosted=current+1000;
+  // ATK does nothing for a Defense Position monster: it cannot attack, and it battles on DEF.
+  if(!face(c)||c.controller!==p||c.is_disabled||!(c.position&1))return -1;
+  // A Juragedo already on the chain for this monster counts: a second copy only helps if 2000 ATK is needed.
+  const pending=(e.activeChain||[]).filter(a=>a.player===p&&!a.inactive&&e.name(a.code)==='Juragedo'&&(a.targets||[]).some(t=>same(t,c))).length;
+  const current=atk(c)+1000*pending,boosted=current+1000;
   if(e.attackCard?.controller===1-p&&e.attackTarget&&same(c,e.attackTarget)&&(c.position&1)&&boosted>atk(e.attackCard)&&current<=atk(e.attackCard))return 2200+targetValue(e.attackCard);
   if(e.player===p&&e.phase===8&&!c.attack_disabled&&!c.attack_count&&!attackBlocked(c,p)){
    if(enemy.some(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)))return 1800+Math.max(...enemy.filter(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)).map(targetValue));
@@ -176,7 +179,20 @@ export function deckPolicy(x){
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
   if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpTarget(x)))?100:-1;
   if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
-  if(n==='A Hero Emerges')return chain&&!!e.attackCard&&own.length<5&&hand.some(x=>monster(x)&&!(/cannot be Special Summoned/i.test(e.cards.get(x.code)?.desc||'')))?90:-1;
+  if(n==='A Hero Emerges'){
+   // The opponent picks a random hand card: only worth it when the likely summon blocks or holds.
+   const attacker=e.attackCard&&(enemy.find(x=>same(x,e.attackCard))||e.attackCard);
+   if(!chain||!attacker||attacker.controller!==1-p||own.length>=5)return -1;
+   const bodies=hand.filter(x=>monster(x)&&!(/cannot be Special Summoned/i.test(e.cards.get(x.code)?.desc||'')));
+   if(!bodies.length)return -1;
+   const power=atk(attacker),holds=bodies.filter(x=>atk(x)>power||(data(x).defense??0)>power).length,weak=bodies.length-holds;
+   const multi=face(attacker)&&!attacker.is_disabled&&/attack all monsters|attack twice|second attack|two attacks|attack up to/i.test(e.cards.get(attacker.code)?.desc||'');
+   const direct=!e.attackTarget;
+   if(direct&&power>=e.lp[p])return 90;
+   if(holds&&holds>=weak&&!(multi&&weak))return 90;
+   if(direct&&power>=2000&&!multi&&bodies.length*2>=hand.length)return 90;
+   return -1;
+  }
   if(n==='Riryoku'){
    const friends=own.filter(x=>face(x)&&atk(x)>0),foes=enemy.filter(x=>face(x)&&atk(x)>0);
    const battleSoon=e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!e.battleProtected?.[1-p];

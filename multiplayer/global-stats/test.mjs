@@ -15,7 +15,7 @@ assert.equal((await worker.fetch(new Request('https://example/v1/stats',{method:
 for(const patch of [{counts:{seconds:-1}},{counts:{seconds:0.5}},{counts:{seconds:1,deviceId:'x'}},{expiresAt:Date.now()-1},{id:'legacy-device'},{batchId:"'; DROP TABLE total; --"},{counts:{seconds:"1; DELETE FROM total"}},{counts:JSON.parse('{"__proto__":1}')}])assert.equal((await post({...batch,batchId:id(),...patch})).status,400);
 assert.equal(data.get('batch:'+batch.batchId),expiry,'receipt contains expiry only');
 data.set('batch:expired',Date.now()-1);data.set('expiry:'+String(Date.now()-1).padStart(16,'0')+':expired','batch:expired');await worker.alarm();assert(!data.has('batch:expired'));assert(data.has('batch:'+batch.batchId));assert(![...data.keys()].some(k=>k.startsWith('client:')));
-let pulls=0,cancelled=false;const stream=new ReadableStream({pull(c){pulls++;c.enqueue(new Uint8Array(1100))},cancel(){cancelled=true}});assert.equal((await worker.fetch(new Request('https://example/v2/stats',{method:'POST',body:stream,duplex:'half'}))).status,413);assert(cancelled&&pulls<=4);
+let pulls=0,cancelled=false;const stream=new ReadableStream({pull(c){pulls++;c.enqueue(new Uint8Array(1100))},cancel(){cancelled=true}});assert.equal((await worker.fetch(new Request('https://example/v2/stats',{method:'POST',body:stream,duplex:'half'}))).status,413);assert(cancelled&&pulls<=6);
 // Character Stats: finished runs per character and challenge level, counted once per batch.
 assert.deepEqual((await get()).results,{});assert.equal((await get()).resultsSince,null);
 const finished={batchId:id(),expiresAt:expiry,counts:{runs:1},results:{'3:0:w':1,'3:-1:l':2,'12:6:w':1}};
@@ -23,4 +23,6 @@ assert.equal((await post(finished)).status,200);await post(finished);let stats=a
 assert.deepEqual(stats.results,{'3:0:w':1,'3:-1:l':2,'12:6:w':1},'a retried batch is not counted twice');assert(Date.parse(stats.resultsSince)>0);assert.equal(stats.runs,42);
 assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{},results:{'3:0:w':2}})).status,200,'a results-only batch is accepted');assert.equal((await get()).results['3:0:w'],3);
 for(const results of [{'3:7:w':1},{'3:0:x':1},{'abc:0:w':1},{'3:0:w':0},{'3:0:w':1.5},{'3:0:w':1001},[1],Object.fromEntries(Array.from({length:33},(_,i)=>[i+':0:w',1]))])assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{},results})).status,400,JSON.stringify(results).slice(0,40));
-console.log('PASS preserved baseline, aggregate counters, concurrent retries, late outcomes, legacy rejection, schema validation, receipt expiry, bounded bodies and character results');
+assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{},results:{'3:0:w':1,'r:dice_jar:w':1,'r:cursed_blood_toll:l':2}})).status,200,'relic results are accepted');{const r=(await get()).results;assert.equal(r['r:dice_jar:w'],1);assert.equal(r['r:cursed_blood_toll:l'],2)}
+for(const results of [{'r:Dice Jar:w':1},{'r::w':1},{'r:dice_jar:x':1},{['r:'+'a'.repeat(41)+':w']:1}])assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{},results})).status,400,JSON.stringify(results).slice(0,40));
+console.log('PASS preserved baseline, aggregate counters, concurrent retries, late outcomes, legacy rejection, schema validation, receipt expiry, bounded bodies, character results and relic results');

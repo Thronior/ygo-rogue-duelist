@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deck Balance Sim</title>
+<link rel="icon" href="/web/textures/AppIcon.png">
+<base href="/web/">
+<link rel="stylesheet" href="mobile.css">
+<style>
+ /* Simulator-only layout on top of the game's stylesheet. */
+ html,body{margin:0;height:100%;background:#06121a}
+ #app{height:100dvh}
+ .title .sim-subtitle{font-family:"YGO Display",Georgia,serif;letter-spacing:2px;font-size:clamp(18px,3vh,28px);color:var(--gold);text-shadow:0 2px 8px #000;margin:-4px 0 4px}
+ .title .sim-cards{flex:1;min-height:0;display:flex;gap:clamp(20px,5vw,70px);align-items:center;justify-content:center;width:100%;padding:8px 16px;box-sizing:border-box}
+ /* The game's portrait/small-screen carousel rules (left:50%!important, offsets, hidden text) would
+    push the second card off-screen; both cards always sit side by side here, sized to fit the window. */
+ .title .sim-cards .menu-card{position:relative!important;left:auto!important;top:auto!important;transform:none!important;height:min(58dvh,420px,(100vw - 96px) / 2 / .685)!important;width:auto!important;max-height:none!important;aspect-ratio:.685!important;flex:none;cursor:pointer;transition:scale .2s,filter .2s;animation:sim-bob 4s ease-in-out infinite!important;visibility:visible!important}
+ .title .sim-cards .menu-card .art{flex:1!important;aspect-ratio:auto!important;min-height:0}
+ .title .sim-cards .menu-card>p{display:block!important}
+ .title .sim-cards .menu-card+.menu-card{animation-delay:-2s}
+ @keyframes sim-bob{50%{translate:0 -7px}}
+ .title .sim-cards .menu-card:hover,.title .sim-cards .menu-card:focus-visible{scale:1.04;filter:brightness(1.1)}
+ .title .sim-cards .menu-card .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .title .sim-cards .menu-card h3 b{color:#7a1f1f;margin-right:6px}
+ .sim-footer{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:6px 12px 4px}
+ .sim-source{font-size:12px;opacity:.85;text-align:center;padding:0 12px 10px}
+ .sim-body{flex:1;min-height:0;overflow:auto;padding:14px clamp(12px,3vw,32px) 24px}
+ .sim-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;max-width:980px;margin:0 auto 14px;box-shadow:0 6px 20px #0008}
+ .sim-panel h3{margin:0 0 10px;color:var(--gold);font-family:Georgia,serif}
+ .sim-panel p{margin:6px 0;line-height:1.45}
+ .sim-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+ .sim-row input[type=text],.sim-row input[type=number]{flex:1;min-width:200px;background:#0a1d26;color:inherit;border:1px solid var(--border);border-radius:5px;padding:9px 10px;font:inherit}
+ .sim-row input[type=number]{flex:none;width:90px;min-width:0}
+ .sim-drop{display:block;box-sizing:border-box;width:100%;border:2px dashed var(--border);border-radius:8px;padding:26px;text-align:center;cursor:pointer;transition:background .2s,border-color .2s}
+ .sim-drop.over{background:#183f50;border-color:var(--gold)}
+ .sim-drop b{color:var(--gold)}
+ button.primary{background:linear-gradient(#b8893f,#7d5523);border-color:#f2cf83;color:#fff6dd;font-weight:bold}
+ button:disabled{opacity:.45;cursor:default}
+ .page>header .tools button{margin-left:6px}
+ .sim-error{color:#ffb3a8;background:#3d1414cc;border:1px solid #a4483d;border-radius:6px;padding:10px;margin:10px auto;max-width:980px}
+ .sim-run{display:grid;place-content:center;text-align:center;gap:6px;min-height:100%}
+ .sim-run .loading-wizard{margin:0 auto}
+ .sim-run progress{width:min(560px,80vw);height:18px;margin:14px auto 4px}
+ .sim-run .big{font-family:"YGO Display",Georgia,serif;font-size:34px;letter-spacing:1px;color:var(--gold)}
+ .sim-run .info{max-width:640px;margin:0 auto;opacity:.85}
+ .sim-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:4px 0 6px}
+ .sim-tile{background:#0a1d26;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+ .sim-tile span{display:block;font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:1px}
+ .sim-tile strong{display:block;font-family:"YGO Display",Georgia,serif;font-size:36px;letter-spacing:1px}
+ .sim-tile small{opacity:.75}
+ .sim-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+ .sim-tabs button.active{background:var(--ui-active,#946539);border-color:var(--ui-active-line,#f2cf83)}
+ .sim-tabs input{margin-left:auto;background:#0a1d26;color:inherit;border:1px solid var(--border);border-radius:5px;padding:7px 10px;min-width:180px}
+ table.sim{width:100%;border-collapse:collapse;font-size:13px}
+ table.sim th{position:sticky;top:-14px;background:#0c222d;color:var(--gold);text-align:right;padding:8px;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:1px solid var(--border)}
+ table.sim th:nth-child(-n+2){text-align:left}
+ table.sim th.sorted::after{content:" ▾"}
+ table.sim th.sorted.asc::after{content:" ▴"}
+ table.sim td{padding:6px 8px;text-align:right;border-bottom:1px solid #53798433;white-space:nowrap}
+ table.sim td:nth-child(-n+2){text-align:left}
+ table.sim tr:hover td{background:#183f5066}
+ table.sim td.rate{font-variant-numeric:tabular-nums;font-weight:bold}
+ table.sim td.note{font-size:11px;opacity:.75;text-align:left}
+ .tier-badge{display:inline-block;min-width:24px;text-align:center;border-radius:4px;padding:1px 5px;font-weight:bold;font-size:11px;color:#06121a}
+ .tier-badge.t1{background:#9fd8a8}.tier-badge.t2{background:#e7c979}.tier-badge.t3{background:#e48f7c}
+ .sim-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+ .sim-thumbs a{display:block;color:inherit;text-decoration:none;text-align:center;background:#0a1d26;border:1px solid var(--border);border-radius:6px;padding:6px}
+ .sim-thumbs a:hover{border-color:var(--gold)}
+ .sim-thumbs img{width:100%;height:260px;object-fit:cover;object-position:top;border-radius:4px;display:block}
+ .sim-thumbs span{display:block;margin-top:6px;font-weight:bold;color:var(--gold)}
+ .sim-eta{margin:10px 0 4px;padding:9px 12px;border-left:3px solid var(--gold);background:#0a1d26aa;border-radius:4px}
+ .sim-eta b{color:var(--gold);font-size:16px}
+ .sim-games{display:inline-flex;align-items:center;gap:10px;font-weight:bold;color:var(--gold)}
+ .sim-games input{width:90px;background:#0a1d26;color:#e8f3f1;border:1px solid var(--border);border-radius:5px;padding:8px 10px;font:inherit;font-weight:bold}
+ .sim-history button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;margin-bottom:6px}
+ .sim-history small{opacity:.7}
+ .sim-check{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+ .sim-check input{width:18px;height:18px;margin-top:2px}
+ .sim-settings label.num{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module">
+const app = document.querySelector('#app');
+// Thrown when the local server is gone (console window closed or Quit); the page shows the closed screen.
+class ServerClosed extends Error {}
+const api = async (path, options = {}) => {
+  let res;
+  try { res = await fetch(`/api/${path}`, {method: options.body ? 'POST' : (options.method || 'GET'), headers: {'Content-Type': 'application/json'}, body: options.body ? JSON.stringify(options.body) : undefined}); }
+  catch { throw new ServerClosed('The simulator is closed.'); }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+};
+const post = (path, body = {}) => api(path, {body});
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const rateOf = x => x && x.w + x.l + x.d ? (x.w + x.d / 2) / (x.w + x.l + x.d) : null;
+const pct = x => { const r = rateOf(x); return r === null ? '—' : `${(r * 100).toFixed(1)}%`; };
+// Red under 40%, gold around 50%, green over 60%.
+const rateColor = x => { const r = rateOf(x); if (r === null) return ''; const h = Math.max(0, Math.min(120, (r - .25) / .5 * 120)); return `color:hsl(${h} 70% 68%)`; };
+const fmtTime = s => s >= 3600 ? `${Math.floor(s / 3600)}h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : s >= 60 ? `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s` : `${Math.round(s)}s`;
+const particles = () => Array.from({length: 24}, (_, i) => `<i class="particle" style="left:${i * 4.2}%;animation-delay:-${i * .47}s;animation-duration:${6 + i % 5}s"></i>`).join('');
+const header = (title, tools = '') => `<header><h2>${title}</h2><div class="tools">${tools}<button data-go="title">Menu</button></div></header>`;
+
+let status = {settings: {}, job: null};
+let reportFile = null, screen = 'title', report = null, pollTimer = null, deckInfo = null, customFile = null, errorText = '';
+const view = {tier: 'all', sort: 'overall', asc: false, filter: ''};
+
+// While the server is closed the page waits on this screen and comes back by itself once the
+// desktop shortcut starts the simulator again.
+let closedFrom = null;
+function showClosed() {
+  if (screen !== 'closed') closedFrom = screen;
+  screen = 'closed';
+  clearTimeout(pollTimer);
+  app.innerHTML = `<section class="loading sim-run"><img class="game-logo" src="assets/rogue-duelist-logo.png" alt=""><h2>The simulator is closed</h2>
+    <p class="info">Its console window was closed, so buttons like Open folder can't work from here.<br>Open <b>YGO Deck Balance Sim</b> on your desktop to start it again; this page reconnects by itself.<br>Saved results stay in <b>exports\\deck-sim</b>.</p></section>`;
+  pollTimer = setTimeout(poll, 3000);
+}
+
+async function refresh() {
+  try { status = await api('status'); }
+  catch (e) { if (!(e instanceof ServerClosed)) throw e; showClosed(); return null; }
+  if (screen === 'closed') { screen = closedFrom === 'run' ? 'title' : closedFrom || 'title'; render(); }
+  return status;
+}
+
+function go(next) { screen = next; errorText = ''; render(); }
+
+// ---------- Title ----------
+function renderTitle() {
+  const s = status.settings;
+  app.innerHTML = `<div class="title">${particles()}
+    <img class="game-logo" src="assets/rogue-duelist-logo.png" alt="Yu-Gi-Oh: Rogue Duelist">
+    <div class="sim-subtitle">Deck Balance Simulator</div>
+    <div class="sim-cards">
+      <button class="menu-card spell" data-go="full-confirm"><h3><b>1</b>Full list</h3><div class="art"><img src="assets/menu/28566710.jpg" alt=""></div><p>Every T1–T3 opponent deck plays every other deck in its own tier ${esc(s.gamesPerMatchup)} times. One win rate per deck.</p></button>
+      <button class="menu-card trap" data-go="custom"><h3><b>2</b>Custom entry</h3><div class="art"><img src="assets/menu/71625222.jpg" alt=""></div><p>Pick a .ydk deck. It plays every T1–T3 deck ${esc(s.customGamesPerMatchup)} times.</p></button>
+    </div>
+    <div class="sim-footer"><button data-go="history">Previous results</button><button data-go="settings">Settings</button><button data-act="folder">Open results folder</button><button data-act="quit">Quit</button></div>
+    <div class="sim-source" id="source">${s.useActiveGameDecks ? 'Decks: the game\'s active opponent list (live)' : 'Decks: packaged content.json catalog'} · CPU vs CPU in the real duel core · T4 excluded</div>
+  </div>`;
+  loadDeckInfo();
+}
+
+async function loadDeckInfo() {
+  try {
+    deckInfo = deckInfo || await api('decks');
+    const el = document.querySelector('#source');
+    if (el) el.textContent = `${deckInfo.counts.reduce((a, b) => a + b, 0)} decks (T1 ${deckInfo.counts[0]} · T2 ${deckInfo.counts[1]} · T3 ${deckInfo.counts[2]}) from ${deckInfo.source} · CPU vs CPU in the real duel core · T4 excluded`;
+  } catch (e) { const el = document.querySelector('#source'); if (el) el.textContent = `Could not load the deck list: ${e.message}`; }
+}
+
+function renderFullConfirm() {
+  ensureEstimates();
+  const s = status.settings, n = deckInfo ? deckInfo.counts.reduce((a, b) => a + b, 0) : null;
+  const pairs = n ? deckInfo.counts.reduce((sum, c) => sum + c * (c - 1) / 2, 0) : null;
+  app.innerHTML = `<div class="page">${header('Full list')}<div class="sim-body">
+    <div class="sim-panel"><h3>Round robin within each tier</h3>
+      <p>${n ? `<b>${n}</b> decks (T1 ${deckInfo.counts[0]}, T2 ${deckInfo.counts[1]}, T3 ${deckInfo.counts[2]})` : 'Every T1–T3 deck'} from ${esc(deckInfo?.source || 'the game')}.</p>
+      ${gamesBox('gamesPerMatchup', 'Duels per pairing')}
+      ${etaLine('gamesPerMatchup', pairs)}
+      <p>Each deck plays every other deck <b>in its own tier</b> <b>${s.gamesPerMatchup}</b> times, alternating who goes first${pairs ? `: <b>${pairs.toLocaleString()}</b> pairings, <b>${(pairs * s.gamesPerMatchup).toLocaleString()}</b> duels` : ''}.</p>
+      <p>Both sides use the game's CPU. 8,000 LP, five-card hands, no relics or curses. Duels past turn ${s.maxTurns} count as draws.</p>
+      <p>You can close this window; the run keeps going while the simulator's console window stays open.</p>
+      <div class="sim-row" style="margin-top:14px"><button class="primary" data-act="run-full">Start full list</button><button data-go="title">Back</button></div>
+    </div>${errorText ? `<div class="sim-error">${esc(errorText)}</div>` : ''}</div></div>`;
+}
+
+// Estimated run time, shown before a run starts: average time for 1 duel (measured over the last
+// few runs, /api/speed) x the number of duels. `per` is how many duels one unit of the box adds
+// (pairings for the full list, opponent decks for a custom entry).
+// Measured speed per kind of run: 'full' (within-tier full list) or 'custom'.
+let speed = null;
+const kindOf = key => key === 'gamesPerMatchup' ? 'full' : 'custom';
+const longTime = s => { const m = Math.round(s / 60); return s < 60 ? 'under a minute' : m < 60 ? `about ${m} min` : `about ${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
+function etaContent(per, games, kind) {
+  const measured = speed?.[kind];
+  if (!per || !measured) return 'Estimated time: working it out…';
+  const duels = per * games, seconds = measured.secondsPerDuel * duels;
+  const source = !measured.runs ? 'typical for this PC' : `average over your last ${measured.runs === 1 ? 'run' : `${measured.runs} runs`}${measured.sameKind ? ` of this kind` : '; none of this kind yet'}`;
+  return `Estimated time: <b>${longTime(seconds)}</b> · ${(measured.secondsPerDuel * 1000).toFixed(0)} ms per duel × ${duels.toLocaleString()} duels (${source})`;
+}
+const etaLine = (key, per) => `<p class="sim-eta" data-eta="${key}" data-per="${per ?? ''}">${etaContent(per, status.settings[key], kindOf(key))}</p>`;
+// Updates the estimate while typing, before the value is saved.
+function refreshEta(key, games) {
+  for (const el of document.querySelectorAll(`.sim-eta[data-eta="${key}"]`)) el.innerHTML = etaContent(Number(el.dataset.per) || null, games, kindOf(key));
+}
+// Deck counts and speed load once; the open screen re-renders when they arrive.
+async function ensureEstimates() {
+  if (deckInfo && speed) return;
+  try {
+    const [decks, full, custom] = await Promise.all([deckInfo || api('decks'), speed?.full || api('speed?kind=full'), speed?.custom || api('speed?kind=custom')]);
+    deckInfo = decks; speed = {full, custom};
+  }
+  catch (e) { if (e instanceof ServerClosed) return showClosed(); return; }
+  if (['full-confirm', 'custom'].includes(screen)) render();
+}
+
+// A duel-count box that saves straight to settings.json; the screen re-renders with the new totals.
+const gamesBox = (key, label) => `<label class="sim-games">${label} <input type="number" min="1" max="1000" step="1" data-setting="${key}" value="${status.settings[key]}"></label>`;
+
+// ---------- Custom entry ----------
+function renderCustom() {
+  ensureEstimates();
+  app.innerHTML = `<div class="page">${header('Custom entry')}<div class="sim-body">
+    <div class="sim-panel"><h3>Choose a deck</h3>
+      <label class="sim-drop" id="drop"><input type="file" accept=".ydk,.txt" hidden id="file">
+        ${customFile ? `<b>${esc(customFile.name)}</b><br><small>${esc(customFile.summary)}</small><br><small>Click or drop to choose another</small>` : '<b>Drop a .ydk file here</b><br><small>or click to choose one</small>'}
+      </label>
+      <p style="text-align:center;opacity:.7">or paste a path</p>
+      <div class="sim-row"><input type="text" id="path" placeholder="D:\\decks\\My Deck.ydk" value="${esc(customFile?.file || '')}"><button data-act="browse">Browse…</button></div>
+      <div style="margin-top:14px">${gamesBox('customGamesPerMatchup', 'Duels per opponent deck')}</div>
+      ${etaLine('customGamesPerMatchup', deckInfo ? deckInfo.counts.reduce((a, b) => a + b, 0) : null)}
+      <p>Only your deck plays: it meets every T1–T3 opponent deck ${status.settings.customGamesPerMatchup} times.</p>
+      <div class="sim-row" style="margin-top:12px"><button class="primary" data-act="run-custom">Start custom entry</button><button data-go="title">Back</button></div>
+    </div>${errorText ? `<div class="sim-error">${esc(errorText)}</div>` : ''}</div></div>`;
+  const drop = document.querySelector('#drop'), input = document.querySelector('#file');
+  const take = async file => {
+    if (!file) return;
+    const text = await file.text();
+    const cards = text.split(/\r?\n/).filter(l => /^\d+$/.test(l.trim())).length;
+    customFile = {name: file.name.replace(/\.[^.]+$/, ''), text, summary: `${cards} card lines`};
+    renderCustom();
+  };
+  input.addEventListener('change', () => take(input.files[0]));
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); take(e.dataTransfer.files[0]); });
+  document.querySelector('#path').addEventListener('input', e => { const v = e.target.value.trim(); customFile = v ? {file: v, name: v.split(/[\\/]/).pop().replace(/\.[^.]+$/, ''), summary: v} : null; });
+}
+
+// ---------- Running ----------
+function renderRun() {
+  const j = status.job;
+  if (!j) return go('title');
+  const share = j.total ? j.done / j.total : 0;
+  const eta = j.done && j.total ? j.elapsed / j.done * (j.total - j.done) : null;
+  app.innerHTML = `<section class="loading sim-run">
+    <img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard">
+    <h2>${j.mode === 'full' ? 'Full list' : 'Custom entry'}</h2>
+    <p class="info">${esc(j.info)}</p>
+    <progress max="1" value="${share}"></progress>
+    <div class="big">${j.total ? `${(share * 100).toFixed(1)}%` : 'Preparing…'}</div>
+    <p>${j.total ? `${j.done.toLocaleString()} / ${j.total.toLocaleString()} duels · ${j.workers} worker${j.workers === 1 ? '' : 's'}` : 'Loading decks and starting the duel cores…'}</p>
+    <p>${j.total ? `Elapsed ${fmtTime(j.elapsed)}${eta !== null ? ` · about ${fmtTime(eta)} left` : ''}` : ''}</p>
+    <div class="sim-row" style="justify-content:center;margin-top:12px"><button data-act="cancel">Cancel</button></div>
+  </section>`;
+}
+
+// ---------- Results ----------
+function rowsFor(r) {
+  if (r.mode === 'full') return r.decks.map(d => ({tier: d.tier, character: d.character, deckId: d.deckId, t1: d.record[1], t2: d.record[2], t3: d.record[3], all: d.record.all, capped: d.record.capped, failed: d.record.failed}));
+  return (r.opponents || []).map(o => {
+    const record = o.record || (o.games || []).reduce((x, g) => (g.result === 'win' ? x.w++ : g.result === 'loss' ? x.l++ : g.result === 'draw' ? x.d++ : 0, x), {w: 0, l: 0, d: 0});
+    return {tier: o.tier, character: o.character, deckId: o.deckId, all: record, capped: o.capped ?? (o.games || []).filter(g => g.capped).length, failed: o.failed ?? (o.games || []).filter(g => g.result === 'failed').length};
+  });
+}
+
+function renderResults() {
+  const r = report;
+  if (!r) return go('title');
+  const full = r.mode === 'full';
+  // Older full lists played every tier; current ones only play within a tier (one win rate).
+  const allTiers = full && r.scope !== 'within-tier';
+  const perPairing = full ? r.settings?.gamesPerMatchup : r.settings?.customGamesPerMatchup ?? r.settings?.gamesPerMatchup;
+  let rows = rowsFor(r);
+  if (view.tier !== 'all') rows = rows.filter(x => x.tier === Number(view.tier));
+  if (view.filter) rows = rows.filter(x => `${x.character} ${x.deckId}`.toLowerCase().includes(view.filter.toLowerCase()));
+  const key = {name: x => x.character.toLowerCase(), tier: x => x.tier, t1: x => rateOf(x.t1) ?? -1, t2: x => rateOf(x.t2) ?? -1, t3: x => rateOf(x.t3) ?? -1, overall: x => rateOf(x.all) ?? -1}[view.sort] || (x => rateOf(x.all) ?? -1);
+  rows.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * (view.asc ? 1 : -1) || a.tier - b.tier; });
+  const th = (id, label) => `<th data-sort="${id}" class="${view.sort === id ? `sorted${view.asc ? ' asc' : ''}` : ''}">${label}</th>`;
+  const rec = x => `${x.w}-${x.l}-${x.d}`;
+  const note = x => [x.capped ? `${x.capped} turn-cap draws` : '', x.failed ? `${x.failed} failed` : ''].filter(Boolean).join(', ');
+  const when = new Date(r.createdAt || Date.now()).toLocaleString();
+  const tiers = full ? '' : `<div class="sim-tiles">${[1, 2, 3].map(t => `<div class="sim-tile"><span>vs T${t}</span><strong style="${rateColor(r.record[t])}">${pct(r.record[t])}</strong><small>${rec(r.record[t])}</small></div>`).join('')}
+      <div class="sim-tile"><span>Overall</span><strong style="${rateColor(r.record.all)}">${pct(r.record.all)}</strong><small>${rec(r.record.all)}${r.record.capped ? ` · ${r.record.capped} turn-cap draws` : ''}</small></div></div>`;
+  app.innerHTML = `<div class="page">${header(full ? 'Full list results' : `Custom entry: ${esc(r.name || r.deck?.file || 'deck')}`, `<button data-act="folder">Open folder</button>`)}<div class="sim-body">
+    <div class="sim-panel">
+      <p><b>${when}</b> · ${esc(r.source)} · ${perPairing ?? '?'} duels per ${full ? 'pairing' : 'opponent'} · ${(r.totalDuels || rows.length * (perPairing || 0)).toLocaleString()} duels · ${r.seconds ? `ran in ${fmtTime(r.seconds)}${r.workers ? ` on ${r.workers} workers` : ''}` : ''}</p>
+      <p style="opacity:.8">Win rate = (wins + draws/2) / finished duels. Duels past turn ${r.settings?.maxTurns ?? '?'} count as draws. Saved as ${esc((r.files?.txt || '').split(/[\\/]/).pop())} (+ .csv, .json).</p>
+      ${tiers}
+    </div>
+    ${full ? `<div class="sim-panel sim-images"><h3>Tier images</h3>${r.images?.length
+      ? `<div class="sim-thumbs">${r.images.map((f, i) => { const folder = (reportFile || '').split('/').slice(0, -1), url = `/export/${[...folder, f.split(/[\\/]/).pop()].map(encodeURIComponent).join('/')}`; return `<a href="${url}" target="_blank" title="Open full size"><img src="${url}"><span>Tier ${i + 1}</span></a>`; }).join('')}</div><p style="opacity:.75">Saved in this run's folder. Click one to open it full size.</p>`
+      : `<p>${r.imagesError ? `The images could not be rendered: ${esc(r.imagesError)}` : 'This run has no tier images yet.'}</p><div class="sim-row"><button class="primary" data-act="images">Make tier images</button></div>`}</div>` : ''}
+    <div class="sim-panel" style="max-width:1100px">
+      <div class="sim-tabs">${['all', '1', '2', '3'].map(t => `<button data-tier="${t}" class="${view.tier === t ? 'active' : ''}">${t === 'all' ? 'All tiers' : `T${t}`}</button>`).join('')}<input type="search" id="filter" placeholder="Filter decks…" value="${esc(view.filter)}"></div>
+      <table class="sim"><thead><tr>${th('tier', 'Tier')}${th('name', full ? 'Deck' : 'Opponent')}${allTiers ? th('t1', 'vs T1') + th('t2', 'vs T2') + th('t3', 'vs T3') : ''}${th('overall', allTiers ? 'Overall' : full ? 'Win rate vs own tier' : 'Win rate')}<th>W-L-D</th><th style="text-align:left">Notes</th></tr></thead>
+      <tbody>${rows.map(x => `<tr><td><span class="tier-badge t${x.tier}">T${x.tier}</span></td><td title="${esc(x.deckId)}">${esc(x.character)}</td>${allTiers ? [x.t1, x.t2, x.t3].map(v => `<td class="rate" style="${rateColor(v)}">${pct(v)}</td>`).join('') : ''}<td class="rate" style="${rateColor(x.all)}">${pct(x.all)}</td><td>${rec(x.all)}</td><td class="note">${note(x)}</td></tr>`).join('')}</tbody></table>
+      ${rows.length ? '' : '<p>No decks match.</p>'}
+    </div></div></div>`;
+  const filter = document.querySelector('#filter');
+  filter.addEventListener('input', () => { view.filter = filter.value; const pos = filter.selectionStart; renderResults(); const f = document.querySelector('#filter'); f.focus(); f.setSelectionRange(pos, pos); });
+}
+
+// ---------- History & settings ----------
+async function renderHistory() {
+  app.innerHTML = `<div class="page">${header('Previous results', '<button data-act="folder">Open folder</button>')}<div class="sim-body"><div class="sim-panel sim-history"><h3>Saved runs</h3><p>Loading…</p></div></div></div>`;
+  try {
+    const {reports} = await api('reports');
+    const label = f => { const m = f.split("/").pop().match(/^deck-sim-(full|custom-(.*))-(\d{4}-\d\d-\d\d)_(\d\d)-(\d\d)-(\d\d)\.json$/); return m ? {kind: m[1] === 'full' ? 'Full list' : `Custom: ${m[2].replaceAll('_', ' ')}`, when: `${m[3]} ${m[4]}:${m[5]}`} : {kind: f, when: ''}; };
+    document.querySelector('.sim-history').innerHTML = `<h3>Saved runs</h3>${reports.length ? reports.map(r => { const l = label(r.file); return `<button data-report="${esc(r.file)}"><span>${esc(l.kind)}</span><small>${esc(l.when)}</small></button>`; }).join('') : '<p>No results yet.</p>'}`;
+  } catch (e) { document.querySelector('.sim-history').innerHTML = `<div class="sim-error">${esc(e.message)}</div>`; }
+}
+
+function renderSettings() {
+  const s = status.settings;
+  app.innerHTML = `<div class="page">${header('Settings')}<div class="sim-body"><div class="sim-panel sim-settings"><h3>Simulator settings</h3>
+    <label class="sim-check"><input type="checkbox" id="live" ${s.useActiveGameDecks ? 'checked' : ''}><span><b>Use the game's active opponent decks</b><br><small>Reads the live campaign list (content.py and data/decks/*.ydk) on every run. Off: uses the packaged android/web/content.json catalog from the last build.</small></span></label>
+    <label class="num"><span>Full list: duels per pairing</span><input type="number" min="1" id="games" value="${s.gamesPerMatchup}"></label>
+    <label class="num"><span>Custom entry: duels per opponent deck</span><input type="number" min="1" id="customGames" value="${s.customGamesPerMatchup}"></label>
+    <label class="num"><span>Turn cap (later turns count as a draw)</span><input type="number" min="1" id="turns" value="${s.maxTurns}"></label>
+    <label class="num"><span>Worker threads (0 = automatic)</span><input type="number" min="0" id="workers" value="${s.workers}"></label>
+    <div class="sim-row" style="margin-top:14px"><button class="primary" data-act="save-settings">Save</button><button data-go="title">Back</button></div>
+    </div>${errorText ? `<div class="sim-error">${esc(errorText)}</div>` : ''}</div></div>`;
+}
+
+function render() {
+  clearTimeout(pollTimer);
+  const running = status.job && !status.job.finished;
+  if (running && screen !== 'run') screen = 'run';
+  ({title: renderTitle, 'full-confirm': renderFullConfirm, custom: renderCustom, run: renderRun, results: renderResults, history: renderHistory, settings: renderSettings}[screen] || renderTitle)();
+  if (errorText && ['title', 'run', 'results'].includes(screen)) app.insertAdjacentHTML('beforeend', `<div class="sim-error" style="position:fixed;bottom:16px;left:16px;right:16px">${esc(errorText)}</div>`);
+  // Poll fast while running, slowly otherwise (keeps the local server alive).
+  pollTimer = setTimeout(poll, running ? 700 : 20000);
+}
+
+async function poll() {
+  const wasClosed = screen === 'closed';
+  // Closed: refresh() shows the closed screen and retries; reopened: refresh() already re-rendered.
+  if (!await refresh() || wasClosed) return;
+  const j = status.job;
+  if (screen === 'run' && j?.finished) {
+    if (j.error) { errorText = j.error; screen = j.mode === 'full' ? 'full-confirm' : 'custom'; }
+    else if (j.reportFile) { reportFile = j.reportFile; report = (await api(`report?file=${encodeURIComponent(j.reportFile)}`)).report; Object.assign(view, {tier: 'all', sort: 'overall', asc: false, filter: ''}); screen = 'results'; }
+    speed = null;
+    await post('dismiss');
+    await refresh();
+    return render();
+  }
+  if (screen === 'run' || (j && !j.finished)) return render();
+  pollTimer = setTimeout(poll, 20000);
+}
+
+app.addEventListener('input', e => {
+  const box = e.target.closest('input[data-setting]');
+  const games = Math.floor(Number(box?.value));
+  if (box && games >= 1) refreshEta(box.dataset.setting, games);
+});
+
+app.addEventListener('change', async e => {
+  const box = e.target.closest('input[data-setting]');
+  if (!box) return;
+  try { status.settings = (await post('settings', {[box.dataset.setting]: box.value})).settings; errorText = ''; }
+  catch (error) { if (error instanceof ServerClosed) return showClosed(); errorText = error.message; }
+  render();
+});
+
+app.addEventListener('click', async e => {
+  const el = e.target.closest('[data-go],[data-act],[data-tier],[data-sort],[data-report]');
+  if (!el) return;
+  try {
+    if (el.dataset.go) return go(el.dataset.go);
+    if (el.dataset.tier) { view.tier = el.dataset.tier; return renderResults(); }
+    if (el.dataset.sort) { const s = el.dataset.sort; view.asc = view.sort === s ? !view.asc : s === 'name' || s === 'tier'; view.sort = s; return renderResults(); }
+    if (el.dataset.report) { reportFile = el.dataset.report; report = (await api(`report?file=${encodeURIComponent(el.dataset.report)}`)).report; Object.assign(view, {tier: 'all', sort: 'overall', asc: false, filter: ''}); return go('results'); }
+    const act = el.dataset.act;
+    if (act === 'run-full') { el.disabled = true; await post('run/full'); await refresh(); return go('run'); }
+    if (act === 'run-custom') {
+      if (!customFile) { errorText = 'Choose a .ydk file first.'; return renderCustom(); }
+      el.disabled = true;
+      await post('run/custom', customFile.text ? {text: customFile.text, name: customFile.name} : {file: customFile.file});
+      await refresh(); return go('run');
+    }
+    if (act === 'browse') { const {file} = await post('browse'); if (file) { customFile = {file, name: file.split(/[\\/]/).pop().replace(/\.[^.]+$/, ''), summary: file}; renderCustom(); } return; }
+    if (act === 'cancel') { await post('cancel'); return; }
+    if (act === 'folder') { await post('open-folder'); return; }
+    if (act === 'images') { el.disabled = true; el.textContent = 'Rendering… (about a minute)'; report = (await post('images', {file: reportFile})).report; return renderResults(); }
+    if (act === 'quit') { if (confirm('Close the simulator?')) { await post('quit'); app.innerHTML = '<section class="loading"><h2>Simulator closed</h2><p>You can close this window.</p></section>'; clearTimeout(pollTimer); } return; }
+    if (act === 'save-settings') {
+      status.settings = (await post('settings', {useActiveGameDecks: document.querySelector('#live').checked, gamesPerMatchup: document.querySelector('#games').value, customGamesPerMatchup: document.querySelector('#customGames').value, maxTurns: document.querySelector('#turns').value, workers: document.querySelector('#workers').value})).settings;
+      deckInfo = null; return go('title');
+    }
+  } catch (error) { if (error instanceof ServerClosed) return showClosed(); errorText = error.message; render(); }
+});
+
+if (await refresh()) render();
+</script>
+</body>
+</html>

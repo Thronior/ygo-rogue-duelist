@@ -89,7 +89,7 @@ def install(artifact):
  for number,key,name,text,art in CURSED:artifact('cursed_'+key,name,0,text,art,'approved_'+key,0,'offense')
 
 # Relics no longer in the game. Saved runs and Tag rooms can still hold them, so drop them on load.
-REMOVED=frozenset({'purse','cursed_shared_hex','cursed_champions_burden'})
+REMOVED=frozenset({'purse','cursed_shared_hex','cursed_champions_burden','ominous_clock'})
 
 def drop_removed(run):
  run['artifacts']=[a for a in run.get('artifacts',[]) if a not in REMOVED]
@@ -98,7 +98,11 @@ def drop_removed(run):
  if run.get('mirror_copy') in REMOVED:run.pop('mirror_copy',None)
  if run.get('starting_relic') in REMOVED:run['starting_relic']='none'
 
-def has(run,key):return run.get('challenge_level')!=-1 and (key in run.get('artifacts',[]) or run.get('mirror_copy')==key)
+def has(run,key):
+ if run.get('challenge_level')==-1:return False
+ if key in run.get('artifacts',[]) or run.get('mirror_copy')==key:return True
+ from relic_fusions import includes
+ return includes(run,key)
 
 def encounter_key(run):return str(run.get('loop',0))+':'+str(run.get('round',0))
 

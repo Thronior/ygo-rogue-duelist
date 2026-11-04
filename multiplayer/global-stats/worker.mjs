@@ -1,7 +1,8 @@
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Cache-Control':'no-store'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
 export const fields=['runs','duels','wins','losses','seconds','firstTimePlayers'];
-const lifetime=7*86400000,RESULT=/^\d{1,3}:(?:-1|[0-6]):[wl]$/;
+// Results are "character:level:w|l" per finished run, or "r:relic:w|l" for each relic it ended with (2026-11-03).
+const lifetime=7*86400000,RESULT=/^(?:\d{1,3}:(?:-1|[0-6])|r:[a-z0-9_]{1,40}):[wl]$/,MAX_RESULT_KEYS=2000;
 const expiryKey=(at,id)=>'expiry:'+String(at).padStart(16,'0')+':'+id;
 function totals(value){const t=value||{since:new Date().toISOString()};return {...t,...Object.fromEntries(fields.map(k=>[k,t[k]??(k==='firstTimePlayers'?t.devices||0:0)]))};}
 export default {fetch(request,env){if(request.method==='OPTIONS')return new Response(null,{status:204,headers});if(!['/v1/stats','/v2/stats'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);return env.STATS.get(env.STATS.idFromName('global-v1')).fetch(request)}};
@@ -24,7 +25,7 @@ export class GlobalStats{
    for(const [k,v] of this.rates)if(v.until<=now)this.rates.delete(k);
    const rate=this.rates.get(ip)||{n:0,until:now+60000};if(++rate.n>30||(!this.rates.has(ip)&&this.rates.size>=10000))return reply({error:'Retry later'},429);this.rates.set(ip,rate);
    const reader=request.body?.getReader();if(!reader)return reply({error:'Missing body'},400);let size=0,raw='';const decoder=new TextDecoder();
-   for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2048){await reader.cancel();return reply({error:'Too large'},413)}raw+=decoder.decode(value,{stream:true})}raw+=decoder.decode();
+   for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>4096){await reader.cancel();return reply({error:'Too large'},413)}raw+=decoder.decode(value,{stream:true})}raw+=decoder.decode();
    const data=JSON.parse(raw);
    if(!data||Object.keys(data).some(k=>!['batchId','expiresAt','counts','results'].includes(k))||! /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(data.batchId||''))throw Error('Invalid batch');
    if(!Number.isSafeInteger(data.expiresAt)||data.expiresAt<=now||data.expiresAt>now+lifetime+60000)throw Error('Expired batch');
@@ -44,7 +45,7 @@ export class GlobalStats{
     for(const k of fields){total[k]+=counts[k];if(!Number.isSafeInteger(total[k]))throw Error('Counter overflow');}
     const rows={total};
     // Tracking starts with the first recorded result; that date is shown as "since".
-    if(Object.keys(results).length){const tally=await storage.get('results')||{since:new Date().toISOString(),counts:{}};for(const [k,n] of Object.entries(results)){tally.counts[k]=(tally.counts[k]||0)+n;if(!Number.isSafeInteger(tally.counts[k]))throw Error('Counter overflow');}rows.results=tally;}
+    if(Object.keys(results).length){const tally=await storage.get('results')||{since:new Date().toISOString(),counts:{}};for(const [k,n] of Object.entries(results)){if(!(k in tally.counts)&&Object.keys(tally.counts).length>=MAX_RESULT_KEYS)continue;tally.counts[k]=(tally.counts[k]||0)+n;if(!Number.isSafeInteger(tally.counts[k]))throw Error('Counter overflow');}rows.results=tally;}
     // Receipt stores only expiry, never a per-device identity or activity history.
     await storage.put({[key]:data.expiresAt,[expiryKey(data.expiresAt,data.batchId)]:key,...rows});
    });

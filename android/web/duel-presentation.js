@@ -6,13 +6,18 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // These effects have important optional timing windows which the core's
  // Sometimes mask does not expose consistently across platforms. The core
  // still supplies only currently legal choices, so honoring these cards here
- // does not create an illegal activation window.
- const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Fairy Box','Spell Shield Type-8','Michizure']);
+ // does not create an illegal activation window. Numinous Healer is only legal right after its owner takes
+ // damage, so the player is offered it every time (user request 2026-11-03).
+ const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Spell Shield Type-8','Michizure','Numinous Healer']);
  if(mode==='sometimes'&&(m?.selects||[]).some(choice=>sometimesExceptions.has(context.card?.(choice.code)?.name)))return true;
  // Kunai with Chain answers an attack, a summon or an activation; its text matches the timing words below in
  // every window, so it waits for those events (Discord 2026-10-29: "Chain sometimes" asked too often).
  const eventOnly=new Set(['Kunai with Chain']),selects=m?.selects||[];
  if(mode==='sometimes'&&selects.length&&selects.every(choice=>eventOnly.has(context.card?.(choice.code)?.name))){const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0}
+ // Fairy Box and Half or Nothing are legal through the whole Battle Phase, but only matter once an attack is declared
+ // (Discord 2026-11-03: they asked too often).
+ const attackOnly=new Set(['Fairy Box','Half or Nothing']);
+ if(mode==='sometimes'&&selects.length&&selects.every(choice=>attackOnly.has(context.card?.(choice.code)?.name)))return !!((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.ATTACK);
  // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
  // while they have a monster that could attack.
  if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;

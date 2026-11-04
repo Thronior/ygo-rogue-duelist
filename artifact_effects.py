@@ -6,6 +6,9 @@ def effect(kind,amount,attribute=''):
  from approved_relic_effects import effect as approved_effect
  result=approved_effect(kind)
  if result is not None:return result
+ from relic_fusions import effect as fused_effect
+ result=fused_effect(kind)
+ if result is not None:return result
  if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetTargetRange(LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end'''
  if kind=='this_life_mine':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
@@ -130,7 +133,7 @@ end'''
   e:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk,c)
    if chk==0 then local mg=Duel.GetMatchingGroup(Card.IsAbleToGraveAsCost,tp,LOCATION_MZONE,0,nil) return c:CheckFusionMaterial(mg,nil,tp) end
    local mg=Duel.GetMatchingGroup(Card.IsAbleToGraveAsCost,tp,LOCATION_MZONE,0,nil)
-   local sg=c:SelectFusionMaterial(tp,mg,nil,tp)
+   local sg=Duel.SelectFusionMaterial(tp,c,mg,nil,tp)
    if not sg or #sg==0 then return false end sg:KeepAlive() e:SetLabelObject(sg) return true
   end)
   e:SetOperation(function(e,tp,eg,ep,ev,re,r,rp,c)
@@ -215,7 +218,6 @@ for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do local e=Ef
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_LEAVE_FIELD)
 e:SetCondition(function(e,tp,eg) return eg:IsExists(lost,1,nil) end)
 e:SetOperation(function(e,tp,eg) Duel.Damage(1,{amount}*eg:FilterCount(lost,nil),REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
- if kind=='enemy_standby_burn':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end) e:SetOperation(function() Duel.Damage(1,{amount},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
  if kind=='standby_bounce':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end)
 e:SetOperation(function()
  local g=Duel.GetMatchingGroup(function(c) return c:IsSpellTrap() and c:IsAbleToHand() end,0,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)

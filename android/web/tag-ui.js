@@ -31,7 +31,7 @@ import {isShopUltra,announceShopUltra} from './shop-ultra.js';
 
 import {curseIcons,curseDescription,cursedMarkup} from './experience-ui.js';
 
-import {searchButton,matchesSearch,openSearch} from './card-search.js';
+import {searchButton,matchesSearch,openSearch,clearSearch} from './card-search.js';
 
 import {relicImage,relicArtwork} from './ui-art.js';
 
@@ -39,6 +39,7 @@ import {TagSession} from './tag-session.js';
 import * as juice from './juice.js';
 import * as keeperTalk from './shopkeeper-talk.js';
 import {ownedBadge} from './shop-badges.js';
+import {mountRunProgress} from './run-progress.js';
 
 const tagDeckScroller=root=>root?.querySelector('.tag-deck-scroll .draft-card-scroll')||root?.querySelector('.tag-deck-scroll');
 
@@ -49,6 +50,10 @@ const friendlyError=error=>{const text=error?.message||String(error),matches=[..
 const button=(text,action,extra='')=>`<button data-tag="${action}" ${extra}>${text}</button>`;
 const exitIcon='<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
+const ROOM_KEY='tag-active-room',ROOM_MEMORY=86400000;
+const savedRoom=()=>{try{return JSON.parse(localStorage.getItem(ROOM_KEY)||'null')}catch{return null}};
+const rememberRoom=room=>{try{localStorage.setItem(ROOM_KEY,JSON.stringify({...room,at:Date.now()}))}catch{}};
+const forgetRoom=()=>{try{localStorage.removeItem(ROOM_KEY)}catch{}};
 export class TagUI {
 
  // Card records by id: deck and trade views look cards up inside filters and sorts.
@@ -201,19 +206,31 @@ export class TagUI {
 
   const tradeTool=this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
 
-  this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+((r.round+1)%3===0&&this.tab!=='deck'?' boss':''));
+  this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+((r.round+1)%3===0&&this.tab!=='deck'?' boss':''));if(this.tab!=='deck')mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content});
 
   if((r.round+1)%3===0&&this.tab!=='deck'){const key=JSON.stringify([r.round,r.boss_rerolls||0,r.routes]);if(this.bossRevealKey!==key){this.bossRevealKey=key;playEncounterReveal({content:this.content,run:r,voice:bossNameVoice,opponents:r.routes,slot:true,sound:this.sound,tickSound:this.tickSound,stopTick:this.stopTick,active:()=>this.alive&&this.view?.phase==='draft'}).catch(e=>this.error(e))}}
 
   if(this.tab==='deck')deckReadyFeedback(this.root,main,deckMinimum(r,this.content.characters[r.character]),this);
 
   const search=this.root.querySelector('[data-effect-search]');if(search)search.onclick=()=>openSearch('tag-deck',r.pool.map(lookup),()=>this.render());
+  const clear=this.root.querySelector('[data-effect-search-clear]');if(clear)clear.onclick=()=>{clearSearch('tag-deck');this.render()};
 
   const sort=this.root.querySelector('#tag-deck-sort');if(sort)sort.onchange=()=>{this.deckSort=sort.value;this.render()};
 
  }
 
 
+
+ // Reopening Tag after a reload or app restart goes straight back into a run in progress, with the same seat token and
+ // character, so nobody has to type the room code again (2026-11-03). Leaving a room deletes its token, which ends this.
+ async autoRejoin(){
+  const room=savedRoom();if(!room?.started||this.session||Date.now()-room.at>ROOM_MEMORY)return;
+  let endpoint;try{endpoint=await this.endpoint()}catch{return}
+  if(!localStorage.getItem(endpoint.replace(/\/$/,'')+':tag:'+room.code)){forgetRoom();return}
+  if(!this.profile.unlocked.includes(room.character))return;
+  this.character=room.character;(this.variants??={})[room.character]=room.variant||0;this.level=room.level;this.status='Rejoining your Tag run…';this.render();
+  try{await this.action('rejoin',{code:room.code,dataset:{}})}catch(error){this.status='';if([400,404,410].includes(error.status)||/room|seat/i.test(error.message))forgetRoom();this.error(error)}
+ }
 
  async endpoint(){
 
@@ -293,7 +310,7 @@ export class TagUI {
   const rerollButton=cls=>`<button class="${cls}" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${reroll} coins" data-tag="shop-reroll" ${!own||this.working||r.gold<reroll||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span>${coins}<strong>${reroll}</strong></span></button>`;
   // Whose turn it is sits in the header, where the solo shop shows only LP.
   const turn=`<span class="tag-shop-turn ${own?'your-turn':'teammate-turn'}" role="status"><img src="assets/${shopper?.sprite||''}" alt=""><b>${own?'Your turn to shop':'Waiting for '+esc(shopper?.name||'teammate')}</b><small>${v.shopSeat===0?'Host · first shopper':'Player 2 · final shopper'}${own?' · Buying ends your turn':''}</small></span>`;
-  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${coinLabel(r.gold)} gold"><img src="assets/ui/coins.png" alt=""><strong>${coinLabel(r.gold)}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
+  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${coinLabel(r.gold)} gold"><img src="assets/ui/coins.png" alt=""><strong>${coinLabel(r.gold)}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content},{shop:true});polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
   requestAnimationFrame(()=>{keeperTalk.placeHitArea(this.root.querySelector('.secret-shopkeeper'));keeperTalk.place()});
   // He greets each shop visit once the duel's card reward is done, like in solo play.
   const visit=[this.session?.code,r.started_at,r.loop,r.round].join(':');if(visit!==this.shopVisit&&!r.reward_slots?.pending){this.shopVisit=visit;keeperTalk.say('welcome')}
@@ -423,9 +440,9 @@ export class TagUI {
 
   if(action==='start'){this.working=true;try{await this.session.request('start')}finally{this.working=false;this.render()}return}
 
-  if(['host','join-room'].includes(action)){
+  if(['host','join-room','rejoin'].includes(action)){
 
-   const code=this.joinCode.trim().toUpperCase();if(action==='join-room'&&!/^[A-Z2-9]{5}$/.test(code))throw Error('Enter the five-character room code.');
+   const code=action==='rejoin'?el.code:this.joinCode.trim().toUpperCase();if(action==='join-room'&&!/^[A-Z2-9]{5}$/.test(code))throw Error('Enter the five-character room code.');
 
    this.working=true;this.status='';this.render();
 
@@ -441,7 +458,8 @@ export class TagUI {
 
    }});
 
-   const room=await this.session[action==='host'?'host':'join'](...(action==='join-room'?[code]:[]));localStorage.setItem('tag-last-code',room.code);
+   const room=await this.session[action==='host'?'host':'join'](...(action==='join-room'||action==='rejoin'?[code]:[]));localStorage.setItem('tag-last-code',room.code);
+   if(action!=='rejoin')rememberRoom({code:room.code,character:this.character,variant:this.chosenVariant(),level:this.level,started:false});
 
    }catch(error){this.session?.peer.suspend();this.session=null;throw error}finally{this.working=false;this.render()}return;
 
@@ -558,6 +576,8 @@ export class TagUI {
  }
 
  update(view){
+
+  const room=savedRoom();if(room&&room.code===this.session?.code){if(['complete','gameover'].includes(view.phase))forgetRoom();else if(view.phase!=='lobby'&&!room.started)rememberRoom({...room,started:true})}
 
   if(/That choice is stale|Wait for your teammate\.|No active duel\./.test(this.status))this.status='';
 

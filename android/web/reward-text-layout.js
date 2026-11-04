@@ -1,6 +1,12 @@
 // Coin reward text layout: how much a reward matters, and a mostly random free spot for its text.
 const area=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
-export const rewardWeight=(value,top)=>Math.min(1,Math.log(1+Math.max(0,value))/Math.log(1+Math.max(top,100)));
+// 10+ coins is a big payout and 5+ a medium one; size and time still grow within each tier.
+export const rewardTier=value=>value>=10?'big':value>=5?'medium':'small';
+const TIER_RANGE={small:[0,.3],medium:[.42,.62],big:[.72,1]};
+export function rewardWeight(value,top,tier=rewardTier(value)){
+ const [low,high]=TIER_RANGE[tier],within=Math.min(1,Math.log(1+Math.max(0,value))/Math.log(1+Math.max(top,100)));
+ return low+(high-low)*within;
+}
 // A few random tries, keeping the one that covers the least. Small rewards don't mind sitting behind the window.
 export function rewardTextSpot(w,h,width,height,box,taken,weight,random=Math.random){
  const margin=6,frame={x:box.left,y:box.top,w:box.right-box.left,h:box.bottom-box.top},size=w*h||1;let best=null,cost=Infinity;

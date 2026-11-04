@@ -85,7 +85,7 @@ CHARACTERS.append(dict(name='Copycat',pack='COPY',sprite='copycat-portrait.png',
 CHARACTERS.append(dict(name='Dueling Engine',pack='ENGINE',sprite='dueling-engine-portrait.png',race='Machine',cards=[],type=0,bonus='',color='#8fa3bf',engine_deck=True,starting_relic='none',attribute='DARK',theme='Start with a random starter deck. After each victory, choose a random opponent deck from your next duel tier. Reroll each offer for 15 coins. Extra-card reward relics add more deck choices.'))
 
 # Retain definitions for existing saves; exclude these from new offers and the collection.
-RETIRED_ARTIFACTS=frozenset({'feather','ominous_clock'})
+RETIRED_ARTIFACTS=frozenset({'feather'})
 ARTIFACTS={}
 ART_INFO={}
 def artifact(key,name,price,desc,art,effect='',amount=0,tag='economy',filter=''):
@@ -248,6 +248,9 @@ from archetype_relics import install as install_archetype_relics
 install_archetype_relics(artifact)
 from artifact_expansion import install as install_artifact_expansion
 install_artifact_expansion(artifact)
+# After every piece, so a fused relic's price can add up its pieces.
+from relic_fusions import install as install_relic_fusions
+install_relic_fusions(artifact)
 
 STARTING_RELICS=['mage','dragon','blade','wing','gear','horn','dark','eye','fossil','bone','hive','flame','blade','buckler','halo','prism','gear','mage','shell','map','light','tribute','halo','bargain','dragon','eye','halo','horn','eye','halo','horn','sword','buckler','last_word','dark','pierce','random','echo_glass','none']
 for i,character in enumerate(CHARACTERS):character['starting_relic']=STARTING_RELICS[i]

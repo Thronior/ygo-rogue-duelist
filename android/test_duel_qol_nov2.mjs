@@ -5,6 +5,7 @@ const {MobileDuel,M,R,I,L}=await import('./web/duel.js');
 const {smartContext}=await import('./web/smart_policy.js');
 const {changesStats,amountLabel,activeEffectsMarkup}=await import('./web/active-effects.js');
 const {LOADING_TIPS,loadingTip}=await import('./web/loading-tips.js');
+const {bossDeckName}=await import('./web/encounter-reveal.js');
 const root=fileURLToPath(new URL('../',import.meta.url)),json=p=>JSON.parse(fs.readFileSync(root+p,'utf8').replace(/^﻿/,''));
 const meta=json('android/web/content.json'),data=json('android/web/engine-data.json');
 const id=n=>{const c=meta.cards.find(c=>c.name===n);assert(c,n);return c.id};
@@ -45,11 +46,12 @@ for(const [key,text] of Object.entries(scripts)){e.start(Array(40).fill(OX),Arra
  assert(html.includes('<img')&&html.includes('alt="Mage"')&&html.includes('+300 ATK')&&!/>Mage</.test(html),'icons, not names');checks++;
  same(activeEffectsMarkup([],s=>s),'','nothing to show');
 }
-// Boss names: every boss the game can draw has one.
+// Boss names: every boss the game can draw has one, though the reveal no longer shows it (2026-11-03).
 {
  const names=meta.bossDeckNames;
  for(const i of [0,1,3,4,6,7,11,15,17,27])for(const tier of [1,2,3,4])assert(names[i]?.[tier],`${i} tier ${tier}`);checks++;
  const seen=Object.values(names).flatMap(x=>Object.values(x));same(new Set(seen).size,seen.length,'no two decks share a name');
+ same(bossDeckName(meta,{round:2,loop:0},0)>'',true,'still looked up');
 }
 {same(LOADING_TIPS.every(t=>t.length<=80),true,'tips fit one or two lines');same(loadingTip(()=>0),LOADING_TIPS[0]);same(loadingTip(()=>.999),LOADING_TIPS.at(-1))}
 // Coin reward text: more coins weigh more, big lines stay clear of the window, spots stay on screen.
@@ -76,5 +78,20 @@ for(const [key,text] of Object.entries(scripts)){e.start(Array(40).fill(OX),Arra
  same(bossVoice(content,{round:2,loop:1},62),'ultimate-collector.mp3','one line for every Ultimate Collector');
  same(bossVoice(content,{round:2,loop:1},3,true),'ultimate-collector.mp3','fallen Collectors too');
  same(bossVoice({bossVoices:[],ultimateCollectors:[62]},{round:2,loop:1},62),null,'silent until it exists');
+}
+// Coin reward tiers: 10+ coins big, 5+ medium.
+{
+ const {rewardTier,rewardWeight}=await import('./web/reward-text-layout.js');
+ same([2,4,5,9,10,50].map(rewardTier),['small','small','medium','medium','big','big']);
+ same(rewardWeight(4,50)<rewardWeight(5,50)&&rewardWeight(9,50)<rewardWeight(10,50),true,'each tier sits above the one below');
+}
+// Chain Sometimes: Fairy Box and Half or Nothing ask only when an attack is declared.
+{
+ const {chainWindowAllowed}=await import('./web/duel-presentation.js');
+ const names={1:'Fairy Box',2:'Half or Nothing',3:'Mirror Force'},card=code=>({name:names[code],data:{type:4}});
+ const ask=(code,timing)=>chainWindowAllowed({player:0,selects:[{code}],hint_timing:timing,hint_timing_other:0},'sometimes',[],{card,turnPlayer:1,phase:8});
+ // OcgHintTiming: BATTLE_START 8, ATTACK 4096, DAMAGE_STEP 8192.
+ for(const code of [1,2]){same(ask(code,8),false,names[code]+' stays quiet at the start of the Battle Phase');same(ask(code,8192),false,names[code]+' and in the Damage Step');same(ask(code,4096),true,names[code]+' asks at attack declaration')}
+ same(chainWindowAllowed({player:0,forced:true,selects:[{code:1}]},'sometimes',[],{card}),true,'forced prompts always show');
 }
 console.log(`PASS duel QoL: ${checks} checks`);process.exit(0);

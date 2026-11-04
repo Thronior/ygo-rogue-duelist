@@ -8,6 +8,7 @@ import storage
 from content import *
 import passives,unlocks,encounters,endless
 import cursed_relics,approved_relics as ar
+import relic_fusions
 
 BOUNTY_OBJECTIVES=(
  {'id':'ritual_summon','title':'Ritual Summon','description':'Ritual Summon a monster this Duel.'},
@@ -40,6 +41,8 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
 def shop_relic_eligible(run,key):
  character=CHARACTERS[run['character']]
  effect=ART_INFO[key]['effect']
+ # Fused relics only come from fusing, and a fused set's pieces are not offered again.
+ if key in relic_fusions.KEYS or relic_fusions.absorbed(run,key):return False
  # Deck Assembler still cannot buy cards, but he edits his deck, so a lower minimum helps him.
  if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
@@ -231,7 +234,7 @@ def install(g):
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
   cursed=cursed_relics.approved()
-  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed],1,r,rng)[0]
+  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and k not in relic_fusions.KEYS],1,r,rng)[0]
   elif relic=='random_archetype':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and ART_INFO.get(k,{}).get('effect')=='archetype_stock'],1,r,rng)[0]
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
@@ -296,6 +299,7 @@ def install(g):
   cursed_relics.require_choice(run)
   reload_tuning()
   if run['stage']=='shop':run['gold_leaving_shop']=run['gold']
+  run.pop('fusion_events',None)
   if CHARACTERS[run['character']].get('copycat'):
    if not run.get('routes'):routes(run,rng)
    if run['opponent'] not in run['routes']:raise ValueError('Choose an available opponent.')
@@ -414,6 +418,8 @@ def install(g):
    if losses:tally['No Pain No Gain']=losses*amount(run,'lp_loss_coins')
   if amount(run,'lean_bonus') and sum(not g.is_extra(c) for c in g.deck(run))==ar.minimum(run):tally['Razor Ledger']=amount(run,'lean_bonus')
   if amount(run,'clutch_bonus') and run['lp']<2000:tally['Phoenix IOU']=amount(run,'clutch_bonus')
+  if owns(run,'gold_sarcophagus'):tally["Pharaoh's Hoard"]=50*ar.copies(run,'gold_sarcophagus')
+  if owns(run,'sacred_phoenix') and any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in events):tally['Sacred Phoenix']=40
   if owns(run,'golden_sleeve'):
    from golden_cards import choices
    hits=sum(min(5,sum(1 for e in events if e.get('kind') in ('summon','set','activate') and e.get('card')==cid)) for cid in choices(run))
@@ -445,6 +451,9 @@ def install(g):
   p=storage.profile();previous={x['id'] for x in achievement_model.entries(p) if x['done']}
   p['max_gold']=max(p['max_gold'],run['gold']);p['max_bought']=max(p['max_bought'],run.get('purchased',0));p['max_artifacts']=max(p['max_artifacts'],len(run['artifacts']))
   if won:p['victories']+=1
+  # Fused relics stay out of the collection until this player has made one.
+  found=sorted(set(p.get('fused_relics',[]))|{a for a in run.get('artifacts',[]) if a in relic_fusions.KEYS})
+  if found:p['fused_relics']=found
   if run['stage']=='complete' and not run.get('profile_complete') and not run.get('secret_challenge'):
    challenge_levels.award(p,run)
    p['highest_challenge_level']=max(challenge_levels.highest(p,i) for i in PLAYABLE_IDS)
@@ -556,6 +565,7 @@ def install(g):
    _orb={'LIGHT':'light','DARK':'dark','FIRE':'ember','WATER':'tide','WIND':'gale','EARTH':'earth'}.get(max(_attrs,key=_attrs.get) if _attrs else None)
    _new=_orb or 'earth'
    run['artifacts']=[_new if a=='blank_relic' else a for a in run['artifacts']];run['blank_became']=_new
+   relic_fusions.fuse(run)
   stats=run.setdefault('stats', {})
   stats['coins_earned']=stats.get('coins_earned',0)+run['last_gold']
   if boss and won:stats['bosses_defeated']=stats.get('bosses_defeated',0)+1
@@ -646,16 +656,23 @@ def install(g):
    bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c)]
    if bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
-  tied=run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack']
-  if PACK_BY_ID.get(tied,{}).get('draft_only') or not unlocks.available('pack',tied,profile):
+  def usable(pid):
    # Old shops/routes can predate progression; an unlocked early pack is the fallback.
-   tied='EN-LOB'
+   return 'EN-LOB' if PACK_BY_ID.get(pid,{}).get('draft_only') or not unlocks.available('pack',pid,profile) else pid
+  tied_ids=[usable(run.get('shop_reward',shop_rewards.reward_for(run['opponent']))['pack'])]
+  if run.get('history_mode')=='tag' and len(tag_rewards)==2:
+   # Each seat chose an opponent for its guaranteed pack; the shared shop offers both.
+   tied_ids=[]
+   for reward in tag_rewards:
+    pid=usable(reward.get('pack','EN-LOB'))
+    if pid not in tied_ids:tied_ids.append(pid)
   pack_count=4 if ar.has(run,'booster_shelf') else 3
-  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id']!=tied and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)],pack_count-1)
-  pack_ids=[tied]+others
+  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in tied_ids and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)],pack_count-len(tied_ids))
+  pack_ids=tied_ids+others
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
-  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
-  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n==0)) for n,p in enumerate(pack_ids)]
+  # A Tag personal pack that is already a guaranteed pack keeps its random slot.
+  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n<len(tied_ids))) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
   if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
@@ -673,6 +690,7 @@ def install(g):
    item['price']=max(1,round(item['price']*modifier))
   for item in items:item['price']=ar.price(run,item['kind'],item['price'])
   run['shop']=items
+  relic_fusions.greed_free_relic(run,rng)
   challenge_levels.suppress(run)
  def reroll_price(run):
   if ar.free_use(run,'dice_jar','shop'):return 0
@@ -721,17 +739,21 @@ def install(g):
   if key=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
   if key=='stamp':run['stamped_singles']=0
   if key=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
-  if ART_INFO.get(key,{}).get('effect')=='discount':
+  relic_fusions.fuse(run)
+  # A new discount relic, or a fusion that changes the total discount, reprices the unsold stock.
+  if amount(run,'discount')!=_pre_discount:
    _new_mod=max(0,1-amount(run,'discount')/100);_old_mod=max(0,1-_pre_discount/100)
    if _old_mod>0:
     for _it in run['shop']:
-     if not _it.get('sold'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
+     if not _it.get('sold') and not _it.get('greed'):_it['price']=max(1,round(_it['price']*_new_mod/_old_mod))
   # Choice relics wait for the player's pick; Relic Picker and Card Picker are used up by it.
-  if key in ar.CONSUMED_RELICS:run['artifacts'].remove(key)
+  if key in ar.CONSUMED_RELICS and key in run['artifacts']:run['artifacts'].remove(key)
+  relic_fusions.greed_free_relic(run,rng)
   if key=='relic_picker':choice_relics.queue_relic_pick(run,rng)
   if key=='card_picker':run['card_picks']=run.get('card_picks',0)+1
   if key=='name_changer':run['name_change_picks']=run.get('name_change_picks',0)+1
-  if key in ('weighted_coins','weighted_dice'):choice_relics.queue_weight_pick(run,key)
+  # A weighted relic that fused straight away has no face left to choose.
+  if key in ('weighted_coins','weighted_dice') and key in run['artifacts']:choice_relics.queue_weight_pick(run,key)
   return obtained
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)
@@ -787,6 +809,7 @@ def install(g):
   if item['kind']=='pack':run['bought_pack_ids']=sorted(set(run.get('bought_pack_ids',[]))|{item['id']})
   if item['kind'] in ('single','pack','deck'):run['card_purchases']=run.get('card_purchases',0)+1
   run['pool']+=obtained;run['purchased']+=len(obtained);payment.pay(run,item['price'],'this item');item['sold']=True
+  if item.get('greed'):run['greed_relic_taken']=ar.encounter_key(run)
   if item['kind']=='pack' and (amount(run,'pack_refund') or ar.has(run,'cursed_cursed_refund')):
    refund=min(item['price']-1,amount(run,'pack_refund')+20*ar.copies(run,'cursed_cursed_refund'));run['gold']+=refund;stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+refund
   update_profile(run);save(run);return obtained

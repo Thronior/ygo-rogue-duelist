@@ -710,6 +710,8 @@ export function smartContext(e,p,L,prompt=null){
   if(!(defenseReducingEquips.has(name(source))||atkOnly&&defending)||target.position&1)return true;
   return (prompt?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
  }
+ // Gearfried the Iron Knight (or any monster that destroys Equip Cards put on it) breaks equip steals and boosts.
+ function equipBreaker(c){return enabled(c)&&(name(c)==='Gearfried the Iron Knight'||/equips? an Equip Card[\s\S]{0,40}to this card[\s\S]{0,40}destroy that Equip/i.test(e.cards.get(c.code)?.desc||''));}
  function controlTarget(c){
   if(!face(c)||c.is_immune)return false;
   // Spirit Reaper destroys itself after a resolving effect targets it, so
@@ -734,7 +736,7 @@ export function smartContext(e,p,L,prompt=null){
   return usefulAttack||opensLane?10000+strength:-1;
  }
   function snatchStealWorthy(c){
-   if(!controlTarget(c))return false;
+   if(!controlTarget(c)||equipBreaker(c))return false;
    const stealAttack=controlledAttack(c);
    const immediateLethal=e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!battleLocked&&enemy.length===1&&
     remainingAttackers().reduce((sum,x)=>sum+Math.max(0,atk(x)),0)+(!(c.attack_count>0)?stealAttack:0)>=e.lp[1-p];
@@ -848,7 +850,7 @@ export function smartContext(e,p,L,prompt=null){
   const lasting=!!(d.type&(0x20000|0x40000))||['Swords of Revealing Light',"Nightmare's Steelcage"].includes(n);
   if(c.location===L.HAND&&(d.type&6)&&!(d.type&0x80000)&&lasting&&!(n==='Temple of the Kings'&&own.some(x=>name(x)==='Mystical Beast of Serket'))&&back.filter(x=>x.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5)-1)return -1;
   if((d.type&6)&&attackOnly.has(n)&&!remainingAttackers().length)return -1;
-  if(friendlyEquip(c)&&!own.some(x=>face(x)&&equipUseful(c,x)&&!doomed(x)&&!(name(x)==='Gearfried the Iron Knight'&&enabled(x))))return -1;
+  if(friendlyEquip(c)&&!own.some(x=>face(x)&&equipUseful(c,x)&&!doomed(x)&&!equipBreaker(x)))return -1;
   if(n==='The Cheerful Coffin'){
    // Recovery next turn does not replace a blocker needed this turn.
    const body=x=>(data(x).type&1)&&!(data(x).type&0x20000c0)&&(e.cards.get(x.code)?.level||0)<=4;
@@ -1587,6 +1589,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
+    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?400:0;break;
     case 'variant_village_banner':v=lvl(c)===4?200:0;break;
     case 'eclipse':v=['LIGHT','DARK'].every(at=>q(side,L.GRAVE).some(x=>(data(x).type&1)&&face(x)&&hasAttribute(x,at)))?a:0;break;
     case 'kindred_bond':v=a*field.filter(x=>!same(x,c)&&face(x)&&race(x)===race(c)).length;break;
@@ -1627,6 +1630,12 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_swordsman_oath':v=setMatch(c,0x41)?400:0;break;
+    // Fused relics (relic_fusions.py).
+    case 'fused_chaos_orb':v=hasAttribute(c,'LIGHT')||hasAttribute(c,'DARK')?400:0;break;
+    case 'fused_four_elements':v=200*['EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE'].filter(at=>field.some(x=>face(x)&&hasAttribute(x,at))).length;break;
+    case 'fused_harpie_nest':v=setMatch(c,0x64)?400:0;break;
+    case 'fused_amazoness_village':v=setMatch(c,0x4)?400:0;break;
+    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?400:0;break;
     case 'variant_village_banner':v=level===4?200:0;break;
     case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
     case 'overcharge':v=race(c)==='Thunder'?a*field.filter(x=>!same(x,c)&&face(x)&&race(x)==='Thunder').length:0;break;
@@ -2028,8 +2037,11 @@ if(!effectsEnabled(p))return 0;
   if(pierce(a)&&t&&!(t.position&1))s+=Math.max(0,atk(a)-((t.defense??e.data[t.code]?.defense)??0));
   if(n==='Newdoria'&&dmg<=0&&t&&power(t)>atk(a))s+=50;
   return s;}
- function suicideScore(a,target=null){const n=name(a);if(!['Witch of the Black Forest','Sangan'].includes(n))return 0;
+ // Battle floaters: destroyed by battle, they Special Summon a 1500-or-less ATK monster of this Attribute from the Deck.
+ const battleFloaters={'Mystic Tomato':'DARK','Giant Rat':'EARTH','Shining Angel':'LIGHT','Mother Grizzly':'WATER','Flying Kamakiri #1':'WIND','UFO Turtle':'FIRE'};
+ function suicideScore(a,target=null){const n=name(a),floatAttr=battleFloaters[n];if(!floatAttr&&!['Witch of the Black Forest','Sangan'].includes(n))return 0;
   if(!enabled(a)||!effectsEnabled(p)||e.lp[p]<=2000||q(p,L.DECK).length<=3||[...own,...enemy].some(x=>enabled(x)&&name(x)==='Banisher of the Light'))return 0;
+  if(floatAttr&&!q(p,L.DECK).some(x=>(data(x).type&1)&&hasAttribute(x,floatAttr)&&atk(x)<=1500))return 0;
   // Baou negates what it destroys, so dying to its holder finds nothing.
   const baou=x=>[...back,...theirBack].some(y=>enabled(y)&&name(y)==='Wicked-Breaking Flamberge - Baou'&&same(y.equipCard||y.equip_card,x));
   return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500&&!baou(x))?800:0;}
@@ -2138,7 +2150,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
 
   if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
-  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand)||(nm==='Gearfried the Iron Knight'&&enabled(cand)))return -1000000000;
+  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand)||equipBreaker(cand))return -1000000000;
    if(cand.controller!==p||!equipUseful(equipSource,cand))return -1000000000;
    const fixed={'Axe of Despair':1000,'Malevolent Nuzzler':700,'Black Pendant':500,'Horn of the Unicorn':700,'Sword of Deep-Seated':500,'Shine Palace':700,'Sword of Dark Destruction':400};
    const bonus=fixed[fxN]??(fxN==='United We Stand'?800*own.filter(face).length:fxN==='Mage Power'?500*back.length:500);

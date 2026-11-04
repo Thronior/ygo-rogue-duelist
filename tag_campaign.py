@@ -52,6 +52,13 @@ class TagCampaign:
 
   self.shared={'boss_rerolls':0,'shop_rerolls':0,'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
 
+  # Both starting relics together can already complete a set.
+
+  import relic_fusions
+
+  relic_fusions.fuse(self.shared)
+
+
   self.sync();self.routes()
 
   if not lobby:
@@ -86,7 +93,7 @@ class TagCampaign:
 
   if self.shop_seat==2:
 
-   self.phase='draft';self.ready=[False,False]
+   self.phase='draft';self.ready=[False,False];self.shared['fusion_events']=[]
 
    for r in self.players:r['stage']='draft';r['gold_leaving_shop']=self.shared['gold']
 
@@ -358,7 +365,8 @@ class TagCampaign:
 
   revision=request.get('revision')
 
-  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','finale-vote','finale-skip','finale-mode','trade-vote','trade-send','trade-ack')
+  # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
+  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','finale-vote','finale-skip','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -545,7 +553,7 @@ class TagCampaign:
 
    with self.scope(seat):result=game.buy_many(run,value or [],self.rng) if action=='buy' else []
 
-   for key in ('gold','lp','artifacts','shop'):self.shared[key]=deepcopy(run.get(key))
+   for key in ('gold','lp','artifacts','shop','fusion_events','greed_relic_taken'):self.shared[key]=deepcopy(run.get(key))
 
    self.trade=self.new_trade()
 

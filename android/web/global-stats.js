@@ -29,9 +29,11 @@ export function runResult(run){
  if(run.stage==='complete'||run.stage==='gameover'&&looped)return `${character}:${level}:w`;
  return run.stage==='gameover'?`${character}:${level}:l`:null;
 }
+// Global relic stats: the same finished run once more per relic it ended with, as "r:relic:w|l" (2026-11-03).
+export function relicResults(run){const result=runResult(run);if(!result)return [];const outcome=result.slice(-1);return [...new Set(run.artifacts||[])].filter(id=>/^[a-z0-9_]{1,40}$/.test(id)).map(id=>`r:${id}:${outcome}`)}
 export function recordRunResult(run){
  const result=runResult(run),id=run?.started_at||run?.history_id;if(local||!result||!id)return;
- void withQueue(()=>{refreshPersonal();const token='result:'+id;if(saved.seen.includes(token))return;saved.seen.push(token);if(saved.seen.length>1000)saved.seen.splice(0,saved.seen.length-1000);store();if(statsEnabled()){const results=queue.pending.results||={};results[result]=(results[result]||0)+1;storeQueue();}});void syncStats();
+ void withQueue(()=>{refreshPersonal();const token='result:'+id;if(saved.seen.includes(token))return;saved.seen.push(token);if(saved.seen.length>1000)saved.seen.splice(0,saved.seen.length-1000);store();if(statsEnabled()){const results=queue.pending.results||={};for(const k of [result,...relicResults(run)])results[k]=(results[k]||0)+1;storeQueue();}});void syncStats();
 }
 export function syncStats(){return withQueue(syncBatch)}
 async function syncBatch(){

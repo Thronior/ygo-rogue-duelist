@@ -886,16 +886,6 @@
       "tag": "defense",
       "filter": ""
     },
-    "ominous_clock": {
-      "name": "Ominous Clock",
-      "price": 120,
-      "description": "Once per turn, at the start of your opponent's Standby Phase, inflict 200 damage to them.",
-      "art": "Ookazi",
-      "effect": "enemy_standby_burn",
-      "amount": 200,
-      "tag": "offense",
-      "filter": ""
-    },
     "final_hour": {
       "name": "Final Hour",
       "price": 150,

@@ -62,5 +62,8 @@ def description(key,info,previous):
  if key=='chalice':return f'After each victory, gain {n(a)} LP. After-duel healing past your current healing limit, from any source, is not lost: every 100 LP over becomes 3 coins.'
  if key=='ankh':return 'When acquired, gain 2000 LP. Increase your between-duel healing limit by 2000 LP, including challenge-level and boss-victory healing limits.'
  if key=='blank_relic':return 'After your next Duel, this relic becomes an Attribute Orb matching the most common Attribute among monsters in your Main and Extra Decks. If there are no monsters, or the most common Attribute has no matching Orb, it becomes Earth Orb.'
+ # Fused relics share some base effects but keep their own wording.
+ from relic_fusions import KEYS
+ if key in KEYS:return previous
  text=patterns.get(kind,previous)
  return text

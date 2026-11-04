@@ -29,7 +29,7 @@ def sync():
   if line.startswith('!system '):
    parts=line.split(maxsplit=2);system_strings[parts[1]]=parts[2] if len(parts)>2 else ''
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
- shared=['feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
+ shared=['feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
  shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
@@ -49,6 +49,8 @@ def sync():
  meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),preconstructedDecks=[{key:deck[key] for key in ('id','name','date','art','cards')} for deck in json.loads((ROOT/'data/preconstructed.json').read_text(encoding='utf8'))['decks']],characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,retiredArtifacts=sorted(content.RETIRED_ARTIFACTS),artifactInfo={key:dict(value,art=custom_relic_art.get(key) or next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id']),**({'parts':list(approved_relics.CURSED_PARTS[key])} if key in approved_relics.CURSED_PARTS else {})) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
  from duel_rewards import RULES, VICTORY_ONLY
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
+ import relic_fusions
+ meta['fusedRelics']=sorted(relic_fusions.KEYS)
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES]
  meta['bossDeckNames']=json.loads((ROOT/'data/boss-deck-names.json').read_text(encoding='utf8'))['names']
@@ -201,3 +203,7 @@ if __name__=='__main__':
  sync()
  if '--sync-only' not in sys.argv:
   build()
+  # Releases deploy changed Workers before the clients; say so while the build output is on screen.
+  try:
+   import check_worker_deploys;check_worker_deploys.main()
+  except Exception as error:print('Worker deploy check skipped:',error)

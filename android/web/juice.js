@@ -7,7 +7,7 @@
 import {shake,wallMs as wall} from './duel-motion.js';
 import {assetURL} from './startup-assets.js';
 import {effectOn} from './effect-options.js';
-import {rewardWeight,rewardTextSpot} from './reward-text-layout.js';
+import {rewardWeight,rewardTextSpot,rewardTier} from './reward-text-layout.js';
 
 const html=document.documentElement;
 const prefs=()=>{const compat=html.classList.contains('compatibility-mode');return {reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,lite:compat||html.classList.contains('performance-mode'),compat}};
@@ -131,7 +131,8 @@ export function scaleNumber(el,amount,heal=false){
 }
 export function hit(player,amount,before){
  const {reduced,lite,compat}=prefs(),tier=damageTier(amount),life=document.querySelector(player?'.lpbar .life.enemy':'.lpbar .life:not(.enemy)');
- if(tier>=3)buzz(40);if(!compat&&effectOn('portrait'))portraitHit(player,tier);
+ // Your own LP loss always buzzes, harder for bigger hits; the opponent's only on big ones (2026-11-03 trial).
+ if(player===0)buzz(tier>=4?70:tier>=3?45:20);else if(tier>=3)buzz(30);if(!compat&&effectOn('portrait'))portraitHit(player,tier);
  const killed=Number.isFinite(before)&&before-amount<=0;
  if(killed&&effectOn('portrait'))portraitKO(player);
  if(!reduced&&!lite&&effectOn('impact')){
@@ -248,8 +249,8 @@ export function rewardText(box,rewards,onPop=()=>{}){
  stopText=()=>{timers.forEach(clearTimeout);layer.remove();box.classList.remove('reward-text-stage')};
  const width=innerWidth,height=innerHeight,frame=box.getBoundingClientRect(),tight=frame.width*frame.height/(width*height)>.4,largest=clamp(Math.min(width,height)*(tight?.065:.1),22,64);let taken=[];
  rows.forEach(([label,value],i)=>{timers.push(setTimeout(()=>{
-  const weight=rewardWeight(value,top),el=temp('div','reward-text',layer),duration=wall((1300+3200*weight)*(tight?.7:1)),now=performance.now();
-  el.textContent=`+${value.toLocaleString('en-US')} ${label}`;el.classList.toggle('big',weight>=.6);el.style.zIndex=Math.round(weight*10);
+  const tier=rewardTier(value),weight=rewardWeight(value,top,tier),el=temp('div','reward-text '+tier,layer),duration=wall((1300+3200*weight)*(tight?.7:1)),now=performance.now();
+  el.textContent=`+${value.toLocaleString('en-US')} ${label}`;el.style.zIndex=Math.round(weight*10);
   let size=12+(largest-12)*weight**1.5;el.style.fontSize=size+'px';
   // Long lines shrink to fit the screen rather than being cut off.
   if(el.scrollWidth>width-12){size=Math.max(12,size*(width-12)/el.scrollWidth);el.style.fontSize=size+'px'}

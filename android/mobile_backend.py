@@ -200,6 +200,8 @@ def dispatch(raw):
    p=storage.profile();p['unlock_all']=True;p['unlocked']=content.PLAYABLE_IDS;storage.write(storage.ROOT/'profile.json',p)
   elif value=='reliclessforall':
    p=storage.profile();p['relicless_unlocked']=True;storage.write(storage.ROOT/'profile.json',p)
+  elif value=='alteregos':
+   p=storage.profile();p['variants_unlocked']=True;storage.write(storage.ROOT/'profile.json',p)
   elif value=='touchgrass':
    p=storage.profile();p.update(unlock_all=True,unlocked=content.PLAYABLE_IDS,relicless_unlocked=True,testing_all_clears=True,character_levels={str(i):6 for i in content.PLAYABLE_IDS});storage.write(storage.ROOT/'profile.json',p)
   else:raise ValueError('Unknown code')

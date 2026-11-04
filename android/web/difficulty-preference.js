@@ -1,5 +1,6 @@
 export function alternateUnlocked(profile,character){
- return (profile.character_levels?.[character]??-1)>=2||(profile.run_history||[]).some(r=>r.character===character&&r.challenge_level===-1&&r.result==='complete'&&r.round>=9);
+ // Testing Code "alteregos" (debug) unlocks every alternate variant.
+ return !!profile.variants_unlocked||(profile.character_levels?.[character]??-1)>=2||(profile.run_history||[]).some(r=>r.character===character&&r.challenge_level===-1&&r.result==='complete'&&r.round>=9);
 }
 export function rememberedLevel(profile,character){
  const level=Number(profile.character_last_levels?.[character]??0),max=Math.min(6,Number(profile.character_levels?.[character]??-1)+1);
