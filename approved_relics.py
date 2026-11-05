@@ -22,7 +22,7 @@ REGULAR=[
 ('battle_proficiency','Battle Proficiency',110,'Increase battle damage your opponent takes by 50% (rounded down).','Lightning Blade'),
 ('burn_proficiency','Burn Proficiency',100,'Increase effect damage you inflict to your opponent by 50% (rounded down).','Hinotama'),
 ('straw_doll','Straw Doll',250,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
-('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced. This relic appears less often than other relics.','Gate Guardian'),
+('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced.','Gate Guardian'),
 ('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Magical Mallet'),
 ('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.','Magical Merchant'),
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
@@ -206,7 +206,7 @@ def reconcile_turn_order(run):
 def mirror_view(run):
  """Relic Mirror's copied relics, shaped like a run so the usual relic rules can read them."""
  keys=run.get('mirrored_relics',[]) if 'relic_mirror' in run.get('curses',[]) else []
- return dict(run,artifacts=list(keys),curses=[],boss_curse=None,mirrored_relics=[],first_player=0,mirror_copy=run.get('mirror_copy') if 'magic_mirror' in keys else None)
+ return dict(run,artifacts=list(keys),curses=[],boss_curse=None,mirrored_relics=[],first_player=0,mirror_copy=run.get('mirror_copy') if 'magic_mirror' in keys else None,mirror_only=True)
 
 def duel_run(run):
  """A duel-only view; never remove owned relics from the saved campaign."""

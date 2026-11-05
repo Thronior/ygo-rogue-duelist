@@ -83,7 +83,10 @@ export function smartContext(e,p,L,prompt=null){
  const has=(arr,n)=>arr.some(c=>name(c)===n),types=(arr,t)=>arr.filter(c=>(data(c).type&t)!==0);
  const LOCK=['Gravity Bind','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage",'Level Limit - Area B'];
  const lockUp=theirBack.some(x=>face(x)&&!x.is_disabled&&LOCK.includes(name(x)));
- const expendable=c=>effectsEnabled(p)&&name(c)==='Relinquished'?1000000:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))?500:Math.max(0,atk(c));
+ // Viser Des destroys its target at our third Standby Phase only while it stays on the field: keep it as long as
+ // that link is live, and count the monster it will destroy as its worth (flag, 2026-11-05).
+ const doomTarget=c=>{if(c.location!==L.MZONE||name(c)!=='Viser Des'||!effectsEnabled(c.controller??p))return null;const t=e.cardTargets?.get(`${c.controller??p}:${c.sequence}`);return t&&q(t.controller,L.MZONE).find(x=>x.sequence===t.sequence)||null};
+ const expendable=c=>effectsEnabled(p)&&name(c)==='Relinquished'?1000000:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))?500:Math.max(0,atk(c))+(doomTarget(c)?Math.max(1000,atk(doomTarget(c))):0);
  // Add verified hand-to-Graveyard recovery to the established discard priorities.
  function discardBenefit(c){
   if(!effectsEnabled(p)||[...back,...theirBack,...own,...enemy].some(x=>face(x)&&!x.is_disabled&&['Macro Cosmos','Dimensional Fissure','Banisher of the Light','Banisher of the Radiance'].includes(name(x))))return 0;
@@ -366,7 +369,7 @@ export function smartContext(e,p,L,prompt=null){
   if(egyptianGods.has(n))return !setting&&!(own.some(x=>egyptianGods.has(name(x)))&&own.filter(x=>!egyptianGods.has(name(x))).length<3)&&(prompt?.summons||[]).some(x=>same(x,c));
   const required=n==='The Wicked Eraser'?3:effectiveLevel(c,true)>6?2:effectiveLevel(c,true)>4?1:0;
   if(required){
-   const eligible=own.filter(x=>!(effectsEnabled(p)&&(name(x)==='Relinquished'||face(x)&&name(x)===BATTLEGUARD_PARTNER[n]))).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
+   const eligible=own.filter(x=>!(effectsEnabled(p)&&(name(x)==='Relinquished'||face(x)&&name(x)===BATTLEGUARD_PARTNER[n]))&&!doomTarget(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
    if(eligible.length<required)return false;
    const paid=eligible.slice(0,required),newAtk=projectedAttack(c),newDef=projectedDefense(c);
    const freed=x=>attackBlocked(x,p)&&!attackBlocked(c,p,true)&&newAtk>0;
@@ -1717,7 +1720,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_harpie_nest':v=setMatch(c,0x64)?400:0;break;
     case 'fused_amazoness_village':v=setMatch(c,0x4)?400:0;break;
     case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?400:0;break;
-    case 'fused_masterwork_blade':v=700;break;case 'fused_giant_killers_cradle':v=level<=3?1000:0;break;
+    case 'fused_masterwork_blade':v=800;break;case 'fused_giant_killers_cradle':v=level<=3?1000:0;break;
     case 'fused_titans_covenant':v=level>=5?1200:0;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_undying_legion':v=race(c)==='Zombie'?1200:0;break;case 'fused_grand_ritual_altar':v=200*(e.aiModifiers?.ritualScar||0);break;
     case 'fused_tyrants_throne':v=field.length===1?1200:0;break;
@@ -2018,6 +2021,8 @@ if(!effectsEnabled(p))return 0;
   const attackers=enemy.filter(x=>face(x)&&!attackBlocked(x,1-p,true));
   const losesAttack=attackers.some(x=>swing(x)>projectedAttack(c)),losesDefense=attackers.some(x=>swing(x)>projectedDefense(c));
   if(losesAttack!==losesDefense)return losesDefense;
+  // Lost in either position: in our Main Phase 1, Attack Position at least destroys something first (flag, 2026-11-05).
+  if(losesAttack&&e.player===p&&e.phase===4&&!openingTurn&&!battleLocked&&!attackBlocked(c,p,true)&&attackAllowed(c,false)&&enemy.some(t=>face(t)&&!attackLocked(t)&&!resilient(t,c)&&!battleHazards.has(name(t))&&projectedAttack(c)>power(t)))return true;
   const safer=saferPosition(c);
   return safer!==null?safer:losesAttack?false:null;
  }

@@ -593,7 +593,8 @@ export function deckPolicy(x){
    // (from our hand): the strongest; then the optional destroy: their best. Hand cards are ours too, so the
    // location tells the summon apart from the Tribute (user, 2026-11-04).
    const cands=info.cands||[];
-   if(cands.length&&cands.every(x=>x.controller===p&&x.location===L.HAND))return 30000+value(c);
+   // Hand cards are face-down, so targetValue rates every one 1000: compare ATK instead (flag, 2026-11-05).
+   if(cands.length&&cands.every(x=>x.controller===p&&x.location===L.HAND))return 30000+atk(c);
    const tribute=cands.every(x=>x.controller===p);
    return tribute?(ownCard?20000-value(c):-100000):(ownCard?-100000:30000+value(c));
   }

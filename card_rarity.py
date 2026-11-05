@@ -6,8 +6,8 @@ ULTRA=set(json.loads((ROOT/'data/champion-ultra.json').read_text(encoding='utf8'
 ULTRA.update(int(cid) for cid,limit in json.loads((ROOT/'data/collector-banlist.json').read_text(encoding='utf8'))['limits'].items() if limit==1)
 ULTRA_WEIGHT=0.65
 
-# Calibrated to about 1% inclusion per nine-card All Spells pack.
-ANCIENT_TREASURE_WEIGHT=0.144273
+# Calibrated to about 1% inclusion per nine-card All Spells pack (recalibrated 2026-11-05 when the pack grew to every Spell).
+ANCIENT_TREASURE_WEIGHT=0.252393
 
 def weight(cid):
  if cid==190000050:return ANCIENT_TREASURE_WEIGHT

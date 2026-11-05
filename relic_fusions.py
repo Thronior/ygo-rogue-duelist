@@ -1,6 +1,7 @@
 """Relic fusions: owning every piece of a set fuses them into one stronger relic (2026-11-03).
 
-Recipes are a secret for players to stumble on, so no relic text, shop or collection screen names its pieces.
+Recipes are a secret for players to stumble on, so no relic text, shop or collection screen names its pieces
+until the player has fused that relic once (then its inspection lists its Fusion Material, 2026-11-05).
 The pieces are used up. A fused relic is never stocked or offered; it only appears by fusing, and sells for
 half of what its pieces cost together.
 """
@@ -16,7 +17,7 @@ FUSED=[
  ('necrovalley_throne','Necrovalley Throne',"Your Gravekeeper's monsters gain 400 ATK/DEF. Your Field Spell cannot be destroyed.",'Necrovalley',('necrovalley_tablet','gravekeepers_union')),
  ('fusion_gate','Fusion Gate','During your Standby Phase, if you control no monsters, Special Summon 1 monster from your Fusion Deck.','Fusion Gate',('fusion_chamber','fusion_insignia','fusion_time','machine_foundry')),
  ('jar_of_greed','Jar of Greed','Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.','Jar Robber',('dice_jar','cyber_jar','morphing_jar_2')),
- ('second_coin_toss','Second Coin Toss','Each turn, you choose the result of your first coin toss and of your first die roll.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice')),
+ ('second_coin_toss','Second Coin Toss','You choose the results of all your coin tosses and dice rolls.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice')),
  ('scapegoat_pasture','Scapegoat Pasture',"During your opponent's Standby Phase, Special Summon 1 Sheep Token in Defense Position. Once per turn, during your Standby Phase, select 1 face-up monster on either side of the field. All Tokens you control receive the same Type, Level, Attribute, name, and original ATK and DEF as that monster until the End Phase.",'Sogen',('token_defender','token_martyrs','token_regiment','token_resonance')),
  ('sacred_phoenix','Sacred Phoenix','Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.','Sacred Phoenix of Nephthys',('phoenix_rebirth','phoenix_debt','second_wind')),
  ('gold_sarcophagus',"Pharaoh's Hoard",'Shop prices are reduced by 50%. Earn 50 additional coins after each victory.',"Pharaoh's Treasure",('bargain','urn','receipt','interest')),
@@ -25,11 +26,11 @@ FUSED=[
  # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
  ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
  ('gaia_plate','Gaia Plate','Monsters you control gain 1,500 DEF. Once per turn, a Defense Position monster you control cannot be destroyed by battle.','Big Shield Gardna',('cursed_brittle_armor','buckler')),
- ('masterwork_blade','Masterwork Blade','Monsters you control gain 700 ATK.','Legendary Sword',('cursed_cracked_sword','blade','sword')),
+ ('masterwork_blade','Masterwork Blade','Monsters you control gain 800 ATK.','Legendary Sword',('cursed_cracked_sword','blade','sword')),
  ('endless_archive','Endless Archive','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 8.','Graceful Charity',('cursed_starving_library','deep_pockets','inkwell')),
  ('giant_killers_cradle',"Giant-Killer's Cradle",'Level 3 or lower monsters you control gain 1,000 ATK and cannot be destroyed by battle with Level 5 or higher monsters.','Little-Winguard',('cursed_ashen_nursery','small','protect_the_weak')),
  ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
- ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and are unaffected by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
+ ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and cannot be destroyed by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
  ('undying_legion','Undying Legion','Zombie monsters you control gain 1,200 ATK. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.','Book of Life',('cursed_zombies_bargain','bone','restless_dead')),
  ('grand_ritual_altar','Grand Ritual Altar','Monsters you control gain 200 ATK for each time you Ritual Summon a monster during this run, across all Duels. Each time you Ritual Summon, draw 1 card.',"Shinato's Ark",('cursed_ritual_scar','ritual_incense','ritual_vestment')),
  ('tyrants_throne',"Tyrant's Throne","While you control exactly 1 monster, it gains 1,200 ATK, can make a second attack during each Battle Phase, and is unaffected by your opponent's Spell Cards.",'Dark Master - Zorc',('cursed_solitary_tyrant','solo','sword')),
@@ -123,14 +124,15 @@ e:SetTarget(function(e,c) return c:IsFaceup() and c:IsType(TYPE_FIELD) end) e:Se
  if key=='jar_of_greed':return 'do local used=false '+phase('STANDBY','used=true Duel.Draw(0,1,REASON_EFFECT)','not used')+' end'
  if key=='second_coin_toss':
   # Registered before rogue-rng.lua installs its own choose effects, so the core asks this one first.
-  return '''do local coin_flag,dice_flag=0x7f34b1,0x7f34b2
+  # Every toss and roll of yours is chosen (user, 2026-11-05; it was only the first of each per turn).
+  return '''do
 local coin=Effect.GlobalEffect() coin:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) coin:SetCode(EFFECT_TOSS_COIN_CHOOSE)
-coin:SetCondition(function(e,tp,eg,ep,ev) return ep==0 and Duel.GetFlagEffect(0,coin_flag)==0 end)
-coin:SetOperation(function(e,tp,eg,ep,ev) Duel.RegisterFlagEffect(0,coin_flag,RESET_PHASE|PHASE_END,0,1) --[[relic-ask]] local face=Duel.AnnounceCoin(0) local r={} for i=1,ev&0xffff do r[i]=face end Duel.SetCoinResult(table.unpack(r)) end)
+coin:SetCondition(function(e,tp,eg,ep,ev) return ep==0 end)
+coin:SetOperation(function(e,tp,eg,ep,ev) --[[relic-ask]] local face=Duel.AnnounceCoin(0) local r={} for i=1,ev&0xffff do r[i]=face end Duel.SetCoinResult(table.unpack(r)) end)
 Duel.RegisterEffect(coin,0)
 local dice=Effect.GlobalEffect() dice:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) dice:SetCode(EFFECT_TOSS_DICE_CHOOSE)
-dice:SetCondition(function(e,tp,eg,ep,ev) return ep==0 and Duel.GetFlagEffect(0,dice_flag)==0 end)
-dice:SetOperation(function(e,tp,eg,ep,ev) Duel.RegisterFlagEffect(0,dice_flag,RESET_PHASE|PHASE_END,0,1) --[[relic-ask]] local n=Duel.AnnounceNumber(0,1,2,3,4,5,6) local r={}
+dice:SetCondition(function(e,tp,eg,ep,ev) return ep==0 end)
+dice:SetOperation(function(e,tp,eg,ep,ev) --[[relic-ask]] local n=Duel.AnnounceNumber(0,1,2,3,4,5,6) local r={}
  for i=1,ev&0xffff do r[i]=n end for i=1,ev>>16 do r[#r+1]=Duel.GetRandomNumber(1,6) end Duel.SetDiceResult(table.unpack(r)) end)
 Duel.RegisterEffect(dice,0) end'''
  if key=='scapegoat_pasture':
@@ -149,14 +151,14 @@ e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCAT
  if key=='gaia_plate':return stat('EFFECT_UPDATE_DEFENSE',1500)+'''
 do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_COUNT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetValue(function(e,re,r) return (r&REASON_BATTLE)~=0 end) Duel.RegisterEffect(e,0) end'''
- if key=='masterwork_blade':return stat('EFFECT_UPDATE_ATTACK',700)
+ if key=='masterwork_blade':return stat('EFFECT_UPDATE_ATTACK',800)
  # Hand limits are rewritten by passives.py from approved_relic_effects.relic_hand_limit (8 and 4 are the markers).
  if key=='endless_archive':return player_rule('EFFECT_DRAW_COUNT',2)+'\n'+player_rule('EFFECT_HAND_LIMIT',8)
  if key=='giant_killers_cradle':return stat('EFFECT_UPDATE_ATTACK',1000,'c:IsLevelBelow(3)')+'\n'+stat('EFFECT_INDESTRUCTABLE_BATTLE','function(e,c) return c:IsLevelAbove(5) end','c:IsLevelBelow(3)')
  if key=='titans_covenant':
   from artifact_effects import effect as base
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsLevelAbove(5)')+'\n'+base('tribute_free',0,'')
- if key=='commoners_crown':return both(1000,'c:IsType(TYPE_NORMAL)')+'\n'+stat('EFFECT_IMMUNE_EFFECT','function(e,te) return te:GetOwnerPlayer()==1 end','c:IsType(TYPE_NORMAL)')
+ if key=='commoners_crown':return both(1000,'c:IsType(TYPE_NORMAL)')+'\n'+stat('EFFECT_INDESTRUCTABLE_EFFECT','function(e,re,rp) return rp==1 end','c:IsType(TYPE_NORMAL)')
  if key=='undying_legion':
   fallen='function(c) return c:IsPreviousControler(0) and c:IsLocation(LOCATION_GRAVE) and c:IsRace(RACE_ZOMBIE) end'
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsRace(RACE_ZOMBIE)')+f'''

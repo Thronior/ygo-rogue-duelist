@@ -10,6 +10,11 @@ export function matchesSearch(c,key){const s=searches[key]||{};if(!c)return fals
 // While filters are on, a clear button sits next to the search button so one tap resets them.
 export function searchButton(key){const s=searches[key],n=s?(s.effects?.length||0)+!!s.q+!!s.race+!!s.attribute+!!s.level:0;return `<button type="button" data-effect-search="${key}" title="Search card text and effects" aria-label="Search card text and effects${n?', '+n+' filters active':''}"><img class="genre-icon" src="assets/icons/yugipedia/genres-search-deck.png" alt="">${n?`<small>${n}</small>`:''}</button>${n?`<button type="button" class="effect-search-clear" data-effect-search-clear="${key}" title="Clear filters" aria-label="Clear filters">×</button>`:''}`}
 export function clearSearch(key){delete searches[key]}
+// Deck editors (solo and Tag) share the deck-status dropdown, the Deselect icon and the reset button.
+export const DECK_STATUS_OPTIONS=[['Any','Any card'],['In','In deck'],['Out','Not in deck'],['First','Deck first']];
+export const deselectIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="3" width="12" height="17" rx="1.6"/><path d="M9 8.5l6 6M15 8.5l-6 6"/></svg>';
+// The × also shows when tab, sort or deck status differ from the default; its handler resets those too.
+export function deckSearchButtons(key,filtered){const search=searchButton(key);return search.includes('effect-search-clear')||!filtered?search:search+`<button type="button" class="effect-search-clear" data-effect-search-clear="${key}" title="Reset filters" aria-label="Reset filters">×</button>`}
 export function openSearch(key,cards,onApply){
  const s=structuredClone(searches[key]||{effects:[]}),d=document.createElement('dialog');d.className='effect-search';
  const options=(values,value)=>'<option value="">—</option>'+values.map(v=>`<option ${v===value?'selected':''}>${escape(v)}</option>`).join('');

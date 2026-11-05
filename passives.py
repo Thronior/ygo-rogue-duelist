@@ -179,12 +179,14 @@ end
  lines.append(weight_script(run))
  # One combined Surgery effect, after card modifications so it also overrides a modified attribute.
  if surgery:lines.append(expanded_effect('attribute',0,'|'.join(dict.fromkeys(surgery))))
- if run.get('loop',0):
+ # Relic Mirror's copy (mirror_view) carries only the copied relics: the opponent's own bonuses are already in the
+ # main script, and the side swap would hand them to the player (muto, 2026-11-05).
+ if run.get('loop',0) and not run.get('mirror_only'):
   from endless import LOOP
   stat('EFFECT_UPDATE_ATTACK',run['loop']*LOOP['attack'],enemy=True);stat('EFFECT_UPDATE_DEFENSE',run['loop']*LOOP['defense'],enemy=True)
  scale=2 if run.get('challenge_level',0)>=2 else 1
  from feedback_update import opponent_script
- lines.append(opponent_script(run))
+ if not run.get('mirror_only'):lines.append(opponent_script(run))
  for curse in run.get('curses',[]):
   if curse=='frailty':stat('EFFECT_UPDATE_ATTACK',-200*scale)
   elif curse=='enemy_power':stat('EFFECT_UPDATE_ATTACK',200*scale,enemy=True)
@@ -254,9 +256,11 @@ def mirror_relics(run):
  import random
  sealed=duel_run(run);copy=sealed.get('mirror_copy')
  usable=[key for key in sealed.get('artifacts',[]) if (bool(copy) and acts_in_duel(copy) if key=='magic_mirror' else acts_in_duel(key))]
- if run.get('challenge_level',0)>=2:return usable
+ rng=random.Random(f"{run.get('started_at')}:{run.get('loop',0)}:{run.get('round',0)}:relic-mirror")
+ # Amplified (LVL 2+): 4 random relics, duplicates counting, instead of all of them (user, 2026-11-05).
+ if run.get('challenge_level',0)>=2:return rng.sample(usable,min(4,len(usable)))
  usable=list(dict.fromkeys(usable))
- return random.Random(f"{run.get('started_at')}:{run.get('loop',0)}:{run.get('round',0)}:relic-mirror").sample(usable,min(2,len(usable)))
+ return rng.sample(usable,min(2,len(usable)))
 
 
 def mirrored_script(run):

@@ -358,5 +358,11 @@
       "Shadow Spell",
       "Van'Dalgyon the Dark Dragon Lord"
     ]
+  },
+  "Rafael": {
+    "rare": [
+      "Soul Charge"
+    ],
+    "common": []
   }
 }

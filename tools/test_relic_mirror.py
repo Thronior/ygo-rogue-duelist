@@ -27,9 +27,11 @@ same=dict(r);assert passives.mirror_relics(same)==r['mirrored_relics'],'the same
 one,_,_=boss(SHOP+['sword']);assert one['mirrored_relics']==['sword'],'only 1 relic to copy'
 none,_,_=boss(SHOP);assert none['mirrored_relics']==[],'shop relics have nothing to copy'
 
-# Amplified: all of them, and duplicates count.
+# Amplified: 4 random ones (2026-11-05, was all of them), and duplicates count.
 r,_,_=boss(SHOP+DUEL+['sword'],level=2)
 assert sorted(r['mirrored_relics'])==sorted(DUEL+['sword']),r['mirrored_relics']
+r,_,_=boss(SHOP+DUEL+['sword','glass_shard','sword'],level=2)
+assert len(r['mirrored_relics'])==4 and all(k in DUEL+['sword','glass_shard'] for k in r['mirrored_relics']),r['mirrored_relics']
 
 # It only happens with the curse, and Relic Seal leaves nothing to copy.
 r,_,_=boss(DUEL,curses=('frailty',));assert r['mirrored_relics']==[]
@@ -62,4 +64,8 @@ r,_,lua=boss(['interest','sword'],level=5)
 enemy=opponent_relic(r);ai=json.loads(re.search(r'-- SHADOW_RUN_AI (.*)',lua).group(1))
 assert ai['activeRelics'][1]==[enemy,'sword'],ai['activeRelics'][1]
 assert [x['id'] for x in challenge_levels.active_modifiers(r) if x['kind']=='opponent-relic']==list(dict.fromkeys([enemy,'sword']))
+# The copy carries only the copied relics: the swapped side must not hand the opponent's own relic or Endless buff to the player (2026-11-05).
+mirror=passives.mirrored_script(dict(r,loop=1))
+assert 'Duel.RegisterEffect(e,1) end' not in mirror,'the opponent relic block is not inside the mirrored script'
+assert 'Duel.RegisterEffect(e,1) end' in passives.script(r,telemetry=False),'the opponent still has its own relic'
 print('PASS Relic Mirror: picks, start-of-duel relics, Relic Seal, Protection Charm, CPU data and curse dialog')

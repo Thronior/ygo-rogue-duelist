@@ -3,14 +3,19 @@ import fs from 'node:fs';import assert from 'node:assert/strict';
 // relic-aware deck stats), so the extracted body runs against the real helper modules.
 import {frameLevelName,deckStats,attributeOrder} from './web/feedback-ui.js';
 const src = fs.readFileSync(new URL('./web/mobile.js', import.meta.url), 'utf8');
-const start = src.indexOf('function draftOrder(');
-assert(start >= 0, 'draftOrder missing');
-let depth = 0, end = -1, open = src.indexOf('{', start);
-for (let i = open; i < src.length; i++) {
-  if (src[i] === '{') depth++;
-  if (src[i] === '}') { depth--; if (!depth) { end = i; break; } }
-}
-const body = src.slice(open + 1, end);
+// draftOrder applies the deck-status order around draftSorted, so both functions are extracted.
+const extract = name => {
+  const start = src.indexOf(`function ${name}(`);
+  assert(start >= 0, `${name} missing`);
+  let depth = 0, open = src.indexOf('{', start);
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    if (src[i] === '}') { depth--; if (!depth) return src.slice(start, i + 1); }
+  }
+};
+const body = `${extract('draftOrder')}
+${extract('draftSorted')}
+return draftOrder(pool,selected)`;
 const MON = [
   { name: 'Zebra', data: { type: 0x11, attribute: 1, race: 0 }, type: 'Normal', race: 'Beast', atk: 1500, defense: 1200, level: 4 },
   { name: 'Apple', data: { type: 2 }, type: '', race: '', atk: 0, defense: 0, level: 0 },
@@ -21,12 +26,16 @@ const MON = [
 const card = id => MON[id - 10];
 const pool = [10, 11, 12, 13, 14], selected = [0, 4];
 const helpers = { matchesSearch: () => true, frameLevelName, deckStats, attributeOrder, state: { run: { artifacts: [] } }, content: { artifactInfo: {} } };
-const run = (tab, sort) => new Function('card', 'draftTab', 'draftSort', 'pool', 'selected', ...Object.keys(helpers), body)(card, tab, sort, pool, selected, ...Object.values(helpers));
+const run = (tab, sort, deck = 'Any') => new Function('card', 'draftTab', 'draftSort', 'draftDeck', 'pool', 'selected', ...Object.keys(helpers), body)(card, tab, sort, deck, pool, selected, ...Object.values(helpers));
 // Default is frame (Normal, Effect, ..., Spell, Trap), then level, then name since v0.1.85 (was first-seen grouping).
 assert.deepEqual(run('All', 'Default'), [0, 3, 4, 1, 2]);
 assert.deepEqual(run('Monster', 'Default'), [0, 3, 4]);
 assert.deepEqual(run('Spell', 'Default'), [1]);
-assert.deepEqual(run('Deck', 'Default'), [0, 4]);
+assert.deepEqual(run('All', 'Default', 'In'), [0, 4]);
+assert.deepEqual(run('All', 'Default', 'Out'), [3, 1, 2]);
+assert.deepEqual(run('Monster', 'Default', 'Out'), [3]);
+// Deck first keeps the chosen sort inside each group.
+assert.deepEqual(run('All', 'Name', 'First'), [4, 0, 1, 2, 3]);
 assert.deepEqual(run('All', 'Name'), [1, 4, 2, 0, 3]);
 assert.deepEqual(run('All', 'ATK'), [4, 0, 3, 1, 2]);
 assert.deepEqual(run('All', 'Type'), [4, 0, 3, 1, 2]);

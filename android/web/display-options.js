@@ -16,7 +16,7 @@ function applyReducedCSS(){
   }
  }
 }
-export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=10;
+export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=20;
 // '' is the default look; storage.py keeps the same list.
 export const DUEL_THEMES=[['','Default'],['duel-disk','Duel Disk'],['shadow-realm','Shadow Realm'],['clean-tournament','Clean Tournament'],['millennium-stone','Millennium Stone'],['kaiba-hologram','Kaiba Hologram']];
 export function applyDisplayOptions({reduceMotion:reduce=false,textSize=100,deckColumns=0,duelTheme=''}={}){

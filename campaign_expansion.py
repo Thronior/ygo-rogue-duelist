@@ -226,7 +226,7 @@ def install(g):
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
    if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and (char.get('random_packs') or sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9)):break
   else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
-  r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=[0,1],guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
+  r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=list(range(len(signatures))),guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r['new_cards_from']=0
   r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else 'Standard',campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'

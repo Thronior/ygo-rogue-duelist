@@ -339,7 +339,8 @@ export function reroll(root,previous){
   if(lite){img.animate([{opacity:0,translate:'0 -8px'},{opacity:1,translate:'0 0'}],{duration:wall(220),delay:wall(i*25),fill:'backwards'});return}
   const box=img.getBoundingClientRect(),height=box.height;if(!height)return;
   const pool=[...(pools[kindOf(final)]||[])].filter(s=>s!==final),spins=4+Math.floor(i/3);
-  const srcs=[previous[i]||final,...Array.from({length:spins-1},(_,k)=>pool.length?pool[(i*7+k*3+1)%pool.length]:final),final];
+  // A random order each spin (2026-11-05); the final art never passes by before it lands.
+  const srcs=[previous[i]||final,...Array.from({length:spins-1},()=>pool.length?pool[Math.floor(Math.random()*pool.length)]:final),final];
   const reel=document.createElement('div'),strip=document.createElement('div');reel.className='fx-reel';reel.setAttribute('aria-hidden','true');
   // The reel takes the image's place in the stacking order, so slots that layer their art still show it.
   img.after(reel);Object.assign(reel.style,{left:img.offsetLeft+'px',top:img.offsetTop+'px',width:box.width+'px',height:height+'px',zIndex:getComputedStyle(img).zIndex});reel.style.setProperty('--h',height+'px');

@@ -48,8 +48,8 @@ def validate(run):
 def auto_deck(run):
     from content import fixed_deck
     if fixed_deck(run):return
-    # The Deck Assembler variant has no signature cards to keep in the first two slots.
-    chosen, counts = [0,1] if run['guaranteed'] else [], Counter(card_identity(c) for c in run['guaranteed'])
+    # Every signature card stays in the deck; they fill the first pool slots (the Deck Assembler variant has none).
+    chosen, counts = list(range(len(run['guaranteed']))), Counter(card_identity(c) for c in run['guaranteed'])
     options = list(range(len(chosen),len(run['pool'])))
     # A playable draft needs enough low-level monsters, then useful spells/traps.
     def score(i):

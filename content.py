@@ -17,6 +17,38 @@ PACK_ALIASES.update({f'JP-LE{n}':'JP-LEC' for n in range(1,9)})
 PACK_ALIASES.update({f'WC4-{n:02}':'WC4-23' for n in [*range(1,15),19]})
 PACK_ALIASES.update(MERGED_PACK_ALIASES)
 PACK_BY_ID.update({old:PACK_BY_ID[new] for old,new in PACK_ALIASES.items()})
+# The four Millennium Puzzle packs hold every card of their kind in the game (user, 2026-11-05): Green every
+# Spell, Red every Trap, Yellow every monster, Purple every card. A card is Rare here if any pack prints it Rare,
+# and one printing per card (card-aliases.json) keeps alternate arts from doubling its odds.
+def _fill_millennium_puzzles():
+ root=Path(__file__).parent
+ rows=json.loads((root/'data/era-cards.json').read_text(encoding='utf8'))
+ era={c['id']:c['type'] for c in rows};names={c['id']:c['name'] for c in rows}
+ aliases={int(k):v for k,v in json.loads((root/'data/card-aliases.json').read_text(encoding='utf8')).items()}
+ kinds={'WC4-20':'Spell','WC4-21':'Trap','WC4-22':'Monster','WC4-23':None}
+ puzzles={p['id']:p for p in PACKS if p['id'] in kinds}
+ def kind(cid):
+  if cid in era:return {'Spell Card':'Spell','Trap Card':'Trap'}.get(era[cid],'Monster')
+  # Custom cards are not in era-cards.json: their kind is the puzzle pack that already prints them.
+  return next((k for pid,k in kinds.items() if k and cid in puzzles[pid]['common']+puzzles[pid]['rare']),None)
+ order,rare,rarities=[],set(),{}
+ for p in sorted(PACKS,key=lambda p:p['id'] not in kinds):
+  for cid in p['common']+p['rare']+p.get('starter_support',[]):
+   if cid not in rarities:order.append(cid);rarities[cid]=[]
+   if cid in p['rare']:rare.add(cid)
+   for r in p.get('rarities',{}).get(str(cid),[]):
+    if r not in rarities[cid]:rarities[cid].append(r)
+ present,named=set(order),set()
+ order=[cid for cid in order if not (cid in aliases and aliases[cid] in present)]
+ # Some reprints carry their own ID without an alias entry: keep the first printing of each name.
+ order=[cid for cid in order if names.get(cid,cid) not in named and not named.add(names.get(cid,cid))]
+ for pid,want in kinds.items():
+  # Ancient Treasure stays the Green pack's own special pull (card_rarity.ANCIENT_TREASURE_WEIGHT keeps it near 1%).
+  pack=puzzles[pid];pool=[cid for cid in order if (want is None or kind(cid)==want) and (pid=='WC4-20' or cid!=custom_cards.ANCIENT_TREASURE)]
+  pack['common']=[cid for cid in pool if cid not in rare];pack['rare']=[cid for cid in pool if cid in rare]
+  pack['rare_display']=list(pack['rare'])
+  pack['rarities']={str(cid):rarities[cid] or ['Rare' if cid in rare else 'Common'] for cid in pool}
+_fill_millennium_puzzles()
 def normalize_pack_references(value):
  if isinstance(value,dict):
   for key,item in value.items():value[key]=normalize_pack_references(item)

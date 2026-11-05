@@ -93,7 +93,9 @@ export function installVectorBackgrounds(app,modal,settings=()=>({})){
  // added or removed there can change the scene or its pause state, so other children are ignored.
  const sceneNode=node=>node instanceof HTMLDialogElement||node===app||node===modal;
  const relevant=r=>r.target===document.body&&r.type==='childList'?[...r.addedNodes,...r.removedNodes].some(sceneNode):r.target===app||r.target===document.body||r.target===modal||r.target instanceof HTMLDialogElement;
- const changes=new MutationObserver(records=>{if(records.some(relevant))queue()});
+ // A re-render that detaches the backdrop re-attaches it in the same microtask: waiting a frame let the
+ // browser pause the detached video, so controller presses restarted the background (2026-11-05).
+ const changes=new MutationObserver(records=>{if(!records.some(relevant))return;if(root&&!root.isConnected){cancelAnimationFrame(frame);refresh()}else queue()});
  // Only these containers can change the active scene or pause state. Avoid
  // observing every card, animation class and counter update in the document.
  const watch=()=>{changes.disconnect();for(const target of new Set([document.body,app,modal,...document.querySelectorAll('dialog')])){if(target)changes.observe(target,{childList:true,attributes:true,attributeFilter:['open','class','style']});}};watch();

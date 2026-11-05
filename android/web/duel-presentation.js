@@ -21,6 +21,15 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // A Feint Plan only asks during the opponent's Battle Phase (user request 2026-11-04). Phase bits 0x08-0x80 are the
  // Battle Phase's steps, from its start to its end.
  if(mode==='sometimes'&&selects.length&&selects.every(choice=>context.card?.(choice.code)?.name==='A Feint Plan'))return context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&!!(Number(context.phase||0)&0xf8);
+ // Traps that change ATK/DEF and can be activated in the Damage Step ask there rather than at the attack declaration, so a
+ // face-down monster that is flipped by the attack can be chosen (Discord 2026-11-05: Castle Walls). Continuous Traps such
+ // as Mirror Wall only act on later attacks, so they keep the attack declaration.
+ if(mode==='sometimes'&&selects.length&&!activeChain.length){
+  const statTrap=choice=>{const type=Number(context.card?.(choice.code)?.data?.type||0),s=context.script?.(choice.code)||'';return !!(type&4)&&!(type&0x20000)&&s.includes('EFFECT_FLAG_DAMAGE_STEP')&&s.includes('EVENT_FREE_CHAIN')&&/CATEGORY_(?:ATK|DEF)CHANGE/.test(s)};
+  const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
+  if(timing&Timing.DAMAGE_STEP&&selects.some(statTrap))return true;
+  if(timing&Timing.ATTACK&&!(timing&Timing.DAMAGE_STEP)&&selects.every(statTrap))return false;
+ }
  // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
  // while they have a monster that could attack.
  if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;

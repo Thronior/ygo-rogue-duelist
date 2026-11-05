@@ -51,6 +51,8 @@ def sync():
  meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
  import relic_fusions
  meta['fusedRelics']=sorted(relic_fusions.KEYS)
+ # Shown only once the player has fused that relic (user, 2026-11-05); undiscovered ones show "???".
+ meta['fusionMaterials']={k:{'pieces':list(p),'needed':relic_fusions.NEEDED.get(k,len(p))} for k,p in sorted(relic_fusions.RECIPES.items())}
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES]
  meta['bossDeckNames']=json.loads((ROOT/'data/boss-deck-names.json').read_text(encoding='utf8'))['names']

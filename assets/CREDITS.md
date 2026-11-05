@@ -30,3 +30,5 @@ October 2026 tier-exclusive opponents: 23 portraits prepared from existing anime
 End-of-run share card textures (`ui/run-card-stone.jpg`, `ui/run-card-cracks.jpg`): cropped and relit from Poly Haven "Grey Plaster 02" by Rob Tuytel (https://polyhaven.com/a/grey_plaster_02) and "Cracked Concrete" (https://polyhaven.com/a/cracked_concrete), both CC0.
 
 Share card fallback font (`fonts/BebasNeue-Regular.ttf`, used where Impact is missing, e.g. Android): Bebas Neue 2.000, Copyright 2019 The Bebas Neue Project Authors (https://github.com/dharmatype/Bebas-Neue), licensed under the SIL Open Font License 1.1 (https://scripts.sil.org/OFL). The file is unmodified and carries the notice in its name table.
+
+Controller button icons (`pad/`, Nov 2026): Kenney "Input Prompts" 1.5A, https://kenney.nl/assets/input-prompts , CC0. Twenty Xbox Series and PlayStation vector icons copied unchanged; the pack licence is kept as `pad/LICENSE-kenney-input-prompts.txt`.

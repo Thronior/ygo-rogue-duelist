@@ -63,15 +63,15 @@ assert.ok(named('King Dragun'),'Fusion Gate: an empty field Special Summons from
 for(const key of ['','jar_of_greed']){duel(key,fill('Pot of Greed'),WALL,{summon:[],step:m=>m.type===M.SELECT_IDLECMD&&e.turn===1?(globalThis.hand=e.query(0,L.HAND).length,null):null});globalThis[key||'base']=globalThis.hand}
 assert.equal(globalThis.jar_of_greed,globalThis.base+1,'Jar of Greed: 1 extra card on the first turn');
 
-// Second Coin Toss: Graceful Dice is chosen as a 6 (+600 ATK); a second die in the same turn is a normal roll.
+// Second Coin Toss: every die roll is chosen (2026-11-05). Two Graceful Dice in one turn, both chosen as 6 (+1200 ATK).
 {let chose=0,boosted=0;
  duel('second_coin_toss',fill('Mystical Elf','Graceful Dice'),WALL,{summon:[id('Mystical Elf')],step:m=>{
   if(m.type===M.ANNOUNCE_NUMBER){chose++;return {type:R.ANNOUNCE_NUMBER,value:m.options.findIndex(v=>Number(v)===6)}}
   if(m.type===M.SELECT_IDLECMD&&chose)boosted=Math.max(boosted,named('Mystical Elf')?.attack||0);
-  if(m.type===M.SELECT_IDLECMD&&mine().length&&!chose){const k=m.activates.findIndex(c=>c.code===id('Graceful Dice'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}
+  if(m.type===M.SELECT_IDLECMD&&mine().length&&chose<2){const k=m.activates.findIndex(c=>c.code===id('Graceful Dice'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}
   return null}});
- assert.equal(chose,1,'Second Coin Toss: the first die roll asks for its result');
- assert.equal(boosted,800+600,'Second Coin Toss: the chosen 6 is the result');}
+ assert.equal(chose,2,'Second Coin Toss: both die rolls in the same turn ask for their result');
+ assert.equal(boosted,800+1200,'Second Coin Toss: both chosen 6s are the results');}
 
 // Scapegoat Pasture: a Sheep Token arrives in the opponent's Standby Phase, then copies Celtic Guardian on your turn.
 {let copied=[],sheep=0;
@@ -107,7 +107,7 @@ for(const key of ['','invincible']){
 
 // Cursed fusions (2026-11-04).
 duel('masterwork_blade',fill('Mystical Elf'),WALL);
-assert.equal(named('Mystical Elf')?.attack,800+700,'Masterwork Blade: +700 ATK');
+assert.equal(named('Mystical Elf')?.attack,800+800,'Masterwork Blade: +800 ATK');
 assert.equal(named('Mystical Elf')?.defense,2000,'Masterwork Blade: no DEF loss');
 duel('gaia_plate',fill('Mystical Elf'),WALL);
 assert.equal(named('Mystical Elf')?.defense,2000+1500,'Gaia Plate: +1,500 DEF');
@@ -143,7 +143,7 @@ scripts.altar=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.pat
 print(json.dumps(passives.script({'curses':[],'artifacts':['grand_ritual_altar'],'challenge_level':0,'character':0,'ritual_scar_count':3})))`],{cwd:root,encoding:'utf8'}));
 duel('altar',fill('Mystical Elf'),WALL);
 assert.equal(named('Mystical Elf')?.attack,800+600,'Grand Ritual Altar: 3 Ritual Summons give 600 ATK');
-// Commoner's Crown, given to the CPU's side: your Raigeki cannot destroy its Normal Monster.
+// Commoner's Crown (2026-11-05: destruction only, was full immunity), given to the CPU's side: your Raigeki cannot destroy its Normal Monster.
 {const crown=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
 print(json.dumps(passives.multiplayer_script({'curses':[],'artifacts':['commoners_crown'],'challenge_level':0,'character':0},1)))`],{cwd:root,encoding:'utf8'}));
  scripts.crown=scripts['']+'\n'+crown;let cast=false;
@@ -151,7 +151,7 @@ print(json.dumps(passives.multiplayer_script({'curses':[],'artifacts':['commoner
   if(m.type===M.SELECT_IDLECMD&&e.turn===3&&!cast&&mine(1).length){const k=m.activates.findIndex(c=>c.code===id('Raigeki'));if(k>=0){cast=true;return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}}
   return null}});
  assert.ok(cast,"Commoner's Crown: Raigeki was cast");
- assert.ok(named('Gemini Elf',1),"Commoner's Crown: the Normal Monster is unaffected by the opponent's Raigeki");}
+ assert.ok(named('Gemini Elf',1),"Commoner's Crown: the Normal Monster is not destroyed by the opponent's Raigeki");}
 
 // Sacred Phoenix: from 300 LP, the first lethal Hinotama is survived at 1,000 LP; only a second one ends the duel.
 duel('sacred_phoenix',fill('Pot of Greed'),fill('Hinotama'),{turns:2,lp:300,summon:[]});

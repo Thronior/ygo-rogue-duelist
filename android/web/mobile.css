@@ -1322,6 +1322,19 @@ input.switch:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
 .settings-pane .set-file{display:grid;gap:8px;margin-top:10px}.settings-pane .settings-code{display:flex;gap:8px;margin-top:8px}.settings-pane .settings-code input{flex:1;min-width:0}
 .settings-pane .settings-about{text-align:left;font-size:13px;color:#b9d2da;margin:8px 0}
 .settings-v2.settings-dialog{display:block;width:min(520px,100%);padding:0 4px}.settings-dialog .set-row{padding:10px 0}
+/* In-duel settings tabs (2026-11-04). */
+.settings-v2.duel-settings{width:min(600px,100%)}
+.duel-set-tabs{position:sticky;top:0;z-index:1;display:flex;gap:4px;margin:0 0 6px;padding:4px;border-radius:10px;background:#0b1d26;border:1px solid #53798455;overflow-x:auto;scrollbar-width:none}
+.duel-set-tabs::-webkit-scrollbar{display:none}
+.duel-set-tabs button{flex:1 0 auto;min-height:36px;padding:0 12px;border-radius:7px;border:1px solid transparent;background:transparent;color:#cfe0e6;font-size:14px;white-space:nowrap}
+.duel-set-tabs button:hover{background:#173a4699}
+.duel-set-tabs button.active{background:linear-gradient(#2b4b57,#173a46);border-color:#c2a66a99;color:#ffe2a3}
+.duel-set-pane[hidden]{display:none}
+.duel-settings .duel-looks{grid-template-columns:repeat(3,minmax(0,1fr))}
+.duel-set-pane h3{margin:14px 0 0;padding-top:10px;border-top:1px solid #53798455;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#8fd8d2}
+@media(max-width:420px){.duel-set-tabs button{padding:0 8px;font-size:13px}}
+/* Short landscape phones: one row of looks so the rest of the tab stays in view. */
+@media(max-height:520px) and (min-width:600px){.duel-settings .duel-looks{grid-template-columns:repeat(6,minmax(0,1fr))}.duel-settings .duel-look span{font-size:11px;padding:3px 2px}}
 @media(max-width:700px){
  .settings-v2{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:10px}
  .settings-tabs{flex-direction:row;overflow:auto hidden;scrollbar-width:none;gap:6px;padding-bottom:2px}.settings-tabs::-webkit-scrollbar{display:none}
@@ -1330,6 +1343,8 @@ input.switch:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
 }
 /* Keep inspection controls visible; only the detail pane scrolls for long effects. */
 #modal.card-inspect-modal[open]{display:flex;flex-direction:column;overflow:hidden}
+/* Its layout rules need [open], so an inspection closes at once instead of fading through the default dialog layout. */
+#modal.card-inspect-modal:not([open]),#modal.card-inspect-modal:not([open])::backdrop{transition:none}
 #modal.card-inspect-modal .modal-head{position:static;flex:0 0 auto;min-width:0;gap:8px}
 #modal.card-inspect-modal .modal-head h2{min-width:0;overflow-wrap:anywhere;font-size:clamp(15px,2.8vw,24px);margin:0}
 #modal.card-inspect-modal .modal-head button{flex-shrink:0}
@@ -1367,7 +1382,7 @@ dialog:has(> .reward-screen)>.modal-head h2{font-size:clamp(16px,3vw,24px);margi
 .reward-screen>footer button{min-width:0;min-height:0;padding:8px;font-size:clamp(11px,2.5vw,15px);line-height:1.1}
 .reward-shortcuts{display:flex;justify-content:center;gap:10px}
 .reward-screen>footer .reward-shortcut{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:6px;border:1px solid #c9b47c;border-radius:7px;background:linear-gradient(145deg,#214454,#102734);box-shadow:inset 0 1px #ffffff22}
-.reward-shortcut img{display:block;width:100%;height:100%;object-fit:contain}
+.reward-shortcut img{display:block;width:100%;height:100%;object-fit:contain}.reward-shortcut .navigation-icon{display:block;width:26px;height:26px;color:#ffe2a3;pointer-events:none}
 .reward-overlay{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;box-sizing:border-box;padding:clamp(10px,3vw,20px);overflow:auto;color:#f2f6f3;background:#07131bcb;backdrop-filter:blur(4px)}
 .reward-overlay>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 8px;border-bottom:1px solid #54717c}
 .reward-overlay>header h2{margin:0;font-size:clamp(17px,4vw,24px)}
@@ -2006,7 +2021,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .active-modifier-art{width:62px;height:62px;display:grid;place-items:center;flex:none}
 .active-modifier-art .curse-icon{margin:0}
 .active-modifier-art .relic-artwork{width:56px;height:56px;object-fit:contain;border-radius:5px}
-.active-modifier-art .modifier-generic-icon{width:52px;height:52px;object-fit:contain}
+.active-modifier-art .modifier-generic-icon{display:grid;place-items:center;width:52px;height:52px;color:#ffe2a3}.active-modifier-art .modifier-generic-icon .navigation-icon{width:34px;height:34px}
 .modifier-level-image{width:54px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px}
 .modifier-level-image>span{font-size:9px}
 .modifier-level-image img{width:16px;height:16px;object-fit:contain}
@@ -2281,7 +2296,7 @@ body.toss-animating :is(.selection-dialog,.field-selection,.return-prompt,.react
 .zone[data-fx-power].reaction-picked{border-color:#fff8c4;box-shadow:0 0 0 2px #ffe52b,0 0 20px #fff47e,inset 0 0 14px #fff47e99;z-index:2}
 .zone[data-fx-power].target-picked{box-shadow:0 0 24px #ffda64;z-index:2}
 /* The floating Chain button would sit over the in-duel settings' toggles. */
-body:has(#modal[open] .settings-dialog) .floating-chain-control{visibility:hidden}
+body:has(#modal[open] .settings-dialog) .floating-chain-control{display:none!important}
 /* Settings → Effects: hidden at once, even mid-duel; the effect code itself stops on the next redraw. */
 .no-fx-flames .fx-flame-layer,.no-fx-lp .fx-danger,.no-fx-particles .duel-particles{display:none}
 .no-fx-flames .zone[data-fx-power]:not(.selectable,.reaction-available,.reaction-picked){background:#062b36b3;border-color:#a3afaa}
@@ -2794,6 +2809,16 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 .opponent-record b{font-size:13px;line-height:1.2;overflow-wrap:anywhere}.opponent-record span{font-size:13px}.opponent-record em{font-style:normal;font-weight:700}
 /* Global Stats: relic win rates (2026-11-03). */
 .relic-stats{margin-top:18px}.relic-stats-table{min-width:0}.relic-stats-table td,.relic-stats-table thead th:not(:first-child){text-align:center;width:16%}.relic-stats-table th[scope=row]{display:flex;align-items:center;gap:8px;text-align:left}.relic-stats-table th[scope=row] img{width:28px;height:28px;object-fit:contain;flex:none}
+.relic-stats-name{display:flex;align-items:center;gap:8px;width:100%;min-height:0;margin:0;padding:2px 4px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;font-weight:700;text-align:left;cursor:pointer}
+.relic-stats-name:hover,.relic-stats-name:focus-visible{background:#173a4699;color:#ffe2a3}
+/* Fused relic pieces, once discovered (2026-11-05). */
+.fusion-material{margin-top:10px;padding:10px 12px;border:1px solid #c2a66a66;border-radius:8px;background:#0b1d26;text-align:left}
+.fusion-material>b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#e8c778}
+.fusion-material>small{display:block;margin-top:4px;color:#b9d2da}
+.fusion-material>p{margin:4px 0 0;font-size:18px;letter-spacing:.2em;color:#8fd8d2}
+.fusion-material ul{list-style:none;display:grid;gap:6px;margin:8px 0 0;padding:0}
+.fusion-material li{display:flex;align-items:center;gap:8px;font-size:14px;color:#eef3f0}
+.fusion-material li img{width:34px;height:34px;object-fit:cover;border-radius:5px;flex:none}
 /* Relic fusion reveal in the shop (2026-11-03, relic-fusion-fx.js). */
 .relic-fusion{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;background:radial-gradient(circle,#2a1d0cf4,#080510fb 70%);color:#f8f0dc;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .relic-fusion-stage,.relic-fusion-result{grid-area:1/1;display:grid;place-items:center}
@@ -2846,3 +2871,40 @@ h3.with-run-strip{display:flex;align-items:center;gap:10px;white-space:nowrap}
  .character-select-page:not(.draft-character-select):not(.tag-offline-select) .starting-relic-art{max-height:68px;max-width:68px}
  .character-select-page:not(.draft-character-select):not(.tag-offline-select) .starting-relic h3{margin:0 0 4px}
 }
+/* Controller cursor (gamepad.js): an invisible box the size of the selection carrying a pointer near its lower right. Absent until a pad is used. */
+.pad-cursor{position:fixed;left:0;top:0;z-index:2147483000;pointer-events:none;opacity:0;transition:transform 90ms ease-out,width 90ms ease-out,height 90ms ease-out,opacity 120ms;box-sizing:border-box;margin:0;padding:0;border:0;background:none;contain:layout style}
+.pad-cursor.on{opacity:1}
+.pad-cursor i{position:absolute;right:10%;bottom:-6px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:21px solid #ffd54a;transform:rotate(-35deg);transform-origin:50% 0;filter:drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000) drop-shadow(0 2px 3px rgba(0,0,0,.8))}
+.pad-active,.pad-active *{cursor:none}
+@media (prefers-reduced-motion:reduce){.pad-cursor{transition:opacity 120ms}}
+/* Deck editor filter row: thinner controls; in portrait Deselect all ends the first row. */
+.deck-filter-row>button,.deck-filter-row>select,.deck-filter-row>[data-effect-search],.deck-filter-row>.effect-search-clear{min-height:34px;height:34px}
+.deck-filter-row>[data-effect-search],.deck-filter-row>.effect-search-clear,.deck-filter-row>.deck-deselect{min-width:34px}
+.deck-filter-row>[data-effect-search]{padding:2px}.deck-filter-row>.effect-search-clear{padding:0 8px}
+.deck-filter-row>[data-draft-deck]{margin-left:auto}.deck-filter-row>[data-draft-sort]{margin-left:0}
+.deck-filter-row>.deck-deselect{padding:0;display:inline-grid;place-items:center}.deck-deselect svg{width:20px;height:20px}
+.deck-filter-break{display:none}
+@media(max-width:650px) and (orientation:portrait){
+ .deck-filter-row>.deck-deselect{order:1;margin-left:auto}
+ .deck-filter-break{display:block;order:2;flex-basis:100%;height:0}
+ .deck-filter-row>[data-draft-tab="Extra"],.deck-filter-row>select{order:3}
+ .deck-filter-row>select{flex:1 1 0;min-width:0;margin-left:0}
+}
+/* Cards in the deck sit slightly larger; the rest are slightly darker. */
+.draft-card-scroll{overflow-x:hidden}.draft-card-scroll>.cardgrid{padding-inline:4px}
+.draft-card-scroll .cardbtn.selected{scale:1.04;z-index:1}.draft-card-scroll .cardbtn.selected.mouse-card-hover{scale:1.085}
+.draft-card-scroll .cardbtn:not(.selected)>img{filter:brightness(.78)}
+/* Roster portraits: just the pointer, set inside the portrait instead of on its corner. */
+.pad-cursor.pad-cursor-pointer i{right:34%;bottom:30%}
+.duelist-selection .engine-tagline{font-family:Impact,'Arial Black',sans-serif;font-size:clamp(26px,3.4vw,46px);line-height:1.05;color:#fff;-webkit-text-stroke:1px #071015;paint-order:stroke fill;text-shadow:2px 3px 0 #000;letter-spacing:.5px}
+/* Controller legend (gamepad.js): only while a pad is in use; it never takes clicks. */
+.pad-legend{position:fixed;left:10px;bottom:10px;z-index:2147482999;display:none;flex-wrap:wrap;gap:4px 12px;max-width:calc(100vw - 20px);padding:5px 10px;border-radius:999px;background:rgba(4,10,16,.78);box-shadow:0 2px 10px rgba(0,0,0,.5);color:#f1e7c8;font:600 12px/1 system-ui,sans-serif;pointer-events:none;margin:0;inset-inline-end:auto;top:auto}
+.pad-legend.on{display:flex}
+.pad-legend span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.pad-legend img{width:22px;height:22px;display:block}
+.pad-legend img+img{margin-left:-3px}
+.pad-legend[data-screen="title"]{left:auto;right:10px}
+.pad-legend[data-screen="duel"]{max-width:262px;border-radius:12px}
+.pad-cursor.pad-cursor-center i{left:58%;top:58%;right:auto;bottom:auto;margin-left:-10px}
+/* Keep the coin balance clear of the Settings and close buttons above it (2026-11-05). */
+.page.shop .shop-counter>.shop-balance{margin-top:12px}

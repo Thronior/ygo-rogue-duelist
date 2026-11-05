@@ -84,7 +84,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='approved_iron_silence'){a+=600;d+=600;}
  // Fused relics (relic_fusions.py) with permanent bonuses.
  else if(k==='fused_gaia_plate')d+=1500;
- else if(k==='fused_masterwork_blade')a+=700;
+ else if(k==='fused_masterwork_blade')a+=800;
  else if(k==='fused_giant_killers_cradle'&&l<=3)a+=1000;
  else if(k==='fused_titans_covenant'&&l>=5)a+=1200;
  else if(k==='fused_commoners_crown'&&(t&16)){a+=1000;d+=1000;}

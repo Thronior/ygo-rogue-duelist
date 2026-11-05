@@ -1,5 +1,6 @@
 // Delegated pointer events keep touch taps/dragging and existing click handlers unchanged.
-export function installMouseDetails(root,describe){
+// showTip can turn the tooltip off while the hovered card still grows.
+export function installMouseDetails(root,describe,showTip=()=>true){
  const growSelector='.draft-scroll .cardbtn,.cde-card>button[data-id],.cardbtn[data-collector="toggle"],.shop-product .product-art';
  const selector=growSelector+',[data-pack],img[src^="assets/packs/"],[data-curse],.duel [data-relic],.duel [data-enemy-relic]';
  let active=null,timer=null,tip=null;
@@ -11,6 +12,7 @@ export function installMouseDetails(root,describe){
   if(el.matches(growSelector))el.classList.add('mouse-card-hover');
   timer=setTimeout(()=>{
    if(active!==el||!el.isConnected)return clear();
+   if(!showTip(el))return;
    tip=document.createElement('aside');tip.className='mouse-details';tip.setAttribute('role','tooltip');tip.innerHTML=info;
    document.body.append(tip);
    const r=el.getBoundingClientRect(),t=tip.getBoundingClientRect(),gap=12;

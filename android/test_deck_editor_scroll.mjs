@@ -1,0 +1,33 @@
+// Picking cards must never throw the deck editors back to the top (fixed for the CPU editor in v0.1.97).
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+Object.assign(globalThis,{window:globalThis,Audio:class{},addEventListener(){},innerHeight:800,
+ document:{hidden:false,addEventListener(){},removeEventListener(){},querySelector(){return null}},location:{search:''},
+ localStorage:{getItem(){return null},setItem(){},removeItem(){}}});
+const source=name=>readFileSync(new URL(`./web/${name}`,import.meta.url),'utf8');
+const body=(src,name)=>{const start=src.indexOf(`function ${name}(`);assert(start>=0,`${name} missing`);let depth=0;for(let i=src.indexOf('{',start);i<src.length;i++){if(src[i]==='{')depth++;if(src[i]==='}'&&!--depth)return src.slice(start,i+1)}};
+
+// Solo: a tap only toggles classes on the cards already shown, so neither scroll nor order changes.
+const mobile=source('mobile.js');
+for(const name of ['tapDraft','flushDraftTap','updateDraft']){
+ const fn=body(mobile,name);
+ assert.doesNotMatch(fn,/renderDraft\(|innerHTML|scrollTop/,`${name} must not redraw the deck editor`);
+}
+assert.match(body(mobile,'tapDraft'),/updateDraft\(/);assert.match(body(mobile,'flushDraftTap'),/updateDraft/);
+
+// Tag: every tap redraws the tab, so render() must carry the list's scroll position into the new markup.
+const {TagUI}=await import('./web/tag-ui.js');
+const render=TagUI.prototype.render;TagUI.prototype.render=()=>{};
+let list={scrollTop:640};
+const root={style:{setProperty(){}},addEventListener(){},querySelector:selector=>selector.includes('draft-card-scroll')?list:null};
+const ui=new TagUI({root,content:{},profile:{unlocked:[0]},image:id=>`${id}.jpg`});
+TagUI.prototype.render=render;
+ui.updateRoomBadge=()=>{};ui.renderContent=()=>{list={scrollTop:0}};
+ui.render();
+assert.equal(list.scrollTop,640,'Tag deck tab keeps its scroll position after a tap');
+
+// CPU deck editor (Watch CPU Duel): render() saves and restores all three scrolling panes.
+const cpu=source('cpu-deck-editor.js'),cpuRender=cpu.slice(cpu.indexOf(' render(){'),cpu.indexOf(' render(){')+6000);
+assert.match(cpuRender,/for\(const selector of \['\.cde-library','\.cde-pool','\.cde-deck'\]\)/,'CPU editor records each pane');
+assert.match(cpuRender,/el\.scrollTop=top/,'CPU editor restores each pane');
+console.log('PASS deck editors keep their scroll position when cards are picked (solo, Tag, CPU editor)');
