@@ -30,7 +30,7 @@ import {isShopUltra,announceShopUltra} from './shop-ultra.js';
 
 import {curseIcons,curseDescription,cursedMarkup} from './experience-ui.js';
 
-import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons} from './card-search.js';
+import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,DECK_SPLIT_COLUMNS,autoColumnsAcross,manualDeckColumns,splitDeckMarkup,saveDeckScroll,restoreDeckScroll} from './card-search.js';
 
 import {relicImage,relicArtwork} from './ui-art.js';
 
@@ -42,7 +42,8 @@ import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
 
-const tagDeckScroller=root=>root?.querySelector('.tag-deck-scroll .draft-card-scroll')||root?.querySelector('.tag-deck-scroll');
+// Every deck scroller in the Tag deck tab: one grid, or both panes of the wide split (card-search.js).
+const tagDeckArea=root=>root?.querySelector('.tag-deck-scroll');
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -85,16 +86,23 @@ export class TagUI {
 
  header(body,tools='',classes=''){return `<div class="page tag-page ${classes}"><header><h2>Tag duels${this.session?.code?' · '+this.session.code:''}</h2><div class="tools">${tools} ${button(exitIcon,'exit','class="navigation-icon-button" aria-label="Exit" title="Exit"')}</div></header>${this.status?`<div class="tag-status" role="status">${esc(this.status)}</div>`:''}${body}${this.session&&(this.session.seat??this.session.peer.seat)===0&&(!this.view||this.view.phase==='lobby')?`<footer class="settings-footer">${button('Back','back')}</footer>`:''}</div>`}
 
+ // Wide screens: the deck tab splits into Deck and Collection panes, like solo (mobile.js checkDraftSplit).
+ checkDeckSplit(){
+  if(!this.deckSplitResize&&typeof window!=='undefined'&&window.addEventListener){this.deckSplitResize=true;let timer=0;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>this.checkDeckSplit(),200)},{passive:true})}
+  const host=tagDeckArea(this.root),area=host?.querySelector('.draft-card-scroll');if(!area)return;
+  const want=!manualDeckColumns()&&autoColumnsAcross(host,area)>=DECK_SPLIT_COLUMNS;
+  if(want!==!!this.deckSplit){this.deckSplit=want;this.render()}
+ }
  resetDeckFilters(){this.deckFilter='All';this.deckSort='Newest';this.deckStatus='First';clearSearch('tag-deck')}
  render(){
 
   this.updateRoomBadge();
 
-  const scroll=tagDeckScroller(this.root)?.scrollTop;
+  const scroll=saveDeckScroll(tagDeckArea(this.root));
 
   this.renderContent();
 
-  const list=tagDeckScroller(this.root);if(list&&scroll!==undefined)list.scrollTop=scroll;
+  restoreDeckScroll(tagDeckArea(this.root),scroll);this.checkDeckSplit();
 
  }
 
@@ -186,7 +194,7 @@ export class TagUI {
 
   let order=r.pool.map((_,i)=>i).filter(i=>matchesSearch(lookup(r.pool[i]),'tag-deck'));
 
-  const inDeck=new Set(r.selected);if(this.deckStatus==='In'||this.deckStatus==='Out')order=order.filter(i=>inDeck.has(i)===(this.deckStatus==='In'));
+  const inDeck=new Set(r.selected);if(!this.deckSplit&&(this.deckStatus==='In'||this.deckStatus==='Out'))order=order.filter(i=>inDeck.has(i)===(this.deckStatus==='In'));
 
   else if(this.deckFilter!=='All')order=order.filter(i=>lookup(r.pool[i])?.data.type&({Monster:1,Spell:2,Trap:4,Extra:64}[this.deckFilter]||0));
 
@@ -202,14 +210,14 @@ export class TagUI {
   // Deck first keeps the chosen sort inside each group.
   if(this.deckStatus==='First')order=[...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))];
   // A tap keeps every card in place; the order refreshes when type, sort, status, search or the pool changes.
-  const orderKey=JSON.stringify([this.deckFilter,this.deckSort,this.deckStatus,searches['tag-deck']||null,r.pool.length]);
+  const orderKey=JSON.stringify([this.deckFilter,this.deckSort,this.deckStatus,searches['tag-deck']||null,r.pool.length,!!this.deckSplit]);
   if(this.deckOrder&&this.deckOrderKey===orderKey)order=this.deckOrder;else{this.deckOrderKey=orderKey;this.deckOrder=order}
 
-  const cards=order.map(i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo)).join('');
+  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=this.deckSplit?splitDeckMarkup(order.filter(i=>inDeck.has(i)),order.filter(i=>!inDeck.has(i)),cardMarkup,this.deckFilter==='Extra'):order.map(cardMarkup).join('');
 
   const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=v.ready[1-v.seat]&&v.opponents[1-v.seat]===i;return `<section data-encounter="${i}" class="opponent tag-opponent ${r.opponent===i?'selected':''}">${encounterPortrait(this.content,r,i,{revealAttr:'data-id',disabled:waiting})}<small>${r.challenge_level>=1?'Challenge LVL '+r.challenge_level+' · 8,000 LP':r.round===0?'Practice duel · 3,000 LP':'Duel '+(r.round+1)}</small><div class="reward"><img class="boost-icon" src="${rewardIcon(reward?.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward?.label||'')}</b></span></div>${pack?`<div class="reward"><img data-tag="pack" data-pack="${pack.id}" src="assets/packs/${pack.id}.jpg" alt="${esc(pack.name)}"><span>GUARANTEED PACK<br>${esc(pack.name)}</span></div>`:''}${curseIcons(this.content,r.route_curses?.[i]||[],true)}${hasSpyglass(r)?button('View deck','peek-deck',`data-id="${i}"`):''}${button(taken?'Teammate’s opponent':r.opponent===i?'Selected':'Choose','choose',`data-id="${i}" class="primary" ${locked||taken?'disabled':''}`)}</section>`}).join('');
 
-  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('tag-deck',this.deckFilter!=='All'||this.deckSort!=='Newest'||this.deckStatus!=='First')}${['All','Monster','Spell','Trap','Extra'].map(t=>button(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${this.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="tag-deck-sort" data-draft-sort aria-label="Sort cards">${['Newest','Default','Name','Attribute','ATK','DEF','Level'].map(t=>`<option ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select><button class="deck-deselect" data-tag="deselect-all" aria-label="Deselect all" title="Deselect all" ${locked?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div><div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div></div>`:`${(r.round+1)%3===0?bossBanner(r)+bossControls(r,{tag:true,disabled:waiting||v.ready.some(Boolean)}):''}<div class="tag-draft-controls">${locked?'Waiting for your teammate':chosen?'Opponent selected. Lock in when your deck is finished.':'Choose your next opponent'}</div><div class="routes tag-routes">${opponents}</div>`;
+  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('tag-deck',this.deckFilter!=='All'||this.deckSort!=='Newest'||this.deckStatus!=='First')}${['All','Monster','Spell','Trap','Extra'].map(t=>button(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${this.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="tag-deck-sort" data-draft-sort aria-label="Sort cards">${['Newest','Default','Name','Attribute','ATK','DEF','Level'].map(t=>`<option ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select><button class="deck-deselect" data-tag="deselect-all" aria-label="Deselect all" title="Deselect all" ${locked?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${this.deckSplit?`<div class="draft-card-scroll deck-split">${cards}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div>`}</div>`:`${(r.round+1)%3===0?bossBanner(r)+bossControls(r,{tag:true,disabled:waiting||v.ready.some(Boolean)}):''}<div class="tag-draft-controls">${locked?'Waiting for your teammate':chosen?'Opponent selected. Lock in when your deck is finished.':'Choose your next opponent'}</div><div class="routes tag-routes">${opponents}</div>`;
 
   const tradeTool=this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
 
@@ -607,11 +615,11 @@ export class TagUI {
 
   const entrance=this.view?.phase==='lobby'&&view.phase==='draft'?captureCharacterEntrance(this.root.querySelectorAll('.tag-player-portrait>img')[view.seat]||this.root.querySelector('.duelist-hero>img')):null;
 
-  const before=this.view?.phase,scroll=tagDeckScroller(this.root)?.scrollTop||0;
+  const before=this.view?.phase,scroll=saveDeckScroll(tagDeckArea(this.root));
 
   if(before==='duel'&&view.phase!=='duel')this.resetDeckFilters();this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.onView(view);
 
-  if(view.phase!=='duel'){this.render();const list=tagDeckScroller(this.root);if(list)list.scrollTop=scroll}
+  if(view.phase!=='duel'){this.render();restoreDeckScroll(tagDeckArea(this.root),scroll)}
 
   if(view.phase==='draft'&&view.run.round===0)this.openStartingPacks(view,entrance);
 

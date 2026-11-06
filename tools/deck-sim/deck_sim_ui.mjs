@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
-import {HERE, ROOT, loadSettings, saveSettings, loadOpponentDecks, runFull, runCustom, listReports, readReport, exportPath, addTierImages} from './sim_core.mjs';
+import {HERE, ROOT, loadSettings, saveSettings, loadOpponentDecks, runFull, runCustom, listReports, readReport, exportPath, addImages} from './sim_core.mjs';
 
 // --port=<n> runs a second copy (e.g. for testing) beside the one the shortcut opens.
 const PORT = Number(process.argv.find(arg => arg.startsWith('--port='))?.slice(7)) || 47830;
@@ -133,7 +133,7 @@ const server = http.createServer(async (req, res) => {
     if (route === 'POST /api/images') {
       const settings = loadSettings(), {file} = await body(req);
       const report = readReport(settings, file);
-      await addTierImages(report, exportPath(settings, file));
+      await addImages(report, exportPath(settings, file));
       if (report.imagesError) throw new Error(report.imagesError);
       return send(res, 200, {report});
     }

@@ -257,7 +257,7 @@ CATEGORY_RELICS={
  'guardian':('guardian_arsenal','armory_crest'),'harpie':('harpie_feather','harpies_of_a_feather','wing'),
  'toon':('toon_world','this_life_mine'),'union':('union_dock','union_hangar'),
  'fusion':('fusion_chamber','fusion_insignia','fusion_time','machine_foundry'),
- 'ritual':('ritual_dagger','ritual_vestment','ritual_incense','ten_thousand_hands'),
+ 'ritual':('ritual_dagger','ritual_vestment','ritual_incense','ten_thousand_hands','corpse_ritual'),
  'spirit':('good_spirits','deep_pockets'),'flip':('jar_of_echoes','buckler'),
  'normal':('normal','epitaph','normal_barrier','tenacity_of_the_weak'),'effect':('menagerie','kindred_bond'),
  'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass'),

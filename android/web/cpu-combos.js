@@ -135,6 +135,13 @@ export function comboPlanner(x){
   const attackers=own.filter(c=>face(c)&&(c.position&1)&&!(c.attack_count>0)).length;
   return enemy.length>Math.max(1,attackers)?[{id:'burst',start,payoff:[],normal:false,lost:[],bonus:enemy.reduce((sum,c)=>sum+targetValue(c),0)}]:[];
  }
+ // Legion the Fiend Jester allows an extra Tribute Summon of a Spellcaster and searches a Spellcaster Normal
+ // Monster when it leaves the field: summon it face-up, then Tribute it. It was Set or skipped (deck trace, 2026-11-06).
+ function legionLine(){
+  const start=summonStep('Legion the Fiend Jester');if(!start)return [];
+  const search=[...deck(),...q(p,L.GRAVE)].some(c=>monster(c)&&(data(c).type&0x10)&&race(c)==='Spellcaster')?800:0;
+  return hand.filter(c=>normalSummonable(c)&&race(c)==='Spellcaster'&&tributes(c)>=1&&tributes(c)<=own.length+1).map(c=>({id:'legion',start,payoff:[c],normal:true,tribute:true,lost:cheapest().slice(0,tributes(c)-1),bonus:search}));
+ }
  // A Spirit keeps its place on the field with Mirror of Yata.
  function mirrorLine(){
   if(!spellsOk||!has(hand,'Mirror of Yata'))return [];
@@ -271,7 +278,7 @@ export function comboPlanner(x){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
   const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine];
-  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine]:[contactLine];
+  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
   for(const line of cached){line.kept??=[];line.lost??=[];line.strikers=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
   return cached;

@@ -7,6 +7,7 @@ import {execFileSync} from 'node:child_process';
 import {Worker} from 'node:worker_threads';
 import {fileURLToPath} from 'node:url';
 import {exportTierImages} from './tier_images.mjs';
+import {exportCustomImage} from './custom_image.mjs';
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(HERE, '..', '..');
@@ -79,7 +80,7 @@ export function parseYdk(text, label, catalog) {
   const aliases = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'card-aliases.json'), 'utf8'));
   const deck = {main: [], extra: []};
   let zone = 'main';
-  for (const raw of String(text).replace(/^﻿/, '').split(/\r?\n/)) {
+  for (const raw of String(text).replace(/^\uFEFF/, '').split(/\r?\n/)) {
     const line = raw.trim();
     if (line === '#main' || line === '#extra') { zone = line.slice(1); continue; }
     if (line === '!side') { zone = null; continue; }
@@ -93,6 +94,24 @@ export function parseYdk(text, label, catalog) {
   }
   if (deck.main.length < 20) throw new Error(`${label} has ${deck.main.length} Main Deck cards; the game needs at least 20.`);
   return deck;
+}
+
+// A pasted decklist ("3x Summoned Skull [70781052]", one card per line) becomes .ydk text.
+// Each line's card ID is the number in [brackets], or else its longest number of 5+ digits;
+// a leading "3x" / "3 x" / "x3" sets the copies. Lines without an ID (headings) are skipped.
+// Returns null when the text is already a .ydk (section markers or bare ID lines only).
+export function decklistToYdk(text) {
+  const lines = String(text).replace(/^\uFEFF/, '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.some(l => /^(#main|#extra|!side)$/.test(l)) || lines.every(l => /^\d+$/.test(l) || l.startsWith('#') || l.startsWith('!'))) return null;
+  const ids = [];
+  for (const line of lines) {
+    const id = line.match(/\[(\d+)\]/)?.[1] ?? (line.match(/\d{5,}/g) || []).sort((a, b) => b.length - a.length)[0];
+    if (!id) continue;
+    const copies = Number(line.match(/^(\d{1,2})\s*x\b/i)?.[1] ?? line.match(/^x\s*(\d{1,2})\b/i)?.[1] ?? 1);
+    for (let i = 0; i < copies; i++) ids.push(id);
+  }
+  if (!ids.length) throw new Error('No card IDs found in the pasted list.');
+  return `#created by YGO Rogue Duelist deck sim\n#main\n${ids.join('\n')}\n#extra\n!side\n`;
 }
 
 function checkDecks(decks, catalog) {
@@ -262,13 +281,14 @@ export async function runFull(settings, hooks = {}) {
   const pairings = run.results.map(({a, b, games}) => ({tier: decks[a].tier, a: decks[a].deckId, aCharacter: decks[a].character, b: decks[b].deckId, bCharacter: decks[b].character, aWins: games.filter(g => g.result === 'win').length, bWins: games.filter(g => g.result === 'loss').length, draws: games.filter(g => g.result === 'draw').length, failed: games.filter(g => g.result === 'failed').length}));
   const report = save(settings, 'full', header, body, csvText, {mode: 'full', scope: 'within-tier', createdAt: new Date().toISOString(), source, seed, settings, seconds: run.seconds, workers: run.workers, totalDuels: run.total, decks: rows, pairings});
   hooks.onInfo?.('Rendering tier images…');
-  await addTierImages(report, report.files.json);
+  await addImages(report, report.files.json);
   return {...report, text: `${header}\n\n${body}`};
 }
 
-// Renders the three tier PNGs next to a full-list report and records them (or the error) in its JSON.
-export async function addTierImages(report, jsonFile) {
-  try { report.images = await exportTierImages(report, jsonFile); delete report.imagesError; }
+// Renders a report's PNGs next to it (three tier images for a full list, the matchup image for a
+// custom entry) and records them (or the error) in its JSON.
+export async function addImages(report, jsonFile) {
+  try { report.images = await (report.mode === 'custom' ? exportCustomImage : exportTierImages)(report, jsonFile); delete report.imagesError; }
   catch (error) { report.imagesError = String(error?.message || error); }
   fs.writeFileSync(jsonFile, JSON.stringify(report, null, 1) + '\n');
   return report;
@@ -322,6 +342,16 @@ export async function runCustom(settings, {file, text, name}, hooks = {}) {
     name = path.basename(file, path.extname(file));
   }
   name = name || 'Custom deck';
+  // A pasted decklist is converted and saved under exports/decks so the deck can be reused.
+  const converted = file ? null : decklistToYdk(text);
+  if (converted) {
+    text = converted;
+    parseYdk(text, name, catalog);
+    file = path.join(ROOT, 'exports', 'decks', `${name.replace(/[<>:"/\\|?*]+/g, '_')}.ydk`);
+    fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, text);
+    hooks.onInfo?.(`Saved the pasted list as ${file}`);
+  }
   const custom = parseYdk(text, name, catalog);
   const {source, decks: opponents} = loadOpponentDecks(settings);
   checkDecks(opponents, catalog);
@@ -335,7 +365,7 @@ export async function runCustom(settings, {file, text, name}, hooks = {}) {
   const opponentRows = run.results.map(({b, games}) => {
     const record = {w: 0, l: 0, d: 0};
     for (const g of games) if (short[g.result]) record[short[g.result]]++;
-    return {tier: decks[b].tier, character: decks[b].character, deckId: decks[b].deckId, record, failed: games.filter(g => g.result === 'failed').length, capped: games.filter(g => g.capped).length};
+    return {tier: decks[b].tier, characterId: decks[b].characterId, character: decks[b].character, deckId: decks[b].deckId, record, failed: games.filter(g => g.result === 'failed').length, capped: games.filter(g => g.capped).length};
   }).sort((x, y) => x.tier - y.tier || x.character.localeCompare(y.character));
   const header = [`Deck balance simulation — custom entry (${new Date().toLocaleString()})`, `Deck: ${file || name}`,
     `${opponents.length} opponent decks (T4 excluded) from ${source}; ${games} duels each, ${run.total} total, seed ${seed}.`,
@@ -346,6 +376,8 @@ export async function runCustom(settings, {file, text, name}, hooks = {}) {
   const csvText = ['tier,opponent,deck_id,win_rate_pct,wins,losses,draws,failed', ...opponentRows.map(o => [o.tier, o.character, o.deckId, csvRate(o.record), o.record.w, o.record.l, o.record.d, o.failed].map(csvCell).join(','))].join('\r\n') + '\r\n';
   const report = save(settings, `custom-${name.replace(/[^\w-]+/g, '_')}`, header, body, csvText,
     {mode: 'custom', createdAt: new Date().toISOString(), name, deck: {file: file || null, ...custom}, source, seed, settings, seconds: run.seconds, workers: run.workers, totalDuels: run.total, record: r, opponents: opponentRows});
+  hooks.onInfo?.('Rendering the matchup image…');
+  await addImages(report, report.files.json);
   return {...report, text: `${header}\n\n${body}`};
 }
 

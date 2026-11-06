@@ -235,8 +235,11 @@
         "name": "Rex Raptor",
         "tier": 3,
         "deck": "rex-raptor-tier-3",
-        "source": "User-requested powered-up Dinosaur version of Tier 2 (2026-09-24)",
-        "fixed": true
+        "source": "User-requested Dinosaur / Ultra Evolution Pill list (2026-11-06)",
+        "fixed": true,
+        "limit_exceptions": {
+          "Sinister Serpent": 2
+        }
       }
     ],
     "9": [
@@ -261,8 +264,11 @@
         "name": "Bonz",
         "tier": 3,
         "deck": "bonz-tier-3",
-        "source": "User-requested powered-up Zombie revival version of Tier 2 (2026-09-24)",
-        "fixed": true
+        "source": "User-requested Zombie / Vampire Genesis list (2026-11-06)",
+        "fixed": true,
+        "limit_exceptions": {
+          "Vampire Lord": 2
+        }
       }
     ],
     "10": [

@@ -17,12 +17,20 @@ def dedupe_curses(curses,challenge_level=0,per_encounter=False):
   out.append(key)
  return out
 
-def draw_curses(rng,count,challenge_level=0,existing=(),distinct=False):
+def ritual_curse_block(deck,challenge_level=0):
+ """Curses a boss with this deck never rolls. Below LVL 2 No Specials Allowed stops both players, so a deck holding
+ Ritual Spells could never use them (Discord 2026-11-06, Kemo; user's call). From LVL 2 it only stops the player."""
+ if challenge_level>=2:return set()
+ import campaign
+ ritual_spell=lambda cid:campaign.BY_ID.get(cid,{}).get('data',{}).get('type',0)&0x82==0x82
+ return {'no_specials'} if any(ritual_spell(cid) for cid in deck) else set()
+
+def draw_curses(rng,count,challenge_level=0,existing=(),distinct=False,excluded=()):
  from content import CURSES
  unique=nonstackable_curses(challenge_level);encounter_unique=unique|{'mercy'};blocked=set(existing) if distinct else set(existing)&unique;out=[]
  for _ in range(count):
-  pool=[k for k in CURSES if (k not in encounter_unique or k not in blocked) and (not distinct or k not in blocked)]
-  if not pool and not distinct:pool=[k for k in CURSES if k not in unique]
+  pool=[k for k in CURSES if k not in excluded and (k not in encounter_unique or k not in blocked) and (not distinct or k not in blocked)]
+  if not pool and not distinct:pool=[k for k in CURSES if k not in unique and k not in excluded]
   if not pool:break
   key=rng.choices(pool,weights=[0.5 if k=='relic_seal' else 1 for k in pool],k=1)[0]
   out.append(key)

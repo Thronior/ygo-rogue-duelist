@@ -67,6 +67,8 @@
  .sim-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
  .sim-thumbs a{display:block;color:inherit;text-decoration:none;text-align:center;background:#0a1d26;border:1px solid var(--border);border-radius:6px;padding:6px}
  .sim-thumbs a:hover{border-color:var(--gold)}
+ .sim-thumbs.one{grid-template-columns:minmax(0,520px)}
+ .sim-thumbs.one img{height:420px}
  .sim-thumbs img{width:100%;height:260px;object-fit:cover;object-position:top;border-radius:4px;display:block}
  .sim-thumbs span{display:block;margin-top:6px;font-weight:bold;color:var(--gold)}
  .sim-eta{margin:10px 0 4px;padding:9px 12px;border-left:3px solid var(--gold);background:#0a1d26aa;border-radius:4px}
@@ -203,6 +205,14 @@ async function ensureEstimates() {
 const gamesBox = (key, label) => `<label class="sim-games">${label} <input type="number" min="1" max="1000" step="1" data-setting="${key}" value="${status.settings[key]}"></label>`;
 
 // ---------- Custom entry ----------
+// A pasted decklist wins over a chosen file; the server turns it into a .ydk under exports/decks.
+const pasted = {text: '', name: ''};
+function pastedCards() {
+  let n = 0;
+  for (const line of pasted.text.split(/\r?\n/)) if (/\[\d+\]|\d{5,}/.test(line)) n += Number(line.trim().match(/^(\d{1,2})\s*x\b/i)?.[1] ?? line.trim().match(/^x\s*(\d{1,2})\b/i)?.[1] ?? 1);
+  return n;
+}
+const pastedSummary = () => pasted.text.trim() ? `${pastedCards()} cards found` : '';
 function renderCustom() {
   ensureEstimates();
   app.innerHTML = `<div class="page">${header('Custom entry')}<div class="sim-body">
@@ -212,6 +222,10 @@ function renderCustom() {
       </label>
       <p style="text-align:center;opacity:.7">or paste a path</p>
       <div class="sim-row"><input type="text" id="path" placeholder="D:\\decks\\My Deck.ydk" value="${esc(customFile?.file || '')}"><button data-act="browse">Browse…</button></div>
+      <p style="text-align:center;opacity:.7">or paste a decklist (one card per line with its ID, like <i>3x Summoned Skull [70781052]</i>)</p>
+      <div class="sim-row"><input type="text" id="pasteName" placeholder="Deck name" value="${esc(pasted.name)}"></div>
+      <textarea id="paste" rows="7" placeholder="3x Summoned Skull [70781052]&#10;1x Dark Hole [53129443]&#10;…" style="width:100%;box-sizing:border-box;margin-top:6px;background:#0d2330;color:inherit;border:1px solid var(--border);border-radius:6px;padding:8px;font:13px/1.4 monospace;resize:vertical">${esc(pasted.text)}</textarea>
+      <small id="pasteCount" style="opacity:.75">${pastedSummary()}</small>
       <div style="margin-top:14px">${gamesBox('customGamesPerMatchup', 'Duels per opponent deck')}</div>
       ${etaLine('customGamesPerMatchup', deckInfo ? deckInfo.counts.reduce((a, b) => a + b, 0) : null)}
       <p>Only your deck plays: it meets every T1–T3 opponent deck ${status.settings.customGamesPerMatchup} times.</p>
@@ -229,6 +243,9 @@ function renderCustom() {
   drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
   drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); take(e.dataTransfer.files[0]); });
+  const paste = document.querySelector('#paste'), pasteName = document.querySelector('#pasteName');
+  paste.addEventListener('input', () => { pasted.text = paste.value; document.querySelector('#pasteCount').textContent = pastedSummary(); });
+  pasteName.addEventListener('input', () => { pasted.name = pasteName.value; });
   document.querySelector('#path').addEventListener('input', e => { const v = e.target.value.trim(); customFile = v ? {file: v, name: v.split(/[\\/]/).pop().replace(/\.[^.]+$/, ''), summary: v} : null; });
 }
 
@@ -283,9 +300,9 @@ function renderResults() {
       <p style="opacity:.8">Win rate = (wins + draws/2) / finished duels. Duels past turn ${r.settings?.maxTurns ?? '?'} count as draws. Saved as ${esc((r.files?.txt || '').split(/[\\/]/).pop())} (+ .csv, .json).</p>
       ${tiers}
     </div>
-    ${full ? `<div class="sim-panel sim-images"><h3>Tier images</h3>${r.images?.length
-      ? `<div class="sim-thumbs">${r.images.map((f, i) => { const folder = (reportFile || '').split('/').slice(0, -1), url = `/export/${[...folder, f.split(/[\\/]/).pop()].map(encodeURIComponent).join('/')}`; return `<a href="${url}" target="_blank" title="Open full size"><img src="${url}"><span>Tier ${i + 1}</span></a>`; }).join('')}</div><p style="opacity:.75">Saved in this run's folder. Click one to open it full size.</p>`
-      : `<p>${r.imagesError ? `The images could not be rendered: ${esc(r.imagesError)}` : 'This run has no tier images yet.'}</p><div class="sim-row"><button class="primary" data-act="images">Make tier images</button></div>`}</div>` : ''}
+    ${`<div class="sim-panel sim-images"><h3>${full ? 'Tier images' : 'Matchup image'}</h3>${r.images?.length
+      ? `<div class="sim-thumbs${full ? '' : ' one'}">${r.images.map((f, i) => { const folder = (reportFile || '').split('/').slice(0, -1), url = `/export/${[...folder, f.split(/[\\/]/).pop()].map(encodeURIComponent).join('/')}`; return `<a href="${url}" target="_blank" title="Open full size"><img src="${url}"><span>${full ? `Tier ${i + 1}` : 'Best and worst 8 per tier'}</span></a>`; }).join('')}</div><p style="opacity:.75">Saved in this run's folder. Click ${full ? 'one' : 'it'} to open it full size.</p>`
+      : `<p>${r.imagesError ? `The images could not be rendered: ${esc(r.imagesError)}` : `This run has no ${full ? 'tier images' : 'matchup image'} yet.`}</p><div class="sim-row"><button class="primary" data-act="images">Make ${full ? 'tier images' : 'the matchup image'}</button></div>`}</div>`}
     <div class="sim-panel" style="max-width:1100px">
       <div class="sim-tabs">${['all', '1', '2', '3'].map(t => `<button data-tier="${t}" class="${view.tier === t ? 'active' : ''}">${t === 'all' ? 'All tiers' : `T${t}`}</button>`).join('')}<input type="search" id="filter" placeholder="Filter decks…" value="${esc(view.filter)}"></div>
       <table class="sim"><thead><tr>${th('tier', 'Tier')}${th('name', full ? 'Deck' : 'Opponent')}${allTiers ? th('t1', 'vs T1') + th('t2', 'vs T2') + th('t3', 'vs T3') : ''}${th('overall', allTiers ? 'Overall' : full ? 'Win rate vs own tier' : 'Win rate')}<th>W-L-D</th><th style="text-align:left">Notes</th></tr></thead>
@@ -370,7 +387,8 @@ app.addEventListener('click', async e => {
     const act = el.dataset.act;
     if (act === 'run-full') { el.disabled = true; await post('run/full'); await refresh(); return go('run'); }
     if (act === 'run-custom') {
-      if (!customFile) { errorText = 'Choose a .ydk file first.'; return renderCustom(); }
+      if (pasted.text.trim()) customFile = {text: pasted.text, name: pasted.name.trim() || 'Pasted deck', summary: pastedSummary()};
+      if (!customFile) { errorText = 'Choose a .ydk file or paste a decklist first.'; return renderCustom(); }
       el.disabled = true;
       await post('run/custom', customFile.text ? {text: customFile.text, name: customFile.name} : {file: customFile.file});
       await refresh(); return go('run');

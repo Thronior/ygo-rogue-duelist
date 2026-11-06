@@ -13,6 +13,24 @@ export function clearSearch(key){delete searches[key]}
 // Deck editors (solo and Tag) share the deck-status dropdown, the Deselect icon and the reset button.
 export const DECK_STATUS_OPTIONS=[['Any','Any card'],['In','In deck'],['Out','Not in deck'],['First','Deck first']];
 export const deselectIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="3" width="12" height="17" rx="1.6"/><path d="M9 8.5l6 6M15 8.5l-6 6"/></svg>';
+// Wide deck editors (2026-11-06): when Auto Deck Card Size would fit 18+ cards per row, solo and Tag split into a Deck pane
+// (8 per row) and a Collection pane. Shared by mobile.js and tag-ui.js.
+export const DECK_SPLIT_COLUMNS=18;
+// Cards per row Auto fits across `area`, measured with an empty probe grid in `host`; auto-fill keeps empty tracks.
+export function autoColumnsAcross(host,area){
+ if(!host||!area)return 0;
+ const probe=document.createElement('div');probe.className='cardgrid';probe.style.cssText=`position:absolute;visibility:hidden;height:0;width:${area.clientWidth}px`;host.append(probe);
+ const n=getComputedStyle(probe).gridTemplateColumns.split(' ').filter(Boolean).length;probe.remove();return n;
+}
+export const manualDeckColumns=()=>document.documentElement.hasAttribute('data-deck-columns');
+export function splitDeckMarkup(deck,rest,cardMarkup,extraTab){
+ const pane=(kind,title,list,empty)=>`<section class="deck-split-pane ${kind}"><h3>${title} <span>${list.length}</span></h3><div class="deck-split-scroll"><div class="cardgrid">${list.map(cardMarkup).join('')||`<p class="muted">${empty}</p>`}</div></div></section>`;
+ return pane('deck-pane','Deck',deck,'Tap a card in your collection to add it.')+pane('collection-pane','Collection',rest,extraTab?'No Extra Deck cards to add.':'Every card is in your deck.');
+}
+// Scroll positions of every deck scroller in `root` (one grid, or both split panes), so a redraw can put them back.
+const deckScrollers=root=>[...(root?.querySelectorAll('.deck-split-scroll')||[])].concat(root?.querySelector('.draft-card-scroll:not(.deck-split)')||[]);
+export const saveDeckScroll=root=>deckScrollers(root).map(s=>s.scrollTop);
+export function restoreDeckScroll(root,saved){if(!saved?.length)return;deckScrollers(root).forEach((s,k)=>{if(saved[k]!==undefined)s.scrollTop=saved[k]})}
 // The × also shows when tab, sort or deck status differ from the default; its handler resets those too.
 export function deckSearchButtons(key,filtered){const search=searchButton(key);return search.includes('effect-search-clear')||!filtered?search:search+`<button type="button" class="effect-search-clear" data-effect-search-clear="${key}" title="Reset filters" aria-label="Reset filters">×</button>`}
 export function openSearch(key,cards,onApply){

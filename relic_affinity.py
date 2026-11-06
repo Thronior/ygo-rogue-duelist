@@ -24,7 +24,7 @@ RULES={
  'tribute':(('level:high',),COMMON),'tribute_dividend':(('level:high',),COMMON),'waning_star':(('level:high',),COMMON),
  'cursed_giants_oath':(('level:high',),COMMON),'tribute_free':(('level:7+',),NARROW),'boss_monster':(('level:7+',),NARROW),
  'small':(('level:low',),COMMON),'cursed_ashen_nursery':(('level:low',),COMMON),'village_banner':(('level:4',),BROAD),
- 'ritual_vestment':(('ritual',),NARROW),'ritual_incense':(('ritual',),NARROW),'ritual_dagger':(('ritual',),NARROW),
+ 'ritual_vestment':(('ritual',),NARROW),'corpse_ritual':(('ritual',),NARROW),'ritual_incense':(('ritual',),NARROW),'ritual_dagger':(('ritual',),NARROW),
  'ten_thousand_hands':(('ritual',),NARROW),'cursed_ritual_scar':(('ritual',),NARROW),
  'fusion_insignia':(('fusion',),NARROW),'fusion_time':(('fusion',),NARROW),'machine_foundry':(('fusion',),NARROW),
  'cursed_fusion_fever':(('fusion',),NARROW),

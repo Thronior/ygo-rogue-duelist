@@ -237,8 +237,18 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
 
  auto(m=this.pending){
   const previous=this.decisionQueries;this.decisionQueries=new Map();
-  try{return this.chooseDecision(m)}finally{this.decisionQueries=previous;}
+  try{
+   let r=this.chooseDecision(m);
+   // Nuvia the Wicked and Boar Soldier destroy themselves when Normal Summoned; they can still be Set (behaviour flag 2026-11-06).
+   if(m?.type===M.SELECT_IDLECMD&&r?.action===I.SELECT_SUMMON&&this.destroyedOnNormalSummon(m.summons[r.index])){
+    const keep=m.summons.map((_,i)=>i).filter(i=>!this.destroyedOnNormalSummon(m.summons[i]));
+    r=this.chooseDecision({...m,summons:keep.map(i=>m.summons[i])});
+    if(r?.action===I.SELECT_SUMMON)r={...r,index:keep[r.index]};
+   }
+   return r;
+  }finally{this.decisionQueries=previous;}
  }
+ destroyedOnNormalSummon(c){return !!c&&/If this (?:card|monster) is Normal Summoned, destroy this card/i.test(this.cards.get(c.code)?.desc||'')}
  chooseDecision(m){
   if(m.type===M.SELECT_PLACE){
    // Prefer the center of each row without changing controller/row priority or legal zones.

@@ -1,11 +1,48 @@
 // Shared card-specific CPU policy; opposing hidden cards remain opaque.
 export function deckPolicy(x){
   const {e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal=()=>false,freeSummon=()=>[],battleProof=c=>/cannot be destroyed by battle/i.test(e.cards.get(c.code)?.desc||'')}=x;
+ const targetDies=c=>face(c)&&!c.is_disabled&&effectsEnabled(c.controller??p)&&['Spirit Reaper','Reaper on the Nightmare'].includes(name(c));
  const has=(a,n)=>a.some(c=>name(c)===n),live=a=>a.filter(face),monster=c=>!!(data(c).type&1),spirit=c=>!!(data(c).type&0x200),water=c=>hasAttribute(c,'WATER'),sea=c=>['Fish','Sea Serpent','Aqua'].includes(race(c));
  const enemyCards=[...enemy,...theirBack],value=c=>c.location===L.SZONE?backValue(c):targetValue(c),best=a=>Math.max(0,...a.map(value)),free=5-own.length;
  const resilient=c=>!c.is_disabled&&effectsEnabled(c.controller??1-p)&&(['Marshmallon','Spirit Reaper','Relinquished','Thousand-Eyes Restrict'].includes(name(c))||battleProof(c));
  const handCost=(source,n,filter=()=>true)=>hand.filter(c=>!same(c,source)&&!exodiaPieces.has(c.code)&&filter(c)).length>=n;
  const spellValue=c=>({'Raigeki':4000,'Monster Reborn':3500,'Pot of Greed':3200,'Graceful Charity':3000,'Heavy Storm':theirBack.length*1500,'Polymerization':1200}[name(c)]??1000);
+ // Orca Mega-Fortress of Darkness: Tribute Torpedo Fish to destroy a monster, or Cannonball Spear Shellfish to destroy a Spell/Trap.
+ // The better use, or null when neither destroys more than the Tribute is worth (2026-11-06).
+ const orcaPick=()=>{
+  const fodder=nm=>own.filter(x=>name(x)===nm).sort((a,b)=>value(a)-value(b))[0],fish=fodder('Torpedo Fish'),shell=fodder('Cannonball Spear Shellfish');
+  const uses=[fish&&enemy.length&&{fodder:'Torpedo Fish',gain:best(enemy)-value(fish)},shell&&theirBack.length&&{fodder:'Cannonball Spear Shellfish',gain:best(theirBack)-value(shell)+400}].filter(x=>x&&x.gain>=0);
+  return uses.sort((a,b)=>b.gain-a.gain)[0]||null;
+ };
+ // Abyss Soldier pays a WATER discard while the bounced card goes back to their hand. It bounced a set Apprentice Magician
+ // three turns running, Set again each time (deck trace, 2026-11-06). Worth it on a card that cost them more than a Normal
+ // Summon (Fusion, Ritual, Token, Tribute Summon, equipped) or a face-up Continuous/Equip card, or to clear their only
+ // monster before our attacks: a face-up one none of them beats (a set one is simply attacked).
+ const bounceValue=c=>{
+  if(c.controller===p)return 0;
+  if(c.location===L.SZONE)return face(c)&&(data(c).type&0x60000)?value(c):0;
+  const t=data(c).type,equipped=[...back,...theirBack].some(x=>same(x.equipCard||x.equip_card,c));
+  return t&0x40c0||t&0x4000||lvl(c)>=5||equipped?value(c):0;
+ };
+ const bounceOpens=c=>e.player===p&&e.phase===4&&prompt?.to_bp===true&&enemy.length===1&&same(enemy[0],c)&&face(c)&&attacks.every(a=>atk(a)<=((c.position&1)?atk(c):(c.defense??data(c).defense??0)))&&attacks.reduce((s,a)=>s+Math.max(0,atk(a)),0)>=1500;
+ const legionSearch=()=>[...q(p,L.DECK),...grave].some(t=>monster(t)&&(data(t).type&0x10)&&race(t)==='Spellcaster');
+ // A Spell back in hand from Dark Magician of Chaos, rated for this board. Dark Hole would banish the Chaos itself (2026-11-06).
+ const chaosSpell=c=>{
+  const n=name(c),revive=Math.max(0,...[...grave,...q(1-p,L.GRAVE)].filter(t=>monster(t)&&!(data(t).type&0x40)).map(t=>atk(t))),strongest=best(live(enemy));
+  if(n==='Monster Reborn')return 1000+revive;
+  if(n==='Premature Burial')return e.lp[p]>800?500+Math.max(0,...grave.filter(t=>monster(t)&&!(data(t).type&0x40)).map(t=>atk(t))):0;
+  if(['Snatch Steal','Brain Control','Change of Heart'].includes(n))return strongest?1000+strongest:200;
+  if(['Smashing Ground','Lightning Vortex','Fissure','Hammer Shot','Raigeki'].includes(n))return enemy.length?(n==='Raigeki'?enemy.reduce((s,t)=>s+value(t),0):best(enemy)):200;
+  if(n==="Harpie's Feather Duster")return theirBack.length*1200;
+  if(n==='Heavy Storm')return Math.max(0,theirBack.length-back.length)*1200;
+  if(n==='Dark Magic Attack')return has(live(own),'Dark Magician')?theirBack.length*1200:300;
+  if(n==='Mystical Space Typhoon')return theirBack.length?1000:300;
+  if(n==='Swords of Revealing Light')return enemy.length?1800:600;
+  if(n==='Magical Dimension')return hand.some(t=>monster(t)&&race(t)==='Spellcaster')?1600:700;
+  if(n==='Dark Hole')return Math.max(0,enemy.reduce((s,t)=>s+value(t),0)-own.reduce((s,t)=>s+value(t),0)-2800);
+  if(['Dark Magic Curtain','Dedication through Light and Darkness'].includes(n))return 100;
+  return spellValue(c);
+ };
  const battleReady=c=>face(c)&&(c.position&1)&&!attackBlocked(c,p)&&!c.attack_disabled;
  const raBurnCards=new Set(['Bowganian','Coffin Seller','Dark Room of Nightmares','Fire Princess','Poison Mummy','Skull Invitation','Solar Flare Dragon','Stealth Bird','Wave-Motion Cannon']);
  const raBurnRisk=()=>[...own,...enemy,...back,...theirBack].some(c=>{
@@ -95,7 +132,9 @@ export function deckPolicy(x){
   // A Juragedo already on the chain for this monster counts: a second copy only helps if 2000 ATK is needed.
   const pending=(e.activeChain||[]).filter(a=>a.player===p&&!a.inactive&&e.name(a.code)==='Juragedo'&&(a.targets||[]).some(t=>same(t,c))).length;
   const current=atk(c)+1000*pending,boosted=current+1000;
-  if(e.attackCard?.controller===1-p&&e.attackTarget&&same(c,e.attackTarget)&&(c.position&1)&&boosted>atk(e.attackCard)&&current<=atk(e.attackCard))return 2200+targetValue(e.attackCard);
+  // Not when our own response already stops or destroys that attacker (user, 2026-11-06).
+  const stopped=(e.activeChain||[]).some(l=>l.player===p&&!l.inactive&&['Sakuretsu Armor','Mirror Force','Magic Cylinder','Negate Attack','Widespread Ruin','Draining Shield','Waboku','Threatening Roar','Kunai with Chain','Book of Moon','Enemy Controller'].includes(e.name(l.code)));
+  if(!stopped&&e.attackCard?.controller===1-p&&e.attackTarget&&same(c,e.attackTarget)&&(c.position&1)&&boosted>atk(e.attackCard)&&current<=atk(e.attackCard))return 2200+targetValue(e.attackCard);
   if(e.player===p&&e.phase===8&&!c.attack_disabled&&!c.attack_count&&!attackBlocked(c,p)){
    if(enemy.some(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)))return 1800+Math.max(...enemy.filter(t=>face(t)&&(t.position&1)&&current<=atk(t)&&boosted>atk(t)).map(targetValue));
    if(!enemy.length){const others=attacks.filter(a=>!same(a,c)&&!a.attack_count).reduce((sum,a)=>sum+Math.max(0,atk(a)),0),before=battleDamage(current+others),after=battleDamage(boosted+others);if(before<e.lp[1-p]&&after>=e.lp[1-p])return 2600;}
@@ -119,7 +158,8 @@ export function deckPolicy(x){
   if(own.length>=5&&!used.some(c=>c.location===L.MZONE))return null;
   return {used,score:atk(f)-fieldCost+(name(f)==='Gatling Dragon'&&enemy.length>=2?1800:0)};
  }
- const fusionChoices=(graveOK=false)=>q(p,L.EXTRA).map(c=>({c,plan:fusionPlan(c,graveOK&&race(c)==='Machine')})).filter(a=>a.plan&&a.plan.score>=0&&(atk(a.c)>threat||name(a.c)==='Gatling Dragon'&&enemy.length>=2));
+ // Reaper on the Nightmare earns its place with direct attacks past their monsters and a random discard, not its ATK (2026-11-06).
+ const fusionChoices=(graveOK=false)=>q(p,L.EXTRA).map(c=>({c,plan:fusionPlan(c,graveOK&&race(c)==='Machine')})).filter(a=>a.plan&&a.plan.score>=0&&(atk(a.c)>threat||name(a.c)==='Gatling Dragon'&&enemy.length>=2||name(a.c)==='Reaper on the Nightmare'&&enemy.length>0&&effectsEnabled(p)));
  function activation(c,chain){const n=name(c),d=data(c),spent=c.location===L.GRAVE||c.location===L.REMOVED;
   if(n==='Blind Destruction')return blindDestructionValue();
   if(n==='Needle Wall')return needleWallValue();
@@ -166,7 +206,14 @@ export function deckPolicy(x){
   if(n==='Juragedo'){
    if(e.inDamageStep||e.phase!==8)return -1;
    if(c.location===L.HAND)return chain&&free>0?105:-1;
-   if(c.location===L.MZONE)return own.filter(t=>!same(t,c)).map(raBoostScore).reduce((best,value)=>Math.max(best,value),-1)>=0?100:-1;
+   if(c.location===L.MZONE){
+    if(own.filter(t=>!same(t,c)).map(raBoostScore).reduce((best,value)=>Math.max(best,value),-1)>=0)return 100;
+    // Attacked and about to be destroyed: Tribute it for the 1000 ATK (it lasts through our next turn) rather than lose it (user, 2026-11-06).
+    const attacker=e.attackCard?.controller===1-p&&same(c,e.attackTarget)?enemy.find(x=>same(x,e.attackCard)):null;
+    const doomed=attacker&&face(c)&&atk(attacker)>((c.position&1)?atk(c):(c.defense??0));
+    const ownStop=(e.activeChain||[]).some(l=>l.player===p&&!l.inactive);
+    return doomed&&!ownStop&&own.some(t=>!same(t,c)&&face(t)&&(t.position&1))?90:-1;
+   }
   }
   if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;
   if(n==='Enchanting Fitting Room'){const deck=q(p,L.DECK),top=e.deckReversed?deck.slice(-4):deck.slice(0,4);return e.lp[p]>800&&free>0&&top.some(lowNormal)?100:-1;}
@@ -232,7 +279,12 @@ export function deckPolicy(x){
   if(n==='Proton Blast')return spent?chain&&['Barrel Dragon','Blowback Dragon','Gatling Dragon'].includes(e.name(e.effect?.code))?110:-1:[...own,...hand].some(t=>['Barrel Dragon','Blowback Dragon','Gatling Dragon','Time Wizard'].includes(name(t)))?60:-1;
   if(n==='Thunder Dragon')return q(p,L.DECK).filter(t=>name(t)===n).length>=1?90:-1;
   if(n==='Skilled Dark Magician')return [...hand,...grave,...q(p,L.DECK)].some(t=>name(t)==='Dark Magician')?90:-1;
-  if(['Senju of the Thousand Hands','Manju of the Ten Thousand Hands','A Cat of Ill Omen','Big Eye','Patrol Robo','Legendary Fiend','Despair from the Dark','Gernia','Agido','Keldo','Mystic Tomato','Giant Rat','The Forgiving Maiden','Poison Mummy','Sonic Jammer','Winged Sage Falcos','Helpoemer'].includes(n))return 85;
+  // These triggers were passed (null in a chain) whenever another card triggered with them, e.g. Coffin Seller (deck trace, 2026-11-06).
+  // Legion the Fiend Jester, sent from the field to the GY, adds a Spellcaster Normal Monster from the Deck or GY.
+  if(n==='Legion the Fiend Jester')return legionSearch()?90:-1;
+  // Dark Magician of Chaos adds a Spell from the GY when summoned.
+  if(n==='Dark Magician of Chaos')return grave.some(t=>data(t).type&2)?90:-1;
+  if(['Senju of the Thousand Hands','Manju of the Ten Thousand Hands','A Cat of Ill Omen','Big Eye','Patrol Robo','Legendary Fiend','Despair from the Dark','Gernia','Agido','Keldo','Mystic Tomato','Giant Rat','Mother Grizzly','Shining Angel','UFO Turtle','The Forgiving Maiden','Poison Mummy','Sonic Jammer','Winged Sage Falcos','Helpoemer'].includes(n))return 85;
   if(n==='Night Assailant')return spent||enemy.length?90:-1;
   if(n==='Dark Jeroid'||n==='Otohime'||n==='Electromagnetic Bagworm')return live(enemy).length?85:-1;
   if(n==='Puppet Master')return e.lp[p]>3500&&free>=2&&grave.filter(t=>monster(t)&&race(t)==='Fiend').length>=2?90:-1;
@@ -337,7 +389,8 @@ export function deckPolicy(x){
   if(n==='Aegis of the Ocean Dragon Lord')return chain&&live(own).some(t=>water(t)&&lvl(t)<=3&&threatened(t))?100:-1;
   if(n==='Muko')return chain&&e.effect?.player===1-p&&/draw/i.test(e.cards.get(e.effect.code)?.desc||'')?100:-1;
   if(n==='Soul Charge')return e.lp[p]>2500&&free>0&&!lethal&&grave.some(t=>monster(t)&&atk(t)>=1500)?90:-1;
-  if(n==='Overpowering Eye')return e.player===p&&enemy.length&&attacks.some(t=>race(t)==='Zombie'&&atk(t)<=2000&&atk(t)>0)?85:-1;
+  // Spirit Reaper and Reaper on the Nightmare are destroyed when targeted: our own Overpowering Eye killed the Fusion (deck trace, 2026-11-06).
+  if(n==='Overpowering Eye')return e.player===p&&enemy.length&&attacks.some(t=>race(t)==='Zombie'&&atk(t)<=2000&&atk(t)>0&&!targetDies(t))?85:-1;
   if(n==='Zoma the Spirit')return free>0&&(incoming||own.length<2)?80:-1;
   if(n==='Call of the Earthbound')return incoming&&own.some(t=>!same(t,incomingTarget)&&(name(t)==='Spirit Reaper'||name(t)==='Zoma the Spirit'||((t.position&1)?atk(t):(t.defense??data(t).defense??0))>=atk(e.attackCard)))?100:-1;
   if(n==='Rafflesia Seduction')return live(enemy).length?85:-1;
@@ -438,9 +491,14 @@ export function deckPolicy(x){
   }
   if(n==='Magical Dimension'){
    // A face-down monster can be the Tribute too; the Quick-Play removal is worth it whenever there is a target.
-   const caster=hand.filter(x=>monster(x)&&race(x)==='Spellcaster').sort((a,b)=>atk(b)-atk(a))[0],cheapest=own.slice().sort((a,b)=>value(a)-value(b))[0];
+   const caster=hand.filter(x=>monster(x)&&race(x)==='Spellcaster').sort((a,b)=>projectedAttack(b)-projectedAttack(a))[0],cheapest=own.slice().sort((a,b)=>value(a)-value(b))[0];
    if(!caster||!cheapest)return -1;
-   return best(enemy)>=1000||atk(caster)>atk(cheapest)+500?98:-1;
+   // The trade must not lose: a 2800 Dark Magician of Chaos (banished when it leaves) was Tributed for a 2000
+   // Dark Magician Girl with nothing worth destroying (deck trace, 2026-11-06). Breaking even is enough, so the
+   // card stays a removal spell (user, 2026-11-06).
+   // With nothing to destroy the summon itself must be an upgrade: Dark Magician Girl for Dark Magician Girl only spends cards.
+   const removal=best(enemy)>=1000?best(enemy):0;
+   return (removal?projectedAttack(caster)+removal>=value(cheapest):projectedAttack(caster)>value(cheapest))?98:-1;
   }
   // Contact fusions: discard 1 card to destroy an opposing card of the matching kind.
   const discardDestroy=contactEffectTarget[n];
@@ -511,7 +569,13 @@ export function deckPolicy(x){
   }
   if(n==='Ninjitsu Art of Decoy')return chain&&incoming&&incomingTarget&&/Ninja/.test(name(incomingTarget))&&attacker&&atk(attacker)>=((incomingTarget.position&1)?atk(incomingTarget):defense(incomingTarget))?88:-1;
   if(n==="Dragon's Rage")return live(own).some(x=>race(x)==='Dragon')?70:-1;
-  if(n==='Dedication through Light and Darkness')return live(own).some(x=>name(x)==='Dark Magician')?95:-1;
+  // Dedication: in our Main Phase, so Dark Magician of Chaos can attack; on their turn only to save a Dark Magician from
+  // removal. Used at the start of their turn, it left the Chaos open to Snatch Steal and Dark Hole (deck trace, 2026-11-06).
+  if(n==='Dedication through Light and Darkness'){
+   const dm=live(own).filter(x=>name(x)==='Dark Magician');if(!dm.length)return -1;
+   const wipe=(e.activeChain||[]).some(l=>l.player!==p&&!l.inactive&&['Dark Hole','Raigeki','Torrential Tribute','Lightning Vortex','Mirror Force','Bottomless Trap Hole'].includes(e.name(l.code)));
+   return dm.some(threatened)||wipe||e.player===p&&(e.phase===4||e.phase===256)?95:-1;
+  }
   if(n==='Amazoness Village')return [...own,...hand].some(x=>/Amazoness/.test(name(x)))?70:-1;
   if(n==="Harpies' Hunting Ground"){const winged=a=>live(a).filter(x=>race(x)==='Winged Beast').length;return winged(own)>winged(enemy)||hand.some(x=>/Harpie Lady/.test(name(x)))?70:-1;}
   if(n==='Burst Breath'){
@@ -524,7 +588,9 @@ export function deckPolicy(x){
   if(n==='Adhesion Trap Hole')return chain&&e.player===1-p&&live(enemy).some(x=>monster(x)&&atk(x)>=1600)?85:-1;
   if(n==='The Reliable Guardian')return chain&&incoming&&incomingTarget&&!(incomingTarget.position&1)&&attacker&&defense(incomingTarget)<=atk(attacker)&&defense(incomingTarget)+700>atk(attacker)?90:-1;
   if(n==='Attack and Receive')return chain?90:-1;
-  if(n==='Abyss Soldier')return mainPhase&&hand.some(x=>!same(x,c)&&monster(x)&&hasAttribute(x,'WATER'))&&best(enemyCards)>=1500?85:-1;
+  // With no rule Orca's effect was never used: a null score refuses any effect that says "destroy" (deck trace, 2026-11-06).
+  if(n==='Orca Mega-Fortress of Darkness')return mainPhase&&!(e.activeChain||[]).length&&orcaPick()?88:-1;
+  if(n==='Abyss Soldier')return mainPhase&&hand.some(x=>!same(x,c)&&monster(x)&&hasAttribute(x,'WATER'))&&enemyCards.some(t=>bounceValue(t)>=1500||bounceOpens(t))?85:-1;
   if(n==='Dark Master - Zorc'){
    const all=a=>live(a).filter(monster).reduce((s,x)=>s+value(x),0);
    const expected=all(enemy)*2/6+best(enemy)*3/6-all(own)/6;
@@ -583,6 +649,32 @@ export function deckPolicy(x){
   return null;
  }
  function targetScore(n,c,info){const ownCard=c.controller===p;
+  // Legion takes Dark Magician from the Deck: GY copies keep Dark Magician Girl's ATK and stay revival targets (2026-11-06).
+  if(n==='Legion the Fiend Jester'&&[L.DECK,L.GRAVE].includes(c.location)&&monster(c))return ownCard?30000+(c.location===L.DECK?1000:0)+atk(c):-100000;
+  if(n==='Dark Magician of Chaos'&&c.location===L.GRAVE)return ownCard&&(data(c).type&2)?30000+chaosSpell(c):-100000;
+  // Revival: Dark Magician opens Dark Magic Attack and Dedication. An equal 2500 Summoned Skull was revived beside a Dark
+  // Magic Attack facing three set cards (deck trace, 2026-11-06). Same scale as duel.js's default revival score (ATK).
+  if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(n)&&ownCard&&c.location===L.GRAVE&&name(c)==='Dark Magician'){
+   const attack=has(hand,'Dark Magic Attack')&&theirBack.length?Math.min(1800,600*theirBack.length):0;
+   const dedication=[...hand,...back].some(t=>name(t)==='Dedication through Light and Darkness')&&[...hand,...q(p,L.DECK),...grave].some(t=>name(t)==='Dark Magician of Chaos')?600:0;
+   if(attack||dedication)return atk(c)+attack+dedication;
+  }
+  // Orca: the Tribute is the Fish its best use needs, then the opponent's most valuable card (2026-11-06).
+  if(n==='Orca Mega-Fortress of Darkness'){
+   if(e.selectionHint===500)return ownCard?(name(c)===orcaPick()?.fodder?50000:40000)-value(c):-100000;
+   return ownCard?-100000:30000+value(c);
+  }
+  // Abyss Soldier bounces the card that costs them most, or the lone monster in the way of our attacks (2026-11-06).
+  if(n==='Abyss Soldier'&&c.location!==L.HAND)return ownCard?-100000:30000+bounceValue(c)+(bounceOpens(c)?1000:0)+value(c)*.1;
+  // Jirai Gumo's attacks cost half our LP on a lost coin toss: revived over an equal Empress Mantis, it never attacked (deck trace, 2026-11-06).
+  if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(n)&&c.location===L.GRAVE&&name(c)==='Jirai Gumo')return atk(c)-Math.floor(e.lp[p]/4);
+  // Mother Grizzly beside a face-up Orca floats the Fish that Orca can Tribute for its removal (2026-11-06).
+  if(n==='Mother Grizzly'&&ownCard&&c.location===L.DECK&&monster(c)&&live(own).some(x=>name(x)==='Orca Mega-Fortress of Darkness')){
+   const fuel=name(c)==='Torpedo Fish'&&enemy.length||name(c)==='Cannonball Spear Shellfish'&&theirBack.length;
+   return 30000+atk(c)+(fuel?1000:0);
+  }
+  // Mystic Tomato: a floated Legion still searches when it dies; a face-up Cyber Jar never flips (deck trace, 2026-11-06).
+  if(n==='Mystic Tomato'&&ownCard&&c.location===L.DECK&&monster(c))return 30000+atk(c)+(name(c)==='Legion the Fiend Jester'&&legionSearch()?1000:0)-(name(c)==='Cyber Jar'?2000:0);
   // A search takes the card that starts a line with what is already in hand.
   if(n==='Reinforcement of the Army'&&ownCard&&c.location===L.DECK&&name(c)==='Marauding Captain'&&hand.some(x=>monster(x)&&lvl(x)<=4&&!same(x,c)))return 60000;
   if(n==='Pitch-Black Power Stone')return ownCard&&spellCounterUsers.has(name(c))?50000:-100000;
@@ -636,11 +728,18 @@ export function deckPolicy(x){
   if(['Pinch Hopper','Pyramid Turtle','Flying Kamakiri #1','Goblin Zombie','Call of the Mummy','Water Hazard','Surface','Big Wave Small Wave','Book of Life'].includes(n)){
    if(!ownCard)return c.location===L.GRAVE?atk(c): -100000;
    if(c.location===L.HAND&&n==='Goblin Zombie')return null;
+   // Pyramid Turtle: Vampire Lord when Vampire Genesis waits in hand (it banishes Vampire Lord from the field),
+   // otherwise Ryu Kokki, the strongest Zombie it can call (user, 2026-11-06).
+   if(n==='Pyramid Turtle'&&c.location===L.DECK){
+    const genesis=has(hand,'Vampire Genesis');
+    if(name(c)==='Vampire Lord'&&genesis)return 100000;
+    if(name(c)==='Ryu Kokki'&&!genesis)return 90000;
+   }
    return atk(c)+(name(c)==='Vampire Lord'?700:0)+(name(c)==='Pyramid Turtle'&&danger?1000:0);
   }
   if(n==='Call of the Earthbound')return !ownCard?-100000:['Spirit Reaper','Zoma the Spirit'].includes(name(c))?100000:(c.position&1?atk(c):c.defense??data(c).defense??0);
   if(n==='Forgotten Temple of the Deep')return ownCard&&threatened(c)?100000:-100000;
-  if(n==='Overpowering Eye')return ownCard&&race(c)==='Zombie'&&atk(c)<=2000?atk(c):-100000;
+  if(n==='Overpowering Eye')return ownCard&&race(c)==='Zombie'&&atk(c)<=2000&&!targetDies(own.find(x=>same(x,c))||c)?atk(c):-100000;
   if(['Fusion Weapon','Heavy Mech Support Platform','Orb of Yasaka','Mirror of Yata','Hydro Pressure Cannon'].includes(n))return ownCard?atk(c):-100000;
   return null;
  }

@@ -147,9 +147,9 @@ class TagCampaign:
 
     if run.get('challenge_level')!=-1 and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=6):
 
-     from feedback_update import draw_curses
+     from feedback_update import draw_curses, ritual_curse_block
 
-     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3))
+     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3),excluded=ritual_curse_block(deck,run.get('challenge_level',0)))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
 

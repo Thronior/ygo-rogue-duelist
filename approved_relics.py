@@ -30,7 +30,9 @@ REGULAR=[
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
 ('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz'),
 # Requested by the user on 2026-11-04.
-('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards')]
+('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
+# Requested by the user on 2026-11-06.
+('corpse_ritual','Corpse Ritual',80,'When you Ritual Summon, you can banish monsters from your GY as material instead of Tributing them from your hand or field.','Revival of Dokurorider')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),

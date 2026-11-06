@@ -205,10 +205,10 @@ def install(g):
   distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6)
   choices=[]
   if draw_routes:
-   for _ in run['routes']:
+   for opponent in run['routes']:
     blocked=list(run.get('persistent_curses',[]))
     if distinct_opening:blocked.extend(key for option in choices for key in option)
-    choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening))
+    choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening,excluded=boss_curse_block(run,opponent)))
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
   challenge_levels.suppress(run)
@@ -258,6 +258,15 @@ def install(g):
    # One exact deck for this opponent and tier. Only draw order changes.
    result=opponent_record(round_index,opponent if opponent is not None else 2,loop)['main'][:]
   rng.shuffle(result);return result
+ def boss_curse_block(run,opponent):
+  """Curses this boss never rolls, judged on the deck it will play (a fallen collector's, in loops)."""
+  if run.get('challenge_level',0)>=2:return set()
+  from feedback_update import ritual_curse_block
+  import fallen_collectors
+  fallen=fallen_collectors.opponent(run,opponent)
+  try:deck=fallen['deck']['main'] if fallen else opponent_record(run['round'],opponent,run.get('loop',0))['main']
+  except ValueError:deck=[]
+  return ritual_curse_block(deck,run.get('challenge_level',0))
  def copy_deck(run,rng=random):
   if not CHARACTERS[run['character']].get('copycat'):return
   import fallen_collectors
@@ -322,7 +331,7 @@ def install(g):
    count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
    if not selected or len(selected)!=count or any(c not in CURSES for c in selected) or selected!=dedupe_curses(selected,run.get('challenge_level',0),per_encounter=True):
-    selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]))
+    selected=draw_curses(rng,count,run.get('challenge_level',0),run.get('persistent_curses',[]),excluded=boss_curse_block(run,run['opponent']))
     run.setdefault('route_curses',{})[str(run['opponent'])]=selected
    if persistent:
     encounter=str(run.get('loop',0))+':'+str(run['round'])

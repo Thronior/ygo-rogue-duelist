@@ -24,8 +24,8 @@ function consoleHooks() {
 
 function print(report) {
   console.log(`\n\n${report.text}\n\nSaved: ${report.files.txt} (+ .csv, .json)`);
-  if (report.images) console.log(`Tier images:\n  ${report.images.join('\n  ')}`);
-  if (report.imagesError) console.log(`Tier images failed: ${report.imagesError}`);
+  if (report.images) console.log(`Images:\n  ${report.images.join('\n  ')}`);
+  if (report.imagesError) console.log(`Images failed: ${report.imagesError}`);
 }
 
 async function main() {

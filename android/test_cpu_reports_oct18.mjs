@@ -50,8 +50,11 @@ const make=()=>{
  assert(smartContext(e,1,L,prompt).activation(metal,true)>0,'use Metalmorph when 700 DEF becomes 1000 and saves the attacked monster');
  put(1,L.MZONE,{...defender,defense:600});e.attackTarget={...defender,defense:600};
  assert.equal(smartContext(e,1,L,prompt).activation(metal,true),-1,'do not spend Metalmorph when +300 DEF still leaves the monster destroyed');
+ // An Attack Position defender is judged on ATK (2026-11-06): 600 + 300 still loses to 1000, whatever its 700 DEF says.
+ put(1,L.MZONE,{...defender,position:1,attack:600});e.attackTarget={...defender,position:1,attack:600};
+ assert.equal(smartContext(e,1,L,prompt).activation(metal,true),-1,'do not use the defense-survival rule on an Attack Position target');
  put(1,L.MZONE,{...defender,position:1});e.attackTarget={...defender,position:1};
- assert.equal(smartContext(e,1,L,prompt).activation(metal,true),-1,'do not use the defense-survival rule on an Attack Position target'); const protectedDefender={...defender,defense:600};put(1,L.MZONE,protectedDefender);e.attackTarget=protectedDefender;e.cards.get(protectedDefender.code).desc+=' This card cannot be destroyed by battle.';
+ assert(smartContext(e,1,L,prompt).activation(metal,true)>0,'1000 + 300 ATK beats the 1000 ATK attacker instead of trading'); const protectedDefender={...defender,defense:600};put(1,L.MZONE,protectedDefender);e.attackTarget=protectedDefender;e.cards.get(protectedDefender.code).desc+=' This card cannot be destroyed by battle.';
  assert.equal(smartContext(e,1,L,prompt).activation(metal,true),-1,'do not spend Metalmorph when battle protection already guarantees survival');
 }
 

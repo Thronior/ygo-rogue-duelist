@@ -68,6 +68,10 @@ def effect(kind):
   for code in ('EFFECT_CANNOT_SUMMON','EFFECT_CANNOT_MSET'):out.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetTarget(function(e,c) return c:GetTributeRequirement()>0 end) Duel.RegisterEffect(e,0) end')
  elif key=='empty_hand_pact':atk(1000,'Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==0');handlimit(4)
  elif key=='deep_pockets':handlimit(9)
+ elif key=='corpse_ritual':
+  # Monsters in your GY count as Ritual Material; the Ritual procedure (Duel.ReleaseRitualMaterial) banishes them.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_RITUAL_MATERIAL) e:SetTargetRange(LOCATION_GRAVE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(1) Duel.RegisterEffect(e,0) end')
+  out.append(event('EVENT_REMOVE','--[[relic-hint]]','eg:IsExists(function(c) return c:IsPreviousLocation(LOCATION_GRAVE) and c:IsPreviousControler(0) and c:IsReason(REASON_RITUAL) end,1,nil)'))
  elif key=='solitary_tyrant':atk(400,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1');atk(-500,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)>1')
  elif key=='crowded_crypt':atk('function() return math.min(750,75*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end');handlimit(2)
  elif key=='golden_grave':defense(-400)
