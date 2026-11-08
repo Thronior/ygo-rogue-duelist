@@ -33,6 +33,9 @@ CODEY = re.compile(r'\d(px|ms|deg|vh|vw|dvh|em|rem)\b|#[0-9a-f]{3,8}\b|translate
 
 def keep_ui(text):
     s = norm(text)
+    # This all-caps achievement badge is intentional display text, not a code constant.
+    if s == 'COMPLETED':
+        return True
     if s in proper or CODEY.search(s):
         return False
     if re.fullmatch(r"[a-z][a-z'\-]*", s):  # lone lowercase word: almost always a key
@@ -73,6 +76,12 @@ if len(sys.argv) > 3:
         files = [f for f in r['files'] if f not in relic_builders]
         if files and keep_ui(r['text']) and (' ' in r['text'] or r['text'][:1].isupper()):
             add('python', r['text'], r['kind'], ','.join(files[:3]))
+
+# Achievement criteria are stored as data and never appear as source-code literals.
+# Add them to the UI catalog so the dynamically rendered achievement descriptions translate.
+progression = json.loads((ROOT / 'data/character-progression.json').read_text(encoding='utf8'))
+for rule in progression.get('unlocks', {}).values():
+    add('ui', rule.get('description'), 'exact', 'achievement unlock requirement')
 
 # 3. Relics, cursed relics and their benefit/drawback parts.
 for key, (name, price, text) in content['artifacts'].items():

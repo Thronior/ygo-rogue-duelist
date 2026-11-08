@@ -3061,6 +3061,8 @@ button:not(.cardbtn),select{font-weight:700}
 /* Language picker (2026-11-08): flag at the title screen's top right, mirroring the Discord button. */
 .language-button{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:25;width:46px;height:38px;display:grid;place-items:center;padding:6px;background:#111b2ecc;border:1px solid #53798488;border-radius:10px}
 .language-flag{width:100%;height:auto;border-radius:2px;box-shadow:0 0 0 1px #0006;display:block}
+/* Settings > Display > Language: the same flag button, with the language name. */
+.settings-language-button{display:inline-flex;align-items:center;gap:10px;flex:none;padding:6px 12px;background:#111b2ecc;border:1px solid #53798488;border-radius:10px}.settings-language-button .language-flag{width:34px}.settings-language-button span{font-weight:700}
 .language-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;min-width:min(560px,80vw)}
 .language-list button{display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left;font-size:16px}
 .language-list button .language-flag{width:36px;flex:none}

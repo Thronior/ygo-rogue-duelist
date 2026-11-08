@@ -20968,5 +20968,215 @@
   "en": "Tie",
   "kind": "exact",
   "ctx": "cpu-viewer.js,exodia-finale.js"
+ },
+ {
+  "group": "ui",
+  "en": "COMPLETED",
+  "kind": "exact",
+  "ctx": "achievement status"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Yami Yugi",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Seto Kaiba",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Joey Wheeler",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Mai Valentine",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Bandit Keith",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Lumis and Umbra",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Yami Bakura",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Maximillion Pegasus",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Rex Raptor",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Bonz",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Weevil Underwood",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Yami Marik",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Tristan Taylor",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Yugi Muto",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Ishizu Ishtar",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Odion",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run with Espa Roba",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Buy four different booster packs in one run",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with all six monster Attributes represented in your Main Deck",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with 6 or 7 Level 5+ monsters in your Main Deck",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with 10,000 or more LP",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Buy 50 single cards across runs",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Hold 300 coins at once",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with no duplicate cards in your Main Deck",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Beat a boss with 500 LP or less remaining before healing",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Summon 2 or more Ritual Monsters in one duel",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with 5 or more banished cards",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel after summoning a Fusion Monster",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with a 60-card Main Deck",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Own six different relics at once",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Beat a run without buying any relics",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with only monsters in your Main Deck (no Spells or Traps)",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Beat the World Champion",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Beat Challenge Level 5 with any character",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
  }
 ]
