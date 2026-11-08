@@ -24,7 +24,7 @@ def challenge(g,run):
 def next_loop(g,run):
  if run['stage']!='complete' or not run.get('encore_won'):raise ValueError('Defeat the loop challenger to begin another loop.')
  run.update(loop=run.get('loop',0)+1,round=0,encore_active=False,encore_won=False,profile_complete=False,stage='shop',boss_curse=None,curses=[],boss_cursed=[])
- run.pop('encore_opponent',None)
+ run.pop('encore_opponent',None);run.pop('variant_unlocked',None)
  run.setdefault('previous_loop_opponents',[]).append(run.get('defeated_opponents',[]))
  run['defeated_opponents']=[]
  run.setdefault('previous_loop_opponents',[]).append(run.get('defeated_opponents',[]))

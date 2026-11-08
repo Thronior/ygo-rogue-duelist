@@ -4,7 +4,8 @@ import {loadingTip} from './loading-tips.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {replayVersion} from './replay-version.js';
 import {loadEngineData} from './engine.js';
-import {frameLevelName,deckCardMarkup,monsterTypes,modifiedCard,deckStats,attributeOrder,misprintNoticeLine} from './feedback-ui.js';
+import {frameLevelName,deckCardMarkup,modifiedCard,deckStats,attributeOrder,misprintNoticeLine} from './feedback-ui.js';
+import {iconChoices,iconChoiceGrid} from './type-attribute-icons.js';
 
 import {openDeckPreview} from './deck-preview.js';
 
@@ -41,8 +42,10 @@ import {preloadAllBackgrounds,preloadBackground,backgroundSpec} from './backgrou
 import {renderDuelDOM,clearDuelDOM} from './duel-dom.js';
 
 import {installVectorBackgrounds} from './vector-backgrounds.js';
+import {installAmbientClock} from './ambient-clock.js';
 
 import {play3DToss} from './toss-3d.js';
+import {playWheelSpin,coinCallLabel,isCoinCall} from './time-wizard-wheel.js';
 
 import {deviceBackup,validateRecovery,restoreRecovery} from './device-backup.js';
 import {cloudSettingsMarkup,cloudCodeMarkup,cloudRestoreMarkup,cloudFoundMarkup,cloudFirstBootMarkup,copyCloudCode,saveCloudCode} from './cloud-save-ui.js';
@@ -128,7 +131,7 @@ import {recordStat,recordRunResult,startStats,fetchStats,observeTagStats,persona
 import {isShopUltra,announceShopUltra} from './shop-ultra.js';
 import {playRelicFusion} from './relic-fusion-fx.js';
 
-import {typeIcon,genreIcons,searchButton,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,DECK_SPLIT_COLUMNS,autoColumnsAcross,splitDeckMarkup,saveDeckScroll,restoreDeckScroll} from './card-search.js';
+import {typeIcon,genreIcons,searchButton,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,autoColumnsAcross,splitDeckMarkup,saveDeckScroll,restoreDeckScroll,deckSplitColumns,splitStyle} from './card-search.js';
 
 import {cardFacts,displayCardText} from './card-inspection.js';
 
@@ -160,6 +163,8 @@ const app=document.querySelector('#app'),modal=document.querySelector('#modal');
 
 let duelScene=null,duelSceneOwner=null,duelSceneNumber=0;
 installVectorBackgrounds(app,modal,()=>({...state?.settings,duelScene:duelSceneOwner&&snapshot&&duelSceneOwner===engine?duelScene:null}));
+// Endless ambient loops share one 50 ms tick (ambient-clock.js), so the screen is redrawn 20 times a second for them.
+installAmbientClock();
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -444,7 +449,16 @@ function syncModalChain(){
 
  if(span&&span.textContent!==label)span.textContent=label;
 
- const styles={position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',margin:'0px',zIndex:'1000',visibility:'visible'};
+ // When the button would cover a duel prompt's choices (phone portrait), it moves just below the prompt, kept off Options.
+ let top=r.top;const prompt=[...app.querySelectorAll('.duel .prompt')].find(p=>p.checkVisibility());
+ const hits=(a,t,h)=>a.left<r.right&&a.right>r.left&&a.top<t+h&&a.bottom>t;
+ if(prompt&&[...prompt.querySelectorAll('button,input,[data-target],[data-response]')].some(el=>hits(el.getBoundingClientRect(),r.top,r.height))){
+  const p=prompt.getBoundingClientRect(),options=app.querySelector('[data-do="duel-options"]')?.getBoundingClientRect();top=p.bottom+4;
+  if(options&&hits(options,top,r.height))top=Math.max(p.bottom,options.top-4-r.height);
+  top=Math.min(top,innerHeight-r.height);
+ }
+
+ const styles={position:'fixed',left:r.left+'px',top:top+'px',width:r.width+'px',height:r.height+'px',margin:'0px',zIndex:'1000',visibility:'visible'};
 
  for(const [name,value] of Object.entries(styles))if(copy.style[name]!==value)copy.style[name]=value;
 
@@ -494,7 +508,7 @@ async function offerGoldenCards(){
 
  const r=state.run;if(!r||r.challenge_level===-1)return;
 
- if(r.artifacts.includes('dna_rewrite')&&!r.monster_type){if(modal.open)return;dialog('DNA Rewrite',`<p>Choose a monster Type for this run.</p><div class="type-choice-grid">${monsterTypes.map(t=>btn(`${typeIcon({race:t,data:{type:1}})}<span>${esc(t)}</span>`,'choose-monster-type',`data-type="${t}" aria-label="${t}"`)).join('')}</div>`,false);await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));return offerGoldenCards();}
+ if(r.artifacts.includes('dna_rewrite')&&!r.monster_type){if(modal.open)return;dialog('DNA Rewrite',`<p>Choose a monster Type for this run.</p>${iconChoiceGrid(iconChoices('race',content.cards),'race',x=>`data-do="choose-monster-type" data-type="${x.name}" aria-label="${x.name}"`)}`,false);await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));return offerGoldenCards();}
 
  if(pendingRelicChoice(r)){if(!modal.open)showRelicChoice(r);await new Promise(resolve=>modal.addEventListener('close',resolve,{once:true}));return offerGoldenCards();}
 
@@ -723,7 +737,7 @@ function renderCharacters(){
 
 }
 
-function showRunSlots(newRun=false){dialog(newRun?'Choose a slot for your new run':'Resume a saved run',`<div class="save-slot-grid">${state.slots.map(s=>{const r=s.run,c=r?content.characters[r.character]:null;return `<button class="save-slot" data-do="${newRun?'new-slot':'load-slot'}" data-slot="${s.slot}" ${!newRun&&!r?'disabled':''}><span class="slot-number">Slot ${s.slot}${c?' · '+esc(c.name):''}</span><span class="slot-portrait">${c?`<img src="assets/${c.sprite}" alt="${esc(c.name)}">`:''}</span><span class="slot-detail">${r?`Loop ${(r.loop||0)+1} · Duel ${Math.min(9,(r.round||0)+1)}/9<br>${Number(r.lp||0).toLocaleString()} LP<br><small>Last played: ${esc(lastPlayed(r.last_played_at))}</small>`:'Empty'}</span><b class="slot-action">${newRun?(r?'Replace this run':'Start here'):(r?'Resume':'Empty')}</b></button>`}).join('')}</div>`)}
+function showRunSlots(newRun=false,title=newRun?'Choose a slot for your new run':'Resume a saved run'){dialog(title,`<div class="save-slot-grid">${state.slots.map(s=>{const r=s.run,c=r?content.characters[r.character]:null;return `<button class="save-slot" data-do="${newRun?'new-slot':'load-slot'}" data-slot="${s.slot}" ${!newRun&&!r?'disabled':''}><span class="slot-number">Slot ${s.slot}${c?' · '+esc(c.name):''}</span><span class="slot-portrait">${c?`<img src="assets/${c.sprite}" alt="${esc(c.name)}">`:''}</span><span class="slot-detail">${r?`Loop ${(r.loop||0)+1} · Duel ${Math.min(9,(r.round||0)+1)}/9<br>${Number(r.lp||0).toLocaleString()} LP<br><small>Last played: ${esc(lastPlayed(r.last_played_at))}</small>`:'Empty'}</span><b class="slot-action">${newRun?(r?'Replace this run':'Start here'):(r?'Resume':'Empty')}</b></button>`}).join('')}</div>`)}
 
 async function newRun(){showRunSlots(true)}
 
@@ -751,19 +765,21 @@ function bountyBanner(r){
  return '<section class="bounty-banner" aria-label="Bounty objective"><strong>BOUNTY</strong><span>'+esc(b.title||'Objective')+'</span><p>'+esc(b.description||'Complete this Duel to earn coins.')+'</p><small>Reward: +'+reward+' coins</small></section>';
 }
 
-function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${['Newest','Default','Name','Type','Attribute','ATK','DEF','Level','Oldest'].map(o=>`<option ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split">${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftOrder(r.pool,r.selected).map(i=>draftCard(r,i)).join('')||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
+function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${['Newest','Default','Name','Type','Attribute','ATK','DEF','Level','Oldest'].map(o=>`<option ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(draftSplit)}>${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftOrder(r.pool,r.selected).map(i=>draftCard(r,i)).join('')||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
 const draftCard=(r,i)=>deckCardMarkup(cardButton(r.pool[i],`data-pick="${i}"`,r.selected.includes(i),!!(r.card_mods&&r.card_mods[i]!==undefined)),card(r.pool[i]),r,i,content.artifactInfo);
 // Wide screens (2026-11-06): when Auto would fit 18+ cards per row, the editor splits into a Deck pane (8 per row) and a
 // Collection pane with everything else. A tap moves the card across; each pane keeps its own scroll.
-let draftSplit=false;
+let draftSplit=0;
 function splitDeckPanes(r){
  const inDeck=new Set(r.selected),order=draftSorted(r.pool,r.selected,true);
  return splitDeckMarkup(order.filter(i=>inDeck.has(i)),order.filter(i=>!inDeck.has(i)),i=>draftCard(r,i),draftTab==='Extra');
 }
 function checkDraftSplit(){
- if(screen!=='draft'||state.settings.deckColumns){if(draftSplit){draftSplit=false;if(screen==='draft')renderDraft()}return}
- autoDeckColumns=autoColumnsAcross(app.querySelector('.draft-scroll'),app.querySelector('.draft-card-scroll'));const want=autoDeckColumns>=DECK_SPLIT_COLUMNS;
- if(want!==draftSplit){draftSplit=want;renderDraft()}
+ if(screen!=='draft'){draftSplit=0;return}
+ const host=app.querySelector('.draft-scroll'),area=app.querySelector('.draft-card-scroll');
+ if(!state.settings.deckColumns)autoDeckColumns=autoColumnsAcross(host,area);
+ const total=deckSplitColumns(host,area,autoDeckColumns);
+ if(total!==draftSplit){draftSplit=total;renderDraft()}
 }
 let draftSplitTimer=0;window.addEventListener('resize',()=>{clearTimeout(draftSplitTimer);draftSplitTimer=setTimeout(()=>{if(screen==='draft')checkDraftSplit()},200)},{passive:true});
 function updateSplitPanes(r){
@@ -884,15 +900,17 @@ document.addEventListener('change',async e=>{if(!e.target.matches('[data-perform
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-visual-effect]'))return;const off=new Set(state.settings.effectsOff||[]);off[e.target.checked?'delete':'add'](e.target.dataset.visualEffect);state.settings.effectsOff=[...off];applyEffectOptions(state.settings.effectsOff);await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-pause-hidden]'))return;state.settings.pauseWhenHidden=e.target.checked;syncInspectionPause();await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-deck-columns-auto]'))return;const auto=e.target.checked,slider=document.getElementById('deck-columns');state.settings.deckColumns=auto?0:10;if(slider){slider.disabled=auto;slider.value=auto?DECK_COLUMNS_MAX:10;slider.nextElementSibling.textContent=deckColumnsLabel(state.settings.deckColumns)}applyDisplayOptions(state.settings);await command('settings',state.settings)});
+document.addEventListener('change',async e=>{if(!e.target.matches('[data-deck-split-toggle]'))return;state.settings.deckSplit=e.target.checked;applyDisplayOptions(state.settings);await command('settings',state.settings)});
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-auto-placement]'))return;state.settings.autoPlacement=e.target.checked;await command('settings',state.settings)});
 // Auto-Placement (2026-11-06): summoning, setting or activating a card picks its zone the way the CPU does. Only plain
 // placements on your own side; zones on the opponent's side and zones to disable are still chosen by hand.
-function autoPlacement(m){
- if(!state?.settings?.autoPlacement||m?.player!==0||m.type!==M.SELECT_PLACE)return null;
+// True when Auto-Placement will answer this zone prompt itself, so its zones are not highlighted (user, 2026-11-07).
+function autoPlaces(m){
+ if(!state?.settings?.autoPlacement||m?.player!==0||m.type!==M.SELECT_PLACE||screen!=='duel'||(tagUI&&!tagUI.session.duelReady))return false;
  const places=engine.choices(m).map(c=>c.response.places?.[0]);
- if(!places.length||places.some(p=>!p||p.player!==0||![L.MZONE,L.SZONE].includes(p.location)))return null;
- return engine.auto(m);
+ return places.length>0&&places.every(p=>p&&p.player===0&&[L.MZONE,L.SZONE].includes(p.location));
 }
+function autoPlacement(m){return autoPlaces(m)?engine.auto(m):null}
 
 
 
@@ -908,7 +926,7 @@ let autoDeckColumns=0;
 const deckColumnsLabel=value=>value>=DECK_COLUMNS_MIN?`${value} per row`:autoDeckColumns?`${autoDeckColumns} per row`:'';
 // Auto is its own switch (2026-11-06): while on, the slider sits full and greyed out; turning it off starts at 10 per row.
 const deckColumnsSlider=()=>{const value=Number(state.settings.deckColumns)||0,auto=value<DECK_COLUMNS_MIN;return settingSlider('Deck Card Size','Cards per row while editing a deck. Fewer cards means bigger cards.','deck-columns',auto?DECK_COLUMNS_MAX:value,DECK_COLUMNS_MIN,DECK_COLUMNS_MAX,1,'').replace('type="range"',`type="range"${auto?' disabled':''}`).replace(/<output>.*?<\/output>/,`<output>${deckColumnsLabel(value)}</output><label class="deck-columns-auto"><span>Auto</span><input type="checkbox" class="switch" data-deck-columns-auto ${auto?'checked':''}></label>`)};
-const displaySettings=()=>settingSlider('Text Size','Card text, prompts, settings and the duel log.','text-size',state.settings.textSize,100,150,10,'%')+deckColumnsSlider()+duelThemeSetting()+settingToggle('Reduce Motion','Calm animations, the same as your device’s reduced motion setting.','data-reduce-motion',state.settings.reduceMotion);
+const displaySettings=()=>settingSlider('Text Size','Card text, prompts, settings and the duel log.','text-size',state.settings.textSize,100,150,10,'%')+deckColumnsSlider()+settingToggle('Split Deck Editor','Your deck and your collection side by side, from 10 cards per row. The deck side shows 5 per row, or 8 from 18.','data-deck-split-toggle',state.settings.deckSplit)+duelThemeSetting()+settingToggle('Reduce Motion','Calm animations, the same as your device’s reduced motion setting.','data-reduce-motion',state.settings.reduceMotion);
 function manualResponseWindowSetting(){const value=Math.max(0,Math.min(2000,Number(state.settings.manualResponseWindow??200)||0));return settingSlider('Response Window','How long you have to respond to an optional chain on the opponent’s turn before it passes.','manual-response-window',value,0,2000,50,' ms')}
 function gameplaySettings(){return settingToggle('Pause When Tabbed Out','Pause single-player duels while the game is hidden.','data-pause-hidden',state.settings.pauseWhenHidden!==false)+settingToggle('Faster Animations','Your own actions play out quicker. The opponent keeps its pace.','data-faster-animations',state.settings.fasterAnimations)+settingToggle('Auto-Placement','Cards you summon, Set or activate go to a zone automatically, picked the way the opponent picks.','data-auto-placement',state.settings.autoPlacement)+manualResponseWindowSetting()+'<div class="set-row keyboard-shortcuts"><span class="set-text"><b>Keyboard Shortcuts</b><small>Space: next phase · Enter: confirm · C: chain prompts · L: duel log</small></span></div>'}
 function duelBackgroundSetting(){return settingToggle('Performance Mode','Fewer decorative effects and still backgrounds. Gameplay animations stay.','data-performance-mode',state.settings.performanceMode)+settingToggle('Simple Backgrounds','Static gradients for lower battery use.','data-simple-backgrounds',state.settings.simpleBackgrounds)+settingToggle('Compatibility Mode','Turns off filters and blur that flicker in some browsers.','data-compatibility-mode',compatibilityEnabled())}
@@ -962,9 +980,11 @@ let shadowVictoryKey=null,viewedRun=null;
 
 function finalChallengeName(r){const opponent=r.encore_opponent??(r.encore_won?0:r.loop>=1?75:0);return opponent===75?(content.characters[opponent]?.name||'Obelisk the Tormenter'):'2004 World Champion'}
 
-const runCardMarkup=()=>`<figure class="run-card"><canvas class="run-card-canvas" width="1080" height="1350" role="img" aria-label="Run summary"></canvas></figure><div class="run-card-share"><button class="primary run-card-copy" data-do="copy-run-card" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Copy image</button><button class="run-card-copy run-card-save" data-do="save-run-card" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download</button><p class="run-card-status" role="status" aria-live="polite"></p></div>`;
+const runCardFigure=()=>`<figure class="run-card"><canvas class="run-card-canvas" width="1080" height="1350" role="img" aria-label="Run summary"></canvas></figure>`,runCardShare=()=>`<div class="run-card-share"><button class="primary run-card-copy" data-do="copy-run-card" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Copy image</button><button class="run-card-copy run-card-save" data-do="save-run-card" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download</button><p class="run-card-status" role="status" aria-live="polite"></p></div>`,runCardMarkup=()=>runCardFigure()+runCardShare();
 
-function renderEnding(){const r=state.run,won=r.stage==='complete';const victoryKey=String(r.started_at)+':'+r.character;if(won&&r.challenge_level===6&&!r.secret_challenge&&shadowVictoryKey!==victoryKey&&!r.reward_slots?.pending){shadowVictoryKey=victoryKey;showShadowVictory(()=>(state.settings?.sound??65)/100);}shell(won?'Run complete':'Game over',`<div class="scroll" data-run-outcome="${won?'victory':'defeat'}"><div class="panel">${won&&r.level_unlocked!=null?`<section class="level-unlock" aria-label="Challenge level unlocked"><div class="unlock-lights"></div><div class="unlock-motes">${Array.from({length:40},(_,i)=>`<i style="--x:${(i*37+11)%100}%;--y:${(i*53+5)%100}%;--delay:-${(i*0.35).toFixed(2)}s;--duration:${(2.2+(i%7)*0.3).toFixed(2)}s"></i>`).join('')}</div><h2>CHALLENGE LVL ${r.level_unlocked} UNLOCKED</h2><p>Clear a full run to unlock the next level for ${esc(character().name)}.</p></section>`:''}${runCardMarkup()}<h3>Unlocked during this run</h3><p>${state.achievements.filter(a=>r.content_unlocks_earned?.includes(a.id)||(a.id.startsWith('character:')&&r.unlocks_earned?.includes(+a.id.split(':')[1]))).map(a=>`<span class="unlock-art"><img src="assets/${a.image}"><span>${esc(a.name)}</span></span>`).join('')||'No new unlocks this run.'}</p>${won&&!r.secret_challenge?`<section class="panel"><h3>${r.encore_won?`${esc(finalChallengeName(r))} DEFEATED`:`Face ${esc(finalChallengeName(r))}`}</h3>${r.encore_won?'<p>Keep your cards, coins and relics. Each loop adds 100 enemy ATK/DEF and 2,000 enemy LP.</p>':''}${btn(r.encore_won?'Begin next loop':'Start Looping',r.encore_won?'next-loop':'champion','','primary')}</section>`:''}${r.secret_challenge&&won?'<p>Gallery unlocked!</p>':''}${btn('New Run','characters','','primary')}</div></div>`);mountEndingCard(r)}
+function renderEnding(){const r=state.run,won=r.stage==='complete';const victoryKey=String(r.started_at)+':'+r.character;if(won&&r.challenge_level===6&&!r.secret_challenge&&shadowVictoryKey!==victoryKey&&!r.reward_slots?.pending){shadowVictoryKey=victoryKey;showShadowVictory(()=>(state.settings?.sound??65)/100);}const next=won&&!r.secret_challenge&&r.challenge_level>=0&&r.challenge_level<6?r.challenge_level+1:null;shell(won?'Run complete':'Game over',`<div class="scroll run-end" data-run-outcome="${won?'victory':'defeat'}"><div class="run-end-layout"><div class="run-end-left">${variantUnlockMarkup(r)}${won&&r.level_unlocked!=null?`<section class="level-unlock" aria-label="Challenge level unlocked"><div class="unlock-lights"></div><div class="unlock-motes">${Array.from({length:40},(_,i)=>`<i style="--x:${(i*37+11)%100}%;--y:${(i*53+5)%100}%;--delay:-${(i*0.35).toFixed(2)}s;--duration:${(2.2+(i%7)*0.3).toFixed(2)}s"></i>`).join('')}</div><h2>CHALLENGE LVL ${r.level_unlocked} UNLOCKED</h2><p>Clear a full run to unlock the next level for ${esc(character().name)}.</p></section>`:''}<section class="run-end-unlocks"><h3>Unlocked during this run</h3><div class="run-end-unlock-list">${state.achievements.filter(a=>r.content_unlocks_earned?.includes(a.id)||(a.id.startsWith('character:')&&r.unlocks_earned?.includes(+a.id.split(':')[1]))).map(a=>`<span class="unlock-art"><img src="assets/${a.image}"><span>${esc(a.name)}</span></span>`).join('')||'<p class="muted">No new unlocks this run.</p>'}</div></section></div>${runCardFigure()}<div class="run-end-right">${runCardShare()}<div class="run-end-next">${next!=null?`<button class="run-end-next-level" data-do="next-level-run" data-level="${next}"><span class="next-level-name">${esc(character().name)}</span><span class="next-level-shine">Challenge level ${next}</span></button>`:''}${r.secret_challenge&&won?'<p class="run-end-gallery">Gallery unlocked!</p>':''}${btn('New Run','characters','',next!=null?'':'primary')}${won&&!r.secret_challenge?`<section class="run-end-loop"><p>${r.encore_won?`${esc(finalChallengeName(r))} defeated. Keep your cards, coins and relics. Each loop adds 100 enemy ATK/DEF and 2,000 enemy LP.`:`Keep this deck? Face ${esc(finalChallengeName(r))} and start looping.`}</p>${btn(r.encore_won?'Begin next loop':'Start Looping',r.encore_won?'next-loop':'champion','','run-end-loop-button')}</section>`:''}</div></div></div></div>`);mountEndingCard(r)}
+// The run that unlocks a character's second variant shows it off: its art, name, signature cards and starting relic.
+function variantUnlockMarkup(r){const base=content.characters[r.character],alt=base?.alternate;if(!r.variant_unlocked||!alt)return '';const cards=alt.cards.slice(0,3).map(name=>content.cards.find(row=>row.name===name)?.id).filter(Boolean),relic=content.artifactInfo[alt.starting_relic];return `<section class="variant-unlock" aria-label="New variant unlocked" style="--variant-art:url('assets/${alt.background||`character-backgrounds/${r.character}.jpg`}')"><p class="variant-unlock-eyebrow">New variant unlocked</p><h2>${esc(alt.name)}</h2><div class="variant-unlock-cards">${cards.map(id=>`<img src="${image(id)}" alt="">`).join('')}</div>${relic?`<p class="variant-unlock-relic">${relicArtwork(relicImage(relic.art))}<span>Starts with ${esc(content.artifacts[alt.starting_relic][0])}</span></p>`:''}</section>`}
 // The share card draws once its artwork loads; Copy stays disabled until then.
 // A past run, from its history row. Older rows have no deck, so a win's card leaves it out.
 function showRunCard(row){
@@ -1107,7 +1127,7 @@ function levelChangeMarkup(c){
 
 }
 
-function zone(c,player,loc,seq,col,row,label=''){const m=engine.pending,isPlace=m?.player===0&&[M.SELECT_PLACE,M.SELECT_DISFIELD].includes(m.type);const option=isPlace?engine.choices(m).find(a=>a.response.places?.[0]?.player===player&&a.response.places[0].location===loc&&a.response.places[0].sequence===seq):null;
+function zone(c,player,loc,seq,col,row,label=''){const m=engine.pending,isPlace=m?.player===0&&[M.SELECT_PLACE,M.SELECT_DISFIELD].includes(m.type)&&!autoPlaces(m);const option=isPlace?engine.choices(m).find(a=>a.response.places?.[0]?.player===player&&a.response.places[0].location===loc&&a.response.places[0].sequence===seq):null;
 
  const target=selectionEntries(m).find(x=>x.c.controller===player&&x.c.location===loc&&x.c.sequence===seq);
 
@@ -1160,7 +1180,7 @@ function renderDuel(){if(!snapshot)return;const inspectionScroll=document.queryS
 
  rows.push(`<div class="phases">${phases.map(([n,label])=>`<button data-phase="${n}" class="${(n===8?s.phase>=8&&s.phase<256:s.phase===n)?'active':''}" ${phaseAction(n)?'':'disabled'}>${label}</button>`).join('')}${fieldSelectBare(m)&&!attackTargetSelection(m)&&selectionEntries(m).every(x=>fieldEntry(x.c))?fieldSelectionControls(m):''}</div>`);
 
-renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()}</aside><div class="portrait-relics">${duelCurseMarkup()}${relicIndicatorMarkup()}</div><section class="duel-main"><div class="duel-particles" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37+7)%100}%;--y:${(i*19+3)%100}%;--delay:-${i*1.7}s;--duration:${10+i%6}s"></i>`).join('')}</div><div class="lpbar"><div class="life"><strong>${s.lp[0]}</strong><span>${esc(own.name)}</span></div><div class="turn">TURN<b>${displayTurn}</b></div><div class="life enemy"><span>${r.encore_active?'World Champion':esc(opponent.name)}</span><strong>${s.lp[1]}</strong></div></div><div class="field-wrap"><div class="enemy-hand">${s.players[1].hand.map(c=>engine.handRevealed?.(0,c)?`<button data-inspect="${c.code}" aria-label="Inspect revealed card"><img src="${image(c.code)}" alt="${esc(engine.name(c.code))}"></button>`:'<img src="assets/card-back.jpg" alt="Hidden card">').join('')}</div><img class="field-character" src="assets/${opponent.sprite}">${r.fallen_routes?.[r.opponent]?'<span class="uc-opponent-tag uc-field-tag" title="Ultimate Collector opponent">UC</span>':''}<img class="field-character own" data-do="duel-emotes" role="button" tabindex="0" aria-label="Send an emote" src="assets/${own.sprite}"><div class="mat">${rows.join('')}</div></div>${promptMarkup(m)}<div class="hand"${handStyle}>${s.players[0].hand.map((c,i)=>c?`<button data-hand="${i}" data-code="${c.code}" data-preview="${c.code}"><img src="${image(c.code)}" alt="${esc(card(c.code)?.name)}">${levelChangeMarkup(c)}${engine.misprintedHands?.[0]?.has(i)?`<span class="hand-misprint" aria-label="Misprinted card">Misprint · ${c.attack} / ${c.defense}</span>`:''}</button>`:'').join('')}</div><div class="duel-tools duel-tools-left">${relicIndicatorMarkup()}</div><div class="duel-tools duel-tools-right">${tagUI?`<span class="duel-room-code" aria-label="Room code">${esc(tagUI.session?.code||'')}</span>`:''}${btn('Options','duel-options')}</div></section></div>`);
+renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()}</aside><div class="portrait-relics">${duelCurseMarkup()}${relicIndicatorMarkup()}</div><section class="duel-main"><div class="duel-particles" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37+7)%100}%;--y:${(i*19+3)%100}%;--delay:-${(i*1.7).toFixed(2)}s;--duration:${10+i%6}s;--mote-steps:${2*(10+i%6)}"></i>`).join('')}</div><div class="lpbar"><div class="life"><strong>${s.lp[0]}</strong><span>${esc(own.name)}</span></div><div class="turn">TURN<b>${displayTurn}</b></div><div class="life enemy"><span>${r.encore_active?'World Champion':esc(opponent.name)}</span><strong>${s.lp[1]}</strong></div></div><div class="field-wrap"><div class="enemy-hand">${s.players[1].hand.map(c=>engine.handRevealed?.(0,c)?`<button data-inspect="${c.code}" aria-label="Inspect revealed card"><img src="${image(c.code)}" alt="${esc(engine.name(c.code))}"></button>`:'<img src="assets/card-back.jpg" alt="Hidden card">').join('')}</div><img class="field-character" src="assets/${opponent.sprite}">${r.fallen_routes?.[r.opponent]?'<span class="uc-opponent-tag uc-field-tag" title="Ultimate Collector opponent">UC</span>':''}<img class="field-character own" data-do="duel-emotes" role="button" tabindex="0" aria-label="Send an emote" src="assets/${own.sprite}"><div class="mat">${rows.join('')}</div></div>${promptMarkup(m)}<div class="hand"${handStyle}>${s.players[0].hand.map((c,i)=>c?`<button data-hand="${i}" data-code="${c.code}" data-preview="${c.code}"><img src="${image(c.code)}" alt="${esc(card(c.code)?.name)}">${levelChangeMarkup(c)}${engine.misprintedHands?.[0]?.has(i)?`<span class="hand-misprint" aria-label="Misprinted card">Misprint · ${c.attack} / ${c.defense}</span>`:''}</button>`:'').join('')}</div><div class="duel-tools duel-tools-left">${relicIndicatorMarkup()}</div><div class="duel-tools duel-tools-right">${tagUI?`<span class="duel-room-code" aria-label="Room code">${esc(tagUI.session?.code||'')}</span>`:''}${btn('Options','duel-options')}</div></section></div>`);
 
  if(m?.type===M.SELECT_CHAIN&&m.player===0&&m!==chainBuzzed&&offerChain(m)){chainBuzzed=m;juice.buzz(25)}
 
@@ -1368,7 +1388,7 @@ async function playDuelCue(cue,{field,playerAction,quick=false,owner,legendarySh
   retireChainPanel();document.body.classList.add('toss-animating');
   // A relic's own toss (Jester's Coin) plays at once; only solo card tosses wait for your tap,
   // because in Tag a tap nobody knows they owe leaves one player's screen stuck.
-  try{if(cue.player===0&&!cue.relic&&!tagUI&&!await waitForTossStart(field,cue.kind,()=>screen==='duel'&&engine===owner))return false;await play3DToss(field,cue.kind,cue.results,{wait:duelDelay,active:()=>screen==='duel'&&engine===owner,sound:duelSound})}
+  try{if(cue.player===0&&!cue.relic&&!tagUI&&!await waitForTossStart(field,cue.wheel?'wheel':cue.kind,()=>screen==='duel'&&engine===owner))return false;const options={wait:duelDelay,active:()=>screen==='duel'&&engine===owner,sound:duelSound};await(cue.wheel?playWheelSpin(field,cue.results,options):play3DToss(field,cue.kind,cue.results,options))}
   finally{document.body.classList.remove('toss-animating')}
   return true;
  }
@@ -1593,7 +1613,7 @@ function reactionMarkup(m){
 
 
 
-let promptHidden=false,sortOrder=[],sortPrompt=null,tributeDefaultPrompt=null;
+let promptHidden=false,sortOrder=[],sortPrompt=null,tributeDefaultPrompt=null,announcePrompt=null,announcePicks=new Set();
 
 let hiddenPrompt=null;
 
@@ -1624,6 +1644,8 @@ function promptMarkup(m){if(promptHidden&&hiddenPrompt!==m){promptHidden=false;h
  const names={[M.SELECT_CARD]:'Choose card(s)',[M.SELECT_TRIBUTE]:'Choose tribute(s)',[M.SELECT_SUM]:'Choose materials',[M.SELECT_UNSELECT_CARD]:'Choose materials',[M.SELECT_CHAIN]:engine.chainDepth?'Chain a response?':'Activate a card?',[M.SELECT_EFFECTYN]:'Activate effect?',[M.SELECT_YESNO]:Number(m.description)===0x7f34a1?'Reroll?':'Confirm effect',[M.SELECT_POSITION]:'Choose position',[M.SELECT_OPTION]:'Choose effect'};
 
  const confirmation=[M.SELECT_YESNO,M.SELECT_EFFECTYN].includes(m.type);
+ // Time Wizard's call shows the wheel's tower (heads) and skull (tails) on its two buttons.
+ const wizardCall=m.type===M.SELECT_OPTION&&engine.name(engine.effect?.code)==='Time Wizard'&&isCoinCall(m.options.map(v=>engine.description(v)));
 
  let body='',controls='';
 
@@ -1633,9 +1655,9 @@ function promptMarkup(m){if(promptHidden&&hiddenPrompt!==m){promptHidden=false;h
 
  else if([M.SORT_CARD,M.SORT_CHAIN].includes(m.type)){if(sortPrompt!==m){sortPrompt=m;sortOrder=m.cards.map((_,i)=>i)}body=`<p>Top card first. Use the arrows to change the order.</p><div class="sort-cards">${sortOrder.map((i,pos)=>`<div><button data-inspect="${m.cards[i].code}"><img src="${image(m.cards[i].code)}" alt="${esc(engine.name(m.cards[i].code))}"></button><span>${pos+1}. ${esc(engine.name(m.cards[i].code))}</span>${btn('↑','sort-up',`data-index="${pos}" ${pos?'':'disabled'} aria-label="Move up"`)}${btn('↓','sort-down',`data-index="${pos}" ${pos<sortOrder.length-1?'':'disabled'} aria-label="Move down"`)}</div>`).join('')}</div>`;controls=duelConfirm('Confirm order','sort-confirm');}
 
- else if([M.ANNOUNCE_RACE,M.ANNOUNCE_ATTRIB,M.SELECT_COUNTER].includes(m.type)){body=`<p>Select a legal response.</p>${advancedMarkup(m)}`;controls=m.type===M.SELECT_COUNTER?duelConfirm('Confirm counters','counters'):duelConfirm('Confirm announcement','announce');}
+ else if([M.ANNOUNCE_RACE,M.ANNOUNCE_ATTRIB,M.SELECT_COUNTER].includes(m.type)){body=`<p>${m.type===M.SELECT_COUNTER?'Select a legal response.':`Choose ${m.count} ${m.type===M.ANNOUNCE_RACE?'Type':'Attribute'}${m.count>1?'s':''}.`}</p>${advancedMarkup(m)}`;controls=m.type===M.SELECT_COUNTER?duelConfirm('Confirm counters','counters'):duelConfirm('Confirm announcement','announce');}
 
- else body=`${m.type===M.ANNOUNCE_CARD?'<input id="announce-search" placeholder="Search card name">':''}<div class="choices">${engine.choices(m).map((a,i)=>confirmation&&typeof a.response.yes==='boolean'?duelDecision(a.label,'response',`data-response="${i}"`,!a.response.yes):btn((a.code&&!confirmation?`<img class="choice-art" src="${image(a.code)}" alt="" loading="lazy" decoding="async">`:'')+esc(a.label),'response',`data-response="${i}" aria-pressed="${!!(stagedChoice&&a.response.index===stagedChoice.response.index)}"`,stagedChoice&&a.response.index===stagedChoice.response.index?'selected':'')).join('')}</div>`;
+ else body=`${m.type===M.ANNOUNCE_CARD?'<input id="announce-search" placeholder="Search card name">':''}<div class="choices${wizardCall?' tw-calls':''}">${engine.choices(m).map((a,i)=>confirmation&&typeof a.response.yes==='boolean'?duelDecision(a.label,'response',`data-response="${i}"`,!a.response.yes):btn(wizardCall?coinCallLabel(engine.description(m.options[i])):(a.code&&!confirmation?`<img class="choice-art" src="${image(a.code)}" alt="" loading="lazy" decoding="async">`:'')+esc(a.label),'response',`data-response="${i}" aria-pressed="${!!(stagedChoice&&a.response.index===stagedChoice.response.index)}"`,stagedChoice&&a.response.index===stagedChoice.response.index?'selected':'')).join('')}</div>`;
 
  if([M.SELECT_CARD,M.SELECT_TRIBUTE,M.SELECT_SUM,M.SELECT_UNSELECT_CARD].includes(m.type))controls=selectionControls(m);
 
@@ -1643,13 +1665,13 @@ function promptMarkup(m){if(promptHidden&&hiddenPrompt!==m){promptHidden=false;h
 
  const material=[M.SELECT_SUM,M.SELECT_UNSELECT_CARD,M.SELECT_TRIBUTE].includes(m.type);const subject=m.code||m.card?.code||(material?engine.materialSubject:0);
 
- const panel=`<section class="prompt">${btn('View field','view-field','','view-field-button')}<h3>${names[m.type]||'Resolve effect'}</h3>${[M.SELECT_CHAIN,M.SELECT_EFFECTYN].includes(m.type)?`<p class="prompt-context">${esc(promptContext(engine,m))}</p>`:''}${subject&&!confirmation?`<img class="prompt-card" src="${image(subject)}">`:''}<p class="notice">${esc(engine.description(m.description))}</p>${body}</section>`;
+ const panel=`<section class="prompt">${btn('View field','view-field','','view-field-button')}<h3>${wizardCall?'Call heads or tails':names[m.type]||'Resolve effect'}</h3>${[M.SELECT_CHAIN,M.SELECT_EFFECTYN].includes(m.type)?`<p class="prompt-context">${esc(promptContext(engine,m))}</p>`:''}${subject&&!confirmation?`<img class="prompt-card" src="${image(subject)}">`:''}<p class="notice">${esc(engine.description(m.description))}</p>${body}</section>`;
 
  return controls?`<div class="selection-dialog">${panel}<div class="selection-actions">${controls}</div></div>`:panel;
 
 }
 
-function advancedMarkup(m){if(m.type===M.SELECT_COUNTER)return `${m.cards.map((c,i)=>`<label>${esc(engine.name(c.code))}: <input data-counter="${i}" type="number" min="0" max="${c.count}" value="0"></label>`).join('')}`;const names=m.type===M.ANNOUNCE_ATTRIB?['EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE']:['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator-God','Wyrm','Cyberse','Illusion'];return `<div class="choices">${names.map((name,i)=>(BigInt(m.available)&(1n<<BigInt(i)))?`<label><input type="checkbox" data-announce="${i}">${name}</label>`:'').join('')}</div>`}
+function advancedMarkup(m){if(m.type===M.SELECT_COUNTER)return `${m.cards.map((c,i)=>`<label>${esc(engine.name(c.code))}: <input data-counter="${i}" type="number" min="0" max="${c.count}" value="0"></label>`).join('')}`;if(announcePrompt!==m){announcePrompt=m;announcePicks=new Set()}const kind=m.type===M.ANNOUNCE_RACE?'race':'attribute';return iconChoiceGrid(iconChoices(kind,content.cards,m.available,m.count),kind,x=>`data-do="announce-pick" data-announce="${x.bit}" aria-pressed="${announcePicks.has(x.bit)}"`)}
 
 let behaviourDraft=null,behaviourSending=false,behaviourSession=null;
 
@@ -2004,6 +2026,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
  if(a==='watch-replay'){if(el.dataset.replay)await watchReplay(el.dataset.replay);return}if(a==='collection-kind'){collectionKind=el.dataset.kind;collectionPage=0;renderCollection();return}if(a==='stats-kind'){statsKind=el.dataset.kind;renderStats();return}if(a==='collection-search'){collectionQuery=document.querySelector('#collection-search').value;collectionPage=0;renderCollection();return}if(a==='collection-prev'||a==='collection-next'){collectionPage+=a==='collection-next'?1:-1;renderCollection();return}if(a==='collection-item'){const id=el.dataset.id;if(id.startsWith('deck:')){const d=content.preconstructedDecks.find(x=>x.id===id.slice(5));dialog(d.name,`<p>${d.cards.length} cards · Released ${esc(d.date)}</p><div class="cardgrid">${d.cards.map(cid=>cardButton(cid,`data-inspect="${cid}"`)).join('')}</div>`)}else if(collectionKind==='packs'){inspectPack(id)}else dialog(content.artifacts[id][0],relicInfoMarkup(id));return}if(a==='stats-relic'){const id=el.dataset.relic;if(content.artifacts[id])dialog(content.artifacts[id][0],relicInfoMarkup(id));return}
 
  if(a==='new')return newRun();
+ if(a==='next-level-run'){selected=state.run.character;selectedLevels[selected]=+el.dataset.level;selectedVariants[selected]=state.run.variant||0;showRunSlots(true,`Start a new run on Level ${el.dataset.level}?`);return}
 
  if(a==='new-slot'){const slot=Number(el.dataset.slot);if(state.slots.find(s=>s.slot===slot)?.occupied){dialog('Replace saved run?',`<p>Replace the run in slot ${slot}? Your other slots will be kept.</p>${btn('Replace this run','confirm-new',`data-slot="${slot}"`,'primary')}`);return}return beginNew(slot)}
 
@@ -2132,7 +2155,9 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='confirm-target')return confirmTargets();if(a==='cancel-target'){const m=engine.pending,type=m?.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:m?.type===M.SELECT_SUM?R.SELECT_SUM:m?.type===M.SELECT_UNSELECT_CARD?R.SELECT_UNSELECT_CARD:R.SELECT_CARD;return respond(type===R.SELECT_UNSELECT_CARD?{type,index:null}:{type,indicies:null})}
 
- if(a==='announce'){const m=engine.pending,values=[...document.querySelectorAll('[data-announce]:checked')].map(x=>1n<<BigInt(x.dataset.announce));if(values.length!==m.count)return toast('Choose '+m.count+' options.');return respond(m.type===M.ANNOUNCE_RACE?{type:R.ANNOUNCE_RACE,races:values}:{type:R.ANNOUNCE_ATTRIB,attributes:values.map(Number)})}
+ if(a==='announce-pick'){const bit=+el.dataset.announce,one=engine.pending?.count===1;if(announcePicks.has(bit))announcePicks.delete(bit);else{if(one)announcePicks.clear();announcePicks.add(bit)}document.querySelectorAll('.prompt [data-announce]').forEach(b=>b.setAttribute('aria-pressed',announcePicks.has(+b.dataset.announce)));return}
+
+ if(a==='announce'){const m=engine.pending,values=[...announcePicks].map(bit=>1n<<BigInt(bit));if(values.length!==m.count)return toast('Choose '+m.count+' options.');return respond(m.type===M.ANNOUNCE_RACE?{type:R.ANNOUNCE_RACE,races:values}:{type:R.ANNOUNCE_ATTRIB,attributes:values.map(Number)})}
 
  if(a==='counters'){const counters=[...document.querySelectorAll('[data-counter]')].map(x=>+x.value);if(counters.reduce((a,b)=>a+b,0)!==engine.pending.count)return toast('Select the required counter total.');return respond({type:R.SELECT_COUNTER,counters})}
 
@@ -2718,6 +2743,8 @@ installGamepad({
   return {key:padPromptId()+'|'+engine?.pending?.type+'|'+list.map(el=>el.dataset.zone||el.dataset.target||el.dataset.response||'').join(','),el:forced||list.reduce((a,b)=>d(b)<d(a)?b:a)}},
  steer:(el,dx,dy,from)=>{if(screen!=='duel'||dy<=0||!el.closest('.duel .phases'))return null;const cx=from.left+from.width/2;
   return [...app.querySelectorAll('.mat [data-zone^="0,4,"]')].filter(padUsable).reduce((best,z)=>{const r=z.getBoundingClientRect(),d=Math.abs(r.left+r.width/2-cx);return !best||d<best.d?{el:z,d}:best},null)?.el||null},
+ // A duel prompt covers the board under it (the opponent's Deck sat under the Attribute choices).
+ covers:()=>screen==='duel'?[...app.querySelectorAll('.duel .prompt')].filter(padUsable):[],
  settingsButton:()=>[...(modal.open?modal:app).querySelectorAll('[data-do="settings"]')].find(padUsable)||null,
  confirm:()=>[...(modal.open?modal:app).querySelectorAll('button.duel-confirm,button.reaction-confirm')].find(padUsable)||null,
  // What each button does on this screen, for the controller legend; null hides it.

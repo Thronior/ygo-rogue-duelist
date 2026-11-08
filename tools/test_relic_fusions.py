@@ -74,7 +74,7 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
  assert tally.get('Sacred Phoenix')==40,tally
  tally,_=g.rewards(run,[]);assert 'Sacred Phoenix' not in tally
 
- # Second Coin Toss: a weighted relic that fuses at once does not ask for its face.
+ # Divine Gambler (key second_coin_toss): a weighted relic that fuses at once does not ask for its face.
  run=shop_run(['lets_go_gambling','weighted_coins']);run['weighted_coin']=1
  g.buy(run,offer(run,'weighted_dice'),rng)
  assert run['artifacts'].count('second_coin_toss')==1 and not run.get('weight_picks') and 'weighted_coin' not in run,run.get('weight_picks')

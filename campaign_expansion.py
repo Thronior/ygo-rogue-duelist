@@ -122,7 +122,7 @@ def install(g):
     key=g.card_identity(r['pool'][i])
     if ar.copy_limit(r) is None or counts[key]<ar.copy_limit(r):selected.append(i);counts[key]+=1
    r['selected']=selected
-   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(r['round'],r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(deck_round(r),r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
     r['route_rewards']=shop_rewards.route_rewards(r['routes'],random,storage.profile())
     r['reward_rules']=5;save(r)
@@ -173,12 +173,12 @@ def install(g):
    cid=card_rarity.choose(available,rng,p.get('rarity_weights'));pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
  def routes(run,rng=random,exclude=()):
-  rd=run['round'];boss=(rd+1)%BOSS_EVERY==0
-  if rd==0 and not run.get('loop'):choices=list(TUTORIAL_OPPONENTS)
+  rd=run['round'];boss=(rd+1)%BOSS_EVERY==0;tutorial=deck_round(run)==0 and not run.get('loop')
+  if tutorial:choices=list(TUTORIAL_OPPONENTS)
   elif rd>=6:choices=[0,1,6,15,17,27]
   elif boss:choices=[0,1,3,4,6,7,11,15,17,27]
   else:choices=list(GAME_DECKS)
-  eligible=eligible_opponents(rd,run.get('loop',0))
+  eligible=eligible_opponents(deck_round(run),run.get('loop',0))
   choices+=[i for i in eligible if (i in TIER_EXCLUSIVE_OPPONENTS or i in UC_OPPONENTS) and i not in choices]
   choices=[i for i in choices if i in eligible]
   defeated=set(run.get('defeated_opponents',[]))
@@ -193,7 +193,7 @@ def install(g):
    if not alternatives:raise ValueError('No different eligible opponent remains. Your coins were not spent.')
    choices=alternatives
   run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)));run['opponent']=run['routes'][0]
-  if rd==0 and not run.get('loop'):run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
+  if tutorial:run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)
   import fallen_collectors
   fallen_collectors.add_route(run,rng)
@@ -264,7 +264,7 @@ def install(g):
   from feedback_update import ritual_curse_block
   import fallen_collectors
   fallen=fallen_collectors.opponent(run,opponent)
-  try:deck=fallen['deck']['main'] if fallen else opponent_record(run['round'],opponent,run.get('loop',0))['main']
+  try:deck=fallen['deck']['main'] if fallen else opponent_record(deck_round(run),opponent,run.get('loop',0))['main']
   except ValueError:deck=[]
   return ritual_curse_block(deck,run.get('challenge_level',0))
  def copy_deck(run,rng=random):
@@ -275,8 +275,8 @@ def install(g):
    main=fallen['deck']['main'][:];extra=fallen['deck']['extra'][:]
   else:
    encore=endless.encore_record(run) if run.get('encore_active') else None
-   main=encore['main'][:] if encore else opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   extra=encore['extra'][:] if encore else ([] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra'])
+   main=encore['main'][:] if encore else opponent_deck(deck_round(run),rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   extra=encore['extra'][:] if encore else ([] if deck_round(run)==0 and not run.get('loop') else opponent_record(deck_round(run),run['opponent'],run.get('loop',0))['extra'])
   signature=g.BY_NAME['Copycat']['id']
   if main.count(signature)>=3:main.remove(signature)
   main.append(signature)
@@ -394,8 +394,8 @@ def install(g):
   elif run.get('encore_active'):
    encore=endless.encore_record(run);enemy=encore['main'][:];enemy_extra=encore['extra'][:]
   else:
-   enemy=opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   enemy_extra=[] if run['round']==0 and not run.get('loop') else opponent_record(run['round'],run['opponent'],run.get('loop',0))['extra']
+   enemy=opponent_deck(deck_round(run),rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   enemy_extra=[] if deck_round(run)==0 and not run.get('loop') else opponent_record(deck_round(run),run['opponent'],run.get('loop',0))['extra']
   rng.shuffle(enemy)
   run['new_cards_from']=len(run['pool'])
   request['enemy_deck']=enemy[:]+enemy_extra[:]
@@ -457,8 +457,9 @@ def install(g):
   if bonus:tally['Fusion Dividend']=bonus;total+=bonus
   return {k:v for k,v in tally.items() if v},total
  def update_profile(run,won=False):
-  import achievement_model
+  import achievement_model,character_variants
   p=storage.profile();previous={x['id'] for x in achievement_model.entries(p) if x['done']}
+  had_variant=character_variants.unlocked(p,run['character'])
   p['max_gold']=max(p['max_gold'],run['gold']);p['max_bought']=max(p['max_bought'],run.get('purchased',0));p['max_artifacts']=max(p['max_artifacts'],len(run['artifacts']))
   if won:p['victories']+=1
   # Fused relics stay out of the collection until this player has made one.
@@ -468,6 +469,8 @@ def install(g):
    challenge_levels.award(p,run)
    p['highest_challenge_level']=max(challenge_levels.highest(p,i) for i in PLAYABLE_IDS)
    p['wins']+=1;p['won_as']=list(set(p['won_as']+[run['character']]));run['profile_complete']=True
+  # The end screen celebrates the run that unlocked the second variant (Challenge LVL 2, or a full LVL -1 run).
+  if not had_variant and str(run['character']) in character_variants.VARIANTS and run['stage']=='complete' and (character_variants.unlocked(p,run['character']) or (run.get('challenge_level')==-1 and run.get('round',0)>=9)):run['variant_unlocked']=True
   import character_progression
   character_progression.observe(p,run)
   unlocked=set(p['unlocked'])|{0,1}
@@ -520,7 +523,7 @@ def install(g):
    bonus=variant_relics.coins(run,result.get('events',[]))
    if bonus:run['last_rewards']['Fusion Dividend']=bonus;run['last_gold']+=bonus;run['gold']+=bonus
   else:
-   defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(run['round'],rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
+   defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(deck_round(run),rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
    defeated_deck=[] if CHARACTERS[run['character']].get('copycat') else [cid for cid in defeated_deck if cid not in custom_cards.IDS]
    # A custom-only test/imported deck has no eligible post-duel card reward.
    reward_start=len(run['pool'])

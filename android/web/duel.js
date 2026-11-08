@@ -145,7 +145,8 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.HINT&&m.hint_type===3)this.selectionHint=Number(m.hint);
   if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1]){this.events.push({kind:'exact_lethal'});this.visuals.push({kind:'lethal-hit',player:m.player});}
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
-  if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player});
+  // Time Wizard's toss is shown as its roulette wheel (time-wizard-wheel.js); the result is the same coin.
+  if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player,wheel:this.name(this.effect?.code)==='Time Wizard'});
   // Jester's Coin: your Standby Phase toss sets the stat forecast, heads +300, tails -300.
   if(m.type===M.TOSS_COIN&&m.player===0&&this.phase===2&&(this.aiModifiers?.activeRelics?.[0]||[]).includes('cursed_jesters_coin')){this.jesterCall=m.results?.[0]?1:-1;const cue=this.visuals.at(-1);if(cue?.kind==='coin')cue.relic=true}
   if(m.type===M.POS_CHANGE){const previous=m.prev_position??m.previous_position??0,current=m.position??m.current_position??0,flippedFaceUp=!!(previous&10)&&!!(current&5);if(flippedFaceUp)this.visuals.push({kind:'flip-reveal',card:{controller:m.controller,location:m.location,sequence:m.sequence},code:Number(m.code)||this.fieldKnowledge.seats[0]?.get(this.fieldKnowledge.key(m))||0});
@@ -198,7 +199,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
  attackBoardKey(){return JSON.stringify([this.turn,this.phase,this.lp,[0,1].map(p=>[L.MZONE,L.SZONE].map(loc=>this.query(p,loc).map(c=>c?[c.code,c.position,c.attack,c.defense,c.status,c.equipTarget,c.counters]:null)))]);}
  attackWasCancelled(p,c){const previous=this.cancelledAttacks?.get(p+':'+c.sequence);return previous!==undefined&&previous===this.attackBoardKey();}
  respond(r){const m=this.pending;
-  if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;}
+  if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;
+   // The Normal Summons still open when a card was activated, for target prompts that need them (Brain Control, flag c9299a1c2a).
+   this.lastIdle=r.action===I.SELECT_SUMMON||r.action===I.SELECT_MONSTER_SET?null:{player:m.player,turn:this.turn,summons:m.summons};}
   else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
 
   if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}

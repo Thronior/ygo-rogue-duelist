@@ -62,7 +62,7 @@ export function nearest(from,list,dx,dy){
  return best;
 }
 
-export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>false,chainStep=()=>{},shopButton=()=>null,carousel=()=>null,autoPress=()=>false,cursorClass=()=>'',cursorAnchor=()=>null,jump=()=>null,settingsButton=()=>null,confirmJump=()=>null,aButton=()=>null,toggleDetails=()=>false,legend=()=>null,snap=()=>null,confirm=()=>null,steer=()=>null,startButton=()=>null,screenBack=()=>{},inspect=()=>false,back=()=>false}={}){
+export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>false,chainStep=()=>{},shopButton=()=>null,carousel=()=>null,autoPress=()=>false,cursorClass=()=>'',cursorAnchor=()=>null,jump=()=>null,settingsButton=()=>null,confirmJump=()=>null,aButton=()=>null,toggleDetails=()=>false,legend=()=>null,snap=()=>null,confirm=()=>null,steer=()=>null,covers=()=>[],startButton=()=>null,screenBack=()=>{},inspect=()=>false,back=()=>false}={}){
  if(!navigator.getGamepads)return ()=>{};
  const memory=new WeakMap();
  let raf=0,scroller=null,snapKey=null,snapIdle=true,lastPop=null,padType='xinput',legendBox=null,legendKey='',cursorKind='',menuMode=false,focus=null,lastSig='',lastWhere='',lastRect=null,cursor=null,prev=new Array(16).fill(false),heldDir=null,repeatAt=0,active=false,frame=0,holdTimer=0;
@@ -131,7 +131,9 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
   if(!focus?.isConnected||!visible(focus)){reacquire();if(focus)return}
   if(!focus)return;
   if(dx&&focus.matches('input[type="range"]')){const step=Number(focus.step)||1;focus.value=Number(focus.value)+dx*step;focus.dispatchEvent(new Event('input',{bubbles:true}));focus.dispatchEvent(new Event('change',{bubbles:true}));return}
-  const from=focus.getBoundingClientRect(),list=candidates().filter(el=>el!==focus).map(el=>({el,r:el.getBoundingClientRect()}));
+  // A panel over the board (a duel prompt) hides what is under it from the mouse, so the D-pad skips it too.
+  const shields=covers().map(p=>({p,r:p.getBoundingClientRect()})),under=(el,r)=>shields.some(s=>!s.p.contains(el)&&(c=>c.x>=s.r.left&&c.x<=s.r.right&&c.y>=s.r.top&&c.y<=s.r.bottom)(center(r)));
+  const from=focus.getBoundingClientRect(),list=candidates().filter(el=>el!==focus).map(el=>({el,r:el.getBoundingClientRect()})).filter(({el,r})=>!under(el,r));
   // A screen can fix where a direction leads (down from the duel phase buttons goes to your own side).
   const next=steer(focus,dx,dy,from)||nearest(from,list,dx,dy);if(!next)return;
   setFocus(next);

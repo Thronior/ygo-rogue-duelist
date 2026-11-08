@@ -12,12 +12,12 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
    defeated=[]
    for rd in range(9):
     run=dict(round=rd,loop=loop,character=character,defeated_opponents=defeated[:],challenge_level=0)
-    game.routes(run,random.Random(1000+character*19+rd+loop*100))
+    game.routes(run,random.Random(1000+character*19+rd+loop*100));tier_rd=content.deck_round(run)
     assert len(set(run['routes']))==(1 if (rd+1)%3==0 else 5)
     assert not set(run['routes'])&set(defeated+[character])
     assert set(run['route_rewards'])==set(map(str,run['routes']))
     for i in run['routes']:
-     assert i in content.eligible_opponents(rd,loop)
+     assert i in content.eligible_opponents(tier_rd,loop)
      reward=run['route_rewards'][str(i)]
      assert reward['key'] in shop_rewards.reward_keys()
      assert reward['pack'] in content.PACK_BY_ID and not content.PACK_BY_ID[reward['pack']].get('draft_only')
@@ -27,12 +27,15 @@ with patch.object(storage,'ROOT',root/'temp'/('tier-opponent-test-'+uuid.uuid4()
        assert content.opponent_record(rd,i,loop=loop)['tier']==4
       elif row.get('tier')==4:
        # Tier 4 identities can also have first-journey decks (Obelisk T1/T2, Cecelia T3).
-       assert rd>0 and str(rd//3+1) in row.get('tier_decks',{}) and content.opponent_record(rd,i)['tier']==rd//3+1
+       assert tier_rd>0 and str(rd//3+1) in row.get('tier_decks',{}) and content.opponent_record(tier_rd,i)['tier']==rd//3+1
       else:
-       assert not loop and rd>0
+       assert not loop and tier_rd>0
        seen[rd//3+1].add(i)
-    if rd==0 and not loop:
+    if tier_rd==0 and not loop:
      assert run['tutorial_variants']=={str(i):content.TUTORIAL_OPPONENTS[i] for i in run['routes']}
+    else:assert 'tutorial_variants' not in run
+    # Solo Copycat opens on Tier 1 opponents; every other character opens on the tutorial decks.
+    if rd==0 and not loop:assert (tier_rd==1)==bool(content.CHARACTERS[character].get('copycat'))
     defeated.append(run['routes'][0]);count+=1
  for i,row in content.TIER_EXCLUSIVE_OPPONENTS.items():
   if row.get('tier')==4:

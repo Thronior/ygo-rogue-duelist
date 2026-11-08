@@ -341,6 +341,12 @@ install_character_variants(CHARACTERS)
 TIER_EXCLUSIVE_OPPONENTS={row['character']:row for row in json.loads((Path(__file__).parent/'data/tier-exclusive-opponents.json').read_text(encoding='utf8'))['opponents']}
 TUTORIAL_OPPONENTS={int(k):v for k,v in json.loads((Path(__file__).parent/'data/tutorial-opponents.json').read_text(encoding='utf8')).items()}
 
+def deck_round(run):
+ """The round whose opponents and decks this duel uses. Solo Copycat skips the tutorial decks (user, 2026-11-07): its first duel reads Tier 1, as round 1 does.
+ Tag keeps the shared tutorial opener; Tag Copycat mirrors its partner's deck anyway."""
+ if run['round']==0 and not run.get('loop') and run.get('history_mode')!='tag' and CHARACTERS[run['character']].get('copycat'):return 1
+ return run['round']
+
 def eligible_opponents(round_index,loop=0):
  if round_index==0 and not loop:return list(TUTORIAL_OPPONENTS)
  tier=min(3,round_index//3+1)

@@ -140,6 +140,11 @@
       "name": "Mind Crush",
       "script": "pre-errata/c511003026.lua",
       "desc": "Declare 1 card name; if that card is in your opponent's hand, they must discard all copies of it, otherwise you discard 1 random card and look at your opponent's hand."
+    },
+    "23289281": {
+      "name": "Karate Man",
+      "script": "pre-errata/c23289281.lua",
+      "desc": "You can double the original ATK of this card once per turn. If you used this effect, destroy this card during the End Phase."
     }
   }
 }

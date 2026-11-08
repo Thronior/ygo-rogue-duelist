@@ -161,8 +161,8 @@ def dispatch(raw):
   fallen=fallen_collectors.opponent(run,opponent)
   if fallen:result=fallen['deck']['main']+fallen['deck']['extra']
   else:
-   main=g.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0),loop=run.get('loop',0))
-   extra=[] if run['round']==0 and not run.get('loop') else content.opponent_record(run['round'],opponent,run.get('loop',0))['extra']
+   main=g.opponent_deck(content.deck_round(run),random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0),loop=run.get('loop',0))
+   extra=[] if content.deck_round(run)==0 and not run.get('loop') else content.opponent_record(content.deck_round(run),opponent,run.get('loop',0))['extra']
    result=main+extra
  elif action=='cursed-choose':
   import cursed_relics

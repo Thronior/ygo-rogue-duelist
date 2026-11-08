@@ -63,15 +63,15 @@ assert.ok(named('King Dragun'),'Fusion Gate: an empty field Special Summons from
 for(const key of ['','jar_of_greed']){duel(key,fill('Pot of Greed'),WALL,{summon:[],step:m=>m.type===M.SELECT_IDLECMD&&e.turn===1?(globalThis.hand=e.query(0,L.HAND).length,null):null});globalThis[key||'base']=globalThis.hand}
 assert.equal(globalThis.jar_of_greed,globalThis.base+1,'Jar of Greed: 1 extra card on the first turn');
 
-// Second Coin Toss: every die roll is chosen (2026-11-05). Two Graceful Dice in one turn, both chosen as 6 (+1200 ATK).
+// Divine Gambler (key second_coin_toss): every die roll is chosen (2026-11-05). Two Graceful Dice in one turn, both chosen as 6 (+1200 ATK).
 {let chose=0,boosted=0;
  duel('second_coin_toss',fill('Mystical Elf','Graceful Dice'),WALL,{summon:[id('Mystical Elf')],step:m=>{
   if(m.type===M.ANNOUNCE_NUMBER){chose++;return {type:R.ANNOUNCE_NUMBER,value:m.options.findIndex(v=>Number(v)===6)}}
   if(m.type===M.SELECT_IDLECMD&&chose)boosted=Math.max(boosted,named('Mystical Elf')?.attack||0);
   if(m.type===M.SELECT_IDLECMD&&mine().length&&chose<2){const k=m.activates.findIndex(c=>c.code===id('Graceful Dice'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}
   return null}});
- assert.equal(chose,2,'Second Coin Toss: both die rolls in the same turn ask for their result');
- assert.equal(boosted,800+1200,'Second Coin Toss: both chosen 6s are the results');}
+ assert.equal(chose,2,'Divine Gambler: both die rolls in the same turn ask for their result');
+ assert.equal(boosted,800+1200,'Divine Gambler: both chosen 6s are the results');}
 
 // Scapegoat Pasture: a Sheep Token arrives in the opponent's Standby Phase, then copies Celtic Guardian on your turn.
 {let copied=[],sheep=0;

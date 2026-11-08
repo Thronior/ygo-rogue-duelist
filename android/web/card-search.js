@@ -22,7 +22,16 @@ export function autoColumnsAcross(host,area){
  const probe=document.createElement('div');probe.className='cardgrid';probe.style.cssText=`position:absolute;visibility:hidden;height:0;width:${area.clientWidth}px`;host.append(probe);
  const n=getComputedStyle(probe).gridTemplateColumns.split(' ').filter(Boolean).length;probe.remove();return n;
 }
-export const manualDeckColumns=()=>document.documentElement.hasAttribute('data-deck-columns');
+// The Split Deck Editor setting (2026-11-06) also splits smaller editors, from 10 cards per row.
+export const DECK_SPLIT_MIN=10;
+// Cards per row the editor would show if it split, or 0 to keep one grid. Auto splits from 18 by itself; the setting
+// splits any editor showing 10 or more, whether that count is the fixed Deck Card Size or what Auto fits.
+export function deckSplitColumns(host,area,auto){
+ const html=document.documentElement,fixed=html.hasAttribute('data-deck-columns'),total=fixed?Number(html.style?.getPropertyValue('--deck-columns'))||0:(auto??autoColumnsAcross(host,area)),chosen=html.hasAttribute('data-deck-split');
+ return (chosen&&total>=DECK_SPLIT_MIN)||(!fixed&&total>=DECK_SPLIT_COLUMNS)?total:0;
+}
+// The Deck side shows 5 per row (8 from 18) and the Collection side the rest, so cards are the same size in both panes.
+export function splitStyle(total){const deck=total>=DECK_SPLIT_COLUMNS?8:5,rest=Math.max(1,total-deck);return `style="grid-template-columns:minmax(0,${deck}fr) minmax(0,${rest}fr);--split-deck:${deck};--split-rest:${rest}"`}
 export function splitDeckMarkup(deck,rest,cardMarkup,extraTab){
  const pane=(kind,title,list,empty)=>`<section class="deck-split-pane ${kind}"><h3>${title} <span>${list.length}</span></h3><div class="deck-split-scroll"><div class="cardgrid">${list.map(cardMarkup).join('')||`<p class="muted">${empty}</p>`}</div></div></section>`;
  return pane('deck-pane','Deck',deck,'Tap a card in your collection to add it.')+pane('collection-pane','Collection',rest,extraTab?'No Extra Deck cards to add.':'Every card is in your deck.');

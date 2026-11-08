@@ -88,7 +88,9 @@ export function smartContext(e,p,L,prompt=null){
  const doomTarget=c=>{if(c.location!==L.MZONE||name(c)!=='Viser Des'||!effectsEnabled(c.controller??p))return null;const t=e.cardTargets?.get(`${c.controller??p}:${c.sequence}`);return t&&q(t.controller,L.MZONE).find(x=>x.sequence===t.sequence)||null};
  // Reaper on the Nightmare cost a Fusion (three cards): never cheap Tribute fodder (2026-11-06).
  // Legion the Fiend Jester on the field searches a Spellcaster Normal Monster when it goes to the GY: cheap fodder (2026-11-06).
- const expendable=c=>effectsEnabled(p)&&name(c)==='Relinquished'?1000000:effectsEnabled(p)&&name(c)==='Reaper on the Nightmare'&&c.location===L.MZONE?2600:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))||name(c)==='Legion the Fiend Jester'&&c.location===L.MZONE&&effectsEnabled(p)&&[...q(p,L.DECK),...grave].some(x=>(data(x).type&0x11)===0x11&&race(x)==='Spellcaster')?500:Math.max(0,atk(c))+(doomTarget(c)?Math.max(1000,atk(doomTarget(c))):0);
+ // Ultimate Insect LV3/LV5 that can still level up next Standby Phase is worth its next level, not its ATK (2026-11-07).
+ const insectNext={'Ultimate Insect LV3':'Ultimate Insect LV5','Ultimate Insect LV5':'Ultimate Insect LV7'};
+ const expendable=c=>c.location===L.MZONE&&effectsEnabled(p)&&insectNext[name(c)]&&[...hand,...q(p,L.DECK)].some(x=>name(x)===insectNext[name(c)])?Math.max(0,atk(c))+1000:effectsEnabled(p)&&name(c)==='Relinquished'?1000000:effectsEnabled(p)&&name(c)==='Reaper on the Nightmare'&&c.location===L.MZONE?2600:/Sinister Serpent|Sangan|Witch of the Black Forest/.test(name(c))||name(c)==='Legion the Fiend Jester'&&c.location===L.MZONE&&effectsEnabled(p)&&[...q(p,L.DECK),...grave].some(x=>(data(x).type&0x11)===0x11&&race(x)==='Spellcaster')?500:Math.max(0,atk(c))+(doomTarget(c)?Math.max(1000,atk(doomTarget(c))):0);
  // Add verified hand-to-Graveyard recovery to the established discard priorities.
  function discardBenefit(c){
   if(!effectsEnabled(p)||[...back,...theirBack,...own,...enemy].some(x=>face(x)&&!x.is_disabled&&['Macro Cosmos','Dimensional Fissure','Banisher of the Light','Banisher of the Radiance'].includes(name(x))))return 0;
@@ -270,10 +272,10 @@ export function smartContext(e,p,L,prompt=null){
   if(!defenders.length||e.battleProtected?.[1-p])return 0;
   return Math.max(0,...remainingAttackers().filter(a=>pierce(a)&&equipUseful(c,a)).map(a=>Math.max(0,...defenders.map(t=>Math.min(bonus,Math.max(0,atk(a)+bonus-power(t)))))));
  }
- const removalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane','Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Thousand Knives','Exiled Force','Widespread Ruin','Michizure']);
+ const removalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Thousand Knives','Exiled Force','Widespread Ruin','Michizure']);
  const isRemoval=n=>removalNames.has(n);
  const destructionNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Offerings to the Doomed','Man-Eater Bug','Newdoria','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Widespread Ruin','Thousand Knives','Exiled Force','Raigeki','Dark Hole','Torrential Tribute','Mirror Force','Burst Stream of Destruction','Lightning Vortex','Michizure']);
- const targetedRemovalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane','Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Thousand Knives','Exiled Force','Spellbinding Circle','Nightmare Wheel','Mask of the Accursed','Michizure']);
+ const targetedRemovalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Thousand Knives','Exiled Force','Spellbinding Circle','Nightmare Wheel','Mask of the Accursed','Michizure']);
  function reservedForRemoval(c){return (e.activeChain||[]).some(link=>{
   if(link.player!==p||link.inactive)return false;
   const n=e.name(link.code);
@@ -298,7 +300,7 @@ export function smartContext(e,p,L,prompt=null){
   return defender&&(defender.position&4)?defender:null;
  }
  // Resource decisions use public information and previously revealed identities only.
- const resourceRemoval=new Set([...removalNames].filter(n=>!['Man-Eater Bug','Hane-Hane','Penguin Soldier','Newdoria'].includes(n)));
+ const resourceRemoval=new Set([...removalNames].filter(n=>!['Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria'].includes(n)));
  const wipes=new Set(['Raigeki','Dark Hole','Torrential Tribute','Mirror Force','Burst Stream of Destruction']);
  const engineThreats=new Set(['Fire Princess','Stealth Bird','Solar Flare Dragon','Bowganian','Cannon Soldier','Catapult Turtle','Magical Scientist','Royal Magical Library','Card of Safe Return','Wave-Motion Cannon','Airknight Parshath','Jinzo','Thousand-Eyes Restrict','Guardian Sphinx','The Agent of Judgment - Saturn']);
  const battleHazards=new Set(['Spirit Reaper','Marshmallon','Wall of Illusion','Newdoria','Yomi Ship','Reflect Bounder','D.D. Warrior Lady','D.D. Assailant']);
@@ -321,9 +323,12 @@ export function smartContext(e,p,L,prompt=null){
    const sourceController=sourceCard?.controller??p,targetController=target.controller??1-p;
    const opponentSource=sourceController!==targetController,text=e.cards.get(target.code)?.desc||'';
    if(targeting&&/neither player can target this card|cannot be targeted/i.test(text))return false;
-   if(opponentSource&&/unaffected by (?:your opponent's|your opponent’s) (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
-   if(/unaffected by (?:the effects of )?(?:(?:all|any|other) )*(?:card|card effects)(?: effects)?/i.test(text))return false;
    const effectKind=sourceType&2?'spell':sourceType&4?'trap':sourceType&1?'monster':null;
+   // "Unaffected by your opponent's Spell effects" (Silent Swordsman LV5) still yields to their monster effects: read as
+   // immune to everything, it made a flipped Man-Eater Bug destroy itself (deck trace, 2026-11-07). Unknown sources stay immune.
+   const opponentImmune=opponentSource&&/unaffected by (?:your opponent's|your opponent’s) (card|spell|trap|monster)(?: card)? effects/i.exec(text);
+   if(opponentImmune&&(!effectKind||/^card$/i.test(opponentImmune[1])||opponentImmune[1].toLowerCase()===effectKind))return false;
+   if(/unaffected by (?:the effects of )?(?:(?:all|any|other) )*(?:card|card effects)(?: effects)?/i.test(text))return false;
    if(effectKind){
     const kind=new RegExp(`(?:unaffected by|cannot be affected by) (?:the effects of )?(?:(?:all|any|other) )*${effectKind}(?: cards?)?(?: effects?)?`,'i');
     if(kind.test(text))return false;
@@ -382,6 +387,11 @@ export function smartContext(e,p,L,prompt=null){
   }
   return stopped?3000+Math.min(1500,stopped*.2):LOCK.includes(name(c))?1500:0;
  }
+ // A monster we control but do not own goes back to its owner (or to their GY when used): free Tribute fodder.
+ function borrowedMonster(x){return !!x&&x.location===L.MZONE&&x.owner!==undefined&&x.owner!==p}
+ // Army Ant, Sheep, Ojama and Kuriboh Tokens cannot pay a Tribute Summon. Counted as fodder, they made the CPU Tribute
+ // its 2800 Insect Queen for a 2300 Ultimate Insect LV5 beside two Army Ant Tokens (deck trace, 2026-11-07).
+ const noTributeSummon=x=>/cannot be used as a Tribute for a Tribute Summon/i.test(e.cards.get(x.code)?.desc||'')||/^(?:Army Ant|Sheep|Ojama|Kuriboh) Token$/.test(name(x));
  function tributeWorth(c,setting=false){
   const n=name(c);
   // A God offered in the engine's normal-summon list is already a legal
@@ -391,22 +401,26 @@ export function smartContext(e,p,L,prompt=null){
   // Juragedo Special Summons itself from the hand in a Battle Step (ours or theirs) and gains 1000 LP: keep the
   // Normal Summon for another monster. With two in hand, one may still be summoned (user, 2026-11-06).
   if(n==='Juragedo'&&c.location===L.HAND&&effectsEnabled(p)&&own.length<4&&hand.filter(x=>name(x)==='Juragedo').length===1)return false;
+  // Without a Temple of the Kings a Set Serket is a 2000 DEF wall that destroys itself once flipped: worth a spent flip
+  // monster (Mask of Darkness, Man-Eater Bug), not an 1800 DEF Embodiment of Apophis it was Tribute-Set for (deck trace, 2026-11-08).
+  if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>name(x)==='Temple of the Kings')&&!own.some(x=>!noTributeSummon(x)&&Math.max(atk(x),def(x))<=1200))return false;
   const required=n==='The Wicked Eraser'?3:effectiveLevel(c,true)>6?2:effectiveLevel(c,true)>4?1:0;
   if(required){
-   const eligible=own.filter(x=>!(effectsEnabled(p)&&(name(x)==='Relinquished'||face(x)&&name(x)==='Reaper on the Nightmare'||face(x)&&name(x)===BATTLEGUARD_PARTNER[n]))&&!doomTarget(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
+   // A borrowed monster (Brain Control, Change of Heart, Snatch Steal) is paid first: it costs us nothing (flag c9299a1c2a, 2026-11-07).
+   const eligible=own.filter(x=>!(effectsEnabled(p)&&(name(x)==='Relinquished'||face(x)&&name(x)==='Reaper on the Nightmare'||face(x)&&name(x)===BATTLEGUARD_PARTNER[n]))&&!doomTarget(x)&&!noTributeSummon(x)).sort((a,b)=>(borrowedMonster(b)-borrowedMonster(a))||Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0));
    if(eligible.length<required)return false;
-   const paid=eligible.slice(0,required),newAtk=projectedAttack(c),newDef=projectedDefense(c);
+   const paid=eligible.slice(0,required),newAtk=projectedAttack(c),newDef=projectedDefense(c),free=paid.every(borrowedMonster);
    const freed=x=>attackBlocked(x,p)&&!attackBlocked(c,p,true)&&newAtk>0;
    // A Set is judged on DEF alone: comparing ATK kept every 0-ATK wall (Labyrinth Wall, Millennium Shield) in hand (user, 2026-11-04).
-   if(paid.some(x=>!freed(x)&&(setting?newDef<Math.max(atk(x),x.defense??0):newAtk<atk(x))))return false;
+   if(paid.some(x=>!freed(x)&&!borrowedMonster(x)&&(setting?newDef<Math.max(atk(x),x.defense??0):newAtk<atk(x))))return false;
    const released=paid.some(freed)&&paid.every(x=>freed(x)||newAtk>=atk(x));
    const enemyAtk=Math.max(0,...enemy.filter(face).map(atk));
-   const wall=paid.some(x=>(x.defense??0)>=enemyAtk&&(x.defense??0)>newDef);
+   const wall=paid.some(x=>!borrowedMonster(x)&&(x.defense??0)>=enemyAtk&&(x.defense??0)>newDef);
    // A set Cyber Jar has an unusually large, board-wide effect. Keep it from
    // being consumed as Tribute while its useful flip is still available.
    if(paid.some(x=>name(x)==='Cyber Jar'&&!face(x)&&flipUseful('Cyber Jar',x)&&prompt?.pos_changes?.some(y=>same(x,y))))return false;
    if(setting&&paid.some(x=>face(x)&&(x.position&1)&&attackAllowed(x,false))&&enemyAtk<newDef&&newDef<paid.reduce((sum,x)=>sum+atk(x),0))return false;
-   if(setting)return newDef>=enemyAtk&&!wall&&newDef>Math.max(0,...paid.map(x=>Math.max(atk(x),x.defense??0)))+200;
+   if(setting)return free||newDef>=enemyAtk&&!wall&&newDef>Math.max(0,...paid.map(x=>Math.max(atk(x),x.defense??0)))+200;
    if(wall&&newAtk<=threat&&!released)return false;
    if(e.phase===4&&prompt?.to_bp&&paid.some(x=>face(x)&&(x.position&1)&&attackAllowed(x,!enemy.length)&&(!enemy.length||enemy.some(t=>atk(x)>power(t))))&&newAtk<=paid.reduce((n,x)=>n+atk(x),0))return false;
    const oldAtk=Math.max(0,...paid.map(atk)),oldDef=Math.max(0,...paid.map(x=>x.defense??0));
@@ -420,7 +434,7 @@ export function smartContext(e,p,L,prompt=null){
    const stuck=x=>enemy.length&&face(x)&&!enemy.some(t=>atk(x)>power(t));
    const canStillAttack=e.phase===4&&prompt?.to_bp;
    const clearUpgrade=newAtk>=Math.max(oldAtk,oldDef)+400+(required-1)*200&&(!canStillAttack||newAtk>paid.reduce((v,x)=>v+(stuck(x)?0:atk(x)),0));
-   if(!crossesThreat&&!lethal&&!useful&&!clearUpgrade&&!released)return false;
+   if(!crossesThreat&&!lethal&&!useful&&!clearUpgrade&&!released&&!free)return false;
   }
   if(required&&effectsEnabled(p)&&own.some(x=>name(x)==='Relinquished')&&own.filter(x=>name(x)!=='Relinquished').length<required)return false;
   if(['The Winged Dragon of Ra','The Wicked Eraser'].includes(name(c)))return summonScore(c)>=0;
@@ -826,11 +840,13 @@ export function smartContext(e,p,L,prompt=null){
   if(race(c)==='Dragon'&&[...own,...enemy].some(x=>enabled(x)&&name(x)==='Lord of D.'))return false;
   return true;
  }
+ // Normal Summons still open this turn: the idle prompt's list, or the one recorded when the current card was activated.
+ function openSummons(){return prompt?.summons??(e.lastIdle?.player===p&&e.lastIdle.turn===e.turn?e.lastIdle.summons:[])}
  function temporaryControlValue(c,spellName){
   if(!controlTarget(c))return -1;
   if(spellName==='Brain Control'&&e.lp[p]<=1800)return -1;
   // A currently legal tribute summon is a concrete use even after battle.
-  if((prompt?.summons||[]).some(x=>effectiveLevel(x,true)>4&&tributeWorth(x)!==false&&(projectedAttack(x)>Math.max(0,...own.map(atk))||summonUtility(x))))return 10000+controlledAttack(c);
+  if(openSummons().some(x=>effectiveLevel(x,true)>4&&tributeWorth(x)!==false&&(projectedAttack(x)>Math.max(0,...own.map(atk))||summonUtility(x))))return 10000+controlledAttack(c);
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return -1;
   const rest=enemy.filter(x=>!same(x,c)),a={...c,controller:p,position:1},strength=controlledAttack(c);
   const usefulAttack=attackAllowed(a,!rest.length)&&!c.attack_count&&strength>0&&(!rest.length?battleDamage(strength)>0:rest.some(t=>face(t)&&strength>power(t)&&attackScore(a,t,{dmg:battleDamage((t.position&1)?strength-power(t):0)})>-99999));
@@ -846,7 +862,7 @@ export function smartContext(e,p,L,prompt=null){
    const immediateLethal=e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!battleLocked&&enemy.length===1&&
     remainingAttackers().reduce((sum,x)=>sum+Math.max(0,atk(x)),0)+(!(c.attack_count>0)?stealAttack:0)>=e.lp[1-p];
    const onlyBlocker=enemy.length===1;
-   const tributeReady=(prompt?.summons||[]).some(x=>{const required=effectiveLevel(x,true)>6?2:effectiveLevel(x,true)>4?1:0;return required>0&&own.length<required&&tributeWorth(x)!==false;});
+   const tributeReady=openSummons().some(x=>{const required=effectiveLevel(x,true)>6?2:effectiveLevel(x,true)>4?1:0;return required>0&&own.length<required&&tributeWorth(x)!==false;});
    return immediateLethal||onlyBlocker||tributeReady||stealAttack>=1800||engineThreats.has(name(c));
   }
 
@@ -872,6 +888,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Mask of Darkness'&&grave.some(x=>data(x).type&4))value=65;
   if(n==='Man-Eater Bug'&&enemy.length)value=75;
   if(n==='Penguin Soldier'&&enemy.length)value=70;
+  // Gravekeeper's flips: Guard bounces a monster, Spy summons another Gravekeeper's from the Deck (deck trace, 2026-11-08).
+  if(n==="Gravekeeper's Guard"&&enemy.length)value=70;
+  if(n==="Gravekeeper's Spy"&&q(p,L.DECK).some(x=>setMatch(x,0x2e)&&(data(x).type&1)&&(data(x).attack??0)<=1500))value=70;
   if(n==='Big Eye'&&q(p,L.DECK).length>=5)value=30;
   if(n==='Relinquished'&&atk(c)<threat&&enemy.some(face))value=90;
   if(!value)return -1;
@@ -1011,6 +1030,26 @@ export function smartContext(e,p,L,prompt=null){
   const canBattle=e.player===p&&e.turn>1&&e.phase<256&&prompt?.to_bp!==false&&!battleLocked;
   if(n==='Stop Defense'&&!canBattle)return -1;
   if(n==='Giant Trunade')return canBattle&&(activeAttackers(p).length>0||(prompt?.special_summons?.length>0&&prompt?.summons?.length>0))&&theirBack.length?90:-1;
+  // Rite of Spirit revives a Gravekeeper's even under Necrovalley; with no rule it was never used (deck trace, 2026-11-08).
+  // Their turn: only to stop lethal or in their End Phase; our turn: an attacker before battle, or a wall in Main Phase 2.
+  // Losses showed three slips (deck trace, 2026-11-08): it answered Torrential Tribute on our summon and lost the revived
+  // monster to it, revived in their Draw or Main Phase where removal meets it before battle, and chained a second copy
+  // onto the only target in the GY.
+  if(n==='Rite of Spirit'){
+   const links=(e.activeChain||[]).filter(l=>!l.inactive),pending=links.filter(l=>l.player===p&&e.name(l.code)==='Rite of Spirit').length;
+   if(own.length+pending>=5||grave.filter(x=>(data(x).type&1)&&setMatch(x,0x2e)).length<=pending)return -1;
+   if(e.player!==p)return incomingBattleDamage()>=e.lp[p]&&e.phase>=0x8&&e.phase<=0x80||e.phase===0x200?100:-1;
+   if(links.some(l=>l.player!==p))return -1;
+   return canBattle?85:e.phase===0x100?70:-1;
+  }
+  // Ready for Intercepting is Book of Moon for Warrior and Spellcaster monsters (deck trace, 2026-11-08).
+  if(n==='Ready for Intercepting'){
+   const fits=x=>['Warrior','Spellcaster'].includes(race(x));
+   if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
+   const attacker=enemy.find(x=>same(x,e.attackCard));
+   if(e.player!==p)return attacker&&fits(attacker)&&face(attacker)&&(attacker.position&1)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:own.some(x=>fits(x)&&resetValue(x)>=65)&&e.phase===0x200?70:-1;
+   return canBattle&&enemy.some(x=>fits(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>fits(x)&&resetValue(x)>=65)?70:-1;
+  }
   if(n==='Book of Moon'){
    if(moonRescue())return 115;
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
@@ -1652,7 +1691,8 @@ export function smartContext(e,p,L,prompt=null){
   if(d.type&0x80000){
    const boosts={Umi:['Aqua','Fish','Sea Serpent','Thunder'],Yami:['Fiend','Spellcaster'],Mountain:['Dragon','Winged Beast','Thunder'],Forest:['Insect','Beast','Plant','Beast-Warrior'],Wasteland:['Dinosaur','Zombie','Rock'],Sogen:['Warrior','Beast-Warrior']};
    const attrs={'A Legendary Ocean':'WATER','Luminous Spark':'LIGHT','Rising Air Current':'WIND','Mystic Plasma Zone':'DARK','Molten Destruction':'FIRE',Umiiruka:'WATER','Gaia Power':'EARTH'};
-   const benefit=x=>boosts[n]?boosts[n].includes(race(x)):attrs[n]?hasAttribute(x,attrs[n]):false;
+   // Necrovalley gives Gravekeeper's monsters 500 ATK/DEF; it was never activated because only race fields counted (deck trace, 2026-11-08).
+   const benefit=x=>n==='Necrovalley'?setMatch(x,0x2e):boosts[n]?boosts[n].includes(race(x)):attrs[n]?hasAttribute(x,attrs[n]):false;
     const curFields=back.filter(c=>face(c)).map(name);
     if(curFields.includes(n))return -1;
     if(curFields.includes('A Legendary Ocean')&&n!=='A Legendary Ocean')return -1;
@@ -1823,7 +1863,9 @@ export function smartContext(e,p,L,prompt=null){
  // Spells, which skip face-down cards, apply again. A card never seen face-up stays anonymous.
  function hiddenDefense(c){
   const code=e.knownFieldCard?.(p,c)||0,card=code?{...c,code,position:4}:{controller:c.controller,location:c.location,sequence:c.sequence,code,position:4};
-  const base=code?e.data[code]?.defense??900:e.unknownDefense?.(c)??900;
+  // Mirror Stats and Sword and Shield swap original ATK and DEF, so a known card flips up with its printed ATK as DEF (flag 6a504a5098, 2026-11-07).
+  const printedDef=code&&(swapOriginalStats(c.controller??1-p)?e.data[code]?.attack:e.data[code]?.defense);
+  const base=code?(printedDef>=0?printedDef:900):e.unknownDefense?.(c)??900;
   return Math.max(0,base+relicDefense(card,c.controller??1-p)+(code?fieldSpellBonus(card,'defense'):0));
  }
  // The DEF half of the stat relics in passives.py and approved_relic_effects.py.
@@ -2023,7 +2065,15 @@ function preferSet(c){const n=name(c);if(n==='Rescue Cat'&&effectsEnabled(p)&&re
     return hand.some(partner=>isSpell?(!!(data(partner).type&1)&&!!(data(partner).type&128)&&matchesRitual(target,partner)):(!!(data(partner).type&2)&&!!(data(partner).type&128)&&matchesRitual(partner,target)));
    });
   }
-  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+  // A Monarch's "when Tribute Summoned" effect is worth the summon when it has something to hit (flag c9299a1c2a, 2026-11-07).
+  function monarchHasTarget(n){
+   if(n==='Zaborg the Thunder Monarch')return enemy.length>0;
+   if(n==='Mobius the Frost Monarch')return theirBack.length>0;
+   if(n==='Granmarg the Rock Monarch')return [...enemy,...theirBack].some(x=>!face(x));
+   if(n==='Thestalos the Firestorm Monarch')return q(1-p,L.HAND).length>0;
+   return false;
+  }
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -2117,6 +2167,9 @@ if(!effectsEnabled(p))return 0;
   if(n==='Needle Worm')return q(1-p,L.DECK).length<=10;
    if(n==='Cyber Jar')return cyberJarFlipUseful();
   if(n==='Night Assailant'||n==='Electromagnetic Bagworm'||n==='Parasite Paracide')return enemy.length>0;
+  // Gravekeeper's flips: Guard needs a monster to bounce, Spy a free zone and a Gravekeeper's to summon (deck trace, 2026-11-08).
+  if(n==="Gravekeeper's Guard")return enemy.length>0;
+  if(n==="Gravekeeper's Spy")return own.length<5&&q(p,L.DECK).some(x=>setMatch(x,0x2e)&&(data(x).type&1)&&(data(x).attack??0)<=1500);
   if(n==='Morphing Jar'&&hand.some(c=>exodiaPieces.has(c.code)))return false;
   if(n==='Morphing Jar #2')return morphingJar2Useful(field);
   if(n==='Rafflesia Seduction')return e.player===p&&enemy.some(face);
@@ -2337,6 +2390,7 @@ if(!effectsEnabled(p))return 0;
   const baou=x=>[...back,...theirBack].some(y=>enabled(y)&&name(y)==='Wicked-Breaking Flamberge - Baou'&&same(y.equipCard||y.equip_card,x));
   return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500&&!baou(x))?800:0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
+  if(borrowedMonster(c))return 1000000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
   if(subject&&projectedAttack(subject)<atk(c)&&!(attackBlocked(c,p)&&!attackBlocked(subject,p,true)))return -100000000;
   if(subject&&effectsEnabled(p)&&face(c)&&BATTLEGUARD_PARTNER[e.name(e.materialSubject)]===n)return -100000000;
@@ -2345,7 +2399,9 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(n==='Darklord Marie'||n==='Magician of Black Chaos')s+=5000;
   if(chaosPair&&grave.length<=6&&(hasAttribute(c,'LIGHT')||hasAttribute(c,'DARK'))){const light=hasAttribute(c,'LIGHT');if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
   return s;}
-  function targetScore(fxN,cand,info){const nm=name(cand),source=e.effect||[...hand,...back,...own].find(x=>name(x)===fxN)||null;
+  function targetScore(fxN,cand,info){if(fxN==='Ready for Intercepting')fxN='Book of Moon';const nm=name(cand),source=e.effect||[...hand,...back,...own].find(x=>name(x)===fxN)||null;
+  // Gravekeeper's Assailant switches the monster it is attacking (its activation rule checks that target).
+  if(fxN==="Gravekeeper's Assailant")return same(cand,e.attackTarget)?100000:-1000000000;
   if(fxN==='Soul Exchange')return cand.controller===p?-100000:30000+targetValue(cand);
   if(fxN==='Cyber Raider')return cand.controller!==p?1000:nm==='Amplifier'?-100000:-1000;
   if(fxN==='Metamorphosis'){

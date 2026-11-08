@@ -25,6 +25,8 @@ export function deckPolicy(x){
   return t&0x40c0||t&0x4000||lvl(c)>=5||equipped?value(c):0;
  };
  const bounceOpens=c=>e.player===p&&e.phase===4&&prompt?.to_bp===true&&enemy.length===1&&same(enemy[0],c)&&face(c)&&attacks.every(a=>atk(a)<=((c.position&1)?atk(c):(c.defense??data(c).defense??0)))&&attacks.reduce((s,a)=>s+Math.max(0,atk(a)),0)>=1500;
+ // Ultimate Insect LV3/LV5 whose next level is still in the hand or Deck: worth more than its ATK as a Tribute.
+ const insectGrows=c=>{const next={'Ultimate Insect LV3':'Ultimate Insect LV5','Ultimate Insect LV5':'Ultimate Insect LV7'}[name(c)];return !!next&&[...hand,...q(p,L.DECK)].some(x=>name(x)===next)};
  const legionSearch=()=>[...q(p,L.DECK),...grave].some(t=>monster(t)&&(data(t).type&0x10)&&race(t)==='Spellcaster');
  // A Spell back in hand from Dark Magician of Chaos, rated for this board. Dark Hole would banish the Chaos itself (2026-11-06).
  const chaosSpell=c=>{
@@ -286,6 +288,16 @@ export function deckPolicy(x){
   if(n==='Dark Magician of Chaos')return grave.some(t=>data(t).type&2)?90:-1;
   if(['Senju of the Thousand Hands','Manju of the Ten Thousand Hands','A Cat of Ill Omen','Big Eye','Patrol Robo','Legendary Fiend','Despair from the Dark','Gernia','Agido','Keldo','Mystic Tomato','Giant Rat','Mother Grizzly','Shining Angel','UFO Turtle','The Forgiving Maiden','Poison Mummy','Sonic Jammer','Winged Sage Falcos','Helpoemer'].includes(n))return 85;
   if(n==='Night Assailant')return spent||enemy.length?90:-1;
+  // Gravekeeper's deck (deck trace, 2026-11-08). Chief, Tribute Summoned, revives a Gravekeeper's from the GY.
+  if(n==="Gravekeeper's Chief")return free>0&&grave.some(t=>monster(t)&&name(t).startsWith("Gravekeeper's"))?90:-1;
+  // Assailant, attacking under Necrovalley, switches the attack target when that wins the battle or adds damage.
+  if(n==="Gravekeeper's Assailant"){
+   const t=enemy.find(x=>same(x,e.attackTarget));if(!t||!face(t))return -1;
+   const a=atk(c),guard=t.defense??data(t).defense??0;
+   return (t.position&1)?atk(t)>=a&&guard<a?85:-1:atk(t)<a?85:-1;
+  }
+  // Watcher is only offered against a discard effect, which it negates and destroys.
+  if(n==="Gravekeeper's Watcher")return 95;
   if(n==='Dark Jeroid'||n==='Otohime'||n==='Electromagnetic Bagworm')return live(enemy).length?85:-1;
   if(n==='Puppet Master')return e.lp[p]>3500&&free>=2&&grave.filter(t=>monster(t)&&race(t)==='Fiend').length>=2?90:-1;
   if(n==='Jowgen the Spiritualist')return !hand.some(t=>exodiaPieces.has(t.code))&&handCost(c,1)&&enemy.some(t=>(t.summon_type&0x40000000)!==0)&&!own.some(t=>!same(t,c)&&(t.summon_type&0x40000000)!==0)?100:-1;
@@ -399,7 +411,8 @@ export function deckPolicy(x){
   if(n==='Insect Barrier')return enemy.some(t=>face(t)&&race(t)==='Insect')||has(back,'DNA Surgery')?80:-1;
   if(n==='Book of Life')return free>0&&grave.some(t=>monster(t)&&race(t)==='Zombie')&&q(1-p,L.GRAVE).some(monster)?95:-1;
   if(n==='Call of the Mummy')return own.length===0&&hand.some(t=>monster(t)&&race(t)==='Zombie'&&lvl(t)>4)?90:-1;
-  if(n==='Insect Imitation')return own.some(t=>q(p,L.DECK).some(a=>race(a)==='Insect'&&lvl(a)===lvl(t)+1&&atk(a)>atk(t)+500))?85:-1;
+  // Not on an Ultimate Insect that can still level up: it Tributed a fresh LV3 for a Jirai Gumo (deck trace, 2026-11-07).
+  if(n==='Insect Imitation')return own.some(t=>!insectGrows(t)&&q(p,L.DECK).some(a=>race(a)==='Insect'&&lvl(a)===lvl(t)+1&&atk(a)>atk(t)+500))?85:-1;
   if(n==='Insect Queen')return e.phase===512&&free>0?85:incoming?-1:own.some(t=>!same(t,c)&&atk(t)<1000)?65:-1;
   if(n==='Jam Defender')return has(own,'Revival Jam')&&incoming&&name(incomingTarget||{})!=='Revival Jam'?90:-1;
   if(n==='Giant Rex'||n==='Malice Doll of Demise')return spent&&free>0?95:-1;
@@ -609,6 +622,9 @@ export function deckPolicy(x){
   // Flip-down monsters: Medusa Worm and Guardian Statue reuse their Flip Summon removal next turn; the others would only skip attacks.
   if(['Medusa Worm','Guardian Statue','Moai Interceptor Cannons','Great Spirit'].includes(n)&&c.location===L.MZONE&&!chain)return ['Medusa Worm','Guardian Statue'].includes(n)&&e.player===p&&e.phase===256&&face(c)&&live(enemy).length?82:-1;
   if(beneficialTriggers.has(n)||n==='Medusa Worm'||n==='Guardian Statue')return 85;
+  // Ultimate Insect LV3/LV5 level up in our Standby Phase (1400 to 2300 to 2600, each with an ATK-cutting aura): always
+  // worth it. With no rule the trigger was passed whenever another card triggered with it (2026-11-07).
+  if(n==='Ultimate Insect LV3'||n==='Ultimate Insect LV5')return 95;
   if(n==='King Dragun')return mainPhase&&free>0&&hand.some(x=>monster(x)&&race(x)==='Dragon')?88:-1;
   if(n==='Blue-Eyes Shining Dragon')return chain&&e.effect?.player===1-p?100:-1;
   if(n==='Amazoness Scouts')return chain&&(e.activeChain||[]).some(link=>!link.inactive&&link.player!==p&&(link.targets||[]).some(t=>t.controller===p&&!same(t,c)&&/Amazoness/.test(name(t))))?95:-1;
@@ -667,7 +683,8 @@ export function deckPolicy(x){
   // Abyss Soldier bounces the card that costs them most, or the lone monster in the way of our attacks (2026-11-06).
   if(n==='Abyss Soldier'&&c.location!==L.HAND)return ownCard?-100000:30000+bounceValue(c)+(bounceOpens(c)?1000:0)+value(c)*.1;
   // Jirai Gumo's attacks cost half our LP on a lost coin toss: revived over an equal Empress Mantis, it never attacked (deck trace, 2026-11-06).
-  if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(n)&&c.location===L.GRAVE&&name(c)==='Jirai Gumo')return atk(c)-Math.floor(e.lp[p]/4);
+  // Capped at 1000: an LP/4 penalty revived a 1000 Sangan over a 2200 Gumo that still blocks (deck trace, 2026-11-07).
+  if(['Monster Reborn','Premature Burial','Call of the Haunted'].includes(n)&&c.location===L.GRAVE&&name(c)==='Jirai Gumo')return atk(c)-Math.min(1000,Math.floor(e.lp[p]/4));
   // Mother Grizzly beside a face-up Orca floats the Fish that Orca can Tribute for its removal (2026-11-06).
   if(n==='Mother Grizzly'&&ownCard&&c.location===L.DECK&&monster(c)&&live(own).some(x=>name(x)==='Orca Mega-Fortress of Darkness')){
    const fuel=name(c)==='Torpedo Fish'&&enemy.length||name(c)==='Cannonball Spear Shellfish'&&theirBack.length;
@@ -725,8 +742,15 @@ export function deckPolicy(x){
   if(['Mind Control','Brain Control','Rafflesia Seduction','Electric Virus'].includes(n)&&c.location===L.MZONE)return ownCard?-100000:20000+(face(c)?atk(c):900);
   if(n==='Fish Depth Charge'&&ownCard&&c.location===L.MZONE)return (threatened(c)?50000:0)-atk(c);
   if(n==='Ectoplasmer'&&ownCard&&c.location===L.MZONE)return name(c)==='Malice Doll of Demise'?100000:(data(c).attack||0)/2>=e.lp[1-p]?90000:-atk(c);
-  if(['Pinch Hopper','Pyramid Turtle','Flying Kamakiri #1','Goblin Zombie','Call of the Mummy','Water Hazard','Surface','Big Wave Small Wave','Book of Life'].includes(n)){
+  if(['Pinch Hopper','Pyramid Turtle','Flying Kamakiri #1','Howling Insect','Goblin Zombie','Call of the Mummy','Water Hazard','Surface','Big Wave Small Wave','Book of Life'].includes(n)){
    if(!ownCard)return c.location===L.GRAVE?atk(c): -100000;
+   // Ultimate Insect LV3 grows into LV5 and LV7: Howling Insect floated an equal 1400 Flying Kamakiri #1 instead
+   // 15 times out of 20 (deck trace, 2026-11-07). Only when it can live to our Standby Phase: floated in their Battle
+   // Phase, it died to their next attacker where a Flying Kamakiri #1 would have floated again.
+   if(name(c)==='Ultimate Insect LV3'&&[...hand,...q(p,L.DECK)].some(x=>name(x)==='Ultimate Insect LV5')){
+    const hunted=enemy.some(t=>face(t)&&(t.position&1)&&atk(t)>900&&!(e.player!==p&&t.attack_count>0));
+    return hunted?atk(c)-200:atk(c)+1000;
+   }
    if(c.location===L.HAND&&n==='Goblin Zombie')return null;
    // Pyramid Turtle: Vampire Lord when Vampire Genesis waits in hand (it banishes Vampire Lord from the field),
    // otherwise Ryu Kokki, the strongest Zombie it can call (user, 2026-11-06).

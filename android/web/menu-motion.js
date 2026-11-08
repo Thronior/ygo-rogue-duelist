@@ -1,4 +1,5 @@
 // Continuous, cyclic menu movement shared by touch, mouse, arrows and keyboard.
+import {snapToClock} from './ambient-clock.js';
 export function mountMenuMotion(root,count,initial,onSelect){
  const cards=[...root.querySelectorAll('[data-menu]')];
  const duplicates=cards.length<=5?cards.flatMap(card=>[-1,1].map(copy=>{const clone=card.cloneNode(true);clone.removeAttribute('data-menu');clone.removeAttribute('hidden');clone.dataset.menuDuplicate='';clone.dataset.copy=String(copy);clone.setAttribute('aria-hidden','true');clone.tabIndex=-1;clone.disabled=true;clone.style.pointerEvents='none';root.append(clone);return {node:clone,index:Number(card.dataset.menu),copy};})):[];
@@ -11,11 +12,20 @@ export function mountMenuMotion(root,count,initial,onSelect){
  const cardSize=()=>{const c=cards.find(c=>!c.hidden)||cards[0];return portrait()?c.offsetHeight:c.offsetWidth;};
  const gap=()=>portrait()?-cardSize()*.22:Math.max(10,root.clientWidth*.012);
  const spacing=()=>Math.max(1,cardSize()*.86+gap());
+ // Battery (2026-11-07): the idle drift steps on the shared 50 ms clock (mobile.css menu-drift, ambient-clock.js).
+ // A card coming into view starts on the clock by itself; a drag pauses the drift, and resuming moves it off the
+ // ticks, so every card is put back on them when the carousel comes to rest.
+ function alignDrift(){
+  if(!document.timeline)return;
+  for(const node of [...cards,...duplicates.map(d=>d.node)])for(const a of node.getAnimations())if(a.animationName==='menu-drift')snapToClock(a);
+ }
  function paint(){
   const vertical=portrait(),size=cardSize(),space=vertical?-size*.22:Math.max(10,root.clientWidth*.012);
+  let shown=false;
   for(const card of cards){
    const i=Number(card.dataset.menu);
    const d=wrap(i-position+count/2)-count/2,dist=Math.abs(d);
+   if(card.hidden&&dist<=2.6)shown=true;
    card.hidden=dist>2.6;card.dataset.distance=String(dist);
    card.style.setProperty('--menu-offset',d);
    const near=Math.min(dist,1),offset=Math.sign(d)*(size*(.72*dist+.28*(near-near*near/2))+space*dist);
@@ -30,14 +40,16 @@ export function mountMenuMotion(root,count,initial,onSelect){
   }
   for(const {node,index,copy} of duplicates){
    const d=wrap(index-position+count/2)-count/2+copy*count,dist=Math.abs(d),near=Math.min(dist,1),offset=Math.sign(d)*(size*(.72*dist+.28*(near-near*near/2))+space*dist),focus=1-Math.min(dist,1);
+   if(node.hidden&&dist<=2.6)shown=true;
    node.hidden=dist>2.6;node.dataset.distance=String(dist);node.style.setProperty('--menu-offset',d);node.style.left=vertical?'50%':`calc(50% + ${offset}px)`;node.style.top=vertical?`calc(50% + ${offset}px)`:`calc(50% + ${focus*14}px)`;node.style.scale='none';node.style.transform=`translate(-50%,-50%) scale(${1-.28*Math.min(dist,1)})`;node.style.filter=compatibility()?'none':`brightness(${1-.42*Math.min(dist,1)})`;node.style.opacity=String(Math.min(1,Math.max(0,2.6-dist)));node.style.zIndex=String(100-Math.round(dist*10));
   }
+  if(shown)alignDrift();
  }
  function tick(now){
   const dt=Math.min((now-last)/1000||1/60,.032)/1.2;last=now;
   velocity+=(target-position)*100*dt;
   velocity*=Math.exp(-16*dt);position+=velocity*dt;
-  if(Math.abs(target-position)<.001&&Math.abs(velocity)<.01){position=target;velocity=0;frame=0;paint();return;}
+  if(Math.abs(target-position)<.001&&Math.abs(velocity)<.01){position=target;velocity=0;frame=0;paint();alignDrift();return;}
   paint();frame=requestAnimationFrame(tick);
  }
  function settle(next){
@@ -90,7 +102,7 @@ export function mountMenuMotion(root,count,initial,onSelect){
   if(Math.abs(wheelTotal)>=40){settle(Math.round(target)+Math.sign(wheelTotal));wheelTotal=0;wheelStep=now;}
  }
  wheelRoot.addEventListener('wheel',wheel,{passive:false});
- root.classList.add('smooth-menu');paint();
+ root.classList.add('smooth-menu');paint();alignDrift();
  root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
  root.addEventListener('pointerup',up);root.addEventListener('pointercancel',up);root.addEventListener('lostpointercapture',up);
  root.addEventListener('click',click,true);root.addEventListener('dragstart',prevent);

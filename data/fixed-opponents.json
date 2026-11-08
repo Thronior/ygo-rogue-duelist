@@ -293,7 +293,7 @@
         "name": "Weevil Underwood",
         "tier": 3,
         "deck": "weevil-underwood-tier-3",
-        "source": "User-requested powered-up version of Tier 2; Insect Queen / DNA Surgery control (2026-09-24)",
+        "source": "User-requested Insect / Ultimate Insect list (2026-11-08)",
         "fixed": true
       }
     ],
@@ -423,7 +423,7 @@
         "name": "Odion",
         "tier": 3,
         "deck": "odion-tier-3",
-        "source": "https://gamefaqs.gamespot.com/gba/925904-yu-gi-oh-7-trials-to-glory-world-championship-tournament/faqs/46689",
+        "source": "User-requested Serket / Tiki trap list (2026-11-08)",
         "fixed": true
       }
     ],
@@ -579,7 +579,7 @@
         "name": "Marik Ishtar",
         "tier": 3,
         "deck": "marik-ishtar-tier-3",
-        "source": "User-provided exact 40-card screenshot deck (2026-09-24)",
+        "source": "User-provided Gravekeeper's deck (2026-11-08)",
         "fixed": true
       }
     ]
