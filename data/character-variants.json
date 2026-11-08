@@ -111,29 +111,26 @@
       "background": "character-backgrounds/variant-3.jpg"
     },
     "4": {
-      "name": "Fusion Arsenal",
-      "starting_relic": "machine_foundry",
+      "name": "Metalmorph",
+      "starting_relic": "metal_coating",
       "supporting_packs": [
-        "EN-FET",
-        "EN-RDS"
+        "CUSTOM-STONE-AND-STEEL",
+        "JP-PP7"
       ],
       "cards": [
-        "Barrel Dragon",
-        "Blowback Dragon",
-        "Polymerization",
-        "Gatling Dragon"
+        "Zoa",
+        "Metalmorph",
+        "Metalzoa"
       ],
       "pack_additions": [
-        "Barrel Dragon",
-        "Blowback Dragon",
-        "Polymerization",
-        "Gatling Dragon",
-        "King of the Swamp",
-        "The Dark - Hex-Sealed Fusion",
-        "Re-Fusion",
-        "Fusilier Dragon, the Dual-Mode Beast"
+        "Zoa",
+        "Metalmorph",
+        "Metalzoa",
+        "Rare Metalmorph",
+        "Red-Eyes Black Dragon",
+        "Red-Eyes Black Metal Dragon"
       ],
-      "background_card": "Blowback Dragon",
+      "background_card": "Metalzoa",
       "background": "character-backgrounds/variant-4.jpg"
     },
     "5": {

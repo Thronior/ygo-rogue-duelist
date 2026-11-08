@@ -5,7 +5,8 @@ import {TagPeer} from './tag-peer.js';
 import {TagDuel} from './tag-duel.js';
 const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 export const decode=value=>{if(value&&typeof value==='object'){if(Object.keys(value).length===1&&'__bigint'in value)return BigInt(value.__bigint);for(const key of Object.keys(value))value[key]=decode(value[key])}return value};
-const PROTOCOL=4,AI_PACE_LIMIT=2500,PAUSE_AFTER=5000,MAX_RESYNCS=3;
+// 5: shared opponent screen and shop lock-ins (2026-11-08).
+const PROTOCOL=5,AI_PACE_LIMIT=2500,PAUSE_AFTER=5000,MAX_RESYNCS=3;
 
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
@@ -233,9 +234,11 @@ export class TagSession {
   // A guest outbox saved by an older page. Duel answers now travel in the log.
   if(request.action==='duel-response')return {ok:true,stale:true};
   const result=await this.backend('tag-command',{seat,request});await this.broadcast();
-  if(request.action==='buy'){
-   const packs=(Array.isArray(result.result)?result.result:[]).filter(x=>x.kind==='pack');
-   if(packs.length){const event={kind:'shop-packs',id:seat+':'+request.id,buyer:seat,packs};this.tell(event);this.showPackEvent(event)}
+  // A shared purchase runs when the second player presses Buy, so it opens both players' packs.
+  const event=result.result;
+  if(event?.kind==='buy')for(const buyer of [0,1]){
+   const packs=(event.results?.[buyer]||[]).filter(x=>x.kind==='pack');
+   if(packs.length){const shown={kind:'shop-packs',id:event.id+':'+buyer,buyer,packs};this.tell(shown);this.showPackEvent(shown)}
   }
   return result.result;
  }

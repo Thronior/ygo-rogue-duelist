@@ -1,0 +1,592 @@
+[
+ {
+  "term": "Monster",
+  "translation": "Monstro",
+  "evidence": "Necrofear das Trevas; Formação Union"
+ },
+ {
+  "term": "Spell",
+  "translation": "Magia (Card de Magia)",
+  "evidence": "Invasor das Trevas; Tornado de Pó"
+ },
+ {
+  "term": "Trap",
+  "translation": "Armadilha (Card de Armadilha)",
+  "evidence": "Boneca Isca; Detector de Metais"
+ },
+ {
+  "term": "Normal Monster",
+  "translation": "Monstro Normal",
+  "evidence": "19 card texts"
+ },
+ {
+  "term": "Effect Monster",
+  "translation": "Monstro de Efeito",
+  "evidence": "Besouro Bombardeiro"
+ },
+ {
+  "term": "Fusion Monster",
+  "translation": "Monstro de Fusão",
+  "evidence": "Ciber-Stein; Desfusão"
+ },
+ {
+  "term": "Ritual Monster",
+  "translation": "Monstro de Ritual",
+  "evidence": "Execução De Um Contrato"
+ },
+ {
+  "term": "Token",
+  "translation": "Ficha",
+  "evidence": "45 card texts (Token only 2); system 1119"
+ },
+ {
+  "term": "Normal Spell",
+  "translation": "Magia Normal",
+  "evidence": "Des Volstgalph"
+ },
+ {
+  "term": "Quick-Play Spell",
+  "translation": "Magia Rápida",
+  "evidence": "Invasor das Trevas"
+ },
+ {
+  "term": "Continuous Spell",
+  "translation": "Magia Contínua",
+  "evidence": "card texts"
+ },
+ {
+  "term": "Equip Spell",
+  "translation": "Magia de Equipamento",
+  "evidence": "Besta em Brasa (22 texts)"
+ },
+ {
+  "term": "Field Spell",
+  "translation": "Magia de Campo",
+  "evidence": "Uma Coruja de Sorte"
+ },
+ {
+  "term": "Ritual Spell",
+  "translation": "Magia de Ritual",
+  "evidence": "Tartaruga Caranguejo"
+ },
+ {
+  "term": "Normal Trap",
+  "translation": "Armadilha Normal",
+  "evidence": "Ryu Senshi"
+ },
+ {
+  "term": "Continuous Trap",
+  "translation": "Armadilha Contínua",
+  "evidence": "Dispersão Maldosa; Detector de Metais"
+ },
+ {
+  "term": "Counter Trap",
+  "translation": "Armadilha de Resposta",
+  "evidence": "Van'Dalgyon, o Senhor do Dragão Negro"
+ },
+ {
+  "term": "Flip",
+  "translation": "Virar (effect label VIRE:)",
+  "evidence": "Ladybug de 4 Estrelas da Condenação; Cavaleiro da Lâmina"
+ },
+ {
+  "term": "Spirit",
+  "translation": "Espírito",
+  "evidence": "Espelho Fengsheng; Legado de Yata-Garasu"
+ },
+ {
+  "term": "Union",
+  "translation": "União",
+  "evidence": "Formação Union; system 1060"
+ },
+ {
+  "term": "Gemini",
+  "translation": "Gêmeos",
+  "evidence": "system 1061"
+ },
+ {
+  "term": "Toon",
+  "translation": "Toon",
+  "evidence": "Dragão Toon de Olhos Azuis"
+ },
+ {
+  "term": "Deck",
+  "translation": "Deck",
+  "evidence": "all card texts"
+ },
+ {
+  "term": "Main Deck",
+  "translation": "Deck Principal",
+  "evidence": "Cadeia da Destruição"
+ },
+ {
+  "term": "Extra Deck",
+  "translation": "Deck Adicional",
+  "evidence": "Ciber-Stein; Desfusão"
+ },
+ {
+  "term": "hand",
+  "translation": "mão",
+  "evidence": "adicione à sua mão (all texts)"
+ },
+ {
+  "term": "field",
+  "translation": "campo",
+  "evidence": "no campo (all texts)"
+ },
+ {
+  "term": "Graveyard (GY)",
+  "translation": "Cemitério",
+  "evidence": "432 texts; GY is always written Cemitério"
+ },
+ {
+  "term": "banish / banished",
+  "translation": "banir / banido",
+  "evidence": "Bazoo, o Comedor de Almas; Exorcista da Luz"
+ },
+ {
+  "term": "Monster Zone",
+  "translation": "Zona de Monstros",
+  "evidence": "Necrofear das Trevas; Explosão de Fogo Infernal"
+ },
+ {
+  "term": "Spell & Trap Zone",
+  "translation": "Zona de Magias & Armadilhas",
+  "evidence": "Tábua do Destino; Pesadelo de Theban"
+ },
+ {
+  "term": "Field Zone",
+  "translation": "Zona de Campo",
+  "evidence": "system 1008"
+ },
+ {
+  "term": "Normal Summon",
+  "translation": "Invocação-Normal / Invocar por Invocação-Normal",
+  "evidence": "104 texts 'Invocado por Invocação-Normal'"
+ },
+ {
+  "term": "Special Summon",
+  "translation": "Invocação-Especial / Invocar por Invocação-Especial",
+  "evidence": "365 texts; Um Herói Aparece"
+ },
+ {
+  "term": "Tribute Summon",
+  "translation": "Invocação-Tributo / Invocar por Invocação-Tributo",
+  "evidence": "Behemoth, o Rei de Todos os Animais"
+ },
+ {
+  "term": "Flip Summon",
+  "translation": "Invocação-Virar",
+  "evidence": "27 texts; system 3"
+ },
+ {
+  "term": "Fusion Summon",
+  "translation": "Invocação-Fusão",
+  "evidence": "Desfusão; Ryu Senshi"
+ },
+ {
+  "term": "Ritual Summon",
+  "translation": "Invocação-Ritual",
+  "evidence": "Ritual de Espelho-Besta"
+ },
+ {
+  "term": "Tribute",
+  "translation": "oferecer como Tributo / Tributo",
+  "evidence": "Tartaruga Catapulta; Machado do Desespero"
+ },
+ {
+  "term": "Set",
+  "translation": "Baixar / Baixado",
+  "evidence": "Tornado de Pó; Oferenda Derradeira"
+ },
+ {
+  "term": "activate",
+  "translation": "ativar",
+  "evidence": "all modern texts"
+ },
+ {
+  "term": "effect",
+  "translation": "efeito",
+  "evidence": "all texts"
+ },
+ {
+  "term": "Chain",
+  "translation": "Corrente",
+  "evidence": "system 206/216 (elo de corrente)"
+ },
+ {
+  "term": "resolve",
+  "translation": "resolver",
+  "evidence": "Oferenda Derradeira; Des Volstgalph"
+ },
+ {
+  "term": "negate",
+  "translation": "negar",
+  "evidence": "Ryu Senshi; Diabretes Gêmeos"
+ },
+ {
+  "term": "destroy",
+  "translation": "destruir",
+  "evidence": "all texts"
+ },
+ {
+  "term": "draw",
+  "translation": "comprar",
+  "evidence": "Legado de Yata-Garasu"
+ },
+ {
+  "term": "discard",
+  "translation": "descartar",
+  "evidence": "Uma Pena da Fênix; Dispersão Maldosa"
+ },
+ {
+  "term": "target",
+  "translation": "escolher (como alvo); alvo",
+  "evidence": "Tornado de Pó: 'Escolha 1 ...; destrua o alvo'"
+ },
+ {
+  "term": "equip",
+  "translation": "equipar / equipado",
+  "evidence": "Cestus de Dagla; Estouro com Correia"
+ },
+ {
+  "term": "you control",
+  "translation": "que você controla",
+  "evidence": "Tornado de Pó"
+ },
+ {
+  "term": "opponent",
+  "translation": "oponente",
+  "evidence": "559 texts (adversário is the older form)"
+ },
+ {
+  "term": "owner",
+  "translation": "dono",
+  "evidence": "30 texts"
+ },
+ {
+  "term": "face-up",
+  "translation": "com a face para cima",
+  "evidence": "335 texts"
+ },
+ {
+  "term": "face-down",
+  "translation": "com a face para baixo",
+  "evidence": "Escorpião de Oito Garras"
+ },
+ {
+  "term": "Attack Position",
+  "translation": "Posição de Ataque",
+  "evidence": "Avião de Reconhecimento de D. D."
+ },
+ {
+  "term": "Defense Position",
+  "translation": "Posição de Defesa",
+  "evidence": "Buraco Armadilha Ácido"
+ },
+ {
+  "term": "battle position",
+  "translation": "posição de batalha",
+  "evidence": "Espírito da Aqua; Sapatos das Dentadas"
+ },
+ {
+  "term": "ATK",
+  "translation": "ATK ('ganha 500 de ATK')",
+  "evidence": "Cestus de Dagla"
+ },
+ {
+  "term": "DEF",
+  "translation": "DEF",
+  "evidence": "Buraco Armadilha Ácido"
+ },
+ {
+  "term": "Level",
+  "translation": "Nível",
+  "evidence": "Destruição Cega"
+ },
+ {
+  "term": "Attribute",
+  "translation": "Atributo",
+  "evidence": "24 texts; system 562"
+ },
+ {
+  "term": "Type",
+  "translation": "Tipo",
+  "evidence": "101 texts; system 554"
+ },
+ {
+  "term": "LP",
+  "translation": "PV",
+  "evidence": "141 texts ('pague 1000 PV', 'ganhe 500 PV'); Life Points only in older texts"
+ },
+ {
+  "term": "damage",
+  "translation": "dano ('cause 500 de dano ao seu oponente')",
+  "evidence": "Des Volstgalph; Explosão Causada por um Tributo"
+ },
+ {
+  "term": "battle damage",
+  "translation": "dano de batalha",
+  "evidence": "Cestus de Dagla"
+ },
+ {
+  "term": "gain LP",
+  "translation": "ganhar PV",
+  "evidence": "Senhora Obscura Maria; Cestus de Dagla"
+ },
+ {
+  "term": "attack",
+  "translation": "atacar / ataque ('declarar um ataque')",
+  "evidence": "Um Herói Aparece"
+ },
+ {
+  "term": "direct attack",
+  "translation": "ataque direto / atacar diretamente",
+  "evidence": "Tyranno Negro; Gigante Rex"
+ },
+ {
+  "term": "destroyed by battle",
+  "translation": "destruído em batalha",
+  "evidence": "53 texts; Mago Aprendiz"
+ },
+ {
+  "term": "piercing battle damage",
+  "translation": "dano de batalha perfurante",
+  "evidence": "Explosão do Big Bang"
+ },
+ {
+  "term": "turn",
+  "translation": "turno",
+  "evidence": "all texts"
+ },
+ {
+  "term": "Draw Phase",
+  "translation": "Fase de Compra",
+  "evidence": "system 20; card texts"
+ },
+ {
+  "term": "Standby Phase",
+  "translation": "Fase de Apoio",
+  "evidence": "66 texts; Destruição Cega"
+ },
+ {
+  "term": "Main Phase 1",
+  "translation": "Fase Principal 1",
+  "evidence": "card texts"
+ },
+ {
+  "term": "Battle Phase",
+  "translation": "Fase de Batalha",
+  "evidence": "39 texts"
+ },
+ {
+  "term": "Main Phase 2",
+  "translation": "Fase Principal 2",
+  "evidence": "card texts"
+ },
+ {
+  "term": "End Phase",
+  "translation": "Fase Final",
+  "evidence": "67 texts"
+ },
+ {
+  "term": "Damage Step",
+  "translation": "Etapa de Dano",
+  "evidence": "27 texts; Van'Dalgyon"
+ },
+ {
+  "term": "once per turn",
+  "translation": "Uma vez por turno",
+  "evidence": "105 texts"
+ },
+ {
+  "term": "Duel",
+  "translation": "Duelo",
+  "evidence": "Tábua do Destino"
+ },
+ {
+  "term": "coin toss / heads / tails",
+  "translation": "lançar uma moeda / Cara / Coroa",
+  "evidence": "Dragão Revólver; system 60-61"
+ },
+ {
+  "term": "roll a die",
+  "translation": "lançar um dado",
+  "evidence": "Destruição Cega; Agido"
+ },
+ {
+  "term": "counter",
+  "translation": "Marcador",
+  "evidence": "Mago Aprendiz (Marcador de Magia)"
+ },
+ {
+  "term": "reveal",
+  "translation": "revelar",
+  "evidence": "Boneca Isca"
+ },
+ {
+  "term": "shuffle",
+  "translation": "embaralhar",
+  "evidence": "Boneca Isca; Jarro da Metamorfose #2"
+ },
+ {
+  "term": "add to your hand",
+  "translation": "adicionar à sua mão",
+  "evidence": "Um Gato do Ill Omen"
+ },
+ {
+  "term": "Run",
+  "translation": "Jornada",
+  "evidence": "game term"
+ },
+ {
+  "term": "Loop",
+  "translation": "Ciclo",
+  "evidence": "game term"
+ },
+ {
+  "term": "Relic",
+  "translation": "Relíquia",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cursed relic",
+  "translation": "Relíquia Amaldiçoada",
+  "evidence": "game term"
+ },
+ {
+  "term": "Fused relic",
+  "translation": "Relíquia Fundida",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting relic",
+  "translation": "Relíquia Inicial",
+  "evidence": "game term"
+ },
+ {
+  "term": "Coins",
+  "translation": "Moedas",
+  "evidence": "game term"
+ },
+ {
+  "term": "Shop",
+  "translation": "Loja",
+  "evidence": "game term"
+ },
+ {
+  "term": "Reroll",
+  "translation": "Renovar (noun: Renovação)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Booster pack",
+  "translation": "Pacote",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting deck",
+  "translation": "Deck Inicial",
+  "evidence": "game term"
+ },
+ {
+  "term": "Collection",
+  "translation": "Coleção",
+  "evidence": "game term"
+ },
+ {
+  "term": "Signature card",
+  "translation": "Card Assinatura",
+  "evidence": "game term"
+ },
+ {
+  "term": "Variant",
+  "translation": "Variante",
+  "evidence": "game term"
+ },
+ {
+  "term": "Challenge level (LVL)",
+  "translation": "Nível de Desafio (NV)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss",
+  "translation": "Chefe",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss curse",
+  "translation": "Maldição do Chefe",
+  "evidence": "game term"
+ },
+ {
+  "term": "Victory / Defeat",
+  "translation": "Vitória / Derrota",
+  "evidence": "game term"
+ },
+ {
+  "term": "Tag Duel",
+  "translation": "Duelo em Dupla",
+  "evidence": "game term; system 1246 'Dupla'"
+ },
+ {
+  "term": "Ultimate Collector",
+  "translation": "Colecionador Supremo",
+  "evidence": "game term"
+ },
+ {
+  "term": "Golden card",
+  "translation": "Card Dourado",
+  "evidence": "game term"
+ },
+ {
+  "term": "Misprint",
+  "translation": "Erro de Impressão",
+  "evidence": "game term"
+ },
+ {
+  "term": "Bounty",
+  "translation": "Recompensa",
+  "evidence": "game term"
+ },
+ {
+  "term": "Duel Look",
+  "translation": "Visual do Duelo",
+  "evidence": "game term"
+ },
+ {
+  "term": "Chain button: Always / Sometimes / Never",
+  "translation": "Corrente / Sem Corrente / Corrente às vezes (botão de Corrente: sempre, nunca, às vezes)",
+  "evidence": "game term; matches UI labels"
+ },
+ {
+  "term": "Flag behaviour",
+  "translation": "Reportar comportamento",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cloud save",
+  "translation": "Salvamento na nuvem",
+  "evidence": "game term"
+ },
+ {
+  "term": "Achievement",
+  "translation": "Conquista",
+  "evidence": "game term"
+ },
+ {
+  "term": "Unlock",
+  "translation": "Desbloquear",
+  "evidence": "game term"
+ },
+ {
+  "term": "Settings",
+  "translation": "Configurações",
+  "evidence": "game term"
+ },
+ {
+  "term": "Inspect",
+  "translation": "Inspecionar",
+  "evidence": "game term"
+ }
+]

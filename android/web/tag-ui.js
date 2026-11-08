@@ -21,7 +21,7 @@ import {coinLabel} from './coin-label.js';
 
 import {rememberedLevel,alternateUnlocked} from './difficulty-preference.js';
 
-import {encounterPortrait,hasSpyglass,bossBanner,bossControls,bossRerollPrice,playEncounterReveal,playPortraitReveal,revealCost,revealCostLabel} from './encounter-reveal.js';
+import {encounterPortrait,hasSpyglass,bossBanner,bossRerollPrice,playEncounterReveal,playPortraitReveal,revealCost,revealCostLabel,swordsIcon} from './encounter-reveal.js';
 
 
 import {shopRerollPrice} from './experience-ui.js';
@@ -44,6 +44,9 @@ import {assetURL} from './startup-assets.js';
 
 // Every deck scroller in the Tag deck tab: one grid, or both panes of the wide split (card-search.js).
 const tagDeckArea=root=>root?.querySelector('.tag-deck-scroll');
+// The trade grid scrolls in .tag-deck-scroll itself, which the deck scrollers skip, so a tap sent it to the top
+// (Mugen101, Discord 2026-11-08). Every redraw keeps its place; a filter change starts at the top.
+const tradeScroller=root=>root?.querySelector('.tag-trade .tag-deck-scroll');
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -98,11 +101,11 @@ export class TagUI {
 
   this.updateRoomBadge();
 
-  const scroll=saveDeckScroll(tagDeckArea(this.root));
+  const scroll=saveDeckScroll(tagDeckArea(this.root)),trade=tradeScroller(this.root)?.scrollTop;
 
   this.renderContent();
 
-  restoreDeckScroll(tagDeckArea(this.root),scroll);this.checkDeckSplit();
+  restoreDeckScroll(tagDeckArea(this.root),scroll);const tradeArea=tradeScroller(this.root);if(tradeArea&&trade)tradeArea.scrollTop=trade;this.checkDeckSplit();
 
  }
 
@@ -176,17 +179,23 @@ export class TagUI {
 
   }
 
-  if(v.phase==='shop'){if(r.cursed_offer){this.cursed();return}this.shop();return}
+  // The deck editor opens over the shop too, and its arrow leads back there (user, 2026-11-08).
+  const inShop=v.phase==='shop';
+
+  if(inShop){if(r.cursed_offer){this.cursed();return}if(this.tab!=='deck'||fixedDeck(r,c)){this.shop();return}}
 
   if(c.copycat)this.tab='opponents';
 
-  const locked=v.ready[v.seat],chosen=r.routes.includes(r.opponent),fixed=fixedDeck(r,c);
+  const locked=v.ready[v.seat],fixed=fixedDeck(r,c);
 
   const mainCount=r.selected.filter(i=>!(this.cardById(r.pool[i])?.data.type&64)).length,validSize=fixed||mainCount>=(deckMinimum(r,this.content.characters[r.character]))&&mainCount<=60;
 
   const lockedCount=v.ready.filter(Boolean).length;
 
-  const ready=this.tab==='deck'?`<button class="tag-choose-opponent deck-count-arrow" data-tag="opponents" ${!validSize?'disabled':''} aria-label="${mainCount}/${deckMinimum(r,this.content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${mainCount}/${deckMinimum(r,this.content.characters[r.character])}+</strong></span></span></button>`:`<footer class="tag-lock-in">${c.copycat?'':button('Edit deck','deck','class="tag-edit-deck"')}<span role="status" aria-live="polite">${lockedCount}/2 players locked in</span>${button(locked?'Unlock selection':'Lock in',locked?'unready':'ready',`class="primary" ${waiting||!chosen||(!locked&&!validSize)?'disabled':''}`)}<small>${waiting?'Waiting for connection to your teammate.':!chosen?'Choose an opponent first.':!validSize&&!locked?`${mainCount} main cards; you need ${deckMinimum(r,this.content.characters[r.character])}–60.`:locked?'Your selection is locked. Waiting for your teammate.':'Lock your deck and opponent to continue.'}</small></footer>`;
+  // Both players see one opponent list. The swords lock a player in at once; the teammate's pick is marked and closed.
+  const partner=this.content.characters[v.characters?.[1-v.seat]],partnerName=esc(partner?.name||'Your teammate'),mine=locked?v.opponents[v.seat]:null,theirs=v.ready[1-v.seat]?v.opponents[1-v.seat]:null,boss=(r.round+1)%3===0,minimum=deckMinimum(r,this.content.characters[r.character]);
+
+  const ready=this.tab==='deck'?`<button class="tag-choose-opponent deck-count-arrow" data-tag="opponents" ${!validSize&&!inShop?'disabled':''} aria-label="${mainCount}/${minimum}+ main deck cards — ${inShop?'Back to shop':'Next duel'}"><span><span class="tag-next-label"><strong>${mainCount}/${minimum}+</strong></span></span></button>`:`<footer class="tag-lock-in">${c.copycat?'':button('Edit deck','deck','class="tag-edit-deck"')}<span role="status" aria-live="polite">${lockedCount}/2 players locked in</span>${mine!==null?button('Unlock','unready',`class="primary" ${waiting||this.working?'disabled':''}`):''}<small>${waiting?'Waiting for connection to your teammate.':!validSize&&mine===null?`${mainCount} main cards; you need ${minimum}–60. Edit your deck first.`:mine!==null?(theirs!==null?'Both players are locked in.':`Locked in · waiting for ${partnerName}. Editing your deck unlocks your pick.`):`Press ${swordsIcon('inline-swords')} on ${boss?'a boss':'an opponent'} to lock in your deck and pick.`}</small></footer>`;
 
   const tools=`<span>${esc(c.name)} · ${r.lp.toLocaleString()} LP</span>`;
 
@@ -215,15 +224,25 @@ export class TagUI {
 
   const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=this.deckSplit?splitDeckMarkup(order.filter(i=>inDeck.has(i)),order.filter(i=>!inDeck.has(i)),cardMarkup,this.deckFilter==='Extra'):order.map(cardMarkup).join('');
 
-  const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=v.ready[1-v.seat]&&v.opponents[1-v.seat]===i;return `<section data-encounter="${i}" class="opponent tag-opponent ${r.opponent===i?'selected':''}">${encounterPortrait(this.content,r,i,{revealAttr:'data-id',disabled:waiting})}<small>${r.challenge_level>=1?'Challenge LVL '+r.challenge_level+' · 8,000 LP':r.round===0?'Practice duel · 3,000 LP':'Duel '+(r.round+1)}</small><div class="reward"><img class="boost-icon" src="${rewardIcon(reward?.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward?.label||'')}</b></span></div>${pack?`<div class="reward"><img data-tag="pack" data-pack="${pack.id}" src="assets/packs/${pack.id}.jpg" alt="${esc(pack.name)}"><span>GUARANTEED PACK<br>${esc(pack.name)}</span></div>`:''}${curseIcons(this.content,r.route_curses?.[i]||[],true)}${hasSpyglass(r)?button('View deck','peek-deck',`data-id="${i}"`):''}${button(taken?'Teammate’s opponent':r.opponent===i?'Selected':'Choose','choose',`data-id="${i}" class="primary" ${locked||taken?'disabled':''}`)}</section>`}).join('');
+  const bossCost=bossRerollPrice(r),known=i=>boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i);
+  const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=theirs===i,picked=mine===i,name=known(i)?esc(o?.name||'opponent'):'this opponent';
+   const badges=picked||taken?`<div class="tag-pick-badges">${picked?'<span class="tag-pick you">You · locked in</span>':''}${taken?`<span class="tag-pick partner"><img src="assets/${esc(partner?.sprite||'')}" alt="">${partnerName} · locked in</span>`:''}</div>`:'';
+   // Either player rerolls either boss, one at a time, while nobody is locked in on it.
+   const reroll=boss?`<button class="tag-boss-reroll" data-tag="boss-reroll" data-id="${i}" ${waiting||this.working||picked||taken||r.gold<bossCost?'disabled':''} aria-label="Reroll ${name} for ${bossCost} coins"><span class="boss-reroll-label"><span aria-hidden="true">↻</span> REROLL</span><span class="boss-reroll-price"><img src="assets/ui/coins.png" alt="Coins"><strong>${bossCost}</strong></span></button>`:'';
+   const swords=`<button class="primary tag-swords ${picked?'locked':''}" data-tag="lock-opponent" data-id="${i}" aria-pressed="${picked}" aria-label="${picked?'Unlock '+name:taken?partnerName+' is locked in on '+name:'Lock in '+name}" ${waiting||this.working||taken?'disabled':''}>${swordsIcon('start-swords')}<span class="start-label">${picked?'Locked in ✓':taken?'Teammate’s pick':'Lock in'}</span></button>`;
+   return `<section data-encounter="${i}" class="opponent tag-opponent ${picked?'selected':''} ${taken?'teammate-pick':''}">${encounterPortrait(this.content,r,i,{revealAttr:'data-id',disabled:waiting,tag:true})}${badges}<small>${r.challenge_level>=1?'Challenge LVL '+r.challenge_level+' · 8,000 LP':r.round===0?'Practice duel · 3,000 LP':'Duel '+(r.round+1)}</small><div class="reward"><img class="boost-icon" src="${rewardIcon(reward?.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward?.label||'')}</b></span></div>${pack?`<div class="reward"><img data-tag="pack" data-pack="${pack.id}" src="assets/packs/${pack.id}.jpg" alt="${esc(pack.name)}"><span>GUARANTEED PACK<br>${esc(pack.name)}</span></div>`:''}${curseIcons(this.content,r.route_curses?.[i]||[],true)}${hasSpyglass(r)?button('View deck','peek-deck',`data-id="${i}"`):''}${reroll}${swords}</section>`}).join('');
+  const wallet=`<div class="boss-economy"><div class="boss-wallet" aria-label="${coinLabel(r.gold)} coins"><img src="assets/ui/coins.png" alt=""><div><small>TEAM COINS</small><strong>${coinLabel(r.gold)}</strong></div></div></div>`;
+  const pickLine=mine!==null&&theirs!==null?'Both players are locked in':mine!==null?`Locked in · waiting for ${partnerName}`:theirs!==null?`${partnerName} is locked in on ${known(theirs)?esc(this.content.characters[theirs]?.name||'an opponent'):'an opponent'} · pick another`:boss?'Both bosses are on both screens · each player locks in one':'Choose your next opponent';
+  const coinsLine=boss?`<span class="tag-boss-coins"> · Team coins ${coinLabel(r.gold)}</span>`:'';
 
-  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('tag-deck',this.deckFilter!=='All'||this.deckSort!=='Newest'||this.deckStatus!=='First')}${['All','Monster','Spell','Trap','Extra'].map(t=>button(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${this.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="tag-deck-sort" data-draft-sort aria-label="Sort cards">${['Newest','Default','Name','Attribute','ATK','DEF','Level'].map(t=>`<option ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select><button class="deck-deselect" data-tag="deselect-all" aria-label="Deselect all" title="Deselect all" ${locked?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${this.deckSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(this.deckSplit)}>${cards}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div>`}</div>`:`${(r.round+1)%3===0?bossBanner(r)+bossControls(r,{tag:true,disabled:waiting||v.ready.some(Boolean)}):''}<div class="tag-draft-controls">${locked?'Waiting for your teammate':chosen?'Opponent selected. Lock in when your deck is finished.':'Choose your next opponent'}</div><div class="routes tag-routes">${opponents}</div>`;
+  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('tag-deck',this.deckFilter!=='All'||this.deckSort!=='Newest'||this.deckStatus!=='First')}${['All','Monster','Spell','Trap','Extra'].map(t=>button(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${this.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="tag-deck-sort" data-draft-sort aria-label="Sort cards">${['Newest','Default','Name','Attribute','ATK','DEF','Level'].map(t=>`<option ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select><button class="deck-deselect" data-tag="deselect-all" aria-label="Deselect all" title="Deselect all">${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${this.deckSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(this.deckSplit)}>${cards}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div>`}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
-  const tradeTool=this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
+  const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
 
-  this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+((r.round+1)%3===0&&this.tab!=='deck'?' boss':''));if(this.tab!=='deck')mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content});
+  this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+(boss&&this.tab!=='deck'?' boss':''));if(this.tab!=='deck')mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content});
 
-  if((r.round+1)%3===0&&this.tab!=='deck'){const key=JSON.stringify([r.round,r.boss_rerolls||0,r.routes]);if(this.bossRevealKey!==key){this.bossRevealKey=key;playEncounterReveal({content:this.content,run:r,voice:bossNameVoice,opponents:r.routes,slot:true,sound:this.sound,tickSound:this.tickSound,stopTick:this.stopTick,active:()=>this.alive&&this.view?.phase==='draft'}).catch(e=>this.error(e))}}
+  // Both bosses spin together; after a reroll only the new boss spins.
+  if(boss&&this.tab!=='deck'&&!inShop){const key=JSON.stringify([r.round,r.routes]);if(this.bossRevealKey!==key){const seen=this.bossSeen?.round===r.round?this.bossSeen.routes:[],fresh=r.routes.filter(i=>!seen.includes(i));this.bossRevealKey=key;this.bossSeen={round:r.round,routes:[...r.routes]};playEncounterReveal({content:this.content,run:r,voice:bossNameVoice,opponents:fresh.length?fresh:r.routes,slot:true,sound:this.sound,tickSound:this.tickSound,stopTick:this.stopTick,active:()=>this.alive&&this.view?.phase==='draft'}).catch(e=>this.error(e))}}
 
   if(this.tab==='deck')deckReadyFeedback(this.root,main,deckMinimum(r,this.content.characters[r.character]),this);
 
@@ -303,39 +322,83 @@ export class TagUI {
 
  }
 
- // The solo shop's layout, badges, effects and shopkeeper, with Tag's rules: shared gold, one shopper at a
- // time (the host first), and buying or finishing ends your turn.
- shop(){const v=this.view,r=v.run,own=v.shopSeat===v.seat&&this.session.connected&&!v.paused,c=this.content.characters[r.character],fixed=c.copycat||c.engine_deck;
+ // The solo shop's layout, badges, effects and shopkeeper, with Tag's rules: shared gold and stock, one cart per player
+ // that both can see, and Buy, Reroll and Next duel happen only once both players lock in the same choice (2026-11-08).
+ shop(){const v=this.view,r=v.run,seat=v.seat,canAct=this.session.connected&&!v.paused,c=this.content.characters[r.character],fixed=c.copycat||c.engine_deck;
 
   announceShopUltra(fixed?{...r,shop:r.shop.filter(x=>x.kind==='artifact')}:r,this.content.cards);
 
-  for(const i of this.selection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact')this.selection.delete(i);
+  const s=v.shopping||{carts:[[],[]],locks:[null,null],choosing:[false,false]},partnerCart=new Set(s.carts?.[1-seat]||[]),myLock=s.locks?.[seat]??null,theirLock=s.locks?.[1-seat]??null;
 
-  const total=[...this.selection].reduce((n,i)=>n+r.shop[i].price,0),coins='<img src="assets/ui/coins.png" alt="Gold">',reroll=shopRerollPrice(r);
+  for(const i of this.selection)if(!r.shop[i]||r.shop[i].sold||fixed&&r.shop[i].kind!=='artifact'||partnerCart.has(i))this.selection.delete(i);
+
+  const price=i=>r.shop[i]?.price||0,total=[...this.selection,...partnerCart].reduce((n,i)=>n+price(i),0),coins='<img src="assets/ui/coins.png" alt="Gold">',reroll=shopRerollPrice(r);
   const owned=new Map();for(const id of r.pool||[])owned.set(id,(owned.get(id)||0)+1);const copyLimit=r.artifacts?.includes('broken_limiter')?0:3;
+  const partner=this.content.characters[v.characters[1-seat]],partnerName=esc(partner?.name||'Your teammate'),partnerArt=`<img src="assets/${esc(partner?.sprite||'')}" alt="">`;
 
-  const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name;
+  const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name,theirs=partnerCart.has(i);
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
-   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="Select ${esc(name)}" data-tag="select" data-index="${i}" ${!own||x.sold||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
+   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${theirs?'teammate-pick':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}"><div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}${theirs?`<span class="tag-cart-badge" title="${partnerName} picked this">${partnerArt}</span>`:''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="${theirs?partnerName+' picked '+esc(name):'Select '+esc(name)}" data-tag="select" data-index="${i}" ${!canAct||x.sold||theirs||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
 
   };
 
-  const singles=r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single'),shopper=this.content.characters[v.characters[v.shopSeat]];
-  const rerollButton=cls=>`<button class="${cls}" title="Rerolls the entire shop" aria-label="Reroll entire shop for ${reroll} coins" data-tag="shop-reroll" ${!own||this.working||r.gold<reroll||fixed&&r.challenge_level===-1?'disabled':''}><b>REROLL</b><span>${coins}<strong>${reroll}</strong></span></button>`;
-  // Whose turn it is sits in the header, where the solo shop shows only LP.
-  const turn=`<span class="tag-shop-turn ${own?'your-turn':'teammate-turn'}" role="status"><img src="assets/${shopper?.sprite||''}" alt=""><b>${own?'Your turn to shop':'Waiting for '+esc(shopper?.name||'teammate')}</b><small>${v.shopSeat===0?'Host · first shopper':'Player 2 · final shopper'}${own?' · Buying ends your turn':''}</small></span>`;
-  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${coinLabel(r.gold)} gold"><img src="assets/ui/coins.png" alt=""><strong>${coinLabel(r.gold)}</strong></div><button class="primary shop-buy" data-tag="buy" ${own&&this.selection.size&&total<=r.gold?'':'disabled'}><b>BUY</b><span>${coins}<strong>${total}</strong></span></button>${rerollButton('shop-reroll-counter')}${button('View deck','view-deck','class="shop-edit-deck"')}<button class="shop-next" data-tag="skip" aria-label="${own?'Finish shopping':'Your teammate is shopping'}" ${own?'':'disabled'}><span>${own?'Done<br>shopping':'Teammate<br>shopping'}</span></button></div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content},{shop:true});polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
+  // A lock-in button: pressing it again cancels. Locked, it greys out and says who it waits for.
+  // The Next duel arrow is clipped to a triangle, so its state shows in the header and as an hourglass, not as a note.
+  const lock=(intent,cls,inner,label,blocked=false,note=true)=>{const on=myLock===intent,ready=theirLock===intent;return `<button class="${cls} tag-lock ${on?'tag-locked':''} ${ready?'tag-partner-locked':''}" data-tag="shop-lock" data-intent="${intent}" aria-pressed="${on}" aria-label="${on?'Cancel: '+label+', waiting for '+partnerName:label+(ready?', '+partnerName+' is ready':'')}" ${!canAct||this.working||blocked&&!on?'disabled':''}>${inner}${note&&(on||ready)?`<small class="tag-lock-note">${on?'Waiting…':'1/2 ✓'}</small>`:''}</button>`};
+
+  const singles=r.shop.map((x,i)=>({x,i})).filter(({x})=>x.kind==='single');
+  const rerollButton=cls=>lock('reroll',cls,`<b>REROLL</b><span>${coins}<strong>${reroll}</strong></span>`,`Reroll entire shop for ${reroll} coins`,r.gold<reroll||fixed&&r.challenge_level===-1);
+  const buyButton=lock('buy','primary shop-buy',`<b>BUY</b><span>${coins}<strong>${total}</strong></span>`,`Buy both players' picks for ${total} coins`,!(this.selection.size||partnerCart.size)||total>r.gold);
+  const hourglass='<svg class="shop-next-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h12M6 21h12M7 3c0 5 10 6 10 9s-10 4-10 9M17 3c0 5-10 6-10 9s10 4 10 9"/></svg>';
+  const nextButton=lock('next','shop-next',myLock==='next'?hourglass:swordsIcon('shop-next-swords'),'Next duel',!!s.choosing?.[seat],false);
+  // Who the shop waits for sits in the header, where the solo shop shows only LP. Lock-ins only: a general teammate
+  // status line was turned down (2026-11-03), and the item badges already show who picked what.
+  const wants={buy:'is ready to buy',reroll:'wants to reroll',next:'is ready for the next duel'},press={buy:'Buy',reroll:'Reroll',next:'Next duel'};
+  const doing=myLock&&theirLock!==myLock?`Waiting for ${partnerName} to press ${press[myLock]}`:theirLock?`${partnerName} ${wants[theirLock]}`:s.choosing?.[1-seat]?`${partnerName} is making a relic choice`:'Shopping together';
+  // Small screens show a short form, so the chip leaves the Edit deck button uncovered.
+  const short=myLock&&theirLock!==myLock?'Waiting':theirLock?press[theirLock]+' ✓':s.choosing?.[1-seat]?'Choosing':'Together';
+  const turn=`<span class="tag-shop-turn ${theirLock&&theirLock!==myLock?'your-turn':'teammate-turn'}" role="status" aria-live="polite" title="Buy, Reroll and Next duel happen when both players press them">${partnerArt}<b class="tag-turn-long">${doing}</b><b class="tag-turn-short" aria-hidden="true">${short}</b></span>`;
+  this.root.innerHTML=this.header(`<div class="shop-layout">${fixed?'':`<div class="shop-stock"><h3>${esc(r.shop_rerolls>0?'General stock':r.shop_reward?.label||'Featured stock')}</h3><div class="shelf singles-featured">${singles.slice(0,5).map(({x,i})=>product(x,i)).join('')}</div><h3 class="general-stock-heading">General stock</h3><div class="shelf singles-general" style="--single-columns:${Math.max(1,singles.length-5)}">${singles.slice(5).map(({x,i})=>product(x,i)).join('')}</div><h3>Booster packs</h3><div class="packs" style="--pack-columns:${r.shop.filter(x=>['pack','deck'].includes(x.kind)).length}">${r.shop.map((x,i)=>['pack','deck'].includes(x.kind)?product(x,i):'').join('')}</div></div>`}<aside><div class="shop-counter"><button class="keeper secret-shopkeeper" data-tag="poke" aria-label="Shopkeeper"><img src="assets/shopkeeper.png" alt="Shopkeeper"><span class="keeper-hit" data-tag="poke" aria-hidden="true"></span></button><div class="shop-balance" aria-label="${coinLabel(r.gold)} gold"><img src="assets/ui/coins.png" alt=""><strong>${coinLabel(r.gold)}</strong></div>${buyButton}${rerollButton('shop-reroll-counter')}${fixedDeck(r,c)?button('View deck','view-deck','class="shop-edit-deck"'):button('Edit deck','deck','class="shop-edit-deck"')}${nextButton}</div>${r.challenge_level===-1?'':`<h3>Relics${fixed?' — relics only':''}</h3><div class="relics">${r.shop.map((x,i)=>x.kind==='artifact'?product(x,i):'').join('')}</div>`}<div class="shop-reference-buttons">${button('Coin scorecard','scorecard')}${button('Relics','relics')}${rerollButton('shop-reroll-landscape')}</div></aside></div>`,turn+`<span class="shop-header-lp">${r.lp.toLocaleString()} LP</span>`,'shop shop-compact tag-shop'+(fixed?' relic-only-shop':'')+(r.challenge_level===-1?' relicless-shop':''));mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content},{shop:true});polishShop(this.root,'tag:'+this.session?.code+':'+r.started_at,r.gold);
   requestAnimationFrame(()=>{keeperTalk.placeHitArea(this.root.querySelector('.secret-shopkeeper'));keeperTalk.place()});
   // He greets each shop visit once the duel's card reward is done, like in solo play.
   const visit=[this.session?.code,r.started_at,r.loop,r.round].join(':');if(visit!==this.shopVisit&&!r.reward_slots?.pending){this.shopVisit=visit;keeperTalk.say('welcome')}
 
  }
 
+ // A cart travels to the host a moment after the last tap, so a burst of taps costs one message.
+ queueCart(){this.cartDirty=true;this.cartEdit=(this.cartEdit||0)+1;clearTimeout(this.cartTimer);this.cartTimer=setTimeout(()=>this.flushCart().catch(error=>this.error(error)),250)}
+ async flushCart(){
+  clearTimeout(this.cartTimer);this.cartTimer=null;if(!this.cartDirty||this.view?.phase!=='shop')return;
+  const edit=this.cartEdit;
+  try{await this.session.request('shop-cart',{items:[...this.selection]})}
+  catch(error){if(edit===this.cartEdit){this.cartDirty=false;this.selection=new Set(this.view?.shopping?.carts?.[this.view.seat]||[]);this.render()}throw error}
+  if(edit===this.cartEdit)this.cartDirty=false;
+ }
+ // Deck edits made from the shop reach the host when the player goes back to the shop.
+ async flushShopDeck(){const d=this.shopDeck;if(!d||d.sent||this.view?.phase!=='shop'||d.code!==this.session?.code)return;d.sent=true;try{await this.session.request('deck',[...d.selected])}catch(error){d.sent=false;throw error}}
+ editDeck(selected){
+  const v=this.view;v.run.selected=selected;
+  if(v.phase==='shop')this.shopDeck={code:this.session.code,round:v.run.round,selected:[...selected],sent:false};else this.saveDraft();
+ }
+ // A purchase or reroll runs when the second player locks in, so both screens play it from the view.
+ async playShopEvent(event,previous){
+  const v=this.view,seat=v.seat,shop=v.run.shop;
+  if(event.kind==='reroll'){this.selection.clear();if(!juice.reroll(this.root,previous))playRerollSound();keeperTalk.say('reroll');return}
+  if(event.kind!=='buy')return;
+  const all=[...(event.items?.[0]||[]),...(event.items?.[1]||[])];purchaseCoins();
+  requestAnimationFrame(()=>juice.buy(all.map(i=>this.root.querySelector(`[data-shop-item="${i}"]`)?.closest('.shop-product')),this.root.querySelector('.shop-balance'),all.map(i=>shop[i]?.price||0)));
+  const mine=event.results?.[seat]||[],cards=mine.flatMap(x=>x.cards||[]),items=(event.items?.[seat]||[]).map(i=>({...shop[i],ultra:isShopUltra(shop[i],this.content.cards)}));
+  await this.packQueue;await this.onGoldenCards();
+  if(!this.alive)return;
+  if(!mine.some(x=>x.kind==='pack')&&cards.length)this.dialog('Your purchases',`<div class="cardgrid">${cards.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"></button>`).join('')}</div>`);
+  if(items.length)keeperTalk.say(keeperTalk.purchaseLine(items));
+ }
+
  // Owned relics as in the solo Relics window; on your shop turn each one can be sold for half its price.
  relicsDialog(){
-  const v=this.view,r=v.run,sell=v.phase==='shop'&&v.shopSeat===v.seat&&this.session.connected&&!v.paused,cursed=new Set(r.cursed_artifacts||[]),ids=[...new Set(r.artifacts||[])];
+  const v=this.view,r=v.run,sell=v.phase==='shop'&&this.session.connected&&!v.paused,cursed=new Set(r.cursed_artifacts||[]),ids=[...new Set(r.artifacts||[])];
   this.dialog('Run relics',`<div class="relic-ledger"><p>Shared run relics · Effects apply when their listed conditions are met.</p><div class="relic-ledger-grid">${ids.map(id=>{const [name,price=0,text='']=this.content.artifacts[id]||[id],count=r.artifacts.filter(x=>x===id).length,coins=Math.floor(price/2);return `<section class="panel">${relicArtwork(relicImage(this.content.artifactInfo[id]?.art))}<h3>${esc(name)}${count>1?' ×'+count:''}</h3><b>OWNED · CONDITIONAL EFFECTS</b><p>${esc(text)}</p>${sell&&!cursed.has(id)?`<button class="sell-owned-relic" data-tag="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(name)} for ${coins} coins">Sell · ${coins} coins</button>`:''}</section>`}).join('')}</div></div>`);
  }
 
@@ -406,7 +469,7 @@ export class TagUI {
 
   if(action==='trade-receipt'){this.receivedTradeId=null;this.renderTrade();return}
 
-  if(action==='trade-filter'){this.tradeFilter=el.dataset.filter;this.render();return}
+  if(action==='trade-filter'){this.tradeFilter=el.dataset.filter;this.render();const area=tradeScroller(this.root);if(area)area.scrollTop=0;return}
 
   if(action==='trade-card'){if(this.view.trade.sent[this.view.seat])return;if(this.tradeSelection.has(index))this.tradeSelection.delete(index);else this.tradeSelection.add(index);this.render();return}
 
@@ -453,8 +516,9 @@ export class TagUI {
 
   if(action==='cursed-choose'||action==='cursed-reroll'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}
 
-  if(action==='sell-relic'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;this.working=true;try{const result=await this.session.request('sell-relic',el.dataset.relic);this.notice?.(`Sold ${this.content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`)}finally{this.working=false;this.render()}if(document.querySelector('#modal[open] .relic-ledger'))this.relicsDialog();return}
-  if(action==='shop-reroll'){if(this.view.shopSeat!==this.view.seat||this.view.paused||!this.session.connected)return;const previous=juice.shopArt(this.root);this.working=true;try{await this.session.request('shop-reroll');this.selection.clear()}finally{this.working=false;this.render()}if(!juice.reroll(this.root,previous))playRerollSound();keeperTalk.say('reroll');return}
+  if(action==='sell-relic'){if(this.view.paused||!this.session.connected)return;this.working=true;try{const result=await this.session.request('sell-relic',el.dataset.relic);this.notice?.(`Sold ${this.content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`)}finally{this.working=false;this.render()}if(document.querySelector('#modal[open] .relic-ledger'))this.relicsDialog();return}
+  if((action==='shop-lock'||action==='select')&&/changed their picks/.test(this.status))this.status='';
+  if(action==='shop-lock'){const v=this.view;if(v.paused||!this.session.connected||v.phase!=='shop')return;this.working=true;try{await this.flushCart();const intent=this.view.shopping?.locks?.[this.view.seat]===el.dataset.intent?null:el.dataset.intent;await this.session.request('shop-lock',{intent,cartRev:this.view.shopping?.cartRev});playUISound('shop-select')}finally{this.working=false;if(this.alive&&this.view?.phase!=='duel')this.render()}return}
 
   if(action==='start'){this.working=true;try{await this.session.request('start')}finally{this.working=false;this.render()}return}
 
@@ -493,6 +557,8 @@ export class TagUI {
 
   if(action==='pack'){this.inspectPack(el.dataset.pack);return}
 
+  if(action==='shop-back'||action==='opponents'&&this.view?.phase==='shop'){this.tab='opponents';this.render();this.flushShopDeck().catch(error=>this.error(error));return}
+
   if(action==='deck'||action==='opponents'){if(action==='deck')this.deckOrderKey=null;this.tab=this.content.characters[this.view?.run?.character]?.copycat?'opponents':action;this.render();return}
 
   if(action==='item'){
@@ -513,21 +579,22 @@ export class TagUI {
 
 
 
-  if(action==='select'){const stock=this.view.run.shop[index];if(!stock||stock.sold||this.view.shopSeat!==this.view.seat||!this.session.connected||this.view.paused)return;if((this.content.characters[this.view.run.character].copycat||this.content.characters[this.view.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(this.view.run.shop[index].price+[...this.selection].reduce((n,i)=>n+this.view.run.shop[i].price,0)>this.view.run.gold){playUISound('count-coins');throw Error('Not enough gold')}this.selection.add(index)}playUISound('shop-select');this.render();return}
+  if(action==='select'){const v=this.view,stock=v.run.shop[index],theirs=v.shopping?.carts?.[1-v.seat]||[];if(!stock||stock.sold||v.phase!=='shop'||!this.session.connected||v.paused||theirs.includes(index))return;if((this.content.characters[v.run.character].copycat||this.content.characters[v.run.character].engine_deck)&&stock.kind!=='artifact')return;if(this.selection.has(index))this.selection.delete(index);else{if(stock.price+[...this.selection,...theirs].reduce((n,i)=>n+(v.run.shop[i]?.price||0),0)>v.run.gold){playUISound('count-coins');throw Error('Not enough gold for both carts')}this.selection.add(index)}playUISound('shop-select');this.render();this.queueCart();return}
 
   if(action==='deselect-all'){this.dialog('Deselect all?',`<p>Take every card out of your deck?</p>${button('Deselect all','deselect-all-confirm','class="primary"')}`);return}
 
-  if(action==='deselect-all-confirm'){document.querySelector('#modal')?.close();const c=this.content.characters[this.view.run.character];if(this.view.ready[this.view.seat]||fixedDeck(this.view.run,c))return;this.view.run.selected=[];this.saveDraft();this.render();return}
+  if(action==='deselect-all-confirm'){document.querySelector('#modal')?.close();const c=this.content.characters[this.view.run.character];if(fixedDeck(this.view.run,c))return;if(this.view.phase==='draft'&&this.view.ready[this.view.seat])await this.unlockForEdit();this.editDeck([]);this.render();return}
 
   if(action==='card'){
 
-   if(this.view.ready[this.view.seat])return;
+   if(fixedDeck(this.view.run,this.content.characters[this.view.run.character])||!['draft','shop'].includes(this.view.phase))return;
 
-   if(fixedDeck(this.view.run,this.content.characters[this.view.run.character]))return;
+   // Editing a locked-in deck unlocks the pick first; press the swords again when it's done.
+   if(this.view.phase==='draft'&&this.view.ready[this.view.seat])await this.unlockForEdit();
 
    const selected=[...this.view.run.selected],at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);
 
-   this.view.run.selected=selected;playUISound('deck-select');this.saveDraft();this.render();return;
+   this.editDeck(selected);playUISound('deck-select');this.render();return;
 
   }
 
@@ -540,7 +607,7 @@ export class TagUI {
    if(action==='reveal-opponent'&&!el.dataset.confirmed){this.dialog('Confirm Reveal',`<div class="settings-actions">${button(`Reveal · <span class="reveal-cost-inline">${revealCostLabel(revealCost(this.view.run))}</span>`,'reveal-opponent',`data-id="${id}" data-confirmed="1" class="primary"`)}${button('Cancel','cancel-exit')}</div>`);return}
    if(action==='reveal-opponent'){document.querySelector('#modal')?.close();await playPortraitReveal({before:this.root.querySelector(`[data-encounter="${id}"] .encounter-hero`),update:async()=>{await this.session.request('reveal-opponent',id);this.render()},after:()=>this.root.querySelector(`[data-encounter="${id}"] .encounter-hero`),active:()=>this.alive&&this.view?.phase==='draft'})}
 
-   else if(action==='boss-reroll'){await this.session.request('boss-reroll');this.render()}
+   else if(action==='boss-reroll'){await this.session.request('boss-reroll',id)}
 
    else if(action==='peek-deck'){const ids=await this.session.request('peek-deck',id);this.dialog('Opponent deck',`<div class="cardgrid">${ids.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"></button>`).join('')}</div>`)}
 
@@ -548,42 +615,34 @@ export class TagUI {
 
    else if(action==='auto'){this.view.run.selected=await this.backend('tag-auto-preview',this.view.run);this.saveDraft();this.render()}
 
-   else if(action==='ready'){
+   // The swords lock in at once: the deck and this opponent. On the locked opponent they unlock; on another, they move the lock.
+   else if(action==='lock-opponent'){
 
-    const run=this.view.run,c=this.content.characters[run.character],main=run.selected.filter(i=>!(this.cardById(run.pool[i])?.data.type&64)).length;
+    const v=this.view,run=v.run,c=this.content.characters[run.character],main=run.selected.filter(i=>!(this.cardById(run.pool[i])?.data.type&64)).length;
 
-    const minimum=deckMinimum(run,c);
+    if(v.ready[v.seat]&&v.opponents[v.seat]===id)await this.session.request('unready');
 
-    if(!fixedDeck(run,c)&&(main<minimum||main>60)){this.tab='deck';throw Error(`Your main deck has ${main} cards. Choose ${minimum} to 60 cards or use Auto-build.`)}
+    else{
 
-    await this.session.request('ready',{selected:run.selected,opponent:run.opponent});
+     const minimum=deckMinimum(run,c);
+
+     if(!fixedDeck(run,c)&&(main<minimum||main>60)){this.tab='deck';throw Error(`Your main deck has ${main} cards. Choose ${minimum} to 60 cards, then press the swords again.`)}
+
+     run.opponent=id;this.saveDraft();await this.session.request('ready',{selected:run.selected,opponent:id});
+
+    }
 
    }
-
-   else if(action==='buy'){
-
-    const chosen=[...this.selection],items=chosen.map(i=>({...this.view.run.shop[i],ultra:isShopUltra(this.view.run.shop[i],this.content.cards)}));
-
-    const result=await this.session.request(chosen.length?'buy':'skip',chosen);if(chosen.length)purchaseCoins();this.selection.clear();const cards=(result||[]).flatMap(p=>p.cards||[]);
-
-    // Coins fly to what was bought and SOLD stamps land on the shop as the new view draws it.
-    if(chosen.length)requestAnimationFrame(()=>juice.buy(chosen.map(i=>this.root.querySelector(`[data-shop-item="${i}"]`)?.closest('.shop-product')),this.root.querySelector('.shop-balance'),items.map(x=>x.price)));
-
-    await this.packQueue;await this.onGoldenCards();
-
-    if(!(result||[]).some(x=>x.kind==='pack')&&cards.length)this.dialog('Your purchases',`<div class="cardgrid">${cards.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"></button>`).join('')}</div>`);
-
-    if(chosen.length)keeperTalk.say(keeperTalk.purchaseLine(items));
-
-   }else if(action==='skip'){this.selection.clear();await this.session.request('skip',[])}
 
    else if(action==='inspect')this.inspect(id);
 
    else if(['unready'].includes(action))await this.session.request(action);
 
-  }finally{this.working=false}
+  }finally{this.working=false;if(this.alive&&this.view&&this.view.phase!=='duel'&&['lock-opponent','unready','boss-reroll','reveal-opponent'].includes(action))this.render()}
 
  }
+
+ async unlockForEdit(){this.working=true;try{await this.session.request('unready')}finally{this.working=false}}
 
  saveDraft(){
 
@@ -599,7 +658,7 @@ export class TagUI {
 
   const room=savedRoom();if(room&&room.code===this.session?.code){if(['complete','gameover'].includes(view.phase))forgetRoom();else if(view.phase!=='lobby'&&!room.started)rememberRoom({...room,started:true})}
 
-  if(/That choice is stale|Wait for your teammate\.|No active duel\./.test(this.status))this.status='';
+  if(/That choice is stale|Wait for your teammate\.|No active duel\.|The carts changed|already picked that item|That boss has already changed|State changed/.test(this.status))this.status='';
 
   view=structuredClone(view);
 
@@ -607,19 +666,44 @@ export class TagUI {
 
    const key='tag-draft:'+this.session.code+':'+view.seat+':'+view.run.round+':'+JSON.stringify(view.run.pool);
 
-   if(this.draftKey!==key){this.draftKey=key;try{this.localDraft=JSON.parse(localStorage.getItem(key)||'null')}catch{this.localDraft=null}}
+   if(this.draftKey!==key){this.draftKey=key;try{this.localDraft=JSON.parse(localStorage.getItem(key)||'null')}catch{this.localDraft=null}
+    // A deck edited in the shop that the host had not confirmed yet carries into opponent select.
+    const d=this.shopDeck;if(!this.localDraft&&d?.code===this.session.code&&d.round===view.run.round&&d.selected.every(i=>i<view.run.pool.length))this.localDraft={selected:[...d.selected],opponent:null};this.shopDeck=null}
 
    if(this.localDraft&&!view.ready[view.seat]){view.run.selected=[...this.localDraft.selected];view.run.opponent=view.run.routes.includes(this.localDraft.opponent)?this.localDraft.opponent:null}
 
   }else if(this.draftKey){localStorage.removeItem(this.draftKey);this.draftKey=null;this.localDraft=null}
 
+  const before=this.view?.phase,lastShop=before==='shop'?this.view.shopping:null;
+  if(view.phase==='shop'){
+   const d=this.shopDeck;
+   if(d&&(d.code!==this.session.code||d.round!==view.run.round||d.selected.some(i=>i>=view.run.pool.length)))this.shopDeck=null;
+   else if(d){if(d.sent&&JSON.stringify(d.selected)===JSON.stringify(view.run.selected))this.shopDeck=null;else view.run.selected=[...d.selected]}
+   // The host's cart wins, except while this player's own taps are still on their way.
+   if(!this.cartDirty)this.selection=new Set(view.shopping?.carts?.[view.seat]||[]);
+   const theirs=view.shopping?.carts?.[1-view.seat]||[],locks=view.shopping?.locks||[];
+   if(lastShop?.locks?.[view.seat]==='buy'&&!locks[view.seat]&&lastShop.event?.id===view.shopping?.event?.id&&JSON.stringify(lastShop.carts?.[1-view.seat])!==JSON.stringify(theirs))this.status='Your teammate changed their picks. Press Buy again.';
+  }else if(before==='shop'||!view.phase){this.selection.clear();this.cartDirty=false;clearTimeout(this.cartTimer)}
+  if(view.phase!=='shop'&&view.phase!=='draft')this.shopDeck=null;
+  const event=view.phase==='shop'?view.shopping?.event:null,fresh=!!event&&this.shopEventSeen!==undefined&&event.id!==this.shopEventSeen;
+  this.shopEventSeen=view.phase==='shop'?event?.id??null:undefined;
+  const previousArt=fresh&&event.kind==='reroll'&&before==='shop'?juice.shopArt(this.root):null;
+
   const entrance=this.view?.phase==='lobby'&&view.phase==='draft'?captureCharacterEntrance(this.root.querySelectorAll('.tag-player-portrait>img')[view.seat]||this.root.querySelector('.duelist-hero>img')):null;
 
-  const before=this.view?.phase,scroll=saveDeckScroll(tagDeckArea(this.root));
+  const scroll=saveDeckScroll(tagDeckArea(this.root));
 
-  if(before==='duel'&&view.phase!=='duel')this.resetDeckFilters();this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.onView(view);
+  if(before==='duel'&&view.phase!=='duel')this.resetDeckFilters();
+  // After a duel the shop shows first; after the shop, opponent select. A deck editor that is open stays open.
+  if(before==='duel'&&view.phase==='shop')this.tab='opponents';
+  this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.onView(view);
 
   if(view.phase!=='duel'){this.render();restoreDeckScroll(tagDeckArea(this.root),scroll)}
+
+  if(fresh)this.playShopEvent(event,previousArt).catch(error=>this.error(error));
+  // A golden card or DNA Rewrite choice still open (after a reload, or the teammate's Golden Sleeve) is offered again:
+  // Next duel waits for it.
+  else if(view.phase==='shop'&&view.shopping?.choosing?.[view.seat]&&!this.offeringChoice){this.offeringChoice=true;this.packQueue.then(()=>this.alive&&this.onGoldenCards()).catch(error=>this.error(error)).finally(()=>{this.offeringChoice=false})}
 
   if(view.phase==='draft'&&view.run.round===0)this.openStartingPacks(view,entrance);
 
@@ -673,7 +757,7 @@ export class TagUI {
 
  }
 
- destroy(){cancelCharacterEntrance();this.closeStartingPacks?.();this.closeStartingPacks=null;this.root.removeEventListener('contextmenu',this.context);this.roomBadge?.remove();clearTimeout(this.finaleRollTimer);this.cancelTradeHold();this.root.removeEventListener('pointerup',this.cancelTradeHold);this.root.removeEventListener('pointercancel',this.cancelTradeHold);this.root.removeEventListener('scroll',this.cancelTradeHold,true);window.visualViewport?.removeEventListener('resize',this.viewport);this.root.style.removeProperty('--tag-visible-height');this.alive=false;clearTimeout(this.tap?.timer);document.removeEventListener('click',this.click,true);this.root.removeEventListener('pointerdown',this.down);this.root.removeEventListener('pointermove',this.move)}
+ destroy(){clearTimeout(this.cartTimer);cancelCharacterEntrance();this.closeStartingPacks?.();this.closeStartingPacks=null;this.root.removeEventListener('contextmenu',this.context);this.roomBadge?.remove();clearTimeout(this.finaleRollTimer);this.cancelTradeHold();this.root.removeEventListener('pointerup',this.cancelTradeHold);this.root.removeEventListener('pointercancel',this.cancelTradeHold);this.root.removeEventListener('scroll',this.cancelTradeHold,true);window.visualViewport?.removeEventListener('resize',this.viewport);this.root.style.removeProperty('--tag-visible-height');this.alive=false;clearTimeout(this.tap?.timer);document.removeEventListener('click',this.click,true);this.root.removeEventListener('pointerdown',this.down);this.root.removeEventListener('pointermove',this.move)}
 
 }
 

@@ -1,0 +1,592 @@
+[
+ {
+  "term": "Monster",
+  "translation": "Monstruo",
+  "evidence": "Carta de Monstruo (Derrumbamiento del Suelo, Apuesta)"
+ },
+ {
+  "term": "Spell",
+  "translation": "Mágica (Carta Mágica)",
+  "evidence": "Rompe Armadura, Invasor de la Oscuridad"
+ },
+ {
+  "term": "Trap",
+  "translation": "Trampa (Carta de Trampa)",
+  "evidence": "Equipo A: Unidad de Desactivación de Trampas"
+ },
+ {
+  "term": "Normal Monster",
+  "translation": "Monstruo Normal",
+  "evidence": "Atacante Delta, Emisario de la Otra Vida"
+ },
+ {
+  "term": "Effect Monster",
+  "translation": "Monstruo de Efecto",
+  "evidence": "Balter Oscuro el Terrible"
+ },
+ {
+  "term": "Fusion Monster",
+  "translation": "Monstruo de Fusión",
+  "evidence": "De-Fusión, Ciberstein"
+ },
+ {
+  "term": "Ritual Monster",
+  "translation": "Monstruo de Ritual",
+  "evidence": "game term; Tortuga Cangrejo uses Invocado por Ritual"
+ },
+ {
+  "term": "Token",
+  "translation": "Ficha",
+  "evidence": "Duplicado de Clon (Ficha Clon), Jarra de Cobra"
+ },
+ {
+  "term": "Normal Spell",
+  "translation": "Mágica Normal",
+  "evidence": "Hechizo en Serie, Des Volstgalph"
+ },
+ {
+  "term": "Quick-Play Spell",
+  "translation": "Mágica de Juego Rápido",
+  "evidence": "Invasor de la Oscuridad"
+ },
+ {
+  "term": "Continuous Spell",
+  "translation": "Mágica Continua",
+  "evidence": "Muñeca Malvada de la Defunción"
+ },
+ {
+  "term": "Equip Spell",
+  "translation": "Mágica de Equipo",
+  "evidence": "Rompe Armadura, Ladrón del Arsenal"
+ },
+ {
+  "term": "Field Spell",
+  "translation": "Mágica de Campo",
+  "evidence": "Un Buho de Suerte, Tierra Ardiente"
+ },
+ {
+  "term": "Ritual Spell",
+  "translation": "Mágica de Ritual",
+  "evidence": "Tortuga Cangrejo"
+ },
+ {
+  "term": "Normal Trap",
+  "translation": "Trampa Normal",
+  "evidence": "Ryu Senshi, Trampa de Oscuridad"
+ },
+ {
+  "term": "Continuous Trap",
+  "translation": "Trampa Continua",
+  "evidence": "Dispersión de Malicia, Detector de Metales"
+ },
+ {
+  "term": "Counter Trap",
+  "translation": "Trampa de Contraefecto",
+  "evidence": "Van'Dalgyon el Señor de los Dragones Oscuros"
+ },
+ {
+  "term": "Flip",
+  "translation": "Volteo (VOLTEO: en el texto de efecto)",
+  "evidence": "Asaltante Nocturno, Jarra de Cobra"
+ },
+ {
+  "term": "Spirit",
+  "translation": "Spirit",
+  "evidence": "Espejo de Fengsheng, Legado de Yata-Garatsu"
+ },
+ {
+  "term": "Union",
+  "translation": "Unión (Monstruo de Unión)",
+  "evidence": "Bestia Ardiente, Ataque Combinado"
+ },
+ {
+  "term": "Gemini",
+  "translation": "Géminis",
+  "evidence": "Elfo Géminis, Diablillos Géminis (no Gemini monsters in the pool)"
+ },
+ {
+  "term": "Toon",
+  "translation": "Toon",
+  "evidence": "Mundo Toon, Caimán Toon"
+ },
+ {
+  "term": "Deck",
+  "translation": "Deck",
+  "evidence": "Una Pluma del Fénix, Alimaña Bubónica"
+ },
+ {
+  "term": "Main Deck",
+  "translation": "Deck Principal",
+  "evidence": "Destrucción en Cadena, Jarra de la Metamorfosis #2"
+ },
+ {
+  "term": "Extra Deck",
+  "translation": "Deck Extra",
+  "evidence": "Ciberstein, De-Fusión"
+ },
+ {
+  "term": "hand",
+  "translation": "mano",
+  "evidence": "Maestra de la Cadena Amazoness"
+ },
+ {
+  "term": "field",
+  "translation": "Campo",
+  "evidence": "Soldado del Brillo Negro (en el Campo)"
+ },
+ {
+  "term": "Graveyard (GY)",
+  "translation": "Cementerio (no abbreviation)",
+  "evidence": "all official Spanish texts write Cementerio for GY"
+ },
+ {
+  "term": "banish / banished",
+  "translation": "desterrar / desterrada",
+  "evidence": "Desterrador de la Luz, Bazoo el Come Almas"
+ },
+ {
+  "term": "Monster Zone",
+  "translation": "Zona de Monstruos (Zona de Monstruos Principal)",
+  "evidence": "Necrofear Oscuro, Sombreros Mágicos"
+ },
+ {
+  "term": "Spell & Trap Zone",
+  "translation": "Zona de Magia y Trampas",
+  "evidence": "Tablero del Destino, Pesadilla de Tebas"
+ },
+ {
+  "term": "Field Zone",
+  "translation": "Zona de Campo",
+  "evidence": "game term (system label)"
+ },
+ {
+  "term": "Normal Summon",
+  "translation": "Invocar de Modo Normal / Invocación Normal",
+  "evidence": "Soldado del Brillo Negro, Cloning"
+ },
+ {
+  "term": "Special Summon",
+  "translation": "Invocar de Modo Especial / Invocación Especial",
+  "evidence": "Un Trato con el Señor Oscuro, Ciberstein"
+ },
+ {
+  "term": "Tribute Summon",
+  "translation": "Invocar por Sacrificio / Invocación por Sacrificio",
+  "evidence": "Estallido de Sacrificio, Coston Doble"
+ },
+ {
+  "term": "Flip Summon",
+  "translation": "Invocar por Volteo / Invocación por Volteo",
+  "evidence": "Duplicado de Clon"
+ },
+ {
+  "term": "Fusion Summon",
+  "translation": "Invocar por Fusión / Invocación por Fusión",
+  "evidence": "Apoyo de Fusión Cibernética, Bufón Escolta Arcano"
+ },
+ {
+  "term": "Ritual Summon",
+  "translation": "Invocar por Ritual / Invocación por Ritual",
+  "evidence": "Ritual del Espejo Bestial"
+ },
+ {
+  "term": "Tribute",
+  "translation": "Sacrificar / Sacrificio",
+  "evidence": "Tortuga Catapulta, Behemoth el Rey de Todos los Animales"
+ },
+ {
+  "term": "Set",
+  "translation": "Colocar / Colocada",
+  "evidence": "Tornado de Polvo, Muñeca Señuelo"
+ },
+ {
+  "term": "activate",
+  "translation": "activar",
+  "evidence": "Apropiación, Detector de Metales"
+ },
+ {
+  "term": "effect",
+  "translation": "efecto",
+  "evidence": "Ira Divina"
+ },
+ {
+  "term": "Chain",
+  "translation": "Cadena / Eslabón de Cadena; encadenar",
+  "evidence": "game term; engine strings"
+ },
+ {
+  "term": "resolve",
+  "translation": "resolver(se)",
+  "evidence": "Muñeca Señuelo, Des Volstgalph"
+ },
+ {
+  "term": "negate",
+  "translation": "negar",
+  "evidence": "Anti Raigeki, Amplificador"
+ },
+ {
+  "term": "destroy",
+  "translation": "destruir",
+  "evidence": "Dispersión de Malicia"
+ },
+ {
+  "term": "draw",
+  "translation": "robar",
+  "evidence": "Ciber Archidemonio"
+ },
+ {
+  "term": "discard",
+  "translation": "descartar",
+  "evidence": "Una Pluma del Fénix, Soldado del Abismo"
+ },
+ {
+  "term": "target",
+  "translation": "seleccionar (ese objetivo)",
+  "evidence": "Tornado de Polvo, Libro de la Luna"
+ },
+ {
+  "term": "equip",
+  "translation": "equipar / equipado",
+  "evidence": "Estallido en Cadena, Rayo del Big Bang"
+ },
+ {
+  "term": "you control",
+  "translation": "que controles",
+  "evidence": "Caballero Comandante, Estandarte de Valor"
+ },
+ {
+  "term": "opponent",
+  "translation": "adversario",
+  "evidence": "used in every official text (adversario 778x vs oponente 10x)"
+ },
+ {
+  "term": "owner",
+  "translation": "propietario",
+  "evidence": "Campo Centrífugo"
+ },
+ {
+  "term": "face-up",
+  "translation": "boca arriba",
+  "evidence": "Pingüino de Pesadilla"
+ },
+ {
+  "term": "face-down",
+  "translation": "boca abajo",
+  "evidence": "Libro de la Luna"
+ },
+ {
+  "term": "Attack Position",
+  "translation": "Posición de Ataque",
+  "evidence": "Ciberstein, Estallido de Sacrificio"
+ },
+ {
+  "term": "Defense Position",
+  "translation": "Posición de Defensa",
+  "evidence": "Tyranno Negro, Libro de la Luna"
+ },
+ {
+  "term": "battle position",
+  "translation": "posición de batalla",
+  "evidence": "Espíritu de Aqua"
+ },
+ {
+  "term": "ATK",
+  "translation": "ATK",
+  "evidence": "Bazoo el Come Almas"
+ },
+ {
+  "term": "DEF",
+  "translation": "DEF",
+  "evidence": "Bosque"
+ },
+ {
+  "term": "Level",
+  "translation": "Nivel",
+  "evidence": "Destrucción Ciega"
+ },
+ {
+  "term": "Attribute",
+  "translation": "Atributo",
+  "evidence": "Duplicado de Clon; attributes TIERRA/AGUA/FUEGO/VIENTO/LUZ/OSCURIDAD/DIVINIDAD"
+ },
+ {
+  "term": "Type",
+  "translation": "Tipo",
+  "evidence": "Dispositivo de Luz Reveladora"
+ },
+ {
+  "term": "LP",
+  "translation": "LP",
+  "evidence": "Rugido de Archidemonio, Provisiones de Emergencia"
+ },
+ {
+  "term": "damage",
+  "translation": "daño (inflige X puntos de daño)",
+  "evidence": "Bowganian, Abare Ushioni"
+ },
+ {
+  "term": "battle damage",
+  "translation": "daño de batalla",
+  "evidence": "Luchadora Amazoness"
+ },
+ {
+  "term": "gain LP",
+  "translation": "ganar LP (gana X LP); noun: ganancia de LP / recuperación de LP",
+  "evidence": "Señoroscura Marie, Provisiones de Emergencia"
+ },
+ {
+  "term": "attack",
+  "translation": "atacar / ataque",
+  "evidence": "Mamut de Grandes Colmillos"
+ },
+ {
+  "term": "direct attack",
+  "translation": "ataque directo / atacar directamente",
+  "evidence": "Tyranno Negro, Rex Gigante"
+ },
+ {
+  "term": "destroyed by battle",
+  "translation": "destruido en batalla",
+  "evidence": "Aprendiza Amazoness, Maestra de la Cadena Amazoness"
+ },
+ {
+  "term": "piercing battle damage",
+  "translation": "daño de batalla de penetración",
+  "evidence": "Caballero del Aire Parsath, Rayo del Big Bang"
+ },
+ {
+  "term": "turn",
+  "translation": "turno",
+  "evidence": "Bazoo el Come Almas"
+ },
+ {
+  "term": "Draw Phase",
+  "translation": "Draw Phase",
+  "evidence": "Apropiación, Ciber Archidemonio"
+ },
+ {
+  "term": "Standby Phase",
+  "translation": "Standby Phase",
+  "evidence": "Cerbatanera Amazoness, Bowganian"
+ },
+ {
+  "term": "Main Phase 1",
+  "translation": "Main Phase 1",
+  "evidence": "Después de la Batalla, Oleada Fría"
+ },
+ {
+  "term": "Battle Phase",
+  "translation": "Battle Phase",
+  "evidence": "Estandarte de Valor, Caballero Hayabusa"
+ },
+ {
+  "term": "Main Phase 2",
+  "translation": "Main Phase 2",
+  "evidence": "game term (follows Main Phase 1)"
+ },
+ {
+  "term": "End Phase",
+  "translation": "End Phase",
+  "evidence": "Égida del Señor Dragón del Océano"
+ },
+ {
+  "term": "Damage Step",
+  "translation": "Damage Step (cálculo de daño for damage calculation)",
+  "evidence": "Sabia Amazoness, Lámpara antigua"
+ },
+ {
+  "term": "once per turn",
+  "translation": "una vez por turno",
+  "evidence": "Destrucción Ciega, Bowganian"
+ },
+ {
+  "term": "Duel",
+  "translation": "Duelo",
+  "evidence": "Tablero del Destino"
+ },
+ {
+  "term": "coin toss / heads / tails",
+  "translation": "lanzar una moneda / cara / cruz",
+  "evidence": "Dragón Cañón, Abare Ushioni"
+ },
+ {
+  "term": "roll a die",
+  "translation": "lanzar un dado (de seis caras)",
+  "evidence": "Destrucción Ciega, Agido"
+ },
+ {
+  "term": "counter",
+  "translation": "contador (Contador Mágico)",
+  "evidence": "B.E.S. Núcleo Grande, Anti-Hechizo"
+ },
+ {
+  "term": "reveal",
+  "translation": "mostrar",
+  "evidence": "Apuesta, Ninja Armado (official texts use muestra, never revela)"
+ },
+ {
+  "term": "shuffle",
+  "translation": "barajar",
+  "evidence": "Alimaña Bubónica, Muñeca Señuelo"
+ },
+ {
+  "term": "add to your hand",
+  "translation": "añadir a tu mano",
+  "evidence": "General Archidemonio, Maestra de la Cadena Amazoness"
+ },
+ {
+  "term": "Run",
+  "translation": "Partida",
+  "evidence": "game term"
+ },
+ {
+  "term": "Loop",
+  "translation": "Vuelta",
+  "evidence": "game term"
+ },
+ {
+  "term": "Relic",
+  "translation": "Reliquia",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cursed relic",
+  "translation": "Reliquia maldita",
+  "evidence": "game term"
+ },
+ {
+  "term": "Fused relic",
+  "translation": "Reliquia fusionada (fusión de reliquias)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting relic",
+  "translation": "Reliquia inicial",
+  "evidence": "game term"
+ },
+ {
+  "term": "Coins",
+  "translation": "Monedas",
+  "evidence": "game term"
+ },
+ {
+  "term": "Shop",
+  "translation": "Tienda",
+  "evidence": "game term"
+ },
+ {
+  "term": "Reroll",
+  "translation": "Renovar / renovación",
+  "evidence": "game term"
+ },
+ {
+  "term": "Booster pack",
+  "translation": "Sobre",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting deck",
+  "translation": "Deck inicial",
+  "evidence": "game term"
+ },
+ {
+  "term": "Collection",
+  "translation": "Colección",
+  "evidence": "game term"
+ },
+ {
+  "term": "Signature card",
+  "translation": "Carta emblemática",
+  "evidence": "game term"
+ },
+ {
+  "term": "Variant",
+  "translation": "Variante",
+  "evidence": "game term"
+ },
+ {
+  "term": "Challenge level (LVL)",
+  "translation": "Nivel de desafío (NVL)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss",
+  "translation": "Jefe",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss curse",
+  "translation": "Maldición de jefe",
+  "evidence": "game term"
+ },
+ {
+  "term": "Victory / Defeat",
+  "translation": "Victoria / Derrota",
+  "evidence": "game term"
+ },
+ {
+  "term": "Tag Duel",
+  "translation": "Duelo en Pareja (modo: Pareja)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Ultimate Collector",
+  "translation": "Coleccionista Definitivo",
+  "evidence": "game term; Ultimate = Definitivo as in Insecto Definitivo"
+ },
+ {
+  "term": "Golden card",
+  "translation": "Carta dorada",
+  "evidence": "game term"
+ },
+ {
+  "term": "Misprint",
+  "translation": "Fallo de impresión",
+  "evidence": "game term"
+ },
+ {
+  "term": "Bounty",
+  "translation": "Encargo (objetivo de encargo)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Duel Look",
+  "translation": "Estilo de duelo",
+  "evidence": "game term"
+ },
+ {
+  "term": "Chain button: Always / Sometimes / Never",
+  "translation": "Cadena / Encadenar a veces / Sin Cadena (Siempre / A veces / Nunca)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Flag behaviour",
+  "translation": "Reportar comportamiento (un reporte)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cloud save",
+  "translation": "Guardado en la nube",
+  "evidence": "game term"
+ },
+ {
+  "term": "Achievement",
+  "translation": "Logro",
+  "evidence": "game term"
+ },
+ {
+  "term": "Unlock",
+  "translation": "Desbloquear / desbloqueo",
+  "evidence": "game term"
+ },
+ {
+  "term": "Settings",
+  "translation": "Ajustes",
+  "evidence": "game term"
+ },
+ {
+  "term": "Inspect",
+  "translation": "Inspeccionar",
+  "evidence": "game term"
+ }
+]

@@ -19,18 +19,19 @@ assert s.receipt(0,'response-test')=={'result':{'ok':True}} and s.receipt(1,'res
 s.finish(0,7000,[]);assert s.phase=='shop';before=s.shared['gold'];s.shared['gold']=500;s.sync()
 assert s.receipt(0,'response-test')=={'result':{'ok':True}}
 pools=[len(r['pool']) for r in s.players]
-try:command(1,'buy',[0]);raise AssertionError('guest spent out of turn')
-except ValueError:pass
-price=s.players[0]['shop'][0]['price'];receipt=command(0,'buy',[0],key='purchase-1')
+# Both players shop at once; the host's cart is bought only when both press Buy (tools/test_tag_lockin.py has the rest).
+price=s.players[0]['shop'][0]['price'];command(0,'shop-cart',{'items':[0]});rev=s.shopping['cart_rev']
+command(0,'shop-lock',{'intent':'buy','cartRev':rev});assert s.shared['gold']==500,'one Buy lock spends nothing'
+receipt=command(1,'shop-lock',{'intent':'buy','cartRev':rev},key='purchase-1')
 assert len(s.players[0]['pool'])==pools[0]+1 and len(s.players[1]['pool'])==pools[1]
-assert s.shared['gold']==500-price and s.shop_seat==1
-assert command(0,'buy',[0],key='purchase-1')==receipt and s.shared['gold']==500-price
+assert s.shared['gold']==500-price and s.phase=='shop'
+assert command(1,'shop-lock',{'intent':'buy','cartRev':rev},key='purchase-1')==receipt and s.shared['gold']==500-price
 restored=TagCampaign.restore(json.loads(json.dumps(s.checkpoint())));assert restored.shared==s.shared;assert restored.receipts==s.receipts
-command(1,'skip');assert s.phase=='draft' and s.ready==[False,False]
+command(0,'shop-lock',{'intent':'next'});command(1,'shop-lock',{'intent':'next'});assert s.phase=='draft' and s.ready==[False,False]
 s.paused=True
 try:command(0,'auto');raise AssertionError('acted while disconnected')
 except ValueError:pass
-print('PASS tag campaign: host level, independent decks, shared relics/coins, two-opponent duel, one payout, host-first shopping, ownership, duplicate purchase protection and reconnect checkpoint')
+print('PASS tag campaign: host level, independent decks, shared relics/coins, two-opponent duel, one payout, shared shopping with Buy lock-ins, ownership, duplicate purchase protection and reconnect checkpoint')
 
 # New rooms stay in a persisted lobby until the host explicitly starts.
 lobby=TagCampaign([0,1],[p,p],level=2,seed=7,lobby=True)

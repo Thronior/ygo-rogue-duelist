@@ -1,0 +1,592 @@
+[
+ {
+  "term": "Monster",
+  "translation": "몬스터",
+  "evidence": "몬스터 카드 (system 70); 아마조네스 스카우트"
+ },
+ {
+  "term": "Spell",
+  "translation": "마법",
+  "evidence": "마법 카드 (system 71); 연속 마법"
+ },
+ {
+  "term": "Trap",
+  "translation": "함정",
+  "evidence": "함정 카드 (system 72); 어둠의 함정"
+ },
+ {
+  "term": "Normal Monster",
+  "translation": "일반 몬스터",
+  "evidence": "도깨비 고블린, 어둠의 양산공장"
+ },
+ {
+  "term": "Effect Monster",
+  "translation": "효과 몬스터",
+  "evidence": "아마조네스 스카우트, 보충 요원"
+ },
+ {
+  "term": "Fusion Monster",
+  "translation": "융합 몬스터",
+  "evidence": "원심분리 필드, 데블 프랑켄"
+ },
+ {
+  "term": "Ritual Monster",
+  "translation": "의식 몬스터",
+  "evidence": "나락과의 계약, 대지 찬송"
+ },
+ {
+  "term": "Token",
+  "translation": "토큰",
+  "evidence": "클론 복제, 스네이크 포트"
+ },
+ {
+  "term": "Normal Spell",
+  "translation": "일반 마법",
+  "evidence": "연속 마법, 마인 다크 벌터"
+ },
+ {
+  "term": "Quick-Play Spell",
+  "translation": "속공 마법",
+  "evidence": "데스 볼스트걸프, 암흑의 침략자"
+ },
+ {
+  "term": "Continuous Spell",
+  "translation": "지속 마법",
+  "evidence": "마법 탐사의 석판, 원한의 킬러돌"
+ },
+ {
+  "term": "Equip Spell",
+  "translation": "장착 마법",
+  "evidence": "아머 브레이크, 무기창고 도굴꾼"
+ },
+ {
+  "term": "Field Spell",
+  "translation": "필드 마법",
+  "evidence": "불타오르는 대지, 행운을 알리는 올빼미"
+ },
+ {
+  "term": "Ritual Spell",
+  "translation": "의식 마법",
+  "evidence": "만수의 신, 소닉 버드"
+ },
+ {
+  "term": "Normal Trap",
+  "translation": "일반 함정",
+  "evidence": "드래곤 워리어, 어둠의 함정"
+ },
+ {
+  "term": "Continuous Trap",
+  "translation": "지속 함정",
+  "evidence": "사기퇴산, 금속 탐지기"
+ },
+ {
+  "term": "Counter Trap",
+  "translation": "카운터 함정",
+  "evidence": "명왕룡 반달기온"
+ },
+ {
+  "term": "Flip",
+  "translation": "리버스",
+  "evidence": "죽음의 4성 무당벌레 (리버스:), 불행을 알리는 검은고양이"
+ },
+ {
+  "term": "Spirit",
+  "translation": "스피릿",
+  "evidence": "봉신경, 야타 까마귀의 유해; system 1059"
+ },
+ {
+  "term": "Union",
+  "translation": "유니온",
+  "evidence": "작암마수, 콤비네이션 어택; system 1060"
+ },
+ {
+  "term": "Gemini",
+  "translation": "듀얼",
+  "evidence": "system 1061 (듀얼); official OCG ability name"
+ },
+ {
+  "term": "Toon",
+  "translation": "툰",
+  "evidence": "푸른 눈의 툰 드래곤"
+ },
+ {
+  "term": "Deck",
+  "translation": "덱",
+  "evidence": "system 1000; 덱에서 (many cards)"
+ },
+ {
+  "term": "Main Deck",
+  "translation": "메인 덱",
+  "evidence": "game term (OCG rulebook)"
+ },
+ {
+  "term": "Extra Deck",
+  "translation": "엑스트라 덱",
+  "evidence": "데블 프랑켄, 융합 해제; system 1006"
+ },
+ {
+  "term": "hand",
+  "translation": "패",
+  "evidence": "system 1001; 아마조네스의 사슬 전사 (패에 넣는다)"
+ },
+ {
+  "term": "field",
+  "translation": "필드",
+  "evidence": "삼봉 낙타, 죽음의 4성 무당벌레"
+ },
+ {
+  "term": "Graveyard (GY)",
+  "translation": "묘지",
+  "evidence": "system 1004; 데몬과의 거래"
+ },
+ {
+  "term": "banish / banished",
+  "translation": "제외",
+  "evidence": "물의 정령 아쿠에리어, 빛의 추방자; system 503 (제외할 카드)"
+ },
+ {
+  "term": "Monster Zone",
+  "translation": "몬스터 존",
+  "evidence": "아마조네스의 애완호랑이, 다크 네크로피어"
+ },
+ {
+  "term": "Spell & Trap Zone",
+  "translation": "마법 & 함정 존",
+  "evidence": "마법 봉인의 방향제, 용기의 깃발, 위저 보드"
+ },
+ {
+  "term": "Field Zone",
+  "translation": "필드 존",
+  "evidence": "전설의 도시 아틀란티스, 왕가의 골짜기－네크로밸리"
+ },
+ {
+  "term": "Normal Summon",
+  "translation": "일반 소환",
+  "evidence": "우자트의 눈을 가진 남자; system 1"
+ },
+ {
+  "term": "Special Summon",
+  "translation": "특수 소환",
+  "evidence": "데몬과의 거래, 영웅 출현; system 2"
+ },
+ {
+  "term": "Tribute Summon",
+  "translation": "어드밴스 소환",
+  "evidence": "제물이 감춘 폭탄, 여우불; system 531"
+ },
+ {
+  "term": "Flip Summon",
+  "translation": "반전 소환",
+  "evidence": "끈끈이 함정 속으로, 견습 마술사; system 3"
+ },
+ {
+  "term": "Fusion Summon",
+  "translation": "융합 소환",
+  "evidence": "아르카나 나이트 조커, 사이버네틱 퓨전 서포트"
+ },
+ {
+  "term": "Ritual Summon",
+  "translation": "의식 소환",
+  "evidence": "악마경의 의식, 환술의 의식"
+ },
+ {
+  "term": "Tribute",
+  "translation": "릴리스",
+  "evidence": "아마조네스의 명사수, 쥬라게도; system 500"
+ },
+ {
+  "term": "Set",
+  "translation": "세트",
+  "evidence": "우자트의 눈을 가진 남자, 마법 봉인의 방향제; system 510"
+ },
+ {
+  "term": "activate",
+  "translation": "발동",
+  "evidence": "불행을 알리는 검은고양이, 데몬과의 거래"
+ },
+ {
+  "term": "effect",
+  "translation": "효과",
+  "evidence": "system 1055; all effect cards"
+ },
+ {
+  "term": "Chain",
+  "translation": "체인",
+  "evidence": "system 206, 216 (체인 순서, 체인 %d)"
+ },
+ {
+  "term": "resolve",
+  "translation": "처리",
+  "evidence": "데몬 솔저, 불타오르는 대지 (효과 처리); system 568"
+ },
+ {
+  "term": "negate",
+  "translation": "무효",
+  "evidence": "함정 처리반 A팀, 전뇌증폭기 (무효로 한다)"
+ },
+ {
+  "term": "destroy",
+  "translation": "파괴",
+  "evidence": "죽음의 4성 무당벌레"
+ },
+ {
+  "term": "draw",
+  "translation": "드로우",
+  "evidence": "삼봉 낙타 (드로우한다)"
+ },
+ {
+  "term": "discard",
+  "translation": "버리다",
+  "evidence": "봉황신의 깃털, 어비스 솔저 (패를 1장 버리고)"
+ },
+ {
+  "term": "target",
+  "translation": "대상",
+  "evidence": "8쌍 다리 스콜피온, 황산의 함정 속으로 (대상으로 하고 발동할 수 있다)"
+ },
+ {
+  "term": "equip",
+  "translation": "장착",
+  "evidence": "전뇌증폭기, 암흑 마족 길퍼 데몬 (장착 몬스터)"
+ },
+ {
+  "term": "you control",
+  "translation": "자신 필드의",
+  "evidence": "거룡의 도약, 아마조네스의 명사수"
+ },
+ {
+  "term": "opponent",
+  "translation": "상대",
+  "evidence": "system 103; 상대 필드의 (many cards)"
+ },
+ {
+  "term": "owner",
+  "translation": "주인",
+  "evidence": "거룡의 도약, 어비스 솔저 (주인의 패로 되돌린다)"
+ },
+ {
+  "term": "face-up",
+  "translation": "앞면 표시",
+  "evidence": "삼봉 낙타, 죽음의 4성 무당벌레"
+ },
+ {
+  "term": "face-down",
+  "translation": "뒷면 표시",
+  "evidence": "양동 작전, 빅 실드 가드너"
+ },
+ {
+  "term": "Attack Position",
+  "translation": "공격 표시",
+  "evidence": "아마조네스의 궁수대, 자율행동 유닛"
+ },
+ {
+  "term": "Defense Position",
+  "translation": "수비 표시",
+  "evidence": "8쌍 다리 스콜피온, 황산의 함정 속으로"
+ },
+ {
+  "term": "battle position",
+  "translation": "표시 형식",
+  "evidence": "물의 정령 아쿠에리어, 빨간 구두; system 528"
+ },
+ {
+  "term": "ATK",
+  "translation": "공격력",
+  "evidence": "8쌍 다리 스콜피온, 7 카드"
+ },
+ {
+  "term": "DEF",
+  "translation": "수비력",
+  "evidence": "3만 년 된 흰 거북이, 7 카드"
+ },
+ {
+  "term": "Level",
+  "translation": "레벨",
+  "evidence": "죽음의 4성 무당벌레"
+ },
+ {
+  "term": "Attribute",
+  "translation": "속성",
+  "evidence": "전설의 도시 아틀란티스, 어비스 솔저; system 562"
+ },
+ {
+  "term": "Type",
+  "translation": "종족",
+  "evidence": "심연의 지명자, 빛의 호봉진; system 563"
+ },
+ {
+  "term": "LP",
+  "translation": "LP",
+  "evidence": "아마조네스의 사슬 전사, 데몬의 선고, 쥬라게도"
+ },
+ {
+  "term": "damage",
+  "translation": "데미지",
+  "evidence": "제물이 감춘 폭탄 (1000 데미지를 준다)"
+ },
+ {
+  "term": "battle damage",
+  "translation": "전투 데미지",
+  "evidence": "천공기사 파샤스, 아마조네스의 격투전사"
+ },
+ {
+  "term": "gain LP",
+  "translation": "LP를 회복한다",
+  "evidence": "쥬라게도, 마술의 주문서 (1000 LP 회복한다)"
+ },
+ {
+  "term": "attack",
+  "translation": "공격",
+  "evidence": "8쌍 다리 스콜피온 (공격 대상), 제물이 감춘 폭탄 (공격 선언시)"
+ },
+ {
+  "term": "direct attack",
+  "translation": "직접 공격",
+  "evidence": "절체절명, 드래곤을 탄 와이반; system 31"
+ },
+ {
+  "term": "destroyed by battle",
+  "translation": "전투로 파괴",
+  "evidence": "아마조네스의 사슬 전사, 견습 마술사"
+ },
+ {
+  "term": "piercing battle damage",
+  "translation": "관통 데미지 (card text: 그 수비력을 공격력이 넘은 만큼만 전투 데미지를 준다)",
+  "evidence": "천공기사 파샤스, 격앙한 미노타우로스; 관통 = common OCG term for short UI labels"
+ },
+ {
+  "term": "turn",
+  "translation": "턴",
+  "evidence": "system 211; 1턴에 1번"
+ },
+ {
+  "term": "Draw Phase",
+  "translation": "드로우 페이즈",
+  "evidence": "편승, 대 한파; system 20"
+ },
+ {
+  "term": "Standby Phase",
+  "translation": "스탠바이 페이즈",
+  "evidence": "물의 정령 아쿠에리어, 암드 드래곤 LV3; system 21"
+ },
+ {
+  "term": "Main Phase 1",
+  "translation": "메인 페이즈 1",
+  "evidence": "제노사이드 워, 대 한파"
+ },
+ {
+  "term": "Battle Phase",
+  "translation": "배틀 페이즈",
+  "evidence": "중무장무사－벤 케이, 용기의 깃발; system 24"
+ },
+ {
+  "term": "Main Phase 2",
+  "translation": "메인 페이즈 2",
+  "evidence": "game term (paired with 메인 페이즈 1)"
+ },
+ {
+  "term": "End Phase",
+  "translation": "엔드 페이즈",
+  "evidence": "해룡신의 가호, 데몬의 포효; system 26"
+ },
+ {
+  "term": "Damage Step",
+  "translation": "데미지 스텝",
+  "evidence": "아마조네스의 현자, 거대전함 빅 코어; system 40"
+ },
+ {
+  "term": "once per turn",
+  "translation": "1턴에 1번",
+  "evidence": "8쌍 다리 스콜피온, 속사포 드래곤"
+ },
+ {
+  "term": "Duel",
+  "translation": "듀얼",
+  "evidence": "천재지변, 위저 보드 (듀얼에서 승리한다)"
+ },
+ {
+  "term": "coin toss / heads / tails",
+  "translation": "코인 토스 / 앞면 / 뒷면",
+  "evidence": "속사포 드래곤, 개틀링 드래곤, 건 캐논 샷; system 552"
+ },
+ {
+  "term": "roll a die",
+  "translation": "주사위를 1회 던진다",
+  "evidence": "아기도, 무차별파괴"
+ },
+ {
+  "term": "counter",
+  "translation": "카운터",
+  "evidence": "대항 마술, 견습 마술사 (마력 카운터)"
+ },
+ {
+  "term": "reveal",
+  "translation": "공개",
+  "evidence": "세레모니 벨, 익스체인지; system 526"
+ },
+ {
+  "term": "shuffle",
+  "translation": "셔플",
+  "evidence": "버드 페이스, 숏 건 셔플"
+ },
+ {
+  "term": "add to your hand",
+  "translation": "패에 넣는다",
+  "evidence": "아마조네스의 사슬 전사, 제너럴 데몬; system 506"
+ },
+ {
+  "term": "Run",
+  "translation": "런",
+  "evidence": "game term"
+ },
+ {
+  "term": "Loop",
+  "translation": "루프",
+  "evidence": "game term"
+ },
+ {
+  "term": "Relic",
+  "translation": "렐릭",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cursed relic",
+  "translation": "저주받은 렐릭",
+  "evidence": "game term"
+ },
+ {
+  "term": "Fused relic",
+  "translation": "합성 렐릭 (relic fusion = 렐릭 합성)",
+  "evidence": "game term; avoids confusion with card 융합 소환"
+ },
+ {
+  "term": "Starting relic",
+  "translation": "시작 렐릭",
+  "evidence": "game term"
+ },
+ {
+  "term": "Coins",
+  "translation": "코인",
+  "evidence": "game term"
+ },
+ {
+  "term": "Shop",
+  "translation": "상점",
+  "evidence": "game term"
+ },
+ {
+  "term": "Reroll",
+  "translation": "리롤",
+  "evidence": "game term"
+ },
+ {
+  "term": "Booster pack",
+  "translation": "부스터 팩",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting deck",
+  "translation": "시작 덱",
+  "evidence": "game term"
+ },
+ {
+  "term": "Collection",
+  "translation": "컬렉션",
+  "evidence": "game term"
+ },
+ {
+  "term": "Signature card",
+  "translation": "시그니처 카드",
+  "evidence": "game term"
+ },
+ {
+  "term": "Variant",
+  "translation": "변형",
+  "evidence": "game term"
+ },
+ {
+  "term": "Challenge level (LVL)",
+  "translation": "도전 레벨 (LVL)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss",
+  "translation": "보스",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss curse",
+  "translation": "보스 저주",
+  "evidence": "game term"
+ },
+ {
+  "term": "Victory / Defeat",
+  "translation": "승리 / 패배",
+  "evidence": "game term; 위저 보드 (듀얼에서 승리한다)"
+ },
+ {
+  "term": "Tag Duel",
+  "translation": "태그 듀얼",
+  "evidence": "game term (OCG tag duel)"
+ },
+ {
+  "term": "Ultimate Collector",
+  "translation": "얼티밋 컬렉터",
+  "evidence": "game term"
+ },
+ {
+  "term": "Golden card",
+  "translation": "황금 카드",
+  "evidence": "game term"
+ },
+ {
+  "term": "Misprint",
+  "translation": "미스프린트",
+  "evidence": "game term"
+ },
+ {
+  "term": "Bounty",
+  "translation": "현상금",
+  "evidence": "game term"
+ },
+ {
+  "term": "Duel Look",
+  "translation": "듀얼 테마",
+  "evidence": "game term"
+ },
+ {
+  "term": "Chain button: Always / Sometimes / Never",
+  "translation": "체인 버튼: 항상 / 가끔 / 안 함",
+  "evidence": "game term"
+ },
+ {
+  "term": "Flag behaviour",
+  "translation": "행동 신고",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cloud save",
+  "translation": "클라우드 저장",
+  "evidence": "game term"
+ },
+ {
+  "term": "Achievement",
+  "translation": "업적",
+  "evidence": "game term"
+ },
+ {
+  "term": "Unlock",
+  "translation": "해금",
+  "evidence": "game term"
+ },
+ {
+  "term": "Settings",
+  "translation": "설정",
+  "evidence": "game term"
+ },
+ {
+  "term": "Inspect",
+  "translation": "자세히 보기",
+  "evidence": "game term"
+ }
+]

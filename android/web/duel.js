@@ -248,9 +248,17 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     r=this.chooseDecision({...m,summons:keep.map(i=>m.summons[i])});
     if(r?.action===I.SELECT_SUMMON)r={...r,index:keep[r.index]};
    }
+   // Kuriboh is worth more in the hand, where its discard stops lethal battle damage (Discord 2026-11-08: summoned at
+   // 1100 LP beside Destiny Board, then pierced). It still comes out with Multiply ready.
+   if(m?.type===M.SELECT_IDLECMD&&[I.SELECT_SUMMON,I.SELECT_MONSTER_SET].includes(r?.action)&&this.keptInHand(r.action===I.SELECT_SUMMON?m.summons[r.index]:m.monster_sets[r.index],m.player)){
+    const summons=m.summons.filter(c=>!this.keptInHand(c,m.player)),sets=m.monster_sets.filter(c=>!this.keptInHand(c,m.player));
+    const next=this.chooseDecision({...m,summons,monster_sets:sets});
+    r=next?.action===I.SELECT_SUMMON?{...next,index:m.summons.indexOf(summons[next.index])}:next?.action===I.SELECT_MONSTER_SET?{...next,index:m.monster_sets.indexOf(sets[next.index])}:next;
+   }
    return r;
   }finally{this.decisionQueries=previous;}
  }
+ keptInHand(c,p){return !!c&&this.name(c.code)==='Kuriboh'&&![...this.query(p,L.HAND),...this.query(p,L.SZONE)].some(x=>x&&this.name(x.code)==='Multiply')}
  destroyedOnNormalSummon(c){return !!c&&/If this (?:card|monster) is Normal Summoned, destroy this card/i.test(this.cards.get(c.code)?.desc||'')}
  chooseDecision(m){
   if(m.type===M.SELECT_PLACE){
@@ -426,6 +434,13 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
 
    const holdHand=smart.holdHandForBattle();
    if(!holdHand&&m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((smart.projectedDefense(b.c)+(stat(b.c).type&0x200000?600:0))-(smart.projectedDefense(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;const candidate=m.monster_sets[index];if(this.cpuReviewRules?.reflectBounder!==false&&this.name(candidate.code)==='Reflect Bounder'&&smart.effectsEnabled(p)&&!smart.attackBlocked(candidate,p,true)&&smart.incomingDamage(candidate,true)<this.lp[p]){const summonIndex=m.summons.findIndex(c=>c.code===candidate.code&&c.sequence===candidate.sequence);if(summonIndex>=0)return idle(I.SELECT_SUMMON,summonIndex)}return idle(I.SELECT_MONSTER_SET,index)}
+   // Light of Intervention (or Shield Breaker) leaves no Set: a weak Attack Position blocker still beats an empty field
+   // when it cuts the damage coming next turn (flag e7aef02f91, 2026-11-08: nothing summoned for 7 turns).
+   if(!m.monster_sets.length&&m.summons.length&&enemy.length){
+    const base=smart.incomingDamage(null,true);
+    const blocker=m.summons.map((c,i)=>({c,i,damage:smart.incomingDamage(c,true)})).filter(x=>(this.cards.get(x.c.code)?.level||0)<=4&&!exodiaPieces.has(x.c.code)&&!this.keptInHand(x.c,p)&&!this.destroyedOnNormalSummon(x.c)&&smart.summonScore(x.c)>=0&&x.damage<base).sort((a,b)=>a.damage-b.damage||smart.projectedAttack(b.c)-smart.projectedAttack(a.c))[0];
+    if(blocker)return idle(I.SELECT_SUMMON,blocker.i);
+   }
    // Keep one main back-row slot free for spells from hand; the Field Zone is separate.
    const backrowCount=this.query(p,L.SZONE).filter((c,i)=>c&&(c.sequence??i)<5).length;
    const setCandidates=m.spell_sets.map((c,index)=>({c,index})).filter(x=>smart.setAllowed(x.c)&&(stat(x.c).type&4||stat(x.c).type&0x10000)).sort((a,b)=>smart.setScore(b.c)-smart.setScore(a.c));const set=!holdHand&&backrowCount<(this.aiModifiers?.spellTrapZones??5)-1?(setCandidates[0]?.index??-1):-1;if(set>=0)return idle(I.SELECT_SPELL_SET,set);

@@ -1,7 +1,12 @@
 const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
 const assert=require('node:assert/strict'),path=require('node:path');process.env.TEMP=process.env.TMP=path.resolve('temp');
-(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});try{
- const pages=await Promise.all([0,1].map(async()=>{const p=await browser.newPage({viewport:{width:924,height:416},hasTouch:true,isMobile:true});await p.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){this.muted=true;return Promise.resolve()}});await p.goto('http://127.0.0.1:4197/?tagtest=1');await p.locator('[data-menu="0"]').waitFor({timeout:120000});await p.locator('[data-menu="0"]').dispatchEvent('click');await p.locator('[data-tag="host"]').waitFor();return p}));
+// Rooms go to a local Worker, never the live one in multiplayer-config.json (2026-11-08). Start it as in
+// test_online_browser.cjs, then: node android/test_tag_lobby.cjs [--endpoint=http://127.0.0.1:8799] [--web=http://127.0.0.1:4197]
+const arg=(name,fallback)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.split('=')[1]??fallback;
+const endpoint=arg('endpoint','http://127.0.0.1:8799'),web=arg('web','http://127.0.0.1:4197');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true,args:['--disable-features=LocalNetworkAccessChecks']});try{
+ // The title menu has no Tag entry of its own any more, so the test opens Tag the way the menu's Online page does.
+ const pages=await Promise.all([0,1].map(async()=>{const p=await browser.newPage({viewport:{width:924,height:416},hasTouch:true,isMobile:true,bypassCSP:true});await p.addInitScript(()=>{localStorage.setItem('ygo-preload-visuals','sounds');HTMLMediaElement.prototype.play=function(){this.muted=true;return Promise.resolve()}});await p.route('**/multiplayer-config.json',r=>r.fulfill({json:{signalingUrl:endpoint}}));for(let attempt=0;;attempt++){await p.goto(web+'/?tagtest=1');try{await p.waitForFunction(()=>window.shadowTest,null,{timeout:90000});break}catch(error){if(attempt>=3)throw error}}await p.waitForTimeout(2500);await p.evaluate(()=>{document.querySelector('#modal')?.close();const b=document.createElement('button');b.dataset.do='tag';document.body.append(b);b.click();b.remove()});await p.locator('[data-tag="host"]').waitFor();return p}));
  const [host,guest]=pages;assert.equal(await host.locator('#tag-endpoint').count(),0);
  await host.waitForFunction(()=>[...document.images].every(i=>i.complete));await host.screenshot({path:path.resolve('temp/tag-simple-select.png')});
  const tiles=await host.locator('.tag-character-grid button').evaluateAll(xs=>xs.map(x=>{const r=x.getBoundingClientRect();return {top:r.top,bottom:r.bottom}}));assert(tiles.every(x=>x.bottom<=416));assert.equal(new Set(tiles.map(x=>Math.round(x.top))).size,6);

@@ -24,7 +24,7 @@ class TagCampaign:
 
   if len(characters)!=2 or len(profiles)!=2:raise ValueError('Two players are required.')
 
-  self.trade=self.new_trade()
+  self.trade=self.new_trade();self.shopping=self.new_shopping()
 
   self.finale={'votes':[False,False],'status':'available','winner':None};self.room_code=None;self.rng=random.Random(seed);self.profiles=deepcopy(profiles);self.players=[];self.revision=0;self.receipts={};self.ready=[False,False];self.phase='lobby' if lobby else 'draft';self.shop_seat=0;self.duel=None;self.paused=False
 
@@ -87,17 +87,150 @@ class TagCampaign:
 
   finally:storage.profile,storage.write,game.RUNTIME=old_profile,old_write,old_runtime
 
- def finish_shop_turn(self):
+ def leave_shop(self):
 
-  self.shop_seat+=1
+  self.shopping=self.new_shopping()
 
-  if self.shop_seat==2:
+  self.phase='draft';self.ready=[False,False];self.shared['fusion_events']=[]
 
-   self.phase='draft';self.ready=[False,False];self.shared['fusion_events']=[]
+  for r in self.players:r['stage']='draft';r['gold_leaving_shop']=self.shared['gold']
 
-   for r in self.players:r['stage']='draft';r['gold_leaving_shop']=self.shared['gold']
+  self.routes()
 
-   self.routes()
+ # Both players shop at once (user, 2026-11-08). Each keeps a cart the other can see, and Buy, Reroll and Next duel
+ # happen only once both players lock in the same choice. Changing either cart cancels both Buy locks.
+ @staticmethod
+
+ def new_shopping():return dict(carts=[[],[]],locks=[None,None],cart_rev=0,event=None)
+
+ def shopping_view(self):
+
+  s=self.shopping;return dict(carts=deepcopy(s['carts']),locks=s['locks'][:],cartRev=s['cart_rev'],event=deepcopy(s['event']),choosing=[self.choice_waiting(seat) for seat in (0,1)])
+
+ def choice_waiting(self,seat):
+
+  from golden_cards import pending
+
+  run=self.players[seat]
+
+  return run.get('challenge_level')!=-1 and bool(pending(run) or ('dna_rewrite' in run.get('artifacts',[]) and not run.get('monster_type')))
+
+ def require_shop(self,run):
+
+  if self.phase!='shop':raise ValueError('The shop is closed.')
+
+  cursed_relics.require_choice(run)
+
+ def cart_total(self,carts):
+
+  shop=self.shared['shop'];return sum(shop[i]['price'] for cart in carts for i in cart if 0<=i<len(shop))
+
+ def valid_cart(self,seat,value):
+
+  items=value.get('items') if isinstance(value,dict) else None
+
+  if not isinstance(items,list) or len(items)>60 or any(type(i)!=int for i in items) or len(set(items))!=len(items):raise ValueError('Invalid shopping cart.')
+
+  shop=self.shared['shop'];character=content.CHARACTERS[self.players[seat]['character']];other=self.shopping['carts'][1-seat]
+
+  for i in items:
+
+   if not 0<=i<len(shop) or shop[i].get('sold'):raise ValueError('That item is no longer for sale.')
+
+   if i in other:raise ValueError('Your teammate already picked that item.')
+
+   if (character.get('copycat') or character.get('engine_deck')) and shop[i]['kind']!='artifact':raise ValueError('Your deck is fixed, so you can only pick relics.')
+
+  if self.cart_total([items,other])>self.shared['gold']:raise ValueError('Not enough coins for both carts.')
+
+  return items
+
+ def shop_lock(self,seat,value):
+
+  run=self.players[seat];self.require_shop(run)
+
+  intent=value.get('intent') if isinstance(value,dict) else None
+
+  if intent not in (None,'buy','reroll','next'):raise ValueError('Invalid shop choice.')
+
+  locks=self.shopping['locks']
+
+  if intent=='buy':
+
+   if value.get('cartRev')!=self.shopping['cart_rev']:raise ValueError('The carts changed. Check them and press Buy again.')
+
+   if not any(self.shopping['carts']):raise ValueError('Pick something to buy first.')
+
+   if self.cart_total(self.shopping['carts'])>self.shared['gold']:raise ValueError('Not enough coins for both carts.')
+
+  if intent=='reroll' and self.shared['gold']<game.reroll_price(self.players[0]):raise ValueError('Not enough coins to reroll the shop.')
+
+  if intent=='next' and self.choice_waiting(seat):raise ValueError('Finish your Golden Card Sleeve or DNA Rewrite choice first.')
+
+  locks[seat]=intent
+
+  if intent and locks[1-seat]==intent:
+
+   if intent=='buy':return self.buy_carts()
+
+   if intent=='reroll':return self.reroll_together()
+
+   if self.try_leave():return dict(kind='next')
+
+  return dict(kind='locked',intent=intent)
+
+ # A teammate still choosing a golden card holds both players in the shop; their choice completes the move.
+ def try_leave(self):
+
+  if self.phase=='shop' and self.shopping['locks']==['next','next'] and not any(self.choice_waiting(s) for s in (0,1)):self.leave_shop();return True
+
+  return False
+
+ def buy_carts(self):
+
+  carts=deepcopy(self.shopping['carts']);shop=self.shared['shop'];results=[[],[]]
+
+  # Indices are checked against the stock both players saw, in case a purchase changes the shelves.
+  expected=[[(shop[i]['kind'],shop[i]['id']) for i in cart] for cart in carts]
+
+  for seat in (0,1):
+
+   if not carts[seat]:continue
+
+   run=self.players[seat]
+
+   if [(run['shop'][i]['kind'],run['shop'][i]['id']) for i in carts[seat]]!=expected[seat]:raise ValueError('The shop changed. Pick your items again.')
+
+   with self.scope(seat):results[seat]=game.buy_many(run,carts[seat],self.rng)
+
+   for key in ('gold','lp','artifacts','shop','fusion_events','greed_relic_taken'):self.shared[key]=deepcopy(run.get(key))
+
+   self.sync()
+
+  self.trade=self.new_trade()
+
+  event=dict(id=uuid.uuid4().hex,kind='buy',items=carts,results=results)
+
+  self.shopping.update(carts=[[],[]],locks=[None,None],cart_rev=self.shopping['cart_rev']+1,event=event)
+
+  return deepcopy(event)
+
+ def reroll_together(self):
+
+  # The host's run rolls the stock, as it rolled the shop's first stock in finish().
+  run=self.players[0]
+
+  with self.scope(0):price=game.reroll_shop(run,self.rng)
+
+  for key in ('gold','shop','shop_rerolls','jar_shop_used'):self.shared[key]=deepcopy(run.get(key))
+
+  self.sync()
+
+  event=dict(id=uuid.uuid4().hex,kind='reroll',price=price)
+
+  self.shopping.update(carts=[[],[]],locks=[None,None],cart_rev=self.shopping['cart_rev']+1,event=event)
+
+  return deepcopy(event)
 
  def sync(self):
 
@@ -113,7 +246,9 @@ class TagCampaign:
 
    shop_rewards.normalize_run(run)
 
- def routes(self):
+ def routes(self,avoid_curses=None):
+  # avoid_curses: per seat, curses a boss reroll must not bring back (boss_selection.reroll_avoided_curses).
+  avoid_curses=avoid_curses or [set(),set()]
 
   self.shared['revealed_opponents']=[]
 
@@ -125,11 +260,17 @@ class TagCampaign:
 
   excluded={r['character'] for r in self.players}|set(self.players[0].get('defeated_opponents',[]))|set(self.players[1].get('defeated_opponents',[]))
 
-  count=1 if (self.shared['round']+1)%3==0 else 5
+  boss=(self.shared['round']+1)%3==0;count=1 if boss else 5
+
+  # Both players share one opponent screen (user, 2026-11-08): five ordinary opponents drawn once, or one boss drawn
+  # per seat, both shown to both players. Each player locks in a different one.
+  shared=dict(routes=[],route_curses={},tutorial_variants={})
 
   for seat,run in enumerate(self.players):
 
-   with self.scope(seat):game.routes(run,self.rng)
+   if seat and not boss:break
+
+   with self.scope(seat):game.routes(run,self.rng,avoid_curses=avoid_curses[seat])
 
    run['routes']=[i for i in run['routes'] if i not in excluded]
 
@@ -149,16 +290,74 @@ class TagCampaign:
 
      from feedback_update import draw_curses, ritual_curse_block
 
-     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3),excluded=ritual_curse_block(deck,run.get('challenge_level',0)))
+     run['route_curses'][str(opponent)]=draw_curses(self.rng,1 if run.get('challenge_level',0)>=6 else min(3,(run['round']+1)//3),excluded=ritual_curse_block(deck,run.get('challenge_level',0))|set(avoid_curses[seat]))
 
    if len(run['routes'])!=count:raise ValueError('Not enough undefeated opponents remain.')
 
-   # Rebuild rewards so one screen never repeats a theme or a guaranteed pack.
-   run['route_rewards']=shop_rewards.route_rewards(run['routes'],self.rng,self.profiles[seat])
+   shared['routes']+=run['routes'];shared['route_curses'].update({str(i):list((run.get('route_curses') or {}).get(str(i),[])) for i in run['routes']})
 
-   if count==1:excluded.update(run['routes'])
+   shared['tutorial_variants'].update({str(i):v for i,v in (run.get('tutorial_variants') or {}).items() if int(i) in run['routes']})
 
-   run['opponent']=None
+   if boss:excluded.update(run['routes'])
+
+  # Rebuild rewards so one screen never repeats a theme or a guaranteed pack. The host's unlocks pick the packs, as
+  # they already pick the shop's stock.
+  rewards=shop_rewards.route_rewards(shared['routes'],self.rng,self.profiles[0])
+
+  for seat,run in enumerate(self.players):
+
+   run['routes']=shared['routes'][:];run['route_curses']=deepcopy(shared['route_curses']);run['route_rewards']=deepcopy(rewards);run['reward_rules']=5
+
+   if shared['tutorial_variants']:run['tutorial_variants']=dict(shared['tutorial_variants'])
+
+   else:run.pop('tutorial_variants',None)
+
+   run['boss_curse']=(shared['route_curses'].get(str(shared['routes'][0])) or [None])[0] if shared['routes'] else None
+
+   run.pop('fallen_routes',None);run['opponent']=None;challenge_levels.suppress(run)
+
+ def reroll_boss(self,old):
+
+  """Replace one of the two shared bosses; the other stays. Returns the new boss."""
+
+  routes=self.players[0]['routes'];curses=self.players[0].get('route_curses') or {}
+
+  excluded={r['character'] for r in self.players}|set(self.players[0].get('defeated_opponents',[]))|set(self.players[1].get('defeated_opponents',[]))|set(routes)
+
+  candidate=deepcopy(self.players[0])
+
+  # Through loop 1 a reroll never brings back a curse this boss just had (boss_selection.reroll_avoided_curses).
+  avoid=set() if candidate.get('loop') else set(curses.get(str(old),[]))
+
+  with self.scope(0):game.routes(candidate,self.rng,exclude=sorted(excluded),avoid_curses=avoid)
+
+  new=candidate['routes'][0];content.opponent_record(candidate['round'],new,candidate.get('loop',0))
+
+  others=[self.players[0]['route_rewards'].get(str(i)) or {} for i in routes if i!=old]
+
+  reward=candidate['route_rewards'][str(new)]
+
+  for _ in range(12):
+
+   if all(reward['key']!=o.get('key') and reward['pack']!=o.get('pack') for o in others):break
+
+   reward=shop_rewards.route_rewards([new],self.rng,self.profiles[0])[str(new)]
+
+  for run in self.players:
+
+   run['routes']=[new if i==old else i for i in run['routes']]
+
+   run.setdefault('route_curses',{}).pop(str(old),None);run['route_curses'][str(new)]=list((candidate.get('route_curses') or {}).get(str(new),[]))
+
+   run['route_rewards'].pop(str(old),None);run['route_rewards'][str(new)]=deepcopy(reward)
+
+   run['boss_curse']=(run['route_curses'].get(str(run['routes'][0])) or [None])[0]
+
+   if run.get('opponent')==old:run['opponent']=None
+
+   challenge_levels.suppress(run)
+
+  return new
 
  def view(self,seat):
 
@@ -170,11 +369,11 @@ class TagCampaign:
 
    run['artifacts']=deepcopy(self.finale.get('picks',[run['artifacts'],run['artifacts']])[seat])
 
-  return dict(protocol=1,trade=self.trade_view(seat),finale=deepcopy(self.finale),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
+  return dict(protocol=1,trade=self.trade_view(seat),shopping=self.shopping_view(),finale=deepcopy(self.finale),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
 
  def checkpoint(self):
 
-  return deepcopy(dict(protocol=1,trade=self.trade,finale=self.finale,room_code=self.room_code,players=self.players,profiles=self.profiles,shared=self.shared,revision=self.revision,receipts=self.receipts,ready=self.ready,phase=self.phase,shop_seat=self.shop_seat,duel=self.duel,paused=self.paused,rng_state=self.rng.getstate()))
+  return deepcopy(dict(protocol=1,trade=self.trade,shopping=self.shopping,finale=self.finale,room_code=self.room_code,players=self.players,profiles=self.profiles,shared=self.shared,revision=self.revision,receipts=self.receipts,ready=self.ready,phase=self.phase,shop_seat=self.shop_seat,duel=self.duel,paused=self.paused,rng_state=self.rng.getstate()))
 
  @staticmethod
 
@@ -313,6 +512,8 @@ class TagCampaign:
 
   self.trade=deepcopy(data.get('trade',self.new_trade()))
 
+  self.shopping=deepcopy(data.get('shopping') or self.new_shopping())
+
   self.finale=deepcopy(data.get('finale',{'votes':[False,False],'status':'available','winner':None}))
 
   for key in ('room_code','players','profiles','shared','revision','receipts','ready','phase','shop_seat','duel','paused'):setattr(self,key,deepcopy(data[key]))
@@ -341,13 +542,14 @@ class TagCampaign:
 
    cursed_relics.create_offer(self.players[0],self.rng);self.shared['cursed_offer']=deepcopy(self.players[0].get('cursed_offer'));self.sync()
 
-  if self.phase=='draft' and (self.shared['round']+1)%3==0 and any(len(r.get('routes',[]))>1 for r in self.players):self.ready=[False,False];self.routes()
+  # Saves from before the shared opponent screen hold a different list per player: draw one shared list again.
+  if self.phase=='draft' and self.players[0].get('routes')!=self.players[1].get('routes'):self.ready=[False,False];self.routes()
 
-  if self.phase=='draft':
+  if self.phase=='draft' and any(run.get('reward_rules')!=5 for run in self.players):
 
-   for seat,run in enumerate(self.players):
+   rewards=shop_rewards.route_rewards(self.players[0]['routes'],self.rng,self.profiles[0])
 
-    if run.get('reward_rules')!=5:run['route_rewards']=shop_rewards.route_rewards(run['routes'],self.rng,self.profiles[seat]);run['reward_rules']=5
+   for run in self.players:run['route_rewards']=deepcopy(rewards);run['reward_rules']=5
 
   return self
 
@@ -366,7 +568,8 @@ class TagCampaign:
   revision=request.get('revision')
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
-  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','finale-vote','finale-skip','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck')
+  # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
+  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -402,19 +605,27 @@ class TagCampaign:
 
    import boss_selection
 
-   if self.phase!='draft' or (self.shared['round']+1)%3 or any(self.ready):raise ValueError('Unlock both selections before rerolling bosses.')
+   if self.phase!='draft' or (self.shared['round']+1)%3:raise ValueError('Boss rerolls are only available before a boss duel.')
+
+   # One boss at a time, by either player (user, 2026-11-08). The run's reroll price rises with each one.
+   try:old=int(value)
+   except (TypeError,ValueError):raise ValueError('Choose which boss to reroll.')
+
+   if old not in self.players[0]['routes']:raise ValueError('That boss has already changed.')
+
+   if any(self.ready[s] and self.players[s]['opponent']==old for s in (0,1)):raise ValueError('Unlock this boss before rerolling it.')
 
    cost=boss_selection.price(self.shared)
 
-   if self.shared['gold']<cost:raise ValueError('Not enough coins to reroll the bosses.')
+   if self.shared['gold']<cost:raise ValueError('Not enough coins to reroll this boss.')
 
-   self.routes();self.shared['gold']-=cost
+   new=self.reroll_boss(old);self.shared['gold']-=cost
 
    if cost==0:ar.use_free(self.shared,'boss')
 
    else:self.shared['boss_rerolls']=self.shared.get('boss_rerolls',0)+1
 
-   self.sync();return cost
+   self.sync();return dict(cost=cost,old=old,new=new)
 
   if action=='peek-deck':
 
@@ -527,7 +738,7 @@ class TagCampaign:
    self.shared['gold']=run['gold'];self.sync();return result
 
   if action=='sell-relic':
-   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
+   if self.phase!='shop':raise ValueError('Relics can be sold in the shop.')
    with self.scope(seat):result=game.sell_relic(run,str(value))
    for key in ('gold','artifacts'):self.shared[key]=deepcopy(run.get(key))
    if 'monster_type' not in run:
@@ -535,67 +746,47 @@ class TagCampaign:
     for other in self.players:other.pop('monster_type',None)
    self.sync();return result
 
-  if action=='shop-reroll':
+  if action=='shop-cart':
 
-   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
+   self.require_shop(run);self.shopping['carts'][seat]=self.valid_cart(seat,value);self.shopping['cart_rev']+=1
 
-   with self.scope(seat):price=game.reroll_shop(run,self.rng)
+   self.shopping['locks']=[None if lock=='buy' else lock for lock in self.shopping['locks']]
 
-   for key in ('gold','shop','shop_rerolls','jar_shop_used'):self.shared[key]=deepcopy(run.get(key))
+   return dict(cartRev=self.shopping['cart_rev'])
 
-   self.sync();return price
-
-  if action in ('buy','skip'):
-
-   cursed_relics.require_choice(run)
-
-   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
-
-   with self.scope(seat):result=game.buy_many(run,value or [],self.rng) if action=='buy' else []
-
-   for key in ('gold','lp','artifacts','shop','fusion_events','greed_relic_taken'):self.shared[key]=deepcopy(run.get(key))
-
-   self.trade=self.new_trade()
-
-   self.sync()
-
-   from golden_cards import pending
-
-   if pending(run) or ('dna_rewrite' in run['artifacts'] and not run.get('monster_type')):run['golden_shop_waiting']=True
-
-   else:self.finish_shop_turn()
-
-   return result
+  if action=='shop-lock':return self.shop_lock(seat,value)
 
   if action=='choose-monster-type':
 
    from feedback_update import choose_type
 
-   if self.phase!='shop' or self.shop_seat!=seat:raise ValueError('It is your teammate’s shopping turn.')
+   if self.phase!='shop':raise ValueError('Choose a Type in the shop.')
 
-   choose_type(run,value);self.shared['monster_type']=run['monster_type'];self.sync()
-
-   from golden_cards import pending
-
-   if run.get('golden_shop_waiting') and not pending(run):run.pop('golden_shop_waiting');self.finish_shop_turn()
+   choose_type(run,value);self.shared['monster_type']=run['monster_type'];self.sync();run.pop('golden_shop_waiting',None);self.try_leave()
 
    return
 
   if action=='golden-card':
 
-   from golden_cards import choose,pending
+   from golden_cards import choose
 
-   choose(run,value)
-
-   if run.get('golden_shop_waiting') and not pending(run) and ('dna_rewrite' not in run['artifacts'] or run.get('monster_type')):
-
-    run.pop('golden_shop_waiting');self.finish_shop_turn()
+   choose(run,value);run.pop('golden_shop_waiting',None);self.try_leave()
 
    return
 
+  # The deck editor opens from the shop as well (user, 2026-11-08). The duel uses the deck locked in at opponent select.
+  if action=='deck' and self.phase=='shop':
+
+   if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
+
+   if not isinstance(value,list) or len(value)>100 or len(value)!=len(set(value)) or any(type(i)!=int or not 0<=i<len(run['pool']) for i in value):raise ValueError('Invalid deck selection.')
+
+   run['selected']=value[:];return
+
   if self.phase!='draft':raise ValueError('Deck editing is not available now.')
 
-  if self.ready[seat] and action!='unready':raise ValueError('Unlock your selection before editing.')
+  # Pressing another opponent's swords moves the lock-in there in one step.
+  if self.ready[seat] and action not in ('unready','ready'):raise ValueError('Unlock your selection before editing.')
 
   if action=='unready':self.ready[seat]=False;return
 
@@ -626,6 +817,8 @@ class TagCampaign:
   if action=='ready':
 
    # Commit the final local draft atomically; intermediate edits never travel.
+
+   self.ready[seat]=False
 
    if value is not None:
 
@@ -799,7 +992,7 @@ class TagCampaign:
 
   for run in self.players:run['defeated_opponents']=defeated[:];run['last_rewards']=deepcopy(host['last_rewards']);run['last_gold']=host['last_gold']
 
-  self.sync();self.phase=host['stage'];self.shop_seat=0;self.ready=[False,False];self.duel=None;self.revision+=1
+  self.sync();self.phase=host['stage'];self.shop_seat=0;self.shopping=self.new_shopping();self.ready=[False,False];self.duel=None;self.revision+=1
 
   # finish_duel saved each player's history row before the team's coins, LP and relics came from the host.
 

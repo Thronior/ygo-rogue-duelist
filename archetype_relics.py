@@ -15,6 +15,10 @@ DEFINITIONS=[
  ('ritual_dagger','Ritual Dagger','Ritual monsters and Ritual Spells','Curse of the Masked Beast'),
 ]
 NEW_IDS={x[0] for x in DEFINITIONS}
+# The six Guardians' dedicated Equip Spells, shared with the Guardian shop category (shop_rewards.py).
+GUARDIAN_EQUIPS={'Wicked-Breaking Flamberge - Baou','Shooting Star Bow - Ceal','Butterfly Dagger - Elma','Gravity Axe - Grarl',"Rod of Silence - Kay'est",'Twin Swords of Flashing Light - Tryce'}
+GUARDIAN_ARSENAL={'Arsenal Summoner','Guardian Baou','Guardian Ceal','Guardian Elma',"Guardian Grarl","Guardian Kay'est",'Guardian Tryce'}|GUARDIAN_EQUIPS
+METALMORPH_CARDS={'Metalmorph','Zoa','Metalzoa','Red-Eyes Black Dragon','Red-Eyes Black Metal Dragon'}
 FAMILY=NEW_IDS|{'toon_world','legendary_shackles','archfiend_contract'}
 def install(artifact):
  for key,name,label,art in DEFINITIONS:
@@ -48,7 +52,7 @@ def matches(key,c):
  if key=='harpie_feather':return 'Harpie' in n or n in {'Birdface','Elegant Egotist','Cyber Shield','Triangle Ecstasy Spark'}
  if key=='scorpion_emblem':return 'Dark Scorpion' in n or n=='Don Zaloog'
  if key=='ninja_scroll':return (bool(typ&1) and 'Ninja' in n) or n.startswith('Ninjitsu Art') or n=='Fuhma Shuriken'
- if key=='guardian_arsenal':return n in {'Arsenal Summoner','Guardian Baou','Guardian Ceal','Guardian Elma',"Guardian Grarl","Guardian Kay'est",'Guardian Tryce','Wicked-Breaking Flamberge - Baou','Shooting Star Bow - Ceal','Butterfly Dagger - Elma','Gravity Axe - Grarl',"Rod of Silence - Kay'est",'Twin Swords of Flashing Light - Tryce'}
+ if key=='guardian_arsenal':return n in GUARDIAN_ARSENAL
  if key=='union_dock':return bool(typ&0x400) or n in {'X-Head Cannon','XY-Dragon Cannon','XZ-Tank Cannon','YZ-Tank Dragon','XYZ-Dragon Cannon','Formation Union','Combination Attack','Union Rider','Frontline Base'}
  if key=='ocean_relic':return n=='Umi' or '"Umi"' in t or n=='Ocean Dragon Lord - Neo-Daedalus'
  if key=='evolution_tablet':return (bool(typ&1) and bool(re.search(r' LV[0-9]+$',n))) or n in {'Level Up!','The Graveyard in the Fourth Dimension',"Horus' Servant"}
@@ -70,6 +74,8 @@ def member_test(key,run):
  elif effect=='terrorking_atk':test=lambda c:c['id']==int(info.get('filter') or 0)
  # Field of Attraction (Paradox Brothers' Magnet Warriors): Alpha, Beta, Gamma and Valkyrion share set code 0x66.
  elif effect=='variant_field_of_attraction':test=lambda c:bool(c['data']['type']&1) and _setcode(c,0x66)
+ # Metal Coating (Bandit Keith's Metalmorph loadout): Metalmorph, the monsters it turns into, and what they Tribute.
+ elif effect=='variant_metal_coating':test=lambda c:c['name'] in METALMORPH_CARDS
  elif effect in ('archetype_atk','variant_swordsman_oath'):
   code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
   # Name Changer can already make every monster a member.

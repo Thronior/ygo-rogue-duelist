@@ -1,21 +1,51 @@
+// Tag screens at phone, desktop and portrait sizes, drawn by the real game from real TagCampaign views (2026-11-08):
+// the shared opponent screen, the two-boss screen, the shared shop's lock-ins and the deck editor opened from the shop.
+// Start the web server first: PORT=4298 python -B tools/serve_qa.py ; then node android/test_tag_offline_ui.cjs [--web=...]
 const {chromium}=require('../tools/require-module.cjs').requireModule('playwright');
-const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');process.env.TEMP=process.env.TMP=path.resolve('temp');
-const code=fs.readFileSync('android/web/tag-ui.js','utf8').replace("import {TagSession} from './tag-session.js';",'').replace('export class TagUI','class TagUI');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+const web=process.argv.find(a=>a.startsWith('--web='))?.slice(6)||'http://127.0.0.1:4298';
+const sizes={phone:{width:924,height:416},desktop:{width:1280,height:720},portrait:{width:412,height:860}};
+const fixtures=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tag-ui-')),'views.json');
+execFileSync(path.resolve('python/python.exe'),['tools/tag_ui_fixtures.py',fixtures],{stdio:'inherit'});
+const views=JSON.parse(fs.readFileSync(fixtures,'utf8'));
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome'});try{
- const page=await browser.newPage({viewport:{width:924,height:416}});await page.goto('http://127.0.0.1:4197/mobile.css');
- await page.setContent('<link rel="stylesheet" href="/mobile.css"><main id="app"></main>');
- await page.addScriptTag({content:code+`;window.startUI=async()=>{const content=await fetch('/content.json').then(r=>r.json());window.ui=new TagUI({root:document.querySelector('#app'),content,profile:{unlocked:content.playable},backend:async()=>{},image:id=>'assets/cards/'+id+'.jpg',inspect:()=>{},dialog:(title,body)=>{window.dialogBody=body},onExit:()=>{}})};`});await page.evaluate(()=>startUI());
- await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.screenshot({path:path.resolve('temp/tag-offline-character-phone.png')});
- const roster=await page.locator('.portrait').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().bottom));assert(roster.every(y=>y<=416));assert(await page.locator('.starting-relic').isVisible());
- const views=JSON.parse(fs.readFileSync('temp/tag-ui-fixture.json','utf8'));
- for(const [name,size] of [['phone',{width:924,height:416}],['desktop',{width:1280,height:720}]]){
- await page.setViewportSize(size);await page.evaluate(view=>{ui.session={code:'TEST2',seat:view.seat,peer:{seat:view.seat},connected:true,request:async()=>{throw Error('Should not submit')}};ui.update(view)},views[0]);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));
- assert(await page.getByText('Your turn to shop',{exact:true}).isVisible());assert(await page.locator('.keeper').isVisible());await page.screenshot({path:path.resolve('temp/tag-offline-shop-'+name+'-final.png')});
- for(const selector of ['.shop-stock','.relics','.shop-reference-buttons','.tag-shop-turn']){const b=await page.locator(selector).boundingBox();assert(b.x>=0&&b.y>=0&&b.x+b.width<=size.width+1&&b.y+b.height<=size.height+1,selector)}
+ const page=await browser.newPage({viewport:sizes.desktop});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{localStorage.setItem('ygo-preload-visuals','sounds');HTMLMediaElement.prototype.play=function(){this.muted=true;return Promise.resolve()}});
+ for(let attempt=0;;attempt++){await page.goto(web+'/?tagtest=1');try{await page.waitForFunction(()=>window.shadowTest,null,{timeout:90000});break}catch(error){if(attempt>=3)throw error}}
+ await page.evaluate(()=>{document.querySelector('#modal')?.close();const b=document.createElement('button');b.dataset.do='tag';document.body.append(b);b.click();b.remove()});await page.waitForFunction(()=>window.tagTest?.ui);
+ const show=(view,tab='opponents')=>page.evaluate(({view,tab})=>{const ui=tagTest.ui;localStorage.setItem('tag-starting-packs:TEST2:'+view.seat+':'+view.run.started_at,'1');ui.session={code:'TEST2',seat:view.seat,peer:{seat:view.seat},connected:true,request:async()=>{throw Error('Should not submit')},stats:()=>null};ui.tab=tab;ui.bossRevealKey=JSON.stringify([view.run.round,view.run.routes]);ui.localDraft=null;ui.draftKey=null;ui.update(structuredClone(view));const m=document.querySelector('#modal');if(m?.open)m.close();document.querySelectorAll('.encounter-cinematic').forEach(e=>e.remove())},{view,tab});
+ const inside=async(selector,size)=>{for(const b of await page.locator(selector).evaluateAll(xs=>xs.map(x=>{const r=x.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}})))assert(b.x>=-1&&b.x+b.w<=size.width+1,`${selector} leaves the screen sideways`)};
+ const apart=async selector=>{const boxes=await page.locator(selector).evaluateAll(xs=>xs.map(x=>{const r=x.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]}));for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const [a,b]=[boxes[i],boxes[j]];assert(a[2]<=b[0]+1||b[2]<=a[0]+1||a[3]<=b[1]+1||b[3]<=a[1]+1,`${selector} ${i} and ${j} overlap`)}};
+ const hidden=views.draft.run.routes.filter(i=>!(views.draft.run.revealed_opponents||[]).includes(i));
+ for(const [name,size] of Object.entries(sizes)){await page.setViewportSize(size);
+  // One opponent list, the teammate's lock marked and closed, and no unrevealed name anywhere on the screen.
+  await show(views.draft);const theirs=views.draft.opponents[1];
+  assert(await page.locator(`[data-encounter="${theirs}"].teammate-pick .tag-pick.partner`).isVisible(),name+': teammate pick badge');
+  assert(await page.locator(`[data-tag="lock-opponent"][data-id="${theirs}"]`).isDisabled(),name+': teammate pick closed');
+  assert.equal(await page.locator('[data-tag="lock-opponent"]').count(),5);await apart('.tag-routes .tag-opponent');await inside('.tag-routes .tag-opponent',size);
+  const names=await page.evaluate(ids=>ids.map(i=>tagTest.ui.content.characters[i].name),hidden);
+  const shown=await page.evaluate(()=>{const p=document.querySelector('.tag-page');return p.innerText+' '+[...p.querySelectorAll('[aria-label],[title],[alt]')].map(e=>['aria-label','title','alt'].map(k=>e.getAttribute(k)||'').join(' ')).join(' ')});
+  for(const n of names)assert(!shown.includes(n),name+': unrevealed opponent named: '+n);
+  // Both bosses, side by side or stacked, never overlapping, each with its own reroll.
+  await show(views['boss-guest']);assert.equal(await page.locator('.tag-routes .tag-opponent').count(),2);assert.equal(await page.locator('[data-tag="boss-reroll"]').count(),2);
+  await apart('.tag-routes .tag-opponent');await apart('.tag-routes .tag-opponent>button');await inside('.tag-routes .tag-opponent',size);
+  // Shop: the host's Buy waits for the guest, the guest sees the host ready, both carts carry their owner.
+  await show(views['shop-host-waiting']);
+  assert(await page.locator('.shop-buy.tag-locked').isVisible(),name+': waiting Buy');assert.equal(await page.locator('.shop-buy.tag-locked').getAttribute('aria-pressed'),'true');
+  assert(await page.locator('.tag-shop-turn').isVisible());assert(await page.locator('.shop-product.teammate-pick .tag-cart-badge').count()>=1,name+': teammate cart badge');
+  for(const selector of ['.shop-stock','.relics','.shop-buy','.shop-next','.shop-edit-deck','.tag-shop-turn'])await inside(selector,size);
+  await show(views['shop-guest-partner-ready']);assert(await page.locator('.shop-buy.tag-partner-locked').isVisible(),name+': teammate ready on Buy');assert(await page.locator('.shop-next').isEnabled());
+  // The deck editor over the shop leads back to it.
+  await show(views['shop-host-waiting'],'deck');assert(await page.locator('[data-tag="card"]').count()>0);assert(await page.locator('.tag-back-shop').isVisible(),name+': Back to shop');
+  await page.locator('.tag-back-shop').click();assert(await page.locator('.tag-shop').isVisible(),name+': back in the shop');
  }
- await page.evaluate(view=>ui.update(view),views[1]);assert(await page.getByText(/Waiting for /).isVisible());assert(await page.locator('[data-tag=buy]').isDisabled());
- for(const character of [37,38]){await page.evaluate(({view,character})=>{view.phase='draft';view.run.character=character;ui.tab='deck';ui.update(view)},{view:structuredClone(views[0]),character});assert.equal(await page.locator('[data-tag=card]').count(),0);assert(await page.locator('.tag-hidden-deck').isVisible());await page.locator('[data-tag=opponents]').click();assert(await page.locator('.tag-routes').isVisible())}
- await page.evaluate(view=>{view.phase='draft';view.run.selected=[0,1];view.run.opponent=view.run.routes[0];ui.localDraft=null;ui.draftKey=null;ui.update(view)},views[0]);assert(await page.locator('[data-tag=ready]').isDisabled());assert(await page.locator('.tag-deck-warning').isVisible());
- await page.evaluate(()=>ui.error(Error('Traceback (most recent call last):\nValueError: Your main deck needs 20 to 60 cards.')));assert.equal(await page.locator('.tag-status').innerText(),'Your main deck needs 20 to 60 cards.');
- console.log('PASS offline-style character/shop layouts at phone/desktop sizes, turn banner and disabled purchases, hidden fixed decks, invalid Ready prevention, concise errors');
+ // Fixed decks keep their hidden deck and still reach opponent select.
+ await page.setViewportSize(sizes.phone);
+ for(const character of [37,38]){const view=structuredClone(views.draft);view.run.character=character;view.ready=[false,false];await show(view,'deck');assert.equal(await page.locator('[data-tag=card]').count(),0);
+  // Copycat has no deck to show, so Tag keeps it on opponent select; the Dueling Engine shows its hidden deck.
+  if(character===38){assert(await page.locator('.tag-hidden-deck').isVisible());await page.locator('[data-tag=opponents]').first().click()}
+  assert(await page.locator('.tag-routes').isVisible())}
+ await page.evaluate(()=>tagTest.ui.error(Error('Traceback (most recent call last):\nValueError: Your main deck needs 20 to 60 cards.')));assert.equal(await page.locator('.tag-status').innerText(),'Your main deck needs 20 to 60 cards.');
+ assert.deepEqual(errors,[]);
+ console.log('PASS Tag screens at phone, desktop and portrait: shared opponent list with hidden names kept hidden, two-boss layout, shop lock-in states and cart owners, deck editor from the shop, fixed decks, concise errors');
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

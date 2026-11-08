@@ -10,11 +10,12 @@ export const bossRerollPrice=r=>{if(freeJarUse(r,'cyber_jar','boss'))return 0;co
 export function revealCost(r){const price=revealPrice(r),lp=(r.artifacts||[]).includes('cursed_blood_toll')&&r.history_mode!=='tag';return lp?{amount:price*10,unit:'LP',can:r.lp-price*10>=1}:{amount:price,unit:'coins',can:r.gold>=price}}
 export const revealCostLabel=cost=>cost.amount===0?'Free':cost.unit==='LP'?`<img class="price-lp" src="assets/icons/yugipedia/genres-reduce-life-points.png" alt="LP">${cost.amount}`:`<img src="assets/ui/coins.png" alt="coins">${cost.amount}`;
 // An unknown opponent's portrait is itself the reveal button, with the cost on the frame (2026-10-29).
-export function encounterPortrait(content,r,i,{revealAttr='data-opponent',disabled=false}={}){
+// Tag passes tag:true so its own handler answers the reveal; data-do reached the solo one (Discord 2026-11-08).
+export function encounterPortrait(content,r,i,{revealAttr='data-opponent',disabled=false,tag=false}={}){
  const c=content.characters[i],boss=(r.round+1)%3===0,tier=r.loop?4:Math.min(3,Math.floor(r.round/3)+1);
  if(boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i))return `<div data-tier="${tier}" class="duelist-hero encounter-hero" style="background-image:url('assets/${esc(c.background||'character-backgrounds/'+i+'.jpg')}')"><img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}"><h2>${esc(c.name)}</h2>${c.ultimate_collector||r.fallen_routes?.[i]?ucTag:''}</div>`;
  const cost=revealCost(r);
- return `<button type="button" data-tier="${tier}" class="duelist-hero encounter-hero encounter-mystery encounter-reveal" data-do="reveal-opponent" ${revealAttr}="${i}" ${!cost.can||disabled?'disabled':''} aria-label="Unknown opponent. Reveal for ${cost.amount===0?'free':cost.amount+' '+cost.unit}"><span>?</span><b class="reveal-cost"><span>Reveal</span><span class="reveal-sep"> · </span><span>${revealCostLabel(cost)}</span></b></button>`;
+ return `<button type="button" data-tier="${tier}" class="duelist-hero encounter-hero encounter-mystery encounter-reveal" ${tag?'data-tag':'data-do'}="reveal-opponent" ${revealAttr}="${i}" ${!cost.can||disabled?'disabled':''} aria-label="Unknown opponent. Reveal for ${cost.amount===0?'free':cost.amount+' '+cost.unit}"><span>?</span><b class="reveal-cost"><span>Reveal</span><span class="reveal-sep"> · </span><span>${revealCostLabel(cost)}</span></b></button>`;
 }
 // The rows show only the crossed swords; the text stays for the button's name.
 // The crossed swords mark every "start the next duel" control.

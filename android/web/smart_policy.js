@@ -1095,6 +1095,9 @@ export function smartContext(e,p,L,prompt=null){
   // Resolved protection survives CHAIN_END; do not spend another pure battle stopper.
   if(chain&&['Waboku','Threatening Roar','Negate Attack'].includes(n)&&e.battleProtected?.[p])return -1;
   if(['Waboku','Negate Attack','Threatening Roar','Enchanted Javelin','Draining Shield'].includes(n)&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&['Negate Attack','Waboku','Threatening Roar','Draining Shield','Magic Cylinder','Mirror Force'].includes(e.name(x.code))))return -1;
+  // Our Enemy Controller already in this chain on the attacker stops the attack (switched to Defense or taken over):
+  // a pure stopper on top is wasted (flag 7db4ef7d, 2026-11-08).
+  if(['Waboku','Negate Attack','Threatening Roar'].includes(n)&&e.attackCard&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&e.name(x.code)==='Enemy Controller'&&x.targets?.some(t=>same(t,e.attackCard))))return -1;
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n))return chain&&wabokuWorthUsing()?90:-1;
   // Draining Shield also gains LP equal to the attacker's ATK, so it is the better stop.
   if(n==='Draining Shield')return chain&&e.attackCard?.controller===1-p&&wabokuWorthUsing()?92:-1;
@@ -2223,9 +2226,10 @@ if(!effectsEnabled(p))return 0;
 
  // Compare whole-board damage, including follow-up direct attacks after a defender falls.
  // Only publicly visible opposing monsters enter the forecast; never inspect hidden cards.
+ // With c null, the damage through the board as it stands, without a new monster.
  function incomingDamage(c,attackPosition){
   const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine');
-  const defenders=own.filter(x=>!same(x,c)&&!(face(x)&&returns(x))).concat(attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
+  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
    attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}]);
   // Shield Bash attacks with DEF from Defense Position; Berserker's Pact gives each monster a second attack (capped to keep the search small).
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);

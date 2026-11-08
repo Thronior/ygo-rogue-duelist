@@ -4,12 +4,17 @@ const icon=name=>`<img class="pixel-badge" src="assets/icons/pixel/${name}.png" 
 export function cardFacts(c){
  const t=Number(c.data.type||0),monster=!!(t&1),kind=t&2?'spell':t&4?'trap':t&64?'fusion':t&128?'ritual':t&16?'normal':'effect';
  const color={spell:'Green',trap:'Purple',fusion:'Violet',ritual:'Blue',normal:'Yellow',effect:'Orange'}[kind];
- const row=(label,value,pixel)=>`<div>${pixel?icon(pixel):''}<span>${label?`<small>${label}</small>`:''}<b>${esc(value)}</b></span></div>`;
+ const row=(label,value,pixel,html)=>`<div>${pixel?icon(pixel):''}<span>${label?`<small>${label}</small>`:''}<b>${html??esc(value)}</b></span></div>`;
  const label=cardTypeLabel(c),attributeIcon=String(c.attribute||'').split(/\s*\/\s*/)[0].toLowerCase();
- let rows=row('Card type',label,'type-'+kind);
+ const subs=monster?monsterSubtypes(t):[];
+ let rows=row('Card type',label,'type-'+kind,subs.length?`<span class="card-subtype">${subs.join(' · ')}</span> · ${esc(label.replace(/ Monster$/,''))}`:null);
  if(monster){rows+=row('Attribute',c.attribute,'attribute-'+attributeIcon)+row('Level',c.level).replace('<div>', '<div><img class="genre-icon" src="assets/icons/level-star.png" alt="">')+row('Monster Type',c.race).replace('<div>', '<div>'+typeIcon(c))+row('ATK',c.atk<0?'?':c.atk)+row('DEF',c.defense<0?'?':c.defense);}
  return `<h3 class="inspect-card-name">${esc(c.name)}</h3><div class="inspect-facts">${rows}</div>${genreIcons(c)}`;
 }
+
+// Monster subtypes shown in gold before the base type, e.g. "Spirit · Effect".
+const SUBTYPES=[[0x200,'Spirit'],[0x400,'Union'],[0x800,'Gemini'],[0x400000,'Toon'],[0x1000,'Tuner'],[0x200000,'Flip']];
+export const monsterSubtypes=t=>SUBTYPES.filter(([b])=>t&b).map(([,n])=>n);
 
 export function cardTypeLabel(c){
  const t=Number(c.data.type||0);

@@ -1,6 +1,7 @@
 // Shareable end-of-run tablet, drawn on canvas so the on-screen card and the copied PNG are identical.
 // Stone and crack textures: Poly Haven "Grey Plaster 02" and "Cracked Concrete" (CC0), see assets/CREDITS.md.
 import {replayVersion} from './replay-version.js';
+import {t as tr} from './i18n.js';
 import {saveDeckImage} from './save-deck-image.js';
 import {curseIconFile} from './experience-ui.js';
 export const RUN_CARD_SIZE={width:1080,height:1350};
@@ -41,7 +42,7 @@ function roman(n){if(!(n>0)||n>3999)return String(n);let s='';for(const [v,r] of
 function layer(){const c=document.createElement('canvas');c.width=W;c.height=H;return c}
 function gradient(ctx,stops,x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1);stops.forEach(([o,c])=>g.addColorStop(o,c));return g}
 
-function text(ctx,t,str,x,y,o={}){
+function text(ctx,t,str,x,y,o={}){str=tr(str);
  ctx.save();let size=o.size||20;const family=o.family||UI,weight=o.weight||'bold',f=s=>`${weight} ${s}px ${family}`;
  if('letterSpacing' in ctx)ctx.letterSpacing=(o.spacing||0)+'px';ctx.font=f(size);
  if(o.fit)while(size>(o.min||14)&&ctx.measureText(str).width>o.fit){size-=2;ctx.font=f(size)}
@@ -51,7 +52,8 @@ function text(ctx,t,str,x,y,o={}){
  if(o.glow){ctx.shadowColor=o.glow;ctx.shadowBlur=26}
  ctx.fillStyle=o.color||t.ink;ctx.fillText(s,x,y);ctx.restore()
 }
-function wrap(ctx,str,max,size,weight='normal'){ctx.save();ctx.font=`${weight} ${size}px ${UI}`;const lines=[];let line='';for(const w of String(str).split(/\s+/)){const next=line?line+' '+w:w;if(line&&ctx.measureText(next).width>max){lines.push(line);line=w}else line=next}if(line)lines.push(line);
+// Japanese and Chinese have no spaces, so they wrap between characters (interface languages, 2026-11-08).
+function wrap(ctx,str,max,size,weight='normal'){ctx.save();ctx.font=`${weight} ${size}px ${UI}`;str=String(tr(str));const cjk=!/\s/.test(str.trim())&&/[぀-ヿ㐀-鿿가-힯]/.test(str),sep=cjk?'':' ';const lines=[];let line='';for(const w of cjk?Array.from(str):str.split(/\s+/)){const next=line?line+sep+w:w;if(line&&ctx.measureText(next).width>max){lines.push(line);line=w}else line=next}if(line)lines.push(line);
  // Never leave one short word alone on the last line.
  const n=lines.length;if(n>1&&lines[n-1].length<5){const prev=lines[n-2].split(' ');if(prev.length>1){lines[n-1]=prev.pop()+' '+lines[n-1];lines[n-2]=prev.join(' ')}}
  ctx.restore();return lines}

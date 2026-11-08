@@ -45,7 +45,8 @@ assert g.BY_NAME['Petit Moth']['id'] in set(c.PACK_BY_ID[c.CHARACTERS[10]['pack'
 print('PASS 69 unique loadouts, 99 alternate drafts, locks, signatures, packs and save serialization')
 
 import variant_relics
-r=g.new_run(4,random.Random(1),0,1)
+# Keith's second loadout no longer starts with Fusion Dividend (Metalmorph build, 2026-11-08); the relic stays in the shop.
+r=g.new_run(4,random.Random(1));r['artifacts']=['machine_foundry']
 events=[{'kind':'fusion_dividend'},{'kind':'fusion_dividend'}]
 assert variant_relics.coins(r,events)==60
 assert variant_relics.coins({'artifacts':[]},events)==0

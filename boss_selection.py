@@ -10,6 +10,13 @@ def price(run):
  n=max(0,int(run.get('boss_rerolls',0)))
  return [30,50][n] if n<2 else 100+50*(n-2)
 
+def reroll_avoided_curses(run):
+ """Through loop 1 a boss reroll never brings back a curse the previous roll had (user, 2026-11-08): players
+ reroll when the curse is bad for their build."""
+ if run.get('loop'):return set()
+ curses=run.get('route_curses') or {}
+ return {key for opponent in run.get('routes') or [] for key in curses.get(str(opponent),[])}
+
 def reroll(game,run,rng=random):
  if run.get('stage') not in ('draft','shop') or (run['round']+1)%3 or run.get('cursed_offer'):
   raise ValueError('Boss rerolls are only available before a boss duel.')
@@ -18,7 +25,7 @@ def reroll(game,run,rng=random):
  if not payment.can_pay(run,cost):payment.pay(run,cost,'a boss reroll')
  # Generate and validate before charging, without mutating the live save on failure.
  candidate=deepcopy(run)
- game.routes(candidate,rng,exclude=run.get('routes',[]))
+ game.routes(candidate,rng,exclude=run.get('routes',[]),avoid_curses=reroll_avoided_curses(run))
  from content import opponent_record
  for cid in candidate['routes']:opponent_record(candidate['round'],cid,candidate.get('loop',0))
  payment.pay(candidate,cost,'a boss reroll')

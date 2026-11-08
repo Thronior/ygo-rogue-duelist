@@ -98,10 +98,11 @@ export class TagPeer {
   if(this.channel){this.channel.onopen=this.channel.onclose=this.channel.onmessage=null;try{this.channel.close()}catch{}this.channel=null}
   if(this.pc){this.pc.onicecandidate=this.pc.onconnectionstatechange=this.pc.ondatachannel=null;try{this.pc.close()}catch{}this.pc=null}
  }
- // Only the host offers. Networks that cannot connect directly stop trying until the device changes network.
+ // Only the host offers. After three failures it tries once every 10 minutes: a route that fails early in a session
+ // can open later, and only a rejoin used to bring it back (tag stalls, 2026-11-02). Each try is a few hub frames.
  planDirect(wait){
-  if(this.relayOnly||this.seat!==0||this.closed||!this.linked||this.pc||this.directTimer||this.directFailures>=3)return;
-  this.directTimer=setTimeout(()=>{this.directTimer=null;this.offer().catch(()=>this.directFailed())},wait??15000*2**this.directFailures);
+  if(this.relayOnly||this.seat!==0||this.closed||!this.linked||this.pc||this.directTimer)return;
+  this.directTimer=setTimeout(()=>{this.directTimer=null;this.offer().catch(()=>this.directFailed())},wait??(this.directFailures>=3?600000:15000*2**this.directFailures));
  }
  directFailed(){this.closeDirect();this.directFailures++;this.planDirect()}
  makePC(){

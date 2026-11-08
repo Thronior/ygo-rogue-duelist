@@ -1,0 +1,1 @@
+The `en.svg` and `pt.svg` language-picker icons are diagonal composites of the United Kingdom/United States and Portugal/Brazil flags respectively. Their flag artwork is from [lipis/flag-icons](https://github.com/lipis/flag-icons), licensed under the MIT License (see `LICENSE`). The SVGs are bundled locally so the picker works offline.

@@ -172,7 +172,7 @@ def install(g):
    # A pack's rarity_weights also tune its common draws, e.g. Polymerization in fusion packs.
    cid=card_rarity.choose(available,rng,p.get('rarity_weights'));pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
- def routes(run,rng=random,exclude=()):
+ def routes(run,rng=random,exclude=(),avoid_curses=()):
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0;tutorial=deck_round(run)==0 and not run.get('loop')
   if tutorial:choices=list(TUTORIAL_OPPONENTS)
   elif rd>=6:choices=[0,1,6,15,17,27]
@@ -208,7 +208,7 @@ def install(g):
    for opponent in run['routes']:
     blocked=list(run.get('persistent_curses',[]))
     if distinct_opening:blocked.extend(key for option in choices for key in option)
-    choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening,excluded=boss_curse_block(run,opponent)))
+    choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening,excluded=boss_curse_block(run,opponent)|set(avoid_curses)))
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
   run['boss_curse']=choices[0][0] if choices else None
   challenge_levels.suppress(run)
@@ -374,6 +374,7 @@ def install(g):
   if owns(duel_run,'level_up_relic'):
    level_up=g.BY_NAME['Level Up!']['id']
    if level_up not in main:main.append(level_up)
+  if owns(duel_run,'metal_coating') and variant_relics.METALMORPH not in main:main.append(variant_relics.METALMORPH)
   mods=run.setdefault('card_mods',{})
   if run.get('faulty'):
    for i,cid in enumerate(run['pool']):

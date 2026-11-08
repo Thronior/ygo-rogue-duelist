@@ -11,7 +11,7 @@ export function playCardWin(result){
   const panel=document.createElement('dialog');panel.className='exodia-finale';panel.setAttribute('aria-label',destiny?'Destiny Board duel result':'Exodia duel result');
   const cards=document.createElement('div');cards.className='exodia-finale-cards';
   for(const code of pieces){const img=document.createElement('img');img.src=`assets/cards/${code}.jpg`;img.alt=destiny?'FINAL'[pieces.indexOf(code)]:code===33396948?'Exodia the Forbidden One':'Exodia piece';cards.append(img)}
-  const title=document.createElement('h1');title.textContent=result.player===0?'You win':result.player===1?'You lose':'Draw';title.className='exodia-finale-result';title.setAttribute('role','status');
+  const title=document.createElement('h1');title.textContent=result.player===0?'You win':result.player===1?'You lose':'Tie';title.className='exodia-finale-result';title.setAttribute('role','status');
   panel.append(cards,title);panel.addEventListener('cancel',event=>event.preventDefault());document.body.append(panel);
   const animations=[];
   try{

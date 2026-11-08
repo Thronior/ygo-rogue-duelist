@@ -29,6 +29,10 @@ ui.render();
 assert.equal(list.scrollTop,640,'Tag deck tab keeps its scroll position after a tap');
 panes=[{scrollTop:300},{scrollTop:900}];ui.render();
 assert.deepEqual(panes.map(p=>p.scrollTop),[300,900],'both split panes keep their scroll position after a tap');
+// Tag's trade grid scrolls in .tag-deck-scroll itself; a tap reset it to the top (Mugen101, Discord 2026-11-08).
+{let trade={scrollTop:900};const tradeRoot={style:{setProperty(){}},addEventListener(){},querySelector:selector=>selector==='.tag-trade .tag-deck-scroll'?trade:null};
+ const t=Object.create(TagUI.prototype);Object.assign(t,{root:tradeRoot,updateRoomBadge(){},checkDeckSplit(){},renderContent(){trade={scrollTop:0}}});
+ t.render();assert.equal(trade.scrollTop,900,'Tag trade grid keeps its scroll position after a tap');}
 // Solo's split view redraws its two panes on a tap, so it must restore both.
 assert.match(body(mobile,'updateSplitPanes'),/saveDeckScroll\(area\)[\s\S]*restoreDeckScroll\(area,scrolls\)/,'solo split panes keep their scroll');
 
@@ -36,4 +40,4 @@ assert.match(body(mobile,'updateSplitPanes'),/saveDeckScroll\(area\)[\s\S]*resto
 const cpu=source('cpu-deck-editor.js'),cpuRender=cpu.slice(cpu.indexOf(' render(){'),cpu.indexOf(' render(){')+6000);
 assert.match(cpuRender,/for\(const selector of \['\.cde-library','\.cde-pool','\.cde-deck'\]\)/,'CPU editor records each pane');
 assert.match(cpuRender,/el\.scrollTop=top/,'CPU editor restores each pane');
-console.log('PASS deck editors keep their scroll position when cards are picked (solo, Tag, CPU editor)');
+console.log('PASS deck editors keep their scroll position when cards are picked (solo, Tag, Tag trade, CPU editor)');

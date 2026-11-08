@@ -43,7 +43,9 @@ def active_modifiers(run):
  key=opponent_relic(run)
  copied=run.get('mirrored_relics',[]) if 'relic_mirror' in keys else []
  for relic in dict.fromkeys(([key] if key else [])+copied):
-  rows.append(dict(kind='opponent-relic',id=relic,name=ARTIFACTS[relic][0],description=ARTIFACTS[relic][2].replace('Your','Opponent’s').replace('you control','your opponent controls')))
+  # Keep the canonical effect wording so the client can translate it from the catalog.
+  # A string rewritten here would no longer match the localized relic text.
+  rows.append(dict(kind='opponent-relic',id=relic,name=ARTIFACTS[relic][0],description=ARTIFACTS[relic][2]))
  return rows
 
 

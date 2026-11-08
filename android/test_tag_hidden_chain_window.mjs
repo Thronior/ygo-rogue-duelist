@@ -14,7 +14,9 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 // mobile.js's own functions over stubbed presentation. duelEnding starts as completeDuel leaves it.
 function client(){
  let timers=0;
- const context=vm.createContext({M,R,I,L,MobileDuel,automaticChainResponse,chainWindowAllowed,content:{cards:meta.cards,tokenCards:[]},state:{settings:{}},card:code=>byId.get(code),loadEngineData:async()=>engineData,setTimeout:(...args)=>{timers++;return setTimeout(...args)},clearTimeout,console,document:{querySelector:()=>null},inspectionPaused:()=>false,toast(message){throw Error(message)},track(){},screenMusic(){},renderDuel(){},playDuelCues:async()=>{},updateCoinMilestones:async()=>{},tagConnectionBanner(){},clearAnsweredPrompt(){}});
+ const context=vm.createContext({M,R,I,L,MobileDuel,automaticChainResponse,chainWindowAllowed,content:{cards:meta.cards,tokenCards:[]},state:{settings:{}},card:code=>byId.get(code),loadEngineData:async()=>engineData,setTimeout:(...args)=>{timers++;return setTimeout(...args)},clearTimeout,
+  // The slice also holds the solo stall watch's setInterval (2026-11-03). It never runs here: Tag duels are not watched.
+  setInterval:()=>0,clearInterval(){},console,document:{querySelector:()=>null},inspectionPaused:()=>false,toast(message){throw Error(message)},track(){},screenMusic(){},renderDuel(){},playDuelCues:async()=>{},updateCoinMilestones:async()=>{},tagConnectionBanner(){},clearAnsweredPrompt(){}});
  vm.runInContext(`let duelEnding=true,tagUI=null,engine=null,snapshot=null,screen='tag',busy=false,aiTimer=0,chainMode='sometimes',rightClickNoChain=false,heldAlwaysChain=false,heldChainPrompt=null,manualChainTimer=0,manualChainPrompt=null,stagedChoice=null,promptHidden=false,tributeDefaultPrompt=null,placeSet=[];const pickSet=new Set();${code};globalThis.api={showTagDuel,scheduleAI,offerChain,enter(ui){tagUI=ui},solo(next){engine=next;screen='duel'}};`,context);
  return {api:context.api,timers:()=>timers};
 }

@@ -1,0 +1,592 @@
+[
+ {
+  "term": "Monster",
+  "translation": "Monster",
+  "evidence": "Monsterkarten (system 70); \"Abgrund-Soldat\" (WASSER Monster)"
+ },
+ {
+  "term": "Spell",
+  "translation": "Zauber (in card text: Zauberkarte)",
+  "evidence": "Gegen-Zauber; Bewaffneter Ninja (\"Zauberkarte\")"
+ },
+ {
+  "term": "Trap",
+  "translation": "Falle (in card text: Fallenkarte)",
+  "evidence": "Katze des Unglücks (\"Bestimme 1 Falle\"); Köderpuppe (\"Fallenkarte\")"
+ },
+ {
+  "term": "Normal Monster",
+  "translation": "Normales Monster",
+  "evidence": "Dunkle Fabrik der Massenproduktion"
+ },
+ {
+  "term": "Effect Monster",
+  "translation": "Effektmonster",
+  "evidence": "Ersatzsoldat (\"Nichteffekt-Monster\")"
+ },
+ {
+  "term": "Fusion Monster",
+  "translation": "Fusionsmonster",
+  "evidence": "De-Fusion; Cyber-Stein"
+ },
+ {
+  "term": "Ritual Monster",
+  "translation": "Ritualmonster",
+  "evidence": "game term (system 1057 \"Ritual\"); Abscheuliches Spiegelritual"
+ },
+ {
+  "term": "Token",
+  "translation": "Spielmarke",
+  "evidence": "Klonen (\"Klon-Spielmarke\"); Kobrakrug"
+ },
+ {
+  "term": "Normal Spell",
+  "translation": "Normaler Zauber (Normale Zauberkarte)",
+  "evidence": "Des Volstgalph (\"Normale oder Schnellzauberkarte\")"
+ },
+ {
+  "term": "Quick-Play Spell",
+  "translation": "Schnellzauber (Schnellzauberkarte)",
+  "evidence": "Eindringlinge der Finsternis"
+ },
+ {
+  "term": "Continuous Spell",
+  "translation": "Permanenter Zauber (Permanente Zauberkarte)",
+  "evidence": "Boshafte Puppe des Untergangs; Mystische Sonde"
+ },
+ {
+  "term": "Equip Spell",
+  "translation": "Ausrüstungszauber (Ausrüstungszauberkarte)",
+  "evidence": "Rüstung durchbrechen"
+ },
+ {
+  "term": "Field Spell",
+  "translation": "Spielfeldzauber (Spielfeldzauberkarte)",
+  "evidence": "Eule des Glücks; Brennendes Land"
+ },
+ {
+  "term": "Ritual Spell",
+  "translation": "Ritualzauber (Ritualzauberkarte)",
+  "evidence": "game term, built like Spielfeldzauber"
+ },
+ {
+  "term": "Normal Trap",
+  "translation": "Normale Falle (Normale Fallenkarte)",
+  "evidence": "Ryu Senshi"
+ },
+ {
+  "term": "Continuous Trap",
+  "translation": "Permanente Falle (Permanente Fallenkarte)",
+  "evidence": "game term, built like Permanente Zauberkarte"
+ },
+ {
+  "term": "Counter Trap",
+  "translation": "Konterfalle (Konterfallenkarte)",
+  "evidence": "Van'Dalgyon der finstere Drachenherrscher"
+ },
+ {
+  "term": "Flip",
+  "translation": "FLIPP (Flippeffekt)",
+  "evidence": "4-sterniger Marienkäfer der Verdammung (\"FLIPP:\")"
+ },
+ {
+  "term": "Spirit",
+  "translation": "Spirit",
+  "evidence": "Fengsheng-Spiegel (\"Spirit-Monster\")"
+ },
+ {
+  "term": "Union",
+  "translation": "Union",
+  "evidence": "Brennendes Ungeheuer (\"Union-Monster\")"
+ },
+ {
+  "term": "Gemini",
+  "translation": "Zwilling",
+  "evidence": "system 1061 \"Zwilling\"; Elfenzwillinge"
+ },
+ {
+  "term": "Toon",
+  "translation": "Toon",
+  "evidence": "Blauäugiger Toon-Drache"
+ },
+ {
+  "term": "Deck",
+  "translation": "Deck",
+  "evidence": "Törichtes Begräbnis"
+ },
+ {
+  "term": "Main Deck",
+  "translation": "Main Deck",
+  "evidence": "game term (German cards keep \"Main Deck\" like \"Extra Deck\")"
+ },
+ {
+  "term": "Extra Deck",
+  "translation": "Extra Deck",
+  "evidence": "De-Fusion; Cyber-Stein"
+ },
+ {
+  "term": "hand",
+  "translation": "Hand",
+  "evidence": "Fusionsweiser (\"Füge deiner Hand ... hinzu\")"
+ },
+ {
+  "term": "field",
+  "translation": "Spielfeld",
+  "evidence": "Antike Lampe (\"offen auf dem Spielfeld\")"
+ },
+ {
+  "term": "Graveyard (GY)",
+  "translation": "Friedhof",
+  "evidence": "Törichtes Begräbnis (\"auf den Friedhof\"); Eine Feder vom Phönix (GY = Friedhof)"
+ },
+ {
+  "term": "banish / banished",
+  "translation": "verbannen / verbannt",
+  "evidence": "Verbanner des Lichts; Basu, der Seelenfresser"
+ },
+ {
+  "term": "Monster Zone",
+  "translation": "Monsterzone",
+  "evidence": "system 1002"
+ },
+ {
+  "term": "Spell & Trap Zone",
+  "translation": "Zauber- & Fallenzone",
+  "evidence": "Schicksalstafel; Alptraum aus Theben"
+ },
+ {
+  "term": "Field Zone",
+  "translation": "Spielfeldzone",
+  "evidence": "system 1008"
+ },
+ {
+  "term": "Normal Summon",
+  "translation": "Normalbeschwörung; als Normalbeschwörung beschwören",
+  "evidence": "B.E.S. Großer Kern"
+ },
+ {
+  "term": "Special Summon",
+  "translation": "Spezialbeschwörung; als Spezialbeschwörung beschwören",
+  "evidence": "Cyber-Stein; Antike Lampe"
+ },
+ {
+  "term": "Tribute Summon",
+  "translation": "Tributbeschwörung; als Tributbeschwörung beschwören",
+  "evidence": "Behemoth, der König aller Tiere; Tribut-Explosion"
+ },
+ {
+  "term": "Flip Summon",
+  "translation": "Flippbeschwörung",
+  "evidence": "Klonen (\"Normal- oder Flippbeschwörung\")"
+ },
+ {
+  "term": "Fusion Summon",
+  "translation": "Fusionsbeschwörung",
+  "evidence": "De-Fusion; Ryu Senshi"
+ },
+ {
+  "term": "Ritual Summon",
+  "translation": "Ritualbeschwörung; als Ritualbeschwörung beschwören",
+  "evidence": "Abscheuliches Spiegelritual"
+ },
+ {
+  "term": "Tribute",
+  "translation": "als Tribut anbieten; Tribut",
+  "evidence": "Amazonische Späherinnen; Befehl zum Sturmangriff"
+ },
+ {
+  "term": "Set",
+  "translation": "setzen; gesetzt",
+  "evidence": "Staubtornado (\"1 Zauber/Falle von deiner Hand setzen\")"
+ },
+ {
+  "term": "activate",
+  "translation": "aktivieren",
+  "evidence": "Eindringlinge der Finsternis"
+ },
+ {
+  "term": "effect",
+  "translation": "Effekt",
+  "evidence": "Ryu Senshi; Amazonische Späherinnen (\"Karteneffekte\")"
+ },
+ {
+  "term": "Chain",
+  "translation": "Kette; anketten",
+  "evidence": "system 203 \"Eine weitere Karte anketten?\""
+ },
+ {
+  "term": "resolve",
+  "translation": "auflösen; aufgelöst",
+  "evidence": "Des Volstgalph (\"aufgelöst wird\"); Köderpuppe"
+ },
+ {
+  "term": "negate",
+  "translation": "annullieren",
+  "evidence": "Rüstung durchbrechen; Entkräftungsschild"
+ },
+ {
+  "term": "destroy",
+  "translation": "zerstören",
+  "evidence": "Staubtornado"
+ },
+ {
+  "term": "draw",
+  "translation": "ziehen",
+  "evidence": "Parshath, der Luftritter (\"Ziehe 1 Karte\")"
+ },
+ {
+  "term": "discard",
+  "translation": "abwerfen",
+  "evidence": "Eine Feder vom Phönix (\"Wirf 1 Karte ab\")"
+ },
+ {
+  "term": "target",
+  "translation": "(als Ziel) wählen; das gewählte Ziel",
+  "evidence": "Staubtornado (\"Wähle 1 Zauber/Falle ...; zerstöre jenes gewählte Ziel\")"
+ },
+ {
+  "term": "equip",
+  "translation": "ausrüsten; ausgerüstet",
+  "evidence": "Urknallkanone (\"Das ausgerüstete Monster\")"
+ },
+ {
+  "term": "you control",
+  "translation": "die/das du kontrollierst",
+  "evidence": "Befehl zum Sturmangriff (\"das du kontrollierst\")"
+ },
+ {
+  "term": "opponent",
+  "translation": "Gegner",
+  "evidence": "Staubtornado (\"dein Gegner kontrolliert\")"
+ },
+ {
+  "term": "owner",
+  "translation": "Besitzer",
+  "evidence": "Zentrifugales Feld (\"Ihr Besitzer\")"
+ },
+ {
+  "term": "face-up",
+  "translation": "offen",
+  "evidence": "Obhut des Ozeandrachenherrschers (\"offene WASSER Monster\")"
+ },
+ {
+  "term": "face-down",
+  "translation": "verdeckt",
+  "evidence": "Beulenungeziefer (\"verdeckt in Verteidigungsposition\")"
+ },
+ {
+  "term": "Attack Position",
+  "translation": "Angriffsposition",
+  "evidence": "Cyber-Stein"
+ },
+ {
+  "term": "Defense Position",
+  "translation": "Verteidigungsposition",
+  "evidence": "Parshath, der Luftritter"
+ },
+ {
+  "term": "battle position",
+  "translation": "Kampfposition",
+  "evidence": "system 528/561"
+ },
+ {
+  "term": "ATK",
+  "translation": "ATK",
+  "evidence": "Banner des Mutes"
+ },
+ {
+  "term": "DEF",
+  "translation": "DEF",
+  "evidence": "Klonen"
+ },
+ {
+  "term": "Level",
+  "translation": "Stufe",
+  "evidence": "4-sterniger Marienkäfer der Verdammung (\"Monster der Stufe 4\")"
+ },
+ {
+  "term": "Attribute",
+  "translation": "Eigenschaft",
+  "evidence": "Informant der Unterwelt; DNA Transplantat"
+ },
+ {
+  "term": "Type",
+  "translation": "Typ",
+  "evidence": "Informant der Unterwelt; Kampfstellung des Enthüllenden Lichts (\"Monstertyp\")"
+ },
+ {
+  "term": "LP",
+  "translation": "LP",
+  "evidence": "Cyber-Stein (\"5000 LP zahlen\")"
+ },
+ {
+  "term": "damage",
+  "translation": "Schaden; Schaden zufügen",
+  "evidence": "Des Volstgalph (\"Füge deinem Gegner 500 Schaden zu\")"
+ },
+ {
+  "term": "battle damage",
+  "translation": "Kampfschaden",
+  "evidence": "Amazonische Kämpferin"
+ },
+ {
+  "term": "gain LP",
+  "translation": "LP erhalten",
+  "evidence": "Cestus von Dagla (\"Du erhältst LP in Höhe des zugefügten Schadens\")"
+ },
+ {
+  "term": "attack",
+  "translation": "angreifen; Angriff",
+  "evidence": "Entkräftungsschild (\"einen Angriff deklariert\")"
+ },
+ {
+  "term": "direct attack",
+  "translation": "direkter Angriff; direkt angreifen",
+  "evidence": "Blauäugiger Toon-Drache (\"direkt angreifen\")"
+ },
+ {
+  "term": "destroyed by battle",
+  "translation": "durch Kampf zerstört",
+  "evidence": "Amazonische Kettenmeisterin"
+ },
+ {
+  "term": "piercing battle damage",
+  "translation": "durchschlagender Kampfschaden",
+  "evidence": "Parshath, der Luftritter; Urknallkanone"
+ },
+ {
+  "term": "turn",
+  "translation": "Spielzug",
+  "evidence": "Basu, der Seelenfresser (\"Einmal pro Spielzug\")"
+ },
+ {
+  "term": "Draw Phase",
+  "translation": "Draw Phase",
+  "evidence": "Unterschlagung; Cyber Erzunterweltler"
+ },
+ {
+  "term": "Standby Phase",
+  "translation": "Standby Phase",
+  "evidence": "Mann mit Wdjat; Amazonische Blasrohrkämpferin"
+ },
+ {
+  "term": "Main Phase 1",
+  "translation": "Main Phase 1",
+  "evidence": "Antike Lampe (\"Main Phase\")"
+ },
+ {
+  "term": "Battle Phase",
+  "translation": "Battle Phase",
+  "evidence": "Banner des Mutes"
+ },
+ {
+  "term": "Main Phase 2",
+  "translation": "Main Phase 2",
+  "evidence": "built like Main Phase (Antike Lampe)"
+ },
+ {
+  "term": "End Phase",
+  "translation": "End Phase",
+  "evidence": "Obhut des Ozeandrachenherrschers"
+ },
+ {
+  "term": "Damage Step",
+  "translation": "Damage Step",
+  "evidence": "Amazonische Weise (\"Am Ende des Damage Steps\")"
+ },
+ {
+  "term": "once per turn",
+  "translation": "einmal pro Spielzug",
+  "evidence": "Basu, der Seelenfresser"
+ },
+ {
+  "term": "Duel",
+  "translation": "Duell",
+  "evidence": "Schicksalstafel (\"gewinnst du das Duell\"); Zweiköpfiger Behemoth (\"einmal pro Duell\")"
+ },
+ {
+  "term": "coin toss / heads / tails",
+  "translation": "Münzwurf (wirf eine Münze) / Kopf / Zahl",
+  "evidence": "Pistolendrache; Abare Ushioni"
+ },
+ {
+  "term": "roll a die",
+  "translation": "einen Würfel werfen",
+  "evidence": "Blinde Zerstörung (\"Wirf einen sechsseitigen Würfel\")"
+ },
+ {
+  "term": "counter",
+  "translation": "Zählmarke",
+  "evidence": "B.E.S. Großer Kern; Gegen-Zauber (\"Zauberzählmarken\")"
+ },
+ {
+  "term": "reveal",
+  "translation": "vorzeigen",
+  "evidence": "Einsatz; Bewaffneter Ninja (\"zeige es vor\")"
+ },
+ {
+  "term": "shuffle",
+  "translation": "mischen",
+  "evidence": "Beulenungeziefer (\"Mische dein Deck\")"
+ },
+ {
+  "term": "add to your hand",
+  "translation": "deiner Hand hinzufügen",
+  "evidence": "Fusionsweiser"
+ },
+ {
+  "term": "Run",
+  "translation": "Durchlauf",
+  "evidence": "game term"
+ },
+ {
+  "term": "Loop",
+  "translation": "Zyklus",
+  "evidence": "game term"
+ },
+ {
+  "term": "Relic",
+  "translation": "Relikt",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cursed relic",
+  "translation": "Verfluchtes Relikt",
+  "evidence": "game term"
+ },
+ {
+  "term": "Fused relic",
+  "translation": "Fusioniertes Relikt",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting relic",
+  "translation": "Startrelikt",
+  "evidence": "game term"
+ },
+ {
+  "term": "Coins",
+  "translation": "Münzen",
+  "evidence": "game term"
+ },
+ {
+  "term": "Shop",
+  "translation": "Shop",
+  "evidence": "game term"
+ },
+ {
+  "term": "Reroll",
+  "translation": "neu würfeln (Verb); Neuwurf (Nomen)",
+  "evidence": "game term"
+ },
+ {
+  "term": "Booster pack",
+  "translation": "Booster",
+  "evidence": "game term"
+ },
+ {
+  "term": "Starting deck",
+  "translation": "Startdeck",
+  "evidence": "game term"
+ },
+ {
+  "term": "Collection",
+  "translation": "Sammlung",
+  "evidence": "game term"
+ },
+ {
+  "term": "Signature card",
+  "translation": "Signaturkarte",
+  "evidence": "game term"
+ },
+ {
+  "term": "Variant",
+  "translation": "Variante",
+  "evidence": "game term"
+ },
+ {
+  "term": "Challenge level (LVL)",
+  "translation": "Schwierigkeitsgrad (LVL)",
+  "evidence": "game term; avoids \"Stufe\", which is the monster Level"
+ },
+ {
+  "term": "Boss",
+  "translation": "Boss",
+  "evidence": "game term"
+ },
+ {
+  "term": "Boss curse",
+  "translation": "Boss-Fluch",
+  "evidence": "game term"
+ },
+ {
+  "term": "Victory / Defeat",
+  "translation": "Sieg / Niederlage",
+  "evidence": "game term"
+ },
+ {
+  "term": "Tag Duel",
+  "translation": "Tag-Duell",
+  "evidence": "system 1246"
+ },
+ {
+  "term": "Ultimate Collector",
+  "translation": "Ultimativer Sammler",
+  "evidence": "game term"
+ },
+ {
+  "term": "Golden card",
+  "translation": "Goldene Karte",
+  "evidence": "game term"
+ },
+ {
+  "term": "Misprint",
+  "translation": "Fehldruck",
+  "evidence": "game term"
+ },
+ {
+  "term": "Bounty",
+  "translation": "Kopfgeld",
+  "evidence": "game term"
+ },
+ {
+  "term": "Duel Look",
+  "translation": "Duell-Design",
+  "evidence": "game term"
+ },
+ {
+  "term": "Chain button: Always / Sometimes / Never",
+  "translation": "Ketten-Taste: Immer / Manchmal / Nie",
+  "evidence": "game term"
+ },
+ {
+  "term": "Flag behaviour",
+  "translation": "Verhalten melden",
+  "evidence": "game term"
+ },
+ {
+  "term": "Cloud save",
+  "translation": "Cloud-Speicherstand",
+  "evidence": "game term"
+ },
+ {
+  "term": "Achievement",
+  "translation": "Erfolg",
+  "evidence": "game term"
+ },
+ {
+  "term": "Unlock",
+  "translation": "freischalten",
+  "evidence": "game term"
+ },
+ {
+  "term": "Settings",
+  "translation": "Einstellungen",
+  "evidence": "system 1273"
+ },
+ {
+  "term": "Inspect",
+  "translation": "Ansehen",
+  "evidence": "system 1158"
+ }
+]

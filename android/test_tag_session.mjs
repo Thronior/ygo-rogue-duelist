@@ -17,7 +17,7 @@ const backend=async(action,value)=>{
  throw Error(action);
 };
 const options={endpoint:'http://localhost:8765',character:0,profile:{},content,backend};
-const hello=async session=>({kind:'hello',version:4,contentHash:await session.contentHash,character:1,profile:{},duel:{key:null,applied:0}});
+const hello=async session=>({kind:'hello',version:5,contentHash:await session.contentHash,character:1,profile:{},duel:{key:null,applied:0}});
 const host=new TagSession(options),sent=[];host.code='ABCDE';host.seat=0;host.peer.resumed=true;host.peer.started=true;host.peer.peerSid='x';host.peer.send=m=>sent.push(m);
 await host.receive(await hello(host));
 assert.equal(restores,1);assert.equal(creates,0);assert.equal(saved.paused,false);assert(host.connected);
@@ -38,7 +38,7 @@ await guest.receive({kind:'receipt',id:dropped.request.id,result:first});assert.
 saved.phase='shop';host.engine=null;host.view={phase:'shop'};
 assert.deepEqual(await host.perform(1,{id:'old-response',action:'duel-response'}),{ok:true,stale:true});
 const incompatible=new TagSession(options);await assert.rejects(incompatible.receive({...await hello(incompatible),contentHash:'different'}),/incompatible/);assert(!incompatible.connected);
-const older=new TagSession(options);await assert.rejects(older.receive({...await hello(older),version:3}),/incompatible/);
+const older=new TagSession(options);await assert.rejects(older.receive({...await hello(older),version:4}),/incompatible/);
 // A host can reconnect while still waiting for the first teammate: no run exists yet.
 const waiting=new TagSession({...options,backend:async(action,value)=>action==='tag-restore'?null:backend(action,value)});
 waiting.code='ABCDE';waiting.seat=0;waiting.peer.resumed=true;waiting.peer.peerSid='x';waiting.peer.send=()=>{};let marked=false;waiting.peer.request=async action=>{assert.equal(action,'started');marked=true};
