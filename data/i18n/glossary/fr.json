@@ -104,7 +104,7 @@
  {"term": "Boss", "translation": "Boss", "evidence": "game term"},
  {"term": "Boss curse", "translation": "Malédiction de Boss", "evidence": "game term"},
  {"term": "Victory / Defeat", "translation": "Victoire / Défaite", "evidence": "game term"},
- {"term": "Tag Duel", "translation": "Duel en Équipe", "evidence": "game term"},
+ {"term": "Tag Duel", "translation": "Duel Tag (mode : Tag)", "evidence": "Konami FR rules page keeps \"Tag Dueling\"; matches de/it. Was: Duel en Équipe"},
  {"term": "Ultimate Collector", "translation": "Collectionneur Ultime", "evidence": "game term"},
  {"term": "Golden card", "translation": "Carte dorée", "evidence": "game term"},
  {"term": "Misprint", "translation": "Erreur d'impression", "evidence": "game term"},
@@ -116,5 +116,7 @@
  {"term": "Achievement", "translation": "Succès", "evidence": "game term"},
  {"term": "Unlock", "translation": "Débloquer / débloqué", "evidence": "game term"},
  {"term": "Settings", "translation": "Paramètres", "evidence": "game term"},
- {"term": "Inspect", "translation": "Examiner", "evidence": "game term"}
+ {"term": "Inspect", "translation": "Examiner", "evidence": "game term"},
+ {"term": "Lock in / undo lock-in", "translation": "Verrouiller / Déverrouiller la sélection", "evidence": "VALORANT FR: \"après que vous avez verrouillé votre agent\". Was: Valider"},
+ {"term": "Loadout", "translation": "Variante", "evidence": "same as Variant; was \"configuration\" in one string"}
 ]

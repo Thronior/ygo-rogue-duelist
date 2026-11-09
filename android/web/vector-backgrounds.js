@@ -6,7 +6,10 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 // Check only when a window/scene changes, never on every animation frame.
 function coveredByOpaqueWindow(){
  if(!stage)return false;
- const bounds=stage.getBoundingClientRect(),dialogs=[...document.querySelectorAll('dialog[open]')];
+ // The stage is measured only when a window could cover it: measuring it right after a re-render forced a layout of
+ // the whole new screen in the mutation callback (2026-11-09, about 130 ms at 4x CPU on character select).
+ const dialogs=[...document.querySelectorAll('dialog[open]')];if(!dialogs.length)return false;
+ const bounds=stage.getBoundingClientRect();
  const own=host?.closest('dialog');
  const opaque=color=>{const values=color.match(/[\d.]+/g)||[];return color!=='transparent'&&(values.length===3||Number(values[3])>=.99)};
  for(const dialog of dialogs.slice(own?dialogs.indexOf(own)+1:0)){

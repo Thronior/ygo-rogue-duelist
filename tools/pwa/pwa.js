@@ -1,6 +1,10 @@
 import {webStorage,validateSave,storageError} from './pwa-storage.js';
 let registration,status='Online play available. Download game files for offline play.',restarting=false,storageFull=false,observer;
 const bundled=()=>document.documentElement.dataset.bundledArtwork==='true';
+// Ask the browser to keep this site's storage, so a save is not cleared to free space (Max, Discord 2026-11-09:
+// saves vanished after a few days in Brave). Chrome and Edge grant it to installed or often used sites; it is a no-op
+// where already granted or unsupported, and never prompts in those browsers.
+navigator.storage?.persisted?.().then(kept=>kept||navigator.storage.persist()).catch(()=>{});
 const panel=document.createElement('dialog');panel.id='web-app-settings';
 panel.innerHTML=`<h2>Download the app</h2><p><a class="web-android-download" href="https://github.com/Thronior/ygo-rogue-duelist/releases/latest/download/YGO-Rogue-Android.apk" target="_blank" rel="noopener noreferrer">Download for Android (APK)</a></p><p>On iPhone: open this page in Safari, tap Share, then Add to Home Screen and enable Open as Web App.</p><p id="web-status" role="status"></p><progress id="web-progress" hidden></progress><div class="web-actions"><button id="web-restart" hidden>Restart to update</button><button id="web-offline">Download / update offline game</button><button id="web-export">Export save backup</button><button id="web-import">Import save backup</button><button id="web-close">Close</button></div><input id="web-file" type="file" accept=".json,application/json" hidden><p>Keep a backup before clearing browser data or moving devices. Multiplayer needs an internet connection. Updates download in the background and apply when you restart the game.</p>`;
 document.body.append(panel);
@@ -131,3 +135,27 @@ document.addEventListener('game-startup-ready',({detail})=>{
  offer.querySelector('[data-download]').onclick=()=>{offer.close();report(status);panel.showModal();offline().catch(e=>report(storageError(e)));};
  offer.showModal();
 },{once:true});
+
+// Brave keeps the storage of a page embedded in another site only until that site is closed, so the save of the game
+// played inside the itch.io page disappears (Max, Discord 2026-11-09). Warn there, and only there: never on the game's
+// own site, never in other browsers. The flag sits in the same storage, so a wiped save shows the warning again.
+const ITCH_FRAME=/(^|\.)(itch\.zone|itch\.io|hwcdn\.net)$/;
+function inItchFrame(){
+ let framed=false;try{framed=window.top!==window}catch{framed=true}
+ if(!framed)return false;
+ let parent='';try{parent=new URL(document.referrer).hostname}catch{}
+ return ITCH_FRAME.test(location.hostname)||ITCH_FRAME.test(parent);
+}
+document.addEventListener('game-startup-ready',async()=>{
+ if(!inItchFrame())return;
+ let brave=false;try{brave=!!(await navigator.brave?.isBrave?.())}catch{}
+ if(!brave)return;
+ const key='ygo-brave-warning-seen';
+ try{if(localStorage.getItem(key))return;localStorage.setItem(key,'1');}catch{}
+ const warning=document.createElement('dialog');warning.id='web-brave-warning';
+ warning.innerHTML='<h2>Brave can delete your save</h2><p>Brave deletes the save of games played inside the itch.io page, usually when the browser closes.</p><p>To keep your progress, play on ygo-rogue.pages.dev, or turn on cloud save in Settings.</p><div class="web-actions"><a class="web-android-download" href="https://ygo-rogue.pages.dev/" target="_blank" rel="noopener noreferrer">Play on ygo-rogue.pages.dev</a><button data-ok>OK</button></div>';
+ document.body.append(warning);
+ warning.addEventListener('close',()=>warning.remove(),{once:true});
+ warning.querySelector('[data-ok]').onclick=()=>warning.close();
+ warning.showModal();
+});

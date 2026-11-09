@@ -116,5 +116,7 @@
  {"term": "Achievement", "translation": "実績", "evidence": "game term"},
  {"term": "Unlock", "translation": "解放", "evidence": "game term"},
  {"term": "Settings", "translation": "設定", "evidence": "game term"},
- {"term": "Inspect", "translation": "詳細（詳細を見る）", "evidence": "game term"}
+ {"term": "Inspect", "translation": "詳細（詳細を見る）", "evidence": "game term"},
+ {"term": "Lock in / undo lock-in", "translation": "確定 / 確定を取り消す", "evidence": "VALORANT JA: 「エージェントを確定した後」. Undo was 選択を解除"},
+ {"term": "Loadout", "translation": "バリアント", "evidence": "same as Variant; was 構成 in one string"}
 ]

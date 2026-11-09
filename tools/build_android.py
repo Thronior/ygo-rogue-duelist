@@ -81,7 +81,8 @@ def sync():
  scripts=json.loads((WEB/'scripts.json').read_text(encoding='utf8'))
  scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
  scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
- for card in (78637313,53119267,93599951,85562745,94585852,49511705):
+ # 29389368 Nutrient Z: scales its 2000 check by the run's battle damage changes (SR_BATTLE_SCALE, passives.py).
+ for card in (78637313,53119267,93599951,85562745,94585852,49511705,29389368):
   scripts[f'c{card}.lua']=(ROOT/f'runtime/script/official/c{card}.lua').read_text(encoding='utf8')
  if 'Duel.LoadScript("rogue-rng.lua")' not in scripts['utility.lua']:scripts['utility.lua']+='\nDuel.LoadScript("rogue-rng.lua")\n'
  # scripts.json builds on its last version, so a card taken off the pre-errata list gets its official script back.

@@ -476,8 +476,8 @@
  },
  {
   "term": "Reroll",
-  "translation": "neu würfeln (Verb); Neuwurf (Nomen)",
-  "evidence": "game term"
+  "translation": "Aktualisieren (Verb, Taste); Aktualisierung (Nomen)",
+  "evidence": "Balatro DE: \"Aktualisierungsüberschuss\" (Reroll Surplus); Hearthstone DE: \"aktualisiert Bobs Gasthaus\". Was: neu würfeln / Neuwurf"
  },
  {
   "term": "Booster pack",
@@ -588,5 +588,15 @@
   "term": "Inspect",
   "translation": "Ansehen",
   "evidence": "system 1158"
+ },
+ {
+  "term": "Lock in / undo lock-in",
+  "translation": "Festlegen / Auswahl freigeben",
+  "evidence": "game term; VALORANT DE avoids a verb (\"nach der Auswahl\"), Festlegen kept"
+ },
+ {
+  "term": "Loadout",
+  "translation": "Variante",
+  "evidence": "same as Variant; was \"Ausrüstung\" in one string"
  }
 ]

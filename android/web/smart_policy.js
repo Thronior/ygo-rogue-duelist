@@ -1888,7 +1888,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
-    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?400:0;break;
+    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?800:0;break;
     case 'fused_gaia_plate':v=1500;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'variant_village_banner':v=lvl(c)===4?200:0;break;
@@ -1897,6 +1897,8 @@ export function smartContext(e,p,L,prompt=null){
    }return sum+(relic(side,'almighty')?Math.max(0,v):v);
   },0);
  }
+ // Equipped cards of a printed type (0x400 Union, 0x1 any monster) attached to a monster on the field.
+ function equippedCount(c,type){return c.location===L.MZONE?[0,1].flatMap(s=>q(s,L.SZONE)).filter(x=>x&&same(x.equipCard||x.equip_card,c)&&(data(x).type&type)).length:0}
  function relicAttack(c,side,only=null){
   const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
   const monsters=loc=>q(side,loc).filter(x=>(data(x).type&1)&&face(x)),is=t=>!!(data(c).type&t),level=lvl(c);
@@ -1934,9 +1936,12 @@ export function smartContext(e,p,L,prompt=null){
     // Fused relics (relic_fusions.py).
     case 'fused_chaos_orb':v=hasAttribute(c,'LIGHT')||hasAttribute(c,'DARK')?400:0;break;
     case 'fused_four_elements':v=200*['EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE'].filter(at=>field.some(x=>face(x)&&hasAttribute(x,at))).length;break;
-    case 'fused_harpie_nest':v=setMatch(c,0x64)?400:0;break;
-    case 'fused_amazoness_village':v=setMatch(c,0x4)?400:0;break;
-    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?400:0;break;
+    case 'fused_harpie_nest':v=setMatch(c,0x64)?800:0;break;
+    case 'fused_amazoness_village':v=setMatch(c,0x4)?800:0;break;
+    case 'fused_zaloog_hideout':v=setMatch(c,0x1a)||c.code===76922029?800:0;break;
+    // Unionize and Union Buster count what is equipped to the monster now (a monster in hand has nothing equipped).
+    case 'union_equip_atk':v=a*equippedCount(c,0x400);break;case 'fused_union_buster':v=400*equippedCount(c,0x1);break;
+    case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?800:0;break;
     case 'fused_masterwork_blade':v=800;break;case 'fused_giant_killers_cradle':v=level<=3?1000:0;break;
     case 'fused_titans_covenant':v=level>=5?1200:0;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_undying_legion':v=race(c)==='Zombie'?1200:0;break;case 'fused_grand_ritual_altar':v=200*(e.aiModifiers?.ritualScar||0);break;

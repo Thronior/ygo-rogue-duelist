@@ -211,6 +211,9 @@ e:SetCondition(function(e) return Duel.GetTurnPlayer()==0 and Duel.GetLocationCo
 e:SetOperation(function(e) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) Duel.SpecialSummon(Duel.SelectMatchingCard(0,can,0,LOCATION_GRAVE,0,1,1,nil,e),0,0,0,false,false,POS_FACEUP) end) Duel.RegisterEffect(e,0) end'''
  if kind=='weak_normals_stand':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_NORMAL) and c:IsLevelBelow(3) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
+ # Unionize: counts equipped cards that are Union monsters by printed type (an equipped Union is treated as an Equip Card).
+ if kind=='union_equip_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
+e:SetValue(function(e,c) return {amount}*c:GetEquipGroup():FilterCount(function(x) return x:GetOriginalType()&TYPE_UNION~=0 end,nil) end) Duel.RegisterEffect(e,0) end'''
  if kind=='token_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsType(TYPE_TOKEN) end) e:SetValue({amount}) Duel.RegisterEffect(e,0) end'''
  # Reads every other boost on the Token and adds it again, so relics, equips and Field Spells all double.

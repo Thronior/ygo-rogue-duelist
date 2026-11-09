@@ -484,10 +484,10 @@ dialog:has(.inspect){width:min(880px,94vw);max-width:94vw}
 @media(max-height:500px){.tag-choose-opponent .tag-next-label{left:6px}}
 /* A translucent gold arrow with a restrained highlight. */
 .tag-choose-opponent>span{background:linear-gradient(120deg,rgba(255,190,30,.8),rgba(244,156,12,.8) 65%,rgba(255,209,58,.8));isolation:isolate}
-.tag-choose-opponent>span::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,#fff5 45%,#fff8 50%,transparent 72%);transform:translateX(-140%);animation:tag-arrow-shine 6s ease-in-out infinite;pointer-events:none;z-index:0}
+.tag-choose-opponent>span::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,#fff5 45%,#fff8 50%,transparent 72%);transform:translateX(-140%);animation:tag-arrow-shine 6s steps(5) infinite;pointer-events:none;z-index:0}
 .tag-choose-opponent .tag-next-label{z-index:1}
 .tag-choose-opponent:hover>span,.tag-choose-opponent:focus-visible>span{background:linear-gradient(120deg,rgba(255,206,60,.8),rgba(255,170,15,.8))}
-@keyframes tag-arrow-shine{0%,65%{transform:translateX(-140%)}90%,100%{transform:translateX(140%)}}
+/* The arrow's shine sweeps on the ambient clock's half-ticks (2026-11-09): the same ease-in-out sampled every 2.5%, steps(5) = 30 ms, about 33 frames a second while it moves and none in between (it redrew the deck editor at the display rate). */@keyframes tag-arrow-shine{0%,65%{transform:translateX(-140%)}67.5%{transform:translateX(-134.5%)}70%{transform:translateX(-117.1%)}72.5%{transform:translateX(-87.5%)}75%{transform:translateX(-47.1%)}77.5%{transform:translateX(0%)}80%{transform:translateX(47.1%)}82.5%{transform:translateX(87.5%)}85%{transform:translateX(117.1%)}87.5%{transform:translateX(134.5%)}90%,100%{transform:translateX(140%)}}
 @media(prefers-reduced-motion:reduce){.tag-choose-opponent>span::before{animation:none;transform:none;opacity:.2}}
 
 /* Compact icon-only category search and card information. */
@@ -2085,12 +2085,13 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
  .shop-compact .shop-counter .shop-buy{left:0!important;bottom:8px!important;width:clamp(57px,7vw,85px)!important}
  .shop-compact .shop-counter .shop-reroll-counter{display:flex!important;left:0!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;transform:none!important;width:clamp(57px,7vw,85px)!important;height:44px!important;min-height:44px!important}
  .shop-compact .shop-counter .shop-reroll-counter b{font-size:9px!important;white-space:nowrap}
- .shop-compact .shop-counter .shop-edit-deck{left:0!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
+ /* A wide gap between Edit deck and the Reroll under it: players rerolled by accident (Kuroda, Discord 2026-11-09). */
+ .shop-compact .shop-counter .shop-edit-deck{left:0!important;bottom:calc(92px + clamp(57px,7vw,85px))!important}
  /* Tag shops have no counter reroll, so they keep this one. */
  .shop-compact:not(.tag-offline-shop) .shop-reference-buttons .shop-reroll-landscape{display:none!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-buy{left:0!important;right:auto!important;bottom:8px!important;width:clamp(57px,7vw,85px)!important}
  .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-reroll-counter{left:0!important;right:auto!important;bottom:calc(16px + clamp(57px,7vw,85px))!important;width:clamp(57px,7vw,85px)!important;height:44px!important}
- .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:0!important;right:auto!important;bottom:calc(68px + clamp(57px,7vw,85px))!important}
+ .shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter .shop-edit-deck{left:0!important;right:auto!important;bottom:calc(92px + clamp(57px,7vw,85px))!important}
 }
 
 .zone.field-spell-zone.empty .field-spell-icon{position:absolute;inset:18%;background:url('assets/icons/field-spell-placeholder.png') center/contain no-repeat;opacity:.22;mix-blend-mode:multiply;pointer-events:none}
@@ -3112,3 +3113,9 @@ button:not(.cardbtn),select{font-weight:700}
 @media(orientation:portrait){.page.tag-page.boss .routes.tag-routes{grid-template-columns:minmax(0,1fr)}.page.tag-page.boss .routes.tag-routes .opponent{grid-template-columns:110px minmax(0,1fr)}.page.tag-page.boss .routes.tag-routes .opponent .encounter-hero{min-height:130px}}
 .tag-shop .tag-shop-turn{max-width:min(460px,50vw)}.tag-shop .tag-turn-short{display:none}
 @media(max-height:500px),(max-width:650px){.tag-shop .tag-turn-long{display:none}.tag-shop .tag-turn-short{display:inline}.tag-shop .tag-shop-turn{max-width:130px}}
+/* Translated "Tap to spin" labels run longer than the English (Discord, 2026-11-09): two lines at a smaller size. */
+html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;line-height:1.05;overflow-wrap:break-word}
+/* A window marked open without being a modal dialog must not swallow taps meant for the page under it (mobile.js modalBlocking). */
+#modal[open]:not(:modal){pointer-events:none}
+/* Menu card names never wrap; mobile.js fitMenuTitles shrinks a name that is too long for its box. */
+.title .menu-card h3{white-space:nowrap;overflow:hidden;text-overflow:clip}

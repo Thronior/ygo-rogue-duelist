@@ -13,7 +13,7 @@ export function browserLanguage(){
  for(const tag of navigator.languages?.length?navigator.languages:[navigator.language||'en']){const code=String(tag).toLowerCase().split(/[-_]/)[0];if(codes.has(code))return code}
  return 'en';
 }
-let lang='en',ui=new Map(),patterns=[],cards=null,cardMaps=null,memo=new Map(),observer=null,content=null,cleanText=s=>s;
+let lang='en',locale='en-US',ui=new Map(),patterns=[],cards=null,cardMaps=null,memo=new Map(),observer=null,content=null,cleanText=s=>s;
 export const currentLanguage=()=>lang;
 const norm=s=>String(s).replace(/\s+/g,' ').trim();
 const LETTER=/[A-Za-z]/;
@@ -38,11 +38,29 @@ function lookup(s){
   for(const p of patterns){
    if(p.anchor&&!s.includes(p.anchor))continue;
    const m=p.re.exec(s);if(!m)continue;
-   out=p.local.replace(/\{(\d+)\}/g,(x,n)=>{const v=m[p.order.indexOf(+n)+1]??'';return v==='s'?'':exact(v)??v});break;
+   out=p.local.replace(/\{(\d+)\}/g,(x,n)=>{const v=m[p.order.indexOf(+n)+1]??'';return v==='s'?'':v===s?v:lookup(v)??v});break;
   }
  }
+ if(out===undefined)out=fallback(s);
  if(memo.size>20000)memo.clear();
  memo.set(s,out);return out;
+}
+// Only for text the dictionary has no entry for (Discord 2026-11-09):
+// - a line built from parts joined by " · ", like the card info's "Effect Monster · Fiend ·" or the deck editor count,
+//   is translated part by part (also a run starting with the separator, like the subtype line's "· Effect");
+// - an ALL-CAPS label such as the shop's BUY or REROLL uses its normal-case entry, written in capitals.
+const SEPARATOR=/((?:^| )·(?: |$))/;
+function fallback(s){
+ if(SEPARATOR.test(s)){
+  let changed=false;
+  const out=s.split(SEPARATOR).map((part,i)=>{if(i%2||!LETTER.test(part))return part;const v=lookup(part.trim());if(v===undefined||v===part.trim())return part;changed=true;return v}).join('');
+  return changed?out:undefined;
+ }
+ if(/[A-Z]{2}/.test(s)&&!/[a-z]/.test(s)){
+  const lower=s.toLowerCase();
+  for(const c of [lower[0].toUpperCase()+lower.slice(1),lower.replace(/(^|\s)\S/g,x=>x.toUpperCase()),lower]){const v=exact(c);if(v!==undefined)return v.toLocaleUpperCase(locale)}
+ }
+ return undefined;
 }
 // For code that draws text itself (canvas images, native confirm dialogs).
 export function t(text){if(lang==='en'||text==null)return text;const s=norm(text);if(!s||!LETTER.test(s))return text;return lookup(s)??text}
@@ -101,12 +119,12 @@ export async function setLanguage(code,{remember=true}={}){
  if(!codes.has(code))code='en';
  if(remember){try{localStorage.setItem(KEY,code)}catch{}}
  document.documentElement.lang=LANGUAGES.find(l=>l[0]===code)[2];
- if(code==='en'){lang='en';ui=new Map();patterns=[];cards=null;cardMaps=null;memo.clear();observe();return}
+ if(code==='en'){lang='en';locale='en-US';ui=new Map();patterns=[];cards=null;cardMaps=null;memo.clear();observe();return}
  const bundle=await fetch(`i18n/${code}.json`).then(r=>{if(!r.ok)throw Error(`Language file missing (${r.status})`);return r.json()});
  const nextUi=new Map(),nextPatterns=[];
  for(const [en,local] of Object.entries(bundle.ui||{})){if(/\{\d+\}/.test(en))nextPatterns.push(compile(en,local));else nextUi.set(en,local)}
  nextPatterns.sort((a,b)=>b.weight-a.weight);
- lang=code;ui=nextUi;patterns=nextPatterns;cards=bundle.cards||null;if(cards&&bundle.setnames)cards.setnames=bundle.setnames;memo.clear();
+ lang=code;locale=LANGUAGES.find(l=>l[0]===code)[2];ui=nextUi;patterns=nextPatterns;cards=bundle.cards||null;if(cards&&bundle.setnames)cards.setnames=bundle.setnames;memo.clear();
  buildCardMaps();observe();
 }
 // Native dialogs cannot be observed, so their message is translated on the way in.

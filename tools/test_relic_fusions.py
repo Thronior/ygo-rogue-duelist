@@ -122,7 +122,7 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
  assert sum(x['kind']=='pack' for x in run['shop'])==4
  g.restock(run,rng,general_stock=True)
  assert sum(x['kind']=='artifact' for x in run['shop'])==6,[x['id'] for x in run['shop'] if x['kind']=='artifact']
- # Hand limits: Endless Archive 8, Mass Grave 4 (written into the duel script).
+ # Hand limits: Divine Archive 8, Mass Grave 4 (written into the duel script).
  from approved_relic_effects import relic_hand_limit
  assert relic_hand_limit({'artifacts':['endless_archive']})==8 and relic_hand_limit({'artifacts':['mass_grave']})==4
  for key,limit in (('endless_archive',8),('mass_grave',4)):

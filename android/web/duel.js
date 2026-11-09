@@ -557,7 +557,16 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // Guess from public hand information only; otherwise use a reproducible mixed guess.
    const publicCards=this.query(1-p,L.HAND).filter(c=>this.handRevealed(p,c));
    let index;if(publicCards.length){const counts=[1,2,4].map(t=>publicCards.filter(c=>this.data[c.code]?.type&t).length);index=counts.indexOf(Math.max(...counts));}
-   else {const value=((this.turn*1103515245+this.query(p,L.DECK).length*12345+(this.orDealGuesses=(this.orDealGuesses||0)+1)*2654435761)>>>0);index=value%3;}
+   else {
+    // The old seed's terms were all 0 mod 3 but the counter, so it called the same type nearly every time (Iceman,
+    // Discord 2026-11-09: always Trap). Mix it properly and weight each type by the opponent's public cards
+    // (Graveyard, field, banished), one extra each so no type is ruled out.
+    let hash=(this.reasoningSeed^Math.imul(this.turn,2654435761)^Math.imul(this.orDealGuesses=(this.orDealGuesses||0)+1,2246822519)^Math.imul(this.query(1-p,L.HAND).length,3266489917))>>>0;
+    hash=Math.imul(hash^(hash>>>16),0x7feb352d);hash=Math.imul(hash^(hash>>>15),0x846ca68b);hash=(hash^(hash>>>16))>>>0;
+    const seen=[L.GRAVE,L.MZONE,L.SZONE,L.REMOVED].flatMap(l=>this.query(1-p,l)).filter(c=>c?.code&&(c.location===L.GRAVE||c.position&5));
+    const weights=[1,2,4].map(t=>1+seen.filter(c=>this.data[c.code]?.type&t).length),total=weights.reduce((a,b)=>a+b,0);
+    let roll=hash%total;index=weights.findIndex(w=>(roll-=w)<0);
+   }
    return {type:R.SELECT_OPTION,index};
   }
   if(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Poison of the Old Man'){

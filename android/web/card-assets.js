@@ -23,6 +23,10 @@ export async function preloadCards(cards,onProgress,{fetchImage=fetch,validateIm
  const pending=ids.filter(id=>!cardImages.has(id));
  let lastReport=-Infinity;
  const report=()=>{const now=performance.now();if(processed!==ids.length&&now-lastReport<50)return;lastReport=now;onProgress({loaded,total:ids.length,processed,failed:failed.length,bytes})};report();
+ // Android serves its artwork from the signed APK, and the WebView sends no Content-Length, so the loop below
+ // read every image in full (58 MB at v0.2.26) on each launch only to count its size (2026-11-09). Nothing kept
+ // those bytes: screens load the same URLs themselves. Mark them ready without reading them.
+ if(trusted){for(const id of pending)cardImages.set(id,`assets/cards/${id}.jpg`);loaded=processed=ids.length;report();return {loaded,total:ids.length}}
  async function worker(){while(next<pending.length){const id=pending[next++];let url;try{
   const path=`assets/cards/${id}.jpg`;
   let response=cache?await cache.match(path).catch(()=>null):null;

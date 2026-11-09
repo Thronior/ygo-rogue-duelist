@@ -7,8 +7,10 @@ def pack_artwork(out,templates):
  # requested immediately on the first screen; making them independent of the
  # large artwork bundles lets the menu render even if a bundle is unavailable
  # or its Service Worker cache is stale in a particular browser.
- images=sorted(path for path in out.rglob('*.jpg')
-               if path.relative_to(out).as_posix().split('/',2)[:2] != ['assets','menu'])
+ # Relic PNGs (user-made art) are bundled too: itch.io allows under 1,000 files (v0.2.27 reached 1,008).
+ images=sorted([path for path in out.rglob('*.jpg')
+               if path.relative_to(out).as_posix().split('/',2)[:2] != ['assets','menu']]
+              +list((out/'assets/relics').glob('*.png')))
  def flush():
   if not data:return
   digest=hashlib.sha256(data).hexdigest();name=f'artwork-{len(packs):02}-{digest[:12]}.bin'

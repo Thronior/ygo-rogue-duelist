@@ -72,6 +72,17 @@ const plural='Uploaded {0} replay{1}. Thank you!';
 const rendered=i18n.t('Uploaded 3 replays. Thank you!');
 assert.equal(rendered,french.ui[plural].replace('{0}','3').replace('{1}',''),'empty and "s" captures should not leave a stray suffix');
 
+// Discord 2026-11-09: duel action labels, card-kind lines built from parts, ALL-CAPS buttons, nested patterns.
+assert.equal(i18n.t('Summon'),french.ui['Summon'],'duel action label from engine.js');
+assert.equal(i18n.t('Normal Monster · Dragon ·'),`${french.ui['Normal Monster']} · ${french.ui['Dragon']} ·`,'a " · " line is translated part by part');
+assert.equal(i18n.t('· Effect'),`· ${french.ui['Effect']}`,'a run starting with the separator (subtype line)');
+assert.equal(i18n.t('BUY'),french.ui['Buy'].toLocaleUpperCase('fr-FR'),'ALL-CAPS label uses its normal-case entry');
+assert.equal(i18n.t('REROLL'),french.ui['Reroll'].toLocaleUpperCase('fr-FR'));
+assert.equal(i18n.t('TURN'),french.ui['TURN'],'an explicit ALL-CAPS entry wins');
+assert.equal(i18n.t('Unknown opponent. Reveal for 15 coins'),french.ui['Unknown opponent. Reveal for {0}'].replace('{0}',french.ui['{0} coins'].replace('{0}','15')),'captured values go through patterns too');
+assert.equal(i18n.t('Pyro monsters'),french.ui['Pyro monsters'],'every shop boost label exists');
+assert.equal(i18n.t('Some text the dictionary has never seen'),'Some text the dictionary has never seen','unknown text is left alone');
+
 await i18n.setLanguage('en',{remember:false});
 assert.equal(observers.length,1,'switching to English must not create an observer');
 assert.equal(observers[0].observed,false,'English should disconnect the active observer');

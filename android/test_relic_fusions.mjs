@@ -6,7 +6,7 @@ const meta=json('android/web/content.json'),data=json('android/web/engine-data.j
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';
 const KEYS=['chaos_orb','four_elements','harpie_nest','zaloog_hideout','amazoness_village','necrovalley_throne','fusion_gate','jar_of_greed','second_coin_toss','scapegoat_pasture','sacred_phoenix','invincible','attribute_mutation','gaia_plate','masterwork_blade','endless_archive','giant_killers_cradle','titans_covenant','commoners_crown','undying_legion','tyrants_throne','mass_grave','bottomless_purse','grand_bazaar'];
 const scripts=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
-print(json.dumps({k:passives.script({'curses':[],'artifacts':[k] if k else [],'challenge_level':0,'character':0}) for k in ${JSON.stringify(['',...KEYS])}}))`],{cwd:root,encoding:'utf8',maxBuffer:1<<26}));
+print(json.dumps({**{k:passives.script({'curses':[],'artifacts':[k] if k else [],'challenge_level':0,'character':0}) for k in ${JSON.stringify(['',...KEYS])}},'unionize':passives.script({'curses':[],'artifacts':['unionize'],'challenge_level':0,'character':0}),'union_buster':passives.script({'curses':[],'artifacts':['union_buster'],'challenge_level':0,'character':0}),'union_both':passives.script({'curses':[],'artifacts':['union_buster','unionize'],'challenge_level':0,'character':0})}))`],{cwd:root,encoding:'utf8',maxBuffer:1<<26}));
 const e=await new MobileDuel([...meta.cards,...meta.tokenCards]).init([data,json('android/web/scripts.json')]);
 const mine=(p=0)=>e.query(p,L.MZONE).filter(Boolean),named=(n,p=0)=>mine(p).find(c=>c.code===id(n));
 // Player 0 Normal Summons a listed card each turn and skips battle; `step` can answer any prompt first.
@@ -38,14 +38,15 @@ assert.equal(mine().length,2,'Four Elements: both monsters are out');
 for(const c of mine())assert.equal(c.attack,meta.cards.find(x=>x.id===c.code).atk+400,'Four Elements: two Attributes give 400 ATK');
 
 for(const key of ['','harpie_nest']){
- duel(key,fill('Harpie Lady'),fill('Gemini Elf'),{turns:2});
+ // 800 ATK since 2026-11-09: a 2300 attacker still beats the 2100 Harpie, so the save and the 200 damage still show.
+ duel(key,fill('Harpie Lady'),fill('Goblin Attack Force'),{turns:2});
  const harpie=named('Harpie Lady');
- if(key){assert.equal(harpie?.attack,1700,'Harpie Nest: +400 ATK');assert.ok(harpie,'Harpie Nest: the Harpie survives its first battle');assert.equal(e.lp[0],7800,'Harpie Nest: the battle damage still applies')}
- else assert.ok(!harpie||e.lp[0]===8000,'without the relic a 1300 Harpie loses to Gemini Elf when attacked');
+ if(key){assert.equal(harpie?.attack,2100,'Harpie Nest: +800 ATK');assert.ok(harpie,'Harpie Nest: the Harpie survives its first battle');assert.equal(e.lp[0],7800,'Harpie Nest: the battle damage still applies')}
+ else assert.ok(!harpie||e.lp[0]===8000,'without the relic a 1300 Harpie loses to Goblin Attack Force when attacked');
 }
 
 duel('amazoness_village',fill('Amazoness Swords Woman'),WALL);
-assert.equal(named('Amazoness Swords Woman')?.attack,1900,'Amazoness Village: +400 ATK');
+assert.equal(named('Amazoness Swords Woman')?.attack,2300,'Amazoness Village: +800 ATK');
 
 // Necrovalley Throne: the player's own Heavy Storm cannot destroy their Field Spell.
 {let played=new Set();
@@ -55,7 +56,7 @@ assert.equal(named('Amazoness Swords Woman')?.attack,1900,'Amazoness Village: +4
   return null}});
  assert.ok(played.has('Heavy Storm'),'Necrovalley Throne: Heavy Storm was played');
  assert.ok(e.query(0,L.SZONE).some(c=>c?.code===id('Necrovalley')),'Necrovalley Throne: the Field Spell survives Heavy Storm');
- assert.equal(named("Gravekeeper's Spy")?.attack,1200+400+500,"Necrovalley Throne: Gravekeeper's +400 ATK (and Necrovalley's 500)");}
+ assert.equal(named("Gravekeeper's Spy")?.attack,1200+800+500,"Necrovalley Throne: Gravekeeper's +800 ATK (and Necrovalley's 500)");}
 
 duel('fusion_gate',fill('Pot of Greed'),WALL,{extra:[id('King Dragun')],summon:[]});
 assert.ok(named('King Dragun'),'Fusion Gate: an empty field Special Summons from the Fusion Deck');
@@ -90,7 +91,7 @@ assert.equal(globalThis.jar_of_greed,globalThis.base+1,'Jar of Greed: 1 extra ca
   return null}});
  assert.ok(attacked,"Don Zaloog's Hideout: Don Zaloog attacked");
  assert.ok(walls>0,"Don Zaloog's Hideout: the opponent had a monster to attack past");
- assert.equal(e.lp[1],8000-1400,"Don Zaloog's Hideout: the attack was direct");}
+ assert.equal(e.lp[1],8000-1400-800,"Don Zaloog's Hideout: the attack was direct, with Don Zaloog's +800 ATK");}
 
 // Invincible, given to the CPU's side (the Tag script translation): your Raigeki cannot destroy its monster.
 const sideOne=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
@@ -135,9 +136,9 @@ duel('titans_covenant',fill('Mystical Elf','Dark Magician'),WALL,{turns:3,step:m
  if(m.type===M.SELECT_IDLECMD&&e.turn===3){const k=m.summons.findIndex(c=>c.code===id('Dark Magician'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_SUMMON,index:k}}
  return null}});
 assert.equal(named('Dark Magician')?.attack,2500+1200,"Titan's Covenant: a 1-Tribute Dark Magician with +1,200 ATK");
-// Endless Archive draws 2 a turn: 2 more cards gone from the Deck by turn 3 (draws on turns 1 and 3).
+// Divine Archive draws 2 a turn: 2 more cards gone from the Deck by turn 3 (draws on turns 1 and 3).
 for(const key of ['','endless_archive']){duel(key,fill('Mystical Elf'),WALL,{turns:3});globalThis['deck_'+(key||'base')]=e.query(0,L.DECK).length}
-assert.equal(globalThis.deck_endless_archive,globalThis.deck_base-2,'Endless Archive: 1 additional card in each draw');
+assert.equal(globalThis.deck_endless_archive,globalThis.deck_base-2,'Divine Archive: 1 additional card in each draw');
 // Grand Ritual Altar: 200 ATK per Ritual Summon so far this run (3 here), no penalty.
 scripts.altar=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
 print(json.dumps(passives.script({'curses':[],'artifacts':['grand_ritual_altar'],'challenge_level':0,'character':0,'ritual_scar_count':3})))`],{cwd:root,encoding:'utf8'}));
@@ -157,6 +158,14 @@ print(json.dumps(passives.multiplayer_script({'curses':[],'artifacts':['commoner
 duel('sacred_phoenix',fill('Pot of Greed'),fill('Hinotama'),{turns:2,lp:300,summon:[]});
 assert.ok(e.events.some(x=>x.kind==='relic_used'&&x.relic==='phoenix_rebirth'),'Sacred Phoenix: the save happened and is reported for its coins');
 assert.ok(!e.finished||e.query(1,L.GRAVE).filter(c=>c?.code===id('Hinotama')).length>=2,'Sacred Phoenix: one 500 burn did not end the duel at 300 LP');
+
+// Union Buster (2026-11-09): Normal Summoning X-Head Cannon equips a Y-Dragon Head from the hand or Deck (its text lists
+// X-Head Cannon). X-Head 1800 + Y-Dragon Head's own 400 + 400 per equipped monster; Unionize adds 300 per equipped Union.
+const xHead=key=>{duel(key,fill('X-Head Cannon','Y-Dragon Head'),WALL,{summon:[id('X-Head Cannon')]});const x=named('X-Head Cannon');return {x,equips:e.query(0,L.SZONE).filter(c=>c?.code===id('Y-Dragon Head')).length}};
+{let r=xHead('');assert.equal(r.x?.attack,1800,'no relic: X-Head Cannon has nothing equipped');assert.equal(r.equips,0);
+ r=xHead('unionize');assert.equal(r.x?.attack,1800,'Unionize alone: nothing equipped, no bonus');
+ r=xHead('union_buster');assert.equal(r.equips,1,'Union Buster: Y-Dragon Head was equipped on the Normal Summon');assert.equal(r.x?.attack,1800+400+400,'Union Buster: +400 for the equipped monster');
+ r=xHead('union_both');assert.equal(r.x?.attack,1800+400+400+300,'Unionize: +300 for the equipped Union monster');}
 
 console.log('PASS fused relics behave as written in the real core');
 process.exit(0);

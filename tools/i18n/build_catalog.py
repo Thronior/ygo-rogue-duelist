@@ -68,6 +68,10 @@ if len(sys.argv) > 3:
     # Engine location words used in system-string prompts (engine.js is not scanned).
     for w in ('hand', 'Monster Zone', 'Spell & Trap Zone', 'Graveyard', 'banished zone', 'field', 'card'):
         add('ui', w, 'exact', 'engine.js prompt location')
+    # Duel action labels engine.js builds as "<label> · <card>" (the card popup shows the label alone).
+    for w in ('Summon', 'Special summon', 'Change position', 'Set', 'Activate', 'Attack', 'Select', 'Unselect',
+              'End turn →', 'Enter battle phase →', 'Main phase 2 →', 'Keep this order'):
+        add('ui', w, 'exact', 'engine.js action label')
     # 2. Python messages; relic sentences are built from fragments, so their final text comes from content.json instead.
     relic_builders = {'artifact_text.py', 'approved_relics.py', 'approved_relic_effects.py', 'artifact_expansion.py',
                       'archetype_relics.py', 'variant_relics.py', 'relic_fusions.py', 'artifact_effects.py', 'passives.py',

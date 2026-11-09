@@ -218,6 +218,10 @@ Duel.RegisterEffect(e,0) end''')
  if exposed:
   multiplier=(2 if scale>=2 else 1.5)**exposed
   lines.append(f'''do local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PRE_BATTLE_DAMAGE) b:SetCondition(function(e,tp,eg,ep) return ep==0 end) b:SetOperation(function(e,tp,eg,ep) Duel.ChangeBattleDamage(ep,math.floor(Duel.GetBattleDamage(ep)*{multiplier})) end) Duel.RegisterEffect(b,0) end''')
+ # Nutrient Z reads the battle damage before the changes above; it scales by this (scripts: c29389368.lua).
+ from approved_relic_effects import battle_damage_scale
+ taken,dealt=battle_damage_scale(run,scale)
+ if taken!=1 or dealt!=1:lines.append(f'SR_BATTLE_SCALE={{[0]={taken:g},[1]={dealt:g}}}')
  lines.append(mirrored_script(run))
  if 'effect_reverser' in run.get('curses',[]):lines.append(effect_reverser(scale))
  if 'shield_breaker' in run.get('curses',[]):lines.append(shield_breaker(scale))

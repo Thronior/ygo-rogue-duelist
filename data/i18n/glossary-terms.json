@@ -116,5 +116,7 @@
  {"term": "Achievement", "note": "GAME: unlockable goal"},
  {"term": "Unlock", "note": "GAME: unlock a character, booster, etc."},
  {"term": "Settings", "note": "GAME: settings menu"},
- {"term": "Inspect", "note": "GAME: hold a card to read it"}
+ {"term": "Inspect", "note": "GAME: hold a card to read it"},
+ {"term": "Lock in / undo lock-in", "note": "GAME: confirm a choice in Tag (co-op) so the teammate sees it; the undo button"},
+ {"term": "Loadout", "note": "GAME: a character's second set of cards and relic; always the same word as Variant"}
 ]

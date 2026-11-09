@@ -94,7 +94,7 @@
  {"term": "Starting relic", "translation": "Reliquia iniziale", "evidence": "game term"},
  {"term": "Coins", "translation": "Monete", "evidence": "game term"},
  {"term": "Shop", "translation": "Negozio", "evidence": "game term"},
- {"term": "Reroll", "translation": "Rinnovo (noun) / Rinnova (button)", "evidence": "game term"},
+ {"term": "Reroll", "translation": "Cambia (pulsante); cambio (sostantivo)", "evidence": "Balatro IT: \"Cambi in surplus\" / \"Eccesso di cambi\" (Reroll Surplus / Glut). Was: Rinnova / rinnovo"},
  {"term": "Booster pack", "translation": "Busta", "evidence": "game term (Italian TCG retail word)"},
  {"term": "Starting deck", "translation": "Deck iniziale", "evidence": "game term"},
  {"term": "Collection", "translation": "Collezione", "evidence": "game term"},
@@ -116,5 +116,7 @@
  {"term": "Achievement", "translation": "Obiettivo", "evidence": "game term"},
  {"term": "Unlock", "translation": "Sbloccare", "evidence": "game term"},
  {"term": "Settings", "translation": "Impostazioni", "evidence": "game term"},
- {"term": "Inspect", "translation": "Esamina", "evidence": "game term"}
+ {"term": "Inspect", "translation": "Esamina", "evidence": "game term"},
+ {"term": "Lock in / undo lock-in", "translation": "Conferma / Annulla conferma", "evidence": "VALORANT IT: \"confermato\". Was mixed: Conferma / Blocca / Sblocca"},
+ {"term": "Loadout", "translation": "Variante", "evidence": "same as Variant"}
 ]

@@ -526,8 +526,8 @@
  },
  {
   "term": "Tag Duel",
-  "translation": "Duelo en Pareja (modo: Pareja)",
-  "evidence": "game term"
+  "translation": "Duelo Tag (modo: Tag)",
+  "evidence": "Konami ES rules page keeps \"Tag Dueling\"; matches de/it. Was: Duelo en Pareja"
  },
  {
   "term": "Ultimate Collector",
@@ -588,5 +588,15 @@
   "term": "Inspect",
   "translation": "Inspeccionar",
   "evidence": "game term"
+ },
+ {
+  "term": "Lock in / undo lock-in",
+  "translation": "Confirmar / Cancelar confirmación",
+  "evidence": "game term; VALORANT ES uses \"fijar\", Confirmar kept for clarity"
+ },
+ {
+  "term": "Loadout",
+  "translation": "Variante",
+  "evidence": "same as Variant"
  }
 ]

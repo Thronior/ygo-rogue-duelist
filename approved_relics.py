@@ -24,7 +24,7 @@ REGULAR=[
 ('straw_doll','Straw Doll',250,"Once per turn, during your opponent's turn, the first time you would take battle damage, you take no damage instead.",'Scapegoat'),
 ('almighty','Almighty',300,'The ATK/DEF of monsters you control cannot be reduced.','Gate Guardian'),
 ('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Magical Mallet'),
-('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.','Magical Merchant'),
+('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). This relic is then consumed.','Magical Merchant'),
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
 ('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),

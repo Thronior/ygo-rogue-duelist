@@ -11,23 +11,25 @@ import approved_relics as ar
 FUSED=[
  ('chaos_orb','Chaos Orb','LIGHT and DARK monsters you control gain 400 ATK.','Black Luster Soldier - Envoy of the Beginning',('light','dark')),
  ('four_elements','Four Elements','Monsters you control gain 200 ATK for each different Attribute among monsters you control.','Doriado',('ember','tide','gale','earth')),
- ('harpie_nest',"Harpie Lady Sisters' Nest",'Your Harpie monsters gain 400 ATK. The first time each turn that one of your Harpie monsters would be destroyed by battle, it is not.','Harpie Girl',('harpie_feather','harpies_of_a_feather')),
- ('zaloog_hideout',"Don Zaloog's Hideout",'Your Dark Scorpion monsters and Don Zaloog can attack your opponent directly.','Don Zaloog',('scorpion_emblem','dark_scorpion_squad')),
- ('amazoness_village','Amazoness Village','Your Amazoness monsters gain 400 ATK and inflict piercing battle damage.','Amazoness Village',('amazoness_standard','amazoness_hunters')),
- ('necrovalley_throne','Necrovalley Throne',"Your Gravekeeper's monsters gain 400 ATK/DEF. Your Field Spell cannot be destroyed.",'Necrovalley',('necrovalley_tablet','gravekeepers_union')),
+ ('harpie_nest',"Harpie Lady Sisters' Nest",'Your Harpie monsters gain 800 ATK. The first time each turn that one of your Harpie monsters would be destroyed by battle, it is not.','Harpie Girl',('harpie_feather','harpies_of_a_feather')),
+ ('zaloog_hideout',"Don Zaloog's Hideout",'Your Dark Scorpion monsters and Don Zaloog gain 800 ATK and can attack your opponent directly.','Don Zaloog',('scorpion_emblem','dark_scorpion_squad')),
+ ('amazoness_village','Amazoness Village','Your Amazoness monsters gain 800 ATK and inflict piercing battle damage.','Amazoness Village',('amazoness_standard','amazoness_hunters')),
+ ('necrovalley_throne','Necrovalley Throne',"Your Gravekeeper's monsters gain 800 ATK/DEF. Your Field Spell cannot be destroyed.",'Necrovalley',('necrovalley_tablet','gravekeepers_union')),
  ('fusion_gate','Fusion Gate','During your Standby Phase, if you control no monsters, Special Summon 1 monster from your Fusion Deck.','Fusion Gate',('fusion_chamber','fusion_insignia','fusion_time','machine_foundry')),
  ('jar_of_greed','Jar of Greed','Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.','Jar Robber',('dice_jar','cyber_jar','morphing_jar_2')),
  ('second_coin_toss','Divine Gambler','You choose the results of all your coin tosses and dice rolls.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice')),
  ('scapegoat_pasture','Scapegoat Pasture',"During your opponent's Standby Phase, Special Summon 1 Sheep Token in Defense Position. Once per turn, during your Standby Phase, select 1 face-up monster on either side of the field. All Tokens you control receive the same Type, Level, Attribute, name, and original ATK and DEF as that monster until the End Phase.",'Sogen',('token_defender','token_martyrs','token_regiment','token_resonance')),
  ('sacred_phoenix','Sacred Phoenix','Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.','Sacred Phoenix of Nephthys',('phoenix_rebirth','phoenix_debt','second_wind')),
  ('gold_sarcophagus',"Pharaoh's Hoard",'Shop prices are reduced by 50%. Earn 50 additional coins after each victory.',"Pharaoh's Treasure",('bargain','urn','receipt','interest')),
+ # User request 2026-11-09: all three Union relics.
+ ('union_buster','Union Buster','Monsters you control gain 400 ATK for each monster equipped to them. When you Normal Summon a monster whose name is listed on a Union monster in your hand or Deck: Equip 1 of those Union monsters to that monster.','XYZ-Dragon Cannon',('union_dock','union_hangar','unionize')),
  ('attribute_mutation','Attribute Mutation','All your monsters are treated as having every Attribute.','DNA Transplant',tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
  # Cursed fusions (2026-11-04): one cursed relic and its regular partners. A relic may belong to several sets;
  # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
  ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
  ('gaia_plate','Gaia Plate','Monsters you control gain 1,500 DEF. Once per turn, a Defense Position monster you control cannot be destroyed by battle.','Big Shield Gardna',('cursed_brittle_armor','buckler')),
  ('masterwork_blade','Masterwork Blade','Monsters you control gain 800 ATK.','Legendary Sword',('cursed_cracked_sword','blade','sword')),
- ('endless_archive','Endless Archive','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 8.','Graceful Charity',('cursed_starving_library','deep_pockets','inkwell')),
+ ('endless_archive','Divine Archive','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 8.','Graceful Charity',('cursed_starving_library','deep_pockets','inkwell')),
  ('giant_killers_cradle',"Giant-Killer's Cradle",'Level 3 or lower monsters you control gain 1,000 ATK and cannot be destroyed by battle with Level 5 or higher monsters.','Little-Winguard',('cursed_ashen_nursery','small','protect_the_weak')),
  ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
  ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and cannot be destroyed by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
@@ -108,12 +110,25 @@ def effect(kind):
  if key=='four_elements':return stat('EFFECT_UPDATE_ATTACK','''function(e,c) local seen,n=0,0
  for m in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATION_MZONE,0,nil):Iter() do seen=seen|m:GetAttribute() end
  while seen>0 do n=n+(seen&1) seen=seen>>1 end return 200*n end''')
- if key=='harpie_nest':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(0x64)')+'''
+ if key=='harpie_nest':return stat('EFFECT_UPDATE_ATTACK',800,'c:IsSetCard(0x64)')+'''
 do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_COUNT) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsSetCard(0x64) end) e:SetCountLimit(1) e:SetValue(function(e,re,r) return (r&REASON_BATTLE)~=0 end) Duel.RegisterEffect(e,0) end'''
- if key=='zaloog_hideout':return stat('EFFECT_DIRECT_ATTACK',1,'c:IsSetCard(0x1a) or c:IsCode(76922029)')
- if key=='amazoness_village':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(0x4)')+'\n'+stat('EFFECT_PIERCE',1,'c:IsSetCard(0x4)')
- if key=='necrovalley_throne':return both(400,'c:IsSetCard(0x2e)')+'''
+ if key=='union_buster':
+  # Equipped monsters count by printed type. The equip follows the Union's own rules: its listed names
+  # (Card.ListsCode), one Union per monster (aux.CheckUnionEquip), then union status so it can unequip later.
+  # Equipped face-up: a card from the Deck is face-down, and Duel.Equip(...,false) would keep it so, with no equip effects.
+  union='function(c,tc) return c:IsType(TYPE_UNION) and c:ListsCode(tc:GetCode()) and not c:IsForbidden() and aux.CheckUnionEquip(c,tc) end'
+  return stat('EFFECT_UPDATE_ATTACK','function(e,c) return 400*c:GetEquipGroup():FilterCount(function(x) return x:GetOriginalType()&TYPE_MONSTER~=0 end,nil) end')+f'''
+do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
+e:SetCondition(function(e,tp,eg) local tc=eg:GetFirst() return tc and tc:IsControler(0) and tc:IsFaceup() and Duel.GetLocationCount(0,LOCATION_SZONE)>0 and Duel.IsExistingMatchingCard({union},0,LOCATION_HAND|LOCATION_DECK,0,1,nil,tc) end)
+e:SetOperation(function(e,tp,eg) local tc=eg:GetFirst() if not tc:IsLocation(LOCATION_MZONE) or tc:IsFacedown() or Duel.GetLocationCount(0,LOCATION_SZONE)<=0 then return end
+ --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_EQUIP) local uc=Duel.SelectMatchingCard(0,{union},0,LOCATION_HAND|LOCATION_DECK,0,1,1,nil,tc):GetFirst()
+ if not uc then return end local fromDeck=uc:IsLocation(LOCATION_DECK)
+ if Duel.Equip(0,uc,tc,true) then aux.SetUnionState(uc) end if fromDeck then Duel.ShuffleDeck(0) end end)
+Duel.RegisterEffect(e,0) end'''
+ if key=='zaloog_hideout':return stat('EFFECT_UPDATE_ATTACK',800,'c:IsSetCard(0x1a) or c:IsCode(76922029)')+'\n'+stat('EFFECT_DIRECT_ATTACK',1,'c:IsSetCard(0x1a) or c:IsCode(76922029)')
+ if key=='amazoness_village':return stat('EFFECT_UPDATE_ATTACK',800,'c:IsSetCard(0x4)')+'\n'+stat('EFFECT_PIERCE',1,'c:IsSetCard(0x4)')
+ if key=='necrovalley_throne':return both(800,'c:IsSetCard(0x2e)')+'''
 do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_SZONE,0)
 e:SetTarget(function(e,c) return c:IsFaceup() and c:IsType(TYPE_FIELD) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
  if key=='fusion_gate':

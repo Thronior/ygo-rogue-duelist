@@ -7,6 +7,14 @@ const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{
 export const decode=value=>{if(value&&typeof value==='object'){if(Object.keys(value).length===1&&'__bigint'in value)return BigInt(value.__bigint);for(const key of Object.keys(value))value[key]=decode(value[key])}return value};
 // 5: shared opponent screen and shop lock-ins (2026-11-08).
 const PROTOCOL=5,AI_PACE_LIMIT=2500,PAUSE_AFTER=5000,MAX_RESYNCS=3;
+// The game's content (2.2 MB as JSON) never changes after loading, so each Tag session reuses its hash (2026-11-09).
+const contentHashes=new WeakMap();
+const contentHash=content=>{
+ if(!content||typeof content!=='object')return crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(hex);
+ if(!contentHashes.has(content))contentHashes.set(content,crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(hex));
+ return contentHashes.get(content);
+};
+const hex=bytes=>Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join('');
 
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
@@ -14,7 +22,7 @@ export class TagSession {
  constructor({endpoint,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
   Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
-  this.contentHash=crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(bytes=>Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join(''));
+  this.contentHash=contentHash(content);
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
   // The CPU never stops to think, so a quiet link during its turn means something is wrong. A partner's turn can be
   // silent for minutes, and pinging through those would spend requests.

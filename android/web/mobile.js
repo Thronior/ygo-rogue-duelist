@@ -485,7 +485,7 @@ let viewportFrame=0,viewportSettle=0;function settleViewport(){cancelAnimationFr
 
 window.screen.orientation?.addEventListener('change',settleViewport);window.addEventListener('orientationchange',settleViewport);window.addEventListener('pageshow',settleViewport);sizeModalViewport();
 
-function dialog(title,body,showClose=true){juice.stopRewardText();if(desktopToken&&tagUI)desktopRPC('native-visible',false).catch(console.error);inspectParent=null;removeActions();modal.innerHTML=`<div class="modal-head">${title?`<h2>${esc(title)}</h2>`:''}${!showClose||tagUI?.isCollector&&title==='Surrender this duel?'?'':btn('Close','close')}</div>${body}`;modal.classList.toggle('card-inspect-modal',!!modal.querySelector('.inspect'));sizeModalViewport();if(!modal.open)modal.showModal();syncModalChain();syncInspectionPause()}
+function dialog(title,body,showClose=true){juice.stopRewardText();if(desktopToken&&tagUI)desktopRPC('native-visible',false).catch(console.error);inspectParent=null;removeActions();modal.innerHTML=`<div class="modal-head">${title?`<h2>${esc(title)}</h2>`:''}${!showClose||tagUI?.isCollector&&title==='Surrender this duel?'?'':btn('Close','close')}</div>${body}`;modal.classList.toggle('card-inspect-modal',!!modal.querySelector('.inspect'));sizeModalViewport();if(modal.open)modalBlocking();if(!modal.open)modal.showModal();syncModalChain();syncInspectionPause()}
 
 function cardBadges(c){const t=c.data.type,key=t&2?'spell':t&4?'trap':t&64?'fusion':t&128?'ritual':t&16?'normal':'effect';const icon=(name)=>`<img class="pixel-badge" alt="" src="assets/icons/pixel/${name}.png">`;return `${typeIcon(c)}${icon('type-'+key)}${esc(c.type)} · ${esc(c.race)} ${c.attribute?'· '+icon('attribute-'+c.attribute.toLowerCase())+esc(c.attribute):''}`}
 
@@ -614,7 +614,24 @@ let menu=baseMenu,menuPage='main',menuPageEntry=null;
 
 menuIndex=baseMenu.findIndex(item=>item[4]==='continue');
 
-function renderTitle(){void remindReplayUpload(()=>screen==='title');titleMotion?.destroy();const activeMenu=menuPageEntry||menu[menuIndex]?.[4];menuPageEntry=null;const hasSave=(state.slots||[]).some(s=>s.run);menu=menuPage==='online'?[...onlineMenu]:baseMenu.filter(m=>!['tutorial','achievements'].includes(m[4])&&(m[4]!=='cpu'||state.profile.cpu_viewer_unlocked)&&(m[4]!=='continue'||hasSave));if(menuPage==='main'&&state.profile.gallery_unlocked)menu.push(['Gallery',75500286,'spell','Under construction','gallery']);menuIndex=menu.findIndex(m=>m[4]===activeMenu);if(menuIndex<0)menuIndex=Math.max(0,menu.findIndex(m=>m[4]==='characters'));app.innerHTML=`<div class="title"><a class="discord-link" href="https://discord.gg/QD36Q3VG7F" target="_blank" rel="noopener noreferrer" aria-label="Join YGO Rogue Duelist on Discord" title="Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4a19.8 19.8 0 0 0-4.9-1.5l-.6 1.2a18.3 18.3 0 0 0-5.6 0l-.6-1.2a20 20 0 0 0-4.9 1.5C.6 9 .1 13.5.4 18a20 20 0 0 0 6 3l1.2-2a12 12 0 0 1-1.9-.9l.5-.4c3.8 1.8 7.9 1.8 11.6 0l.5.4-1.9.9 1.2 2a20 20 0 0 0 6-3c.4-5.2-.7-9.6-3.3-13.6ZM8.3 15.4c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Zm7.4 0c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Z"/></svg></a>${Array.from({length:24},(_,i)=>`<i class="particle" style="left:${i*4.2}%;animation-delay:-${i*.47}s;animation-duration:${6+i%5}s"></i>`).join('')}<button class="language-button" data-do="language" aria-label="Language" title="Language">${flagSvg(currentLanguage())}</button><img class="game-logo" src="assets/rogue-duelist-logo.png" alt="Yu-Gi-Oh: Rogue Duelist"><div class="carousel">${menu.map((m,i)=>{let d=(i-menuIndex+menu.length)%menu.length;if(d>3)d-=menu.length;return `<button class="menu-card ${m[2]}" data-menu="${i}" data-distance="${Math.abs(d)}" style="--menu-offset:${d};left:${50+d*23}%;scale:${d?'.72':'1'};z-index:${10-Math.abs(d)};filter:${d?'brightness(.58)':'none'};animation-delay:-${i*.8}s" ${Math.abs(d)>2?'hidden':''}><h3 class="${m[0]==='Ultimate Collector'?'compact-menu-title':''}">${m[0]}</h3><div class="art"><img src="${m[4]==='gallery'?'assets/Meerkat.png':'assets/menu/'+m[1]+'.jpg'+(m[4]==='online'?'?v=unity-610':'')}"></div><p>${m[3]}</p></button>`}).join('')}</div><small class="title-version">v${esc(replayVersion)}</small><small style="padding-bottom:8px">Fan Experiment · EDOPro core · Progress saved on this device</small></div>`;titleMotion=mountMenuMotion(app.querySelector('.carousel'),menu.length,menuIndex,index=>{menuIndex=index})}
+function renderTitle(){void remindReplayUpload(()=>screen==='title');titleMotion?.destroy();const activeMenu=menuPageEntry||menu[menuIndex]?.[4];menuPageEntry=null;const hasSave=(state.slots||[]).some(s=>s.run);menu=menuPage==='online'?[...onlineMenu]:baseMenu.filter(m=>!['tutorial','achievements'].includes(m[4])&&(m[4]!=='cpu'||state.profile.cpu_viewer_unlocked)&&(m[4]!=='continue'||hasSave));if(menuPage==='main'&&state.profile.gallery_unlocked)menu.push(['Gallery',75500286,'spell','Under construction','gallery']);menuIndex=menu.findIndex(m=>m[4]===activeMenu);if(menuIndex<0)menuIndex=Math.max(0,menu.findIndex(m=>m[4]==='characters'));app.innerHTML=`<div class="title"><a class="discord-link" href="https://discord.gg/QD36Q3VG7F" target="_blank" rel="noopener noreferrer" aria-label="Join YGO Rogue Duelist on Discord" title="Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4a19.8 19.8 0 0 0-4.9-1.5l-.6 1.2a18.3 18.3 0 0 0-5.6 0l-.6-1.2a20 20 0 0 0-4.9 1.5C.6 9 .1 13.5.4 18a20 20 0 0 0 6 3l1.2-2a12 12 0 0 1-1.9-.9l.5-.4c3.8 1.8 7.9 1.8 11.6 0l.5.4-1.9.9 1.2 2a20 20 0 0 0 6-3c.4-5.2-.7-9.6-3.3-13.6ZM8.3 15.4c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Zm7.4 0c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Z"/></svg></a>${Array.from({length:24},(_,i)=>`<i class="particle" style="left:${i*4.2}%;animation-delay:-${i*.47}s;animation-duration:${6+i%5}s"></i>`).join('')}<button class="language-button" data-do="language" aria-label="Language" title="Language">${flagSvg(currentLanguage())}</button><img class="game-logo" src="assets/rogue-duelist-logo.png" alt="Yu-Gi-Oh: Rogue Duelist"><div class="carousel">${menu.map((m,i)=>{let d=(i-menuIndex+menu.length)%menu.length;if(d>3)d-=menu.length;return `<button class="menu-card ${m[2]}" data-menu="${i}" data-distance="${Math.abs(d)}" style="--menu-offset:${d};left:${50+d*23}%;scale:${d?'.72':'1'};z-index:${10-Math.abs(d)};filter:${d?'brightness(.58)':'none'};animation-delay:-${i*.8}s" ${Math.abs(d)>2?'hidden':''}><h3 class="${m[0]==='Ultimate Collector'?'compact-menu-title':''}">${m[0]}</h3><div class="art"><img src="${m[4]==='gallery'?'assets/Meerkat.png':'assets/menu/'+m[1]+'.jpg'+(m[4]==='online'?'?v=unity-610':'')}"></div><p>${m[3]}</p></button>`}).join('')}</div><small class="title-version">v${esc(replayVersion)}</small><small style="padding-bottom:8px">Fan Experiment · EDOPro core · Progress saved on this device</small></div>`;titleMotion=mountMenuMotion(app.querySelector('.carousel'),menu.length,menuIndex,index=>{menuIndex=index});fitMenuTitles()}
+// Menu card names stay on one line in every language: a name too long for its box gets a smaller font instead
+// (user, 2026-11-09). Runs after the translation pass and again once the card font has loaded or the window resizes.
+function fitMenuTitles(){
+ requestAnimationFrame(()=>{
+  for(const h of app.querySelectorAll('.title .menu-card h3')){
+   h.style.fontSize='';
+   for(let i=0;i<3&&h.scrollWidth>h.clientWidth+1;i++){
+    const cs=getComputedStyle(h),pad=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight),size=parseFloat(cs.fontSize);
+    h.style.fontSize=Math.max(8,Math.floor(size*(h.clientWidth-pad)/(h.scrollWidth-pad)*10)/10)+'px';
+   }
+  }
+ });
+}
+document.fonts?.ready.then(()=>{if(screen==='title')fitMenuTitles()});
+// The card font loads on first use, after the first fit measured the fallback font.
+document.fonts?.addEventListener?.('loadingdone',()=>{if(screen==='title')fitMenuTitles()});
+addEventListener('resize',()=>{if(screen==='title')fitMenuTitles()},{passive:true});
 
 let copycatTaps=0,deviceSecretTaps=0,secretPlaying=false;
 
@@ -799,21 +816,27 @@ let lastTap=null;
 
 function doubleTap(key,code){const now=performance.now();if(lastTap&&lastTap.key===key&&now-lastTap.time<350){lastTap=null;removeActions();inspect(code);return true}lastTap={key,time:now};return false}
 
-function tapDraft(el){if(modal.open||screen!=='draft')return;command('toggle',+el.dataset.pick).then(()=>{updateDraft();playUISound('deck-select')}).catch(e=>toast(e.message))}
+// The window blocks the page only when it is a real modal dialog. One marked open without being modal (seen on Android,
+// Discord 2026-11-08) made every deck tap and inspect quietly do nothing until a restart; it is closed instead.
+function modalBlocking(){if(!modal.open)return false;let shown=true;try{shown=modal.matches(':modal')}catch{}if(!shown)modal.close();return shown}
+document.addEventListener('pointerdown',()=>{if(modal.open)modalBlocking()},true);
+function tapDraft(el){if(modalBlocking()||screen!=='draft')return;command('toggle',+el.dataset.pick).then(()=>{updateDraft();playUISound('deck-select')}).catch(e=>toast(e.message))}
 
 function cancelDraftHold(){if(draftPointer){clearTimeout(draftPointer.timer);draftPointer.cancel=true}}
 
-document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-pick]');if(!el||e.button!==0)return;cancelDraftHold();const p=draftPointer={id:e.pointerId,x:e.clientX,y:e.clientY,el,cancel:false,held:false};p.timer=setTimeout(()=>{if(draftPointer!==p||p.cancel||!el.isConnected||modal.open)return;p.held=true;inspect(state.run.pool[+el.dataset.pick],+el.dataset.pick)},500)});
+document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-pick]');if(!el||e.button!==0)return;cancelDraftHold();const p=draftPointer={id:e.pointerId,x:e.clientX,y:e.clientY,el,cancel:false,held:false};p.timer=setTimeout(()=>{if(draftPointer!==p||p.cancel||!el.isConnected||modalBlocking())return;p.held=true;inspect(state.run.pool[+el.dataset.pick],+el.dataset.pick)},500)});
 
 document.addEventListener('pointermove',e=>{if(draftPointer?.id===e.pointerId&&Math.hypot(e.clientX-draftPointer.x,e.clientY-draftPointer.y)>10)cancelDraftHold()},{passive:true});
 
-document.addEventListener('scroll',cancelDraftHold,{capture:true,passive:true});
+// Only scrolling the pressed card's own list (or the page) cancels the tap or hold; any other scroller on the page
+// used to cancel every tap, so cards could neither be added nor inspected (user, Discord 2026-11-08).
+document.addEventListener('scroll',e=>{if(draftPointer&&(e.target===document||e.target.contains?.(draftPointer.el)))cancelDraftHold()},{capture:true,passive:true});
 
 document.addEventListener('pointercancel',cancelDraftHold);
 
 document.addEventListener('pointerup',e=>{if(draftPointer?.id!==e.pointerId)return;const p=draftPointer;clearTimeout(p.timer);draftPointer=null;if(!p.cancel&&!p.held&&p.el===e.target.closest('[data-pick]'))tapDraft(p.el)});
 
-document.addEventListener('contextmenu',e=>{const el=e.target.closest('[data-pick]');if(!el)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch'||modal.open||screen!=='draft')return;cancelDraftHold();draftPointer=null;inspect(state.run.pool[+el.dataset.pick],+el.dataset.pick)});
+document.addEventListener('contextmenu',e=>{const el=e.target.closest('[data-pick]');if(!el)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch'||modalBlocking()||screen!=='draft')return;cancelDraftHold();draftPointer=null;inspect(state.run.pool[+el.dataset.pick],+el.dataset.pick)});
 
 document.addEventListener('dragstart',e=>{if(e.target.closest('.cardbtn'))e.preventDefault()});
 
@@ -1086,7 +1109,9 @@ function legalCardActions(player,loc,seq,code){const m=engine.pending;if(m?.play
 
 function tapActivateOpponentChain(player,loc,seq,code){const m=engine?.pending;if(player!==0||engine?.player===0||m?.player!==0||m.type!==M.SELECT_CHAIN||m.forced||offerChain(m)||busy)return false;const matches=legalCardActions(player,loc,seq,code);if(!matches.length)return false;clearTimeout(aiTimer);clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;heldChainPrompt=m;setPreview(code,{dataset:{zone:[player,loc,seq].join(',')}});chooseReaction(matches.map(a=>a.index));return true}
 
-function showCardActions(el,player,loc,seq,code){setPreview(code,el);removeActions();const choices=busy?[]:legalCardActions(player,loc,seq,code);const pop=document.createElement('div');pop.className='action-pop';
+function showCardActions(el,player,loc,seq,code){setPreview(code,el);removeActions();const choices=busy?[]:legalCardActions(player,loc,seq,code);
+ // Spells and Traps list Activate first, like Summon for monsters (Kuroda, Discord 2026-11-09).
+ if(!(Number(card(code)?.data?.type??engine?.cards?.get?.(code)?.data?.type)&1))choices.sort((a,b)=>(b.response.action===I.SELECT_ACTIVATE)-(a.response.action===I.SELECT_ACTIVATE));const pop=document.createElement('div');pop.className='action-pop';
 
  for(const a of choices){const b=document.createElement('button');b.textContent=a.label.split(' · ')[0];b.onclick=e=>{e.stopPropagation();removeActions();stageChoice(a.response,a.label,code,{controller:player,location:loc,sequence:seq})};pop.append(b)}
 
@@ -1211,7 +1236,7 @@ renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()
 }
 
 // Your hand size limit, as the Duel sets it (relic_hand_limit and hand_limiter in approved_relic_effects.py): Starving
-// Library 3, each Deep Pockets +3, Endless Archive +2, Mass Grave and Empty-Hand Pact -2, Crowded Crypt -4, then each
+// Library 3, each Deep Pockets +3, Divine Archive +2, Mass Grave and Empty-Hand Pact -2, Crowded Crypt -4, then each
 // Hand Limiter curse -2 (-3 from LVL 2); none on turn 1 when the opponent goes first. Tag duels keep the rule's 6.
 // Relic Seal turns the relics off for the Duel, so their limits too (flag 466202c7, 2026-11-08).
 function handSizeLimit(s){
@@ -2243,7 +2268,7 @@ async function boot(){try{
 
  await Promise.all([preloadCards([...content.cards,...(content.tokenCards||[])],({loaded,total,failed,bytes})=>{
 
-  document.querySelector('#loading-count').textContent=`${loaded.toLocaleString()} / ${total.toLocaleString()} cards · ${(bytes/1048576).toFixed(1)} MB artwork read`;
+  document.querySelector('#loading-count').textContent=`${loaded.toLocaleString()} / ${total.toLocaleString()} cards${bytes?` · ${(bytes/1048576).toFixed(1)} MB artwork read`:''}`;
 
   const bar=document.querySelector('#loading-progress');bar.max=Math.max(1,total);bar.value=loaded;
 

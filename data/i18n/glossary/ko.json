@@ -437,7 +437,7 @@
  {
   "term": "Run",
   "translation": "런",
-  "evidence": "game term"
+  "evidence": "kept: Slay the Spire KR uses 도전, but 도전 레벨 is already Challenge Level here"
  },
  {
   "term": "Loop",
@@ -446,23 +446,23 @@
  },
  {
   "term": "Relic",
-  "translation": "렐릭",
-  "evidence": "game term"
+  "translation": "유물",
+  "evidence": "Slay the Spire KR store page: \"'유물'이라고 불리는 강력한 물건들\". Was: 렐릭"
  },
  {
   "term": "Cursed relic",
-  "translation": "저주받은 렐릭",
-  "evidence": "game term"
+  "translation": "저주받은 유물",
+  "evidence": "follows Relic"
  },
  {
   "term": "Fused relic",
-  "translation": "합성 렐릭 (relic fusion = 렐릭 합성)",
-  "evidence": "game term; avoids confusion with card 융합 소환"
+  "translation": "합성 유물 (relic fusion = 유물 합성)",
+  "evidence": "follows Relic"
  },
  {
   "term": "Starting relic",
-  "translation": "시작 렐릭",
-  "evidence": "game term"
+  "translation": "시작 유물",
+  "evidence": "follows Relic"
  },
  {
   "term": "Coins",
@@ -588,5 +588,15 @@
   "term": "Inspect",
   "translation": "자세히 보기",
   "evidence": "game term"
+ },
+ {
+  "term": "Lock in / undo lock-in",
+  "translation": "확정 / 확정 취소",
+  "evidence": "VALORANT KR: \"선택 확정\". Undo was 선택 잠금 해제"
+ },
+ {
+  "term": "Loadout",
+  "translation": "변형",
+  "evidence": "same as Variant; was 로드아웃 in one string"
  }
 ]

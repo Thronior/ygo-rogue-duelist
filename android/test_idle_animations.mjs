@@ -11,7 +11,7 @@ const read=f=>fs.readFileSync(new URL('./web/'+f,import.meta.url),'utf8');
 const css=read('mobile.css').replace(/\/\*[\s\S]*?\*\//g,''),HZ=20,PERIOD=1/HZ,EPS=1e-6,MAX_RATE=HZ*1.001;// keyframe offsets are written to 4 decimals
 const COMPOSITED=new Set(['transform','translate','rotate','scale','opacity']);
 // Fast movers on the clock's half-ticks: at 20 Hz they would jump 3-9 px per tick.
-const HALF_TICK=new Set(['pack-spark','pack-dust','pack-foil-loop']);
+const HALF_TICK=new Set(['pack-spark','pack-dust','pack-foil-loop','tag-arrow-shine']);
 // Endless loops still smooth, on screens a player rarely sees. Do not add idle-screen loops here.
 const KNOWN_SMOOTH={'badge-rainbow':'challenge level 6 badge'};
 const limit=name=>(HALF_TICK.has(name)?2*HZ:HZ)*1.001;

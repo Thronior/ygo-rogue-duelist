@@ -52,6 +52,8 @@ def install(artifact):
  artifact('kindred_bond','Kindred Bond',95,'Monsters you control gain 100 ATK/DEF for each other face-up monster you control with the same Type.','Mystical Shine Ball','kindred_bond',100,'offense')
  artifact('restless_dead','Restless Dead',100,'Once per turn, at the start of your Standby Phase, if you control no monsters, Special Summon 1 random Zombie monster from your GY in Defense Position.','Call of the Mummy','standby_zombie_revive',0,'summoning')
  artifact('union_hangar','Union Hangar',90,'Add a random Union monster from your Deck to your starting hand.','Formation Union','starting_union',0,'draw')
+ # User request 2026-11-09; with Union Dock and Union Hangar it fuses into Union Buster (relic_fusions.py).
+ artifact('unionize','Unionize',80,'Monsters you control gain 300 ATK for each Union monster equipped to them.','Union Attack','union_equip_atk',300,'offense')
  artifact('ten_thousand_hands','Ten-thousand Hands',90,'Add a random Ritual Monster or Ritual Spell from your Deck to your starting hand.','Manju of the Ten Thousand Hands','starting_ritual',0,'draw')
  artifact('bounty_list','Bounty List',100,'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.','WANTED: Seeker of Sinful Spoils','bounty_list',0,'economy')
  artifact('loyalty','Loyalty',100,'Your opponent cannot take control of monsters you control.','Blindly Loyal Goblin','loyalty',0,'defense')

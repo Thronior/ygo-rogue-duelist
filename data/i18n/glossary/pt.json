@@ -437,7 +437,7 @@
  {
   "term": "Run",
   "translation": "Jornada",
-  "evidence": "game term"
+  "evidence": "kept: Partida already means a match (Ultimate Collector); Monster Train PT-BR uses partida, Slay the Spire tentativa"
  },
  {
   "term": "Loop",
@@ -476,8 +476,8 @@
  },
  {
   "term": "Reroll",
-  "translation": "Renovar (noun: Renovação)",
-  "evidence": "game term"
+  "translation": "Atualizar (botão); atualização (substantivo)",
+  "evidence": "Balatro PT-BR: \"Excesso de Atualizações\"; TFT PT-BR: \"atualização\". Was: Renovar / renovação"
  },
  {
   "term": "Booster pack",
@@ -526,8 +526,8 @@
  },
  {
   "term": "Tag Duel",
-  "translation": "Duelo em Dupla",
-  "evidence": "game term; system 1246 'Dupla'"
+  "translation": "Duelo Tag (modo: Tag)",
+  "evidence": "Konami PT-BR page: \"Regras de Tag Dueling\"; matches de/it. Was: Duelo em Dupla"
  },
  {
   "term": "Ultimate Collector",
@@ -588,5 +588,15 @@
   "term": "Inspect",
   "translation": "Inspecionar",
   "evidence": "game term"
+ },
+ {
+  "term": "Lock in / undo lock-in",
+  "translation": "Confirmar / Cancelar confirmação",
+  "evidence": "game term; was mixed: Confirmar / Trave / travada"
+ },
+ {
+  "term": "Loadout",
+  "translation": "Variante",
+  "evidence": "same as Variant"
  }
 ]

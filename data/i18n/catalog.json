@@ -14833,7 +14833,7 @@
  },
  {
   "group": "relic",
-  "en": "When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). Very rare relics are never offered. This relic is then consumed.",
+  "en": "When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). This relic is then consumed.",
   "kind": "exact",
   "ctx": "relic effect (relic_picker)"
  },
@@ -16153,7 +16153,7 @@
  },
  {
   "group": "relic",
-  "en": "Your Harpie monsters gain 400 ATK. The first time each turn that one of your Harpie monsters would be destroyed by battle, it is not.",
+  "en": "Your Harpie monsters gain 800 ATK. The first time each turn that one of your Harpie monsters would be destroyed by battle, it is not.",
   "kind": "exact",
   "ctx": "relic effect (harpie_nest)"
  },
@@ -16165,7 +16165,7 @@
  },
  {
   "group": "relic",
-  "en": "Your Dark Scorpion monsters and Don Zaloog can attack your opponent directly.",
+  "en": "Your Dark Scorpion monsters and Don Zaloog gain 800 ATK and can attack your opponent directly.",
   "kind": "exact",
   "ctx": "relic effect (zaloog_hideout)"
  },
@@ -16177,7 +16177,7 @@
  },
  {
   "group": "relic",
-  "en": "Your Amazoness monsters gain 400 ATK and inflict piercing battle damage.",
+  "en": "Your Amazoness monsters gain 800 ATK and inflict piercing battle damage.",
   "kind": "exact",
   "ctx": "relic effect (amazoness_village)"
  },
@@ -16189,7 +16189,7 @@
  },
  {
   "group": "relic",
-  "en": "Your Gravekeeper's monsters gain 400 ATK/DEF. Your Field Spell cannot be destroyed.",
+  "en": "Your Gravekeeper's monsters gain 800 ATK/DEF. Your Field Spell cannot be destroyed.",
   "kind": "exact",
   "ctx": "relic effect (necrovalley_throne)"
  },
@@ -16315,7 +16315,7 @@
  },
  {
   "group": "relic",
-  "en": "Endless Archive",
+  "en": "Divine Archive",
   "kind": "exact",
   "ctx": "relic name (endless_archive)"
  },
@@ -21178,5 +21178,209 @@
   "en": "Beat Challenge Level 5 with any character",
   "kind": "exact",
   "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Summon",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Special summon",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Change position",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Unselect",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "End turn →",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Enter battle phase →",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Main phase 2 →",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Keep this order",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Flip Effect Monster",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Union Effect Monster",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Spirit Monster",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Toon Monster",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Ritual Effect Monster",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Spell Card",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Trap Card",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "TURN",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "VICTORIES",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "NEW",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Interface and card texts.",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} / {1}+ minimum main",
+  "kind": "pattern",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} Extra Deck",
+  "kind": "pattern",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} gold",
+  "kind": "pattern",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "coins",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} coins",
+  "kind": "pattern",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "+{0} {1}",
+  "kind": "pattern",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "ui",
+  "en": "Guardian monsters and equipment",
+  "kind": "exact",
+  "ctx": "added 2026-11-09 (Discord)"
+ },
+ {
+  "group": "relic",
+  "en": "Unionize",
+  "kind": "exact",
+  "ctx": "relic name (unionize)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 300 ATK for each Union monster equipped to them.",
+  "kind": "exact",
+  "ctx": "relic effect (unionize)"
+ },
+ {
+  "group": "relic",
+  "en": "Union Buster",
+  "kind": "exact",
+  "ctx": "relic name (union_buster)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 400 ATK for each monster equipped to them. When you Normal Summon a monster whose name is listed on a Union monster in your hand or Deck: Equip 1 of those Union monsters to that monster.",
+  "kind": "exact",
+  "ctx": "relic effect (union_buster)"
+ },
+ {
+  "group": "ui",
+  "en": "Brave can delete your save",
+  "kind": "exact",
+  "ctx": "Brave save warning in the itch.io frame (tools/pwa/pwa.js), 2026-11-09"
+ },
+ {
+  "group": "ui",
+  "en": "Brave deletes the save of games played inside the itch.io page, usually when the browser closes.",
+  "kind": "exact",
+  "ctx": "Brave save warning in the itch.io frame (tools/pwa/pwa.js), 2026-11-09"
+ },
+ {
+  "group": "ui",
+  "en": "To keep your progress, play on ygo-rogue.pages.dev, or turn on cloud save in Settings.",
+  "kind": "exact",
+  "ctx": "Brave save warning in the itch.io frame (tools/pwa/pwa.js), 2026-11-09"
+ },
+ {
+  "group": "ui",
+  "en": "Play on ygo-rogue.pages.dev",
+  "kind": "exact",
+  "ctx": "Brave save warning in the itch.io frame (tools/pwa/pwa.js), 2026-11-09"
  }
 ]

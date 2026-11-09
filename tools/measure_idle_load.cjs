@@ -63,6 +63,12 @@ async function closeModal(page){await page.evaluate(()=>{const m=document.queryS
 
 const GOTO={
  async title(page){await page.evaluate(()=>shadowTest.go('title'));await waitScreen(page,'title')},
+ // Character select and the deck editor (2026-11-09), where players also sit and think.
+ async characters(page){await page.evaluate(()=>shadowTest.go('characters'));await waitScreen(page,'characters')},
+ async draft(page){
+  await page.evaluate(async()=>{if(!shadowTest.state().run?.routes?.length){await shadowTest.command('new',0);await shadowTest.command('auto')}shadowTest.go('draft')});
+  await waitScreen(page,'draft');
+ },
  async routes(page){
   await page.evaluate(async()=>{if(!shadowTest.state().run?.routes?.length){await shadowTest.command('new',0);await shadowTest.command('auto')}shadowTest.go('routes')});
   await waitScreen(page,'routes');

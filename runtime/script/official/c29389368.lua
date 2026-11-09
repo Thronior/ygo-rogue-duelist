@@ -13,7 +13,8 @@ function s.initial_effect(c)
 	c:RegisterEffect(e1)
 end
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetBattleDamage(tp)>=2000
+	-- Shadow Run: relics and curses scale battle damage after this check (SR_BATTLE_SCALE, set by the run).
+	return math.floor(Duel.GetBattleDamage(tp)*((SR_BATTLE_SCALE or {})[tp] or 1))>=2000
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end

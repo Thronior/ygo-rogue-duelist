@@ -115,5 +115,7 @@
  {"term": "Achievement", "translation": "成就", "evidence": "game term"},
  {"term": "Unlock", "translation": "解锁", "evidence": "game term"},
  {"term": "Settings", "translation": "设置", "evidence": "game term"},
- {"term": "Inspect", "translation": "查看", "evidence": "game term (长按查看卡片)"}
+ {"term": "Inspect", "translation": "查看", "evidence": "game term (长按查看卡片)"},
+ {"term": "Lock in / undo lock-in", "translation": "锁定 / 解除锁定", "evidence": "VALORANT zh-TW: 鎖定"},
+ {"term": "Loadout", "translation": "流派", "evidence": "same as Variant"}
 ]

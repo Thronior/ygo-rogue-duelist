@@ -170,6 +170,19 @@ def miller(scale):
  count='math.floor(Duel.GetFieldGroupCount(0,LOCATION_DECK,0)/2)' if scale>=2 else '10'
  return f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCondition(function() return Duel.GetTurnPlayer()==0 end) e:SetOperation(function(e) e:Reset() Duel.DiscardDeck(0,{count},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'
 
+def battle_damage_scale(run,scale=1):
+ """How much the battle damage each player takes is scaled after damage calculation, by battle_rules, Hollow Chalice
+ and the Exposed and Mercy curses: (you take, your opponent takes). Nutrient Z checks the damage before those changes,
+ so its condition multiplies by this (Prunk44, Discord 2026-11-09)."""
+ from approved_relics import copies
+ shield=.5**copies(run,'cursed_defense_proficiency')
+ taken=1.5**copies(run,'cursed_duelists_wager')*shield*1.5**copies(run,'hollow_chalice')
+ dealt=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'battle_proficiency'))*shield
+ curses=run.get('curses',[])
+ taken*=(2 if scale>=2 else 1.5)**curses.count('exposed')
+ dealt/=(3 if scale>=2 else 2)**curses.count('mercy')
+ return taken,dealt
+
 def battle_rules(run,relic_hint=lambda key:''):
  from approved_relics import copies
  shield=.5**copies(run,'cursed_defense_proficiency')
