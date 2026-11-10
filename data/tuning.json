@@ -503,14 +503,14 @@
     "pendulum": {
       "name": "Sun and Moon Dial",
       "price": 105,
-      "description": "During your turn, monsters you control gain 100 ATK. During your opponent's turn, monsters you control gain 100 DEF.",
+      "description": "During your turn, monsters you control gain 200 ATK. During your opponent's turn, monsters you control gain 200 DEF.",
       "art": "Darkness Approaches",
       "effect": "dial",
-      "amount": 100,
+      "amount": 200,
       "tag": "defense",
       "filter": "",
       "parameters": {
-        "defense": 100
+        "defense": 200
       }
     },
     "desperate": {

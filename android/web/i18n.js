@@ -130,17 +130,6 @@ export async function setLanguage(code,{remember=true}={}){
 // Native dialogs cannot be observed, so their message is translated on the way in.
 for(const name of ['alert','confirm']){const native=window[name]?.bind(window);if(native)window[name]=message=>native(t(message))}
 
-// Most flags are inline. English and Portuguese use locally bundled split-flags composites.
-const FLAGS={
- en:'<rect width="30" height="20" fill="#b22234"/>'+[1,3,5,7,9,11].map(i=>`<rect y="${i*20/13}" width="30" height="${20/13}" fill="#fff"/>`).join('')+'<rect width="13" height="10.8" fill="#3c3b6e"/>',
- de:'<rect width="30" height="20" fill="#ffce00"/><rect width="30" height="13.33" fill="#d00"/><rect width="30" height="6.67" fill="#000"/>',
- es:'<rect width="30" height="20" fill="#c60b1e"/><rect y="5" width="30" height="10" fill="#ffc400"/>',
- fr:'<rect width="30" height="20" fill="#ef4135"/><rect width="20" height="20" fill="#fff"/><rect width="10" height="20" fill="#0055a4"/>',
- it:'<rect width="30" height="20" fill="#ce2b37"/><rect width="20" height="20" fill="#fff"/><rect width="10" height="20" fill="#009246"/>',
- ja:'<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>',
- ko:'<rect width="30" height="20" fill="#fff"/><path d="M15 6a4 4 0 0 1 0 8 2 2 0 0 1 0-4 2 2 0 0 0 0-4z" fill="#003478"/><path d="M15 6a4 4 0 0 0 0 8 2 2 0 0 0 0-4 2 2 0 0 1 0-4z" fill="#c60c30"/><g stroke="#000" stroke-width="1"><path d="M5 4.5l3 -2M5.6 5.4l3-2M6.2 6.3l3-2M21.8 13.7l3 -2M22.4 14.6l3-2M23 15.5l3-2M5 15.5l3 2M5.6 14.6l3 2M6.2 13.7l3 2M21.8 6.3l3 -2M22.4 5.4l3-2M23 4.5l3-2"/></g>',
- zh:'<rect width="30" height="20" fill="#de2910"/><path d="M5 2.4l1.18 3.6H10l-3.06 2.2 1.17 3.6L5 9.6l-3.1 2.2 1.18-3.6L0 6h3.82z" fill="#ffde00"/>'+[[10,2],[12,4],[12,7],[10,9]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".9" fill="#ffde00"/>`).join(''),
-};
-export const flagSvg=code=>code==='en'||code==='pt'
- ?`<img class="language-flag" src="assets/i18n/flags/${code}.svg" alt="" aria-hidden="true" draggable="false">`
- :`<svg class="language-flag" viewBox="0 0 30 20" aria-hidden="true" focusable="false">${FLAGS[code]||FLAGS.en}</svg>`;
+// Language flags (2026-11-10): one bundled SVG per language in assets/i18n/flags, from lipis/flag-icons (MIT; see
+// its README). English and Portuguese are split composites (UK/US, Portugal/Brazil).
+export const flagSvg=code=>`<img class="language-flag" src="assets/i18n/flags/${codes.has(code)?code:'en'}.svg" alt="" aria-hidden="true" draggable="false">`;

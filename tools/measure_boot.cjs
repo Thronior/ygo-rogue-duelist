@@ -5,7 +5,7 @@
 //   heap      JS heap in use at the title screen, after the duel data is loaded, and after one duel renders
 //   duel      time to load the duel resources (engine-data.json + scripts.json) the first time
 // Usage: runtime/ai/node.exe tools/measure_boot.cjs [--throttle 4] [--runs 1] [--android] [--no-duel] [--out file.json]
-//        [--overlay <dir>]
+//        [--overlay <dir>] [--root <web build dir>] (default android/web)
 // --android serves files the way the APK's WebView does, with no Content-Length header.
 // --warm reuses one browser profile across runs, so later runs boot like a returning web player (art cached).
 // --throttle slows the CPU (4 is a rough low-end phone). Compare runs, not devices.
@@ -13,7 +13,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const args=process.argv.slice(2),flag=(name,fallback)=>{const i=args.indexOf('--'+name);return i<0?fallback:args[i+1]};
 const WARM=args.includes('--warm'),THROTTLE=Number(flag('throttle',1)),RUNS=Number(flag('runs',1)),ANDROID=args.includes('--android'),DUEL=!args.includes('--no-duel'),OUT=flag('out','');
-const WEB=path.resolve(__dirname,'..','android','web'),OVERLAY=flag('overlay','')?path.resolve(flag('overlay','')):'';
+const WEB=flag('root','')?path.resolve(flag('root','')):path.resolve(__dirname,'..','android','web'),OVERLAY=flag('overlay','')?path.resolve(flag('overlay','')):'';
 const TYPES={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.m4a':'audio/mp4','.mp3':'audio/mpeg','.wav':'audio/wav','.woff2':'font/woff2','.ttf':'font/ttf','.zip':'application/zip','.whl':'application/zip','.data':'application/octet-stream'};
 function serve(){
  const server=http.createServer((req,res)=>{

@@ -699,7 +699,8 @@ def install(g):
   # The chosen category favours its relics after a duel; rerolls use normal weights.
   favored=frozenset() if general_stock else shop_rewards.category_relics(bias)
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass')+3*ar.copies(run,'grand_bazaar'),len(available))
-  chosen=archetype_relics.sample(available,count,run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST)
+  # Two weighted relic slots, then random ones (archetype_relics.shop_sample).
+  chosen=archetype_relics.shop_sample(available,count,run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST)
   items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   modifier=max(0,1-amount(run,'discount')/100)
   for item in items:

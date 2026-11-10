@@ -653,11 +653,21 @@ export function smartContext(e,p,L,prompt=null){
   if(face(x)&&name(x)==='Swords of Revealing Light')return 2500;
   return backValue(x);
  }
+ function lethalClear(c){
+  const n=name(c),all=n==='Heavy Storm'||n==="Harpie's Feather Duster";
+  if(!all&&n!=='Mystical Space Typhoon'&&n!=='Dust Tornado'||e.player!==p||e.phase!==4||(e.activeChain||[]).length)return false;
+  const hidden=theirBack.filter(x=>!face(x)&&x.sequence<5);
+  if(!hidden.length||!all&&hidden.length>1||n==='Heavy Storm'&&back.some(x=>!same(x,c)&&x.sequence<5&&ownBackLoss(x)>=1500))return false;
+  return planLethal(freeSummon());
+ }
  function backScore(c){
   const n=name(c);let targets=[...theirBack,...back.filter(x=>friendlyRemovalValue(x)>=4000)].filter(x=>!reservedForRemoval(x));
   if(n==='De-Spell')targets=targets.filter(x=>face(x)&&(data(x).type&2));
   if(n==='Remove Trap')targets=targets.filter(x=>face(x)&&(data(x).type&4));
   if(!targets.length)return -1;
+  // Their Set back-row is all that stands between this turn's attacks and lethal: clear it first. Players do this
+  // before swinging; the CPU attacked into it (replay review 2026-11-10).
+  if(lethalClear(c))return 125;
   // Resolve other monster removal first, then reconsider Breaker's counter.
   if(n==='Breaker the Magical Warrior'&&preserveBreakerCounter(c,targets))return -1;
   const cost=resourceCost(c);if(!Number.isFinite(cost))return -1;
@@ -746,7 +756,7 @@ export function smartContext(e,p,L,prompt=null){
   return 95+Math.min(20,(target.value-threshold)/200);
  }
  const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon,battleProof});
- const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires});
+ const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
  function wabokuWorthUsing(){
@@ -831,8 +841,11 @@ export function smartContext(e,p,L,prompt=null){
  }
  // Gearfried the Iron Knight (or any monster that destroys Equip Cards put on it) breaks equip steals and boosts.
  function equipBreaker(c){return enabled(c)&&(name(c)==='Gearfried the Iron Knight'||/equips? an Equip Card[\s\S]{0,40}to this card[\s\S]{0,40}destroy that Equip/i.test(e.cards.get(c.code)?.desc||''));}
- function controlTarget(c){
-  if(!face(c)||c.is_immune)return false;
+ function controlTarget(c,spellName=null){
+  if(c.is_immune)return false;
+  // Change of Heart also takes a Set monster: it stops blocking and can be flipped to attack. Players use it on a
+  // lone Set monster to open lethal (replay review 2026-11-10: 13 lethal turns the CPU missed from the same position).
+  if(!face(c))return spellName==='Change of Heart'&&!(known(c)&&name(c)==='Spirit Reaper');
   // Spirit Reaper destroys itself after a resolving effect targets it, so
   // temporary-control effects cannot actually steal it for battle or Tribute.
   if(name(c)==='Spirit Reaper'&&enabled(c))return false;
@@ -843,8 +856,15 @@ export function smartContext(e,p,L,prompt=null){
  // Normal Summons still open this turn: the idle prompt's list, or the one recorded when the current card was activated.
  function openSummons(){return prompt?.summons??(e.lastIdle?.player===p&&e.lastIdle.turn===e.turn?e.lastIdle.summons:[])}
  function temporaryControlValue(c,spellName){
-  if(!controlTarget(c))return -1;
+  if(!controlTarget(c,spellName))return -1;
   if(spellName==='Brain Control'&&e.lp[p]<=1800)return -1;
+  // A Set monster is worth only the lethal it opens (its ATK counts once we know the card). A bigger hit alone
+  // lost games in the deck-sim A/B (2026-11-10).
+  if(!face(c)){
+   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return -1;
+   const flipped=known(c)&&attackAllowed({...c,controller:p,position:1},true)?[controlledAttack(c)].filter(v=>v>0):[];
+   return !theirBack.some(x=>!face(x))&&planLethal([...freeSummon(),...flipped],[c])?20000:-1;
+  }
   // A currently legal tribute summon is a concrete use even after battle.
   if(openSummons().some(x=>effectiveLevel(x,true)>4&&tributeWorth(x)!==false&&(projectedAttack(x)>Math.max(0,...own.map(atk))||summonUtility(x))))return 10000+controlledAttack(c);
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return -1;
@@ -2635,5 +2655,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {lpCost,lethalCost,lethalUpkeep,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {lethalClear,lpCost,lethalCost,lethalUpkeep,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
 }

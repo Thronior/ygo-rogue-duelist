@@ -2,12 +2,13 @@
 // summoned directly, so Kaibaman with Blue-Eyes in hand counts as a 3000 ATK play and not a 1200 one.
 // Nothing is remembered between prompts: each prompt finds the next step again, so a line that gets
 // interrupted simply stops being offered. Only the CPU's own hand, Deck and Extra Deck are read.
+import {ritualLevelsReady} from './cpu-card-plans.js';
 const HARPIES=new Set(['Harpie Lady','Harpie Lady 1','Cyber Harpie Lady']);
 const HEALS=new Set(['Dian Keto the Cure Master','Poison of the Old Man','Gift of The Mystical Elf','Numinous Healer','Soul of the Pure','Mooyan Curry',"Goblin's Secret Remedy",'Red Medicine','Blue Medicine']);
 const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage"]);
 const LIGHT=0x10,WATER=0x2;
 export function comboPlanner(x){
- const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan}=x;
+ const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan,matchesRitual,ritualMaterialReady}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),monster=c=>!!(data(c).type&1);
  const list=key=>prompt?.[key]||[],free=5-own.length;
  const fromPrompt=(key,n)=>list(key).findIndex(c=>name(c)===n);
@@ -169,12 +170,15 @@ export function comboPlanner(x){
  }
  // Every monster can be fed to Cannon Soldier or Catapult Turtle. Null unless that finishes the duel.
  function burnPlan(){
-  const cannon=up('Cannon Soldier'),turtle=up('Catapult Turtle'),body=turtle||cannon;if(!body)return null;
+  const cannon=up('Cannon Soldier'),turtle=up('Catapult Turtle'),body=turtle||cannon;
+  // A Cannon Soldier still in hand is summoned to feed the field to it (replay f522ef880cec, 2026-11-10: four bodies
+  // for 2000 against 1850 LP; the CPU summoned The Wicked Dreadroot instead).
+  if(!body){const step=free>0&&summonStep('Cannon Soldier');return step&&(own.length+1)*500>=e.lp[1-p]?{body:hand.find(c=>name(c)==='Cannon Soldier'),total:(own.length+1)*500,step}:null}
   const total=turtle?own.reduce((sum,c)=>sum+Math.floor(Math.max(0,atk(c))/2),0):own.length*500;
   return total>=e.lp[1-p]?{body,total}:null;
  }
  function burnLine(){
-  const plan=burnPlan(),start=plan&&useStep(name(plan.body));
+  const plan=burnPlan(),start=plan&&(plan.step||useStep(name(plan.body)));
   return start?[{id:'burn',start,payoff:[],normal:false,lost:[],burn:plan.total,onlyLethal:true}]:[];
  }
  // With an empty field Call of the Mummy puts a Zombie out for free, leaving the Normal Summon for a second body.
@@ -203,6 +207,44 @@ export function comboPlanner(x){
  function kaiserLine(){
   const kaiser=up('Kaiser Sea Horse');if(!kaiser)return [];
   return list('summons').map((c,index)=>({c,index})).filter(({c})=>tributes(c)===2&&(data(c).attribute&LIGHT)).map(({c,index})=>({id:'kaiser',start:{kind:'summon',index,code:name(c)},payoff:[c],normal:true,lost:[kaiser]}));
+ }
+ // Sonic Bird, Senju and Manju fetch the missing half of a Ritual: summon the searcher, then the Ritual Spell
+ // brings out the monster beside it. Players win with this (Senju into Black Illusion Ritual, Relinquished taking
+ // their monster) where the CPU Normal Summoned a bigger plain body (replay review 2026-11-10).
+ const SEARCHERS={'Sonic Bird':'spell','Senju of the Thousand Hands':'monster','Manju of the Ten Thousand Hands':'both'};
+ function ritualSearchLine(){
+  if(!spellsOk||!matchesRitual||back.filter(c=>c.sequence<5).length>=(e.aiModifiers?.spellTrapZones??5))return [];
+  const ritual=c=>!!(data(c).type&0x80),spell=c=>ritual(c)&&!!(data(c).type&2),beast=c=>ritual(c)&&monster(c);
+  const direct=Math.max(0,...list('summons').filter(c=>tributes(c)===0&&!SEARCHERS[name(c)]).map(power));
+  const lines=[];
+  for(const [n,finds] of Object.entries(SEARCHERS)){
+   const searcher=hand.find(c=>name(c)===n),start=searcher&&summonStep(n);if(!start)continue;
+   const pairs=[];
+   if(finds!=='monster')for(const s of deck().filter(spell))for(const m of hand.filter(beast))if(matchesRitual(s,m))pairs.push([s,m]);
+   if(finds!=='spell')for(const m of deck().filter(beast))for(const s of hand.filter(spell))if(matchesRitual(s,m))pairs.push([s,m]);
+   for(const [s,m] of pairs){
+    // The searched half must be missing from the hand, or the Ritual is already playable without the searcher.
+    if(hand.some(c=>c.code===(s.location===L.DECK?s:m).code)||!specialOk(m)||!ritualMaterialReady(s,m))continue;
+    // Pay the Levels with the cheapest cards; the searcher stays beside the Ritual Monster only when the others
+    // are enough. Three or more Tributes for one monster is not worth it (deck-sim A/B, 2026-11-10).
+    const cost=c=>c.location===L.MZONE?Math.max(400,atk(c)):600,mats=[];
+    if(name(s)!=='Advanced Ritual Art'){
+     const pool=[...hand,...own].filter(c=>monster(c)&&!same(c,m)&&!same(c,searcher)&&!(c.location===L.MZONE&&name(c)==='Relinquished')).sort((a,b)=>cost(a)-cost(b));
+     let sum=0;for(const c of pool){if(sum>=lvl(m))break;mats.push(c);sum+=lvl(c)}
+     if(sum<lvl(m))mats.push(searcher);
+    }
+    const kept=mats.includes(searcher)?[]:[searcher],paid=mats.filter(c=>c!==searcher);
+    if(paid.length>2)continue;
+    const spent=mats.reduce((v,c)=>v+(c===searcher?0:cost(c)),0),lost=paid.filter(c=>c.location===L.MZONE);
+    if(name(m)==='Relinquished'){
+     // Relinquished takes their best monster (a Set one too) and attacks with its ATK.
+     const prey=enemy.filter(t=>!t.is_immune).sort((a,b)=>targetValue(b)-targetValue(a))[0];
+     if(!prey||!effectsEnabled(p)||targetValue(prey)+kept.reduce((v,c)=>v+power(c),0)-spent<=direct)continue;
+     lines.push({id:'ritual-search',start,payoff:[m],kept,normal:true,lost,strikers:[face(prey)?Math.max(0,atk(prey)):0,...kept.map(power)].filter(v=>v>0),removed:[prey],bonus:targetValue(prey)});
+    }else if(power(m)>=1800&&power(m)+kept.reduce((v,c)=>v+power(c),0)-spent>direct)lines.push({id:'ritual-search',start,payoff:[m],kept,normal:true,lost});
+   }
+  }
+  return lines;
  }
  function captainLine(){
   const start=summonStep('Marauding Captain');if(!start||free<2)return [];
@@ -278,17 +320,17 @@ export function comboPlanner(x){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
   const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine];
-  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine]:[contactLine];
+  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
-  for(const line of cached){line.kept??=[];line.lost??=[];line.strikers=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
+  for(const line of cached){line.kept??=[];line.lost??=[];line.strikers??=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
   return cached;
  }
  // Lethal first, then the line ending on the biggest board. These lines are justified by what they do,
  // not by the size of the monster they leave behind.
- const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget']);
+ const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget','ritual-search']);
  function choose(useful){
   const direct=Math.max(0,...list('summons').filter(c=>tributes(c)===0).map(power));
-  const candidates=lines().map(line=>({...line,lethal:(line.burn||0)>=e.lp[1-p]||line.strikers.length>0&&planDamage(line.strikers,[],line.lost)>=e.lp[1-p]})).filter(line=>{
+  const candidates=lines().map(line=>({...line,lethal:(line.burn||0)>=e.lp[1-p]||line.strikers.length>0&&planDamage(line.strikers,line.removed||[],line.lost)>=e.lp[1-p]})).filter(line=>{
    if(line.lethal)return true;
    if(line.onlyLethal)return false;
    if(selfJustified.has(line.id))return true;

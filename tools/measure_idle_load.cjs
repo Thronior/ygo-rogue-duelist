@@ -15,6 +15,7 @@
 // Usage: runtime/ai/node.exe tools/measure_idle_load.cjs [--screens title,routes,shop,duel] [--seconds 20]
 //        [--cpu-seconds 10] [--throttle 4] [--out file.json] [--label name] [--portrait]
 //        [--settings '{"simpleBackgrounds":true}'] [--look shadow-realm] [--css "<extra css>"] [--layers]
+//        [--desktop] (1600x900 at DPR 1, mouse) [--root <web build dir>] (default android/web)
 //        [--overlay <dir>] [--trace-dir <dir>] [--max-fps 30] [--max-main 150] [--probe] [--eval "<js>"]
 // Screens: title, routes (opponent screen), shop (one ultra item), duel (the player's Main Phase prompt),
 // duel-select (five zones pulsing as selectable), duel-flames (a 2000+ ATK monster burning), duel-critical
@@ -31,10 +32,10 @@ const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const args=process.argv.slice(2),flag=(name,fallback)=>{const i=args.indexOf('--'+name);return i<0?fallback:args[i+1]};
 const SCREENS=String(flag('screens','title,routes,shop,duel')).split(',').filter(Boolean);
 const SECONDS=Number(flag('seconds',20)),THROTTLE=Number(flag('throttle',4)),OUT=flag('out',''),LABEL=flag('label','');
-const PORTRAIT=args.includes('--portrait'),EXTRA_SETTINGS=JSON.parse(flag('settings','{}')),TRACE_DIR=flag('trace-dir','');
+const PORTRAIT=args.includes('--portrait'),DESKTOP=args.includes('--desktop'),EXTRA_SETTINGS=JSON.parse(flag('settings','{}')),TRACE_DIR=flag('trace-dir','');
 const CPU_SECONDS=Number(flag('cpu-seconds',10)),INJECT_CSS=flag('css',''),LOOK=flag('look',''),LAYERS=args.includes('--layers');
 const MAX_FPS=Number(flag('max-fps',Infinity)),MAX_MAIN=Number(flag('max-main',Infinity)),PROBE=args.includes('--probe'),EVAL=flag('eval','');
-const WEB=path.resolve(__dirname,'..','android','web'),OVERLAY=flag('overlay','')?path.resolve(flag('overlay','')):'';
+const WEB=flag('root','')?path.resolve(flag('root','')):path.resolve(__dirname,'..','android','web'),OVERLAY=flag('overlay','')?path.resolve(flag('overlay','')):'';
 
 const TYPES={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.woff2':'font/woff2','.ttf':'font/ttf'};
 // --overlay <dir> serves any file present there instead of android/web's copy, so a frozen "before" set of
@@ -250,7 +251,7 @@ async function measure(browser,page,cdp,browserSession,seconds){
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--mute-audio','--autoplay-policy=no-user-gesture-required']});
  const results={label:LABEL,date:new Date().toISOString(),throttle:THROTTLE,seconds:SECONDS,portrait:PORTRAIT,settings:EXTRA_SETTINGS,screens:{}};
  try{
-  const context=await browser.newContext({viewport:PORTRAIT?{width:412,height:915}:{width:915,height:412},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  const context=await browser.newContext(DESKTOP?{viewport:{width:1600,height:900},deviceScaleFactor:1}:{viewport:PORTRAIT?{width:412,height:915}:{width:915,height:412},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.addInitScript(()=>{try{localStorage.setItem('ygo-preload-visuals','sounds')}catch{}});
   await page.goto(`http://127.0.0.1:${port}/`,{timeout:180000});

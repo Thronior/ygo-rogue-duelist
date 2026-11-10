@@ -33,6 +33,8 @@ const views=JSON.parse(fs.readFileSync(fixtures,'utf8'));
   await show(views['shop-host-waiting']);
   assert(await page.locator('.shop-buy.tag-locked').isVisible(),name+': waiting Buy');assert.equal(await page.locator('.shop-buy.tag-locked').getAttribute('aria-pressed'),'true');
   assert(await page.locator('.tag-shop-turn').isVisible());assert(await page.locator('.shop-product.teammate-pick .tag-cart-badge').count()>=1,name+': teammate cart badge');
+  // Favourite packs (2026-11-10): every pack offer has a star outside its tap area; starring moves it first and counts it in the heading.
+  {const packs=await page.locator('.packs .shop-product').evaluateAll(p=>p.filter(x=>x.querySelector('.shop-pack-fav')).length);assert(packs>=1,name+': pack star');const chosen=await page.locator('.shop-product.chosen').count(),last=page.locator('.packs .shop-pack-fav').last(),id=await last.getAttribute('data-pack');await last.click();await page.waitForFunction(id=>document.querySelector('.packs .shop-pack-fav')?.dataset.pack===id&&/Favourites in stock: 1/.test(document.querySelector('.fav-instock')?.textContent||''),id);assert.equal(await page.locator('.shop-product.chosen').count(),chosen,name+': starring never selects');await page.locator('.packs .shop-pack-fav').first().click();await page.waitForFunction(()=>!document.querySelector('.fav-instock'))}
   for(const selector of ['.shop-stock','.relics','.shop-buy','.shop-next','.shop-edit-deck','.tag-shop-turn'])await inside(selector,size);
   await show(views['shop-guest-partner-ready']);assert(await page.locator('.shop-buy.tag-partner-locked').isVisible(),name+': teammate ready on Buy');assert(await page.locator('.shop-next').isEnabled());
   // The deck editor over the shop leads back to it.

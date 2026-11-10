@@ -42,10 +42,11 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // their text often describes a later effect, not a restriction on setting up the Trap.
  if((m?.selects||[]).some(choice=>{
   const c=context.card?.(choice.code),type=Number(c?.data?.type||0);
+  // "When a monster(s) is Set" (Shadow of Eyes) is offered only right after a Set (Discord 2026-11-09: it never asked).
   // Metalmorph follows general response windows rather than text-specific timing.
   if(c?.name==='Metalmorph')return false;
   if((type&4)&&(type&0x20000))return false;
-  return /(?:during (?:the |your |your opponent[’']s |either player's |each )?(?:damage step|damage calculation|draw phase|standby phase|end phase|battle phase|main phase(?: [12])?)|(?:when|if) [^.;:]{0,180}(?:summon|declares? an attack|destroyed|sent to the|inflicts?|takes? (?:battle|effect) damage))/i.test(c?.desc||'');
+  return /(?:during (?:the |your |your opponent[’']s |either player's |each )?(?:damage step|damage calculation|draw phase|standby phase|end phase|battle phase|main phase(?: [12])?)|(?:when|if) [^.;:]{0,180}(?:summon|declares? an attack|destroyed|sent to the|inflicts?|takes? (?:battle|effect) damage|(?:is|are) set\b))/i.test(c?.desc||'');
  }))return true;
  // The core reports separate timing masks for the responding player and opponent.
  const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
@@ -112,3 +113,7 @@ export function collectorResponseOverlay(snapshot,isCollector){
  const who=teammate?'teammate':'opponent';
  return `<div class="collector-response-wait" role="status" aria-live="polite"><span aria-hidden="true">⌛</span><span><strong>Waiting for ${who}…</strong><small>Your ${who} is choosing a response.</small></span></div>`;
 }
+
+// True when a hand pick lists every card a reveal showed, so the separate reveal window can be skipped.
+// Amazoness Chain Master reveals the whole hand but picks only monsters, so its reveal is shown.
+export function revealInPick(cards,selects=[]){const key=c=>`${c.controller}:${c.location}:${c.sequence}`,listed=new Set(selects.map(key));return (cards||[]).every(c=>listed.has(key(c)))}

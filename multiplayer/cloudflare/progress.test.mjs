@@ -11,3 +11,7 @@ const synced=await call('sync',{group:a.group,token:a.token,progress:{characters
 const next=await call('create',{group:a.group,token:a.token});const pair=rows.get('code:'+next.code);pair.expires=0;assert.equal((await call('join',{code:next.code})).status,400);await registry.alarm();assert(!rows.has('code:'+next.code));
 assert.deepEqual(mergeProgress(synced.progress,synced.progress),synced.progress);
 console.log('PASS pairing, shared updates, monotonic merging, consumed/expired codes, authorization, secret/challenge unlocks, no runs/stats in cloud payload');
+// Regression: a Level 6 clear (rainbow portrait) must survive the Worker merge so linked devices show it.
+const top=await call('sync',{group:a.group,token:a.token,progress:{levels:{0:6,2:6}}});assert.equal(top.progress.levels[0],6);assert.equal(top.progress.levels[2],6);
+assert.deepEqual(mergeProgress({levels:{0:2}},{levels:{0:6,1:7}}).levels,{'0':6});
+console.log('PASS Level 6 clears sync; levels above 6 are rejected');

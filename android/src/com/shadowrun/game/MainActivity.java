@@ -151,6 +151,31 @@ public final class MainActivity extends Activity {
             if(vibrator!=null)vibrator.vibrate(android.os.VibrationEffect.createOneShot(Math.max(1,Math.min(ms,200)),android.os.VibrationEffect.DEFAULT_AMPLITUDE));
         }
 
+        /** Settings FPS Cap (30-120): asks for the fastest display mode at or below the cap, at the current resolution.
+            A display that never runs faster than the cap keeps the system's own choice. frame-cap.js caps the rest. */
+        @JavascriptInterface public void setFrameRateCap(int fps) {
+            final int cap=Math.max(30,Math.min(120,fps));
+            runOnUiThread(() -> {
+                try{
+                    android.view.Display display=getWindow().getDecorView().getDisplay();
+                    if(display==null)return;
+                    android.view.Display.Mode current=display.getMode(),best=null,lowest=null;
+                    float fastest=0;
+                    for(android.view.Display.Mode m:display.getSupportedModes()){
+                        if(m.getPhysicalWidth()!=current.getPhysicalWidth()||m.getPhysicalHeight()!=current.getPhysicalHeight())continue;
+                        fastest=Math.max(fastest,m.getRefreshRate());
+                        if(lowest==null||m.getRefreshRate()<lowest.getRefreshRate())lowest=m;
+                        if(m.getRefreshRate()<=cap+0.5f&&(best==null||m.getRefreshRate()>best.getRefreshRate()))best=m;
+                    }
+                    if(best==null)best=lowest;
+                    android.view.WindowManager.LayoutParams params=getWindow().getAttributes();
+                    final int mode=best==null||fastest<=cap+0.5f?0:best.getModeId();
+                    if(params.preferredDisplayModeId==mode)return;
+                    params.preferredDisplayModeId=mode;getWindow().setAttributes(params);
+                }catch(RuntimeException ignored){}
+            });
+        }
+
         @JavascriptInterface public void openUpdate() {
             runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class)));
         }

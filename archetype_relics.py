@@ -43,6 +43,22 @@ def sample(options,count,run,rng,favored=(),favor=1):
   result.append(key);remaining.remove(key)
  return result
 
+# Shop relic slots (Thronior, Discord 2026-11-10): the first two use the weighting above; every further slot is random, so relics
+# with no weight modifier stop becoming rare by accident. In the random slots a relic the weighting boosts this visit (cards it
+# helps, the shop's category) counts a little less than an ordinary relic, and relics the weighting holds back stay held back.
+WEIGHTED_SHOP_SLOTS=2
+RANDOM_SLOT_BOOSTED=0.8
+def shop_sample(options,count,run,rng,favored=(),favor=1):
+ import relic_affinity
+ remaining=list(options);result=[];boost=relic_affinity.multipliers(remaining,run)
+ factor={k:weight(k,run)*boost[k]*(favor if k in favored else 1) for k in remaining}
+ for slot in range(min(count,len(remaining))):
+  if slot<WEIGHTED_SHOP_SLOTS:weights=[factor[k] for k in remaining]
+  else:weights=[RANDOM_SLOT_BOOSTED if factor[k]>1 else min(1.0,factor[k]) for k in remaining]
+  key=rng.choices(remaining,weights=weights,k=1)[0]
+  result.append(key);remaining.remove(key)
+ return result
+
 def matches(key,c):
  n=c['name'];t=c.get('desc','');typ=c['data']['type']
  if key=='ritual_dagger':return bool(typ&0x80 and typ&3)

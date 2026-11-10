@@ -1519,7 +1519,7 @@
  },
  {
   "group": "ui",
-  "en": "Card text, prompts, settings and the duel log.",
+  "en": "Menus, shop, card text, prompts, settings and the duel log.",
   "kind": "exact",
   "ctx": "mobile.js"
  },
@@ -13987,7 +13987,7 @@
  },
  {
   "group": "relic",
-  "en": "During your turn, monsters you control gain 100 ATK. During your opponent's turn, monsters you control gain 100 DEF.",
+  "en": "During your turn, monsters you control gain 200 ATK. During your opponent's turn, monsters you control gain 200 DEF.",
   "kind": "exact",
   "ctx": "relic effect (pendulum)"
  },
@@ -21382,5 +21382,95 @@
   "en": "Play on ygo-rogue.pages.dev",
   "kind": "exact",
   "ctx": "Brave save warning in the itch.io frame (tools/pwa/pwa.js), 2026-11-09"
+ },
+ {
+  "group": "ui",
+  "en": "FPS Cap",
+  "kind": "exact",
+  "ctx": "mobile.js (FPS Cap, 2026-11-09)"
+ },
+ {
+  "group": "ui",
+  "en": "Highest frames per second. Lower uses less power.",
+  "kind": "exact",
+  "ctx": "mobile.js (FPS Cap, 2026-11-09)"
+ },
+ {
+  "group": "ui",
+  "en": "Search characters",
+  "kind": "exact",
+  "ctx": "mobile.js (stats search, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Search relics",
+  "kind": "exact",
+  "ctx": "mobile.js (stats search, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "No matching characters.",
+  "kind": "exact",
+  "ctx": "mobile.js (stats search, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "No matching relics.",
+  "kind": "exact",
+  "ctx": "mobile.js (stats search, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Add to favourites",
+  "kind": "exact",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Favourite pack",
+  "kind": "exact",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Favourites",
+  "kind": "exact",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Favourites in stock: {0}",
+  "kind": "pattern",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Add to favourites: {0}",
+  "kind": "pattern",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "Remove from favourites: {0}",
+  "kind": "pattern",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "★ {0} added to favourites",
+  "kind": "pattern",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} removed from favourites",
+  "kind": "pattern",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "ui",
+  "en": "No favourite packs yet. Tap ☆ on a pack here or in the shop.",
+  "kind": "exact",
+  "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
  }
 ]

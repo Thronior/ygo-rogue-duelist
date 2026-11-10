@@ -606,8 +606,13 @@ export function deckPolicy(x){
   if(n==='Abyss Soldier')return mainPhase&&hand.some(x=>!same(x,c)&&monster(x)&&hasAttribute(x,'WATER'))&&enemyCards.some(t=>bounceValue(t)>=1500||bounceOpens(t))?85:-1;
   if(n==='Dark Master - Zorc'){
    const all=a=>live(a).filter(monster).reduce((s,x)=>s+value(x),0);
-   const expected=all(enemy)*2/6+best(enemy)*3/6-all(own)/6;
-   return mainPhase&&expected>=500?85:-1;
+   // A roll that clears the way for lethal is worth the 1-in-6 risk: 1-5 wins when one destroyed monster is enough
+   // (replays c69105c4c2a2 and 42e5c4246b09, 2026-11-10: players rolled and won, the CPU attacked a Set monster).
+   const foes=enemy.filter(monster),top=[...foes].sort((a,b)=>value(b)-value(a))[0];
+   // Never roll when the attacks are lethal already (deck-sim review: Zorc rolled a 6 and lost a won turn).
+   const lethalOdds=!foes.length||planLethal(freeSummon())?0:planLethal(freeSummon(),[top])?5/6:planLethal(freeSummon(),foes)?2/6:0;
+   const expected=all(enemy)*2/6+best(enemy)*3/6-all(own)/6+lethalOdds*3000;
+   return mainPhase&&expected>=500&&!planLethal(freeSummon())?85:-1;
   }
   return importedCardValue(c,chain,n,mainPhase,attacker,defense);
  }

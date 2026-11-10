@@ -2510,7 +2510,6 @@ html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
 .duel-log .log-thumbs{display:flex;flex:0 0 auto;gap:3px}.duel-log .log-thumbs img{width:30px;height:44px;object-fit:cover;border-radius:3px}
 .duel-log .log-turn{position:sticky;top:0;z-index:1;margin:12px 0 5px;padding:5px 12px;border-radius:5px;background:#16323d;color:#f2dc89;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .duel-log .log-you{border-left:3px solid #6fb7e0}.duel-log .log-opponent{border-left:3px solid #d9727a}
-html.text-scaled :is(.card-text,.inspect-effect,.mouse-details-effect,.prompt-context,.reaction-context,.prompt .notice,.prompt button,.selection-actions button,.set-text,.muted,.log-text,.log-event,.log-help){zoom:var(--text-scale)}
 body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #modal.card-inspect-modal .collection-card-sources:not([hidden]){flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
 .zone.pile.summon-ready{border:2px solid #ffdf31;box-shadow:0 0 12px #ffe64b,inset 0 0 10px #fff06488;cursor:pointer}
@@ -2912,6 +2911,20 @@ h3.with-run-strip{display:flex;align-items:center;gap:10px;white-space:nowrap}
 .run-strip-heading{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .shop-compact>header>.run-strip{display:none}
 @media(orientation:portrait){h3.with-run-strip>.run-strip{display:none}.shop-compact>header>.run-strip{display:flex;margin-right:8px;padding:4px 10px;border:1px solid #66829066;border-radius:12px;background:#061018c4}.shop-compact>header>.run-strip .run-strip-label{display:none}}
+/* Portrait shop top bar stays on one row on every phone (Discord, 2026-11-10): the victory track shrinks before
+   anything wraps (down to 8px per duel), then Tag's turn pill; the round buttons shrink a little on narrow screens, and
+   LP, Settings and Close stay at the right edge. CSS only, no resize work.
+   The coins sit on the Edit deck row; the landscape gap under the header (margin-top below) pushed them into Next duel. */
+@media(orientation:portrait){
+ .page.shop-compact>header{flex-wrap:nowrap;align-self:stretch;justify-content:flex-end;gap:4px;min-width:0}
+ .shop-compact>header>.run-strip{flex:0 1 auto;min-width:auto;margin-right:4px}
+ .shop-compact>header>.run-strip .run-strip-track{flex:0 1 auto;min-width:auto;grid-template-columns:repeat(var(--n),minmax(8px,16px))}
+ .shop-compact>header .tools{display:contents}
+ .shop-compact>header .tools>*{flex-shrink:0}
+ .shop-compact>header .tools>.tag-shop-turn{flex-shrink:1;min-width:34px}
+ .shop-compact>header .tools>button.navigation-icon-button{width:clamp(36px,11vw,44px);min-width:0;height:clamp(36px,11vw,44px);min-height:0;padding:0}
+ .page.shop.shop-compact .shop-counter>.shop-balance{margin-top:0;top:2px}
+}
 /* Portrait duelist panel, compact (2026-11-04): shorter variant buttons, hero, cards and relic row so the whole panel
    fits without scrolling on tall phones, safe area included. */
 @media(orientation:portrait){
@@ -3119,3 +3132,72 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 #modal[open]:not(:modal){pointer-events:none}
 /* Menu card names never wrap; mobile.js fitMenuTitles shrinks a name that is too long for its box. */
 .title .menu-card h3{white-space:nowrap;overflow:hidden;text-overflow:clip}
+/* Text Size above 100% (2026-11-09): next-opponent rows grow to fit their larger text and the list scrolls. */
+@media(orientation:landscape),(min-width:640px){html.text-scaled .page:not(.boss) .routes:not(.tag-routes){grid-template-rows:none!important;grid-auto-rows:minmax(min-content,1fr)!important;overflow-y:auto!important}}
+/* Portrait duel field keeps its phone shape (user, 2026-11-10): on screens shorter than a 360x800 phone, the card panel
+   above the field gives up height instead of the zones being squashed. The duel area's minimum height comes from the
+   screen width (the field at about 60vw, plus the phase strip, hand and bottom bar), which keeps the zones close to their
+   360x800 shape (36x42 px at 360 wide). Taller screens keep the proportional split. */
+@media(orientation:portrait){
+ .duel{grid-template-rows:minmax(84px,1fr) 34px minmax(min(calc(60vw + 239px),calc(100dvh - 165px)),1.75fr)}
+ .duel:has(>.portrait-relics){grid-template-rows:minmax(84px,1fr) 34px auto minmax(min(calc(60vw + 239px),calc(100dvh - 165px)),1.75fr)!important}
+ .duel:has(>.portrait-relics .active-relic-strip:empty):not(:has(.tag-duel-banner)){grid-template-rows:minmax(84px,1fr) 34px minmax(min(calc(60vw + 239px),calc(100dvh - 165px)),1.75fr)}
+ /* The duel sits lower (user's mock-up, 2026-11-10). 34px of the 36px bottom cushion becomes a row under the card panel,
+    which grows into it; the relic strip, field, hand and Options keep their sizes and move down 34px. Inside the field
+    area, 18px of the space above Options moves above the LP bar, so the relic strip, LP bar, zones and hand move 52px in
+    all; the strip shifts with them and the card panel stretches 18px further to meet it. */
+ .duel{padding-bottom:2px}
+ .duel>.inspection{grid-row:1 / span 2;margin-bottom:-18px;position:relative;z-index:2}
+ .duel>.portrait-relics{grid-row:3;position:relative;top:18px;z-index:3}
+ .duel>.duel-main{grid-row:-2}
+ .duel .duel-main{padding-top:18px;padding-bottom:57px}
+ .duel:has(>.portrait-relics) .duel-main{padding-top:18px;padding-bottom:52px}
+}
+/* Character and relic stats: search box and sortable column headings (arrow on the sorted one). */
+.stats-search{display:block;width:100%;max-width:340px;margin:10px 0 12px;padding:8px 12px;border:1px solid #537984;border-radius:8px;background:#0d2229;color:#e8f3f1;font:inherit;font-size:15px}
+.stats-search::placeholder{color:#8aa6ae}
+.character-stats-table thead th:has(>.stats-sort){padding:0}
+.character-stats-table .stats-sort{display:flex;align-items:center;justify-content:inherit;gap:4px;width:100%;min-height:0;margin:0;padding:7px 10px;border:0;border-radius:0;background:none;color:inherit;font:inherit;font-weight:inherit;text-align:inherit;cursor:pointer;white-space:nowrap}
+.character-stats-table thead th:not(:first-child) .stats-sort{justify-content:center}
+.character-stats-table .stats-sort::after{content:'';width:0;height:0;border:4px solid transparent;opacity:.35;border-top-color:currentColor;translate:0 2px}
+.character-stats-table th[aria-sort] .stats-sort::after{opacity:1}
+.character-stats-table th[aria-sort=ascending] .stats-sort::after{border-top-color:transparent;border-bottom-color:currentColor;translate:0 -2px}
+.character-stats-table .stats-sort:hover,.character-stats-table .stats-sort:focus-visible{background:#ffffff14}
+.stats-no-match{color:#9fb8c1}
+/* Favourite packs: a star on shop offers (solo and Tag), Collection › Packs tiles and the pack details (pack-favourites.js). */
+.shop-product{position:relative}
+.pack-fav{position:absolute;z-index:4;top:4px;right:4px;display:grid;place-items:center;width:28px;height:28px;min-height:0;padding:0;margin:0;border:1px solid #ffffff4d;border-radius:50%;background:#061418cc;color:#d6e3e7;font-size:16px;line-height:1;box-shadow:0 2px 6px #0009;cursor:pointer;transition:transform .15s,background-color .15s}
+.pack-fav[aria-pressed=true]{background:radial-gradient(circle at 40% 35%,#fff1bf,#e2b553 70%);border-color:#fff1bf;color:#5a3a00}
+@media(hover:hover) and (pointer:fine){.pack-fav:hover{transform:scale(1.08)}}
+.pack-fav.fav-pop,.pack-fav-toggle.fav-pop{animation:fav-pop .35s}@keyframes fav-pop{40%{transform:scale(1.25)}}
+.shop-product.favourite-pack,.collection-pack.favourite-pack>.cardbtn{border-color:#e8c778;box-shadow:0 0 0 1px #e8c77888,0 0 12px #e8c77833}
+.collection-pack{position:relative;display:grid;min-width:0}.collection-pack>.cardbtn{width:100%;height:100%}
+.fav-instock{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:1px 8px;border:1px solid #ffe2a366;border-radius:999px;background:#ffe2a31a;color:#ffe2a3;font-size:.8em;font-weight:700;white-space:nowrap;vertical-align:middle;letter-spacing:0;text-transform:none}
+.pack-fav-row{display:flex;margin:0 0 8px}
+.pack-fav-toggle{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:6px 12px;border:1px solid #628994;border-radius:8px;background:#173a46;color:#e8f3f1;font-weight:700}
+.pack-fav-toggle[aria-pressed=true]{border-color:#f0cf86;background:linear-gradient(#c79a45,#8f6a26);color:#fff8e4}
+.collection-empty{grid-column:1/-1;color:#9fb8c1}
+.shop-compact .pack-fav{width:24px;height:24px;font-size:13px;top:2px;right:2px}
+@media(prefers-reduced-motion:reduce){.pack-fav.fav-pop,.pack-fav-toggle.fav-pop{animation:none}}
+/* Button text stays legible in every Duel Look (user, 2026-11-10; measured with a contrast scan of real screens).
+   Secondary lines (small, .muted) follow the button's own text colour, light active states use dark text, the Millennium Stone
+   and Clean Tournament colours gain contrast, and themed disabled buttons fade less. Level badges use darker light ends. */
+:root[data-duel-theme] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *) :is(small:not([class]),.muted:not(small)){color:inherit!important;opacity:.82}
+:root[data-duel-theme="duel-disk"]{--btn-active-bg:linear-gradient(#9ae4ff,#5cc6f5 50%,#45b5ea 52%,#88d8fc);--btn-active-text:#04243a}
+:root[data-duel-theme="millennium-stone"]{--btn-text:#f8eed4;--btn-active-bg:linear-gradient(160deg,#8a682a,#624819);--btn-active-text:#fff6d8}
+:root[data-duel-theme="clean-tournament"]{--btn-primary-bg:#2a7a6d}
+:root[data-duel-theme="millennium-stone"]{--btn-primary-bg:linear-gradient(160deg,#7b5c26,#4f3a19)}
+/* Phases you are not in stay readable, as in the Default look (they were faded to .36). */
+:root[data-duel-theme] .duel .phases button:disabled:not(.active){opacity:.78!important}
+:root[data-duel-theme="clean-tournament"] .duel .phases button:disabled:not(.active){color:#bccad3!important}
+:root[data-duel-theme="shadow-realm"] .duel .phases button:disabled:not(.active){color:#d3c2ee!important}
+:root[data-duel-theme] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):disabled{opacity:.8;filter:saturate(.3)}
+/* Duel Disk buttons are light, so fading or darkening them loses contrast: disabled ones go flat grey with grey text instead. */
+:root[data-duel-theme="duel-disk"] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *):disabled{opacity:1;filter:none;background:#c9cfd4!important;color:#4b565f!important;box-shadow:none!important}
+.deck-count-arrow:disabled>span,.deck-count-arrow:disabled:hover>span{background:#8d969cdd;color:#0f1519}
+.character-select-page .portrait[data-completed-level="0"],.level-badge[data-challenge-level="0"]{background:linear-gradient(135deg,#2a8560,#104a36)}
+.character-select-page .portrait[data-completed-level="1"],.level-badge[data-challenge-level="1"]{background:linear-gradient(135deg,#2a78bb,#173c89)}
+.character-select-page .portrait[data-completed-level="2"],.level-badge[data-challenge-level="2"]{background:linear-gradient(135deg,#8a55bd,#4b2379)}
+.character-select-page .portrait[data-completed-level="3"],.level-badge[data-challenge-level="3"]{background:linear-gradient(135deg,#c2405f,#7d183c)}
+.character-select-page .portrait[data-completed-level="4"],.level-badge[data-challenge-level="4"]{background:linear-gradient(135deg,#a85f22,#8b3c12)}
+.level-badge[data-challenge-level="-1"]{background:linear-gradient(135deg,#5d7283,#2b3948)}

@@ -325,6 +325,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const idle=(action,index=null)=>({type:R.SELECT_IDLECMD,action,index});
   if(m.type===M.SELECT_IDLECMD){
    const usefulAttacker=c=>!smart.attackBlocked(c,p,true)&&smart.projectedAttack(c)>0&&(!enemy.length||enemy[theyPickTargets?'every':'some'](t=>{const power=smart.projectedAttack(c),damage=smart.battleDamage(visible(t)&&(t.position&1)?Math.max(0,power-strength(t)):smart.pierce(c)?Math.max(0,power-strength(t)):0);return power>strength(t)&&smart.attackScore(c,t,{dmg:damage})>-99999})||smart.clearedLane(c));
+   // Clearing their Set back-row comes before a lethal attack (replay review 2026-11-10).
+   const clearFirst=m.to_bp?m.activates.findIndex(c=>smart.lethalClear(c)&&smart.activation(c,false)>=125):-1;
+   if(clearFirst>=0)return idle(I.SELECT_ACTIVATE,clearFirst);
    // Lethal already on board: attack now, unless set back-row could stop one attacker and a
    // free extra attacker is available to keep the total lethal.
    const extraAttacker=m.summons.some(c=>(this.cards.get(c.code)?.level||0)<=4&&smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p,true));
