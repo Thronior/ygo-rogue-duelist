@@ -599,7 +599,9 @@ export function deckPolicy(x){
   if(n==='Soul Resurrection')return free>0&&grave.some(x=>monster(x)&&(data(x).type&0x10)&&Math.max(atk(x),defense(x))>=1500)?75:-1;
   if(n==='The Warrior Returning Alive')return grave.some(x=>monster(x)&&race(x)==='Warrior')?85:-1;
   if(n==='Adhesion Trap Hole')return chain&&e.player===1-p&&live(enemy).some(x=>monster(x)&&atk(x)>=1600)?85:-1;
-  if(n==='The Reliable Guardian')return chain&&incoming&&incomingTarget&&!(incomingTarget.position&1)&&attacker&&defense(incomingTarget)<=atk(attacker)&&defense(incomingTarget)+700>atk(attacker)?90:-1;
+  // It targets a face-up monster: a Set defender is not a legal target, and the core then offers only the
+  // attacker, so the boost went to the opponent's monster (flag 8632cc82, 2026-11-10).
+  if(n==='The Reliable Guardian')return chain&&incoming&&incomingTarget&&face(incomingTarget)&&!(incomingTarget.position&1)&&attacker&&defense(incomingTarget)<=atk(attacker)&&defense(incomingTarget)+700>atk(attacker)?90:-1;
   if(n==='Attack and Receive')return chain?90:-1;
   // With no rule Orca's effect was never used: a null score refuses any effect that says "destroy" (deck trace, 2026-11-06).
   if(n==='Orca Mega-Fortress of Darkness')return mainPhase&&!(e.activeChain||[]).length&&orcaPick()?88:-1;

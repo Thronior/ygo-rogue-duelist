@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {BackupRegistry} from './backup.mjs';
 let time=1900000000000;Date.now=()=>time;
-const rows=new Map(),storage={async get(k){return structuredClone(rows.get(k))},async put(k,v){assert(Buffer.byteLength(JSON.stringify(v))<128*1024,'DO value size');rows.set(k,structuredClone(v))},async delete(k){rows.delete(k)},async list({prefix,limit=100,startAfter=''}){return new Map([...rows].filter(([k])=>k.startsWith(prefix)&&k>startAfter).sort().slice(0,limit))},async transaction(fn){const old=structuredClone(rows);try{return await fn(this)}catch(e){rows.clear();for(const [k,v] of old)rows.set(k,v);throw e}}};
+const rows=new Map(),storage={async get(k){return structuredClone(rows.get(k))},async put(k,v){assert(Buffer.byteLength(JSON.stringify(v))+Buffer.byteLength(k)<8e6,'SQLite Durable Object key+value limit');rows.set(k,structuredClone(v))},async delete(k){rows.delete(k)},async list({prefix,limit=100,startAfter=''}){return new Map([...rows].filter(([k])=>k.startsWith(prefix)&&k>startAfter).sort().slice(0,limit))},async transaction(fn){const old=structuredClone(rows);try{return await fn(this)}catch(e){rows.clear();for(const [k,v] of old)rows.set(k,v);throw e}}};
 const registry=new BackupRegistry({storage},{BACKUP_ADMIN_TOKEN:'admin-test'});let calls=0;
 async function call(op,v={},auth){const r=await registry.fetch(new Request('https://test/backup/'+op,{method:'POST',headers:{'CF-Connecting-IP':'test-'+calls++,...(auth?{Authorization:'Bearer '+auth}:{})},body:JSON.stringify(v)}));return {status:r.status,...await r.json()}}
 const code='SB-'+'A'.repeat(24),token='b'.repeat(64),backup={schema:1,files:{'profile.json':JSON.stringify({unlocked:[0,1,3],wins:42}), 'collector.json':JSON.stringify({duelists:[{name:'Test Collector',id:'owner',token:'private-uc-token',status:'alive',character:3,pool:Array(30000).fill(42)}]}),'run.json':JSON.stringify({gold:123}), 'profile.bak':'{}'},extras:{'ygo-global-stats-v1':'{"counts":{"seconds":500}}'},version:'test',platform:'Home Screen'};
@@ -20,16 +20,16 @@ const meta=rows.get('meta:'+code);assert(meta.snapshots.length<=34);assert(meta.
 let alarm=null;storage.getAlarm=async()=>alarm;storage.setAlarm=async t=>{alarm=t};
 const id='d'.repeat(64),auth='e'.repeat(64),blob='ygo1g.'+'A'.repeat(16)+'.'+'QUJD'.repeat(20000);
 time+=31000;assert.equal((await call('save',{id,auth,blob})).status,200);assert(alarm>time,'the daily retention sweep is scheduled');
-const stored=JSON.stringify([...rows].filter(([k])=>k.startsWith('enc:')||k.startsWith('blob:')));assert(!stored.includes(auth),'only a hash of the write password is kept');
+const stored=JSON.stringify([...rows].filter(([k])=>k.startsWith('enc:')||k.startsWith('blob:')||k.startsWith('one:')));assert(!stored.includes(auth),'only a hash of the write password is kept');
 assert.deepEqual((await call('load',{id,auth})).blob,blob);
 const wrongAuth=await call('load',{id,auth:'f'.repeat(64)}),noSave=await call('load',{id:'9'.repeat(64),auth});
 assert.equal(wrongAuth.status,404);assert.equal(noSave.status,404);assert.equal(wrongAuth.error,noSave.error);assert(!wrongAuth.blob);
 assert.equal((await call('save',{id,auth:'f'.repeat(64),blob})).status,409,'another code cannot overwrite a save');
 time+=31000;const blob2='ygo1n.'+'B'.repeat(16)+'.'+'REVG';assert.equal((await call('save',{id,auth,blob:blob2})).status,200);assert.equal((await call('load',{id,auth})).blob,blob2);
-assert.equal([...rows.keys()].filter(k=>k.startsWith('blob:')).length,1,'the previous upload is removed');
+assert.equal([...rows.keys()].filter(k=>k.startsWith('blob:')||k.startsWith('one:')).length,1,'the previous upload is replaced, not kept');
 assert.equal((await call('save',{id:'1'.repeat(64),auth,blob:'not encrypted'})).status,400);
 assert.equal((await call('delete',{id,auth:'f'.repeat(64)})).status,404);assert.equal((await call('delete',{id,auth})).status,200);
-assert.equal((await call('load',{id,auth})).status,404);assert(![...rows.keys()].some(k=>k.startsWith('enc:')||k.startsWith('blob:')));
+assert.equal((await call('load',{id,auth})).status,404);assert(![...rows.keys()].some(k=>k.startsWith('enc:')||k.startsWith('blob:')||k.startsWith('one:')));
 // Saves untouched for a year are swept; fresh ones stay.
 const oldId='2'.repeat(64),newId='3'.repeat(64);time+=31000;await call('save',{id:oldId,auth,blob:blob2});time+=366*86400000;await call('save',{id:newId,auth,blob:blob2});
 await registry.alarm();assert.equal((await call('load',{id:oldId,auth})).status,404);assert.equal((await call('load',{id:newId,auth})).status,200);

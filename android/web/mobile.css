@@ -3152,6 +3152,9 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
  .duel>.duel-main{grid-row:-2}
  .duel .duel-main{padding-top:18px;padding-bottom:57px}
  .duel:has(>.portrait-relics) .duel-main{padding-top:18px;padding-bottom:52px}
+ /* The low-LP glows follow the field: the top one starts at the LP bar again, the bottom one keeps its gap under the hand. */
+ .duel .duel-main>.fx-danger.enemy{top:18px}
+ .duel .duel-main>.fx-danger.own{bottom:-18px}
 }
 /* Character and relic stats: search box and sortable column headings (arrow on the sorted one). */
 .stats-search{display:block;width:100%;max-width:340px;margin:10px 0 12px;padding:8px 12px;border:1px solid #537984;border-radius:8px;background:#0d2229;color:#e8f3f1;font:inherit;font-size:15px}
@@ -3201,3 +3204,116 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 .character-select-page .portrait[data-completed-level="3"],.level-badge[data-challenge-level="3"]{background:linear-gradient(135deg,#c2405f,#7d183c)}
 .character-select-page .portrait[data-completed-level="4"],.level-badge[data-challenge-level="4"]{background:linear-gradient(135deg,#a85f22,#8b3c12)}
 .level-badge[data-challenge-level="-1"]{background:linear-gradient(135deg,#5d7283,#2b3948)}
+
+/* Relic inspection (user request, 2026-11-11; relic-inspect.js). One relic: its art on a soft glow, name, status or
+   price, then the effect in a panel. Run relics: every relic as an icon, the picked one in a card beside (wide) or
+   under (tall) the icons. Nothing here animates after the card has appeared, so it costs nothing while open. */
+dialog:has(>.relic-card){width:min(430px,94vw);max-width:94vw;max-height:92dvh;border-color:#c2a66a88;background:linear-gradient(#143340,#0d222c)}
+dialog:has(>.relic-card)>.modal-head{position:absolute;top:8px;right:8px;left:auto;padding:0;background:transparent;z-index:3}
+.relic-card{--relic-glow:#f3d27a;position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;text-align:center;overflow-wrap:anywhere}
+.relic-card.cursed{--relic-glow:#c779ff}
+.relic-card.fused{--relic-glow:#6fe0d0}
+.relic-card-art{position:relative;width:min(170px,46vw);aspect-ratio:76/74;flex:none;margin:6px 0 2px;padding:12px;box-sizing:border-box;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--relic-glow) 34%,transparent),color-mix(in srgb,var(--relic-glow) 10%,transparent) 48%,transparent 70%);animation:relic-card-in .28s ease-out both}
+.relic-card-art::after{content:"";position:absolute;inset:auto 14% -2px;height:10px;border-radius:50%;background:radial-gradient(ellipse,#0009,transparent 70%);pointer-events:none}
+.relic-card-art>.relic-artwork{width:100%;height:100%;object-fit:contain}
+.relic-card-art>.relic-count{top:6px;right:6px;font-size:14px;padding:2px 7px}
+@keyframes relic-card-in{from{opacity:0;transform:translateY(8px) scale(.94)}}
+.relic-card>h3{margin:0;font-size:22px;line-height:1.2;color:#fff3cf;letter-spacing:.02em}
+.relic-card>h3::after{content:"";display:block;width:64px;height:2px;margin:8px auto 0;border-radius:2px;background:linear-gradient(90deg,transparent,var(--relic-glow),transparent)}
+.relic-card-status{font-size:11px;line-height:1.3;letter-spacing:.12em;color:color-mix(in srgb,var(--relic-glow) 70%,#fff)}
+.relic-card.negated .relic-card-status{color:#ff9aa5}
+.relic-card.negated .relic-card-art>.relic-artwork{filter:grayscale(1) brightness(.7)}
+.relic-card-price{display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border:1px solid #ebce7888;border-radius:999px;background:#0b1d26;color:#ffe7a3;font-weight:bold;font-size:17px;line-height:1.3}
+.relic-card-price img,.relic-card-price svg{width:20px;height:20px;object-fit:contain}
+.relic-card-text{align-self:stretch;padding:12px 14px;border:1px solid #ffffff1c;border-radius:10px;background:#0a1b24}
+.relic-card-text>p{margin:0;font-size:16px;line-height:1.5;color:#eef5f3}
+.relic-card-text>.relic-benefit,.relic-card-text>.relic-drawback{font-size:15px;margin:0}
+.relic-card-text>.relic-drawback{margin-top:8px}
+.relic-card>.fusion-material{align-self:stretch;margin-top:0}
+.relic-card>small,.relic-card>.muted{margin:0;color:#b9d2da;font-size:13px}
+.relic-card>.sell-owned-relic{margin:2px auto 0;padding:6px 14px;min-height:32px;font-size:13px}
+dialog:has(.relic-ledger){width:min(860px,94vw)}
+.relic-ledger>p{margin:0 0 10px}
+.relic-ledger-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,330px);gap:16px;align-items:start}
+.relic-icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px;align-content:start}
+.relic-icon-grid>button{position:relative;aspect-ratio:1;min-width:0;min-height:0;padding:5px;border:1px solid #ffffff24;border-radius:10px;background:#0b1d26;overflow:hidden;cursor:pointer}
+.relic-icon-grid>button.cursed{border-color:#c779ff77}
+.relic-icon-grid>button.fused{border-color:#6fe0d077}
+.relic-icon-grid>button[aria-selected="true"]{border-color:#ffe08a;background:#1b3b48;box-shadow:0 0 0 2px #ffe08a,0 0 10px #ffd96c66}
+.relic-icon-grid>button.negated>.relic-artwork{filter:grayscale(1) brightness(.7)}
+.relic-icon-grid>button>.relic-artwork{width:100%;height:100%;object-fit:contain}
+.relic-icon-grid>button>.relic-count{top:2px;right:2px;padding:1px 4px;font-size:11px}
+.relic-ledger-detail{position:sticky;top:44px;min-width:0;padding:12px;border:1px solid #c2a66a55;border-radius:12px;background:linear-gradient(#143340,#0d222c)}
+.relic-ledger-detail .relic-card-art{width:min(130px,40vw);margin-top:0}
+.relic-ledger-detail .relic-card>h3{font-size:19px}
+.relic-ledger-detail .relic-card-text>p{font-size:15px}
+@media(orientation:portrait),(max-width:620px){
+ .relic-ledger-split{grid-template-columns:minmax(0,1fr);gap:10px}
+ .relic-icon-grid{grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}
+ .relic-ledger-detail{position:static}
+}
+@media(max-height:500px) and (orientation:landscape){
+ .relic-card{gap:5px}.relic-card-art{width:min(96px,22vh);padding:6px;margin:0}.relic-card>h3{font-size:17px}.relic-card>h3::after{margin-top:4px}
+ .relic-card-text{padding:7px 10px}.relic-card-text>p{font-size:14px;line-height:1.35}
+ .relic-icon-grid{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px}.relic-ledger-detail{padding:8px;top:36px}
+}
+.reward-overlay .relic-ledger-split{gap:10px}
+.performance-mode .relic-card-art,.compatibility-mode .relic-card-art{animation:none}
+@media(prefers-reduced-motion:reduce){.relic-card-art{animation:none}}
+/* Card-crop relic art is a full rectangle, so it gets a frame in the glow colour; cut-out art floats on the glow. */
+.relic-card-art>.relic-artwork[src$=".jpg"]{border-radius:12px;box-shadow:0 0 0 2px color-mix(in srgb,var(--relic-glow) 70%,transparent),0 0 16px color-mix(in srgb,var(--relic-glow) 45%,transparent)}
+.relic-icon-grid>button>.relic-artwork[src$=".jpg"]{border-radius:6px}
+.relic-card[hidden]{display:none}
+/* Level 6 permanent curses in the Relics window: a red label row, red-framed icons and a red card glow. */
+.relic-icon-grid>.relic-grid-label{grid-column:1/-1;margin:6px 0 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ff9a9a}
+.relic-icon-grid>.relic-grid-label:first-child{margin-top:0}
+.relic-icon-grid>button.permanent-curse{border-color:#ff6b6b88;background:#2a1418}
+.relic-icon-grid>button.permanent-curse>.relic-artwork{padding:6px;box-sizing:border-box}
+.relic-card.permanent-curse{--relic-glow:#ff6b6b}
+.relic-card.permanent-curse .curse-artwork{padding:18%;box-sizing:border-box}
+/* The opponent screen header holds a Relics button too; on narrow phones the gaps and title shrink so "Loop 1 · Duel 1 / 9" still fits. */
+@media(max-width:480px){.page.route-page>header .tools{gap:4px}.page.route-page>header h2{font-size:15px}}
+@media(max-height:500px) and (orientation:landscape){.relic-ledger-detail .relic-card-art{width:min(84px,20vh)}.relic-ledger-detail .relic-card>h3{font-size:16px}.relic-ledger-detail .relic-card-text>p{font-size:13px}}
+
+/* Run History > Records (2026-11-11): one row per duelist. The name cell holds the portrait and the wins/runs at each
+   level played; numbers stay on one line and the table scrolls sideways only if a phone is too narrow for it. */
+.history-views{display:flex;gap:8px;padding:8px 12px 0}
+.history-views>button{min-height:34px;padding:4px 14px}
+.character-records{width:100%;border-collapse:collapse;font-size:15px}
+.character-records th,.character-records td{padding:8px 10px;border-bottom:1px solid #ffffff1c;text-align:center;white-space:nowrap}
+.character-records thead th{position:sticky;top:0;background:#102732;color:#f7d998;font-size:12px;letter-spacing:.06em;white-space:normal;z-index:1}
+.character-records tbody th{display:flex;align-items:center;gap:10px;text-align:left;white-space:normal;font-weight:normal}
+.character-records tbody th>img{width:44px;height:52px;object-fit:contain;flex:none}
+.character-records tbody th>span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.character-records tbody th small{display:flex;flex-wrap:wrap;gap:4px 6px;color:#b9d2da;font-size:12px}
+.character-records tbody th small>i{font-style:normal;padding:1px 6px;border:1px solid #ffffff24;border-radius:999px;white-space:nowrap}
+.character-records td:nth-child(2){color:#ffe7a3;font-weight:bold}
+@media(max-width:520px){.character-records{font-size:13px}.character-records th,.character-records td{padding:6px 5px}.character-records tbody th>img{width:32px;height:40px}}
+
+/* Tutorial duel coach (2026-11-11, tutorial-coach.js): one bubble and a glow on the thing to tap.
+   The glow is a two-step animation, so it repaints twice a second instead of every frame. */
+.lesson-coach{position:fixed;z-index:1000;left:8px;top:8px;width:min(440px,90vw);padding:8px 12px;border:2px solid #ffd76a;border-radius:10px;background:#0b222ef2;color:#f2f7f6;box-shadow:0 6px 18px #000a;font-size:14px;line-height:1.35;pointer-events:auto}
+.lesson-coach[hidden]{display:none}
+.lesson-coach h3{margin:0 26px 4px 0;font-size:15px;color:#ffd76a}
+.lesson-coach p{margin:0}
+.lesson-coach .lesson-say{font-weight:bold;margin-right:22px}
+.lesson-coach h3+.lesson-say{margin-right:0}
+.lesson-coach .lesson-note{color:#ffb4a8;font-size:13px;margin:0 22px 3px 0}
+.lesson-coach .lesson-why{margin-top:6px;color:#bcd6dc;font-size:13px}
+.lesson-coach .lesson-next{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.lesson-coach .lesson-next small{color:#9fbac1}
+.lesson-coach .lesson-next button{min-width:84px;min-height:36px;font-weight:bold}
+.lesson-coach .lesson-exit{position:absolute;top:4px;right:4px;width:24px;height:24px;padding:0;border:0;background:none;color:#9fbac1;font-size:14px;line-height:1}
+.lesson-coach.lesson-shake{animation:lesson-shake .3s steps(6)}
+@keyframes lesson-shake{25%{translate:-5px 0}75%{translate:5px 0}}
+.lesson-target{outline:3px solid #ffd76a!important;outline-offset:2px;animation:lesson-glow 1s steps(2,jump-none) infinite;position:relative;z-index:5}
+.action-pop .lesson-target,.hand .lesson-target{z-index:auto}
+/* A hand card's box is taller than its picture, so the glow follows the picture instead of the box. */
+.hand img.lesson-target,.inspection>img.lesson-target{outline:none!important;animation-name:lesson-glow-card;filter:drop-shadow(0 0 2px #ffd76a) drop-shadow(0 0 7px #ffd76a)}
+@keyframes lesson-glow-card{from{filter:drop-shadow(0 0 2px #ffd76a) drop-shadow(0 0 7px #ffd76a)}to{filter:drop-shadow(0 0 2px #fff6c9) drop-shadow(0 0 4px #ffd76a)}}
+@keyframes lesson-glow{from{outline-color:#ffd76a}to{outline-color:#fff6c9}}
+/* The card drawn in the first Draw Phase stays out of sight until that phase has been explained. */
+.lesson-predraw .hand button:last-child{visibility:hidden}
+/* The tutorial's end dialog is short; no scroll bars while it opens. */
+dialog:has(.lesson-done){overflow:hidden}
+@media(prefers-reduced-motion:reduce){.lesson-target,.lesson-coach.lesson-shake{animation:none}}

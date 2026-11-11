@@ -1,4 +1,4 @@
-const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store'};
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Max-Age':'86400','Cache-Control':'no-store'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json'}});
 // Storage outages must return CORS-readable errors; reports stay in the client outbox.
 export async function storageRequest(bucket,request){
@@ -26,7 +26,30 @@ export async function uploadBatch(req,env){
  await Promise.all(Array.from({length:2},async()=>{for(;;){const index=next++;if(index>=results.length)return;try{const encoded=body.replays[index];if(typeof encoded!=='string'||encoded.length>26668||!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded))throw Error('Invalid replay encoding.');const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));results[index]=await storeValidated(bytes,env);}catch(error){results[index]={ok:false,status:400,error:['Replay must be below 20 kB.','Replay expands beyond the limit.','Invalid replay.','Invalid duel rules.','Invalid deck.','Invalid replay encoding.'].includes(error.message)?error.message:'Invalid compressed replay.'};}}}));
  return reply({results});
 }
-export default {async fetch(req,env){
+// One admin request returns every replay received after `after` (ms). Each bucket answers once with
+// ready-made frames that are piped through untouched, so the Worker spends almost no CPU.
+// Frame: 4-byte big-endian header length, UTF-8 JSON header, then header.bytes raw replay bytes.
+// The last frame is {end:true,count,failed} with no body; a missing trailer means the stream broke.
+export const EXPORT_BUCKETS=256,EXPORT_WINDOW=8;
+export function frame(header,body){const h=new TextEncoder().encode(JSON.stringify(body?{...header,bytes:body.byteLength}:header)),out=new Uint8Array(4+h.length+(body?.byteLength||0));new DataView(out.buffer).setUint32(0,h.length);out.set(h,4);if(body)out.set(new Uint8Array(body),4+h.length);return out;}
+export function exportReplays(env,after,ctx){
+ const {readable,writable}=new TransformStream(),failed=[];let count=0;
+ const call=n=>{const b=n.toString(16).padStart(2,'0');return Promise.resolve().then(()=>env.REPLAYS.get(env.REPLAYS.idFromName(b)).fetch(new Request('https://bucket/?export=1&after='+after))).catch(()=>null).then(r=>({b,r}));};
+ const pending=[];for(let n=0;n<Math.min(EXPORT_WINDOW,EXPORT_BUCKETS);n++)pending.push(call(n));
+ const pump=(async()=>{
+  for(let n=0;n<EXPORT_BUCKETS;n++){
+   const {b,r}=await pending[n];if(pending.length<EXPORT_BUCKETS)pending.push(call(pending.length));
+   if(!r?.ok||!r.body){failed.push(b);await r?.body?.cancel().catch(()=>{});continue;}
+   // A body that breaks part-way aborts the whole stream: the client then sees no trailer and stops.
+   try{await r.body.pipeTo(writable,{preventClose:true});}catch{return;}
+   count+=Number(r.headers.get('X-Replay-Count'))||0;
+  }
+  const writer=writable.getWriter();await writer.write(frame({end:true,count,failed}));await writer.close();
+ })().catch(()=>{});
+ ctx?.waitUntil?.(pump);
+ return new Response(readable,{headers:{...cors,'Content-Type':'application/octet-stream','X-Replay-Format':'ygr-frames-1'}});
+}
+export default {async fetch(req,env,ctx){
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  const url=new URL(req.url);if(url.pathname==='/health')return reply({ok:true});
  if(req.method==='POST'&&url.pathname==='/v1/replays/batch')return uploadBatch(req,env);
@@ -37,6 +60,7 @@ export default {async fetch(req,env){
  // Replay downloads and listings are private to the game's maintainer.
  if(req.method==='GET'&&url.pathname.startsWith('/v1/replays')){
   if(!env.REPLAY_ADMIN_TOKEN||req.headers.get('Authorization')!=='Bearer '+env.REPLAY_ADMIN_TOKEN)return reply({error:'Unauthorized'},401);
+  if(url.pathname==='/v1/replays/export'){const after=Number(url.searchParams.get('after')||0);if(!Number.isSafeInteger(after)||after<0)return reply({error:'Invalid after'},400);return exportReplays(env,after,ctx);}
   const id=url.pathname.split('/')[3],bucket=id?.slice(0,2)||url.searchParams.get('bucket');if(!/^[a-f0-9]{2}$/.test(bucket||'')||(id&&!/^[a-f0-9]{64}$/.test(id)))return reply({error:'Invalid identifier'},400);
   return storageRequest(env.REPLAYS.get(env.REPLAYS.idFromName(bucket)),new Request('https://bucket/'+(id||'')+'?cursor='+encodeURIComponent(url.searchParams.get('cursor')||'')));
  }
@@ -44,6 +68,19 @@ export default {async fetch(req,env){
 }};
 export class ReplayBucket {
  constructor(ctx,env={}){this.ctx=ctx;this.objects=env.REPLAY_FILES;this.tail=Promise.resolve()}
+ // No time index on purpose: an index would add a storage write to every upload (the tighter daily allowance).
+ // A bucket holds a few hundred replays, so scanning it costs only rows read, the cheapest allowance.
+ async exportSince(after){
+  const storage=this.ctx.storage,parts=[];let size=0,cursor=null;
+  for(;;){const rows=await storage.list({limit:100,...(cursor?{startAfter:cursor}:{})});
+   for(const [id,row] of rows){if(!((Number(row?.received)||0)>after))continue;
+    let bytes=row.bytes;if(!bytes&&row.object){const o=await this.objects?.get(row.object);bytes=o?await new Response(o.body).arrayBuffer():null;}
+    if(!bytes)throw Error('Replay file temporarily unavailable');
+    const f=frame({id,received:row.received,build:row.meta?.build,steps:row.meta?.steps,ended:row.meta?.ended},bytes);parts.push(f);size+=f.length;}
+   if(rows.size<100)break;cursor=[...rows.keys()].at(-1);}
+  const out=new Uint8Array(size);let at=0;for(const f of parts){out.set(f,at);at+=f.length;}
+  return new Response(out,{headers:{'Content-Type':'application/octet-stream','X-Replay-Count':String(parts.length)}});
+ }
  fetch(req){const job=this.tail.then(()=>this.handle(req));this.tail=job.catch(()=>{});return job;}
  async archive(id,row){
   if(!this.objects||!row.bytes)return row;
@@ -51,7 +88,8 @@ export class ReplayBucket {
   const next={meta:row.meta,received:row.received,size:row.bytes.byteLength,object:id};
   await this.ctx.storage.put(id,next);return next;
  }
- async handle(req){const id=new URL(req.url).pathname.slice(1),storage=this.ctx.storage;
+ async handle(req){const u=new URL(req.url),id=u.pathname.slice(1),storage=this.ctx.storage;
+  if(req.method==='GET'&&!id&&u.searchParams.get('export')){try{return await this.exportSince(Number(u.searchParams.get('after'))||0);}catch(error){return reply({error:String(error?.message||error)},503);}}
   if(req.method==='POST'){
    const existing=await storage.get(id);if(existing)return reply({ok:true,id,duplicate:true});
    const bytes=await req.arrayBuffer(),meta=JSON.parse(req.headers.get('X-Replay-Meta'));const row={bytes,meta,received:Date.now()};if(this.objects)await this.archive(id,row);else await storage.put(id,row);return reply({ok:true,id});

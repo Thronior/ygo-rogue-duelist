@@ -1,4 +1,6 @@
 import {replayVersion} from './replay-version.js';
+// Uploads only ever start from a player's tap, so a used-up daily allowance stops the current upload, not later ones.
+import {quotaExhausted} from './quota-pause.js';
 // Local, lossless duel journals. Uploads are initiated by players in Settings or Flag behaviour.
 export const REPLAY_ENDPOINT='https://ygo-rogue-replays.hadow--un--esktop.workers.dev/v1/replays';
 export const stringify=value=>JSON.stringify(value,(_,v)=>typeof v==='bigint'?{$bigint:String(v)}:v);
@@ -22,10 +24,11 @@ export function saveRecording(engine){clearTimeout(engine.replaySaveTimer);if(!e
 export async function sendReplayBatch(rows,request=fetch){
  const ids=await Promise.all(rows.map(row=>hash(row.bytes)));
  const encode=bytes=>{let text='';for(const n of new Uint8Array(bytes))text+=String.fromCharCode(n);return btoa(text)};
- let response=await request(REPLAY_ENDPOINT+'/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({replays:rows.map(row=>encode(row.bytes))}),signal:AbortSignal.timeout(60000)});
+ // text/plain makes uploads simple CORS requests (no OPTIONS preflight); the Worker reads the raw body either way.
+ let response=await request(REPLAY_ENDPOINT+'/batch',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({replays:rows.map(row=>encode(row.bytes))}),signal:AbortSignal.timeout(60000)});
  let results;
- if(response.status===404||response.status===405){results=[];for(const row of rows){const r=await request(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:row.bytes,signal:AbortSignal.timeout(20000)});results.push({status:r.status,...await r.json().catch(()=>({error:'Unreadable server response.'}))});}}
- else{const result=await response.json().catch(()=>null);if(!response.ok)throw Error(result?.error||`Upload failed (${response.status}).`);results=result?.results;}
+ if(response.status===404||response.status===405){results=[];for(const row of rows){const r=await request(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:row.bytes,signal:AbortSignal.timeout(20000)});results.push({status:r.status,...await r.json().catch(()=>({error:'Unreadable server response.'}))});}}
+ else{const result=await response.json().catch(()=>null);if(!response.ok){throw Error(result?.error||`Upload failed (${response.status}).`)}results=result?.results;}
  if(!Array.isArray(results)||results.length!==rows.length)throw Error('The service did not confirm this replay bundle.');
  return results.map((result,i)=>result.ok&&result.id===ids[i]?{...result,ok:true}:{ok:false,status:result.status,error:result.error||'The service did not confirm this replay.'});
 }
@@ -36,7 +39,7 @@ export async function uploadReplays(progress=()=>{}){
  let sent=0;const errors=[];
  for(let offset=0;offset<rows.length;offset+=10){const group=rows.slice(offset,offset+10),valid=group.filter(r=>r.bytes.byteLength<20000);for(const row of group)if(row.bytes.byteLength>=20000)errors.push('A replay exceeds the 20 kB upload limit.');
  progress(`Uploading ${Math.min(offset+10,rows.length)} / ${rows.length}...`);
- if(valid.length){let results;try{results=await sendReplayBatch(valid)}catch(error){errors.push(error.message);break}const accepted=valid.filter((row,i)=>results[i].ok);await markUploaded(accepted);sent+=accepted.length;for(const result of results)if(!result.ok)errors.push(result.error);if(results.some(r=>r.status===429||r.status===503))break;}
+ if(valid.length){let results;try{results=await sendReplayBatch(valid)}catch(error){errors.push(error.message);break}const accepted=valid.filter((row,i)=>results[i].ok);await markUploaded(accepted);sent+=accepted.length;for(const result of results)if(!result.ok)errors.push(result.error);if(results.some(r=>quotaExhausted(r.status,r.error)))break;}
 
  }
  const pending=rows.length-sent;progress(pending?`Uploaded ${sent} of ${rows.length} replays. ${pending} remain saved for retry. ${errors[0]||'Please try again.'}`:`Uploaded ${sent} replay${sent===1?'':'s'}. Thank you!`);return {uploaded:sent,pending,errors};
@@ -56,8 +59,8 @@ export function sendUnsentFlags(){
   const rows=await pendingBehaviourFlags();let sent=0;const errors=[];
   for(const row of rows){try{
    if(row.bytes.byteLength>=20000)throw Error('Replay exceeds the 20 kB upload limit.');
-   const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:row.bytes,signal:AbortSignal.timeout(20000)});
-   if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=response.status===503||response.status===429;throw error;}
+   const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:row.bytes,signal:AbortSignal.timeout(20000)});
+   if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=quotaExhausted(response.status,detail?.error);throw error;}
    const result=await response.json();if(!result.ok||result.id!==row.id)throw Error('The service did not confirm this report.');
    await flagTransaction(store=>store.delete(row.id));sent++;
   }catch(error){errors.push(error.message);if(error.serviceUnavailable)break}}

@@ -955,9 +955,40 @@ export function smartContext(e,p,L,prompt=null){
  function lethalCost(c){return !remedyRelic&&lpCost(c)>=e.lp[p];}
  // Standby Phase upkeep ("pay 700 LP or destroy this card", Archfiends' "pays 500"): declining only costs the card.
  function lethalUpkeep(code){const cost=/\bpay(?:s|ing)?\s+([\d,]+)\s*(?:LP|Life Points)/i.exec(e.cards.get(code)?.desc||'');return !remedyRelic&&!!cost&&Number(cost[1].replaceAll(',',''))>=e.lp[p];}
- function activation(c,chain=false){if(lethalCost(c))return -1;return activationValue(c,chain);}
+ // Tower of Babel (user request 2026-11-11). Each Spell Card activated while it is face-up adds a counter when that
+ // Spell resolves, and whoever activated the Spell that makes the 4th takes 3000. A chain resolves backwards, so
+ // the count runs from the card being considered down through the Spell Cards already on the chain.
+ // - Never activate the Spell that would make the 4th counter, in a chain or not. Heavy Storm and Giant Trunade are
+ //   safe: the Tower is gone before a counter could be placed (Harpie's Feather Duster too, if no Tower is yours).
+ // - Never chain a Spell that would push one of your own earlier Spells onto the 4th counter.
+ // - Do chain a Spell when that makes the opponent's Spell lower on the chain the 4th one.
+ const spellCounters=c=>{const raw=c.counters||{};return Array.isArray(raw)?raw.filter(x=>(x.type&0xfff)===1).reduce((n,x)=>n+x.count,0):Number(raw[1]??raw['1']??0)||0};
+ const babelTowers=()=>e.cpuReviewRules?.babel===false?[]:[...back,...theirBack].filter(c=>face(c)&&!c.is_disabled&&name(c)==='Tower of Babel');
+ // Who takes the 3000 if this Spell Card is activated now: a player number, -1 for nobody, null when no Tower counts it.
+ function babelVictim(c){
+  if(!(data(c).type&2)||!(c.location===L.HAND||c.location===L.SZONE&&!face(c)))return null;
+  const towers=babelTowers();if(!towers.length)return null;
+  const order=[p,...(e.activeChain||[]).slice().reverse().filter(l=>e.data[l.code]?.type&2).map(l=>l.player)];
+  let hit=-1;
+  for(const tower of towers){let n=spellCounters(tower);for(const who of order){if(++n>=4){if(who===p)return p;hit=who;break}}}
+  return hit;
+ }
+ const babelEscape=c=>['Heavy Storm','Giant Trunade'].includes(name(c))||name(c)==="Harpie's Feather Duster"&&!back.some(x=>face(x)&&name(x)==='Tower of Babel');
+ function activation(c,chain=false){
+  if(lethalCost(c))return -1;
+  const babel=babelVictim(c);
+  if(babel===p&&!remedy&&!babelEscape(c))return -1;
+  const value=activationValue(c,chain);
+  // Not with a Spell that could take the Tower away first.
+  if(babel===1-p&&!remedy&&burnDamage(3000)>0&&!backRemoval.has(name(c))&&name(c)!=='Giant Trunade')return Math.max(value,burnDamage(3000)>=e.lp[1-p]?100:92);
+  return value;
+ }
  function activationValue(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
   if(c.code===190000050)return coinSpellValue(e,p,L);
+  // Tower of Babel itself (a Continuous Trap): flip it at the first chance, since only Spells activated while it is
+  // face-up count. Not when a Tower is already up, and not while you hold 3 or more Spells yourself, which would
+  // mostly punish you.
+  if(n==='Tower of Babel'&&e.cpuReviewRules?.babel!==false)return [...back,...theirBack].some(x=>face(x)&&name(x)===n)||hand.filter(x=>data(x).type&2).length>=3?-1:70;
   if(n==='Stealth Bird')return chain?85:remainingAttackers().some(a=>same(a,c))&&(!enemy.length||enemy.some(t=>face(t)&&atk(c)>power(t)))?-1:85;
   if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return chain&&e.player!==p&&e.phase===8&&!e.inDamageStep&&e.attackCard?.controller===1-p&&hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
@@ -1405,7 +1436,17 @@ export function smartContext(e,p,L,prompt=null){
   const templeFaceUp=n==='Temple of the Kings'&&c.location===L.SZONE&&face(back.find(x=>same(x,c))||c);
   if(n==='Temple of the Kings'&&!templeFaceUp&&[...own,...hand].some(x=>name(x)==='Mystical Beast of Serket'))return 125;
   if(templeFaceUp)return templeUpgradeAvailable()?100:-1;
-  if(['Widespread Ruin','Lightforce Sword','Blast Held by a Tribute','Judgment of Anubis','White Hole','Dark Spirit of the Silent'].includes(n))return chain&&e.player!==p?95:-1;
+  if(n==='Dark Spirit of the Silent'){
+   // It only stops this attack: the monster it forces to attack was going to attack anyway. Spent on Nightmare
+   // Penguin (1700) it sent Abyss Soldier in for 2600 instead (flag d03c8435, 2026-11-10), so save it for the
+   // biggest attack still to come unless this one is lethal.
+   if(!chain||e.player===p||e.attackCard?.controller!==1-p)return -1;
+   const attacker=enemy.find(x=>same(x,e.attackCard));if(!attacker)return 95;
+   if(!e.attackTarget&&atk(attacker)>=e.lp[p])return 95;
+   const later=enemy.filter(x=>!same(x,attacker)&&face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0));
+   return later.some(x=>atk(x)>atk(attacker))?-1:95;
+  }
+  if(['Widespread Ruin','Lightforce Sword','Blast Held by a Tribute','Judgment of Anubis','White Hole'].includes(n))return chain&&e.player!==p?95:-1;
   if(['Embodiment of Apophis','Metal Reflect Slime'].includes(n))return own.length<5&&(!chain||e.phase>=8&&e.phase<256)?65:-1;
   if(n==='Card of Safe Return')return myDeck>8?45:-1;
   if(n==='Coffin Seller'||n==='Temple of the Kings')return 45;
@@ -2033,6 +2074,9 @@ function preferSet(c){const n=name(c);if(n==='Rescue Cat'&&effectsEnabled(p)&&re
   if(!attacker||!face(attacker)||!(attacker.position&1)||e.battleProtected?.[p]||reservedForRemoval(attacker)||!removalAffects(c,attacker,name(c),{destroy:false,targeting:true}))return -1;
   // Already answered: another position change would switch the attacker back.
   if((e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&(attackStops.has(e.name(link.code))||['Enemy Controller','Book of Moon','Kunai with Chain'].includes(e.name(link.code)))))return -1;
+  // A trap that destroys this attacker answers it for good: keep the position change. Enemy Controller went first and
+  // Sakuretsu Armor was chained on top, wasting it (flag dae92092, 2026-11-10).
+  if((prompt?.selects||[]).some(x=>!same(x,c)&&['Sakuretsu Armor','Mirror Force'].includes(name(x))&&removalAffects(x,attacker,name(x),{destroy:true,targeting:name(x)==='Sakuretsu Armor'})&&activation(x,true)>=0))return -1;
   const defender=e.attackTarget&&own.find(x=>same(x,e.attackTarget)),damage=attackDamageToUs(attacker,defender);
   if(damage>=e.lp[p])return 160;
   // Keep the card for a bigger attack still to come.

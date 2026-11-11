@@ -29,6 +29,13 @@ REGULAR=[
 ('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
 ('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz'),
+# Discord relic suggestions (Dragunfire, M) with Thronior's edits, added on the user's request on 2026-11-11.
+# Names and art for Overkill Bounty, Parting Gift and Tactical Espionage are mine; their authors gave none.
+('illusionary_tribute','Illusionary Tribute',150,'Once per Duel, you can Tribute Spells and Traps you control for a Tribute Summon in place of monsters.','Thousand-Eyes Idol'),
+('overkill_bounty','Overkill Bounty',90,"If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",'Meteor of Destruction'),
+('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Last Will'),
+('tactical_espionage','Tactical Espionage',100,'When you Normal Summon a monster, no Trap Cards can be activated.','Tactical Espionage Expert'),
+('stars_aligned','Stars Aligned',175,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
 # Requested by the user on 2026-11-04.
 ('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
 # Requested by the user on 2026-11-06.
@@ -47,7 +54,7 @@ CURSED=[
 (16,'warriors_vow',"Warrior's Vow",'Monsters you control gain 200 ATK. You cannot manually change your monsters from Attack Position to Defense Position.','Axe Raider'),
 (17,'ritual_scar','Ritual Scar','Monsters you control lose 500 ATK. They gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.','Relinquished'),
 (18,'fusion_fever','Fusion Fever','Fusion Monsters you control gain 1000 ATK and inflict piercing battle damage. You cannot Tribute Summon or Tribute Set monsters.','Polymerization'),
-(19,'empty_hand_pact','Empty-Hand Pact','While your hand is empty, monsters you control gain 1000 ATK. Your hand size limit is reduced by 2.','Card Destruction'),
+(19,'empty_hand_pact','Empty-Hand Pact','While your hand is empty, monsters you control gain 1000 ATK. Your hand size limit is reduced by 2 (min. 0).','Card Destruction'),
 (20,'solitary_tyrant','Solitary Tyrant','While you control exactly 1 monster, it gains 400 ATK. While you control 2 or more monsters, they lose 500 ATK.','Dark Ruler Ha Des'),
 (21,'crowded_crypt','Crowded Crypt','Monsters you control gain 75 ATK for each monster in your GY (max. 750). Your hand size limit is reduced by 4 (min. 0).','Call of the Haunted'),
 (23,'glass_treasury','Glass Treasury','Earn 25% more victory coins (rounded down). You cannot recover LP between Duels.','Gamble'),
@@ -64,7 +71,7 @@ CURSED=[
 (42,'trapbound_idol','Trapbound Idol','Your Trap Monsters cannot be destroyed by battle. You pay 300 LP to activate each Spell Card.','Embodiment of Apophis'),
 (44,'iron_silence','Iron Silence','Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate your activated monster effects in all locations.','Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
-(48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 1).','Time Wizard'),
+(48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 0).','Time Wizard'),
 (49,'black_market_seal','Black Market Seal','Single-card prices are reduced by 40%. Booster-pack prices are increased by 40%.','Goblin of Greed'),
 (52,'defense_proficiency','Defense Proficiency','Halve all damage you take (rounded down). Halve all battle damage your opponent takes (rounded down).','Spirit Barrier'),
 (53,'singleton_pact','Singleton Pact','Your Main Deck minimum is always 20 cards. Your Deck can contain only 1 copy of each card.','Prohibition'),
@@ -75,6 +82,8 @@ CURSED=[
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
 (59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage or pay LP, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
 (61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),
+# Eriko's suggestion (Discord, 2026-11-11), name and art as posted.
+(63,'anime_rule_2','Anime Rule #2',"Each time you destroy an opponent's monster by card effect, inflict damage to your opponent equal to half its ATK. Monsters you control cannot attack directly.",'Mirror Force'),
 (62,'ominous_clock','Ominous Clock',"At the start of your opponent's Standby Phase, inflict 600 damage to them. Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.",'Ominous Fortunetelling')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
@@ -86,6 +95,12 @@ CURSED_PARTS={
  'cursed_duelists_wager':('Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'),
  'cursed_ominous_clock':("At the start of your opponent's Standby Phase, inflict 600 damage to them.",'Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.'),
  'cursed_narrow_gate':('Your opponent has only 3 Main Monster Zones and 3 Spell & Trap Zones.','You also have only 3 of each. Field Zones are unaffected.'),
+ # The automatic split would leave "lose 300 ATK." or "They ..." on its own, or put Ritual Scar's drawback first.
+ 'cursed_brittle_armor':('Monsters you control gain 900 DEF.','Monsters you control lose 300 ATK.'),
+ 'cursed_cracked_sword':('Monsters you control gain 300 ATK.','Monsters you control lose 1000 DEF.'),
+ 'cursed_iron_silence':('Monsters you control gain 600 ATK/DEF.','Their effects are negated. Negate your activated monster effects in all locations.'),
+ 'cursed_reckless_spear':('Monsters you control can attack directly.','Monsters you control lose 1000 ATK.'),
+ 'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.','Monsters you control lose 500 ATK.'),
 }
 
 def install(artifact):
@@ -135,7 +150,8 @@ def copy_limit(run):
 CHOICE_RELICS=('relic_picker','card_picker','name_changer','weighted_coins','weighted_dice')
 CONSUMED_RELICS=('relic_picker','card_picker')
 
-def opening(run,normal):return max(1,normal-2*copies(run,'cursed_premature_triumph'))
+# The opening hand can go down to 0 cards (user, 2026-11-11), like the hand size limit.
+def opening(run,normal):return max(0,normal-2*copies(run,'cursed_premature_triumph'))
 
 def first(run,random_first):
  reconcile_turn_order(run)
@@ -189,6 +205,10 @@ def rewards(run,events,boss):
   hints=sum(e.get('kind')=='tribute_dividend' for e in events)
   count=summons or hints//max(1,copies(run,'tribute_dividend')) # Each relic copy emits its own fallback hint.
   if count:out['Tribute Dividend']=15*count*copies(run,'tribute_dividend')
+ if has(run,'overkill_bounty'):
+  # The client reports how far the final blow went past the opponent's remaining LP (duel.js 'overkill').
+  excess=next((int(e.get('amount',0)) for e in reversed(events) if e.get('kind')=='overkill'),0)
+  if excess>=1000:out['Overkill Bounty']=20*(excess//1000)*copies(run,'overkill_bounty')
  if has(run,'cursed_golden_grave'):
   n=next((e.get('grave_monsters',0) for e in reversed(events) if e.get('kind')=='duel_metrics'),0)
   out['Golden Grave']=min(90,6*n)*copies(run,'cursed_golden_grave')

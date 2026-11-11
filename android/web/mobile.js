@@ -88,6 +88,7 @@ import {encounterCard,swordsIcon,bossBanner,bossControls,bossRerollPrice,playEnc
 import {playLegendarySummon} from './legendary-summon.js';
 
 import {DeviceSync} from './device-sync.js';
+import {quotaPausedUntil} from './quota-pause.js';
 
 import {checkAndroidUpdate,startupAndroidUpdate} from './android-update.js';
 
@@ -149,6 +150,7 @@ import {installDesktopStorage} from './desktop-storage.js';
 import {CPUViewer} from './cpu-viewer.js';
 
 import {relicImage,relicArtwork,activeTagCharacters} from './ui-art.js';
+import {relicCard,relicLedger,permanentCurseEntries} from './relic-inspect.js';
 
 import {promptContext} from './prompt-context.js';
 
@@ -161,6 +163,8 @@ import {loadPyodide} from './pyodide/pyodide.mjs';
 import {MobileDuel,M,R,I,B,L,P} from './duel.js';
 import {LANGUAGES,savedLanguage,browserLanguage,setLanguage,attachContent,currentLanguage,flagSvg} from './i18n.js';
 import {loadFavouritePacks,isFavouritePack,toggleFavouritePack,favouritesFirst,packStar,packFavouriteToggle,favouritesInStock} from './pack-favourites.js';
+import {Lesson,startLessonDuel,LESSON_PLAYER,LESSON_OPPONENT,LESSON_POOL,LESSON_LP,FINISH} from './tutorial-duel.js';
+import {LessonCoach} from './tutorial-coach.js';
 
 const app=document.querySelector('#app'),modal=document.querySelector('#modal');
 
@@ -233,11 +237,16 @@ function toast(text){
 
  const message=validation?.at(-1)?.replace(/^(?:ValueError|AssertionError): /,'')||(/Traceback \(most recent call last\)/.test(raw)?'That action could not be completed. Please try again.':raw);
 
+ // The same message is never stacked (user, 2026-11-11: tapping an item you can't afford several times kept the popup up
+ // for 4 seconds per tap). It shows again only once the one on screen is gone.
+ if(message===toastShowing||toastQueue.includes(message))return;
  toastQueue.push(message);showToast();
 
 }
 
-function showToast(){if(toastBusy||!toastQueue.length)return;toastBusy=true;const el=document.querySelector('#toast');el.textContent=toastQueue.shift();el.classList.add('show');setTimeout(()=>{el.classList.remove('show');toastBusy=false;showToast()},4200)}
+// Short messages stay 3 seconds; longer ones keep 4.2 so they can be read.
+let toastShowing=null;
+function showToast(){if(toastBusy||!toastQueue.length)return;toastBusy=true;const el=document.querySelector('#toast');toastShowing=toastQueue.shift();el.textContent=toastShowing;el.classList.add('show');setTimeout(()=>{el.classList.remove('show');toastBusy=false;toastShowing=null;showToast()},toastShowing.length>60?4200:3000)}
 
 let lastPersistedData=null;
 
@@ -247,7 +256,7 @@ let commandQueue=Promise.resolve();
 
 function command(action,value){const payload=JSON.stringify({action,value});const job=commandQueue.then(()=>executeCommand(payload));commandQueue=job.catch(()=>{});return job}
 
-async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(['reward-progress','pack-inspect','card-sources','cpu-catalog'].includes(statsRequest.action))return result.result;state=applyCommandUpdate(state,result,statsRequest.action);loadFavouritePacks(state?.settings?.favoritePacks);if(result.persist!==false&&statsRequest.action!=='device-sync-read')await persist(statsRequest.action==='finish');if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish')resetDraftFilters(false);if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);recordRunResult(result.run);}return result.result}
+async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(['reward-progress','pack-inspect','card-sources','cpu-catalog'].includes(statsRequest.action))return result.result;state=applyCommandUpdate(state,result,statsRequest.action);if(lesson){lesson.saved={...state,run:lesson.saved.run};state={...state,run:lesson.run}}loadFavouritePacks(state?.settings?.favoritePacks);noteDeviceSyncChange(statsRequest.action);if(result.persist!==false&&statsRequest.action!=='device-sync-read')await persist(statsRequest.action==='finish');if(statsRequest.action==='finish'&&state?.run?.stage==='complete')void deviceBackup.saveNow();if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish')resetDraftFilters(false);if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);recordRunResult(result.run);}return result.result}
 
 async function notices(){const list=state.profile.achievement_notices||[];if(list.length){await command('notices');list.forEach(n=>toast('Achievement complete: '+n.name+' — '+n.reward))}}
 
@@ -348,7 +357,7 @@ window.addEventListener('pageshow',()=>window.resumeAudio());
 
 for(const event of ['pointerdown','keydown'])document.addEventListener(event,()=>{if(state&&!audioSuspended&&music.paused)track(packPresentation?'packs':screenMusic())},{capture:true});
 
-function shell(title,body,tools='',cls=''){app.innerHTML=`<div class="page ${cls}"><header><h2>${title}</h2><div class="tools">${tools}${screen==='draft'?btn(relicEyeIcon,'relic-ledger','aria-label="Relics" title="Relics"','navigation-icon-button'):''}${screen==='settings'?'':btn('Settings','settings')}${btn('<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>','title','aria-label="Menu" title="Menu"','navigation-icon-button')}</div></header>${body}</div>`}
+function shell(title,body,tools='',cls=''){app.innerHTML=`<div class="page ${cls}"><header><h2>${title}</h2><div class="tools">${tools}${screen==='draft'||screen==='routes'?btn(relicEyeIcon,'relic-ledger','aria-label="Relics" title="Relics"','navigation-icon-button'):''}${screen==='settings'?'':btn('Settings','settings')}${btn('<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>','title','aria-label="Menu" title="Menu"','navigation-icon-button')}</div></header>${body}</div>`}
 
 let inspectParent=null;
 
@@ -801,7 +810,7 @@ function bountyBanner(r){
  return '<section class="bounty-banner" aria-label="Bounty objective"><strong>BOUNTY</strong><span>'+esc(b.title||'Objective')+'</span><p>'+esc(b.description||'Complete this Duel to earn coins.')+'</p><small>Reward: +'+reward+' coins</small></section>';
 }
 
-function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${DRAFT_SORTS.map(o=>`<option ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(draftSplit)}>${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftOrder(r.pool,r.selected).map(i=>draftCard(r,i)).join('')||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
+function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${DRAFT_SORTS.map(o=>`<option value="${o}" ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(draftSplit)}>${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftOrder(r.pool,r.selected).map(i=>draftCard(r,i)).join('')||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
 const draftCard=(r,i)=>deckCardMarkup(cardButton(r.pool[i],`data-pick="${i}"`,r.selected.includes(i),!!(r.card_mods&&r.card_mods[i]!==undefined)),card(r.pool[i]),r,i,content.artifactInfo);
 // Wide screens (2026-11-06): when Auto would fit 18+ cards per row, the editor splits into a Deck pane (8 per row) and a
 // Collection pane with everything else. A tap moves the card across; each pane keeps its own scroll.
@@ -927,7 +936,7 @@ function registeredCard(id){if(registeredSource!==state.registeredCards){registe
 
 // Starter decks first, then Structure Decks, each oldest first.
 const collectionDecks=()=>[...(content.preconstructedDecks||[])].sort((a,b)=>a.name.includes('Structure')-b.name.includes('Structure')||a.date.localeCompare(b.date));
-function renderCollection(){if(collectionKind==='achievements'){renderAchievements();return;}if(collectionKind==='collectors'){void renderCollectorLeaderboard();return;}if(['personal','global','characters'].includes(collectionKind))collectionKind='cards';if(collectionKind==='history'){renderRunHistory();return}let rows=collectionKind==='cards'?content.cards.map(c=>({id:c.id,name:c.name,img:image(c.id)})):collectionKind==='packs'?[...content.packs.map(p=>({id:p.id,name:p.name,img:'assets/packs/'+p.id+'.jpg'})),...collectionDecks().map(d=>({id:'deck:'+d.id,name:d.name,img:'assets/decks/'+d.art+'.jpg'}))]:Object.entries(content.artifacts).filter(([id])=>!(content.retiredArtifacts||[]).includes(id)&&(!(content.fusedRelics||[]).includes(id)||(state.profile?.fused_relics||[]).includes(id))).map(([id,r])=>({id,name:r[0],img:relicImage(content.artifactInfo[id].art)}));if(collectionKind==='packs'){loadFavouritePacks(state.settings?.favoritePacks);if(collectionFavouritePacks)rows=rows.filter(r=>isFavouritePack(r.id));rows=favouritesFirst(rows,r=>r.id)}rows=rows.filter(r=>(r.name+' '+(collectionKind==='cards'?card(r.id).desc:'')).toLowerCase().includes(collectionQuery.toLowerCase())&&(collectionKind!=='cards'||matchesFilters(card(r.id),collectionType,collectionAttribute,'Any effect')&&matchesSearch(card(r.id),'collection')));if(collectionKind==='cards'&&collectionRegistration!=='All cards')rows=rows.filter(r=>registeredCard(r.id)===(collectionRegistration==='Registered'));if(collectionKind==='cards')rows.sort((a,b)=>collectionSort==='Default'?frameLevelName(card(a.id),card(b.id)):collectionSort==='Name'?a.name.localeCompare(b.name):collectionSort==='ATK'?(card(b.id).atk||0)-(card(a.id).atk||0):collectionSort==='DEF'?(card(b.id).defense||0)-(card(a.id).defense||0):(card(b.id).level||0)-(card(a.id).level||0));if(collectionKind==='relics')rows=sortRelicCollection(rows,content.artifacts);const pages=Math.max(1,Math.ceil(rows.length/36));collectionPage=Math.min(collectionPage,pages-1);shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k===collectionKind?'primary':'')).join('')}<input id="collection-search" placeholder="Search collection" value="${esc(collectionQuery)}">${btn('Search','collection-search')}${collectionKind==='packs'?btn('<span aria-hidden="true">★</span> <span>Favourites</span>','collection-favourite-packs',`aria-pressed="${collectionFavouritePacks}"`,collectionFavouritePacks?'primary':''):''}${collectionKind==='cards'?searchButton('collection')+collectionFilters()+`<label>Sort<select data-collection-sort>${['Default','Name','ATK','DEF','Level'].map(v=>`<option ${v===collectionSort?'selected':''}>${v}</option>`).join('')}</select></label><label>Registration<select data-collection-filter="registration">${['All cards','Registered','Missing'].map(x=>`<option ${x===collectionRegistration?'selected':''}>${x}</option>`).join('')}</select></label><small class="registration-progress">${content.cards.filter(c=>registeredCard(c.id)).length} / ${content.cards.length} registered</small>`:''}</div><div class="scroll cardgrid">${collectionKind==='packs'&&collectionFavouritePacks&&!rows.length?'<p class="collection-empty">No favourite packs yet. Tap ☆ on a pack here or in the shop.</p>':''}${rows.slice(collectionPage*36,(collectionPage+1)*36).map((r,index)=>`${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind)?`<h2 class="relic-group-heading">${r.relicKind}</h2>`:''}${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind||rows[collectionPage*36+index-1].effectGroup!==r.effectGroup)?`<h3 class="relic-group-heading">${r.effectGroup}</h3>`:''}${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?`<div class="collection-pack${isFavouritePack(r.id)?' favourite-pack':''}">`:''}<button class="cardbtn ${collectionKind==='cards'&&registeredCard(r.id)?'card-registered':''}" ${collectionKind==='cards'?`data-inspect="${r.id}"`:`data-do="collection-item" data-id="${r.id}"`}>${collectionKind==='relics'?`<div class="collection-relic-art">${relicArtwork(r.img)}</div>`:`<img loading="lazy" src="${r.img}">`}<span>${esc(r.name)}</span></button>${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?packStar(r.id,r.name,'collection-pack-fav')+'</div>':''}`).join('')}</div><footer>${btn('Previous','collection-prev',collectionPage?'':'disabled')} ${rows.length} entries · ${collectionPage+1} / ${pages} ${btn('Next','collection-next',collectionPage+1<pages?'':'disabled')}</footer>`)}
+function renderCollection(){if(collectionKind==='achievements'){renderAchievements();return;}if(collectionKind==='collectors'){void renderCollectorLeaderboard();return;}if(['personal','global','characters'].includes(collectionKind))collectionKind='cards';if(collectionKind==='history'){renderRunHistory();return}let rows=collectionKind==='cards'?content.cards.map(c=>({id:c.id,name:c.name,img:image(c.id)})):collectionKind==='packs'?[...content.packs.map(p=>({id:p.id,name:p.name,img:'assets/packs/'+p.id+'.jpg'})),...collectionDecks().map(d=>({id:'deck:'+d.id,name:d.name,img:'assets/decks/'+d.art+'.jpg'}))]:Object.entries(content.artifacts).filter(([id])=>!(content.retiredArtifacts||[]).includes(id)&&(!(content.fusedRelics||[]).includes(id)||(state.profile?.fused_relics||[]).includes(id))).map(([id,r])=>({id,name:r[0],img:relicImage(content.artifactInfo[id].art)}));if(collectionKind==='packs'){loadFavouritePacks(state.settings?.favoritePacks);if(collectionFavouritePacks)rows=rows.filter(r=>isFavouritePack(r.id));rows=favouritesFirst(rows,r=>r.id)}rows=rows.filter(r=>(r.name+' '+(collectionKind==='cards'?card(r.id).desc:'')).toLowerCase().includes(collectionQuery.toLowerCase())&&(collectionKind!=='cards'||matchesFilters(card(r.id),collectionType,collectionAttribute,'Any effect')&&matchesSearch(card(r.id),'collection')));if(collectionKind==='cards'&&collectionRegistration!=='All cards')rows=rows.filter(r=>registeredCard(r.id)===(collectionRegistration==='Registered'));if(collectionKind==='cards')rows.sort((a,b)=>collectionSort==='Default'?frameLevelName(card(a.id),card(b.id)):collectionSort==='Name'?a.name.localeCompare(b.name):collectionSort==='ATK'?(card(b.id).atk||0)-(card(a.id).atk||0):collectionSort==='DEF'?(card(b.id).defense||0)-(card(a.id).defense||0):(card(b.id).level||0)-(card(a.id).level||0));if(collectionKind==='relics')rows=sortRelicCollection(rows,content.artifacts);const pages=Math.max(1,Math.ceil(rows.length/36));collectionPage=Math.min(collectionPage,pages-1);shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k===collectionKind?'primary':'')).join('')}<input id="collection-search" placeholder="Search collection" value="${esc(collectionQuery)}">${btn('Search','collection-search')}${collectionKind==='packs'?btn('<span aria-hidden="true">★</span> <span>Favourites</span>','collection-favourite-packs',`aria-pressed="${collectionFavouritePacks}"`,collectionFavouritePacks?'primary':''):''}${collectionKind==='cards'?searchButton('collection')+collectionFilters()+`<label>Sort<select data-collection-sort>${['Default','Name','ATK','DEF','Level'].map(v=>`<option value="${v}" ${v===collectionSort?'selected':''}>${v}</option>`).join('')}</select></label><label>Registration<select data-collection-filter="registration">${['All cards','Registered','Missing'].map(x=>`<option value="${x}" ${x===collectionRegistration?'selected':''}>${x}</option>`).join('')}</select></label><small class="registration-progress">${content.cards.filter(c=>registeredCard(c.id)).length} / ${content.cards.length} registered</small>`:''}</div><div class="scroll cardgrid">${collectionKind==='packs'&&collectionFavouritePacks&&!rows.length?'<p class="collection-empty">No favourite packs yet. Tap ☆ on a pack here or in the shop.</p>':''}${rows.slice(collectionPage*36,(collectionPage+1)*36).map((r,index)=>`${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind)?`<h2 class="relic-group-heading">${r.relicKind}</h2>`:''}${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind||rows[collectionPage*36+index-1].effectGroup!==r.effectGroup)?`<h3 class="relic-group-heading">${r.effectGroup}</h3>`:''}${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?`<div class="collection-pack${isFavouritePack(r.id)?' favourite-pack':''}">`:''}<button class="cardbtn ${collectionKind==='cards'&&registeredCard(r.id)?'card-registered':''}" ${collectionKind==='cards'?`data-inspect="${r.id}"`:`data-do="collection-item" data-id="${r.id}"`}>${collectionKind==='relics'?`<div class="collection-relic-art">${relicArtwork(r.img)}</div>`:`<img loading="lazy" src="${r.img}">`}<span>${esc(r.name)}</span></button>${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?packStar(r.id,r.name,'collection-pack-fav')+'</div>':''}`).join('')}</div><footer>${btn('Previous','collection-prev',collectionPage?'':'disabled')} ${rows.length} entries · ${collectionPage+1} / ${pages} ${btn('Next','collection-next',collectionPage+1<pages?'':'disabled')}</footer>`)}
 
 let tutorialPage=0,tutorialReturn="title";
 
@@ -949,7 +958,7 @@ document.addEventListener('change',async e=>{if(!e.target.matches('[data-auto-pl
 // placements on your own side; zones on the opponent's side and zones to disable are still chosen by hand.
 // True when Auto-Placement will answer this zone prompt itself, so its zones are not highlighted (user, 2026-11-07).
 function autoPlaces(m){
- if(!state?.settings?.autoPlacement||m?.player!==0||m.type!==M.SELECT_PLACE||screen!=='duel'||(tagUI&&!tagUI.session.duelReady))return false;
+ if(!(state?.settings?.autoPlacement||lesson)||m?.player!==0||m.type!==M.SELECT_PLACE||screen!=='duel'||(tagUI&&!tagUI.session.duelReady))return false;
  const places=engine.choices(m).map(c=>c.response.places?.[0]);
  return places.length>0&&places.every(p=>p&&p.player===0&&[L.MZONE,L.SZONE].includes(p.location));
 }
@@ -983,7 +992,7 @@ function duelSettingsMarkup(){
  if(!panes[duelSettingsTab])duelSettingsTab='look';
  return `<div class="settings settings-v2 settings-dialog duel-settings"><nav class="duel-set-tabs" role="tablist" aria-label="Duel settings sections">${DUEL_SETTINGS_TABS.map(([k,label])=>`<button type="button" role="tab" data-do="duel-settings-tab" data-tab="${k}" aria-selected="${k===duelSettingsTab}" class="${k===duelSettingsTab?'active':''}">${esc(label)}</button>`).join('')}</nav>${DUEL_SETTINGS_TABS.map(([k])=>`<div class="duel-set-pane" role="tabpanel" data-pane="${k}" ${k===duelSettingsTab?'':'hidden'}>${panes[k]}</div>`).join('')}</div>`;
 }
-const SETTINGS_TABS=[['sound','Sound'],['effects','Effects'],['gameplay','Gameplay'],['display','Display'],['devices','Devices & App'],['replays','Replays & Stats'],['about','About']];let settingsTab='sound';
+const SETTINGS_TABS=[['sound','Sound'],['effects','Effects'],['gameplay','Gameplay'],['display','Display'],['devices','Devices & App'],['replays','Replays & Stats'],['about','About and Tutorial']];let settingsTab='sound';
 
 document.addEventListener('change',async e=>{if(!e.target.matches('[data-simple-backgrounds]'))return;state.settings.simpleBackgrounds=e.target.checked;document.dispatchEvent(new Event('duel-background-change'));await command('settings',state.settings)});
 
@@ -1009,9 +1018,9 @@ function renderSettings(){
   display:`<h2>Display</h2><div class="set-row settings-language"><span class="set-text"><b>Language</b><small>Interface and card texts.</small></span><button class="settings-language-button" data-do="language" aria-label="Language" title="Language">${flagSvg(currentLanguage())}<span>${esc(LANGUAGES.find(([code])=>code===currentLanguage())?.[1]||'English')}</span></button></div>${displaySettings()}${duelBackgroundSetting()}${window.ShadowNative?'':settingToggle('Preload Game Assets','Load music, artwork and backgrounds at startup. Sound effects always preload.','data-preload-visuals',preloadVisualPreference()==='all')}`,
   // Saved Data lives in the Devices & App tab (2026-11-06).
   saves:`<h3 class="saved-data-head">Saved Data</h3><p class="muted">Your progress is always saved on this device, and updating the app keeps it.</p><div class="set-group">${cloudSettingsMarkup({enabled:deviceBackup.isEnabled(),...deviceBackup.status()},btn,esc)}</div><details class="set-group"><summary>Other recovery options</summary><label class="set-file">Restore an admin recovery file <input id="device-recovery-file" type="file" accept=".json,application/json"></label></details><details class="set-group settings-danger"><summary>Reset Progress</summary><p>Remove all saved progress on this device.</p>${btn('Delete All Progress','reset-progress','','danger')}${deviceBackup.status().code?`<p>Remove your cloud save from the server. Progress on this device stays.</p>${btn('Delete My Cloud Save','cloud-delete','','danger')}`:''}</details>`,
-  devices:`<h2>Devices &amp; App</h2><p class="muted">Link Devices shares unlocks, achievements and challenge levels between your devices.</p><div class="settings-actions">${window.ShadowNative?.openUpdate?btn('Check for Updates','android-update'):''}${btn('Link Devices','device-sync-open')}${btn('How to Play','tutorial')}</div>`,
+  devices:`<h2>Devices &amp; App</h2><p class="muted">Link Devices shares unlocks, achievements and challenge levels between your devices.</p><div class="settings-actions">${window.ShadowNative?.openUpdate?btn('Check for Updates','android-update'):''}${btn('Link Devices','device-sync-open')}</div>`,
   replays:`<h2>Replays &amp; Stats</h2><div class="set-row"><span class="set-text"><b>Duel Replays</b><small>Your latest 100 duels are kept on this device. Uploading them helps improve the CPU: decks, actions and results only, no account details.</small></span>${btn('Upload Replays','upload-replays')}</div><p id="replay-status" role="status" aria-live="polite"></p>${settingToggle('Share Global Statistics','Anonymous totals for Global Stats and Character Stats. No names or save files.','data-usage-stats',statsEnabled())}`,
-  about:`<h2>About</h2><p class="notice settings-about">Yu-Gi-Oh: Rogue Duelist · A private fan experiment.<br>Card and character artwork © Konami. Duel rules: Project Ignis / ocgcore-wasm.</p><details class="set-group settings-advanced"><summary>Advanced</summary><label for="cheat-code">Testing Code</label><div class="settings-code"><input id="cheat-code" placeholder="Enter code">${btn('Apply','cheat')}</div></details>`
+  about:`<h2>About and Tutorial</h2><div class="settings-actions">${btn('Tutorial Duel','lesson-start')}${btn('How to Play','tutorial')}</div><p class="notice settings-about">Yu-Gi-Oh: Rogue Duelist · A private fan experiment.<br>Card and character artwork © Konami. Duel rules: Project Ignis / ocgcore-wasm.</p><details class="set-group settings-advanced"><summary>Advanced</summary><label for="cheat-code">Testing Code</label><div class="settings-code"><input id="cheat-code" placeholder="Enter code">${btn('Apply','cheat')}</div></details>`
  };
  panes.devices+=panes.saves;
  if(!panes[settingsTab]||settingsTab==='saves')settingsTab='sound';
@@ -1047,7 +1056,67 @@ function mountEndingCard(r){viewedRun=null;const canvas=app.querySelector('.run-
 
 function duelSignatureMonsters(){const ids=new Set([state.run.character,state.run.opponent].filter(Number.isInteger).flatMap(id=>{const c=content.characters[id];if(!c)return[];const names=[...(c.cards||[]),...(c.alternate?.cards||[])];return names.map(name=>content.cards.find(row=>row.name===name)?.id).filter(id=>id&&((card(id)?.data?.type||0)&1))}));return ids}
 
-async function startDuel(resume=false,opponent=null){busy=true;app.innerHTML='<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>ENTERING THE DUEL</h1><p>Loading the offline EDOPro core…</p><p class="loading-tip">${esc(loadingTip())}</p></section>';try{
+// ---- Tutorial duel (2026-11-11): tutorial-duel.js is the script, tutorial-coach.js the bubble. ----
+// While it runs, `lesson` holds the script, the coach and the real saved state. state.run is a stand-in that never
+// reaches the backend: no response, result, stat, replay or cloud save is written, and leaving restores everything.
+let lesson=null;
+const LESSON_ASKED='ygo-tutorial-asked';
+function lessonAsked(){try{localStorage.setItem(LESSON_ASKED,'1')}catch{}}
+// Asked once, and only of someone who has never started a run on this device.
+function lessonShouldAsk(){try{if(localStorage.getItem(LESSON_ASKED))return false}catch{return false}return !tagUI&&!(state.profile?.runs>0)&&!(state.slots||[]).some(s=>s.run)}
+async function startLesson(returnTo='title'){
+ if(lesson||tagUI||busy)return;busy=true;lessonAsked();
+ app.innerHTML=`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>ENTERING THE DUEL</h1><p>Loading the offline EDOPro core…</p></section>`;
+ const saved=state;
+ try{
+  if(!engine||engine.tagFacade)engine=await new MobileDuel([...content.cards,...content.tokenCards]).init();else engine.destroy();
+  const run={character:LESSON_PLAYER,opponent:LESSON_OPPONENT,first_player:0,pool:[...LESSON_POOL],selected:[],artifacts:[],curses:[],round:0,loop:0,lp:LESSON_LP,stage:'duel',lesson:true};
+  lesson={script:new Lesson(),saved,run,returnTo:['duel','loading'].includes(returnTo)?'title':returnTo,coach:null};
+  lesson.coach=new LessonCoach({setPreview,exit:()=>action('duel-options')});
+  state={...saved,run};
+  coinMilestones.delete(engine);coinProgress.delete(engine);duelAnimations.delete(engine);summonMusic.delete(engine);
+  snapshot=startLessonDuel(engine);const cues=engine.visuals.splice(0);
+  engine.signatureCards=new Set();lastLP=[...snapshot.lp];lastPhase=snapshot.phase;equipSelection=null;screen='duel';duelEnding=false;preview=LESSON_POOL[0];previewLocation=null;
+  document.body.classList.add('lesson-predraw');render();
+  await lesson?.coach.intro();if(!lesson)return;
+  engine.visuals=cues;await playDuelCues();if(!lesson||screen!=='duel')return;
+  renderDuel();await lesson.coach.tour();if(!lesson)return;
+  scheduleAI();
+ }catch(e){console.error(e);await leaveLesson();toast('Tutorial could not start: '+e.message)}finally{busy=false}
+}
+// The scripted opponent, the prompts the tutorial answers itself, and the guided step for everything else.
+function scheduleLesson(){
+ const m=engine?.pending;if(screen!=='duel'||!m||snapshot?.finished)return;
+ const owner=engine,later=(response,delay)=>{aiTimer=setTimeout(()=>{if(lesson&&engine===owner&&engine.pending===m&&screen==='duel')respond(response)},delay)};
+ if(m.player===1){lesson.coach.setStep(null);try{const response=lesson.script.cpu(engine),note=lesson.script.cpuNote(engine,response);if(note){lesson.coach.card(note).then(()=>later(response,150))}else later(response,m.type===M.SELECT_CHAIN?50:700)}catch(e){toast('Opponent paused: '+e.message)}return}
+ const step=lesson.script.next(engine);
+ if(step?.auto){later(step.response,50);return}
+ lesson.coach.setStep(step);
+}
+async function lessonPhase(cue){
+// The cues of a turn play after the duel has moved on, so the turn's owner comes from its own turn cue.
+ const info=lesson.script.phase(cue.phase,lesson.turnPlayer??0);
+ await lesson.coach.phase(info);
+ document.body.classList.remove('lesson-predraw');
+}
+async function finishLesson(winner){
+ duelEnding=true;clearTimeout(aiTimer);lesson.coach.setStep(null);
+ renderDuel();await finishDuelAnimations(engine);if(!lesson)return;
+ if(winner===0){duelSound('specialsummon',.6);await duelDelay(300)}else await duelFinish(winner);
+ if(!lesson)return;track(winner===0?'victory':'defeat');
+ const [title,text]=FINISH[winner===0?'win':'loss'];
+ dialog(title,`<div class="lesson-done"><p>${esc(text)}</p>${btn('Start a run','lesson-run','','primary')}${btn('Back to the menu','lesson-leave')}</div>`,false);
+}
+// Puts the real state back. Nothing from the tutorial was saved, so there is nothing to undo.
+async function leaveLesson(next=null){
+ const l=lesson;if(!l)return;lesson=null;clearTimeout(aiTimer);l.coach?.destroy();document.body.classList.remove('lesson-predraw');
+ document.querySelectorAll('.float-lp,.moving-card,.attack-beam,.duel-cue,.coin-toss,.dice-toss,.action-pop').forEach(el=>el.remove());
+ state=l.saved;try{engine?.destroy()}catch{}snapshot=null;duelEnding=false;busy=false;preview=0;previewLocation=null;
+ clearInterval(backgroundAnimationTimer);backgroundAnimationTimer=null;
+ go(next||(l.returnTo==='characters'?'title':l.returnTo)||'title');
+}
+
+async function startDuel(resume=false,opponent=null){busy=true;app.innerHTML=`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>ENTERING THE DUEL</h1><p>Loading the offline EDOPro core…</p><p class="loading-tip">${esc(loadingTip())}</p></section>`;try{
 
  if(!resume){await command('choose',opponent);await command('begin');warmOpponents([state.run.opponent]);warmDeckArt([...(state.run.mobile_duel?.enemy||[]),...(state.run.mobile_duel?.enemyExtra||[])].slice(0,80));await playEncounterReveal({content,run:state.run,collectors:state.run.fallen_routes,players:[state.run.character],opponents:[state.run.opponent],lp:[state.run.mobile_duel.lp,state.run.mobile_duel.enemyLP],sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'||screen==='ending'})}
 
@@ -1133,9 +1202,9 @@ function showCardActions(el,player,loc,seq,code){setPreview(code,el);removeActio
  // Spells and Traps list Activate first, like Summon for monsters (Kuroda, Discord 2026-11-09).
  if(!(Number(card(code)?.data?.type??engine?.cards?.get?.(code)?.data?.type)&1))choices.sort((a,b)=>(b.response.action===I.SELECT_ACTIVATE)-(a.response.action===I.SELECT_ACTIVATE));const pop=document.createElement('div');pop.className='action-pop';
 
- for(const a of choices){const b=document.createElement('button');b.textContent=a.label.split(' · ')[0];b.onclick=e=>{e.stopPropagation();removeActions();stageChoice(a.response,a.label,code,{controller:player,location:loc,sequence:seq})};pop.append(b)}
+ for(const a of choices){const b=document.createElement('button');b.textContent=a.label.split(' · ')[0];b.dataset.act=a.response.type+':'+a.response.action;b.onclick=e=>{e.stopPropagation();removeActions();stageChoice(a.response,a.label,code,{controller:player,location:loc,sequence:seq})};pop.append(b)}
 
- const b=document.createElement('button');b.textContent='Inspect';b.onclick=()=>inspect(code);pop.append(b);document.body.append(pop);const r=el.getBoundingClientRect(),h=pop.offsetHeight;pop.style.left=Math.max(3,Math.min(innerWidth-pop.offsetWidth-3,r.left+r.width/2-pop.offsetWidth/2))+'px';pop.style.top=Math.max(4,r.top-h-8)+'px';
+ const b=document.createElement('button');b.textContent='Inspect';b.onclick=()=>inspect(code);pop.append(b);document.body.append(pop);const r=el.getBoundingClientRect(),h=pop.offsetHeight;pop.style.left=Math.max(3,Math.min(innerWidth-pop.offsetWidth-3,r.left+r.width/2-pop.offsetWidth/2))+'px';pop.style.top=Math.max(4,r.top-h-8)+'px';lesson?.coach.sync();
 
 }
 
@@ -1252,6 +1321,8 @@ renderDuelDOM(app,`<div class="duel"><aside class="inspection">${previewMarkup()
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const el of document.querySelectorAll('.zone .card-counter')){const old=previousCounters.get(el.closest('.zone').dataset.zone+':'+el.dataset.counterKind)||0;if(Number(el.dataset.count)>old)el.animate(compatibilityEnabled()?[{transform:'scale(1.5)'},{transform:'scale(1)'}]:[{transform:'scale(1.5)',filter:'brightness(2)'},{transform:'scale(1)',filter:'none'}],{duration:500});}
 
  const field=[...s.players[0].spells.slice(5,6),...s.players[1].spells.slice(5,6)].find(c=>c&&c.position&5);if(field){const duel=document.querySelector('.duel');if(!duel.classList.contains('has-field'))duel.classList.add('has-field');const art=`linear-gradient(#04171988,#031017aa),url('assets/fields/${field.code}.jpg')`;if(duel.dataset.fieldArt!==String(field.code)){duel.style.setProperty('--active-field-art',art);duel.dataset.fieldArt=String(field.code)}}else{const duel=document.querySelector('.duel');if(duel.classList.contains('has-field'))duel.classList.remove('has-field');if(duel.style.getPropertyValue('--active-field-art'))duel.style.removeProperty('--active-field-art');if(duel.dataset.fieldArt)delete duel.dataset.fieldArt}
+
+ lesson?.coach.sync();
 
 }
 
@@ -1505,8 +1576,9 @@ async function playBoardCue(cue,{field,playerAction,quick,owner,motion}){
  const reduced=motion.reduced,pace=cueWindow(cue,quick),removal=cue.kind==='move'?removalKind(cue.reason):null,cueAnimations=[];
  let label=['set','summon','attack','move','draw'].includes(cue.kind)?'':cue.text||'',beam,moving,caption,attackNodes=[];
  duelSfx.cue(cue,removal);
+ if(lesson&&cue.kind==='turn')lesson.turnPlayer=cue.player;
  if(cue.kind==='turn')label=snapshot.tag?`${snapshot.tag.names[cue.player][snapshot.tag.activeSeats[cue.player]]}’S TURN`:cue.player===0?'YOUR TURN':'OPPONENT’S TURN';
- if(cue.kind==='phase'){label=phaseName(cue.phase);trackMotion(owner,phaseGlint(document.querySelector(`.phases [data-phase="${cue.phase>=8&&cue.phase<256?8:cue.phase}"]`),{reduced}))}
+ if(cue.kind==='phase'){label=phaseName(cue.phase);trackMotion(owner,phaseGlint(document.querySelector(`.phases [data-phase="${cue.phase>=8&&cue.phase<256?8:cue.phase}"]`),{reduced}));if(lesson)await lessonPhase(cue)}
  // Banners fade on their own clock. Rapid CPU phase steps only light the phase strip.
  if(label&&(cue.kind!=='phase'||playerAction||cue.cpuBattleEntry)){
   const el=document.createElement('div');el.className='duel-cue'+(cue.kind==='turn'?' turn-cue':'');el.textContent=label;
@@ -1795,7 +1867,7 @@ function ensureFusionCue(owner,before,after){
 // Online answers apply at once, but an animation may still be running: the prompt must not wait on screen for it.
 function clearAnsweredPrompt(){removeActions();for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove()}
 
-async function respond(response){if(inspectionPaused())return;clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;heldChainPrompt=null;stagedChoice=null;promptHidden=false;tributeDefaultPrompt=null;if(tagUI&&screen==='duel'){if(!tagUI.session?.duelReady)return toast('Reconnecting…');pickSet.clear();placeSet=[];clearAnsweredPrompt();try{const result=await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response});if(result?.stale&&screen==='duel')renderDuel()}catch(error){toast(error.message);if(screen==='duel')renderDuel()}return}if(busy||screen!=='duel')return;busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const beforeSnapshot=snapshot,before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);ensureFusionCue(engine,beforeSnapshot,snapshot);await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction,true);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction,true);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
+async function respond(response){if(inspectionPaused())return;clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;heldChainPrompt=null;stagedChoice=null;promptHidden=false;tributeDefaultPrompt=null;if(tagUI&&screen==='duel'){if(!tagUI.session?.duelReady)return toast('Reconnecting…');pickSet.clear();placeSet=[];clearAnsweredPrompt();try{const result=await tagUI.session.request('duel-response',{number:snapshot.tag.responseNumber,response});if(result?.stale&&screen==='duel')renderDuel()}catch(error){toast(error.message);if(screen==='duel')renderDuel()}return}if(busy||screen!=='duel')return;if(lesson&&!lesson.script.check(engine,response)){lesson.coach.nudge();renderDuel();return}busy=true;chainOverride=false;removeActions();pickSet.clear();placeSet=[];const playerAction=engine.pending?.player===0&&snapshot.player===0;try{const beforeSnapshot=snapshot,before={turn:snapshot.turn,phase:snapshot.phase};snapshot=engine.respond(response);const taught=lesson?.script.done();ensureFusionCue(engine,beforeSnapshot,snapshot);if(lesson){lesson.coach.setStep(null);if(taught?.after)lesson.coach.say(taught.after);await playDuelCues(playerAction,true);if(!lesson||screen!=='duel')return;if(snapshot.finished){await finishLesson(snapshot.finished.player);return}renderDuel();scheduleAI();return}await command('response',{response:encode(response),checkpoint:phaseCheckpoint(before,snapshot)});if(snapshot.finished){if(!isCardWin(snapshot.finished))await playDuelCues(playerAction,true);await completeDuel(snapshot.finished.player);return}await playDuelCues(playerAction,true);await waitForInspection();if(duelEnding||screen!=='duel')return;renderDuel();scheduleAI()}catch(e){toast('Selection could not resolve: '+e.message);renderDuel()}finally{busy=false}}
 
 let chainMode='sometimes',chainOverride=false,rightClickNoChain=false,rightClickPointer=null,rightClickHoldTimer=0,heldAlwaysChain=false,heldChainPointer=null,heldChainTimer=0,heldChainPrompt=null,manualChainTimer=0,manualChainPrompt=null;
 
@@ -1829,7 +1901,7 @@ function releaseHeldAlwaysChain(e){
  if(screen==='duel'&&!busy&&!heldChainPrompt){renderDuel();scheduleAI();}
 }
 
-function scheduleAI(){clearTimeout(aiTimer);if(duelEnding)return;if(inspectionPaused())return;const pending=engine?.pending;const manualWindow=pending?.type===M.SELECT_CHAIN&&pending.player===0&&engine.player!==0&&!pending.forced&&!offerChain(pending)&&pending.selects?.some(c=>(c.controller??c.player)===0&&[L.HAND,L.MZONE,L.SZONE,L.GRAVE,L.REMOVED].includes(c.location));if(manualWindow){if(manualChainPrompt!==pending){clearTimeout(manualChainTimer);manualChainPrompt=pending;manualChainTimer=setTimeout(()=>{if(engine?.pending===pending&&!heldChainPrompt){manualChainPrompt=null;manualChainTimer=0;respond({type:R.SELECT_CHAIN,index:null})}},Math.max(0,Math.min(2000,Number(state?.settings?.manualResponseWindow??200)||0)))}return;}clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;const automatic=automaticChainResponse(engine?.pending,!offerChain(engine?.pending),M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,!offerChain(pending),M,R);if(current)respond(current)}},50);return;}const placed=screen==='duel'&&autoPlacement(engine?.pending);if(placed&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel')respond(placed)},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.duelReady)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;markCpuDue(pending);aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?50:120)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
+function scheduleAI(){clearTimeout(aiTimer);if(duelEnding)return;if(lesson)return scheduleLesson();if(inspectionPaused())return;const pending=engine?.pending;const manualWindow=pending?.type===M.SELECT_CHAIN&&pending.player===0&&engine.player!==0&&!pending.forced&&!offerChain(pending)&&pending.selects?.some(c=>(c.controller??c.player)===0&&[L.HAND,L.MZONE,L.SZONE,L.GRAVE,L.REMOVED].includes(c.location));if(manualWindow){if(manualChainPrompt!==pending){clearTimeout(manualChainTimer);manualChainPrompt=pending;manualChainTimer=setTimeout(()=>{if(engine?.pending===pending&&!heldChainPrompt){manualChainPrompt=null;manualChainTimer=0;respond({type:R.SELECT_CHAIN,index:null})}},Math.max(0,Math.min(2000,Number(state?.settings?.manualResponseWindow??200)||0)))}return;}clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;const automatic=automaticChainResponse(engine?.pending,!offerChain(engine?.pending),M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,!offerChain(pending),M,R);if(current)respond(current)}},50);return;}const placed=screen==='duel'&&autoPlacement(engine?.pending);if(placed&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel')respond(placed)},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.duelReady)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;markCpuDue(pending);aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?50:120)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
 
 // Stall watch (2026-11-03): in a solo duel, once the CPU has been handed a prompt (scheduleAI), it answers within a
 // fraction of a second. If it still hasn't after 10 seconds of unpaused play, offer a behaviour flag with the replay,
@@ -1839,7 +1911,7 @@ const STALL_AFTER=10000,stallOffered=new WeakMap();let cpuDue=null;
 function markCpuDue(pending){if(cpuDue?.engine!==engine||cpuDue.pending!==pending)cpuDue={engine,pending,since:Date.now()}}
 setInterval(()=>{
  const due=cpuDue,now=Date.now();
- if(!due||screen!=='duel'||tagUI||cpuViewer||engine!==due.engine||engine.finished||duelEnding||engine.pending!==due.pending||engine.pending?.player!==1){cpuDue=null;return}
+ if(!due||screen!=='duel'||lesson||tagUI||cpuViewer||engine!==due.engine||engine.finished||duelEnding||engine.pending!==due.pending||engine.pending?.player!==1){cpuDue=null;return}
  if(document.hidden||modal.open||inspectionPaused()){due.since=now;return}
  if(now-due.since<STALL_AFTER||stallOffered.get(engine)===engine.presentationDuel)return;
  stallOffered.set(engine,engine.presentationDuel);stallNote=`Detected automatically: the CPU made no move for 10 seconds (turn ${snapshot?.turn??'?'}, prompt ${engine.pending?.type??'none'}).`;
@@ -1880,6 +1952,15 @@ modal.addEventListener('close',()=>{if(!modal.open){if(rewardDeckReturn)return;r
 
 function confirmTargets(){const m=engine.pending,indices=[...pickSet];if(m.type===M.SELECT_UNSELECT_CARD)return respond({type:R.SELECT_UNSELECT_CARD,index:null});if(m.type===M.SELECT_SUM){if(!engine.sumValid(m,indices))return toast('Choose materials with a valid total.');return respond({type:R.SELECT_SUM,indicies:indices})}const n=indices.reduce((sum,i)=>sum+(m.type===M.SELECT_TRIBUTE?m.selects[i].release_param||1:1),0);if(n<m.min||indices.length>m.max)return toast('Choose the required number of cards.');respond({type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies:indices})}
 
+// Your own Deck opens the same small menu as a card: Inspect lists the cards left in it, in the deck editor's default
+// order and never in Deck order (user request 2026-11-11). The opponent's Deck stays hidden.
+function deckCodes(){const rows=engine?.tagFacade?snapshot?.players?.[0]?.deckCards:engine?.query(0,L.DECK);if(!rows)return null;return rows.map(c=>card(typeof c==='number'?c:c?.code)).filter(Boolean).sort(frameLevelName).map(c=>c.id)}
+function showDeckList(){previewLocation=null;const codes=deckCodes();if(!codes)return toast('This pile is hidden.');dialog('Your deck',`<div class="cardgrid pile-inspection">${codes.map(code=>`<div>${cardButton(code,`data-inspect="${code}"`)}</div>`).join('')}</div>${codes.length?'':'<p>This pile is empty.</p>'}`)}
+function showDeckActions(el){removeActions();const pop=document.createElement('div');pop.className='action-pop';
+ const add=(label,run)=>{const b=document.createElement('button');b.textContent=label;b.onclick=e=>{e.stopPropagation();removeActions();run()};pop.append(b)};
+ if(!busy&&pileSummons(0,'deck').length)add('Special Summon',()=>showPile(0,'deck'));
+ add('Inspect',showDeckList);document.body.append(pop);const r=el.getBoundingClientRect(),h=pop.offsetHeight;pop.style.left=Math.max(3,Math.min(innerWidth-pop.offsetWidth-3,r.left+r.width/2-pop.offsetWidth/2))+'px';pop.style.top=Math.max(4,r.top-h-8)+'px';
+}
 function showPile(player,kind){previewLocation=null;
  // The Deck stays hidden; it only lists the cards that can Special Summon themselves from it right now.
  if(kind==='deck'){const summons=busy?[]:pileSummons(player,'deck');if(!summons.length)return toast('This pile is hidden.');return dialog('Special Summon from your Deck',`<div class="cardgrid pile-inspection">${summons.map(c=>`<div>${cardButton(c.code,`data-inspect="${c.code}"`)}${legalCardActions(0,L.DECK,c.sequence,c.code).map(a=>`<button data-do="pile-action" data-address="0,${L.DECK},${c.sequence},${c.code}" data-action="${a.response.action}" data-index="${a.response.index}">${esc(a.label.split(' · ')[0])}</button>`).join('')}</div>`).join('')}</div>`)}
@@ -1933,7 +2014,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
  if(el.dataset.inspect){setPreview(+el.dataset.inspect,el);inspect(+el.dataset.inspect)}
 
- else if(el.dataset.pile){const [p,k]=el.dataset.pile.split(',');showPile(+p,k)}
+ else if(el.dataset.pile){const [p,k]=el.dataset.pile.split(',');if(k==='deck'&&+p===0)showDeckActions(el);else showPile(+p,k)}
 
  else if(el.dataset.code&&(el.dataset.zone||el.dataset.hand!==undefined)){
 
@@ -1969,7 +2050,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
  if(el.dataset.zone){const [p,loc,seq]=el.dataset.zone.split(',').map(Number),m=engine.pending;if(m?.player===0&&[M.SELECT_PLACE,M.SELECT_DISFIELD].includes(m.type)){const found=engine.choices(m).find(a=>a.response.places?.[0]?.player===p&&a.response.places[0].location===loc&&a.response.places[0].sequence===seq);if(found){const place=found.response.places[0];const at=placeSet.findIndex(x=>x.player===p&&x.location===loc&&x.sequence===seq);if(at>=0)placeSet.splice(at,1);else if(placeSet.length<(m.count||1))placeSet.push(place);else placeSet=[place];if(placeSet.length===(m.count||1))return respond({...found.response,places:[...placeSet]});renderDuel()}return}if(el.dataset.code){if(doubleTap('z'+el.dataset.zone,+el.dataset.code))return;if(tapActivateOpponentChain(p,loc,seq,+el.dataset.code))return;showCardActions(el,p,loc,seq,+el.dataset.code);}return}
 
- if(el.dataset.pile){const [p,k]=el.dataset.pile.split(',');showPile(+p,k);return}
+ if(el.dataset.pile){const [p,k]=el.dataset.pile.split(',');if(k==='deck'&&+p===0)showDeckActions(el);else showPile(+p,k);return}
 
  if(el.dataset.phase){const a=phaseAction(+el.dataset.phase);if(a)respond(a.response);return}
 
@@ -2063,6 +2144,12 @@ async function action(a,el={dataset:{}},silent=false){
 
  if(a==='duel-emotes'){if(screen!=='duel')return;if(tagUI){if(tagUI.session?.connected)openEmotePicker(emoji=>tagUI?.session.request('emote',emoji).catch(e=>toast(e.message)));}else openEmotePicker(emoji=>showDuelEmote(emoji,true));return;}
 
+ if(a==='lesson-start'||a==='lesson-no'){if(a==='lesson-no')lessonAsked();closeDialog();await startLesson(a==='lesson-no'?'characters':screen);return}
+ if(a==='lesson-yes'){lessonAsked();closeDialog();go('characters');return}
+ if(a==='lesson-leave'){closeDialog();await leaveLesson();return}
+ if(a==='lesson-run'){closeDialog();await leaveLesson('characters');return}
+ if(lesson&&a==='duel-options'){dialog('Tutorial',`<div class="duel-options-grid">${btn('Log','log')}${btn('Settings','duel-settings')}${btn('Leave the tutorial','lesson-leave')}</div>`);return}
+ if(a==='characters'&&lessonShouldAsk()){dialog('Do you know how to play Yu-Gi-Oh?',`<p>If you are new to the card game, a short tutorial Duel teaches the phases, the kinds of cards and the basic plays.</p>${btn('Yes, start my run','lesson-yes','','primary')}${btn('No, teach me','lesson-no')}`);return}
  if(a==='duel-options'&&!tagUI)modal.dataset.duelOptionsPause='1';
 
  if(a==='duel-options'&&tagUI?.isCollector){dialog('Options',`<div class="duel-options-grid">${btn('Log','log')}${btn('Settings','duel-settings')}${btn('Exit','pause')}${btn('Surrender','surrender')}</div>`);return}if(a==='duel-options'){dialog('Options',`<div class="duel-options-grid">${btn('Relics','relic-ledger')}${btn('Curses','active-curses')}${btn('Log','log')}${btn('Coin bonuses','coin-bonuses')}${btn('Flag behaviour','flag-behaviour')}${btn('Settings','duel-settings')}${btn(tagUI?'Exit':'Save / Menu','pause')}${btn('Surrender','surrender')}</div>`);return}
@@ -2074,7 +2161,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='active-curses'){const rows=await command('active-curses');dialog('This duel: curses & difficulty',modifierRowsMarkup(rows));return}
 
- if(a==='sell-relic'){const fromShopRelics=screen==='shop'&&!!el.closest('.relic-ledger');if(!fromShopRelics)return;const result=await command('sell-relic',el.dataset.relic);shopSelection.clear();renderShop();dialog('Run relics',relicLedgerMarkup());toast(`Sold ${content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`);return}
+ if(a==='sell-relic'){const fromShopRelics=screen==='shop'&&!!el.closest('.relic-ledger,.relic-card');if(!fromShopRelics)return;const result=await command('sell-relic',el.dataset.relic);shopSelection.clear();renderShop();dialog('Run relics',relicLedgerMarkup());toast(`Sold ${content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`);return}
 
  if(a==='shop-reroll'){busy=true;try{const previous=juice.shopArt(app);await command('shop-reroll');shopSelection.clear();renderShop();if(!juice.reroll(app,previous))playRerollSound();keeperTalk.say('reroll')}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}
 
@@ -2093,7 +2180,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='champion'){await command('champion');return startDuel(false,0)}if(a==='next-loop'){await command('next-loop');go('shop');return}
 
- if(a==='watch-replay'){if(el.dataset.replay)await watchReplay(el.dataset.replay);return}if(a==='collection-kind'){collectionKind=el.dataset.kind;collectionPage=0;renderCollection();return}if(a==='stats-kind'){statsKind=el.dataset.kind;renderStats();return}if(a==='collection-search'){collectionQuery=document.querySelector('#collection-search').value;collectionPage=0;renderCollection();return}if(a==='collection-prev'||a==='collection-next'){collectionPage+=a==='collection-next'?1:-1;renderCollection();return}if(a==='collection-item'){const id=el.dataset.id;if(id.startsWith('deck:')){const d=content.preconstructedDecks.find(x=>x.id===id.slice(5));dialog(d.name,`<p>${d.cards.length} cards · Released ${esc(d.date)}</p><div class="cardgrid">${d.cards.map(cid=>cardButton(cid,`data-inspect="${cid}"`)).join('')}</div>`)}else if(collectionKind==='packs'){inspectPack(id)}else dialog(content.artifacts[id][0],relicInfoMarkup(id));return}if(a==='stats-relic'){const id=el.dataset.relic;if(content.artifacts[id])dialog(content.artifacts[id][0],relicInfoMarkup(id));return}
+ if(a==='watch-replay'){if(el.dataset.replay)await watchReplay(el.dataset.replay);return}if(a==='history-view'){historyView=el.dataset.view==='records'?'records':'runs';renderRunHistory();return}if(a==='collection-kind'){collectionKind=el.dataset.kind;collectionPage=0;renderCollection();return}if(a==='stats-kind'){statsKind=el.dataset.kind;renderStats();return}if(a==='collection-search'){collectionQuery=document.querySelector('#collection-search').value;collectionPage=0;renderCollection();return}if(a==='collection-prev'||a==='collection-next'){collectionPage+=a==='collection-next'?1:-1;renderCollection();return}if(a==='collection-item'){const id=el.dataset.id;if(id.startsWith('deck:')){const d=content.preconstructedDecks.find(x=>x.id===id.slice(5));dialog(d.name,`<p>${d.cards.length} cards · Released ${esc(d.date)}</p><div class="cardgrid">${d.cards.map(cid=>cardButton(cid,`data-inspect="${cid}"`)).join('')}</div>`)}else if(collectionKind==='packs'){inspectPack(id)}else dialog('',relicInfoMarkup(id));return}if(a==='stats-relic'){const id=el.dataset.relic;if(content.artifacts[id])dialog('',relicInfoMarkup(id));return}
 
  if(a==='new')return newRun();
  if(a==='next-level-run'){selected=state.run.character;selectedLevels[selected]=+el.dataset.level;selectedVariants[selected]=state.run.variant||0;showRunSlots(true,`Start a new run on Level ${el.dataset.level}?`);return}
@@ -2121,9 +2208,9 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='peek-deck'){const cards=await command('peek-deck',+el.dataset.opponent);dialog('Opponent deck',`<div class="cardgrid">${cards.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);return}
 
- if(a==='inspect-pack'){inspectPack(el.dataset.pack);return}if(a==='relic-detail'){const id=el.dataset.relic;dialog(content.artifacts[id][0],relicLedgerMarkup(id));return}
+ if(a==='inspect-pack'){inspectPack(el.dataset.pack);return}if(a==='relic-detail'){dialog('',relicLedgerMarkup(el.dataset.relic));return}
 
- if(a==='item-info'){const x=state.run.shop[+el.dataset.index];if(x.kind==='single'){inspect(x.id);return}if(x.kind==='pack'){inspectPack(x.id);return}if(x.kind==='deck'){dialog(x.name,`<p>${x.price} coins. Adds these ${x.cards.length} cards to your collection. Your equipped deck stays the same.</p><div class="cardgrid">${x.cards.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);return}const a=content.artifacts[x.id];dialog(a[0],`<img style="height:140px" src="${relicImage(content.artifactInfo[x.id].art)}"><p>${esc(a[2])}</p>`);return}
+ if(a==='item-info'){const x=state.run.shop[+el.dataset.index];if(x.kind==='single'){inspect(x.id);return}if(x.kind==='pack'){inspectPack(x.id);return}if(x.kind==='deck'){dialog(x.name,`<p>${x.price} coins. Adds these ${x.cards.length} cards to your collection. Your equipped deck stays the same.</p><div class="cardgrid">${x.cards.map(id=>cardButton(id,`data-inspect="${id}"`)).join('')}</div>`);return}dialog('',relicCard(content,x.id,{price:x.sold?'':priceMarkup(state.run,x.price)}));return}
 
  if(a==='select-purchase'){const i=+el.dataset.index;const stock=state.run.shop[i];if(!stock||stock.sold||((character().copycat||character().engine_deck)&&stock.kind!=='artifact'))return;if(shopSelection.has(i))shopSelection.delete(i);else {const total=[...shopSelection].reduce((n,j)=>n+state.run.shop[j].price,0)+state.run.shop[i].price;if(!canPay(state.run,total)){playUISound('count-coins');return toast(lpPay(state.run)?'Not enough LP (Blood Toll keeps you at 1 or more)':'Not enough gold')}shopSelection.add(i)}playUISound('shop-select');renderShop();return}
 
@@ -2192,7 +2279,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='settings'){returnScreen=screen;go('settings');return}if(a==='settings-back'){go(returnScreen);if(screen==='duel')scheduleAI();return}
 
- if(a==='cheat'){const code=document.querySelector('#cheat-code').value;await command('cheat',code);toast(code==='touchgrass'?'All characters cleared Challenge Levels -1 through 6.':code==='alteregos'?'All second variants unlocked.':'Testing unlock enabled.');return}
+ if(a==='cheat'){const code=document.querySelector('#cheat-code').value;const result=await command('cheat',code);toast(result?.cleared?`${result.cleared} has beaten Challenge Level ${result.level}.`:code==='touchgrass'?'All characters cleared Challenge Levels -1 through 6.':code==='alteregos'?'All second variants unlocked.':code==='polymerization'?'All fused relics and their Fusion Materials are shown in Collection.':'Testing unlock enabled.');return}
 
  if(a==='pause'){clearTimeout(aiTimer);await command('duel-checkpoint');dialog('Duel saved',`<p>Your complete duel is saved and can be resumed from Continue.</p>${btn('Return to duel','resume-duel')}${btn('Main menu','pause-title')}`);return}
 
@@ -2236,7 +2323,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='scorecard'){dialog('Coin scorecard',coinScorecardMarkup(content.battleCoinRules,state.run?.last_rewards));return}
 
- if(a==='relic-ledger'){if(modal.open&&modal.querySelector('.reward-screen'))showRewardOverlay('Run relics',relicLedgerMarkup(null,false));else dialog('Run relics',relicLedgerMarkup());return}
+ if(a==='relic-ledger'){if(modal.open&&modal.querySelector('.reward-screen'))showRewardOverlay('Run relics',relicLedgerMarkup(null,false,true));else dialog('Run relics',relicLedgerMarkup());return}
 
  if(a==='online'){menuPage='online';menuPageEntry='tag';menuIndex=0;render();return;}if(a==='main-menu'){menuPage='main';menuPageEntry='continue';menuIndex=baseMenu.findIndex(m=>m[4]==='continue');render();return;}
  if(['title','characters','routes','draft','shop','achievements','relics','collection','stats'].includes(a))go(a);
@@ -2448,7 +2535,7 @@ async function openCPU(){
 
 
 
-function collectionFilters(){return [['type',collectionType,['All types','Monster','Spell','Trap']],['attribute',collectionAttribute,['All attributes','EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE']]].map(([key,value,choices])=>`<label>${key}<select data-collection-filter="${key}">${choices.map(x=>`<option ${x===value?'selected':''}>${x}</option>`).join('')}</select></label>`).join('')}
+function collectionFilters(){return [['type',collectionType,['All types','Monster','Spell','Trap']],['attribute',collectionAttribute,['All attributes','EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE']]].map(([key,value,choices])=>`<label>${key}<select data-collection-filter="${key}">${choices.map(x=>`<option value="${x}" ${x===value?'selected':''}>${x}</option>`).join('')}</select></label>`).join('')}
 
 document.addEventListener('change',e=>{const key=e.target.dataset?.collectionFilter;if(!key)return;if(key==='type')collectionType=e.target.value;if(key==='attribute')collectionAttribute=e.target.value;if(key==='effect')collectionEffect=e.target.value;if(key==='registration')collectionRegistration=e.target.value;collectionPage=0;renderCollection()});
 
@@ -2492,8 +2579,13 @@ function fusionMaterialMarkup(id){
  const art=p=>content.artifactInfo[p]?.art;
  return `<div class="fusion-material"><b>Fusion Material</b>${f.needed<f.pieces.length?`<small>Any ${f.needed} of:</small>`:''}<ul>${f.pieces.map(p=>`<li>${art(p)?`<img src="${relicImage(art(p))}" alt="" loading="lazy" decoding="async">`:''}<span>${esc(content.artifacts[p]?.[0]||p)}</span></li>`).join('')}</ul></div>`;
 }
-const relicInfoMarkup=id=>`<div class="collection-relic-art relic-detail-art">${relicArtwork(relicImage(content.artifactInfo[id].art))}${relicCountBadge(id)}</div><p>${esc(content.artifacts[id][2])}</p>${fusionMaterialMarkup(id)}`;
-function relicLedgerMarkup(only=null,allowSell=true){const ids=ownedRelics().filter(id=>!only||only===id),cursed=new Set(state.run?.cursed_artifacts||[]);return `<div class="relic-ledger"><p>Permanent run relics · ${relicNegated()?'Relic Seal negates all duel effects until this duel ends.':'Effects apply when their listed conditions are met.'}</p><div class="relic-ledger-grid">${ids.map(id=>`<section class="panel ${relicNegated()?'negated':''}">${relicArtwork(relicImage(content.artifactInfo[id].art))}${relicCountBadge(id)}<h3>${esc(content.artifacts[id][0])}</h3><b>${relicNegated()?'NEGATED THIS DUEL':'OWNED · CONDITIONAL EFFECTS'}</b><p>${esc(content.artifacts[id][2])}</p>${fusionMaterialMarkup(id)}${id==='cursed_ominous_clock'?clockStatus():''}${id==='magic_mirror'&&state.run.mirror_copy?`<small>Current copy: ${esc(content.artifacts[state.run.mirror_copy]?.[0]||'')}</small>`:''}${allowSell&&screen==='shop'&&!cursed.has(id)?`<button class="sell-owned-relic" data-do="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(content.artifacts[id][0])} for ${Math.floor((content.artifacts[id]?.[1]||0)/2)} coins">Sell · ${Math.floor((content.artifacts[id]?.[1]||0)/2)} coins</button>`:''}</section>`).join('')}</div></div>`}
+const relicInfoMarkup=id=>relicCard(content,id,{count:relicCopies(id),extra:fusionMaterialMarkup(id)});
+// Relic windows share relic-inspect.js (2026-11-11): one relic is a single card, the run's relics are an icon grid
+// beside the picked relic's card.
+const relicCopies=id=>(state.run?.artifacts||[]).filter(x=>x===id).length;
+function ownedRelicCard(id,allowSell=true){const cursed=(state.run?.cursed_artifacts||[]).includes(id),coins=Math.floor((content.artifacts[id]?.[1]||0)/2);return relicCard(content,id,{count:relicCopies(id),negated:relicNegated(),status:relicNegated()?'NEGATED THIS DUEL':'',extra:fusionMaterialMarkup(id)+(id==='cursed_ominous_clock'?clockStatus():'')+(id==='magic_mirror'&&state.run.mirror_copy?`<small>Current copy: ${esc(content.artifacts[state.run.mirror_copy]?.[0]||'')}</small>`:''),action:allowSell&&screen==='shop'&&!cursed?`<button class="sell-owned-relic" data-do="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(content.artifacts[id][0])} for ${coins} coins">Sell · ${coins} coins</button>`:''})}
+// curses: list the Level 6 permanent curses too; never in a duel, where the Curses window shows them.
+function relicLedgerMarkup(only=null,allowSell=true,curses=screen!=='duel'){if(only)return ownedRelicCard(only,allowSell);const r=state.run||{};return relicLedger(content,ownedRelics(),{curses:curses&&r.challenge_level>=6?permanentCurseEntries(content,r.persistent_curses,key=>curseDescription(content,key,r.challenge_level)):[],intro:`Permanent run relics · ${relicNegated()?'Relic Seal negates all duel effects until this duel ends.':'Effects apply when their listed conditions are met.'}`,cards:id=>ownedRelicCard(id,allowSell),counts:relicCopies,negated:relicNegated()})}
 
 function liveCardDetails(code){if(screen!=='duel'||!snapshot)return '';const rows=[];for(let p=0;p<2;p++)snapshot.players[p].monsters.forEach((c,i)=>{if(!c||c.code!==code||p===1&&!(c.position&5))return;const base=card(code);const delta=c.attack-Math.max(0,base.atk);const defenseDelta=c.defense-Math.max(0,base.defense);const attacking=engine.pending?.player===p&&engine.pending?.type===M.SELECT_BATTLECMD;const available=attacking&&engine.pending.attacks?.some(x=>x.sequence===i);rows.push(`<p class="live-stats">${p?'Opponent':'Your'} zone ${i+1}: ATK ${c.attack} (${delta>=0?'+':''}${delta}) · DEF ${c.defense} (${defenseDelta>=0?'+':''}${defenseDelta}) versus printed stats.${c.position&12?' Defense Position.':''}${attacking?(available?' Attack available.':' Cannot declare an attack right now.'):''}${engine.battleProtected?.[1-p]?' Opposing monsters and LP are protected by Waboku this turn.':''}${p===0&&relicNegated()?' Relic bonuses and penalties are negated.':''}</p>`)});return rows.join('')}
 
@@ -2519,7 +2611,18 @@ installShopGestures(document,{
 
 
 
-function renderRunHistory(){const rows=state.history||state.profile.run_history||[];shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k==='history'?'primary':'')).join('')}</div><div class="scroll run-history">${rows.map((r,index)=>{const c=content.characters[r.character],date=r.finished_at||r.started_at;return `<article class="panel run-history-row ${r.result==='complete'?'run-won':'run-lost'}"><button class="run-history-card" data-do="run-card-view" data-index="${index}" aria-label="View run card"><img loading="lazy" src="assets/${c?.sprite}" alt=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button><div><h2>${esc(c?.name||'Unknown character')} · ${r.result==='complete'?'Completed':'Lost'}</h2><p>${r.mode==='tag'?'Tag with '+esc(content.characters[r.partner]?.name||'teammate'):'Solo'} · LVL ${r.challenge_level||0} · Loop ${(r.loop||0)+1} · ${r.round||0}/9 victories</p><p>${date?new Date(date*1000).toLocaleString():'Date not recorded'} · ${r.lp||0} LP · ${coinLabel(r.gold)} coins</p>${r.loss?.text?`<p>${esc(r.loss.text)}</p>`:''}<details><summary>Run details &amp; replays</summary>${runReplayStrip(r)}<p>Relics: ${(r.artifacts||[]).filter(id=>content.artifacts[id]).map(id=>esc(content.artifacts[id][0])).join(', ')||'None'}</p>${r.encore_won?'<p>Optional champion defeated.</p>':''}${runTimelineMarkup(r)}</details></div></article>`}).join('')||'<div class="panel"><h2>No recorded runs yet</h2><p>Completed and lost runs will appear here. Older runs that were already deleted cannot be reconstructed.</p></div>'}</div>`);void markRunReplays()}
+// Run History > Records (user, 2026-11-11, after a player asked how long a duelist took him): for each duelist with a
+// recorded run, the highest level cleared and the runs and wins on this device, then wins/runs at each level played.
+let historyView='runs';
+function characterRecordsMarkup(rows){
+ const by=new Map();
+ for(const r of rows){const c=content.characters[r.character];if(!c)continue;const e=by.get(r.character)||{id:r.character,name:c.name,sprite:c.sprite,runs:0,wins:0,levels:new Map()};e.runs++;const won=r.result==='complete';if(won)e.wins++;const lv=r.challenge_level||0,l=e.levels.get(lv)||[0,0];l[1]++;if(won)l[0]++;e.levels.set(lv,l);by.set(r.character,e)}
+ const cleared=id=>Math.min(6,Number(state.profile.character_levels?.[id]??-1));
+ const list=[...by.values()].sort((a,b)=>cleared(b.id)-cleared(a.id)||b.wins-a.wins||b.runs-a.runs||a.name.localeCompare(b.name));
+ if(!list.length)return '';
+ return `<table class="character-records"><thead><tr><th scope="col">Duelist</th><th scope="col">Highest level cleared</th><th scope="col">Runs</th><th scope="col">Wins</th><th scope="col">Win rate</th></tr></thead><tbody>${list.map(e=>`<tr><th scope="row"><img loading="lazy" decoding="async" src="assets/${e.sprite}" alt=""><span><b>${esc(e.name)}</b><small>${[...e.levels].sort((a,b)=>a[0]-b[0]).map(([lv,[w,n]])=>`<i><span>Level ${lv}</span> ${w}/${n}</i>`).join('')}</small></span></th><td>${cleared(e.id)>=0?`Level ${cleared(e.id)}`:'—'}</td><td>${e.runs}</td><td>${e.wins}</td><td>${Math.round(100*e.wins/e.runs)}%</td></tr>`).join('')}</tbody></table>`;
+}
+function renderRunHistory(){const rows=state.history||state.profile.run_history||[];shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k==='history'?'primary':'')).join('')}</div><div class="history-views">${[['runs','Runs'],['records','Records']].map(([k,label])=>btn(label,'history-view',`data-view="${k}" aria-pressed="${historyView===k}"`,historyView===k?'primary':'')).join('')}</div><div class="scroll run-history">${(historyView==='records'?characterRecordsMarkup(rows):rows.map((r,index)=>{const c=content.characters[r.character],date=r.finished_at||r.started_at;return `<article class="panel run-history-row ${r.result==='complete'?'run-won':'run-lost'}"><button class="run-history-card" data-do="run-card-view" data-index="${index}" aria-label="View run card"><img loading="lazy" src="assets/${c?.sprite}" alt=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button><div><h2>${esc(c?.name||'Unknown character')} · ${r.result==='complete'?'Completed':'Lost'}</h2><p>${r.mode==='tag'?'Tag with '+esc(content.characters[r.partner]?.name||'teammate'):'Solo'} · LVL ${r.challenge_level||0} · Loop ${(r.loop||0)+1} · ${r.round||0}/9 victories</p><p>${date?new Date(date*1000).toLocaleString():'Date not recorded'} · ${r.lp||0} LP · ${coinLabel(r.gold)} coins</p>${r.loss?.text?`<p>${esc(r.loss.text)}</p>`:''}<details><summary>Run details &amp; replays</summary>${runReplayStrip(r)}<p>Relics: ${(r.artifacts||[]).filter(id=>content.artifacts[id]).map(id=>esc(content.artifacts[id][0])).join(', ')||'None'}</p>${r.encore_won?'<p>Optional champion defeated.</p>':''}${runTimelineMarkup(r)}</details></div></article>`}).join(''))||'<div class="panel"><h2>No recorded runs yet</h2><p>Completed and lost runs will appear here. Older runs that were already deleted cannot be reconstructed.</p></div>'}</div>`);void markRunReplays()}
 
 
 
@@ -2573,7 +2676,7 @@ document.addEventListener('shop-ultra',()=>{if(state?.settings.sound){packSound(
 
 
 
-startStats(()=>!cpuViewer&&!['loading','title','settings','collection','achievements','tutorial','gallery'].includes(screen));
+startStats(()=>!cpuViewer&&!lesson&&!['loading','title','settings','collection','achievements','tutorial','gallery'].includes(screen));
 
 const statsSince=date=>date?`<p>Since ${esc(new Date(date).toLocaleDateString())}</p>`:'';
 
@@ -2655,27 +2758,30 @@ function duelAnimationState(owner){let state=duelAnimations.get(owner);if(!state
 
 function trackDuelAnimation(owner,promise){const state=duelAnimationState(owner);state.pending.add(promise);promise.finally(()=>state.pending.delete(promise));return promise}
 
+const VICTORY_HOLD=800;
 async function finishDuelAnimations(owner){
 
  // The PERFECT or overkill finisher has the screen to itself before the victory banners.
  await juice.finisherDone();
  const animations=duelAnimationState(owner);let banner;
  if(!animations.bossVictoryShown&&snapshot?.finished?.player===0&&!isCardWin(snapshot.finished)&&(state.run?.encore_active||((state.run?.round||0)+1)%3===0)){animations.bossVictoryShown=true;if(!matchMedia('(prefers-reduced-motion: reduce)').matches){const field=document.querySelector('.field-wrap');if(field){const box=field.getBoundingClientRect(),flash=document.createElement('div');flash.setAttribute('aria-hidden','true');Object.assign(flash.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',zIndex:300,pointerEvents:'none',background:'radial-gradient(ellipse at center, #ffe28c88 0%, #ffd45b33 52%, transparent 78%)'});document.body.append(flash);const animation=flash.animate([{opacity:0},{opacity:.9,offset:.35},{opacity:0}],{duration:760,easing:'ease-out'});await animation.finished.catch(()=>{});flash.remove()}}}
- if(animations.pending.size&&snapshot?.finished?.player===0&&!isCardWin(snapshot.finished)&&!document.querySelector('.victory-settlement')){
+ let shown=0;
+ // This runs after the last cues and again when the duel closes; the tutorial's banner plays once.
+ if((animations.pending.size||lesson&&!animations.lessonBanner)&&snapshot?.finished?.player===0&&!isCardWin(snapshot.finished)&&!document.querySelector('.victory-settlement')){
 
   const field=document.querySelector('.field-wrap');
 
-  if(field){const box=field.getBoundingClientRect();banner=document.createElement('div');banner.className='victory-settlement';banner.setAttribute('role','status');banner.innerHTML='<div class="victory-rays"></div><div class="victory-title"><span>DUEL WON</span><strong>VICTORY</strong><small>Collecting battle rewards</small></div>';Object.assign(banner.style,{left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px'});document.body.append(banner);}
+  if(field){const box=field.getBoundingClientRect();banner=document.createElement('div');banner.className='victory-settlement';banner.setAttribute('role','status');banner.innerHTML='<div class="victory-rays"></div><div class="victory-title"><span>DUEL WON</span><strong>VICTORY</strong>'+(lesson?'':'<small>Collecting battle rewards</small>')+'</div>';Object.assign(banner.style,{left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px'});document.body.append(banner);shown=performance.now();if(lesson)animations.lessonBanner=true;}
 
  }
 
- try{while(animations.pending.size)await Promise.all([...animations.pending]);}finally{banner?.remove();}
+ try{while(animations.pending.size)await Promise.all([...animations.pending]);if(banner){const left=VICTORY_HOLD-(performance.now()-shown);if(left>0)await new Promise(resolve=>setTimeout(resolve,left))}}finally{banner?.remove();}
 
 }
 
 async function updateCoinMilestones(silent=false){
 
- if(!engine||!snapshot||snapshot.tag?.pvp||!py)return;
+ if(!engine||!snapshot||snapshot.tag?.pvp||!py||lesson)return;
 
  const owner=engine,run=state.run,events=owner.tagFacade?snapshot.tag.rewardEvents:owner.summary();if(!events)return;
 
@@ -2751,13 +2857,20 @@ async function showDeviceSync(message=''){
 
 }
 
-let deviceSyncTimer;
+// Linked devices sync unlocks (2026-11-11, fewer Cloudflare requests): at start, the next time a menu is open after a
+// duel or run ends or an unlock changes, after the app was hidden 10+ minutes, and otherwise every 15 minutes in menus.
+// The 60 s tick below is local only; it sends nothing unless one of those is due.
+let deviceSyncTimer,deviceSyncDue=true,deviceSyncAt=0,deviceSyncHiddenAt=0,deviceSyncUnlocks=null;
+const DEVICE_SYNC_EVERY=900000,DEVICE_SYNC_AFTER_HIDDEN=600000;
+const syncedUnlocks=p=>p?JSON.stringify([p.unlocked,p.character_levels,p.gallery_unlocked,p.relicless_unlocked,p.cpu_viewer_unlocked]):'';
+function noteDeviceSyncChange(action){if(action==='device-sync-read')return;const now=syncedUnlocks(state?.profile);if(action!=='device-sync-merge'&&(action==='finish'||deviceSyncUnlocks!==null&&now!==deviceSyncUnlocks))deviceSyncDue=true;deviceSyncUnlocks=now}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){deviceSyncHiddenAt=Date.now();return}if(deviceSyncHiddenAt&&Date.now()-deviceSyncHiddenAt>=DEVICE_SYNC_AFTER_HIDDEN)deviceSyncDue=true;deviceSyncHiddenAt=0});
 
 function startDeviceSync(){
 
  clearInterval(deviceSyncTimer);
 
- const sync=async()=>{if(deviceSync.linked===false||document.hidden||navigator.onLine===false||tagUI||!['title','settings','collection','stats','achievements','characters'].includes(screen))return;try{const before=JSON.stringify(state.profile),result=await deviceSync.run('sync');if(result.linked&&before!==JSON.stringify(state.profile)&&!modal.open&&!tagUI&&['title','collection','stats','achievements','characters'].includes(screen))render();}catch{/* Retry on the next menu sync; offline play keeps working. */}};
+ const sync=async()=>{if(deviceSync.linked===false||document.hidden||navigator.onLine===false||tagUI||!['title','settings','collection','stats','achievements','characters'].includes(screen)||quotaPausedUntil('progress'))return;if(!deviceSyncDue&&Date.now()-deviceSyncAt<DEVICE_SYNC_EVERY)return;deviceSyncDue=false;deviceSyncAt=Date.now();try{const before=JSON.stringify(state.profile),result=await deviceSync.run('sync');if(result.linked&&before!==JSON.stringify(state.profile)&&!modal.open&&!tagUI&&['title','collection','stats','achievements','characters'].includes(screen))render();}catch{/* Retry on the next menu sync; offline play keeps working. */}};
 
  void sync();deviceSyncTimer=setInterval(sync,60000);
 

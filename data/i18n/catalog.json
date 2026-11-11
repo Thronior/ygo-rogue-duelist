@@ -21472,5 +21472,1079 @@
   "en": "No favourite packs yet. Tap ☆ on a pack here or in the shop.",
   "kind": "exact",
   "ctx": "pack-favourites.js / mobile.js (favourite packs, 2026-11-10)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 500 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_blood_crown)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, at the start of your End Phase, take 300 damage.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_blood_crown)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, at the start of your Standby Phase, gain 600 LP.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_hollow_chalice)"
+ },
+ {
+  "group": "relic",
+  "en": "Increase all damage you receive by 50% (rounded down).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_hollow_chalice)"
+ },
+ {
+  "group": "relic",
+  "en": "Earn 60 additional coins after each victory.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_loaded_purse)"
+ },
+ {
+  "group": "relic",
+  "en": "Your opponent starts each Duel with 4000 additional LP.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_loaded_purse)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 900 DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_brittle_armor)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 300 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_brittle_armor)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 300 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_cracked_sword)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 1000 DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_cracked_sword)"
+ },
+ {
+  "group": "relic",
+  "en": "Draw 1 additional card for your normal draw during your Draw Phase.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_starving_library)"
+ },
+ {
+  "group": "relic",
+  "en": "Your hand size limit is 3.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_starving_library)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 3 or lower monsters you control gain 700 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_ashen_nursery)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 5 or higher monsters you control lose 700 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_ashen_nursery)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 5 or higher monsters you control gain 800 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_giants_oath)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 4 or lower monsters you control lose 400 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_giants_oath)"
+ },
+ {
+  "group": "relic",
+  "en": "Normal Monsters you control gain 300 ATK/DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_commoners_chain)"
+ },
+ {
+  "group": "relic",
+  "en": "Effect Monsters you control lose 200 ATK/DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_commoners_chain)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot gain LP.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_zombies_bargain)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 200 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_warriors_vow)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot manually change your monsters from Attack Position to Defense Position.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_warriors_vow)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_ritual_scar)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 500 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_ritual_scar)"
+ },
+ {
+  "group": "relic",
+  "en": "Fusion Monsters you control gain 1000 ATK and inflict piercing battle damage.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_fusion_fever)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot Tribute Summon or Tribute Set monsters.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_fusion_fever)"
+ },
+ {
+  "group": "relic",
+  "en": "While your hand is empty, monsters you control gain 1000 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_empty_hand_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "Your hand size limit is reduced by 2.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_empty_hand_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control exactly 1 monster, it gains 400 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_solitary_tyrant)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control 2 or more monsters, they lose 500 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_solitary_tyrant)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 75 ATK for each monster in your GY (max. 750).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_crowded_crypt)"
+ },
+ {
+  "group": "relic",
+  "en": "Your hand size limit is reduced by 4 (min. 0).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_crowded_crypt)"
+ },
+ {
+  "group": "relic",
+  "en": "Earn 25% more victory coins (rounded down).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_glass_treasury)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot recover LP between Duels.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_glass_treasury)"
+ },
+ {
+  "group": "relic",
+  "en": "Shop prices are reduced by 50%.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_wounded_merchant)"
+ },
+ {
+  "group": "relic",
+  "en": "You start each Duel with 1000 fewer LP (min. 1).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_wounded_merchant)"
+ },
+ {
+  "group": "relic",
+  "en": "Each shop offers 2 additional regular relics.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_rusted_compass)"
+ },
+ {
+  "group": "relic",
+  "en": "All shop prices are increased by 15%.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_rusted_compass)"
+ },
+ {
+  "group": "relic",
+  "en": "After buying a booster pack, receive a refund of 20 coins (up to its price minus 1).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_cursed_refund)"
+ },
+ {
+  "group": "relic",
+  "en": "Single-card prices are increased by 50%.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_cursed_refund)"
+ },
+ {
+  "group": "relic",
+  "en": "After each victory, add 2 additional random cards from the defeated opponent's Deck to your card pool.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_collectors_burden)"
+ },
+ {
+  "group": "relic",
+  "en": "Your Main Deck minimum is 10 cards higher.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_collectors_burden)"
+ },
+ {
+  "group": "relic",
+  "en": "After each victory, earn 6 additional coins for each monster in your GY (max. 90).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_golden_grave)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 400 DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_golden_grave)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, at the start of your Standby Phase, inflict 400 damage to your opponent.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_scorched_clock)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control can attack directly.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_reckless_spear)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 1000 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_reckless_spear)"
+ },
+ {
+  "group": "relic",
+  "en": "During your opponent's turn, monsters you control gain 600 DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_nocturnal_guard)"
+ },
+ {
+  "group": "relic",
+  "en": "During your turn, monsters you control lose 300 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_nocturnal_guard)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 600 ATK/DEF.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_iron_silence)"
+ },
+ {
+  "group": "relic",
+  "en": "Their effects are negated. Negate your activated monster effects in all locations.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_iron_silence)"
+ },
+ {
+  "group": "relic",
+  "en": "You always go second.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_blind_fortune)"
+ },
+ {
+  "group": "relic",
+  "en": "You always go first.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_premature_triumph)"
+ },
+ {
+  "group": "relic",
+  "en": "Your opening hand contains 2 fewer cards (min. 1).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_premature_triumph)"
+ },
+ {
+  "group": "relic",
+  "en": "Single-card prices are reduced by 40%.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_black_market_seal)"
+ },
+ {
+  "group": "relic",
+  "en": "Booster-pack prices are increased by 40%.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_black_market_seal)"
+ },
+ {
+  "group": "relic",
+  "en": "Halve all damage you take (rounded down).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_defense_proficiency)"
+ },
+ {
+  "group": "relic",
+  "en": "Halve all battle damage your opponent takes (rounded down).",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_defense_proficiency)"
+ },
+ {
+  "group": "relic",
+  "en": "Your Main Deck minimum is always 20 cards.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_singleton_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "Your Deck can contain only 1 copy of each card.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_singleton_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "You pay with LP instead of coins: 10 LP for every coin a purchase or reroll costs, after discounts.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_blood_toll)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot pay if it would leave you below 1 LP.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_blood_toll)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control can make a second attack during each Battle Phase.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_berserkers_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot Set monsters or Special Summon them in Defense Position.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_berserkers_pact)"
+ },
+ {
+  "group": "relic",
+  "en": "Defense Position monsters you control can attack, using their DEF for damage calculation.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_shield_bash)"
+ },
+ {
+  "group": "relic",
+  "en": "Attack Position monsters you control cannot attack.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_shield_bash)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time either player would take effect damage or pay LP, they gain that much LP instead.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_reversed_remedy)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time either player would gain LP during a Duel, they take that much damage instead.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_reversed_remedy)"
+ },
+ {
+  "group": "relic",
+  "en": "You can Normal Summon or Set 1 additional monster each turn.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_conscription_drum)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control cannot attack the turn they are Normal Summoned.",
+  "kind": "exact",
+  "ctx": "relic effect part (cursed_conscription_drum)"
+ },
+ {
+  "group": "relic",
+  "en": "Anime Rule #2",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Each monster purchased as a single or pulled from a purchased booster has a 20% chance to become a misprint. A misprint changes that copy's original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0) and gives it a random Type and Attribute.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you destroy an opponent's monster by card effect, inflict damage to your opponent equal to half its ATK.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you destroy an opponent's monster by card effect, inflict damage to your opponent equal to half its ATK. Monsters you control cannot attack directly.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Illusionary Tribute",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control cannot attack directly.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, you can Tribute Spells and Traps you control for a Tribute Summon in place of monsters.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Overkill Bounty",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Parting Gift",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Stars Aligned",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Start this duel with 2 fewer cards in your hand, minimum 0.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Start this duel with 3 fewer cards in your hand, minimum 0.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Tactical Espionage",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "When you Normal Summon a monster, no Trap Cards can be activated.",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "While your hand is empty, monsters you control gain 1000 ATK. Your hand size limit is reduced by 2 (min. 0).",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "You always go first. Your opening hand contains 2 fewer cards (min. 0).",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "relic",
+  "en": "Your opening hand contains 2 fewer cards (min. 0).",
+  "kind": "exact",
+  "ctx": "relic or curse text added 2026-11-11"
+ },
+ {
+  "group": "ui",
+  "en": "Highest level cleared",
+  "kind": "exact",
+  "ctx": "text added 2026-11-11"
+ },
+ {
+  "group": "ui",
+  "en": "Records",
+  "kind": "exact",
+  "ctx": "text added 2026-11-11"
+ },
+ {
+  "group": "ui",
+  "en": "Welcome, Duelist!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "This short Duel teaches you how to play. Follow the glowing hints.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "How to win",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Each player has Life Points (LP). Bring your opponent's LP down to 0 and you win.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Duels are played in phases. Each turn has 6 phases, shown on the bar in the middle of the field.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "This is when you draw 1 card.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "This one is skipped unless an effect mentions it.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "During your Main Phase you can Set, Summon and activate cards from your hand.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "During the Battle Phase you can use your monsters to attack.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "This phase is optional. Use it if you want to Set, activate or Summon cards after attacking.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your turn ends here. It works a lot like the Standby Phase: nothing happens unless an effect mentions it.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent's turn. They go through the same phases.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your hand",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "These are your cards. There are 3 kinds: Monsters, Spells and Traps.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Celtic Guardian is a Normal Monster. Monsters fight for you. A Normal Monster has no effect.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Time Wizard is an Effect Monster. It has a special ability written on the card.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tribute Monster",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Summoned Skull is Level 6. Monsters of Level 5 or 6 are too strong to Summon for free, so they cost 1 Tribute: you send 1 of your own monsters to the Graveyard to Summon it.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Fissure is a Spell. You play Spells from your hand during your Main Phase.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Magic Cylinder is a Trap. You Set a Trap face-down first, then use it later, even on your opponent's turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The card window",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap any card to read it here. Let's look at Celtic Guardian.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The stars are the Level. Level 4 or lower: Summon it right away. Level 5 or 6: 1 Tribute. Level 7 or higher: 2 Tributes.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "ATK and DEF",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "ATK is how hard the monster hits when it attacks. DEF is how tough it is in Defense Position. The higher number wins a battle.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Attribute and Type",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Every monster has an Attribute, like EARTH, and a Type, like Warrior. Some cards only work with certain Attributes or Types.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Card text",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The text says what the card does. Read it whenever you are not sure.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Celtic Guardian, then tap Summon.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "You can Normal Summon 1 monster each turn. Level 4 or lower needs no Tribute.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Magic Cylinder, then tap Set.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "A Trap must be Set face-down before you can use it. It will protect you on your opponent's turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap EP to end your turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The player who goes first cannot attack on the first turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent attacks! Tap your Set Magic Cylinder, then confirm with ✓.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "La Jinn has 1800 ATK and Celtic Guardian only 1400, so you would lose the battle. Magic Cylinder stops the attack and deals 1800 damage to your opponent.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Fissure, then tap Activate.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Fissure destroys your opponent's weakest face-up monster. With La Jinn gone, nothing protects their Life Points.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap BP to enter the Battle Phase.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent has no monsters. Time to attack!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Celtic Guardian, then tap Attack.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "With no monster in the way, the attack hits your opponent's Life Points directly.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap MP2 to go to Main Phase 2.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Summoned Skull, then tap Summon.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The Tribute goes to the Graveyard and Summoned Skull takes the field.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Time Wizard, then tap Summon.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Time Wizard on the field, then tap Activate.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Call Tails, then confirm.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "It is a gamble: a wrong call would destroy your own monsters instead. This time, Tails is the lucky call.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Now tap the wheel to spin it.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "The way is clear again.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Summoned Skull, then tap Attack.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Not that one. Follow the glowing hint.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "You are on your own now. Finish the Duel!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tutorial complete!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "You won your first Duel. You know the phases, the kinds of cards and the basic plays. Time for a real run!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tutorial over",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "That Duel got away, but you have seen the basics. You can replay the tutorial any time from Settings.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Leave the tutorial",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tutorial Duel",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Do you know how to play Yu-Gi-Oh?",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "If you are new to the card game, a short tutorial Duel teaches the phases, the kinds of cards and the basic plays.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Yes, start my run",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "No, teach me",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Start a run",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Back to the menu",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tutorial could not start: {0}",
+  "kind": "pattern",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Before you attack, Summon one more monster. Two attackers deal more damage than one.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Time Wizard, then tap Attack.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Every monster in Attack Position can attack once each turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "After attacking, you can still play cards from your hand.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "You have nothing left to play this turn.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Level 5 and 6 monsters need 1 Tribute. Time Wizard has done its job, so it is the perfect Tribute.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose Time Wizard as the Tribute, then confirm.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Hand limit",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "You can hold at most 6 cards at the end of your turn. Your opponent has 7, so they discard Blue-Eyes White Dragon to the Graveyard.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Monster Reborn is a Spell. It Special Summons 1 monster from either Graveyard, with no Tribute. Your opponent uses it to bring back Blue-Eyes White Dragon.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Battle Ox, then tap Summon.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap Battle Ox, then tap Attack.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Time to attack!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Blue-Eyes White Dragon has 3000 ATK. None of your monsters can beat it in battle, but Time Wizard's effect can.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent Set a monster face-down in Defense Position. Summoned Skull's 2500 ATK beats its DEF, so it is destroyed, but your opponent takes no damage.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "About and Tutorial",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Effect Monsters have special abilities. Time Wizard spins its wheel: call it right and every monster your opponent controls is destroyed.",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "1400 damage is more than the Life Points your opponent has left. This attack wins the Duel!",
+  "kind": "exact",
+  "ctx": "tutorial-duel.js"
+ },
+ {
+  "group": "ui",
+  "en": "Permanent curses",
+  "kind": "exact",
+  "ctx": "relic-inspect.js"
+ },
+ {
+  "group": "ui",
+  "en": "PERMANENT CURSE",
+  "kind": "exact",
+  "ctx": "relic-inspect.js"
  }
 ]

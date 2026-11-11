@@ -1,9 +1,20 @@
 import {replayVersion} from './replay-version.js';
+import {quotaExhausted,pauseForQuota,quotaPausedUntil} from './quota-pause.js';
 const OPT_IN='ygo-cloud-saves-enabled';
 export function hasEarnedUnlock(profile){return (profile.unlocked||[]).some(id=>Number(id)!==0&&Number(id)!==1)||Object.values(profile.character_levels||{}).some(level=>Number(level)>=0)||['gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked'].some(k=>profile[k]===true);}
 // LEGACY is the pre-v0.2.10 unencrypted backup identity; it is only read to delete that backup after migrating.
 const LEGACY='ygo-device-backup-v1',EXTRAS=['ygo-global-stats-v1','cpu-deck-suggestions-v1'];
-const CODE='ygo-cloud-save-code-v1',STATE='ygo-cloud-save-state-v1',NOTICE='ygo-cloud-save-code-notice';
+const CODE='ygo-cloud-save-code-v1',STATE='ygo-cloud-save-state-v1',NOTICE='ygo-cloud-save-code-notice',SENT='ygo-cloud-save-sent-v1';
+// What decides whether a save is worth re-sending (2026-11-11): the save files and extras, minus the play-time
+// counter that ticks every minute. Kept on the device, so restarting the app does not force an upload.
+export function backupFingerprint(backup){
+ const extras={...backup.extras};
+ if(extras['ygo-global-stats-v1']){try{const v=JSON.parse(extras['ygo-global-stats-v1']);if(v?.counts){const {seconds,...counts}=v.counts;const {playUntil,...rest}=v;extras['ygo-global-stats-v1']=JSON.stringify({...rest,counts})}}catch{}}
+ return JSON.stringify({files:backup.files,extras});
+}
+// .bak files are last-known-good copies the game only reads when a save file is damaged; a restore writes fresh
+// files and the game makes new .bak copies on its next save, so they are not uploaded (about half the size).
+export const backupFiles=files=>Object.fromEntries(Object.entries(files).filter(([name])=>!name.endsWith('.bak')));
 
 // Cloud save code (2026-10-29): 10 characters without look-alikes (no 0/O, 1/I/L), shown as K7QXM-4TB9R.
 // PBKDF2 turns it into an AES-GCM key, a lookup id and a write password. The save is encrypted on the device,
@@ -55,27 +66,31 @@ export function validateRecovery(value){
 }
 export function createBackupClient({storage=localStorage,online=()=>navigator.onLine,visible=()=>!document.hidden,request=fetch,version=replayVersion,platform=()=>window.ShadowNative?'Android':navigator.standalone?'Home Screen':'Web',enabled=!/^(localhost|127\.0\.0\.1)$/.test(location.hostname),now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}={}){
  let uploadGuard=()=>true;const optedIn=()=>storage.getItem(OPT_IN)==='true';
- let latest=null,timer=null,busy=false,closed=false,last=0,failures=0,lastContent='',base,lastError='';
+ let latest=null,timer=null,busy=false,closed=false,last=0,failures=0,base,lastError='';
+ const sent=()=>{try{return JSON.parse(storage.getItem(SENT)||'null')}catch{return null}};
+ const forgetSent=()=>storage.removeItem(SENT);
+ const digest=async text=>hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))));
  const code=()=>normalizeCloudCode(storage.getItem(CODE));
  const legacy=()=>{try{const v=JSON.parse(storage.getItem(LEGACY)||'null');return /^SB-[A-F0-9]{24}$/.test(v?.code||'')&&/^[a-f0-9]{64}$/.test(v?.token||'')?v:null}catch{return null}};
- function assignCode(notice){const c=newCloudCode();storage.setItem(CODE,c);storage.removeItem(STATE);lastContent='';if(notice)storage.setItem(NOTICE,notice);return c}
+ function assignCode(notice){const c=newCloudCode();storage.setItem(CODE,c);storage.removeItem(STATE);forgetSent();if(notice)storage.setItem(NOTICE,notice);return c}
  // Players who used the old backups get a code once, shown to them at the next start.
  function migrate(){if(optedIn()&&!code())assignCode('migrated');return code()}
  async function post(op,body){
   if(!base){const config=await request('multiplayer-config.json',{signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw Error('Cloud save is unavailable right now.');return r.json()});base=config.signalingUrl.replace(/\/$/,'')+'/backup/'}
-  return request(base+op,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(op==='save'||op==='load'?30000:15000)});
+  // text/plain keeps these simple CORS requests (no OPTIONS preflight); the Worker reads the raw body.
+  return request(base+op,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),signal:AbortSignal.timeout(op==='save'||op==='load'?30000:15000)});
  }
  async function forgetLegacy(){const old=legacy();if(!old)return;const r=await post('forget',{code:old.code,token:old.token});if(r.ok||r.status===404)storage.removeItem(LEGACY)}
  function schedule(delay=30000){if(!enabled||!optedIn()||closed||!latest||timer!==null)return;timer=setTimer(()=>{timer=null;void flush()},delay)}
- function collect(){const extras={};for(const k of EXTRAS){const v=storage.getItem(k);if(v!==null){JSON.parse(v);extras[k]=v}}return {schema:1,files:JSON.parse(latest),extras,version,platform:platform()}}
- async function flush(){if(!enabled||!optedIn()||closed||busy||!latest)return;if(!online()||!visible()||!uploadGuard()){schedule(30000);return;}const elapsed=now()-last;if(last&&elapsed<30000){schedule(30000-elapsed);return}busy=true;const queued=latest;try{
-  const backup=collect();if(!worthSaving(backup.files))return;const text=JSON.stringify(backup);if(text===lastContent){if(latest===queued)latest=null;return;}if(new TextEncoder().encode(text).length>15*1024*1024)throw Error('Backup too large');
-  const current=migrate(),{id,auth}=await cloudKeys(current),blob=await sealSave(current,backup);
+ function collect(){const extras={};for(const k of EXTRAS){const v=storage.getItem(k);if(v!==null){JSON.parse(v);extras[k]=v}}return {schema:1,files:backupFiles(JSON.parse(latest)),extras,version,platform:platform()}}
+ async function flush(){if(!enabled||!optedIn()||closed||busy||!latest)return;const paused=quotaPausedUntil('backup',{storage,now:now()});if(paused){schedule(Math.min(paused-now(),3600000));return}if(!online()||!visible()||!uploadGuard()){schedule(30000);return;}const elapsed=now()-last;if(last&&elapsed<30000){schedule(30000-elapsed);return}busy=true;const queued=latest;try{
+  const backup=collect();if(!worthSaving(backup.files))return;const text=JSON.stringify(backup),current=migrate(),hash=await digest(backupFingerprint(backup)),previous=sent();if(previous?.code===current&&previous.hash===hash){if(latest===queued)latest=null;return;}if(new TextEncoder().encode(text).length>15*1024*1024)throw Error('Backup too large');
+  const {id,auth}=await cloudKeys(current),blob=await sealSave(current,backup);
   if(!optedIn()||closed||!uploadGuard()||code()!==current)return;last=now();const r=await post('save',{id,auth,blob});
   // Another save already uses this code (about a one-in-a-quadrillion chance): pick a new one and show it.
   if(r.status===409){assignCode('changed');throw Error('Code in use')}
-  if(!r.ok)throw Error('Backup unavailable');const result=await r.json();
-  lastContent=text;if(latest===queued)latest=null;failures=0;lastError='';storage.setItem(STATE,JSON.stringify({updatedAt:result.updatedAt}));
+  if(!r.ok){const detail=await r.json().catch(()=>null);if(quotaExhausted(r.status,detail?.error))pauseForQuota('backup',{storage,now:now()});throw Error('Backup unavailable')}const result=await r.json();
+  storage.setItem(SENT,JSON.stringify({code:current,hash}));if(latest===queued)latest=null;failures=0;lastError='';storage.setItem(STATE,JSON.stringify({updatedAt:result.updatedAt}));
   await forgetLegacy().catch(()=>{});
  }catch(error){failures++;lastError=error.message}finally{busy=false;if(!closed)schedule(failures?Math.min(300000,30000*2**Math.min(failures,4)):60000)}}
  const state=()=>{try{return JSON.parse(storage.getItem(STATE)||'{}')}catch{return {}}};
@@ -88,6 +103,10 @@ export function createBackupClient({storage=localStorage,online=()=>navigator.on
   setUploadGuard(fn){uploadGuard=fn;},
   queue(text){if(!optedIn())return;if(!worthSaving(JSON.parse(text)))return;latest=text;schedule(last?30000:2000)},
   wake(){clearTimer(timer);timer=null;schedule(1000)},flush,
+  // A won run uploads at once (user, 2026-11-11): no waiting for the timer or the 30 seconds between uploads, so the
+  // clear is in the cloud even if the player goes straight on to loop or closes the game. A failed try keeps the
+  // usual retries.
+  saveNow(){clearTimer(timer);timer=null;last=0;return flush()},
   status(){return {code:optedIn()?code():null,updatedAt:state().updatedAt,error:lastError}},
   // Download and decrypt the save for a code; nothing on this device changes until the player confirms.
   async fetchSave(text){
@@ -98,11 +117,11 @@ export function createBackupClient({storage=localStorage,online=()=>navigator.on
    return {code:normal,savedAt,recovery,summary:saveSummary(backup)};
   },
   // After a restore this device keeps backing up to the same code.
-  adopt(text){const normal=normalizeCloudCode(text);if(!normal)throw Error('Invalid cloud save code.');storage.setItem(CODE,normal);storage.setItem(OPT_IN,'true');storage.removeItem(NOTICE);storage.removeItem(STATE);lastContent=''},
+  adopt(text){const normal=normalizeCloudCode(text);if(!normal)throw Error('Invalid cloud save code.');storage.setItem(CODE,normal);storage.setItem(OPT_IN,'true');storage.removeItem(NOTICE);storage.removeItem(STATE);forgetSent()},
   async deleteCloud(){
    const current=code();if(!current)return false;const {id,auth}=await cloudKeys(current),r=await post('delete',{id,auth});
    if(!r.ok&&r.status!==404)throw Error('Cloud save is unavailable right now. Try again later.');
-   storage.setItem(OPT_IN,'false');storage.removeItem(CODE);storage.removeItem(STATE);storage.removeItem(NOTICE);latest=null;lastContent='';clearTimer(timer);timer=null;return true;
+   storage.setItem(OPT_IN,'false');storage.removeItem(CODE);storage.removeItem(STATE);storage.removeItem(NOTICE);forgetSent();latest=null;clearTimer(timer);timer=null;return true;
   },
   resume(){closed=false;schedule(2000)},destroy(){closed=true;clearTimer(timer);timer=null}
  };

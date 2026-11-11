@@ -202,9 +202,19 @@ def dispatch(raw):
    p=storage.profile();p['relicless_unlocked']=True;storage.write(storage.ROOT/'profile.json',p)
   elif value=='alteregos':
    p=storage.profile();p['variants_unlocked']=True;storage.write(storage.ROOT/'profile.json',p)
+  elif value=='polymerization':
+   # Debug: show every fused relic in Collection, with its Fusion Material (normally revealed once fused in a run).
+   import relic_fusions
+   p=storage.profile();p['fused_relics']=sorted(set(p.get('fused_relics',[]))|relic_fusions.KEYS);storage.write(storage.ROOT/'profile.json',p)
   elif value=='touchgrass':
    p=storage.profile();p.update(unlock_all=True,unlocked=content.PLAYABLE_IDS,relicless_unlocked=True,testing_all_clears=True,character_levels={str(i):6 for i in content.PLAYABLE_IDS});storage.write(storage.ROOT/'profile.json',p)
-  else:raise ValueError('Unknown code')
+  else:
+   # <3 digits><duelist>lvl<level>: that duelist has beaten that Challenge Level (debug_codes.py).
+   import debug_codes
+   cleared=debug_codes.parse(value)
+   if not cleared:raise ValueError('Unknown code')
+   p=storage.profile();debug_codes.apply(p,*cleared);storage.write(storage.ROOT/'profile.json',p)
+   result=dict(cleared=content.CHARACTERS[cleared[0]]['name'],level=cleared[1])
  else:raise ValueError('Unknown mobile action')
  if action in {'active-curses','peek-deck','tag-view','tag-receipt','tag-auto-preview'}:return partial(result)
  if run and action not in {'import-profile','init','select-slot','new','settings','notices','remember-level','unlock-cpu-viewer','cheat'} and not action.startswith('tag-'):g.save(run)

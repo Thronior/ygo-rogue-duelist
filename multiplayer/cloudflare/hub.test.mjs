@@ -81,6 +81,51 @@ test('a new game clears the old log and keeps the match allowance',async()=>{
  await hub.apply(summary({game:2,actor:1}));assert.equal(hub.meta.count,0);assert.equal(hub.meta.actor,1);assert.equal(hub.meta.disconnectLeft[0],1000);assert(![...ctx.storage.data.keys()].some(k=>k.startsWith('e:1:')));
 });
 
+// Rows written (2026-11-11): responses live in the meta row and in 32-event chunk rows.
+const wake=(ctx,reports=[])=>new MatchHub(ctx,{DRAFT:{idFromName:n=>n,get:()=>({fetch:async(_,init)=>{reports.push(JSON.parse(init.body));return {ok:true}}})}});
+const attach=(hub,seat)=>hub.fetch(new Request('https://hub/',{headers:{'X-Seat':String(seat),'X-Hub-Summary':JSON.stringify(summary())}})).then(s=>{const inbox=[];s.webSocket.fake={fromServer:t=>inbox.push(JSON.parse(t)),closedByServer(){}};return {server:s.webSocket.server,inbox,say:d=>hub.webSocketMessage(s.webSocket.server,JSON.stringify(d)),last:t=>inbox.findLast(m=>m.t===t)}});
+async function play(seats,count,from=0){let actor=from%2;for(let n=from;n<from+count;n++){await seats[actor].say(response(n,1-actor));actor=1-actor}}
+
+test('after hibernation a hub resyncs, retransmits and continues across chunk boundaries',async()=>{
+ const {ctx,join}=setup(),a=await join(0),b=await join(1);await play([a,b],70);
+ assert(ctx.storage.data.has('c:1:000000')&&ctx.storage.data.has('c:1:000032'),'two closed chunks');assert(![...ctx.storage.data.keys()].some(k=>k.startsWith('e:')));
+ // Hibernation: a new instance from the same storage, the sockets survive.
+ const hub=wake(ctx),c=await attach(hub,0),d=await attach(hub,1);
+ assert.equal(hub.meta.count,70);assert.equal(hub.meta.open.length,6);
+ await d.say({t:'hello',game:1,after:20});const sync=d.last('sync');assert.equal(sync.count,70);assert.equal(sync.events.length,50);
+ assert.deepEqual(sync.events.map(e=>e.seat),Array.from({length:50},(_,i)=>(20+i)%2));
+ await c.say({t:'hello',game:1,after:0});assert.equal(c.last('sync').events.length,70,'a fresh client gets the whole duel');
+ // Old responses are answered from a closed chunk and from the open one, and never applied twice.
+ await c.say(response(4,1));assert.equal(c.inbox.at(-1).n,4);await c.say(response(66,1));assert.equal(c.inbox.at(-1).n,66);assert.equal(hub.meta.count,70);
+ await play([c,d],3,70);assert.equal(hub.meta.count,73);
+ const again=wake(ctx),e=await attach(again,1);await e.say({t:'hello',game:1,after:68});assert.deepEqual(e.last('sync').events.map(x=>x.seat),[0,1,0,1,0]);
+});
+
+test('a room stored before chunking keeps its log, then continues in chunks',async()=>{
+ const ctx=new FakeContext(),now=Date.now();
+ const meta={kind:'draft',code:'ROOM1',phase:'duel',game:1,players:2,actor:1,turn:1,turnLeft:[TURN_TIME,TURN_TIME],clockAt:now,count:3,votes:{},clockVotes:{},disconnectLeft:[DISCONNECT_ALLOWANCE,DISCONNECT_ALLOWANCE],offlineAt:[null,null],chargedAt:[null,null],alarmAt:null};
+ await ctx.storage.put({meta,'e:1:000000':{seat:0,response:{type:1}},'e:1:000001':{seat:1,response:{type:1}},'e:1:000002':{seat:0,response:{type:1}}});
+ const hub=wake(ctx),a=await attach(hub,0),b=await attach(hub,1);
+ await b.say({t:'hello',game:1,after:1});assert.deepEqual(b.last('sync').events.map(e=>e.seat),[1,0]);
+ await a.say(response(2,1));assert.equal(a.inbox.at(-1).n,2,'legacy event retransmitted');
+ await b.say(response(3,0));await a.say({t:'hello',game:1,after:0});assert.deepEqual(a.last('sync').events.map(e=>e.seat),[0,1,0,1]);
+ await hub.apply(summary({game:2,actor:0}));assert(![...ctx.storage.data.keys()].some(k=>k.startsWith('e:1:')||k.startsWith('c:1:')));assert.equal(hub.meta.open.length,0);
+});
+
+test('the pending alarm is read back on wake, so arming never rewrites the meta row',async()=>{
+ const {ctx,hub,join}=setup(),a=await join(0),b=await join(1);await a.say(response(0,1));
+ const pending=ctx.storage.alarm;assert.notEqual(pending,null);
+ const again=wake(ctx);await new Promise(r=>setTimeout(r,0));assert.equal(again.meta.alarmAt,pending);
+ let puts=0;const put=ctx.storage.put.bind(ctx.storage);ctx.storage.put=(k,v)=>{puts++;return put(k,v)};
+ const c=await attach(again,0);await attach(again,1);assert.equal(puts,0,'reconnecting seats that never went offline write nothing');
+ await hub.webSocketClose(b.server,1006,'');void c;
+});
+
+test('a new game deletes the old game chunks',async()=>{
+ const {hub,join,ctx}=setup(),a=await join(0),b=await join(1);await play([a,b],40);
+ await hub.apply(summary({game:2,actor:1}));assert(![...ctx.storage.data.keys()].some(k=>/^[ce]:1:/.test(k)));assert.equal(hub.meta.openFrom,0);
+});
+
 test('a completed room wipes hub storage',async()=>{
  const {hub,join,ctx}=setup(),a=await join(0);await a.say(response(0,0));await hub.apply(summary({phase:'complete'}));assert.equal(hub.meta,null);assert.equal(ctx.storage.data.size,0);
 });

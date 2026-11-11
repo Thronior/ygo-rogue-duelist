@@ -45,23 +45,34 @@ export class TagHub extends Hub {
 // presence, and reports results to the registry, which still owns players, decks and match state. The clock starts
 // only after a grace period, so slow links do not pay for transit, and a short drop costs nothing.
 export const TURN_TIME=180000,DISCONNECT_ALLOWANCE=300000,HANDOFF_GRACE=2000,DROP_GRACE=20000;
-const eventKey=(game,n)=>`e:${game}:${String(n).padStart(6,'0')}`;
+// Rows written (2026-11-11): the free tier allows 100,000 a day across every Worker, and a put, a delete and a
+// setAlarm each cost one. A duel's newest responses ride inside the meta row (`open`), so a response costs one row;
+// every EVENT_CHUNK responses they move into one chunk row, and a new game deletes a few chunks, not every event.
+// Rooms stored before this keep their `e:` rows, which are still read and cleared.
+export const EVENT_CHUNK=32,CHUNK_BYTES=262144;
+const eventKey=(game,n)=>`e:${game}:${String(n).padStart(6,'0')}`,chunkKey=(game,from)=>`c:${game}:${String(from).padStart(6,'0')}`;
 export class MatchHub extends Hub {
- constructor(ctx,env){super(ctx,env);ctx.blockConcurrencyWhile(async()=>{this.meta=await ctx.storage.get('meta')||null})}
+ constructor(ctx,env){super(ctx,env);ctx.blockConcurrencyWhile(async()=>{
+  const m=this.meta=await ctx.storage.get('meta')||null;
+  // The pending alarm is read back rather than stored, so arming one never rewrites the meta row.
+  if(m){m.open??=[];m.openFrom??=m.count;m.openBytes??=0;m.alarmAt=await ctx.storage.getAlarm()??null}
+ })}
  async fetch(request){
   const summary=request.headers.get('X-Hub-Summary');
   if(request.headers.get('X-Hub-Sync')){await this.apply(await request.json());return reply(200,{ok:true})}
   const seat=Number(request.headers.get('X-Seat'));if(seat!==0&&seat!==1||!summary)return reply(403,{error:'Invalid seat.'});
   await this.apply(JSON.parse(summary));
   this.replace(seat);const {response}=this.accept(seat);
-  if(this.meta){const m=this.meta;this.settle();m.offlineAt[seat]=null;m.chargedAt[seat]=null;await this.save();await this.arm();this.presence()}
+  // A seat that was already online changes nothing worth storing: clock and allowance charges are recomputed from
+  // the stored marks, so only coming back from offline needs a write.
+  if(this.meta){const m=this.meta;this.settle();const back=m.offlineAt[seat]!==null||m.chargedAt[seat]!==null;m.offlineAt[seat]=null;m.chargedAt[seat]=null;if(back)await this.save();await this.arm();this.presence()}
   return response;
  }
  // Idempotent, because it arrives both from the registry and with every connection.
  async apply(s){
   const now=Date.now();
   if(s.phase==='complete'){this.broadcast({t:'room',phase:s.phase,game:s.game});await this.ctx.storage.deleteAlarm();await this.ctx.storage.deleteAll();this.meta=null;return}
-  const m=this.meta??={kind:s.kind,code:s.code,phase:s.phase,game:0,players:s.players,actor:null,turn:1,turnLeft:[TURN_TIME,TURN_TIME],clockAt:now,count:0,votes:{},clockVotes:{},disconnectLeft:[DISCONNECT_ALLOWANCE,DISCONNECT_ALLOWANCE],offlineAt:[null,null],chargedAt:[null,null],alarmAt:null};
+  const m=this.meta??={kind:s.kind,code:s.code,phase:s.phase,game:0,players:s.players,actor:null,turn:1,turnLeft:[TURN_TIME,TURN_TIME],clockAt:now,count:0,votes:{},clockVotes:{},disconnectLeft:[DISCONNECT_ALLOWANCE,DISCONNECT_ALLOWANCE],offlineAt:[null,null],chargedAt:[null,null],alarmAt:null,open:[],openFrom:0,openBytes:0};
   const changed=m.phase!==s.phase||m.game!==s.game||m.players!==s.players;
   if(!changed){
    // Ready flags, the chooser and scores live in the registry; a nudge is all the clients need.
@@ -70,13 +81,24 @@ export class MatchHub extends Hub {
   }
   this.settle(now);m.players=s.players;m.phase=s.phase;
   if(s.phase==='duel'&&s.game!==m.game){
-   await this.clearEvents(m.game);m.game=s.game;m.count=0;m.actor=s.actor;m.turn=1;m.turnLeft=[TURN_TIME,TURN_TIME];m.clockAt=now+HANDOFF_GRACE;m.votes={};m.clockVotes={};m.reported=false;
+   await this.clearEvents(m.game);m.game=s.game;m.count=0;m.open=[];m.openFrom=0;m.openBytes=0;m.actor=s.actor;m.turn=1;m.turnLeft=[TURN_TIME,TURN_TIME];m.clockAt=now+HANDOFF_GRACE;m.votes={};m.clockVotes={};m.reported=false;
   }else m.game=s.game;
   // A player who never reached the hub is offline, or nothing would ever charge them.
   for(let seat=0;seat<m.players;seat++)if(!this.online(seat)&&m.offlineAt[seat]===null)m.offlineAt[seat]=now;
   await this.save();await this.arm();this.broadcast({t:'room',phase:s.phase,game:s.game});
  }
- async clearEvents(game){for(;;){const keys=[...(await this.ctx.storage.list({prefix:`e:${game}:`,limit:128})).keys()];if(!keys.length)return;await this.ctx.storage.delete(keys)}}
+ async clearEvents(game){for(const prefix of [`c:${game}:`,`e:${game}:`])for(;;){const keys=[...(await this.ctx.storage.list({prefix,limit:128})).keys()];if(!keys.length)break;await this.ctx.storage.delete(keys)}}
+ // Every stored event of the current game from n on, in order: legacy `e:` rows, closed chunks, then the open chunk.
+ async eventsFrom(from){
+  const m=this.meta,game=m.game,out=[];
+  if(from<m.openFrom){
+   for(const [key,value] of await this.ctx.storage.list({prefix:`e:${game}:`,start:eventKey(game,from)})){const n=Number(key.split(':')[2]);if(n>=from&&n<m.openFrom)out[n-from]=value}
+   for(const [key,events] of await this.ctx.storage.list({prefix:`c:${game}:`})){const start=Number(key.split(':')[2]);events.forEach((value,i)=>{const n=start+i;if(n>=from&&n<m.openFrom)out[n-from]=value})}
+  }
+  m.open.forEach((value,i)=>{const n=m.openFrom+i;if(n>=from)out[n-from]=value});
+  return out.filter(Boolean);
+ }
+ async eventAt(n){const m=this.meta;if(n>=m.openFrom)return m.open[n-m.openFrom];return (await this.eventsFrom(n))[0]}
  save(extra={}){return this.ctx.storage.put({meta:this.meta,...extra})}
  broadcast(data){const text=JSON.stringify(data);for(const seat of [0,1])for(const ws of this.sockets(seat))try{ws.send(text)}catch{}}
  clock(){const m=this.meta;return {actor:m.actor,turn:m.turn,turnLeft:m.turnLeft,clockAt:m.clockAt,now:Date.now()}}
@@ -111,11 +133,11 @@ export class MatchHub extends Hub {
   if(m.phase==='duel'&&m.actor!==null&&m.offlineAt.every(t=>t===null))times.push(m.clockAt+Math.max(0,m.turnLeft[m.actor]));
   return times.length?Math.min(...times)+50:null;
  }
- async arm(){const m=this.meta,at=this.deadline();if(at===null||m.alarmAt!==null&&m.alarmAt<=at)return;m.alarmAt=at;await this.ctx.storage.setAlarm(at);await this.save()}
+ async arm(){const m=this.meta,at=this.deadline();if(at===null||m.alarmAt!==null&&m.alarmAt<=at)return;m.alarmAt=at;await this.ctx.storage.setAlarm(at)}
  async alarm(){
   if(!this.meta)return;const m=this.meta;m.alarmAt=null;let gone=false;
   for(const seat of [0,1])if(this.stale(seat)){gone=true;await this.drop(seat)}
-  this.settle();await this.enforce();if(!this.meta)return;await this.save();await this.arm();if(gone)this.presence();
+  this.settle();await this.enforce();if(!this.meta)return;await this.arm();if(gone)this.presence();
  }
  async drop(seat){const m=this.meta;if(!m||m.offlineAt[seat]!==null)return;this.settle();m.offlineAt[seat]=Date.now();await this.save();await this.arm();this.presence()}
  async webSocketClose(ws){const attachment=ws.deserializeAttachment();try{ws.close(1000,'Connection closed')}catch{}if(attachment?.replaced||!this.meta||this.online(attachment.seat))return;await this.drop(attachment.seat)}
@@ -134,18 +156,20 @@ export class MatchHub extends Hub {
  }
  async hello(ws,v){
   const m=this.meta,after=Number.isInteger(v.after)&&v.after>=0&&v.game===m.game?v.after:0,events=[];
-  if(m.phase==='duel'&&after<m.count)for(const [key,value] of await this.ctx.storage.list({prefix:`e:${m.game}:`,start:eventKey(m.game,after)}))events.push(value);
+  if(m.phase==='duel'&&after<m.count)events.push(...await this.eventsFrom(after));
   ws.send(JSON.stringify({t:'sync',phase:m.phase,game:m.game,from:after,count:m.count,events,...this.presenceData()}));
  }
  async response(ws,seat,v){
   const m=this.meta;
-  if(Number.isInteger(v.n)&&v.n<m.count){const event=await this.ctx.storage.get(eventKey(m.game,v.n));if(event?.seat===seat)ws.send(JSON.stringify({t:'ev',game:m.game,n:v.n,...event,...this.clock()}));return}
+  if(Number.isInteger(v.n)&&v.n<m.count){const event=await this.eventAt(v.n);if(event?.seat===seat)ws.send(JSON.stringify({t:'ev',game:m.game,n:v.n,...event,...this.clock()}));return}
   if(v.n!==m.count||m.actor!==seat||![0,1,null].includes(v.nextActor)||!Number.isInteger(v.turn)||v.turn<m.turn||v.turn>m.turn+1||!v.response||JSON.stringify(v.response).length>16384)return ws.send(JSON.stringify({t:'reject',game:m.game,n:v.n,count:m.count}));
   const now=Date.now();this.settle(now);
   if(v.turn!==m.turn){m.turn=v.turn;m.turnLeft=[TURN_TIME,TURN_TIME]}
   m.clockAt=now+(v.nextActor!==m.actor?HANDOFF_GRACE:0);m.actor=v.nextActor;m.clockVotes={};
   const event={seat,response:v.response,...(typeof v.h==='number'?{h:v.h}:{})};const n=m.count++;
-  await this.save({[eventKey(m.game,n)]:event});await this.arm();
+  m.open.push(event);m.openBytes+=JSON.stringify(event).length;let chunk={};
+  if(m.open.length>=EVENT_CHUNK||m.openBytes>=CHUNK_BYTES){chunk={[chunkKey(m.game,m.openFrom)]:m.open};m.open=[];m.openFrom=m.count;m.openBytes=0}
+  await this.arm();await this.save(chunk);
   this.broadcast({t:'ev',game:m.game,n,...event,...this.clock()});
  }
 }

@@ -1,6 +1,6 @@
 import {forcedUltra as ULTRA_RARE} from './ultra-rarity.js';
 import {buzz} from './juice.js';
-let active=null;
+let active=null,rainReady=null;
 const cardIndexes=new WeakMap();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Presentation only: every card is already awarded and saved before this opens.
@@ -9,6 +9,9 @@ export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()
  let cardsById=cardIndexes.get(content.cards);if(!cardsById){cardsById=new Map(content.cards.map(c=>[c.id,c]));cardIndexes.set(content.cards,cardsById)}
  packs=packs.map(p=>{const order=new Map();(p.cards||[]).forEach((id,i)=>{if(!order.has(id))order.set(id,i)});return {...p,cards:[...(p.cards||[])].sort((a,b)=>Number(ULTRA_RARE.has(a))-Number(ULTRA_RARE.has(b))||order.get(a)-order.get(b))};});
  const dialog=document.createElement('dialog');dialog.className='pack-theatre';document.body.append(dialog);
+ // The money rain (2.2 MB, 149 frames) was first fetched and decoded on the frame an Ultra Rare turned over (player
+ // report 2026-11-11: pack openings lag on an Ultra Rare). It is loaded while the pack is still closed instead.
+ if(!rainReady&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&packs.some(p=>p.cards.some(id=>ULTRA_RARE.has(id)))){rainReady=new Image();rainReady.src='assets/effects/money-rain.gif';rainReady.decode?.().catch(()=>{})}
  let index=0,revealed=0,timers=[],closed=false,opening=false,jackpot=false;
  const later=(fn,ms)=>timers.push(setTimeout(()=>{if(!closed)fn()},ms*1.2));
  const clear=()=>{timers.forEach(clearTimeout);timers=[]};

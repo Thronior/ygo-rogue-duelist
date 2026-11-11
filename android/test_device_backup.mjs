@@ -57,6 +57,11 @@ migrated.clearNotice();assert.equal(migrated.notice(),'');
 assert(await migrated.deleteCloud());assert.equal(migrated.isEnabled(),false);assert.equal(migrated.status().code,null);const gone=await cloudKeys(code);assert(server.has(gone.id),'other saves are untouched');
 client.setEnabled(false);client.queue(JSON.stringify(files));const count=uploads().length;await client.flush();assert.equal(uploads().length,count);client.destroy();time+=60000;await client.flush();assert.equal(uploads().length,count);
 
+// A won run uploads at once: a normal flush waits out the 30 seconds between uploads, saveNow does not.
+{const quick=createBackupClient(options);const quickCode=quick.setEnabled(true);files['profile.json']='{"wins":5,"unlocked":[0,1,2]}';quick.queue(JSON.stringify(files));await quick.flush();const n=uploads().length;
+ files['profile.json']='{"wins":6,"unlocked":[0,1,2]}';quick.queue(JSON.stringify(files));await quick.flush();assert.equal(uploads().length,n,'a second upload within 30 seconds waits');
+ await quick.saveNow();assert.equal(uploads().length,n+1,'saveNow uploads immediately');assert.deepEqual((await openSave(quickCode,uploads()[n].body.blob)).files,files);quick.destroy()}
+
 // Restore stays atomic and rejects unsafe files.
 const recovery={format:'ygo-device-recovery-v1',backup:{schema:1,files,extras:{'cpu-deck-suggestions-v1':'{"draft":1}'}}};assert.deepEqual(validateRecovery(recovery).files,files);await restoreRecovery(recovery,{storage:localStorage,loadSave:async()=>disk,storeSave:async text=>disk=text});assert.equal(localStorage.getItem('cpu-deck-suggestions-v1'),'{"draft":1}');
 const before=disk;let once=true;await assert.rejects(()=>restoreRecovery({...recovery,backup:{...recovery.backup,files:{'profile.json':'{}'},extras:{}}},{storage:localStorage,loadSave:async()=>disk,storeSave:async text=>{if(once){once=false;throw Error('disk full')}disk=text}}));assert.equal(disk,before);assert.equal(localStorage.getItem('cpu-deck-suggestions-v1'),'{"draft":1}');

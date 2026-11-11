@@ -6,8 +6,13 @@
 //   end events still arrive;
 // - requestAnimationFrame callbacks (the menu carousel, counters, effects) run on the same ticks.
 // Endless stepped loops (ambient-clock.js) stay with the browser: it moves them on its own drawing thread, about 17
-// redraws a second, where moving them from here would cost main-thread style and paint on every step. Instead the
-// clock puts a tick on every 60 ms beat of the ambient clock, so their redraws fall on ticks.
+// redraws a second, where moving them from here would cost main-thread style and paint on every step.
+// Ticks are evenly spaced (player reports, 2026-11-11: stutter with a cap of 60). A frame can only be shown on a
+// display refresh, so when the display is at least 1.5 times faster than the cap the clock ticks on every 2nd, 3rd...
+// refresh: the fastest even rate that stays at or below the cap (145 Hz and a cap of 60 give 48, 120 Hz gives 60).
+// Averaging the cap exactly there would mix short and long frames (14 and 21 ms), which looks like stutter.
+// Only a display less than 1.5 times faster than the cap (145 Hz and 120) keeps the cap's average, by skipping single
+// refreshes at even distances.
 // When nothing is moving, the clock's own loop stops, so an idle screen costs what it did without a cap.
 // A CSS animation paused by a stylesheet rule (animation-play-state) is held while the rule applies.
 // On a display at or below the cap nothing is driven and nothing costs anything. The Android app also asks the
@@ -18,7 +23,7 @@
  const nativeRAF=window.requestAnimationFrame.bind(window),nativeCancel=window.cancelAnimationFrame.bind(window);
  const proto=Animation.prototype,nativePause=proto.pause,nativePlay=proto.play,nativeFinish=proto.finish;
  const playStateGetter=Object.getOwnPropertyDescriptor(proto,'playState').get;
- let cap=MAX,refresh=0,active=false,measuring=false,loop=0,lastTick=0,beatStart=-1e9,perBeat=1,nextIndex=0,carry=0;
+ let cap=MAX,refresh=0,active=false,measuring=false,loop=0,nextDue=-1e9;
  // Animations this clock moves: animation -> {held}, held when the game itself paused it.
  const driven=new Map();
  // Game requestAnimationFrame callbacks waiting for the next tick: id -> callback.
@@ -116,30 +121,32 @@
   loop=0;if(!active)return;
   if(lastFrame){gaps.push(time-lastFrame);if(gaps.length>=60){refresh=rateOf(gaps);gaps=[];update();if(!active){lastFrame=0;return}}}lastFrame=time;
   now=time;
-  // Ticks are laid out per beat of the ambient clock (60 ms on screen): the first tick of each beat falls on it, the
-  // rest share the beat evenly, and the number per beat averages the cap (1.8 at 30: 2, 2, 2, 2, 1). The ambient
-  // loops' redraws then fall on ticks. After an idle stretch the first frame ticks at once.
-  const beat=50*(Number(globalThis.presentationScale)||1),start=Math.floor(time/beat)*beat;
-  if(start!==beatStart){
-   const fresh=start-beatStart>beat*1.5;beatStart=start;if(fresh)carry=0;
-   carry+=cap*beat/1000;perBeat=Math.max(1,Math.floor(carry));carry-=perBeat;nextIndex=0;
-  }
-  let due=time-lastTick>beat*1.5;
-  while(nextIndex<perBeat&&time>=beatStart+nextIndex*beat/perBeat-1){nextIndex++;due=true}
+  // A tick falls on the first refresh at or after its time (half a refresh of slack for timer noise). Whole-refresh
+  // spacing counts on from the refresh that ticked, so a late frame does not shorten the next one. After an idle
+  // stretch the first frame ticks at once.
+  const period=1000/refresh,every=spacing(),interval=every?every*period:1000/cap;
+  let due=false;
+  if(time-nextDue>interval*1.5){due=true;nextDue=time+interval}
+  else if(time>=nextDue-period/2){due=true;nextDue=every?time+interval:nextDue+interval}
   // On a tick the game's frame callbacks run first; if they changed the page, it is looked over at once, so
   // animations and transitions they start are taken over before they are ever drawn on their own.
-  if(due){lastTick=time;flushQueue(time);if(changes.takeRecords().length)sweepSoon=true;adopt(time);advance(time)}else adopt(time);
+  if(due){flushQueue(time);if(changes.takeRecords().length)sweepSoon=true;adopt(time);advance(time)}else adopt(time);
   if(driven.size||queue.size||pending.size||sweepSoon)loop=nativeRAF(frame);else lastFrame=0;
  }
+ // How many display refreshes apart the ticks are, or 0 when the display is too close to the cap to divide evenly.
+ const spacing=()=>refresh>=cap*1.5?Math.ceil(refresh/(cap*1.05)):0;
  function update(){
   const want=refresh>cap*1.05;
   if(want===active)return;
   active=want;
-  if(active){beatStart=-1e9;lastFrame=0;gaps=[];sweepSoon=true;changes.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});ensureLoop()}
+  if(active){nextDue=-1e9;lastFrame=0;gaps=[];sweepSoon=true;changes.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});ensureLoop()}
   else{changes.disconnect();if(loop)nativeCancel(loop);loop=0;release();const due=queue;queue=new Map();for(const callback of due.values())nativeRAF(callback)}
  }
- // The display's refresh rate from frame gaps: the shortest quarter, since a busy page only makes gaps longer.
- const rateOf=list=>{const sorted=[...list].sort((a,b)=>a-b),gap=sorted[sorted.length>>2];return gap>0?1000/gap:refresh};
+ // The display's refresh rate from frame gaps: the average of the gaps near the shortest quarter. A busy page only
+ // makes gaps longer, and timer noise makes single gaps shorter, which read alone turned the clock on for displays
+ // that run at the cap.
+ const rateOf=list=>{const sorted=[...list].sort((a,b)=>a-b),gap=sorted[sorted.length>>2];if(!(gap>0))return refresh;
+  let sum=0,n=0;for(const g of sorted)if(g>gap*.8&&g<gap*1.25){sum+=g;n++}return n?1000*n/sum:1000/gap};
  // Measured from 30 native frames at startup, every few seconds while the clock's loop is not running (a window can
  // move to a faster display without any event) and when the window resizes or comes back from the background.
  function measure(){
@@ -176,7 +183,7 @@
    try{window.ShadowNative?.setFrameRateCap?.(cap)}catch{}
    update();remeasure();
   },
-  get state(){return {cap,refresh:Math.round(refresh),active,driven:driven.size,queued:queue.size,loop:!!loop}},
+  get state(){return {cap,refresh:Math.round(refresh),active,rate:Math.round(active?(spacing()?refresh/spacing():cap):Math.min(refresh,cap)||0),driven:driven.size,queued:queue.size,loop:!!loop}},
   // For tests: what the clock is moving.
   debug(){return [...driven].map(([a,e])=>({name:a.animationName||a.transitionProperty||a.id||'animate',held:e.held,cssHeld:!!e.cssHeld,time:Math.round(a.currentTime||0),end:e.end,target:a.effect?.target?.className?.baseVal??a.effect?.target?.className}))},
  };

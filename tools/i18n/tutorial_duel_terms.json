@@ -1,0 +1,1002 @@
+{
+ "Welcome, Duelist!": {
+  "de": "Willkommen, Duellant!",
+  "es": "¡Bienvenido, Duelista!",
+  "fr": "Bienvenue, Duelliste !",
+  "it": "Benvenuto, Duellante!",
+  "pt": "Bem-vindo, Duelista!",
+  "ja": "ようこそ、デュエリスト！",
+  "ko": "환영합니다, 듀얼리스트!",
+  "zh": "欢迎你，决斗者！"
+ },
+ "This short Duel teaches you how to play. Follow the glowing hints.": {
+  "de": "Dieses kurze Duell zeigt dir, wie man spielt. Folge den leuchtenden Hinweisen.",
+  "es": "Este Duelo corto te enseña a jugar. Sigue las pistas brillantes.",
+  "fr": "Ce court Duel vous apprend à jouer. Suivez les indications lumineuses.",
+  "it": "Questo breve Duello ti insegna a giocare. Segui i suggerimenti luminosi.",
+  "pt": "Este Duelo curto ensina você a jogar. Siga as dicas brilhantes.",
+  "ja": "この短いデュエルで遊び方を学びます。光るヒントに従ってください。",
+  "ko": "이 짧은 듀얼에서 플레이 방법을 배웁니다. 빛나는 힌트를 따라가세요.",
+  "zh": "这场简短的决斗会教你怎么玩。请跟着发光的提示操作。"
+ },
+ "How to win": {
+  "de": "So gewinnst du",
+  "es": "Cómo ganar",
+  "fr": "Comment gagner",
+  "it": "Come si vince",
+  "pt": "Como vencer",
+  "ja": "勝ち方",
+  "ko": "승리하는 방법",
+  "zh": "如何获胜"
+ },
+ "Each player has Life Points (LP). Bring your opponent's LP down to 0 and you win.": {
+  "de": "Jeder Spieler hat Life Points (LP). Bringe die LP deines Gegners auf 0 und du gewinnst.",
+  "es": "Cada jugador tiene Life Points (LP). Baja los LP de tu adversario a 0 y ganas.",
+  "fr": "Chaque joueur a des Life Points (LP). Faites tomber les LP de votre adversaire à 0 et vous gagnez.",
+  "it": "Ogni giocatore ha dei Life Points (LP). Porta a 0 i LP del tuo avversario e vinci.",
+  "pt": "Cada jogador tem Pontos de Vida (PV). Leve os PV do seu oponente a 0 e você vence.",
+  "ja": "各プレイヤーにはライフポイント（LP）があります。相手のLPを0にすれば勝ちです。",
+  "ko": "각 플레이어에게는 라이프 포인트(LP)가 있습니다. 상대의 LP를 0으로 만들면 승리합니다.",
+  "zh": "每位玩家都有基本分（LP）。把对方的基本分降到0，你就获胜。"
+ },
+ "Phases": {
+  "de": "Phasen",
+  "es": "Fases",
+  "fr": "Phases",
+  "it": "Fasi",
+  "pt": "Fases",
+  "ja": "フェイズ",
+  "ko": "페이즈",
+  "zh": "阶段"
+ },
+ "Duels are played in phases. Each turn has 6 phases, shown on the bar in the middle of the field.": {
+  "de": "Duelle werden in Phasen gespielt. Jeder Spielzug hat 6 Phasen. Du siehst sie auf der Leiste in der Mitte des Spielfelds.",
+  "es": "Los Duelos se juegan por fases. Cada turno tiene 6 fases. Se ven en la barra del centro del Campo.",
+  "fr": "Un Duel se joue en phases. Chaque tour a 6 phases, affichées sur la barre au milieu du Terrain.",
+  "it": "I Duelli si giocano a fasi. Ogni turno ha 6 fasi, mostrate sulla barra al centro del Terreno.",
+  "pt": "Os Duelos são jogados em fases. Cada turno tem 6 fases, mostradas na barra no meio do campo.",
+  "ja": "デュエルはフェイズごとに進みます。1ターンには6つのフェイズがあり、フィールド中央のバーに表示されます。",
+  "ko": "듀얼은 페이즈 순서로 진행됩니다. 한 턴에는 6개의 페이즈가 있으며, 필드 가운데의 바에 표시됩니다.",
+  "zh": "决斗按阶段进行。每个回合有6个阶段，显示在场地中间的栏上。"
+ },
+ "Draw Phase": {
+  "de": "Draw Phase",
+  "es": "Draw Phase",
+  "fr": "Draw Phase",
+  "it": "Draw Phase",
+  "pt": "Fase de Compra",
+  "ja": "ドローフェイズ",
+  "ko": "드로우 페이즈",
+  "zh": "抽卡阶段"
+ },
+ "This is when you draw 1 card.": {
+  "de": "Hier ziehst du 1 Karte.",
+  "es": "Aquí robas 1 carta.",
+  "fr": "C'est ici que vous piochez 1 carte.",
+  "it": "Qui peschi 1 carta.",
+  "pt": "Aqui você compra 1 card.",
+  "ja": "カードを1枚ドローするフェイズです。",
+  "ko": "카드를 1장 드로우하는 페이즈입니다.",
+  "zh": "在这个阶段抽1张卡。"
+ },
+ "Standby Phase": {
+  "de": "Standby Phase",
+  "es": "Standby Phase",
+  "fr": "Standby Phase",
+  "it": "Standby Phase",
+  "pt": "Fase de Apoio",
+  "ja": "スタンバイフェイズ",
+  "ko": "스탠바이 페이즈",
+  "zh": "准备阶段"
+ },
+ "This one is skipped unless an effect mentions it.": {
+  "de": "Diese Phase wird übersprungen, außer ein Effekt nennt sie.",
+  "es": "Esta fase se salta, salvo que un efecto la mencione.",
+  "fr": "Cette phase est passée, sauf si un effet la mentionne.",
+  "it": "Questa fase viene saltata, a meno che un effetto non la nomini.",
+  "pt": "Esta fase é pulada, a menos que um efeito fale dela.",
+  "ja": "効果で指定されていない限り、このフェイズは何もせずに進みます。",
+  "ko": "효과에서 언급하지 않는 한, 이 페이즈는 그냥 넘어갑니다.",
+  "zh": "除非有效果提到它，否则这个阶段会直接跳过。"
+ },
+ "Main Phase 1": {
+  "de": "Main Phase 1",
+  "es": "Main Phase 1",
+  "fr": "Main Phase 1",
+  "it": "Main Phase 1",
+  "pt": "Fase Principal 1",
+  "ja": "メインフェイズ１",
+  "ko": "메인 페이즈 1",
+  "zh": "主要阶段1"
+ },
+ "During your Main Phase you can Set, Summon and activate cards from your hand.": {
+  "de": "In deiner Main Phase kannst du Karten aus deiner Hand setzen, beschwören und aktivieren.",
+  "es": "Durante tu Main Phase puedes Colocar, Invocar y activar cartas de tu mano.",
+  "fr": "Pendant votre Main Phase, vous pouvez Poser, Invoquer et activer des cartes de votre main.",
+  "it": "Durante la tua Main Phase puoi Posizionare, Evocare e attivare carte dalla tua mano.",
+  "pt": "Durante a sua Fase Principal você pode Baixar, Invocar e ativar cards da sua mão.",
+  "ja": "メインフェイズでは、手札のカードをセット、召喚、発動できます。",
+  "ko": "메인 페이즈에는 패의 카드를 세트, 소환, 발동할 수 있습니다.",
+  "zh": "在主要阶段，你可以盖放、召唤和发动手卡中的卡。"
+ },
+ "Battle Phase": {
+  "de": "Battle Phase",
+  "es": "Battle Phase",
+  "fr": "Battle Phase",
+  "it": "Battle Phase",
+  "pt": "Fase de Batalha",
+  "ja": "バトルフェイズ",
+  "ko": "배틀 페이즈",
+  "zh": "战斗阶段"
+ },
+ "During the Battle Phase you can use your monsters to attack.": {
+  "de": "In der Battle Phase kannst du mit deinen Monstern angreifen.",
+  "es": "Durante la Battle Phase puedes atacar con tus monstruos.",
+  "fr": "Pendant la Battle Phase, vous pouvez attaquer avec vos monstres.",
+  "it": "Durante la Battle Phase puoi attaccare con i tuoi mostri.",
+  "pt": "Durante a Fase de Batalha você pode atacar com seus monstros.",
+  "ja": "バトルフェイズでは、自分のモンスターで攻撃できます。",
+  "ko": "배틀 페이즈에는 자신의 몬스터로 공격할 수 있습니다.",
+  "zh": "在战斗阶段，你可以用自己的怪兽攻击。"
+ },
+ "Main Phase 2": {
+  "de": "Main Phase 2",
+  "es": "Main Phase 2",
+  "fr": "Main Phase 2",
+  "it": "Main Phase 2",
+  "pt": "Fase Principal 2",
+  "ja": "メインフェイズ２",
+  "ko": "메인 페이즈 2",
+  "zh": "主要阶段2"
+ },
+ "This phase is optional. Use it if you want to Set, activate or Summon cards after attacking.": {
+  "de": "Diese Phase ist freiwillig. Nutze sie, wenn du nach dem Angreifen noch Karten setzen, aktivieren oder beschwören willst.",
+  "es": "Esta fase es opcional. Úsala si quieres Colocar, activar o Invocar cartas después de atacar.",
+  "fr": "Cette phase est facultative. Utilisez-la si vous voulez Poser, activer ou Invoquer des cartes après avoir attaqué.",
+  "it": "Questa fase è facoltativa. Usala se vuoi Posizionare, attivare o Evocare carte dopo aver attaccato.",
+  "pt": "Esta fase é opcional. Use-a se quiser Baixar, ativar ou Invocar cards depois de atacar.",
+  "ja": "このフェイズは任意です。攻撃の後にカードをセット、発動、召喚したいときに使います。",
+  "ko": "이 페이즈는 선택 사항입니다. 공격한 뒤에 카드를 세트, 발동, 소환하고 싶을 때 사용하세요.",
+  "zh": "这个阶段可以不进行。想在攻击后盖放、发动或召唤卡时使用。"
+ },
+ "End Phase": {
+  "de": "End Phase",
+  "es": "End Phase",
+  "fr": "End Phase",
+  "it": "End Phase",
+  "pt": "Fase Final",
+  "ja": "エンドフェイズ",
+  "ko": "엔드 페이즈",
+  "zh": "结束阶段"
+ },
+ "Your turn ends here. It works a lot like the Standby Phase: nothing happens unless an effect mentions it.": {
+  "de": "Hier endet dein Spielzug. Es ist ähnlich wie in der Standby Phase: Nichts passiert, außer ein Effekt nennt sie.",
+  "es": "Tu turno termina aquí. Se parece mucho a la Standby Phase: no pasa nada, salvo que un efecto la mencione.",
+  "fr": "Votre tour se termine ici. Elle ressemble beaucoup à la Standby Phase : rien ne se passe, sauf si un effet la mentionne.",
+  "it": "Il tuo turno finisce qui. Funziona un po' come la Standby Phase: non succede nulla, a meno che un effetto non la nomini.",
+  "pt": "Seu turno termina aqui. Ela é parecida com a Fase de Apoio: nada acontece, a menos que um efeito fale dela.",
+  "ja": "ここで自分のターンが終わります。スタンバイフェイズと同じように、効果で指定されていない限り何も起こりません。",
+  "ko": "여기서 자신의 턴이 끝납니다. 스탠바이 페이즈와 비슷하게, 효과에서 언급하지 않는 한 아무 일도 일어나지 않습니다.",
+  "zh": "你的回合在这里结束。它和准备阶段很像：除非有效果提到它，否则什么都不会发生。"
+ },
+ "Your opponent's turn. They go through the same phases.": {
+  "de": "Der Spielzug deines Gegners. Er geht durch dieselben Phasen.",
+  "es": "Turno de tu adversario. Pasa por las mismas fases.",
+  "fr": "Tour de votre adversaire. Il passe par les mêmes phases.",
+  "it": "Turno del tuo avversario. Passa per le stesse fasi.",
+  "pt": "Turno do seu oponente. Ele passa pelas mesmas fases.",
+  "ja": "相手のターンです。相手も同じフェイズを進めます。",
+  "ko": "상대의 턴입니다. 상대도 같은 페이즈를 진행합니다.",
+  "zh": "对方的回合。对方也会经过同样的阶段。"
+ },
+ "Your hand": {
+  "de": "Deine Hand",
+  "es": "Tu mano",
+  "fr": "Votre main",
+  "it": "La tua mano",
+  "pt": "Sua mão",
+  "ja": "自分の手札",
+  "ko": "자신의 패",
+  "zh": "你的手卡"
+ },
+ "These are your cards. There are 3 kinds: Monsters, Spells and Traps.": {
+  "de": "Das sind deine Karten. Es gibt 3 Arten: Monster, Zauber und Fallen.",
+  "es": "Estas son tus cartas. Hay 3 clases: Monstruos, Mágicas y Trampas.",
+  "fr": "Voici vos cartes. Il y en a 3 sortes : les Monstres, les Magies et les Pièges.",
+  "it": "Queste sono le tue carte. Ce ne sono 3 tipi: Mostri, Magie e Trappole.",
+  "pt": "Estes são os seus cards. Há 3 tipos: Monstros, Magias e Armadilhas.",
+  "ja": "これが自分のカードです。モンスター、魔法、罠の3種類があります。",
+  "ko": "이것이 자신의 카드입니다. 몬스터, 마법, 함정의 3종류가 있습니다.",
+  "zh": "这些是你的卡。共有3种：怪兽、魔法和陷阱。"
+ },
+ "Normal Monster": {
+  "de": "Normales Monster",
+  "es": "Monstruo Normal",
+  "fr": "Monstre Normal",
+  "it": "Mostro Normale",
+  "pt": "Monstro Normal",
+  "ja": "通常モンスター",
+  "ko": "일반 몬스터",
+  "zh": "通常怪兽"
+ },
+ "Celtic Guardian is a Normal Monster. Monsters fight for you. A Normal Monster has no effect.": {
+  "de": "Keltischer Wächter ist ein Normales Monster. Monster kämpfen für dich. Ein Normales Monster hat keinen Effekt.",
+  "es": "Guardián Celta es un Monstruo Normal. Los monstruos luchan por ti. Un Monstruo Normal no tiene efecto.",
+  "fr": "Gardien Celte est un Monstre Normal. Les monstres se battent pour vous. Un Monstre Normal n'a pas d'effet.",
+  "it": "Guardiano Celtico è un Mostro Normale. I mostri combattono per te. Un Mostro Normale non ha effetti.",
+  "pt": "Guardião Celta é um Monstro Normal. Os monstros lutam por você. Um Monstro Normal não tem efeito.",
+  "ja": "「エルフの剣士」は通常モンスターです。モンスターは自分のために戦います。通常モンスターは効果を持ちません。",
+  "ko": "\"엘프 검사\"는 일반 몬스터입니다. 몬스터는 자신을 위해 싸웁니다. 일반 몬스터에게는 효과가 없습니다.",
+  "zh": "「精灵剑士」是通常怪兽。怪兽会为你战斗。通常怪兽没有效果。"
+ },
+ "Effect Monster": {
+  "de": "Effektmonster",
+  "es": "Monstruo de Efecto",
+  "fr": "Monstre à Effet",
+  "it": "Mostro con Effetto",
+  "pt": "Monstro de Efeito",
+  "ja": "効果モンスター",
+  "ko": "효과 몬스터",
+  "zh": "效果怪兽"
+ },
+ "Time Wizard is an Effect Monster. It has a special ability written on the card.": {
+  "de": "Zeitzauberer ist ein Effektmonster. Es hat eine besondere Fähigkeit, die auf der Karte steht.",
+  "es": "Mago del Tiempo es un Monstruo de Efecto. Tiene una habilidad especial escrita en la carta.",
+  "fr": "Magicien du Temps est un Monstre à Effet. Il a une capacité spéciale écrite sur la carte.",
+  "it": "Stregone del Tempo è un Mostro con Effetto. Ha un'abilità speciale scritta sulla carta.",
+  "pt": "Mago do Tempo é um Monstro de Efeito. Ele tem uma habilidade especial escrita no card.",
+  "ja": "「時の魔術師」は効果モンスターです。カードに書かれた特別な能力を持っています。",
+  "ko": "\"시간의 마술사\"는 효과 몬스터입니다. 카드에 적힌 특별한 능력을 가지고 있습니다.",
+  "zh": "「时间魔术师」是效果怪兽。它有写在卡上的特殊能力。"
+ },
+ "Tribute Monster": {
+  "de": "Tributmonster",
+  "es": "Monstruo de Sacrificio",
+  "fr": "Monstre à Sacrifice",
+  "it": "Mostro con Tributo",
+  "pt": "Monstro de Tributo",
+  "ja": "上級モンスター",
+  "ko": "상급 몬스터",
+  "zh": "上级怪兽"
+ },
+ "Summoned Skull is Level 6. Monsters of Level 5 or 6 are too strong to Summon for free, so they cost 1 Tribute: you send 1 of your own monsters to the Graveyard to Summon it.": {
+  "de": "Herbeigerufener Totenkopf hat Stufe 6. Monster der Stufe 5 oder 6 sind zu stark, um sie einfach so zu beschwören. Deshalb kosten sie 1 Tribut: Du legst 1 deiner eigenen Monster auf den Friedhof, um ihn zu beschwören.",
+  "es": "Cráneo Convocado es de Nivel 6. Los monstruos de Nivel 5 o 6 son demasiado fuertes para Invocarlos gratis, así que cuestan 1 Sacrificio: mandas 1 de tus monstruos al Cementerio para Invocarlo.",
+  "fr": "Crâne Invoqué est de Niveau 6. Les monstres de Niveau 5 ou 6 sont trop forts pour être Invoqués gratuitement, ils coûtent donc 1 Sacrifice : vous envoyez 1 de vos monstres au Cimetière pour l'Invoquer.",
+  "it": "Teschio Evocato è di Livello 6. I mostri di Livello 5 o 6 sono troppo forti per essere Evocati gratis, quindi costano 1 Tributo: mandi 1 dei tuoi mostri al Cimitero per Evocarlo.",
+  "pt": "Caveira Invocada é de Nível 6. Monstros de Nível 5 ou 6 são fortes demais para Invocar de graça, então custam 1 Tributo: você envia 1 dos seus monstros para o Cemitério para Invocá-la.",
+  "ja": "「デーモンの召喚」はレベル6です。レベル5・6のモンスターは強力なので、そのままでは召喚できず、リリースが1体必要です。召喚するには、自分のモンスター1体を墓地へ送ります。",
+  "ko": "\"데몬 소환\"은 레벨 6입니다. 레벨 5·6 몬스터는 강력해서 그냥 소환할 수 없고, 릴리스가 1장 필요합니다. 소환하려면 자신의 몬스터 1장을 묘지로 보냅니다.",
+  "zh": "「恶魔召唤」是等级6。等级5或6的怪兽太强，不能直接召唤，需要解放1只：要召唤它，必须把自己的1只怪兽送去墓地。"
+ },
+ "Spell Card": {
+  "de": "Zauberkarte",
+  "es": "Carta Mágica",
+  "fr": "Carte Magie",
+  "it": "Carta Magia",
+  "pt": "Card de Magia",
+  "ja": "魔法カード",
+  "ko": "마법 카드",
+  "zh": "魔法卡"
+ },
+ "Fissure is a Spell. You play Spells from your hand during your Main Phase.": {
+  "de": "Spalt ist ein Zauber. Zauber spielst du in deiner Main Phase aus deiner Hand.",
+  "es": "Fisura es una Mágica. Las Mágicas se juegan desde tu mano durante tu Main Phase.",
+  "fr": "Fissure est une Magie. Vous jouez les Magies depuis votre main pendant votre Main Phase.",
+  "it": "Spaccatura è una Magia. Giochi le Magie dalla tua mano durante la tua Main Phase.",
+  "pt": "Fissura é uma Magia. Você joga Magias da sua mão durante a sua Fase Principal.",
+  "ja": "「地割れ」は魔法カードです。魔法カードは自分のメインフェイズに手札から使います。",
+  "ko": "\"갈라진 대지\"는 마법 카드입니다. 마법 카드는 자신의 메인 페이즈에 패에서 사용합니다.",
+  "zh": "「地割」是魔法卡。魔法卡在自己的主要阶段从手卡使用。"
+ },
+ "Trap Card": {
+  "de": "Fallenkarte",
+  "es": "Carta de Trampa",
+  "fr": "Carte Piège",
+  "it": "Carta Trappola",
+  "pt": "Card de Armadilha",
+  "ja": "罠カード",
+  "ko": "함정 카드",
+  "zh": "陷阱卡"
+ },
+ "Magic Cylinder is a Trap. You Set a Trap face-down first, then use it later, even on your opponent's turn.": {
+  "de": "Magischer Zylinder ist eine Falle. Eine Falle setzt du erst verdeckt. Später benutzt du sie, sogar im Spielzug deines Gegners.",
+  "es": "Cilindro Mágico es una Trampa. Primero Colocas la Trampa boca abajo y la usas más tarde, incluso en el turno de tu adversario.",
+  "fr": "Cylindre Magique est un Piège. Vous Posez d'abord un Piège face verso, puis vous l'utilisez plus tard, même pendant le tour de votre adversaire.",
+  "it": "Cilindro Magico è una Trappola. Prima Posizioni la Trappola coperta, poi la usi più tardi, anche nel turno del tuo avversario.",
+  "pt": "Cilindro Mágico é uma Armadilha. Primeiro você Baixa a Armadilha com a face para baixo e a usa depois, até no turno do seu oponente.",
+  "ja": "「魔法の筒」は罠カードです。罠カードはまず裏側表示でセットし、後で使います。相手のターンでも使えます。",
+  "ko": "\"매직 실린더\"는 함정 카드입니다. 함정 카드는 먼저 뒷면 표시로 세트한 뒤 나중에 사용합니다. 상대 턴에도 사용할 수 있습니다.",
+  "zh": "「魔法筒」是陷阱卡。陷阱卡要先以里侧表示盖放，之后才能使用，在对方的回合也可以用。"
+ },
+ "The card window": {
+  "de": "Das Kartenfenster",
+  "es": "La ventana de carta",
+  "fr": "La fenêtre de carte",
+  "it": "La finestra della carta",
+  "pt": "A janela do card",
+  "ja": "カードウィンドウ",
+  "ko": "카드 창",
+  "zh": "卡片窗口"
+ },
+ "Tap any card to read it here. Let's look at Celtic Guardian.": {
+  "de": "Tippe auf eine Karte, um sie hier zu lesen. Sehen wir uns Keltischer Wächter an.",
+  "es": "Toca cualquier carta para leerla aquí. Veamos Guardián Celta.",
+  "fr": "Touchez une carte pour la lire ici. Regardons Gardien Celte.",
+  "it": "Tocca una carta per leggerla qui. Guardiamo Guardiano Celtico.",
+  "pt": "Toque em qualquer card para ler aqui. Vamos ver o Guardião Celta.",
+  "ja": "カードをタップすると、ここで内容を読めます。「エルフの剣士」を見てみましょう。",
+  "ko": "카드를 탭하면 여기에서 내용을 읽을 수 있습니다. \"엘프 검사\"를 살펴봅시다.",
+  "zh": "点按任意一张卡，就能在这里阅读。来看看「精灵剑士」吧。"
+ },
+ "Level": {
+  "de": "Stufe",
+  "es": "Nivel",
+  "fr": "Niveau",
+  "it": "Livello",
+  "pt": "Nível",
+  "ja": "レベル",
+  "ko": "레벨",
+  "zh": "等级"
+ },
+ "The stars are the Level. Level 4 or lower: Summon it right away. Level 5 or 6: 1 Tribute. Level 7 or higher: 2 Tributes.": {
+  "de": "Die Sterne sind die Stufe. Stufe 4 oder niedriger: sofort beschwören. Stufe 5 oder 6: 1 Tribut. Stufe 7 oder höher: 2 Tribute.",
+  "es": "Las estrellas son el Nivel. Nivel 4 o menor: Invócalo enseguida. Nivel 5 o 6: 1 Sacrificio. Nivel 7 o mayor: 2 Sacrificios.",
+  "fr": "Les étoiles indiquent le Niveau. Niveau 4 ou moins : Invoquez-le tout de suite. Niveau 5 ou 6 : 1 Sacrifice. Niveau 7 ou plus : 2 Sacrifices.",
+  "it": "Le stelle sono il Livello. Livello 4 o inferiore: Evocalo subito. Livello 5 o 6: 1 Tributo. Livello 7 o superiore: 2 Tributi.",
+  "pt": "As estrelas são o Nível. Nível 4 ou menor: Invoque na hora. Nível 5 ou 6: 1 Tributo. Nível 7 ou maior: 2 Tributos.",
+  "ja": "星の数がレベルです。レベル4以下：すぐに召喚できます。レベル5・6：リリース1体。レベル7以上：リリース2体。",
+  "ko": "별의 개수가 레벨입니다. 레벨 4 이하: 바로 소환할 수 있습니다. 레벨 5·6: 릴리스 1장. 레벨 7 이상: 릴리스 2장.",
+  "zh": "星星的数量就是等级。等级4以下：可以直接召唤。等级5或6：解放1只。等级7以上：解放2只。"
+ },
+ "ATK and DEF": {
+  "de": "ATK und DEF",
+  "es": "ATK y DEF",
+  "fr": "ATK et DEF",
+  "it": "ATK e DEF",
+  "pt": "ATK e DEF",
+  "ja": "攻撃力と守備力",
+  "ko": "공격력과 수비력",
+  "zh": "攻击力和守备力"
+ },
+ "ATK is how hard the monster hits when it attacks. DEF is how tough it is in Defense Position. The higher number wins a battle.": {
+  "de": "ATK zeigt, wie stark das Monster beim Angreifen zuschlägt. DEF zeigt, wie viel es in Verteidigungsposition aushält. Die höhere Zahl gewinnt den Kampf.",
+  "es": "El ATK es lo fuerte que golpea el monstruo cuando ataca. La DEF es lo que aguanta en Posición de Defensa. El número más alto gana la batalla.",
+  "fr": "L'ATK indique la force du monstre quand il attaque. La DEF indique sa résistance en Position de Défense. Le nombre le plus élevé gagne le combat.",
+  "it": "L'ATK indica quanto colpisce forte il mostro quando attacca. La DEF indica quanto resiste in Posizione di Difesa. Il numero più alto vince la battaglia.",
+  "pt": "ATK é a força do monstro quando ele ataca. DEF é quanto ele aguenta em Posição de Defesa. O número maior vence a batalha.",
+  "ja": "攻撃力は、モンスターが攻撃するときの強さです。守備力は、守備表示のときの固さです。戦闘では数値の高いほうが勝ちます。",
+  "ko": "공격력은 몬스터가 공격할 때의 힘입니다. 수비력은 수비 표시일 때의 튼튼함입니다. 전투에서는 수치가 높은 쪽이 이깁니다.",
+  "zh": "攻击力表示怪兽攻击时有多强。守备力表示它在守备表示时有多耐打。战斗中数值高的一方获胜。"
+ },
+ "Attribute and Type": {
+  "de": "Eigenschaft und Typ",
+  "es": "Atributo y Tipo",
+  "fr": "Attribut et Type",
+  "it": "Attributo e Tipo",
+  "pt": "Atributo e Tipo",
+  "ja": "属性と種族",
+  "ko": "속성과 종족",
+  "zh": "属性和种族"
+ },
+ "Every monster has an Attribute, like EARTH, and a Type, like Warrior. Some cards only work with certain Attributes or Types.": {
+  "de": "Jedes Monster hat eine Eigenschaft, zum Beispiel ERDE, und einen Typ, zum Beispiel Krieger. Manche Karten wirken nur mit bestimmten Eigenschaften oder Typen.",
+  "es": "Cada monstruo tiene un Atributo, como TIERRA, y un Tipo, como Guerrero. Algunas cartas solo funcionan con ciertos Atributos o Tipos.",
+  "fr": "Chaque monstre a un Attribut, comme TERRE, et un Type, comme Guerrier. Certaines cartes ne fonctionnent qu'avec certains Attributs ou Types.",
+  "it": "Ogni mostro ha un Attributo, come TERRA, e un Tipo, come Guerriero. Alcune carte funzionano solo con certi Attributi o Tipi.",
+  "pt": "Todo monstro tem um Atributo, como TERRA, e um Tipo, como Guerreiro. Alguns cards só funcionam com certos Atributos ou Tipos.",
+  "ja": "すべてのモンスターには、地属性のような属性と、戦士族のような種族があります。特定の属性や種族にだけ使えるカードもあります。",
+  "ko": "모든 몬스터에게는 땅 속성 같은 속성과 전사족 같은 종족이 있습니다. 특정 속성이나 종족에만 쓸 수 있는 카드도 있습니다.",
+  "zh": "每只怪兽都有属性（例如地属性）和种族（例如战士族）。有些卡只对特定的属性或种族有效。"
+ },
+ "Card text": {
+  "de": "Kartentext",
+  "es": "Texto de la carta",
+  "fr": "Texte de la carte",
+  "it": "Testo della carta",
+  "pt": "Texto do card",
+  "ja": "カードテキスト",
+  "ko": "카드 텍스트",
+  "zh": "卡片文本"
+ },
+ "The text says what the card does. Read it whenever you are not sure.": {
+  "de": "Der Text sagt, was die Karte tut. Lies ihn immer, wenn du unsicher bist.",
+  "es": "El texto dice lo que hace la carta. Léelo siempre que tengas dudas.",
+  "fr": "Le texte dit ce que fait la carte. Lisez-le dès que vous avez un doute.",
+  "it": "Il testo dice cosa fa la carta. Leggilo ogni volta che hai un dubbio.",
+  "pt": "O texto diz o que o card faz. Leia sempre que tiver dúvida.",
+  "ja": "テキストにはカードの効果が書かれています。迷ったときはいつでも読みましょう。",
+  "ko": "텍스트에는 카드가 하는 일이 적혀 있습니다. 잘 모르겠으면 언제든지 읽어 보세요.",
+  "zh": "文本说明了这张卡的作用。不确定的时候就读一读。"
+ },
+ "Tap Celtic Guardian, then tap Summon.": {
+  "de": "Tippe auf Keltischer Wächter, dann auf Beschwören.",
+  "es": "Toca Guardián Celta y luego toca Invocar.",
+  "fr": "Touchez Gardien Celte, puis touchez Invoquer.",
+  "it": "Tocca Guardiano Celtico, poi tocca Evocare.",
+  "pt": "Toque em Guardião Celta e depois em Invocar.",
+  "ja": "「エルフの剣士」をタップし、「召喚」をタップしてください。",
+  "ko": "\"엘프 검사\"를 탭한 다음 \"소환\"을 탭하세요.",
+  "zh": "点按「精灵剑士」，然后点按“召唤”。"
+ },
+ "You can Normal Summon 1 monster each turn. Level 4 or lower needs no Tribute.": {
+  "de": "Du kannst in jedem Spielzug 1 Monster als Normalbeschwörung beschwören. Stufe 4 oder niedriger braucht keinen Tribut.",
+  "es": "Puedes Invocar de Modo Normal 1 monstruo por turno. Nivel 4 o menor no necesita Sacrificio.",
+  "fr": "Vous pouvez Invoquer Normalement 1 monstre par tour. Un monstre de Niveau 4 ou moins ne demande aucun Sacrifice.",
+  "it": "Puoi Evocare Normalmente 1 mostro per turno. Un mostro di Livello 4 o inferiore non richiede Tributi.",
+  "pt": "Você pode fazer a Invocação-Normal de 1 monstro por turno. Nível 4 ou menor não precisa de Tributo.",
+  "ja": "1ターンに1度、モンスター1体を通常召喚できます。レベル4以下はリリース不要です。",
+  "ko": "1턴에 1번, 몬스터 1장을 일반 소환할 수 있습니다. 레벨 4 이하는 릴리스가 필요 없습니다.",
+  "zh": "每回合可以通常召唤1只怪兽。等级4以下不需要解放。"
+ },
+ "Tap Magic Cylinder, then tap Set.": {
+  "de": "Tippe auf Magischer Zylinder, dann auf Setzen.",
+  "es": "Toca Cilindro Mágico y luego toca Colocar.",
+  "fr": "Touchez Cylindre Magique, puis touchez Poser.",
+  "it": "Tocca Cilindro Magico, poi tocca Posiziona.",
+  "pt": "Toque em Cilindro Mágico e depois em Baixar.",
+  "ja": "「魔法の筒」をタップし、「セット」をタップしてください。",
+  "ko": "\"매직 실린더\"를 탭한 다음 \"세트\"를 탭하세요.",
+  "zh": "点按「魔法筒」，然后点按“盖放”。"
+ },
+ "A Trap must be Set face-down before you can use it. It will protect you on your opponent's turn.": {
+  "de": "Eine Falle muss verdeckt gesetzt sein, bevor du sie benutzen kannst. Sie schützt dich im Spielzug deines Gegners.",
+  "es": "Una Trampa debe estar Colocada boca abajo antes de poder usarla. Te protegerá en el turno de tu adversario.",
+  "fr": "Un Piège doit être Posé face verso avant de pouvoir être utilisé. Il vous protégera pendant le tour de votre adversaire.",
+  "it": "Una Trappola deve essere Posizionata coperta prima di poterla usare. Ti proteggerà nel turno del tuo avversario.",
+  "pt": "Uma Armadilha precisa ser Baixada com a face para baixo antes de ser usada. Ela vai proteger você no turno do seu oponente.",
+  "ja": "罠カードは、使う前に裏側表示でセットしておく必要があります。相手のターンに自分を守ってくれます。",
+  "ko": "함정 카드는 사용하기 전에 뒷면 표시로 세트해야 합니다. 상대 턴에 자신을 지켜 줍니다.",
+  "zh": "陷阱卡必须先以里侧表示盖放才能使用。它会在对方的回合保护你。"
+ },
+ "Tap EP to end your turn.": {
+  "de": "Tippe auf EP, um deinen Spielzug zu beenden.",
+  "es": "Toca EP para terminar tu turno.",
+  "fr": "Touchez EP pour terminer votre tour.",
+  "it": "Tocca EP per finire il tuo turno.",
+  "pt": "Toque em EP para encerrar seu turno.",
+  "ja": "EPをタップしてターンを終了してください。",
+  "ko": "EP를 탭해서 턴을 종료하세요.",
+  "zh": "点按EP结束你的回合。"
+ },
+ "The player who goes first cannot attack on the first turn.": {
+  "de": "Der Spieler, der anfängt, kann im ersten Spielzug nicht angreifen.",
+  "es": "El jugador que empieza no puede atacar en el primer turno.",
+  "fr": "Le joueur qui commence ne peut pas attaquer au premier tour.",
+  "it": "Il giocatore che inizia non può attaccare nel primo turno.",
+  "pt": "O jogador que começa não pode atacar no primeiro turno.",
+  "ja": "先攻のプレイヤーは最初のターンに攻撃できません。",
+  "ko": "선공 플레이어는 첫 턴에 공격할 수 없습니다.",
+  "zh": "先攻的玩家在第一回合不能攻击。"
+ },
+ "Your opponent attacks! Tap your Set Magic Cylinder, then confirm with ✓.": {
+  "de": "Dein Gegner greift an! Tippe auf deinen gesetzten Magischen Zylinder und bestätige mit ✓.",
+  "es": "¡Tu adversario ataca! Toca tu Cilindro Mágico Colocado y confirma con ✓.",
+  "fr": "Votre adversaire attaque ! Touchez votre Cylindre Magique Posé, puis confirmez avec ✓.",
+  "it": "Il tuo avversario attacca! Tocca il tuo Cilindro Magico Posizionato, poi conferma con ✓.",
+  "pt": "Seu oponente ataca! Toque no seu Cilindro Mágico Baixado e confirme com ✓.",
+  "ja": "相手の攻撃です！セットした「魔法の筒」をタップし、✓で決定してください。",
+  "ko": "상대가 공격합니다! 세트한 \"매직 실린더\"를 탭한 다음 ✓로 확인하세요.",
+  "zh": "对方攻击了！点按你盖放的「魔法筒」，然后按✓确认。"
+ },
+ "La Jinn has 1800 ATK and Celtic Guardian only 1400, so you would lose the battle. Magic Cylinder stops the attack and deals 1800 damage to your opponent.": {
+  "de": "Der Jinn hat 1800 ATK und Keltischer Wächter nur 1400. Du würdest den Kampf verlieren. Magischer Zylinder stoppt den Angriff und fügt deinem Gegner 1800 Schaden zu.",
+  "es": "La Jinn tiene 1800 ATK y Guardián Celta solo 1400, así que perderías la batalla. Cilindro Mágico detiene el ataque e inflige 1800 de daño a tu adversario.",
+  "fr": "La Jinn a 1800 ATK et Gardien Celte seulement 1400 : vous perdriez le combat. Cylindre Magique arrête l'attaque et inflige 1800 points de dommages à votre adversaire.",
+  "it": "Genio della Lampada ha 1800 ATK e Guardiano Celtico solo 1400, quindi perderesti la battaglia. Cilindro Magico ferma l'attacco e infligge 1800 danni al tuo avversario.",
+  "pt": "La Jinn tem 1800 de ATK e Guardião Celta só 1400, então você perderia a batalha. Cilindro Mágico para o ataque e causa 1800 de dano ao seu oponente.",
+  "ja": "「ラ・ジーン」の攻撃力は1800、「エルフの剣士」は1400しかないので、このままでは戦闘に負けます。「魔法の筒」は攻撃を止め、相手に1800ダメージを与えます。",
+  "ko": "\"라 진\"의 공격력은 1800이고 \"엘프 검사\"는 1400뿐이라, 이대로는 전투에서 집니다. \"매직 실린더\"는 공격을 막고 상대에게 1800 데미지를 줍니다.",
+  "zh": "「灯之魔精」的攻击力是1800，而「精灵剑士」只有1400，所以你会输掉这场战斗。「魔法筒」会阻止攻击，并给与对方1800伤害。"
+ },
+ "Tap Fissure, then tap Activate.": {
+  "de": "Tippe auf Spalt, dann auf Aktivieren.",
+  "es": "Toca Fisura y luego toca Activar.",
+  "fr": "Touchez Fissure, puis touchez Activer.",
+  "it": "Tocca Spaccatura, poi tocca Attiva.",
+  "pt": "Toque em Fissura e depois em Ativar.",
+  "ja": "「地割れ」をタップし、「発動」をタップしてください。",
+  "ko": "\"갈라진 대지\"를 탭한 다음 \"발동\"을 탭하세요.",
+  "zh": "点按「地割」，然后点按“发动”。"
+ },
+ "Fissure destroys your opponent's weakest face-up monster. With La Jinn gone, nothing protects their Life Points.": {
+  "de": "Spalt zerstört das schwächste offene Monster deines Gegners. Ohne den Jinn schützt nichts mehr seine Life Points.",
+  "es": "Fisura destruye el monstruo boca arriba más débil de tu adversario. Sin La Jinn, nada protege sus Life Points.",
+  "fr": "Fissure détruit le monstre face recto le plus faible de votre adversaire. Sans La Jinn, plus rien ne protège ses Life Points.",
+  "it": "Spaccatura distrugge il mostro scoperto più debole del tuo avversario. Senza Genio della Lampada, niente protegge i suoi Life Points.",
+  "pt": "Fissura destrói o monstro com a face para cima mais fraco do seu oponente. Sem La Jinn, nada protege os Pontos de Vida dele.",
+  "ja": "「地割れ」は相手の表側表示モンスターのうち、一番弱いものを破壊します。「ラ・ジーン」がいなくなれば、相手のライフポイントを守るものはありません。",
+  "ko": "\"갈라진 대지\"는 상대의 앞면 표시 몬스터 중 가장 약한 몬스터를 파괴합니다. \"라 진\"이 사라지면 상대의 라이프 포인트를 지켜 줄 것이 없습니다.",
+  "zh": "「地割」会破坏对方最弱的表侧表示怪兽。「灯之魔精」消失后，就没有东西能保护对方的基本分了。"
+ },
+ "Tap BP to enter the Battle Phase.": {
+  "de": "Tippe auf BP, um in die Battle Phase zu gehen.",
+  "es": "Toca BP para entrar en la Battle Phase.",
+  "fr": "Touchez BP pour entrer en Battle Phase.",
+  "it": "Tocca BP per entrare nella Battle Phase.",
+  "pt": "Toque em BP para entrar na Fase de Batalha.",
+  "ja": "BPをタップしてバトルフェイズに入ってください。",
+  "ko": "BP를 탭해서 배틀 페이즈로 들어가세요.",
+  "zh": "点按BP进入战斗阶段。"
+ },
+ "Your opponent has no monsters. Time to attack!": {
+  "de": "Dein Gegner hat keine Monster. Zeit für den Angriff!",
+  "es": "Tu adversario no tiene monstruos. ¡Hora de atacar!",
+  "fr": "Votre adversaire n'a aucun monstre. C'est le moment d'attaquer !",
+  "it": "Il tuo avversario non ha mostri. È ora di attaccare!",
+  "pt": "Seu oponente não tem monstros. Hora de atacar!",
+  "ja": "相手のモンスターはいません。攻撃のチャンスです！",
+  "ko": "상대에게 몬스터가 없습니다. 공격할 때입니다!",
+  "zh": "对方没有怪兽了。该攻击了！"
+ },
+ "Tap Celtic Guardian, then tap Attack.": {
+  "de": "Tippe auf Keltischer Wächter, dann auf Angreifen.",
+  "es": "Toca Guardián Celta y luego toca Atacar.",
+  "fr": "Touchez Gardien Celte, puis touchez Attaquer.",
+  "it": "Tocca Guardiano Celtico, poi tocca Attacca.",
+  "pt": "Toque em Guardião Celta e depois em Atacar.",
+  "ja": "「エルフの剣士」をタップし、「攻撃」をタップしてください。",
+  "ko": "\"엘프 검사\"를 탭한 다음 \"공격\"을 탭하세요.",
+  "zh": "点按「精灵剑士」，然后点按“攻击”。"
+ },
+ "With no monster in the way, the attack hits your opponent's Life Points directly.": {
+  "de": "Steht kein Monster im Weg, trifft der Angriff direkt die Life Points deines Gegners.",
+  "es": "Sin ningún monstruo en medio, el ataque golpea directamente los Life Points de tu adversario.",
+  "fr": "Sans monstre sur le chemin, l'attaque touche directement les Life Points de votre adversaire.",
+  "it": "Senza mostri in mezzo, l'attacco colpisce direttamente i Life Points del tuo avversario.",
+  "pt": "Sem nenhum monstro no caminho, o ataque atinge diretamente os Pontos de Vida do seu oponente.",
+  "ja": "邪魔するモンスターがいないので、攻撃は相手のライフポイントに直接当たります。",
+  "ko": "막아 줄 몬스터가 없으므로, 공격은 상대의 라이프 포인트에 직접 들어갑니다.",
+  "zh": "没有怪兽阻挡，攻击会直接打在对方的基本分上。"
+ },
+ "Tap MP2 to go to Main Phase 2.": {
+  "de": "Tippe auf MP2, um in die Main Phase 2 zu gehen.",
+  "es": "Toca MP2 para ir a la Main Phase 2.",
+  "fr": "Touchez MP2 pour passer en Main Phase 2.",
+  "it": "Tocca MP2 per andare alla Main Phase 2.",
+  "pt": "Toque em MP2 para ir para a Fase Principal 2.",
+  "ja": "MP2をタップしてメインフェイズ２へ進んでください。",
+  "ko": "MP2를 탭해서 메인 페이즈 2로 넘어가세요.",
+  "zh": "点按MP2进入主要阶段2。"
+ },
+ "Tap Summoned Skull, then tap Summon.": {
+  "de": "Tippe auf Herbeigerufener Totenkopf, dann auf Beschwören.",
+  "es": "Toca Cráneo Convocado y luego toca Invocar.",
+  "fr": "Touchez Crâne Invoqué, puis touchez Invoquer.",
+  "it": "Tocca Teschio Evocato, poi tocca Evocare.",
+  "pt": "Toque em Caveira Invocada e depois em Invocar.",
+  "ja": "「デーモンの召喚」をタップし、「召喚」をタップしてください。",
+  "ko": "\"데몬 소환\"을 탭한 다음 \"소환\"을 탭하세요.",
+  "zh": "点按「恶魔召唤」，然后点按“召唤”。"
+ },
+ "The Tribute goes to the Graveyard and Summoned Skull takes the field.": {
+  "de": "Der Tribut geht auf den Friedhof und Herbeigerufener Totenkopf kommt aufs Spielfeld.",
+  "es": "El Sacrificio va al Cementerio y Cráneo Convocado entra al Campo.",
+  "fr": "Le Sacrifice va au Cimetière et Crâne Invoqué arrive sur le Terrain.",
+  "it": "Il Tributo va al Cimitero e Teschio Evocato scende sul Terreno.",
+  "pt": "O Tributo vai para o Cemitério e Caveira Invocada entra no campo.",
+  "ja": "リリースしたモンスターは墓地へ送られ、「デーモンの召喚」がフィールドに出ます。",
+  "ko": "릴리스한 몬스터는 묘지로 가고, \"데몬 소환\"이 필드에 나옵니다.",
+  "zh": "被解放的怪兽送去墓地，「恶魔召唤」登场。"
+ },
+ "Tap Time Wizard, then tap Summon.": {
+  "de": "Tippe auf Zeitzauberer, dann auf Beschwören.",
+  "es": "Toca Mago del Tiempo y luego toca Invocar.",
+  "fr": "Touchez Magicien du Temps, puis touchez Invoquer.",
+  "it": "Tocca Stregone del Tempo, poi tocca Evocare.",
+  "pt": "Toque em Mago do Tempo e depois em Invocar.",
+  "ja": "「時の魔術師」をタップし、「召喚」をタップしてください。",
+  "ko": "\"시간의 마술사\"를 탭한 다음 \"소환\"을 탭하세요.",
+  "zh": "点按「时间魔术师」，然后点按“召唤”。"
+ },
+ "Tap Time Wizard on the field, then tap Activate.": {
+  "de": "Tippe auf Zeitzauberer auf dem Spielfeld, dann auf Aktivieren.",
+  "es": "Toca Mago del Tiempo en el Campo y luego toca Activar.",
+  "fr": "Touchez Magicien du Temps sur le Terrain, puis touchez Activer.",
+  "it": "Tocca Stregone del Tempo sul Terreno, poi tocca Attiva.",
+  "pt": "Toque em Mago do Tempo no campo e depois em Ativar.",
+  "ja": "フィールドの「時の魔術師」をタップし、「発動」をタップしてください。",
+  "ko": "필드의 \"시간의 마술사\"를 탭한 다음 \"발동\"을 탭하세요.",
+  "zh": "点按场上的「时间魔术师」，然后点按“发动”。"
+ },
+ "Call Tails, then confirm.": {
+  "de": "Wähle Zahl und bestätige.",
+  "es": "Elige Cruz y confirma.",
+  "fr": "Choisissez Pile, puis confirmez.",
+  "it": "Scegli Croce, poi conferma.",
+  "pt": "Escolha Coroa e confirme.",
+  "ja": "「裏」を選び、決定してください。",
+  "ko": "\"뒷면\"을 선택한 다음 확인하세요.",
+  "zh": "选择“反面”，然后确认。"
+ },
+ "It is a gamble: a wrong call would destroy your own monsters instead. This time, Tails is the lucky call.": {
+  "de": "Es ist ein Glücksspiel: Liegst du falsch, werden stattdessen deine eigenen Monster zerstört. Dieses Mal bringt Zahl Glück.",
+  "es": "Es una apuesta: si fallas, se destruyen tus propios monstruos. Esta vez, Cruz es la elección con suerte.",
+  "fr": "C'est un pari : si vous vous trompez, ce sont vos monstres qui sont détruits. Cette fois, Pile est le bon choix.",
+  "it": "È una scommessa: se sbagli, vengono distrutti i tuoi mostri. Questa volta, Croce è la scelta fortunata.",
+  "pt": "É uma aposta: se você errar, os seus monstros é que são destruídos. Desta vez, Coroa é a escolha de sorte.",
+  "ja": "これは賭けです。外れると、自分のモンスターが破壊されてしまいます。今回は「裏」が当たりです。",
+  "ko": "이것은 도박입니다. 틀리면 자신의 몬스터가 대신 파괴됩니다. 이번에는 \"뒷면\"이 정답입니다.",
+  "zh": "这是一场赌博：猜错的话，被破坏的会是你自己的怪兽。这一次，“反面”是幸运的选择。"
+ },
+ "Now tap the wheel to spin it.": {
+  "de": "Tippe jetzt auf das Rad, um es zu drehen.",
+  "es": "Ahora toca la ruleta para girarla.",
+  "fr": "Touchez maintenant la roue pour la faire tourner.",
+  "it": "Ora tocca la ruota per farla girare.",
+  "pt": "Agora toque na roleta para girá-la.",
+  "ja": "次に、ルーレットをタップして回してください。",
+  "ko": "이제 룰렛을 탭해서 돌리세요.",
+  "zh": "现在点按轮盘来转动它。"
+ },
+ "The way is clear again.": {
+  "de": "Der Weg ist wieder frei.",
+  "es": "El camino vuelve a estar libre.",
+  "fr": "Le chemin est de nouveau libre.",
+  "it": "La strada è di nuovo libera.",
+  "pt": "O caminho está livre de novo.",
+  "ja": "これでまた道が開きました。",
+  "ko": "다시 길이 열렸습니다.",
+  "zh": "道路又畅通了。"
+ },
+ "Tap Summoned Skull, then tap Attack.": {
+  "de": "Tippe auf Herbeigerufener Totenkopf, dann auf Angreifen.",
+  "es": "Toca Cráneo Convocado y luego toca Atacar.",
+  "fr": "Touchez Crâne Invoqué, puis touchez Attaquer.",
+  "it": "Tocca Teschio Evocato, poi tocca Attacca.",
+  "pt": "Toque em Caveira Invocada e depois em Atacar.",
+  "ja": "「デーモンの召喚」をタップし、「攻撃」をタップしてください。",
+  "ko": "\"데몬 소환\"을 탭한 다음 \"공격\"을 탭하세요.",
+  "zh": "点按「恶魔召唤」，然后点按“攻击”。"
+ },
+ "Not that one. Follow the glowing hint.": {
+  "de": "Nicht das. Folge dem leuchtenden Hinweis.",
+  "es": "Esa no. Sigue la pista brillante.",
+  "fr": "Pas celle-ci. Suivez l'indication lumineuse.",
+  "it": "Non quella. Segui il suggerimento luminoso.",
+  "pt": "Esse não. Siga a dica brilhante.",
+  "ja": "それではありません。光るヒントに従ってください。",
+  "ko": "그게 아닙니다. 빛나는 힌트를 따라가세요.",
+  "zh": "不是那个。请跟着发光的提示操作。"
+ },
+ "You are on your own now. Finish the Duel!": {
+  "de": "Jetzt spielst du allein. Beende das Duell!",
+  "es": "Ahora sigues tú solo. ¡Termina el Duelo!",
+  "fr": "À vous de jouer seul maintenant. Terminez le Duel !",
+  "it": "Ora tocca a te. Finisci il Duello!",
+  "pt": "Agora é com você. Termine o Duelo!",
+  "ja": "ここからは自分の力で進めましょう。デュエルに決着をつけてください！",
+  "ko": "이제부터는 혼자 힘으로 해 보세요. 듀얼을 끝내세요!",
+  "zh": "接下来就靠你自己了。完成这场决斗吧！"
+ },
+ "Tutorial complete!": {
+  "de": "Tutorial abgeschlossen!",
+  "es": "¡Tutorial completado!",
+  "fr": "Tutoriel terminé !",
+  "it": "Tutorial completato!",
+  "pt": "Tutorial concluído!",
+  "ja": "チュートリアル完了！",
+  "ko": "튜토리얼 완료!",
+  "zh": "教程完成！"
+ },
+ "You won your first Duel. You know the phases, the kinds of cards and the basic plays. Time for a real run!": {
+  "de": "Du hast dein erstes Duell gewonnen. Du kennst die Phasen, die Kartenarten und die wichtigsten Züge. Zeit für einen echten Durchlauf!",
+  "es": "Has ganado tu primer Duelo. Ya conoces las fases, las clases de cartas y las jugadas básicas. ¡Hora de una partida de verdad!",
+  "fr": "Vous avez gagné votre premier Duel. Vous connaissez les phases, les sortes de cartes et les actions de base. Place à une vraie partie !",
+  "it": "Hai vinto il tuo primo Duello. Conosci le fasi, i tipi di carte e le mosse di base. È ora di una vera partita!",
+  "pt": "Você venceu seu primeiro Duelo. Você conhece as fases, os tipos de cards e as jogadas básicas. Hora de uma jornada de verdade!",
+  "ja": "初めてのデュエルに勝利しました。フェイズ、カードの種類、基本のプレイを覚えました。いよいよ本番のランです！",
+  "ko": "첫 듀얼에서 승리했습니다. 페이즈, 카드의 종류, 기본 플레이를 배웠습니다. 이제 진짜 런을 시작할 때입니다!",
+  "zh": "你赢得了第一场决斗。你已经了解了阶段、卡的种类和基本玩法。是时候开始真正的冒险了！"
+ },
+ "Tutorial over": {
+  "de": "Tutorial beendet",
+  "es": "Tutorial terminado",
+  "fr": "Fin du tutoriel",
+  "it": "Tutorial terminato",
+  "pt": "Fim do tutorial",
+  "ja": "チュートリアル終了",
+  "ko": "튜토리얼 종료",
+  "zh": "教程结束"
+ },
+ "That Duel got away, but you have seen the basics. You can replay the tutorial any time from Settings.": {
+  "de": "Dieses Duell ging verloren, aber du hast die Grundlagen gesehen. Du kannst das Tutorial jederzeit in den Einstellungen wiederholen.",
+  "es": "Ese Duelo se escapó, pero ya has visto lo básico. Puedes repetir el tutorial cuando quieras desde Ajustes.",
+  "fr": "Ce Duel vous a échappé, mais vous avez vu les bases. Vous pouvez rejouer le tutoriel à tout moment depuis les Paramètres.",
+  "it": "Questo Duello ti è sfuggito, ma hai visto le basi. Puoi rigiocare il tutorial quando vuoi dalle Impostazioni.",
+  "pt": "Esse Duelo escapou, mas você viu o básico. Você pode repetir o tutorial quando quiser nas Configurações.",
+  "ja": "今回のデュエルは勝てませんでしたが、基本は確認できました。チュートリアルは設定からいつでも遊び直せます。",
+  "ko": "이번 듀얼은 이기지 못했지만 기본은 살펴봤습니다. 튜토리얼은 설정에서 언제든지 다시 플레이할 수 있습니다.",
+  "zh": "这场决斗没能赢下，但你已经见过基本内容了。你可以随时在设置中重玩教程。"
+ },
+ "Next": {
+  "de": "Weiter",
+  "es": "Siguiente",
+  "fr": "Suivant",
+  "it": "Avanti",
+  "pt": "Próximo",
+  "ja": "次へ",
+  "ko": "다음",
+  "zh": "下一步"
+ },
+ "Leave the tutorial": {
+  "de": "Tutorial verlassen",
+  "es": "Salir del tutorial",
+  "fr": "Quitter le tutoriel",
+  "it": "Esci dal tutorial",
+  "pt": "Sair do tutorial",
+  "ja": "チュートリアルを終了する",
+  "ko": "튜토리얼 나가기",
+  "zh": "离开教程"
+ },
+ "Tutorial Duel": {
+  "de": "Tutorial-Duell",
+  "es": "Duelo tutorial",
+  "fr": "Duel tutoriel",
+  "it": "Duello tutorial",
+  "pt": "Duelo tutorial",
+  "ja": "チュートリアルデュエル",
+  "ko": "튜토리얼 듀얼",
+  "zh": "教程决斗"
+ },
+ "Do you know how to play Yu-Gi-Oh?": {
+  "de": "Weißt du, wie man Yu-Gi-Oh spielt?",
+  "es": "¿Sabes jugar a Yu-Gi-Oh?",
+  "fr": "Savez-vous jouer à Yu-Gi-Oh ?",
+  "it": "Sai giocare a Yu-Gi-Oh?",
+  "pt": "Você sabe jogar Yu-Gi-Oh?",
+  "ja": "遊戯王の遊び方を知っていますか？",
+  "ko": "유희왕을 플레이하는 방법을 알고 있나요?",
+  "zh": "你知道游戏王怎么玩吗？"
+ },
+ "If you are new to the card game, a short tutorial Duel teaches the phases, the kinds of cards and the basic plays.": {
+  "de": "Wenn das Kartenspiel neu für dich ist, zeigt dir ein kurzes Tutorial-Duell die Phasen, die Kartenarten und die wichtigsten Züge.",
+  "es": "Si el juego de cartas es nuevo para ti, un Duelo tutorial corto enseña las fases, las clases de cartas y las jugadas básicas.",
+  "fr": "Si vous découvrez le jeu de cartes, un court Duel tutoriel vous apprend les phases, les sortes de cartes et les actions de base.",
+  "it": "Se il gioco di carte è nuovo per te, un breve Duello tutorial insegna le fasi, i tipi di carte e le mosse di base.",
+  "pt": "Se o jogo de cartas é novo para você, um Duelo tutorial curto ensina as fases, os tipos de cards e as jogadas básicas.",
+  "ja": "このカードゲームが初めてなら、短いチュートリアルデュエルでフェイズ、カードの種類、基本のプレイを学べます。",
+  "ko": "이 카드 게임이 처음이라면, 짧은 튜토리얼 듀얼에서 페이즈, 카드의 종류, 기본 플레이를 배울 수 있습니다.",
+  "zh": "如果你是第一次接触这款卡牌游戏，一场简短的教程决斗会教你阶段、卡的种类和基本玩法。"
+ },
+ "Yes, start my run": {
+  "de": "Ja, Durchlauf starten",
+  "es": "Sí, empezar mi partida",
+  "fr": "Oui, commencer ma partie",
+  "it": "Sì, inizia la mia partita",
+  "pt": "Sim, iniciar minha jornada",
+  "ja": "はい、ランを始める",
+  "ko": "예, 런을 시작합니다",
+  "zh": "是，开始冒险"
+ },
+ "No, teach me": {
+  "de": "Nein, zeig es mir",
+  "es": "No, enséñame",
+  "fr": "Non, apprenez-moi",
+  "it": "No, insegnami",
+  "pt": "Não, me ensine",
+  "ja": "いいえ、教えてほしい",
+  "ko": "아니요, 알려 주세요",
+  "zh": "否，请教我"
+ },
+ "Tutorial": {
+  "de": "Tutorial",
+  "es": "Tutorial",
+  "fr": "Tutoriel",
+  "it": "Tutorial",
+  "pt": "Tutorial",
+  "ja": "チュートリアル",
+  "ko": "튜토리얼",
+  "zh": "教程"
+ },
+ "Start a run": {
+  "de": "Durchlauf starten",
+  "es": "Empezar una partida",
+  "fr": "Commencer une partie",
+  "it": "Inizia una partita",
+  "pt": "Iniciar uma jornada",
+  "ja": "ランを始める",
+  "ko": "런 시작",
+  "zh": "开始冒险"
+ },
+ "Back to the menu": {
+  "de": "Zurück zum Menü",
+  "es": "Volver al menú",
+  "fr": "Retour au menu",
+  "it": "Torna al menu",
+  "pt": "Voltar ao menu",
+  "ja": "メニューに戻る",
+  "ko": "메뉴로 돌아가기",
+  "zh": "返回菜单"
+ },
+ "Tutorial could not start: {0}": {
+  "de": "Tutorial konnte nicht gestartet werden: {0}",
+  "es": "No se pudo iniciar el tutorial: {0}",
+  "fr": "Impossible de lancer le tutoriel : {0}",
+  "it": "Impossibile avviare il tutorial: {0}",
+  "pt": "Não foi possível iniciar o tutorial: {0}",
+  "ja": "チュートリアルを開始できませんでした：{0}",
+  "ko": "튜토리얼을 시작할 수 없습니다: {0}",
+  "zh": "教程无法开始：{0}"
+ },
+ "Before you attack, Summon one more monster. Two attackers deal more damage than one.": {
+  "de": "Beschwöre vor dem Angriff noch ein Monster. Zwei Angreifer fügen mehr Schaden zu als einer.",
+  "es": "Antes de atacar, Invoca un monstruo más. Dos atacantes hacen más daño que uno.",
+  "fr": "Avant d'attaquer, Invoquez un monstre de plus. Deux attaquants infligent plus de dommages qu'un seul.",
+  "it": "Prima di attaccare, Evoca un altro mostro. Due attaccanti infliggono più danni di uno.",
+  "pt": "Antes de atacar, Invoque mais um monstro. Dois atacantes causam mais dano do que um.",
+  "ja": "攻撃の前に、モンスターをもう1体召喚しましょう。2体で攻撃すれば、1体より多くのダメージを与えられます。",
+  "ko": "공격하기 전에 몬스터를 1장 더 소환하세요. 2장으로 공격하면 1장보다 더 많은 데미지를 줍니다.",
+  "zh": "攻击之前，再召唤1只怪兽。2只怪兽攻击造成的伤害比1只更多。"
+ },
+ "Tap Time Wizard, then tap Attack.": {
+  "de": "Tippe auf Zeitzauberer, dann auf Angreifen.",
+  "es": "Toca Mago del Tiempo y luego toca Atacar.",
+  "fr": "Touchez Magicien du Temps, puis touchez Attaquer.",
+  "it": "Tocca Stregone del Tempo, poi tocca Attacca.",
+  "pt": "Toque em Mago do Tempo e depois em Atacar.",
+  "ja": "「時の魔術師」をタップし、「攻撃」をタップしてください。",
+  "ko": "\"시간의 마술사\"를 탭한 다음 \"공격\"을 탭하세요.",
+  "zh": "点按「时间魔术师」，然后点按“攻击”。"
+ },
+ "Every monster in Attack Position can attack once each turn.": {
+  "de": "Jedes Monster in Angriffsposition kann einmal pro Spielzug angreifen.",
+  "es": "Cada monstruo en Posición de Ataque puede atacar una vez por turno.",
+  "fr": "Chaque monstre en Position d'Attaque peut attaquer une fois par tour.",
+  "it": "Ogni mostro in Posizione di Attacco può attaccare una volta per turno.",
+  "pt": "Cada monstro em Posição de Ataque pode atacar uma vez por turno.",
+  "ja": "攻撃表示のモンスターは、1ターンに1度ずつ攻撃できます。",
+  "ko": "공격 표시 몬스터는 1턴에 1번씩 공격할 수 있습니다.",
+  "zh": "每只攻击表示的怪兽每回合可以攻击1次。"
+ },
+ "After attacking, you can still play cards from your hand.": {
+  "de": "Nach dem Angreifen kannst du noch Karten von deiner Hand spielen.",
+  "es": "Después de atacar, todavía puedes jugar cartas de tu mano.",
+  "fr": "Après avoir attaqué, vous pouvez encore jouer des cartes de votre main.",
+  "it": "Dopo aver attaccato, puoi ancora giocare carte dalla tua mano.",
+  "pt": "Depois de atacar, você ainda pode jogar cards da sua mão.",
+  "ja": "攻撃の後でも、手札のカードを使えます。",
+  "ko": "공격한 뒤에도 패의 카드를 사용할 수 있습니다.",
+  "zh": "攻击之后，仍然可以使用手卡。"
+ },
+ "You have nothing left to play this turn.": {
+  "de": "In diesem Spielzug kannst du nichts mehr spielen.",
+  "es": "No te queda nada por jugar este turno.",
+  "fr": "Vous n'avez plus rien à jouer ce tour.",
+  "it": "Non hai più nulla da giocare in questo turno.",
+  "pt": "Você não tem mais nada para jogar neste turno.",
+  "ja": "このターンにできることはもうありません。",
+  "ko": "이번 턴에는 더 할 수 있는 것이 없습니다.",
+  "zh": "这个回合已经没有可以做的事了。"
+ },
+ "Level 5 and 6 monsters need 1 Tribute. Time Wizard has done its job, so it is the perfect Tribute.": {
+  "de": "Monster der Stufe 5 und 6 brauchen 1 Tribut. Zeitzauberer hat seine Aufgabe erfüllt. Er ist der perfekte Tribut.",
+  "es": "Los monstruos de Nivel 5 y 6 necesitan 1 Sacrificio. Mago del Tiempo ya ha cumplido su tarea, así que es el Sacrificio perfecto.",
+  "fr": "Les monstres de Niveau 5 et 6 demandent 1 Sacrifice. Magicien du Temps a fait son travail : c'est le Sacrifice parfait.",
+  "it": "I mostri di Livello 5 e 6 richiedono 1 Tributo. Stregone del Tempo ha fatto il suo lavoro, quindi è il Tributo perfetto.",
+  "pt": "Monstros de Nível 5 e 6 precisam de 1 Tributo. Mago do Tempo já cumpriu seu papel, então é o Tributo perfeito.",
+  "ja": "レベル5・6のモンスターにはリリースが1体必要です。「時の魔術師」は役目を終えたので、リリースにぴったりです。",
+  "ko": "레벨 5·6 몬스터에는 릴리스 1장이 필요합니다. \"시간의 마술사\"는 제 역할을 다했으므로 릴리스하기에 딱 좋습니다.",
+  "zh": "等级5和6的怪兽需要解放1只。「时间魔术师」已经完成了任务，正好用来解放。"
+ },
+ "Choose Time Wizard as the Tribute, then confirm.": {
+  "de": "Wähle Zeitzauberer als Tribut und bestätige.",
+  "es": "Elige Mago del Tiempo como Sacrificio y confirma.",
+  "fr": "Choisissez Magicien du Temps comme Sacrifice, puis confirmez.",
+  "it": "Scegli Stregone del Tempo come Tributo, poi conferma.",
+  "pt": "Escolha Mago do Tempo como Tributo e confirme.",
+  "ja": "リリースするモンスターに「時の魔術師」を選び、決定してください。",
+  "ko": "릴리스할 몬스터로 \"시간의 마술사\"를 선택한 다음 확인하세요.",
+  "zh": "选择「时间魔术师」作为解放的怪兽，然后确认。"
+ },
+ "Hand limit": {
+  "de": "Handkartenlimit",
+  "es": "Límite de mano",
+  "fr": "Limite de main",
+  "it": "Limite della mano",
+  "pt": "Limite da mão",
+  "ja": "手札の上限",
+  "ko": "패 매수 제한",
+  "zh": "手卡上限"
+ },
+ "You can hold at most 6 cards at the end of your turn. Your opponent has 7, so they discard Blue-Eyes White Dragon to the Graveyard.": {
+  "de": "Am Ende deines Spielzugs darfst du höchstens 6 Karten auf der Hand haben. Dein Gegner hat 7, also wirft er Blauäugiger w. Drache auf den Friedhof ab.",
+  "es": "Al final de tu turno puedes tener como máximo 6 cartas en la mano. Tu adversario tiene 7, así que descarta Dragón Blanco de Ojos Azules al Cementerio.",
+  "fr": "À la fin de votre tour, vous pouvez garder 6 cartes en main au maximum. Votre adversaire en a 7, il défausse donc Dragon Blanc aux Yeux Bleus au Cimetière.",
+  "it": "Alla fine del tuo turno puoi avere al massimo 6 carte in mano. Il tuo avversario ne ha 7, quindi scarta Drago Bianco Occhi Blu nel Cimitero.",
+  "pt": "No final do seu turno você pode ter no máximo 6 cards na mão. Seu oponente tem 7, então ele descarta Dragão Branco de Olhos Azuis para o Cemitério.",
+  "ja": "ターンの終わりに持てる手札は6枚までです。相手の手札は7枚なので、「青眼の白龍」を墓地へ捨てます。",
+  "ko": "턴이 끝날 때 가질 수 있는 패는 6장까지입니다. 상대의 패는 7장이므로 \"푸른 눈의 백룡\"을 묘지로 버립니다.",
+  "zh": "回合结束时，手卡最多只能有6张。对方有7张，所以把「青眼白龙」丢弃去墓地。"
+ },
+ "Monster Reborn is a Spell. It Special Summons 1 monster from either Graveyard, with no Tribute. Your opponent uses it to bring back Blue-Eyes White Dragon.": {
+  "de": "Wiedergeburt ist eine Zauberkarte. Sie beschwört 1 Monster von einem beliebigen Friedhof als Spezialbeschwörung, ganz ohne Tribut. Dein Gegner holt damit Blauäugiger w. Drache zurück.",
+  "es": "Monstruo Renacido es una Mágica. Invoca de Modo Especial 1 monstruo de cualquier Cementerio, sin Sacrificio. Tu adversario la usa para traer de vuelta a Dragón Blanco de Ojos Azules.",
+  "fr": "Monster Reborn est une Magie. Elle Invoque Spécialement 1 monstre depuis n'importe quel Cimetière, sans Sacrifice. Votre adversaire l'utilise pour ramener Dragon Blanc aux Yeux Bleus.",
+  "it": "Mostro Resuscitato è una Magia. Evoca Specialmente 1 mostro da qualsiasi Cimitero, senza Tributo. Il tuo avversario la usa per riportare in campo Drago Bianco Occhi Blu.",
+  "pt": "Reviver Monstro é uma Magia. Ela Invoca por Invocação-Especial 1 monstro de qualquer Cemitério, sem Tributo. Seu oponente a usa para trazer de volta Dragão Branco de Olhos Azuis.",
+  "ja": "「死者蘇生」は魔法カードです。どちらかの墓地のモンスター1体を、リリースなしで特殊召喚します。相手はこれで「青眼の白龍」を呼び戻します。",
+  "ko": "\"죽은 자의 소생\"은 마법 카드입니다. 어느 한쪽 묘지의 몬스터 1장을 릴리스 없이 특수 소환합니다. 상대는 이 카드로 \"푸른 눈의 백룡\"을 되살립니다.",
+  "zh": "「死者苏生」是魔法卡。它可以把任意一方墓地的1只怪兽特殊召唤，不需要解放。对方用它让「青眼白龙」回到场上。"
+ },
+ "Tap Battle Ox, then tap Summon.": {
+  "de": "Tippe auf Kampfochse, dann auf Beschwören.",
+  "es": "Toca Buey de Batalla y luego toca Invocar.",
+  "fr": "Touchez Bœuf de Combat, puis touchez Invoquer.",
+  "it": "Tocca Ascia da Guerra, poi tocca Evocare.",
+  "pt": "Toque em Touro Guerreiro e depois em Invocar.",
+  "ja": "「ミノタウルス」をタップし、「召喚」をタップしてください。",
+  "ko": "\"미노타우로스\"를 탭한 다음 \"소환\"을 탭하세요.",
+  "zh": "点按「牛头人」，然后点按“召唤”。"
+ },
+ "Tap Battle Ox, then tap Attack.": {
+  "de": "Tippe auf Kampfochse, dann auf Angreifen.",
+  "es": "Toca Buey de Batalla y luego toca Atacar.",
+  "fr": "Touchez Bœuf de Combat, puis touchez Attaquer.",
+  "it": "Tocca Ascia da Guerra, poi tocca Attacca.",
+  "pt": "Toque em Touro Guerreiro e depois em Atacar.",
+  "ja": "「ミノタウルス」をタップし、「攻撃」をタップしてください。",
+  "ko": "\"미노타우로스\"를 탭한 다음 \"공격\"을 탭하세요.",
+  "zh": "点按「牛头人」，然后点按“攻击”。"
+ },
+ "Time to attack!": {
+  "de": "Zeit für den Angriff!",
+  "es": "¡Hora de atacar!",
+  "fr": "C'est le moment d'attaquer !",
+  "it": "È ora di attaccare!",
+  "pt": "Hora de atacar!",
+  "ja": "攻撃のチャンスです！",
+  "ko": "공격할 때입니다!",
+  "zh": "该攻击了！"
+ },
+ "Blue-Eyes White Dragon has 3000 ATK. None of your monsters can beat it in battle, but Time Wizard's effect can.": {
+  "de": "Blauäugiger w. Drache hat 3000 ATK. Keines deiner Monster kann ihn im Kampf besiegen, aber der Effekt von Zeitzauberer schon.",
+  "es": "Dragón Blanco de Ojos Azules tiene 3000 ATK. Ninguno de tus monstruos puede vencerlo en batalla, pero el efecto de Mago del Tiempo sí.",
+  "fr": "Dragon Blanc aux Yeux Bleus a 3000 ATK. Aucun de vos monstres ne peut le battre au combat, mais l'effet de Magicien du Temps le peut.",
+  "it": "Drago Bianco Occhi Blu ha 3000 ATK. Nessuno dei tuoi mostri può batterlo in battaglia, ma l'effetto di Stregone del Tempo sì.",
+  "pt": "Dragão Branco de Olhos Azuis tem 3000 de ATK. Nenhum dos seus monstros pode vencê-lo em batalha, mas o efeito de Mago do Tempo pode.",
+  "ja": "「青眼の白龍」の攻撃力は3000です。自分のモンスターでは戦闘で勝てませんが、「時の魔術師」の効果なら倒せます。",
+  "ko": "\"푸른 눈의 백룡\"의 공격력은 3000입니다. 자신의 몬스터로는 전투에서 이길 수 없지만, \"시간의 마술사\"의 효과라면 쓰러뜨릴 수 있습니다.",
+  "zh": "「青眼白龙」的攻击力是3000。你的怪兽在战斗中都赢不了它，但「时间魔术师」的效果可以。"
+ },
+ "Your opponent Set a monster face-down in Defense Position. Summoned Skull's 2500 ATK beats its DEF, so it is destroyed, but your opponent takes no damage.": {
+  "de": "Dein Gegner hat ein Monster verdeckt in Verteidigungsposition gesetzt. Die 2500 ATK von Herbeigerufener Totenkopf sind höher als seine DEF. Es wird zerstört, aber dein Gegner erhält keinen Schaden.",
+  "es": "Tu adversario Colocó un monstruo boca abajo en Posición de Defensa. Los 2500 ATK de Cráneo Convocado superan su DEF, así que es destruido, pero tu adversario no recibe daño.",
+  "fr": "Votre adversaire a Posé un monstre face verso en Position de Défense. Les 2500 ATK de Crâne Invoqué dépassent sa DEF : il est détruit, mais votre adversaire ne subit aucun dommage.",
+  "it": "Il tuo avversario ha Posizionato un mostro coperto in Posizione di Difesa. I 2500 ATK di Teschio Evocato superano il suo DEF, quindi viene distrutto, ma il tuo avversario non subisce danni.",
+  "pt": "Seu oponente Baixou um monstro com a face para baixo em Posição de Defesa. Os 2500 de ATK de Caveira Invocada superam a DEF dele, então ele é destruído, mas seu oponente não sofre dano.",
+  "ja": "相手はモンスターを裏側守備表示でセットしました。「デーモンの召喚」の攻撃力2500はその守備力を上回るので破壊できますが、相手はダメージを受けません。",
+  "ko": "상대가 몬스터를 뒷면 수비 표시로 세트했습니다. \"데몬 소환\"의 공격력 2500이 그 수비력보다 높으므로 파괴할 수 있지만, 상대는 데미지를 받지 않습니다.",
+  "zh": "对方以里侧守备表示盖放了1只怪兽。「恶魔召唤」的攻击力2500高于它的守备力，所以它会被破坏，但对方不会受到伤害。"
+ },
+ "About and Tutorial": {
+  "de": "Info und Tutorial",
+  "es": "Acerca de y tutorial",
+  "fr": "À propos et tutoriel",
+  "it": "Informazioni e tutorial",
+  "pt": "Sobre e tutorial",
+  "ja": "このゲームについて・チュートリアル",
+  "ko": "정보 및 튜토리얼",
+  "zh": "关于与教程"
+ },
+ "Effect Monsters have special abilities. Time Wizard spins its wheel: call it right and every monster your opponent controls is destroyed.": {
+  "de": "Effektmonster haben besondere Fähigkeiten. Zeitzauberer dreht sein Rad: Sagst du richtig voraus, werden alle Monster deines Gegners zerstört.",
+  "es": "Los Monstruos de Efecto tienen habilidades especiales. Mago del Tiempo gira su ruleta: si aciertas, se destruyen todos los monstruos que controla tu adversario.",
+  "fr": "Les Monstres à Effet ont des capacités spéciales. Magicien du Temps fait tourner sa roue : si vous devinez juste, tous les monstres contrôlés par votre adversaire sont détruits.",
+  "it": "I Mostri con Effetto hanno abilità speciali. Stregone del Tempo fa girare la sua ruota: se indovini, tutti i mostri controllati dal tuo avversario vengono distrutti.",
+  "pt": "Monstros de Efeito têm habilidades especiais. Mago do Tempo gira sua roleta: se você acertar, todos os monstros que seu oponente controla são destruídos.",
+  "ja": "効果モンスターは特別な能力を持っています。「時の魔術師」はルーレットを回します。当てれば、相手フィールドのモンスターを全て破壊します。",
+  "ko": "효과 몬스터는 특별한 능력을 가지고 있습니다. \"시간의 마술사\"는 룰렛을 돌립니다. 맞히면 상대 필드의 몬스터를 전부 파괴합니다.",
+  "zh": "效果怪兽有特殊能力。「时间魔术师」会转动轮盘：猜中的话，对方场上的怪兽全部破坏。"
+ },
+ "1400 damage is more than the Life Points your opponent has left. This attack wins the Duel!": {
+  "de": "1400 Schaden sind mehr als die Life Points, die dein Gegner noch hat. Dieser Angriff gewinnt das Duell!",
+  "es": "1400 de daño es más que los Life Points que le quedan a tu adversario. ¡Este ataque gana el Duelo!",
+  "fr": "1400 points de dommages, c'est plus que les Life Points qui restent à votre adversaire. Cette attaque gagne le Duel !",
+  "it": "1400 danni sono più dei Life Points rimasti al tuo avversario. Questo attacco vince il Duello!",
+  "pt": "1400 de dano é mais do que os Pontos de Vida que restam ao seu oponente. Este ataque vence o Duelo!",
+  "ja": "1400ダメージは、相手の残りライフポイントを上回ります。この攻撃でデュエルに勝利です！",
+  "ko": "1400 데미지는 상대의 남은 라이프 포인트보다 많습니다. 이 공격으로 듀얼에서 승리합니다!",
+  "zh": "1400伤害超过了对方剩余的基本分。这次攻击将赢得决斗！"
+ }
+}

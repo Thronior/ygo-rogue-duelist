@@ -181,7 +181,7 @@ CURSES={
  'enemy_power':('Empowered Rival','The boss\'s monsters gain 200 ATK.'),
  'drain':('Withering Soul','Start this boss duel with 1000 fewer LP, minimum 2000.'),
  'brittle':('Brittle Guard','Your monsters lose 100 ATK and 200 DEF.'),
- 'short_handed':('Thin Ranks','Start this duel with 2 fewer cards in your hand, minimum 1.'),
+ 'short_handed':('Thin Ranks','Start this duel with 2 fewer cards in your hand, minimum 0.'),
  'exposed':('Open Wound','You take 50% more battle damage during this duel.'),
  'no_recovery':('Withered Hope','Your LP recovery is halved during this duel.'),
  'mirror_stats':('Reversed Might','Swap the original ATK and DEF of all monsters.'),
@@ -258,7 +258,7 @@ for character in CHARACTERS:character["bonus"]="Shared rewards: summons, damage,
 CHARACTERS[37]['cards']=['Copycat']
 
 artifact('echo_glass','Echo Glass',100,"Once per duel, copy the first Level 4 or lower monster your opponent summons into your hand.",'Copycat','echo',1,'draw')
-artifact('faulty_printer','Faulty Printer',85,'Each purchased card has a 15% chance of misprinted ATK/DEF (randomized by up to 1000 each way, minimum 0).','Machine Conversion Factory','faulty',15,'economy')
+artifact('faulty_printer','Faulty Printer',85,'Each purchased card has a 20% chance of misprinted ATK/DEF (randomized by up to 1000 each way, minimum 0).','Machine Conversion Factory','faulty',20,'economy')
 artifact('carbon_copy','Carbon Copy',85,'Each card obtained from a booster pack or single-card purchase has a 15% chance to grant an extra copy.','Cloning','purchase_clone',15,'economy')
 artifact('golden_sleeve','Golden Card Sleeve',90,'Permanently choose a card when purchased. Win: gain 10 coins each time you summon, set, or activate it (max 5 per duel per chosen card).','Graceful Charity','golden',10,'economy')
 artifact('magic_mirror','Magic Mirror',110,'Copies the effect of a random other relic you own each duel.','Morphing Jar','mirror',0,'economy')

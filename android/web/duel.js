@@ -29,7 +29,41 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.normalSummonTurn=null;this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.cardTargets=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.normalSummonTurn=null;this.ordealKnown=[[],[]];this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.cardTargets=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ // Ordeal of a Traveler shows its controller's random hand card to the attacker, and the hand is shuffled after.
+ // ordealKnown[side] holds codes of distinct cards in that side's hand the other side has seen this way. Cards that
+ // join the hand only add unknowns; a card leaving face-up drops its code; one leaving unseen (Set, to the deck,
+ // to the other hand) or a Tag hand swap clears it. A repeat of a known code may be the same card, so it isn't added.
+ ordealMemory(m){
+  const known=this.ordealKnown??=[[],[]];
+  if(m.type===M.CONFIRM_CARDS&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
+   for(const c of m.cards||[])if(c.location===L.HAND&&c.code&&c.controller!==m.player&&!known[c.controller].includes(c.code))known[c.controller].push(c.code);
+  }
+  if(m.type===M.TAG_SWAP&&known[m.player])known[m.player]=[];
+  if(m.type===M.MOVE&&m.from?.location===L.HAND&&known[m.from.controller]?.length){
+   const side=m.from.controller,to=m.to||{};
+   const seen=[L.GRAVE,L.REMOVED,L.MZONE,L.SZONE].includes(to.location)&&!!(to.position&5)||to.location===L.GRAVE;
+   if(!seen)known[side]=[];
+   else{const i=known[side].indexOf(m.card);if(i>=0)known[side].splice(i,1);}
+  }
+ }
+ ordealProbeFirst(m,r){
+  const p=m.player,foe=1-p,hand=this.query(foe,L.HAND).filter(Boolean).length;
+  if(hand<1||hand>2||this.ordealHand(foe))return r;
+  if(!this.query(foe,L.SZONE).some(c=>c&&(c.position&5)&&!c.is_disabled&&this.name(c.code)==='Ordeal of a Traveler'))return r;
+  // Only direct attacks: with blockers the order decides the battles, and that plan stays as it is.
+  if(this.query(foe,L.MZONE).some(Boolean)||this.battleProtected?.[foe])return r;
+  const power=c=>{const live=this.query(p,L.MZONE)[c.sequence];return live?.attack??c.attack??0};
+  const chosen=m.attacks[r.index],keep=m.attacks.map((_,i)=>i).filter(i=>i!==r.index);
+  if(!chosen||!keep.length)return r;
+  const target=this.expertTarget,next=this.chooseDecision({...m,attacks:keep.map(i=>m.attacks[i])});
+  if(next?.action!==B.SELECT_BATTLE)return (this.expertTarget=target,r);
+  const probe=m.attacks[keep[next.index]];
+  if(!(power(probe)<power(chosen)))return (this.expertTarget=target,r);
+  return {...next,index:keep[next.index]};
+ }
+ // The opponent's hand codes the CPU has seen through Ordeal, when they account for every card in it.
+ ordealHand(side){const known=this.ordealKnown?.[side]||[];const n=this.query(side,L.HAND).filter(Boolean).length;return n&&known.length===n?known:null;}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
  onMessage(m){
   this.fusionMaterialCandidates??=[];this.fusionMaterialCandidateKeys??=new Set();
@@ -104,6 +138,7 @@ export class MobileDuel extends DuelEngine {
    if(ordeal&&cards.length){const text='Ordeal revealed '+cards.map(c=>this.name(c.code)).join(', ');this.logs.unshift(text);this.visuals.push({kind:'reveal',cards:cards.map(c=>({...c})),text});}
    if(!ordeal&&m.player===0){const shown=(m.cards||[]).filter(c=>c.code);if(shown.length)this.visuals.push({kind:'reveal',audience:0,cards:shown.map(c=>({...c})),text:(this.name(this.effect?.code)||'Card effect')+' — revealed cards'});}
   }
+  this.ordealMemory(m);
   if(m.type===M.SHUFFLE_HAND||m.type===M.TAG_SWAP||m.type===M.MOVE&&[m.from?.location,m.to?.location].includes(L.HAND)){
    const sides=[M.SHUFFLE_HAND,M.TAG_SWAP].includes(m.type)?[m.player]:[m.from?.controller,m.to?.controller];
    for(const known of this.revealedHands)for(const key of Object.keys(known))if(sides.includes(Number(key.split(':')[0])))delete known[key];
@@ -143,6 +178,8 @@ export class MobileDuel extends DuelEngine {
   }
   if(m.type===M.CHAIN_END){this.activeChain=[];this.chainDepth=0;this.effect=null;this.materialSubject=null;}
   if(m.type===M.HINT&&m.hint_type===3)this.selectionHint=Number(m.hint);
+  // How far the final blow went past the opponent's remaining LP (Overkill Bounty, approved_relics.rewards).
+  if(m.type===M.DAMAGE&&m.player===1&&this.lp[1]>0&&m.amount>this.lp[1])this.events.push({kind:'overkill',amount:m.amount-this.lp[1]});
   if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1]){this.events.push({kind:'exact_lethal'});this.visuals.push({kind:'lethal-hit',player:m.player});}
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
   // Time Wizard's toss is shown as its roulette wheel (time-wizard-wheel.js); the result is the same coin.
@@ -248,6 +285,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     r=this.chooseDecision({...m,summons:keep.map(i=>m.summons[i])});
     if(r?.action===I.SELECT_SUMMON)r={...r,index:keep[r.index]};
    }
+   // Their face-up Ordeal of a Traveler with one or two unseen cards in hand: send the weakest planned direct attack
+   // first, so its reveal tells the stronger attacks what to call (user, 2026-11-10).
+   if(m?.type===M.SELECT_BATTLECMD&&r?.action===B.SELECT_BATTLE)r=this.ordealProbeFirst(m,r);
    // Kuriboh is worth more in the hand, where its discard stops lethal battle damage (Discord 2026-11-08: summoned at
    // 1100 LP beside Destiny Board, then pierced). It still comes out with Multiply ready.
    if(m?.type===M.SELECT_IDLECMD&&[I.SELECT_SUMMON,I.SELECT_MONSTER_SET].includes(r?.action)&&this.keptInHand(r.action===I.SELECT_SUMMON?m.summons[r.index]:m.monster_sets[r.index],m.player)){
@@ -559,7 +599,16 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
    // Guess from public hand information only; otherwise use a reproducible mixed guess.
    const publicCards=this.query(1-p,L.HAND).filter(c=>this.handRevealed(p,c));
-   let index;if(publicCards.length){const counts=[1,2,4].map(t=>publicCards.filter(c=>this.data[c.code]?.type&t).length);index=counts.indexOf(Math.max(...counts));}
+   // With one or two cards left and each seen by an earlier Ordeal, call only a type in that hand: its one type, or
+   // either of two, equally, since the random card is picked before the call (user, 2026-11-10).
+   const remembered=this.ordealHand(1-p),seenTypes=remembered&&remembered.length<=2?[1,2,4].map(t=>remembered.some(code=>this.data[code]?.type&t)):null;
+   let index;if(seenTypes&&seenTypes.some(Boolean)){
+    const options=seenTypes.map((ok,i)=>ok?i:-1).filter(i=>i>=0);
+    let hash=(this.reasoningSeed^Math.imul(this.turn,2654435761)^Math.imul(this.orDealGuesses=(this.orDealGuesses||0)+1,2246822519))>>>0;
+    hash=Math.imul(hash^(hash>>>16),0x7feb352d);hash=(hash^(hash>>>15))>>>0;
+    index=options[hash%options.length];
+   }
+   else if(publicCards.length){const counts=[1,2,4].map(t=>publicCards.filter(c=>this.data[c.code]?.type&t).length);index=counts.indexOf(Math.max(...counts));}
    else {
     // The old seed's terms were all 0 mod 3 but the counter, so it called the same type nearly every time (Iceman,
     // Discord 2026-11-09: always Trap). Mix it properly and weight each type by the opponent's public cards

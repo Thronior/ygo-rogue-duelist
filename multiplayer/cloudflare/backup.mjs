@@ -63,7 +63,7 @@ export class BackupRegistry{
  async encrypted(op,v,now){
   if(!HEX64.test(v.id)||!HEX64.test(v.auth))throw Error('Invalid cloud save code');
   const storage=this.ctx.storage,key='enc:'+v.id,old=await storage.get(key),owned=!!old&&old.authHash===await sha256(v.auth);
-  const blobs=m=>Array.from({length:m.parts},(_,i)=>'blob:'+v.id+':'+m.rev+':'+i);
+  const blobs=m=>blobKeys(v.id,m);
   // A missing save and a wrong code give the same answer.
   if(op!=='save'&&!owned)return reply({error:'No cloud save matches this code.'},404);
   if(op==='load'){const parts=[];for(const k of blobs(old)){const part=await storage.get(k);if(typeof part!=='string')throw Error('Incomplete cloud save');parts.push(part)}return reply({savedAt:old.updatedAt,blob:parts.join('')})}
@@ -71,19 +71,29 @@ export class BackupRegistry{
   if(old&&!owned)return reply({error:'This cloud save code is already in use.'},409);
   if(old&&now-old.updatedAt<20000)return reply({error:'Retry later'},429);
   if(typeof v.blob!=='string'||!BLOB.test(v.blob))throw Error('Invalid cloud save');
-  const meta={authHash:old?.authHash||await sha256(v.auth),createdAt:old?.createdAt||now,updatedAt:now,rev:crypto.randomUUID(),parts:Math.ceil(v.blob.length/24000)};
-  await storage.transaction(async tx=>{const keys=blobs(meta);for(let i=0;i<keys.length;i++)await tx.put(keys[i],v.blob.slice(i*24000,(i+1)*24000));await tx.put(key,meta);if(old)for(const k of blobs(old))await tx.delete(k)});
+  // Rows written are the scarce daily allowance (2026-11-11). A save is one value overwritten in place plus its small
+  // meta row: 2 rows, where the old layout wrote every 24,000-character part and deleted the previous ones
+  // (2 x parts + 1). Only saves too big for one value still use parts, each as large as one value allows.
+  const one=v.blob.length<=ONE_VALUE,meta={authHash:old?.authHash||await sha256(v.auth),createdAt:old?.createdAt||now,updatedAt:now,...(one?{one:true,rev:null,parts:1}:{rev:crypto.randomUUID(),parts:Math.ceil(v.blob.length/ONE_VALUE)})};
+  const keys=blobs(meta),stale=old?blobs(old).filter(k=>!keys.includes(k)):[];
+  await storage.transaction(async tx=>{for(let i=0;i<keys.length;i++)await tx.put(keys[i],one?v.blob:v.blob.slice(i*ONE_VALUE,(i+1)*ONE_VALUE));await tx.put(key,meta);for(const k of stale)await tx.delete(k)});
   if(!await storage.getAlarm())await storage.setAlarm(now+DAY);
   return reply({updatedAt:now});
  }
  // Storage limitation: an encrypted save nobody has updated for a year is deleted, checked once a day.
  alarm(){const job=this.tail.then(()=>this.sweep());this.tail=job.catch(()=>{});return job}
  async sweep(){
-  const storage=this.ctx.storage,cutoff=Date.now()-RETENTION;let after=await storage.get('sweep:after')||'',rows,seen=0;
+  const storage=this.ctx.storage,cutoff=Date.now()-RETENTION;const start=await storage.get('sweep:after')||'';let after=start,rows,seen=0;
   do{
    rows=await storage.list({prefix:'enc:',limit:100,...(after?{startAfter:after}:{})});
-   for(const [k,m] of rows){after=k;seen++;if(m.updatedAt<cutoff){const id=k.slice(4);await storage.transaction(async tx=>{for(let i=0;i<m.parts;i++)await tx.delete('blob:'+id+':'+m.rev+':'+i);await tx.delete(k)})}}
+   for(const [k,m] of rows){after=k;seen++;if(m.updatedAt<cutoff){const id=k.slice(4);await storage.transaction(async tx=>{for(const b of blobKeys(id,m))await tx.delete(b);await tx.delete(k)})}}
   }while(rows.size===100&&seen<1000);
-  await storage.put('sweep:after',rows.size===100?after:'');await storage.setAlarm(Date.now()+DAY);
+  // Writing the same cursor again would still cost a row.
+  const next=rows.size===100?after:'';if(next!==start)await storage.put('sweep:after',next);
+  await storage.setAlarm(Date.now()+DAY);
  }
 }
+// Where a save's encrypted text lives: one value (current layout) or numbered parts of one revision (older saves,
+// and saves too large for one value).
+export const ONE_VALUE=1900000;
+export function blobKeys(id,m){return m.one?['one:'+id]:Array.from({length:m.parts},(_,i)=>'blob:'+id+':'+m.rev+':'+i)}

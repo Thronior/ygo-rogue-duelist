@@ -1,6 +1,8 @@
 // FPS Cap (2026-11-09): frame-cap.js draws at most the cap's frames a second on a faster display, while animations
 // keep their real-time length, still finish (and resolve .finished), and the game's own pause/play still works.
-// Stepped endless loops stay with the browser; a tick falls on each of their 60 ms beats, so they add few frames.
+// Ticks are evenly spaced (2026-11-11): every 2nd, 3rd... display refresh when the display is at least 1.5 times faster
+// than the cap, so no frame is longer than its neighbours. Stepped endless loops stay with the browser and add its own
+// cheap redraws (about 17 a second, none from the main thread) between ticks.
 // Runs headless Chrome, whose display refresh is the machine's (144 Hz here); caps below it are checked.
 import fs from 'node:fs';import assert from 'node:assert/strict';import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
@@ -33,9 +35,15 @@ try{
   assert.equal(state.active,true,`cap ${cap} drives animations on a ${refresh} Hz display`);
   const fps=await drawn(2);
   console.log(`cap ${cap}: ${fps.toFixed(1)} frames drawn per second, ${state.driven} driven`);
-  // Ticks land on the ambient loop's beats, so its redraws add almost nothing.
-  assert.ok(fps<=cap*1.15,`cap ${cap}: drew ${fps} frames a second`);
-  assert.ok(fps>=cap*.6,`cap ${cap}: only ${fps} frames a second`);
+  // The clock's own frames stay at or below the cap; the stepped loop adds at most its 17 redraws a second.
+  assert.ok(state.rate<=cap*1.05,`cap ${cap}: ticks ${state.rate} times a second`);
+  assert.ok(fps<=state.rate+20,`cap ${cap}: drew ${fps} frames a second`);
+  assert.ok(fps>=state.rate*.8,`cap ${cap}: only ${fps} frames a second`);
+  // Even spacing: with whole-refresh spacing, nearly every gap between two ticks is the same number of refreshes.
+  const gaps=await page.evaluate(()=>new Promise(done=>{const times=[];const step=t=>{times.push(t);if(times.length<60)requestAnimationFrame(step);else done(times.slice(1).map((x,i)=>x-times[i]))};requestAnimationFrame(step)}));
+  const sorted=[...gaps].sort((a,b)=>a-b),middle=sorted[sorted.length>>1],off=gaps.filter(g=>Math.abs(g-middle)>500/refresh).length;
+  console.log(`cap ${cap}: tick gap ${middle.toFixed(1)} ms, ${off} of ${gaps.length} uneven`);
+  if(refresh>=cap*1.5)assert.ok(off<=3,`cap ${cap}: ${off} uneven tick gaps (${gaps.map(g=>Math.round(g)).join(',')})`);
  }
  await page.evaluate(()=>frameCap.set(30));await page.waitForTimeout(200);
  const checks=await page.evaluate(async()=>{

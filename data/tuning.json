@@ -582,10 +582,10 @@
     "faulty_printer": {
       "name": "Faulty Printer",
       "price": 85,
-      "description": "Each monster purchased as a single or pulled from a purchased booster has a 15% chance to become a misprint. A misprint changes that copy's original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0) and gives it a random Type and Attribute.",
+      "description": "Each monster purchased as a single or pulled from a purchased booster has a 20% chance to become a misprint. A misprint changes that copy's original ATK and DEF independently by a random amount from -1000 to +1000 (min. 0) and gives it a random Type and Attribute.",
       "art": "Machine Conversion Factory",
       "effect": "faulty",
-      "amount": 15,
+      "amount": 20,
       "tag": "economy",
       "filter": "",
       "parameters": {}

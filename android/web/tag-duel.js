@@ -35,9 +35,11 @@ export class TagDuel extends MobileDuel {
  statModifiers(){const {relicFeedback,...stats}=this.aiModifiers||{};return {...stats}}
  snapshotFor(seat){
   if(this.pvp)return this.pvpSnapshot(seat);
-  const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','duel_metrics','battle_destroy','destroy','banish','tribute_summons','ancient_treasure','lp_lost'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.waitingForPartner=!!this.pending&&this.respondingSeat===1-seat&&!this.finished;
+  const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','overkill','duel_metrics','battle_destroy','destroy','banish','tribute_summons','ancient_treasure','lp_lost'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.waitingForPartner=!!this.pending&&this.respondingSeat===1-seat&&!this.finished;
   state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:this.logs,revealedHands:[{...(this.revealedHands?.[0]||{})},{}],aiModifiers:this.statModifiers()};
   state.players[0].extraCards=this.query(0,L.EXTRA);
+  // The cards left in the Deck for the Deck's Inspect list, sorted by id so the Deck order is never sent.
+  state.players[0].deckCards=this.query(0,L.DECK).filter(Boolean).map(c=>c.code).sort((x,y)=>x-y);
   if(!state.tag.canRespond)state.pending=null;
   // Never transmit an AI hand, deck order, or hidden enemy card to the remote player.
   const enemy=state.players[1];enemy.hand=enemy.hand.map((c,sequence)=>c&&this.handRevealed(0,{...c,controller:1,location:L.HAND,sequence})?c:{code:0});
@@ -49,6 +51,7 @@ export class TagDuel extends MobileDuel {
   if(seat!==0&&seat!==1)throw Error('Invalid player seat.');
   let state=structuredClone(this.snapshot());const opponent=1-seat;
   state.players[seat].extraCards=this.query(seat,L.EXTRA);
+  state.players[seat].deckCards=this.query(seat,L.DECK).filter(Boolean).map(c=>c.code).sort((x,y)=>x-y);
   const enemy=state.players[opponent];
   enemy.hand=enemy.hand.map((c,sequence)=>c&&this.handRevealed(seat,{...c,controller:opponent,location:L.HAND,sequence})?c:{code:0});
   for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE}),rememberedCode:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE})}:c);

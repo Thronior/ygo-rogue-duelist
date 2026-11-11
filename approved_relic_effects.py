@@ -72,6 +72,33 @@ def effect(kind):
   # Monsters in your GY count as Ritual Material; the Ritual procedure (Duel.ReleaseRitualMaterial) banishes them.
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_RITUAL_MATERIAL) e:SetTargetRange(LOCATION_GRAVE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(1) Duel.RegisterEffect(e,0) end')
   out.append(event('EVENT_REMOVE','--[[relic-hint]]','eg:IsExists(function(c) return c:IsPreviousLocation(LOCATION_GRAVE) and c:IsPreviousControler(0) and c:IsReason(REASON_RITUAL) end,1,nil)'))
+ elif key=='illusionary_tribute':
+  # True Draco's rule (EFFECT_ADD_EXTRA_TRIBUTE): the effect sits on the monster being summoned and names where extra
+  # Tributes may come from. Every monster you own gets it at the start of the Duel, and any that reach your hand later.
+  # It switches off for good once a Tribute Summon or Set has used a Spell or Trap.
+  used='not used and eg:IsExists(function(c) return c:IsControler(0) and c:GetMaterial() and c:GetMaterial():IsExists(function(m) return m:IsPreviousLocation(LOCATION_SZONE) end,1,nil) end,1,nil)'
+  out.append('''do local used=false
+local function give(c) if not c:IsMonster() or c:GetFlagEffect(93720111)>0 then return end c:RegisterFlagEffect(93720111,0,0,1)
+ local x=Effect.CreateEffect(c) x:SetType(EFFECT_TYPE_SINGLE) x:SetProperty(EFFECT_FLAG_CANNOT_DISABLE|EFFECT_FLAG_UNCOPYABLE) x:SetCode(EFFECT_ADD_EXTRA_TRIBUTE) x:SetTargetRange(LOCATION_SZONE,0) x:SetCondition(function() return not used end) x:SetValue(POS_FACEUP_ATTACK|POS_FACEDOWN_DEFENSE) c:RegisterEffect(x,true) end
+'''+event('EVENT_STARTUP','for c in Duel.GetMatchingGroup(Card.IsMonster,0,LOCATION_HAND|LOCATION_DECK,0,nil):Iter() do give(c) end')
+   +' '+event('EVENT_TO_HAND','for c in eg:Filter(function(c) return c:IsControler(0) end,nil):Iter() do give(c) end')
+   +' '+event('EVENT_SUMMON_SUCCESS','used=true --[[relic-hint]]',used)+' '+event('EVENT_MSET','used=true --[[relic-hint]]',used)+' end')
+ elif key=='overkill_bounty':pass # Coins only: approved_relics.rewards.
+ elif key=='parting_gift':
+  out.append('do local last=-1 '+event('EVENT_TO_GRAVE','last=Duel.GetTurnCount() Duel.Draw(0,1,REASON_EFFECT)','last~=Duel.GetTurnCount() and rp==1 and eg:IsExists(function(c) return c:IsMonster() and c:IsControler(0) and c:IsReason(REASON_EFFECT) end,1,nil)')+' end')
+ elif key=='tactical_espionage':
+  # Tactical Espionage Expert's effect, for every monster you Normal Summon.
+  out.append(event('EVENT_SUMMON_SUCCESS','--[[relic-hint]] Duel.SetChainLimitTillChainEnd(function(re) return not re:GetHandler():IsTrap() or not re:IsHasType(EFFECT_TYPE_ACTIVATE) end)','eg:IsExists(function(c) return c:IsControler(0) end,1,nil)'))
+ elif key=='stars_aligned':
+  # The turn player is the relic's owner here, so the summon needs no fixed player number (Relic Mirror gives it to the opponent).
+  out.append('''do local function level() local g=Duel.GetMatchingGroup(Card.IsMonster,0,LOCATION_GRAVE|LOCATION_MZONE,0,nil) if #g==0 then return nil end local l=g:GetFirst():GetLevel() if l<=0 or g:IsExists(function(c) return c:GetLevel()~=l end,1,nil) then return nil end return l end
+local function can(c,e,l,p) return c:IsMonster() and c:GetLevel()==l and c:IsCanBeSpecialSummoned(e,0,p,false,false) end
+'''+event('EVENT_PHASE_START|PHASE_END','local p=Duel.GetTurnPlayer() local l=level() if not l then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local g=Duel.SelectMatchingCard(0,can,0,LOCATION_HAND,0,0,1,nil,e,l,p) if #g>0 then Duel.SpecialSummon(g,0,p,p,false,false,POS_FACEUP) end','Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and level()~=nil and Duel.IsExistingMatchingCard(can,0,LOCATION_HAND,0,1,nil,e,level(),Duel.GetTurnPlayer())',True)+' end')
+ elif key=='anime_rule_2':
+  # "You destroy": the effect's player is you (rp). One hit of damage for everything a single effect destroyed.
+  hit='function(c) return c:IsPreviousControler(1) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsReason(REASON_EFFECT) end'
+  out.append(event('EVENT_DESTROYED',f'local sum=0 for c in eg:Filter({hit},nil):Iter() do sum=sum+math.floor(math.max(0,c:GetPreviousAttackOnField())/2) end if sum>0 then Duel.Damage(1,sum,REASON_EFFECT) end',f'rp==0 and eg:IsExists({hit},1,nil)'))
+  out.append(stat('EFFECT_CANNOT_DIRECT_ATTACK',1))
  elif key=='solitary_tyrant':atk(400,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1');atk(-500,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)>1')
  elif key=='crowded_crypt':atk('function() return math.min(750,75*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end');handlimit(2)
  elif key=='golden_grave':defense(-400)
@@ -120,7 +147,9 @@ Duel.RegisterEffect(e,0) end''')
   out.append('if not RogueReversedRemedy then RogueReversedRemedy=true local D=(_G and _G.Duel) or Duel local damage,recover=D.Damage,D.Recover D.PayLPCost=function(p,cost) return recover(p,cost,REASON_EFFECT) end D.CheckLPCost=function() return true end D.Recover=function(p,val,r,...) return damage(p,val,(r or REASON_EFFECT)|REASON_RRECOVER,...) end local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_REVERSE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,1) e:SetValue(function(e,re,r,rp,rc) return (r&REASON_EFFECT)~=0 and (r&REASON_RRECOVER)==0 end) D.RegisterEffect(e,0) RogueRemedyUndo=function() e:Reset() D.Recover=recover return recover end end')
  elif key=='ominous_clock':pass # Needs the run's turn count: see ominous_clock below.
  elif key=='conscription_drum':
-  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_SUMMON_COUNT) e:SetTargetRange(LOCATION_HAND|LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end')
+  # Exactly Double Summon's effect, permanent and with no activation: 2 Normal Summons or Sets per turn, in any mix,
+  # with no "which summon" prompt (user, 2026-11-11). Double Summon itself is not in the game, so they never clash.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SET_SUMMON_COUNT_LIMIT) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(2) Duel.RegisterEffect(e,0) end')
   out.append(stat('EFFECT_CANNOT_ATTACK',1,'c:IsStatus(STATUS_SUMMON_TURN) and c:IsSummonType(SUMMON_TYPE_NORMAL)'))
  elif key=='iron_silence':
   both(600)
