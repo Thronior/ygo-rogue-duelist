@@ -15,6 +15,9 @@ try{
   #a{width:40px;height:40px;background:red;animation:slide 1s linear infinite}#s{width:9px;height:9px;background:blue;animation:tick 1.2s steps(20) infinite}</style><div id=a></div><div id=s></div><div id=r></div>`);
  // Like the game: animation-speed.js's presentation scale, and the stepped loop on the ambient clock's 60 ms ticks.
  await page.evaluate(()=>{globalThis.presentationScale=1.2;const a=document.getElementById('s').getAnimations()[0];a.startTime=Math.floor(a.startTime/60)*60});
+ // Counts the clock's own native frame requests (2026-11-12: its loop forked whenever a game callback asked for a frame
+ // on a tick, and the copies ran side by side until nothing moved: 100,000 callbacks a second after ten seconds).
+ await page.evaluate(()=>{const raf=window.requestAnimationFrame.bind(window);window.__nativeFrames=0;window.requestAnimationFrame=cb=>{window.__nativeFrames++;return raf(cb)}});
  await page.addScriptTag({content:source});
  await page.waitForFunction(()=>frameCap.state.refresh>0,null,{timeout:5000});
  const refresh=await page.evaluate(()=>frameCap.state.refresh);
@@ -33,7 +36,12 @@ try{
   await page.evaluate(c=>frameCap.set(c),cap);await page.waitForTimeout(300);
   const state=await page.evaluate(()=>frameCap.state);
   assert.equal(state.active,true,`cap ${cap} drives animations on a ${refresh} Hz display`);
+  const asked=await page.evaluate(()=>window.__nativeFrames);
   const fps=await drawn(2);
+  const perSecond=(await page.evaluate(()=>window.__nativeFrames)-asked)/2;
+  console.log(`cap ${cap}: ${perSecond.toFixed(0)} native frame requests per second`);
+  // One clock loop: at most one native frame request per display refresh (plus slack for the refresh measurement).
+  assert.ok(perSecond<=refresh*1.3,`cap ${cap}: ${perSecond} native frame requests a second on a ${refresh} Hz display`);
   console.log(`cap ${cap}: ${fps.toFixed(1)} frames drawn per second, ${state.driven} driven`);
   // The clock's own frames stay at or below the cap; the stepped loop adds at most its 17 redraws a second.
   assert.ok(state.rate<=cap*1.05,`cap ${cap}: ticks ${state.rate} times a second`);

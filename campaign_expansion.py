@@ -58,6 +58,9 @@ def install(g):
  g.BY_ID={c['id']:c for c in g.CARDS};g.BY_NAME={c['name']:c for c in g.CARDS}
  # Pre-errata cards keep their passcode; the build bundles the matching script.
  for cid,row in json.loads((g.ROOT/'data/pre-errata.json').read_text(encoding='utf8'))['cards'].items():g.BY_ID[int(cid)]['desc']=row['desc']
+ # Dev notes for confusing old rulings go after the card's text (data/card-dev-notes.json).
+ for cid,row in json.loads((g.ROOT/'data/card-dev-notes.json').read_text(encoding='utf8'))['cards'].items():
+  if int(cid) in g.BY_ID and row['en'] not in g.BY_ID[int(cid)]['desc']:g.BY_ID[int(cid)]['desc']+=' '+row['en']
  aliases={int(k):v for k,v in json.loads((g.ROOT/'data/card-aliases.json').read_text()).items()}
  g.CHARACTERS=CHARACTERS;g.ARTIFACTS=ARTIFACTS;g.OPPONENTS=['Act I']*3+['Act II']*3+['Act III']*3
  def ensure_bounty(run,rng=random,force=False):
@@ -441,7 +444,6 @@ def install(g):
     _c=g.BY_ID.get(_cid)
     if _c and _c['data']['type']&1 and _c['level']<=3:pups+=1
    if pups:tally["Underdog's Clause"]=pups*amount(run,'underdog_gold')
-  if (run['round']+1)%BOSS_EVERY==0 and amount(run,'boss_gold'):tally['Champion Trophy']=amount(run,'boss_gold')
   tally.update(ar.rewards(run,events,(run['round']+1)%BOSS_EVERY==0))
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
@@ -481,7 +483,7 @@ def install(g):
    if value>=target:unlocked.add(i)
   run['unlocks_earned']=sorted(set(run.get('unlocks_earned',[]))|(unlocked-set(p['unlocked'])))
   p['unlocked']=sorted(unlocked);unlocks.award(p,run,run.get('opponent') if won else None)
-  notices=[dict(id=x['id'],name=x['name'],reward=x['reward']) for x in achievement_model.entries(p) if x['done'] and x['id'] not in previous]
+  notices=[dict(id=x['id'],name=x['name'],reward=x['reward']) for x in achievement_model.entries(p) if x['done'] and x['id'] not in previous and not x['id'].startswith('sleeve:')]
   p.setdefault('achievement_notices',[]).extend(notices)
   storage.write(storage.ROOT/'profile.json',p)
  def unlock_rule(i):
@@ -600,6 +602,9 @@ def install(g):
    storage.write(storage.ROOT/'profile.json',p)
   if run['stage'] in ('complete','gameover'):run['finished_at']=time.time()
   if ar.has(run,'cursed_ominous_clock'):run['clock_turns']=run.get('clock_turns',0)+int(next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0) or 0)
+  # Magic Mirror copies a relic for one Duel only: once its rewards are paid, the copy ends, so a copied stat relic
+  # no longer boosts cards in the shop (Discord 2026-11-12, Kzulu). The next Duel picks a new copy.
+  run['mirror_copy']=None
   run.setdefault('timeline',[]).append(dict(duel=duel_number,loop=run.get('loop',0)+1,opponent=duel_opponent,won=won,lp_before_healing=int(result.get('lp',0)),lp_after_healing=run['lp'],curses=list(run.get('duel_curses') or []),coins=run.get('last_gold',0),turns=next((e.get('turns',0) for e in result.get('events',[]) if e.get('kind')=='duel_metrics'),0)))
   run['last_healing']={'before':int(result.get('lp',0)),'after':run['lp']}
   run['history'].append(result)
@@ -707,10 +712,12 @@ def install(g):
    item['price']=max(1,round(item['price']*modifier))
   for item in items:item['price']=ar.price(run,item['kind'],item['price'])
   run['shop']=items
+  # Cursed Restock: one purchase per stock, so a new stock opens the shop again.
+  run.pop('restock_bought',None)
   relic_fusions.greed_free_relic(run,rng)
   challenge_levels.suppress(run)
  def reroll_price(run):
-  if ar.free_use(run,'dice_jar','shop'):return 0
+  if ar.free_use(run,'dice_jar','shop') or ar.restock_free_left(run)>0:return 0
   count=max(0,int(run.get('shop_rerolls',0) or 0))
   return [10,20,40,60,100,150][count] if count<6 else 200+50*(count-6)
  def reroll_shop(run,rng=random):
@@ -724,7 +731,9 @@ def install(g):
   # Generate first so a failed restock cannot charge the player.
   restock(run,rng,general_stock=True)
   payment.pay(run,price,'a reroll')
-  if price==0:ar.use_free(run,'shop')
+  run['sleeve_rerolls']=int(run.get('sleeve_rerolls',0) or 0)+1  # Morphing Jar sleeve (sleeve_progress.py)
+  if price==0 and ar.free_use(run,'dice_jar','shop'):ar.use_free(run,'shop')
+  elif price==0:ar.use_restock_free(run)
   else:run['shop_rerolls']=int(run.get('shop_rerolls',0) or 0)+1
   return price
  def sell_relic(run,key):
@@ -782,6 +791,7 @@ def install(g):
   if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine uses reward decks and can only buy relics.')
   import payment
   if item['sold']:raise ValueError('Item unavailable.')
+  if ar.restock_locked(run,item):raise ValueError('Cursed Restock: you can only buy one item per reroll.')
   if not payment.can_pay(run,item['price']):payment.pay(run,item['price'],'this item')
   if item['kind']=='artifact' and item['id']=='golden_sleeve':
    from golden_cards import choices,pending
@@ -827,6 +837,7 @@ def install(g):
   if item['kind']=='pack':run['bought_pack_ids']=sorted(set(run.get('bought_pack_ids',[]))|{item['id']})
   if item['kind'] in ('single','pack','deck'):run['card_purchases']=run.get('card_purchases',0)+1
   run['pool']+=obtained;run['purchased']+=len(obtained);payment.pay(run,item['price'],'this item');item['sold']=True
+  if ar.has(run,'cursed_cursed_restock') and not item.get('greed'):run['restock_bought']=True
   if item.get('greed'):run['greed_relic_taken']=ar.encounter_key(run)
   if item['kind']=='pack' and (amount(run,'pack_refund') or ar.has(run,'cursed_cursed_refund')):
    refund=min(item['price']-1,amount(run,'pack_refund')+20*ar.copies(run,'cursed_cursed_refund'));run['gold']+=refund;stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+refund
@@ -839,6 +850,7 @@ def install(g):
   import payment
   if not payment.can_pay(run,sum(x['price'] for x in items)):payment.pay(run,sum(x['price'] for x in items),'these items')
   if run['stage']!='shop' or any(x['sold'] for x in items):raise ValueError('Item unavailable.')
+  if ar.has(run,'cursed_cursed_restock') and (sum(not x.get('greed') for x in items)>1 or any(ar.restock_locked(run,x) for x in items)):raise ValueError('Cursed Restock: you can only buy one item per reroll.')
   if CHARACTERS[run['character']].get('copycat') and any(x['kind']!='artifact' for x in items):raise ValueError('Copycat can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and any(x['kind']!='artifact' for x in items):raise ValueError('The Dueling Engine can only buy relics.')
   if any(x['kind']=='single' and not unlocks.card_allowed(g.BY_ID[x['id']]) for x in items):raise ValueError('Card is locked.')

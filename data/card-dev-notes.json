@@ -1,0 +1,17 @@
+{
+  "note": "Short notes shown after a card's text for confusing old rulings (user, 2026-11-12). campaign_expansion.install appends the English note and tools/i18n/build_bundles.py appends the translation. The card's script is unchanged.",
+  "cards": {
+    "96355986": {
+      "name": "Enchanted Javelin",
+      "en": "(Dev note: this only works on your opponent's attacks)",
+      "de": "(Entwickler-Hinweis: Dies funktioniert nur bei Angriffen deines Gegners.)",
+      "es": "(Nota del desarrollador: esto solo funciona con los ataques de tu adversario.)",
+      "fr": "(Note du développeur : ceci ne fonctionne que sur les attaques de votre adversaire.)",
+      "it": "(Nota dello sviluppatore: funziona solo sugli attacchi del tuo avversario.)",
+      "pt": "(Nota do desenvolvedor: isto só funciona nos ataques do seu oponente.)",
+      "ja": "（開発者メモ：これは相手の攻撃にのみ有効です）",
+      "ko": "(개발자 노트: 이 효과는 상대의 공격에만 적용됩니다.)",
+      "zh": "（开发者注：此效果只对对方的攻击有效）"
+    }
+  }
+}

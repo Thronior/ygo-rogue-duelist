@@ -7,6 +7,7 @@ import {planBattle} from './battle-planner.js';
 import {FieldKnowledge} from './field-knowledge.js';
 import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount} from './smart_policy.js';
 import {DuelEngine,M,R,I,B,L,P} from './engine.js';
+import {observeSleeveMessage,sleeveMetricsEvent} from './sleeve-metrics.js';
 export {M,R,I,B,L,P};
 export class MobileDuel extends DuelEngine {
  constructor(cards){super(cards);this.fieldKnowledge=new FieldKnowledge();this.rebornMonsters=new Map();this.resolvingChain=0}
@@ -178,11 +179,15 @@ export class MobileDuel extends DuelEngine {
   }
   if(m.type===M.CHAIN_END){this.activeChain=[];this.chainDepth=0;this.effect=null;this.materialSubject=null;}
   if(m.type===M.HINT&&m.hint_type===3)this.selectionHint=Number(m.hint);
+  // Card sleeve feats (sleeve-metrics.js), read before this damage lowers the LP.
+  observeSleeveMessage(this,m);
   // How far the final blow went past the opponent's remaining LP (Overkill Bounty, approved_relics.rewards).
   if(m.type===M.DAMAGE&&m.player===1&&this.lp[1]>0&&m.amount>this.lp[1])this.events.push({kind:'overkill',amount:m.amount-this.lp[1]});
   if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount===this.lp[1]){this.events.push({kind:'exact_lethal'});this.visuals.push({kind:'lethal-hit',player:m.player});}
   if(m.type===M.TOSS_DICE)this.visuals.push({kind:'dice',results:m.results,player:m.player});
   // Time Wizard's toss is shown as its roulette wheel (time-wizard-wheel.js); the result is the same coin.
+  // The last coin toss and coin call, for Second Coin Toss's redo choice (smart.coinRedo).
+  if(m.type===M.TOSS_COIN)this.lastCoin={player:m.player,results:[...(m.results||[])].map(Boolean),code:this.resolvingChain||this.effect?.code||0,turn:this.turn};
   if(m.type===M.TOSS_COIN)this.visuals.push({kind:'coin',results:m.results,player:m.player,wheel:this.name(this.effect?.code)==='Time Wizard'});
   // Jester's Coin: your Standby Phase toss sets the stat forecast, heads +300, tails -300.
   if(m.type===M.TOSS_COIN&&m.player===0&&this.phase===2&&(this.aiModifiers?.activeRelics?.[0]||[]).includes('cursed_jesters_coin')){this.jesterCall=m.results?.[0]?1:-1;const cue=this.visuals.at(-1);if(cue?.kind==='coin')cue.relic=true}
@@ -256,9 +261,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m?.type===M.SELECT_BATTLECMD&&r.action===B.SELECT_BATTLE){const c=m.attacks[r.index];this.attacker={...c,player:m.player,canStop:!!(m.to_m2||m.to_ep),attack:this.query(m.player,L.MZONE)[c.sequence]?.attack||0};if(m.player===0)this.events.push({kind:'attack',card:c.code})}
   if(m?.type===M.SELECT_BATTLECMD&&r.action===B.SELECT_CHAIN)this.effect={code:m.chains[r.index]?.code,player:m.player};
   if(m?.type===M.SELECT_CARD&&r.indicies===null&&this.selectionHint===549&&this.attacker?.player===m.player&&m.selects.every(c=>c.controller!==m.player&&c.location===L.MZONE))this.cancelledAttacks.set(m.player+':'+this.attacker.sequence,this.attackBoardKey());
+  if(m?.type===M.SELECT_OPTION&&Number.isInteger(r.index)){const options=[...(m.options||[])].map(Number);if(options.includes(60)&&options.includes(61))this.coinCall={heads:options[r.index]===60,code:this.resolvingChain||0,turn:this.turn,player:m.player}}
   this.selectionHint=null;return super.respond(r);
  }
- summary(){return [...this.events,{kind:'duel_metrics',grave_monsters:this.query(0,L.GRAVE).filter(c=>c&&(this.data[c.code]?.type&1)).length,...this.peak,banished_count:this.core.duelQueryCount(this.h,0,L.REMOVED)+this.core.duelQueryCount(this.h,1,L.REMOVED)}]}
+ summary(){return [...this.events,sleeveMetricsEvent(this),{kind:'duel_metrics',grave_monsters:this.query(0,L.GRAVE).filter(c=>c&&(this.data[c.code]?.type&1)).length,...this.peak,banished_count:this.core.duelQueryCount(this.h,0,L.REMOVED)+this.core.duelQueryCount(this.h,1,L.REMOVED)}]}
  // Engine queries cross the WASM boundary and allocate card records. A decision
  // sees an immutable board; share each zone read only until auto() returns.
  query(player,location){
@@ -314,6 +320,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
   const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,swapOriginalStats=side=>[0,1].some(owner=>this.aiModifiers?.activeRelics?.[owner]?.includes('sword_and_shield'))||((this.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((this.aiModifiers?.challengeLevel??0)<2||side===0)),atk=c=>{const current=live(c);if(current?.attack!==undefined)return current.attack;const value=c.attack??stat(c).attack??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??stat(c).defense??value):value},def=c=>{const current=live(c);if(current?.defense!==undefined)return current.defense;const value=c.defense??stat(c).defense??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??stat(c).attack??value):value};
   const smart=smartContext(this,p,L,m);
+  // Gambler of Legend's 1 head: destroy our cheapest card (smart.ownLossPick), before the generic selection below.
+  if(m.type===M.SELECT_CARD&&this.name(this.resolvingChain)==='Gambler of Legend'&&m.selects.length&&m.selects.every(c=>c.controller===p&&(c.location===L.MZONE||c.location===L.SZONE))){const source=this.activeChain?.find(l=>l.code===this.resolvingChain&&(l.controller??l.player)===p);return {type:R.SELECT_CARD,indicies:[smart.ownLossPick(m.selects.map(c=>({...c,...(this.query(p,c.location)[c.sequence]||{})})),source)]}}
   const visible=c=>!!(c.position&5),strength=c=>visible(c)?(c.position&1?atk(c):def(c)):smart.hiddenDefense(c);
   const threat=Math.max(0,...enemy.map(strength));
   const fodder=own.map(c=>Math.max(0,atk(c))+(stat(c).type&0x4000?-1500:0)).sort((a,b)=>a-b);
@@ -644,6 +652,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   if(m.type===M.SELECT_YESNO&&this.name(this.effect?.code)==='Magical Dimension'&&!this.query(1-p,L.MZONE).some(Boolean))return {type:R.SELECT_YESNO,yes:false};
   // Standby Phase upkeep: never pay the last of our LP to keep a card (the core allows paying down to 0).
   if(m.type===M.SELECT_YESNO&&this.phase===2&&m.description!==undefined&&smart.lethalUpkeep(Number(BigInt(m.description)>>20n)))return {type:R.SELECT_YESNO,yes:false};
+  if(m.type===M.SELECT_YESNO&&this.phase===2&&m.description!==undefined&&smart.releaseUpkeep(Number(BigInt(m.description)>>20n)))return {type:R.SELECT_YESNO,yes:false};
+  if(m.type===M.SELECT_EFFECTYN&&this.name(m.code)==='Second Coin Toss'){const yes=smart.coinRedo(this.lastCoin,this.coinCall?.player===p?this.coinCall:null);if(yes)this.coinRedoTurn={...this.coinRedoTurn,[p]:this.turn};return {type:R.SELECT_EFFECTYN,yes}}
   if(m.type===M.SELECT_EFFECTYN){if(this.effectYesRepeats(m))return {type:R.SELECT_EFFECTYN,yes:false};const value=smart.activation(m,true);return {type:R.SELECT_EFFECTYN,yes:value===null||value>=0}}
   if(m.type===M.SELECT_POSITION){const _forecast={code:m.code,controller:p,location:L.HAND},_pos=smart.position(this.name(m.code),_forecast)??smart.betterPosition(_forecast);const attack=_pos!==null?_pos:(this.cpuReviewRules?.positionForecast===false?(this.data[m.code]?.attack||0):smart.projectedAttack({code:m.code,controller:p,location:L.HAND}))>threat;const flip=_pos!==true&&!!(this.data[m.code]?.type&0x200000)&&(this.data[m.code]?.attack||0)<1000;const order=flip?[8,4,1,2]:attack?[1,4,8,2]:[4,8,1,2];return {type:R.SELECT_POSITION,position:order.find(x=>m.positions&x)}}
   return super.auto(m);

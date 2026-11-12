@@ -83,6 +83,16 @@ LABELS.update({key:key+' monsters' for key in MONSTER_TYPES+ATTRIBUTES})
 _MENTION_PATTERN=re.compile(r'(?<![A-Za-z-])('+'|'.join(re.escape(n) for n in sorted(MONSTER_TYPES+ATTRIBUTES,key=len,reverse=True))+r')(?![A-Za-z])')
 @functools.lru_cache(maxsize=4096)
 def mentioned(text):return frozenset(match.group(1) for match in _MENTION_PATTERN.finditer(text or ''))
+# A card that only names a Type or Attribute to weaken it is not support for it (Discord 2026-11-12: Star Boy, a WATER
+# monster that lowers FIRE monsters' ATK, was offered as a FIRE monster). Each clause naming it is checked on its own.
+_CLAUSES=re.compile(r'[.;,]|\band\b|\bwhile\b')
+_HARM=re.compile(r'\b(lose|loses|lost|decrease|decreases|decreased|reduce|reduces|halve|halved|halves)\b|\bdestroy(?!ed)|\bdestroy all\b',re.I)
+@functools.lru_cache(maxsize=4096)
+def supported(text):
+ good=set()
+ for clause in _CLAUSES.split(text or ''):
+  if not _HARM.search(clause) or re.search(r'cannot be destroyed|is not destroyed|are not destroyed',clause,re.I):good|=mentioned(clause)
+ return frozenset(good)
 # DIVINE is deliberately scarce and carries two iconic supporting Spell Cards.
 DIVINE_SUPPORT={'Solemn Judgment','Swords of Revealing Light'}
 DIVINE_WEIGHT=0.12
@@ -178,7 +188,7 @@ def matches(card,key):
  t=card['data']['type']
  if key in ATTRIBUTES:
   if key=='DIVINE' and card['name'] in DIVINE_SUPPORT:return True
-  return (bool(t&1) and card['attribute']==key) or key in mentioned(card.get('desc'))
+  return (bool(t&1) and card['attribute']==key) or key in supported(card.get('desc'))
  if key=='normal':return bool(t&1 and t&16)
  if key=='effect':return bool(t&1 and t&32)
  if key=='flip':return bool(t&1 and t&0x200000)
@@ -239,7 +249,7 @@ def matches(card,key):
  if key=='gambling':
   d=(card.get('desc') or '').lower()
   return 'six-sided die' in d or 'toss a coin' in d or 'coin toss' in d or 'roll a die' in d or 'die roll' in d or 'heads or tails' in d
- return (bool(t&1) and card.get('race','').casefold()==key.casefold()) or key in mentioned(card.get('desc'))
+ return (bool(t&1) and card.get('race','').casefold()==key.casefold()) or key in supported(card.get('desc'))
 
 # Relics that suit each reward category. After a duel the chosen category makes
 # these 5 times as likely in that shop's relic slots; rerolls use normal weights.

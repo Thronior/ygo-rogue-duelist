@@ -39,7 +39,15 @@ REGULAR=[
 # Requested by the user on 2026-11-04.
 ('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
 # Requested by the user on 2026-11-06.
-('corpse_ritual','Corpse Ritual',80,'When you Ritual Summon, you can banish monsters from your GY as material instead of Tributing them from your hand or field.','Revival of Dokurorider')]
+('corpse_ritual','Corpse Ritual',80,'When you Ritual Summon, you can banish monsters from your GY as material instead of Tributing them from your hand or field.','Revival of Dokurorider'),
+# Discord relic suggestions (Dragunfire), with the user's edits of 2026-11-12. Double Cyclone is not in the card pool,
+# so Typhoon shows Mystical Space Typhoon. Dimensional Rift's name and Spell Provider's art are mine; none was given.
+('typhoon','Typhoon',135,'Once per turn, during your End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.','Mystical Space Typhoon'),
+('machine_duplication','Machine Duplication',110,"Once per turn, during your End Phase, you can target 1 Machine monster you control: Special Summon 1 Clone Token in Attack Position with half that monster's ATK and DEF (rounded down).",'Machine Duplication'),
+('ghost_destruction','Ghost Destruction',80,"If a monster you control inflicts battle damage to your opponent: You can target 1 monster in your or your opponent's GY; banish it.",'Kycoo the Ghost Destroyer'),
+('omni_banishment','Omni Banishment',150,'Once per turn, during your Standby Phase, you can banish 1 card from your Deck.','Return from the Different Dimension'),
+('dimensional_rift','Dimensional Rift',300,'All cards that would be sent to the GY are banished instead. This relic appears less often than other relics.','Banisher of the Light'),
+('spell_provider','Spell Provider',60,'Once per turn, during your Standby Phase, you can place 1 Spell Counter on a card you control that can hold a Spell Counter.','Magical Plant Mandragola')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -84,7 +92,11 @@ CURSED=[
 (61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),
 # Eriko's suggestion (Discord, 2026-11-11), name and art as posted.
 (63,'anime_rule_2','Anime Rule #2',"Each time you destroy an opponent's monster by card effect, inflict damage to your opponent equal to half its ATK. Monsters you control cannot attack directly.",'Mirror Force'),
-(62,'ominous_clock','Ominous Clock',"At the start of your opponent's Standby Phase, inflict 600 damage to them. Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.",'Ominous Fortunetelling')]
+(62,'ominous_clock','Ominous Clock',"At the start of your opponent's Standby Phase, inflict 600 damage to them. Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.",'Ominous Fortunetelling'),
+# Iceman's "Duelist Kingdom Format" with the user's downside, and Kzulu's cursed reroll relic as the user reworded it
+# (Discord, 2026-11-12). Anime Rule #3's art is mine; none was given.
+(64,'anime_rule_3','Anime Rule #3','You can Normal Summon or Set Level 5 or higher monsters without Tributing. Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.','Mountain'),
+(65,'cursed_restock','Cursed Restock','You get 2 free rerolls per shop. You can only buy one item per reroll.','Card Shuffle')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
@@ -128,6 +140,19 @@ def encounter_key(run):return str(run.get('loop',0))+':'+str(run.get('round',0))
 def free_use(run,relic,kind):return has(run,relic) and run.get('jar_'+kind+'_used')!=encounter_key(run)
 
 def use_free(run,kind):run['jar_'+kind+'_used']=encounter_key(run)
+
+# Cursed Restock (2026-11-12): 2 free rerolls in each shop, counted per encounter like Dice Jar's, and one purchase per
+# stock. Greed's free relic is not a purchase.
+def restock_free_left(run):
+ if not has(run,'cursed_cursed_restock'):return 0
+ used=run.get('restock_rerolls') or {}
+ return max(0,2*copies(run,'cursed_cursed_restock')-(int(used.get('n',0)) if used.get('at')==encounter_key(run) else 0))
+
+def use_restock_free(run):
+ used=run.get('restock_rerolls') or {}
+ run['restock_rerolls']={'at':encounter_key(run),'n':(int(used.get('n',0)) if used.get('at')==encounter_key(run) else 0)+1}
+
+def restock_locked(run,item):return bool(run.get('restock_bought')) and has(run,'cursed_cursed_restock') and not item.get('greed') and not item.get('sold')
 
 def copies(run,key):return 0 if run.get('challenge_level')==-1 else run.get('artifacts',[]).count(key)+int(run.get('mirror_copy')==key)
 
@@ -190,6 +215,8 @@ def eligible(run,key):
   import campaign
   if len({campaign.card_identity(c) for c in run.get('pool',[]) if not campaign.is_extra(c)})<20:return False
  if key=='cursed_blind_fortune' and has(run,'cursed_premature_triumph'):return False
+ # Tag shops are shared and locked in together, so a one-purchase limit has no clear owner there.
+ if key=='cursed_cursed_restock' and run.get('history_mode')=='tag':return False
  # Zombie's Bargain's own reversal would cancel Reversed Remedy's in the core.
  if key=='cursed_reversed_remedy' and has(run,'cursed_zombies_bargain'):return False
  if key=='cursed_zombies_bargain' and has(run,'cursed_reversed_remedy'):return False

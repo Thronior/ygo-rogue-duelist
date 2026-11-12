@@ -154,6 +154,41 @@ Duel.RegisterEffect(e,0) end''')
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])
+ # Relics of 2026-11-12 (Discord suggestions with the user's edits). Choices go through Group:Select, which
+ # multiplayer_script hands to the relic's owner; summons use the turn player, who owns these phase effects.
+ elif key=='anime_rule_3':
+  # Tribute_free's method, taking off every Tribute a Level 5+ monster needs.
+  for code in ('EFFECT_DECREASE_TRIBUTE','EFFECT_DECREASE_TRIBUTE_SET'):
+   out.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetTargetRange(LOCATION_HAND,0) e:SetTarget(function(e,c) return c:IsMonster() and c:IsLevelAbove(5) end) e:SetValue(function(e,c) return 3 end) Duel.RegisterEffect(e,0) end')
+  both(-1000,'not Duel.IsExistingMatchingCard(Card.IsFaceup,0,LOCATION_FZONE,0,1,nil)')
+ elif key=='typhoon':
+  mine='function(c) return c:IsSpellTrap() end'
+  out.append(phase('END',f'local g=Duel.GetMatchingGroup({mine},0,LOCATION_SZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) local s=g:Select(0,0,1,nil) if #s==0 then return end --[[relic-hint]] if Duel.Destroy(s,REASON_EFFECT)==0 then return end local o=Duel.GetMatchingGroup({mine},0,0,LOCATION_SZONE,nil) if #o==0 then return end Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) Duel.Destroy(o:Select(0,1,1,nil),REASON_EFFECT)',
+   f'Duel.IsExistingMatchingCard({mine},0,LOCATION_SZONE,0,1,nil) and Duel.IsExistingMatchingCard({mine},0,0,LOCATION_SZONE,1,nil)'))
+ elif key=='machine_duplication':
+  machine='function(c) return c:IsFaceup() and c:IsRace(RACE_MACHINE) end'
+  out.append(phase('END',f'''local p=Duel.GetTurnPlayer() local g=Duel.GetMatchingGroup({machine},0,LOCATION_MZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_TARGET) local c=g:Select(0,0,1,nil):GetFirst() if not c then return end
+local t=Duel.CreateToken(0,86871615) local reset=RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)
+local function give(code,value) local x=Effect.CreateEffect(t) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(code) x:SetValue(value) x:SetReset(reset) t:RegisterEffect(x,true) end
+give(EFFECT_SET_BASE_ATTACK,math.floor(math.max(0,c:GetAttack())/2)) give(EFFECT_SET_BASE_DEFENSE,math.floor(math.max(0,c:GetDefense())/2)) give(EFFECT_CHANGE_RACE,RACE_MACHINE) give(EFFECT_CHANGE_ATTRIBUTE,c:GetAttribute()) if c:GetLevel()>0 then give(EFFECT_CHANGE_LEVEL,c:GetLevel()) end
+--[[relic-hint]] Duel.SpecialSummonStep(t,0,p,p,false,false,POS_FACEUP_ATTACK) Duel.SpecialSummonComplete()''',
+   f'Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard({machine},0,LOCATION_MZONE,0,1,nil)'))
+ elif key=='ghost_destruction':
+  # Kycoo the Ghost Destroyer's effect for every monster you control, 1 monster from either GY.
+  ghost='function(c) return c:IsMonster() and c:IsAbleToRemove() end'
+  out.append(event('EVENT_BATTLE_DAMAGE',f'local g=Duel.GetMatchingGroup({ghost},0,LOCATION_GRAVE,LOCATION_GRAVE,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_REMOVE) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] Duel.Remove(s,POS_FACEUP,REASON_EFFECT) end',
+   f'ep==1 and Duel.IsExistingMatchingCard({ghost},0,LOCATION_GRAVE,LOCATION_GRAVE,1,nil)'))
+ elif key=='omni_banishment':
+  out.append(phase('STANDBY','local g=Duel.GetMatchingGroup(Card.IsAbleToRemove,0,LOCATION_DECK,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_REMOVE) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] Duel.Remove(s,POS_FACEUP,REASON_EFFECT) end Duel.ShuffleDeck(0)',
+   'Duel.IsExistingMatchingCard(Card.IsAbleToRemove,0,LOCATION_DECK,0,1,nil)'))
+ elif key=='dimensional_rift':
+  # Macro Cosmos's rule for both players, from the start of the Duel.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_TO_GRAVE_REDIRECT) e:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE) e:SetTargetRange(0xff,0xff) e:SetValue(LOCATION_REMOVED) Duel.RegisterEffect(e,0) end')
+ elif key=='spell_provider':
+  holder='function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end'
+  out.append(phase('STANDBY',f'local g=Duel.GetMatchingGroup({holder},0,LOCATION_ONFIELD,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] s:GetFirst():AddCounter(COUNTER_SPELL,1) end',
+   f'Duel.IsExistingMatchingCard({holder},0,LOCATION_ONFIELD,0,1,nil)'))
+ elif key=='cursed_restock':pass # Shop only: campaign_expansion.reroll_price and buy.
  return '\n'.join(out)
 
 def ominous_clock(run,hint=''):

@@ -1,3 +1,4 @@
+import {partnerSleeve} from './sleeves.js';
 import {phaseCheckpoint} from './state-update.js';
 import {validEmote,showDuelEmote,clearDuelEmotes} from './duel-emotes.js';
 import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
@@ -19,8 +20,8 @@ const hex=bytes=>Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
 export class TagSession {
- constructor({endpoint,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
-  Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
+ constructor({endpoint,sleeve=null,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
+  this.sleeve=sleeve;this.partnerSleeve=null;Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
   this.contentHash=contentHash(content);
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
@@ -68,7 +69,7 @@ export class TagSession {
    this.onStatus(state,detail);
   }
  }
- async greeting(answer=false){return {kind:'hello',answer,character:this.character,variant:this.variant,profile:this.profile,version:PROTOCOL,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}}}
+ async greeting(answer=false){return {kind:'hello',answer,sleeve:this.sleeve,character:this.character,variant:this.variant,profile:this.profile,version:PROTOCOL,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}}}
  async receive(message){
   if(message.kind==='partner-left-ack'){if(message.id===this.exitNotice?.id)this.exitNotice.resolve();return}
   if(message.kind==='partner-left'){
@@ -78,6 +79,8 @@ export class TagSession {
    this.onAbandoned();return;
   }
   if(message.kind==='hello'){
+   // The partner's card sleeve (sleeves.js), checked against the profile they sent; a cosmetic, never stored.
+   this.partnerSleeve=partnerSleeve(this.content,message);
    if(message.version!==PROTOCOL||message.contentHash!==await this.contentHash)throw Error('These tag versions or card collections are incompatible. Update both players to the same version.');
    // A socket can die without the hub or the partner noticing, so only the returning side says hello. The answer goes
    // first: this client's view must not overtake the handshake it is waiting for.

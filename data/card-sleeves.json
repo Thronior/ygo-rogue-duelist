@@ -1,0 +1,599 @@
+{
+ "note": "Card-art sleeves (2026-11-12). Rules are read by sleeve_progress.py; art by tools/generate_card_sleeves.cjs.",
+ "sleeves": [
+  {
+   "id": "blue-eyes-ultimate-dragon",
+   "art": "Blue-Eyes Ultimate Dragon",
+   "text": "Win a duel while you control Blue-Eyes Ultimate Dragon.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Blue-Eyes Ultimate Dragon"
+    ]
+   },
+   "card": 23995346
+  },
+  {
+   "id": "gate-guardian",
+   "art": "Gate Guardian",
+   "text": "Win a duel while you control Gate Guardian.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Gate Guardian"
+    ]
+   },
+   "card": 25833572
+  },
+  {
+   "id": "five-headed-dragon",
+   "art": "Five-Headed Dragon",
+   "text": "Win a duel while you control Five-Headed Dragon.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Five-Headed Dragon"
+    ]
+   },
+   "card": 99267150
+  },
+  {
+   "id": "exodia-necross",
+   "art": "Exodia Necross",
+   "text": "Win a duel while you control Exodia Necross.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Exodia Necross"
+    ]
+   },
+   "card": 12600382
+  },
+  {
+   "id": "dark-magician-of-chaos",
+   "art": "Dark Magician of Chaos",
+   "text": "Win a duel while you control Dark Magician of Chaos.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Dark Magician of Chaos"
+    ]
+   },
+   "card": 40737112
+  },
+  {
+   "id": "horus-the-black-flame-dragon-lv8",
+   "art": "Horus the Black Flame Dragon LV8",
+   "text": "Win a duel while you control Horus the Black Flame Dragon LV8.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Horus the Black Flame Dragon LV8"
+    ]
+   },
+   "card": 48229808
+  },
+  {
+   "id": "ultimate-insect-lv7",
+   "art": "Ultimate Insect LV7",
+   "text": "Win a duel while you control Ultimate Insect LV7.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Ultimate Insect LV7"
+    ]
+   },
+   "card": 19877898
+  },
+  {
+   "id": "obelisk-the-tormentor",
+   "art": "Obelisk the Tormentor",
+   "text": "Tribute Summon a monster using 3 Tributes.",
+   "rule": {
+    "kind": "duel",
+    "key": "tribute3",
+    "min": 1
+   },
+   "card": 10000000
+  },
+  {
+   "id": "slifer-the-sky-dragon",
+   "art": "Slifer the Sky Dragon",
+   "text": "Win a duel holding 7 or more cards in your hand.",
+   "rule": {
+    "kind": "win",
+    "key": "hand",
+    "min": 7
+   },
+   "card": 10000020
+  },
+  {
+   "id": "the-winged-dragon-of-ra",
+   "art": "The Winged Dragon of Ra",
+   "text": "Control 3 Divine-Beast monsters with different names at the same time.",
+   "rule": {
+    "kind": "duel",
+    "key": "divine",
+    "min": 3
+   },
+   "card": 10000010
+  },
+  {
+   "id": "exodia-the-forbidden-one",
+   "art": "Exodia the Forbidden One",
+   "text": "Win a duel by assembling Exodia the Forbidden One.",
+   "rule": {
+    "kind": "win",
+    "key": "winReason",
+    "equals": 16
+   },
+   "card": 33396948
+  },
+  {
+   "id": "dark-magician-girl",
+   "art": "Dark Magician Girl",
+   "text": "Win a duel while you control Dark Magician and Dark Magician Girl.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Dark Magician",
+     "Dark Magician Girl"
+    ]
+   },
+   "card": 38033121
+  },
+  {
+   "id": "black-luster-soldier-envoy-of-the-beginning",
+   "art": "Black Luster Soldier - Envoy of the Beginning",
+   "text": "Banish 50 LIGHT and 50 DARK monsters (across runs).",
+   "rule": {
+    "kind": "lifetime_all",
+    "keys": {
+     "lightBanished": 50,
+     "darkBanished": 50
+    }
+   },
+   "card": 72989439
+  },
+  {
+   "id": "chaos-emperor-dragon-envoy-of-the-end",
+   "art": "Chaos Emperor Dragon - Envoy of the End",
+   "text": "Destroy 5 or more cards your opponent controls with one card effect.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestOneEffect",
+    "min": 5
+   },
+   "card": 82301904
+  },
+  {
+   "id": "summoned-skull",
+   "art": "Summoned Skull",
+   "text": "Deal 5,000 or more battle damage with one attack.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestHit",
+    "min": 5000
+   },
+   "card": 70781052
+  },
+  {
+   "id": "harpie-lady-sisters",
+   "art": "Harpie Lady Sisters",
+   "text": "Control 3 monsters with the same name at the same time.",
+   "rule": {
+    "kind": "duel",
+    "key": "sameName",
+    "min": 3
+   },
+   "card": 12206212
+  },
+  {
+   "id": "black-skull-dragon",
+   "art": "Black Skull Dragon",
+   "text": "Win a duel by turn 3.",
+   "rule": {
+    "kind": "win",
+    "key": "turn",
+    "max": 3
+   },
+   "card": 11901678
+  },
+  {
+   "id": "raigeki",
+   "art": "Raigeki",
+   "text": "Destroy 5 of your opponent's monsters in one turn.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestTurnMonsters",
+    "min": 5
+   },
+   "card": 12580477
+  },
+  {
+   "id": "heavy-storm",
+   "art": "Heavy Storm",
+   "text": "Destroy 5 Spells or Traps in one turn.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestTurnSpells",
+    "min": 5
+   },
+   "card": 19613556
+  },
+  {
+   "id": "mirror-force",
+   "art": "Mirror Force",
+   "text": "Destroy 3 or more monsters with one Trap Card.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestMirror",
+    "min": 3
+   },
+   "card": 44095762
+  },
+  {
+   "id": "magic-cylinder",
+   "art": "Magic Cylinder",
+   "text": "Deal 8,000 or more effect damage in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "effectDamage",
+    "min": 8000
+   },
+   "card": 62279055
+  },
+  {
+   "id": "change-of-heart",
+   "art": "Change of Heart",
+   "text": "Deal the final blow with your opponent's own monster.",
+   "rule": {
+    "kind": "win",
+    "key": "stolenFinish",
+    "min": 1
+   },
+   "card": 4031928
+  },
+  {
+   "id": "meteor-black-dragon",
+   "art": "Meteor Black Dragon",
+   "text": "Win a duel by 7,000 or more overkill.",
+   "rule": {
+    "kind": "win",
+    "key": "overkill",
+    "min": 7000
+   },
+   "card": 90660762
+  },
+  {
+   "id": "big-shield-gardna",
+   "art": "Big Shield Gardna",
+   "text": "Win 3 duels in a row without taking any damage.",
+   "rule": {
+    "kind": "streak",
+    "min": 3
+   },
+   "card": 65240384
+  },
+  {
+   "id": "swords-of-revealing-light",
+   "art": "Swords of Revealing Light",
+   "text": "Win a duel with 100 LP or less.",
+   "rule": {
+    "kind": "win",
+    "key": "lp",
+    "max": 100
+   },
+   "card": 72302403
+  },
+  {
+   "id": "pot-of-greed",
+   "art": "Pot of Greed",
+   "text": "Draw 30 cards in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "draws",
+    "min": 30
+   },
+   "card": 55144522
+  },
+  {
+   "id": "card-of-sanctity",
+   "art": "Card of Sanctity",
+   "text": "Win a duel with 0 cards left in your Deck.",
+   "rule": {
+    "kind": "win",
+    "key": "deck",
+    "max": 0
+   },
+   "card": 42664989
+  },
+  {
+   "id": "necrovalley",
+   "art": "Necrovalley",
+   "text": "Win a duel with an empty Graveyard.",
+   "rule": {
+    "kind": "win",
+    "key": "grave",
+    "max": 0
+   },
+   "card": 47355498
+  },
+  {
+   "id": "banisher-of-the-light",
+   "art": "Banisher of the Light",
+   "text": "Banish 20 cards in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "banished",
+    "min": 20
+   },
+   "card": 61528025
+  },
+  {
+   "id": "scapegoat",
+   "art": "Scapegoat",
+   "text": "Control 5 Tokens at once.",
+   "rule": {
+    "kind": "duel",
+    "key": "tokens",
+    "min": 5
+   },
+   "card": 73915051
+  },
+  {
+   "id": "toon-world",
+   "art": "Toon World",
+   "text": "Control 3 face-up Toon monsters at once.",
+   "rule": {
+    "kind": "duel",
+    "key": "toons",
+    "min": 3
+   },
+   "card": 15259703
+  },
+  {
+   "id": "destiny-board",
+   "art": "Destiny Board",
+   "text": "Win a duel with Destiny Board.",
+   "rule": {
+    "kind": "win",
+    "key": "winReason",
+    "equals": 21
+   },
+   "card": 94212438
+  },
+  {
+   "id": "barrel-dragon",
+   "art": "Barrel Dragon",
+   "text": "Win 5 coin tosses in a row in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "bestCoinStreak",
+    "min": 5
+   },
+   "card": 81480460
+  },
+  {
+   "id": "jinzo",
+   "art": "Jinzo",
+   "text": "Win a run without activating a Trap Card.",
+   "rule": {
+    "kind": "run",
+    "key": "no_traps"
+   },
+   "card": 77585513
+  },
+  {
+   "id": "monster-reborn",
+   "art": "Monster Reborn",
+   "text": "Special Summon 100 monsters from the Graveyard (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "graveSpecials",
+    "min": 100
+   },
+   "card": 83764718
+  },
+  {
+   "id": "polymerization",
+   "art": "Polymerization",
+   "text": "Fusion Summon 50 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "fusion",
+    "min": 50
+   },
+   "card": 24094653
+  },
+  {
+   "id": "relinquished",
+   "art": "Relinquished",
+   "text": "Ritual Summon 50 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "ritual",
+    "min": 50
+   },
+   "card": 64631466
+  },
+  {
+   "id": "buster-blader",
+   "art": "Buster Blader",
+   "text": "Destroy 100 Dragon monsters by battle (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "dragonsByBattle",
+    "min": 100
+   },
+   "card": 78193831
+  },
+  {
+   "id": "time-wizard",
+   "art": "Time Wizard",
+   "text": "Win the Time Wizard toss 10 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "timeWizardWins",
+    "min": 10
+   },
+   "card": 71625222
+  },
+  {
+   "id": "jar-of-greed",
+   "art": "Jar of Greed",
+   "text": "Earn 10,000 coins (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "coins",
+    "min": 10000
+   },
+   "card": 83968380
+  },
+  {
+   "id": "morphing-jar",
+   "art": "Morphing Jar",
+   "text": "Reroll the shop 100 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "rerolls",
+    "min": 100
+   },
+   "card": 33508719
+  },
+  {
+   "id": "kuriboh",
+   "art": "Kuriboh",
+   "text": "Win the Tutorial Duel.",
+   "rule": {
+    "kind": "mark",
+    "key": "tutorial"
+   },
+   "card": 40640057
+  },
+  {
+   "id": "gemini-elf",
+   "art": "Gemini Elf",
+   "text": "Win a Tag run.",
+   "rule": {
+    "kind": "run",
+    "key": "tag"
+   },
+   "card": 69140098
+  },
+  {
+   "id": "gaia-the-fierce-knight",
+   "art": "Gaia The Fierce Knight",
+   "text": "Win a Draft Duel.",
+   "rule": {
+    "kind": "mark",
+    "key": "draft"
+   },
+   "card": 6368038
+  },
+  {
+   "id": "spirit-reaper",
+   "art": "Spirit Reaper",
+   "text": "Win a run on Challenge Level -1.",
+   "rule": {
+    "kind": "run",
+    "key": "level_minus_one"
+   },
+   "card": 23205979
+  },
+  {
+   "id": "xyz-dragon-cannon",
+   "art": "XYZ-Dragon Cannon",
+   "text": "Make 10 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 10
+   },
+   "card": 91998119
+  },
+  {
+   "id": "dark-ruler-ha-des",
+   "art": "Dark Ruler Ha Des",
+   "text": "Reach Loop 3 in a run.",
+   "rule": {
+    "kind": "run",
+    "key": "loop3"
+   },
+   "card": 53982768
+  },
+  {
+   "id": "twin-headed-thunder-dragon",
+   "art": "Twin-Headed Thunder Dragon",
+   "text": "Win runs with 2 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 2
+   },
+   "card": 54752875
+  },
+  {
+   "id": "valkyrion-the-magna-warrior",
+   "art": "Valkyrion the Magna Warrior",
+   "text": "Win runs with 5 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 5
+   },
+   "card": 75347539
+  },
+  {
+   "id": "cosmo-queen",
+   "art": "Cosmo Queen",
+   "text": "Win runs with 10 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 10
+   },
+   "card": 38999506
+  },
+  {
+   "id": "dark-paladin",
+   "art": "Dark Paladin",
+   "text": "Win runs with 15 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 15
+   },
+   "card": 98502113
+  },
+  {
+   "id": "dark-magician-knight",
+   "art": "Dark Magician Knight",
+   "text": "Win runs with 20 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 20
+   },
+   "tier": "bronze",
+   "card": 50725996
+  },
+  {
+   "id": "blue-eyes-shining-dragon",
+   "art": "Blue-Eyes Shining Dragon",
+   "text": "Win runs with 30 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 30
+   },
+   "tier": "silver",
+   "card": 53347303
+  },
+  {
+   "id": "dragon-master-knight",
+   "art": "Dragon Master Knight",
+   "text": "Win runs with 36 different duelists.",
+   "rule": {
+    "kind": "duelists",
+    "min": 36
+   },
+   "tier": "gold",
+   "card": 62873545
+  }
+ ]
+}

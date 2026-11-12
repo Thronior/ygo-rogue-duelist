@@ -1,14 +1,28 @@
 const KEY='shadow-run-mobile';
 let database;
-function open(){return database ||= new Promise((resolve,reject)=>{
- const request=indexedDB.open('ygo-rogue-saves',1);
- request.onupgradeneeded=()=>request.result.createObjectStore('saves');
- request.onsuccess=()=>{const db=request.result;db.onversionchange=()=>{db.close();database=undefined;};resolve(db);};request.onerror=()=>{database=undefined;reject(request.error);};
-});}
-async function transaction(mode,operation){const db=await open();return new Promise((resolve,reject)=>{
+function open(){
+ if(database)return database;
+ const current=database=new Promise((resolve,reject)=>{
+  const request=indexedDB.open('ygo-rogue-saves',1);
+  request.onupgradeneeded=()=>request.result.createObjectStore('saves');
+  // onclose: Chrome reports a connection the browser closed; forget it so the next save opens a new one.
+  request.onsuccess=()=>{const db=request.result;db.onversionchange=()=>{db.close();if(database===current)database=undefined;};db.onclose=()=>{if(database===current)database=undefined;};resolve(db);};
+  request.onerror=()=>{if(database===current)database=undefined;reject(request.error);};
+ });
+ return current;
+}
+// The browser can close a connection it handed out (iOS Safari does when the tab sits in the background or memory
+// runs short: "The database connection is closing", seen on itch.io 2026-11-12). Drop it and open a fresh one.
+async function drop(){const pending=database;database=undefined;try{(await pending)?.close();}catch{}}
+function once(mode,operation){return open().then(db=>new Promise((resolve,reject)=>{
  const tx=db.transaction('saves',mode),request=operation(tx.objectStore('saves'));
  tx.oncomplete=()=>resolve(request.result);tx.onerror=()=>reject(tx.error||request.error||Error('Could not access game saves.'));tx.onabort=()=>reject(tx.error||Error('Save interrupted'));
-});}
+}));}
+// One quiet retry on a fresh connection before anything is shown; a full device is not retried.
+async function transaction(mode,operation){
+ try{return await once(mode,operation);}
+ catch(error){if(error?.name==='QuotaExceededError')throw error;await drop();return once(mode,operation);}
+}
 export function validateSave(text){
  const files=JSON.parse(text);if(!files||Array.isArray(files)||typeof files!=='object')throw Error('Not a game save backup.');
  for(const [name,value] of Object.entries(files)){
@@ -21,7 +35,7 @@ export function validateSave(text){
 export const webStorage={
  async load(){const saved=await transaction('readonly',s=>s.get(KEY));if(saved!==undefined)return saved;
   const legacy=localStorage.getItem(KEY);if(legacy){validateSave(legacy);await this.store(legacy);return legacy;}return '{}';},
- async store(text){try{await transaction('readwrite',s=>s.put(text,KEY));return true;}catch(error){const pending=database;database=undefined;try{(await pending)?.close();}catch{}throw new Error(storageError(error),{cause:error});}},
+ async store(text){try{await transaction('readwrite',s=>s.put(text,KEY));return true;}catch(error){await drop();throw new Error(storageError(error),{cause:error});}},
  async saveGame(text){try{return await this.store(text);}catch(error){return recoverSave(text,error);}}
 };
 

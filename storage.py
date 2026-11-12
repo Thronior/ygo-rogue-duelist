@@ -60,7 +60,16 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),autoPlacement=bool(p.get('autoPlacement',False)),reduceMotion=bool(p.get('reduceMotion',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram') else '',textSize=bounded('textSize',100,50,150),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),autoPlacement=bool(p.get('autoPlacement',False)),reduceMotion=bool(p.get('reduceMotion',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),sleeve=sleeve_setting(p.get('sleeve')))
+
+
+def sleeve_setting(value):
+ """A duelist sleeve (character index), a card sleeve id (data/card-sleeves.json) or -1 for the normal back."""
+ import re
+ if isinstance(value,bool):return -1
+ if isinstance(value,int):return value if 0<=value<=999 else -1
+ if isinstance(value,str) and re.fullmatch(r'[a-z0-9-]{1,64}',value):return int(value) if value.isdigit() else value
+ return -1
 
 
 def migrate_previous_install():

@@ -703,13 +703,15 @@ class TagCampaign:
 
    return
 
-  if action in ('cursed-choose','cursed-reroll'):
+  if action in ('cursed-choose','cursed-reroll','cursed-skip'):
 
    if self.phase!='shop' or seat!=0:raise ValueError('The host chooses the shared boss relic.')
 
    with self.scope(seat):
 
     if action=='cursed-choose':cursed_relics.choose(run,value,self.rng)
+
+    elif action=='cursed-skip':cursed_relics.skip(run,self.rng)
 
     else:cursed_relics.reroll(run,self.rng)
 

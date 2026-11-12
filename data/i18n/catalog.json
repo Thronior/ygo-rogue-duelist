@@ -14221,7 +14221,7 @@
  },
  {
   "group": "relic",
-  "en": "Earn 40 additional coins after each boss victory.",
+  "en": "You can select a second cursed relic after each boss fight.",
   "kind": "exact",
   "ctx": "relic effect (champion_trophy)"
  },
@@ -22546,5 +22546,191 @@
   "en": "PERMANENT CURSE",
   "kind": "exact",
   "ctx": "relic-inspect.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a second cursed relic",
+  "kind": "exact",
+  "ctx": "mobile.js, tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Champion Trophy: choose 1 more, or skip it.",
+  "kind": "exact",
+  "ctx": "mobile.js, tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Skip second relic",
+  "kind": "exact",
+  "ctx": "mobile.js, tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a third cursed relic",
+  "kind": "exact",
+  "ctx": "mobile.js, tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Skip third relic",
+  "kind": "exact",
+  "ctx": "mobile.js, tag-ui.js"
+ },
+ {
+  "group": "relic",
+  "en": "All cards that would be sent to the GY are banished instead.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "All cards that would be sent to the GY are banished instead. This relic appears less often than other relics.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Anime Rule #3",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "Coin Reward Pop-ups",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Cursed Restock",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "Cursed Restock: you can only buy one item per reroll.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Dimensional Rift",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Ghost Destruction",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "If a monster you control inflicts battle damage to your opponent: You can target 1 monster in your or your opponent's GY; banish it.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "LOCKED",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Machine Duplication",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Omni Banishment",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase, you can target 1 Machine monster you control: Special Summon 1 Clone Token in Attack Position with half that monster's ATK and DEF (rounded down).",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase, you can banish 1 card from your Deck.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase, you can place 1 Spell Counter on a card you control that can hold a Spell Counter.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Spell Provider",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "The \"+15 Tribute Summon\" texts for each way you earned coins in a duel. Coin spins and bursts stay.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "Typhoon",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "You can Normal Summon or Set Level 5 or higher monsters without Tributing.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "You can Normal Summon or Set Level 5 or higher monsters without Tributing. Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "You can only buy one item per reroll.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "You get 2 free rerolls per shop.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "relic",
+  "en": "You get 2 free rerolls per shop. You can only buy one item per reroll.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "A coin-toss gambling deck that redoes its unlucky tosses.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-12"
  }
 ]

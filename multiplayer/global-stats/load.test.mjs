@@ -14,15 +14,16 @@ try{
   const responses=await Promise.all(group.map((b,i)=>post(b,'client'+i)));assert(responses.every(r=>r.status===200));
   const after=rowWrites;const retries=await Promise.all(group.map((b,i)=>post(b,'client'+i)));assert(retries.every(r=>r.status===200));assert.equal(rowWrites,after,'duplicates do not write');
  }
- let total=await get();assert.equal(total.seconds,7201000);assert.equal(total.duels,12020);assert.equal(total.wins,6015);assert.equal(total.losses,6005);assert.equal(total.firstTimePlayers,1123);assert.equal(total.since,'original');assert.equal(rowWrites-baselineWrites,36000,'three stored keys per new batch');
+ let total=await get();assert.equal(total.seconds,7201000);assert.equal(total.duels,12020);assert.equal(total.wins,6015);assert.equal(total.losses,6005);assert.equal(total.firstTimePlayers,1123);assert.equal(total.since,'original');assert.equal(rowWrites-baselineWrites,24000,'two stored keys per new batch (receipt slot and total), was three plus two deletes');
  const unchanged=rowWrites;for(let i=0;i<20;i++)await get();await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'empty');assert.equal(rowWrites,unchanged);
  worker=new GlobalStats({storage,blockConcurrencyWhile:fn=>fn()});await worker.ready;assert.equal(rowWrites,unchanged);assert.equal((await post(batches[0],'restart')).status,200);assert.equal(rowWrites,unchanged);
- // No live-receipt scan; an early/spurious alarm reads only the next expiry.
- listed=0;await worker.alarm();assert.equal(listed,1);assert.equal(deleted,0);
- now=batches[0].expiresAt;listed=0;await worker.alarm();assert.equal(deleted,1024);assert(listed<=513,'cleanup reads at most 512 expired rows plus next expiry');assert(alarm>=now+60000);
- await worker.alarm();assert.equal(deleted,2000,'all first-interval receipts removed, future receipts retained');
+ // No live-receipt scan; an early/spurious alarm reads only the next slot.
+ const slots=()=>[...data.keys()].filter(k=>k.startsWith('rcpt:')).length,live=slots();assert(live<=12,'12,000 receipts in at most 12 rows');
+ listed=0;await worker.alarm();assert(listed<=2);assert.equal(deleted,0);
+ // Once the first interval has expired (its whole slot), cleanup deletes that one row and keeps the rest.
+ now=batches[0].expiresAt+600000;listed=0;await worker.alarm();assert.equal(deleted,1,'one row per expired slot');assert.equal(slots(),live-1);assert(alarm>=now+60000);
  assert.equal((await post(batches[0],'expired')).status,400);assert.deepEqual(await get(),total);
  for(let i=0;i<30;i++)assert.equal((await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'rate')).status,200);
  assert.equal((await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'rate')).status,429);
- console.log('PASS 1,000 simulated clients / 2 hours: 12,000 contributions + 12,000 retries; exact totals, 36,000 key writes, zero duplicate writes; cleanup capped at 512 receipts per alarm, no live-table scans; restart, expiry, empty uploads and rate limit');
+ console.log('PASS 1,000 simulated clients / 2 hours: 12,000 contributions + 12,000 retries; exact totals, 24,000 key writes (was 36,000 + 24,000 deletes), zero duplicate writes; one cleanup delete per 10-minute slot, no live-table scans; restart, expiry, empty uploads and rate limit');
 }finally{Date.now=realNow}

@@ -75,7 +75,8 @@ assert tally["Glass Shard"] > 0 and total == tally["Glass Shard"] * 2
 run["round"] = 2
 run["artifacts"].append("champion_trophy")
 tally2, _ = g.rewards(run, [])
-assert tally2["Champion Trophy"] == ART_INFO["champion_trophy"]["amount"]
+assert "Champion Trophy" not in tally2  # it grants a second cursed relic pick now, no boss coins
+assert ART_INFO["champion_trophy"]["effect"] == "cursed_pick"
 run2 = g.new_run(1, random.Random(5))
 g.auto_deck(run2)
 run2.update(artifacts=["magic_mirror", "urn"], mirror_copy="urn")

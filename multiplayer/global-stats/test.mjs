@@ -13,8 +13,10 @@ assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{wins:1}})).statu
 assert.equal((await get()).firstTimePlayers,124,'baseline added once');
 assert.equal((await worker.fetch(new Request('https://example/v1/stats',{method:'POST',body:'{}'}))).status,426);
 for(const patch of [{counts:{seconds:-1}},{counts:{seconds:0.5}},{counts:{seconds:1,deviceId:'x'}},{expiresAt:Date.now()-1},{id:'legacy-device'},{batchId:"'; DROP TABLE total; --"},{counts:{seconds:"1; DELETE FROM total"}},{counts:JSON.parse('{"__proto__":1}')}])assert.equal((await post({...batch,batchId:id(),...patch})).status,400);
-assert.equal(data.get('batch:'+batch.batchId),expiry,'receipt contains expiry only');
-data.set('batch:expired',Date.now()-1);data.set('expiry:'+String(Date.now()-1).padStart(16,'0')+':expired','batch:expired');await worker.alarm();assert(!data.has('batch:expired'));assert(data.has('batch:'+batch.batchId));assert(![...data.keys()].some(k=>k.startsWith('client:')));
+const slot='rcpt:'+String(Math.floor(expiry/600000)).padStart(12,'0');assert(data.get(slot).includes(batch.batchId.replace(/-/g,'')),'receipt is the batch id in its expiry slot');assert(!data.has('batch:'+batch.batchId),'no per-batch receipt row');
+// Receipts written by the previous version still stop a retry until they expire.
+const legacy=id();data.set('batch:'+legacy,expiry);{const w=writes;assert.equal((await post({batchId:legacy,expiresAt:expiry,counts:{runs:5}})).status,200);assert.equal(writes,w,'legacy receipt honoured')}
+data.set('batch:expired',Date.now()-1);data.set('expiry:'+String(Date.now()-1).padStart(16,'0')+':expired','batch:expired');data.set('rcpt:000000000001',['old']);await worker.alarm();assert(!data.has('batch:expired'));assert(!data.has('rcpt:000000000001'),'expired slot deleted');assert(data.has(slot),'live slot kept');assert(![...data.keys()].some(k=>k.startsWith('client:')));
 let pulls=0,cancelled=false;const stream=new ReadableStream({pull(c){pulls++;c.enqueue(new Uint8Array(1100))},cancel(){cancelled=true}});assert.equal((await worker.fetch(new Request('https://example/v2/stats',{method:'POST',body:stream,duplex:'half'}))).status,413);assert(cancelled&&pulls<=6);
 // Character Stats: finished runs per character and challenge level, counted once per batch.
 assert.deepEqual((await get()).results,{});assert.equal((await get()).resultsSince,null);

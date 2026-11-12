@@ -90,7 +90,7 @@ def fuse(run):
     choice_relics.clear_weight(run,p)
    if run.get('mirror_copy')==p:run.pop('mirror_copy',None)
   made.append(dict(relic=key,pieces=owned))
- if made:run.setdefault('fusion_events',[]).extend(made)
+ if made:run.setdefault('fusion_events',[]).extend(made);run['sleeve_relic_fusions']=int(run.get('sleeve_relic_fusions',0) or 0)+len(made)
  return made
 
 def greed_free_relic(run,rng):

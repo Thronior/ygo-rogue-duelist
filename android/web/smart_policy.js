@@ -954,6 +954,38 @@ export function smartContext(e,p,L,prompt=null){
  function lpCost(c){const cost=LP_COST.exec(e.cards.get(c?.code)?.desc||'');return cost?Number(cost[1].replaceAll(',','')):0;}
  function lethalCost(c){return !remedyRelic&&lpCost(c)>=e.lp[p];}
  // Standby Phase upkeep ("pay 700 LP or destroy this card", Archfiends' "pays 500"): declining only costs the card.
+ // Second Coin Toss (Sid T3 review, 2026-11-12): the toss's result reaches us before the redo prompt (duel.js lastCoin).
+ // Redo only a toss that went against us: the card's own success rule, or our own call for a called toss.
+ const coinRedoReady=()=>back.some(x=>face(x)&&!x.is_disabled&&name(x)==='Second Coin Toss')&&e.coinRedoTurn?.[p]!==e.turn;
+ // Gambler of Legend's 1 head destroys one of our own cards: it took Ms. Judge over the spent Gambler itself (Sid T3
+ // review, 2026-11-12). The cheapest card goes: the Gambler, then a spare Lucky Chance or Second Coin Toss, then the
+ // weakest monster or Set card.
+ function ownLossPick(cards,source){
+  const value=c=>{const n=name(c);
+   if(source&&c.code===source.code&&(source.sequence===undefined||c.sequence===source.sequence))return 0;
+   if(n==='Lucky Chance')return 200;
+   if(n==='Second Coin Toss')return hand.some(x=>name(x)===n)||back.filter(x=>face(x)&&name(x)===n).length>1?300:1500;
+   if(data(c).type&1)return Math.max(300,atk(c));
+   return face(c)?600:700};
+  let best=0;cards.forEach((c,i)=>{if(value(c)<value(cards[best]))best=i});return best;
+ }
+ function coinRedo(toss,call){
+  if(!toss||toss.player!==p||toss.turn!==e.turn)return false;
+  const results=toss.results||[],heads=results.filter(Boolean).length,card=name({code:toss.code});
+  if(results.length===1&&call&&call.turn===e.turn&&call.code===toss.code)return (heads===1)!==call.heads;
+  if(['Gambler of Legend','Blowback Dragon','Twin-Barrel Dragon','Ms. Judge'].includes(card))return heads<2;
+  return heads*2<results.length;
+ }
+ // Fairy Box's 500 LP upkeep (user, 2026-11-12): keep paying, unless the CPU has had the better board at two of its
+ // Standby Phases in a row. Better board: its strongest monster beats every monster the opponent shows. The streak is
+ // kept on the engine, counted once per turn, and only reset while Fairy Box asks.
+ function releaseUpkeep(code){
+  if(name({code})!=='Fairy Box')return false;
+  const ahead=own.length>0&&Math.max(...own.map(atk))>Math.max(0,...enemy.map(power));
+  const seen=e.fairyBoxStreak||{turn:-1,count:0};
+  if(seen.turn!==e.turn)e.fairyBoxStreak={turn:e.turn,count:ahead?seen.count+1:0};
+  return e.fairyBoxStreak.count>=2;
+ }
  function lethalUpkeep(code){const cost=/\bpay(?:s|ing)?\s+([\d,]+)\s*(?:LP|Life Points)/i.exec(e.cards.get(code)?.desc||'');return !remedyRelic&&!!cost&&Number(cost[1].replaceAll(',',''))>=e.lp[p];}
  // Tower of Babel (user request 2026-11-11). Each Spell Card activated while it is face-up adds a counter when that
  // Spell resolves, and whoever activated the Spell that makes the 4th takes 3000. A chain resolves backwards, so
@@ -1486,6 +1518,23 @@ export function smartContext(e,p,L,prompt=null){
    return net>0?60:-1;
   }
   if(n==='Wasteland')return own.filter(x=>face(x)&&['Dinosaur','Zombie','Rock'].includes(race(x))).length>enemy.filter(x=>face(x)&&['Dinosaur','Zombie','Rock'].includes(race(x))).length?60:-1;
+  // Coin cards (Sid T3 review, 2026-11-12). A face-up Second Coin Toss not yet used this turn redoes our bad toss
+  // (coinRedo), so a 50% toss becomes 75%.
+  // Second Coin Toss had no rule and was never activated (869 offers, 0 uses in 50 duels). One face-up copy is enough:
+  // its redo is once per turn per player. 82 puts it among the planned plays (duel.js idle: 80+ go by score, lower ones
+  // by hand order), so it lands before a Cup of Ace that wants its redo.
+  if(n==='Second Coin Toss')return back.some(x=>face(x)&&name(x)===n)?-1:82;
+  // Cup of Ace: played (holding it was 4 wins worse in 50 duels), after any Second Coin Toss in hand. Never with fewer than 3 cards left in our Deck.
+  if(n==='Cup of Ace')return myDeck<3?-1:coinRedoReady()?60:40;
+  // Gambler of Legend: 3 heads destroy all their monsters, 2 discard a random card from their hand, 1 destroys one of
+  // our cards, 0 discards our hand. Use it only when that gamble is worth it on this board.
+  if(n==='Gambler of Legend'){
+   const redo=coinRedoReady(),p3=redo?3/16:1/8,p2=redo?9/16:3/8,p1=redo?3/16:3/8,p0=redo?1/16:1/8;
+   const sweep=enemy.reduce((v,x)=>v+(face(x)?Math.max(500,atk(x)):1000),0),discard=q(1-p,L.HAND).length?600:0;
+   const ownLoss=Math.min(...[...own,...back].map(x=>same(x,c)?400:(data(x).type&1)?Math.max(400,atk(x)):500));
+   const value=p3*sweep+p2*discard-p1*ownLoss-p0*500*hand.length;
+   return value>150?70:-1;
+  }
   if(n==='Card Destruction'||n==='Morphing Jar')return hand.length<3&&optionalDrawSafe(Math.max(1,hand.length))?60:-1;
   if(n==='Delinquent Duo')return e.lp[p]>2000&&q(1-p,L.HAND).length>=2?92:-1;
   if(n==='Confiscation'||n==='The Forceful Sentry')return e.lp[p]>(n==='Confiscation'?2000:0)&&q(1-p,L.HAND).length?92:-1;
@@ -1946,6 +1995,8 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>!same(x,c)&&face(x)&&race(x)!==race(c))?200:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
     case 'approved_nocturnal_guard':v=e.player!==side?600:0;break;case 'approved_golden_grave':v=-400;break;
+    // Anime Rule #3 (2026-11-12): -1000 ATK/DEF unless that side controls a face-up Field Spell.
+    case 'approved_anime_rule_3':v=q(side,L.SZONE).some(x=>x.sequence===5&&face(x))?0:-1000;break;
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
@@ -1992,6 +2043,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
     case 'approved_crowded_crypt':v=Math.min(750,75*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
+    case 'approved_anime_rule_3':v=q(side,L.SZONE).some(x=>x.sequence===5&&face(x))?0:-1000;break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
     case 'variant_swordsman_oath':v=setMatch(c,0x41)?400:0;break;
     // Fused relics (relic_fusions.py).
@@ -2410,8 +2462,10 @@ if(!effectsEnabled(p))return 0;
   // Jirai Gumo's attack is a coin toss that costs half our LP when lost. A stolen one attacked twice and halved our LP
   // twice for 2200 damage (deck trace, 2026-11-06): attack only for game or when the gain beats the expected loss.
   if(n==='Jirai Gumo'&&enabled(a)&&dmg<e.lp[1-p]){
+   // A ready Second Coin Toss redoes a lost toss, so the loss chance is 1/4, not 1/2 (Sid T3 review, 2026-11-12: two
+   // Jirai Gumo left an empty field unattacked).
    const gain=dmg+(t?(combatPower(a,t)>power(t)?targetValue(t):0):0);
-   if(gain<e.lp[p]/4+500)return -100000;
+   if(gain<e.lp[p]/(coinRedoReady()?8:4)+500)return -100000;
   }
   if(t&&face(t)&&((name(t)==='The Hunter with 7 Weapons'&&(t.position&1))||n==='The Hunter with 7 Weapons')&&combatPower(a,t)<((t.position&1)?combatPower(t,a):(def(t))))return -100000;
   const remembered=t&&e.knownFieldCard?.(p,t),known=t&&(face(t)?t:remembered?{...t,code:remembered}:null);
@@ -2699,5 +2753,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {lethalClear,lpCost,lethalCost,lethalUpkeep,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
 }

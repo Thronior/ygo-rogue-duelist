@@ -1,4 +1,4 @@
-"""Saved, mandatory boss reward offers. Proposed relics remain inactive until approved."""
+"""Saved, mandatory boss reward offers (Champion Trophy adds an optional second pick). Proposed relics remain inactive until approved."""
 from pathlib import Path
 import json,random
 import approved_relics as ar
@@ -17,7 +17,10 @@ def create_offer(run,rng=random):
   offer=run['cursed_offer']
   if all(ar.eligible(run,k) for k in offer['options']):return
   choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
-  if len(choices)>=3:offer['options']=archetype_relics.sample(choices,3,run,rng)
+  # A Champion Trophy second pick keeps its smaller list; a first pick needs a full 3.
+  count=min(len(offer['options']),3) if offer.get('picked') else 3
+  if count and len(choices)>=count:offer['options']=archetype_relics.sample(choices,count,run,rng)
+  elif offer.get('picked'):finish(run,rng)
   else:run.pop('cursed_offer',None)
   return
  choices=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[])]
@@ -28,20 +31,37 @@ def reroll(run,rng=random):
  offer=run.get('cursed_offer')
  if not offer or offer['rerolls_left']<=0:raise ValueError('No cursed-relic reroll remains.')
  eligible=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[]) and k not in offer['options']]
- if len(eligible)<3:raise ValueError('There are not enough different cursed relics to reroll.')
- offer['options']=archetype_relics.sample(eligible,3,run,rng);offer['rerolls_left']-=1
+ count=min(len(offer['options']),3) if offer.get('picked') else 3
+ if len(eligible)<count:raise ValueError('There are not enough different cursed relics to reroll.')
+ offer['options']=archetype_relics.sample(eligible,count,run,rng);offer['rerolls_left']-=1
 
 def choose(run,key,rng=random):
  offer=run.get('cursed_offer')
  if not offer or key not in offer['options'] or key not in approved() or key not in ARTIFACTS:raise ValueError('Choose one of the offered cursed relics.')
  if key in run['artifacts']:raise ValueError('You already own that relic.')
+ # Champion Trophy: each copy owned when the first pick is made (before that pick can fuse one away) allows one
+ # more pick from the same offer. offer['picked'] lists the picks so far; offer['extra_picks'] counts those left.
+ if not offer.get('picked'):offer['extra_picks']=max(ar.copies(run,'champion_trophy'),int(ar.has(run,'champion_trophy')))
+ else:offer['extra_picks']-=1
  run['artifacts'].append(key);run.setdefault('cursed_artifacts',[]).append(key)
  import relic_fusions
  relic_fusions.fuse(run)
  ar.reconcile_turn_order(run)
+ if offer['extra_picks']>0:
+  rest=[k for k in offer['options'] if k!=key and k in ARTIFACTS and ar.eligible(run,k) and k not in run['artifacts']]
+  if rest:offer['options']=rest;offer['picked']=offer.get('picked',[])+[key];return
+ finish(run,rng)
+
+def finish(run,rng=random):
  run.pop('cursed_offer',None)
  import campaign
  campaign.restock(run,rng)
+
+def skip(run,rng=random):
+ """Champion Trophy extra picks are optional; the first pick never is."""
+ offer=run.get('cursed_offer')
+ if not offer or not offer.get('picked'):raise ValueError('Choose a cursed relic before continuing to the shop.')
+ finish(run,rng)
 
 def require_choice(run):
  if pending(run):raise ValueError('Choose a cursed relic before continuing to the shop.')

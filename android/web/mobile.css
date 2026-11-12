@@ -2819,9 +2819,34 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 .duel-look:has(input:checked){border-color:#e8c778}.duel-look:has(input:checked) span{color:#ffe2a3;font-weight:700}
 .duel-look:has(input:focus-visible){outline:2px solid #ffe2a3;outline-offset:2px}
 @media(max-width:520px){.duel-looks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Card sleeves (2026-11-12, sleeves.js): Settings › Display picker and the run end unlock. */
+.set-row.set-sleeves{flex-direction:column;align-items:stretch;cursor:default}
+.set-sleeves .sleeve-count{color:#ffe2a3;font-weight:700}
+.sleeve-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;max-height:min(52vh,420px);overflow-y:auto;padding:2px}
+.sleeve-option{position:relative;display:block;min-width:0;margin:0;padding:0;border:2px solid #53798466;border-radius:7px;overflow:hidden;background:#0c222d;cursor:pointer}
+.sleeve-option input{position:absolute;opacity:0;pointer-events:none}
+.sleeve-option img{display:block;width:100%;aspect-ratio:428/614;object-fit:cover}
+.sleeve-option span{display:block;padding:3px 2px;font-size:10px;line-height:1.2;text-align:center;color:#cfe0e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sleeve-option:has(input:checked){border-color:#e8c778;box-shadow:0 0 8px #e8c77888}.sleeve-option:has(input:checked) span{color:#ffe2a3;font-weight:700}
+.sleeve-option:has(input:focus-visible){outline:2px solid #ffe2a3;outline-offset:2px}
+.sleeve-option.locked{cursor:help}.sleeve-option.locked img{filter:grayscale(1) brightness(.4)}.sleeve-option.locked span{color:#7f939b}
+/* The bronze, silver and gold card sleeves (20/30/36 duelists) shine in the picker only; one transform per tile. */
+.sleeve-option[data-tier]:not(.locked)::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#ffffffa0 50%,transparent 65%);transform:translateX(-130%);animation:sleeve-sheen 3.2s ease-in-out infinite}
+.sleeve-option[data-tier=bronze]:not(.locked){border-color:#d08a50}.sleeve-option[data-tier=silver]:not(.locked){border-color:#e3e9ef}
+.sleeve-option[data-tier=gold]:not(.locked){border-color:#ffd45c;box-shadow:0 0 10px #ffd45c99}.sleeve-option[data-tier=gold]:not(.locked)::after{animation-duration:2.4s}
+.cosmetics{display:flex;flex-direction:column;align-items:stretch;max-width:1080px;margin:0 auto;padding:4px 12px 24px}.cosmetics .set-group{width:100%;margin-bottom:14px}.cosmetics .duel-looks{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.cosmetics .sleeve-picker{max-height:none;overflow:visible}
+@keyframes sleeve-sheen{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@media(prefers-reduced-motion:reduce){.sleeve-option[data-tier]::after{animation:none;display:none}}
+.sleeve-unlock{display:flex;align-items:center;gap:14px;padding:12px 14px;border:2px solid #fff;border-radius:12px;background:#140f2a;box-shadow:0 0 14px #ff8fd6,0 0 6px #9fe8ff;text-align:left}
+.sleeve-unlock img{width:74px;flex:none;aspect-ratio:428/614;border-radius:6px;box-shadow:0 2px 8px #000a}
+.sleeve-unlock h2{margin:2px 0 4px;font:900 24px/1.05 Impact,'Arial Black',sans-serif;text-transform:uppercase;color:#fff}
+.sleeve-unlock p{margin:0;color:#d9d2ff}.sleeve-unlock .sleeve-unlock-eyebrow{font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(100deg,#ff4f8b,#ff9f43,#ffe45c,#5cf08f,#45c8ff,#8f6bff,#ff5fd2,#ff4f8b);-webkit-background-clip:text;background-clip:text;color:transparent}
 .settings-v2 label.duel-look{display:block;width:auto;min-height:0;margin:0;padding:0;background:#0c222d;border-radius:8px;grid-template-columns:none}
 .settings-v2 .duel-look img{margin:0;padding:0;max-width:none;height:auto}
 .settings-v2 .duel-look>span{position:static;display:block;width:auto;height:auto;padding:5px 4px;opacity:1;visibility:visible}
+.settings-v2 label.sleeve-option{display:block;width:auto;min-height:0;margin:0;padding:0;background:#0c222d;border-radius:7px;grid-template-columns:none}
+.settings-v2 .sleeve-option img{margin:0;padding:0;max-width:none;width:100%;height:auto}
+.settings-v2 .sleeve-option>span{position:static;display:block;width:auto;height:auto;padding:3px 2px;opacity:1;visibility:visible}
 
 /* Duel 9's boss reveal: a silhouette, then the light comes up. */
 .final-title{position:absolute;top:7%;left:0;right:0;margin:0;text-align:center;font:400 clamp(38px,10vmin,96px) "YGO Display",Impact,"Arial Black",sans-serif;letter-spacing:.04em;color:#ffe066;text-shadow:0 3px 10px #000}
@@ -3317,3 +3342,66 @@ dialog:has(.relic-ledger){width:min(860px,94vw)}
 /* The tutorial's end dialog is short; no scroll bars while it opens. */
 dialog:has(.lesson-done){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.lesson-target,.lesson-coach.lesson-shake{animation:none}}
+/* Pixel Art look (2026-11-12): DotGothic16 everywhere (SIL OFL 1.1, assets/fonts/DotGothic16-OFL.txt; it also has Japanese), square corners,
+   stepped borders and hard drop shadows drawn with box-shadow (no clip-path, so shadows stay visible). pixel-art.js shrinks
+   images and background clips once and marks them .pix / .pix-bg / canvas.pix-video; only those are scaled pixelated. */
+@font-face{font-family:"YGO Pixel";src:url(assets/fonts/DotGothic16-Regular.ttf);font-display:swap}
+:root[data-duel-theme="pixel-art"]{--pix-ink:#0c0b14;--pix-panel:#1d2340;--pix-panel-2:#29366f;--pix-hi:#3b5dc9;--pix-gold:#ffcd75;--pix-red:#b13e53;--pix-green:#38b764;--pix-text:#f4f4f4;
+ --pix-frame:0 -2px 0 0 var(--pix-ink),0 2px 0 0 var(--pix-ink),-2px 0 0 0 var(--pix-ink),2px 0 0 0 var(--pix-ink);
+ --pix-drop:2px 4px 0 0 #000a,4px 2px 0 0 #000a;
+ --pix-bevel:inset -2px -2px 0 0 #0006,inset 2px 2px 0 0 #ffffff2e;
+ --btn-bg:var(--pix-panel-2);--btn-line:transparent;--btn-text:var(--pix-text);--btn-radius:0;
+ --btn-shadow:var(--pix-bevel),var(--pix-frame),var(--pix-drop);
+ --btn-active-bg:var(--pix-gold);--btn-active-line:transparent;--btn-active-text:#2b1a08;--btn-active-shadow:inset 2px 2px 0 0 #0004,inset -2px -2px 0 0 #fff6,var(--pix-frame),1px 2px 0 0 #000a,2px 1px 0 0 #000a;
+ --btn-primary-bg:var(--pix-green);--btn-primary-text:#08180e;--btn-press:brightness(1.12);
+ --btn-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h5v1H4v1H3v1H2V2H1V1H0z' fill='%23ffcd75'/%3E%3C/svg%3E");
+ --phase-ready:#ffcd75}
+/* One weight: the font has no bold, and a synthesised bold blurs its pixels. */
+/* Elements only, not *::before/*::after: a universal pseudo-element rule makes the browser resolve pseudo styles for every
+   element on each style pass (pseudo-elements inherit the font anyway). */
+:root[data-duel-theme="pixel-art"]{font-synthesis:none;font-variant-ligatures:none}
+:root[data-duel-theme="pixel-art"] *{font-family:"YGO Pixel","Courier New",monospace!important;font-weight:400!important;border-radius:0!important;letter-spacing:0}
+:root[data-duel-theme="pixel-art"] body{-webkit-font-smoothing:none}
+:root[data-duel-theme="pixel-art"] :is(img.pix,.pix-bg,canvas.pix-video){image-rendering:pixelated}
+:root[data-duel-theme="pixel-art"] canvas.pix-video{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+:root[data-duel-theme="pixel-art"] video.pix-covered{opacity:0}
+/* Inline SVG icons: the small bitmap is the svg's own background (or a mask over its colour); its shapes are hidden. */
+:root[data-duel-theme="pixel-art"] svg.pix-icon{background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+:root[data-duel-theme="pixel-art"] svg.pix-mask{-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;background-color:currentColor}
+:root[data-duel-theme="pixel-art"] svg.pix-icon>*{visibility:hidden}
+:root[data-duel-theme="pixel-art"] img[src*="/pixel/"]{image-rendering:pixelated}
+/* Buttons and dropdowns: the shared Duel Look rule draws the colours; here the 1px border gives way to the stepped frame. */
+:root[data-duel-theme="pixel-art"] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic,.purchase-check):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *){border-color:transparent!important;border-width:0!important;box-shadow:var(--btn-shadow)!important;text-shadow:1px 1px 0 #0008!important}
+:root[data-duel-theme="pixel-art"] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *):is(.active,[aria-pressed="true"],.shop-reroll-counter,.shop-reroll-landscape,.boss-reroll-shop){box-shadow:var(--btn-active-shadow)!important;text-shadow:none!important}
+:root[data-duel-theme="pixel-art"] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *):not(:disabled):active{translate:2px 2px;box-shadow:var(--pix-bevel),var(--pix-frame)!important}
+:root[data-duel-theme="pixel-art"] :is(.pack-close,.pack-open,.pack-skip){border:0!important;box-shadow:var(--pix-bevel),var(--pix-frame),var(--pix-drop)!important;text-shadow:none!important}
+:root[data-duel-theme="pixel-art"] .pack-close{background:var(--pix-panel-2)!important;color:var(--pix-text)!important}
+:root[data-duel-theme="pixel-art"] select{border-width:0!important;box-shadow:var(--pix-bevel),var(--pix-frame),var(--pix-drop)!important;background:var(--btn-arrow) no-repeat right 9px center/10px 6px,var(--pix-panel)!important}
+:root[data-duel-theme="pixel-art"] select option{background:var(--pix-panel);color:var(--pix-text)}
+:root[data-duel-theme="pixel-art"] :is(input[type=text],input[type=search],input[type=number],textarea){border:0!important;background:#0f1226!important;color:var(--pix-text)!important;box-shadow:inset 2px 2px 0 0 #000,inset -2px -2px 0 0 #ffffff1f,var(--pix-frame)!important}
+:root[data-duel-theme="pixel-art"] input[type=range]{accent-color:var(--pix-gold)}
+:root[data-duel-theme="pixel-art"] input[type=checkbox]{accent-color:var(--pix-green)}
+/* Windows and panels: a 3px stepped frame, flat fill and a hard shadow. */
+:root[data-duel-theme="pixel-art"] dialog:not(.pack-theatre):not(.inspection-modal){border:0!important;background:var(--pix-panel)!important;box-shadow:inset -3px -3px 0 0 #0007,inset 3px 3px 0 0 #ffffff24,0 -3px 0 0 var(--pix-ink),0 3px 0 0 var(--pix-ink),-3px 0 0 0 var(--pix-ink),3px 0 0 0 var(--pix-ink),6px 9px 0 0 #000b!important}
+:root[data-duel-theme="pixel-art"] dialog::backdrop{background:#05040acc}
+:root[data-duel-theme="pixel-art"] :is(.deck-split-pane,.lesson-coach){border-color:var(--pix-ink)!important;box-shadow:inset 2px 2px 0 0 #ffffff1a,inset -2px -2px 0 0 #0005,3px 3px 0 0 #0008}
+:root[data-duel-theme="pixel-art"] .duel-look{box-shadow:3px 3px 0 0 #0008}
+:root[data-duel-theme="pixel-art"] .duel-look:has(input:checked){border-color:var(--pix-gold)}
+/* Duel board. */
+:root[data-duel-theme="pixel-art"] .duel{background:#0d0f1f!important}
+:root[data-duel-theme="pixel-art"] .duel .lpbar{background:var(--pix-ink)!important;border-bottom:4px solid var(--pix-hi)!important;box-shadow:0 4px 0 0 #000a;gap:4px!important}
+:root[data-duel-theme="pixel-art"] .duel .life,:root[data-duel-theme="pixel-art"] .duel .life.enemy{background:var(--pix-panel)!important;box-shadow:inset 2px 2px 0 0 #ffffff1f,inset -2px -2px 0 0 #0007}
+:root[data-duel-theme="pixel-art"] .duel .life-meter{background:repeating-linear-gradient(90deg,var(--pix-green) 0 6px,#257953 6px 8px)!important;opacity:.6}
+:root[data-duel-theme="pixel-art"] .duel .life.enemy .life-meter{background:repeating-linear-gradient(90deg,var(--pix-red) 0 6px,#6e2232 6px 8px)!important}
+:root[data-duel-theme="pixel-art"] .duel .life strong{color:var(--pix-text)!important;text-shadow:2px 2px 0 #000!important}
+:root[data-duel-theme="pixel-art"] .duel .turn{background:var(--pix-panel-2)!important;border:0!important;color:var(--pix-gold)!important;box-shadow:var(--pix-bevel),var(--pix-frame)!important}
+:root[data-duel-theme="pixel-art"] .duel .phases button{background:var(--pix-panel)!important;color:#c7cfe8!important;border:0!important;box-shadow:inset -2px -2px 0 0 #0006,inset 2px 2px 0 0 #ffffff1f,var(--pix-frame)!important;opacity:1!important;text-shadow:1px 1px 0 #000}
+:root[data-duel-theme="pixel-art"] .duel .phases button.active{background:var(--pix-gold)!important;color:#2b1a08!important;text-shadow:none}
+:root[data-duel-theme="pixel-art"] .duel .phases button:disabled:not(.active){color:#aab3d1!important}
+:root[data-duel-theme="pixel-art"] .duel .zone{background:#1d23408c!important;border:2px dashed #3b5dc999!important;box-shadow:inset 2px 2px 0 0 #0006!important}
+/* Highlighted zones draw a solid frame, as in the other looks; only idle zones are dashed (2026-11-12). */
+:root[data-duel-theme="pixel-art"] .duel .zone:is(.selectable,.reaction-available,.reaction-picked,.target-picked,.attack-source,.attack-target,.summon-ready){border-style:solid!important}
+:root[data-duel-theme="pixel-art"] .duel .zone .power{background:var(--pix-ink)!important;color:var(--pix-text)!important;text-shadow:1px 1px 0 #000}
+:root[data-duel-theme="pixel-art"] .duel .inspection{background:#141830f2!important;border-right:4px solid var(--pix-ink)!important;box-shadow:4px 0 0 0 #0007}
+:root[data-duel-theme="pixel-art"] .duel .inspection h3{color:var(--pix-gold)!important}
+:root[data-duel-theme="pixel-art"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0a0c1c9e;pointer-events:none}

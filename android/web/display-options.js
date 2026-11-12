@@ -1,3 +1,4 @@
+import {setPixelArt} from './pixel-art.js';
 // Settings → Display. Must load before any module that asks about reduced motion.
 // Reduce Motion acts like the device setting, so the existing motion checks in code and CSS need no second path.
 const REDUCED=/prefers-reduced-motion:\s*reduce/,deviceMatchMedia=window.matchMedia.bind(window),original=new WeakMap();
@@ -50,13 +51,14 @@ function scaleText(on){
 }
 export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=20;
 // '' is the default look; storage.py keeps the same list.
-export const DUEL_THEMES=[['','Default'],['duel-disk','Duel Disk'],['shadow-realm','Shadow Realm'],['clean-tournament','Clean Tournament'],['millennium-stone','Millennium Stone'],['kaiba-hologram','Kaiba Hologram']];
+export const DUEL_THEMES=[['','Default'],['duel-disk','Duel Disk'],['shadow-realm','Shadow Realm'],['clean-tournament','Clean Tournament'],['millennium-stone','Millennium Stone'],['kaiba-hologram','Kaiba Hologram'],['pixel-art','Pixel Art']];
 export function applyDisplayOptions({reduceMotion:reduce=false,textSize=100,deckColumns=0,deckSplit=false,duelTheme='',fpsCap=120}={}){
  globalThis.frameCap?.set(fpsCap);
  if(reduce!==reduceMotion){reduceMotion=reduce;applyReducedCSS()}
  const html=document.documentElement;
  html.classList.toggle('text-scaled',textSize!==100);html.style.setProperty('--text-scale',textSize/100);scaleText(textSize!==100);
  if(duelTheme)html.dataset.duelTheme=duelTheme;else delete html.dataset.duelTheme;
+ setPixelArt(duelTheme==='pixel-art');
  // 0 keeps each screen's own automatic grid.
  html.toggleAttribute('data-deck-columns',deckColumns>=DECK_COLUMNS_MIN);html.toggleAttribute('data-deck-split',!!deckSplit);html.style.setProperty('--deck-columns',deckColumns||'');
 }

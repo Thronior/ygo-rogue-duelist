@@ -16,6 +16,8 @@ def observe(profile,run):
   profile['frugal_run']=1
  if not run.get('secret_challenge') and run.get('stage')=='complete' and not run.get('relics_bought',0):
   profile['relicless_shop']=1
+ import sleeve_progress
+ sleeve_progress.observe(profile,run)
 
 def duel(game,run,result,won,boss):
  cards=[game.BY_ID[c] for c in game.deck(run) if not game.is_extra(c)]
@@ -33,4 +35,6 @@ def duel(game,run,result,won,boss):
   'normal_win':bool(cards) and all(c['data']['type']&1 for c in cards),
   'champion_win':bool(run.get('encore_active')),
  }
+ import sleeve_progress
+ sleeve_progress.duel(run,result,won,metrics)
  run['character_challenges']=sorted(set(run.get('character_challenges',[]))|{k for k,v in conditions.items() if v and (won or k=='two_rituals')})

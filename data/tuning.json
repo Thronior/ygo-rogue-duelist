@@ -703,11 +703,11 @@
     "champion_trophy": {
       "name": "Champion Trophy",
       "price": 60,
-      "description": "Earn 40 additional coins after each boss victory.",
+      "description": "You can select a second cursed relic after each boss fight.",
       "art": "Victory Dragon",
-      "effect": "boss_gold",
-      "amount": 40,
-      "tag": "economy",
+      "effect": "cursed_pick",
+      "amount": 1,
+      "tag": "other",
       "filter": "",
       "parameters": {}
     },

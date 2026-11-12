@@ -131,6 +131,11 @@
   // On a tick the game's frame callbacks run first; if they changed the page, it is looked over at once, so
   // animations and transitions they start are taken over before they are ever drawn on their own.
   if(due){flushQueue(time);if(changes.takeRecords().length)sweepSoon=true;adopt(time);advance(time)}else adopt(time);
+  // One loop only (2026-11-12, phones running hot): a game callback above that asks for a frame, or starts or plays
+  // an animation, already scheduled the next frame through ensureLoop (loop was 0 while it ran). Scheduling again here
+  // started a second loop, every tick that happened, and the loops only ended once nothing moved: after 10 s of a
+  // menu carousel or counter about 600 ran side by side, 90,000 callbacks a second instead of the display's 144.
+  if(loop)return;
   if(driven.size||queue.size||pending.size||sweepSoon)loop=nativeRAF(frame);else lastFrame=0;
  }
  // How many display refreshes apart the ticks are, or 0 when the display is too close to the cap to divide evenly.

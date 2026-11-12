@@ -9,7 +9,7 @@ import approved_relics as ar
 import archetype_relics
 
 ANCIENT_TREASURE=190000050  # The 50-coin card stays exclusive to the All Spells pack.
-VERY_RARE=('almighty','the_creator')
+VERY_RARE=('almighty','the_creator','dimensional_rift')
 # relic: (run field, Lua toss kind, legal faces, how many plain faces the chosen one counts as)
 WEIGHTED={'weighted_coins':('weighted_coin','coin',(0,1),2),'weighted_dice':('weighted_die','dice',(1,2,3,4,5,6),3)}
 

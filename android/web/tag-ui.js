@@ -68,9 +68,9 @@ export class TagUI {
  // Card records by id: deck and trade views look cards up inside filters and sorts.
  cardById(id){if(this.cardIndex?.source!==this.content.cards)this.cardIndex={source:this.content.cards,byId:new Map(this.content.cards.map(c=>[c.id,c]))};return this.cardIndex.byId.get(id)}
 
- constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{}}){
+ constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null}){
 
-  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
+  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
 
   this.click=e=>{const el=e.target.closest('[data-tag]');if(!el||!this.alive)return;e.stopImmediatePropagation();if(this.dragged)return;if(el.dataset.tag==='character')this.sound('flip',.25);else if(el.dataset.tag==='start')this.sound('activate',.4);this.action(el.dataset.tag,el).catch(error=>this.error(error))};
 
@@ -118,7 +118,7 @@ export class TagUI {
 
   const v=this.view,offer=v.run.cursed_offer,disabled=this.working||v.seat!==0||v.paused?'disabled':'';
 
-  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>Choose a cursed relic</h1><p>${v.seat===0?'Choose 1 relic for your shared pool.':'Your teammate is choosing your shared relic.'}</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}</footer></section>`;
+  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a cursed relic':offer.picked.length>1?'Choose a third cursed relic':'Choose a second cursed relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
 
  }
 
@@ -521,7 +521,7 @@ export class TagUI {
 
   if(action==='finale-vote'||action==='finale-skip'){this.working=true;try{await this.session.request(action,action==='finale-vote'?!this.view.finale?.votes?.[this.view.seat]:null)}finally{this.working=false;this.render()}return}
 
-  if(action==='cursed-choose'||action==='cursed-reroll'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}
+  if(action==='cursed-choose'||action==='cursed-reroll'||action==='cursed-skip'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}
 
   if(action==='sell-relic'){if(this.view.paused||!this.session.connected)return;this.working=true;try{const result=await this.session.request('sell-relic',el.dataset.relic);this.notice?.(`Sold ${this.content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`)}finally{this.working=false;this.render()}if(document.querySelector('#modal[open] .relic-ledger'))this.relicsDialog();return}
   if((action==='shop-lock'||action==='select')&&/changed their picks/.test(this.status))this.status='';
@@ -539,7 +539,7 @@ export class TagUI {
 
    const endpoint=await this.endpoint();
 
-   this.session=new TagSession({endpoint,character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
+   this.session=new TagSession({endpoint,sleeve:this.sleeve(),character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
 
     this.status=state==='connected'||state==='waiting'?'':state==='error'?friendlyError(detail):['disconnected','failed','reconnecting'].includes(state)?'':state==='signaling-error'?'Room service unavailable — retrying':'';
 

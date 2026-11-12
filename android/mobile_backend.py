@@ -170,6 +170,9 @@ def dispatch(raw):
  elif action=='cursed-reroll':
   import cursed_relics
   cursed_relics.reroll(run)
+ elif action=='cursed-skip':
+  import cursed_relics
+  cursed_relics.skip(run)
  elif action=='reveal-opponent':
   import boss_selection
   result=boss_selection.reveal(run,value)
@@ -195,6 +198,9 @@ def dispatch(raw):
  elif action=='settings':storage.write(storage.ROOT/'settings.json',value)
  elif action=='notices':
   p=storage.profile();result=p.pop('achievement_notices',[]);storage.write(storage.ROOT/'profile.json',p)
+ elif action=='sleeve-mark':
+  import sleeve_progress
+  p=storage.profile();result=sleeve_progress.mark(p,str(value));storage.write(storage.ROOT/'profile.json',p)
  elif action=='cheat':
   if value=='heartofthecards':
    p=storage.profile();p['unlock_all']=True;p['unlocked']=content.PLAYABLE_IDS;storage.write(storage.ROOT/'profile.json',p)

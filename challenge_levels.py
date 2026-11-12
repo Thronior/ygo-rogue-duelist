@@ -16,6 +16,8 @@ def award(profile, run):
  new=max(before,level)
  levels=profile.setdefault('character_levels',{})
  levels[str(run['character'])]=new
+ # Level 6 cleared for the first time: this character's card sleeve (android/web/sleeves.js).
+ if new>=6>before:run['sleeve_unlocked']=True
  if new>before and new+1<=6:
   run['level_unlocked']=new+1
   profile.setdefault('character_last_levels',{})[str(run['character'])]=new+1

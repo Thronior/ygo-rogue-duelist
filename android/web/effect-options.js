@@ -13,6 +13,7 @@ export const VISUAL_EFFECTS=[
  ['warnings','Hand & Deck Warnings','The hand shaking over the limit and the deck glowing when low.'],
  ['particles','Floating Particles','Slow particles drifting over the duel background.'],
  ['coins','Coin & Shop Effects','Coin bursts, reward celebrations and the shop reroll reels.'],
+ ['coinText','Coin Reward Pop-ups','The "+15 Tribute Summon" texts for each way you earned coins in a duel. Coin spins and bursts stay.'],
  ['vibration','Vibration','A short pulse on big hits and chain prompts.']
 ];
 let off=new Set();

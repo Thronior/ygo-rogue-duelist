@@ -894,6 +894,29 @@
       "source": "User-provided Ojama deck (#cpu-decks, 2026-10-20), balanced 2026-10-26",
       "fixed": true,
       "reward_pack": "WC4-24"
+    },
+    {
+      "character": 89,
+      "name": "Duke Devlin",
+      "tier": 3,
+      "deck": "opponent-89-tier-3",
+      "tier_decks": {
+        "3": "opponent-89-tier-3"
+      },
+      "sprite": "dm34.png",
+      "background": "character-backgrounds/19.jpg",
+      "theme": "A coin-toss gambling deck that redoes its unlucky tosses.",
+      "reward_themes": [
+        "gambling",
+        "destruction",
+        "Machine",
+        "Fiend",
+        "draw",
+        "effect"
+      ],
+      "source": "Dragunfire's Discord deck suggestion (#Sid t3, 2026-11-12), placed as Duke Devlin by the user",
+      "fixed": true,
+      "reward_pack": "WC4-24"
     }
   ]
 }

@@ -14,11 +14,16 @@ LANGS = ('de', 'es', 'fr', 'it', 'pt', 'ja', 'ko', 'zh')
 def build():
     out_dir = ROOT / 'android/web/i18n'
     out_dir.mkdir(exist_ok=True)
+    notes = json.loads((ROOT / 'data/card-dev-notes.json').read_text(encoding='utf8'))['cards']
     for lang in LANGS:
         ui_file = ROOT / f'data/i18n/ui/{lang}.json'
         ui = json.loads(ui_file.read_text(encoding='utf8')) if ui_file.exists() else {}
         cards = json.loads((ROOT / f'data/i18n/cards/{lang}.json').read_text(encoding='utf8'))
         system = json.loads((ROOT / f'data/i18n/system/{lang}.json').read_text(encoding='utf8'))
+        # Dev notes for confusing old rulings, after the translated card text (data/card-dev-notes.json).
+        for cid, row in notes.items():
+            if cid in cards and row.get(lang) and row[lang] not in cards[cid][1]:
+                cards[cid] = [cards[cid][0], cards[cid][1] + ('' if lang in ('ja', 'zh') else ' ') + row[lang], *cards[cid][2:]]
         # Keep identity values too: the locale bundle must contain every catalog key,
         # even when a translator intentionally leaves a technical term in English.
         bundle = {'ui': ui, 'cards': cards, 'setnames': system.get('setnames', {})}

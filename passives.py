@@ -288,7 +288,7 @@ def multiplayer_script(run, side):
  source=re.sub(r'(\b(?:ep|rp)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
  # Immunity checks such as Normal Barrier and Commoner's Crown read the owner of the other effect.
  source=re.sub(r'(:GetOwnerPlayer\(\)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
- positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1,'AnnounceCoin':1,'AnnounceNumber':1}
+ positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1,'AnnounceCoin':1,'AnnounceNumber':1,'ShuffleDeck':1}
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():
   wrappers.append(f'Duel.{name}=function(...) local a=table.pack(...) if a[{index}]==0 or a[{index}]==1 then a[{index}]=1-a[{index}] end return originalDuel.{name}(table.unpack(a,1,a.n)) end')

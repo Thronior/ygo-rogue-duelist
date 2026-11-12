@@ -12,6 +12,8 @@ for c in g.CARDS:
 for n in ['Terraforming','An Owl of Luck','Magic Reflector']:assert s.matches(g.BY_NAME[n],'field')
 for n in ['Burning Land','World Suppression']:assert not s.matches(g.BY_NAME[n],'field')
 for n in ['Zombyra the Dark','Giant Rex','Magical Scientist','Toon Defense','Astral Barrier','Roulette Spider','Absolute End']:assert not s.matches(g.BY_NAME[n],'direct')
+# Cards that only weaken a Type/Attribute are not its support (Discord 2026-11-12: Star Boy offered as a FIRE monster).
+for n,k,want in [('Star Boy','FIRE',False),('Star Boy','WATER',True),('Umi','Fish',True),('Umi','Pyro',False),('Hoshiningen','LIGHT',True),('Hoshiningen','DARK',False),('Acid Rain','Machine',False)]:assert s.matches(g.BY_NAME[n],k)==want,(n,k)
 rng=random.Random(341);seen={s.random_reward(rng,{})['key'] for _ in range(10000)}
 assert set(s.MONSTER_TYPES+s.ATTRIBUTES)|{'direct','field'}<=seen
 assert s.normalize_reward({'key':'field','label':'Field Spells','pack':'EN-LOB'})['label']=='Field Spells and Support'

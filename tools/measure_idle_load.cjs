@@ -257,7 +257,7 @@ async function measure(browser,page,cdp,browserSession,seconds){
   await page.goto(`http://127.0.0.1:${port}/`,{timeout:180000});
   await waitScreen(page,'title',180000);
   const settings={...EXTRA_SETTINGS,...(LOOK?{duelTheme:LOOK}:{})};
-  if(Object.keys(settings).length)await page.evaluate(async extra=>{const s=shadowTest.state().settings;Object.assign(s,extra);await shadowTest.command('settings',s);if(extra.duelTheme)document.documentElement.dataset.duelTheme=extra.duelTheme;document.dispatchEvent(new Event('duel-background-change'));shadowTest.go('title')},settings);
+  if(Object.keys(settings).length)await page.evaluate(async extra=>{const s=shadowTest.state().settings;Object.assign(s,extra);await shadowTest.command('settings',s);if(extra.duelTheme)document.documentElement.dataset.duelTheme=extra.duelTheme;if(extra.fpsCap)globalThis.frameCap?.set(extra.fpsCap);document.dispatchEvent(new Event('duel-background-change'));shadowTest.go('title')},settings);
   // Experiments: switch one suspect off (e.g. --css ".duel-particles{display:none}") to measure its share.
   if(INJECT_CSS)await page.addStyleTag({content:INJECT_CSS});
   const cdp=await context.newCDPSession(page),browserSession=await browser.newBrowserCDPSession();

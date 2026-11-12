@@ -240,7 +240,7 @@ let stopText=null;
 export function stopRewardText(){stopText?.();stopText=null}
 export function rewardText(box,rewards,onPop=()=>{}){
  stopRewardText();
- const {reduced,lite}=prefs();if(reduced||!effectOn('coins'))return;
+ const {reduced,lite}=prefs();if(reduced||!effectOn('coins')||!effectOn('coinText'))return;
  document.fonts?.load('32px "YGO Display"').catch(()=>{});
  const rows=Object.entries(rewards||{}).filter(([,value])=>value>0).sort((a,b)=>b[1]-a[1]).slice(0,lite?10:30).reverse();
  if(!rows.length)return;
