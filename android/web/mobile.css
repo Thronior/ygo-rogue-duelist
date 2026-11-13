@@ -2835,6 +2835,13 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 .sleeve-option[data-tier=bronze]:not(.locked){border-color:#d08a50}.sleeve-option[data-tier=silver]:not(.locked){border-color:#e3e9ef}
 .sleeve-option[data-tier=gold]:not(.locked){border-color:#ffd45c;box-shadow:0 0 10px #ffd45c99}.sleeve-option[data-tier=gold]:not(.locked)::after{animation-duration:2.4s}
 .cosmetics{display:flex;flex-direction:column;align-items:stretch;max-width:1080px;margin:0 auto;padding:4px 12px 24px}.cosmetics .set-group{width:100%;margin-bottom:14px}.cosmetics .duel-looks{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.cosmetics .sleeve-picker{max-height:none;overflow:visible}
+/* The Rainbow sleeve (every duelist beat Level 6) rolls like the Level 6 roster portraits: its picture is three sleeves
+   wide (tools/generate_card_sleeves.cjs) and slides by one repeat across the card. Leaves filter and transform to the card's own styles;
+   still in Reduce Motion, Performance and Compatibility modes. */
+img[src$="sleeves/cards/rainbow.jpg"]{object-fit:cover;object-position:0 50%;animation:sleeve-rainbow 6s linear infinite}
+@keyframes sleeve-rainbow{to{object-position:100% 50%}}
+@media(prefers-reduced-motion:reduce){img[src$="sleeves/cards/rainbow.jpg"]{animation:none}}
+html.performance-mode img[src$="sleeves/cards/rainbow.jpg"],html.compatibility-mode img[src$="sleeves/cards/rainbow.jpg"]{animation:none}
 @keyframes sleeve-sheen{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
 @media(prefers-reduced-motion:reduce){.sleeve-option[data-tier]::after{animation:none;display:none}}
 .sleeve-unlock{display:flex;align-items:center;gap:14px;padding:12px 14px;border:2px solid #fff;border-radius:12px;background:#140f2a;box-shadow:0 0 14px #ff8fd6,0 0 6px #9fe8ff;text-align:left}
@@ -3405,3 +3412,46 @@ dialog:has(.lesson-done){overflow:hidden}
 :root[data-duel-theme="pixel-art"] .duel .inspection{background:#141830f2!important;border-right:4px solid var(--pix-ink)!important;box-shadow:4px 0 0 0 #0007}
 :root[data-duel-theme="pixel-art"] .duel .inspection h3{color:var(--pix-gold)!important}
 :root[data-duel-theme="pixel-art"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0a0c1c9e;pointer-events:none}
+/* Draft Duels loop: Draft Screen (relic + character pack picks) and match point (draft-ui.js, 2026-11-13).
+   Art-only tiles like the shop (hover tooltip, hold or right-click for details); fits one screen without scrolling. */
+.collector-content:has(>.draft-pick-screen){display:flex;flex-direction:column;overflow:hidden;padding:4px 8px}
+.draft-pick-screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:clamp(4px,1.2vh,10px);width:100%;max-width:1200px;margin:0 auto}
+.draft-pick-head{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;flex:none}
+.draft-pick-head h2{margin:0;font-size:clamp(16px,2.6vh,22px)}
+.draft-pick-head .draft-standing{flex:1;justify-content:center;flex-wrap:nowrap;min-width:0;white-space:nowrap}
+.draft-pick-head .draft-standing b{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.draft-pick-head .draft-goal{display:none}
+.draft-pick-head .draft-min{margin-left:auto;white-space:nowrap}
+.draft-pick-head .draft-relic-set{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
+@media (max-aspect-ratio:5/4){
+ .draft-pick-head .draft-standing{order:3;flex-basis:100%;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"mn sc on" "mi . oi";gap:2px 8px}
+ .draft-pick-head .draft-standing>:nth-child(1){grid-area:mi}
+ .draft-pick-head .draft-standing>:nth-child(2){grid-area:mn;text-align:right}
+ .draft-pick-head .draft-standing>:nth-child(3){grid-area:sc}
+ .draft-pick-head .draft-standing>:nth-child(4){grid-area:on}
+ .draft-pick-head .draft-standing>:nth-child(5){grid-area:oi;justify-content:flex-end}
+ .draft-pick-head .draft-owned-relic{width:28px;height:28px;min-width:28px}
+ .draft-pick-head .draft-owned-relic img{width:22px;height:22px}
+}
+.draft-min{font-weight:bold;opacity:.85;font-size:13px}
+.draft-offers{flex:1;min-height:0;display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:clamp(4px,1.2vh,10px)}
+@media (min-aspect-ratio:5/4){.draft-offers{grid-template-rows:minmax(0,1fr);grid-template-columns:1fr 1fr}}
+.draft-offer-group{min-height:0;display:flex;flex-direction:column;gap:4px}
+.draft-offer-group h3{margin:0;font-size:clamp(12px,1.9vh,16px);flex:none}
+.draft-offer-row{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1vw,10px)}
+.draft-offer{position:relative;min-height:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;white-space:normal;padding:clamp(4px,1vh,10px);overflow:hidden;-webkit-touch-callout:none;user-select:none}
+.draft-offer img{flex:1 1 0;min-height:0;width:100%;max-width:100%;height:auto;object-fit:contain;pointer-events:none}
+.draft-offer b{flex:none;font-size:clamp(11px,1.7vh,15px);line-height:1.15;max-height:2.3em;overflow:hidden}
+.draft-offer.selected{outline:3px solid #e5c58a;outline-offset:-3px}
+.draft-offer.taken{opacity:.5}
+.draft-pick-owner{position:absolute;top:4px;left:4px;right:4px;font-style:normal;font-size:11px;padding:2px 6px;border-radius:8px;background:#152e34e6}
+.draft-confirm{flex:none;width:100%;min-height:clamp(46px,9vh,72px);margin:0;font-size:clamp(18px,3.2vh,28px)}
+.draft-standing{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px}
+.draft-score{font-weight:bold;font-size:1.1em}
+.draft-goal{opacity:.85}
+.draft-goal::before{content:'·';margin-right:8px}
+.draft-relic-set{display:flex;flex-wrap:wrap;gap:3px}
+.draft-relic-set:empty{display:none}
+.draft-owned-relic{flex:none;width:34px;height:34px;min-width:34px;min-height:0;padding:2px!important}
+.draft-owned-relic img{width:28px;height:28px;object-fit:contain}
+.draft-decided{display:flex;flex-direction:column;gap:10px;max-width:980px;margin:0 auto}

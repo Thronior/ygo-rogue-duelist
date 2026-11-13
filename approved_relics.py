@@ -35,14 +35,14 @@ REGULAR=[
 ('overkill_bounty','Overkill Bounty',90,"If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",'Meteor of Destruction'),
 ('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Last Will'),
 ('tactical_espionage','Tactical Espionage',100,'When you Normal Summon a monster, no Trap Cards can be activated.','Tactical Espionage Expert'),
-('stars_aligned','Stars Aligned',175,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
+('stars_aligned','Stars Aligned',130,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
 # Requested by the user on 2026-11-04.
 ('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
 # Requested by the user on 2026-11-06.
 ('corpse_ritual','Corpse Ritual',80,'When you Ritual Summon, you can banish monsters from your GY as material instead of Tributing them from your hand or field.','Revival of Dokurorider'),
 # Discord relic suggestions (Dragunfire), with the user's edits of 2026-11-12. Double Cyclone is not in the card pool,
 # so Typhoon shows Mystical Space Typhoon. Dimensional Rift's name and Spell Provider's art are mine; none was given.
-('typhoon','Typhoon',135,'Once per turn, during your End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.','Mystical Space Typhoon'),
+('typhoon','Typhoon',135,"Once per turn, during your opponent's End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.",'Mystical Space Typhoon'),
 ('machine_duplication','Machine Duplication',110,"Once per turn, during your End Phase, you can target 1 Machine monster you control: Special Summon 1 Clone Token in Attack Position with half that monster's ATK and DEF (rounded down).",'Machine Duplication'),
 ('ghost_destruction','Ghost Destruction',80,"If a monster you control inflicts battle damage to your opponent: You can target 1 monster in your or your opponent's GY; banish it.",'Kycoo the Ghost Destroyer'),
 ('omni_banishment','Omni Banishment',150,'Once per turn, during your Standby Phase, you can banish 1 card from your Deck.','Return from the Different Dimension'),
@@ -77,7 +77,7 @@ CURSED=[
 (38,'nocturnal_guard','Nocturnal Guard','During your opponent\'s turn, monsters you control gain 600 DEF. During your turn, monsters you control lose 300 ATK.','Castle Walls'),
 (40,'narrow_gate','Narrow Gate','Neither player can use the fourth or fifth Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
 (42,'trapbound_idol','Trapbound Idol','Your Trap Monsters cannot be destroyed by battle. You pay 300 LP to activate each Spell Card.','Embodiment of Apophis'),
-(44,'iron_silence','Iron Silence','Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate your activated monster effects in all locations.','Skill Drain'),
+(44,'iron_silence','Iron Silence',"Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate all your monsters' activated effects everywhere.",'Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
 (48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 0).','Time Wizard'),
 (49,'black_market_seal','Black Market Seal','Single-card prices are reduced by 40%. Booster-pack prices are increased by 40%.','Goblin of Greed'),
@@ -110,7 +110,7 @@ CURSED_PARTS={
  # The automatic split would leave "lose 300 ATK." or "They ..." on its own, or put Ritual Scar's drawback first.
  'cursed_brittle_armor':('Monsters you control gain 900 DEF.','Monsters you control lose 300 ATK.'),
  'cursed_cracked_sword':('Monsters you control gain 300 ATK.','Monsters you control lose 1000 DEF.'),
- 'cursed_iron_silence':('Monsters you control gain 600 ATK/DEF.','Their effects are negated. Negate your activated monster effects in all locations.'),
+ 'cursed_iron_silence':('Monsters you control gain 600 ATK/DEF.',"Their effects are negated. Negate all your monsters' activated effects everywhere."),
  'cursed_reckless_spear':('Monsters you control can attack directly.','Monsters you control lose 1000 ATK.'),
  'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.','Monsters you control lose 500 ATK.'),
 }

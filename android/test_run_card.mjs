@@ -59,7 +59,9 @@ assert.deepEqual(runCardData({stage:'gameover',character:1,round:4,timeline:[{..
 // Special clears, in priority order. Old runs have no damage record, so they are never Flawless.
 {
  const c=(stage,level,extra={})=>runCardVariant({stage,...extra},level);
- assert.equal(c('complete',3,{stats:{damage_taken:0},encore_won:true}),'champion');
+ // Beating the champion keeps the level colour (user, 2026-11-12): no champion frame.
+ assert.equal(c('complete',3,{stats:{damage_taken:900},encore_won:true}),null,'champion win keeps the Level 3 frame');
+ assert.equal(c('complete',3,{stats:{damage_taken:0},encore_won:true}),'flawless');
  assert.equal(c('complete',6,{stats:{damage_taken:0}}),'flawless');
  assert.equal(c('complete',-1,{stats:{damage_taken:900}}),'relicless');
  assert.equal(c('complete',6,{stats:{damage_taken:900}}),'shadow');

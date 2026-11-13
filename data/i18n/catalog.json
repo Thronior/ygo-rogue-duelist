@@ -15289,7 +15289,7 @@
  },
  {
   "group": "relic",
-  "en": "Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate your activated monster effects in all locations.",
+  "en": "Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate all your monsters' activated effects everywhere.",
   "kind": "exact",
   "ctx": "relic effect (cursed_iron_silence)"
  },
@@ -21769,7 +21769,7 @@
  },
  {
   "group": "relic",
-  "en": "Their effects are negated. Negate your activated monster effects in all locations.",
+  "en": "Their effects are negated. Negate all your monsters' activated effects everywhere.",
   "kind": "exact",
   "ctx": "relic effect part (cursed_iron_silence)"
  },
@@ -22657,7 +22657,7 @@
  },
  {
   "group": "relic",
-  "en": "Once per turn, during your End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.",
+  "en": "Once per turn, during your opponent's End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.",
   "kind": "exact",
   "ctx": "text added 2026-11-12"
  },
@@ -22732,5 +22732,233 @@
   "en": "A coin-toss gambling deck that redoes its unlucky tosses.",
   "kind": "exact",
   "ctx": "opponent theme added 2026-11-12"
+ },
+ {
+  "group": "ui",
+  "en": "Start loop {0}?",
+  "kind": "pattern",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "Keep your decks, relics and coins and face nine new duels. Both players must agree.",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "You are ready. Waiting for your partner…",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "Your partner wants to keep going!",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "Or exit to end the run here.",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "Start next loop",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop offer (2026-11-12)"
+ },
+ {
+  "group": "ui",
+  "en": "The online servers have reached today's free usage limit, so online play, cloud saves and global stats are paused. They come back after the daily reset at 00:00 UTC, in about {0} h {1} min. Your progress on this device is safe.",
+  "kind": "pattern",
+  "ctx": "online-status.js (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Can't reach the online servers right now. If they have reached today's usage limit, they come back after the daily reset at 00:00 UTC, in about {0} h {1} min. Your progress on this device is safe.",
+  "kind": "pattern",
+  "ctx": "online-status.js (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "You're offline. Online play needs an internet connection.",
+  "kind": "exact",
+  "ctx": "online-status.js (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Draft {0}",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · First to {1} wins",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "First to {0} wins",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Draft Duels · First to 3 wins",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Character packs",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "You reached {0} wins first.",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent reached {0} wins first.",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Keep playing? If you both agree, the goal becomes {0} wins and the drafts go on.",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "You want to continue. Waiting for your opponent…",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent wants to continue!",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Continue to {0} wins",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "End match",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Waiting…",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Open your boosters and build your deck (at least {0} cards).",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Leave match",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Leave the match?",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Leaving now gives your opponent the match win.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Left the match",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Your match is saved. Reopen Draft Duels within the five-minute reconnect allowance to continue.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Your match is saved. Reopen Draft Duels within the five-minute reconnect allowance to continue, or leave the match now and give your opponent the win.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Main Deck must contain 20–60 cards.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Main Deck must contain 30–60 cards.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Wait for your opponent to pick.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Choose one relic and one pack that are still available.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Choose one relic and one character pack.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a character, open their four starting boosters and build a deck of at least 20 cards. After each duel both players draft: the loser picks one relic and one character pack (two boosters) first, then the winner. The minimum deck grows to 30, then 40 cards. Relics are active in every later duel. First to 3 wins takes the match; if both agree, play on to 6, 9 and more. Maximum three copies by card name, no banned list or siding, 8,000 LP each.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Waiting for your opponent…",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent is picking…",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Deck {0}+",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
  }
 ]

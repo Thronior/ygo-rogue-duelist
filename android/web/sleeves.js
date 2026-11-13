@@ -14,7 +14,8 @@ const isCardSleeve=key=>typeof key==='string'&&/^[a-z0-9-]{1,64}$/.test(key);
 const cardSleeve=(content,key)=>isCardSleeve(key)?content?.cardSleeves?.find(s=>s.id===key)||null:null;
 // A saved value: a character index (number or digits) or a card sleeve id; anything else is the normal back.
 function sleeveKey(value){if(value==null||value===''||value===-1||value==='-1')return null;if(typeof value==='number'||/^\d+$/.test(String(value)))return Number(value)>=0?Number(value):null;return isCardSleeve(value)?value:null}
-export function sleeveUnlocked(profile,key){key=sleeveKey(key);if(key==null)return false;if(typeof key==='string')return (profile?.sleeves_earned||[]).includes(key);return Number(profile?.character_levels?.[key]??-1)>=SLEEVE_UNLOCK_LEVEL}
+// The 'sleevesforall' testing code (profile.sleeves_all) lets every sleeve be chosen without completing its achievement.
+export function sleeveUnlocked(profile,key){key=sleeveKey(key);if(key==null)return false;if(profile?.sleeves_all)return true;if(typeof key==='string')return (profile?.sleeves_earned||[]).includes(key);return Number(profile?.character_levels?.[key]??-1)>=SLEEVE_UNLOCK_LEVEL}
 export function sleeveImage(content,key){key=sleeveKey(key);if(typeof key==='string')return cardSleeve(content,key)?`assets/sleeves/cards/${key}.jpg`:CARD_BACK;const c=content?.characters?.[key];return c&&content.playable?.includes(key)?`assets/sleeves/${slug(c.name)}.jpg`:CARD_BACK}
 export function sleeveName(content,key){key=sleeveKey(key);return typeof key==='string'?cardSleeve(content,key)?.art||'':content?.characters?.[key]?.name||''}
 // How to unlock it, as shown when a locked sleeve is pressed.
@@ -25,5 +26,8 @@ export function sleeveTier(content,key){return cardSleeve(content,sleeveKey(key)
 // The chosen sleeve if it exists and is (still) unlocked on this profile, else null: the normal card back.
 export function chosenSleeve(settings,profile,content=null){const key=sleeveKey(settings?.sleeve);if(key==null||!sleeveUnlocked(profile,key))return null;if(typeof key==='string'&&content&&!cardSleeve(content,key))return null;return key}
 export function chosenSleeveImage(content,settings,profile){const key=chosenSleeve(settings,profile,content);return key==null?CARD_BACK:sleeveImage(content,key)}
+// What an online opponent needs to show your sleeve: its key and the one unlock that proves it (Draft Duels and
+// Ultimate Collector send this with every request; the rooms Worker keeps it on the collector record).
+export function sleevePayload(settings,profile,content){const key=chosenSleeve(settings,profile,content);if(key==null)return null;return {key,proof:typeof key==='string'?{sleeves_earned:[key]}:{character_levels:{[key]:SLEEVE_UNLOCK_LEVEL}}}}
 // A partner's sleeve as sent in their Tag hello, checked against the profile they sent with it.
 export function partnerSleeve(content,message){const key=sleeveKey(message?.sleeve);if(key==null||!sleeveUnlocked(message?.profile,key))return null;if(typeof key==='string'?!cardSleeve(content,key):!content?.playable?.includes(key))return null;return key}

@@ -4,9 +4,9 @@ export const RANKS = Object.freeze(['Bronze','Silver','Gold','Legend','God']);
 export const rankFor = wins => RANKS[Math.min(4,Math.max(0,wins|0))];
 const counts = cards => cards.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
 export const deckCards = deck => [...(deck.main||[]),...(deck.side||[]),...(deck.extra||[])];
-export function validateDeck(deck,pool,cards,original=null,unrestricted=false) {
+export function validateDeck(deck,pool,cards,original=null,unrestricted=false,minimum=40) {
  const errors=[], all=deckCards(deck), catalog=new Map(cards.map(c=>[c.id,c]));
- if(!Array.isArray(deck.main)||deck.main.length<40||deck.main.length>60)errors.push('Main Deck must contain 40–60 cards.');
+ if(!Array.isArray(deck.main)||deck.main.length<minimum||deck.main.length>60)errors.push(`Main Deck must contain ${minimum}–60 cards.`);
  if(!Array.isArray(deck.side)||deck.side.length>(unrestricted?0:15))errors.push(unrestricted?'Draft duels have no Side Deck.':'Side Deck may contain 0–15 cards.');
  if(!Array.isArray(deck.extra)||deck.extra.length>15)errors.push('Fusion Deck may contain 0–15 cards.');
  if(all.some(id=>!Number.isInteger(id)))errors.push('Invalid card ID.');
@@ -32,4 +32,5 @@ export function moveSideCard(deck,from,id,cards){
  deck[from].splice(index,1);deck[to].push(id);return true;
 }
 
-export const validateDraftDeck=(deck,pool,cards)=>validateDeck(deck,pool,cards,null,true);
+// Draft loop rooms raise the minimum from 20 to 30 to 40 (draft-pool.mjs minDeckFor).
+export const validateDraftDeck=(deck,pool,cards,minimum=40)=>validateDeck(deck,pool,cards,null,true,minimum);

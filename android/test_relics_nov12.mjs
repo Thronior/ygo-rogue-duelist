@@ -47,20 +47,21 @@ const field=await animeRule(['cursed_anime_rule_3'],fill(YAMI,SKULL));console.lo
 same(field,{offered:true,tributes:0,attack:2700,defense:1400},'a face-up Field Spell you control removes the loss');
 same((await animeRule([],fill(SKULL))).offered,false,'without the relic a Level 6 monster needs a Tribute');
 
-// Typhoon: our End Phase, destroy our Set Waboku, then one of the opponent's Set Trap Holes.
+// Typhoon: the opponent's End Phase (2026-11-12, was ours), destroy our Set Waboku, then one of their Set Trap Holes.
 async function typhoon(artifacts){
  const seen={asked:false,mine:0,theirs:0};let before=-1;
- const e=await duel({artifacts,deck:fill(WABOKU),enemy:fill(TRAP_HOLE),turns:3,drive(e,m){
+ const e=await duel({artifacts,deck:fill(WABOKU),enemy:fill(TRAP_HOLE),turns:2,drive(e,m){
   if(m.player!==0)return null;
   if(m.type===M.SELECT_IDLECMD)return (count(e,0,L.SZONE)<1&&idle(m,I.SELECT_SPELL_SET,WABOKU,'spell_sets'))||toEnd;
   if(m.type===M.SELECT_BATTLECMD)return noBattle;
-  if(picks(m,c=>c.location===L.SZONE&&c.controller===0)){seen.asked=true;before=count(e,1,L.SZONE);seen.mine=count(e,0,L.SZONE);return {type:R.SELECT_CARD,indicies:[0]}}
+  if(picks(m,c=>c.location===L.SZONE&&c.controller===0)){seen.asked=true;seen.turnPlayer=e.player;before=count(e,1,L.SZONE);seen.mine=count(e,0,L.SZONE);return {type:R.SELECT_CARD,indicies:[0]}}
   if(picks(m,c=>c.location===L.SZONE&&c.controller===1))return {type:R.SELECT_CARD,indicies:[0]};
   return null}});
  const out={...seen,mineAfter:count(e,0,L.SZONE),theirsBefore:before,theirsAfter:count(e,1,L.SZONE)};e.destroy();return out;
 }
 const withTyphoon=await typhoon(['typhoon']);console.log('Typhoon',withTyphoon);
 ok(withTyphoon.asked,'the End Phase asks for one of your Spells/Traps once the opponent has one');
+same(withTyphoon.turnPlayer,1,"it asks during the opponent's turn");
 same(withTyphoon.mineAfter,withTyphoon.mine-1,'your card is destroyed');
 same(withTyphoon.theirsAfter,withTyphoon.theirsBefore-1,"then one of your opponent's is destroyed");
 same((await typhoon([])).asked,false,'without the relic nothing is asked');

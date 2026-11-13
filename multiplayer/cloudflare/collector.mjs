@@ -1,4 +1,4 @@
-import {draftPool} from './draft-pool.mjs';
+import {draftPool,draftOffer,openBooster,minDeckFor} from './draft-pool.mjs';
 import {validateDeck,validateDraftDeck,deckCards,rankFor} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
@@ -15,6 +15,15 @@ export function shuffleCollectorDeck(deck,randomWord=()=>crypto.getRandomValues(
   const j=word%range;[result.main[i],result.main[j]]=[result.main[j],result.main[i]];
  }
  return result;
+}
+// Card sleeve (android/web/sleeves.js, 2026-11-12): a cosmetic the opponent's client draws on this player's face-down
+// cards. Kept to its key and the one unlock that proves it (the client checks it like a Tag partner's); never trusted
+// for anything else. Older clients send none and keep the standard back.
+export function sleeveOf(s){
+ if(!s||typeof s!=='object')return null;const key=s.key;
+ if(Number.isInteger(key)&&key>=0&&key<1000)return Number(s.proof?.character_levels?.[key])>=6?{key,proof:{character_levels:{[key]:6}}}:null;
+ if(typeof key==='string'&&/^[a-z0-9-]{1,64}$/.test(key))return Array.isArray(s.proof?.sleeves_earned)&&s.proof.sleeves_earned.includes(key)?{key,proof:{sleeves_earned:[key]}}:null;
+ return null;
 }
 export class CollectorRegistry {
  constructor(ctx,env){this.validate=validateDeck;this.ctx=ctx;this.env=env;this.tail=Promise.resolve();this.cache=new Map();this.timingCache=new Map();this.alarmAt=null;ctx.blockConcurrencyWhile(async()=>{
@@ -50,6 +59,7 @@ export class CollectorRegistry {
  expire(){for(const room of Object.values(this.data.rooms))this.tick(room);}
  async alarm(){const job=this.tail.then(async()=>{this.alarmAt=null;this.expire();await this.persist();});this.tail=job.catch(()=>{});await job;}
  fetch(request){const socket=request.headers.get('Upgrade')?.toLowerCase()==='websocket',report=request.headers.get('X-Hub-Report');const job=this.tail.then(()=>socket?this.connectHub(request):report?this.hubReport(request):this.handle(request));this.tail=job.catch(()=>{});return job;}
+ deckErrors(deck,p){return this.validate(deck,p.pool,cards)}
  hubKind(){return this.draftMode?'draft':'collector'}
  hubStub(code){const hub=this.env?.MATCH_HUB;return hub?.get(hub.idFromName(this.hubKind()+':'+code))}
  hubSummary(room){return {kind:this.hubKind(),code:room.code,phase:room.phase,game:room.game||0,players:room.players.length,actor:room.actor??null}}
@@ -74,28 +84,30 @@ export class CollectorRegistry {
  if(this.draftMode&&op==='prizes')throw Error('Draft matches do not award Collector prizes.');
  if(op==='leaderboard'){const list=Object.values(this.data.players).filter(x=>x.status==='alive'&&x.deck.main.length>=40).sort((a,b)=>b.wins-a.wins||a.name.localeCompare(b.name)).slice(0,10).map(x=>({name:x.name,wins:x.wins,rank:rankFor(x.wins),deck:x.deck,character:x.character}));await this.persist();return this.reply({leaderboard:list});}
  if(op==='register'){
- if(!p){let q=v.duelist;if(this.draftMode){const generated=draftPool(q?.character);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{packs:q.packs,packIds:q.packIds}: {})};}
+ if(!p){let q=v.duelist;if(this.draftMode){const generated=draftPool(q?.character,undefined,v.draft===2);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{packs:q.packs,packIds:q.packIds,...(v.draft===2?{loop:true}:{})}: {})};}
  }
  if(!p||p.token!==v.token)throw Error('Invalid Collector credentials.');
+ if('sleeve' in v){const s=sleeveOf(v.sleeve);if(JSON.stringify(s)!==JSON.stringify(p.sleeve??null)){if(s)p.sleeve=s;else delete p.sleeve}}
  let room=p.room?this.data.rooms[p.room]:null,seat=room?.players.indexOf(p.id);const hubBefore=this.hubState(room);
  if(op==='delete'){if(this.draftMode)throw Error('Not available in Draft Duels.');if(room&&room.phase!=='complete')throw Error('Finish or cancel your room before deleting this Collector.');p.status='deleted';p.pool=[];p.deck={main:[],side:[],extra:[]};p.room=null;await this.persist();const {token,...record}=p;return this.reply({record,room:null,now:Date.now()});}
  if(p.status==='eliminated'&&!p.defeatedDeck&&room?.startDecks?.[seat]){p.defeatedDeck=structuredClone(room.decks?.[seat]||room.startDecks[seat]);p.defeatedAt=p.history?.at(-1)?.at||Date.now();p.defeatReason=room.reason;}
- if(this.draftMode&&['deck','open-ready','ready','next','response','result','clock','surrender','emote'].includes(op)){
+ if(this.draftMode&&['deck','open-ready','ready','next','response','result','clock','surrender','emote','pick','continue'].includes(op)){
  if(!room||room.phase==='complete'||room.players.length!==2||op!=='deck'&&!room.hub&&room.seen.some((t,i)=>i!==seat&&Date.now()-t>=15000))throw Error('Waiting for both players to connect.');
  if(op==='deck'&&(room.phase!=='drafting'||room.ready?.[seat]))throw Error('Deck editing is only available during the draft.');
  }
  if(p.status==='alive'){
- if(op==='deck'){if(room&&room.phase!=='complete'&&!(this.draftMode&&room.phase==='drafting'&&!room.ready?.[seat]))throw Error('Finish your active match first.');const errors=this.validate(v.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));p.deck=v.deck;}
+ if(op==='deck'){if(room&&room.phase!=='complete'&&!(this.draftMode&&room.phase==='drafting'&&!room.ready?.[seat]))throw Error('Finish your active match first.');const errors=this.deckErrors(v.deck,p,room);if(errors.length)throw Error(errors.join(' '));p.deck=v.deck;}
  if(op==='host'||op==='join'){
  if(room&&room.phase!=='complete')throw Error('Reconnect to your existing room.');if(!this.draftMode){const errors=this.validate(p.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));}
- if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0,version:gameVersion(v),...(v.net===3?{hub:true}:{})};this.data.rooms[code]=room;p.room=code;seat=0;}
- else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');if(!!room.hub!==(v.net===3)||(room.version??null)!==gameVersion(v))throw Error(`This room is on ${room.version?'version '+room.version:'an older version'} of the game. Both players need the same version: update or refresh the game.`);room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
+ if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0,version:gameVersion(v),...(v.net===3?{hub:true}:{}),...(this.draftMode&&p.loop?{loop:true}:{})};this.data.rooms[code]=room;p.room=code;seat=0;}
+ else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');if(!!room.hub!==(v.net===3)||(room.version??null)!==gameVersion(v)||!!room.loop!==!!(this.draftMode&&p.loop))throw Error(`This room is on ${room.version?'version '+room.version:'an older version'} of the game. Both players need the same version: update or refresh the game.`);room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
  }
  if(room&&room.phase!=='complete'){
  room.seen[seat]=Date.now();room.charged??=[0,0];room.charged[seat]=0;
- if(this.draftMode&&op==='open-ready'&&room.phase==='waiting'){room.ready??=[false,false];room.ready[seat]=true;if(room.players.length===2&&room.ready.every(Boolean)){room.phase='drafting';room.ready=[false,false];}}
- if(this.draftMode&&op==='ready'&&room.phase==='drafting'){const errors=this.validate(p.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));room.ready??=[false,false];room.ready[seat]=true;if(room.players.length===2&&room.ready.every(Boolean)){room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.turnLeft=[180000,180000];room.actor=room.first;room.turn=1;room.clockAt=Date.now();room.clockVotes={};}}
- if(op==='leave'&&(room.phase==='waiting'||this.draftMode&&room.phase==='drafting')){room.phase='complete';room.winner=null;if(this.draftMode){room.cancelled=true;room.reason='Room cancelled';for(const id of room.players)this.data.players[id].room=null;}else p.room=null;}
+ if(this.draftMode&&op==='open-ready'&&room.phase==='waiting'){room.ready??=[false,false];room.ready[seat]=true;if(room.players.length===2&&room.ready.every(Boolean)){room.phase='drafting';room.ready=[false,false];if(room.loop)Object.assign(room,{round:0,minDeck:minDeckFor(0),target:3,relics:[[],[]]});}}
+ if(this.draftMode&&op==='ready'&&room.phase==='drafting'){const errors=this.deckErrors(p.deck,p,room);if(errors.length)throw Error(errors.join(' '));room.ready??=[false,false];room.ready[seat]=true;if(room.players.length===2&&room.ready.every(Boolean)){room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=room.loop&&room.nextFirst!=null?room.nextFirst:crypto.getRandomValues(new Uint8Array(1))[0]%2;room.nextFirst=null;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=(room.game||0)+1;room.events=[];room.votes={};room.turnLeft=[180000,180000];room.actor=room.first;room.turn=1;room.clockAt=Date.now();room.clockVotes={};}}
+ if(this.draftMode&&room.loop&&room.game>0&&room.phase!=='duel')this.draftOp(op,v,room,seat,p);
+ else if(op==='leave'&&(room.phase==='waiting'||this.draftMode&&room.phase==='drafting')){room.phase='complete';room.winner=null;if(this.draftMode){room.cancelled=true;room.reason='Room cancelled';for(const id of room.players)this.data.players[id].room=null;}else p.room=null;}
  if(op==='surrender'&&room.players.length===2&&room.phase==='duel'){if(v.game!==undefined&&v.game!==room.game)throw Error('That surrender is for a previous duel.');if(room.hub&&Number.isInteger(v.turn))room.turn=v.turn;this.finishDuel(room,1-seat,'Surrender');}
  if(op==='emote'){if(room.phase!=='duel'||v.game!==room.game||!['❤️','😜','🍆'].includes(v.emoji))throw Error('Invalid emote.');room.emotes??={};if(Date.now()-(room.emotes[seat]?.at||0)>=1500)room.emotes[seat]={id:crypto.randomUUID(),emoji:v.emoji,game:room.game,at:Date.now()};}
  if(op==='clock'){if(room.phase!=='duel'||v.number!==room.events.length||!Number.isInteger(v.turn)||v.turn<1||![0,1,null].includes(v.actor))throw Error('Invalid timer state.');room.clockVotes??={};room.clockVotes[seat]={number:v.number,turn:v.turn,actor:v.actor};const a=room.clockVotes[0],b=room.clockVotes[1];if(a&&b&&a.number===b.number&&a.turn===b.turn&&a.actor===b.actor){if(room.turn!==a.turn){room.turn=a.turn;room.turnLeft=[180000,180000];}room.actor=a.actor;room.clockAt=Date.now();}}
@@ -109,14 +121,50 @@ export class CollectorRegistry {
  }
  if(op==='prizes'){if(!room||room.phase!=='complete'||room.winner!==seat)throw Error('No prizes available.');if(!room.claimed){if(!Array.isArray(v.indices)||v.indices.length!==Math.min(5,room.prizes.length)||new Set(v.indices).size!==v.indices.length||v.indices.some(i=>!Number.isInteger(i)||i<0||i>=room.prizes.length))throw Error('Choose five prize copies.');const earned=v.indices.map(i=>room.prizes[i]);p.pool.push(...earned);p.history.find(h=>h.room===room.code).cards=earned;room.claimed=true;}}
  }
- await this.persist();if(room?.hub&&this.hubState(room)!==hubBefore)this.notifyHub(room);const {token,...record}=p;return this.reply({record,seat,room:room?{...room,players:room.players.map(id=>{const x=this.data.players[id];return {id:x.id,name:x.name,character:x.character}})}:null,now:Date.now()});
+ await this.persist();if(room?.hub&&this.hubState(room)!==hubBefore)this.notifyHub(room);const {token,...record}=p;return this.reply({record,seat,room:room?{...room,players:room.players.map(id=>{const x=this.data.players[id];return {id:x.id,name:x.name,character:x.character,...(x.sleeve?{sleeve:x.sleeve}:{})}})}:null,now:Date.now()});
  }catch(e){await this.persist();return this.reply({error:e.message},400);}}
  reply(data,status=200){return new Response(JSON.stringify(data),{status,headers})}
 }
 
 // Independent Durable Object instance: draft identities never enter Collector pools.
+// Draft loop rooms (room.loop, clients from 2026-11-13): duel → Draft Screen (loser picks a relic and a character
+// pack first, then the winner) → two boosters each → deck editor → next duel, until someone reaches room.target wins.
+// Both players may then extend the target by three, again and again. Older clients keep the best-of-three rules.
 export class DraftRegistry extends CollectorRegistry {
  constructor(ctx,env){super(ctx,env);this.draftMode=true;this.validate=validateDraftDeck;}
- finish(room,loser,reason){if(room.phase==='complete')return;room.phase='complete';room.winner=1-loser;room.reason=reason;room.claimed=true;for(let seat=0;seat<2;seat++){const p=this.data.players[room.players[seat]];if(seat===room.winner)p.wins++;p.history.push({room:room.code,won:seat===room.winner,reason,at:Date.now(),games:room.games||[]});}}
+ deckErrors(deck,p,room){return validateDraftDeck(deck,p.pool,cards,room?.loop?room.minDeck:40)}
+ hubState(room){const base=super.hubState(room);return base&&room.loop?base+JSON.stringify([room.round,room.picks,room.continueVotes,room.target]):base}
+ // The loser of the last duel picks first; after a draw, whoever picked second last time.
+ startPicking(room,winner){const first=winner===2?(room.pickOrder?room.pickOrder[1]:room.first):1-winner;Object.assign(room,{phase:'picking',round:(room.round||0)+1,offer:draftOffer(),pickOrder:[first,1-first],picks:[null,null],ready:[false,false],nextFirst:winner===2?room.first:1-winner,votes:{}});}
+ finishDuel(room,winner,reason){
+  if(!room.loop)return super.finishDuel(room,winner,reason);if(room.phase!=='duel')return;
+  room.games??=[];room.games.push({game:room.game,winner,turns:room.turn,at:Date.now(),...(reason?{reason}:{})});if(winner!==2)room.score[winner]++;
+  if(winner!==2&&room.score[winner]>=room.target){room.phase='decided';room.winner=winner;room.reason=`First to ${room.target} wins`;room.continueVotes=[null,null];room.votes={};this.data.players[room.players[winner]].wins++;this.record(room);}
+  else this.startPicking(room,winner);
+ }
+ record(room){for(let seat=0;seat<2;seat++){const p=this.data.players[room.players[seat]];p.history.push({room:room.code,won:seat===room.winner,reason:room.reason,at:Date.now(),score:[...room.score],target:room.target,games:(room.games||[]).slice(-12)});if(p.history.length>20)p.history.splice(0,p.history.length-20);}}
+ draftOp(op,v,room,seat,p){
+  if(op==='leave'){this.finish(room,seat,'Left the match');return;}
+  if(op==='pick'){
+   if(room.phase!=='picking')throw Error('The Draft Screen is not open.');const turn=room.pickOrder.find(s=>!room.picks[s]);
+   if(turn!==seat)throw Error('Wait for your opponent to pick.');const other=room.picks[1-seat];
+   if(![0,1,2].includes(v.relic)||![0,1,2].includes(v.pack)||other&&(other.relic===v.relic||other.pack===v.pack))throw Error('Choose one relic and one pack that are still available.');
+   room.picks[seat]={relic:v.relic,pack:v.pack};
+   if(room.picks.every(Boolean)){
+    for(let s=0;s<2;s++){const x=this.data.players[room.players[s]],id=room.offer.packs[room.picks[s].pack],boosters=[openBooster(id),openBooster(id)];x.packs=boosters;x.packIds=[id,id];x.pool.push(...boosters.flat());room.relics[s].push(room.offer.relics[room.picks[s].relic]);}
+    Object.assign(room,{phase:'drafting',minDeck:minDeckFor(room.round),ready:[false,false]});
+   }
+   return;
+  }
+  if(op==='continue'){
+   if(room.phase!=='decided'||typeof v.value!=='boolean')throw Error('The match is not waiting for that choice.');
+   if(!v.value){this.finish(room,seat,'Match ended');return;}
+   room.continueVotes[seat]=true;if(room.continueVotes.every(Boolean)){const last=room.games.at(-1)?.winner??room.winner;room.target+=3;room.winner=null;room.reason=null;room.continueVotes=null;this.startPicking(room,last);}
+  }
+ }
+ finish(room,loser,reason){if(room.phase==='complete')return;
+  // Once someone reached the target the match is already decided; ending it (either choice, leaving, a lost link) keeps that result.
+  if(room.loop&&room.phase==='decided'){room.phase='complete';room.ended=reason;return;}
+  if(room.loop){room.phase='complete';room.winner=1-loser;room.reason=reason;room.claimed=true;this.data.players[room.players[room.winner]].wins++;this.record(room);return;}room.phase='complete';room.winner=1-loser;room.reason=reason;room.claimed=true;for(let seat=0;seat<2;seat++){const p=this.data.players[room.players[seat]];if(seat===room.winner)p.wins++;p.history.push({room:room.code,won:seat===room.winner,reason,at:Date.now(),games:room.games||[]});}}
  expireBoth(room,now=Date.now()){const saved=room.players.map(id=>structuredClone(this.data.players[id]));super.expireBoth(room,now);for(let i=0;i<room.players.length;i++)Object.assign(this.data.players[room.players[i]],saved[i]);}
 }

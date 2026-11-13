@@ -44,6 +44,8 @@ import {isFavouritePack,favouritesFirst,packStar,favouritesInStock} from './pack
 import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
+import {fitButtonLabels} from './label-fit.js';
+import {explainOnlineError} from './online-status.js';
 
 // Every deck scroller in the Tag deck tab: one grid, or both panes of the wide split (card-search.js).
 const TAG_DECK_SORTS=['Newest','Default','Name','Attribute','ATK','DEF','Level'];
@@ -89,7 +91,9 @@ export class TagUI {
  }
 
  netStatus(){const stats=this.session?.stats();return stats?{online:stats.route!=='connecting',partnerOnline:stats.linked,rtt:stats.rtt,route:stats.route,partner:this.view?.duel?.mode==='pvp'?'Opponent':'Teammate'}:null}
- error(error){this.status=friendlyError(error);this.onStatus('error',this.status);if(this.view?.phase!=='duel')this.render()}
+ error(error){this.status=friendlyError(error);this.onStatus('error',this.status);if(this.view?.phase!=='duel')this.render();
+  // Server trouble gets a plain reason (online-status.js), shown as soon as it is known.
+  const shown=this.status;void explainOnlineError(error).then(text=>{if(!this.alive||text===shown||this.status!==shown)return;this.status=text;this.onStatus('error',text);if(this.view?.phase!=='duel')this.render()})}
 
  header(body,tools='',classes=''){return `<div class="page tag-page ${classes}"><header><h2>Tag duels${this.session?.code?' · '+this.session.code:''}</h2><div class="tools">${tools} ${button(exitIcon,'exit','class="navigation-icon-button" aria-label="Exit" title="Exit"')}</div></header>${this.status?`<div class="tag-status" role="status">${esc(this.status)}</div>`:''}${body}${this.session&&(this.session.seat??this.session.peer.seat)===0&&(!this.view||this.view.phase==='lobby')?`<footer class="settings-footer">${button('Back','back')}</footer>`:''}</div>`}
 
@@ -108,7 +112,7 @@ export class TagUI {
 
   const scroll=saveDeckScroll(tagDeckArea(this.root)),trade=tradeScroller(this.root)?.scrollTop;
 
-  this.renderContent();
+  this.renderContent();fitButtonLabels(this.root);
 
   restoreDeckScroll(tagDeckArea(this.root),scroll);const tradeArea=tradeScroller(this.root);if(tradeArea&&trade)tradeArea.scrollTop=trade;this.checkDeckSplit();
 
@@ -175,12 +179,15 @@ export class TagUI {
   if(['complete','gameover'].includes(v.phase)){
 
    const finale=v.finale||{},available=v.phase==='complete'&&finale.status==='available',voted=finale.votes?.[v.seat];
+   // After the final duel (played or skipped) the team can loop, like a solo run after the champion (user, 2026-11-12).
+   const loopable=v.phase==='complete'&&['finished','skipped'].includes(finale.status),loopVoted=!!v.loopVotes?.[v.seat],loopOther=!!v.loopVotes?.[1-v.seat];
+   const loopOffer=loopable?`<div class="tag-finale-offer tag-loop-offer"><h2>Start loop ${(v.loop||0)+2}?</h2><p>Keep your decks, relics and coins and face nine new duels. Both players must agree.</p><p>${loopVoted?'You are ready. Waiting for your partner…':loopOther?'Your partner wants to keep going!':'Or exit to end the run here.'}</p><div>${button(loopVoted?'Cancel readiness':'Start next loop','loop-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}</div></div>`:'';
 
    if(['choosing','resolving','drafting'].includes(finale.status)){this.renderFinale();return;}
 
    const result=finale.status==='finished'?`<h2>${finale.winner===null?'Final duel: Draw':finale.winner===v.seat?'You won the final duel':'Your opponent won the final duel'}</h2><p>Your shared campaign victory is saved.</p>`:'';
 
-   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-run-card-slot"></div>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${button('Exit','exit')}</section>`);this.endCard(r);return
+   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-run-card-slot"></div>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${loopOffer}${button('Exit','exit')}</section>`);this.endCard(r);return
 
   }
 
@@ -519,6 +526,7 @@ export class TagUI {
 
   if(action==='finale-mode'||action==='finale-pick'){this.working=true;try{await this.session.request(action,action==='finale-mode'?el.dataset.mode:Number(el.dataset.index))}finally{this.working=false;this.render()}return}
 
+  if(action==='loop-vote'){this.working=true;try{await this.session.request('loop-vote',!this.view.loopVotes?.[this.view.seat])}finally{this.working=false;this.render()}return}
   if(action==='finale-vote'||action==='finale-skip'){this.working=true;try{await this.session.request(action,action==='finale-vote'?!this.view.finale?.votes?.[this.view.seat]:null)}finally{this.working=false;this.render()}return}
 
   if(action==='cursed-choose'||action==='cursed-reroll'||action==='cursed-skip'){this.working=true;try{await this.session.request(action,el.dataset.relic)}finally{this.working=false;this.render()}return}

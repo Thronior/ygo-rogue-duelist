@@ -21,10 +21,15 @@ const auth='e'.repeat(64),id='d'.repeat(64);
 // First save: the value, the meta row and the daily sweep alarm (once per registry, not per save).
 assert.equal(await counted(()=>call('save',{id,auth,blob:blob(150000)})),3);
 assert.deepEqual([...rows.keys()].filter(k=>k.includes(id)).sort(),['enc:'+id,'one:'+id]);
-// Every later save: 2 rows. A 150 kB save used to cost 2 x 7 parts + 1 = 15.
-time+=31000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(150000,'C')})),2);
-time+=31000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(40000,'D')})),2);
-assert.equal((await call('load',{id,auth})).blob,blob(40000,'D'));
+// Later saves the same day: 1 row, the save itself (2026-11-12). A 150 kB save used to cost 2 x 7 parts + 1 = 15.
+time+=31000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(150000,'C')})),1);
+time+=31000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(40000,'D')})),1);
+{const r=await call('load',{id,auth});assert.equal(r.blob,blob(40000,'D'));assert.equal(r.savedAt,time,'exact save time without a meta write')}
+// Within 20 seconds of the last save the request is still refused, even though the meta row was not rewritten.
+time+=5000;assert.equal((await call('save',{id,auth,blob:blob(10,'Q')})).status,429);
+// The first save of a new day also refreshes the meta row (the retention sweep reads its day): 2 rows.
+time+=86400000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(40000,'E')})),2);
+time+=31000;assert.equal(await counted(()=>call('save',{id,auth,blob:blob(40000,'F')})),1);
 
 // A save stored in the old layout (24,000-character parts) moves over on its next save: its parts are deleted once.
 const oldId='7'.repeat(64),{authHash}=rows.get('enc:'+id),legacy=blob(100000,'L');
@@ -33,7 +38,7 @@ rows.set('enc:'+oldId,legacyMeta);for(let i=0;i<legacyMeta.parts;i++)rows.set('b
 assert.equal((await call('load',{id:oldId,auth})).blob,legacy,'old layout still loads');
 assert.equal(await counted(()=>call('save',{id:oldId,auth,blob:blob(100000,'M')})),2+legacyMeta.parts);
 assert(![...rows.keys()].some(k=>k.startsWith('blob:'+oldId)),'no orphaned parts');
-time+=31000;assert.equal(await counted(()=>call('save',{id:oldId,auth,blob:blob(100000,'N')})),2,'then 2 rows like any save');
+time+=31000;assert.equal(await counted(()=>call('save',{id:oldId,auth,blob:blob(100000,'N')})),1,'then 1 row like any same-day save');
 
 // A save too big for one value is split into parts as large as one value allows, and moving between layouts leaves
 // nothing behind in either direction.
@@ -53,4 +58,4 @@ await registry.alarm();
 assert(![...rows.keys()].some(k=>k.includes(id)||k.includes(legacyStale)),'stale single and multipart saves are swept');
 assert.equal((await call('load',{id:fresh,auth})).status,200);
 assert.equal(await counted(()=>registry.alarm()),1,'a sweep with nothing to delete writes only its alarm');
-console.log('PASS cloud save writes 2 rows per save (was 2 x parts + 1), old multipart saves move over once, huge saves use large parts, load/delete/sweep both layouts, no orphans, sweep cursor not rewritten');
+console.log('PASS cloud save writes 1 row per save on the same day, 2 on the first save of a day (was 2 x parts + 1), old multipart saves move over once, huge saves use large parts, load/delete/sweep both layouts, no orphans, sweep cursor not rewritten');

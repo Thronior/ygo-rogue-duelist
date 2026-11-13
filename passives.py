@@ -260,6 +260,9 @@ def mirror_relics(run):
  import random
  sealed=duel_run(run);copy=sealed.get('mirror_copy')
  usable=[key for key in sealed.get('artifacts',[]) if (bool(copy) and acts_in_duel(copy) if key=='magic_mirror' else acts_in_duel(key))]
+ # Defense Proficiency on both sides on top of Mercy left battle damage near zero and the duel crawled into the
+ # slow-duel penalty (Prunk44/user, 2026-11-12): with Mercy, the opponent never gets a copy of it.
+ if 'mercy' in run.get('curses',[]):usable=[key for key in usable if key!='cursed_defense_proficiency' and not (key=='magic_mirror' and copy=='cursed_defense_proficiency')]
  rng=random.Random(f"{run.get('started_at')}:{run.get('loop',0)}:{run.get('round',0)}:relic-mirror")
  # Amplified (LVL 2+): 4 random relics, duplicates counting, instead of all of them (user, 2026-11-05).
  if run.get('challenge_level',0)>=2:return rng.sample(usable,min(4,len(usable)))

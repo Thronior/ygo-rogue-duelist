@@ -13,6 +13,8 @@ assert.equal((await post({batchId:id(),expiresAt:expiry,counts:{wins:1}})).statu
 assert.equal((await get()).firstTimePlayers,124,'baseline added once');
 assert.equal((await worker.fetch(new Request('https://example/v1/stats',{method:'POST',body:'{}'}))).status,426);
 for(const patch of [{counts:{seconds:-1}},{counts:{seconds:0.5}},{counts:{seconds:1,deviceId:'x'}},{expiresAt:Date.now()-1},{id:'legacy-device'},{batchId:"'; DROP TABLE total; --"},{counts:{seconds:"1; DELETE FROM total"}},{counts:JSON.parse('{"__proto__":1}')}])assert.equal((await post({...batch,batchId:id(),...patch})).status,400);
+// Uploads wait in memory until the alarm (or 200 uploads) writes them together (2026-11-12).
+await worker.alarm();
 const slot='rcpt:'+String(Math.floor(expiry/600000)).padStart(12,'0');assert(data.get(slot).includes(batch.batchId.replace(/-/g,'')),'receipt is the batch id in its expiry slot');assert(!data.has('batch:'+batch.batchId),'no per-batch receipt row');
 // Receipts written by the previous version still stop a retry until they expire.
 const legacy=id();data.set('batch:'+legacy,expiry);{const w=writes;assert.equal((await post({batchId:legacy,expiresAt:expiry,counts:{runs:5}})).status,200);assert.equal(writes,w,'legacy receipt honoured')}

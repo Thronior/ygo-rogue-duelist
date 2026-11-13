@@ -12,7 +12,10 @@
   "vars": {
     "LEGACY_MULTIPLAYER": "block",
     // "block" refuses unencrypted cloud backups (426) from clients before the encrypted cloud save code.
-    "LEGACY_BACKUPS": "block"
+    "LEGACY_BACKUPS": "block",
+    // Daily ceiling on Worker requests (meter.mjs). Past it, online calls get 503 until 00:00 UTC, so a flood on Workers
+    // Paid cannot run up the bill. 0 or missing turns it off.
+    "DAILY_REQUEST_CAP": "1000000"
   },
   "durable_objects": {
     "bindings": [
@@ -47,6 +50,10 @@
       {
         "name": "MATCH_HUB",
         "class_name": "MatchHub"
+      },
+      {
+        "name": "METER",
+        "class_name": "RequestMeter"
       }
     ]
   },
@@ -92,6 +99,12 @@
       "new_sqlite_classes": [
         "TagHub",
         "MatchHub"
+      ]
+    },
+    {
+      "tag": "v8",
+      "new_sqlite_classes": [
+        "RequestMeter"
       ]
     }
   ]

@@ -73,10 +73,12 @@ def evaluate(profile, run=None):
         'loop3': bool(run) and int(run.get('loop', 0) or 0) >= 2,
     }
     duelists = len(set(profile.get('won_as', [])))
+    level_six = _level_six(profile)
     for s in SLEEVES:
         rule = s['rule']
         kind = rule['kind']
-        if (kind == 'lifetime' and stats.get(rule['key'], 0) >= rule['min']
+        if (kind == 'level6_all' and level_six[0] >= level_six[1]
+                or kind == 'lifetime' and stats.get(rule['key'], 0) >= rule['min']
                 or kind == 'lifetime_all' and all(stats.get(k, 0) >= v for k, v in rule['keys'].items())
                 or kind == 'duelists' and duelists >= rule['min']
                 or kind == 'mark' and rule['key'] in marks
@@ -111,6 +113,13 @@ def mark(profile, key):
     return evaluate(profile)
 
 
+def _level_six(profile):
+    """(duelists with a Challenge Level 6 win, playable duelists): the Rainbow sleeve needs every one."""
+    from content import PLAYABLE_IDS
+    levels = profile.get('character_levels', {})
+    return sum(int(levels.get(str(i), -1)) >= 6 for i in PLAYABLE_IDS), len(PLAYABLE_IDS)
+
+
 def _slug(name):
     import re, unicodedata
     return re.sub(r'[^a-z0-9]+', '-', unicodedata.normalize('NFKD', str(name).lower())).strip('-')
@@ -138,9 +147,11 @@ def achievements(profile):
             value, target = sum(min(stats.get(k, 0), v) for k, v in rule['keys'].items()), sum(rule['keys'].values())
         elif kind == 'duelists':
             value, target = duelists, rule['min']
+        elif kind == 'level6_all':
+            value, target = _level_six(profile)
         else:
             value, target = int(s['id'] in earned), 1
-        done = s['id'] in earned or kind in ('lifetime', 'lifetime_all', 'duelists') and value >= target
+        done = s['id'] in earned or kind in ('lifetime', 'lifetime_all', 'duelists', 'level6_all') and value >= target
         rows.append(dict(id='sleeve:' + s['id'], name=s['art'], reward='Card sleeve', description=s['text'], value=target if done else min(value, target),
-                         target=target, done=done, cumulative=kind in ('lifetime', 'lifetime_all', 'duelists'), image=f"sleeves/cards/{s['id']}.jpg"))
+                         target=target, done=done, cumulative=kind in ('lifetime', 'lifetime_all', 'duelists', 'level6_all'), image=f"sleeves/cards/{s['id']}.jpg"))
     return rows

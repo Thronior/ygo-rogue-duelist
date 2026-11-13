@@ -1,4 +1,4 @@
-// Escape is exclusively an inspection-close shortcut. Android Back stays separate.
+// Escape closes inspection, open windows and menu screens (the caller decides what is open). Android Back stays separate.
 export function installEscapeInspection(isInspectionOpen,closeInspection){
  const keydown=e=>{
   if(e.key!=='Escape')return;

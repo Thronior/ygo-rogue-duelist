@@ -20,7 +20,7 @@ export function backupSummary(data){
  return {version:data.version,platform:data.platform,collectors:collectors.slice(0,100).map(d=>({name:String(d.name||'').slice(0,40),character:Number.isInteger(d.character)?d.character:null,status:String(d.status||'').slice(0,20)})),files:Object.keys(data.files).length,wins:Number(profile.wins)||0,runs:Number(profile.runs)||0};
 }
 export class BackupRegistry{
- constructor(ctx,env){this.ctx=ctx;this.env=env;this.tail=Promise.resolve();this.rates=new Map()}
+ constructor(ctx,env){this.ctx=ctx;this.env=env;this.tail=Promise.resolve();this.rates=new Map();this.saved=new Map()}
  fetch(request){const job=this.tail.then(()=>this.handle(request));this.tail=job.catch(()=>{});return job}
  async handle(request){try{
   const op=new URL(request.url).pathname.split('/').at(-1),admin=['list','export'].includes(op);
@@ -66,18 +66,25 @@ export class BackupRegistry{
   const blobs=m=>blobKeys(v.id,m);
   // A missing save and a wrong code give the same answer.
   if(op!=='save'&&!owned)return reply({error:'No cloud save matches this code.'},404);
-  if(op==='load'){const parts=[];for(const k of blobs(old)){const part=await storage.get(k);if(typeof part!=='string')throw Error('Incomplete cloud save');parts.push(part)}return reply({savedAt:old.updatedAt,blob:parts.join('')})}
+  // A single-value save is stored as {at,blob} (2026-11-12) so its exact time needs no meta write; older ones are plain text.
+  if(op==='load'){const parts=[];let at=old.updatedAt;for(const k of blobs(old)){const part=await storage.get(k);const text=typeof part==='string'?part:part?.blob;if(typeof text!=='string')throw Error('Incomplete cloud save');if(part?.at)at=part.at;parts.push(text)}return reply({savedAt:at,blob:parts.join('')})}
   if(op==='delete'){await storage.transaction(async tx=>{for(const k of blobs(old))await tx.delete(k);await tx.delete(key)});return reply({deleted:true})}
   if(old&&!owned)return reply({error:'This cloud save code is already in use.'},409);
-  if(old&&now-old.updatedAt<20000)return reply({error:'Retry later'},429);
+  // The meta row's time is only refreshed once a day now, so the 20-second limit also checks this instance's memory.
+  for(const [k,t] of this.saved)if(now-t>20000)this.saved.delete(k);
+  if(old&&now-Math.max(old.updatedAt,this.saved.get(v.id)||0)<20000)return reply({error:'Retry later'},429);
   if(typeof v.blob!=='string'||!BLOB.test(v.blob))throw Error('Invalid cloud save');
   // Rows written are the scarce daily allowance (2026-11-11). A save is one value overwritten in place plus its small
   // meta row: 2 rows, where the old layout wrote every 24,000-character part and deleted the previous ones
   // (2 x parts + 1). Only saves too big for one value still use parts, each as large as one value allows.
-  const one=v.blob.length<=ONE_VALUE,meta={authHash:old?.authHash||await sha256(v.auth),createdAt:old?.createdAt||now,updatedAt:now,...(one?{one:true,rev:null,parts:1}:{rev:crypto.randomUUID(),parts:Math.ceil(v.blob.length/ONE_VALUE)})};
+  const one=v.blob.length<=ONE_VALUE,sameDay=old&&Math.floor(old.updatedAt/DAY)===Math.floor(now/DAY);
+  // Same day, same single-value layout: only the save row is written (1 row). The meta row (owner, layout, the day
+  // the one-year retention sweep reads) is rewritten when the day or the layout changes.
+  if(old&&one&&old.one&&sameDay){await storage.put('one:'+v.id,{at:now,blob:v.blob});this.saved.set(v.id,now);return reply({updatedAt:now})}
+  const meta={authHash:old?.authHash||await sha256(v.auth),createdAt:old?.createdAt||now,updatedAt:now,...(one?{one:true,rev:null,parts:1}:{rev:crypto.randomUUID(),parts:Math.ceil(v.blob.length/ONE_VALUE)})};
   const keys=blobs(meta),stale=old?blobs(old).filter(k=>!keys.includes(k)):[];
-  await storage.transaction(async tx=>{for(let i=0;i<keys.length;i++)await tx.put(keys[i],one?v.blob:v.blob.slice(i*ONE_VALUE,(i+1)*ONE_VALUE));await tx.put(key,meta);for(const k of stale)await tx.delete(k)});
-  if(!await storage.getAlarm())await storage.setAlarm(now+DAY);
+  await storage.transaction(async tx=>{for(let i=0;i<keys.length;i++)await tx.put(keys[i],one?{at:now,blob:v.blob}:v.blob.slice(i*ONE_VALUE,(i+1)*ONE_VALUE));await tx.put(key,meta);for(const k of stale)await tx.delete(k)});
+  this.saved.set(v.id,now);if(!await storage.getAlarm())await storage.setAlarm(now+DAY);
   return reply({updatedAt:now});
  }
  // Storage limitation: an encrypted save nobody has updated for a year is deleted, checked once a day.

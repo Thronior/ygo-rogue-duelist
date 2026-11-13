@@ -26,7 +26,7 @@ class TagCampaign:
 
   self.trade=self.new_trade();self.shopping=self.new_shopping()
 
-  self.finale={'votes':[False,False],'status':'available','winner':None};self.room_code=None;self.rng=random.Random(seed);self.profiles=deepcopy(profiles);self.players=[];self.revision=0;self.receipts={};self.ready=[False,False];self.phase='lobby' if lobby else 'draft';self.shop_seat=0;self.duel=None;self.paused=False
+  self.finale={'votes':[False,False],'status':'available','winner':None};self.loop_votes=[False,False];self.room_code=None;self.rng=random.Random(seed);self.profiles=deepcopy(profiles);self.players=[];self.revision=0;self.receipts={};self.ready=[False,False];self.phase='lobby' if lobby else 'draft';self.shop_seat=0;self.duel=None;self.paused=False
 
   if not (level==-1 and profiles[0].get('relicless_unlocked') or 0<=level<=challenge_levels.unlocked(profiles[0],characters[0])):raise ValueError('The host has not unlocked this level.')
 
@@ -240,7 +240,8 @@ class TagCampaign:
 
   for run in self.players:
 
-   run.update(loop=0,encore_active=False,encore_won=False)
+   # The team's loop (2026-11-12): Tag runs can loop after the final duel, like solo runs after the champion.
+   run.update(loop=self.shared.get('loop',0),encore_active=False,encore_won=False)
 
    for key,value in self.shared.items():run[key]=deepcopy(value)
 
@@ -369,11 +370,11 @@ class TagCampaign:
 
    run['artifacts']=deepcopy(self.finale.get('picks',[run['artifacts'],run['artifacts']])[seat])
 
-  return dict(protocol=1,trade=self.trade_view(seat),shopping=self.shopping_view(),finale=deepcopy(self.finale),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
+  return dict(protocol=1,trade=self.trade_view(seat),shopping=self.shopping_view(),finale=deepcopy(self.finale),loopVotes=self.loop_votes[:],loop=self.shared.get('loop',0),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
 
  def checkpoint(self):
 
-  return deepcopy(dict(protocol=1,trade=self.trade,shopping=self.shopping,finale=self.finale,room_code=self.room_code,players=self.players,profiles=self.profiles,shared=self.shared,revision=self.revision,receipts=self.receipts,ready=self.ready,phase=self.phase,shop_seat=self.shop_seat,duel=self.duel,paused=self.paused,rng_state=self.rng.getstate()))
+  return deepcopy(dict(protocol=1,trade=self.trade,shopping=self.shopping,finale=self.finale,loop_votes=self.loop_votes,room_code=self.room_code,players=self.players,profiles=self.profiles,shared=self.shared,revision=self.revision,receipts=self.receipts,ready=self.ready,phase=self.phase,shop_seat=self.shop_seat,duel=self.duel,paused=self.paused,rng_state=self.rng.getstate()))
 
  @staticmethod
 
@@ -515,6 +516,7 @@ class TagCampaign:
   self.shopping=deepcopy(data.get('shopping') or self.new_shopping())
 
   self.finale=deepcopy(data.get('finale',{'votes':[False,False],'status':'available','winner':None}))
+  self.loop_votes=list(data.get('loop_votes',[False,False]))
 
   for key in ('room_code','players','profiles','shared','revision','receipts','ready','phase','shop_seat','duel','paused'):setattr(self,key,deepcopy(data[key]))
 
@@ -569,7 +571,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -637,6 +639,12 @@ class TagCampaign:
 
   if self.trade['status']!='idle':raise ValueError('Finish the card trade before continuing.')
 
+  if action=='loop-vote':
+   # After the optional final duel (played or skipped), both players agree to start another loop of the same run.
+   if self.phase!='complete' or self.finale['status'] not in ('finished','skipped'):raise ValueError('Another loop is offered once the final duel is done.')
+   self.loop_votes[seat]=bool(value) if value is not None else not self.loop_votes[seat]
+   if all(self.loop_votes):self.next_loop()
+   return
   if action in ('finale-vote','finale-skip'):
 
    if self.phase!='complete' or self.finale['status']!='available':raise ValueError('The optional final duel is not available.')
@@ -893,6 +901,22 @@ class TagCampaign:
    self.finale['picks']=[pool[:],pool[:]] if mode=='all' else [[],[]]
 
    self.prepare_finale()
+
+ def next_loop(self):
+  """Both players voted to loop: the same team run continues at duel 1 of the next loop (endless.next_loop's rules,
+  without its champion requirement), with a fresh shop and opponents and the final duel offered again at the end."""
+  self.shared.update(loop=self.shared.get('loop',0)+1,round=0,curses=[],cursed_offer=None)
+  for seat,run in enumerate(self.players):
+   run.update(round=0,encore_active=False,encore_won=False,profile_complete=False,stage='shop',boss_curse=None,curses=[],boss_cursed=[])
+   for key in ('encore_opponent','variant_unlocked','finished_at','loss'):run.pop(key,None)
+   run.setdefault('previous_loop_opponents',[]).append(run.get('defeated_opponents',[]));run['defeated_opponents']=[]
+  self.sync()
+  host=self.players[0]
+  with self.scope(0):game.restock(host,self.rng)
+  for key in ('shop','shop_rerolls'):self.shared[key]=deepcopy(host.get(key))
+  self.sync();self.routes()
+  self.phase='shop';self.shop_seat=0;self.shopping=self.new_shopping();self.ready=[False,False];self.duel=None
+  self.finale={'votes':[False,False],'status':'available','winner':None};self.loop_votes=[False,False]
 
  def prepare_finale(self):
 

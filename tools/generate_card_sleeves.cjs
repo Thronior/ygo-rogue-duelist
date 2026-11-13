@@ -31,6 +31,16 @@ const css=`*{box-sizing:border-box}html,body{margin:0;background:#000}
   browser=await chromium.launch({headless:true,channel:'chrome'});
   const page=await browser.newPage({viewport:{width:428,height:614}});await page.goto(`http://127.0.0.1:${server.address().port}/`);
   for(const row of rows){
+   // The Rainbow sleeve (every duelist beat Level 6) is the Level 6 portrait rainbow alone, at an angle. One rainbow spans
+   // two sleeve widths, like the roster portraits; the picture is three sleeves wide and repeats every 856 px across, so
+   // the game slides it by one repeat (mobile.css, sleeve-rainbow) in an endless roll.
+   if(row.tier==='rainbow'){
+    await page.setViewportSize({width:1284,height:614});
+    await page.evaluate(R=>{const colors=R.split(','),period=856/Math.SQRT2,stops=colors.map((c,i)=>`${c} ${(i*period/(colors.length-1)).toFixed(3)}px`).join(',');
+     const s=document.querySelector('#s');s.style.width='1284px';s.innerHTML=`<div class="frame" style="background:repeating-linear-gradient(135deg,${stops})"></div>`},R);
+    await page.locator('#s').screenshot({path:path.join(out,row.id+'.jpg'),type:'jpeg',quality:92});
+    await page.evaluate(()=>{document.querySelector('#s').style.width=''});await page.setViewportSize({width:428,height:614});continue;
+   }
    const f=FRAMES[row.tier||'plain'];
    await page.evaluate(async([row,f])=>{const im=new Image();im.src=`/assets/cards/${row.card}.jpg`;await im.decode();const w=im.naturalWidth,h=im.naturalHeight;
     const pad=f.width,ratio=(428-2*pad)/(614-2*pad);

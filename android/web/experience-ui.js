@@ -1,4 +1,4 @@
-import {freeJarUse} from './jar-relics.js';
+import {freeJarUse,restockFreeLeft} from './jar-relics.js';
 export const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function lastPlayed(value){const date=new Date(Number(value)*1000);return value&&Number.isFinite(+date)?date.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'Not recorded';}
 export function packSummary(content,pid){
@@ -46,4 +46,4 @@ export function victoryRewardsMarkup(rewards,bonusLabels){
  return ordinary+(bonuses.length?`<details class="battle-bonuses" open><summary><span>Battle bonuses</span><b>+${bonuses.reduce((sum,[,value])=>sum+value,0)}</b></summary><div class="battle-bonus-list" tabindex="0" role="region" aria-label="Earned battle bonuses">${bonuses.map(row).join('')}</div></details>`:'');
 }
 
-export function shopRerollPrice(run){if(freeJarUse(run,'dice_jar','shop'))return 0;const n=Math.max(0,Math.trunc(run.shop_rerolls||0));return n<6?[10,20,40,60,100,150][n]:200+50*(n-6)}
+export function shopRerollPrice(run){if(freeJarUse(run,'dice_jar','shop')||restockFreeLeft(run)>0)return 0;const n=Math.max(0,Math.trunc(run.shop_rerolls||0));return n<6?[10,20,40,60,100,150][n]:200+50*(n-6)}

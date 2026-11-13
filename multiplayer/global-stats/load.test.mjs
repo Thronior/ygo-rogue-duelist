@@ -14,7 +14,7 @@ try{
   const responses=await Promise.all(group.map((b,i)=>post(b,'client'+i)));assert(responses.every(r=>r.status===200));
   const after=rowWrites;const retries=await Promise.all(group.map((b,i)=>post(b,'client'+i)));assert(retries.every(r=>r.status===200));assert.equal(rowWrites,after,'duplicates do not write');
  }
- let total=await get();assert.equal(total.seconds,7201000);assert.equal(total.duels,12020);assert.equal(total.wins,6015);assert.equal(total.losses,6005);assert.equal(total.firstTimePlayers,1123);assert.equal(total.since,'original');assert.equal(rowWrites-baselineWrites,24000,'two stored keys per new batch (receipt slot and total), was three plus two deletes');
+ let total=await get();assert.equal(total.seconds,7201000);assert.equal(total.duels,12020);assert.equal(total.wins,6015);assert.equal(total.losses,6005);assert.equal(total.firstTimePlayers,1123);assert.equal(total.since,'original');assert(rowWrites-baselineWrites<=120,'uploads written together: totals and receipt slot once per 200 uploads ('+(rowWrites-baselineWrites)+' keys for 12,000 uploads; was 24,000)');
  const unchanged=rowWrites;for(let i=0;i<20;i++)await get();await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'empty');assert.equal(rowWrites,unchanged);
  worker=new GlobalStats({storage,blockConcurrencyWhile:fn=>fn()});await worker.ready;assert.equal(rowWrites,unchanged);assert.equal((await post(batches[0],'restart')).status,200);assert.equal(rowWrites,unchanged);
  // No live-receipt scan; an early/spurious alarm reads only the next slot.
@@ -25,5 +25,5 @@ try{
  assert.equal((await post(batches[0],'expired')).status,400);assert.deepEqual(await get(),total);
  for(let i=0;i<30;i++)assert.equal((await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'rate')).status,200);
  assert.equal((await post({batchId:crypto.randomUUID(),expiresAt:now+86400000,counts:{}},'rate')).status,429);
- console.log('PASS 1,000 simulated clients / 2 hours: 12,000 contributions + 12,000 retries; exact totals, 24,000 key writes (was 36,000 + 24,000 deletes), zero duplicate writes; one cleanup delete per 10-minute slot, no live-table scans; restart, expiry, empty uploads and rate limit');
+ console.log('PASS 1,000 simulated clients / 2 hours: 12,000 contributions + 12,000 retries; exact totals, uploads written together (120 key writes, was 24,000), zero duplicate writes; one cleanup delete per 10-minute slot, no live-table scans; restart, expiry, empty uploads and rate limit');
 }finally{Date.now=realNow}

@@ -18,14 +18,16 @@ function rgb(hex){const n=parseInt(hex.slice(1),16);return [n>>16,n>>8&255,n&255
 function rgba(hex,a){return `rgba(${rgb(hex).join(',')},${a})`}
 function mix(a,b,k){const x=rgb(a),y=rgb(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('')}
 // A won run's tablet is polished metal in the colour of the challenge level it cleared.
-// Special clears. Champion beats Flawless, then Relicless, then Level 6.
+// Special clears. Flawless beats Relicless, then Level 6. (The champion frame below is no longer used.)
 const SPECIAL={
  relicless:{frame:[[0,'#2b2f33'],[.2,'#8d969e'],[.4,'#4a5157'],[.5,'#d6dde2'],[.6,'#4a5157'],[.8,'#8d969e'],[1,'#2b2f33']],metal:['#4a5157','#8d969e','#d6dde2'],flair:null,accent:'#d6dde2',good:'#d6dde2',soft:'#c3ccd2',line:'rgba(141,150,158,.6)',glow:'rgba(214,221,226,.12)'},
  champion:{frame:[[0,'#120d05'],[.18,'#b8862a'],[.34,'#2a1e0a'],[.5,'#ffe9a3'],[.66,'#2a1e0a'],[.84,'#b8862a'],[1,'#120d05']],metal:['#2a1e0a','#b8862a','#ffe9a3'],flair:'glitter',accent:'#ffd76e',good:'#ffd76e',soft:'#e8d7a8',line:'rgba(184,134,42,.6)',glow:'rgba(255,215,110,.16)',tint:'rgba(8,6,2,.62)',panel:'rgba(14,10,4,.88)',row:'rgba(34,26,12,.92)'},
  flawless:{frame:[[0,'#8fa5c9'],[.2,'#ffffff'],[.4,'#c9d8ee'],[.5,'#ffffff'],[.6,'#c9d8ee'],[.8,'#ffffff'],[1,'#8fa5c9']],metal:['#c9d8ee','#ffffff','#ffffff'],flair:'prism',accent:'#e6f0ff',good:'#bfe0ff',soft:'#dbe6f5',line:'rgba(201,216,238,.7)',glow:'rgba(255,255,255,.2)'},
  shadow:{frame:[[0,'#160622'],[.18,'#7a3fd1'],[.34,'#2a0f4a'],[.5,'#e6c8ff'],[.66,'#2a0f4a'],[.84,'#7a3fd1'],[1,'#160622']],metal:['#2a0f4a','#7a3fd1','#e6c8ff'],flair:'prism',accent:'#d9b0ff',good:'#d9b0ff',soft:'#d8c6ec',line:'rgba(122,63,209,.65)',glow:'rgba(166,107,255,.2)',tint:'rgba(14,4,24,.6)',panel:'rgba(16,6,28,.88)',row:'rgba(34,16,54,.92)'}
 };
-export const runCardVariant=(r,level)=>r.stage!=='complete'?null:r.encore_won?'champion':r.stats?.damage_taken===0?'flawless':level<0?'relicless':level===6?'shadow':null;
+// Beating the optional champion (Obelisk, 2004 World Champion) keeps the challenge level's colour: a gold champion frame
+// was too easy to mistake for a Level 5 win (user, 2026-11-12). The title still names the champion.
+export const runCardVariant=(r,level)=>r.stage!=='complete'?null:r.stats?.damage_taken===0?'flawless':level<0?'relicless':level===6?'shadow':null;
 function winStyle(level,variant=null){
  const [a,b,edge]=LEVEL_COLORS[level]||LEVEL_COLORS[0],shine=mix(edge,'#ffffff',.65);
  // Level 5 gets a rarity-style gold glitter on top of the metal.

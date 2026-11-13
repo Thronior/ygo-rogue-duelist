@@ -163,8 +163,9 @@ Duel.RegisterEffect(e,0) end''')
   both(-1000,'not Duel.IsExistingMatchingCard(Card.IsFaceup,0,LOCATION_FZONE,0,1,nil)')
  elif key=='typhoon':
   mine='function(c) return c:IsSpellTrap() end'
-  out.append(phase('END',f'local g=Duel.GetMatchingGroup({mine},0,LOCATION_SZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) local s=g:Select(0,0,1,nil) if #s==0 then return end --[[relic-hint]] if Duel.Destroy(s,REASON_EFFECT)==0 then return end local o=Duel.GetMatchingGroup({mine},0,0,LOCATION_SZONE,nil) if #o==0 then return end Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) Duel.Destroy(o:Select(0,1,1,nil),REASON_EFFECT)',
-   f'Duel.IsExistingMatchingCard({mine},0,LOCATION_SZONE,0,1,nil) and Duel.IsExistingMatchingCard({mine},0,0,LOCATION_SZONE,1,nil)'))
+  # The opponent's End Phase (Prunk44/user, 2026-11-12), so a Set card can be cleared before their turn.
+  out.append(event('EVENT_PHASE_START|PHASE_END',f'local g=Duel.GetMatchingGroup({mine},0,LOCATION_SZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) local s=g:Select(0,0,1,nil) if #s==0 then return end --[[relic-hint]] if Duel.Destroy(s,REASON_EFFECT)==0 then return end local o=Duel.GetMatchingGroup({mine},0,0,LOCATION_SZONE,nil) if #o==0 then return end Duel.Hint(HINT_SELECTMSG,0,HINTMSG_DESTROY) Duel.Destroy(o:Select(0,1,1,nil),REASON_EFFECT)',
+   f'Duel.GetTurnPlayer()==1 and Duel.IsExistingMatchingCard({mine},0,LOCATION_SZONE,0,1,nil) and Duel.IsExistingMatchingCard({mine},0,0,LOCATION_SZONE,1,nil)',True))
  elif key=='machine_duplication':
   machine='function(c) return c:IsFaceup() and c:IsRace(RACE_MACHINE) end'
   out.append(phase('END',f'''local p=Duel.GetTurnPlayer() local g=Duel.GetMatchingGroup({machine},0,LOCATION_MZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_TARGET) local c=g:Select(0,0,1,nil):GetFirst() if not c then return end

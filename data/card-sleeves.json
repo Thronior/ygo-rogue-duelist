@@ -594,6 +594,16 @@
    },
    "tier": "gold",
    "card": 62873545
+  },
+  {
+   "id": "rainbow",
+   "art": "Rainbow",
+   "text": "Win a run on Challenge Level 6 with every duelist.",
+   "rule": {
+    "kind": "level6_all"
+   },
+   "tier": "rainbow",
+   "card": null
   }
  ]
 }

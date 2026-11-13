@@ -12,6 +12,10 @@ def state():
  storage.registered_cards()
  storage.register_collection(run)
  cards=storage.registered_cards();history=storage.run_history();slots=storage.run_slots();slot=storage.active_slot();profile=storage.profile()
+ # Sleeves whose rule the profile already meets (e.g. "win with N duelists" from wins before sleeves existed, or wins
+ # merged from a linked device) are granted on load, not only when a run ends (user report, 2026-11-12).
+ import sleeve_progress
+ if sleeve_progress.evaluate(profile):storage.write(storage.ROOT/'profile.json',profile)
  return dict(registeredCards=cards,history=history,run=run,slots=slots,activeSlot=slot,profile=profile,settings=storage.settings(),achievements=achievement_model.entries(profile))
 
 def dispatch(raw):
@@ -23,6 +27,9 @@ def dispatch(raw):
    'card-pick':lambda:choice_relics.pick_card(run,value),'name-change':lambda:choice_relics.change_name(run,value),
    'weight-pick':lambda:choice_relics.choose_weight(run,value)}[action]()
   g.save(run);return json.dumps(state(),ensure_ascii=False)
+ if action=='draft-duel-setup':
+  import draft_relics
+  return partial(draft_relics.duel_setup(value))
  if action=='choose-monster-type':
   from feedback_update import choose_type
   choose_type(run,value);g.save(run);return json.dumps(state(),ensure_ascii=False)
@@ -212,6 +219,9 @@ def dispatch(raw):
    # Debug: show every fused relic in Collection, with its Fusion Material (normally revealed once fused in a run).
    import relic_fusions
    p=storage.profile();p['fused_relics']=sorted(set(p.get('fused_relics',[]))|relic_fusions.KEYS);storage.write(storage.ROOT/'profile.json',p)
+  elif value=='sleevesforall':
+   # Testing: every card sleeve can be chosen; sleeves_earned and the achievements stay as they are (sleeves.js).
+   p=storage.profile();p['sleeves_all']=True;storage.write(storage.ROOT/'profile.json',p)
   elif value=='touchgrass':
    p=storage.profile();p.update(unlock_all=True,unlocked=content.PLAYABLE_IDS,relicless_unlocked=True,testing_all_clears=True,character_levels={str(i):6 for i in content.PLAYABLE_IDS});storage.write(storage.ROOT/'profile.json',p)
   else:

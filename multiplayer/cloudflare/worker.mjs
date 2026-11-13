@@ -2,6 +2,8 @@ export {BackupRegistry} from './backup.mjs';
 export {ProgressRegistry} from './progress.mjs';
 export {CollectorRegistry,DraftRegistry} from './collector.mjs';
 export {TagHub,MatchHub} from './hub.mjs';
+export {RequestMeter} from './meter.mjs';
+import {overCap} from './meter.mjs';
 import {Registry} from './registry.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -10,7 +12,23 @@ const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
 // still play online. Blocked calls get 426 here and never reach a Durable Object. Device sync and backups stay
 // unversioned, so every client keeps them.
 const legacy=/^\/(?:v1|draft|collector)\//;
-export default {async fetch(request,env){
+// When Cloudflare's daily Durable Object allowance runs out, calls into the objects throw and the platform's own error
+// page has no CORS headers, so players only saw "Failed to fetch" (user, 2026-11-13). Every failure now comes back as
+// readable JSON, and /status says whether the online servers are reachable (one tiny object call, used only after a
+// failure). The client explains it (android/web/online-status.js).
+const LIMIT=/exceeded|limit|quota|overloaded|daily/i;
+export function serverTrouble(error){const text=String(error?.message||error||'');return reply(503,{error:LIMIT.test(text)?"The online servers have reached today's usage limit.":'The online servers are not responding.',serverLimit:LIMIT.test(text)})}
+const limited=()=>reply(503,{error:"The online servers have reached today's usage limit.",serverLimit:true});
+export default {async fetch(request,env,ctx){
+ try{
+  const path=new URL(request.url).pathname;
+  // Preflights and /health are not counted; everything else is, and stops once today's ceiling is reached (meter.mjs).
+  if(request.method!=='OPTIONS'&&path!=='/health'&&overCap(env,ctx))return limited();
+  if(path==='/status'){await env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(new Request('https://rooms/status-ping',{method:'GET'}));return reply(200,{online:true})}
+  return await route(request,env);
+ }catch(error){return serverTrouble(error)}
+}};
+async function route(request,env){
  let path=new URL(request.url).pathname;
  // Browsers otherwise re-send this preflight every 5 s (Chrome honours up to 2 h).
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Max-Age':'86400'}});
@@ -32,7 +50,7 @@ export default {async fetch(request,env){
  if(path==='/v2/relay'&&request.headers.get('Upgrade')?.toLowerCase()==='websocket')return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
  if(request.method!=='POST'||!/^\/v2\/(create|join|started|poll|signal|leave|fallback)$/.test(path))return reply(404,{error:'Unknown room operation.'});
  return env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(request);
-}};
+}
 export class RoomRegistry {
  constructor(ctx,env){
   this.ctx=ctx;this.env=env;this.tail=Promise.resolve();
