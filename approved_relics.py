@@ -47,7 +47,16 @@ REGULAR=[
 ('ghost_destruction','Ghost Destruction',80,"If a monster you control inflicts battle damage to your opponent: You can target 1 monster in your or your opponent's GY; banish it.",'Kycoo the Ghost Destroyer'),
 ('omni_banishment','Omni Banishment',150,'Once per turn, during your Standby Phase, you can banish 1 card from your Deck.','Return from the Different Dimension'),
 ('dimensional_rift','Dimensional Rift',300,'All cards that would be sent to the GY are banished instead. This relic appears less often than other relics.','Banisher of the Light'),
-('spell_provider','Spell Provider',60,'Once per turn, during your Standby Phase, you can place 1 Spell Counter on a card you control that can hold a Spell Counter.','Magical Plant Mandragola')]
+('spell_provider','Spell Provider',60,'Once per turn, during your Standby Phase, you can place 1 Spell Counter on a card you control that can hold a Spell Counter.','Magical Plant Mandragola'),
+# Deds's "Disturbed Sleep" as the user reworded it, and the user's three Gadget relics in place of Prunk44's Gadget Pack
+# (Discord review, 2026-11-13). Gadget Call's art is mine; none was given. Gadget Gadget is their fusion (relic_fusions).
+('disturbed_sleep','Disturbed Sleep',80,"During each player's End Phase, flip all face-down Defense Position monsters to face-up Attack Position.",'Shifting Shadows'),
+('gadget_call','Gadget Call',90,"Whenever a \"Gadget\" monster's effect would add another \"Gadget\" monster to your hand, Special Summon it instead, if you can.",'Yellow Gadget'),
+('gadget_stronghold','Gadget Stronghold',70,'Add 1 "Stronghold the Moving Fortress" to your starting hand.','Stronghold the Moving Fortress'),
+# TRUANT's suggestions (Discord, 2026-11-13) with the user's prices; Spiritual Retribution became once per Duel.
+# Cardian's art picks are not in the card pool: their crops are custom art (data/relic-custom-art.json).
+('armory_aid','Armory Aid',70,'At the start of each Duel, add 1 random Equip Spell from your Deck to your hand.','Hidden Armory'),
+('spiritual_retribution','Spiritual Retribution',70,'Once per Duel, you can Tribute Summon a Spirit monster by banishing monsters from your GY as the Tributes.','Stars Align Above the Shrine')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -96,7 +105,9 @@ CURSED=[
 # Iceman's "Duelist Kingdom Format" with the user's downside, and Kzulu's cursed reroll relic as the user reworded it
 # (Discord, 2026-11-12). Anime Rule #3's art is mine; none was given.
 (64,'anime_rule_3','Anime Rule #3','You can Normal Summon or Set Level 5 or higher monsters without Tributing. Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.','Mountain'),
-(65,'cursed_restock','Cursed Restock','You get 2 free rerolls per shop. You can only buy one item per reroll.','Card Shuffle')]
+(65,'cursed_restock','Cursed Restock','You get 2 free rerolls per shop. You can only buy one item per reroll.','Card Shuffle'),
+# TRUANT's cursed relic (Discord, 2026-11-13), added as posted.
+(66,'vampiric_contact','Vampiric Contact','Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.',"Vampire's Domain")]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).

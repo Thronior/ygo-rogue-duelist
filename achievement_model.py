@@ -7,7 +7,7 @@ def entries(profile=None):
   metric,target=game.unlock_rule(i)
   value=int(int(metric.split(':')[1]) in p['won_as']) if metric.startswith('won_as:') else p.get(metric,0)
   if 'character:'+str(i) in p.get('synced_achievements',[]):value=max(value,target)
-  rows.append(dict(id='character:'+str(i),name=CHARACTERS[i]['name'],reward='Unlock duelist',description=game.unlock_text(i),value=value,target=target,done=value>=target or 'character:'+str(i) in p.get('synced_achievements',[]),cumulative=metric in ('victories','wins','singles_bought'),testing=i in p['unlocked'] and value<target))
+  rows.append(dict(id='character:'+str(i),name=CHARACTERS[i]['name'],reward='Unlock duelist',description=game.unlock_text(i),value=value,target=target,done=value>=target or 'character:'+str(i) in p.get('synced_achievements',[]),cumulative=metric in ('victories','wins','singles_bought','dice_and_coins'),testing=i in p['unlocked'] and value<target))
  import sleeve_progress
  rows+=sleeve_progress.achievements(p)
  for row in rows:

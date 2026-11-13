@@ -18,6 +18,7 @@ def copy(source,destination):
 def sync():
  from generate_collector_catalog import generate as generate_collector
  generate_collector()
+ import relic_affinity;relic_affinity.write_ceilings()
  from generate_art_crops import generate
  generate()
  WEB.mkdir(exist_ok=True)

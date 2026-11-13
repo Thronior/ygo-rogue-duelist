@@ -37,13 +37,17 @@ m.rememberDeckSort({sort:'ATK'});
 assert.equal(m.savedDeckSort(SOLO),'ATK','kept for the session when storage is blocked');
 
 // Wiring: after a duel only the tab and search reset; changes are saved; the reset button restores defaults.
-const solo=readFileSync(new URL('./web/mobile.js',import.meta.url),'utf8'),tag=readFileSync(new URL('./web/tag-ui.js',import.meta.url),'utf8');
+const solo=readFileSync(new URL('./web/mobile.js',import.meta.url),'utf8'),tag=readFileSync(new URL('./web/tag-ui.js',import.meta.url),'utf8'),shared=readFileSync(new URL('./web/deck-editor-view.js',import.meta.url),'utf8'),draft=readFileSync(new URL('./web/draft-ui.js',import.meta.url),'utf8');
 assert.match(solo,/statsRequest\.action==='finish'\)resetDraftFilters\(false\)/);
 assert.match(solo,/draftSort=savedDeckSort\(DRAFT_SORTS\),draftDeck=savedDeckStatus\(\)/);
 assert.match(solo,/draftSort=e\.target\.value;rememberDeckSort\(\{sort:draftSort\}\)/);
 assert.match(solo,/draftDeck=e\.target\.value;rememberDeckSort\(\{status:draftDeck\}\)/);
 assert.match(tag,/view\.phase!=='duel'\)this\.resetDeckFilters\(false\)/);
 assert.match(tag,/this\.deckSort=savedDeckSort\(TAG_DECK_SORTS\);this\.deckStatus=savedDeckStatus\(\)/);
-assert.match(tag,/this\.deckSort=sort\.value;rememberDeckSort\(\{sort:this\.deckSort\}\)/);
-assert.match(tag,/this\.deckStatus=status\.value;rememberDeckSort\(\{status:this\.deckStatus\}\)/);
+// Tag and Draft Duels share deck-editor-view.js for the menus.
+assert.match(shared,/ed\.deckSort=sort\.value;rememberDeckSort\(\{sort:ed\.deckSort\}\)/);
+assert.match(shared,/ed\.deckStatus=status\.value;rememberDeckSort\(\{status:ed\.deckStatus\}\)/);
+assert.match(tag,/wireDeckToolbar\(this\.root,this,/);
+assert.match(draft,/wireDeckToolbar\(/);
+assert.match(draft,/this\.deckSort=savedDeckSort\(DRAFT_DECK_SORTS\);this\.deckStatus=savedDeckStatus\(\)/);
 console.log('deck sort preference: ok');

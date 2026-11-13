@@ -34,7 +34,8 @@ def install(artifact):
  artifact('protect_the_weak','Protect the Weak',100,'While you control 2 or more monsters, your weakest monster cannot be attacked.','Guardian Angel Joan','guard_weakest',0,'defense')
  artifact('sacrifice_the_weak','Sacrifice the Weak',100,'While you control 2 or more monsters, your strongest monster cannot be attacked.','Mirror Wall','guard_strongest',0,'defense')
  artifact('tenacity_of_the_weak','Tenacity of the Weak',100,'Your Level 3 or lower Normal Monsters cannot be destroyed by card effects.','Mokey Mokey','weak_normals_stand',0,'defense')
- artifact('good_spirits','Good Spirits',80,'Spirit monsters you control do not return to the hand at the end of the turn.','Spiritual Energy Settle Machine','no_spirit_return',0,'defense')
+ # TRUANT's rework (Discord, 2026-11-13): each Spirit may return or stay, since Otohime and Tsukuyomi want to go back.
+ artifact('good_spirits','Good Spirits',80,'Spirit monsters you control do not have to return to the hand during the End Phase. You choose for each one.','Spiritual Energy Settle Machine','spirit_may_return',0,'defense')
  for key,name,art,series,series_name in [
   ('dark_scorpion_squad','Dark Scorpion Squad','Mustering of the Dark Scorpions','0x1a','Dark Scorpion'),
   ('gravekeepers_union',"Gravekeeper's Union","Gravekeeper's Spy",'0x2e',"Gravekeeper's"),

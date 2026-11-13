@@ -82,10 +82,13 @@ class TagCampaign:
    if Path(path).name=='profile.json':self.profiles[seat]=deepcopy(value)
 
   storage.write=capture;game.RUNTIME=game.ROOT/'temp/tag-duel-preparation';game.RUNTIME.mkdir(parents=True,exist_ok=True)
+  # The shared shop weighs relics and singles by both Decks (user, 2026-11-13): the teammate's live run rides along.
+  import relic_affinity
+  old_partner=relic_affinity.TAG_PARTNER;players=getattr(self,'players',[]);relic_affinity.TAG_PARTNER=players[1-seat] if len(players)==2 else None
 
   try:yield
 
-  finally:storage.profile,storage.write,game.RUNTIME=old_profile,old_write,old_runtime
+  finally:storage.profile,storage.write,game.RUNTIME=old_profile,old_write,old_runtime;relic_affinity.TAG_PARTNER=old_partner
 
  def leave_shop(self):
 
@@ -222,7 +225,7 @@ class TagCampaign:
 
   with self.scope(0):price=game.reroll_shop(run,self.rng)
 
-  for key in ('gold','shop','shop_rerolls','jar_shop_used'):self.shared[key]=deepcopy(run.get(key))
+  for key in ('gold','shop','shop_rerolls','jar_shop_used','relic_locks','relic_skips'):self.shared[key]=deepcopy(run.get(key))
 
   self.sync()
 
@@ -571,7 +574,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -640,8 +643,8 @@ class TagCampaign:
   if self.trade['status']!='idle':raise ValueError('Finish the card trade before continuing.')
 
   if action=='loop-vote':
-   # After the optional final duel (played or skipped), both players agree to start another loop of the same run.
-   if self.phase!='complete' or self.finale['status'] not in ('finished','skipped'):raise ValueError('Another loop is offered once the final duel is done.')
+   # Only after the final 1v1 has been played (user, 2026-11-13): skipping it ends the run. Both players agree to loop.
+   if self.phase!='complete' or self.finale['status']!='finished':raise ValueError('Play the final 1v1 to unlock the next loop.')
    self.loop_votes[seat]=bool(value) if value is not None else not self.loop_votes[seat]
    if all(self.loop_votes):self.next_loop()
    return
@@ -765,6 +768,17 @@ class TagCampaign:
    return dict(cartRev=self.shopping['cart_rev'])
 
   if action=='shop-lock':return self.shop_lock(seat,value)
+  # Relic locks (user, 2026-11-13): either player can lock or unlock a relic in the shared shop; the host's run keeps it
+  # through rerolls and into the next shop, like in solo play.
+  if action=='relic-lock':
+   self.require_shop(run)
+   shop=self.shared['shop'];index=int(value)
+   if not 0<=index<len(shop) or shop[index].get('kind')!='artifact' or shop[index].get('sold'):raise ValueError('Only relics in stock can be locked.')
+   locks=list(self.shared.get('relic_locks') or []);key=shop[index]['id']
+   if key in locks:locks.remove(key)
+   else:locks.append(key)
+   self.shared['relic_locks']=locks;self.sync()
+   return {'locked':key in locks}
 
   if action=='choose-monster-type':
 
@@ -913,7 +927,7 @@ class TagCampaign:
   self.sync()
   host=self.players[0]
   with self.scope(0):game.restock(host,self.rng)
-  for key in ('shop','shop_rerolls'):self.shared[key]=deepcopy(host.get(key))
+  for key in ('shop','shop_rerolls','relic_locks','relic_skips'):self.shared[key]=deepcopy(host.get(key))
   self.sync();self.routes()
   self.phase='shop';self.shop_seat=0;self.shopping=self.new_shopping();self.ready=[False,False];self.duel=None
   self.finale={'votes':[False,False],'status':'available','winner':None};self.loop_votes=[False,False]
@@ -1012,7 +1026,7 @@ class TagCampaign:
 
   # One team reward and healing, not a duplicate payout per connected player.
 
-  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts','shop_rerolls'):self.shared[key]=deepcopy(host.get(key))
+  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts','shop_rerolls','relic_locks','relic_skips'):self.shared[key]=deepcopy(host.get(key))
 
   defeated=sorted(set(x for r in self.players for x in r.get('defeated_opponents',[])))
 

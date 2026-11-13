@@ -23,7 +23,7 @@ e:SetOperation(function(e,tp,eg,ep,ev) if not used then used=true Duel.NegateEff
 Duel.RegisterEffect(e,0) end'''
  if kind=='swap_base_ad':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD)
 e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE) Duel.RegisterEffect(e,0) end'''
- if kind=='no_spirit_return':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPIRIT_DONOT_RETURN)
+ if kind=='spirit_may_return':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPIRIT_MAYNOT_RETURN)
 e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsType(TYPE_SPIRIT) end) Duel.RegisterEffect(e,0) end'''
  if kind=='archetype_atk':
   # Don Zaloog leads the Dark Scorpions but has no archetype code of his own.

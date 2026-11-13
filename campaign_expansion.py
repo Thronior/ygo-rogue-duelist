@@ -2,7 +2,7 @@ import variant_relics
 import challenge_levels
 """Nine-duel progression and persistent profile integration."""
 import random,uuid,json,time
-import shop_rewards,card_rarity,archetype_relics
+import shop_rewards,card_rarity,archetype_relics,relic_affinity
 from collections import Counter
 import storage
 from content import *
@@ -378,6 +378,9 @@ def install(g):
    level_up=g.BY_NAME['Level Up!']['id']
    if level_up not in main:main.append(level_up)
   if owns(duel_run,'metal_coating') and variant_relics.METALMORPH not in main:main.append(variant_relics.METALMORPH)
+  # Gadget Stronghold (2026-11-13), the same way: its script moves the copy to the starting hand.
+  from approved_relic_effects import STRONGHOLD
+  if owns(duel_run,'gadget_stronghold') and STRONGHOLD not in main:main.append(STRONGHOLD)
   mods=run.setdefault('card_mods',{})
   if run.get('faulty'):
    for i,cid in enumerate(run['pool']):
@@ -422,7 +425,7 @@ def install(g):
   tmp=g.RUNTIME/'campaign-request.tmp';tmp.write_text(json.dumps(request),encoding='utf8');tmp.replace(g.RUNTIME/'campaign-request.json')
   run['duel']=request;run['stage']='duel';save(run);return request
  old_rewards=g.rewards
- def rewards(run,events):
+ def rewards(run,events,reason=None):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
   if amount(run,'interest'):tally['Interest']=min(90,int(run['gold']*amount(run,'interest')/100))
@@ -445,6 +448,15 @@ def install(g):
     if _c and _c['data']['type']&1 and _c['level']<=3:pups+=1
    if pups:tally["Underdog's Clause"]=pups*amount(run,'underdog_gold')
   tally.update(ar.rewards(run,events,(run['round']+1)%BOSS_EVERY==0))
+  # Deck-out wins (user, 2026-11-13): stall decks keep a third of the duel's coins whatever the slow duel penalty says.
+  # The penalty line stays as it was; 'Deck-out win' gives back what it took beyond two thirds of the earnings.
+  if reason is None:reason=next((e.get('winReason') for e in events if e.get('kind')=='sleeve_metrics'),None)
+  if reason==2 and tally.get('Slow duel',0)<0:
+   tally.pop('Victory minimum',None)
+   earned=sum(v for k,v in tally.items() if k!='Slow duel' and v>0)
+   back=max(0,-(earned-earned//3)-tally['Slow duel'])
+   if back:tally['Deck-out win']=back
+   if sum(tally.values())<30:tally['Victory minimum']=30-sum(tally.values())
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
   if owns(run,'glass_shard'):
@@ -533,7 +545,7 @@ def install(g):
    run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=next(iter(run['last_reward_cards']),None);run['pool'].extend(run['last_reward_cards'])
    run['defeated_opponents']=sorted(set(run.get('defeated_opponents',[]))|{run['opponent']})
    coins_before_rewards=run['gold']
-   run['last_rewards'],gold=rewards(run,result.get('events',[]));run['last_gold']=gold;run['gold']+=gold
+   run['last_rewards'],gold=rewards(run,result.get('events',[]),int(result.get('reason',0) or 0));run['last_gold']=gold;run['gold']+=gold
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
    cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh');overflow=0
@@ -636,12 +648,14 @@ def install(g):
   like=set();_arts=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
   # Legendary Shackles likewise grants its own slot below.
   # Toon World now grants a separate guaranteed slot instead of weighting general stock.
-  def stock_sample(cards,count):
-   return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id']))),reverse=True)[:count]
+  def stock_sample(cards,count,affinity=None):
+   # General stock uses the run's deck weighting (relic_affinity.card_multipliers, 2026-11-13); featured stock keeps its theme.
+   boost=relic_affinity.card_multipliers(cards,run) if affinity else {}
+   return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id'])*boost.get(c['id'],1.0))),reverse=True)[:count]
   themed=[c for c in eligible if c['id'] not in custom_cards.IDS]
   pool=preferred or themed
   if general_stock:
-   top=stock_sample(eligible,5)
+   top=stock_sample(eligible,5,affinity=True)
   elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
    top=shop_rewards.tag_featured(themed+[removal],run['tag_shop_rewards'],rng)
   else:
@@ -657,7 +671,7 @@ def install(g):
     if tag_rewards[1]['key']=='exodia':slots+=[3,4]
    top=shop_rewards.guarantee_exodia(top,eligible,rng,slots)
   remaining=[c for c in eligible if c not in top]
-  rest=stock_sample(remaining,4)
+  rest=stock_sample(remaining,4,affinity=True)
   lens_count=ar.copies(run,'prospector_lens')
   if lens_count:
    # The same cards the shop shows with the ultra rare finish (shop-ultra.js).
@@ -700,14 +714,21 @@ def install(g):
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
   import choice_relics
-  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and (a not in ('traps_no_more','spells_no_more') or rng.random()<0.25) and (a!='duelist_catalogue' or rng.random()<0.20) and (a not in choice_relics.VERY_RARE or rng.random()<0.10)]
+  # How rare a relic is lives in archetype_relics.RARITY (was a coin flip here before 2026-11-13).
+  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve')]
   # The chosen category favours its relics after a duel; rerolls use normal weights.
   favored=frozenset() if general_stock else shop_rewards.category_relics(bias)
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass')+3*ar.copies(run,'grand_bazaar'),len(available))
   # Two weighted relic slots, then random ones (archetype_relics.shop_sample).
-  chosen=archetype_relics.shop_sample(available,count,run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST)
-  items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   modifier=max(0,1-amount(run,'discount')/100)
+  archetype_relics.note_skipped(run,run.get('shop'))
+  # Locked relics (user, 2026-11-13) stay through rerolls and into the next shop until bought or unlocked. A relic that can
+  # no longer be offered (owned, fused away) drops its lock; they take relic slots first, the rest are rolled as usual.
+  kept=[a for a in dict.fromkeys(run.get('relic_locks') or []) if a in available][:count]
+  run['relic_locks']=kept
+  prices={a:ar.price(run,'artifact',max(1,round(ARTIFACTS[a][1]*modifier))) for a in available}
+  chosen=kept+archetype_relics.shop_sample([a for a in available if a not in kept],count-len(kept),run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST,prices)
+  items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
   for item in items:
    item['price']=max(1,round(item['price']*modifier))
   for item in items:item['price']=ar.price(run,item['kind'],item['price'])
@@ -720,6 +741,15 @@ def install(g):
   if ar.free_use(run,'dice_jar','shop') or ar.restock_free_left(run)>0:return 0
   count=max(0,int(run.get('shop_rerolls',0) or 0))
   return [10,20,40,60,100,150][count] if count<6 else 200+50*(count-6)
+ def lock_relic(run,index):
+  """Toggle the lock on a relic in stock: locked relics survive rerolls and carry into the next shop (2026-11-13)."""
+  if run.get('stage')!='shop':raise ValueError('Shop is closed.')
+  shop=run.get('shop',[]);index=int(index)
+  if not 0<=index<len(shop) or shop[index].get('kind')!='artifact' or shop[index].get('sold'):raise ValueError('Only relics in stock can be locked.')
+  locks=run.setdefault('relic_locks',[]);key=shop[index]['id']
+  if key in locks:locks.remove(key)
+  else:locks.append(key)
+  return {'locked':key in locks}
  def reroll_shop(run,rng=random):
   cursed_relics.require_choice(run)
   if run.get('stage')!='shop':raise ValueError('Shop is closed.')
@@ -860,7 +890,7 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
  g.bounty_complete=bounty_complete
  g.ensure_bounty=ensure_bounty

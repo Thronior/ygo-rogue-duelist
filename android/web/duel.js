@@ -247,7 +247,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
 
   if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
-  if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined)this.effect={code:m.selects[r.index]?.code,player:m.player};
+  if(m?.type===M.SELECT_CHAIN&&r.index!==null&&r.index!==undefined){this.effect={code:m.selects[r.index]?.code,player:m.player};this.lastEffectYes={key:this.effectYesKey(this.effect),board:this.effectYesBoard()};}
   if(m?.type===M.SELECT_EFFECTYN&&r.yes){this.effect={code:m.code,player:m.player};this.lastEffectYes={key:this.effectYesKey(m),board:this.effectYesBoard()};}
   if(m?.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler'){
    const text=(m.player===0?'You':'Opponent')+' guessed '+(['Monster','Spell','Trap'][r.index]||this.description(m.options[r.index]));
@@ -484,7 +484,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(summon&&(!firstMove||smart.projectedAttack(summon.c)>1500||smart.summonUtility(summon.c)||summonIsLethal(summon)))return idle(I.SELECT_SUMMON,summon.i);
 
    const holdHand=smart.holdHandForBattle();
-   if(!holdHand&&m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((smart.projectedDefense(b.c)+(stat(b.c).type&0x200000?600:0))-(smart.projectedDefense(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;const candidate=m.monster_sets[index];if(this.cpuReviewRules?.reflectBounder!==false&&this.name(candidate.code)==='Reflect Bounder'&&smart.effectsEnabled(p)&&!smart.attackBlocked(candidate,p,true)&&smart.incomingDamage(candidate,true)<this.lp[p]){const summonIndex=m.summons.findIndex(c=>c.code===candidate.code&&c.sequence===candidate.sequence);if(summonIndex>=0)return idle(I.SELECT_SUMMON,summonIndex)}return idle(I.SELECT_MONSTER_SET,index)}
+   // Disturbed Sleep flips Set monsters face-up Attack Position at the End Phase: Set the one with the better ATK.
+   const setStat=c=>smart.sleepFlips?smart.projectedAttack(c):smart.projectedDefense(c);
+   if(!holdHand&&m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((setStat(b.c)+(stat(b.c).type&0x200000?600:0))-(setStat(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;const candidate=m.monster_sets[index];if(this.cpuReviewRules?.reflectBounder!==false&&this.name(candidate.code)==='Reflect Bounder'&&smart.effectsEnabled(p)&&!smart.attackBlocked(candidate,p,true)&&smart.incomingDamage(candidate,true)<this.lp[p]){const summonIndex=m.summons.findIndex(c=>c.code===candidate.code&&c.sequence===candidate.sequence);if(summonIndex>=0)return idle(I.SELECT_SUMMON,summonIndex)}return idle(I.SELECT_MONSTER_SET,index)}
    // Light of Intervention (or Shield Breaker) leaves no Set: a weak Attack Position blocker still beats an empty field
    // when it cuts the damage coming next turn (flag e7aef02f91, 2026-11-08: nothing summoned for 7 turns).
    if(!m.monster_sets.length&&m.summons.length&&enemy.length){
@@ -586,7 +588,9 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
      else if(name==='Call of the Haunted'&&own.length<5&&this.query(p,L.GRAVE).some(c=>c&&atk(c)>threat))score=80;
     }
     return {c,index,score};
-   }).filter(x=>Number.isFinite(x.score)&&x.score>=0).sort(rank);
+   // A repeat with nothing changed is a negated trigger the core keeps re-offering (Sinister Serpent under Dark Ruler Ha Des
+   // looped forever in a Nov 13 flag): skip it, as SELECT_EFFECTYN already does.
+   }).filter(x=>Number.isFinite(x.score)&&x.score>=0&&!this.effectYesRepeats({code:x.c.code,player:p})).sort(rank);
    const index=choices[0]?.index??-1;
    if(index>=0){this.effect={code:m.selects[index].code,player:p};return {type:R.SELECT_CHAIN,index}}
    return {type:R.SELECT_CHAIN,index:m.forced?0:null};
@@ -646,6 +650,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   }
   // Mirror of Yata lets a Spirit stay on the field: decline its End Phase return.
   if(m.type===M.SELECT_EFFECTYN&&this.phase===512&&(this.data[m.code]?.type&0x200)&&this.query(p,L.SZONE).some(x=>{const t=x&&(x.position&5)&&this.name(x.code)==='Mirror of Yata'&&(x.equipCard||x.equip_card);return t&&t.controller===p&&this.query(p,L.MZONE)[t.sequence]?.code===m.code}))return {type:R.SELECT_EFFECTYN,yes:false};
+  // Good Spirits (relic) makes the End Phase return optional: smart.spiritStays picks which Spirits stay (2026-11-13).
+  if(m.type===M.SELECT_EFFECTYN&&this.phase===512&&(this.data[m.code]?.type&0x200)&&(this.aiModifiers?.activeRelics?.[p]||[]).some(id=>id==='good_spirits'||id==='spirit_sanctuary')){const spirit=this.query(p,L.MZONE).map((c,sequence)=>c&&{controller:p,location:L.MZONE,sequence,...c}).find(c=>c&&c.code===m.code&&(c.position&5));if(spirit)return {type:R.SELECT_EFFECTYN,yes:!smart.spiritStays(spirit)}}
   // Dust Tornado's optional Set: never Set a Field Spell over your own active one.
   if(m.type===M.SELECT_YESNO&&this.name(this.effect?.code)==='Dust Tornado'&&this.query(p,L.SZONE)[5]?.position&5&&this.query(p,L.HAND).filter(c=>c&&this.data[c.code]?.type&6).every(c=>this.data[c.code].type&0x80000))return {type:R.SELECT_YESNO,yes:false};
   // Magical Dimension's optional destroy hits any monster: with no opposing monster it could only take ours (flag, 2026-11-05).

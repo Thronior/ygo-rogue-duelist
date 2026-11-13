@@ -25,12 +25,16 @@ def ritual_curse_block(deck,challenge_level=0):
  ritual_spell=lambda cid:campaign.BY_ID.get(cid,{}).get('data',{}).get('type',0)&0x82==0x82
  return {'no_specials'} if any(ritual_spell(cid) for cid in deck) else set()
 
+# Curses that never roll together: Effect Reverser would turn Rain of Mercy's healing into damage (2026-11-13).
+CLASHES={'rain_of_mercy':'effect_reverser','effect_reverser':'rain_of_mercy'}
+
 def draw_curses(rng,count,challenge_level=0,existing=(),distinct=False,excluded=()):
  from content import CURSES
  unique=nonstackable_curses(challenge_level);encounter_unique=unique|{'mercy'};blocked=set(existing) if distinct else set(existing)&unique;out=[]
  for _ in range(count):
-  pool=[k for k in CURSES if k not in excluded and (k not in encounter_unique or k not in blocked) and (not distinct or k not in blocked)]
-  if not pool and not distinct:pool=[k for k in CURSES if k not in unique and k not in excluded]
+  held=set(existing)|set(out)
+  pool=[k for k in CURSES if k not in excluded and (k not in encounter_unique or k not in blocked) and (not distinct or k not in blocked) and CLASHES.get(k) not in held]
+  if not pool and not distinct:pool=[k for k in CURSES if k not in unique and k not in excluded and CLASHES.get(k) not in held]
   if not pool:break
   key=rng.choices(pool,weights=[0.5 if k=='relic_seal' else 1 for k in pool],k=1)[0]
   out.append(key)

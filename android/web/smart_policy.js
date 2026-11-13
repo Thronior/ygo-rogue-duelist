@@ -31,7 +31,10 @@ export function smartContext(e,p,L,prompt=null){
  const rawQuery=(side,loc)=>{const key=side+':'+loc;if(!queryCache.has(key))queryCache.set(key,e.query(side,loc));return queryCache.get(key)};
  const q=(side,loc)=>rawQuery(side,loc).map((c,sequence)=>c?(c.controller!==undefined&&c.location!==undefined&&c.sequence!==undefined?c:{controller:side,location:loc,sequence,...c}):null).filter(Boolean),name=c=>e.name(c.code),data=c=>e.data[c.code]||{};
  const openingTurn=e.turn<=1||(e.aiModifiers?.firstPlayer===1&&e.turn===2);
- const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0));
+ const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),
+  // Disturbed Sleep (relic, 2026-11-13): every End Phase flips each face-down Defense Position monster to face-up Attack
+  // Position, so a Set monster spends the opponent's next turn in Attack Position, and its FLIP effect fires.
+  sleepFlips=relic(0,'disturbed_sleep')||relic(1,'disturbed_sleep'),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0));
  // Reversed Remedy (either owner) and base Effect Reverser: effect damage heals and healing hurts, for both players.
  // Amplified Effect Reverser only flips what the player does to the CPU, so the CPU's own plans stay the same.
  // Reversed Remedy and the base Effect Reverser cancel out.
@@ -2078,7 +2081,7 @@ export function smartContext(e,p,L,prompt=null){
   const n=name(c);
   return effectsEnabled(p)&&ojamaParts.includes(n)&&!own.some(x=>name(x)===n)&&own.length<5&&hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&ojamaParts.filter(part=>part!==n).every(part=>own.some(x=>name(x)===part));
  }
-function preferSet(c){const n=name(c);if(n==='Rescue Cat'&&effectsEnabled(p)&&rescueCatReady())return false;if(n==='Fire Princess'&&firePrincessSafe())return false;
+function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))return false;if(n==='Rescue Cat'&&effectsEnabled(p)&&rescueCatReady())return false;if(n==='Fire Princess'&&firePrincessSafe())return false;
   // Slate Warrior's 1900 ATK is worth attacking with now: summon it when it can attack this turn, instead of
   // Setting it for a flip it may never get (player report, 2026-11-04). Against an empty field it is Set unless
   // it can attack directly this turn (Main Phase 1, Battle Phase ahead, direct attacks allowed).
@@ -2349,8 +2352,12 @@ if(!effectsEnabled(p))return 0;
  // Only publicly visible opposing monsters enter the forecast; never inspect hidden cards.
  // With c null, the damage through the board as it stands, without a new monster.
  function incomingDamage(c,attackPosition){
-  const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine');
-  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
+  const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine')&&!(relic(p,'good_spirits')&&face(x)&&spiritStays(x));
+  // Under Disturbed Sleep our Set monsters are in Attack Position by the opponent's turn; at an idle prompt a monster
+  // from the hand in Defense Position means a Set.
+  if(sleepFlips&&!attackPosition&&c?.location===L.HAND&&prompt?.monster_sets)attackPosition=true;
+  const flipped=x=>sleepFlips&&!face(x)&&!(x.position&1)?{...x,position:1,attack:atk(x)}:x;
+  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))).map(flipped).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
    attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}]);
   // Shield Bash attacks with DEF from Defense Position; Berserker's Pact gives each monster a second attack (capped to keep the search small).
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
@@ -2380,6 +2387,13 @@ if(!effectsEnabled(p))return 0;
   if(!enemy.some(x=>face(x)&&(pierce(x,1-p,true)||enabled(x)&&name(x)==='Exarion Universe')))return null;
   const attack=incomingDamage(c,true),defense=incomingDamage(c,false);
   const result=attack===defense?null:attack<defense;safetyCache.set(key,result);return result;
+ }
+ // Good Spirits (relic, 2026-11-13) lets each Spirit stay at the End Phase. Send back the ones that want their summon
+ // effect again (TRUANT: Otohime, Tsukuyomi) and any a visible attacker would beat next turn; keep the rest.
+ function spiritStays(c){
+  if(['Otohime','Tsukuyomi','Yata-Garasu'].includes(name(c)))return false;
+  const held=c.position&1?atk(c):def(c);
+  return !enemy.some(x=>face(x)&&!attackBlocked(x,1-p,true)&&atk(x)>held);
  }
  // The position that fares better through the opponent's next turn: true for Attack, false for Defense,
  // null when it makes no difference. As in the manual switch (duel.js), a visible attacker that beats
@@ -2753,5 +2767,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe};
+  return {lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
 }

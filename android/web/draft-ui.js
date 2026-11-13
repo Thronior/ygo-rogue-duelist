@@ -6,13 +6,20 @@ import {validateDraftDeck} from './collector-rules.js';
 import {replayVersion} from './replay-version.js';
 import {relicImage,relicArtwork} from './ui-art.js';
 import {relicCard} from './relic-inspect.js';
+import {deckOrder,deckToolbar,deckCardsArea,deckCardButton,wireDeckToolbar,resetDeckFilters,updateDeckSplit} from './deck-editor-view.js';
+import {savedDeckSort,savedDeckStatus} from './deck-sort-preference.js';
+import {deckReadyFeedback} from './selection-feedback.js';
+import {saveDeckScroll,restoreDeckScroll} from './card-search.js';
+// The deck editor works like solo and Tag (Discord 2026-11-13): same sorts, Deck status, split view and ATK/DEF.
+const DRAFT_DECK_SORTS=['Newest','Default','Name','Attribute','ATK','DEF','Level'],DECK_SEARCH='online-draft-deck';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,attrs='')=>`<button data-collector="${action}" ${attrs}>${label}</button>`;
 // Draft loop (rooms Worker DraftRegistry, 2026-11-13): duel → Draft Screen → boosters → deck editor → next duel.
 // `draft:2` asks the Worker for loop rules; rooms of older clients keep best of three.
 const DRAFT_PROTOCOL=2;
 export class DraftUI extends CollectorUI {
- constructor(options){super({...options,validateDeck:validateDraftDeck});this.isDraft=true;this.storageKey='ygo-draft-session-v1';this.python=options.backend;this.installHold();
+ constructor(options){super({...options,validateDeck:validateDraftDeck});this.isDraft=true;this.storageKey='ygo-draft-session-v1';this.python=options.backend;this.installHold();this.deckFilter='All';this.deckSort=savedDeckSort(DRAFT_DECK_SORTS);this.deckStatus=savedDeckStatus();this.deckSplit=0;
+  if(typeof window!=='undefined'){let timer=0;this.onResize=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(this.alive&&this.mode==='editor')this.checkDeckSplit()},200)};window.addEventListener('resize',this.onResize,{passive:true})}
   // The Main Deck minimum grows 20 → 30 → 40 with each draft (draft-pool.mjs minDeckFor).
   this.validateDeck=(deck,pool,cards)=>validateDraftDeck(deck,pool,cards,this.minDeck());
   this.backend=async(action,v)=>{if(action==='collector-draft'){this.duelist.draftDeck=structuredClone(v.deck);this.save();return {duelists:[this.duelist]};}throw Error('Unsupported draft operation.');};}
@@ -64,6 +71,7 @@ export class DraftUI extends CollectorUI {
  render(){if(!this.alive||this.mode==='duel')return;document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();
   if(this.mode==='characters'){this.selectedCharacter??=this.content.playable[0];this.root.innerHTML=draftCharacterSelect(this.content,this.selectedCharacter,this.image,this.profile);return;}
   if(this.mode==='picking'){this.page(this.pickingMarkup());return;}
+  if(this.mode==='editor'&&this.duelist){this.renderEditor();return;}
   // Reaching the goal wins the match and unlocks the Gaia The Fierce Knight sleeve (sleeves.js); marking twice changes nothing.
   if((this.mode==='decided'||this.mode==='result')&&this.room.winner===this.seat)document.dispatchEvent(new CustomEvent('sleeve-mark',{detail:'draft'}));
   if(this.mode==='decided'){this.page(this.decidedMarkup());return;}
@@ -75,12 +83,44 @@ export class DraftUI extends CollectorUI {
   if(this.mode==='paused'){this.page(`<section class="tag-join-screen"><h2>Waiting for opponent</h2><p>Your draft is saved. Play resumes when both players reconnect.</p></section>`);return;}
   super.render();const title=this.root.querySelector('header h1');if(title)title.textContent='Draft Duels';this.root.querySelector('[data-collector="help"]')?.remove();
  }
- destroy(){super.destroy();this.closePacks?.();this.closePacks=null;}
- editor(){const errors=this.validateDeck(this.draft,this.duelist.pool,this.content.cards);return super.editor().replace('<span>Changes saved automatically</span>',button('Ready to Duel','ready-draft',errors.length?'disabled':'')).replace(/<i class="collector-limit-icon[^>]*>.*?<\/i>/g,'').replace(/<button data-collector="section" data-section="side"[^>]*>.*?<\/button>/g,'').replace('0 / 15 side · ','').replace(' / 40–60 main',` / ${this.minDeck()}–60 main`);}
+ destroy(){super.destroy();this.closePacks?.();this.closePacks=null;if(this.onResize)window.removeEventListener("resize",this.onResize);}
+ // Deck as pool indices (the pool can hold several copies of one card); the saved deck stays card IDs.
+ pickedFromDeck(){const deck=this.duelist.draftDeck||this.duelist.deck||{main:[],extra:[]},used=new Set(),picked=[];for(const id of [...(deck.main||[]),...(deck.extra||[])]){const i=this.duelist.pool.findIndex((x,k)=>x===id&&!used.has(k));if(i>=0){used.add(i);picked.push(i)}}return picked;}
+ deckFromPicked(){const pool=this.duelist.pool,card=id=>this.cardById(id),ids=this.picked.map(i=>pool[i]);return {main:ids.filter(id=>!(card(id)?.data.type&64)),side:[],extra:ids.filter(id=>card(id)?.data.type&64)};}
+ cardById(id){this.cardIndex??=new Map(this.content.cards.map(c=>[c.id,c]));return this.cardIndex.get(id);}
+ deckRun(){const pool=this.duelist.pool,r=this.room,fresh=r?.loop&&r.round>0?pool.length-(this.duelist.packs||[]).flat().length:pool.length;return {pool,artifacts:this.duelRelics(r||{}),curses:[],challenge_level:0,new_cards_from:fresh};}
+ checkDeckSplit(){if(updateDeckSplit(this,this.root.querySelector('.draft-online-scroll')))this.renderEditor();}
+ renderEditor(){
+  const pool=this.duelist.pool,picked=this.picked||=this.pickedFromDeck(),run=this.deckRun(),info=this.content.artifactInfo,lookup=id=>this.cardById(id),min=this.minDeck();
+  const main=picked.filter(i=>!(lookup(pool[i])?.data.type&64)).length,extra=picked.length-main,ok=this.validateDeck(this.deckFromPicked(),pool,this.content.cards).length===0;
+  const order=deckOrder(this,{pool,selected:picked,lookup,run,info,searchKey:DECK_SEARCH}),inDeck=new Set(picked);
+  const cardMarkup=i=>deckCardButton({id:pool[i],index:i,card:lookup(pool[i]),run,info,image:this.image,selected:inDeck.has(i),attrs:'data-collector="toggle"'});
+  const scroller=this.root.querySelector('.draft-online-scroll'),keep=scroller?saveDeckScroll(scroller):null;
+  this.root.innerHTML=`<div class="page draft-deck-page"><header><h2>Draft Duels</h2><div class="tools">${button('Back','back')}</div></header><div class="scroll draft-scroll draft-online-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${min}+ minimum main · ${extra} Extra Deck · Maximum three copies.</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-collector="ready-draft" ${ok&&this.paired()?'':'disabled'} aria-label="${main}/${min}+ main deck cards — Ready for Duel"><span><span class="tag-next-label"><strong>${main}/${min}+</strong></span></span></button></div>${deckToolbar(this,{searchKey:DECK_SEARCH,sorts:DRAFT_DECK_SORTS,idPrefix:'draft-online',action:(label,name,attrs)=>button(label,name,attrs)})}${deckCardsArea(this,order,picked,cardMarkup)}</div></div>`;
+  if(keep)restoreDeckScroll(this.root.querySelector('.draft-online-scroll'),keep);
+  wireDeckToolbar(this.root,this,{searchKey:DECK_SEARCH,cards:()=>pool.map(lookup),idPrefix:'draft-online',render:()=>this.renderEditor()});
+  deckReadyFeedback(this.root,main,min,this);this.checkDeckSplit();
+ }
+ toggleCard(i){const pool=this.duelist.pool,lookup=id=>this.cardById(id),card=lookup(pool[i]);if(!card)return;const at=this.picked.indexOf(i);
+  if(at>=0)this.picked.splice(at,1);
+  else{const ids=this.picked.map(k=>lookup(pool[k])),fusion=card.data.type&64;
+   if(ids.filter(c=>c?.name===card.name).length>=3)throw Error(`Maximum three copies of ${card.name}.`);
+   if(fusion&&ids.filter(c=>c?.data.type&64).length>=15)throw Error('Fusion Deck may contain 0–15 cards.');
+   if(!fusion&&ids.filter(c=>!(c?.data.type&64)).length>=60)throw Error('Main Deck may contain up to 60 cards.');
+   this.picked.push(i);}
+  this.saveDeck();}
+ saveDeck(){this.draft=this.deckFromPicked();this.duelist.draftDeck=structuredClone(this.draft);this.save();}
  async action(action,el={dataset:{}}){
   if(['open-ready','ready-draft','next','confirm-pick','continue-match'].includes(action)&&!this.paired())throw Error('Waiting for both players to connect.');
-  if(['packs','edit','toggle','deselect','add','remove','section','search','sort','filter'].includes(action)&&(this.room?.phase!=='drafting'||this.room.players.length!==2))throw Error('Wait until both players start the draft.');
+  if(['packs','edit','toggle','deselect','add','remove','section','search','sort','filter','deck-filter','deselect-all','deselect-all-confirm'].includes(action)&&(this.room?.phase!=='drafting'||this.room.players.length!==2))throw Error('Wait until both players start the draft.');
   if(['packs','edit'].includes(action)&&(this.room?.phase!=='drafting'||this.room.ready?.[this.seat]))throw Error('Wait until both players are ready to open boosters.');
+  if(action==='edit'){this.picked=this.pickedFromDeck();this.draft=this.deckFromPicked();this.deckOrderKey=null;const round=this.room?.round||0;if(this.editorRound!==round){this.editorRound=round;resetDeckFilters(this,DECK_SEARCH,false);}this.mode='editor';this.render();return;}
+  if(this.mode==='editor'){
+   if(action==='toggle'){this.toggleCard(+el.dataset.index);this.renderEditor();return;}
+   if(action==='deck-filter'){this.deckFilter=el.dataset.filter;this.renderEditor();return;}
+   if(action==='deselect-all'){this.dialog('Deselect all?',`<p>Take every card out of your deck?</p>${button('Deselect all','deselect-all-confirm','class="primary"')}`);return;}
+   if(action==='deselect-all-confirm'){document.querySelector('dialog[open]')?.close();this.picked=[];this.saveDeck();this.renderEditor();return;}
+  }
   if(action==='help'){this.dialog('Draft Duels','<p>Choose a character, open their four starting boosters and build a deck of at least 20 cards. After each duel both players draft: the loser picks one relic and one character pack (two boosters) first, then the winner. The minimum deck grows to 30, then 40 cards. Relics are active in every later duel. First to 3 wins takes the match; if both agree, play on to 6, 9 and more. Maximum three copies by card name, no banned list or siding, 8,000 LP each.</p>');return;}
   if(action==='select-character'){this.selectedCharacter=+el.dataset.character;this.render();return;}
   if(action==='draft-host'||action==='draft-join'){

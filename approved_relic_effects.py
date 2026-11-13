@@ -19,6 +19,8 @@ ATTACK_ONLY_SUMMONS='do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIEL
 def player_rule(code,value):
  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
 
+STRONGHOLD=13955608 # Stronghold the Moving Fortress
+
 def effect(kind):
  if not kind.startswith('approved_'):return None
  key=kind[9:];out=[]
@@ -190,7 +192,55 @@ give(EFFECT_SET_BASE_ATTACK,math.floor(math.max(0,c:GetAttack())/2)) give(EFFECT
   out.append(phase('STANDBY',f'local g=Duel.GetMatchingGroup({holder},0,LOCATION_ONFIELD,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] s:GetFirst():AddCounter(COUNTER_SPELL,1) end',
    f'Duel.IsExistingMatchingCard({holder},0,LOCATION_ONFIELD,0,1,nil)'))
  elif key=='cursed_restock':pass # Shop only: campaign_expansion.reroll_price and buy.
+ elif key=='disturbed_sleep':
+  # Every End Phase, both players' face-down Defense Position monsters; FLIP effects activate as they turn face-up.
+  hidden='function(c) return c:IsPosition(POS_FACEDOWN_DEFENSE) end'
+  out.append(event('EVENT_PHASE_START|PHASE_END',f'local g=Duel.GetMatchingGroup({hidden},0,LOCATION_MZONE,LOCATION_MZONE,nil) if #g==0 then return end --[[relic-hint]] Duel.ChangePosition(g,POS_FACEUP_ATTACK)',
+   f'Duel.IsExistingMatchingCard({hidden},0,LOCATION_MZONE,LOCATION_MZONE,1,nil)',True))
+ elif key=='gadget_call':
+  # The Gadgets' searches call Duel.SendtoHand from their resolving effect: the global function is wrapped (as Reversed
+  # Remedy wraps Duel.Recover), so the summon is the last thing the effect does and the summoned Gadget's own search
+  # can still activate. With no free zone, or when the core forbids the summon, the card goes to the hand as usual.
+  out.append('''do local D=(_G and _G.Duel) or Duel local send=D.SendtoHand
+D.SendtoHand=function(targets,player,reason,...)
+ local te=D.GetCurrentChain()>0 and D.GetChainInfo(0,CHAININFO_TRIGGERING_EFFECT) or nil local h=te and te:GetHandler()
+ if not (h and reason and (reason&REASON_EFFECT)~=0 and te:IsActiveType(TYPE_MONSTER) and h:IsSetCard(SET_GADGET)) then return send(targets,player,reason,...) end
+ local g=targets.GetCount and targets:Clone() or Group.FromCards(targets)
+ local s=g:Filter(function(c) return c~=h and c:IsControler(0) and c:IsMonster() and c:IsSetCard(SET_GADGET) and not c:IsLocation(LOCATION_HAND) end,nil)
+ local tc=s:GetFirst() if #s~=1 or not tc:IsCanBeSpecialSummoned(te,0,tc:GetControler(),false,false) or D.GetLocationCount(tc:GetControler(),LOCATION_MZONE)<1 then return send(targets,player,reason,...) end
+ g:RemoveCard(tc) --[[relic-hint]] local n=D.SpecialSummon(tc,0,tc:GetControler(),tc:GetControler(),false,false,POS_FACEUP)
+ if #g>0 then n=n+send(g,player,reason,...) end return n end end''')
+ elif key=='vampiric_contact':
+  # Its ATK as it left the field; the loss is LP lost, not damage, so damage modifiers don't change it.
+  out.append(event('EVENT_BATTLE_DESTROYED','''local won=eg:FilterCount(function(c) return c:IsPreviousControler(1) end,nil) local lost=0
+for c in eg:Iter() do if c:IsPreviousControler(0) then lost=lost+math.max(0,c:GetPreviousAttackOnField()) end end
+if won+lost>0 then --[[relic-hint]] end if won>0 then Duel.Recover(0,500*won,REASON_EFFECT) end if lost>0 then Duel.SetLP(0,math.max(0,Duel.GetLP(0)-lost)) end''',
+   'eg:IsExists(function(c) return c:IsPreviousControler(0) or c:IsPreviousControler(1) end,1,nil)'))
+ elif key=='armory_aid':
+  out.append('''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_EQUIP) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g==0 then return end --[[relic-hint]] Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) Duel.ShuffleDeck(0) end) Duel.RegisterEffect(e,0) end''')
+ elif key=='spiritual_retribution':
+  # A second Tribute Summon procedure for Spirits in your hand, used once per Duel: the Tributes are monsters banished
+  # from your GY (as many as the Spirit needs), the same idea as Corpse Ritual for Ritual Summons.
+  # When a normal Tribute Summon is possible too, the choice reads "Normal Summon" / "Banish" (system string 1107).
+  out.append(spirit_tribute(True))
+ elif key=='gadget_stronghold':
+  # Like Metal Coating: the Duel adds a copy to the Deck when it holds none (campaign_expansion).
+  out.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,{STRONGHOLD}) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,{STRONGHOLD}) if #g>0 then Duel.SendtoHand(g:GetFirst(),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end''')
  return '\n'.join(out)
+
+def spirit_tribute(once):
+ script='''do local used=false local function gy(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end
+local e=Effect.GlobalEffect() e:SetDescription(1107) e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SUMMON_PROC) e:SetTargetRange(LOCATION_HAND,0) e:SetValue(SUMMON_TYPE_TRIBUTE)
+e:SetCondition(function(e,c,minc) if c==nil then return true end if used then return false end local n=c:GetTributeRequirement() local p=c:GetControler()
+ return n>0 and minc<=n and Duel.GetLocationCount(p,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(gy,p,LOCATION_GRAVE,0,n,nil) end)
+e:SetTarget(aux.FieldSummonProcTg(function(e,c) return c:IsType(TYPE_SPIRIT) end,function(e,tp,eg,ep,ev,re,r,rp,chk,c) local n=c:GetTributeRequirement()
+ Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE) local g=Duel.SelectMatchingCard(tp,gy,tp,LOCATION_GRAVE,0,n,n,true,nil) if g and #g==n then g:KeepAlive() e:SetLabelObject(g) return true end return false end))
+e:SetOperation(function(e,tp,eg,ep,ev,re,r,rp,c) local g=e:GetLabelObject() used=true --[[relic-hint]] Duel.Remove(g,POS_FACEUP,REASON_COST) g:DeleteGroup() end)
+Duel.RegisterEffect(e,0) end'''
+ if once:return script
+ return script.replace('local used=false ','').replace(' if used then return false end','').replace(' used=true','')
 
 def ominous_clock(run,hint=''):
  from approved_relics import copies

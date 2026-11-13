@@ -7,7 +7,7 @@ const read=name=>JSON.parse(fs.readFileSync(new URL('./web/'+name+'.json',import
 const meta=read('content'),data=read('engine-data'),scripts=read('scripts'),id=n=>meta.cards.find(c=>c.name===n).id;
 const MACHINE='Spiritual Energy Settle Machine',SPIRIT='Susa Soldier',MST='Mystical Space Typhoon',FILLER='Blue-Eyes White Dragon',key=`c${id(MACHINE)}.lua`;
 const official=fs.readFileSync(new URL(`../runtime/script/official/${key}`,import.meta.url),'utf8');
-const goodSpirits=fs.readFileSync(new URL('../artifact_effects.py',import.meta.url),'utf8').match(/kind=='no_spirit_return':return '''([\s\S]*?)'''/)[1];
+const goodSpirits=fs.readFileSync(new URL('../artifact_effects.py',import.meta.url),'utf8').match(/kind=='spirit_may_return':return '''([\s\S]*?)'''/)[1];
 const bounces=script=>script.includes('EVENT_LEAVE_FIELD');
 
 // The text the game shows has to describe the script it runs.
@@ -25,11 +25,13 @@ function pass(m){
  if(m.type===M.SELECT_CARD&&m.selects.some(c=>c.code===id(FILLER)))return {type:R.SELECT_CARD,indicies:[m.selects.findIndex(c=>c.code===id(FILLER))]};
  return DuelEngine.prototype.auto.call(engine,m);
 }
-// A step is [turn, label regexp] for a listed choice, [turn, card name] to pick a target, or [turn, true/false] to answer the maintenance prompt. A third value limits it to that phase.
+// A step is [turn, label regexp] for a listed choice, [turn, card name] to pick a target, [turn, true/false] to answer the maintenance prompt,
+// or [turn, {effect:true/false}] to answer an optional effect (Good Spirits' return). A third value limits it to that phase.
 function answer(m,step){
  if(!step||step[0]!==engine.turn||(step[2]&&step[2]!==engine.phase))return null;
  const [,want]=step;
  if(typeof want==='boolean')return m.type===M.SELECT_YESNO?{type:R.SELECT_YESNO,yes:want}:null;
+ if(want&&typeof want==='object'&&'effect' in want)return m.type===M.SELECT_EFFECTYN?{type:R.SELECT_EFFECTYN,yes:want.effect}:null;
  if(typeof want==='string'){const index=m.type===M.SELECT_CARD?m.selects.findIndex(c=>c.code===id(want)):-1;return index<0?null:{type:R.SELECT_CARD,indicies:[index]}}
  return engine.choices(m).find(c=>want.test(c.label))?.response||null;
 }
@@ -59,7 +61,9 @@ const cases={
  'negated by Imperial Order on the summon turn':['hand',{mine:['Imperial Order',MACHINE],theirs:[SPIRIT],steps:[[1,set('Imperial Order')],[1,activate(MACHINE)],[1,true],[2,summon],[2,/Imperial Order/]],turns:2}],
  'flipped on a later turn, maintenance declined':['hand',{mine:[MACHINE,SPIRIT],steps:[[1,activate(MACHINE)],[1,set(SPIRIT)],[1,true],[3,/Change position · Susa/],[3,false]],turns:3}],
  'Mirror of Yata destroyed on the summon turn':['hand',{mine:['Mirror of Yata',SPIRIT,MST],steps:[[1,summon],[1,activate('Mirror of Yata')],[1,SPIRIT],[1,activate(MST)],[1,'Mirror of Yata']],turns:1}],
- 'Good Spirits holds every End Phase':['field',{mine:[SPIRIT],passives:goodSpirits,steps:[[1,summon]],turns:3}],
+ // Good Spirits makes the return optional (TRUANT's rework, 2026-11-13): the player can keep it, or send it back.
+ 'Good Spirits: the player keeps the Spirit':['field',{mine:[SPIRIT],passives:goodSpirits,steps:[[1,summon],[1,{effect:false},512]],turns:3}],
+ 'Good Spirits: the player sends the Spirit back':['hand',{mine:[SPIRIT],passives:goodSpirits,steps:[[1,summon],[1,{effect:true},512]],turns:1}],
  'destroyed on a later turn':[null,{mine:[MACHINE,SPIRIT],theirs:[MST],steps:[[1,activate(MACHINE)],[1,summon],[1,true],[2,activate(MST)],[2,MACHINE]],turns:2}],
  'maintenance declined on a later turn':[null,{mine:[MACHINE,SPIRIT],steps:[[1,activate(MACHINE)],[1,summon],[1,true],[3,false]],turns:3}],
  "the opponent's Spirit, maintenance declined on a later turn":[null,{mine:[MACHINE],theirs:[SPIRIT],steps:[[1,activate(MACHINE)],[1,true],[2,summon],[3,false]],turns:3}],

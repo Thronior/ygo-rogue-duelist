@@ -13,6 +13,15 @@ const MENU_EVERY=260,DEAD=.5,REPEAT_DELAY=320,REPEAT_EVERY=110,HOLD_MS=560;
 export function padKind(id=''){return SONY.test(id)?(/0ce6|0df2|dualsense/i.test(id)?'dualsense':'dualshock'):'xinput'}
 
 // Reads one pad into the standard layout: 16 booleans plus the left and right sticks.
+// Some phones list built-in sensors (fingerprint readers and the like) as gamepads, and one with an axis or button stuck
+// away from rest kept waking pad mode and pushing focus to the right edge, so a deck editor card looked hovered for good
+// (player report, 2026-11-13). An input only counts once it has been seen at rest since the pad appeared.
+export function settle(rest,key,s){
+ let r=rest.get(key);if(!r)rest.set(key,r={b:new Array(16).fill(false),a:[false,false,false,false]});
+ s.pressed=s.pressed.map((v,i)=>{if(!v)r.b[i]=true;return v&&r.b[i]});
+ ['lx','ly','rx','ry'].forEach((k,i)=>{if(Math.abs(s[k])<=DEAD)r.a[i]=true;if(!r.a[i])s[k]=0});
+ return s;
+}
 export function readPad(pad){
  const pressed=new Array(16).fill(false),b=pad.buttons,ax=pad.axes;
  const on=i=>!!b[i]&&(b[i].pressed||b[i].value>.5);
@@ -66,6 +75,7 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
  if(!navigator.getGamepads)return ()=>{};
  const memory=new WeakMap();
  let raf=0,scroller=null,snapKey=null,snapIdle=true,lastPop=null,padType='xinput',legendBox=null,legendKey='',cursorKind='',menuMode=false,focus=null,lastSig='',lastWhere='',lastRect=null,cursor=null,prev=new Array(16).fill(false),heldDir=null,repeatAt=0,active=false,frame=0,holdTimer=0;
+ const rest=new Map();
  const pads=()=>[...navigator.getGamepads()].filter(p=>p?.connected);
  function ensureCursor(){
   if(!cursor){cursor=document.createElement('div');cursor.className='pad-cursor';cursor.setAttribute('aria-hidden','true');cursor.innerHTML='<i></i>'}
@@ -186,7 +196,7 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
  function tick(now){
   raf=0;const list=pads();if(!list.length){sleep();return}
   raf=requestAnimationFrame(tick);
-  const state=list.map(readPad),pressed=new Array(16).fill(false);let lx=0,ly=0,rx=0,ry=0;
+  const state=list.map(p=>settle(rest,p.index+':'+p.id,readPad(p))),pressed=new Array(16).fill(false);let lx=0,ly=0,rx=0,ry=0;
   const used=list.find((p,i)=>state[i].pressed.some(Boolean)||Math.abs(state[i].lx)>DEAD||Math.abs(state[i].ly)>DEAD);if(used)padType=padKind(used.id);
   for(const s of state){s.pressed.forEach((v,i)=>{if(v)pressed[i]=true});if(Math.abs(s.lx)>Math.abs(lx))lx=s.lx;if(Math.abs(s.ly)>Math.abs(ly))ly=s.ly;if(Math.abs(s.rx)>Math.abs(rx))rx=s.rx;if(Math.abs(s.ry)>Math.abs(ry))ry=s.ry}
   const dir=pressed[UP]||ly<-DEAD?'0,-1':pressed[DOWN]||ly>DEAD?'0,1':pressed[LEFT]||lx<-DEAD?'-1,0':pressed[RIGHT]||lx>DEAD?'1,0':null;

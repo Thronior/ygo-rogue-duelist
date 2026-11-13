@@ -9,7 +9,7 @@ from pathlib import Path
 
 SLEEVES = json.loads((Path(__file__).parent / 'data/card-sleeves.json').read_text(encoding='utf8'))['sleeves']
 # Per-duel counts from the duel event that add up across runs.
-DUEL_TOTALS = ('graveSpecials', 'dragonsByBattle', 'timeWizardWins', 'lightBanished', 'darkBanished')
+DUEL_TOTALS = ('graveSpecials', 'dragonsByBattle', 'timeWizardWins', 'lightBanished', 'darkBanished', 'coinsTossed', 'diceRolled')
 MARKS = ('tutorial', 'draft')
 
 

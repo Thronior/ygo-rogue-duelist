@@ -198,6 +198,8 @@ end
   jammed={'spell_jammer':'te:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_SPELL)','trap_jammer':'te:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_TRAP)','monster_jammer':'te:IsActiveType(TYPE_MONSTER)'}.get(curse)
   if jammed:lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ACTIVATE_COST) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0)
 e:SetTarget(function(e,te,tp) return {jammed} end) e:SetCost(function(e,te,tp) return Duel.CheckLPCost(tp,{300*scale}) end) e:SetOperation(function(e,tp) Duel.PayLPCost(tp,{300*scale}) end) Duel.RegisterEffect(e,0) end''')
+  # Rain of Mercy: the opponent heals at the start of each of their Standby Phases.
+  if curse=='rain_of_mercy':lines.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1) e:SetCondition(function() return Duel.GetTurnPlayer()==1 end) e:SetOperation(function() Duel.Recover(1,{400*scale},REASON_EFFECT) end) Duel.RegisterEffect(e,0) end')
   if curse=='mirror_stats':
    target_range='LOCATION_MZONE,0' if scale>=2 else 'LOCATION_MZONE,LOCATION_MZONE'
    lines.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD) e:SetTargetRange({target_range}) Duel.RegisterEffect(e,0) end''')

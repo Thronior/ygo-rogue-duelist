@@ -195,6 +195,7 @@ def dispatch(raw):
   reward_slots.accept(run,value)
   g.update_profile(run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
+ elif action=='relic-lock':result=g.lock_relic(run,int(value))
  elif action=='sell-relic':result=g.sell_relic(run,str(value))
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))

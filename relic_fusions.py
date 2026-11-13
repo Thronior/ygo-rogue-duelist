@@ -39,6 +39,15 @@ FUSED=[
  ('mass_grave','Mass Grave','Monsters you control gain 100 ATK/DEF for each monster in your GY (max. 1,500). Your hand size limit is reduced by 2.','Skull Lair',('cursed_crowded_crypt','grave_lantern')),
  ('grand_bazaar','Grand Bazaar','Each shop offers 3 additional regular relics and a fourth booster pack. All shop prices are reduced by 15%.','Upstart Goblin',('cursed_rusted_compass','map','booster_shelf')),
  ('invincible','Invincible',"Monsters you control cannot be targeted or destroyed by your opponent's Spell and Trap effects.",'Royal Decree',('spells_no_more','traps_no_more')),
+ # The user's design (Discord review, 2026-11-13); the Gadget Soldier art is mine.
+ ('gadget_gadget','Gadget Gadget','"Gadget" monsters you control gain 500 ATK. Each time you Normal Summon a "Gadget" monster, Special Summon 2 "Gadget" monsters with different names from your Deck, then add 1 "Stronghold the Moving Fortress" from your Deck to your hand.','Gadget Soldier',('gadget_call','gadget_stronghold')),
+ ('spell_counter_engine','Spell Counter Engine','During your Standby Phase, place up to 2 Spell Counters on cards you control that can hold them. Monsters you control gain 200 ATK for each Spell Counter on your field.','Tower of Babel',('spell_provider','counterweight','arcane_resonance')),
+ ('level_up_chain','Level Up Chain','Start each Duel with a random Level 1–4 LV monster from your Deck and a copy of "Level Up!" in your hand. Your LV monsters gain 500 ATK and are unaffected by monster effects.','Horus the Black Flame Dragon LV8',('level_one','level_up_relic','swordsman_oath')),
+ ('terrorking_magnus','Terrorking Magnus','Whenever you pay LP for an Archfiend card, recover twice the amount paid. Each Archfiend monster you control gains 400 ATK for each Archfiend monster you control, including itself.','Archfiend Soldier',('archfiend_contract','demonic_pact','all_for_one_terrorking')),
+ ('spirit_sanctuary','Spirit Sanctuary','Spirit monsters you control gain 500 ATK and may stay on the field during the End Phase. You can Tribute Summon Spirit monsters by banishing monsters from your GY in place of Tributes. Whenever a monster returns from the field to your hand, gain 500 LP.','Spring of Rebirth',('good_spirits','spiritual_retribution')),
+ ('living_traps','Living Traps','Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by battle. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.','Zoma the Spirit',('cursed_trapbound_idol','trap_weaver')),
+ ('scorched_hourglass','Scorched Hourglass','At the start of your Standby Phase, inflict 500 damage to your opponent. Whenever you inflict effect damage to your opponent from another source, inflict 500 additional damage. This bonus applies once per originating damage event. Damage caused by this relic cannot trigger the bonus.','Dark Room of Nightmare',('cursed_scorched_clock','flame','static_coil')),
+ ('guardians_armory',"Guardian’s Armory",'Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by card effects while its corresponding Equip Spell is face-up on the field.','Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -50,9 +59,13 @@ INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2'),'grand_bazaar
 SHARED_EFFECT={'gold_sarcophagus':('discount',50),'sacred_phoenix':('phoenix',1000)}
 SHEEP_TOKEN=73915052
 
-def install(artifact):
+NEW_KEYS=frozenset({'spell_counter_engine','level_up_chain','terrorking_magnus','spirit_sanctuary',
+                    'living_traps','scorched_hourglass','guardians_armory'})
+
+def install(artifact, new=False):
  from content import ARTIFACTS,ART_INFO
  for key,name,text,art,pieces in FUSED:
+  if (key in NEW_KEYS)!=new:continue
   effect,amount=SHARED_EFFECT.get(key,('fused_'+key,0))
   tag=next((ART_INFO[p]['tag'] for p in pieces if ART_INFO[p]['tag']!='economy'),'economy')
   price=sorted(ARTIFACTS[p][1] for p in pieces)[:NEEDED.get(key,len(pieces))]
@@ -103,7 +116,7 @@ def greed_free_relic(run,rng):
 
 def effect(kind):
  if not kind.startswith('fused_'):return None
- from approved_relic_effects import stat,phase,event,player_rule
+ from approved_relic_effects import stat,phase,event,player_rule,STRONGHOLD
  key=kind[6:]
  both=lambda v,t='true':stat('EFFECT_UPDATE_ATTACK',v,t)+'\n'+stat('EFFECT_UPDATE_DEFENSE',v,t)
  if key=='chaos_orb':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsAttribute(ATTRIBUTE_LIGHT|ATTRIBUTE_DARK)')
@@ -197,4 +210,91 @@ h:SetOperation(function(e,tp,eg,ep,ev) Duel.SetLP(0,Duel.GetLP(0)-math.floor(ev/
  if key=='invincible':return '''do local function spelltrap(e,re,rp) return rp==1 and re~=nil and re:IsActiveType(TYPE_SPELL|TYPE_TRAP) end
 local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET) t:SetProperty(EFFECT_FLAG_SET_AVAILABLE) t:SetTargetRange(LOCATION_MZONE,0) t:SetValue(spelltrap) Duel.RegisterEffect(t,0)
 local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,0) end'''
+ if key=='spell_counter_engine':
+  counters='function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end'
+  return stat('EFFECT_UPDATE_ATTACK','function() return 200*Duel.GetCounter(0,1,0,COUNTER_SPELL) end')+'\n'+phase('STANDBY',f'''for i=1,2 do
+ local g=Duel.GetMatchingGroup({counters},0,LOCATION_ONFIELD,0,nil)
+ if #g==0 then break end
+ --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP)
+ local c=g:Select(0,0,1,nil):GetFirst()
+ if not c or not c:AddCounter(COUNTER_SPELL,1) then break end
+end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
+ if key=='level_up_chain':
+  from artifact_effects import effect as base
+  lv='c:IsSetCard(SET_LV)'
+  opening=base('starting_level_up',0).replace('if #g>0 then Duel.SendtoHand(g:GetFirst(),0,REASON_RULE) end',
+    'local c=g:GetFirst() or Duel.CreateToken(0,25290459) Duel.SendtoHand(c,0,REASON_RULE)')
+  return '\n'.join([base('starting_low_level',0),opening,
+    stat('EFFECT_UPDATE_ATTACK',500,lv),
+    stat('EFFECT_IMMUNE_EFFECT','function(e,te) return te:IsActiveType(TYPE_MONSTER) end',lv)])
+ if key=='terrorking_magnus':
+  archfiend='function(c) return c:IsFaceup() and c:IsSetCard(SET_ARCHFIEND) end'
+  return stat('EFFECT_UPDATE_ATTACK',f'function() return 400*Duel.GetMatchingGroupCount({archfiend},0,LOCATION_MZONE,0,nil) end',
+    'c:IsSetCard(SET_ARCHFIEND)')+'\n'+event('EVENT_PAY_LPCOST','Duel.Recover(0,ev*2,REASON_EFFECT)',
+    'ep==0 and ev>0 and re and re:GetHandler() and re:GetHandler():IsSetCard(SET_ARCHFIEND)')
+ if key=='spirit_sanctuary':
+  from artifact_effects import effect as base
+  from approved_relic_effects import spirit_tribute
+  return '\n'.join([base('spirit_may_return',0),spirit_tribute(False),
+    stat('EFFECT_UPDATE_ATTACK',500,'c:IsType(TYPE_SPIRIT)'),
+    event('EVENT_TO_HAND','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and (c:GetPreviousTypeOnField()&TYPE_MONSTER)~=0 end,nil) if n>0 then Duel.Recover(0,500*n,REASON_EFFECT) end')])
+ if key=='living_traps':
+  # These Trap cards Special Summon themselves from the Spell & Trap Zone.
+  traps='28649820,26905245,13955608,50277973,3129635,14554127,49514333,79852326'
+  trap_monster='c:IsType(TYPE_TRAPMONSTER) or c:IsOriginalCodeRule('+traps+')'
+  summoned=f'function(c) return c:IsControler(0) and ({trap_monster}) end'
+  eligible=f'function(c,g) return c:IsCode({traps}) and c:IsSSetable() and not g:IsExists(Card.IsCode,1,nil,c:GetCode()) end'
+  return '\n'.join([both(600,trap_monster),stat('EFFECT_INDESTRUCTABLE_BATTLE',1,trap_monster),
+    'do local used=false '+event('EVENT_SPSUMMON_SUCCESS',f'''used=true
+local g=Duel.GetMatchingGroup({eligible},0,LOCATION_DECK,0,nil,eg)
+if #g==0 then return end
+--[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SET)
+local c=g:Select(0,0,1,nil):GetFirst()
+if c then Duel.SSet(c:GetControler(),c) end''',f'not used and eg:IsExists({summoned},1,nil)')+' end'])
+ if key=='scorched_hourglass':
+  # Share Damage Echo's marker, which Dark Room of Nightmare already ignores.
+  # Damage yields until the engine processes it, so the guard covers nested damage too.
+  damage='Duel.Damage(1,500,REASON_EFFECT,false,e:GetOwnerPlayer())'
+  standby=phase('STANDBY','busy=true '+damage+' busy=false')
+  bonus=event('EVENT_DAMAGE','busy=true '+damage+' busy=false',
+    'not busy and ep==1 and rp==0 and ev>0 and (r&REASON_EFFECT)~=0 and (not re or re:GetLabel()~=937202)')
+  marker="e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)"
+  return 'do local busy=false '+(standby+'\n'+bonus).replace(marker,marker+' e:SetLabel(937202)')+' end'
+ if key=='guardians_armory':
+  return stat('EFFECT_UPDATE_ATTACK',500,'#c:GetEquipGroup()>0')+'''
+do local pairs={{73544866,68427465},{10755153,95638658},{74367458,69243953},
+                {47150851,32022366},{9633505,95515060},{46037213,21900719}}
+ local function protected(e,c)
+  for _,pair in ipairs(pairs) do
+   if c:IsFaceup() and c:IsCode(pair[1]) then
+    return Duel.IsExistingMatchingCard(function(s) return s:IsFaceup() and s:IsCode(pair[2]) and s:IsSpell() end,
+      0,LOCATION_SZONE,LOCATION_SZONE,1,nil)
+   end
+  end
+  return false
+ end
+ local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+ t:SetTargetRange(LOCATION_MZONE,0) t:SetTarget(protected) t:SetValue(1) Duel.RegisterEffect(t,0)
+ local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,0)
+ local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(EVENT_STARTUP)
+ s:SetOperation(function(e)
+  e:Reset()
+  local pair=pairs[Duel.GetRandomNumber(1,#pairs)]
+  for _,code in ipairs(pair) do
+   if not Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,code) then
+    local c=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,code):GetFirst()
+    if not c then c=Duel.CreateToken(0,code) end
+    Duel.SendtoHand(c,0,REASON_RULE)
+   end
+  end
+ end) Duel.RegisterEffect(s,0)
+end'''
+ if key=='gadget_gadget':
+  # Up to 2 Gadgets, as many as there are free zones; the Stronghold is added even when no Gadget can come out.
+  gadget='function(c,e,p) return c:IsMonster() and c:IsSetCard(SET_GADGET) and c:IsCanBeSpecialSummoned(e,0,p,false,false) end'
+  return stat('EFFECT_UPDATE_ATTACK',500,'c:IsSetCard(SET_GADGET)')+'\n'+event('EVENT_SUMMON_SUCCESS',f'''local p=eg:GetFirst():GetControler() local g=Duel.GetMatchingGroup({gadget},0,LOCATION_DECK,0,nil,e,p) local sg=Group.CreateGroup()
+for i=1,math.min(2,Duel.GetLocationCount(p,LOCATION_MZONE)) do local pool=g:Filter(function(c) return not sg:IsExists(Card.IsCode,1,nil,c:GetCode()) end,nil) if #pool==0 then break end Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) sg:Merge(pool:Select(0,1,1,nil)) end
+--[[relic-hint]] if #sg>0 then Duel.SpecialSummon(sg,0,p,p,false,false,POS_FACEUP) end
+local s=Duel.GetMatchingGroup(function(c) return c:IsCode({STRONGHOLD}) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil):GetFirst() if s then Duel.SendtoHand(s,nil,REASON_EFFECT) Duel.ConfirmCards(1,s) end''',
+   'eg:IsExists(function(c) return c:IsControler(0) and c:IsFaceup() and c:IsSetCard(SET_GADGET) end,1,nil)')
  return None

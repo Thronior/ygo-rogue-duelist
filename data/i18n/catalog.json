@@ -22960,5 +22960,227 @@
   "en": "Deck {0}+",
   "kind": "pattern",
   "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "python",
+  "en": "Deck-out win",
+  "kind": "exact",
+  "ctx": "campaign_expansion.py"
+ },
+ {
+  "group": "ui",
+  "en": "Roll 10 dice and toss 10 coins",
+  "kind": "exact",
+  "ctx": "achievement unlock requirement"
+ },
+ {
+  "group": "ui",
+  "en": "Maximum three copies of {0}.",
+  "kind": "pattern",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Main Deck may contain up to 60 cards.",
+  "kind": "exact",
+  "ctx": "draft-ui.js draft loop (2026-11-13)"
+ },
+ {
+  "group": "ui",
+  "en": "Lock relic",
+  "kind": "exact",
+  "ctx": "mobile.js relic lock"
+ },
+ {
+  "group": "ui",
+  "en": "Unlock relic",
+  "kind": "exact",
+  "ctx": "mobile.js relic lock"
+ },
+ {
+  "group": "ui",
+  "en": "Lock: keep this relic after rerolls and in the next shop",
+  "kind": "exact",
+  "ctx": "mobile.js relic lock"
+ },
+ {
+  "group": "ui",
+  "en": "Locked: stays after rerolls and in the next shop",
+  "kind": "exact",
+  "ctx": "mobile.js relic lock"
+ },
+ {
+  "group": "relic",
+  "en": "Spirit monsters you control do not have to return to the hand during the End Phase. You choose for each one.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Disturbed Sleep",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "During each player's End Phase, flip all face-down Defense Position monsters to face-up Attack Position.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Gadget Call",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Whenever a \"Gadget\" monster's effect would add another \"Gadget\" monster to your hand, Special Summon it instead, if you can.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Gadget Stronghold",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Add 1 \"Stronghold the Moving Fortress\" to your starting hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Gadget Gadget",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "\"Gadget\" monsters you control gain 500 ATK. Each time you Normal Summon a \"Gadget\" monster, Special Summon 2 \"Gadget\" monsters with different names from your Deck, then add 1 \"Stronghold the Moving Fortress\" from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "curse",
+  "en": "Rain of Mercy",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "curse",
+  "en": "At the start of your opponent's Standby Phase, they gain 400 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "curse",
+  "en": "At the start of your opponent's Standby Phase, they gain 800 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13"
+ },
+ {
+  "group": "relic",
+  "en": "Armory Aid",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, add 1 random Equip Spell from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Spiritual Retribution",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, you can Tribute Summon a Spirit monster by banishing monsters from your GY as the Tributes.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Vampiric Contact",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you destroy a monster by battle, gain 500 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-13 (TRUANT)"
+ },
+ {
+  "group": "ui",
+  "en": "Playing on Firefox",
+  "kind": "exact",
+  "ctx": "mobile.js firefox notice"
+ },
+ {
+  "group": "ui",
+  "en": "For the full look and smoother animations, play in Chrome, Edge, Opera or Safari, or install the Android app.",
+  "kind": "exact",
+  "ctx": "mobile.js firefox notice"
+ },
+ {
+  "group": "ui",
+  "en": "You can turn Compatibility Mode off in Settings › Display, but you may see flickering.",
+  "kind": "exact",
+  "ctx": "mobile.js firefox notice"
+ },
+ {
+  "group": "ui",
+  "en": "Many of the game's effects flicker a lot in Firefox, so Compatibility Mode is on: blur, glow, 3D card turns and animated backgrounds are replaced with simpler versions.",
+  "kind": "exact",
+  "ctx": "mobile.js firefox notice"
+ },
+ {
+  "group": "ui",
+  "en": "Compatibility Mode is off, so many of the game's effects may flicker a lot in Firefox.",
+  "kind": "exact",
+  "ctx": "mobile.js firefox notice"
+ },
+ {
+  "group": "ui",
+  "en": "Skip — end the run",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop rule"
+ },
+ {
+  "group": "ui",
+  "en": "The final 1v1 was skipped, so the run ends here.",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop rule"
+ },
+ {
+  "group": "ui",
+  "en": "Play the final 1v1 to unlock the next loop.",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop rule"
+ },
+ {
+  "group": "ui",
+  "en": "Play it to unlock the next loop.",
+  "kind": "exact",
+  "ctx": "tag-ui.js loop rule"
  }
 ]

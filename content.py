@@ -195,6 +195,8 @@ CURSES={
  'hand_limiter':('Hand Limiter','Your hand size limit is reduced by 2 (min. 0).'),
  'no_specials':('No Specials Allowed','Neither player can Special Summon monsters.'),
  'miller':('Miller','Once per Duel, during your Standby Phase, send the top 10 cards of your Deck to the GY.'),
+ # Prunk44's curse with the user's numbers (Discord, 2026-11-12/13): only the opponent heals.
+ 'rain_of_mercy':('Rain of Mercy',"At the start of your opponent's Standby Phase, they gain 400 LP."),
 }
 # Factual card themes from early WCT 2004 deck lists; shortened/rebalanced
 # for the 20-card format. Later acts add stronger staples and tribute threats.
@@ -317,6 +319,7 @@ def reload_tuning(force=False):
  ART_INFO.clear();ART_INFO.update(infos)
  artifact('dna_rewrite','DNA Rewrite',300,'When acquired, choose a monster Type. All your monsters become that Type, including future cards and Extra Deck monsters.','DNA Checkup','type_conversion',0,'other')
  artifact('divine_might','Divine Might',100,'Divine-Beast monsters you control gain 1,000 ATK.','Obelisk the Tormentor','atk',1000,'offense','Divine-Beast')
+ install_relic_fusions(artifact,new=True)
  _tuning_stamp=stamp
  return True
 reload_tuning()

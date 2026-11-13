@@ -45,7 +45,7 @@
     "id": "flip-effect",
     "name": "Flip effects",
     "icon": "genres-flip-effect.png",
-    "pattern": "^FLIP:|flip effect"
+    "pattern": "^FLIP:|flip effect|when this (?:card|face-down card) is flip summoned"
   },
   {
     "id": "fusion-material",

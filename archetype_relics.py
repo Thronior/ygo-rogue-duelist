@@ -26,7 +26,6 @@ def install(artifact):
 def weight(key,run):
  weight=1.0
  if key in FAMILY:weight*=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
- if key=='cursed_reversed_remedy':weight*=.6
  from content import ART_INFO
  owned=[ART_INFO.get(x,{}) for x in run.get('artifacts',[]) if ART_INFO.get(x,{}).get('effect') in ('attribute','both') and ART_INFO.get(x,{}).get('filter') in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'}]
  if owned:
@@ -35,29 +34,108 @@ def weight(key,run):
   if candidate.get('effect')=='attribute' or (candidate.get('effect')=='both' and filt in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'} and any(filt!=owned_relic.get('filter','') for owned_relic in owned)):weight*=0.5
  return weight
 
-def sample(options,count,run,rng,favored=(),favor=1):
+# Offer weights (user, 2026-11-13). Every relic offer (shop, Relic Picker, cursed and choice offers) goes through offer_weights:
+# - weight(): hold-backs (a second family or attribute relic) and RARITY, the relics that appear less often by design.
+# - Weight givers: cards in the run that a relic supports (relic_affinity, x1-3) and, in the shop, the chosen category (x5).
+#   Together they are capped at BOOST_CAP (x10); a relic whose cards are missing from the run counts DEAD_RELIC.
+# - Relics with no weight giver take the average boost of the ones that have one, so boosts move odds between relics
+#   that care about the deck instead of making plain relics (Merchant Urn, Demonic Sword...) rare.
+# - Shop only: a relic offered and not bought counts SKIPPED for the next SKIP_VISITS stocks, and in the first
+#   EARLY_SHOPS shops a relic costing more than the player's coins plus EARLY_SLACK counts PRICEY.
+RARITY={'traps_no_more':.25,'spells_no_more':.25,'duelist_catalogue':.2,'cursed_reversed_remedy':.6,
+        'almighty':.1,'the_creator':.1,'dimensional_rift':.1}
+BOOST_CAP=10.0
+NEUTRAL_AVERAGE_CAP=2.0
+DEAD_RELIC=.4
+SKIPPED,SKIP_VISITS=.5,2
+PRICEY,EARLY_SHOPS,EARLY_SLACK=.5,3,50
+
+# Loadout relics (user, 2026-11-13; hidden, never shown or announced): each loadout has 5 relics that suit it in
+# data/loadout-relics.json. Their deck gain is doubled and at least x2, and a Deck without their cards never makes them x0.4.
+_loadout_relics=None
+def loadout_relics(run):
+ global _loadout_relics
+ if _loadout_relics is None:
+  import json
+  from pathlib import Path
+  try:_loadout_relics={k:set(v) for k,v in json.loads((Path(__file__).parent/'data/loadout-relics.json').read_text(encoding='utf8')).items() if not k.startswith('_')}
+  except (OSError,ValueError):_loadout_relics={}
+ try:key=f"{int(run.get('character'))}:{int(run.get('variant') or 0)}"
+ except (TypeError,ValueError):return set()
+ return _loadout_relics.get(key,set())
+LOADOUT_GAIN,LOADOUT_MIN=2.0,2.0
+
+def offer_weights(options,run,favored=(),favor=1,prices=None,shop=False):
+ """{key:(base,boost,giver)}; in Tag each player's Deck (and hidden loadout list) adds half of its boost change."""
  import relic_affinity
- remaining=list(options);result=[];boost=relic_affinity.multipliers(remaining,run)
+ mine=_offer_weights_one(options,run,favored,favor,prices,shop);other=relic_affinity.tag_partner(run)
+ if other is None:return mine
+ theirs=_offer_weights_one(options,other,favored,favor,None,False)
+ return {k:(mine[k][0],1+.5*(mine[k][1]-1)+.5*(theirs[k][1]-1),mine[k][2] or theirs[k][2]) for k in mine}
+
+def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
+ """{key:(base,boost,giver)}: base is rarity, hold-backs and shop modifiers; boost is the capped weight-giver multiplier."""
+ import relic_affinity,shop_rewards
+ options=list(options);detail=relic_affinity.details(options,run)
+ mapped=set().union(*shop_rewards.CATEGORY_RELICS.values())
+ boost,givers={},set();loadout=loadout_relics(run)
+ for key in options:
+  multiplier,rule,matched=detail[key]
+  if key in loadout:
+   value=max(LOADOUT_MIN,1+LOADOUT_GAIN*(multiplier-1))*(favor if key in favored else 1);givers.add(key)
+   boost[key]=min(BOOST_CAP,value);continue
+  value=multiplier*(favor if key in favored else 1)
+  if rule and not matched:value*=DEAD_RELIC
+  if rule or key in mapped:givers.add(key)
+  boost[key]=min(BOOST_CAP,value)
+ # Each giver counts at most NEUTRAL_AVERAGE_CAP here, so a deck built around one theme pulls its relics ahead of plain ones.
+ average=sum(min(NEUTRAL_AVERAGE_CAP,boost[k]) for k in givers)/len(givers) if givers else 1.0
+ skips=(run.get('relic_skips') or {}) if shop else {}
+ early=shop and prices is not None and int(run.get('round',0) or 0)<EARLY_SHOPS
+ gold=int(run.get('gold',0) or 0);out={}
+ for key in options:
+  base=weight(key,run)*RARITY.get(key,1.0)
+  # A family relic's hold-back (x0.25, x0.125 with one owned) fades as the deck commits to its cards: none for an all-X deck.
+  if key in FAMILY and key in givers:
+   multiplier,rule,matched=detail[key]
+   hold=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
+   top=relic_affinity.ceiling(key,member_test(key,run) if member_test(key,run) not in (None,True) else None)
+   share=1.0 if top<=1 else max(0.0,min(1.0,(multiplier-1)/(top-1)))
+   base*=(hold+(1-hold)*share)/hold
+  if skips.get(key,0)>0:base*=SKIPPED
+  if early and prices.get(key,0)>gold+EARLY_SLACK:base*=PRICEY
+  out[key]=(base,boost[key] if key in givers else average,key in givers)
+ return out
+
+def sample(options,count,run,rng,favored=(),favor=1):
+ remaining=list(options);result=[];w=offer_weights(remaining,run,favored,favor)
  for _ in range(min(count,len(remaining))):
-  key=rng.choices(remaining,weights=[weight(k,run)*boost[k]*(favor if k in favored else 1) for k in remaining],k=1)[0]
+  key=rng.choices(remaining,weights=[w[k][0]*w[k][1] for k in remaining],k=1)[0]
   result.append(key);remaining.remove(key)
  return result
 
-# Shop relic slots (Thronior, Discord 2026-11-10): the first two use the weighting above; every further slot is random, so relics
-# with no weight modifier stop becoming rare by accident. In the random slots a relic the weighting boosts this visit (cards it
-# helps, the shop's category) counts a little less than an ordinary relic, and relics the weighting holds back stay held back.
+# Shop relic slots (Thronior, Discord 2026-11-10): the first two use the full weighting; every further slot is random, so relics
+# with no weight modifier stop becoming rare by accident. In the random slots a relic the weighting boosts this visit counts a
+# little less than an ordinary relic; rarity, hold-backs, missing cards and the shop modifiers still apply.
 WEIGHTED_SHOP_SLOTS=2
 RANDOM_SLOT_BOOSTED=0.8
-def shop_sample(options,count,run,rng,favored=(),favor=1):
- import relic_affinity
- remaining=list(options);result=[];boost=relic_affinity.multipliers(remaining,run)
- factor={k:weight(k,run)*boost[k]*(favor if k in favored else 1) for k in remaining}
+def shop_sample(options,count,run,rng,favored=(),favor=1,prices=None):
+ remaining=list(options);result=[];w=offer_weights(remaining,run,favored,favor,prices,shop=True)
+ def random_slot(k):
+  base,boost,giver=w[k]
+  return base*(1.0 if not giver else RANDOM_SLOT_BOOSTED if boost>1 else min(1.0,boost))
  for slot in range(min(count,len(remaining))):
-  if slot<WEIGHTED_SHOP_SLOTS:weights=[factor[k] for k in remaining]
-  else:weights=[RANDOM_SLOT_BOOSTED if factor[k]>1 else min(1.0,factor[k]) for k in remaining]
+  weights=[w[k][0]*w[k][1] for k in remaining] if slot<WEIGHTED_SHOP_SLOTS else [random_slot(k) for k in remaining]
   key=rng.choices(remaining,weights=weights,k=1)[0]
   result.append(key);remaining.remove(key)
  return result
+
+def note_skipped(run,previous_stock):
+ """Called on every restock: relics left unsold in the previous stock count SKIPPED for the next SKIP_VISITS stocks."""
+ skips={k:v-1 for k,v in (run.get('relic_skips') or {}).items() if v>1}
+ for item in previous_stock or []:
+  if item.get('kind')=='artifact' and not item.get('sold') and item['id'] not in (run.get('relic_locks') or []):skips[item['id']]=SKIP_VISITS
+ run['relic_skips']=skips
 
 def matches(key,c):
  n=c['name'];t=c.get('desc','');typ=c['data']['type']

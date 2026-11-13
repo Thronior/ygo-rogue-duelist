@@ -330,6 +330,8 @@ img.price-lp{width:1.15em;height:1.15em;object-fit:contain;vertical-align:middle
 .exodia-finale-cards img{width:min(16vw,40dvh,210px);height:auto;max-height:70dvh;object-fit:contain;filter:drop-shadow(0 0 16px #ffc44d88);opacity:0}
 .exodia-finale-result{position:absolute;inset:0;margin:0;display:flex;align-items:center;justify-content:center;font-size:clamp(40px,10vw,130px);font-weight:900;text-transform:uppercase;text-shadow:0 4px 12px #000,0 0 35px #000;opacity:0;pointer-events:none}
 
+/* The loop rule line (2026-11-13): play the final 1v1 to unlock the next loop; skipping ends the run. */
+.tag-loop-key{color:#f3d78e;font-weight:700}
 .tag-finale-offer{max-width:720px;margin:16px auto;padding:16px;border:1px solid #8ca8a7;border-radius:12px;background:#122d39e8}.tag-finale-offer>div{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.tag-finale-offer h2{color:#ffe2a3}
 
 /* Branding keeps the existing menu and loading layout. */
@@ -3205,6 +3207,17 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 .pack-fav[aria-pressed=true]{background:radial-gradient(circle at 40% 35%,#fff1bf,#e2b553 70%);border-color:#fff1bf;color:#5a3a00}
 @media(hover:hover) and (pointer:fine){.pack-fav:hover{transform:scale(1.08)}}
 .pack-fav.fav-pop,.pack-fav-toggle.fav-pop{animation:fav-pop .35s}@keyframes fav-pop{40%{transform:scale(1.25)}}
+/* Shop relic locks (2026-11-13): a lock on the top left of the relic art; the price badge moves right of it. Locked relics
+   get a gold lock and a gold frame and stay through rerolls and into the next shop (mobile.js relicLockButton). */
+.relic-lock{position:absolute;z-index:4;left:3px;top:3px;display:grid;place-items:center;width:26px;height:26px;min-height:0;padding:0;margin:0;border:1px solid #ffffff4d;border-radius:6px;background:#061418cc;color:#c9d6da;box-shadow:0 2px 6px #0009;cursor:pointer;transition:transform .15s,background-color .15s}
+.relic-lock svg{width:16px;height:16px}
+.relic-lock[aria-pressed=true]{background:radial-gradient(circle at 40% 35%,#fff1bf,#e2b553 70%);border-color:#fff1bf;color:#5a3a00}
+@media(hover:hover) and (pointer:fine){.relic-lock:hover{transform:scale(1.08)}}
+.relic-lock.fav-pop{animation:fav-pop .35s}
+.shop-product.has-relic-lock .price-badge{left:32px}
+.shop-product.relic-locked .product-art{outline:2px solid #e2b553;outline-offset:-2px;border-radius:6px}
+.shop-compact .relic-lock{width:20px;height:20px;left:1px;top:1px}.shop-compact .relic-lock svg{width:13px;height:13px}
+.shop-compact .shop-product.has-relic-lock .price-badge{left:23px}
 .shop-product.favourite-pack,.collection-pack.favourite-pack>.cardbtn{border-color:#e8c778;box-shadow:0 0 0 1px #e8c77888,0 0 12px #e8c77833}
 .collection-pack{position:relative;display:grid;min-width:0}.collection-pack>.cardbtn{width:100%;height:100%}
 .fav-instock{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:1px 8px;border:1px solid #ffe2a366;border-radius:999px;background:#ffe2a31a;color:#ffe2a3;font-size:.8em;font-weight:700;white-space:nowrap;vertical-align:middle;letter-spacing:0;text-transform:none}
@@ -3455,3 +3468,20 @@ dialog:has(.lesson-done){overflow:hidden}
 .draft-owned-relic{flex:none;width:34px;height:34px;min-width:34px;min-height:0;padding:2px!important}
 .draft-owned-relic img{width:28px;height:28px;object-fit:contain}
 .draft-decided{display:flex;flex-direction:column;gap:10px;max-width:980px;margin:0 auto}
+/* Draft Duels deck editor (draft-ui.js renderEditor, 2026-11-13): solo's editor; short landscape phones keep the
+   header and summary to one slim row so the cards get the height. */
+.draft-deck-page>header h2{margin:0}
+@media (max-height:500px){
+ .draft-deck-page>header{padding-block:2px;min-height:0}
+ .draft-deck-page>header h2{font-size:16px}
+ .draft-deck-page{position:relative}
+ .draft-deck-page>header button{min-height:34px!important;padding:4px 12px}
+ /* The count and Ready arrow ride in the header row. */
+ .draft-deck-page .draft-scroll>.draft-summary{position:absolute;top:6px;left:150px;right:96px;margin:0;justify-content:flex-end;gap:10px}
+ .draft-deck-page .draft-scroll{padding-top:4px!important}
+ .draft-deck-page .draft-summary{min-height:0;padding-block:2px;align-items:center}
+ .draft-deck-page .draft-inspect-help{display:none}
+ .draft-deck-page .draft-summary .deck-count-arrow{position:static;width:96px;height:40px;flex:none}
+ .draft-deck-page .draft-summary .deck-count-arrow>span{font-size:13px}
+ .draft-deck-page .draft-tabs.deck-filter-row{margin:2px 0}
+}

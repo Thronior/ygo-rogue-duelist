@@ -13,7 +13,7 @@ const onField=location=>location===L.MZONE||location===L.SZONE;
 
 export function sleeveMetrics(duel){
  return duel.sleeveMetrics??={draws:0,effectDamage:0,bestHit:0,banished:0,lightBanished:0,darkBanished:0,graveSpecials:0,dragonsByBattle:0,
-  timeWizardWins:0,coinStreak:0,bestCoinStreak:0,trapActivated:false,damageTaken:0,stolenFinish:false,tribute3:false,
+  timeWizardWins:0,coinsTossed:0,diceRolled:0,coinStreak:0,bestCoinStreak:0,trapActivated:false,damageTaken:0,stolenFinish:false,tribute3:false,
   bestOneEffect:0,bestMirror:0,turnMonsters:0,bestTurnMonsters:0,turnSpells:0,bestTurnSpells:0,sameName:0,divine:0,toons:0,tokens:0,
   releases:0,link:null}
 }
@@ -41,7 +41,10 @@ export function observeSleeveMessage(duel,m){
    if(attacker&&attacker.owner===1&&m.amount>=duel.lp[1])s.stolenFinish=true}
   else s.effectDamage+=m.amount;
  }
+ // Lifetime toss counts unlock Duke Devlin (Roll 10 dice and toss 10 coins, 2026-11-13).
+ if(m.type===M.TOSS_DICE&&m.player===0)s.diceRolled+=m.results?.length||0;
  if(m.type===M.TOSS_COIN&&m.player===0)for(const heads of m.results||[]){
+  s.coinsTossed++;
   s.coinStreak=heads?s.coinStreak+1:0;s.bestCoinStreak=Math.max(s.bestCoinStreak,s.coinStreak);
   if(heads&&duel.name(duel.effect?.code)==='Time Wizard')s.timeWizardWins++;
  }

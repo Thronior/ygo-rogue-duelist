@@ -1,6 +1,7 @@
 import {rewardIcon} from './reward-icons.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
+import {deckOrder,deckToolbar,deckCardsArea,wireDeckToolbar,resetDeckFilters,updateDeckSplit} from './deck-editor-view.js';
 import {revealPrice} from './jar-relics.js';
 
 import {deckMinimum,fixedDeck} from './deck-minimum.js';
@@ -41,6 +42,7 @@ import * as juice from './juice.js';
 import * as keeperTalk from './shopkeeper-talk.js';
 import {ownedBadge} from './shop-badges.js';
 import {isFavouritePack,favouritesFirst,packStar,favouritesInStock} from './pack-favourites.js';
+import {relicLockButton,relicLockClass} from './relic-lock.js';
 import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
@@ -101,11 +103,10 @@ export class TagUI {
  checkDeckSplit(){
   if(!this.deckSplitResize&&typeof window!=='undefined'&&window.addEventListener){this.deckSplitResize=true;let timer=0;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>this.checkDeckSplit(),200)},{passive:true})}
   const host=tagDeckArea(this.root),area=host?.querySelector('.draft-card-scroll');if(!area)return;
-  const total=deckSplitColumns(host,area);
-  if(total!==(this.deckSplit||0)){this.deckSplit=total;this.render()}
+  if(updateDeckSplit(this,host))this.render();
  }
  // After a duel only the type tab and the search reset; the reset button (all) also restores the default Sort and Deck status.
- resetDeckFilters(all=true){this.deckFilter='All';clearSearch('tag-deck');if(all){this.deckSort=DEFAULT_DECK_SORT;this.deckStatus=DEFAULT_DECK_STATUS;rememberDeckSort({sort:this.deckSort,status:this.deckStatus})}}
+ resetDeckFilters(all=true){resetDeckFilters(this,'tag-deck',all)}
  render(){
 
   this.updateRoomBadge();
@@ -179,15 +180,17 @@ export class TagUI {
   if(['complete','gameover'].includes(v.phase)){
 
    const finale=v.finale||{},available=v.phase==='complete'&&finale.status==='available',voted=finale.votes?.[v.seat];
-   // After the final duel (played or skipped) the team can loop, like a solo run after the champion (user, 2026-11-12).
-   const loopable=v.phase==='complete'&&['finished','skipped'].includes(finale.status),loopVoted=!!v.loopVotes?.[v.seat],loopOther=!!v.loopVotes?.[1-v.seat];
+   // After the final 1v1 the team can loop, like a solo run after the champion (user, 2026-11-12). Skipping the 1v1 ends the
+   // run, and the offer says so up front (user, 2026-11-13).
+   const loopable=v.phase==='complete'&&finale.status==='finished',loopVoted=!!v.loopVotes?.[v.seat],loopOther=!!v.loopVotes?.[1-v.seat];
    const loopOffer=loopable?`<div class="tag-finale-offer tag-loop-offer"><h2>Start loop ${(v.loop||0)+2}?</h2><p>Keep your decks, relics and coins and face nine new duels. Both players must agree.</p><p>${loopVoted?'You are ready. Waiting for your partner…':loopOther?'Your partner wants to keep going!':'Or exit to end the run here.'}</p><div>${button(loopVoted?'Cancel readiness':'Start next loop','loop-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}</div></div>`:'';
 
    if(['choosing','resolving','drafting'].includes(finale.status)){this.renderFinale();return;}
 
+   const skipped=v.phase==='complete'&&finale.status==='skipped'?'<p class="tag-loop-key">The final 1v1 was skipped, so the run ends here.</p>':'';
    const result=finale.status==='finished'?`<h2>${finale.winner===null?'Final duel: Draw':finale.winner===v.seat?'You won the final duel':'Your opponent won the final duel'}</h2><p>Your shared campaign victory is saved.</p>`:'';
 
-   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-run-card-slot"></div>${result}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — finish run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${loopOffer}${button('Exit','exit')}</section>`);this.endCard(r);return
+   this.root.innerHTML=this.header(`<section class="tag-ending"><h1>${v.phase==='complete'?'Run complete':'Run ended'}</h1><div class="tag-run-card-slot"></div>${result}${skipped}${available?`<div class="tag-finale-offer"><h2>One last duel?</h2><p>Face each other in an optional 1v1 with your final decks and 8,000 LP each. Both players must agree, then choose how relics work.</p><p class="tag-loop-key">Play it to unlock the next loop.</p><p>${voted?'You are ready. Waiting for your opponent…':finale.votes?.[1-v.seat]?'Your opponent wants to duel!':'Win or lose, your campaign is complete.'}</p><div>${button(voted?'Cancel readiness':'Play final 1v1','finale-vote',`class="primary" ${this.working||waiting?'disabled':''}`)}${button('Skip — end the run','finale-skip',this.working||waiting?'disabled':'')}</div></div>`:''}${loopOffer}${button('Exit','exit')}</section>`);this.endCard(r);return
 
   }
 
@@ -213,28 +216,10 @@ export class TagUI {
 
   const lookup=id=>this.cardById(id),main=mainCount;
 
-  let order=r.pool.map((_,i)=>i).filter(i=>matchesSearch(lookup(r.pool[i]),'tag-deck'));
+  // Shared with Draft Duels (deck-editor-view.js); the order holds still while cards are tapped.
+  const order=deckOrder(this,{pool:r.pool,selected:r.selected,lookup,run:r,info:this.content.artifactInfo,searchKey:'tag-deck'}),inDeck=new Set(r.selected),name=i=>lookup(r.pool[i])?.name||'';
 
-  const inDeck=new Set(r.selected);if(!this.deckSplit&&(this.deckStatus==='In'||this.deckStatus==='Out'))order=order.filter(i=>inDeck.has(i)===(this.deckStatus==='In'));
-
-  else if(this.deckFilter!=='All')order=order.filter(i=>lookup(r.pool[i])?.data.type&({Monster:1,Spell:2,Trap:4,Extra:64}[this.deckFilter]||0));
-
-  const name=i=>lookup(r.pool[i])?.name||'';
-
-  if(this.deckSort==='Default')order.sort((a,b)=>frameLevelName(lookup(r.pool[a]),lookup(r.pool[b]))||a-b);else if(this.deckSort==='Name')order.sort((a,b)=>name(a).localeCompare(name(b)));
-
-  else if(this.deckSort==='Attribute')attributeOrder(order,r.pool,lookup,r);
-  else if(this.deckSort==='ATK'){const attacks=new Map(order.map(i=>[i,lookup(r.pool[i]).data.type&1?deckStats(lookup(r.pool[i]),r,i,this.content.artifactInfo)[0]:0]));order.sort((a,b)=>attacks.get(b)-attacks.get(a)||name(a).localeCompare(name(b))||a-b)}
-  else if(['DEF','Level'].includes(this.deckSort)){const key={ATK:'atk',DEF:'defense',Level:'level'}[this.deckSort];order.sort((a,b)=>(lookup(r.pool[b])?.[key]||0)-(lookup(r.pool[a])?.[key]||0))}
-
-  else if(this.deckSort==='Newest')order.reverse();
-  // Deck first keeps the chosen sort inside each group.
-  if(this.deckStatus==='First')order=[...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))];
-  // A tap keeps every card in place; the order refreshes when type, sort, status, search or the pool changes.
-  const orderKey=JSON.stringify([this.deckFilter,this.deckSort,this.deckStatus,searches['tag-deck']||null,r.pool.length,!!this.deckSplit]);
-  if(this.deckOrder&&this.deckOrderKey===orderKey)order=this.deckOrder;else{this.deckOrderKey=orderKey;this.deckOrder=order}
-
-  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=this.deckSplit?splitDeckMarkup(order.filter(i=>inDeck.has(i)),order.filter(i=>!inDeck.has(i)),cardMarkup,this.deckFilter==='Extra'):order.map(cardMarkup).join('');
+  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=deckCardsArea(this,order,r.selected,cardMarkup);
 
   const bossCost=bossRerollPrice(r),known=i=>boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i);
   const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=theirs===i,picked=mine===i,name=known(i)?esc(o?.name||'opponent'):'this opponent';
@@ -247,7 +232,7 @@ export class TagUI {
   const pickLine=mine!==null&&theirs!==null?'Both players are locked in':mine!==null?`Locked in · waiting for ${partnerName}`:theirs!==null?`${partnerName} is locked in on ${known(theirs)?esc(this.content.characters[theirs]?.name||'an opponent'):'an opponent'} · pick another`:boss?'Both bosses are on both screens · each player locks in one':'Choose your next opponent';
   const coinsLine=boss?`<span class="tag-boss-coins"> · Team coins ${coinLabel(r.gold)}</span>`:'';
 
-  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('tag-deck',this.deckFilter!=='All'||this.deckSort!=='Newest'||this.deckStatus!=='First')}${['All','Monster','Spell','Trap','Extra'].map(t=>button(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${this.deckFilter===t?'active':''}"`)).join('')}<select id="tag-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${this.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="tag-deck-sort" data-draft-sort aria-label="Sort cards">${TAG_DECK_SORTS.map(t=>`<option value="${t}" ${this.deckSort===t?'selected':''}>${t}</option>`).join('')}</select><button class="deck-deselect" data-tag="deselect-all" aria-label="Deselect all" title="Deselect all">${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${this.deckSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(this.deckSplit)}>${cards}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${cards}</div></div>`}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
+  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
   const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
 
@@ -258,11 +243,8 @@ export class TagUI {
 
   if(this.tab==='deck')deckReadyFeedback(this.root,main,deckMinimum(r,this.content.characters[r.character]),this);
 
-  const search=this.root.querySelector('[data-effect-search]');if(search)search.onclick=()=>openSearch('tag-deck',r.pool.map(lookup),()=>this.render());
-  const clear=this.root.querySelector('[data-effect-search-clear]');if(clear)clear.onclick=()=>{this.resetDeckFilters();this.render()};
+  wireDeckToolbar(this.root,this,{searchKey:'tag-deck',cards:()=>r.pool.map(lookup),idPrefix:'tag',render:()=>this.render()});
 
-  const sort=this.root.querySelector('#tag-deck-sort');if(sort)sort.onchange=()=>{this.deckSort=sort.value;rememberDeckSort({sort:this.deckSort});this.render()};
-  const status=this.root.querySelector('#tag-deck-status');if(status)status.onchange=()=>{this.deckStatus=status.value;rememberDeckSort({status:this.deckStatus});this.render()};
 
  }
 
@@ -352,7 +334,7 @@ export class TagUI {
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
-   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${theirs?'teammate-pick':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}${x.kind==='pack'&&isFavouritePack(x.id)?' favourite-pack':''}">${x.kind==='pack'?packStar(x.id,name,'shop-pack-fav'):''}<div class="product-art" data-shop-item="${i}">${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}${theirs?`<span class="tag-cart-badge" title="${partnerName} picked this">${partnerArt}</span>`:''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="${theirs?partnerName+' picked '+esc(name):'Select '+esc(name)}" data-tag="select" data-index="${i}" ${!canAct||x.sold||theirs||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
+   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${theirs?'teammate-pick':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}${x.kind==='pack'&&isFavouritePack(x.id)?' favourite-pack':''}${relicLockClass(r,x)}">${x.kind==='pack'?packStar(x.id,name,'shop-pack-fav'):''}<div class="product-art" data-shop-item="${i}">${relicLockButton(r,x,i,'data-tag="relic-lock"')}${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}${theirs?`<span class="tag-cart-badge" title="${partnerName} picked this">${partnerArt}</span>`:''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="${theirs?partnerName+' picked '+esc(name):'Select '+esc(name)}" data-tag="select" data-index="${i}" ${!canAct||x.sold||theirs||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
 
   };
 
@@ -447,6 +429,7 @@ export class TagUI {
   if(action==='copy-run-card'||action==='save-run-card'){const card=this.runCard,status=card?.box.querySelector('.run-card-status');if(!card)return;(action==='save-run-card'?saveRunCard:copyRunCard)(card.box.querySelector('.run-card-canvas'),runCardName(card.run,this.content)).then(m=>{if(status)status.textContent=m}).catch(e=>{if(status)status.textContent=e.message||'Could not copy the image.'});return}
 
   if(action==='poke'){keeperTalk.say('poke');return}
+  if(action==='relic-lock'){const v=this.view;if(v?.paused||!this.session?.connected||v?.phase!=='shop'||this.relicLocking)return;this.relicLocking=true;try{await this.session.request('relic-lock',Number(el.dataset.index))}catch(error){this.error(error)}finally{this.relicLocking=false}return}
   if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(this.content,el.dataset.curse,this.view?.run?.challenge_level))}</p>`);return}
 
 

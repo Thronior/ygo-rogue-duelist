@@ -125,9 +125,9 @@
    "description": "Win a run with Espa Roba"
   },
   "19": {
-   "metric": "packs_variety",
-   "target": 4,
-   "description": "Buy four different booster packs in one run"
+   "metric": "dice_and_coins",
+   "target": 10,
+   "description": "Roll 10 dice and toss 10 coins"
   },
   "20": {
    "metric": "six_attributes",

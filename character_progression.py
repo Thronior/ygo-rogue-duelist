@@ -18,6 +18,9 @@ def observe(profile,run):
   profile['relicless_shop']=1
  import sleeve_progress
  sleeve_progress.observe(profile,run)
+ # Duke Devlin unlock (2026-11-13): roll 10 dice and toss 10 coins across all duels; progress shows the smaller count.
+ stats=profile.get('sleeve_stats',{})
+ profile['dice_and_coins']=min(int(stats.get('diceRolled',0)),int(stats.get('coinsTossed',0)))
 
 def duel(game,run,result,won,boss):
  cards=[game.BY_ID[c] for c in game.deck(run) if not game.is_extra(c)]

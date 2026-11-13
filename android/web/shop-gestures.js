@@ -2,7 +2,8 @@
 export function installShopGestures(root,{tap,hold,delay=500}){
  let gesture=null;
  const suppressedClicks=[];
- const itemFor=target=>target?.closest?.('[data-shop-item]')||null;
+ // The relic lock button (top-left of a relic's art) is its own control, never a tap on the item.
+ const itemFor=target=>target?.closest?.('.relic-lock')?null:target?.closest?.('[data-shop-item]')||null;
  const cancel=()=>{if(gesture){clearTimeout(gesture.timer);gesture.cancelled=true}};
  const rememberClick=e=>{
   suppressedClicks.push({index:gesture.index,x:Number.isFinite(e.clientX)?e.clientX:gesture.x,y:Number.isFinite(e.clientY)?e.clientY:gesture.y,until:Date.now()+1500});
