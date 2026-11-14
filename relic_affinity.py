@@ -50,6 +50,7 @@ def compute_ceilings():
 def write_ceilings():
  CEILINGS_FILE.write_text(json.dumps(compute_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  CARD_CEILINGS_FILE.write_text(json.dumps(compute_card_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
+ CATEGORY_CEILINGS_FILE.write_text(json.dumps(compute_category_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
 # Weights come from the current Deck only (user, 2026-11-13): cards that only sit in the collection count for nothing, so
 # a feature the Deck lacks makes its relics and singles x0.4 (archetype_relics.DEAD_RELIC). DECK_WEIGHT is kept for old callers.
 DECK_WEIGHT=3
@@ -252,3 +253,39 @@ def _card_multipliers_one(cards,run):
   out[c['id']]=min(CARD_BOOST_CAP,best);boosted.append(out[c['id']])
  average=sum(min(NEUTRAL_CARD_CAP,v) for v in boosted)/len(boosted) if boosted else 1.0
  return {k:(average if v is None else v) for k,v in out.items()}
+
+
+# Opponent-screen categories (user, 2026-11-14): same deck weighting as relics. A category's ceiling comes from the share of
+# cards it covers (Types/Attributes among monsters; archetype themes use ARCHETYPE_CEILING); Types and Attributes follow
+# their share of the Deck, every other theme counts cards (narrow_progress). A category the Deck lacks counts DEAD_CARD.
+ARCHETYPE_CATEGORIES=frozenset({'amazoness','archfiend','darkmagician','darkscorpion','exodia','gravekeeper','guardian','harpie','toon'})
+CATEGORY_CEILINGS_FILE=Path(__file__).parent/'data/category-ceilings.json'
+try:_category_ceilings={k:float(v) for k,v in json.loads(CATEGORY_CEILINGS_FILE.read_text(encoding='utf8')).items()}
+except (OSError,ValueError):_category_ceilings=None
+def _broad_category(key):
+ import shop_rewards
+ return key in shop_rewards.MONSTER_TYPES or key in shop_rewards.ATTRIBUTES
+def compute_category_ceilings():
+ import math
+ import campaign as g,shop_rewards
+ monsters=[c for c in g.CARDS if c['data']['type']&1];out={}
+ for key in shop_rewards.reward_keys():
+  if key in ARCHETYPE_CATEGORIES:out[key]=ARCHETYPE_CEILING;continue
+  base=monsters if _broad_category(key) else g.CARDS
+  share=sum(1 for c in base if shop_rewards.matches(c,key))/max(1,len(base))
+  out[key]=round(min(CEILING_MAX,max(CEILING_MIN,2+CEILING_SLOPE*math.log2(CEILING_BASE_SHARE/max(share,1e-4)))),3)
+ return dict(sorted(out.items()))
+def category_multipliers(keys,run):
+ """{category key: deck multiplier} for one run."""
+ global _category_ceilings
+ import campaign as g,shop_rewards
+ if _category_ceilings is None:_category_ceilings=compute_category_ceilings()
+ deck=deck_cards(run);total=sum(deck.values())
+ if not total:return {k:1.0 for k in keys}
+ out={}
+ for k in keys:
+  n=sum(copies for cid,copies in deck.items() if shop_rewards.matches(g.BY_ID[cid],k))
+  if not n:out[k]=DEAD_CARD;continue
+  progress=min(1,n/total/BROAD) if _broad_category(k) else narrow_progress(n,run)
+  out[k]=1+(_category_ceilings.get(k,CEILING_MIN)-1)*progress
+ return out

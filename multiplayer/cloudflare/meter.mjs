@@ -1,11 +1,13 @@
 // Daily request ceiling (user, 2026-11-13: "set a 1 million requests per day limit" before moving to Workers Paid,
 // which has no spending cap). Each Worker isolate counts its own requests in memory and reports them in batches to one
-// RequestMeter object, so the meter adds about one object request per FLUSH requests and a handful of row writes per day.
+// RequestMeter object, so the meter adds about one object request per FLUSH requests (or per FLUSH_MS) and a handful of row writes per day.
 // Once the day's total reaches DAILY_REQUEST_CAP, the Worker refuses online calls until 00:00 UTC, the same way the free
 // plan does, and players see the "servers at today's limit" message (android/web/online-status.js).
 // Not counted: WebSocket messages inside an open Tag/match/relay connection (Cloudflare bills those at 1/20 of a request)
 // and the separate global-stats Worker.
-const FLUSH=250,FLUSH_MS=60000,SAVE_MS=300000;
+// Reports every 1000 requests or 30 minutes per isolate (was 250 / 60 s, which cost ~16k object requests a day on the free
+// plan, 2026-11-14); a ceiling of 1M can overshoot by at most one batch per isolate.
+const FLUSH=1000,FLUSH_MS=1800000,SAVE_MS=300000;
 const today=(now=Date.now())=>new Date(now).toISOString().slice(0,10);
 export const cap=env=>{const n=Number(env?.DAILY_REQUEST_CAP);return Number.isFinite(n)&&n>0?n:0};
 

@@ -127,7 +127,7 @@ def install(g):
    r['selected']=selected
    if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(deck_round(r),r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
-    r['route_rewards']=shop_rewards.route_rewards(r['routes'],random,storage.profile())
+    r['route_rewards']=shop_rewards.route_rewards(r['routes'],random,storage.profile(),r)
     r['reward_rules']=5;save(r)
    if r['stage']=='shop' and (not r['shop'] or any(not item['sold'] and ((item['kind']=='single' and not unlocks.card_allowed(g.BY_ID[item['id']])) or (item['kind']=='pack' and not unlocks.available('pack',item['id']))) for item in r['shop'])):restock(r)
    if r['stage']=='shop' and ensure_shop_packs(r):save(r)
@@ -200,7 +200,7 @@ def install(g):
   else:run.pop('tutorial_variants',None)
   import fallen_collectors
   fallen_collectors.add_route(run,rng)
-  run['route_rewards']=shop_rewards.route_rewards(run['routes'],rng,storage.profile())
+  run['route_rewards']=shop_rewards.route_rewards(run['routes'],rng,storage.profile(),run)
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=6:count=1

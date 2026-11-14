@@ -25,16 +25,45 @@ export function sleeveOf(s){
  if(typeof key==='string'&&/^[a-z0-9-]{1,64}$/.test(key))return Array.isArray(s.proof?.sleeves_earned)&&s.proof.sleeves_earned.includes(key)?{key,proof:{sleeves_earned:[key]}}:null;
  return null;
 }
+const PRUNE_KEY='draftprune:budget',PRUNE_DAILY=20000;
 export class CollectorRegistry {
  constructor(ctx,env){this.validate=validateDeck;this.ctx=ctx;this.env=env;this.tail=Promise.resolve();this.cache=new Map();this.timingCache=new Map();this.alarmAt=null;ctx.blockConcurrencyWhile(async()=>{
  this.data={players:{},rooms:{}};const stored=await ctx.storage.list({prefix:'collector:'});
  for(const [key,meta] of stored){if(!key.endsWith(':meta'))continue;const base=key.slice(0,-5);let text='';for(let i=0;i<meta.count;i++)text+=stored.get(base+':'+i);const value=JSON.parse(text),[,kind,id]=base.split(':');this.data[kind][id]=value;this.cache.set(base,{text,count:meta.count});}
  for(const [id,room] of Object.entries(this.data.rooms)){const timing=stored.get('collector:timing:'+id);if(timing){Object.assign(room,timing);this.timingCache.set(id,JSON.stringify(timing));}}
  if(this.ctx.storage.getAlarm)this.alarmAt=await this.ctx.storage.getAlarm();
+ this.pruneBudget=(ctx.storage.get&&await ctx.storage.get(PRUNE_KEY))||{day:'',rows:0};
  });}
+ // Draft cleanup (2026-11-13): rooms and players were never deleted, and every wake lists all of them, so DraftRegistry
+ // alone read ~4.4M of the 5M daily rows_read. Finished rooms go 2 h after their last activity (stuck ones after 48 h);
+ // a Draft player (one per draft, dropped by the client afterwards) goes once it has no room and is a day old. Deleting a
+ // row is a write, so at most PRUNE_DAILY rows go per UTC day; the rest follow on later days. Ultimate Collector data
+ // (persistent collectors, leaderboard) is never pruned.
+ prune(now=Date.now()){
+  if(!this.draftMode)return;const H=3600000;
+  for(const [code,room] of Object.entries(this.data.rooms)){
+   const last=Math.max(0,...(room.seen||[]),...(room.games||[]).map(g=>g.at||0));
+   if(now-last>=(room.phase==='complete'?2:48)*H)delete this.data.rooms[code];
+  }
+  for(const [id,p] of Object.entries(this.data.players)){
+   if(p.room&&this.data.rooms[p.room])continue;
+   // A player whose room was cleaned up is done. One with no room yet waits a day; players saved before this change carry no
+   // creation time and go only once they have played (history), never while waiting in a lobby.
+   if(!p.room&&(p.created?now-p.created<24*H:!p.history?.length))continue;
+   delete this.data.players[id];
+  }
+ }
  async persist(){
+ this.prune();
  const timingChanges=[];const changes=[];for(const kind of ['players','rooms'])for(const [id,value] of Object.entries(this.data[kind])){const base=`collector:${kind}:${id}`,text=JSON.stringify(kind==='rooms'?Object.fromEntries(Object.entries(value).filter(([k])=>!['seen','charged','disconnectLeft','turnLeft','clockAt'].includes(k))):value),previous=this.cache.get(base);if(previous?.text===text)continue;changes.push({base,text,count:Math.ceil(text.length/30000),oldCount:previous?.count||0});}
  for(const [id,room] of Object.entries(this.data.rooms)){const timing=Object.fromEntries(['seen','charged','disconnectLeft','turnLeft','clockAt'].filter(k=>k in room).map(k=>[k,room[k]])),text=JSON.stringify(timing);if(this.timingCache.get(id)!==text)timingChanges.push({id,timing,text});}
+ // Rows of pruned rooms and players, within today's budget.
+ const day=new Date().toISOString().slice(0,10);if(this.pruneBudget.day!==day)this.pruneBudget={day,rows:0};
+ const gone=[];let budget=PRUNE_DAILY-this.pruneBudget.rows;
+ for(const [base,row] of this.cache){const [,kind,id]=base.split(':');if(this.data[kind]?.[id])continue;const rows=row.count+1+(kind==='rooms'&&this.timingCache.has(id)?1:0);if(rows>budget)break;budget-=rows;gone.push({base,count:row.count,kind,id});}
+ if(gone.length)this.pruneBudget.rows=PRUNE_DAILY-budget;
+ if(gone.length)await this.ctx.storage.transaction(async tx=>{for(const g of gone){for(let i=0;i<g.count;i++)await tx.delete(g.base+':'+i);await tx.delete(g.base+':meta');if(g.kind==='rooms'&&this.timingCache.has(g.id))await tx.delete('collector:timing:'+g.id);}await tx.put(PRUNE_KEY,this.pruneBudget);});
+ for(const g of gone){this.cache.delete(g.base);if(g.kind==='rooms')this.timingCache.delete(g.id);}
  if(changes.length||timingChanges.length)await this.ctx.storage.transaction(async tx=>{for(const row of timingChanges)await tx.put('collector:timing:'+row.id,row.timing);for(const row of changes){for(let i=0;i<row.count;i++)await tx.put(row.base+':'+i,row.text.slice(i*30000,(i+1)*30000));await tx.put(row.base+':meta',{count:row.count});for(let i=row.count;i<row.oldCount;i++)await tx.delete(row.base+':'+i);}});
  for(const row of changes)this.cache.set(row.base,row);
  for(const row of timingChanges)this.timingCache.set(row.id,row.text);
@@ -84,7 +113,7 @@ export class CollectorRegistry {
  if(this.draftMode&&op==='prizes')throw Error('Draft matches do not award Collector prizes.');
  if(op==='leaderboard'){const list=Object.values(this.data.players).filter(x=>x.status==='alive'&&x.deck.main.length>=40).sort((a,b)=>b.wins-a.wins||a.name.localeCompare(b.name)).slice(0,10).map(x=>({name:x.name,wins:x.wins,rank:rankFor(x.wins),deck:x.deck,character:x.character}));await this.persist();return this.reply({leaderboard:list});}
  if(op==='register'){
- if(!p){let q=v.duelist;if(this.draftMode){const generated=draftPool(q?.character,undefined,v.draft===2);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{packs:q.packs,packIds:q.packIds,...(v.draft===2?{loop:true}:{})}: {})};}
+ if(!p){let q=v.duelist;if(this.draftMode){const generated=draftPool(q?.character,undefined,v.draft===2);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{created:Date.now(),packs:q.packs,packIds:q.packIds,...(v.draft===2?{loop:true}:{})}: {})};}
  }
  if(!p||p.token!==v.token)throw Error('Invalid Collector credentials.');
  if('sleeve' in v){const s=sleeveOf(v.sleeve);if(JSON.stringify(s)!==JSON.stringify(p.sleeve??null)){if(s)p.sleeve=s;else delete p.sleeve}}

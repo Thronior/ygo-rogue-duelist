@@ -2,8 +2,10 @@ export {BackupRegistry} from './backup.mjs';
 export {ProgressRegistry} from './progress.mjs';
 export {CollectorRegistry,DraftRegistry} from './collector.mjs';
 export {TagHub,MatchHub} from './hub.mjs';
+// The daily request ceiling (meter.mjs) is switched off on the free plan (user, 2026-11-14): its own reports cost ~16k object
+// requests a day. The class stays exported because migration v8 created it; re-enable the overCap check, the METER binding
+// and DAILY_REQUEST_CAP only if the account moves to Workers Paid.
 export {RequestMeter} from './meter.mjs';
-import {overCap} from './meter.mjs';
 import {Registry} from './registry.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -18,12 +20,9 @@ const legacy=/^\/(?:v1|draft|collector)\//;
 // failure). The client explains it (android/web/online-status.js).
 const LIMIT=/exceeded|limit|quota|overloaded|daily/i;
 export function serverTrouble(error){const text=String(error?.message||error||'');return reply(503,{error:LIMIT.test(text)?"The online servers have reached today's usage limit.":'The online servers are not responding.',serverLimit:LIMIT.test(text)})}
-const limited=()=>reply(503,{error:"The online servers have reached today's usage limit.",serverLimit:true});
 export default {async fetch(request,env,ctx){
  try{
   const path=new URL(request.url).pathname;
-  // Preflights and /health are not counted; everything else is, and stops once today's ceiling is reached (meter.mjs).
-  if(request.method!=='OPTIONS'&&path!=='/health'&&overCap(env,ctx))return limited();
   if(path==='/status'){await env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(new Request('https://rooms/status-ping',{method:'GET'}));return reply(200,{online:true})}
   return await route(request,env);
  }catch(error){return serverTrouble(error)}

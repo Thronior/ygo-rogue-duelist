@@ -23182,5 +23182,89 @@
   "en": "Play it to unlock the next loop.",
   "kind": "exact",
   "ctx": "tag-ui.js loop rule"
+ },
+ {
+  "group": "python",
+  "en": "Staple Traps",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Monster Removal",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Spell & Trap Removal",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "ui",
+  "en": "Related Cards",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Mentions this card",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Mentioned by this card",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "No other card names this card, and its text names no other card.",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Not owned",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Add to deck",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Remove from deck",
+  "kind": "exact",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} owned",
+  "kind": "pattern",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} in deck",
+  "kind": "pattern",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Add {0} to deck",
+  "kind": "pattern",
+  "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "Remove {0} from deck",
+  "kind": "pattern",
+  "ctx": "related-cards.js"
  }
 ]

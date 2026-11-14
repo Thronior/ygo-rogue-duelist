@@ -19,7 +19,7 @@ assert.equal(runResult(run({stage:'complete',challenge_level:7})),null);
 // Each run is counted once, however often its final state is seen, and travels with the next stats batch.
 recordRunResult(run({stage:'complete'}));recordRunResult(run({stage:'complete'}));recordRunResult(run({stage:'gameover',loop:1}));
 recordRunResult(run({started_at:2000,stage:'gameover',character:12,challenge_level:6}));
-await new Promise(r=>setTimeout(r,50));const realNow=Date.now;Date.now=()=>realNow()+11*60000;await syncStats();Date.now=realNow;
+await new Promise(r=>setTimeout(r,50));const realNow=Date.now;Date.now=()=>realNow()+31*60000;await syncStats();Date.now=realNow;  // batches go out every 30 min (2026-11-14)
 const batch=posted.find(b=>b.results);assert.deepEqual(batch.results,{'3:2:w':1,'12:6:l':1});assert(Object.keys(batch.counts).every(k=>['runs','duels','wins','losses','seconds','firstTimePlayers'].includes(k)));
 assert.deepEqual(Object.keys(batch).sort(),['batchId','counts','expiresAt','results'],'no run identity is uploaded');
 console.log('PASS character stats: first-loop wins and losses, looped deaths stay wins, each run once, no identity uploaded, relic results');

@@ -3786,5 +3786,19 @@
  "Skip — end the run": "スキップ — ランを終了",
  "The final 1v1 was skipped, so the run ends here.": "最後の1対1をスキップしたため、ランはここで終了します。",
  "Play the final 1v1 to unlock the next loop.": "次のループを解放するには最後の1対1をプレイしてください。",
- "Play it to unlock the next loop.": "プレイすると次のループが解放されます。"
+ "Play it to unlock the next loop.": "プレイすると次のループが解放されます。",
+ "Staple Traps": "定番の罠カード",
+ "Monster Removal": "モンスター除去",
+ "Spell & Trap Removal": "魔法・罠除去",
+ "Related Cards": "関連カード",
+ "Mentions this card": "このカードを記述",
+ "Mentioned by this card": "このカードが記述",
+ "No other card names this card, and its text names no other card.": "このカードを記述するカードはなく、このカードのテキストも他のカードを記述していません。",
+ "Not owned": "未所持",
+ "Add to deck": "デッキに入れる",
+ "Remove from deck": "デッキから外す",
+ "{0} owned": "所持 {0}",
+ "{0} in deck": "デッキ内 {0}",
+ "Add {0} to deck": "{0}をデッキに入れる",
+ "Remove {0} from deck": "{0}をデッキから外す"
 }

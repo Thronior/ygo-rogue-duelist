@@ -306,7 +306,7 @@ class TagCampaign:
 
   # Rebuild rewards so one screen never repeats a theme or a guaranteed pack. The host's unlocks pick the packs, as
   # they already pick the shop's stock.
-  rewards=shop_rewards.route_rewards(shared['routes'],self.rng,self.profiles[0])
+  rewards=shop_rewards.route_rewards(shared['routes'],self.rng,self.profiles[0],self.players)
 
   for seat,run in enumerate(self.players):
 
@@ -345,7 +345,7 @@ class TagCampaign:
 
    if all(reward['key']!=o.get('key') and reward['pack']!=o.get('pack') for o in others):break
 
-   reward=shop_rewards.route_rewards([new],self.rng,self.profiles[0])[str(new)]
+   reward=shop_rewards.route_rewards([new],self.rng,self.profiles[0],self.players)[str(new)]
 
   for run in self.players:
 
@@ -552,7 +552,7 @@ class TagCampaign:
 
   if self.phase=='draft' and any(run.get('reward_rules')!=5 for run in self.players):
 
-   rewards=shop_rewards.route_rewards(self.players[0]['routes'],self.rng,self.profiles[0])
+   rewards=shop_rewards.route_rewards(self.players[0]['routes'],self.rng,self.profiles[0],self.players)
 
    for run in self.players:run['route_rewards']=deepcopy(rewards);run['reward_rules']=5
 

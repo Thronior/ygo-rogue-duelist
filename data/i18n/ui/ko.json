@@ -3786,5 +3786,19 @@
  "Skip — end the run": "건너뛰기 — 런 종료",
  "The final 1v1 was skipped, so the run ends here.": "마지막 1대1을 건너뛰어 런이 여기서 끝납니다.",
  "Play the final 1v1 to unlock the next loop.": "다음 루프를 열려면 마지막 1대1을 플레이하세요.",
- "Play it to unlock the next loop.": "플레이하면 다음 루프가 열립니다."
+ "Play it to unlock the next loop.": "플레이하면 다음 루프가 열립니다.",
+ "Staple Traps": "필수 함정 카드",
+ "Monster Removal": "몬스터 제거",
+ "Spell & Trap Removal": "마법·함정 제거",
+ "Related Cards": "관련 카드",
+ "Mentions this card": "이 카드를 언급",
+ "Mentioned by this card": "이 카드가 언급",
+ "No other card names this card, and its text names no other card.": "이 카드를 언급하는 카드가 없고, 이 카드의 텍스트도 다른 카드를 언급하지 않습니다.",
+ "Not owned": "미보유",
+ "Add to deck": "덱에 추가",
+ "Remove from deck": "덱에서 제거",
+ "{0} owned": "보유 {0}",
+ "{0} in deck": "덱에 {0}",
+ "Add {0} to deck": "{0}을(를) 덱에 추가",
+ "Remove {0} from deck": "{0}을(를) 덱에서 제거"
 }

@@ -15,3 +15,4 @@ html,body{overscroll-behavior:none}
 
 /* Brave inside the itch.io frame: save warning (pwa.js). */
 #web-brave-warning{max-width:min(480px,92vw);max-height:88dvh;overflow:auto;color:#e5f4f4;background:#102936;border:1px solid #d8bd76;border-radius:16px;padding:22px}#web-brave-warning::backdrop{background:#000b}#web-brave-warning p{line-height:1.5;margin:12px 0}#web-brave-warning .web-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}#web-brave-warning .web-android-download{display:inline-block;background:#14323d;color:#ffe3a6;border:1px solid #d8bd76;border-radius:8px;padding:10px 14px;text-decoration:none}
+#web-app-settings .web-downloads{display:flex;flex-wrap:wrap;gap:10px}

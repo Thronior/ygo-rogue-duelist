@@ -3485,3 +3485,21 @@ dialog:has(.lesson-done){overflow:hidden}
  .draft-deck-page .draft-summary .deck-count-arrow>span{font-size:13px}
  .draft-deck-page .draft-tabs.deck-filter-row{margin:2px 0}
 }
+/* Related Cards tab (2026-11-14): three tabs share the row and wrap their words instead of squeezing on phones. */
+.inspection-tabs button{flex:1 1 0;min-width:0;line-height:1.15;overflow-wrap:anywhere;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.related-tab-count{flex:none;min-width:18px;padding:1px 5px;border-radius:9px;background:#dfbf70;color:#13242c;font-size:11px;font-weight:700;line-height:16px;box-sizing:border-box}
+@media (max-width:480px){.inspection-tabs{gap:5px;margin-bottom:10px}.inspection-tabs button{font-size:12px;padding:6px 4px;min-height:38px}}
+.related-cards-panel h4{display:flex;align-items:center;gap:6px;margin:10px 0 8px}.related-cards-panel h4:first-child{margin-top:0}
+.related-total{font-size:11px;color:#e3c16c;font-weight:400}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.related-card{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center}
+.related-card .related-art{width:100%;padding:0;min-height:0;border:2px solid transparent;border-radius:6px;background:none;line-height:0;overflow:hidden}
+.related-card.in-deck .related-art{border-color:#dfbf70;box-shadow:0 0 8px #dfbf7066}
+.related-card.not-owned img{filter:grayscale(.75) brightness(.7)}
+.related-card img{width:100%;aspect-ratio:59/86;object-fit:cover;display:block}
+.related-name{font-size:11px;line-height:1.2;overflow-wrap:anywhere;max-height:2.4em;overflow:hidden}
+.related-status{font-size:10px;color:#9fb6bf}
+.related-step{display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+.related-step button{flex:1 1 0;min-width:0;min-height:30px;padding:0;font-size:18px;font-weight:700;line-height:1}
+.related-step b{flex:none;font-size:12px;color:#f2dc89;min-width:26px}
+.related-empty{margin:12px 0}

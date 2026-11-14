@@ -167,6 +167,7 @@ import {MobileDuel,M,R,I,B,L,P} from './duel.js';
 import {LANGUAGES,savedLanguage,browserLanguage,setLanguage,attachContent,currentLanguage,flagSvg} from './i18n.js';
 import {loadFavouritePacks,isFavouritePack,toggleFavouritePack,favouritesFirst,packStar,packFavouriteToggle,favouritesInStock} from './pack-favourites.js';
 import {relicLockButton,relicLockClass} from './relic-lock.js';
+import {relatedIndex,relatedCards,relatedCount,mountRelated} from './related-cards.js';
 import {Lesson,startLessonDuel,LESSON_PLAYER,LESSON_OPPONENT,LESSON_POOL,LESSON_LP,FINISH} from './tutorial-duel.js';
 import {LessonCoach} from './tutorial-coach.js';
 
@@ -547,34 +548,49 @@ async function offerGoldenCards(){
 
 }
 
-function inspect(id,poolIndex=null){let c=card(id);if(!c)return;playUISound('inspect-open');if(screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const live=engine?.query(p,loc)?.[seq];if(live?.code===c.id&&(p===0||live.position&5))c=liveCardFacts(c,live,content.cards);}const mod=poolIndex===null?null:state.run?.card_mods?.[poolIndex];const previous=modal.open?{nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent}:null;if(poolIndex!==null)c=modifiedCard(c,state.run,poolIndex);dialog(c.name,`<div class="inspect"><img src="${image(id)}"><div>${cardFacts(c)}<p class="copy-count">${(state.run?.pool||[]).filter(x=>x===Number(id)).length} owned · ${(state.run?.selected||[]).filter(i=>state.run.pool[i]===Number(id)).length} in deck</p>${liveCardDetails(Number(id))}${mod?'<p class="badges">Faulty Printer: this copy has modified stats, Type, or Attribute.</p>':''}<h4>Effect / card text</h4><p class="inspect-effect">${esc(displayCardText(c.desc))}</p>${(screen==='draft'||tagUI?.view?.phase==='draft')&&state.run?.artifacts.filter(x=>x==='golden_sleeve').length>(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).length&&!(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).includes(Number(id))&&state.run.selected.some(i=>state.run.pool[i]===Number(id))?btn('Permanently designate golden card','golden-card',`data-code="${id}"`):''}</div></div>`);inspectParent=previous; if(screen==='collection'&&collectionKind==='cards'||screen==='draft'||screen==='tag'&&tagUI?.tab==='deck')setupCollectionSources(id);}
+function inspect(id,poolIndex=null){let c=card(id);if(!c)return;playUISound('inspect-open');if(screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const live=engine?.query(p,loc)?.[seq];if(live?.code===c.id&&(p===0||live.position&5))c=liveCardFacts(c,live,content.cards);}const mod=poolIndex===null?null:state.run?.card_mods?.[poolIndex];const previous=modal.open?{nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent}:null;if(poolIndex!==null)c=modifiedCard(c,state.run,poolIndex);dialog(c.name,`<div class="inspect"><img src="${image(id)}"><div>${cardFacts(c)}<p class="copy-count">${(state.run?.pool||[]).filter(x=>x===Number(id)).length} owned · ${(state.run?.selected||[]).filter(i=>state.run.pool[i]===Number(id)).length} in deck</p>${liveCardDetails(Number(id))}${mod?'<p class="badges">Faulty Printer: this copy has modified stats, Type, or Attribute.</p>':''}<h4>Effect / card text</h4><p class="inspect-effect">${esc(displayCardText(c.desc))}</p>${(screen==='draft'||tagUI?.view?.phase==='draft')&&state.run?.artifacts.filter(x=>x==='golden_sleeve').length>(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).length&&!(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).includes(Number(id))&&state.run.selected.some(i=>state.run.pool[i]===Number(id))?btn('Permanently designate golden card','golden-card',`data-code="${id}"`):''}</div></div>`);inspectParent=previous;setupInspectTabs(id,screen==='collection'&&collectionKind==='cards'||screen==='draft'||screen==='tag'&&tagUI?.tab==='deck');}
 
 let previewLocation=null;
 
-function setupCollectionSources(id){
+// Card Details · Related Cards · Where to Find (collection and deck editors). Outside those screens the tabs show only
+// when the card has related cards, so the duel and shop windows stay as they were for most cards.
+function setupInspectTabs(id,withSources){
 
- const details=modal.querySelector('.inspect'),sources=document.createElement('section'),tabs=document.createElement('nav');
+ const details=modal.querySelector('.inspect');if(!details)return;
+ const related=relatedCards(relatedIndex(content.cards,content.archetypes),id),relatedTotal=relatedCount(related);
+ if(!withSources&&!relatedTotal)return;
 
- sources.className='collection-card-sources';sources.hidden=true;sources.id='collection-sources-panel';details.id='collection-details-panel';
+ const tabs=document.createElement('nav'),panels=[details];details.id='collection-details-panel';
+ const panel=(cls,panelId)=>{const p=document.createElement('section');p.className=cls;p.hidden=true;p.id=panelId;p.setAttribute('role','tabpanel');panels.at(-1).after(p);panels.push(p);return p};
+ const relatedPanel=panel('collection-card-sources related-cards-panel','related-cards-panel'),sources=withSources?panel('collection-card-sources','collection-sources-panel'):null;
 
  tabs.className='inspection-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Card inspection');
 
- tabs.innerHTML='<button role="tab" aria-selected="true" aria-controls="collection-details-panel">Card Details</button><button role="tab" aria-selected="false" aria-controls="collection-sources-panel">Where to Find</button>';
+ tabs.innerHTML=`<button role="tab" aria-selected="true" aria-controls="collection-details-panel">Card Details</button><button role="tab" aria-selected="false" aria-controls="related-cards-panel">Related Cards<span class="related-tab-count" ${relatedTotal?'':'hidden'}>${relatedTotal}</span></button>${sources?'<button role="tab" aria-selected="false" aria-controls="collection-sources-panel">Where to Find</button>':''}`;
 
- details.setAttribute('role','tabpanel');sources.setAttribute('role','tabpanel');details.before(tabs);details.after(sources);
+ details.setAttribute('role','tabpanel');details.before(tabs);
 
  let loading=false;
 
  const buttons=[...tabs.children];
 
- const select=index=>{details.hidden=index!==0;sources.hidden=index!==1;buttons.forEach((button,i)=>{button.setAttribute('aria-selected',String(i===index));button.tabIndex=i===index?0:-1;});modal.scrollTop=0;
+ const select=index=>{panels.forEach((p,i)=>p.hidden=i!==index);buttons.forEach((button,i)=>{button.setAttribute('aria-selected',String(i===index));button.tabIndex=i===index?0:-1;});modal.scrollTop=0;
 
-  if(index===1&&!loading){loading=true;void showCollectionSources(id,sources);}
+  if(panels[index]===sources&&!loading){loading=true;void showCollectionSources(id,sources);}
+  if(panels[index]===relatedPanel)mountRelated(relatedPanel,id,{cards:content.cards,archetypes:content.archetypes,card,image,inspect,deck:relatedDeck,error:e=>toast(e.message)});
 
  };
 
- buttons.forEach((button,i)=>{button.tabIndex=i===0?0:-1;button.addEventListener('click',()=>select(i));button.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?1:1-i;select(next);buttons[next].focus();}});});
+ const last=buttons.length-1;
+ buttons.forEach((button,i)=>{button.tabIndex=i===0?0:-1;button.addEventListener('click',()=>select(i));button.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?last:(i+(event.key==='ArrowRight'?1:last))%buttons.length;select(next);buttons[next].focus();}});});
 
+}
+
+// The deck the Related Cards tab edits: solo and Tag deck editors can add and remove copies; elsewhere it only counts.
+function relatedDeck(){
+ if(screen==='draft'&&state.run)return {run:state.run,editable:!fixedDeck(state.run,character()),toggle:async i=>{await command('toggle',i);updateDraft();playUISound('deck-select')}};
+ if(screen==='tag'){const v=tagUI?.view;if(!v?.run)return null;return {run:v.run,editable:tagUI.tab==='deck'&&['draft','shop'].includes(v.phase)&&!fixedDeck(v.run,content.characters[v.run.character]),toggle:i=>tagUI.action('card',{dataset:{index:String(i)}})}}
+ return state.run&&screen!=='collection'?{run:state.run,editable:false}:null;
 }
 
 async function showCollectionSources(id,target){

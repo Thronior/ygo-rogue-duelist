@@ -13,7 +13,9 @@ const refreshPersonal=()=>{const latest=read(key);if(latest?.counts&&Array.isArr
 let queue=read(queueKey)||{pending:empty(),batch:null},queueTail=Promise.resolve();
 function withQueue(task){const run=()=>{queue=read(queueKey)||{pending:empty(),batch:null};return task();};const work=queueTail.then(()=>globalThis.navigator?.locks?navigator.locks.request('ygo-stats-batches-v2',run):run());queueTail=work.catch(()=>{});return work;}
 const local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-const syncInterval=600000,batchLifetime=7*86400000;
+// Request savings (user, 2026-11-14): a batch goes out at most every 30 minutes (was 10), and one holding only play time
+// waits until it is an hour old unless a duel or run result joins it. Nothing is dropped: counts wait in localStorage.
+const syncInterval=1800000,secondsOnlyWait=3600000,batchLifetime=7*86400000;
 let active=()=>false,busy=false,last=Date.now(),input=Date.now(),nextSync=Date.now()+syncInterval,started=false;
 const store=()=>{try{localStorage.setItem(key,JSON.stringify(saved))}catch{}};
 const storeQueue=()=>{try{localStorage.setItem(queueKey,JSON.stringify(queue));return true}catch{return false}};
@@ -43,6 +45,11 @@ async function syncBatch(){
   // Run results ride along with the counters, at most 32 per batch (the Worker's limit); any rest waits.
   const results=Object.entries(queue.pending.results||{}),sent=Object.fromEntries(results.slice(0,32)),rest=Object.fromEntries(results.slice(32));
   if(!fields.some(k=>queue.pending[k]>0)&&!results.length)return;
+  if(!results.length&&!fields.some(k=>k!=='seconds'&&queue.pending[k]>0)){
+   if(!queue.secondsSince){queue.secondsSince=Date.now();storeQueue();return;}
+   if(Date.now()-queue.secondsSince<secondsOnlyWait)return;
+  }
+  delete queue.secondsSince;
   queue.batch={batchId:crypto.randomUUID(),expiresAt:Date.now()+batchLifetime,counts:Object.fromEntries(fields.map(k=>[k,queue.pending[k]||0])),...(results.length?{results:sent}:{})};queue.pending={...empty(),...(results.length>32?{results:rest}:{})};
  }
  // Persist the exact retry payload before sending; never regenerate a lost acknowledgement.

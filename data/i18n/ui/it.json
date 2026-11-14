@@ -3786,5 +3786,19 @@
  "Skip — end the run": "Salta — termina la partita",
  "The final 1v1 was skipped, so the run ends here.": "L'1 contro 1 finale è stato saltato, quindi la partita finisce qui.",
  "Play the final 1v1 to unlock the next loop.": "Giocate l'1 contro 1 finale per sbloccare il ciclo successivo.",
- "Play it to unlock the next loop.": "Giocatelo per sbloccare il ciclo successivo."
+ "Play it to unlock the next loop.": "Giocatelo per sbloccare il ciclo successivo.",
+ "Staple Traps": "Trappole fondamentali",
+ "Monster Removal": "Rimozione mostri",
+ "Spell & Trap Removal": "Rimozione Magie e Trappole",
+ "Related Cards": "Carte correlate",
+ "Mentions this card": "Citano questa carta",
+ "Mentioned by this card": "Citate da questa carta",
+ "No other card names this card, and its text names no other card.": "Nessun’altra carta cita questa carta e il suo testo non cita altre carte.",
+ "Not owned": "Non posseduta",
+ "Add to deck": "Aggiungi al Deck",
+ "Remove from deck": "Togli dal Deck",
+ "{0} owned": "{0} posseduta/e",
+ "{0} in deck": "{0} nel Deck",
+ "Add {0} to deck": "Aggiungi {0} al Deck",
+ "Remove {0} from deck": "Togli {0} dal Deck"
 }

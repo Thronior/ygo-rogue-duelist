@@ -54,6 +54,11 @@ DICE={'Second Coin Toss','Dice Re-Roll','Dice Jar','Skull Dice','Graceful Dice'}
 MAGICIAN_SUPPORT={"Magician's Circle",'Magical Dimension','Pitch-Black Power Stone','Royal Magical Library','Mage Power'}
 FLIP_SUPPORT={'Book of Moon','Book of Taiyou','Desert Sunlight','The Shallow Grave','Magical Hats','Penguin Soldier','Hane-Hane','Man-Eater Bug','Swords of Revealing Light'}
 BATTLETRAP={'Acid Trap Hole','Widespread Ruin','Sakuretsu Armor','Michizure','Blast Held by a Tribute','Two-Pronged Attack','Negate Attack','Magic Cylinder','Draining Shield','Mirror Force','Mirror Wall','Enchanted Javelin','Horn of Heaven','Skull Lair'}
+# Removal categories (user, 2026-11-14): cards whose effect destroys, banishes or returns to the hand or Deck 1 or more
+# cards from the opponent's field. Cards that can hit both monsters and Spells/Traps are in both (REMOVAL_BOTH).
+MONSTER_REMOVAL={'Raigeki','Dark Hole','Fissure','Smashing Ground','Tribute to the Doomed','Hammer Shot','Lightning Vortex','Offerings to the Doomed','Shield Crush','Mystic Box','Trap Hole','Bottomless Trap Hole','Acid Trap Hole','Mirror Force','Torrential Tribute','Ring of Destruction','Sakuretsu Armor','Widespread Ruin','Michizure','Blast Held by a Tribute','Two-Pronged Attack','Divine Wrath','Compulsory Evacuation Device','Skull Lair','Deck Devastation Virus','Crush Card Virus','Nobleman of Crossout','Exiled Force','Man-Eater Bug','Hane-Hane','Penguin Soldier','Old Vindictive Magician','Cyber Jar','Morphing Jar #2','Guardian Sphinx','Swarm of Scarabs',"Gravekeeper's Guard",'Mystic Swordsman LV2','Mystic Swordsman LV4','Mystic Swordsman LV6','Ninja Grandmaster Sasuke','Sasuke Samurai','Black Luster Soldier - Envoy of the Beginning','Chaos Sorcerer','D.D. Warrior Lady','D.D. Assailant','Newdoria','Blast Sphere','Zaborg the Thunder Monarch','Armed Dragon LV5','Armed Dragon LV7','Tribe-Infecting Virus','Barrel Dragon','Kaiser Glider','Doomcaliber Knight','Dark Dust Spirit','Dark Core','Soul Taker','Chaos End','Last Day of Witch','Dark Cat with White Tail','Major Riot','Magical Marionette','Blast Magician'}
+SPELLTRAP_REMOVAL={'Mystical Space Typhoon','Heavy Storm',"Harpie's Feather Duster",'Dust Tornado','Giant Trunade','Malevolent Catastrophe','Remove Trap','Dark Magic Attack','Spiritualism','Breaker the Magical Warrior','Mobius the Frost Monarch','Swarm of Locusts','Spell Shattering Arrow','Spell Purification','A Wingbeat of Giant Dragon','Arcane Archer of the Forest','Byser Shock','Disarmament','Driving Snow','Gryphon Wing','Gust','Hannibal Necromancer','Infernal Flame Emperor','Lady Ninja Yae','Malice Dispersion','Moisture Creature','Order to Smash','Reaper of the Cards','Trap Master','Tornado Bird','Sacred Phoenix of Nephthys','Dicephoon'}
+REMOVAL_BOTH={'Raigeki Break','Phoenix Wing Wind Blast','Final Destiny','Blast with Chain','Snipe Hunter','Granmarg the Rock Monarch','Chaos Emperor Dragon - Envoy of the End','XYZ-Dragon Cannon','Fiber Jar','Blowback Dragon','Elemental Burst','Fish and Kicks','Fuh-Rin-Ka-Zan','Gandora the Dragon of Destruction','Levia-Dragon - Daedalus','Mega Ton Magical Cannon','Ojama Delta Hurricane!!','Orca Mega-Fortress of Darkness','The Wicked Eraser'}
 GREED={'Pot of Greed','Jar of Greed','Reckless Greed','Chaos Greed','Goblin of Greed'}
 BOOKCASTER={'Royal Magical Library','Skilled Dark Magician','Apprentice Magician','Magical Dimension','Mage Power','Diffusion Wave-Motion','Pitch-Black Power Stone',"Magician's Circle",'Skilled White Magician','Old Vindictive Magician','Magical Marionette','Dark Magic Curtain','Book of Secret Arts',"Magician's Valkyria"}
 DEFENSE={'Labyrinth Wall','Stone Statue of the Aztecs','Gear Golem the Moving Fortress','The Dark Door','Stumbling','Light of Intervention','Giant Soldier of Stone','Mystical Elf','Nimble Momonga'}
@@ -70,7 +75,7 @@ EXODIA_SET={'Exodia the Forbidden One','Exodia Necross','Contract with Exodia','
 CONTROL_EXTRA={'Autonomous Action Unit','Lava Golem','Soul Exchange'}
 # One shared theme list is rolled for every opponent on the encounter screen.
 
-LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters and equipment','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Hole Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
+LABELS={'lowlevel':'Level 2 and lower monsters','midlevel':'Level 3-4 monsters','highlevel':'Level 5-6 monsters','toplevel':'Level 7+ monsters','spirit':'Spirit monsters','union':'Union monsters','fusion':'Fusion monsters and Fusion Spells','equip':'Equip Spells and equip Traps','gambling':'Gambling cards','field':'Field Spells','normal_trap':'Normal Traps','draw':'Card draw','burn':'Burn damage','heal':'Life point recovery','stall':'Defensive stalls','pierce':'Piercing damage','harpie':'Harpie cards','gravekeeper':'Gravekeeper cards','darkmagician':'Dark Magician cards','exodia':'Exodia pieces','darkscorpion':'Dark Scorpion cards','guardian':'Guardian monsters and equipment','goblin':'Goblin cards','magician':'Magician cards','dragon':'Dragon monsters','warrior':'Warrior monsters','zombie':'Zombie monsters','machine':'Machine monsters','jar':'Jars and pots','hole':'Staple Traps','book':'Book cards','sword':'Sword cards','shield':'Shield cards','cyber':'Cyber cards','chaos':'Chaos cards','archfiend':'Archfiend cards','insect':'Insect monsters','aqua':'Aqua monsters','FIRE':'FIRE monsters','WATER':'WATER monsters','EARTH':'EARTH monsters','WIND':'WIND monsters','LIGHT':'LIGHT monsters','DARK':'DARK monsters','toon':'Toon monsters','amazoness':'Amazoness monsters','negation':'Negation cards','destruction':'Destruction cards','graveyard':'Graveyard cards','bounce':'Hand return cards','control':'Monster control cards','banish':'Banish cards','discard':'Discard cards','summon':'Summoning cards','normal_spell':'Normal Spells','ritual':'Ritual Monsters and Ritual Spells','normal':'Normal Monsters','effect':'Effect Monsters','flip':'Flip Effect Monsters','continuous':'Continuous Spells and Traps','quick_counter':'Quick-Play Spells and Counter Traps'}
 
 
 # Every monster Type/Attribute represented in the card database can be rolled,
@@ -98,6 +103,8 @@ DIVINE_SUPPORT={'Solemn Judgment','Swords of Revealing Light'}
 DIVINE_WEIGHT=0.12
 FIELD_SUPPORT={'Terraforming','An Owl of Luck','Magic Reflector','Maiden of the Aqua','Forgotten Temple of the Deep','Amphibious Bugroth MK-3','Cannonball Spear Shellfish','Deepsea Warrior',"Gravekeeper's Assailant", "Gravekeeper's Chief",'Levia-Dragon - Daedalus','Mermaid Knight','Royal Tribute','The Legendary Fisherman','Tornado Wall','Torpedo Fish','Ocean Dragon Lord - Neo-Daedalus','A Cat of Ill Omen','Rite of Spirit'}
 LABELS['field']='Field Spells and Support'
+LABELS['monster_removal']='Monster Removal'
+LABELS['spelltrap_removal']='Spell & Trap Removal'
 LABELS['direct']='Direct Attacks'
 DIRECT_ATTACKS={"Alligator's Sword Dragon",'Amphibious Bugroth MK-3','Black Tyranno','Blue-Eyes Toon Dragon','Checkmate','Dark Scorpion Combination','Decayed Commander','Delta Attacker','Drillago','Gear Golem the Moving Fortress','Jinzo #7','Jowls of Dark Demise','Kiryu','Leghul','Manga Ryu-Ran','Mucus Yolk','Mystic Lamp','Nightmare Horse','Ooguchi','Opti-Camouflage Armor',"Queen's Double",'Rainbow Flower','Reaper on the Nightmare','Rocket Jumper',"Sebek's Blessing",'Secret Pass to the Treasures','Servant of Catabolism','Shooting Star Bow - Ceal','Spirit Reaper','Toon Cannon Soldier','Toon Dark Magician Girl','Toon Gemini Elf','Toon Goblin Attack Force','Toon Masked Sorcerer','Toon Mermaid','Toon Summoned Skull','Overpowering Eye','Silent Swordsman LV5','Ancient Dragon','Shadowslayer','Raging Flame Sprite'}
 
@@ -238,6 +245,8 @@ def matches(card,key):
  if key=='magician':return 'magician' in card['name'].lower() or card['name'] in MAGICIAN_SUPPORT
  if key=='jar':return 'jar' in card['name'].lower() or 'pot' in card['name'].lower() or card['name'] in FLIP_SUPPORT or card['name'] in DRAW or card['name'] in GREED
  if key=='hole':return 'hole' in card['name'].lower() or card['name'] in BATTLETRAP
+ if key=='monster_removal':return card['name'] in MONSTER_REMOVAL or card['name'] in REMOVAL_BOTH
+ if key=='spelltrap_removal':return card['name'] in SPELLTRAP_REMOVAL or card['name'] in REMOVAL_BOTH
  if key=='book':return 'book' in card['name'].lower() or card['name'] in BOOKCASTER
  if key=='shield':return 'shield' in card['name'].lower() or card['name'] in DEFENSE
  if key=='cyber':return 'cyber' in card['name'].lower() or card['name'] in MACHINE_SUPPORT
@@ -288,6 +297,7 @@ CATEGORY_RELICS={
  'graveyard':('grave_lantern','the_creator','epitaph'),'destruction':('grave_lantern','the_creator'),
  'summon':('the_creator','tribute_free'),'control':('loyalty','tribute_dividend'),
  'bounce':('returning_tide','jar_of_echoes'),
+ 'monster_removal':('grave_lantern','exile_standard','returning_tide'),'spelltrap_removal':('typhoon','returning_tide'),
 }
 
 def category_relics(key):return frozenset(CATEGORY_RELICS.get(RETIRED_THEMES.get(key,key),()))
@@ -353,16 +363,35 @@ def random_reward(rng,profile=None):
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=rng.choice(packs or ['EN-LOB']))
 
 
-def route_rewards(routes,rng,profile=None):
+# Opponent-screen categories follow the Deck (user, 2026-11-14), like relics and shop singles: the first
+# CATEGORY_WEIGHTED_SLOTS picks use deck weights, the rest are random, and the weighted picks land on random opponents.
+# A category's ceiling comes from how specific it is (relic_affinity.category_ceiling); one the Deck lacks counts x0.4;
+# the two removal categories always count a flat x2 there. In Tag both Decks add half of their change each.
+CATEGORY_WEIGHTED_SLOTS=3
+REMOVAL_KEYS=frozenset({'monster_removal','spelltrap_removal'});REMOVAL_WEIGHT=2.0
+def category_weights(keys,runs):
+ import relic_affinity
+ runs=[r for r in ([runs] if isinstance(runs,dict) else runs or []) if r]
+ if not runs:return {k:1.0 for k in keys}
+ per=[relic_affinity.category_multipliers(keys,r) for r in runs]
+ out={}
+ for k in keys:
+  out[k]=REMOVAL_WEIGHT if k in REMOVAL_KEYS else 1+sum(m[k]-1 for m in per)/len(per)
+ return out
+
+def route_rewards(routes,rng,profile=None,runs=None):
  """Rewards for one encounter screen: no repeated theme and no repeated pack."""
  from content import PACKS
  import unlocks
  order=list(routes);count=len(order)
  keys=reward_keys();weights=reward_weights(keys);chosen_keys=[]
- for _ in range(count):
+ deck=category_weights(keys,runs) if runs else {}
+ for slot in range(count):
   if not keys:keys=reward_keys();weights=reward_weights(keys)
-  pick=rng.choices(range(len(keys)),weights=weights,k=1)[0]
+  use=[w*(deck.get(k,1.0) if slot<CATEGORY_WEIGHTED_SLOTS else 1.0) for k,w in zip(keys,weights)]
+  pick=rng.choices(range(len(keys)),weights=use,k=1)[0]
   chosen_keys.append(keys.pop(pick));weights.pop(pick)
+ if deck:rng.shuffle(chosen_keys)
  packs=[p['id'] for p in PACKS if not p.get('draft_only') and pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
  if len(packs)>=count:chosen_packs=rng.sample(packs,count)
  else:

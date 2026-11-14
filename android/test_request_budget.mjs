@@ -23,7 +23,8 @@ const states=[];const outdated=new TagPeer('http://localhost:8787',{onState:(...
 const collectorSource=fs.readFileSync('android/web/collector-ui.js','utf8').replace(/^import .*\r?\n/gm,'').replace('export class CollectorUI','class CollectorUI');
 // collector-ui.js imports replayVersion, so the import-stripped harness must provide it.
 const replayVersion=fs.readFileSync('android/web/replay-version.js','utf8').match(/"(.+?)"/)[1];
-let sent;const env={replayVersion,structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
+// collector-ui.js also imports explainOnlineError (online-status.js, 2026-11-13); the harness explains errors as they are.
+let sent;const env={replayVersion,explainOnlineError:async e=>e?.message||String(e),structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
 vm.createContext(env);vm.runInContext(collectorSource+'\nglobalThis.C=CollectorUI',env);
 const ui=Object.create(env.C.prototype);ui.seat=1;
 ui.hub={isOpen:true};assert.equal(ui.pollDelay(),120000);ui.hub=null;assert.equal(ui.pollDelay(),30000);
@@ -40,7 +41,7 @@ const draft=fs.readFileSync('android/web/draft-ui.js','utf8');
 assert.match(draft,/fetch\(`\$\{this\.endpoint\}\/v2\/draft\/\$\{op\}`,\{method:'POST',headers:\{'Content-Type':'text\/plain'\}/);
 let statsPost,statsNow=1e12;const statsStore=new Map();const statsEnv=vm.createContext({crypto,location:{hostname:'game.example'},localStorage:{getItem:k=>statsStore.get(k)??null,setItem:(k,v)=>statsStore.set(k,v)},Date:{now:()=>statsNow},document:{hidden:false,addEventListener(){}},setInterval(){},AbortSignal,AbortController,setTimeout,clearTimeout,fetch:async(url,init)=>{statsPost=init;return {ok:true}}});
 vm.runInContext(fs.readFileSync('android/web/global-stats.js','utf8').replaceAll('export ',''),statsEnv);
-vm.runInContext('recordStat("runs","r1")',statsEnv);statsNow+=600001;await vm.runInContext('syncStats()',statsEnv);
+vm.runInContext('recordStat("runs","r1")',statsEnv);statsNow+=1800001;await vm.runInContext('syncStats()',statsEnv);  // uploads every 30 min (2026-11-14)
 assert.equal(statsPost?.headers['Content-Type'],'text/plain');assert.equal(JSON.parse(statsPost.body).counts.runs,1);
 
 // The rooms Worker lets browsers cache its preflight (tag requests carry an Authorization header).
