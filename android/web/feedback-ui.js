@@ -50,7 +50,7 @@ export function misprintBadges(c,run,index){
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
 export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}// From Level 6 curses stay for the whole run, so the deck editor shows them too (doubled, as in passives.py).
- const sticky=run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index);
+ const sticky=run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
 
  for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
@@ -90,6 +90,12 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_commoners_crown'&&(t&16)){a+=1000;d+=1000;}
  else if(k==='fused_undying_legion'&&c.race==='Zombie')a+=1200;
  else if(k==='fused_grand_ritual_altar')a+=200*(run.ritual_scar_count||0);
+ // Archetype and card-type bonuses (Discord, 2026-11-14: Spirit Sanctuary's +500 was missing from the editor).
+ else if(k==='fused_spirit_sanctuary'&&(t&0x200))a+=500;
+ else if(k==='fused_chaos_orb'&&cardAttributes.some(x=>x==='LIGHT'||x==='DARK'))a+=400;
+ else if(k==='fused_harpie_nest'&&inSet(0x64)||k==='fused_amazoness_village'&&inSet(0x4)||k==='fused_zaloog_hideout'&&(inSet(0x1a)||card.id===76922029))a+=800;
+ else if(k==='fused_necrovalley_throne'&&inSet(0x2e)){a+=800;d+=800;}
+ else if(k==='fused_level_up_chain'&&inSet(0x41)||k==='fused_gadget_gadget'&&inSet(0x51))a+=500;
 
  }
 

@@ -3457,7 +3457,7 @@
  },
  {
   "group": "ui",
-  "en": "Double boosters. Build your deck. Challenge a friend.",
+  "en": "Draft relics and boosters between duels. Challenge a friend.",
   "kind": "exact",
   "ctx": "mobile.js"
  },
@@ -5287,7 +5287,7 @@
  },
  {
   "group": "ui",
-  "en": "Link Devices shares unlocks, achievements and challenge levels between your devices.",
+  "en": "Link Devices shares unlocks, achievements, card sleeves and challenge levels between your devices.",
   "kind": "exact",
   "ctx": "mobile.js"
  },
@@ -8875,7 +8875,7 @@
  },
  {
   "group": "ui",
-  "en": "Sync unlocked characters, completed achievements, challenge levels and secret unlocks. Runs, cards, Ultimate Collector duelists and device statistics stay on this device.",
+  "en": "Sync unlocked characters, completed achievements, card sleeves, challenge levels and secret unlocks. Runs, cards, Ultimate Collector duelists and device statistics stay on this device.",
   "kind": "exact",
   "ctx": "mobile.js"
  },
@@ -23266,5 +23266,419 @@
   "en": "Remove {0} from deck",
   "kind": "pattern",
   "ctx": "related-cards.js"
+ },
+ {
+  "group": "ui",
+  "en": "This pack includes all Spell cards in the game.",
+  "kind": "exact",
+  "ctx": "pack-inspection.js"
+ },
+ {
+  "group": "ui",
+  "en": "This pack includes all Trap cards in the game.",
+  "kind": "exact",
+  "ctx": "pack-inspection.js"
+ },
+ {
+  "group": "ui",
+  "en": "This pack includes all Monster cards in the game.",
+  "kind": "exact",
+  "ctx": "pack-inspection.js"
+ },
+ {
+  "group": "ui",
+  "en": "This pack includes all cards in the game.",
+  "kind": "exact",
+  "ctx": "pack-inspection.js"
+ },
+ {
+  "group": "relic",
+  "en": "Guardian’s Armory",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14"
+ },
+ {
+  "group": "relic",
+  "en": "Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by your opponent's card effects while its corresponding Equip Spell is face-up on the field.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a Monster Zone.",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a Spell & Trap Zone.",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a zone.",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "The Windows download is large (about 240 MB) and appears in your browser’s downloads list. If the browser says the file isn’t commonly downloaded, choose Keep. If Windows warns when you open it, choose More info, then Run anyway.",
+  "kind": "exact",
+  "ctx": "tools/pwa/pwa.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose {0} zones.",
+  "kind": "pattern",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0}: activating a Spell costs 300 LP, and you have {1} LP.",
+  "kind": "pattern",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "You Normal Summon {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent Normal Summons {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "You Tribute Summon {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent Tribute Summons {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "You Special Summon {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent Special Summons {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "You Flip Summon {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent Flip Summons {0}.",
+  "kind": "pattern",
+  "ctx": "engine.js"
+ },
+ {
+  "group": "ui",
+  "en": "Closest to completion",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Completed first",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "In progress first",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "relic",
+  "en": "Guardian's Call",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, you can Special Summon a \"Guardian\" monster from your hand while you control a face-up Equip Spell that lists its name.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Soul Fusion",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, you can Fusion Summon a monster from your Extra Deck by banishing its materials from your GY. It cannot attack the turn it is Summoned.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Gate Calling",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, when you Tribute Summon \"Sanga of the Thunder\", \"Kazejin\" or \"Suijin\", you can Special Summon one of the other two from your hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Dark Lotus",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, at the start of your first Standby Phase, you can Special Summon 1 monster from your Deck or Extra Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Ring of Defense",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "After each Duel, recover the LP you lost to your own card effects and costs during it (up to your LP limit).",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Ultimate Armory",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "While a monster you control is equipped with 3 or more Equip Spells, it cannot be destroyed by card effects.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-14 (Discord relic suggestions)"
+ },
+ {
+  "group": "ui",
+  "en": "Stack Duplicate Cards",
+  "kind": "exact",
+  "ctx": "deck-stacks.js"
+ },
+ {
+  "group": "ui",
+  "en": "Copies of the same card show as one card in the deck editor, with a dot for each copy. Misprints stay separate.",
+  "kind": "exact",
+  "ctx": "deck-stacks.js"
+ },
+ {
+  "group": "ui",
+  "en": "Take one copy out of the Deck",
+  "kind": "exact",
+  "ctx": "deck-stacks.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} of {1} copies in the Deck",
+  "kind": "pattern",
+  "ctx": "deck-stacks.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} copies",
+  "kind": "pattern",
+  "ctx": "deck-stacks.js"
+ },
+ {
+  "group": "ui",
+  "en": "Master Volume",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "All game sound. The sliders below balance each kind of sound.",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "All your pulls",
+  "kind": "exact",
+  "ctx": "pack-opening.js"
+ },
+ {
+  "group": "ui",
+  "en": "Open all ({0})",
+  "kind": "pattern",
+  "ctx": "pack-opening.js"
+ },
+ {
+  "group": "ui",
+  "en": "ALL {0} PACKS",
+  "kind": "pattern",
+  "ctx": "pack-opening.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} cards · {1} new",
+  "kind": "pattern",
+  "ctx": "pack-opening.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} cards",
+  "kind": "pattern",
+  "ctx": "pack-opening.js"
+ },
+ {
+  "group": "ui",
+  "en": "Card navigation",
+  "kind": "exact",
+  "ctx": "card-nav.js"
+ },
+ {
+  "group": "ui",
+  "en": "Previous card",
+  "kind": "exact",
+  "ctx": "card-nav.js"
+ },
+ {
+  "group": "ui",
+  "en": "Next card",
+  "kind": "exact",
+  "ctx": "card-nav.js"
+ },
+ {
+  "group": "ui",
+  "en": "Show full-size art",
+  "kind": "exact",
+  "ctx": "card-nav.js"
+ },
+ {
+  "group": "ui",
+  "en": "Full-size card art",
+  "kind": "exact",
+  "ctx": "card-nav.js"
+ },
+ {
+  "group": "ui",
+  "en": "Traps must be Set before they can be activated.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Traps can’t be activated the turn they’re Set.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Quick-Play Spells can’t be activated the turn they’re Set.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "It’s your opponent’s turn. This Spell can only be activated in your Main Phase.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "This Spell can only be activated in your Main Phase.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Only Quick-Play Spells and Traps can be activated in response to a card or a Summon.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "It’s your opponent’s turn. Quick-Play Spells can only be activated from your hand during your turn.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your opponent is acting. Wait until it’s your move.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Finish the current choice first.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Your Spell & Trap Zones are full.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Counter Traps can only be activated in response to the specific action they name.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "This card’s activation conditions aren’t met right now.",
+  "kind": "exact",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Can’t pay the cost: {0} makes activating a Spell cost {1} LP, and you have {2} LP.",
+  "kind": "pattern",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Can’t pay the cost: {0} makes activating a Trap cost {1} LP, and you have {2} LP.",
+  "kind": "pattern",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent relics",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Explain Unavailable Actions",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Show a greyed-out Activate on cards you can’t activate right now; tap it to see why.",
+  "kind": "exact",
+  "ctx": "mobile.js"
  }
 ]

@@ -2840,7 +2840,7 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 /* The Rainbow sleeve (every duelist beat Level 6) rolls like the Level 6 roster portraits: its picture is three sleeves
    wide (tools/generate_card_sleeves.cjs) and slides by one repeat across the card. Leaves filter and transform to the card's own styles;
    still in Reduce Motion, Performance and Compatibility modes. */
-img[src$="sleeves/cards/rainbow.jpg"]{object-fit:cover;object-position:0 50%;animation:sleeve-rainbow 6s linear infinite}
+img[src$="sleeves/cards/rainbow.jpg"]{object-fit:cover;object-position:0 50%;animation:sleeve-rainbow 6s steps(120) infinite}
 @keyframes sleeve-rainbow{to{object-position:100% 50%}}
 @media(prefers-reduced-motion:reduce){img[src$="sleeves/cards/rainbow.jpg"]{animation:none}}
 html.performance-mode img[src$="sleeves/cards/rainbow.jpg"],html.compatibility-mode img[src$="sleeves/cards/rainbow.jpg"]{animation:none}
@@ -3503,3 +3503,57 @@ dialog:has(.lesson-done){overflow:hidden}
 .related-step button{flex:1 1 0;min-width:0;min-height:30px;padding:0;font-size:18px;font-weight:700;line-height:1}
 .related-step b{flex:none;font-size:12px;color:#f2dc89;min-width:26px}
 .related-empty{margin:12px 0}
+/* Selection hint over the cards (Discord 2026-11-14): a dark backing box where the action bar has no background. */
+:is(.selection-dialog,.field-selection)>.selection-actions .selection-status:not(:empty){background:#000000b8;border-radius:6px;padding:3px 8px;box-sizing:border-box;text-shadow:0 1px 2px #000}
+/* Tag end screen scrolls on short portrait screens so the final 1v1 and Exit buttons stay reachable (Discord 2026-11-14). */
+.tag-page>.tag-ending{min-height:0;max-width:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain}
+/* Favourite stars on the Where to Find tab's packs (Discord 2026-11-14). */
+.source-pack{position:relative;display:block;min-width:0}
+/* Windows app (Discord 2026-11-14): its menu cards drew the title shrink-wrapped and the art box 0 px wide, as if the
+   card's children were not stretched. Not reproduced in Edge; stretch them explicitly so the art always has a width. */
+.menu-card>h3,.menu-card>.art{align-self:stretch}
+/* Why a card has no Activate option, shown when its greyed Activate is tapped. */
+.action-pop .action-note{margin:0;max-width:220px;padding:4px 6px;font-size:12px;line-height:1.3;color:#f7df9a}
+/* "Why can't I?": looks disabled but stays tappable so it can explain itself (activation-reasons.js). */
+.action-pop button.greyed{opacity:.5;filter:grayscale(1);cursor:help;box-shadow:none}
+/* Achievements sort (2026-11-14) */
+.achievement-tools{display:flex;justify-content:flex-end;gap:8px;margin:0 0 8px}.achievement-tools label{display:flex;align-items:center;gap:6px}.achievement-tools select{min-height:40px;padding:0 8px;background:var(--ui-bar);color:#e8f3f1;border:1px solid #537e8b;border-radius:5px;font-size:14px;color-scheme:dark}
+/* Stacked duplicates in the deck editors (deck-stacks.js, 2026-11-14): one pip per copy (gold = in the Deck) above
+   ATK/DEF and a − top right. The deck editors' card-name rule (.draft-scroll .cardbtn span) is undone for both first. */
+.cardbtn.stacked :is(.stack-minus,.stack-pips){position:absolute;z-index:4;min-height:0;max-width:none;padding:0;-webkit-line-clamp:unset;-webkit-box-orient:unset;overflow:visible;font-family:Arial,sans-serif;font-weight:700;box-shadow:0 1px 4px #000b;pointer-events:none}
+.cardbtn.stacked .stack-minus{display:grid;place-items:center;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#0b1a22ee;color:#ffe7a8;border:1px solid #d8b066;font-size:16px;line-height:1;pointer-events:auto;cursor:pointer}
+.cardbtn.stacked .stack-minus:hover{background:#1d3b47}
+.cardbtn.stacked .stack-pips{display:flex;flex-direction:row;align-items:center;gap:3px;left:50%;transform:translateX(-50%);bottom:26px;padding:3px 5px;border-radius:999px;background:#0b1a22e6}
+.stack-pips i{width:7px;height:7px;border-radius:50%;border:1px solid #ffe7a8;display:block;flex:none}.stack-pips i.on{background:#ffd56a;border-color:#ffd56a}.stack-pips b{font-size:9px;color:#ffe7a8}
+/* Open all (2026-11-14): the button under OPEN PACK when more packs wait, and the one-grid summary of every remaining
+   pack. Static: no flips, foil or loops, so a big batch costs only its (lazy) images. */
+.pack-stage:has(>.pack-open-all){align-content:center;row-gap:14px}
+.pack-open-all{position:relative;z-index:1;min-width:min(240px,70vw);padding:9px 22px;border:1px solid #f5ce7c;border-radius:6px;background:#1a1c36cc;color:#ffe3a2;font-weight:700;letter-spacing:1px}
+.opening .pack-open-all{display:none}
+.pack-stage.pack-summary{display:block;place-items:initial;padding:10px 14px 16px}
+.pack-summary-group+.pack-summary-group{margin-top:14px}
+.pack-summary-group h3{margin:0 0 7px;color:#ffe3a2;font-size:14px;letter-spacing:1px}
+.pack-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.pack-summary-card{position:relative;min-width:0;padding:4px;border:1px solid #6d719a;border-radius:4px;background:#101725;color:white;text-align:center}
+.pack-summary-card img{display:block;width:100%;aspect-ratio:59/86;object-fit:contain;background:#0a0f19}
+.pack-summary-card span{display:block;margin-top:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pack-summary-card.rare{border:2px solid #ffdb79;background:linear-gradient(140deg,#59422c,#131326)}
+.pack-summary-card.super-rare{border:2px solid #d6c4f4;background:linear-gradient(140deg,#443755,#171528)}
+.pack-summary-card.ultra{border:2px solid #a5f5ff;background:linear-gradient(135deg,#362462,#143747);box-shadow:0 0 10px #af65ff88}
+.pack-summary-rarity{position:absolute;top:3px;left:3px;z-index:2;padding:2px 4px;border-radius:3px;background:#ffe497;color:#271805;font-size:9px;pointer-events:none}
+.super-rare>.pack-summary-rarity{background:linear-gradient(90deg,#f2eaff,#c9aff1,#f7efff);color:#291c37}
+.ultra>.pack-summary-rarity{background:linear-gradient(110deg,#b8feff,#d7adff,#a5f5ff);color:#231139}
+@media(max-width:600px){.pack-summary-grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px}.pack-stage.pack-summary{padding:8px 10px 14px}}
+/* Previous / Next at the foot of the card window, and the card's art full screen (card-nav.js, 2026-11-14). */
+#modal>.card-nav{position:sticky;bottom:0;z-index:4;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 0 0;border-top:1px solid #b8b5a033}
+/* In a window that scrolls (a pack's card list) the bar stays at the window's foot over the list. */
+#modal:not(.card-inspect-modal):not(:has(>.relic-card))>.card-nav{bottom:-20px;margin-bottom:-20px;padding-bottom:20px;background:inherit}
+#modal>.card-nav button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:112px;min-height:40px;padding:6px 14px}
+#modal>.card-nav button>span[aria-hidden]{font-size:1.4em;line-height:1}
+#modal>.card-nav button:disabled{visibility:hidden}
+#modal>.card-nav .card-nav-count{font-size:13px;color:#a9b8c0;font-variant-numeric:tabular-nums;white-space:nowrap}
+#modal .inspect>img.card-art-zoom{cursor:zoom-in}
+#modal .card-art-full{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:#000000eb;cursor:zoom-out}
+#modal .card-art-full img{width:auto;height:min(calc(100dvh - 24px),calc((100vw - 24px)*1.458));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);object-fit:contain;border-radius:1.5%;-webkit-user-drag:none}
+/* Sideways swipes step cards; never let the browser take them as Back / Forward. */
+#modal:has(>.card-nav){touch-action:pan-y pinch-zoom}

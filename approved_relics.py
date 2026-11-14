@@ -56,7 +56,17 @@ REGULAR=[
 # TRUANT's suggestions (Discord, 2026-11-13) with the user's prices; Spiritual Retribution became once per Duel.
 # Cardian's art picks are not in the card pool: their crops are custom art (data/relic-custom-art.json).
 ('armory_aid','Armory Aid',70,'At the start of each Duel, add 1 random Equip Spell from your Deck to your hand.','Hidden Armory'),
-('spiritual_retribution','Spiritual Retribution',70,'Once per Duel, you can Tribute Summon a Spirit monster by banishing monsters from your GY as the Tributes.','Stars Align Above the Shrine')]
+('spiritual_retribution','Spiritual Retribution',70,'Once per Duel, you can Tribute Summon a Spirit monster by banishing monsters from your GY as the Tributes.','Stars Align Above the Shrine'),
+# Discord relic suggestions of 2026-11-14 with the user's changes: Guardian's Call (Dragunfire), Soul Fusion (was TRUANT's
+# Union Cannon Activation), Gate Calling (Dragunfire), Dark Lotus (Kzulu) and Ring of Defense (TRUANT's "Roused from
+# Self Destruction"). Soul Fusion, Dark Lotus and Ring of Defense use custom art (data/relic-custom-art.json).
+('guardians_call',"Guardian's Call",90,'Once per turn, you can Special Summon a "Guardian" monster from your hand while you control a face-up Equip Spell that lists its name.','Guardian Ceal'),
+('soul_fusion','Soul Fusion',120,'Once per Duel, you can Fusion Summon a monster from your Extra Deck by banishing its materials from your GY. It cannot attack the turn it is Summoned.','Miracle Fusion'),
+('gate_calling','Gate Calling',80,'Once per turn, when you Tribute Summon "Sanga of the Thunder", "Kazejin" or "Suijin", you can Special Summon one of the other two from your hand.','Suijin'),
+('dark_lotus','Dark Lotus',500,'Once per Duel, at the start of your first Standby Phase, you can Special Summon 1 monster from your Deck or Extra Deck, ignoring its Summoning conditions.','Samsara Lotus'),
+('ring_of_defense','Ring of Defense',110,'After each Duel, recover the LP you lost to your own card effects and costs during it (up to your LP limit).','Ring of Defense'),
+# The user's own relic, 2026-11-14.
+('ultimate_armory','Ultimate Armory',130,'While a monster you control is equipped with 3 or more Equip Spells, it cannot be destroyed by card effects.','Gearfried the Swordmaster')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -164,6 +174,11 @@ def use_restock_free(run):
  run['restock_rerolls']={'at':encounter_key(run),'n':(int(used.get('n',0)) if used.get('at')==encounter_key(run) else 0)+1}
 
 def restock_locked(run,item):return bool(run.get('restock_bought')) and has(run,'cursed_cursed_restock') and not item.get('greed') and not item.get('sold')
+
+def self_lp_lost(run,events):
+ """Ring of Defense: LP lost to the player's own card effects and costs this Duel, from duel.js 'self_lp_loss' events."""
+ if not copies(run,'ring_of_defense'):return 0
+ return sum(max(0,int(e.get('amount',0) or 0)) for e in events if e.get('kind')=='self_lp_loss')
 
 def copies(run,key):return 0 if run.get('challenge_level')==-1 else run.get('artifacts',[]).count(key)+int(run.get('mirror_copy')==key)
 

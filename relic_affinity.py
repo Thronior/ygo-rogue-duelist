@@ -22,19 +22,21 @@ import json
 CEILINGS_FILE=Path(__file__).parent/'data/relic-ceilings.json'
 try:_ceilings={k:float(v) for k,v in json.loads(CEILINGS_FILE.read_text(encoding='utf8')).items()}
 except (OSError,ValueError):_ceilings={}
-def ceiling(key,test=None,fresh=False):
- """Highest multiplier the run's cards can give this relic; cached, since it only depends on the card list."""
+def ceiling(key,test=None,fresh=False,group=0):
+ """Highest multiplier the run's cards can give this relic (its weight group `group`); cached, since it only depends on
+ the card list. Groups after the first (EXTRA_RULES) are cached as "key#n"."""
  import math
  import campaign as g
- if key in _ceilings and not fresh:return _ceilings[key]
- if test is not None:
+ name=key if not group else f'{key}#{group}'
+ if name in _ceilings and not fresh:return _ceilings[name]
+ if test is not None and not group:
   _ceilings[key]=ARCHETYPE_CEILING;return ARCHETYPE_CEILING
- elif key in RULES:
-  wanted=set(RULES[key][0]);base=[c for c in g.CARDS if c['data']['type']&1] if all(w.startswith(MONSTER_TAGS) for w in wanted) else g.CARDS
+ elif key in RULES or group:
+  wanted=set((EXTRA_RULES[key][group-1] if group else RULES[key])[0]);base=[c for c in g.CARDS if c['data']['type']&1] if all(w.startswith(MONSTER_TAGS) for w in wanted) else g.CARDS
   share=sum(1 for c in base if card_tags(c)&wanted)/max(1,len(base))
  else:return 1.0
  value=round(min(CEILING_MAX,max(CEILING_MIN,2+CEILING_SLOPE*math.log2(CEILING_BASE_SHARE/max(share,1e-4)))),3)
- _ceilings[key]=value;return value
+ _ceilings[name]=value;return value
 
 def compute_ceilings():
  """{relic: ceiling} for every relic the run's cards can boost, from the current card list and rules."""
@@ -45,12 +47,14 @@ def compute_ceilings():
   test=archetype_relics.member_test(key,run)
   if test is True:continue
   if test is not None or key in RULES:out[key]=ceiling(key,test,fresh=True)
+  for n in range(1,len(EXTRA_RULES.get(key,()))+1):out[f'{key}#{n}']=ceiling(key,test,fresh=True,group=n)
  return dict(sorted(out.items()))
 
 def write_ceilings():
  CEILINGS_FILE.write_text(json.dumps(compute_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  CARD_CEILINGS_FILE.write_text(json.dumps(compute_card_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  CATEGORY_CEILINGS_FILE.write_text(json.dumps(compute_category_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
+ THEMES_FILE.write_text(json.dumps(compute_theme_card_lists(),separators=(',',':'))+chr(10),encoding='utf8',newline=chr(10))
 # Weights come from the current Deck only (user, 2026-11-13): cards that only sit in the collection count for nothing, so
 # a feature the Deck lacks makes its relics and singles x0.4 (archetype_relics.DEAD_RELIC). DECK_WEIGHT is kept for old callers.
 DECK_WEIGHT=3
@@ -120,9 +124,31 @@ RULES={
  'cursed_jesters_coin':(('coin',),NARROW),
  # 2026-11-13 Discord relics.
  'disturbed_sleep':(('flip',),NARROW),'gadget_call':(('gadget',),NARROW),'gadget_stronghold':(('gadget',),NARROW),
+ # 2026-11-14 Discord relics.
+ 'guardians_call':(('guardian',),NARROW),'soul_fusion':(('fusion',),NARROW),'gate_calling':(('gate_trio',),NARROW),'ring_of_defense':(('lp_cost',),NARROW),
+ 'dark_lotus':(('level:7+',),COMMON),'ultimate_armory':(('equip',),NARROW),
+ # Deck-style relics that had no weight (user, 2026-11-14: only where the relic suits a kind of deck; coin, shop and plain
+ # stat relics stay unweighted).
+ 'cursed_scorched_clock':(('burn',),NARROW),'cursed_ominous_clock':(('burn',),NARROW),'no_pain_no_gain':(('lp_cost',),NARROW),
+ 'solo':(('level:7+',),COMMON),'cursed_solitary_tyrant':(('level:7+',),COMMON),
+ 'stars_aligned':(('level:4',),COMMON),'cursed_conscription_drum':(('level:low',),COMMON),
+ 'cursed_brittle_armor':(('wall',),COMMON),'cursed_nocturnal_guard':(('wall',),COMMON),'cursed_shield_bash':(('wall',),COMMON),
+ 'sword_and_shield':(('wall',),COMMON),'cursed_defense_proficiency':(('wall',),COMMON),
+ 'cursed_crowded_crypt':(('graveyard',),COMMON),'cursed_golden_grave':(('graveyard',),COMMON),
+ # Attribute Surgery shares its Attribute's theme with the matching Orb (an all-EARTH Deck: Earth Orb or EARTH Surgery).
+ **{f'attribute_{a.lower()}':((f'attr:{a}',),BROAD) for a in ('LIGHT','DARK','FIRE','WATER','WIND','EARTH')},
  'armory_aid':(('equip',),NARROW),'spiritual_retribution':(('spirit',),NARROW),'cursed_vampiric_contact':(('heal',),NARROW),'cursed_reversed_remedy':(('lp_cost','burn'),NARROW),
 }
+# Further weight groups for relics that suit more than one kind of deck (user, 2026-11-14). Each group is weighed on its own
+# and the relic takes the strongest one: a relic in two groups is never boosted by both at once.
+EXTRA_RULES={
+ 'ring_of_defense':[(('burn',),NARROW)],
+ 'dark_lotus':[(('fusion',),NARROW)],
+ 'guardians_call':[(('equip',),NARROW)],
+}
 
+# Guardian's Call: the six Guardians with a dedicated Equip Spell.
+GUARDIAN_NAMES=frozenset({'Guardian Baou','Guardian Ceal','Guardian Elma','Guardian Grarl',"Guardian Kay'est",'Guardian Tryce'})
 _tags={}
 def card_tags(c):
  """Every feature a relic can ask for, cached because a shop scores the whole pool."""
@@ -145,6 +171,11 @@ def card_tags(c):
  if kind&0x40 or c['name']=='Polymerization':tags.add('fusion')
  if kind&0x80:tags.add('ritual')
  if 'Gadget' in c['name'] or c['name']=='Stronghold the Moving Fortress':tags.add('gadget')
+ if c['name'] in GUARDIAN_NAMES:tags.add('guardian')
+ if c['name'] in ('Sanga of the Thunder','Kazejin','Suijin'):tags.add('gate_trio')
+ # Walls: monsters built to defend (DEF 1500+ and above their ATK).
+ if kind&1 and int(c.get('defense') or 0)>=1500 and int(c.get('defense') or 0)>int(c.get('atk') or 0):tags.add('wall')
+ if not kind&0x10 and re.search(r'\bGraveyard\b|\bGY\b',desc):tags.add('graveyard')
  if kind&0x40000:tags.add('equip')
  if kind&0x80000:tags.add('field')
  if kind&0x20000:tags.add('continuous')
@@ -172,22 +203,26 @@ def details(keys,run):
  import campaign as g
  pool=deck_cards(run)
  total=sum(pool.values())
- if not total:return {key:(1.0,key in RULES or archetype_relics.member_test(key,run) is not None,False) for key in keys}
+ if not total:return {key:(1.0,key in RULES or key in EXTRA_RULES or archetype_relics.member_test(key,run) is not None,False) for key in keys}
  tags=Counter()
  for cid,copies in pool.items():
   for tag in card_tags(g.BY_ID[cid]):tags[tag]+=copies
+ def count(wanted):
+  return tags[wanted[0]] if len(wanted)==1 else sum(copies for cid,copies in pool.items() if card_tags(g.BY_ID[cid]).intersection(wanted))
  def boost(key):
   test=archetype_relics.member_test(key,run)
   if test is True:return (CEILING_MAX,True,True)
-  if test is not None:matches,full=sum(copies for cid,copies in pool.items() if test(g.BY_ID[cid])),NARROW
+  # A relic in several weight groups takes the strongest group's boost, never the groups multiplied (user, 2026-11-14).
+  groups=[]
+  if test is not None:groups.append((sum(copies for cid,copies in pool.items() if test(g.BY_ID[cid])),NARROW,ceiling(key,test)))
   elif key in RULES:
    wanted,full=RULES[key]
    # A card can carry several wanted tags (Fusion Beast-Warrior for Warrior-or-Beast-Warrior), so count cards once.
-   matches=tags[wanted[0]] if len(wanted)==1 else sum(copies for cid,copies in pool.items() if card_tags(g.BY_ID[cid]).intersection(wanted))
-  else:return (1.0,False,False)
-  top=ceiling(key,test if test is not None else None)
-  progress=narrow_progress(matches,run) if full==NARROW else min(1,matches/total/full)
-  return (1+(top-1)*progress,True,matches>0)
+   groups.append((count(wanted),full,ceiling(key)))
+  for n,(wanted,full) in enumerate(EXTRA_RULES.get(key,()),1):groups.append((count(wanted),full,ceiling(key,group=n)))
+  if not groups:return (1.0,False,False)
+  best=max(1+(top-1)*(narrow_progress(matches,run) if full==NARROW else min(1,matches/total/full)) for matches,full,top in groups)
+  return (best,True,any(matches>0 for matches,_,_ in groups))
  return {key:boost(key) for key in keys}
 
 
@@ -197,7 +232,7 @@ def details(keys,run):
 # Cards with no feature at all (plain Spells/Traps) take the boosted cards' average, each counted at most
 # NEUTRAL_CARD_CAP, so a themed deck does not make general removal and staples rare. Level and Normal tags are left out:
 # they cover a third of all cards and would only add noise.
-CARD_TAG_SKIP=('level:','normal','continuous')
+CARD_TAG_SKIP=('level:','normal','continuous','wall','graveyard','gate_trio','guardian')
 NEUTRAL_CARD_CAP=2.0
 DEAD_CARD=.4
 CARD_BOOST_CAP=10.0
@@ -288,4 +323,111 @@ def category_multipliers(keys,run):
   if not n:out[k]=DEAD_CARD;continue
   progress=min(1,n/total/BROAD) if _broad_category(k) else narrow_progress(n,run)
   out[k]=1+(_category_ceilings.get(k,CEILING_MIN)-1)*progress
+ return out
+
+
+# Theme chances (user, 2026-11-14). Deck weighting no longer multiplies relic weights: each theme group (relics that suit
+# the same kind of deck) gets a chance, on every shop stock or relic offer, that at least one of its relics is offered:
+# - Attribute / Type groups (BROAD): 25% for a Deck whose monsters are all of it, less for a partial share.
+# - COMMON groups (Levels, walls, GY...): like Attributes and Types, 25% for a Deck made only of them.
+# - Card-count groups (NARROW: gambling, burn, equips...): 25% at a quarter of the Deck minimum (5, 8 or 10 cards), almost
+#   50% at double that.
+# - Archetype groups (an archetype relic's card list): 25% when the archetype is the majority of the Deck's monsters (or a
+#   quarter of the minimum in cards), almost 50% for an all-archetype Deck.
+# Owning any relic of a group ends that group's chance. The shop category picked after a Duel lifts a group it shares a
+# relic with to almost 90% for that stock, when the Deck fits the theme (archetype_relics.themed_picks).
+THEME_START,THEME_TOP,THEME_CATEGORY=.25,.48,.88
+# Specific themes come first (user, 2026-11-14): archetypes, then card-count themes (gambling, burn...), then the broad ones
+# (Attributes, Types, Levels, walls, GY). When a stock's relic slots run short, Archfiend beats DARK and Fiend.
+THEME_RANK={'set':0,'narrow':1,'common':2,'broad':2}
+def theme_chance(x):
+ return THEME_START*x if x<=1 else min(THEME_TOP,THEME_START+(THEME_TOP-THEME_START)*(x-1))
+
+_groups=None
+def theme_groups():
+ """{theme id: ({group id: (kind, spec)}, [relic keys])}, built once. kind is broad/common/narrow (spec = tags) or set
+ (spec = card ids)."""
+ global _groups
+ if _groups is not None:return _groups
+ import archetype_relics
+ import campaign as g
+ from content import ARTIFACTS,RETIRED_ARTIFACTS
+ out={};empty={'artifacts':[],'pool':[]};lists=theme_card_lists()
+ for key in ARTIFACTS:
+  if key in RETIRED_ARTIFACTS:continue
+  entries=[]
+  ids=lists.get(key)
+  if ids:entries.append((('set',ids),'set',ids))
+  for wanted,full in ([RULES[key]] if key in RULES else [])+list(EXTRA_RULES.get(key,())):
+   kind='broad' if full==BROAD else 'common' if full==COMMON else 'narrow'
+   entries.append((('rule',tuple(sorted(wanted)),kind),kind,tuple(wanted)))
+  for gid,kind,spec in entries:out.setdefault(gid,(kind,spec,[]))[2].append(key)
+ # One theme rolls once: card-count groups sharing a card feature (coin, dice and coin-or-dice are all gambling) and
+ # archetype lists with mostly the same cards (two Amazoness lists) merge. A relic in two themes (Dark Lotus: Level 7+ and
+ # Fusion) can be offered by either. A theme is {component group id: (kind, spec)} plus its relics.
+ ids=list(out);parent={gid:gid for gid in ids}
+ def root(x):
+  while parent[x]!=x:parent[x]=parent[parent[x]];x=parent[x]
+  return x
+ for i,a in enumerate(ids):
+  for b in ids[i+1:]:
+   ka,kb=out[a][0],out[b][0]
+   if ka=='set' and kb=='set':same=len(out[a][1]&out[b][1])*2>=min(len(out[a][1]),len(out[b][1]))
+   else:same=ka=='narrow' and kb=='narrow' and bool(set(out[a][1])&set(out[b][1]))
+   if same:parent[root(a)]=root(b)
+ merged={}
+ for gid in ids:
+  theme=merged.setdefault(root(gid),({},[]))
+  theme[0][gid]=out[gid][:2]
+  theme[1].extend(k for k in out[gid][2] if k not in theme[1])
+ _groups={key:(parts,members) for key,(parts,members) in merged.items()};return _groups
+
+# Each archetype relic's card list, written by the build (write_ceilings) so a phone never scans every card for it.
+THEMES_FILE=Path(__file__).parent/'data/relic-theme-cards.json'
+def compute_theme_card_lists():
+ import archetype_relics
+ import campaign as g
+ from content import ARTIFACTS
+ out={};empty={'artifacts':[],'pool':[]}
+ for key in ARTIFACTS:
+  test=archetype_relics.member_test(key,empty)
+  if test is not None and test is not True:
+   ids=sorted(c['id'] for c in g.CARDS if test(c))
+   if ids:out[key]=ids
+ return out
+def theme_card_lists():
+ try:return {k:frozenset(v) for k,v in json.loads(THEMES_FILE.read_text(encoding='utf8')).items()}
+ except (OSError,ValueError):return {k:frozenset(v) for k,v in compute_theme_card_lists().items()}
+
+def theme_chances(run):
+ """{theme id: (chance, [relic keys], strength, rank)} for the run's current Deck (rank: THEME_RANK, lower is more specific);
+ themes with an owned relic are left out."""
+ import campaign as g
+ pool=deck_cards(run);total=sum(pool.values())
+ if not total:return {}
+ try:
+  import approved_relics
+  minimum=max(1,int(approved_relics.minimum(run)))
+ except Exception:minimum=NARROW_BASE_DECK*2
+ monsters=sum(n for cid,n in pool.items() if g.BY_ID[cid]['data']['type']&1)
+ cards=[(g.BY_ID[cid],n) for cid,n in pool.items()]
+ owned=set(run.get('artifacts',[]))|set(run.get('cursed_artifacts',[]))
+ out={}
+ def strength(kind,spec):
+  if kind=='set':
+   count=sum(n for c,n in cards if c['id'] in spec);mons=sum(n for c,n in cards if c['id'] in spec and c['data']['type']&1)
+   return max(mons/(monsters*.5) if monsters else 0,count/(minimum/4))
+  else:
+   wanted=set(spec);mon=all(w.startswith(MONSTER_TAGS) for w in wanted)
+   count=sum(n for c,n in cards if card_tags(c)&wanted)
+   if kind=='narrow':return count/(minimum/4)
+   share=count/max(1,monsters if mon else total)
+   # Broad themes (Attributes, Types, Levels, walls, GY) top out at 25% for a Deck made only of them.
+   return share
+ for gid,(parts,members) in theme_groups().items():
+  if owned.intersection(members):continue
+  # A theme is as strong as its best-fitting part (the strongest group applies, never several at once).
+  x=max(strength(kind,spec) for kind,spec in parts.values())
+  p=theme_chance(x)
+  if p>0:out[gid]=(p,members,x,min(THEME_RANK[kind] for kind,_ in parts.values()))
  return out

@@ -2,6 +2,7 @@ import {clearDuelEmotes} from './duel-emotes.js';
 import {roomCodeControl} from './room-code.js';
 import {draftCharacterSelect} from './draft-character-select.js';
 import {CollectorUI} from './collector-ui.js';
+import {ownedBefore} from './pack-opening.js';
 import {validateDraftDeck} from './collector-rules.js';
 import {replayVersion} from './replay-version.js';
 import {relicImage,relicArtwork} from './ui-art.js';
@@ -35,6 +36,8 @@ export class DraftUI extends CollectorUI {
  // Relic scripts for the duel (draft_relics.duel_setup), built the same way on both clients from the room.
  async duelSetup(r){if(!r.loop||!r.relics?.some(x=>x.length))return {};const order=[r.first,1-r.first];return await this.python('draft-duel-setup',{relics:order.map(i=>r.relics[i]),characters:order.map(i=>r.players[i].character),decks:order.map(i=>r.decks[i]),seed:r.seed});}
  duelRelics(r){return r.loop?[...(r.relics?.[this.seat]||[])]:[];}
+ // The opponent's drafted relics show in the duel like curses (user, 2026-11-14).
+ opponentRelics(r){return r.loop?[...(r.relics?.[1-this.seat]||[])]:[];}
  async accept(result){if(!this.alive)return;if(!result.record?.room||!result.room||result.room.cancelled||result.room.phase==='complete'&&result.room.players.length!==2){this.resetSelection();return;}this.hydrate(result);this.serverOffset=result.now-Date.now();this.session.connected=true;this.status='';
   const phase=result.room.phase;
   if(phase==='siding'&&!this.paired(result.room,result.now)){await this.sync(result);this.room=result.room;this.seat=result.seat;this.connectHub();this.closePacks?.();this.closePacks=null;this.shown=-1;this.mode='paused';this.view={phase:'paused'};this.onView(this.view);this.updateReconnectTimer();this.render();return;}
@@ -96,7 +99,7 @@ export class DraftUI extends CollectorUI {
   const order=deckOrder(this,{pool,selected:picked,lookup,run,info,searchKey:DECK_SEARCH}),inDeck=new Set(picked);
   const cardMarkup=i=>deckCardButton({id:pool[i],index:i,card:lookup(pool[i]),run,info,image:this.image,selected:inDeck.has(i),attrs:'data-collector="toggle"'});
   const scroller=this.root.querySelector('.draft-online-scroll'),keep=scroller?saveDeckScroll(scroller):null;
-  this.root.innerHTML=`<div class="page draft-deck-page"><header><h2>Draft Duels</h2><div class="tools">${button('Back','back')}</div></header><div class="scroll draft-scroll draft-online-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${min}+ minimum main · ${extra} Extra Deck · Maximum three copies.</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-collector="ready-draft" ${ok&&this.paired()?'':'disabled'} aria-label="${main}/${min}+ main deck cards — Ready for Duel"><span><span class="tag-next-label"><strong>${main}/${min}+</strong></span></span></button></div>${deckToolbar(this,{searchKey:DECK_SEARCH,sorts:DRAFT_DECK_SORTS,idPrefix:'draft-online',action:(label,name,attrs)=>button(label,name,attrs)})}${deckCardsArea(this,order,picked,cardMarkup)}</div></div>`;
+  this.root.innerHTML=`<div class="page draft-deck-page"><header><h2>Draft Duels</h2><div class="tools">${button('Back','back')}</div></header><div class="scroll draft-scroll draft-online-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${min}+ minimum main · ${extra} Extra Deck · Maximum three copies.</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-collector="ready-draft" ${ok&&this.paired()?'':'disabled'} aria-label="${main}/${min}+ main deck cards — Ready for Duel"><span><span class="tag-next-label"><strong>${main}/${min}+</strong></span></span></button></div>${deckToolbar(this,{searchKey:DECK_SEARCH,sorts:DRAFT_DECK_SORTS,idPrefix:'draft-online',action:(label,name,attrs)=>button(label,name,attrs)})}${deckCardsArea(this,order,picked,cardMarkup,{run:{...run,card_mods:undefined},attr:'data-index',extra:'data-collector="toggle"'})}</div></div>`;
   if(keep)restoreDeckScroll(this.root.querySelector('.draft-online-scroll'),keep);
   wireDeckToolbar(this.root,this,{searchKey:DECK_SEARCH,cards:()=>pool.map(lookup),idPrefix:'draft-online',render:()=>this.renderEditor()});
   deckReadyFeedback(this.root,main,min,this);this.checkDeckSplit();
@@ -116,7 +119,7 @@ export class DraftUI extends CollectorUI {
   if(['packs','edit'].includes(action)&&(this.room?.phase!=='drafting'||this.room.ready?.[this.seat]))throw Error('Wait until both players are ready to open boosters.');
   if(action==='edit'){this.picked=this.pickedFromDeck();this.draft=this.deckFromPicked();this.deckOrderKey=null;const round=this.room?.round||0;if(this.editorRound!==round){this.editorRound=round;resetDeckFilters(this,DECK_SEARCH,false);}this.mode='editor';this.render();return;}
   if(this.mode==='editor'){
-   if(action==='toggle'){this.toggleCard(+el.dataset.index);this.renderEditor();return;}
+   if(action==='toggle'){if(el.dataset.stackClear)for(const i of el.dataset.stackClear.split(',').map(Number))this.toggleCard(i);else this.toggleCard(+el.dataset.index);this.renderEditor();return;}
    if(action==='deck-filter'){this.deckFilter=el.dataset.filter;this.renderEditor();return;}
    if(action==='deselect-all'){this.dialog('Deselect all?',`<p>Take every card out of your deck?</p>${button('Deselect all','deselect-all-confirm','class="primary"')}`);return;}
    if(action==='deselect-all-confirm'){document.querySelector('dialog[open]')?.close();this.picked=[];this.saveDeck();this.renderEditor();return;}
@@ -131,7 +134,7 @@ export class DraftUI extends CollectorUI {
    await this.accept(await this.api('host'));this.schedule();return;
   }
   if(action==='join-room'){await this.accept(await this.api('join',{code:document.getElementById('collector-code').value}));this.schedule();return;}
-  if(action==='packs'){const key=this.packsKey();this.closePacks?.();this.closePacks=this.openPacks((this.duelist.packs||[]).map((cards,i)=>({id:this.duelist.packIds[i],cards})),()=>{this.closePacks=null;if(!this.alive||this.room?.phase!=='drafting')return;this.duelist.packsFinishedRoom=key;this.save();this.enqueue(()=>this.action('edit'));});return;}
+  if(action==='packs'){const key=this.packsKey(),packs=(this.duelist.packs||[]).map((cards,i)=>({id:this.duelist.packIds[i],cards}));this.closePacks?.();this.closePacks=this.openPacks(packs,()=>{this.closePacks=null;if(!this.alive||this.room?.phase!=='drafting')return;this.duelist.packsFinishedRoom=key;this.save();this.enqueue(()=>this.action('edit'));},ownedBefore(this.duelist.pool,packs));return;}
   if(action==='choose-relic'||action==='choose-pack'){if(this.mode!=='picking'||Date.now()-(this.heldAt||0)<700)return;this.choice??={};this.choice[action==='choose-relic'?'relic':'pack']=+el.dataset.index;this.render();return;}
   if(action==='inspect-relic'){this.inspectRelic(el.dataset.relic);return;}
   if(action==='confirm-pick'){const c=this.choice||{};if(c.relic===undefined||c.pack===undefined)throw Error('Choose one relic and one character pack.');await this.accept(await this.api('pick',{relic:c.relic,pack:c.pack}));this.schedule();return;}

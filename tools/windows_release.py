@@ -4,6 +4,9 @@ The Windows app (WebView2 launcher, source in D:/Codex Exports/Yu-Gi-Oh! Rogue D
 files from the latest stable GitHub release: it downloads the asset named exactly web-X.Y.Z.zip (the hosted
 tools/build_pwa.py output) and checks it against GitHub's SHA-256 digest. The installer itself is uploaded with each
 release under a fixed name, so releases/latest/download/YGO-Rogue-Windows-Setup.exe always works.
+web_deltas() adds web-<old>-to-<new>.delta.gz files for the last three versions; launchers from the rebuilt
+installer download one of those (a few MB) and rebuild the exact web ZIP, falling back to the full ZIP.
+The installer is built by build.ps1 in the launcher folder, which bundles releases/web-<VERSION>.zip.
 
 check_web_zip() repeats the launcher's archive rules (GameFiles.Extract / IsPlayable / AdaptReplay), so a release
 never ships a ZIP that every Windows player would reject.
@@ -56,7 +59,23 @@ def assets(version):
  """{release asset name: local file} the Windows app needs on every release."""
  assert INSTALLER.is_file(),f'Missing Windows installer {INSTALLER}'
  check_web_zip(web_zip(version),version)
- return {f'web-{version}.zip':web_zip(version),INSTALLER_NAME:INSTALLER}
+ return {f'web-{version}.zip':web_zip(version),INSTALLER_NAME:INSTALLER,**web_deltas(version)}
+
+def web_deltas(version,count=3):
+ """{web-<old>-to-<version>.delta.gz: file} from the last `count` earlier web ZIPs in releases/.
+ Launchers since the 0.2.33 installer rebuild the exact web-<version>.zip from the ZIP they run
+ (tools/android_delta.py format, checked against the full ZIP's GitHub digest), so an update downloads
+ a few MB instead of ~230 MB. Older launchers and any failure use the full ZIP."""
+ from android_delta import create
+ key=lambda v:tuple(map(int,v.split('.')))
+ older=sorted((m[1] for p in (ROOT/'releases').glob('web-*.zip') if (m:=re.fullmatch(r'web-(\d+\.\d+\.\d+)\.zip',p.name)) and key(m[1])<key(version)),key=key)[-count:]
+ target=web_zip(version);out={}
+ for old in older:
+  delta=ROOT/'releases'/f'web-{old}-to-{version}.delta.gz'
+  if not delta.exists() or delta.stat().st_mtime<target.stat().st_mtime:create(web_zip(old),target,delta)
+  if delta.stat().st_size<target.stat().st_size//2:out[delta.name]=delta
+  else:delta.unlink()
+ return out
 
 if __name__=='__main__':
  v=(ROOT/'VERSION').read_text().strip();p=Path(sys.argv[1]) if len(sys.argv)>1 else web_zip(v)

@@ -1,6 +1,7 @@
 import {rewardIcon} from './reward-icons.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
+import {bountyBanner} from './bounty-banner.js';
 import {deckOrder,deckToolbar,deckCardsArea,wireDeckToolbar,resetDeckFilters,updateDeckSplit} from './deck-editor-view.js';
 import {revealPrice} from './jar-relics.js';
 
@@ -47,6 +48,7 @@ import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
 import {fitButtonLabels} from './label-fit.js';
+import {ownedBefore} from './pack-opening.js';
 import {explainOnlineError} from './online-status.js';
 
 // Every deck scroller in the Tag deck tab: one grid, or both panes of the wide split (card-search.js).
@@ -219,7 +221,7 @@ export class TagUI {
   // Shared with Draft Duels (deck-editor-view.js); the order holds still while cards are tapped.
   const order=deckOrder(this,{pool:r.pool,selected:r.selected,lookup,run:r,info:this.content.artifactInfo,searchKey:'tag-deck'}),inDeck=new Set(r.selected),name=i=>lookup(r.pool[i])?.name||'';
 
-  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=deckCardsArea(this,order,r.selected,cardMarkup);
+  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=deckCardsArea(this,order,r.selected,cardMarkup,{run:r,attr:'data-index',extra:'data-tag="card"',locked:!!fixed,limit:r.artifacts?.includes('broken_limiter')?null:r.artifacts?.includes('cursed_singleton_pact')?1:3});
 
   const bossCost=bossRerollPrice(r),known=i=>boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i);
   const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=theirs===i,picked=mine===i,name=known(i)?esc(o?.name||'opponent'):'this opponent';
@@ -232,7 +234,7 @@ export class TagUI {
   const pickLine=mine!==null&&theirs!==null?'Both players are locked in':mine!==null?`Locked in · waiting for ${partnerName}`:theirs!==null?`${partnerName} is locked in on ${known(theirs)?esc(this.content.characters[theirs]?.name||'an opponent'):'an opponent'} · pick another`:boss?'Both bosses are on both screens · each player locks in one':'Choose your next opponent';
   const coinsLine=boss?`<span class="tag-boss-coins"> · Team coins ${coinLabel(r.gold)}</span>`:'';
 
-  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
+  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>${bountyBanner(r)}`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${bountyBanner(r)}${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
   const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
 
@@ -530,7 +532,7 @@ export class TagUI {
 
    const endpoint=await this.endpoint();
 
-   this.session=new TagSession({endpoint,sleeve:this.sleeve(),character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
+   this.session=new TagSession({endpoint,sleeve:this.sleeve(),character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve,event.buyer===this.view?.seat?ownedBefore(this.view?.run?.pool,event.packs):null))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
 
     this.status=state==='connected'||state==='waiting'?'':state==='error'?friendlyError(detail):['disconnected','failed','reconnecting'].includes(state)?'':state==='signaling-error'?'Room service unavailable — retrying':'';
 
@@ -590,7 +592,8 @@ export class TagUI {
    // Editing a locked-in deck unlocks the pick first; press the swords again when it's done.
    if(this.view.phase==='draft'&&this.view.ready[this.view.seat])await this.unlockForEdit();
 
-   const selected=[...this.view.run.selected],at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);
+   // A full stack (deck-stacks.js) takes every copy out at once.
+   let selected=[...this.view.run.selected];const clear=el?.dataset?.stackClear?.split(',').map(Number);if(clear)selected=selected.filter(i=>!clear.includes(i));else{const at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);}
 
    this.editDeck(selected);playUISound('deck-select');this.render();return;
 
@@ -745,7 +748,7 @@ export class TagUI {
 
     let opened=false;
 
-    const show=()=>{opened=true;if(!this.alive){resolve();return}this.closeStartingPacks=this.openPacks(packs,()=>{this.closeStartingPacks=null;localStorage.setItem(key,'1');resolve()})};
+    const show=()=>{opened=true;if(!this.alive){resolve();return}this.closeStartingPacks=this.openPacks(packs,()=>{this.closeStartingPacks=null;localStorage.setItem(key,'1');resolve()},ownedBefore(r.pool,packs))};
 
     characterEntrance(entrance,show).then(()=>{if(!opened){this.startingPacksKey=null;resolve()}}).catch(error=>{this.error(error);resolve()});
 

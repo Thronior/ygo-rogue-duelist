@@ -346,6 +346,8 @@ export function smartContext(e,p,L,prompt=null){
    if(targeting&&/cannot be targeted by (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
    // Battle-only protection (Marshmallon, Spirit Reaper, Celtic Guard) does not stop destruction effects.
    if(destroy&&/(?:cannot|can't) be destroyed by (?:battle (?:or|and) (?:by )?)?(?:card effects?|monster effects?|spell effects?|trap effects?|(?:your opponent's|your opponent’s) (?:card )?effects?)/i.test(text))return false;
+   // Ultimate Armory (relic): a monster carrying 3 or more Equip Spells cannot be destroyed by card effects.
+   if(destroy&&target.location===L.MZONE&&relic(targetController,'ultimate_armory')&&equippedCount(target,0x40000)>=3)return false;
    return true;
   }
  const umi=activeLocks.some(c=>['Umi','A Legendary Ocean'].includes(name(c)));

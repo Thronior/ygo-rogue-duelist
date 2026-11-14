@@ -163,11 +163,22 @@ def reward_keys():return [key for key in sorted(LABELS) if key not in NON_REWARD
 def reward_weights(keys):return [DIVINE_WEIGHT if key=='DIVINE' else 1.0 for key in keys]
 
 
+def reward_pack(index):
+ """The opponent's guaranteed pack. Ryou Bakura ('RANDOM'), Copycat ('COPY') and the Dueling Engine ('ENGINE') have no
+ pack of their own, and neither do the Ultimate Collectors who played them (NotUrDaddy plays Bakura): v0.2.33 crashed
+ on 'RANDOM' after beating NotUrDaddy and then on every load (itch report, 2026-11-14). Like Bakura's own starting
+ packs, they get any non-shop booster, fixed per opponent so it never changes between loads."""
+ pack=CHARACTERS[index]['pack']
+ if pack in PACK_BY_ID:return pack
+ from content import PACKS
+ pool=sorted(p['id'] for p in PACKS if not p.get('shop_chance') and not p.get('draft_only'))
+ return random.Random(f'reward-pack-{index}').choice(pool)
+
 def reward_for(index,rng=None):
  # One shared list for every opponent; the opponent only fixes the guaranteed pack.
  rng=rng or random.Random(index)
  keys=reward_keys();key=rng.choices(keys,weights=reward_weights(keys),k=1)[0]
- pack=CHARACTERS[index]['pack']
+ pack=reward_pack(index)
  if PACK_BY_ID[pack].get('draft_only'):pack=PACK_BY_ID[pack].get('reward_pack','EN-MFC')
  return dict(key=key,label=LABELS.get(key,key+' monsters'),pack=pack)
 
@@ -277,25 +288,25 @@ CATEGORY_RELICS={
  'amazoness':('amazoness_standard','amazoness_hunters'),'archfiend':('archfiend_contract','demonic_pact','all_for_one_terrorking'),
  'darkmagician':('mage','counterweight'),'darkscorpion':('scorpion_emblem','dark_scorpion_squad'),
  'exodia':('legendary_shackles','deep_pockets','eye'),'gravekeeper':('necrovalley_tablet','gravekeepers_union'),
- 'guardian':('guardian_arsenal','armory_crest'),'harpie':('harpie_feather','harpies_of_a_feather','wing'),
+ 'guardian':('guardian_arsenal','armory_crest','guardians_call'),'harpie':('harpie_feather','harpies_of_a_feather','wing'),
  'toon':('toon_world','this_life_mine'),'union':('union_dock','union_hangar'),
- 'fusion':('fusion_chamber','fusion_insignia','fusion_time','machine_foundry'),
+ 'fusion':('fusion_chamber','fusion_insignia','fusion_time','machine_foundry','soul_fusion'),
  'ritual':('ritual_dagger','ritual_vestment','ritual_incense','ten_thousand_hands','corpse_ritual'),
  'spirit':('good_spirits','deep_pockets','spiritual_retribution'),'flip':('jar_of_echoes','buckler','disturbed_sleep'),
  'normal':('normal','epitaph','normal_barrier','tenacity_of_the_weak'),'effect':('menagerie','kindred_bond'),
- 'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass'),
- 'highlevel':('tribute','tribute_dividend'),'toplevel':('tribute_free','boss_monster','tribute'),
- 'burn':('flame','burn_proficiency','static_coil'),'heal':('healing_echo','spring','quiet_library'),
- 'stall':('patient_guardian','quiet_library','buckler','straw_doll'),'pierce':('pierce','battle_proficiency'),
+ 'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass','stars_aligned'),
+ 'highlevel':('tribute','tribute_dividend','gate_calling'),'toplevel':('tribute_free','boss_monster','tribute','dark_lotus','gate_calling','solo'),
+ 'burn':('flame','burn_proficiency','static_coil'),'heal':('healing_echo','spring','quiet_library','ring_of_defense'),
+ 'stall':('patient_guardian','quiet_library','buckler','straw_doll','sword_and_shield'),'pierce':('pierce','battle_proficiency'),
  'direct':('battle_proficiency','seal'),'draw':('eye','second_wind','deep_pockets'),
  'discard':('last_word','second_wind','inkwell'),'gambling':('lets_go_gambling','weighted_coins','weighted_dice'),
  'jar':('dice_jar','cyber_jar','morphing_jar_2','jar_of_echoes'),'negation':('solemn_relic','boss_monster'),
  'quick_counter':('solemn_relic','this_life_mine'),'continuous':('arcane_resonance','trap_weaver'),
  'normal_trap':('returning_tide','trap_weaver'),'hole':('returning_tide','patient_guardian'),
  'normal_spell':('final_hour','level_up_relic','eye'),'field':('terraforming_relic','field_amplifier','ocean_relic'),
- 'equip':('armory_crest','guardian_arsenal','armory_aid'),'banish':('third_gate','exile_standard'),
+ 'equip':('armory_crest','guardian_arsenal','armory_aid','ultimate_armory'),'banish':('third_gate','exile_standard'),
  'graveyard':('grave_lantern','the_creator','epitaph'),'destruction':('grave_lantern','the_creator'),
- 'summon':('the_creator','tribute_free'),'control':('loyalty','tribute_dividend'),
+ 'summon':('the_creator','tribute_free','dark_lotus','soul_fusion','guardians_call'),'control':('loyalty','tribute_dividend'),
  'bounce':('returning_tide','jar_of_echoes'),
  'monster_removal':('grave_lantern','exile_standard','returning_tide'),'spelltrap_removal':('typhoon','returning_tide'),
 }

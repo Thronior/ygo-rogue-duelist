@@ -47,7 +47,7 @@ FUSED=[
  ('spirit_sanctuary','Spirit Sanctuary','Spirit monsters you control gain 500 ATK and may stay on the field during the End Phase. You can Tribute Summon Spirit monsters by banishing monsters from your GY in place of Tributes. Whenever a monster returns from the field to your hand, gain 500 LP.','Spring of Rebirth',('good_spirits','spiritual_retribution')),
  ('living_traps','Living Traps','Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by battle. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.','Zoma the Spirit',('cursed_trapbound_idol','trap_weaver')),
  ('scorched_hourglass','Scorched Hourglass','At the start of your Standby Phase, inflict 500 damage to your opponent. Whenever you inflict effect damage to your opponent from another source, inflict 500 additional damage. This bonus applies once per originating damage event. Damage caused by this relic cannot trigger the bonus.','Dark Room of Nightmare',('cursed_scorched_clock','flame','static_coil')),
- ('guardians_armory',"Guardian’s Armory",'Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by card effects while its corresponding Equip Spell is face-up on the field.','Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
+ ('guardians_armory',"Guardian’s Armory","Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by your opponent's card effects while its corresponding Equip Spell is face-up on the field.",'Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -110,7 +110,8 @@ def greed_free_relic(run,rng):
  """Jar of Greed: one relic in each shop visit costs 0, until it is bought; rerolls move it to the new stock."""
  if not ar.has(run,'jar_of_greed') or run.get('stage')!='shop':return
  if run.get('greed_relic_taken')==ar.encounter_key(run):return
- stock=[item for item in run.get('shop',[]) if item['kind']=='artifact' and not item['sold']]
+ # Not the relic being bought: it is already owned, or fused away, before the shop marks it sold.
+ stock=[item for item in run.get('shop',[]) if item['kind']=='artifact' and not item['sold'] and (item['id'] not in run.get('artifacts',[]) or item['id']=='golden_sleeve') and not absorbed(run,item['id'])]
  if not stock or any(item.get('greed') for item in stock):return
  item=rng.choice(stock);item['price']=0;item['greed']=True
 
@@ -273,8 +274,9 @@ do local pairs={{73544866,68427465},{10755153,95638658},{74367458,69243953},
   end
   return false
  end
+ -- Only the opponent's effects (Discord, 2026-11-14): your own Equip Spells must still reach the Guardian.
  local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
- t:SetTargetRange(LOCATION_MZONE,0) t:SetTarget(protected) t:SetValue(1) Duel.RegisterEffect(t,0)
+ t:SetTargetRange(LOCATION_MZONE,0) t:SetTarget(protected) t:SetValue(function(e,re,rp) return rp==1 end) Duel.RegisterEffect(t,0)
  local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,0)
  local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(EVENT_STARTUP)
  s:SetOperation(function(e)

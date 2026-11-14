@@ -60,7 +60,6 @@ end""")
    before=text[:m.start()].rstrip()
    return m.group(0) if re.search(r'(=|\(|,|\bif|\band|\bor|\bnot|\breturn)$',before) else hint+m.group(0)
   text=re.sub(r'Duel\.(SpecialSummon|DiscardDeck|ChangePosition)\(',alone,text)
-  if current_relic=='solemn_relic' or current_relic=='magic_mirror' and run.get('mirror_copy')=='solemn_relic':text=text.replace('then used=true end',f'then used=true {hint}end')
   return text
  def stat(code,value,condition='true',enemy=False):
   lines.append(f'''do local e=Effect.GlobalEffect()
@@ -262,6 +261,8 @@ def mirror_relics(run):
  import random
  sealed=duel_run(run);copy=sealed.get('mirror_copy')
  usable=[key for key in sealed.get('artifacts',[]) if (bool(copy) and acts_in_duel(copy) if key=='magic_mirror' else acts_in_duel(key))]
+ # Ring of Defense only reports losses in the Duel; its healing comes afterwards, so a copy would do nothing.
+ usable=[key for key in usable if key!='ring_of_defense' and not (key=='magic_mirror' and copy=='ring_of_defense')]
  # Defense Proficiency on both sides on top of Mercy left battle damage near zero and the duel crawled into the
  # slow-duel penalty (Prunk44/user, 2026-11-12): with Mercy, the opponent never gets a copy of it.
  if 'mercy' in run.get('curses',[]):usable=[key for key in usable if key!='cursed_defense_proficiency' and not (key=='magic_mirror' and copy=='cursed_defense_proficiency')]

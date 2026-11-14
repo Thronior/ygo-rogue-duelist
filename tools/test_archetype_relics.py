@@ -25,6 +25,7 @@ for key in a.FAMILY:
  assert a.weight(key,{'artifacts':list(a.FAMILY)})==.125
 assert a.weight('scarab',{'artifacts':list(a.FAMILY)})==1
 rng=random.Random(9);counts=[sum(a.sample(['scarab','amazoness_standard'],1,run,rng)[0]=='amazoness_standard' for _ in range(10000)) for run in [{},{'artifacts':['toon_world']}]]
-assert 1700<counts[0]<2300 and 850<counts[1]<1350,counts
+# Empty Deck: Amazoness Standard x0.25 hold-back x0.4 (no cards) against Jade Pendant's 1 (plain relics count 1 since 2026-11-14).
+assert 800<counts[0]<1050 and 400<counts[1]<560,counts
 r['artifacts']=list(a.NEW_IDS);g.restock(r,random.Random(5));assert sum(x['kind']=='single' for x in r['shop'])==10+len(a.NEW_IDS)
 print('PASS pools exclude unrelated names, all bonuses stack, rarity and ownership weighting',counts)

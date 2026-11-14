@@ -169,16 +169,17 @@ console.log('PASS Living Traps sets a different Trap Monster from the Deck');
 }
 console.log('PASS Guardian’s Armory starts with a matched pair');
 
-for(const matched of [false,true]){
-  const grarl=id('Guardian Grarl'), equip=matched?'Gravity Axe - Grarl':'Axe of Despair';
+for(const matched of [false,true])for(const owner of [0,1]){
+  // Only the opponent's effects are stopped (Discord, 2026-11-14): the setup effect belongs to `owner`.
+  const grarl=id('Guardian Grarl'), equip=matched?'Gravity Axe - Grarl':'Axe of Despair', safe=matched&&owner===1;
   const e=await duel({keys:['guardians_armory'],script:setup(move('Guardian Grarl')+`
     local guardian=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_MZONE,0,nil,${grarl}):GetFirst()
     ${move(equip,0,'LOCATION_SZONE')}
     if guardian:IsCanBeEffectTarget(e) then Duel.SetLP(0,7000) end
     Duel.Destroy(guardian,REASON_EFFECT)
-  `)});
-  assert.equal(query(e,0,L.MZONE,grarl).length,matched?1:0);
-  assert.equal(e.lp[0],matched?8000:7000);
+  `).replace('Duel.RegisterEffect(e,0) end',`Duel.RegisterEffect(e,${owner}) end`)});
+  assert.equal(query(e,0,L.MZONE,grarl).length,safe?1:0,JSON.stringify({matched,owner}));
+  assert.equal(e.lp[0],safe?8000:7000,JSON.stringify({matched,owner}));
   e.destroy();
 }
-console.log('PASS Guardian’s Armory targeting and destruction protection only with the matching equip');
+console.log('PASS Guardian’s Armory protects from the opponent only, and only with the matching equip');

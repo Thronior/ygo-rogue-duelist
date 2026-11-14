@@ -36,14 +36,14 @@ def weight(key,run):
 
 # Offer weights (user, 2026-11-13). Every relic offer (shop, Relic Picker, cursed and choice offers) goes through offer_weights:
 # - weight(): hold-backs (a second family or attribute relic) and RARITY, the relics that appear less often by design.
-# - Weight givers: cards in the run that a relic supports (relic_affinity, x1-3) and, in the shop, the chosen category (x5).
-#   Together they are capped at BOOST_CAP (x10); a relic whose cards are missing from the run counts DEAD_RELIC.
-# - Relics with no weight giver take the average boost of the ones that have one, so boosts move odds between relics
-#   that care about the deck instead of making plain relics (Merchant Urn, Demonic Sword...) rare.
+# - The Deck: since 2026-11-14 its themes no longer multiply weights; each theme gets a chance per stock or offer instead
+#   (relic_affinity.theme_chances, themed_picks below). A relic whose cards are missing from the Deck still counts DEAD_RELIC.
+# - In the shop, the category picked after the Duel (x5, capped at BOOST_CAP) and the hidden loadout lists (x2).
+# - Plain relics (Merchant Urn, Demonic Sword...) count 1.
 # - Shop only: a relic offered and not bought counts SKIPPED for the next SKIP_VISITS stocks, and in the first
 #   EARLY_SHOPS shops a relic costing more than the player's coins plus EARLY_SLACK counts PRICEY.
 RARITY={'traps_no_more':.25,'spells_no_more':.25,'duelist_catalogue':.2,'cursed_reversed_remedy':.6,
-        'almighty':.1,'the_creator':.1,'dimensional_rift':.1}
+        'almighty':.1,'the_creator':.1,'dimensional_rift':.1,'dark_lotus':.1}
 BOOST_CAP=10.0
 NEUTRAL_AVERAGE_CAP=2.0
 DEAD_RELIC=.4
@@ -81,15 +81,15 @@ def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
  boost,givers={},set();loadout=loadout_relics(run)
  for key in options:
   multiplier,rule,matched=detail[key]
+  # The Deck's themes act through theme chances (relic_affinity.theme_chances, themed_picks), not by multiplying weights,
+  # so the per-roll chances the user set are not exceeded (user, 2026-11-14).
   if key in loadout:
-   value=max(LOADOUT_MIN,1+LOADOUT_GAIN*(multiplier-1))*(favor if key in favored else 1);givers.add(key)
+   value=LOADOUT_MIN*(favor if key in favored else 1);givers.add(key)
    boost[key]=min(BOOST_CAP,value);continue
-  value=multiplier*(favor if key in favored else 1)
+  value=favor if key in favored else 1
   if rule and not matched:value*=DEAD_RELIC
   if rule or key in mapped:givers.add(key)
   boost[key]=min(BOOST_CAP,value)
- # Each giver counts at most NEUTRAL_AVERAGE_CAP here, so a deck built around one theme pulls its relics ahead of plain ones.
- average=sum(min(NEUTRAL_AVERAGE_CAP,boost[k]) for k in givers)/len(givers) if givers else 1.0
  skips=(run.get('relic_skips') or {}) if shop else {}
  early=shop and prices is not None and int(run.get('round',0) or 0)<EARLY_SHOPS
  gold=int(run.get('gold',0) or 0);out={}
@@ -104,15 +104,48 @@ def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
    base*=(hold+(1-hold)*share)/hold
   if skips.get(key,0)>0:base*=SKIPPED
   if early and prices.get(key,0)>gold+EARLY_SLACK:base*=PRICEY
-  out[key]=(base,boost[key] if key in givers else average,key in givers)
+  # Without deck multipliers there is nothing for plain relics to keep up with: they count 1 (theme chances, 2026-11-14).
+  out[key]=(base,boost[key] if key in givers else 1.0,key in givers)
  return out
+
+def themed_picks(remaining,count,run,rng,w,favored=()):
+ """Theme chances (relic_affinity.theme_chances): each group the Deck fits rolls its chance that one of its relics is
+ offered; the chance a stock already gives a group without help is taken off, so the total stays on target. A group sharing
+ a relic with the shop category picked after the Duel goes up to THEME_CATEGORY. Picks are removed from `remaining`."""
+ import relic_affinity as ra
+ chances=ra.theme_chances(run);other=ra.tag_partner(run)
+ if other is not None:
+  theirs=ra.theme_chances(other)
+  # Tag: each Deck adds half of its chance.
+  chances={gid:(.5*chances.get(gid,(0,))[0]+.5*theirs.get(gid,(0,))[0],(chances.get(gid) or theirs[gid])[1],max(chances.get(gid,(0,0,0))[2],theirs.get(gid,(0,0,0))[2]),(chances.get(gid) or theirs[gid])[3]) for gid in set(chances)|set(theirs)}
+ picks=[];total=len(remaining);n=min(count,total)
+ # Most specific themes roll first (archetypes, then gambling/burn-style themes, then Levels, then Attributes and Types).
+ for gid,(p,members,x,rank) in sorted(chances.items(),key=lambda item:(item[1][3],-item[1][0],str(item[0]))):
+  if len(picks)>=n:break
+  candidates=[k for k in members if k in remaining]
+  if not candidates:continue
+  if favored and favored.intersection(members):p=max(p,ra.THEME_CATEGORY*min(1.0,x))
+  # How often the stock offers the theme unaided, from the real weights (rarity, hold-backs, the category).
+  share=sum(w[k][0]*w[k][1] for k in candidates)/max(1e-9,sum(w[k][0]*w[k][1] for k in remaining))
+  # Counted at 60%: other themes' picks and the random slots make the stock offer it a little less often than this.
+  natural=.6*(1-(1-min(1.0,share))**(n-len(picks)))
+  q=(p-natural)/(1-natural) if natural<1 else 0.0
+  if q>0 and rng.random()<q:
+   pick=rng.choices(candidates,weights=[max(1e-9,w[k][0]) for k in candidates],k=1)[0]
+   picks.append(pick);remaining.remove(pick)
+ return picks
+
+def _place(picks,result,rng):
+ for key in picks:result.insert(rng.randrange(len(result)+1),key)
+ return result
 
 def sample(options,count,run,rng,favored=(),favor=1):
  remaining=list(options);result=[];w=offer_weights(remaining,run,favored,favor)
- for _ in range(min(count,len(remaining))):
+ picks=themed_picks(remaining,count,run,rng,w,favored)
+ for _ in range(min(count-len(picks),len(remaining))):
   key=rng.choices(remaining,weights=[w[k][0]*w[k][1] for k in remaining],k=1)[0]
   result.append(key);remaining.remove(key)
- return result
+ return _place(picks,result,rng)
 
 # Shop relic slots (Thronior, Discord 2026-11-10): the first two use the full weighting; every further slot is random, so relics
 # with no weight modifier stop becoming rare by accident. In the random slots a relic the weighting boosts this visit counts a
@@ -121,14 +154,15 @@ WEIGHTED_SHOP_SLOTS=2
 RANDOM_SLOT_BOOSTED=0.8
 def shop_sample(options,count,run,rng,favored=(),favor=1,prices=None):
  remaining=list(options);result=[];w=offer_weights(remaining,run,favored,favor,prices,shop=True)
+ picks=themed_picks(remaining,count,run,rng,w,frozenset(favored))
  def random_slot(k):
   base,boost,giver=w[k]
   return base*(1.0 if not giver else RANDOM_SLOT_BOOSTED if boost>1 else min(1.0,boost))
- for slot in range(min(count,len(remaining))):
+ for slot in range(len(picks),len(picks)+min(count-len(picks),len(remaining))):
   weights=[w[k][0]*w[k][1] for k in remaining] if slot<WEIGHTED_SHOP_SLOTS else [random_slot(k) for k in remaining]
   key=rng.choices(remaining,weights=weights,k=1)[0]
   result.append(key);remaining.remove(key)
- return result
+ return _place(picks,result,rng)
 
 def note_skipped(run,previous_stock):
  """Called on every restock: relics left unsold in the previous stock count SKIPPED for the next SKIP_VISITS stocks."""

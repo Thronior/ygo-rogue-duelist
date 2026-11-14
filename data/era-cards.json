@@ -109291,5 +109291,101 @@
       "",
       ""
     ]
+  },
+  {
+    "id": 56839613,
+    "name": "Batteryman Micro-Cell",
+    "desc": "FLIP: Special Summon 1 Level 4 or lower \"Batteryman\" monster from your Deck, except \"Batteryman Micro-Cell\". After this card has been flipped face-up, when it is destroyed by battle and sent to the Graveyard, draw 1 card.",
+    "type": "Flip Effect Monster",
+    "race": "Thunder",
+    "attribute": "LIGHT",
+    "level": 1,
+    "atk": 100,
+    "defense": 100,
+    "date": "2008-02-23",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/56839613.jpg",
+    "data": {
+      "code": 56839613,
+      "alias": 0,
+      "setcodes": [
+        40
+      ],
+      "type": 2097185,
+      "level": 1,
+      "attribute": 16,
+      "race": "4096",
+      "attack": 100,
+      "defense": 100,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Special Summon",
+      "Draw card",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 83446909,
+    "name": "Batteryman Charger",
+    "desc": "When this card is Normal Summoned, you can Special Summon 1 \"Batteryman\" monster, except \"Batteryman Charger\", from your hand or Deck. This card gains 300 ATK and DEF for each Thunder-Type monster you control.",
+    "type": "Effect Monster",
+    "race": "Thunder",
+    "attribute": "LIGHT",
+    "level": 5,
+    "atk": 1800,
+    "defense": 1200,
+    "date": "2008-02-23",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/83446909.jpg",
+    "data": {
+      "code": 83446909,
+      "alias": 0,
+      "setcodes": [
+        40
+      ],
+      "type": 33,
+      "level": 5,
+      "attribute": 16,
+      "race": "4096",
+      "attack": 1800,
+      "defense": 1200,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Special Summon",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
   }
 ]

@@ -250,6 +250,15 @@ class TagCampaign:
 
    shop_rewards.normalize_run(run)
 
+  # Bounty List is a team relic: both players see and complete the host's objective (bug report, 2026-11-14).
+  # A guest who bought it holds the first objective until the host's run has one.
+  owned='bounty_list' in (self.shared.get('artifacts') or [])
+  for key in ('bounty_objective','last_bounty'):
+   value=next((r.get(key) for r in self.players if r.get(key)),None) if owned or key=='last_bounty' else None
+   for run in self.players:
+    if value:run[key]=deepcopy(value)
+    else:run.pop(key,None)
+
  def routes(self,avoid_curses=None):
   # avoid_curses: per seat, curses a boss reroll must not bring back (boss_selection.reroll_avoided_curses).
   avoid_curses=avoid_curses or [set(),set()]

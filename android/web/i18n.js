@@ -128,7 +128,7 @@ export async function setLanguage(code,{remember=true}={}){
  buildCardMaps();observe();
 }
 // Native dialogs cannot be observed, so their message is translated on the way in.
-for(const name of ['alert','confirm']){const native=window[name]?.bind(window);if(native)window[name]=message=>native(t(message))}
+if(globalThis.window)for(const name of ['alert','confirm']){const native=window[name]?.bind(window);if(native)window[name]=message=>native(t(message))}
 
 // Language flags (2026-11-10): one bundled SVG per language in assets/i18n/flags, from lipis/flag-icons (MIT; see
 // its README). English and Portuguese are split composites (UK/US, Portugal/Brazil).

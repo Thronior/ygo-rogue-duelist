@@ -557,7 +557,10 @@ export function deckPolicy(x){
   // Trap monsters: a blocker when an attack comes in on an empty field, otherwise an extra body in our Main Phase.
   if(trapMonster)return chain&&incoming&&!own.length?85:mainPhase&&free>0?60:-1;
   if(n==='Ultimate Offering'){
-   if(c.location!==L.SZONE||!face(c))return mainPhase&&e.lp[p]>2000&&hand.some(monster)?60:-1;
+   // Idle "activates" entries carry no position, so read it from the card on the field: a face-up copy was taken for
+   // a face-down one and paid 500 LP before the free Normal Summon was used (Discord #cpu-improvement, 2026-11-14).
+   const placed=c.location===L.SZONE&&back.find(x=>same(x,c));
+   if(c.location!==L.SZONE||!face(placed||c))return mainPhase&&e.lp[p]>2000&&hand.some(monster)?60:-1;
    const summonable=hand.some(x=>monster(x)&&lvl(x)<=4);
    if(chain&&incoming&&!own.length&&summonable&&e.lp[p]>1000)return 85;
    // 500 LP buys an additional summon: spend the free Normal Summon first.

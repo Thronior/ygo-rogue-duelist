@@ -12,6 +12,18 @@
       "ja": "（開発者メモ：これは相手の攻撃にのみ有効です）",
       "ko": "(개발자 노트: 이 효과는 상대의 공격에만 적용됩니다.)",
       "zh": "（开发者注：此效果只对对方的攻击有效）"
+    },
+    "99050989": {
+      "name": "Drillago",
+      "en": "(Dev note: any Spell or Trap your opponent controls, including Set cards and Field Spells, stops this direct attack)",
+      "de": "(Entwickler-Hinweis: Jede Zauber- oder Fallenkarte, die dein Gegner kontrolliert, auch gesetzte Karten und Spielfeldzauber, verhindert diesen direkten Angriff.)",
+      "es": "(Nota del desarrollador: cualquier Carta Mágica o de Trampa que controle tu adversario, incluidas las cartas colocadas y las Mágicas de Campo, impide este ataque directo.)",
+      "fr": "(Note du développeur : toute Carte Magie ou Piège contrôlée par votre adversaire, y compris les cartes posées et les Magies de Terrain, empêche cette attaque directe.)",
+      "it": "(Nota dello sviluppatore: qualsiasi Carta Magia o Trappola controllata dal tuo avversario, comprese le carte coperte e le Magie Terreno, impedisce questo attacco diretto.)",
+      "pt": "(Nota do desenvolvedor: qualquer Card de Magia ou Armadilha que seu oponente controle, incluindo cards baixados e Magias de Campo, impede este ataque direto.)",
+      "ja": "（開発者メモ：相手が魔法・罠カードを1枚でもコントロールしていると、セットされたカードやフィールド魔法を含め、この直接攻撃はできません）",
+      "ko": "(개발자 노트: 상대가 마법 또는 함정 카드를 컨트롤하고 있으면, 세트된 카드와 필드 마법을 포함하여 이 직접 공격을 할 수 없습니다.)",
+      "zh": "（开发者注：只要对方控制任何魔法或陷阱卡，包括盖放的卡和场地魔法，就无法进行此直接攻击）"
     }
   }
 }

@@ -26,3 +26,26 @@ try{for(const name of ['Pot of Greed','Jar of Greed','Cannon Soldier']){
  if(monster)assert.equal(e.lp[0],before-500,'Second monster effect resolves');
  assert.deepEqual(e.errors,[]);results.push(name+': own activation unaffected, first opposing activation negated, second resolves, new duel resets.');
 }for(const r of results)console.log('PASS '+r);}finally{e.destroy()}
+{// Solemn Relic plus Magic Mirror copying it: the first opposing activation is negated once, and the
+ // rest of that chain resolves (Discord, 2026-11-14: two Magical Dimensions in one chain were both negated).
+ const twice=spawnSync(fileURLToPath(new URL('../python/python.exe',import.meta.url)),['-c',"import passives;print(passives.script({'character':0,'artifacts':['solemn_relic','magic_mirror'],'mirror_copy':'solemn_relic','round':0,'curses':[]}))"],{cwd:root,encoding:'utf8'});
+ assert.equal(twice.status,0,twice.stderr);
+ const mst=id('Mystical Space Typhoon'),waboku=id('Waboku');
+ const d=await new MobileDuel(meta.cards).init([read('engine-data'),read('scripts')]);
+ const seen=[];const base2=d.onMessage.bind(d);d.onMessage=m=>{seen.push(m);base2(m)};
+ try{
+  const setup=`local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START+PHASE_DRAW) e:SetOperation(function(e) e:Reset()
+  for i=1,3 do Duel.MoveToField(Duel.CreateToken(0,${waboku}),0,0,LOCATION_SZONE,POS_FACEDOWN,true) end end) Duel.RegisterEffect(e,0)`;
+  d.start(Array(40).fill(normal),Array(40).fill(mst),10000,10000,5,185,[],[],twice.stdout+'\n'+setup);
+  let played=0;
+  for(let i=0;i<600&&d.pending&&d.turn<=2;i++){const m=d.pending;let r=null;
+   if(m.player===1&&m.type===M.SELECT_IDLECMD&&played<1){const k=m.activates.findIndex(c=>c.code===mst);if(k>=0){played++;r={type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}}
+   else if(m.player===1&&m.type===M.SELECT_CHAIN&&played<3){const k=m.selects.findIndex(c=>c.code===mst);if(k>=0){played++;r={type:R.SELECT_CHAIN,index:k}}}
+   if(!r&&m.type===M.SELECT_IDLECMD&&m.to_ep)r={type:R.SELECT_IDLECMD,action:I.TO_EP,index:null};
+   if(!r&&m.type===M.SELECT_CHAIN&&!m.forced)r={type:R.SELECT_CHAIN,index:null};
+   d.respond(r||d.auto());}
+  assert.equal(played,3,'three chained Typhoons');
+  assert.equal(seen.filter(m=>m.type===M.CHAIN_NEGATED).length,1,'two Solemn copies negate only the first activation');
+  assert.equal(d.query(0,L.SZONE).filter(c=>c&&c.code===waboku).length,1,'the second and third links resolve');
+  assert.deepEqual(d.errors,[]);console.log('PASS Solemn Relic with a Magic Mirror copy negates only the first card of the chain');
+ }finally{d.destroy()}}

@@ -186,6 +186,14 @@ const make=()=>{
  assert.equal(liveCardFacts(base,{attribute:34,race:8},[{race:'Aqua',data:{race:8}}]).attribute,'WATER / DARK');
 }
 
+// Fused relics with card-type or archetype bonuses show in the deck editor (Discord, 2026-11-14: Spirit Sanctuary).
+{
+ const card=n=>meta.cards.find(c=>c.name===n),stats=(n,relic)=>deckStats(card(n),{challenge_level:0,artifacts:[relic],card_mods:{}},0,meta.artifactInfo);
+ for(const [n,relic,atk,def] of [['Yata-Garasu','spirit_sanctuary',500,0],['Harpie Lady','harpie_nest',800,0],['Gadget Soldier','gadget_gadget',500,0],
+   ["Gravekeeper's Spy",'necrovalley_throne',800,800],['Don Zaloog','zaloog_hideout',800,0],['Dark Magician','chaos_orb',400,0],['Celtic Guardian','spirit_sanctuary',0,0]])
+  assert.deepEqual(stats(n,relic),[card(n).atk+atk,card(n).defense+def],n+' with '+relic);
+}
+
 // Chain Sometimes exceptions apply only when the engine has supplied that
 // card as a legal response.
 {

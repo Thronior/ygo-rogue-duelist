@@ -1,10 +1,12 @@
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
-const flags=['gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked'];
+const flags=['gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked','sleeves_all'];
+// Achievements: duelist unlocks (character:N) and card sleeves (sleeve:<id>, data/card-sleeves.json; user, 2026-11-14).
+const ACHIEVEMENT=/^(?:character:(?:[0-9]|[12][0-9]|3[0-8])|sleeve:[a-z0-9-]{1,60})$/;
 // Challenge levels run 0-6 (challenge_levels.py); dropping 6 hid Level 6 clears on linked devices.
 export function cleanProgress(p={}){
  const ids=a=>[...new Set((Array.isArray(a)?a:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<=38))].sort((a,b)=>a-b);
- return {characters:ids(p.characters),achievements:[...new Set((Array.isArray(p.achievements)?p.achievements:[]).filter(x=>/^character:(?:[0-9]|[12][0-9]|3[0-8])$/.test(x)))].sort(),levels:Object.fromEntries(Object.entries(p.levels||{}).filter(([k,v])=>/^(?:[0-9]|[12][0-9]|3[0-8])$/.test(k)&&Number.isInteger(v)&&v>=0&&v<=6)),flags:flags.filter(k=>Array.isArray(p.flags)&&p.flags.includes(k))};
+ return {characters:ids(p.characters),achievements:[...new Set((Array.isArray(p.achievements)?p.achievements:[]).filter(x=>typeof x==='string'&&ACHIEVEMENT.test(x)))].sort().slice(0,300),levels:Object.fromEntries(Object.entries(p.levels||{}).filter(([k,v])=>/^(?:[0-9]|[12][0-9]|3[0-8])$/.test(k)&&Number.isInteger(v)&&v>=0&&v<=6)),flags:flags.filter(k=>Array.isArray(p.flags)&&p.flags.includes(k))};
 }
 export function mergeProgress(a,b){a=cleanProgress(a);b=cleanProgress(b);return cleanProgress({characters:[...a.characters,...b.characters],achievements:[...a.achievements,...b.achievements],flags:[...a.flags,...b.flags],levels:Object.fromEntries([...new Set([...Object.keys(a.levels),...Object.keys(b.levels)])].map(k=>[k,Math.max(a.levels[k]??-1,b.levels[k]??-1)]))})}
 export class ProgressRegistry{

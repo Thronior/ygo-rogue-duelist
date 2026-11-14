@@ -7,7 +7,7 @@ with tempfile.TemporaryDirectory() as t:
  p={'unlocked':[0,1,2],'wins':7,'runs':12,'won_as':[],'run_history':[{'id':'keep'}],'character_levels':{'0':3},'gallery_unlocked':True}
  storage.write(storage.ROOT/'profile.json',p)
  for name in ['run.json','collector.json']:(storage.ROOT/name).write_text('untouched')
- result=progress_sync.merge({'characters':[3],'achievements':['character:3'],'levels':{'0':1,'1':5},'flags':['cpu_viewer_unlocked','relicless_unlocked'],'wins':999,'run_history':[]})
+ result=progress_sync.merge({'characters':[3],'achievements':['character:3'],'levels':{'0':1,'1':5},'flags':['cpu_viewer_unlocked','relicless_unlocked','sleeves_all'],'wins':999,'run_history':[]})
  merged=storage.profile()
  assert merged['wins']==7 and merged['runs']==12 and merged['run_history']==p['run_history']
  assert merged['character_levels']=={'0':3,'1':5}

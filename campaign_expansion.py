@@ -38,6 +38,9 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
  'approved_morphing_jar_2','approved_deck_thinning','approved_card_picker',
 })
 
+# Sanga of the Thunder, Kazejin, Suijin (Gate Calling).
+GATE_TRIO=frozenset({25955164,62340868,98434877})
+
 def shop_relic_eligible(run,key):
  character=CHARACTERS[run['character']]
  effect=ART_INFO[key]['effect']
@@ -47,6 +50,8 @@ def shop_relic_eligible(run,key):
  if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
  if not archetype_relics.has_member(key,run):return False
+ # Gate Calling only shows up while the current Deck holds Sanga of the Thunder, Kazejin or Suijin (user, 2026-11-14).
+ if key=='gate_calling' and not {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))}.intersection(GATE_TRIO):return False
  # Singleton Pact fixes the deck rules these relics would change.
  if key in ('deck_thinning','broken_limiter') and ar.has(run,'cursed_singleton_pact'):return False
  if key=='deck_thinning' and run.get('secret_challenge'):return False
@@ -552,6 +557,8 @@ def install(g):
    if boss and ar.can_heal(run,between=True):
     healed=max(0,min(int(2000*ar.heal_scale(run)),cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed;overflow=2000-healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')+(coins_before_rewards//10)*amount(run,'coin_heal')) if ar.can_heal(run,between=True) else 0
+   # Ring of Defense: the LP the player's own cards took during this Duel (approved_relics.self_lp_lost).
+   if ar.can_heal(run,between=True):heal+=ar.self_lp_lost(run,result.get('events',[]))
    heal=int(heal*ar.heal_scale(run))
    # Silver Chalice: all post-duel healing past the limit (boss, relic and coin healing) is not lost; every
    # 100 LP over becomes 3 coins.

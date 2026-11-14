@@ -5,6 +5,7 @@
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
 import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,splitStyle,deckSplitColumns} from './card-search.js';
 import {DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS,rememberDeckSort} from './deck-sort-preference.js';
+import {stacksOn,groupStacks,stackButton} from './deck-stacks.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const DECK_TYPE_TABS=['All','Monster','Spell','Trap','Extra'];
 const TYPE_BITS={Monster:1,Spell:2,Trap:4,Extra:64};
@@ -41,9 +42,14 @@ export function deckToolbar(ed,{searchKey,sorts,action,idPrefix}){
 }
 
 // The card area: one grid, or Deck and Collection panes when the screen is wide enough.
-export function deckCardsArea(ed,order,selected,cardMarkup){
- if(ed.deckSplit){const inDeck=new Set(selected);return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(order.filter(i=>inDeck.has(i)),order.filter(i=>!inDeck.has(i)),cardMarkup,ed.deckFilter==='Extra')}</div>`}
- return `<div class="draft-card-scroll"><div class="cardgrid">${order.map(cardMarkup).join('')||(ed.deckFilter==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`;
+// `stack` ({run, attr, extra, locked}) collapses copies when the player stacks them (deck-stacks.js).
+export function deckCardsArea(ed,order,selected,cardMarkup,stack=null){
+ const inDeck=new Set(selected),on=stack&&stacksOn();
+ if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;
+  if(on){const a=groupStacks(deckSide,stack.run,selected,stack.limit),b=groupStacks(rest,stack.run,selected,stack.limit);deckSide=a.order;rest=b.order;markup=i=>stackButton(cardMarkup(i),a.stack(i)||b.stack(i),{...stack,pane:inDeck.has(i)?'deck':'collection'})}
+  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra')}</div>`}
+ let cards;if(on){const s=groupStacks(order,stack.run,selected,stack.limit);cards=s.order.map(i=>stackButton(cardMarkup(i),s.stack(i),stack)).join('')}else cards=order.map(cardMarkup).join('');
+ return `<div class="draft-card-scroll"><div class="cardgrid">${cards||(ed.deckFilter==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`;
 }
 
 // One card button with its ATK/DEF (relic-aware, like solo) and NEW marker. `attrs` carries the host's tap action.

@@ -156,6 +156,8 @@ export class MobileDuel extends DuelEngine {
    if(group===10||group===11)this.events.push({kind:'loss_source',card:value,battle:group===11});
    if(group>=14&&group<=17)for(let i=0;i<Math.min(value,100);i++)this.events.push({kind:({14:'battle_destroy',15:'destroy',16:'banish',17:'tribute_summons'})[group]});
    if(group===12)this.events.push({kind:'loss_damage',amount:value});
+   // Ring of Defense: LP the player's own card effects and costs took (approved_relic_effects ring_of_defense).
+   if(group===20&&m.player===0)this.events.push({kind:'self_lp_loss',amount:value});
    if(group===13){this.resolutionSource=value;this.events.push({kind:'resolution',card:value});}
   }
   if(m.type===M.DAMAGE&&m.player===0){this.events.push({kind:'loss_damage',amount:m.amount});if(this.resolutionSource)this.events.push({kind:'loss_source',card:this.resolutionSource,battle:false});}

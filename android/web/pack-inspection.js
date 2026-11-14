@@ -1,16 +1,15 @@
 import {cardFrame} from './cpu-deck-model.js';
+// The Millennium Puzzle packs (content.py _fill_millennium_puzzles): Green every Spell, Red every Trap,
+// Yellow every monster, Purple every card. Whole sentences so each translates as one string.
 const ALL_CARD_PACKS = {
-  'WC4-20': 'Spell',
-  'WC4-21': 'Trap',
-  'WC4-22': 'Effect Monster',
-  'WC4-23': 'Monster',
-  'WC4-24': '',
+  'WC4-20': 'This pack includes all Spell cards in the game.',
+  'WC4-21': 'This pack includes all Trap cards in the game.',
+  'WC4-22': 'This pack includes all Monster cards in the game.',
+  'WC4-23': 'This pack includes all cards in the game.',
 };
 
 export function allCardsPackDescription(pack) {
-  if (!pack || !Object.hasOwn(ALL_CARD_PACKS, pack.id)) return '';
-  const category = ALL_CARD_PACKS[pack.id];
-  return `This pack includes all ${category ? category + ' ' : ''}cards in the game.`;
+  return pack && Object.hasOwn(ALL_CARD_PACKS, pack.id) ? ALL_CARD_PACKS[pack.id] : '';
 }
 
 export function formatPackChance(chance){

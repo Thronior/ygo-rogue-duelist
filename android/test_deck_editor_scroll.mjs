@@ -1,7 +1,7 @@
 // Picking cards must never throw the deck editors back to the top (fixed for the CPU editor in v0.1.97).
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-Object.assign(globalThis,{window:globalThis,Audio:class{},addEventListener(){},innerHeight:800,
+Object.assign(globalThis,{window:globalThis,Audio:class{},addEventListener(){},innerHeight:800,requestAnimationFrame(){return 0},
  document:{hidden:false,addEventListener(){},removeEventListener(){},querySelector(){return null},documentElement:{hasAttribute:()=>true}},location:{search:''},
  localStorage:{getItem(){return null},setItem(){},removeItem(){}}});
 const source=name=>readFileSync(new URL(`./web/${name}`,import.meta.url),'utf8');
@@ -13,7 +13,9 @@ for(const name of ['tapDraft','flushDraftTap','updateDraft']){
  const fn=body(mobile,name);
  assert.doesNotMatch(fn,/renderDraft\(|innerHTML|scrollTop/,`${name} must not redraw the deck editor`);
 }
-assert.match(body(mobile,'tapDraft'),/updateDraft\(/);assert.match(body(mobile,'flushDraftTap'),/updateDraft/);
+assert.match(body(mobile,'tapDraft'),/updateDraft\(/);
+// Stacked duplicates (deck-stacks.js) rebuild the grid on a tap, so that redraw must put every scroll position back.
+const stacked=body(mobile,'updateStackedGrid');assert.match(stacked,/tops=scrollers\.map\(s=>s\.scrollTop\)/);assert.match(stacked,/s\.scrollTop=tops\[n\]/);assert.match(body(mobile,'flushDraftTap'),/updateDraft/);
 
 // Tag: every tap redraws the tab, so render() must carry the list's scroll position into the new markup.
 const {TagUI}=await import('./web/tag-ui.js');

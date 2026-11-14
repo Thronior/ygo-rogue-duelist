@@ -15,3 +15,9 @@ console.log('PASS pairing, shared updates, monotonic merging, consumed/expired c
 const top=await call('sync',{group:a.group,token:a.token,progress:{levels:{0:6,2:6}}});assert.equal(top.progress.levels[0],6);assert.equal(top.progress.levels[2],6);
 assert.deepEqual(mergeProgress({levels:{0:2}},{levels:{0:6,1:7}}).levels,{'0':6});
 console.log('PASS Level 6 clears sync; levels above 6 are rejected');
+// Card sleeves and the sleevesforall unlock sync between linked devices (user, 2026-11-14).
+const sl=await call('sync',{group:a.group,token:a.token,progress:{achievements:['sleeve:gate-guardian','sleeve:3','sleeve:../x','sleeve:BAD',7],flags:['sleeves_all','made_up']}});
+assert(sl.progress.achievements.includes('sleeve:gate-guardian')&&sl.progress.achievements.includes('sleeve:3'));
+assert(!sl.progress.achievements.some(x=>x==='sleeve:../x'||x==='sleeve:BAD'));assert(sl.progress.flags.includes('sleeves_all')&&!sl.progress.flags.includes('made_up'));
+const kept=await call('sync',{group:a.group,token:a.token,progress:{}});assert(kept.progress.achievements.includes('sleeve:gate-guardian')&&kept.progress.flags.includes('sleeves_all'));
+console.log('PASS card sleeve achievements and sleevesforall sync; bad sleeve ids are dropped');

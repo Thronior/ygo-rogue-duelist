@@ -19,16 +19,14 @@ try:
 finally:relic_affinity.details,archetype_relics.weight=real_details,real_weight
 share=[{k:c[k]/N for k in 'obdh'} for c in slots]
 for i,s in enumerate(share):print(f'slot {i+1}: plain {s["o"]:.3f}  boosted {s["b"]:.3f}  no cards {s["d"]:.3f}  held back {s["h"]:.3f}')
-# Slot 1: plain relics take the givers' average, each giver counted at most NEUTRAL_AVERAGE_CAP: (min(cap,3)+0.4)/2.
-avg=(min(archetype_relics.NEUTRAL_AVERAGE_CAP,3)+0.4)/2;total=30+10*avg+4+0.5  # held: 2 relics x0.25
-assert abs(share[0]['b']-30/total)<0.01,(share[0],total)
-assert abs(share[0]['o']-10*avg/total)<0.01,(share[0],total)
-assert share[0]['d']<0.09,share[0]
-# Random slots: boosted relics a little less likely than plain ones, relics with no cards and held-back relics stay low.
+# Slot 1 (theme chances, 2026-11-14): the Deck no longer multiplies weights, so relics with matching cards ("boosted") and
+# plain relics both count 1; relics with no cards count x0.4 and held-back ones x0.25.
+total=10+10+10*archetype_relics.DEAD_RELIC+2*.25
+assert abs(share[0]['b']-10/total)<0.01 and abs(share[0]['o']-10/total)<0.01,(share[0],total)
+assert share[0]['d']<share[0]['o'] and share[0]['h']<0.03,share[0]
+# Random slots: relics with no cards and held-back relics stay low.
 for s in share[2:]:
- assert s['b']<s['o'],s
- assert s['b']>0.25,s
- assert s['d']<s['b'],s
+ assert s['d']<s['b'] and s['d']<s['o'],s
  assert s['h']<0.05,s
 
 # The combined boost is capped: 3x cards times the 5x category counts 6, not 15.
@@ -60,4 +58,4 @@ assert w['dimensional_rift'][0]==archetype_relics.RARITY['dimensional_rift']*arc
 run['round']=3
 w=archetype_relics.offer_weights(['dimensional_rift'],run,prices={'dimensional_rift':300},shop=True)
 assert w['dimensional_rift'][0]==archetype_relics.RARITY['dimensional_rift'],w
-print('PASS shop relic slots: 2 weighted, the rest random; boost cap, missing cards, plain relics keep their share, skips, early prices')
+print('PASS shop relic slots: 2 weighted, the rest random; boost cap, missing cards, skips, early prices')

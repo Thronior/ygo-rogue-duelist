@@ -60,15 +60,14 @@ assert all(key in c.ARTIFACTS for key in ra.RULES)
 pool=[ZOMBIE]*30+[VORSE]*10;rng=random.Random(5);seen=Counter()
 options=['bone','dragon','urn','eye']
 for _ in range(30000):seen[a.sample(options,1,run(pool),rng)[0]]+=1
-avg=(min(a.NEUTRAL_AVERAGE_CAP,ra.ceiling('bone'))+a.DEAD_RELIC+1)/3
+# Since 2026-11-14 the Deck works through theme chances, not multipliers. Zombies are 75% of the Deck's monsters, so the
+# Zombie theme aims at 18.75%; with 4 options Bone is already offered more often than that, so the roll adds nothing and
+# Bone, Eye and Urn all count 1, Dragon (no Dragons) x0.4.
 near=lambda x,want:abs(x/want-1)<0.08
-assert near(seen['bone']/seen['urn'],ra.ceiling('bone')/avg),(seen,avg)
-assert near(seen['dragon']/seen['urn'],a.DEAD_RELIC/avg),(seen,avg)
-assert near(seen['eye']/seen['urn'],1/avg),(seen,avg)
+assert near(seen['bone']/seen['urn'],1),seen
+assert near(seen['eye']/seen['urn'],1),seen
+assert near(seen['dragon']/seen['urn'],a.DEAD_RELIC),seen
 assert all(seen[k]>1000 for k in options),seen
-# The plain relic still gets a fair share, though a deck built around one theme now pulls that theme ahead
-# (givers count at most NEUTRAL_AVERAGE_CAP in the plain relics' average, 2026-11-13).
-assert near(seen['urn']/30000,avg/(ra.ceiling('bone')+a.DEAD_RELIC+1+avg)) and seen['urn']/30000>0.12,seen
 # Cursed offers use the same weights, still vary, and stay three different relics.
 r=run(pool);r['round']=2;cursed=Counter()
 target='cursed_ritual_scar'
@@ -79,8 +78,8 @@ for seed in range(1500):
 ritual=run([RITUAL]*40);ritual['round']=2;favoured=Counter()
 for seed in range(1500):
  ritual.pop('cursed_offer',None);cursed_relics.create_offer(ritual,random.Random(seed));favoured.update(ritual['cursed_offer']['options'])
-# Ritual Scar: x3 with a Ritual deck, x0.4 in a deck without Rituals (still offered), so far more common with Rituals.
-assert cursed[target]>0 and 6<favoured[target]/cursed[target]<25,(cursed[target],favoured[target])
+# Ritual Scar: its Ritual theme's chance with a Ritual deck, x0.4 in a deck without Rituals (still offered).
+assert cursed[target]>0 and favoured[target]>3*cursed[target],(cursed[target],favoured[target])
 
 # Archetype relics stay locked at zero cards and unlock at one.
 for key,card in [('demonic_pact','Archfiend Soldier'),('level_one','Horus the Black Flame Dragon LV4'),('level_up_relic','Horus the Black Flame Dragon LV4'),('dark_scorpion_squad','Dark Scorpion - Chick the Yellow')]:

@@ -29,7 +29,9 @@ def effect(kind):
  def both(v,t='true'):atk(v,t);defense(v,t)
  def handlimit(n):out.append(player_rule('EFFECT_HAND_LIMIT',n))
  if key=='solemn_relic':
-  out.append('do local used=false '+event('EVENT_CHAINING','if Duel.NegateActivation(ev) then used=true end','not used and rp==1 and re~=nil and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER|TYPE_SPELL|TYPE_TRAP)')+' end')
+  # Spent on the first negatable activation even if another copy (Magic Mirror) already negated it, so two copies
+  # never negate the next link of that chain too (Discord, 2026-11-14).
+  out.append('do local used=false '+event('EVENT_CHAINING','used=true if Duel.NegateActivation(ev) then --[[relic-hint]] end','not used and rp==1 and re~=nil and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER|TYPE_SPELL|TYPE_TRAP)')+' end')
  elif key=='second_wind':out.append('do local used=false '+phase('END','used=true Duel.Draw(0,2,REASON_EFFECT)','not used and Duel.GetFieldGroupCount(0,LOCATION_HAND,0)==0')+' end')
  elif key=='grave_lantern':defense('function() return math.min(800,100*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end')
  elif key=='ritual_vestment':both(300,'c:IsType(TYPE_RITUAL)')
@@ -228,7 +230,79 @@ e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) r
   # Like Metal Coating: the Duel adds a copy to the Deck when it holds none (campaign_expansion).
   out.append(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,{STRONGHOLD}) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,{STRONGHOLD}) if #g>0 then Duel.SendtoHand(g:GetFirst(),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end''')
+ # 2026-11-14 Discord relics. Player arguments: literal 0 for the Duel functions passives.multiplayer_script wraps or rewrites;
+ # tp (the owner) for card methods, for SpecialSummon / GetLocationCountFromEx, which it leaves alone, and through D (the
+ # unwrapped Duel) for lookups the wrapper would flip back to the other player.
+ elif key=='guardians_call':
+  # A summon procedure on each Guardian the player owns. The Guardian's own rule (it cannot be Summoned unless you control
+  # its Equip Spell face-up) still applies, so the procedure only adds the summon from the hand.
+  pairs=','.join(f'[{g}]={e}' for g,e in GUARDIAN_EQUIPS.items())
+  out.append(f'''do local D=(_G and _G.Duel) or Duel local used=-1 local equip={{{pairs}}}
+for c in Duel.GetMatchingGroup(function(c) return equip[c:GetOriginalCode()]~=nil end,0,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_REMOVED,0,nil):Iter() do
+ local e=Effect.CreateEffect(c) e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPSUMMON_PROC) e:SetProperty(EFFECT_FLAG_UNCOPYABLE) e:SetRange(LOCATION_HAND)
+ e:SetCondition(function(e,c) if c==nil then return true end local tp=c:GetControler() local code=equip[c:GetOriginalCode()]
+  return used~=Duel.GetTurnCount() and D.GetLocationCount(tp,LOCATION_MZONE)>0 and D.IsExistingMatchingCard(function(x) return x:IsFaceup() and x:IsCode(code) end,tp,LOCATION_SZONE,0,1,nil) end)
+ e:SetOperation(function(e,tp,eg,ep,ev,re,r,rp,c) used=Duel.GetTurnCount() --[[relic-hint]] end)
+ c:RegisterEffect(e) end end''')
+ elif key=='soul_fusion':
+  # Fusion Time's procedure (artifact_effects.fusion_time) with the materials banished from the GY instead of sent from the field.
+  out.append('''do local D=(_G and _G.Duel) or Duel local used=false
+local function mats(tp) return D.GetMatchingGroup(function(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end,tp,LOCATION_GRAVE,0,nil) end
+for fc in Duel.GetMatchingGroup(Card.IsType,0,LOCATION_EXTRA,0,nil,TYPE_FUSION):Iter() do
+ local e=Effect.CreateEffect(fc) e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPSUMMON_PROC) e:SetProperty(EFFECT_FLAG_UNCOPYABLE) e:SetRange(LOCATION_EXTRA) e:SetValue(SUMMON_TYPE_FUSION)
+ e:SetCondition(function(e,c) if c==nil then return true end if used then return false end local tp=c:GetControler()
+  return Duel.GetLocationCountFromEx(tp,tp,nil,c)>0 and c:CheckFusionMaterial(mats(tp),nil,tp) end)
+ e:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk,c)
+  if chk==0 then return c:CheckFusionMaterial(mats(tp),nil,tp) end
+  local sg=Duel.SelectFusionMaterial(tp,c,mats(tp),nil,tp)
+  if not sg or #sg==0 then return false end sg:KeepAlive() e:SetLabelObject(sg) return true end)
+ e:SetOperation(function(e,tp,eg,ep,ev,re,r,rp,c)
+  local sg=e:GetLabelObject() if not sg then return end used=true --[[relic-hint]]
+  c:SetMaterial(sg) Duel.Remove(sg,POS_FACEUP,REASON_MATERIAL|REASON_FUSION) sg:DeleteGroup() e:SetLabelObject(nil)
+  local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_CANNOT_ATTACK) a:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(a) end)
+ fc:RegisterEffect(e) end end''')
+ elif key=='gate_calling':
+  trio=','.join(map(str,GATE_TRIO))
+  out.append(f'''do local used=-1
+local function called(eg,tp) return eg:Filter(function(c) return c:IsControler(tp) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) and c:IsCode({trio}) end,nil):GetFirst() end
+local function other(s,e,tp) return function(c) return c:IsCode({trio}) and not c:IsCode(s:GetCode()) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
+e:SetCondition(function(e,tp,eg) local s=called(eg,tp) return used~=Duel.GetTurnCount() and s~=nil and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(other(s,e,tp),0,LOCATION_HAND,0,1,nil) end)
+e:SetOperation(function(e,tp,eg) local s=called(eg,tp) if not s then return end
+ local g=Duel.GetMatchingGroup(other(s,e,tp),0,LOCATION_HAND,0,nil) if #g==0 or Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,{GATE_TRIO[2]}<<4) then return end
+ used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ --[[relic-hint]] Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='dark_lotus':
+  # A reset effect can no longer summon, so the first Standby Phase is marked with a flag instead.
+  out.append('''do local done=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
+e:SetCondition(function() return not done and Duel.GetTurnPlayer()==0 end)
+e:SetOperation(function(e,tp) done=true
+ local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,tp,true,true)
+  and (c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0 or c:IsLocation(LOCATION_DECK) and Duel.GetLocationCount(0,LOCATION_MZONE)>0) end,0,LOCATION_DECK|LOCATION_EXTRA,0,nil)
+ if #g==0 then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,5592689<<4) then return end
+ Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ --[[relic-hint]] Duel.SpecialSummon(tc,0,tp,tp,true,true,POS_FACEUP) if tc:IsLocation(LOCATION_DECK) then Duel.ShuffleDeck(0) end end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='ultimate_armory':out.append(stat('EFFECT_INDESTRUCTABLE_EFFECT',1,'c:GetEquipGroup():FilterCount(function(x) return x:IsSpell() and x:IsType(TYPE_EQUIP) end,nil)>=3'))
+ elif key=='ring_of_defense':
+  # Reports each loss to the client (hint group 20, duel.js 'self_lp_loss'); the LP come back after the Duel
+  # (approved_relics.self_lp_lost). Only card effects count: relic and curse damage comes from handler-less global effects.
+  # A global effect's handler is a placeholder with no card code.
+  out.append('''do local function report(e,tp,eg,ep,ev) if ev>0 then Duel.Hint(HINT_MESSAGE,0,2000000000+math.min(ev,99999999)) end end
+local function card(re) local h=re and re:GetHandler() return h~=nil and h:GetOriginalCode()>0 end
+local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_DAMAGE)
+d:SetCondition(function(e,tp,eg,ep,ev,re,r,rp) return ep==0 and rp==0 and (r&REASON_EFFECT)~=0 and card(re) end) d:SetOperation(report) Duel.RegisterEffect(d,0)
+local c=Effect.GlobalEffect() c:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) c:SetCode(EVENT_PAY_LPCOST)
+c:SetCondition(function(e,tp,eg,ep,ev,re) return ep==0 and card(re) end) c:SetOperation(report) Duel.RegisterEffect(c,0) end''')
  return '\n'.join(out)
+
+# Guardian's Call: each Guardian and the Equip Spell its name is listed on.
+GUARDIAN_EQUIPS={73544866:68427465,10755153:95638658,74367458:69243953,47150851:32022366,9633505:95515060,46037213:21900719}
+# Gate Calling: Sanga of the Thunder, Kazejin, Suijin.
+GATE_TRIO=(25955164,62340868,98434877)
 
 def spirit_tribute(once):
  script='''do local used=false local function gy(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end
