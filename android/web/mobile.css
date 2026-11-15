@@ -1382,7 +1382,9 @@ input.switch:focus-visible{outline:2px solid #ffe2a3;outline-offset:2px}
 #modal.card-inspect-modal .modal-head{position:static;flex:0 0 auto;min-width:0;gap:8px}
 #modal.card-inspect-modal .modal-head h2{min-width:0;overflow-wrap:anywhere;font-size:clamp(15px,2.8vw,24px);margin:0}
 #modal.card-inspect-modal .modal-head button{flex-shrink:0}
-#modal.card-inspect-modal .inspect{flex:1 1 auto;min-height:0;overflow:hidden;grid-template-columns:minmax(80px,28%) minmax(0,1fr)}
+/* One row as tall as the window: without it the detail column grew past the window and was clipped, not scrolled
+   (Discord, 2026-11-15: landscape phones lost the end of long card texts). */
+#modal.card-inspect-modal .inspect{flex:1 1 auto;min-height:0;overflow:hidden;grid-template-columns:minmax(80px,28%) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 #modal.card-inspect-modal .inspect>img{width:100%;height:auto;max-height:100%;object-fit:contain;align-self:start}
 #modal.card-inspect-modal .inspect>div{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding-right:6px}
 #modal.card-inspect-modal .inspect-card-name{margin-top:0}
@@ -1968,7 +1970,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .source-packs,.source-opponents{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:12px}
 .source-packs img{width:100%;height:140px;object-fit:contain}.source-opponents figure{margin:0;text-align:center}.source-opponents img{width:100%;height:100px;object-fit:contain;object-position:bottom}.source-opponents figcaption{font-size:12px;overflow-wrap:anywhere}.source-opponents small{display:block;color:#e3c16c}
 /* Feedback update: bounded bars and overlays; no layout-affecting animations. */
-.cardbtn{position:relative}.deck-card-stats{position:absolute!important;bottom:24px;left:2px;right:2px;z-index:2;background:none!important;color:#fff!important;font-size:clamp(11px,1.1vw,16px)!important;font-weight:700;text-shadow:0 1px 3px #000,1px 0 2px #000,-1px 0 2px #000;pointer-events:none;padding:0!important}
+.cardbtn{position:relative}.cardbtn:has(.deck-card-stats){container-type:inline-size}.deck-card-stats{position:absolute!important;bottom:24px;left:2px;right:2px;z-index:2;background:none!important;color:#fff!important;font-size:min(15cqi,26px)!important;font-weight:700;text-shadow:0 1px 3px #000,1px 0 2px #000,-1px 0 2px #000;pointer-events:none;padding:0!important}
 .new-card-marker{position:absolute;top:4px;right:4px;z-index:3;padding:2px 5px;border-radius:4px;background:#fbe487;color:#15212b;font-size:11px;pointer-events:none}
 .type-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .duel .duel-tools-left>.active-relic-strip{display:none}
@@ -2020,9 +2022,6 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 /* Phones fit more of the deck on screen, in solo, Tag and Collector decks alike. */
 @media(orientation:landscape) and (max-height:500px){:is(.draft-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));column-gap:6px}}
 @media(orientation:portrait) and (max-width:480px){:is(.draft-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
-/* ATK / DEF stays on one line on the narrowest of those cards. */
-@media(orientation:portrait) and (max-width:380px){:is(.draft-scroll,.collector-deck-editor) .deck-card-stats{font-size:10px!important;white-space:nowrap}}
-@media(orientation:portrait) and (max-width:340px){:is(.draft-scroll,.collector-deck-editor) .deck-card-stats{font-size:9px!important}}
 .draft-scroll .cardbtn{overflow:visible}
 /* Curses and relics share one rail; only the rail scrolls, without visible chrome. */
 .duel>.portrait-relics,.duel>.portrait-relics *{scrollbar-width:none}
@@ -2617,9 +2616,8 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
  .route-page>header .route-coins{font-size:13px}
  .route-page>header button{width:28px;height:28px}
 }
-/* Deck Card Size setting: fixed cards per row, with the stat labels scaled to fit. */
+/* Deck Card Size setting: fixed cards per row (the stat labels scale with each card, see .deck-card-stats). */
 :root[data-deck-columns] :is(.draft-scroll,.tag-deck-scroll,.collector-deck-editor) .cardgrid{grid-template-columns:repeat(var(--deck-columns),minmax(0,1fr))}
-:root[data-deck-columns] :is(.draft-scroll,.tag-deck-scroll,.collector-deck-editor) .deck-card-stats{font-size:min(16px,calc(100vw/var(--deck-columns)/7.4))!important;white-space:nowrap}
 /* Inspection window: what is changing this monster right now. */
 .active-effects{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:6px}
 .active-effect{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:12px;line-height:1.2;color:#9fe0ff}
@@ -3042,7 +3040,9 @@ button:not(.cardbtn),select{font-weight:700}
 
 /* Run end screen: the run card in the centre at the screen's height, the celebrations on its left, sharing and next steps on its right.
    Portrait stacks them around the card. */
-.run-end{container-type:size;display:flex;flex-direction:column;padding:12px}
+.run-end{container-type:size;display:flex;flex-direction:column;padding:12px;overflow-y:auto;overscroll-behavior:contain}
+/* Large Text Size settings can make it taller than the screen (Discord, Nov 15: the buttons were out of reach). The
+   auto margins of .run-end-layout centre it when it fits and let it scroll from the top when it does not. */
 .run-end-layout{display:grid;grid-template-columns:minmax(0,300px) var(--card-w) minmax(0,300px);grid-template-areas:"left card right";align-items:center;gap:12px 24px;width:100%;margin-block:auto;justify-content:center;--card-w:min(560px,calc(100cqh*.8))}
 .run-end-left,.run-end-right{display:flex;flex-direction:column;gap:12px;min-width:0}
 .run-end-left{grid-area:left}.run-end-right{grid-area:right}
@@ -3557,3 +3557,51 @@ dialog:has(.lesson-done){overflow:hidden}
 #modal .card-art-full img{width:auto;height:min(calc(100dvh - 24px),calc((100vw - 24px)*1.458));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);object-fit:contain;border-radius:1.5%;-webkit-user-drag:none}
 /* Sideways swipes step cards; never let the browser take them as Back / Forward. */
 #modal:has(>.card-nav){touch-action:pan-y pinch-zoom}
+/* Favourite star on an opponent's guaranteed pack (Discord, Nov 15). */
+.pack-fav-mark{color:#ffd77a;font-weight:700;text-shadow:0 0 6px #e8c77866}
+/* Deck card ATK / DEF scales with its own card (user, Nov 15): the card is a size container and the label is 15% of its
+   width (the widest label, "8888 / 8888", is about 5.5em even in the monospace Pixel Art look, so it fills ~83%), so it stays on one line at every card size
+   and screen without per-screen rules. Capped at 26px on very large cards. */
+.deck-card-stats{white-space:nowrap!important}
+/* Next boss preview (Kzulu, Nov 15): the run progress strip opens it (run-progress.js). */
+.run-strip.has-boss-preview{cursor:pointer}
+.run-strip.has-boss-preview:hover,.run-strip.has-boss-preview:focus-visible{outline:1px solid #ffd76e88;outline-offset:-1px}
+.boss-preview{display:grid;gap:10px;max-width:440px}
+.boss-preview-hero{display:flex;align-items:center;gap:12px;padding:8px 12px;border:1px solid #c7a65a66;border-radius:8px;background:#0a1620 center/cover;box-shadow:inset 0 0 0 200px #0a1620a8}
+.boss-preview-hero img{width:72px;height:72px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 4px #000c)}
+.boss-preview-hero small{color:#e8c778;font-weight:bold;letter-spacing:1px;text-shadow:0 1px 3px #000}
+.boss-preview-hero h3{margin:2px 0 0;font-size:18px;text-shadow:0 1px 4px #000}
+.boss-preview-curses{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.boss-preview-curses li{display:flex;gap:10px;align-items:flex-start}
+.boss-preview-curses img{width:28px;height:28px;flex:none}
+.boss-preview-curses p{margin:2px 0 0;font-size:13px;line-height:1.35;color:#c8d6da}
+.boss-preview>.muted{margin:0}
+.run-end-final p{font-size:14px;color:#ffd76e}
+/* Pack tear (Discord 2026-11-15, mockup approved): the pack art is two copies clipped along one jagged line; opening shakes
+   the pack, flashes a seam, rips the top strip off up-right and drops the rest before the cards deal. Transforms and
+   opacity only. Reduced motion and iOS web keep their existing no-animation rules. */
+.pack-tear-art{position:relative;display:block;line-height:0}
+/* The glow is a still shadow behind the pack, not a filter on it (user, 2026-11-15: the tear lagged): a drop-shadow on the
+   element whose halves move is redrawn every frame of the tear, which weak GPUs and software rendering can't keep up with. */
+.pack-tear-art::before{content:"";position:absolute;inset:0;box-shadow:0 0 22px 2px #ffe8a080;pointer-events:none}
+.opening .pack-tear-art::before{animation:pack-tear-fade .2s forwards}
+.opening .pack-tear-art .pack-tear-top,.opening .pack-tear-art .pack-tear-body{will-change:transform,opacity}
+.pack-open .pack-tear-art img{filter:none}
+.pack-tear-art .pack-tear-top{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;clip-path:polygon(0 0,100% 0,100% 15%,94% 17.5%,88% 14.5%,81% 17.8%,74% 14.8%,67% 17.6%,60% 14.6%,53% 17.9%,46% 14.7%,39% 17.7%,32% 14.5%,25% 17.6%,18% 14.9%,11% 17.8%,5% 14.8%,0 17%)}
+.pack-tear-art .pack-tear-body{clip-path:polygon(0 17%,5% 14.8%,11% 17.8%,18% 14.9%,25% 17.6%,32% 14.5%,39% 17.7%,46% 14.7%,53% 17.9%,60% 14.6%,67% 17.6%,74% 14.8%,81% 17.8%,88% 14.5%,94% 17.5%,100% 15%,100% 100%,0 100%)}
+.pack-tear-seam{position:absolute;left:-4%;right:-4%;top:15.5%;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,#fff6d0,#ffd36b,#fff6d0,transparent);box-shadow:0 0 14px 4px #ffd36baa;opacity:0;transform:scaleX(.2);pointer-events:none}
+.opening .pack-open{animation:pack-tear-shake .14s ease-in-out 2}
+.opening .pack-open strong{animation:pack-tear-fade .2s forwards}
+.opening .pack-tear-seam{animation:pack-tear-seam .32s .2s ease-out forwards}
+.opening .pack-tear-art .pack-tear-top{animation:pack-tear-strip .45s .26s ease-out forwards}
+.opening .pack-tear-art .pack-tear-body{animation:pack-tear-drop .34s .42s ease-in forwards}
+@keyframes pack-tear-shake{25%{transform:translateX(-3px) rotate(-1.5deg)}75%{transform:translateX(3px) rotate(1.5deg)}}
+@keyframes pack-tear-seam{40%{opacity:1;transform:scaleX(1)}to{opacity:0;transform:scaleX(1.1)}}
+@keyframes pack-tear-strip{0%{transform:none;opacity:1}65%{opacity:1}to{transform:translate(120px,-100px) rotate(26deg);opacity:0}}
+@keyframes pack-tear-drop{to{transform:translateY(40px) scale(.96);opacity:0}}
+@keyframes pack-tear-fade{to{opacity:0}}
+
+/* Hand cards you can pick right where they are (user, 2026-11-15), lit like selectable zones; picked ones rise. */
+.duel .hand button.selectable{outline:3px solid #ffeb86;outline-offset:-3px;box-shadow:0 0 14px #fffbd2,inset 0 0 12px #fff5a366;cursor:pointer}
+.duel .hand button.target-picked{outline:4px solid #ffda64;outline-offset:-4px;box-shadow:0 0 24px #ffda64;translate:0 -10%}
+.field-selection.field-hint .selection-status{display:block;margin-top:2px;font-size:12px;color:#d9e8ea}

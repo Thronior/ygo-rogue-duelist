@@ -109387,5 +109387,107 @@
       "",
       ""
     ]
+  },
+  {
+    "id": 80186010,
+    "name": "Destroyersaurus",
+    "desc": "You can discard this card to the Graveyard; add 1 \"Jurassic World\" from your Deck to your hand.",
+    "type": "Effect Monster",
+    "race": "Dinosaur",
+    "attribute": "EARTH",
+    "level": 4,
+    "atk": 1800,
+    "defense": 1100,
+    "date": "2007-02-15",
+    "sets": [
+      {
+        "name": "Force of the Breaker",
+        "rarity": "Common"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/80186010.jpg",
+    "data": {
+      "code": 80186010,
+      "alias": 0,
+      "setcodes": [],
+      "type": 33,
+      "level": 4,
+      "attribute": 1,
+      "race": "65536",
+      "attack": 1800,
+      "defense": 1100,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Search",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "id": 10080320,
+    "name": "Jurassic World",
+    "desc": "All Dinosaur-Type monsters gain 300 ATK and DEF.",
+    "type": "Spell Card",
+    "race": "Field",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2006-06-22",
+    "sets": [
+      {
+        "name": "Structure Deck: Dinosaur's Rage",
+        "rarity": "Common"
+      }
+    ],
+    "image": "https://images.ygoprodeck.com/images/cards/10080320.jpg",
+    "data": {
+      "code": 10080320,
+      "alias": 0,
+      "setcodes": [],
+      "type": 524290,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
   }
 ]

@@ -190,6 +190,14 @@ def matches(key,c):
 # Archetype relics only appear once your card pool holds a card they help (Thronior, 2026-10-28).
 EXODIA={'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'}
 def _setcode(c,code):return any(int(x)&0xfff==code for x in c.get('data',{}).get('setcodes',[]))
+# 2026-11-15 relics that weigh with an archetype (user): the Dark Magician ones with the Dark Magician shop category's cards,
+# the Blue-Eyes and Red-Eyes ones with cards named or naming "Blue-Eyes" / "Red-Eyes".
+def _dark_magician(c):
+ import shop_rewards
+ return shop_rewards.matches(c,'darkmagician')
+def _eyes(*names):return lambda c:any(n in c['name'] or f'"{n}' in (c.get('desc') or '') for n in names)
+CARD_THEMES={'magicians_bond':_dark_magician,'master_and_apprentice':_dark_magician,'black_chaos_rite':_dark_magician,
+ 'blue_eyes_radiance':_eyes('Blue-Eyes'),'twin_eyes':_eyes('Blue-Eyes','Red-Eyes'),'dragon_blood_fusion':_eyes('Blue-Eyes','Red-Eyes')}
 def member_test(key,run):
  """The card test for an archetype relic, True if Name Changer already covers it, None for every other relic."""
  from content import ART_INFO
@@ -204,6 +212,7 @@ def member_test(key,run):
  elif effect=='variant_field_of_attraction':test=lambda c:bool(c['data']['type']&1) and _setcode(c,0x66)
  # Metal Coating (Bandit Keith's Metalmorph loadout): Metalmorph, the monsters it turns into, and what they Tribute.
  elif effect=='variant_metal_coating':test=lambda c:c['name'] in METALMORPH_CARDS
+ elif key in CARD_THEMES:test=CARD_THEMES[key]
  elif effect in ('archetype_atk','variant_swordsman_oath'):
   code=0x41 if effect=='variant_swordsman_oath' else int(info.get('filter') or '0',16)
   # Name Changer can already make every monster a member.

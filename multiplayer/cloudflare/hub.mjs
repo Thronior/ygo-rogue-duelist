@@ -151,6 +151,7 @@ export class MatchHub extends Hub {
   if(v.t==='emote'){if(m.phase!=='duel'||v.game!==m.game||!['❤️','😜','🍆'].includes(v.emoji))return;const at=Date.now();this.lastEmote??=[0,0];if(at-this.lastEmote[seat]<1500)return;this.lastEmote[seat]=at;this.broadcast({t:'emote',seat,emoji:v.emoji});return}
   if(v.game!==m.game||m.phase!=='duel')return ws.send(JSON.stringify({t:'room',phase:m.phase,game:m.game}));
   if(v.t==='r')return this.response(ws,seat,v);
+  if(v.t==='rs')return this.responses(ws,seat,v);
   if(v.t==='clock'){if(v.number!==m.count||!Number.isInteger(v.turn)||v.turn<1||![0,1,null].includes(v.actor))return;this.settle();m.clockVotes[seat]={number:v.number,turn:v.turn,actor:v.actor};const a=m.clockVotes[0],b=m.clockVotes[1];if(a&&b&&a.number===b.number&&a.turn===b.turn&&a.actor===b.actor){if(m.turn!==a.turn){m.turn=a.turn;m.turnLeft=[TURN_TIME,TURN_TIME]}m.actor=a.actor;m.clockAt=Date.now()+HANDOFF_GRACE;await this.save();await this.arm();this.broadcast({t:'presence',...this.presenceData()})}else await this.save();return}
   if(v.t==='result'){if(![0,1,2].includes(v.winner)||v.n!==m.count)return;m.votes[seat]=v.winner;if(Object.keys(m.votes).length<2){await this.save();return}const agreed=m.votes[0]===m.votes[1];if(!agreed){m.votes={};await this.save();this.broadcast({t:'desync'});return}await this.report({type:'game',winner:v.winner});return}
  }
@@ -162,14 +163,34 @@ export class MatchHub extends Hub {
  async response(ws,seat,v){
   const m=this.meta;
   if(Number.isInteger(v.n)&&v.n<m.count){const event=await this.eventAt(v.n);if(event?.seat===seat)ws.send(JSON.stringify({t:'ev',game:m.game,n:v.n,...event,...this.clock()}));return}
-  if(v.n!==m.count||m.actor!==seat||![0,1,null].includes(v.nextActor)||!Number.isInteger(v.turn)||v.turn<m.turn||v.turn>m.turn+1||!v.response||JSON.stringify(v.response).length>16384)return ws.send(JSON.stringify({t:'reject',game:m.game,n:v.n,count:m.count}));
-  const now=Date.now();this.settle(now);
+  if(!this.accepts(seat,v))return ws.send(JSON.stringify({t:'reject',game:m.game,n:v.n,count:m.count}));
+  const chunks={},done=this.record(seat,v,chunks);
+  await this.arm();await this.save(chunks);
+  this.broadcast({t:'ev',game:m.game,n:done.n,...done.event,...this.clock()});
+ }
+ // One player's quick answers in a row (Chain Sometimes passes, forced picks), sent as one bundle by v0.2.35+
+ // clients: every answer is checked like a single 'r', but they cost one storage write together (user, 2026-11-14).
+ // Answers the hub already holds are echoed, a refused one ends the bundle and the rest is rejected.
+ async responses(ws,seat,v){
+  const m=this.meta;if(!Number.isInteger(v.n)||!Array.isArray(v.items)||!v.items.length||v.items.length>EVENT_CHUNK)return;
+  const chunks={},done=[];let n=v.n,refused=false;
+  for(const item of v.items){
+   if(n<m.count){const event=await this.eventAt(n);if(event?.seat===seat)ws.send(JSON.stringify({t:'ev',game:m.game,n,...event,...this.clock()}));n++;continue}
+   const move={...item,n};if(!this.accepts(seat,move)){refused=true;break}
+   done.push(this.record(seat,move,chunks));n++;
+  }
+  if(done.length){await this.arm();await this.save(chunks);const clock=this.clock();for(const d of done)this.broadcast({t:'ev',game:m.game,n:d.n,...d.event,...clock})}
+  if(refused)ws.send(JSON.stringify({t:'reject',game:m.game,n,count:m.count}));
+ }
+ accepts(seat,v){const m=this.meta;return v.n===m.count&&m.actor===seat&&[0,1,null].includes(v.nextActor)&&Number.isInteger(v.turn)&&v.turn>=m.turn&&v.turn<=m.turn+1&&!!v.response&&JSON.stringify(v.response).length<=16384}
+ // Applies one accepted answer in memory; the caller stores it (and any closed chunk) with one save.
+ record(seat,v,chunks){
+  const m=this.meta,now=Date.now();this.settle(now);
   if(v.turn!==m.turn){m.turn=v.turn;m.turnLeft=[TURN_TIME,TURN_TIME]}
   m.clockAt=now+(v.nextActor!==m.actor?HANDOFF_GRACE:0);m.actor=v.nextActor;m.clockVotes={};
-  const event={seat,response:v.response,...(typeof v.h==='number'?{h:v.h}:{})};const n=m.count++;
-  m.open.push(event);m.openBytes+=JSON.stringify(event).length;let chunk={};
-  if(m.open.length>=EVENT_CHUNK||m.openBytes>=CHUNK_BYTES){chunk={[chunkKey(m.game,m.openFrom)]:m.open};m.open=[];m.openFrom=m.count;m.openBytes=0}
-  await this.arm();await this.save(chunk);
-  this.broadcast({t:'ev',game:m.game,n,...event,...this.clock()});
+  const event={seat,response:v.response,...(typeof v.h==='number'?{h:v.h}:{})},n=m.count++;
+  m.open.push(event);m.openBytes+=JSON.stringify(event).length;
+  if(m.open.length>=EVENT_CHUNK||m.openBytes>=CHUNK_BYTES){chunks[chunkKey(m.game,m.openFrom)]=m.open;m.open=[];m.openFrom=m.count;m.openBytes=0}
+  return {n,event};
  }
 }

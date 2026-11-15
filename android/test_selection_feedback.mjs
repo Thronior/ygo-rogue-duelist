@@ -3,11 +3,12 @@ const M={BECOME_TARGET:1,CARD_SELECTED:2,RANDOM_SELECTED:3,CHAIN_SOLVED:4,CHAIN_
 
 for(const type of [12,13]){trackEffectTargets(e,{type:1,cards:[card]},M);trackEffectTargets(e,{type}, {...M,SWAP:12,SHUFFLE_SET_CARD:13});assert.equal(e.effectTargets.length,0)}
 
-// Every location and side has its label; the field-or-X panel keeps its own process and never gets one.
+// Every location and side has its label. Picks from the field and your hand happen in place; when some choices are
+// elsewhere, the field-or-X window lists every choice with its label (user, 2026-11-15).
 const places=[[L.DECK,'Deck','Opp Deck'],[L.HAND,'Hand','Opp Hand'],[L.EXTRA,'Extra','Opp Extra'],[L.GRAVE,'Your GY','Opp GY'],[L.REMOVED,'Your Banished','Opp Banished'],[L.MZONE,'Your Field','Opp Field'],[L.SZONE,'Your Field','Opp Field'],[L.MZONE|L.OVERLAY,'Your Material','Opp Material']];
 for(const [location,mine,theirs] of places){assert.deepEqual(cardPlace({controller:0,location},L),{own:true,text:mine});assert.deepEqual(cardPlace({controller:1,location},L),{own:false,text:theirs})}
 assert.equal(cardPlace({controller:0,location:0},L),null);assert.equal(cardPlace(undefined,L),null);assert.equal(cardPlace(flipPerspective({controller:1,location:L.GRAVE}),L).text,'Your GY');
 const client=readFileSync(new URL('./web/mobile.js',import.meta.url),'utf8').split(/\r?\n/);
-assert(!client.find(line=>line.includes('field-selection-panel')).includes('placeBadge'));
-assert.equal(client.filter(line=>line.includes('placeBadge(c)}<span>')).length,2);
-console.log('PASS location labels for every zone and side, field-or-X panel unchanged');
+assert(client.find(line=>line.includes('off-field-options')).includes('placeBadge(c)'));assert(client.some(line=>line.includes('function handEntry')));
+assert.equal(client.filter(line=>line.includes('placeBadge(c)}<span>')).length,3);
+console.log('PASS location labels for every zone and side, field-or-X window labels every choice, hand picked in place');

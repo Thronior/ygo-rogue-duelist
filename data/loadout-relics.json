@@ -1,7 +1,7 @@
 {
  "_note": "Hidden (user, 2026-11-13): 5 relics per loadout whose deck weighting gain is doubled (at least x2). Never shown to players or in patch notes. Key: character id:variant index.",
- "0:0": ["dark", "tribute", "boss_monster", "eclipse", "tribute_free"],
- "0:1": ["fusion_chamber", "fusion_insignia", "machine_foundry", "mage", "dark"],
+ "0:0": ["dark", "tribute", "boss_monster", "eclipse", "tribute_free", "magicians_bond", "master_and_apprentice", "black_chaos_rite"],
+ "0:1": ["fusion_chamber", "fusion_insignia", "machine_foundry", "mage", "dark", "magicians_bond", "master_and_apprentice", "black_chaos_rite"],
  "1:0": ["dragon_triumph", "light", "tribute", "boss_monster", "tribute_free"],
  "1:1": ["union_dock", "unionize", "gear", "light", "fusion_chamber"],
  "2:0": ["lets_go_gambling", "weighted_coins", "weighted_dice", "ember", "fusion_chamber"],

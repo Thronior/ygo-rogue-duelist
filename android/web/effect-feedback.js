@@ -26,7 +26,8 @@ export function effectMessageCue(e,m,M,L){
 }
 
 export function effectChoiceCue(e,m,r,M){
- const source=e.name(e.effect?.code||m.code),prefix=source?source+' — ':'';
+ // No card behind the prompt (an order prompt, Discord Nov 15) means no "Card undefined —" prefix.
+ const code=m.type===M.SORT_CARD||m.type===M.SORT_CHAIN?0:e.effect?.code||m.code,source=code?e.name(code):'',prefix=source?source+' — ':'';
  let text;
  if(m.type===M.ANNOUNCE_NUMBER)text='declared '+m.options[r.value];
  if(m.type===M.ANNOUNCE_CARD)text='declared '+e.name(r.card);

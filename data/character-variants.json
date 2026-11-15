@@ -876,6 +876,22 @@
       "background_card": "Morphing Jar",
       "background": "character-backgrounds/variant-36.jpg"
     },
+    "37": {
+      "name": "Randomizer",
+      "starting_relic": "absolute_random",
+      "cards": [],
+      "randomized": true,
+      "copycat": false,
+      "starting_packs": [
+        "RANDOM-PACK",
+        "RANDOM-PACK",
+        "RANDOM-PACK",
+        "RANDOM-PACK"
+      ],
+      "theme": "Start with Absolute Random and 4 Random Packs. When the run starts, 1,000 randomized cards are made for it, and every pack and single in your shop comes from them. Build your own deck: randomized cards last for this run only.",
+      "background_card": "Magical Hats",
+      "background": "character-backgrounds/variant-37.jpg"
+    },
     "38": {
       "name": "Deck Assembler",
       "starting_relic": "none",

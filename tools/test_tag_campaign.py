@@ -85,6 +85,9 @@ import random,content,character_variants as cv
 vp=storage.profile();vp['unlocked']=list(range(len(content.CHARACTERS)));vp['character_levels']={str(i):2 for i in range(len(content.CHARACTERS))}
 for key,row in cv.VARIANTS.items():
  i=int(key);v=TagCampaign([i,0],[vp,vp],seed=9,variants=[1,0])
+ # Copycat's Randomizer is solo only (randomized cards are not shared between devices): Tag plays its Standard loadout.
+ if row.get('randomized'):
+  assert v.players[0]['variant']==0 and not v.players[0].get('random_cards'),key;continue
  assert v.players[0]['variant']==1 and v.players[0]['variant_name']==row['name'],key
  assert v.players[1]['variant']==0,key
  assert row['starting_relic'] in ('random_archetype','none') or row['starting_relic'] in v.shared['artifacts'],key

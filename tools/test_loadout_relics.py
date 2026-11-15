@@ -9,7 +9,8 @@ data={k:v for k,v in json.loads((ROOT/'data/loadout-relics.json').read_text(enco
 expected={f'{i}:0' for i in PLAYABLE_IDS}|{f'{i}:1' for i in PLAYABLE_IDS if str(i) in cv.VARIANTS}
 assert set(data)==expected,(expected^set(data))
 for k,v in data.items():
- assert len(v)==len(set(v))==5,k
+ # Yami Yugi's two loadouts also hold the three Dark Magician relics of 2026-11-15 (user): 8.
+ assert len(v)==len(set(v))==(8 if k in ('0:0','0:1') else 5),k
  assert all(r in ARTIFACTS and r not in relic_fusions.KEYS and r not in cursed_relics.approved() for r in v),k
 # Yami Yugi standard: Tribute Power with no high-Level cards in the Deck still counts x2 (not x0.4); a matching one doubles.
 run=g.new_run(0,random.Random(1));g.auto_deck(run)

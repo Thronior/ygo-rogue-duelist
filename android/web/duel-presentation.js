@@ -22,7 +22,9 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // Limiter Removal's text ends with "During the End Phase of this turn, destroy those monsters", which the timing words
  // below read as a reason to ask in every window (Discord 2026-11-11: Chain Sometimes asked for it all the time). It
  // matters around a battle: it asks when an attack is declared, in the Damage Step, and in answer to a chain.
- const battleBoost=new Set(['Limiter Removal']);
+ // Juragedo's field effect (Tribute it: another monster gains 1000 ATK) is legal in almost every window too (Discord
+ // 2026-11-15: it asked at every step); it matters in the same battle windows.
+ const battleBoost=new Set(['Limiter Removal','Juragedo']);
  if(mode==='sometimes'&&selects.length&&selects.every(choice=>battleBoost.has(context.card?.(choice.code)?.name)))return !!((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&(Timing.ATTACK|Timing.DAMAGE_STEP))||activeChain.length>0;
  // A Feint Plan only asks during the opponent's Battle Phase (user request 2026-11-04). Phase bits 0x08-0x80 are the
  // Battle Phase's steps, from its start to its end.

@@ -16,5 +16,9 @@ for(const timing of [0,Timing.SUMMON,Timing.SPSUMMON,Timing.END_PHASE,Timing.MAI
 same(chainWindowAllowed(ask([LIMITER,TRAP_HOLE],Timing.SUMMON),'sometimes',[],ctx),true,'beside another card, that card\'s policy still opens the window');
 same(chainWindowAllowed(ask([LIMITER],0),'never',[],ctx),false,'Never still skips it');
 same(chainWindowAllowed(ask([LIMITER],0),'always',[],ctx),true,'Always still offers it');
-console.log(`PASS Limiter Removal on Chain Sometimes: attack, Damage Step and chains only, ${checks} checks`);
+// Juragedo's on-field Quick Effect follows the same rule (Discord 2026-11-15: it asked at every step).
+const JURAGEDO=id('Juragedo'),mz=codes=>({...ask(codes,0),selects:codes.map(code=>({code,location:L.MZONE}))});
+same(chainWindowAllowed({...mz([JURAGEDO]),hint_timing:Timing.DAMAGE_STEP},'sometimes',[],ctx),true,'Juragedo asks in the Damage Step');
+for(const timing of [0,Timing.SUMMON,Timing.SPSUMMON,Timing.END_PHASE])same(chainWindowAllowed({...mz([JURAGEDO]),hint_timing:timing},'sometimes',[],ctx),false,'Juragedo quiet outside a battle, timing '+timing);
+console.log(`PASS Limiter Removal and Juragedo on Chain Sometimes: attack, Damage Step and chains only, ${checks} checks`);
 process.exit(0);

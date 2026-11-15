@@ -15,9 +15,17 @@ public final class MainActivity extends Activity {
     private WebView web;
     private static final int SAVE_DECK_IMAGE = 4102;
     private byte[] pendingDeckImage;
+    private static final int PICK_FILE = 4103;
+    private ValueCallback<Uri[]> pendingFiles;
     private void exportNotice(String text) { runOnUiThread(() -> android.widget.Toast.makeText(this,text,android.widget.Toast.LENGTH_LONG).show()); }
     @Override protected void onActivityResult(int request,int result,android.content.Intent data) {
         super.onActivityResult(request,result,data);
+        if(request==PICK_FILE){
+            final ValueCallback<Uri[]> callback;
+            synchronized(this){callback=pendingFiles;pendingFiles=null;}
+            if(callback!=null)callback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result,data));
+            return;
+        }
         if(request!=SAVE_DECK_IMAGE)return;
         final byte[] bytes;
         synchronized(this){bytes=pendingDeckImage;pendingDeckImage=null;}
@@ -41,6 +49,9 @@ public final class MainActivity extends Activity {
         UpdateCleanupReceiver.clearInstalled(this);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         web = new WebView(this); setContentView(web);
+        // A controller's D-pad focusing the view before any touch made Android draw its grey focus highlight over the
+        // whole game (Discord, 2026-11-15). The game draws its own controller cursor.
+        web.setDefaultFocusHighlightEnabled(false);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false); s.setAllowContentAccess(false);
@@ -52,7 +63,16 @@ public final class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.addJavascriptInterface(new SaveStore(), "ShadowNative");
-        web.setWebChromeClient(new WebChromeClient());
+        // File inputs (save import, recovery files) need the app to open the picker; a bare WebChromeClient ignores them.
+        // Any file type is offered because browsers save .json downloads with assorted MIME types; the game checks the contents.
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                synchronized(MainActivity.this){if(pendingFiles!=null)pendingFiles.onReceiveValue(null);pendingFiles=callback;}
+                android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).addCategory(android.content.Intent.CATEGORY_OPENABLE).setType("*/*");
+                try{startActivityForResult(android.content.Intent.createChooser(intent,null),PICK_FILE);return true;}
+                catch(android.content.ActivityNotFoundException e){synchronized(MainActivity.this){pendingFiles=null;}callback.onReceiveValue(null);exportNotice("No file picker is available on this device.");return true;}
+            }
+        });
         web.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView w, WebResourceRequest r) { if (r.isForMainFrame() && bundled(r.getUrl())) return false;
                 if (r.isForMainFrame() && "https".equals(r.getUrl().getScheme()) && "discord.gg".equals(r.getUrl().getHost())) {

@@ -98,7 +98,10 @@ RULES={
  'stone':(_races('Rock'),BROAD),'restless_stone':(_races('Rock'),COMMON),
  'overcharge':(_races('Thunder'),COMMON),'restless_dead':(_races('Zombie'),COMMON),'divine_might':(_races('Divine-Beast'),NARROW),
  'ember':(('attr:FIRE',),BROAD),'tide':(('attr:WATER',),BROAD),'gale':(('attr:WIND',),BROAD),'earth':(('attr:EARTH',),BROAD),
- 'light':(('attr:LIGHT',),BROAD),'dark':(('attr:DARK',),BROAD),'eclipse':(('attr:LIGHT','attr:DARK'),BROAD),
+ 'light':(('attr:LIGHT',),BROAD),'dark':(('attr:DARK',),BROAD),
+ # Eclipse Locket follows the Chaos monsters that banish a LIGHT and a DARK, not the Attributes almost every Deck has
+ # (user, Discord 2026-11-15: it came up nearly every second reroll).
+ 'eclipse':(('chaos',),NARROW),
  'normal':(('normal',),COMMON),'epitaph':(('normal',),COMMON),'underdog_clause':(('level:low',),COMMON),
  'cursed_commoners_chain':(('normal',),COMMON),'cursed_iron_silence':(('normal',),COMMON),
  'tribute':(('level:high',),COMMON),'tribute_dividend':(('level:high',),COMMON),'waning_star':(('level:high',),COMMON),
@@ -138,16 +141,22 @@ RULES={
  # Attribute Surgery shares its Attribute's theme with the matching Orb (an all-EARTH Deck: Earth Orb or EARTH Surgery).
  **{f'attribute_{a.lower()}':((f'attr:{a}',),BROAD) for a in ('LIGHT','DARK','FIRE','WATER','WIND','EARTH')},
  'armory_aid':(('equip',),NARROW),'spiritual_retribution':(('spirit',),NARROW),'cursed_vampiric_contact':(('heal',),NARROW),'cursed_reversed_remedy':(('lp_cost','burn'),NARROW),
+ # 2026-11-15 Discord relics (the Dark Magician, Blue-Eyes and Red-Eyes ones weigh as archetypes: archetype_relics.CARD_THEMES).
+ 'dragon_lords_decree':(('level:7+dragon',),NARROW),'titans_charge':(('level:7+',),NARROW),'cursed_poison_of_the_old_man':(('coin',),NARROW),
 }
 # Further weight groups for relics that suit more than one kind of deck (user, 2026-11-14). Each group is weighed on its own
 # and the relic takes the strongest one: a relic in two groups is never boosted by both at once.
 EXTRA_RULES={
  'ring_of_defense':[(('burn',),NARROW)],
+ # Eclipse Locket still follows LIGHT and DARK Decks too, damped in THEME_DAMPEN (user, 2026-11-15).
+ 'eclipse':[(('attr:LIGHT','attr:DARK'),BROAD)],
  'dark_lotus':[(('fusion',),NARROW)],
  'guardians_call':[(('equip',),NARROW)],
 }
 
 # Guardian's Call: the six Guardians with a dedicated Equip Spell.
+# Eclipse Locket: the monsters Special Summoned by banishing a LIGHT and a DARK monster from the GY.
+CHAOS_NAMES=frozenset({'Chaos Sorcerer','Black Luster Soldier - Envoy of the Beginning','Chaos Emperor Dragon - Envoy of the End'})
 GUARDIAN_NAMES=frozenset({'Guardian Baou','Guardian Ceal','Guardian Elma','Guardian Grarl',"Guardian Kay'est",'Guardian Tryce'})
 _tags={}
 def card_tags(c):
@@ -162,6 +171,8 @@ def card_tags(c):
   if level==4:tags.add('level:4')
   if level>=5:tags.add('level:high')
   if level>=7:tags.add('level:7+')
+  # Dragon Lord's Decree: Level 7 or higher Dragons (a "level:" tag, so single-card weights skip it).
+  if level>=7 and c.get('race')=='Dragon':tags.add('level:7+dragon')
   if kind&0x10:
    tags.add('normal')
    if level<=3:tags.add('normal:small')
@@ -173,6 +184,7 @@ def card_tags(c):
  if 'Gadget' in c['name'] or c['name']=='Stronghold the Moving Fortress':tags.add('gadget')
  if c['name'] in GUARDIAN_NAMES:tags.add('guardian')
  if c['name'] in ('Sanga of the Thunder','Kazejin','Suijin'):tags.add('gate_trio')
+ if c['name'] in CHAOS_NAMES:tags.add('chaos')
  # Walls: monsters built to defend (DEF 1500+ and above their ATK).
  if kind&1 and int(c.get('defense') or 0)>=1500 and int(c.get('defense') or 0)>int(c.get('atk') or 0):tags.add('wall')
  if not kind&0x10 and re.search(r'\bGraveyard\b|\bGY\b',desc):tags.add('graveyard')
@@ -232,16 +244,20 @@ def details(keys,run):
 # Cards with no feature at all (plain Spells/Traps) take the boosted cards' average, each counted at most
 # NEUTRAL_CARD_CAP, so a themed deck does not make general removal and staples rare. Level and Normal tags are left out:
 # they cover a third of all cards and would only add noise.
-CARD_TAG_SKIP=('level:','normal','continuous','wall','graveyard','gate_trio','guardian')
+CARD_TAG_SKIP=('level:','normal','continuous','wall','graveyard','gate_trio','guardian','chaos')
 NEUTRAL_CARD_CAP=2.0
 DEAD_CARD=.4
 CARD_BOOST_CAP=10.0
 CARD_CEILINGS_FILE=Path(__file__).parent/'data/card-tag-ceilings.json'
 try:_card_ceilings={k:float(v) for k,v in json.loads(CARD_CEILINGS_FILE.read_text(encoding='utf8')).items()}
 except (OSError,ValueError):_card_ceilings=None
+# Support cards that weigh with an archetype they don't belong to: Limiter Removal follows Harpie Decks, so Mai
+# Valentine's Harpie loadout finds it more easily (user, Discord 2026-11-15).
+CARD_EXTRA_SETS={23171610:(100,)}
 def card_weight_tags(c):
  tags=[t for t in card_tags(c) if not t.startswith(CARD_TAG_SKIP)]
  tags+=['set:'+str(int(x)&0xfff) for x in c.get('data',{}).get('setcodes',[]) if int(x)&0xfff]
+ tags+=['set:'+str(s) for s in CARD_EXTRA_SETS.get(c.get('id'),()) if 'set:'+str(s) not in tags]
  return tags
 def _tag_threshold(tag):
  if tag.startswith('set:'):return NARROW
@@ -340,6 +356,11 @@ THEME_START,THEME_TOP,THEME_CATEGORY=.25,.48,.88
 # Specific themes come first (user, 2026-11-14): archetypes, then card-count themes (gambling, burn...), then the broad ones
 # (Attributes, Types, Levels, walls, GY). When a stock's relic slots run short, Archfiend beats DARK and Fiend.
 THEME_RANK={'set':0,'narrow':1,'common':2,'broad':2}
+# Themes almost every Deck fits gain far less (user, 2026-11-15): most monsters people play are Level 4, so the Level 4
+# relics (Stars Aligned, Village Banner) top out at 7.5% instead of 25%.
+# Normal Monster relics (Normal Barrier, Epitaph...) came up too often (user, Discord 2026-11-15): they top out at 12.5%.
+# Eclipse Locket's LIGHT-or-DARK theme fits almost every Deck, so it gains little from it (key: its tags joined with +).
+THEME_DAMPEN={'level:4':.3,'normal':.5,'attr:DARK+attr:LIGHT':.3}
 def theme_chance(x):
  return THEME_START*x if x<=1 else min(THEME_TOP,THEME_START+(THEME_TOP-THEME_START)*(x-1))
 
@@ -421,7 +442,7 @@ def theme_chances(run):
    wanted=set(spec);mon=all(w.startswith(MONSTER_TAGS) for w in wanted)
    count=sum(n for c,n in cards if card_tags(c)&wanted)
    if kind=='narrow':return count/(minimum/4)
-   share=count/max(1,monsters if mon else total)
+   share=count/max(1,monsters if mon else total)*THEME_DAMPEN.get('+'.join(sorted(wanted)),min(THEME_DAMPEN.get(w,1) for w in wanted))
    # Broad themes (Attributes, Types, Levels, walls, GY) top out at 25% for a Deck made only of them.
    return share
  for gid,(parts,members) in theme_groups().items():

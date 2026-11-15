@@ -147,5 +147,7 @@ export class TagPeer {
  async reconnect(){if(this.closed){this.closed=false;this.connectHub();return}this.hub?.wake();}
  // A temporary disconnect keeps the seat token. Only Leave releases the room.
  suspend(){this.closed=true;this.linked=false;clearInterval(this.ticker);clearTimeout(this.ackTimer);this.ackTimer=null;clearTimeout(this.directTimer);this.directTimer=null;globalThis.removeEventListener?.('online',this.retryDirect);this.hub?.stop();this.hub=null;this.closeDirect()}
- async close(){this.suspend();if(this.token){await this.request('leave');localStorage.removeItem(this.endpoint+':tag:'+this.code);await globalThis.flushDesktopStorage?.();this.token=null}}
+ // A room the host already closed answers 'leave' with an error; the seat is released either way (Discord, Nov 15:
+ // the guest's Exit used to throw here and leave them stuck in the room).
+ async close(){this.suspend();if(this.token){try{await this.request('leave')}catch{}localStorage.removeItem(this.endpoint+':tag:'+this.code);this.token=null;await globalThis.flushDesktopStorage?.()}}
 }

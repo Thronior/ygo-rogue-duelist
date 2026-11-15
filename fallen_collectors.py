@@ -14,7 +14,7 @@ def sanitize(rows):
   if not isinstance(main,list) or not isinstance(extra,list) or not 40<=len(main)<=60 or len(extra)>15:continue
   if any(type(cid) is not int or cid not in g.BY_ID for cid in main+extra):continue
   if any(g.is_extra(cid) for cid in main) or any(not g.is_extra(cid) for cid in extra):continue
-  if max(Counter(g.card_identity(cid) for cid in main+extra).values(),default=0)>3:continue
+  if max(Counter(g.limit_identity(cid) for cid in main+extra).values(),default=0)>3:continue
   result.append(dict(id=str(row.get('id',''))[:64],name=str(row.get('name','Fallen duelist'))[:32],character=character,deck=dict(main=main[:],extra=extra[:])))
  return result
 

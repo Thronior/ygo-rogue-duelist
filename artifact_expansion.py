@@ -31,8 +31,8 @@ def install(artifact):
  artifact('the_creator','The Creator',300,'Once per turn, during your Standby Phase, Special Summon 1 monster from your GY. This relic appears less often than other relics.','The Creator','standby_revive',0,'other')
  artifact('normal_barrier','Normal Barrier',150,"Normal Monsters you control are unaffected by your opponent's Spell Cards.",'Spell Shield Type-8','normal_spell_immune',0,'defense')
  artifact('stand_tall','Stand Tall',90,'Stat reductions on monsters you control are halved.','Ceasefire','halve_debuffs',0,'defense')
- artifact('protect_the_weak','Protect the Weak',100,'While you control 2 or more monsters, your weakest monster cannot be attacked.','Guardian Angel Joan','guard_weakest',0,'defense')
- artifact('sacrifice_the_weak','Sacrifice the Weak',100,'While you control 2 or more monsters, your strongest monster cannot be attacked.','Mirror Wall','guard_strongest',0,'defense')
+ artifact('protect_the_weak','Protect the Weak',100,'While you control 2 or more monsters, your face-up monster with the lowest ATK cannot be attacked.','Guardian Angel Joan','guard_weakest',0,'defense')
+ artifact('sacrifice_the_weak','Sacrifice the Weak',100,'While you control 2 or more monsters, your face-up monster with the highest ATK cannot be attacked.','Mirror Wall','guard_strongest',0,'defense')
  artifact('tenacity_of_the_weak','Tenacity of the Weak',100,'Your Level 3 or lower Normal Monsters cannot be destroyed by card effects.','Mokey Mokey','weak_normals_stand',0,'defense')
  # TRUANT's rework (Discord, 2026-11-13): each Spirit may return or stay, since Otohime and Tsukuyomi want to go back.
  artifact('good_spirits','Good Spirits',80,'Spirit monsters you control do not have to return to the hand during the End Phase. You choose for each one.','Spiritual Energy Settle Machine','spirit_may_return',0,'defense')

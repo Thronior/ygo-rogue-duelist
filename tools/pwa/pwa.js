@@ -30,7 +30,17 @@ function placeUpdateButton(){
  const menu=document.querySelector('.web-install-menu');
  if(menu&&!menu.parentElement.querySelector('.web-update-ready'))menu.insertAdjacentHTML('afterend','<button class="web-update-ready" data-web-update>Update ready · Restart</button>');
 }
+// The game failed to start (2026-11-14: v0.2.33 kept crashing on load after its fix had shipped, because the cached
+// version runs until the player restarts it). No duel can be running, so a fixed version is applied without asking.
+const bootFailed=()=>document.documentElement.dataset.bootFailed==='true';
+function recoverFromBootFailure(){
+ if(!bootFailed()||restarting)return;
+ if(registration?.waiting){report('A newer version is ready. Restarting…');restart();return;}
+ if(registration?.active&&!registration.installing)registration.update().catch(()=>{});
+}
+window.addEventListener('ygo-boot-failed',recoverFromBootFailure);
 function updateReady(){
+ if(bootFailed()&&!restarting){recoverFromBootFailure();return;}
  report(storageFull?'Update downloaded without offline files (not enough browser storage). Restart the game to apply it.':'Update downloaded. Restart the game to apply it.');
  panel.querySelector('#web-restart').hidden=false;
  if(!observer){observer=new MutationObserver(placeUpdateButton);observer.observe(document.body,{childList:true,subtree:true});}
@@ -55,7 +65,7 @@ function watch(worker){
 }
 function use(reg){
  if(!reg||registration===reg)return reg;
- registration=reg;reg.addEventListener('updatefound',()=>watch(reg.installing));return reg;
+ registration=reg;reg.addEventListener('updatefound',()=>watch(reg.installing));recoverFromBootFailure();return reg;
 }
 async function describe(){
  if(registration?.waiting)return updateReady();

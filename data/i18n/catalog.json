@@ -15865,7 +15865,7 @@
  },
  {
   "group": "relic",
-  "en": "While you control 2 or more monsters, your weakest monster cannot be attacked.",
+  "en": "While you control 2 or more monsters, your face-up monster with the lowest ATK cannot be attacked.",
   "kind": "exact",
   "ctx": "relic effect (protect_the_weak)"
  },
@@ -15877,7 +15877,7 @@
  },
  {
   "group": "relic",
-  "en": "While you control 2 or more monsters, your strongest monster cannot be attacked.",
+  "en": "While you control 2 or more monsters, your face-up monster with the highest ATK cannot be attacked.",
   "kind": "exact",
   "ctx": "relic effect (sacrifice_the_weak)"
  },
@@ -23680,5 +23680,353 @@
   "en": "Show a greyed-out Activate on cards you can’t activate right now; tap it to see why.",
   "kind": "exact",
   "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Import a save file",
+  "kind": "exact",
+  "ctx": "mobile.js,device-backup.js"
+ },
+ {
+  "group": "ui",
+  "en": "A save backup exported from the browser version, or a recovery file from the admin.",
+  "kind": "exact",
+  "ctx": "mobile.js,device-backup.js"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a save file exported from the game.",
+  "kind": "exact",
+  "ctx": "mobile.js,device-backup.js"
+ },
+ {
+  "group": "ui",
+  "en": "Import this save? This replaces current runs, progress and Ultimate Collectors.",
+  "kind": "exact",
+  "ctx": "mobile.js,device-backup.js"
+ },
+ {
+  "group": "ui",
+  "en": "The online servers have reached today's free usage limit, so online play, cloud saves and global stats are paused. They come back after the daily reset at 00:00 UTC. Your progress on this device is safe.",
+  "kind": "exact",
+  "ctx": "online-status.js (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Can't reach the online servers right now. If they have reached today's usage limit, they come back after the daily reset at 00:00 UTC. Your progress on this device is safe.",
+  "kind": "exact",
+  "ctx": "online-status.js (2026-11-15)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 500 ATK. They gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.",
+  "kind": "exact",
+  "ctx": "Ritual Scar (2026-11-15)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.",
+  "kind": "exact",
+  "ctx": "Ritual Scar (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Currently {0} ATK",
+  "kind": "pattern",
+  "ctx": "Ritual Scar (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Hosting only: the Draft Screen offers packs alone and every duel is played without relics.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Every duel in this room is played without relics.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "The host can tick No relics: the Draft Screen then offers character packs only, and every duel is played without relics.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Choose one character pack.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Choose a pack that is still available.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "This room is played without relics. Update or refresh the game to join it.",
+  "kind": "exact",
+  "ctx": "draft-ui.js No relics rooms (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "UI Scale",
+  "kind": "exact",
+  "ctx": "mobile.js UI Scale setting (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Size of the whole game, for large or high-resolution screens. Auto enlarges it on very wide windows.",
+  "kind": "exact",
+  "ctx": "mobile.js UI Scale setting (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Auto ({0}%)",
+  "kind": "pattern",
+  "ctx": "mobile.js UI Scale setting (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Next boss",
+  "kind": "exact",
+  "ctx": "run-progress.js, mobile.js, endless.py (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "No curses.",
+  "kind": "exact",
+  "ctx": "run-progress.js, mobile.js, endless.py (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Depends on the curse you take in Duel 1.",
+  "kind": "exact",
+  "ctx": "run-progress.js, mobile.js, endless.py (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "You conquered the final loop.",
+  "kind": "exact",
+  "ctx": "run-progress.js, mobile.js, endless.py (2026-11-15)"
+ },
+ {
+  "group": "relic",
+  "en": "Magician's Bond",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, if you Normal Summon a \"Dark Magician\" monster: You can add 1 card that mentions \"Dark Magician\" from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Blue-Eyes Radiance",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn: You can send 3 \"Blue-Eyes White Dragon\" from your hand and/or field to the GY; Special Summon 1 \"Blue-Eyes Shining Dragon\" from your hand or Deck, ignoring its Summoning conditions. It is unaffected by other card effects until the end of your opponent's next turn.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Master and Apprentice",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, if a \"Dark Magician\" monster you control is destroyed: You can Special Summon 1 \"Dark Magician\" monster from your hand, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Black Chaos Rite",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel: You can Tribute 1 \"Dark Magician\" you control; Special Summon 1 \"Dark Magician of Chaos\" from your hand or Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Dragon Lord's Decree",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel: You can discard 2 Dragon monsters; Special Summon 1 Level 7 or higher Dragon monster from your hand.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Twin Eyes",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, during your first Standby Phase: Special Summon 1 \"Blue-Eyes\" or \"Red-Eyes\" monster from your Deck in Attack Position.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Dragon Blood Fusion",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Titan's Charge",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, when a Level 7 or higher monster you control destroys an opponent's monster by battle: It can make a second attack in a row.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Poison of the Old Man",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Tails: Lose 500 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP. Tails: Lose 500 LP.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn: You can banish 1 \"Blue-Eyes\" or \"Red-Eyes\" monster you control; Special Summon 1 Fusion Monster from your Extra Deck that lists the banished monster as Fusion Material, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-15 (Discord relic suggestions)"
+ },
+ {
+  "group": "ui",
+  "en": "Too many copies",
+  "kind": "exact",
+  "ctx": "tag-ui.js too many copies pop-up (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Only 1 copy of each card",
+  "kind": "exact",
+  "ctx": "tag-ui.js too many copies pop-up (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Your Deck can contain at most 3 copies of a card.",
+  "kind": "exact",
+  "ctx": "tag-ui.js too many copies pop-up (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Remove the extra copies, then press the swords again.",
+  "kind": "exact",
+  "ctx": "tag-ui.js too many copies pop-up (2026-11-15)"
+ },
+ {
+  "group": "relic",
+  "en": "Absolute Random",
+  "kind": "exact",
+  "ctx": "relic name (absolute_random)"
+ },
+ {
+  "group": "relic",
+  "en": "After each victory, open a free Random Pack of 9 randomized cards. Randomized cards last for this run only.",
+  "kind": "exact",
+  "ctx": "relic effect (absolute_random)"
+ },
+ {
+  "group": "ui",
+  "en": "Random Pack",
+  "kind": "exact",
+  "ctx": "random-cards.js pack name"
+ },
+ {
+  "group": "ui",
+  "en": "Nine randomized cards: new names, art, stats and effects, made for you when you open it. Randomized cards last for this run only.",
+  "kind": "exact",
+  "ctx": "random-cards.js pack description"
+ },
+ {
+  "group": "ui",
+  "en": "RANDOMIZING CARDS",
+  "kind": "exact",
+  "ctx": "random-cards.js loading title"
+ },
+ {
+  "group": "character",
+  "en": "Randomizer",
+  "kind": "exact",
+  "ctx": "variant title of Copycat"
+ },
+ {
+  "group": "character",
+  "en": "Start with Absolute Random and 4 Random Packs. When the run starts, 1,000 randomized cards are made for it, and every pack and single in your shop comes from them. Build your own deck: randomized cards last for this run only.",
+  "kind": "exact",
+  "ctx": "variant theme of Copycat"
+ },
+ {
+  "group": "python",
+  "en": "You have {0} copies of {1}. You can use at most three copies of a card.",
+  "kind": "pattern",
+  "ctx": "campaign.py validate (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Controller Button Guide",
+  "kind": "exact",
+  "ctx": "mobile.js gameplay settings (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Show which controller button does what in the bottom-left corner while you play with a controller.",
+  "kind": "exact",
+  "ctx": "mobile.js gameplay settings (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Run restarted.",
+  "kind": "exact",
+  "ctx": "hold-R restart (2026-11-15)"
+ },
+ {
+  "group": "python",
+  "en": "The run can only be restarted before the end of its first duel.",
+  "kind": "exact",
+  "ctx": "hold-R restart (2026-11-15)"
  }
 ]

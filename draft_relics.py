@@ -4,7 +4,7 @@ The rooms Worker offers relics from eligible() (exported to multiplayer/cloudfla
 tools/generate_collector_catalog.py). Both clients build the duel's relic scripts with duel_setup() from the same
 room data, so their engines stay identical. The rules follow the Tag final duel (tag_campaign.prepare_finale)."""
 import random
-import campaign as g, content, passives, approved_relics as ar
+import campaign as g, content, passives, approved_relics as ar, relic_fusions
 
 # Opening-hand relics act through the draw count, not the script, so the script test below misses them.
 OPENING=('rulebook',)
@@ -17,14 +17,33 @@ def _base(character):
 
 def eligible():
  """Every relic that changes a duel: no shop/coin relics, removed relics or relics that ask for a campaign choice.
- Cursed and fused relics are included (the user's choice, 2026-11-13)."""
+ Cursed relics are included (the user's choice, 2026-11-13); fused relics are not (user, 2026-11-15: they made
+ matches unfair too fast)."""
  import re
  strip=lambda s:re.sub(r'-- SHADOW_RUN_AI .*','',s)
  base=_base(0);plain=strip(passives.multiplayer_script(base,1));keys=[]
  for key,info in content.ART_INFO.items():
-  if key in ar.REMOVED or key in ar.CHOICE_RELICS or info.get('tag')=='economy':continue
+  if key in ar.REMOVED or key in ar.CHOICE_RELICS or key in relic_fusions.KEYS or info.get('tag')=='economy':continue
   if key in OPENING or info.get('effect')=='opening' or strip(passives.multiplayer_script(dict(base,artifacts=[key]),1))!=plain:keys.append(key)
  return keys
+
+# Rarity (user, 2026-11-15): offers stay random, but stronger relics come up less often. The tier follows the shop
+# price; cursed relics cost nothing in the shop and count as Uncommon. archetype_relics.RARITY (relics rare by design)
+# multiplies on top. No rarity label is shown to players.
+TIERS=((95,1.0,'Common'),(150,.6,'Uncommon'),(250,.3,'Rare'))
+VERY_RARE=(.1,'Very rare')
+def tier(key):
+ price=content.ARTIFACTS[key][1]
+ if key in ar.CURSED_IDS and not price:return TIERS[1][1:]
+ return next((t[1:] for t in TIERS if price<t[0]),VERY_RARE)
+
+def weight(key):
+ import archetype_relics
+ return round(tier(key)[0]*archetype_relics.RARITY.get(key,1.0),4)
+
+def offers():
+ """The Worker's draft-relics.json: each eligible relic with its draw weight."""
+ return [{'key':key,'weight':weight(key)} for key in eligible()]
 
 def duel_setup(value):
  """value: relics, characters and decks ({main, extra}) per engine player (0 goes first), and the duel seed.

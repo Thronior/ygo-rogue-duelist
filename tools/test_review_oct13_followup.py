@@ -5,8 +5,11 @@ import storage,campaign as g,content,approved_relics as ar,cursed_relics,secret_
 storage.ROOT=Path(tempfile.mkdtemp(dir=ROOT/'temp',prefix='review-followup-'));g.SAVE=storage.ROOT/'run.json'
 profile=storage.profile();profile['unlocked']=list(content.PLAYABLE_IDS);storage.write(storage.ROOT/'profile.json',profile)
 ids=lambda names:[g.BY_NAME[n]['id'] for n in names]
+# A Legendary Ocean shares Umi's 3-copy limit, and Harpie Lady 1/2/3 and Cyber Harpie Lady share Harpie Lady's (user, 2026-11-15).
 main,extra=g.legal_fixed_cards(ids(['Umi']*2+['A Legendary Ocean']*2),[])
 assert len(main)==3
+main,extra=g.legal_fixed_cards(ids(['Harpie Lady']*3+['Harpie Lady 1']*3+['Harpie Lady 2']*4+['Cyber Harpie Lady']*3),[])
+assert len(main)==3,len(main)
 for char in (37,38):
  for seed in range(20):
   r=g.new_run(char,random.Random(seed));r.update(stage='shop',round=1,duel={'id':'test'})

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DraftRegistry} from './collector.mjs';
-import {draftPool,draftOffer,minDeckFor,buildable,DRAFT_PACKS,DRAFT_RELICS} from './draft-pool.mjs';
+import {draftPool,draftOffer,minDeckFor,buildable,DRAFT_PACKS,DRAFT_RELICS,DRAFT_RELIC_WEIGHTS} from './draft-pool.mjs';
 import catalog from './draft-catalog.json' with {type:'json'};
 import cards from './collector-cards.json' with {type:'json'};
 const byId=new Map(cards.map(c=>[c.id,c]));
@@ -79,4 +79,47 @@ test('older clients keep best of three with eight boosters',async()=>{
  assert.equal(reg.data.players.p0.packs.length,8);assert(!reg.data.players.p0.loop);
  const host=await call(0,'host');assert(!host.room.loop);
  const loopReg=await registry(),lc=caller(loopReg);await lc(0,'register',{duelist:{id:'p0',name:'New',character:1}});
+});
+
+// Seeded so the weighted-draw counts below are the same on every run.
+const seeded=seed=>()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+test('relic rarity: offers are drawn by weight, never repeat, and never include fused relics',()=>{
+ // A sample of relic_fusions.FUSED results (2026-11-15: fused relics are out of Draft); cursed relics stay in.
+ for(const fused of ['chaos_orb','four_elements','masterwork_blade','gaia_plate','invincible','tyrants_throne','sacred_phoenix','attribute_mutation'])assert(!DRAFT_RELICS.includes(fused),fused);
+ assert(DRAFT_RELICS.some(k=>k.startsWith('cursed_')),'cursed relics stay in');
+ assert(DRAFT_RELICS.every(k=>DRAFT_RELIC_WEIGHTS[k]>0&&DRAFT_RELIC_WEIGHTS[k]<=1));
+ const random=seeded(15),seen=new Map();
+ for(let i=0;i<20000;i++){const o=draftOffer(random);assert.equal(new Set(o.relics).size,3);for(const k of o.relics)seen.set(k,(seen.get(k)||0)+1);}
+ const average=w=>{const keys=DRAFT_RELICS.filter(k=>DRAFT_RELIC_WEIGHTS[k]===w);return keys.reduce((n,k)=>n+(seen.get(k)||0),0)/keys.length;};
+ const [common,uncommon,rare,veryRare]=[1,.6,.3,.1].map(average);
+ assert(common>uncommon&&uncommon>rare&&rare>veryRare,JSON.stringify({common,uncommon,rare,veryRare}));
+ assert(common>4*veryRare);
+});
+
+test('No relics room: packs only, a pick needs only a pack, both still get two boosters',async()=>{
+ const reg=await registry(),call=caller(reg),v3={draft:3};
+ for(let i=0;i<2;i++)await call(i,'register',{duelist:{id:'p'+i,name:'Player '+i,character:i===0?0:2},...v3});
+ const host=await call(0,'host',{noRelics:true,...v3});assert.equal(host.room.noRelics,true,'the guest sees the setting in the room');
+ await call(1,'join',{code:host.room.code,...v3});await call(0,'open-ready',v3);await call(1,'open-ready',v3);
+ const room=reg.data.rooms[host.room.code];assert(room.loop&&room.noRelics);
+ for(let i=0;i<2;i++){await call(i,'deck',{deck:deckOf(reg.data.players['p'+i].pool,20),...v3});await call(i,'ready',v3);}
+ await play(call,room,0);assert.equal(room.phase,'picking');
+ assert.deepEqual(room.offer.relics,[]);assert.equal(new Set(room.offer.packs).size,3);
+ const before=[0,1].map(i=>reg.data.players['p'+i].pool.length),offer=structuredClone(room.offer);
+ await call(1,'pick',{pack:1,...v3});
+ assert.match((await call(0,'pick',{pack:1,...v3},400)).error,/still available/);
+ await call(0,'pick',{pack:0,relic:2,...v3});
+ assert.equal(room.phase,'drafting');assert.deepEqual(room.relics,[[],[]]);
+ for(let i=0;i<2;i++){const x=reg.data.players['p'+i];assert.equal(x.pool.length,before[i]+18);assert.equal(x.packs.length,2);}
+ assert.deepEqual(reg.data.players.p1.packIds,[offer.packs[1],offer.packs[1]]);
+});
+
+test('No relics rooms refuse older loop clients; a draft:2 host cannot make one',async()=>{
+ const reg=await registry(),call=caller(reg);
+ await call(0,'register',{duelist:{id:'p0',name:'New',character:0},draft:3});await call(1,'register',{duelist:{id:'p1',name:'Old',character:2}});
+ const host=await call(0,'host',{noRelics:true,draft:3});
+ assert.match((await call(1,'join',{code:host.room.code},400)).error,/without relics/);
+ assert.equal(reg.data.rooms[host.room.code].players.length,1);
+ const second=await registry(),c2=caller(second);await c2(0,'register',{duelist:{id:'p0',name:'Old host',character:0}});
+ assert(!(await c2(0,'host',{noRelics:true})).room.noRelics);
 });

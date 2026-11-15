@@ -17,9 +17,9 @@ def generate():
  path=ROOT/'android/web/collector-rules.js';source=path.read_text(encoding='utf-8');start=source.index('Object.freeze(')+len('Object.freeze(');end=source.index(');',start)
  path.write_text(source[:start]+json.dumps(limits)+source[end:],encoding='utf-8')
 def generate_draft_relics():
- """Relics the Draft Screen may offer (draft_relics.eligible); the Worker reads this list."""
+ """Relics the Draft Screen may offer, with their rarity weights (draft_relics.offers); the Worker reads this list."""
  import draft_relics
- (ROOT/'multiplayer/cloudflare/draft-relics.json').write_text(json.dumps(draft_relics.eligible()),encoding='utf-8')
+ (ROOT/'multiplayer/cloudflare/draft-relics.json').write_text(json.dumps(draft_relics.offers()),encoding='utf-8')
 if __name__=='__main__':
  if '--draft-relics' in sys.argv:generate_draft_relics()
  else:generate()

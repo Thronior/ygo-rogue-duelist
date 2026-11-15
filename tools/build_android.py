@@ -31,7 +31,7 @@ def sync():
    parts=line.split(maxsplit=2);system_strings[parts[1]]=parts[2] if len(parts)>2 else ''
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
  shared=['debug_codes.py','feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','draft_relics.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['reward_slots.py','boss_selection.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py'])
+ shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  # data/cards.json is not read by the game: campaign_expansion loads the pool from data/era-cards.json.
@@ -83,6 +83,8 @@ def sync():
  engine_data=json.loads((WEB/'engine-data.json').read_text(encoding='utf8'))
  scripts=json.loads((WEB/'scripts.json').read_text(encoding='utf8'))
  scripts['rogue-rng.lua']=(ROOT/'runtime/script/rogue-rng.lua').read_text(encoding='utf8')
+ # Randomized cards (random_cards.py): every one runs on this shared block library.
+ scripts['randomizer.lua']=(ROOT/'data/randomizer/randomizer.lua').read_text(encoding='utf8')
  scripts['c24096228.lua']=(ROOT/'runtime/script/official/c24096228.lua').read_text(encoding='utf8')
  # 29389368 Nutrient Z: scales its 2000 check by the run's battle damage changes (SR_BATTLE_SCALE, passives.py).
  for card in (78637313,53119267,93599951,85562745,94585852,49511705,29389368):

@@ -230,10 +230,17 @@ def starting_packs(index,rng=None):
   # Bakura can draw any pack, including character and shop boosters.
   return [p['id'] for p in rng.sample([p for p in PACKS if not p.get('shop_chance')],4)]
  return CHARACTERS[index].get('starting_packs',DRAFTS.get(str(index),[CHARACTERS[index]['pack']]*4))
+def randomized_run(run):
+ """Copycat's second loadout, Randomizer (user, 2026-11-15): it builds a deck from randomized cards (random_cards.py)
+ instead of copying the opponent's deck, so none of Copycat's borrowed-deck rules apply to it."""
+ return bool(run.get('variant') and CHARACTERS[run.get('character',0)].get('alternate',{}).get('randomized'))
+def copies_deck(run):
+ """Copycat borrowing the opponent's deck: the standard loadout only."""
+ return bool(CHARACTERS[run.get('character',0)].get('copycat')) and not randomized_run(run)
 def fixed_deck(run):
  # Copycat and the Standard Dueling Engine play a deck they cannot edit.
  c=CHARACTERS[run.get('character',0)]
- return bool(c.get('copycat') or (c.get('engine_deck') and not run.get('variant')))
+ return bool(copies_deck(run) or (c.get('engine_deck') and not run.get('variant')))
 OPPONENT_TIERS=FIXED_OPPONENTS
 def opponent_record(round_index,index,loop=0):
  from deck_files import read
@@ -275,6 +282,8 @@ artifact('champion_trophy','Champion Trophy',60,'You can select a second cursed 
 artifact('glass_shard','Glass Shard',70,'You start every duel with 2000 LP, but coin rewards are doubled.','Gamble','glass',2000,'economy')
 artifact('deck_spyglass','Deck Spyglass',85,'Reveal opponent portraits and view their decks when choosing your opponent.','The Eye of Truth','spyglass',0,'draw')
 artifact('rulebook',"Broke Man's Rulebook",60,'Both players open with 1 card instead of 5.','A Deal with Dark Ruler','rulebook',0,'draw')
+# Absolute Random (user, 2026-11-15): a Random Pack after each victory (random_cards.py). The cards last for the run.
+artifact('absolute_random','Absolute Random',100,'After each victory, open a free Random Pack of 9 randomized cards. Randomized cards last for this run only.','Absolute Random','random_pack',1,'economy')
 artifact('blank_relic','Blank Relic',50,'Does nothing. After your next duel it becomes an attribute orb matching your most common monster attribute.','Fiber Jar','',0,'economy')
 from variant_relics import install as install_variant_relics
 install_variant_relics(artifact)
@@ -347,7 +356,7 @@ TUTORIAL_OPPONENTS={int(k):v for k,v in json.loads((Path(__file__).parent/'data/
 def deck_round(run):
  """The round whose opponents and decks this duel uses. Solo Copycat skips the tutorial decks (user, 2026-11-07): its first duel reads Tier 1, as round 1 does.
  Tag keeps the shared tutorial opener; Tag Copycat mirrors its partner's deck anyway."""
- if run['round']==0 and not run.get('loop') and run.get('history_mode')!='tag' and CHARACTERS[run['character']].get('copycat'):return 1
+ if run['round']==0 and not run.get('loop') and run.get('history_mode')!='tag' and copies_deck(run):return 1
  return run['round']
 
 def eligible_opponents(round_index,loop=0):

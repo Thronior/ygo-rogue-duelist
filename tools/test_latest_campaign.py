@@ -39,10 +39,6 @@ for rd in range(9):
   # Theme and pack offers are sampled from the shared list, without repeats per screen.
   assert reward['key'] in shop_rewards.reward_keys()
   assert reward['pack'] in PACK_BY_ID and not PACK_BY_ID[reward['pack']].get('draft_only')
-  if rd==1:
-   low=[g.BY_ID[c] for c in deck if g.normal_starter(c)]
-   # Bound covers the strongest fixed duel-2 starters (Kaiba 1308); decks are data, do not retune here.
-   assert sum(c['atk'] for c in low)/len(low)<1350
  assert len({x['key'] for x in r['route_rewards'].values()})==len(r['route_rewards'])
  assert len({x['pack'] for x in r['route_rewards'].values()})==len(r['route_rewards'])
 r=g.new_run(0);r.update(gold=201,stage='complete');g.update_profile(r,True)

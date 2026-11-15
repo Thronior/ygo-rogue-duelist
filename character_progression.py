@@ -39,5 +39,5 @@ def duel(game,run,result,won,boss):
   'champion_win':bool(run.get('encore_active')),
  }
  import sleeve_progress
- sleeve_progress.duel(run,result,won,metrics)
+ sleeve_progress.duel(run,result,won,metrics,cards=cards,boss=boss)
  run['character_challenges']=sorted(set(run.get('character_challenges',[]))|{k for k,v in conditions.items() if v and (won or k=='two_rituals')})

@@ -57,3 +57,23 @@ test('rows written per response, per turn and per game',async()=>{
   assert(report.complete<=8,`completion deletes few rows, got ${report.complete}`);
  }
 });
+
+// Bundled answers (v0.2.35 clients, user 2026-11-14): one player's quick answers in a row cost one write together,
+// land in order for both players, and a refused answer ends the bundle with a reject.
+test('a bundle of answers is one write',async()=>{
+ const ctx=new FakeContext(),tally=counting(ctx),{hub,join}=setup(ctx);
+ const a=await join(0),b=await join(1);tally.reset();
+ const items=[0,1,2,3].map(i=>({response:{type:1,i},nextActor:i===3?1:0,turn:1,h:i}));
+ await a.say({t:'rs',game:1,n:0,items});
+ assert.equal(tally.puts,1,'one row for four answers');
+ assert.deepEqual(b.inbox.filter(m=>m.t==='ev').map(m=>m.n),[0,1,2,3]);
+ assert.equal(hub.meta.count,4);assert.equal(hub.meta.actor,1);
+ // Seat 1 is now acting; seat 0's bundle is refused at once.
+ await a.say({t:'rs',game:1,n:4,items:[{response:{type:1},nextActor:0,turn:1}]});
+ assert.equal(a.last('reject')?.n,4);assert.equal(hub.meta.count,4);
+ // A resent bundle overlapping stored answers echoes them and applies only the new ones.
+ tally.reset();await b.say({t:'rs',game:1,n:4,items:[{response:{type:2},nextActor:1,turn:1},{response:{type:3},nextActor:0,turn:2}]});
+ await b.say({t:'rs',game:1,n:4,items:[{response:{type:2},nextActor:1,turn:1},{response:{type:3},nextActor:0,turn:2},{response:{type:4},nextActor:0,turn:2}]});
+ assert.equal(hub.meta.count,6,'the second copy adds nothing: its third answer is refused, seat 0 is acting');
+ assert.equal(tally.puts,1);
+});

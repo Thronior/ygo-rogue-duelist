@@ -10,7 +10,9 @@ const TARGETS='button,a[href],input,select,textarea,summary,[role="button"],[dat
 const PREFERRED='.menu-card[data-distance="0"],.selected,[aria-pressed="true"],[autofocus]';
 const MENU_EVERY=260,DEAD=.5,REPEAT_DELAY=320,REPEAT_EVERY=110,HOLD_MS=560;
 
-export function padKind(id=''){return SONY.test(id)?(/0ce6|0df2|dualsense/i.test(id)?'dualsense':'dualshock'):'xinput'}
+// "Xbox Wireless Controller" matched the Sony test and showed PlayStation glyphs (found 2026-11-15).
+const sony=id=>SONY.test(id)&&!/xbox|045e/i.test(id);
+export function padKind(id=''){return sony(id)?(/0ce6|0df2|dualsense/i.test(id)?'dualsense':'dualshock'):'xinput'}
 
 // Reads one pad into the standard layout: 16 booleans plus the left and right sticks.
 // Some phones list built-in sensors (fingerprint readers and the like) as gamepads, and one with an axis or button stuck
@@ -25,7 +27,7 @@ export function settle(rest,key,s){
 export function readPad(pad){
  const pressed=new Array(16).fill(false),b=pad.buttons,ax=pad.axes;
  const on=i=>!!b[i]&&(b[i].pressed||b[i].value>.5);
- if(pad.mapping==='standard'||!SONY.test(pad.id)){for(let i=0;i<16;i++)pressed[i]=on(i)}
+ if(pad.mapping==='standard'||!sony(pad.id)){for(let i=0;i<16;i++)pressed[i]=on(i)}
  else{
   SONY_ORDER.forEach((raw,i)=>{pressed[i]=on(raw)});
   // The D-pad is a hat axis (usually 9): -1 up, then clockwise in steps of 2/7; above 1 is neutral.
@@ -143,9 +145,12 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
   if(dx&&focus.matches('input[type="range"]')){const step=Number(focus.step)||1;focus.value=Number(focus.value)+dx*step;focus.dispatchEvent(new Event('input',{bubbles:true}));focus.dispatchEvent(new Event('change',{bubbles:true}));return}
   // A panel over the board (a duel prompt) hides what is under it from the mouse, so the D-pad skips it too.
   const shields=covers().map(p=>({p,r:p.getBoundingClientRect()})),under=(el,r)=>shields.some(s=>!s.p.contains(el)&&(c=>c.x>=s.r.left&&c.x<=s.r.right&&c.y>=s.r.top&&c.y<=s.r.bottom)(center(r)));
-  const from=focus.getBoundingClientRect(),list=candidates().filter(el=>el!==focus).map(el=>({el,r:el.getBoundingClientRect()})).filter(({el,r})=>!under(el,r));
+  // A card's action menu (Summon, Set, Inspect) keeps the D-pad on its own buttons until it closes (B or a choice):
+  // the zones under it lined up with Summon and Inspect, so Set took diagonal moves to reach (Discord, 2026-11-15).
+  const pop=!layer()&&document.querySelector('.action-pop'),inPop=pop&&pop.contains(focus);
+  const from=focus.getBoundingClientRect(),list=candidates().filter(el=>el!==focus&&(!inPop||pop.contains(el))).map(el=>({el,r:el.getBoundingClientRect()})).filter(({el,r})=>!under(el,r));
   // A screen can fix where a direction leads (down from the duel phase buttons goes to your own side).
-  const next=steer(focus,dx,dy,from)||nearest(from,list,dx,dy);if(!next)return;
+  const next=(!inPop&&steer(focus,dx,dy,from))||nearest(from,list,dx,dy);if(!next)return;
   setFocus(next);
   // Moving through the duelist roster picks each duelist, so their details show as you go.
   if(autoPress(next))press(next);
@@ -226,7 +231,8 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
   if(down(START)){if(where==='duel')press(confirm());else if(shop)press(shopButton('next'));else if((where==='characters'||where==='draft')&&!layer())press(startButton());else if(where==='title')press(focus)}
   // Select: duel Options, shop Edit deck, elsewhere the screen's or window's Settings button.
   if(down(SELECT)){if(where==='duel')options();else if(shop)press(shopButton('deck'));else press(settingsButton())}
-  if(down(BTN_B))rightClick(focus);
+  // One B press can also reach the game as Android's Back button (mobile.js androidBack); only the first one acts.
+  if(down(BTN_B)&&performance.now()-(window.androidBackAt||0)>=500){window.padBackAt=performance.now();rightClick(focus)}
   if(down(X))longPress(focus);
   // Y: deck editor toggles hover details (re-hovering applies it at once); elsewhere it jumps to the phase buttons.
   if(down(Y)){if(toggleDetails()){if(focus?.isConnected){leave(focus,null);hover(focus)}}else{const el=phaseButton();if(el)setFocus(el)}}

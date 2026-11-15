@@ -1,6 +1,9 @@
 import {freeJarUse,revealPrice} from './jar-relics.js';
 import {rewardIcon} from './reward-icons.js';
 import {coinLabel} from './coin-label.js';
+import {isFavouritePack} from './pack-favourites.js';
+// Favourite packs show a star on the opponent's guaranteed pack (Discord, Nov 15: players opened each pack to check).
+export const favouriteMark=id=>isFavouritePack(id)?' <span class="pack-fav-mark" title="Favourite pack" aria-label="Favourite pack">★</span>':'';
 export const escapeEncounter=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const esc=escapeEncounter;
 const ucTag='<span class="uc-opponent-tag" title="Ultimate Collector opponent" aria-label="Ultimate Collector opponent">UC</span>';
@@ -23,7 +26,7 @@ export const swordsIcon=cls=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none
 const START_LABEL='<span class="start-label">Start duel</span>'+swordsIcon('start-swords');
 export function encounterCard(content,r,i,{button,curseIcons}={}){
  const reward=r.route_rewards[i],p=content.packs.find(x=>x.id===reward.pack),boss=(r.round+1)%3===0;
- return `<section class="opponent${hasSpyglass(r)?' can-peek':''}" data-encounter="${i}">${encounterPortrait(content,r,i)}<div class="reward"><img class="boost-icon" src="${rewardIcon(reward.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward.label)}</b></span></div><button type="button" class="reward encounter-pack" data-do="inspect-pack" data-pack="${esc(p.id)}" aria-label="Inspect ${esc(p.name)} pack contents"><img src="assets/packs/${esc(p.id)}.jpg" alt=""><span>GUARANTEED PACK<br>${esc(p.name)}<small>View contents</small></span></button>${r.route_curses?.[i]?.length?curseIcons(content,r.route_curses[i]):''}${hasSpyglass(r)?button('View deck','peek-deck',`data-opponent="${i}"`):''}${boss?button('Challenge boss','start',`data-opponent="${i}"`,'primary'):button(START_LABEL,'start',`data-opponent="${i}" aria-label="Start duel"`,'primary')}</section>`;
+ return `<section class="opponent${hasSpyglass(r)?' can-peek':''}" data-encounter="${i}">${encounterPortrait(content,r,i)}<div class="reward"><img class="boost-icon" src="${rewardIcon(reward.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward.label)}</b></span></div><button type="button" class="reward encounter-pack${isFavouritePack(p.id)?' favourite-pack':''}" data-do="inspect-pack" data-pack="${esc(p.id)}" aria-label="Inspect ${esc(p.name)} pack contents"><img src="assets/packs/${esc(p.id)}.jpg" alt=""><span>GUARANTEED PACK<br>${esc(p.name)}${favouriteMark(p.id)}<small>View contents</small></span></button>${r.route_curses?.[i]?.length?curseIcons(content,r.route_curses[i]):''}${hasSpyglass(r)?button('View deck','peek-deck',`data-opponent="${i}"`):''}${boss?button('Challenge boss','start',`data-opponent="${i}"`,'primary'):button(START_LABEL,'start',`data-opponent="${i}" aria-label="Start duel"`,'primary')}</section>`;
 }
 // The deck name a boss is revealed with; empty for ordinary duels. Kept as data, not shown since 2026-11-03.
 export function bossDeckName(content,r,i){

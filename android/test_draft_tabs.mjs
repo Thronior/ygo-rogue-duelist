@@ -38,7 +38,8 @@ assert.deepEqual(run('Monster', 'Default', 'Out'), [3]);
 assert.deepEqual(run('All', 'Name', 'First'), [4, 0, 1, 2, 3]);
 assert.deepEqual(run('All', 'Name'), [1, 4, 2, 0, 3]);
 assert.deepEqual(run('All', 'ATK'), [4, 0, 3, 1, 2]);
-assert.deepEqual(run('All', 'Type'), [4, 0, 3, 1, 2]);
+// Type sorts monsters by their Type (Beast before Dragon), not by frame (Discord 2026-11-15: sort by Type didn't work).
+assert.deepEqual(run('All', 'Type'), [0, 3, 4, 1, 2]);
 assert.deepEqual(run('All', 'Newest'), [4, 0, 3, 2, 1]);
 assert.deepEqual(run('All', 'Attribute'), [0, 3, 4, 1, 2]);
 console.log('PASS mobile draft tabs + sorts');

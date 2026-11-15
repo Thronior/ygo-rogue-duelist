@@ -9,8 +9,9 @@ from pathlib import Path
 
 SLEEVES = json.loads((Path(__file__).parent / 'data/card-sleeves.json').read_text(encoding='utf8'))['sleeves']
 # Per-duel counts from the duel event that add up across runs.
-DUEL_TOTALS = ('graveSpecials', 'dragonsByBattle', 'timeWizardWins', 'lightBanished', 'darkBanished', 'coinsTossed', 'diceRolled')
-MARKS = ('tutorial', 'draft')
+DUEL_TOTALS = ('graveSpecials', 'dragonsByBattle', 'timeWizardWins', 'lightBanished', 'darkBanished', 'coinsTossed', 'diceRolled',
+               'bounced', 'flipSummons', 'directAttacks', 'spellsRecovered', 'faceDownDestroyed')
+MARKS = ('tutorial', 'draft', 'solomon')
 
 
 def _met(rule, value):
@@ -25,7 +26,7 @@ def _met(rule, value):
     return True
 
 
-def duel(run, result, won, metrics):
+def duel(run, result, won, metrics, cards=(), boss=False):
     events = result.get('events', [])
     m = next((e for e in events if e.get('kind') == 'sleeve_metrics'), None)
     if m is None:
@@ -33,6 +34,14 @@ def duel(run, result, won, metrics):
     values = dict(m, lp=int(result.get('lp', 0)), overkill=max([e.get('amount', 0) for e in events if e.get('kind') == 'overkill'] or [0]))
     values['stolenFinish'] = int(bool(m.get('stolenFinish')))
     values['tribute3'] = int(bool(m.get('tribute3')))
+    # Cute sleeves (2026-11-15). Original ATK only, so boosted monsters never count as weak.
+    values['onlyWeakSummons'] = int(m.get('summons', 0) > 0 and m.get('maxSummonAtk', 99999) <= 1000)
+    monsters = [c for c in cards if c['data']['type'] & 1]
+    values['lowLevelDeck'] = int(bool(monsters) and all(0 < c.get('level', 0) <= 3 for c in monsters))
+    values['weakFinish'] = int(bool(m.get('weakFinish')))
+    values['bossNoBattleLoss'] = int(bool(boss) and not m.get('ownBattleDestroyed'))
+    values['spellActivated'] = int(bool(m.get('spellActivated')))
+    values['zeroAtk'] = int(bool(m.get('zeroAtk')))
     run['sleeve_no_damage_streak'] = run.get('sleeve_no_damage_streak', 0) + 1 if won and not m.get('damageTaken') else 0
     feats = set(run.get('sleeve_feats', []))
     for s in SLEEVES:
@@ -95,6 +104,7 @@ def observe(profile, run):
     totals['coins'] = int(run.get('stats', {}).get('coins_earned', 0) or 0)
     totals['rerolls'] = int(run.get('sleeve_rerolls', 0) or 0)
     totals['relicFusions'] = int(run.get('sleeve_relic_fusions', 0) or 0)
+    totals['levelMinusOneWins'] = int(run.get('stage') == 'complete' and not run.get('secret_challenge') and run.get('challenge_level') == -1)
     for key, value in totals.items():
         delta = value - credited.get(key, 0)
         if delta > 0:

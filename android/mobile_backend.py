@@ -1,6 +1,6 @@
 """Thin mobile transport over the shared campaign rules."""
 import json, random, re
-import campaign as g, content, storage, achievement_model, passives
+import campaign as g, content, storage, achievement_model, passives, random_cards
 
 run=None
 tag_session=None
@@ -16,7 +16,12 @@ def state():
  # merged from a linked device) are granted on load, not only when a run ends (user report, 2026-11-12).
  import sleeve_progress
  if sleeve_progress.evaluate(profile):storage.write(storage.ROOT/'profile.json',profile)
- return dict(registeredCards=cards,history=history,run=run,slots=slots,activeSlot=slot,profile=profile,settings=storage.settings(),achievements=achievement_model.entries(profile))
+ # randomCards changes when the run's randomized cards do; the client then asks for them ('random-cards').
+ return dict(registeredCards=cards,history=history,run=run,slots=slots,activeSlot=slot,profile=profile,settings=storage.settings(),achievements=achievement_model.entries(profile),randomCards=random_cards.client_key(run))
+
+def restartable(r):
+ """A run can be restarted with R until its first duel ends: first loop, no duel won or lost yet."""
+ return bool(r) and not r.get('loop') and int(r.get('round',0))==0 and r.get('stage') not in ('gameover','complete') and not r.get('secret_challenge') and r.get('history_mode')!='tag'
 
 def dispatch(raw):
  global run,tag_session
@@ -36,6 +41,12 @@ def dispatch(raw):
  if action in ('card-sources','cpu-catalog'):
   import campaign_catalog
   return partial(campaign_catalog.card_sources(value) if action=='card-sources' else campaign_catalog.watch_catalog())
+ if action=='free-packs-seen':
+  if run:run['free_packs']=[];g.save(run)
+  return json.dumps(state(),ensure_ascii=False)
+ if action=='random-cards':
+  random_cards.install(run)
+  return partial(dict(key=random_cards.client_key(run),cards=random_cards.client_cards() if run and run.get('random_cards') else []))
  if action=='pack-inspect':
   from pack_odds import inspect_pack
   return json.dumps(dict(result=inspect_pack(value,storage.profile())),ensure_ascii=False)
@@ -104,6 +115,13 @@ def dispatch(raw):
   candidate=g.new_run(int(value['character']),level=int(value.get('level',0)),variant=int(value.get('variant',0)));candidate['_save_slot']=slot
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
   profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
+ elif action=='restart-run':
+  # Hidden PC restart (user, 2026-11-15: hold R for 3 seconds): same duelist, variant and level in the same slot,
+  # only until the first duel of the run has ended.
+  if not restartable(run):raise ValueError('The run can only be restarted before the end of its first duel.')
+  slot=storage.active_slot()
+  candidate=g.new_run(int(run['character']),level=int(run.get('challenge_level',0)),variant=int(run.get('variant',0)));candidate['_save_slot']=slot
+  g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
  elif action=='secret-champion':
   import secret_challenge
   run=secret_challenge.create(g)
@@ -121,7 +139,7 @@ def dispatch(raw):
   if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
   run['selected']=[]
  elif action=='toggle':
-  if content.CHARACTERS[run['character']].get('copycat'):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
+  if content.copies_deck(run):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
   if content.fixed_deck(run):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
   index=int(value)
   if index<0 or index>=len(run['pool']):raise ValueError('Unknown card')
@@ -130,12 +148,12 @@ def dispatch(raw):
    cid=run['pool'][index]
    from approved_relics import copy_limit
    limit=copy_limit(run)
-   if limit is not None and sum(g.card_identity(run['pool'][i])==g.card_identity(cid) for i in run['selected'])>=limit:raise ValueError('Maximum three copies of a card.' if limit==3 else 'Singleton Pact allows only 1 copy of each card.')
+   if limit is not None and sum(g.limit_identity(run['pool'][i])==g.limit_identity(cid) for i in run['selected'])>=limit:raise ValueError('Maximum three copies of a card.' if limit==3 else 'Singleton Pact allows only 1 copy of each card.')
    run['selected'].append(index)
  elif action=='choose':
   if int(value) not in run['routes']:raise ValueError('Unavailable opponent')
   run['opponent']=int(value)
-  if content.CHARACTERS[run['character']].get('copycat'):g.copy_deck(run)
+  if content.copies_deck(run):g.copy_deck(run)
   if content.CHARACTERS[run['character']].get('engine_deck'):g.engine_deck(run)
  elif action=='begin':
   g.prepare_duel(run)

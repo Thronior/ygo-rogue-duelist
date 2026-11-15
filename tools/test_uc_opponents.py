@@ -11,7 +11,7 @@ with patch.object(storage,'profile',lambda:profile),patch.object(storage,'write'
  r=g.new_run(0,random.Random(2));g.auto_deck(r);r.update(loop=1,round=5,defeated_opponents=[])
  seen=set()
  for seed in range(200):
-  g.routes(r,random.Random(seed));seen.update(r['routes']);assert set(map(int,r.get('fallen_routes',{})))==set(r['routes'])&uc
+  r.pop('next_boss',None);g.routes(r,random.Random(seed));seen.update(r['routes']);assert set(map(int,r.get('fallen_routes',{})))==set(r['routes'])&uc
  assert seen&uc and seen-uc
  for cid in uc:
   r.update(opponent=cid,routes=[cid]);f.add_route(r,random.Random(0));assert r['fallen_routes'][str(cid)]['deck']['main']==content.opponent_record(5,cid,1)['main']

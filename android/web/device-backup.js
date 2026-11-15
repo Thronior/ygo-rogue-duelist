@@ -57,7 +57,7 @@ export function saveSummary(backup){const p=unwrap(backup?.files?.['profile.json
 const worthSaving=files=>!!files['profile.json']&&('run.json' in files||hasEarnedUnlock(unwrap(files['profile.json']))||Number(unwrap(files['profile.json']).runs)>0);
 
 export function validateRecovery(value){
- if(value?.format!=='ygo-device-recovery-v1'||value.backup?.schema!==1)throw Error('Choose a device recovery file supplied by the admin.');
+ if(value?.format!=='ygo-device-recovery-v1'||value.backup?.schema!==1)throw Error('Choose a save file exported from the game.');
  const {files,extras}=value.backup;if(!files||typeof files!=='object'||Array.isArray(files)||!files['profile.json']||Object.keys(files).length>100)throw Error('Missing progress in recovery file.');
  for(const [name,text] of Object.entries(files)){if(!/^[\w-]+\.(json|bak)$/.test(name)||typeof text!=='string')throw Error('Invalid save file.');const v=JSON.parse(text);if(!v||typeof v!=='object')throw Error('Invalid saved progress.');}
  if(!extras||typeof extras!=='object'||Array.isArray(extras))throw Error('Invalid recovery extras.');
@@ -130,8 +130,15 @@ export const deviceBackup=createBackupClient();
 window.addEventListener('online',()=>deviceBackup.wake());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)deviceBackup.wake()});
 
+// Players' own save files (2026-11-14): the browser's "Export save" backup is a plain map of save files. It is wrapped
+// as a recovery that leaves this device's stats alone; admin recovery files pass through unchanged.
+export function recoveryFromFile(value){
+ if(value?.format)return value;
+ if(!value||typeof value!=='object'||Array.isArray(value)||!value['profile.json'])throw Error('Choose a save file exported from the game.');
+ return {format:'ygo-device-recovery-v1',keepExtras:true,backup:{schema:1,files:value,extras:{}}};
+}
 export async function restoreRecovery(value,{loadSave,storeSave,storage=localStorage}){
  const {files,extras}=validateRecovery(value),before=await loadSave(),previous=Object.fromEntries(EXTRAS.map(k=>[k,storage.getItem(k)]));
- try{for(const key of EXTRAS){if(key in extras)storage.setItem(key,extras[key]);else storage.removeItem(key)}await storeSave(JSON.stringify(files));}
+ try{if(!value.keepExtras)for(const key of EXTRAS){if(key in extras)storage.setItem(key,extras[key]);else storage.removeItem(key)}await storeSave(JSON.stringify(files));}
  catch(error){for(const [key,text] of Object.entries(previous)){try{if(text===null)storage.removeItem(key);else storage.setItem(key,text)}catch{}}try{await storeSave(before)}catch{}throw error}
 }

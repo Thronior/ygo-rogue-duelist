@@ -16,12 +16,12 @@ let listener;globalThis.window={addEventListener:(_,f)=>listener=f,removeEventLi
 let dialogs=false;globalThis.document={body:{},querySelector:()=>dialogs?{}:null};
 const row=phaseRow(4,8,512),confirm=button(),chain=button();board.chain=chain;
 let acting=true,duel=true,logged=0,closed=0,log=false;
-installDuelKeys({root:board(row,[confirm]),inDuel:()=>duel,canAct:()=>acting,logOpen:()=>log,openLog:()=>logged++,closeLog:()=>closed++});
+const confirms=[];installDuelKeys({root:board(row,confirms),inDuel:()=>duel,canAct:()=>acting,logOpen:()=>log,openLog:()=>logged++,closeLog:()=>closed++});
 const press=(key,extra={})=>{let prevented=false;listener({key,target:document.body,preventDefault(){prevented=true},...extra});return prevented};
 const battle=row[3];
 assert.equal(press(' '),true,'Space never also presses a focused button');assert.equal(battle.clicks,1);
 press(' ',{repeat:true});assert.equal(battle.clicks,1,'holding Space moves one phase');
-press('Enter');assert.equal(confirm.clicks,1);
+confirms.push(confirm);press('Enter');assert.equal(confirm.clicks,1);
 press('C');assert.equal(chain.clicks,1);
 press('l');assert.equal(logged,1);log=true;press('l');assert.equal(closed,1,'L closes the log');log=false;
 acting=false;press(' ');press('Enter');assert.equal(battle.clicks+confirm.clicks,2,'busy duels ignore Space and Enter');press('c');assert.equal(chain.clicks,2,'chain prompts change even while busy');acting=true;
@@ -30,4 +30,7 @@ press(' ',{target:{closest:()=>({})}});assert.equal(battle.clicks,1,'typing in a
 press('Enter',{target:{closest:()=>null,matches:()=>true}});assert.equal(confirm.clicks,1,'a button reached with Tab keeps its own key');
 dialogs=true;assert.equal(press(' '),false);press('Enter');press('c');press('l');assert.deepEqual([battle.clicks,confirm.clicks,chain.clicks,logged],[1,1,2,1],'open dialogs block every shortcut');dialogs=false;
 duel=false;press(' ');assert.equal(battle.clicks,1,'only in a duel');
+// Space confirms a waiting selection, since the phase can't change then (Discord, Nov 15); otherwise it moves a phase.
+duel=true;const before=battle.clicks;press(' ');assert.deepEqual([confirm.clicks,battle.clicks],[2,before],'Space presses the waiting confirm');
+confirms.length=0;press(' ');assert.equal(battle.clicks,before+1,'no selection waiting: Space moves a phase');
 console.log('PASS duel keyboard shortcuts');

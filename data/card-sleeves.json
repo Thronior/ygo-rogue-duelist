@@ -523,6 +523,192 @@
    "card": 53982768
   },
   {
+   "id": "petit-angel",
+   "art": "Petit Angel",
+   "text": "Win a duel in which every monster you summoned had 1,000 or less original ATK.",
+   "rule": {
+    "kind": "win",
+    "key": "onlyWeakSummons",
+    "min": 1
+   },
+   "card": 38142739
+  },
+  {
+   "id": "watapon",
+   "art": "Watapon",
+   "text": "Win a duel with a Main Deck whose monsters are all Level 3 or lower.",
+   "rule": {
+    "kind": "win",
+    "key": "lowLevelDeck",
+    "min": 1
+   },
+   "card": 87774234
+  },
+  {
+   "id": "mokey-mokey",
+   "art": "Mokey Mokey",
+   "text": "Deal the final blow with a monster that has 500 or less ATK.",
+   "rule": {
+    "kind": "win",
+    "key": "weakFinish",
+    "min": 1
+   },
+   "card": 27288416
+  },
+  {
+   "id": "marshmallon",
+   "art": "Marshmallon",
+   "text": "Win a boss duel without any of your monsters being destroyed by battle.",
+   "rule": {
+    "kind": "win",
+    "key": "bossNoBattleLoss",
+    "min": 1
+   },
+   "card": 31305911
+  },
+  {
+   "id": "happy-lover",
+   "art": "Happy Lover",
+   "text": "Gain 6,000 or more LP in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "lpGained",
+    "min": 6000
+   },
+   "card": 99030164
+  },
+  {
+   "id": "petit-dragon",
+   "art": "Petit Dragon",
+   "text": "Win a duel with no cards in your hand.",
+   "rule": {
+    "kind": "win",
+    "key": "hand",
+    "max": 0
+   },
+   "card": 75356564
+  },
+  {
+   "id": "penguin-soldier",
+   "art": "Penguin Soldier",
+   "text": "Return 50 of your opponent's monsters to the hand (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "bounced",
+    "min": 50
+   },
+   "card": 93920745
+  },
+  {
+   "id": "nimble-momonga",
+   "art": "Nimble Momonga",
+   "text": "Win a duel with 10,000 or more LP.",
+   "rule": {
+    "kind": "win",
+    "key": "lp",
+    "min": 10000
+   },
+   "card": 22567609
+  },
+  {
+   "id": "man-eater-bug",
+   "art": "Man-Eater Bug",
+   "text": "Flip Summon 25 monsters (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "flipSummons",
+    "min": 25
+   },
+   "card": 54652250
+  },
+  {
+   "id": "inaba-white-rabbit",
+   "art": "Inaba White Rabbit",
+   "text": "Attack directly 100 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "directAttacks",
+    "min": 100
+   },
+   "card": 77084837
+  },
+  {
+   "id": "petit-moth",
+   "art": "Petit Moth",
+   "text": "Win a duel that lasts 40 turns or more.",
+   "rule": {
+    "kind": "win",
+    "key": "turn",
+    "min": 40
+   },
+   "card": 58192742
+  },
+  {
+   "id": "magician-of-faith",
+   "art": "Magician of Faith",
+   "text": "Add 20 Spells from your Graveyard to your hand (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "spellsRecovered",
+    "min": 20
+   },
+   "card": 31560081
+  },
+  {
+   "id": "kozaky",
+   "art": "Kozaky",
+   "text": "Win a duel without activating a Spell Card.",
+   "rule": {
+    "kind": "win",
+    "key": "spellActivated",
+    "equals": 0
+   },
+   "card": 99171160
+  },
+  {
+   "id": "sasuke-samurai",
+   "art": "Sasuke Samurai",
+   "text": "Destroy 50 face-down monsters (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "faceDownDestroyed",
+    "min": 50
+   },
+   "card": 16222645
+  },
+  {
+   "id": "ojama-yellow",
+   "art": "Ojama Yellow",
+   "text": "Win a duel while you control a monster with 0 ATK.",
+   "rule": {
+    "kind": "win",
+    "key": "zeroAtk",
+    "min": 1
+   },
+   "card": 42941100
+  },
+  {
+   "id": "baby-dragon",
+   "art": "Baby Dragon",
+   "text": "Win 3 runs on Challenge Level -1.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "levelMinusOneWins",
+    "min": 3
+   },
+   "card": 88819587
+  },
+  {
+   "id": "mokey-mokey-smackdown",
+   "art": "Mokey Mokey Smackdown",
+   "text": "Annoy Grandpa Solomon.",
+   "rule": {
+    "kind": "mark",
+    "key": "solomon"
+   },
+   "card": 1965724
+  },
+  {
    "id": "twin-headed-thunder-dragon",
    "art": "Twin-Headed Thunder Dragon",
    "text": "Win runs with 2 different duelists.",

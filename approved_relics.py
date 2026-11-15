@@ -35,7 +35,7 @@ REGULAR=[
 ('overkill_bounty','Overkill Bounty',90,"If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",'Meteor of Destruction'),
 ('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Last Will'),
 ('tactical_espionage','Tactical Espionage',100,'When you Normal Summon a monster, no Trap Cards can be activated.','Tactical Espionage Expert'),
-('stars_aligned','Stars Aligned',130,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
+('stars_aligned','Stars Aligned',100,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
 # Requested by the user on 2026-11-04.
 ('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
 # Requested by the user on 2026-11-06.
@@ -66,7 +66,17 @@ REGULAR=[
 ('dark_lotus','Dark Lotus',500,'Once per Duel, at the start of your first Standby Phase, you can Special Summon 1 monster from your Deck or Extra Deck, ignoring its Summoning conditions.','Samsara Lotus'),
 ('ring_of_defense','Ring of Defense',110,'After each Duel, recover the LP you lost to your own card effects and costs during it (up to your LP limit).','Ring of Defense'),
 # The user's own relic, 2026-11-14.
-('ultimate_armory','Ultimate Armory',130,'While a monster you control is equipped with 3 or more Equip Spells, it cannot be destroyed by card effects.','Gearfried the Swordmaster')]
+('ultimate_armory','Ultimate Armory',130,'While a monster you control is equipped with 3 or more Equip Spells, it cannot be destroyed by card effects.','Gearfried the Swordmaster'),
+# Discord relic suggestions of 2026-11-15, with the user's texts and prices. Titan's Charge was "Dragon Rider's Pact" (renamed
+# by the user). Art picks other than Sage's Stone, Blue-Eyes Shining Dragon and Poison of the Old Man are mine.
+('magicians_bond',"Magician's Bond",90,'Once per turn, if you Normal Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
+('blue_eyes_radiance','Blue-Eyes Radiance',85,'Once per turn: You can send 3 "Blue-Eyes White Dragon" from your hand and/or field to the GY; Special Summon 1 "Blue-Eyes Shining Dragon" from your hand or Deck, ignoring its Summoning conditions. It is unaffected by other card effects until the end of your opponent\'s next turn.','Blue-Eyes Shining Dragon'),
+('master_and_apprentice','Master and Apprentice',100,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
+('black_chaos_rite','Black Chaos Rite',110,'Once per Duel: You can Tribute 1 "Dark Magician" you control; Special Summon 1 "Dark Magician of Chaos" from your hand or Deck, ignoring its Summoning conditions.','Dark Magician of Chaos'),
+('dragon_lords_decree',"Dragon Lord's Decree",90,'Once per Duel: You can discard 2 Dragon monsters; Special Summon 1 Level 7 or higher Dragon monster from your hand.','Lord of D.'),
+('twin_eyes','Twin Eyes',150,'Once per Duel, during your first Standby Phase: Special Summon 1 "Blue-Eyes" or "Red-Eyes" monster from your Deck in Attack Position.','Red-Eyes Black Dragon'),
+('dragon_blood_fusion','Dragon Blood Fusion',100,'Once per turn: You can banish 1 "Blue-Eyes" or "Red-Eyes" monster you control; Special Summon 1 Fusion Monster from your Extra Deck that lists the banished monster as Fusion Material, ignoring its Summoning conditions.','Blue-Eyes Ultimate Dragon'),
+('titans_charge',"Titan's Charge",100,"Once per turn, when a Level 7 or higher monster you control destroys an opponent's monster by battle: It can make a second attack in a row.",'Tyrant Dragon')]
 CURSED=[
 (1,'blood_crown','Blood Crown','Monsters you control gain 500 ATK. Once per turn, at the start of your End Phase, take 300 damage.','Axe of Despair'),
 (2,'hollow_chalice','Hollow Chalice','Once per turn, at the start of your Standby Phase, gain 600 LP. Increase all damage you receive by 50% (rounded down).','Dian Keto the Cure Master'),
@@ -79,7 +89,7 @@ CURSED=[
 (10,'commoners_chain',"Commoner's Chain",'Normal Monsters you control gain 300 ATK/DEF. Effect Monsters you control lose 200 ATK/DEF.','Kunai with Chain'),
 (14,'zombies_bargain',"Zombie's Bargain",'Monsters you control gain 800 ATK. You cannot gain LP.','Vampire Lord'),
 (16,'warriors_vow',"Warrior's Vow",'Monsters you control gain 200 ATK. You cannot manually change your monsters from Attack Position to Defense Position.','Axe Raider'),
-(17,'ritual_scar','Ritual Scar','Monsters you control lose 500 ATK. They gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.','Relinquished'),
+(17,'ritual_scar','Ritual Scar','Monsters you control lose 500 ATK. They gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Relinquished'),
 (18,'fusion_fever','Fusion Fever','Fusion Monsters you control gain 1000 ATK and inflict piercing battle damage. You cannot Tribute Summon or Tribute Set monsters.','Polymerization'),
 (19,'empty_hand_pact','Empty-Hand Pact','While your hand is empty, monsters you control gain 1000 ATK. Your hand size limit is reduced by 2 (min. 0).','Card Destruction'),
 (20,'solitary_tyrant','Solitary Tyrant','While you control exactly 1 monster, it gains 400 ATK. While you control 2 or more monsters, they lose 500 ATK.','Dark Ruler Ha Des'),
@@ -117,7 +127,9 @@ CURSED=[
 (64,'anime_rule_3','Anime Rule #3','You can Normal Summon or Set Level 5 or higher monsters without Tributing. Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.','Mountain'),
 (65,'cursed_restock','Cursed Restock','You get 2 free rerolls per shop. You can only buy one item per reroll.','Card Shuffle'),
 # TRUANT's cursed relic (Discord, 2026-11-13), added as posted.
-(66,'vampiric_contact','Vampiric Contact','Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.',"Vampire's Domain")]
+(66,'vampiric_contact','Vampiric Contact','Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.',"Vampire's Domain"),
+# The user's cursed relic (Discord review, 2026-11-15), text as the user wrote it.
+(67,'poison_of_the_old_man','Poison of the Old Man','Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP. Tails: Lose 500 LP.','Poison of the Old Man')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
@@ -133,7 +145,8 @@ CURSED_PARTS={
  'cursed_cracked_sword':('Monsters you control gain 300 ATK.','Monsters you control lose 1000 DEF.'),
  'cursed_iron_silence':('Monsters you control gain 600 ATK/DEF.',"Their effects are negated. Negate all your monsters' activated effects everywhere."),
  'cursed_reckless_spear':('Monsters you control can attack directly.','Monsters you control lose 1000 ATK.'),
- 'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster during this run, across all Duels.','Monsters you control lose 500 ATK.'),
+ 'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Monsters you control lose 500 ATK.'),
+ 'cursed_poison_of_the_old_man':('Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP.','Tails: Lose 500 LP.'),
 }
 
 def install(artifact):
@@ -224,9 +237,9 @@ def price(run,kind,value):
 
 def eligible(run,key):
  if key in REMOVED or key in run.get('blocked_cursed',[]):return False
- from content import CHARACTERS, fixed_deck
+ from content import CHARACTERS, fixed_deck, copies_deck
  fixed=CHARACTERS[run.get('character',0)]
- if (fixed.get('copycat') or fixed.get('engine_deck')) and key in {'cursed_cursed_refund','cursed_black_market_seal'}:return False
+ if (copies_deck(run) or fixed.get('engine_deck')) and key in {'cursed_cursed_refund','cursed_black_market_seal'}:return False
  if key=='cursed_collectors_burden':
   if run.get('round',0)<6 or has(run,'cursed_singleton_pact'):return False
   # Never impose an impossible minimum on the two characters with fixed decks.

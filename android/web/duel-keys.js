@@ -22,7 +22,8 @@ export function installDuelKeys({root,inDuel,canAct,logOpen,openLog,closeLog}){
   if(keyboardFocused(e.target))return;
   e.preventDefault();
   if(e.repeat||!canAct())return;
-  (key===' '?nextPhaseButton(root):confirmButton(root))?.click();
+  // Space confirms a pending selection too (Discord, Nov 15): the phase can't change while one waits.
+  (key===' '?confirmButton(root)||nextPhaseButton(root):confirmButton(root))?.click();
  };
  window.addEventListener('keydown',keydown);
  return ()=>window.removeEventListener('keydown',keydown);

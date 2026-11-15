@@ -4,7 +4,7 @@
 // when a monster arrives on it or changes position.
 import {M,L} from './engine.js';
 
-const TYPE_MONSTER=0x1,TYPE_TRAP=0x4,TYPE_TOKEN=0x4000,TYPE_TOON=0x400000;
+const TYPE_MONSTER=0x1,TYPE_SPELL=0x2,TYPE_TRAP=0x4,TYPE_TOKEN=0x4000,TYPE_TOON=0x400000;
 const RACE_DRAGON=0x2000,RACE_DIVINE=0x200000,ATTRIBUTE_LIGHT=0x10,ATTRIBUTE_DARK=0x20;
 const REASON_DESTROY=0x1,REASON_RELEASE=0x2,REASON_SUMMON=0x10,REASON_BATTLE=0x20;
 // The core reports some card fields (race on the field) as BigInt; bit tests need plain numbers.
@@ -15,7 +15,10 @@ export function sleeveMetrics(duel){
  return duel.sleeveMetrics??={draws:0,effectDamage:0,bestHit:0,banished:0,lightBanished:0,darkBanished:0,graveSpecials:0,dragonsByBattle:0,
   timeWizardWins:0,coinsTossed:0,diceRolled:0,coinStreak:0,bestCoinStreak:0,trapActivated:false,damageTaken:0,stolenFinish:false,tribute3:false,
   bestOneEffect:0,bestMirror:0,turnMonsters:0,bestTurnMonsters:0,turnSpells:0,bestTurnSpells:0,sameName:0,divine:0,toons:0,tokens:0,
-  releases:0,link:null}
+  releases:0,link:null,
+  // Cute sleeves (2026-11-15): weak summons, small finishers, LP gained and lifetime counts.
+  summons:0,maxSummonAtk:0,weakFinish:false,ownBattleDestroyed:0,lpGained:0,spellActivated:false,
+  flipSummons:0,directAttacks:0,bounced:0,spellsRecovered:0,faceDownDestroyed:0}
 }
 
 function readField(duel,s){
@@ -40,6 +43,7 @@ export function observeSleeveMessage(duel,m){
    const a=duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;
    if(attacker&&attacker.owner===1&&m.amount>=duel.lp[1])s.stolenFinish=true}
   else s.effectDamage+=m.amount;
+  if(battle&&m.amount>=duel.lp[1]){const a=duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;if(attacker&&attacker.attack<=500)s.weakFinish=true}
  }
  // Lifetime toss counts unlock Duke Devlin (Roll 10 dice and toss 10 coins, 2026-11-13).
  if(m.type===M.TOSS_DICE&&m.player===0)s.diceRolled+=m.results?.length||0;
@@ -49,10 +53,14 @@ export function observeSleeveMessage(duel,m){
   if(heads&&duel.name(duel.effect?.code)==='Time Wizard')s.timeWizardWins++;
  }
  if(m.type===M.CHAINING){s.releases=0;const player=m.triggering_controller??m.player??m.controller;
-  if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_TRAP))s.trapActivated=true}
+  if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_TRAP))s.trapActivated=true;if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_SPELL))s.spellActivated=true}
  if(m.type===M.CHAIN_SOLVING){const link=duel.activeChain?.find(c=>c.link===m.chain_size);s.link=link?{player:link.player,trap:!!(bits(duel.data[link.code]?.type)&TYPE_TRAP),cards:0,monsters:0}:null}
  if(m.type===M.CHAIN_SOLVED||m.type===M.CHAIN_END){if(s.link?.player===0){s.bestOneEffect=Math.max(s.bestOneEffect,s.link.cards);if(s.link.trap)s.bestMirror=Math.max(s.bestMirror,s.link.monsters)}s.link=null}
  if(m.type===M.SUMMONING&&m.controller===0){if(s.releases>=3)s.tribute3=true;s.releases=0}
+ // Original ATK from the card data, so relic or equip boosts never count; ? ATK counts as strong.
+ if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type)&&m.controller===0){const atk=Number(duel.data[m.code]?.attack??0);s.summons++;s.maxSummonAtk=Math.max(s.maxSummonAtk,atk<0?99999:atk);if(m.type===M.FLIPSUMMONING)s.flipSummons++}
+ if(m.type===M.RECOVER&&m.player===0)s.lpGained+=m.amount||0;
+ if(m.type===M.ATTACK&&m.card?.controller===0&&!m.target)s.directAttacks++;
  if(m.type===M.SPSUMMONING)s.releases=0;
  if(m.type===M.MOVE&&m.from){
   const reason=bits(m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0)),from=m.from,to=m.to||{},data=duel.data[Number(m.card)]||{};
@@ -60,6 +68,9 @@ export function observeSleeveMessage(duel,m){
   if(from.controller===0&&from.location===L.MZONE&&(reason&REASON_RELEASE)&&(reason&REASON_SUMMON))s.releases++;
   if(to.location===L.REMOVED&&from.location!==L.REMOVED){s.banished++;if(monster&&(bits(data.attribute)&ATTRIBUTE_LIGHT))s.lightBanished++;if(monster&&(bits(data.attribute)&ATTRIBUTE_DARK))s.darkBanished++}
   if(from.location===L.GRAVE&&to.location===L.MZONE&&to.controller===0)s.graveSpecials++;
+  if(from.controller===1&&from.location===L.MZONE&&to.location===L.HAND)s.bounced++;
+  if(from.location===L.GRAVE&&to.location===L.HAND&&to.controller===0&&(bits(data.type)&TYPE_SPELL))s.spellsRecovered++;
+  if(reason&REASON_DESTROY&&from.location===L.MZONE){if(from.controller===0&&(reason&REASON_BATTLE))s.ownBattleDestroyed++;if(from.controller===1&&(bits(from.position)&10))s.faceDownDestroyed++}
   if(reason&REASON_DESTROY&&onField(from.location)){
    if(from.controller===1){if(s.link){s.link.cards++;if(from.location===L.MZONE)s.link.monsters++}
     if(from.location===L.MZONE){s.turnMonsters++;s.bestTurnMonsters=Math.max(s.bestTurnMonsters,s.turnMonsters)}
@@ -71,11 +82,12 @@ export function observeSleeveMessage(duel,m){
  if((m.type===M.POS_CHANGE&&m.controller===0)||([M.SUMMONED,M.SPSUMMONED,M.FLIPSUMMONED].includes(m.type)))readField(duel,s);
 }
 
-const count=(duel,location)=>duel.core?.duelQueryCount?duel.core.duelQueryCount(duel.h,0,location):duel.query(0,location).filter(Boolean).length;
+const count=(duel,location,player=0)=>duel.core?.duelQueryCount?duel.core.duelQueryCount(duel.h,player,location):duel.query(player,location).filter(Boolean).length;
 // The end-of-duel half: what the player controls, holds and has left when the duel is decided.
 export function sleeveMetricsEvent(duel){
- const s=sleeveMetrics(duel),field=duel.query(0,L.MZONE).filter(c=>c&&(c.position&5)).map(c=>duel.name(c.code));
+ const s=sleeveMetrics(duel),faceUp=duel.query(0,L.MZONE).filter(c=>c&&(c.position&5)),field=faceUp.map(c=>duel.name(c.code));
  const {link,releases,coinStreak,turnMonsters,turnSpells,...rest}=s;
  return {kind:'sleeve_metrics',...rest,field:[...new Set(field)],hand:count(duel,L.HAND),deck:count(duel,L.DECK),grave:count(duel,L.GRAVE),
+  oppHand:count(duel,L.HAND,1),zeroAtk:faceUp.some(c=>Number(c.attack)===0),
   turn:duel.turn,winReason:duel.finished?Number(duel.finished.reason):null}
 }

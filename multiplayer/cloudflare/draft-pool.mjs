@@ -8,7 +8,10 @@ const secureRandom=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296;
 // Draft loop (2026-11-13): the minimum Main Deck grows 20 → 30 → 40 over the first two drafts, then stays at 40.
 export const minDeckFor=round=>Math.min(40,20+10*Math.max(0,round|0));
 export const DRAFT_PACKS=catalog.packs.filter(p=>p.id.startsWith('DRAFT-')).map(p=>p.id);
-export const DRAFT_RELICS=draftRelics;
+// draft-relics.json: [{key, weight}] from draft_relics.offers(). Weights follow the relic's rarity (shop price tier,
+// 2026-11-15), so strong relics come up less often; fused relics are never offered.
+export const DRAFT_RELICS=draftRelics.map(r=>r.key);
+export const DRAFT_RELIC_WEIGHTS=Object.fromEntries(draftRelics.map(r=>[r.key,r.weight]));
 // One 9-card booster: a rare-slot card, three Normal Monsters, then commons; never two cards of one name.
 export function openBooster(id,random=secureRandom){
  const pack=catalog.packs.find(p=>p.id===id);if(!pack)throw Error('Character booster unavailable.');const used=new Set(),out=[];
@@ -32,8 +35,9 @@ export function draftPool(character,random=secureRandom,loop=false){
  }
  throw Error(`Unable to form a legal ${minimum}-card draft. Try another character.`);
 }
-// Three different relics and three different character packs for one Draft Screen.
-export function draftOffer(random=secureRandom){
- const sample=(xs,n)=>{const left=[...xs],out=[];while(out.length<n&&left.length)out.push(left.splice(Math.floor(random()*left.length),1)[0]);return out;};
- return {relics:sample(DRAFT_RELICS,3),packs:sample(DRAFT_PACKS,3)};
+// Three different relics (drawn by rarity weight, without replacement) and three different character packs for one
+// Draft Screen. A "No relics" room (room.noRelics) offers the packs alone.
+export function draftOffer(random=secureRandom,{relics=true}={}){
+ const sample=(xs,n,weight=()=>1)=>{const left=[...xs],out=[];while(out.length<n&&left.length){let value=random()*left.reduce((s,x)=>s+weight(x),0),i=0;for(;i<left.length-1;i++){value-=weight(left[i]);if(value<0)break;}out.push(left.splice(i,1)[0]);}return out;};
+ return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:sample(DRAFT_PACKS,3)};
 }

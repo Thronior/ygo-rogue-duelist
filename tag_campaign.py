@@ -6,6 +6,10 @@ Transport messages carry commands, never client-supplied prices, card pools or r
 
 from contextlib import contextmanager
 
+# Coins for each starting relic lost because both players start with it.
+
+TAG_DUPLICATE_RELIC_COINS=50
+
 from copy import deepcopy
 
 from pathlib import Path
@@ -32,7 +36,9 @@ class TagCampaign:
 
   for seat,character in enumerate(characters):
 
-   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variants[seat])
+   # Copycat's Randomizer is solo only: randomized cards are made on one device and not shared (random_cards.py).
+   variant=0 if content.CHARACTERS[character].get('alternate',{}).get('randomized') else variants[seat]
+   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variant)
 
    run['history_mode']='tag';run['history_partner']=characters[1-seat]
 
@@ -51,6 +57,12 @@ class TagCampaign:
    self.players.append(run)
 
   self.shared={'boss_rerolls':0,'shop_rerolls':0,'gold':40,'lp':max(r['lp'] for r in self.players),'artifacts':list(dict.fromkeys(a for r in self.players for a in r['artifacts'])),'shop':[],'round':0,'curses':[],'cursed_offer':None,'cursed_artifacts':[]}
+
+  # The same starting relic is only kept once (same character or loadout twice); the team gets 50 coins for each copy
+
+  # it gives up instead (user, Discord 2026-11-15).
+
+  self.shared['gold']+=TAG_DUPLICATE_RELIC_COINS*(sum(len(r['artifacts']) for r in self.players)-len(self.shared['artifacts']))
 
   # Both starting relics together can already complete a set.
 

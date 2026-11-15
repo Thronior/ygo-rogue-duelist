@@ -10,6 +10,13 @@ export function deckMinimum(run,character={}){
 }
 // approved_relics.copy_limit: null means no limit.
 export function copyLimit(run){return (run.artifacts||[]).includes('broken_limiter')?null:copies(run,'cursed_singleton_pact')?1:3}
+// Keep in step with campaign.limit_identity: a card treated as another (alias: Harpie Lady 1/2/3, A Legendary Ocean,
+// alternate artworks) counts as that card. [{name, count, limit}] for every card over the limit.
+export function overCopyLimit(run,cardById){
+ const limit=copyLimit(run);if(limit===null)return [];const counts=new Map();
+ for(const i of run.selected||[]){const c=cardById(run.pool[i]);if(!c)continue;const alias=c.data?.alias,base=alias?cardById(alias):null,name=(base||c).name;counts.set(name,(counts.get(name)||0)+1)}
+ return [...counts].filter(([,n])=>n>limit).map(([name,count])=>({name,count,limit}));
+}
 export function copyLimitText(run){const limit=copyLimit(run);return limit===null?'No copy limit (Broken Limiter).':limit===1?'One copy of each card (Singleton Pact).':'Maximum three copies.'}
 export function deckMinimumNotice(run){
  const increase=Number(run.last_deck_minimum_increase)||0;

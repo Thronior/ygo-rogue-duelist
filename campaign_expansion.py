@@ -9,6 +9,7 @@ from content import *
 import passives,unlocks,encounters,endless
 import cursed_relics,approved_relics as ar
 import relic_fusions
+import random_cards
 
 BOUNTY_OBJECTIVES=(
  {'id':'ritual_summon','title':'Ritual Summon','description':'Ritual Summon a monster this Duel.'},
@@ -35,11 +36,14 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
  'archetype_stock','like_archfiend','like_exodia','like_toon','like_ritual',
  'single_stamp','pack_refund','purchase_clone','faulty',
  'approved_booster_shelf','approved_duelist_catalogue','approved_prospector_lens',
- 'approved_morphing_jar_2','approved_deck_thinning','approved_card_picker',
+ 'approved_morphing_jar_2','approved_deck_thinning','approved_card_picker','random_pack',
 })
 
 # Sanga of the Thunder, Kazejin, Suijin (Gate Calling).
 GATE_TRIO=frozenset({25955164,62340868,98434877})
+# Relics offered only while the current Deck holds a card they need (by name, so alternate artworks count).
+DECK_NEEDS={'magicians_bond':lambda c:bool(c['data']['type']&1) and 'Dark Magician' in c['name'],
+ 'blue_eyes_radiance':lambda c:c['name']=='Blue-Eyes White Dragon'}
 
 def shop_relic_eligible(run,key):
  character=CHARACTERS[run['character']]
@@ -47,16 +51,22 @@ def shop_relic_eligible(run,key):
  # Fused relics only come from fusing, and a fused set's pieces are not offered again.
  if key in relic_fusions.KEYS or relic_fusions.absorbed(run,key):return False
  # Deck Assembler still cannot buy cards, but he edits his deck, so a lower minimum helps him.
- if (character.get('copycat') or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
+ if (copies_deck(run) or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
+ # Randomized cards are made on one device and are not shared in Tag (random_cards.py).
+ if effect=='random_pack' and run.get('history_mode')=='tag':return False
  if not archetype_relics.has_member(key,run):return False
  # Gate Calling only shows up while the current Deck holds Sanga of the Thunder, Kazejin or Suijin (user, 2026-11-14).
  if key=='gate_calling' and not {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))}.intersection(GATE_TRIO):return False
+ # Likewise Magician's Bond needs a "Dark Magician" monster in the Deck, Blue-Eyes Radiance a Blue-Eyes White Dragon (user, 2026-11-15).
+ if key in DECK_NEEDS:
+  import campaign as g
+  if not any(DECK_NEEDS[key](g.BY_ID[cid]) for cid in {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))} if cid in g.BY_ID):return False
  # Singleton Pact fixes the deck rules these relics would change.
  if key in ('deck_thinning','broken_limiter') and ar.has(run,'cursed_singleton_pact'):return False
  if key=='deck_thinning' and run.get('secret_challenge'):return False
  # Engine converts this bonus into an extra reward-deck choice.
- return not (character.get('copycat') and effect=='reward_card')
+ return not (copies_deck(run) and effect=='reward_card')
 
 def install(g):
  g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))+custom_cards.CARDS
@@ -85,6 +95,7 @@ def install(g):
   slot=storage.active_slot() if slot is None else slot
   def valid(r):
    try:
+    random_cards.install(r)
     return (isinstance(r,dict) and 0<=r['character']<len(CHARACTERS) and 0<=r['round']<=12
      and 0<=r['lp'] and 0<=r['gold']
      and len(r['pool'])<=10000 and all(aliases.get(c,c) in g.BY_ID for c in r['pool'])
@@ -127,10 +138,12 @@ def install(g):
    # Repair old over-limit decks without discarding owned cards or resetting a run.
    counts=Counter();selected=[]
    for i in sorted(set(r['selected'])):
-    key=g.card_identity(r['pool'][i])
+    key=g.limit_identity(r['pool'][i])
     if ar.copy_limit(r) is None or counts[key]<ar.copy_limit(r):selected.append(i);counts[key]+=1
    r['selected']=selected
    if r['stage']!='duel' and not r.get('encore_active') and (len(r['routes'])!=(1 if (r['round']+1)%BOSS_EVERY==0 else 5) or any(i not in eligible_opponents(deck_round(r),r.get('loop',0)) or i==r['character'] or i in r.get('defeated_opponents',[]) for i in r['routes'])) and r['round']<RUN_LENGTH:routes(r)
+   import boss_preview
+   if boss_preview.ensure(r,random,route_choices,boss_curse_block):save(r)
    if r.get('reward_rules')!=5 and r['stage']!='duel':
     r['route_rewards']=shop_rewards.route_rewards(r['routes'],random,storage.profile(),r)
     r['reward_rules']=5;save(r)
@@ -139,6 +152,7 @@ def install(g):
    if bounty_reward_migrated:save(r)
   if r:
    challenge_levels.suppress(r)
+   endless.mark_final(r)
    if cursed_relics.pending(r):cursed_relics.create_offer(r)
   return r
  def save(run):
@@ -180,7 +194,8 @@ def install(g):
    # A pack's rarity_weights also tune its common draws, e.g. Polymerization in fusion packs.
    cid=card_rarity.choose(available,rng,p.get('rarity_weights'));pulls.append(cid);used.add(g.card_identity(cid))
   return pulls+[premium]
- def routes(run,rng=random,exclude=(),avoid_curses=()):
+ def route_choices(run,rng=random,avoid=()):
+  """Who routes() may offer on run['round']; avoid keeps a stretch's planned boss out of its ordinary duels."""
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0;tutorial=deck_round(run)==0 and not run.get('loop')
   if tutorial:choices=list(TUTORIAL_OPPONENTS)
   elif rd>=6:choices=[0,1,6,15,17,27]
@@ -189,18 +204,29 @@ def install(g):
   eligible=eligible_opponents(deck_round(run),run.get('loop',0))
   choices+=[i for i in eligible if (i in TIER_EXCLUSIVE_OPPONENTS or i in UC_OPPONENTS) and i not in choices]
   choices=[i for i in choices if i in eligible]
-  defeated=set(run.get('defeated_opponents',[]))
+  defeated=set(run.get('defeated_opponents',[]))|set(avoid)
   choices=[i for i in choices if i not in defeated and i!=run['character']]
   if len(choices)<5:
    extra=[i for i in eligible if i not in defeated and i!=run['character'] and i not in choices]
    choices+=rng.sample(extra,min(5-len(choices),len(extra)))
   if not choices:choices=[i for i in eligible if i not in defeated and i!=run['character']]
+  if not choices and avoid:return route_choices(run,rng)
   if not choices:raise ValueError('All eligible opponents in this journey have been defeated.')
-  alternatives=[i for i in choices if i not in exclude]
-  if exclude:
-   if not alternatives:raise ValueError('No different eligible opponent remains. Your coins were not spent.')
-   choices=alternatives
-  run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)));run['opponent']=run['routes'][0]
+  return choices
+ def routes(run,rng=random,exclude=(),avoid_curses=()):
+  rd=run['round'];boss=(rd+1)%BOSS_EVERY==0;tutorial=deck_round(run)==0 and not run.get('loop')
+  # Next boss preview (2026-11-15): the stretch's boss is rolled when it starts and used when its round arrives.
+  import boss_preview
+  plan=boss_preview.planned(run) if boss else boss_preview.ensure_opponent(run,rng,route_choices)
+  if boss and plan and not exclude:run['routes']=[plan['opponent']]
+  else:
+   choices=route_choices(run,rng,avoid=(plan['opponent'],) if plan and not boss else ())
+   alternatives=[i for i in choices if i not in exclude]
+   if exclude:
+    if not alternatives:raise ValueError('No different eligible opponent remains. Your coins were not spent.')
+    choices=alternatives
+   run['routes']=rng.sample(choices,min(1 if boss else 5,len(choices)))
+  run['opponent']=run['routes'][0]
   if tutorial:run['tutorial_variants']={str(i):TUTORIAL_OPPONENTS[i] for i in run['routes']}
   else:run.pop('tutorial_variants',None)
   import fallen_collectors
@@ -212,14 +238,17 @@ def install(g):
   draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6))
   distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6)
   choices=[]
-  if draw_routes:
+  if boss and plan and not exclude and boss_preview.fits(run,plan.get('curses')):choices=[list(plan['curses'])]
+  elif draw_routes:
    for opponent in run['routes']:
     blocked=list(run.get('persistent_curses',[]))
     if distinct_opening:blocked.extend(key for option in choices for key in option)
     choices.append(draw_curses(rng,count,run.get('challenge_level',0),blocked,distinct=distinct_opening,excluded=boss_curse_block(run,opponent)|set(avoid_curses)))
   run['route_curses']={str(i):list(c) for i,c in zip(run['routes'],choices)}
-  run['boss_curse']=choices[0][0] if choices else None
+  run['boss_curse']=choices[0][0] if choices and choices[0] else None
   challenge_levels.suppress(run)
+  if boss:boss_preview.record(run)
+  else:boss_preview.ensure_curses(run,rng,boss_curse_block)
   run['reward_rules']=5
   run['revealed_opponents']=[]
  def new_run(index,rng=random,level=0,variant=0):
@@ -229,15 +258,23 @@ def install(g):
   import character_variants
   char=character_variants.loadout(CHARACTERS,index,variant,storage.profile());signatures=[g.BY_NAME[n]['id'] for n in char['cards']]
   pack_ids=char.get('starting_packs') if variant and char.get('starting_packs') else starting_packs(index,rng)
-  for _ in range(500):
+  # Copycat's Randomizer: its packs come from the run's own randomized cards, made once the run exists (below).
+  if char.get('randomized'):random_cards.uninstall()
+  for _ in range(0 if char.get('randomized') else 500):
    packs=[open_pack(pack,rng) for pack in pack_ids]
    counts=Counter(g.card_identity(cid) for cid in signatures+sum(packs,[]) if not g.is_extra(cid))
    if char.get('copycat') or char.get('engine_deck') or (sum(min(3,n) for n in counts.values())>=20 and (char.get('random_packs') or sum(min(3,n) for cid,n in Counter(cid for cid in signatures+sum(packs,[]) if g.normal_starter(cid)).items())>=9)):break
-  else:raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
+  else:
+   if not char.get('randomized'):raise ValueError('This pack could not provide a legal draft. Please try another duelist.')
+   packs=[]
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=list(range(len(signatures))),guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r['new_cards_from']=0
   r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else 'Standard',campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
+  if char.get('randomized'):
+   # "Randomizing cards" (user, 2026-11-15): the run's cards are made now, and the 4 starting packs come from them.
+   random_cards.start_pool(r,rng)
+   r['packs']=[random_cards.open_pack(r,rng) for _ in pack_ids];r['pool']=sum(r['packs'],[]);r['selected']=[];r['guaranteed']=[]
   r['challenge_level']=level
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
@@ -276,7 +313,7 @@ def install(g):
   except ValueError:deck=[]
   return ritual_curse_block(deck,run.get('challenge_level',0))
  def copy_deck(run,rng=random):
-  if not CHARACTERS[run['character']].get('copycat'):return
+  if not copies_deck(run):return
   import fallen_collectors
   fallen=fallen_collectors.opponent(run)
   if fallen:
@@ -317,7 +354,7 @@ def install(g):
   reload_tuning()
   if run['stage']=='shop':run['gold_leaving_shop']=run['gold']
   run.pop('fusion_events',None)
-  if CHARACTERS[run['character']].get('copycat'):
+  if copies_deck(run):
    if not run.get('routes'):routes(run,rng)
    if run['opponent'] not in run['routes']:raise ValueError('Choose an available opponent.')
    copy_deck(run,rng)
@@ -544,7 +581,7 @@ def install(g):
    if bonus:run['last_rewards']['Fusion Dividend']=bonus;run['last_gold']+=bonus;run['gold']+=bonus
   else:
    defeated_deck=run['duel'].get('enemy_deck') or opponent_deck(deck_round(run),rng,run['opponent'],run.get('tutorial_variants',{}).get(str(run['opponent']),0),loop=run.get('loop',0))
-   defeated_deck=[] if CHARACTERS[run['character']].get('copycat') else [cid for cid in defeated_deck if cid not in custom_cards.IDS]
+   defeated_deck=[] if copies_deck(run) else [cid for cid in defeated_deck if cid not in custom_cards.IDS]
    # A custom-only test/imported deck has no eligible post-duel card reward.
    reward_start=len(run['pool'])
    run['last_reward_cards']=rng.sample(defeated_deck,min(5 if boss else 1,len(defeated_deck)));run['last_reward_card']=next(iter(run['last_reward_cards']),None);run['pool'].extend(run['last_reward_cards'])
@@ -567,7 +604,7 @@ def install(g):
    if ar.has(run,'chalice') and overflow>=100:
     coins=3*(overflow//100);run['gold']+=coins;run['last_gold']=run.get('last_gold',0)+coins;run['last_rewards']['Silver Chalice']=run['last_rewards'].get('Silver Chalice',0)+coins
     stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+coins
-   for _ in range(int(amount(run,'reward_card')) if defeated_deck and not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') else 0):
+   for _ in range(int(amount(run,'reward_card')) if defeated_deck and not copies_deck(run) and not CHARACTERS[run['character']].get('engine_deck') else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
    for _ in range(2*ar.copies(run,'cursed_collectors_burden') if defeated_deck else 0):
     bonus=rng.choice(defeated_deck);run['pool'].append(bonus);run['last_reward_cards'].append(bonus)
@@ -576,8 +613,11 @@ def install(g):
     del run['pool'][reward_start:]
     reward_slots.prepare_decks(run,1+int(amount(run,'reward_card'))+2*ar.copies(run,'cursed_collectors_burden'),rng)
    else:reward_slots.prepare(run,defeated_deck,reward_start)
+   # Absolute Random: a free Random Pack per copy, after the reward cards; the client opens it (run['free_packs']).
+   run['free_packs']=random_cards.free_pack(run,rng) if ar.has(run,'absolute_random') and not copies_deck(run) else []
    if run.get('encore_active'):run.update(encore_active=False,encore_won=True)
    run['stage']='complete' if run['round']==RUN_LENGTH or run.get('secret_challenge') else 'shop'
+   endless.mark_final(run)
    # Award collection progress before generating this victory's shop.
    update_profile(run,True)
    if run['stage']=='shop':
@@ -595,9 +635,13 @@ def install(g):
   elif 'bounty_list' not in run.get('artifacts',[]):run.pop('bounty_objective',None)
   if 'blank_relic' in run.get('artifacts',[]):
    _attrs={}
+   # Attribute Surgery relics make every monster those Attributes (Discord, Nov 15: Blank Relic used to count the
+   # printed ones), so with any of them owned each monster counts for each Surgery Attribute instead.
+   _surgery=[a[len('attribute_'):].upper() for a in run.get('artifacts',[]) if a in ('attribute_light','attribute_dark','attribute_fire','attribute_water','attribute_wind','attribute_earth')]
    for _cid in g.deck(run):
     _c=g.BY_ID.get(_cid)
-    if _c and _c['data']['type']&1 and _c.get('attribute'):_attrs[_c['attribute']]=_attrs.get(_c['attribute'],0)+1
+    if not (_c and _c['data']['type']&1):continue
+    for _a in (dict.fromkeys(_surgery) if _surgery else [_c.get('attribute')] if _c.get('attribute') else []):_attrs[_a]=_attrs.get(_a,0)+1
    _orb={'LIGHT':'light','DARK':'dark','FIRE':'ember','WATER':'tide','WIND':'gale','EARTH':'earth'}.get(max(_attrs,key=_attrs.get) if _attrs else None)
    _new=_orb or 'earth'
    run['artifacts']=[_new if a=='blank_relic' else a for a in run['artifacts']];run['blank_became']=_new
@@ -634,14 +678,16 @@ def install(g):
    else:restock(run,rng)
   save(run)
  def ensure_shop_packs(run,rng=random):
-  if run.get('stage')!='shop' or CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck'):return
+  if run.get('stage')!='shop' or copies_deck(run) or CHARACTERS[run['character']].get('engine_deck'):return
   current=[x['id'] for x in run.get('shop',[]) if x['kind']=='pack']
   count=(4 if ar.has(run,'booster_shelf') else 3)-len(current)
   if count<=0:return
   profile=storage.profile()
   options=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in current and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
+  # Copycat's Randomizer sells Random Packs only.
+  if random_cards.has_pool(run):options=[random_cards.RANDOM_PACK]*count
   price=ar.price(run,'pack',max(1,round(35*max(0,1-amount(run,'discount')/100))))
-  for pid in rng.sample(options,min(count,len(options))):run['shop'].append(dict(kind='pack',id=pid,price=price,sold=False,opponent_pack=False))
+  for pid in (options if random_cards.has_pool(run) else rng.sample(options,min(count,len(options)))):run['shop'].append(dict(kind='pack',id=pid,price=price,sold=False,opponent_pack=False))
   return bool(options)
  def restock(run,rng=random,general_stock=False):
   challenge_levels.suppress(run)
@@ -697,6 +743,15 @@ def install(g):
    bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c)]
    if bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
+  # Copycat's Randomizer (user, 2026-11-15): every single is one of the run's randomized cards, sold with the cards
+  # it needs (a Ritual Monster comes with its Ritual Spell).
+  randomized_shop=random_cards.has_pool(run)
+  if randomized_shop:
+   items=[]
+   for bundle in random_cards.shop_singles(run,len(singles),rng):
+    c=g.BY_ID[bundle[0]];item=dict(kind='single',id=bundle[0],price=15+(10 if c['level']>=5 else 0),sold=False)
+    if len(bundle)>1:item['bundle']=bundle
+    items.append(item)
   def usable(pid):
    # Old shops/routes can predate progression; an unlocked early pack is the fallback.
    return 'EN-LOB' if PACK_BY_ID.get(pid,{}).get('draft_only') or not unlocks.available('pack',pid,profile) else pid
@@ -712,11 +767,15 @@ def install(g):
   pack_ids=tied_ids+others
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
   # A Tag personal pack that is already a guaranteed pack keeps its random slot.
-  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  if randomized_shop:pack_ids=[random_cards.RANDOM_PACK]*len(pack_ids)
+  # Elsewhere a Random Pack sometimes takes one of the random pack slots (not in Tag: randomized cards are not shared).
+  elif run.get('history_mode')!='tag' and not fixed_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and len(pack_ids)>len(tied_ids) and rng.random()<random_cards.SHOP_CHANCE:
+   pack_ids[-1]=random_cards.RANDOM_PACK
   items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n<len(tied_ids))) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
-  if not CHARACTERS[run['character']].get('copycat') and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
+  if not copies_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
    choice=rng.choice(pre['decks'])
    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
@@ -760,7 +819,7 @@ def install(g):
  def reroll_shop(run,rng=random):
   cursed_relics.require_choice(run)
   if run.get('stage')!='shop':raise ValueError('Shop is closed.')
-  if run.get('challenge_level')==-1 and run.get('history_mode')!='tag' and (CHARACTERS[run['character']].get('copycat') or CHARACTERS[run['character']].get('engine_deck')):raise ValueError('There is no purchasable stock to reroll at LVL -1.')
+  if run.get('challenge_level')==-1 and run.get('history_mode')!='tag' and (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):raise ValueError('There is no purchasable stock to reroll at LVL -1.')
   price=reroll_price(run)
   import payment
   if not payment.can_pay(run,price):payment.pay(run,price,'a reroll')
@@ -779,7 +838,7 @@ def install(g):
   if key not in ARTIFACTS or key not in run.get('artifacts',[]):raise ValueError('You do not own that relic.')
   if key in run.get('cursed_artifacts',[]) or key in cursed_relics.approved():raise ValueError('Cursed relics cannot be sold.')
   if key=='broken_limiter' and run['artifacts'].count(key)==1:
-   counts=Counter(g.card_identity(run['pool'][i]) for i in run.get('selected',[]))
+   counts=Counter(g.limit_identity(run['pool'][i]) for i in run.get('selected',[]))
    if max(counts.values(),default=0)>3:raise ValueError('Remove extra copies from your deck before selling Broken Limiter.')
   price=ARTIFACTS[key][1]//2
   run['artifacts'].remove(key);run['gold']+=price
@@ -824,7 +883,7 @@ def install(g):
   if run['stage']!='shop':raise ValueError('Shop is closed.')
   item=run['shop'][index]
   if run.get('challenge_level')==-1 and item['kind']=='artifact':raise ValueError('Relics are disabled at LVL -1.')
-  if CHARACTERS[run['character']].get('copycat') and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
+  if copies_deck(run) and item['kind']!='artifact':raise ValueError('Copycat borrows the opponent deck and can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and item['kind']!='artifact':raise ValueError('The Dueling Engine uses reward decks and can only buy relics.')
   import payment
   if item['sold']:raise ValueError('Item unavailable.')
@@ -837,11 +896,11 @@ def install(g):
   obtained=[]
   if item['kind']=='single':
    if not unlocks.card_allowed(g.BY_ID[item['id']]):raise ValueError('This card is still locked. See Collection unlocks.')
-   obtained=[item['id']]
+   obtained=list(item.get('bundle') or [item['id']])
    if amount(run,'single_stamp'):
     run['stamped_singles']=run.get('stamped_singles',0)+1
     if run['stamped_singles']%max(1,amount(run,'single_stamp'))==0:obtained.append(rng.choice([c for c in g.CARDS if unlocks.card_allowed(c)])['id'])
-  elif item['kind']=='pack':obtained=open_pack(item['id'],rng)
+  elif item['kind']=='pack':obtained=random_cards.open_pack(run,rng) if item['id']==random_cards.RANDOM_PACK else open_pack(item['id'],rng)
   elif item['kind']=='deck':
    obtained=item['cards'][:]
    if not obtained or any(cid not in g.BY_ID for cid in obtained):raise ValueError('This starter deck is invalid.')
@@ -888,7 +947,7 @@ def install(g):
   if not payment.can_pay(run,sum(x['price'] for x in items)):payment.pay(run,sum(x['price'] for x in items),'these items')
   if run['stage']!='shop' or any(x['sold'] for x in items):raise ValueError('Item unavailable.')
   if ar.has(run,'cursed_cursed_restock') and (sum(not x.get('greed') for x in items)>1 or any(ar.restock_locked(run,x) for x in items)):raise ValueError('Cursed Restock: you can only buy one item per reroll.')
-  if CHARACTERS[run['character']].get('copycat') and any(x['kind']!='artifact' for x in items):raise ValueError('Copycat can only buy relics.')
+  if copies_deck(run) and any(x['kind']!='artifact' for x in items):raise ValueError('Copycat can only buy relics.')
   if CHARACTERS[run['character']].get('engine_deck') and any(x['kind']!='artifact' for x in items):raise ValueError('The Dueling Engine can only buy relics.')
   if any(x['kind']=='single' and not unlocks.card_allowed(g.BY_ID[x['id']]) for x in items):raise ValueError('Card is locked.')
   _out=[];_all_mis=[]

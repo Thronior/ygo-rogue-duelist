@@ -297,12 +297,118 @@ local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS
 d:SetCondition(function(e,tp,eg,ep,ev,re,r,rp) return ep==0 and rp==0 and (r&REASON_EFFECT)~=0 and card(re) end) d:SetOperation(report) Duel.RegisterEffect(d,0)
 local c=Effect.GlobalEffect() c:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) c:SetCode(EVENT_PAY_LPCOST)
 c:SetCondition(function(e,tp,eg,ep,ev,re) return ep==0 and card(re) end) c:SetOperation(report) Duel.RegisterEffect(c,0) end''')
+ # 2026-11-15 Discord relics, with the same player-argument rules as the 2026-11-14 ones above. "You can" summons from the
+ # hand, Deck or Extra Deck are summon procedures (the card shows "Special Summon", like Guardian's Call); triggered ones ask.
+ elif key=='magicians_bond':
+  out.append(f'''do local used=-1
+local function search(c) return c:IsCode({codes(DARK_MAGICIAN_MENTIONS)}) and c:IsAbleToHand() end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
+e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(function(c) return c:IsControler(0) and c:IsCode({codes(DARK_MAGICIANS)}) end,1,nil) and Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) end)
+e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(search,0,LOCATION_DECK,0,nil) if #g==0 then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
+ used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil)
+ Duel.SendtoHand(s,0,REASON_EFFECT) Duel.ConfirmCards(1,s) end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='blue_eyes_radiance':
+  # The 3 "Blue-Eyes White Dragon" are the cost. With no free Monster Zone, one of them must come from the field.
+  # "Other card effects": its own effects still apply, and so do relics and curses (handler-less global effects).
+  out.append(summon_proc(SHINING,'LOCATION_HAND|LOCATION_DECK',1104,'used==Duel.GetTurnCount()',
+   f'''local function cost(c) return c:IsCode({BEWD}) and (c:IsLocation(LOCATION_HAND) or c:IsFaceup()) and c:IsAbleToGraveAsCost() end''',
+   'local g=D.GetMatchingGroup(cost,tp,LOCATION_HAND|LOCATION_MZONE,0,nil) return #g>=3 and (D.GetLocationCount(tp,LOCATION_MZONE)>0 or g:IsExists(Card.IsLocation,1,nil,LOCATION_MZONE))',
+   '''local g=D.GetMatchingGroup(cost,tp,LOCATION_HAND|LOCATION_MZONE,0,nil) local sg=Group.CreateGroup() D.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+  if D.GetLocationCount(tp,LOCATION_MZONE)<=0 then local f=g:Filter(Card.IsLocation,nil,LOCATION_MZONE):Select(tp,1,1,true,nil) if not f or #f==0 then return false end sg:Merge(f) g:Sub(f) D.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE) end
+  local rest=g:Select(tp,3-#sg,3-#sg,true,nil) if not rest or #rest==0 then return false end sg:Merge(rest) if #sg~=3 then return false end''',
+   '''used=Duel.GetTurnCount() Duel.SendtoGrave(sg,REASON_COST)
+  local x=Effect.CreateEffect(c) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(EFFECT_IMMUNE_EFFECT) x:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+  x:SetValue(function(x,te) local o=te:GetOwner() return o~=x:GetOwner() and o:GetOriginalCode()>0 end)
+  x:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END|RESET_OPPO_TURN) c:RegisterEffect(x)''','-1'))
+ elif key=='master_and_apprentice':
+  # Battle or card effect; the summon waits for no chain, like Gate Calling's.
+  dm=codes(DARK_MAGICIANS)
+  out.append(f'''do local used=-1
+local function lost(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and (c:IsCode({dm}) or c:IsPreviousCodeOnField({dm})) end
+local function can(c,e,tp) return c:IsCode({dm}) and c:IsCanBeSpecialSummoned(e,0,tp,true,false) end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_DESTROYED)
+e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(lost,1,nil) and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(can,0,LOCATION_HAND,0,1,nil,e,tp) end)
+e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(can,0,LOCATION_HAND,0,nil,e,tp) if #g==0 or Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
+ used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ Duel.SpecialSummon(tc,0,tp,tp,true,false,POS_FACEUP) end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='black_chaos_rite':
+  # The Tribute is the cost; it may be the only monster in a full field, since it frees its zone.
+  out.append(summon_proc(DARK_MAGICIAN_OF_CHAOS,'LOCATION_HAND|LOCATION_DECK',0,'used',
+   f'local function dm(c,tp) return c:IsCode({DARK_MAGICIAN}) and c:IsReleasable() and D.GetMZoneCount(tp,c)>0 end',
+   'return D.IsExistingMatchingCard(dm,tp,LOCATION_MZONE,0,1,nil,tp)',
+   'D.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE) local sg=D.GetMatchingGroup(dm,tp,LOCATION_MZONE,0,nil,tp):Select(tp,1,1,true,nil) if not sg or #sg==0 then return false end',
+   'used=true Duel.Release(sg,REASON_COST)','false'))
+ elif key=='dragon_lords_decree':
+  # Its own Summoning conditions still apply (no "ignoring" in the text), so a Dragon that cannot be Special Summoned
+  # from the hand (Blue-Eyes Shining Dragon, Red-Eyes Darkness Dragon) is not offered.
+  out.append(summon_proc(None,'LOCATION_HAND',1104,'used',
+   'local function fodder(c) return c:IsMonster() and c:IsRace(RACE_DRAGON) and c:IsDiscardable(REASON_COST) end',
+   'return c:IsRace(RACE_DRAGON) and c:IsLevelAbove(7) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and D.GetLocationCount(tp,LOCATION_MZONE)>0 and D.IsExistingMatchingCard(fodder,tp,LOCATION_HAND,0,2,c)',
+   'D.Hint(HINT_SELECTMSG,tp,HINTMSG_DISCARD) local sg=D.GetMatchingGroup(fodder,tp,LOCATION_HAND,0,c):Select(tp,2,2,true,nil) if not sg or #sg~=2 then return false end',
+   'used=true Duel.SendtoGrave(sg,REASON_COST|REASON_DISCARD)','false',handlers='function(c) return c:IsMonster() and c:GetOriginalLevel()>=7 end'))
+ elif key=='twin_eyes':
+  # Dark Lotus's first-Standby flag. No "you can": the summon happens whenever a monster can be summoned.
+  out.append(f'''do local done=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
+e:SetCondition(function() return not done and Duel.GetTurnPlayer()==0 end)
+e:SetOperation(function(e,tp) done=true if Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
+ local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsCode({codes(EYES)}) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_DECK,0,nil)
+ if #g==0 then return end
+ --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP_ATTACK) end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='dragon_blood_fusion':
+  # Not a Fusion Summon (SUMMON_TYPE_SPECIAL): a Fusion Monster cannot be Special Summoned from the Extra Deck any other
+  # way, so this procedure is the summon. "Lists as Fusion Material" is the script's material list (Card.ListsCodeAsMaterial).
+  out.append(summon_proc(None,'LOCATION_EXTRA',1107,'used==Duel.GetTurnCount()',
+   f'''local function eyes(m,c,tp) return m:IsFaceup() and m:IsCode({codes(EYES)}) and m:IsAbleToRemoveAsCost() and (c:ListsCodeAsMaterial(m:GetCode()) or c:ListsCodeAsMaterial(m:GetOriginalCode())) and D.GetLocationCountFromEx(tp,tp,m,c)>0 end''',
+   'return D.IsExistingMatchingCard(eyes,tp,LOCATION_MZONE,0,1,nil,c,tp)',
+   'D.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE) local sg=D.GetMatchingGroup(eyes,tp,LOCATION_MZONE,0,nil,c,tp):Select(tp,1,1,true,nil) if not sg or #sg==0 then return false end',
+   'used=Duel.GetTurnCount() Duel.Remove(sg,POS_FACEUP,REASON_COST)','-1',handlers='function(c) return c:IsType(TYPE_FUSION) and c.material~=nil end',location='LOCATION_EXTRA'))
+ elif key=='titans_charge':
+  # Duel.ChainAttack, as cards that "can make a second attack in a row" use; the attack itself stays the player's choice.
+  out.append('''do local used=-1
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_BATTLE_DESTROYING)
+e:SetCondition(function(e,tp,eg) local a,d=Duel.GetAttacker(),Duel.GetAttackTarget()
+ return used~=Duel.GetTurnCount() and a~=nil and d~=nil and eg:IsContains(a) and a:IsControler(0) and a:IsLevelAbove(7) and a:IsRelateToBattle() and (d:IsPreviousControler(1) or d:IsControler(1)) end)
+e:SetOperation(function(e) used=Duel.GetTurnCount() --[[relic-hint]] Duel.ChainAttack() end)
+Duel.RegisterEffect(e,0) end''')
+ elif key=='poison_of_the_old_man':
+  # A real coin toss, so coin relics and cards that change or redo tosses apply. "Lose" LP is not damage. Recover and SetLP
+  # are called through locals so the relic is shown once, before the toss.
+  out.append(phase('END','--[[relic-hint]] local heads=Duel.TossCoin(0,1)==COIN_HEADS local gain,set,lp=Duel.Recover,Duel.SetLP,Duel.GetLP if heads then gain(0,500,REASON_EFFECT) else set(0,math.max(0,lp(0)-500)) end'))
  return '\n'.join(out)
+
+def codes(ids):return ','.join(map(str,ids))
+
+def summon_proc(code,where,description,spent,helpers,condition,target,operation,initial,handlers=None,location='LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_REMOVED'):
+ """A relic's summon procedure on each card it can summon (Guardian's Call's method). `spent` says the relic is used up;
+ `condition` and `target` see c (the card) and tp (its controller); `target` leaves the cost in sg. D is the unwrapped
+ Duel, for lookups by tp under passives.multiplayer_script."""
+ pick=handlers or f'function(c) return c:GetOriginalCode()=={code} end'
+ return f'''do local D=(_G and _G.Duel) or Duel local used={initial}
+{helpers}
+for c in Duel.GetMatchingGroup({pick},0,{location},0,nil):Iter() do
+ local e=Effect.CreateEffect(c) {f'e:SetDescription({description}) ' if description else ''}e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPSUMMON_PROC) e:SetProperty(EFFECT_FLAG_UNCOPYABLE) e:SetRange({where})
+ e:SetCondition(function(e,c) if c==nil then return true end if {spent} then return false end local tp=c:GetControler() {condition} end)
+ e:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk,c) {target} sg:KeepAlive() e:SetLabelObject(sg) return true end)
+ e:SetOperation(function(e,tp,eg,ep,ev,re,r,rp,c) local sg=e:GetLabelObject() if not sg then return end e:SetLabelObject(nil) --[[relic-hint]] {operation} sg:DeleteGroup() end)
+ c:RegisterEffect(e) end end'''
 
 # Guardian's Call: each Guardian and the Equip Spell its name is listed on.
 GUARDIAN_EQUIPS={73544866:68427465,10755153:95638658,74367458:69243953,47150851:32022366,9633505:95515060,46037213:21900719}
 # Gate Calling: Sanga of the Thunder, Kazejin, Suijin.
 GATE_TRIO=(25955164,62340868,98434877)
+# 2026-11-15 relics. "Dark Magician" monsters: every monster whose name includes "Dark Magician" (user). Cards that mention
+# "Dark Magician": its quoted name is in their text. "Blue-Eyes" or "Red-Eyes" monsters: the name includes it.
+# tools/test_relics_nov15.py checks these lists against the card list.
+DARK_MAGICIAN,DARK_MAGICIAN_OF_CHAOS,BEWD,SHINING=46986414,40737112,89631139,53347303
+DARK_MAGICIANS=(46986414,38033121,50725996,40737112,73752131,90960358)
+DARK_MAGICIAN_MENTIONS=(13722870,2314238,99789342,38033121,98502113,92377303,69542930,87210505,67227834,68334074,13604200,73752131,63391643,90960358)
+EYES=(53347303,53183600,23995346,89631139,74677422,64335804,96561011)
 
 def spirit_tribute(once):
  script='''do local used=false local function gy(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end

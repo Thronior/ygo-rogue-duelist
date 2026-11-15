@@ -14,7 +14,7 @@ import {replayVersion} from './replay-version.js';
 import {HubSocket} from './hub-socket.js';
 import {partnerSleeve} from './sleeves.js';
 // With the room hub open, polls only guard against a missed nudge.
-const SAFETY_POLL=120000,OFFLINE_POLL=30000,PARTNER_CHECK=20000,PROBE_AFTER=4000;
+const SAFETY_POLL=120000,OFFLINE_POLL=30000,PARTNER_CHECK=20000,PROBE_AFTER=4000,MOVE_BUNDLE_MS=200;
 const wire=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(text,action,extra='')=>`<button data-collector="${action}" ${extra}>${text}</button>`;
@@ -120,7 +120,18 @@ export class CollectorUI {
  if(m.t==='reject'){if(log&&m.game===log.game)this.rebuild();else this.nudge();}
  }
  // Replays the confirmed log into a fresh engine. Anything the hub refused is dropped and its prompt returns.
- rebuild(){const log=this.duelLog;this.game?.destroy();this.game=null;if(log){log.events.length=log.confirmed;log.outbox.clear();}this.hubHello();this.enqueue(()=>this.updateDuel(this.room));}
+ // Quick answers in a row (Chain Sometimes passes, forced picks) reach the hub as one bundle, which it stores in one
+ // write instead of one per answer (Cloudflare's daily row limit, user 2026-11-14). An answer that hands the next
+ // prompt to the opponent goes at once, with anything waiting. Unconfirmed answers stay in the outbox as before.
+ queueMove(packet){(this.moveQueue??=[]).push(packet);clearTimeout(this.moveTimer);
+  if(packet.nextActor!==this.seat||this.moveQueue.length>=24)return this.flushMoves();
+  this.moveTimer=setTimeout(()=>this.flushMoves(),MOVE_BUNDLE_MS);}
+ flushMoves(){clearTimeout(this.moveTimer);const q=this.moveQueue||[];this.moveQueue=[];if(!q.length)return;
+  if(q.length===1){this.hubSend(q[0]);return;}
+  const bundle={t:'rs',game:q[0].game,n:q[0].n,items:q.map(({response,nextActor,turn,h})=>({response,nextActor,turn,h}))};
+  if(JSON.stringify(bundle).length>60000){for(const packet of q)this.hubSend(packet);return;}
+  this.hubSend(bundle);}
+ rebuild(){clearTimeout(this.moveTimer);this.moveQueue=[];const log=this.duelLog;this.game?.destroy();this.game=null;if(log){log.events.length=log.confirmed;log.outbox.clear();}this.hubHello();this.enqueue(()=>this.updateDuel(this.room));}
  netStatus(){return {online:!!this.hub?.isOpen,partnerOnline:this.hubInfo?.online?.[1-this.seat]??true,rtt:this.hub?.rtt==null?null:this.hub.rtt,route:'relay',partner:'Opponent'};}
  async accept(result){if(!this.alive)return;this.hydrate(result);const ended=result.room&&result.room.phase!=='duel'&&result.room.game>0&&result.room.phase!=='waiting'&&result.room.phase!=='drafting';const checkpoint=ended?result.room.code+':'+result.room.game:null;await this.sync(result);if(checkpoint&&checkpoint!==this.cloudCheckpoint){this.cloudCheckpoint=checkpoint;try{await this.onCheckpoint?.();}catch(error){console.warn('Post-duel backup:',error.message);}}if(!this.alive)return;this.room=result.record.room?result.room:null;this.seat=result.seat;this.serverOffset=result.now-Date.now();this.connectHub();this.updateReconnectTimer();this.session.code=this.room?.code||'';this.session.connected=true;
  if(this.duelist.status!=='alive'){this.game?.destroy();this.game=null;this.mode='shadow';this.view={phase:'gameover'};this.onView(this.view);this.onResult?.(false);this.render();return;}
@@ -170,7 +181,7 @@ export class CollectorUI {
  try{this.game.respondFor(this.seat^r.first,number,decode(structuredClone(response)));}catch(error){this.shown=-1;await this.updateDuel(r);throw error;}
  this.applied++;
  const nextActor=this.game.respondingSeat===null?null:this.game.respondingSeat^r.first,turn=this.game.turn||1,h=this.game.checksum(),packet={t:'r',game:r.game,n:number,response,nextActor,turn,h};
- log.events[number]={seat:this.seat,response};log.outbox.set(number,packet);this.hubSend(packet);
+ log.events[number]={seat:this.seat,response};log.outbox.set(number,packet);this.queueMove(packet);
  // No echo soon means a dead socket; finding out now beats the next routine ping.
  clearTimeout(this.probe);this.probe=setTimeout(()=>{if(log.outbox.size)this.hub?.ping();},PROBE_AFTER);
  // The answer is already on screen; it reaches the hub when the link allows. The clock display follows at once.

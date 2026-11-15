@@ -22,12 +22,18 @@ def card_identity(cid):
     c=BY_ID[cid]
     return BY_ID.get(c['data'].get('alias',0),c)['name'].casefold()
 
+def limit_identity(cid):
+    """The name the three-copy limit counts: a card treated as another (Harpie Lady 1/2/3 and Cyber Harpie Lady as
+    "Harpie Lady", A Legendary Ocean as "Umi", alternate artworks) shares that card's limit. The user undid separate
+    Harpie limits on 2026-11-15."""
+    return card_identity(cid)
+
 def legal_fixed_cards(main,extra):
     """Apply shared-name limits to fixed player decks before presenting them."""
     counts=Counter();out=[[],[]]
     for zone,cards in enumerate((main,extra)):
         for cid in cards:
-            key=card_identity(cid)
+            key=limit_identity(cid)
             if counts[key]>=3 or len(out[zone])>=(60 if zone==0 else 15):continue
             counts[key]+=1;out[zone].append(cid)
     return out
@@ -42,14 +48,18 @@ def validate(run):
     if extra > 15 and not (CHARACTERS[run['character']].get('copycat') and run.get('encore_active')): return 'Your Extra Deck can contain at most 15 cards.'
     from approved_relics import copy_limit
     limit=copy_limit(run)
-    if limit is not None and max(Counter(card_identity(c) for c in cards).values(), default=0) > limit: return 'You can use at most three copies of a card.' if limit==3 else 'Singleton Pact: your Deck can contain only 1 copy of each card.'
+    if limit is not None:
+        counts=Counter(limit_identity(c) for c in cards)
+        over=next((c for c in cards if counts[limit_identity(c)]>limit),None)
+        # Name the card (Discord, 2026-11-15: four Fire Princess blocked a Tag lock-in and the message did not say which).
+        if over is not None: return f"You have {counts[limit_identity(over)]} copies of {BY_ID.get(BY_ID[over]['data'].get('alias',0),BY_ID[over])['name']}. You can use at most three copies of a card." if limit==3 else 'Singleton Pact: your Deck can contain only 1 copy of each card.'
     return None
 
 def auto_deck(run):
     from content import fixed_deck
     if fixed_deck(run):return
     # Every signature card stays in the deck; they fill the first pool slots (the Deck Assembler variant has none).
-    chosen, counts = list(range(len(run['guaranteed']))), Counter(card_identity(c) for c in run['guaranteed'])
+    chosen, counts = list(range(len(run['guaranteed']))), Counter(limit_identity(c) for c in run['guaranteed'])
     options = list(range(len(chosen),len(run['pool'])))
     # A playable draft needs enough low-level monsters, then useful spells/traps.
     def score(i):
@@ -61,8 +71,8 @@ def auto_deck(run):
     for i in sorted(options, key=score, reverse=True):
         cid=run['pool'][i]
         limit=__import__('approved_relics').copy_limit(run)
-        if (limit is None or counts[card_identity(cid)]<limit) and not is_extra(cid):
-            chosen.append(i); counts[card_identity(cid)]+=1
+        if (limit is None or counts[limit_identity(cid)]<limit) and not is_extra(cid):
+            chosen.append(i); counts[limit_identity(cid)]+=1
         if sum(not is_extra(run['pool'][j]) for j in chosen)>=__import__('approved_relics').minimum(run): break
     run['selected']=sorted(chosen)
 

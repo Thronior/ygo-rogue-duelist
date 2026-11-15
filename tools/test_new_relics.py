@@ -140,6 +140,13 @@ saved_run = copy.deepcopy(run4)
 g.finish_duel(run4, dict(protocol=1, id=run4["duel"]["id"], winner=0, lp=800, events=[]))
 assert "blank_relic" not in run4["artifacts"] and expect in run4["artifacts"], run4["artifacts"]
 assert "phoenix_rebirth" in run4["artifacts"] and not run4.get("phoenix_spent")
+# With an Attribute Surgery relic every monster has that Attribute, so Blank Relic becomes that orb (Discord, Nov 15).
+odd = next(a for a in ("WIND", "FIRE", "WATER", "LIGHT", "DARK", "EARTH") if a != top)
+run_s = copy.deepcopy(saved_run)
+run_s["artifacts"] += ["attribute_" + odd.lower()]
+g.finish_duel(run_s, dict(protocol=1, id=run_s["duel"]["id"], winner=0, lp=800, events=[]))
+surgery_orb = {"LIGHT": "light", "DARK": "dark", "FIRE": "ember", "WATER": "tide", "WIND": "gale", "EARTH": "earth"}[odd]
+assert run_s.get("blank_became") == surgery_orb, (run_s.get("blank_became"), odd)
 # The save itself spends it.
 run5 = copy.deepcopy(saved_run)
 g.finish_duel(run5, dict(protocol=1, id=run5["duel"]["id"], winner=0, lp=800, events=[{"kind": "relic_used", "relic": "phoenix_rebirth"}]))
