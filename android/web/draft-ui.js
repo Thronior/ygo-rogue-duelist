@@ -3,7 +3,7 @@ import {roomCodeControl} from './room-code.js';
 import {draftCharacterSelect} from './draft-character-select.js';
 import {CollectorUI} from './collector-ui.js';
 import {ownedBefore} from './pack-opening.js';
-import {validateDraftDeck} from './collector-rules.js';
+import {validateDraftDeck,randomAllowance,isRandomId} from './collector-rules.js';
 import {replayVersion} from './replay-version.js';
 import {relicImage,relicArtwork} from './ui-art.js';
 import {relicCard} from './relic-inspect.js';
@@ -11,6 +11,8 @@ import {deckOrder,deckToolbar,deckCardsArea,deckCardButton,wireDeckToolbar,reset
 import {savedDeckSort,savedDeckStatus} from './deck-sort-preference.js';
 import {deckReadyFeedback} from './selection-feedback.js';
 import {saveDeckScroll,restoreDeckScroll} from './card-search.js';
+import {RANDOM_PACK} from './random-cards.js';
+import {alternateUnlocked} from './difficulty-preference.js';
 // The deck editor works like solo and Tag (Discord 2026-11-13): same sorts, Deck status, split view and ATK/DEF.
 const DRAFT_DECK_SORTS=['Newest','Default','Name','Attribute','ATK','DEF','Level'],DECK_SEARCH='online-draft-deck';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -18,20 +20,44 @@ const button=(label,action,attrs='')=>`<button data-collector="${action}" ${attr
 // Draft loop (rooms Worker DraftRegistry, 2026-11-13): duel → Draft Screen → boosters → deck editor → next duel.
 // `draft:2` asks the Worker for loop rules; rooms of older clients keep best of three. `draft:3` (2026-11-15) also
 // understands "No relics" rooms (room.noRelics), which the Worker refuses to clients below 3.
-const DRAFT_PROTOCOL=3,NO_RELICS_KEY='ygo-draft-no-relics';
+// `draft:4` (2026-11-16) builds Random Pack boosters from the room's seeds and plays second loadouts.
+const DRAFT_PROTOCOL=4,NO_RELICS_KEY='ygo-draft-no-relics';
 export class DraftUI extends CollectorUI {
  constructor(options){super({...options,validateDeck:validateDraftDeck});this.isDraft=true;this.storageKey='ygo-draft-session-v1';this.python=options.backend;this.installHold();this.deckFilter='All';try{this.noRelics=localStorage.getItem(NO_RELICS_KEY)==='1';}catch{this.noRelics=false;}this.deckSort=savedDeckSort(DRAFT_DECK_SORTS);this.deckStatus=savedDeckStatus();this.deckSplit=0;
   if(typeof window!=='undefined'){let timer=0;this.onResize=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(this.alive&&this.mode==='editor')this.checkDeckSplit()},200)};window.addEventListener('resize',this.onResize,{passive:true})}
   // The Main Deck minimum grows 20 → 30 → 40 with each draft (draft-pool.mjs minDeckFor).
-  this.validateDeck=(deck,pool,cards)=>validateDraftDeck(deck,pool,cards,this.minDeck());
+  this.validateDeck=(deck,pool,cards)=>validateDraftDeck(deck,pool,cards,this.minDeck(),this.randomOk());
   this.backend=async(action,v)=>{if(action==='collector-draft'){this.duelist.draftDeck=structuredClone(v.deck);this.save();return {duelists:[this.duelist]};}throw Error('Unsupported draft operation.');};}
  minDeck(){return this.room?.loop?this.room.minDeck||40:40;}
+ // Random Packs draw their pictures first (hat), so the pack screen's closer arrives as a promise.
+ packCloser(result){if(typeof result?.then!=='function')return result;const wait=()=>{};result.then(fn=>{if(this.closePacks===wait&&typeof fn==='function')this.closePacks=fn;}).catch(error=>console.warn('Pack opening:',error));return wait;}
+ // Random Pack cards follow the Worker's rule: one copy each, from this seat's own boosters.
+ randomOk(){const seat=this.seat??-1,count=this.room?.players?.[seat]?.random?.length||0;return seat>=0?randomAllowance(seat,count):null;}
+ // Second loadout (2026-11-16): unlocked like in solo and Tag (Challenge LVL 2 or LVL -1); Randomizer included.
+ variantFor(character){return this.content.characters[character]?.alternate&&alternateUnlocked(this.profile,character)?(this.variants?.[character]||0):0;}
  save(){localStorage.setItem(this.storageKey,JSON.stringify(this.duelist));}
  resetSelection(){this.closeHub();this.duelLog=null;this.hubInfo=null;clearTimeout(this.timer);clearInterval(this.countdown);this.closePacks?.();this.closePacks=null;this.game?.destroy();this.game=null;this.gameKey=null;this.room=null;this.duelist=null;this.draft=null;this.status='';this.session.connected=false;this.session.code='';localStorage.removeItem(this.storageKey);document.getElementById('collector-reconnect-timer')?.remove();document.getElementById('collector-turn-timer')?.remove();this.drawTurnTimer();this.mode='characters';this.view={phase:'characters'};this.onView(this.view);this.render();}
  paired(room=this.room,now=Date.now()+(this.serverOffset||0)){return this.session.connected&&room?.players.length===2&&room.seen?.every(t=>now-t<15000);}
  async initialize(){const config=await fetch('./multiplayer-config.json').then(r=>r.json());this.endpoint=config.signalingUrl.replace(/\/$/,'');const raw=localStorage.getItem(this.storageKey);if(!raw){this.resetSelection();return;}try{this.duelist=JSON.parse(raw);}catch{this.resetSelection();return;}this.restoring=true;try{const result=await this.api('poll');if(!result.room||result.room.phase==='complete'||result.room.cancelled){this.resetSelection();return;}await this.accept(result);this.schedule();}catch(error){if(error.status===400){this.resetSelection();return;}this.mode='reconnect';this.status=error.status===426?error.message:'Unable to check your saved room. Retry when connected.';this.render();}finally{this.restoring=false;}}
  async api(op,body={}){const response=await fetch(`${this.endpoint}/v2/draft/${op}`,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({id:this.duelist.id,token:this.duelist.token,version:replayVersion,net:3,draft:DRAFT_PROTOCOL,...(this.sleeve?{sleeve:this.sleeve()}:{}),...body},(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Draft service unavailable.');error.status=response.status;throw error;}return result;}
- async sync(result){this.duelist={...this.duelist,...result.record};this.data={duelists:[this.duelist]};this.save();}
+ async sync(result){this.duelist={...this.duelist,...result.record};await this.addRandomCards(result);this.data={duelists:[this.duelist]};this.save();}
+ // Random Pack boosters (2026-11-16): the Worker sends seeds only. Both players' cards are built here from the room's
+ // seeds (random_cards.draft_cards), the same way on both devices, then join this player's pool and packs.
+ async addRandomCards(result){
+  const room=result.room,seat=result.seat,players=room?.players||[];
+  if(!room||seat==null||seat<0||!players.some(p=>p.random?.length))return;
+  const seeds=players.map(p=>p.random||[]),key=JSON.stringify(seeds);
+  if(this.randomKey!==key){const built=await this.python('draft-random-cards',{players:seeds});this.randomCards?.add?.(built.cards);this.randomBuilt=built.boosters;this.randomKey=key;this.cardIndex=null;this.randomCards?.draw?.(built.cards.map(x=>x.card.id));}
+  const mine=this.randomBuilt?.[seat]||[];if(!mine.length)return;
+  // Newest cards stay last in the pool (deck sort "Newest"): random boosters from the latest pick go after the
+  // newest real boosters only when that pick was a Random Pack.
+  const ids=this.duelist.packIds||[],packs=(this.duelist.packs||[]).map(x=>[...x]),fresh=ids.filter(id=>id===RANDOM_PACK.id).length;
+  let k=mine.length-fresh;ids.forEach((id,i)=>{if(id===RANDOM_PACK.id)packs[i]=mine[k++]||[];});
+  const all=mine.flat(),pool=result.record.pool||[];
+  if(fresh){this.duelist.pool=[...pool,...all];}
+  else{const newest=packs.flat().length;this.duelist.pool=[...pool.slice(0,pool.length-newest),...all,...pool.slice(pool.length-newest)];}
+  this.duelist.packs=packs;
+ }
  // Each draft round has its own boosters, so "already opened" is remembered per round.
  packsKey(r=this.room){return r.loop?`${r.code}:${r.round||0}`:r.code;}
  // Relic scripts for the duel (draft_relics.duel_setup), built the same way on both clients from the room.
@@ -67,13 +93,13 @@ export class DraftUI extends CollectorUI {
   const owner=(kind,i)=>picks[me]?.[kind]===i?'Your pick':picks[1-me]?.[kind]===i?'Opponent’s pick':'';
   const tile=(kind,i,value,art,name,tip)=>{const tag=owner(kind,i),chosen=c[kind]===i;return `<button data-collector="choose-${kind}" data-index="${i}" data-kind="${kind}" data-draft-inspect="${esc(value)}" class="draft-offer ${chosen?'selected':''} ${tag?'taken':''}" title="${esc(tip)}" aria-pressed="${chosen}" ${!mine||tag?'disabled':''}>${art}<b>${esc(name)}</b>${tag?`<em class="draft-pick-owner">${tag}</em>`:''}</button>`;};
   const relic=(k,i)=>{const a=this.content.artifacts[k],info=this.content.artifactInfo[k];return tile('relic',i,k,relicArtwork(relicImage(info?.art)),a?.[0]||k,this.relicTip(k));};
-  const pack=(id,i)=>{const p=this.content.packs.find(p=>p.id===id);return tile('pack',i,id,`<img src="assets/packs/${esc(id)}.jpg${id==='DRAFT-DARTZ'?'?v=dartz-cover-20261020':''}" alt="">`,p?.name||id,p?.name||id);};
+  const pack=(id,i)=>{const p=id===RANDOM_PACK.id?RANDOM_PACK:this.content.packs.find(p=>p.id===id);return tile('pack',i,id,`<img src="assets/packs/${esc(id)}.jpg${id==='DRAFT-DARTZ'?'?v=dartz-cover-20261020':''}" alt="">`,p?.name||id,p?.name||id);};
   const label=picks[me]?'Waiting for your opponent…':mine?'Confirm':'Opponent is picking…',noRelics=!!r.noRelics;
   return `<section class="draft-pick-screen"><div class="draft-pick-head"><h2>Draft ${r.round}</h2>${this.standing()}<span class="draft-min"><span>First to ${r.target} wins</span> · <span>Deck ${Math.min(40,20+10*r.round)}+</span>${noRelics?' · <span>No relics</span>':''}</span></div><div class="draft-offers">${noRelics?'':`<div class="draft-offer-group"><h3>Relics</h3><div class="draft-offer-row">${o.relics.map(relic).join('')}</div></div>`}<div class="draft-offer-group"><h3>Character packs</h3><div class="draft-offer-row">${o.packs.map(pack).join('')}</div></div></div>${button(label,'confirm-pick',`class="draft-confirm start-run" ${!mine||(!noRelics&&c.relic===undefined)||c.pack===undefined||!this.paired()?'disabled':''}`)}</section>`;}
  decidedMarkup(){const r=this.room,won=r.winner===this.seat,votes=r.continueVotes||[],voted=votes[this.seat]===true;
   return `<section class="collector-result draft-decided ${won?'triumph':''}"><h2>${won?'Match won!':'Match lost'}</h2>${this.standing()}<p>${won?'You':'Your opponent'} reached ${r.target} wins first.</p><p>Keep playing? If you both agree, the goal becomes ${r.target+3} wins and the drafts go on.</p><p role="status">${voted?'You want to continue. Waiting for your opponent…':votes[1-this.seat]?'Your opponent wants to continue!':''}</p>${button(voted?'Waiting…':`Continue to ${r.target+3} wins`,'continue-match',`class="start-run" ${voted||!this.paired()?'disabled':''}`)}${button('End match','end-match')}</section>`;}
  render(){if(!this.alive||this.mode==='duel')return;document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();
-  if(this.mode==='characters'){this.selectedCharacter??=this.content.playable[0];this.root.innerHTML=draftCharacterSelect(this.content,this.selectedCharacter,this.image,this.profile,{noRelics:this.noRelics});return;}
+  if(this.mode==='characters'){this.selectedCharacter??=this.content.playable[0];this.root.innerHTML=draftCharacterSelect(this.content,this.selectedCharacter,this.image,this.profile,{noRelics:this.noRelics,variant:this.variantFor(this.selectedCharacter),unlocked:alternateUnlocked(this.profile,this.selectedCharacter)});return;}
   if(this.mode==='picking'){this.page(this.pickingMarkup());return;}
   if(this.mode==='editor'&&this.duelist){this.renderEditor();return;}
   // Reaching the goal wins the match and unlocks the Gaia The Fierce Knight sleeve (sleeves.js); marking twice changes nothing.
@@ -108,7 +134,7 @@ export class DraftUI extends CollectorUI {
  toggleCard(i){const pool=this.duelist.pool,lookup=id=>this.cardById(id),card=lookup(pool[i]);if(!card)return;const at=this.picked.indexOf(i);
   if(at>=0)this.picked.splice(at,1);
   else{const ids=this.picked.map(k=>lookup(pool[k])),fusion=card.data.type&64;
-   if(ids.filter(c=>c?.name===card.name).length>=3)throw Error(`Maximum three copies of ${card.name}.`);
+   if(!isRandomId(card.id)&&ids.filter(c=>c?.name===card.name&&!isRandomId(c.id)).length>=3)throw Error(`Maximum three copies of ${card.name}.`);
    if(fusion&&ids.filter(c=>c?.data.type&64).length>=15)throw Error('Fusion Deck may contain 0–15 cards.');
    if(!fusion&&ids.filter(c=>!(c?.data.type&64)).length>=60)throw Error('Main Deck may contain up to 60 cards.');
    this.picked.push(i);}
@@ -128,15 +154,16 @@ export class DraftUI extends CollectorUI {
   if(action==='help'){this.dialog('Draft Duels','<p>Choose a character, open their four starting boosters and build a deck of at least 20 cards. After each duel both players draft: the loser picks one relic and one character pack (two boosters) first, then the winner. The minimum deck grows to 30, then 40 cards. Relics are active in every later duel. First to 3 wins takes the match; if both agree, play on to 6, 9 and more. Maximum three copies by card name, no banned list or siding, 8,000 LP each.</p><p>The host can tick No relics: the Draft Screen then offers character packs only, and every duel is played without relics.</p>');return;}
   if(action==='no-relics'){this.noRelics=!!el.checked;try{localStorage.setItem(NO_RELICS_KEY,this.noRelics?'1':'0');}catch{}return;}
   if(action==='select-character'){this.selectedCharacter=+el.dataset.character;this.render();return;}
+  if(action==='choose-variant'){const c=this.selectedCharacter??this.content.playable[0];if(!alternateUnlocked(this.profile,c))return;this.variants={...this.variants,[c]:+el.dataset.variant?1:0};this.render();return;}
   if(action==='draft-host'||action==='draft-join'){
    const character=this.selectedCharacter??this.content.playable[0];
-   this.duelist={id:crypto.randomUUID(),token:crypto.randomUUID()+crypto.randomUUID(),character,name:this.content.characters[character].name,pool:[],deck:{main:[],side:[],extra:[]}};this.save();
+   this.duelist={id:crypto.randomUUID(),token:crypto.randomUUID()+crypto.randomUUID(),character,variant:this.variantFor(character),name:this.content.characters[character].name,pool:[],deck:{main:[],side:[],extra:[]}};this.save();
    await this.sync(await this.api('register',{duelist:this.duelist}));
    if(action==='draft-join'){this.mode='join';this.render();return;}
    await this.accept(await this.api('host',this.noRelics?{noRelics:true}:{}));this.schedule();return;
   }
   if(action==='join-room'){await this.accept(await this.api('join',{code:document.getElementById('collector-code').value}));this.schedule();return;}
-  if(action==='packs'){const key=this.packsKey(),packs=(this.duelist.packs||[]).map((cards,i)=>({id:this.duelist.packIds[i],cards}));this.closePacks?.();this.closePacks=this.openPacks(packs,()=>{this.closePacks=null;if(!this.alive||this.room?.phase!=='drafting')return;this.duelist.packsFinishedRoom=key;this.save();this.enqueue(()=>this.action('edit'));},ownedBefore(this.duelist.pool,packs));return;}
+  if(action==='packs'){const key=this.packsKey(),packs=(this.duelist.packs||[]).map((cards,i)=>({id:this.duelist.packIds[i],cards}));this.closePacks?.();this.closePacks=this.packCloser(this.openPacks(packs,()=>{this.closePacks=null;if(!this.alive||this.room?.phase!=='drafting')return;this.duelist.packsFinishedRoom=key;this.save();this.enqueue(()=>this.action('edit'));},ownedBefore(this.duelist.pool,packs)));return;}
   if(action==='choose-relic'||action==='choose-pack'){if(this.mode!=='picking'||Date.now()-(this.heldAt||0)<700)return;this.choice??={};this.choice[action==='choose-relic'?'relic':'pack']=+el.dataset.index;this.render();return;}
   if(action==='inspect-relic'){this.inspectRelic(el.dataset.relic);return;}
   if(action==='confirm-pick'){const c=this.choice||{};if(this.room?.noRelics){if(c.pack===undefined)throw Error('Choose one character pack.');await this.accept(await this.api('pick',{pack:c.pack}));this.schedule();return;}if(c.relic===undefined||c.pack===undefined)throw Error('Choose one relic and one character pack.');await this.accept(await this.api('pick',{relic:c.relic,pack:c.pack}));this.schedule();return;}

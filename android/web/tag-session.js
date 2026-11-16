@@ -4,24 +4,40 @@ import {validEmote,showDuelEmote,clearDuelEmotes} from './duel-emotes.js';
 import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
 import {TagPeer} from './tag-peer.js';
 import {TagDuel} from './tag-duel.js';
+import {replayVersion} from './replay-version.js';
 const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 export const decode=value=>{if(value&&typeof value==='object'){if(Object.keys(value).length===1&&'__bigint'in value)return BigInt(value.__bigint);for(const key of Object.keys(value))value[key]=decode(value[key])}return value};
 // 5: shared opponent screen and shop lock-ins (2026-11-08).
 const PROTOCOL=5,AI_PACE_LIMIT=2500,PAUSE_AFTER=5000,MAX_RESYNCS=3;
 // The game's content (2.2 MB as JSON) never changes after loading, so each Tag session reuses its hash (2026-11-09).
 const contentHashes=new WeakMap();
+// A solo run's randomized cards (ids 191000000+, random-cards.js) join content.cards while it is loaded; they are not
+// part of the game's card collection, so they stay out of the hash (Discord, 2026-11-16: two v0.2.35 players were told
+// their versions were incompatible).
+const sharedContent=(key,value)=>key==='cards'&&Array.isArray(value)?value.filter(c=>!(Number(c?.id)>=191000000&&Number(c?.id)<201000000)):value;
 const contentHash=content=>{
  if(!content||typeof content!=='object')return crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(hex);
- if(!contentHashes.has(content))contentHashes.set(content,crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content))).then(hex));
+ if(!contentHashes.has(content))contentHashes.set(content,crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(content,sharedContent))).then(hex));
  return contentHashes.get(content);
 };
 const hex=bytes=>Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join('');
+// The hello carries the game version (replay-version.js) since 2026-11-16, so a refused partner learns which side is out
+// of date. A hello without one comes from v0.2.35 or older.
+const versionParts=v=>String(v||'').split('.').map(n=>parseInt(n,10)||0);
+const compareVersions=(a,b)=>{const x=versionParts(a),y=versionParts(b);for(let i=0;i<Math.max(x.length,y.length);i++)if((x[i]||0)!==(y[i]||0))return (x[i]||0)-(y[i]||0);return 0};
+export function mismatchMessage(partnerBuild,ownBuild=replayVersion){
+ if(!partnerBuild)return `Your partner's game is out of date. They need to update to v${ownBuild}: reload the page, or install the latest app.`;
+ const order=compareVersions(partnerBuild,ownBuild);
+ if(order<0)return `Your partner's game is out of date (v${partnerBuild}). They need to update to v${ownBuild}: reload the page, or install the latest app.`;
+ if(order>0)return `Your game is out of date (v${ownBuild}). Your partner has v${partnerBuild}: reload the page, or install the latest app.`;
+ return `You both have v${ownBuild}, but your card data does not match. Both players: reload the game, then try again.`;
+}
 
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
 export class TagSession {
- constructor({endpoint,sleeve=null,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null}){
-  this.sleeve=sleeve;this.partnerSleeve=null;Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory});
+ constructor({endpoint,sleeve=null,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null,randomCards=null}){
+  this.sleeve=sleeve;this.partnerSleeve=null;Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory,randomCards});
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
   this.contentHash=contentHash(content);
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
@@ -69,7 +85,7 @@ export class TagSession {
    this.onStatus(state,detail);
   }
  }
- async greeting(answer=false){return {kind:'hello',answer,sleeve:this.sleeve,character:this.character,variant:this.variant,profile:this.profile,version:PROTOCOL,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}}}
+ async greeting(answer=false){return {kind:'hello',answer,sleeve:this.sleeve,character:this.character,variant:this.variant,profile:this.profile,version:PROTOCOL,build:replayVersion,contentHash:await this.contentHash,duel:{key:this.duelKey,applied:this.log.length}}}
  async receive(message){
   if(message.kind==='partner-left-ack'){if(message.id===this.exitNotice?.id)this.exitNotice.resolve();return}
   if(message.kind==='partner-left'){
@@ -81,7 +97,7 @@ export class TagSession {
   if(message.kind==='hello'){
    // The partner's card sleeve (sleeves.js), checked against the profile they sent; a cosmetic, never stored.
    this.partnerSleeve=partnerSleeve(this.content,message);
-   if(message.version!==PROTOCOL||message.contentHash!==await this.contentHash)throw Error('These tag versions or card collections are incompatible. Update both players to the same version.');
+   if(message.version!==PROTOCOL||message.contentHash!==await this.contentHash)throw Error(mismatchMessage(message.build));
    // A socket can die without the hub or the partner noticing, so only the returning side says hello. The answer goes
    // first: this client's view must not overtake the handshake it is waiting for.
    if(message.answer&&this.connected)return;
@@ -135,7 +151,7 @@ export class TagSession {
   this.active=true;const leaving=message.view.phase!=='duel';
   // Let the last blows of a finished duel play before the screen changes.
   if(leaving&&this.engine)await Promise.race([this.presented,new Promise(resolve=>setTimeout(resolve,15000))]);
-  this.view=message.view;if(leaving)clearDuelEmotes();this.peer.setPhase(this.view.phase);
+  this.view=message.view;await this.ensureRandom(this.view.randomBoosters);if(leaving)clearDuelEmotes();this.peer.setPhase(this.view.phase);
   if(leaving){this.engine?.destroy();this.engine=null;this.log=[]}
   this.onView(this.view);
   if(!leaving&&message.duel){
@@ -148,7 +164,7 @@ export class TagSession {
   }
  }
  async broadcast(rebuild=false){
-  this.view=await this.backend('tag-view',0);if(this.view.phase!=='duel')clearDuelEmotes();this.peer.setPhase(this.view.phase);this.onView(this.view);
+  this.view=await this.backend('tag-view',0);await this.ensureRandom(this.view.randomBoosters);if(this.view.phase!=='duel')clearDuelEmotes();this.peer.setPhase(this.view.phase);this.onView(this.view);
   // The guest replays this journal too, so a damaged one must be repaired before it is sent.
   if(this.view.phase==='duel'&&!this.engine&&await this.startEngine(this.view.duel))this.view=await this.backend('tag-view',0);
   if(this.connected){
@@ -249,16 +265,26 @@ export class TagSession {
   const event=result.result;
   if(event?.kind==='buy')for(const buyer of [0,1]){
    const packs=(event.results?.[buyer]||[]).filter(x=>x.kind==='pack');
-   if(packs.length){const shown={kind:'shop-packs',id:event.id+':'+buyer,buyer,packs};this.tell(shown);this.showPackEvent(shown)}
+   if(packs.length){const shown={kind:'shop-packs',id:event.id+':'+buyer,buyer,packs,random:this.view?.randomBoosters};this.tell(shown);this.showPackEvent(shown)}
   }
   return result.result;
  }
+ // Random Packs in Tag (2026-11-16): the host's views carry each player's pack seeds (view.randomBoosters); both
+ // devices build the same cards from them before a view, a pack opening or a duel needs them.
+ ensureRandom(seeds){
+  if(!this.randomCards||!Array.isArray(seeds)||!seeds.some(s=>s?.length))return this.randomLoad||Promise.resolve();
+  const key=JSON.stringify(seeds);if(this.randomKey===key)return this.randomLoad;
+  this.randomKey=key;
+  return this.randomLoad=this.backend('draft-random-cards',{players:seeds}).then(built=>{this.randomCards.add(built.cards);this.randomCards.draw?.(built.cards.map(x=>x.card.id))}).catch(error=>{this.randomKey=null;console.warn('Random Pack cards:',error)});
+ }
  showPackEvent(event){
   if(!event.id||this.packEvents.has(event.id)||!Array.isArray(event.packs)||!event.packs.length)return;
-  this.packEvents.add(event.id);this.onPacks(event);
+  this.packEvents.add(event.id);Promise.resolve(this.ensureRandom(event.random)).then(()=>this.onPacks(event));
  }
  async startEngine(config){
+  await this.randomLoad;
   this.engine=this.duelFactory?await this.duelFactory():await new TagDuel([...this.content.cards,...this.content.tokenCards]).init();
+  this.randomCards?.prepare?.(this.engine);
   this.engine.startTag(config);this.duelSeed=config.seed;this.log=[];this.resyncs=0;let trimmed=false;
   for(const [index,entry] of (config.responses||[]).entries()){
    try{

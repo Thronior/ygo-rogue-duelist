@@ -1,11 +1,12 @@
-import {draftPool,draftOffer,openBooster,minDeckFor} from './draft-pool.mjs';
-import {validateDeck,validateDraftDeck,deckCards,rankFor} from '../../android/web/collector-rules.js';
+import {draftPool,draftOffer,openBooster,minDeckFor,RANDOM_PACK,randomSeed} from './draft-pool.mjs';
+import {validateDeck,validateDraftDeck,deckCards,rankFor,randomAllowance} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
 // Both clients run the duel engine themselves, so a room only pairs players on the same game version.
 // Clients before 0.2.4 send none and still pair with each other.
 const gameVersion=v=>typeof v.version==='string'&&/^\d[\w.+-]{0,23}$/.test(v.version)?v.version:null;
-// Draft client protocol: 2 = draft loop (2026-11-13), 3 = also knows "No relics" rooms (2026-11-15). Older clients send none.
+// Draft client protocol: 2 = draft loop (2026-11-13), 3 = also knows "No relics" rooms (2026-11-15), 4 = builds Random
+// Pack boosters from seeds and plays second loadouts (2026-11-16). Older clients send none.
 const draftProtocol=v=>Number.isInteger(v.draft)?v.draft:0;
 // Shuffle once on the server at each game boundary. Both clients and reconnects
 // receive the same persisted order; editor order and prize snapshots stay intact.
@@ -115,7 +116,7 @@ export class CollectorRegistry {
  if(this.draftMode&&op==='prizes')throw Error('Draft matches do not award Collector prizes.');
  if(op==='leaderboard'){const list=Object.values(this.data.players).filter(x=>x.status==='alive'&&x.deck.main.length>=40).sort((a,b)=>b.wins-a.wins||a.name.localeCompare(b.name)).slice(0,10).map(x=>({name:x.name,wins:x.wins,rank:rankFor(x.wins),deck:x.deck,character:x.character}));await this.persist();return this.reply({leaderboard:list});}
  if(op==='register'){
- if(!p){let q=v.duelist;if(this.draftMode){const generated=draftPool(q?.character,undefined,draftProtocol(v)>=2);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{created:Date.now(),packs:q.packs,packIds:q.packIds,...(draftProtocol(v)>=2?{loop:true}:{})}: {})};}
+ if(!p){let q=v.duelist;if(this.draftMode){const modern=draftProtocol(v)>=4,generated=draftPool(q?.character,undefined,draftProtocol(v)>=2,modern&&q?.variant===1?1:0);q={...q,...generated};v.duelist=q;}if(!q||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(v.id)||(!this.draftMode&&[37].includes(q.character))||q.id!==v.id||!Array.isArray(q.pool)||q.pool.length>30000||q.pool.some(id=>!cards.some(c=>c.id===id))||typeof q.name!=='string'||!q.name.trim()||q.name.length>32||typeof v.token!=='string'||v.token.length<40)throw Error('Invalid Collector.');p=this.data.players[v.id]={id:v.id,token:v.token,name:q.name,character:q.character,pool:q.pool,deck:{main:[],side:[],extra:[]},wins:0,status:'alive',history:[],room:null,...(this.draftMode?{created:Date.now(),packs:q.packs,packIds:q.packIds,...(draftProtocol(v)>=2?{loop:true}:{}),...(q.randomBoosters?.length?{randomBoosters:q.randomBoosters}:{}),...(q.variant===1?{variant:1}:{})}: {})};}
  }
  if(!p||p.token!==v.token)throw Error('Invalid Collector credentials.');
  if('sleeve' in v){const s=sleeveOf(v.sleeve);if(JSON.stringify(s)!==JSON.stringify(p.sleeve??null)){if(s)p.sleeve=s;else delete p.sleeve}}
@@ -130,8 +131,8 @@ export class CollectorRegistry {
  if(op==='deck'){if(room&&room.phase!=='complete'&&!(this.draftMode&&room.phase==='drafting'&&!room.ready?.[seat]))throw Error('Finish your active match first.');const errors=this.deckErrors(v.deck,p,room);if(errors.length)throw Error(errors.join(' '));p.deck=v.deck;}
  if(op==='host'||op==='join'){
  if(room&&room.phase!=='complete')throw Error('Reconnect to your existing room.');if(!this.draftMode){const errors=this.validate(p.deck,p.pool,cards);if(errors.length)throw Error(errors.join(' '));}
- if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0,version:gameVersion(v),...(v.net===3?{hub:true}:{}),...(this.draftMode&&p.loop?{loop:true}:{}),...(this.draftMode&&p.loop&&v.noRelics===true&&draftProtocol(v)>=3?{noRelics:true}:{})};this.data.rooms[code]=room;p.room=code;seat=0;}
- else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');if(!!room.hub!==(v.net===3)||(room.version??null)!==gameVersion(v)||!!room.loop!==!!(this.draftMode&&p.loop))throw Error(`This room is on ${room.version?'version '+room.version:'an older version'} of the game. Both players need the same version: update or refresh the game.`);if(room.noRelics&&draftProtocol(v)<3)throw Error('This room is played without relics. Update or refresh the game to join it.');room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
+ if(op==='host'){let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%31]).join('')}while(this.data.rooms[code]);room={code,players:[p.id],phase:'waiting',score:[0,0],seen:[Date.now()],events:[],game:0,version:gameVersion(v),...(v.net===3?{hub:true}:{}),...(this.draftMode&&p.loop?{loop:true}:{}),...(this.draftMode&&p.loop&&v.noRelics===true&&draftProtocol(v)>=3?{noRelics:true}:{}),...(this.draftMode&&p.loop&&draftProtocol(v)>=4?{randomPack:true}:{})};this.data.rooms[code]=room;p.room=code;seat=0;}
+ else{room=this.data.rooms[String(v.code).toUpperCase()];if(!room||room.phase!=='waiting'||room.players.length!==1||room.players[0]===p.id)throw Error('Room unavailable.');if(!!room.hub!==(v.net===3)||(room.version??null)!==gameVersion(v)||!!room.loop!==!!(this.draftMode&&p.loop))throw Error(`This room is on ${room.version?'version '+room.version:'an older version'} of the game. Both players need the same version: update or refresh the game.`);if(room.noRelics&&draftProtocol(v)<3)throw Error('This room is played without relics. Update or refresh the game to join it.');if(room.randomPack&&draftProtocol(v)<4)throw Error('This room offers Random Packs. Update or refresh the game to join it.');room.players.push(p.id);p.room=room.code;seat=1;room.seen=[Date.now(),Date.now()];room.startDecks=room.players.map(id=>structuredClone(this.data.players[id].deck));room.decks=room.startDecks.map(deck=>shuffleCollectorDeck(deck));room.first=crypto.getRandomValues(new Uint8Array(1))[0]%2;room.seed=crypto.getRandomValues(new Uint32Array(1))[0];room.phase='duel';room.game=1;room.votes={};room.disconnectLeft=[300000,300000];room.charged=[0,0];room.turnLeft=[180000,180000];room.clockAt=Date.now();room.actor=room.first;room.turn=1;room.clockVotes={};if(this.draftMode){room.phase='waiting';room.game=0;room.ready??=[false,false];room.actor=null;}}
  }
  if(room&&room.phase!=='complete'){
  room.seen[seat]=Date.now();room.charged??=[0,0];room.charged[seat]=0;
@@ -152,7 +153,7 @@ export class CollectorRegistry {
  }
  if(op==='prizes'){if(!room||room.phase!=='complete'||room.winner!==seat)throw Error('No prizes available.');if(!room.claimed){if(!Array.isArray(v.indices)||v.indices.length!==Math.min(5,room.prizes.length)||new Set(v.indices).size!==v.indices.length||v.indices.some(i=>!Number.isInteger(i)||i<0||i>=room.prizes.length))throw Error('Choose five prize copies.');const earned=v.indices.map(i=>room.prizes[i]);p.pool.push(...earned);p.history.find(h=>h.room===room.code).cards=earned;room.claimed=true;}}
  }
- await this.persist();if(room?.hub&&this.hubState(room)!==hubBefore)this.notifyHub(room);const {token,...record}=p;return this.reply({record,seat,room:room?{...room,players:room.players.map(id=>{const x=this.data.players[id];return {id:x.id,name:x.name,character:x.character,...(x.sleeve?{sleeve:x.sleeve}:{})}})}:null,now:Date.now()});
+ await this.persist();if(room?.hub&&this.hubState(room)!==hubBefore)this.notifyHub(room);const {token,...record}=p;return this.reply({record,seat,room:room?{...room,players:room.players.map(id=>{const x=this.data.players[id];return {id:x.id,name:x.name,character:x.character,...(x.sleeve?{sleeve:x.sleeve}:{}),...(x.variant?{variant:x.variant}:{}),...(x.randomBoosters?.length?{random:x.randomBoosters}:{})}})}:null,now:Date.now()});
  }catch(e){await this.persist();return this.reply({error:e.message},400);}}
  reply(data,status=200){return new Response(JSON.stringify(data),{status,headers})}
 }
@@ -163,10 +164,11 @@ export class CollectorRegistry {
 // Both players may then extend the target by three, again and again. Older clients keep the best-of-three rules.
 export class DraftRegistry extends CollectorRegistry {
  constructor(ctx,env){super(ctx,env);this.draftMode=true;this.validate=validateDraftDeck;}
- deckErrors(deck,p,room){return validateDraftDeck(deck,p.pool,cards,room?.loop?room.minDeck:40)}
+ // Random Pack cards are checked against the seat's booster blocks (collector-rules.js randomAllowance).
+ deckErrors(deck,p,room){const seat=room?room.players.indexOf(p.id):-1;return validateDraftDeck(deck,p.pool,cards,room?.loop?room.minDeck:40,seat>=0?randomAllowance(seat,(p.randomBoosters||[]).length):null)}
  hubState(room){const base=super.hubState(room);return base&&room.loop?base+JSON.stringify([room.round,room.picks,room.continueVotes,room.target]):base}
  // The loser of the last duel picks first; after a draw, whoever picked second last time.
- startPicking(room,winner){const first=winner===2?(room.pickOrder?room.pickOrder[1]:room.first):1-winner;Object.assign(room,{phase:'picking',round:(room.round||0)+1,offer:draftOffer(undefined,{relics:!room.noRelics}),pickOrder:[first,1-first],picks:[null,null],ready:[false,false],nextFirst:winner===2?room.first:1-winner,votes:{}});}
+ startPicking(room,winner){const first=winner===2?(room.pickOrder?room.pickOrder[1]:room.first):1-winner;Object.assign(room,{phase:'picking',round:(room.round||0)+1,offer:draftOffer(undefined,{relics:!room.noRelics,randomPack:!!room.randomPack}),pickOrder:[first,1-first],picks:[null,null],ready:[false,false],nextFirst:winner===2?room.first:1-winner,votes:{}});}
  finishDuel(room,winner,reason){
   if(!room.loop)return super.finishDuel(room,winner,reason);if(room.phase!=='duel')return;
   room.games??=[];room.games.push({game:room.game,winner,turns:room.turn,at:Date.now(),...(reason?{reason}:{})});if(winner!==2)room.score[winner]++;
@@ -184,7 +186,10 @@ export class DraftRegistry extends CollectorRegistry {
    else{if(![0,1,2].includes(v.relic)||![0,1,2].includes(v.pack)||other&&(other.relic===v.relic||other.pack===v.pack))throw Error('Choose one relic and one pack that are still available.');
    room.picks[seat]={relic:v.relic,pack:v.pack};}
    if(room.picks.every(Boolean)){
-    for(let s=0;s<2;s++){const x=this.data.players[room.players[s]],id=room.offer.packs[room.picks[s].pack],boosters=[openBooster(id),openBooster(id)];x.packs=boosters;x.packIds=[id,id];x.pool.push(...boosters.flat());if(!room.noRelics)room.relics[s].push(room.offer.relics[room.picks[s].relic]);}
+    for(let s=0;s<2;s++){const x=this.data.players[room.players[s]],id=room.offer.packs[room.picks[s].pack];
+     // A Random Pack is two seeds; the clients build the cards (empty booster lists here).
+     if(id===RANDOM_PACK){x.randomBoosters=[...(x.randomBoosters||[]),randomSeed(),randomSeed()];x.packs=[[],[]];x.packIds=[id,id];}
+     else{const boosters=[openBooster(id),openBooster(id)];x.packs=boosters;x.packIds=[id,id];x.pool.push(...boosters.flat());}if(!room.noRelics)room.relics[s].push(room.offer.relics[room.picks[s].relic]);}
     Object.assign(room,{phase:'drafting',minDeck:minDeckFor(room.round),ready:[false,false]});
    }
    return;

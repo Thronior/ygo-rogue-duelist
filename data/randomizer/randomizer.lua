@@ -10,6 +10,7 @@ local function relate(e,tc) return tc and tc:IsRelateToEffect(e) end
 ---------------------------------------------------------------- conditions
 --State conditions check the board; they never decide timing.
 R.State={
+	your_turn=function(e,tp) return Duel.IsTurnPlayer(tp) end,
 	lp_low=function(e,tp,p) return Duel.GetLP(tp)<=2000 end,
 	lp_behind=function(e,tp,p) return Duel.GetLP(tp)<Duel.GetLP(1-tp) end,
 	control_race=function(e,tp,p)
@@ -17,6 +18,17 @@ R.State={
 	end,
 	opp_more=function(e,tp,p) return Duel.GetFieldGroupCount(tp,0,LOCATION_MZONE)>Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0) end,
 	gy_monsters=function(e,tp,p) return Duel.GetMatchingGroupCount(Card.IsMonster,tp,LOCATION_GRAVE,0,nil)>=p.n end,
+	banished_monsters=function(e,tp,p) return Duel.GetMatchingGroupCount(Card.IsMonster,tp,LOCATION_REMOVED,0,nil)>=p.n end,
+	banished_cards=function(e,tp,p) return Duel.GetFieldGroupCount(tp,LOCATION_REMOVED,0)>=p.n end,
+	gy_empty=function(e,tp,p) return Duel.GetFieldGroupCount(tp,LOCATION_GRAVE,0)==0 end,
+	main1=function(e,tp,p) return Duel.IsTurnPlayer(tp) and Duel.IsMainPhase() and Duel.GetCurrentPhase()==PHASE_MAIN1 end,
+	banished_race_count=function(e,tp,p)
+		local mask=0
+		for _,race in ipairs(p.races or {}) do mask=mask|race end
+		return mask~=0 and Duel.GetMatchingGroupCount(function(c) return c:IsMonster() and c:IsRace(mask) end,
+			tp,LOCATION_REMOVED,0,nil)>=p.n
+	end,
+	opp_standby_phase=function(e,tp) return Duel.IsTurnPlayer(1-tp) and Duel.IsPhase(PHASE_STANDBY) end,
 	--Win conditions: only an instant win uses these.
 	win_turn=function(e,tp,p) return Duel.GetTurnCount()>=p.n end,
 	win_gy=function(e,tp,p) return Duel.GetFieldGroupCount(tp,LOCATION_GRAVE,0)>=p.n end,
@@ -38,6 +50,16 @@ R.State={
 		end
 		return true
 	end,
+	field_named=function(e,tp,p)
+		return Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,p.code),tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil)
+	end,
+	not_damage_calculated=function() return not (Duel.IsPhase(PHASE_DAMAGE) and Duel.IsDamageCalculated()) end,
+	opp_before_main2=function(e,tp) return Duel.IsTurnPlayer(1-tp) and Duel.GetCurrentPhase()<PHASE_MAIN2 end,
+	hand_count=function(e,tp,p)
+		local count=p.side=='opp' and Duel.GetFieldGroupCount(tp,0,LOCATION_HAND) or Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)
+		return p.mode=='min' and count>=(p.n or 0) or p.mode=='max' and count<=(p.n or 0)
+	end,
+	lp_max=function(e,tp,p) return Duel.GetLP(tp)<=(p.n or 0) end,
 }
 --Card flags the library keeps on its own cards (codes clear of real cards and of randomized card ids).
 local FLAG_KILLS,FLAG_PLACED,FLAG_SNAKE,FLAG_CAPSULE=191999001,191999002,191999003,191999004
@@ -45,18 +67,128 @@ local FLAG_KILLS,FLAG_PLACED,FLAG_SNAKE,FLAG_CAPSULE=191999001,191999002,1919990
 --their own finale and sleeves.
 R.WIN_REASON=0x60
 --Timings. single: the card's own event. field: something happening on the field while this card is there.
+local real_sel
 R.Event={
 	quick={code=EVENT_FREE_CHAIN,quick=true},
 	summoned={single=true,code=EVENT_SUMMON_SUCCESS,delay=true},
 	special_summoned={single=true,code=EVENT_SPSUMMON_SUCCESS,delay=true,
 		con=function(e) local c=e:GetHandler() return c:IsFusionSummoned() or c:IsRitualSummoned() end},
 	flip={single=true,flip=true,code=EVENT_FLIP,delay=true},
+	flip_summoned={single=true,code=EVENT_FLIP_SUMMON_SUCCESS,delay=true,forced=true},
+	normal_summoned_mandatory={single=true,code=EVENT_SUMMON_SUCCESS,forced=true},
+	any_special_summoned={single=true,code=EVENT_SPSUMMON_SUCCESS,delay=true,forced=true},
+	special_summoned_from_gy={single=true,code=EVENT_SPSUMMON_SUCCESS,delay=true,forced=true,
+		con=function(e) return e:GetHandler():GetPreviousLocation()==LOCATION_GRAVE end},
+	sent_to_gy={build=function(p)
+		return {single=true,code=EVENT_TO_GRAVE,delay=true,forced=p.mandatory,damage_step=p.damage_step,
+			con=function(e,tp)
+				local c=e:GetHandler()
+				if not c:IsLocation(LOCATION_GRAVE) then return false end
+				local prev=c:GetPreviousLocation()
+				if p.from=='hand' then return prev==LOCATION_HAND end
+				if p.from=='field' then
+					return c:GetPreviousControler()==tp and (prev&(LOCATION_MZONE|LOCATION_SZONE))~=0
+				end
+				return true
+			end}
+	end},
+	summon_trigger={build=function(p)
+		local event_codes={normal=EVENT_SUMMON_SUCCESS,flip=EVENT_FLIP_SUMMON_SUCCESS,special=EVENT_SPSUMMON_SUCCESS}
+		local codes={}
+		for _,method in ipairs(p.methods or {'normal','flip','special'}) do
+			if event_codes[method] then codes[#codes+1]=event_codes[method] end
+		end
+		return {single=true,code=codes[1] or EVENT_SUMMON_SUCCESS,codes=codes,delay=true,forced=p.mandatory}
+	end},
+	tribute_summoned={single=true,code=EVENT_SUMMON_SUCCESS,delay=true,forced=true,
+		con=function(e) return e:GetHandler():IsTributeSummoned() end},
 	destroyed={single=true,code=EVENT_TO_GRAVE,delay=true,
 		con=function(e) local c=e:GetHandler() return c:IsReason(REASON_DESTROY) and c:IsPreviousLocation(LOCATION_ONFIELD) end},
+	destroyed_mandatory={single=true,code=EVENT_TO_GRAVE,delay=true,forced=true,
+		con=function(e) local c=e:GetHandler() return c:IsReason(REASON_DESTROY) and c:IsPreviousLocation(LOCATION_ONFIELD) end},
+	attacks_faceup_defense={single=true,code=EVENT_BATTLE_START,forced=true,
+		con=function(e)
+			local c=e:GetHandler()
+			local tc=Duel.GetAttackTarget()
+			return Duel.GetAttacker()==c and tc~=nil and tc:IsFaceup() and tc:IsDefensePos() and tc:IsRelateToBattle()
+		end},
+	end_phase_mandatory={code=EVENT_PHASE+PHASE_END,once=true,forced=true,
+		con=function(e,tp) return Duel.IsTurnPlayer(tp) end},
+	attacked_not_destroyed={single=true,code=EVENT_BATTLED,forced=true,
+		con=function(e)
+			local c=e:GetHandler()
+			local attacker=Duel.GetAttacker()
+			return Duel.GetAttackTarget()==c and attacker~=nil and not attacker:IsStatus(STATUS_BATTLE_DESTROYED)
+		end},
+	leaves_field_faceup={single=true,code=EVENT_LEAVE_FIELD,delay=true,
+		con=function(e)
+			local c=e:GetHandler()
+			return c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsPreviousPosition(POS_FACEUP)
+		end},
+	destroyed_anywhere={single=true,code=EVENT_DESTROYED,delay=true,damage_step=true},
+	battle_opponent_not_destroyed={single=true,code=EVENT_DAMAGE_STEP_END,forced=true,
+		con=function(e,tp)
+			local c=e:GetHandler()
+			local tc=c:GetBattleTarget()
+			return tc~=nil and tc:IsRelateToBattle() and tc:GetControler()==1-tp and not tc:IsStatus(STATUS_BATTLE_DESTROYED)
+		end},
+	battle_destroyed={single=true,code=EVENT_BATTLE_DESTROYED,
+		con=function(e) local c=e:GetHandler() return c:IsLocation(LOCATION_GRAVE) and c:IsReason(REASON_BATTLE) end},
+	battle_destroyed_mandatory={single=true,code=EVENT_BATTLE_DESTROYED,forced=true,
+		con=function(e) local c=e:GetHandler() return c:IsLocation(LOCATION_GRAVE) and c:IsReason(REASON_BATTLE) end},
+	hand_discarded_by_opp={single=true,code=EVENT_TO_GRAVE,delay=true,forced=true,con=function(e,tp)
+		local c=e:GetHandler()
+		return c:IsPreviousLocation(LOCATION_HAND) and c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT)
+			and c:IsReason(REASON_DISCARD) and c:GetReasonPlayer()==1-tp
+	end},
+	hand_sent_by_opp={single=true,code=EVENT_TO_GRAVE,delay=true,forced=true,con=function(e,tp)
+		local c=e:GetHandler()
+		return c:IsPreviousLocation(LOCATION_HAND) and c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT)
+			and c:GetReasonPlayer()==1-tp
+	end},
+	destroyed_not_battle={single=true,code=EVENT_TO_GRAVE,delay=true,forced=true,con=function(e)
+		local c=e:GetHandler()
+		return c:IsLocation(LOCATION_GRAVE) and c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsReason(REASON_DESTROY) and not c:IsReason(REASON_BATTLE)
+	end},
 	battle_destroying={single=true,code=EVENT_BATTLE_DESTROYING,con=function(...) return aux.bdocon(...) end},
 	direct_damage={single=true,code=EVENT_BATTLE_DAMAGE,con=function(e,tp,eg,ep) return ep~=tp and Duel.GetAttackTarget()==nil end},
 	standby={code=EVENT_PHASE+PHASE_STANDBY,once=true,con=function(e,tp) return Duel.IsTurnPlayer(tp) end},
+	standby_defense={code=EVENT_PHASE+PHASE_STANDBY,once=true,forced=true,
+		con=function(e,tp)
+			local c=e:GetHandler()
+			return Duel.IsTurnPlayer(tp) and c:IsFaceup() and c:IsDefensePos()
+		end},
+	standby_mandatory={code=EVENT_PHASE+PHASE_STANDBY,once=true,forced=true,
+		con=function(e,tp) return Duel.IsTurnPlayer(tp) end},
+	activate_type_any={build=function(p)
+		local typ=p.card_type=='trap' and TYPE_TRAP or TYPE_SPELL
+		return {code=EVENT_CHAINING,quick=true,con=function(e,tp,eg,ep,ev,re,r,rp)
+			local c=re and re:GetHandler()
+			return c and (p.side~='opp' or rp~=tp) and (not p.battle_phase or Duel.IsBattlePhase())
+				and re:IsHasType(EFFECT_TYPE_ACTIVATE) and c:IsType(typ)
+				and (p.stype~='equip' or c:IsType(TYPE_EQUIP)) and Duel.IsChainNegatable(ev)
+		end}
+	end},
 	opp_attack={code=EVENT_ATTACK_ANNOUNCE,con=function(e,tp) return Duel.GetAttacker():IsControler(1-tp) end},
+	opp_normal_summon={code=EVENT_SUMMON_SUCCESS,con=function(e,tp,eg,ep) return ep~=tp end},
+	opp_normal_draw={code=EVENT_DRAW,con=function(e,tp,eg,ep,ev,re,r) return ep~=tp and (r&REASON_RULE)~=0 end},
+	opp_flip_summon={code=EVENT_FLIP_SUMMON_SUCCESS,con=function(e,tp,eg,ep) return ep~=tp end},
+	summon_event={build=function(p)
+		local event_codes={normal=EVENT_SUMMON_SUCCESS,flip=EVENT_FLIP_SUMMON_SUCCESS,special=EVENT_SPSUMMON_SUCCESS}
+		local codes={}
+		for _,method in ipairs(p.methods or {}) do if event_codes[method] then codes[#codes+1]=event_codes[method] end end
+		return {code=codes[1] or EVENT_SUMMON_SUCCESS,codes=codes,delay=true,forced=p.mandatory,
+			con=function(e,tp,eg,ep)
+				if p.side=='opp' and ep==tp then return false end
+				if not eg then return false end
+				if p.exclude_self then
+					return eg:IsExists(function(c) return c~=e:GetHandler() and real_sel(c,p) end,1,nil)
+				end
+				return eg:IsExists(real_sel,1,nil,p)
+			end}
+	end},
+	summon_event_cont={build=function(p) return R.Event.summon_event.build(p) end},
+	summon_event_cont_spell={build=function(p) return R.Event.summon_event.build(p) end},
 	opp_summon={code=EVENT_SUMMON_SUCCESS,trap_code2=EVENT_SPSUMMON_SUCCESS,delay=true,
 		con=function(e,tp,eg) return eg:IsExists(Card.IsSummonPlayer,1,nil,1-tp) end},
 	opp_activate={code=EVENT_CHAINING,quick=true,con=function(e,tp,eg,ep,ev,re,r,rp) return rp==1-tp and Duel.IsChainNegatable(ev) end},
@@ -111,6 +243,38 @@ R.Cost={
 		pay=function(e,tp,p) Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST) end},
 	send_self={check=function(e,tp,p) return e:GetHandler():IsAbleToGraveAsCost() end,
 		pay=function(e,tp,p) Duel.SendtoGrave(e:GetHandler(),REASON_COST) end},
+	send_self_mzone={check=function(e,tp,p) return e:GetHandler():IsAbleToGraveAsCost() end,
+		pay=function(e,tp,p) Duel.SendtoGrave(e:GetHandler(),REASON_COST) end},
+	banish_top_deck={check=function(e,tp,p)
+		return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>=p.n
+			and Duel.IsExistingMatchingCard(Card.IsAbleToRemoveAsCost,tp,LOCATION_DECK,0,p.n,nil)
+	end,
+		pay=function(e,tp,p)
+			Duel.DisableShuffleCheck()
+			Duel.Remove(Duel.GetDecktopGroup(tp,p.n),POS_FACEUP,REASON_COST)
+		end},
+	tribute_recover_stat={check=function(e,tp,p)
+		if p.mode=='atk' then return Duel.IsExistingMatchingCard(Card.IsAbleToGraveAsCost,tp,LOCATION_MZONE,0,1,nil) end
+		return Duel.CheckReleaseGroupCost(tp,function(c) return c:GetAttack()>0 or c:GetDefense()>0 end,1,false,nil,nil)
+	end,
+		pay=function(e,tp,p)
+			local c
+			if p.mode=='atk' then
+				Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+				c=Duel.SelectMatchingCard(tp,Card.IsAbleToGraveAsCost,tp,LOCATION_MZONE,0,1,1,nil):GetFirst()
+				local n=c:GetTextAttack()
+				if n<0 then n=0 end
+				e:SetLabel(n)
+				Duel.SendtoGrave(c,REASON_COST)
+			else
+				c=Duel.SelectReleaseGroupCost(tp,function(tc) return tc:GetAttack()>0 or tc:GetDefense()>0 end,1,1,false,nil,nil):GetFirst()
+				local atk,def=c:GetAttack(),c:GetDefense()
+				local useatk=atk>0
+				if atk>0 and def>0 then useatk=Duel.SelectOption(tp,0,1)==0 end
+				e:SetLabel(useatk and atk or def)
+				Duel.Release(c,REASON_COST)
+			end
+		end},
 	--Reversal Quiz: everything else you hold and control.
 	send_all={check=function(e,tp)
 			local g=Duel.GetFieldGroup(tp,LOCATION_HAND|LOCATION_ONFIELD,0) g:RemoveCard(e:GetHandler())
@@ -179,6 +343,139 @@ local function self_boost(code,value)
 		end}
 end
 local weak=function(c,e,tp,p) return c:IsFaceup() and c:IsAttackBelow(p.n) end
+local function real_ss_loc(p)
+	if p.zone=='deck' then return LOCATION_DECK end
+	if p.zone=='gy' then return LOCATION_GRAVE end
+	if p.zone=='banished' then return LOCATION_REMOVED end
+	if p.zone=='deck_hand' then return LOCATION_DECK|LOCATION_HAND end
+	return LOCATION_HAND
+end
+local function real_ss_filter(c,e,tp,p)
+	return real_sel(c,p) and c:IsMonster() and (not p.race or c:IsRace(p.race)) and (not p.attr or c:IsAttribute(p.attr))
+		and (not p.level_max or c:IsLevelBelow(p.level_max)) and (not p.atk_max or c:IsAttackBelow(p.atk_max))
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+local function real_mass_group(tp,p)
+	if p.side=='opp' then return Duel.GetMatchingGroup(aux.TRUE,tp,0,LOCATION_MZONE,nil) end
+	if p.side=='you' then return Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_MZONE,0,nil) end
+	return Duel.GetFieldGroup(tp,LOCATION_MZONE,LOCATION_MZONE)
+end
+--Selector of the real-card blocks (recreation): one table of parameters says which cards a block talks about.
+--kind (monster|spell|trap|st), stype (spell/trap sub-type), race, attr, level_max/level_min/level_eq, atk_max/atk_min,
+--def_max, faceup, facedown, pos (attack|defense), token, normal, frame, codes, special, equipped.
+local REAL_STYPE={continuous=TYPE_CONTINUOUS,equip=TYPE_EQUIP,field=TYPE_FIELD,quick=TYPE_QUICKPLAY,ritual=TYPE_RITUAL,counter=TYPE_COUNTER}
+local REAL_FRAME={normal=TYPE_NORMAL,effect=TYPE_EFFECT,fusion=TYPE_FUSION,ritual=TYPE_RITUAL,spirit=TYPE_SPIRIT,union=TYPE_UNION,flip=TYPE_FLIP,toon=TYPE_TOON,gemini=TYPE_GEMINI}
+real_sel=function(c,p)
+	if p.faceup and not c:IsFaceup() then return false end
+	if p.facedown and not c:IsFacedown() then return false end
+	local k=p.kind
+	if k=='monster' and not c:IsMonster() then return false end
+	if k=='spell' and not c:IsSpell() then return false end
+	if k=='trap' and not c:IsTrap() then return false end
+	if k=='st' and not c:IsSpellTrap() then return false end
+	if p.stype and not c:IsType(REAL_STYPE[p.stype]) then return false end
+	if p.race and not c:IsRace(p.race) then return false end
+	if p.attr and not c:IsAttribute(p.attr) then return false end
+	if p.level_max and not c:IsLevelBelow(p.level_max) then return false end
+	if p.level_min and not c:IsLevelAbove(p.level_min) then return false end
+	if p.level_eq and not c:IsLevel(p.level_eq) then return false end
+	if p.atk_max and not (c:IsMonster() and c:IsAttackBelow(p.atk_max)) then return false end
+	if p.atk_min and not (c:IsMonster() and c:IsAttackAbove(p.atk_min)) then return false end
+	if p.def_min and not (c:IsMonster() and c:IsDefenseAbove(p.def_min)) then return false end
+	if p.def_max and not (c:IsMonster() and c:IsDefenseBelow(p.def_max)) then return false end
+	if p.pos=='attack' and not c:IsAttackPos() then return false end
+	if p.pos=='defense' and not c:IsDefensePos() then return false end
+	if p.token and not c:IsType(TYPE_TOKEN) then return false end
+	if p.not_token and c:IsType(TYPE_TOKEN) then return false end
+	if p.normal and not c:IsType(TYPE_NORMAL) then return false end
+	if p.normal_summonable and not c:IsSummonableCard() then return false end
+	if p.frame and not c:IsType(REAL_FRAME[p.frame]) then return false end
+	if p.codes and not c:IsCode(table.unpack(p.codes)) then return false end
+	if p.setcode and not c:IsSetCard(p.setcode) then return false end
+	if p.special and not c:IsSummonType(SUMMON_TYPE_SPECIAL) then return false end
+	if p.equipped and c:GetEquipGroup():GetCount()==0 then return false end
+	return true
+end
+local REAL_LOC={mzone=LOCATION_MZONE,st=LOCATION_SZONE,field=LOCATION_ONFIELD,gy=LOCATION_GRAVE,hand=LOCATION_HAND,
+	deck=LOCATION_DECK,banished=LOCATION_REMOVED}
+--The two location arguments (yours, your opponent's) of a block with side (you|opp|both) and zone.
+local function real_locs(p)
+	local l=p.zone=='hand_field' and (LOCATION_HAND|LOCATION_ONFIELD) or REAL_LOC[p.zone or 'mzone']
+	if p.side=='opp' then return 0,l end
+	if p.side=='both' then return l,l end
+	return l,0
+end
+local function real_group(tp,p,except)
+	local l1,l2=real_locs(p)
+	return Duel.GetMatchingGroup(real_sel,tp,l1,l2,except,p)
+end
+--Moves a group where p.to says (destroy|hand|grave|banish|deck|decktop|facedown|defense|attack).
+local function real_move(g,p)
+	if #g==0 then return 0 end
+	local to=p.to or 'destroy'
+	if to=='destroy' then return Duel.Destroy(g,REASON_EFFECT)
+	elseif to=='hand' then return Duel.SendtoHand(g,nil,REASON_EFFECT)
+	elseif to=='grave' then return Duel.SendtoGrave(g,REASON_EFFECT)
+	elseif to=='banish' then return Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
+	elseif to=='deck' then return Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+	elseif to=='decktop' then return Duel.SendtoDeck(g,nil,SEQ_DECKTOP,REASON_EFFECT)
+	elseif to=='facedown' then return Duel.ChangePosition(g,POS_FACEDOWN_DEFENSE)
+	elseif to=='defense' then return Duel.ChangePosition(g,POS_FACEUP_DEFENSE)
+	elseif to=='attack' then return Duel.ChangePosition(g,POS_FACEUP_ATTACK)
+	elseif to=='toggle' then return Duel.ChangePosition(g,POS_FACEUP_DEFENSE,0,POS_FACEUP_ATTACK,0) end
+	return 0
+end
+local REAL_MOVE_CAT={destroy=CATEGORY_DESTROY,hand=CATEGORY_TOHAND,grave=CATEGORY_TOGRAVE,banish=CATEGORY_REMOVE,
+	deck=CATEGORY_TODECK,decktop=CATEGORY_TODECK,facedown=CATEGORY_POSITION,defense=CATEGORY_POSITION,attack=CATEGORY_POSITION,toggle=CATEGORY_POSITION}
+local function real_can_move(c,p)
+	local to=p.to or 'destroy'
+	if to=='destroy' then return true
+	elseif to=='hand' then return c:IsAbleToHand()
+	elseif to=='grave' then return c:IsAbleToGrave()
+	elseif to=='banish' then return c:IsAbleToRemove()
+	elseif to=='deck' or to=='decktop' then return c:IsAbleToDeck()
+	else return c:IsCanChangePosition() end
+end
+--You control (side you, default) or your opponent controls at least p.n (default 1) cards the selector names.
+R.State.control_sel=function(e,tp,p)
+	local l1,l2=real_locs(p)
+	return Duel.IsExistingMatchingCard(real_sel,tp,l1,l2,p.n or 1,nil,p)
+end
+R.State.opp_lp_above=function(e,tp,p) return Duel.GetLP(1-tp)>p.n end
+R.State.can_enter_bp=function() return Duel.IsAbleToEnterBP() end
+--Send p.n cards the selector names from your hand to the GY as a cost.
+local function real_send_hand_filter(c,p) return real_sel(c,p) and c:IsAbleToGraveAsCost() end
+R.Cost.send_hand={check=function(e,tp,p) return Duel.IsExistingMatchingCard(real_send_hand_filter,tp,LOCATION_HAND,0,p.n or 1,e:GetHandler(),p) end,
+	pay=function(e,tp,p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+		local g=Duel.SelectMatchingCard(tp,real_send_hand_filter,tp,LOCATION_HAND,0,p.n or 1,p.n or 1,e:GetHandler(),p)
+		Duel.SendtoGrave(g,REASON_COST)
+	end}
+R.Cost.lp_half={check=function(e,tp) return Duel.GetLP(tp)>1 end,
+	pay=function(e,tp) Duel.PayLPCost(tp,math.floor(Duel.GetLP(tp)/2)) end}
+local function real_tribute_filter(c,tp,p)
+	if not real_sel(c,p) then return false end
+	if p.ensure_def then
+		return Duel.IsExistingMatchingCard(function(tc,atk) return tc:IsFaceup() and tc:IsDefenseBelow(atk) end,
+			tp,LOCATION_MZONE,LOCATION_MZONE,1,c,c:GetAttack())
+	end
+	return true
+end
+R.Cost.tribute_sel={
+	check=function(e,tp,p) return Duel.CheckReleaseGroupCost(tp,real_tribute_filter,p.n or 1,false,nil,nil,tp,p) end,
+	pay=function(e,tp,p)
+		local n=p.n or 1
+		local g=Duel.SelectReleaseGroupCost(tp,real_tribute_filter,n,n,false,nil,nil,tp,p)
+		if p.save_attack and #g>0 then e:SetLabel(g:GetFirst():GetAttack()) end
+		Duel.Release(g,REASON_COST)
+	end}
+local function real_extreme_group(tp,p)
+	local g=real_group(tp,p,nil)
+	if #g==0 then return g end
+	local value=function(c) return p.stat=='DEF' and c:GetDefense() or c:GetAttack() end
+	if p.extreme=='low' then return g:GetMinGroup(value) end
+	return g:GetMaxGroup(value)
+end
 R.Act={
 	draw={cat=CATEGORY_DRAW,check=function(e,tp,eg,ep,ev,re,r,rp,p) return Duel.IsPlayerCanDraw(tp,p.n) end,
 		prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,p.n) end,
@@ -187,11 +484,84 @@ R.Act={
 		op=function(e,tp,eg,ep,ev,re,r,rp,p,m) Duel.Recover(tp,p.n*m,REASON_EFFECT) end},
 	damage={cat=CATEGORY_DAMAGE,prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,p.n) end,
 		op=function(e,tp,eg,ep,ev,re,r,rp,p,m) Duel.Damage(1-tp,p.n*m,REASON_EFFECT) end},
+	damage_self={cat=CATEGORY_DAMAGE,prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,tp,p.n) end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p,m) Duel.Damage(tp,p.n*m,REASON_EFFECT) end},
+	recover_tribute_stat={cat=CATEGORY_RECOVER,
+		prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,e:GetLabel()) end,
+		op=function(e,tp) Duel.Recover(tp,e:GetLabel(),REASON_EFFECT) end},
+	destroy_attack_target={cat=CATEGORY_DESTROY,
+		check=function() local tc=Duel.GetAttackTarget() return tc~=nil and tc:IsFaceup() and tc:IsDefensePos() and tc:IsRelateToBattle() end,
+		prep=function(e,tp) local tc=Duel.GetAttackTarget() Duel.SetOperationInfo(0,CATEGORY_DESTROY,tc,1,0,0) end,
+		op=function(e) local tc=Duel.GetAttackTarget() if tc and tc:IsRelateToBattle() and tc:IsDefensePos() then Duel.Destroy(tc,REASON_EFFECT) end end},
+	reveal_opp_set_all={cat=0,check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsFacedown,tp,0,LOCATION_ONFIELD,1,nil) end,
+		op=function(e,tp)
+			local g=Duel.GetMatchingGroup(Card.IsFacedown,tp,0,LOCATION_ONFIELD,nil)
+			if #g>0 then Duel.ConfirmCards(tp,g) end
+		end},
+	reveal_destroy_set_mon={cat=CATEGORY_DESTROY,target=true,loc1=0,loc2=LOCATION_MZONE,
+		filter=function(c) return c:IsFacedown() end,
+		check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsFacedown,tp,0,LOCATION_MZONE,1,nil) end,
+		prep=function(e,tp)
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+			local g=Duel.SelectTarget(tp,Card.IsFacedown,tp,0,LOCATION_MZONE,1,1,nil)
+			Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+		end,
+		op=function(e,tp)
+			local tc=Duel.GetFirstTarget()
+			if tc and tc:IsRelateToEffect(e) and tc:IsFacedown() then
+				Duel.ConfirmCards(tp,tc)
+				if tc:IsType(TYPE_EFFECT) then Duel.Destroy(tc,REASON_EFFECT) end
+			end
+		end},
+	spell_counter_all={cat=CATEGORY_COUNTER,
+		op=function(e,tp)
+			local g=Duel.GetMatchingGroup(function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end,
+				tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+			for tc in aux.Next(g) do tc:AddCounter(COUNTER_SPELL,1) end
+		end},
+	return_self_hand={cat=CATEGORY_TOHAND,
+		check=function(e) local c=e:GetHandler() return c:IsFaceup() and c:IsAbleToHand() end,
+		prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0) end,
+		op=function(e) local c=e:GetHandler() if c:IsRelateToEffect(e) and c:IsFaceup() then Duel.SendtoHand(c,nil,REASON_EFFECT) end end},
+	return_battle_target={cat=CATEGORY_TOHAND,
+		prep=function(e,tp) local tc=e:GetHandler():GetBattleTarget() if tc then Duel.SetOperationInfo(0,CATEGORY_TOHAND,tc,1,0,0) end end,
+		op=function(e,tp)
+			local tc=e:GetHandler():GetBattleTarget()
+			if tc and tc:IsRelateToBattle() and tc:GetControler()==1-tp then Duel.SendtoHand(tc,nil,REASON_EFFECT) end
+		end},
+	ss_mokey_any_gy={cat=CATEGORY_SPECIAL_SUMMON,
+		check=function(e,tp)
+			return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(function(c)
+				return c:IsCode(27288416) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+			end,tp,LOCATION_GRAVE,0,1,nil)
+		end,
+		prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,0,tp,LOCATION_GRAVE) end,
+		op=function(e,tp)
+			local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
+			if ft<=0 then return end
+			local g=Duel.GetMatchingGroup(function(c) return c:IsCode(27288416) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end,
+				tp,LOCATION_GRAVE,0,nil)
+			if #g>ft then g=g:Select(tp,ft,ft,nil) end
+			if #g>0 then Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP) end
+		end},
+	damage_both={cat=CATEGORY_DAMAGE,prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,PLAYER_ALL,p.n+p.d) end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p,m)
+		Duel.Damage(1-tp,p.n*m,REASON_EFFECT,true)
+		Duel.Damage(tp,p.d*m,REASON_EFFECT,true)
+		Duel.RDComplete()
+	end},
 	destroy_st=targeted({cat=CATEGORY_DESTROY,target=true,loc1=0,loc2=LOCATION_ONFIELD,hint=HINTMSG_DESTROY,
 		filter=function(c) return c:IsSpellTrap() end,
 		op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) then Duel.Destroy(tc,REASON_EFFECT) end end}),
 	destroy_mon=targeted({cat=CATEGORY_DESTROY,target=true,loc1=0,loc2=LOCATION_MZONE,hint=HINTMSG_DESTROY,filter=aux.TRUE,
 		op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) then Duel.Destroy(tc,REASON_EFFECT) end end}),
+	destroy_all_monsters={cat=CATEGORY_DESTROY,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_mass_group(tp,p)>0 end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=real_mass_group(tp,p)
+			Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.Destroy(real_mass_group(tp,p),REASON_EFFECT) end},
 	destroy_weak={cat=CATEGORY_DESTROY,
 		check=function(e,tp,eg,ep,ev,re,r,rp,p) return Duel.IsExistingMatchingCard(weak,tp,0,LOCATION_MZONE,1,nil,e,tp,p) end,
 		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
@@ -202,6 +572,27 @@ R.Act={
 	bounce_mon=targeted({cat=CATEGORY_TOHAND,target=true,loc1=0,loc2=LOCATION_MZONE,hint=HINTMSG_RTOHAND,
 		filter=function(c) return c:IsAbleToHand() end,
 		op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) then Duel.SendtoHand(tc,nil,REASON_EFFECT) end end}),
+	bounce_all_opp_mon={cat=CATEGORY_TOHAND,
+		check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsAbleToHand,tp,0,LOCATION_MZONE,1,nil) end,
+		prep=function(e,tp)
+			local g=Duel.GetMatchingGroup(Card.IsAbleToHand,tp,0,LOCATION_MZONE,nil)
+			Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,#g,0,0)
+		end,
+		op=function(e,tp) Duel.SendtoHand(Duel.GetMatchingGroup(Card.IsAbleToHand,tp,0,LOCATION_MZONE,nil),nil,REASON_EFFECT) end},
+	stat_mod_target=targeted({cat=0,target=true,loc1=LOCATION_MZONE,loc2=LOCATION_MZONE,hint=HINTMSG_FACEUP,
+		filter=function(c) return c:IsFaceup() end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p,m)
+			local tc=Duel.GetFirstTarget()
+			if not (relate(e,tc) and tc:IsFaceup()) then return end
+			local code,value
+			if p.mode=='half' then code=EFFECT_SET_BASE_ATTACK value=math.floor(tc:GetBaseAttack()/2)
+			elseif p.mode=='set' then code=p.stat=='DEF' and EFFECT_SET_DEFENSE_FINAL or EFFECT_SET_ATTACK_FINAL value=p.n
+			elseif p.stat=='DEF' then code=EFFECT_UPDATE_DEFENSE value=p.n
+			else code=EFFECT_UPDATE_ATTACK value=p.n end
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(code) e1:SetValue(value) e1:SetReset(RESETS_STANDARD_PHASE_END)
+			tc:RegisterEffect(e1)
+		end}),
 	atk_down=targeted({cat=CATEGORY_ATKCHANGE,target=true,loc1=0,loc2=LOCATION_MZONE,hint=HINTMSG_FACEUP,
 		filter=function(c) return c:IsFaceup() end,
 		op=function(e,tp,eg,ep,ev,re,r,rp,p,m)
@@ -217,6 +608,41 @@ R.Act={
 	pos_def=targeted({cat=CATEGORY_POSITION,target=true,loc1=0,loc2=LOCATION_MZONE,hint=HINTMSG_POSCHANGE,
 		filter=function(c) return c:IsAttackPos() and c:IsCanChangePosition() end,
 		op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) and tc:IsAttackPos() then Duel.ChangePosition(tc,POS_FACEUP_DEFENSE) end end}),
+	self_set={cat=CATEGORY_POSITION,check=function(e) return e:GetHandler():IsCanTurnSet() end,
+		op=function(e) local c=e:GetHandler() if c:IsRelateToEffect(e) and c:IsFaceup() then Duel.ChangePosition(c,POS_FACEDOWN_DEFENSE) end end},
+	no_battle_damage_turn={cat=0,op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetTargetRange(1,0)
+		e1:SetValue(1)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e1,tp)
+	end},
+	indes_battle_turn={cat=0,op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+		e1:SetTargetRange(LOCATION_MZONE,0)
+		e1:SetValue(1)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e1,tp)
+	end},
+	prevent_effect_damage_turn={cat=CATEGORY_DAMAGE,op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_CHANGE_DAMAGE)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetTargetRange(1,0)
+		e1:SetValue(function(se,re,val,reason) return (reason&REASON_EFFECT)~=0 and 0 or val end)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e1,tp)
+		local e2=e1:Clone()
+		e2:SetCode(EFFECT_NO_EFFECT_DAMAGE)
+		e2:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e2,tp)
+	end},
 	search_race=add_from(LOCATION_DECK,function(c,e,tp,p) return c:IsMonster() and c:IsRace(p.race) and c:IsAbleToHand() end,HINTMSG_ATOHAND,CATEGORY_TOHAND+CATEGORY_SEARCH),
 	search_spell=add_from(LOCATION_DECK,function(c) return c:IsSpell() and c:IsAbleToHand() end,HINTMSG_ATOHAND,CATEGORY_TOHAND+CATEGORY_SEARCH),
 	gy_to_hand=add_from(LOCATION_GRAVE,function(c) return c:IsMonster() and c:IsAbleToHand() end,HINTMSG_ATOHAND,CATEGORY_TOHAND),
@@ -239,6 +665,45 @@ R.Act={
 			if #g>0 then Duel.Remove(g,POS_FACEUP,REASON_EFFECT) end
 		end},
 	self_atk=self_boost(EFFECT_UPDATE_ATTACK,function(p,m) return p.n*m end),
+	self_atk_permanent={cat=CATEGORY_ATKCHANGE,
+		check=function(e) return e:GetHandler():IsFaceup() end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local c=e:GetHandler()
+			if not (c:IsRelateToEffect(e) and c:IsFaceup()) then return end
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_UPDATE_ATTACK)
+			e1:SetValue(p.n or 0)
+			e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+			c:RegisterEffect(e1)
+		end},
+	self_def_permanent={cat=CATEGORY_DEFCHANGE,
+		check=function(e) return e:GetHandler():IsFaceup() end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local c=e:GetHandler()
+			if not (c:IsRelateToEffect(e) and c:IsFaceup()) then return end
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_UPDATE_DEFENSE)
+			e1:SetValue(p.n or 0)
+			e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+			c:RegisterEffect(e1)
+		end},
+	reduce_battle_opponent_both={cat=CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local c=e:GetHandler()
+			local tc=Duel.GetAttacker()
+			if c==tc then tc=Duel.GetAttackTarget() end
+			if not tc or not tc:IsRelateToBattle() then return end
+			for _,code in ipairs({EFFECT_UPDATE_ATTACK,EFFECT_UPDATE_DEFENSE}) do
+				local e1=Effect.CreateEffect(c)
+				e1:SetType(EFFECT_TYPE_SINGLE)
+				e1:SetCode(code)
+				e1:SetValue(-p.n)
+				e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+				tc:RegisterEffect(e1)
+			end
+		end},
 	self_pierce=self_boost(EFFECT_PIERCE),
 	self_direct=self_boost(EFFECT_DIRECT_ATTACK),
 	no_attack_opp={cat=0,op=function(e,tp)
@@ -280,8 +745,979 @@ R.Act={
 			local g=Duel.GetTargetCards(e):Filter(Card.IsLocation,nil,LOCATION_MZONE)
 			if #g>0 then Duel.Destroy(g,REASON_EFFECT) end
 		end},
+	move_summoned={catf=function(p) return p.to=='banish' and CATEGORY_REMOVE or CATEGORY_DESTROY end,target=true,
+		loc1=0,loc2=LOCATION_MZONE,locs=function(p) if p.side=='any' then return LOCATION_MZONE,LOCATION_MZONE end return 0,LOCATION_MZONE end,
+		filter=function(c,e,tp,p) return real_sel(c,p) end,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return eg and eg:IsExists(real_sel,1,nil,p) end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=eg:Filter(real_sel,nil,p)
+			Duel.SetTargetCard(g)
+			Duel.SetOperationInfo(0,p.to=='banish' and CATEGORY_REMOVE or CATEGORY_DESTROY,g,#g,0,0)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=Duel.GetTargetCards(e):Filter(function(c,p) return c:IsLocation(LOCATION_MZONE) and real_sel(c,p) end,nil,p)
+			if #g==0 then return end
+			if p.to=='banish' then Duel.Remove(g,POS_FACEUP,REASON_EFFECT) else Duel.Destroy(g,REASON_EFFECT) end
+		end},
+	damage_attacker_atk={cat=CATEGORY_DAMAGE,target=true,loc1=0,loc2=LOCATION_MZONE,
+		filter=function(c) return c==Duel.GetAttacker() end,
+		check=function(e) local a=Duel.GetAttacker() return a and a:IsOnField() and a:IsCanBeEffectTarget(e) end,
+		prep=function(e,tp)
+			local a=Duel.GetAttacker()
+			if a then Duel.SetTargetCard(a) Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,a:GetAttack()) end
+		end,
+		op=function(e,tp)
+			local tc=Duel.GetFirstTarget()
+			if relate(e,tc) and Duel.NegateAttack() then Duel.Damage(1-tp,tc:GetAttack(),REASON_EFFECT) end
+		end},
+	recover_attacker_atk={cat=CATEGORY_RECOVER,target=true,loc1=0,loc2=LOCATION_MZONE,
+		filter=function(c) return c==Duel.GetAttacker() end,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local a=Duel.GetAttacker()
+			return a and a:IsOnField() and a:IsCanBeEffectTarget(e) and (not p.negate or a:CanAttack())
+		end,
+		prep=function(e,tp)
+			local a=Duel.GetAttacker()
+			if a then Duel.SetTargetCard(a) Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,a:GetAttack()) end
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local tc=Duel.GetFirstTarget()
+			if not (relate(e,tc) and tc:IsFaceup()) then return end
+			if not p.negate or Duel.NegateAttack(tc) then Duel.Recover(tp,tc:GetAttack(),REASON_EFFECT) end
+		end},
+	end_battle_phase={cat=0,target=true,loc1=0,loc2=LOCATION_MZONE,
+		filter=function(c) return c==Duel.GetAttacker() end,
+		check=function(e) local a=Duel.GetAttacker() return a and a:IsOnField() and a:IsCanBeEffectTarget(e) end,
+		prep=function() local a=Duel.GetAttacker() if a then Duel.SetTargetCard(a) end end,
+		op=function(e,tp)
+			local tc=Duel.GetFirstTarget()
+			if relate(e,tc) and Duel.NegateAttack() then Duel.SkipPhase(1-tp,PHASE_BATTLE,RESET_PHASE|PHASE_BATTLE_STEP,1) end
+		end},
+	destroy_extreme={cat=CATEGORY_DESTROY,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_extreme_group(tp,p)>0 end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=real_extreme_group(tp,p)
+			Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=real_extreme_group(tp,p)
+			if #g==0 then return end
+			if #g>1 then Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY) g=g:Select(tp,1,1,nil) Duel.HintSelection(g) end
+			Duel.Destroy(g,REASON_EFFECT)
+		end},
+	destroy_banish_summoned={cat=CATEGORY_DESTROY+CATEGORY_REMOVE,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p)
+			return eg and eg:IsExists(function(c,p) return real_sel(c,p) and c:IsAbleToRemove() end,1,nil,p)
+		end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=eg:Filter(function(c,p) return real_sel(c,p) and c:IsAbleToRemove() end,nil,p)
+			Duel.SetTargetCard(g)
+			Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+			Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,#g,0,0)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=Duel.GetTargetCards(e):Filter(function(c,p)
+				return c:IsRelateToEffect(e) and c:IsLocation(LOCATION_MZONE) and real_sel(c,p) and c:IsAbleToRemove()
+			end,nil,p)
+			if #g>0 then Duel.Destroy(g,REASON_EFFECT,LOCATION_REMOVED) end
+		end},
+	set_defense_summoned={cat=CATEGORY_POSITION,
+		check=function(e,tp,eg) return eg and eg:IsExists(function(c) return c:IsFaceup() and c:IsAttackPos() and c:IsCanChangePosition() end,1,nil) end,
+		prep=function(e,tp,eg)
+			if eg then
+				local g=eg:Filter(function(c) return c:IsFaceup() and c:IsAttackPos() and c:IsCanChangePosition() end,nil)
+				Duel.SetOperationInfo(0,CATEGORY_POSITION,g,#g,0,0)
+			end
+		end,
+		op=function(e,tp,eg)
+			local c=e:GetHandler()
+			if not c:IsRelateToEffect(e) or not eg then return end
+			local g=eg:Filter(function(tc) return tc:IsFaceup() and tc:IsAttackPos() and tc:IsCanChangePosition() end,nil)
+			if #g>0 then Duel.ChangePosition(g,POS_FACEUP_DEFENSE) end
+		end},
+	damage_per_sel={cat=CATEGORY_DAMAGE,player_target=true,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_group(tp,p,nil)>0 end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local amount=(p.n or 0)*#real_group(tp,p,nil)
+			Duel.SetTargetPlayer(1-tp) Duel.SetTargetParam(amount)
+			Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,amount)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local amount=(p.n or 0)*#real_group(tp,p,nil)
+			local player=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+			Duel.Damage(player,amount,REASON_EFFECT)
+		end},
+	recover_per_sel={cat=CATEGORY_RECOVER,player_target=true,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_group(tp,p,nil)>0 end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local amount=(p.n or 0)*#real_group(tp,p,nil)
+			Duel.SetTargetPlayer(tp) Duel.SetTargetParam(amount)
+			Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,amount)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local amount=(p.n or 0)*#real_group(tp,p,nil)
+			local player=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+			Duel.Recover(player,amount,REASON_EFFECT)
+		end},
+	stat_mod_all={cat=CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_group(tp,p,nil)>0 end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=real_group(tp,p,nil)
+			if table.concat(p.stats or {},' '):find('ATK') then Duel.SetOperationInfo(0,CATEGORY_ATKCHANGE,g,#g,0,0) end
+			if table.concat(p.stats or {},' '):find('DEF') then Duel.SetOperationInfo(0,CATEGORY_DEFCHANGE,g,#g,0,0) end
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p,m)
+			local g=real_group(tp,p,nil)
+			local value=(p.sign=='minus' and -1 or 1)*(p.n or 0)*(m or 1)
+			for tc in aux.Next(g) do
+				for _,stat in ipairs(p.stats or {}) do
+					local e1=Effect.CreateEffect(e:GetHandler())
+					e1:SetType(EFFECT_TYPE_SINGLE)
+					e1:SetCode(stat=='DEF' and EFFECT_UPDATE_DEFENSE or EFFECT_UPDATE_ATTACK)
+					e1:SetValue(value)
+					e1:SetReset(RESETS_STANDARD_PHASE_END)
+					tc:RegisterEffect(e1)
+				end
+			end
+		end},
+	skip_phase={cat=0,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local player=p.side=='opp' and 1-tp or tp
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_FIELD)
+			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+			e1:SetTargetRange(player==tp and 1 or 0,player==1-tp and 1 or 0)
+			if p.phase=='standby' then
+				e1:SetCode(EFFECT_SKIP_SP)
+				if Duel.IsTurnPlayer(player) and Duel.IsPhase(PHASE_STANDBY) then
+					e1:SetCondition(function(e) return Duel.GetTurnCount()~=e:GetLabel() end)
+					e1:SetLabel(Duel.GetTurnCount())
+					e1:SetReset(RESET_PHASE|PHASE_STANDBY|RESET_SELF_TURN,2)
+				else e1:SetReset(RESET_PHASE|PHASE_STANDBY|RESET_SELF_TURN) end
+			else
+				e1:SetCode(EFFECT_SKIP_BP)
+				if Duel.IsTurnPlayer(player) and Duel.IsBattlePhase() then
+					e1:SetCondition(function(e) return Duel.GetTurnCount()~=e:GetLabel() end)
+					e1:SetLabel(Duel.GetTurnCount())
+					e1:SetReset(RESET_PHASE|PHASE_BATTLE|RESET_OPPO_TURN,2)
+				else e1:SetReset(RESET_PHASE|PHASE_BATTLE|RESET_OPPO_TURN) end
+			end
+			Duel.RegisterEffect(e1,tp)
+		end},
+	direct_attack_turn={cat=0,
+		op=function(e,tp)
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_FIELD)
+			e1:SetCode(EFFECT_IGNORE_BATTLE_TARGET)
+			e1:SetTargetRange(0,LOCATION_MZONE)
+			e1:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+			e1:SetValue(1)
+			e1:SetReset(RESET_PHASE|PHASE_END)
+			Duel.RegisterEffect(e1,tp)
+		end},
+	no_damage_turn={cat=0,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_FIELD)
+			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+			e1:SetTargetRange(1,0)
+			e1:SetReset(RESET_PHASE|PHASE_END)
+			if p.kind=='battle' then e1:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+			else
+				e1:SetCode(EFFECT_CHANGE_DAMAGE)
+				e1:SetValue(function(e,re,val,r,rp,rc) return e:GetHandlerPlayer()~=rp and 0 or val end)
+			end
+			Duel.RegisterEffect(e1,tp)
+		end},
+	fire_darts={cat=CATEGORY_DICE+CATEGORY_DAMAGE,player_target=true,
+		prep=function(e,tp)
+			Duel.SetTargetPlayer(1-tp)
+			Duel.SetOperationInfo(0,CATEGORY_DICE,nil,0,tp,3)
+			Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,0)
+		end,
+		op=function(e,tp)
+			local d1,d2,d3=Duel.TossDice(tp,3)
+			local player=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+			Duel.Damage(player,(d1+d2+d3)*100,REASON_EFFECT)
+		end},
 }
 R.Act.negate_effect=R.Act.negate_activation
+R.Act.destroy_any_mon=targeted({cat=CATEGORY_DESTROY,target=true,loc1=LOCATION_MZONE,loc2=LOCATION_MZONE,hint=HINTMSG_DESTROY,
+	filter=aux.TRUE,op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) then Duel.Destroy(tc,REASON_EFFECT) end end})
+R.Act.reveal_deck_top={cat=0,
+	check=function(e,tp) return Duel.GetFieldGroupCount(tp,0,LOCATION_DECK)>0 end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local ct=math.min(p.n or 5,Duel.GetFieldGroupCount(tp,0,LOCATION_DECK))
+		if ct>0 then Duel.ConfirmDecktop(tp,ct) end
+	end}
+R.Act.discard_up_to={cat=CATEGORY_HANDES,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		return Duel.IsExistingMatchingCard(real_sel,tp,LOCATION_HAND,0,1,nil,p)
+	end,
+	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,1) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.DiscardHand(tp,function(c) return real_sel(c,p) end,1,p.n,REASON_EFFECT|REASON_DISCARD)
+	end}
+R.Act.shuffle_opp_hand_draw_same={cat=CATEGORY_TODECK+CATEGORY_DRAW,
+	check=function(e,tp) return Duel.IsPlayerCanDraw(1-tp)
+		and Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,0,LOCATION_HAND,1,nil) end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,1-tp,LOCATION_HAND)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,1-tp,1)
+	end,
+	op=function(e,tp)
+		local g=Duel.GetFieldGroup(tp,0,LOCATION_HAND)
+		if #g==0 then return end
+		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+		Duel.ShuffleDeck(1-tp)
+		Duel.BreakEffect()
+		Duel.Draw(1-tp,#g,REASON_EFFECT)
+	end}
+R.Act.no_attack_facedown_turn={cat=0,
+	op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
+		e1:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e1:SetValue(function(se,c) return c:IsFacedown() end)
+		e1:SetReset(RESET_PHASE|PHASE_END,1)
+		Duel.RegisterEffect(e1,tp)
+	end}
+R.Act.all_your_monsters_dragon_turn={cat=0,
+	check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_MZONE,0,1,nil) end,
+	op=function(e,tp)
+		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)
+		for tc in aux.Next(g) do
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_CHANGE_RACE)
+			e1:SetReset(RESETS_STANDARD_PHASE_END)
+			e1:SetValue(RACE_DRAGON)
+			tc:RegisterEffect(e1)
+		end
+	end}
+R.Act.remove_spell_counters_all={cat=CATEGORY_COUNTER,
+	check=function(e,tp) return Duel.IsCanRemoveCounter(tp,1,1,COUNTER_SPELL,1,REASON_EFFECT) end,
+	op=function(e,tp)
+		local g=Duel.GetMatchingGroup(function(c) return c:IsFaceup() and c:GetCounter(COUNTER_SPELL)>0 end,
+			tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+		for tc in aux.Next(g) do tc:RemoveCounter(tp,COUNTER_SPELL,tc:GetCounter(COUNTER_SPELL),REASON_EFFECT) end
+	end}
+R.Act.swap_base_atk_def_all_turn={cat=CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE,
+	check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end,
+	prep=function(e,tp)
+		Duel.SetTargetCard(Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,nil))
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp)
+		local g=Duel.GetTargetCards(e):Filter(function(c,e) return c:IsFaceup() and c:IsRelateToEffect(e) and not c:IsImmuneToEffect(e) end,nil,e)
+		for tc in aux.Next(g) do
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_SWAP_BASE_AD)
+			e1:SetReset(RESETS_STANDARD_PHASE_END)
+			tc:RegisterEffect(e1)
+		end
+	end}
+R.Act.banish_temp_target=targeted({cat=CATEGORY_REMOVE,target=true,loc1=LOCATION_MZONE,loc2=0,hint=HINTMSG_REMOVE,
+	filter=function(c) return c:IsFaceup() and c:IsAbleToRemove() end,
+	op=function(e,tp)
+		local tc=Duel.GetFirstTarget()
+		if not (relate(e,tc) and tc:IsFaceup() and tc:IsControler(tp)) then return end
+		if Duel.Remove(tc,0,REASON_EFFECT|REASON_TEMPORARY)==0 then return end
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		e1:SetCode(EVENT_PHASE+PHASE_END)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		e1:SetLabelObject(tc)
+		e1:SetCountLimit(1)
+		e1:SetOperation(function(se) Duel.ReturnToField(se:GetLabelObject()) end)
+		Duel.RegisterEffect(e1,tp)
+	end})
+R.Act.inspect_opp_hand_card={cat=0,player_target=true,
+	check=function(e,tp) return Duel.GetFieldGroupCount(tp,0,LOCATION_HAND)>0 end,
+	prep=function(e,tp) Duel.SetTargetPlayer(tp) end,
+	op=function(e,tp)
+		local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+		if Duel.GetFieldGroupCount(p,0,LOCATION_HAND)==0 then return end
+		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_CONFIRM)
+		local g=Duel.SelectMatchingCard(p,nil,p,0,LOCATION_HAND,1,1,nil)
+		if #g>0 then Duel.ConfirmCards(p,g) Duel.ShuffleHand(1-p) end
+	end}
+R.Act.skip_next_two_draw_phases={cat=0,player_target=true,
+	prep=function(e,tp)
+		Duel.SetTargetPlayer(tp)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,2)
+	end,
+	op=function(e,tp)
+		local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetCode(EFFECT_SKIP_DP)
+		e1:SetTargetRange(1,0)
+		e1:SetReset(RESET_PHASE|PHASE_END,5)
+		Duel.RegisterEffect(e1,p)
+	end}
+R.Act.inspect_opp_hidden_cards={cat=0,
+	local_filter=function(c) return (c:IsOnField() and c:IsFacedown()) or (c:IsLocation(LOCATION_HAND) and not c:IsPublic()) end,
+	check=function(e,tp)
+		return Duel.IsExistingMatchingCard(R.Act.inspect_opp_hidden_cards.local_filter,tp,0,LOCATION_HAND|LOCATION_ONFIELD,1,nil)
+	end,
+	op=function(e,tp)
+		local g=Duel.GetMatchingGroup(R.Act.inspect_opp_hidden_cards.local_filter,tp,0,LOCATION_HAND|LOCATION_ONFIELD,nil)
+		if #g>0 then Duel.ConfirmCards(tp,g) end
+		Duel.ShuffleHand(1-tp)
+	end}
+R.Act.halve_summoned_original_atk={cat=CATEGORY_ATKCHANGE,
+	check=function(e,tp,eg)
+		return eg and eg:IsExists(function(c,tp) return c:IsFaceup() and c:IsLocation(LOCATION_MZONE) and c:IsSummonPlayer(1-tp) end,1,nil,tp)
+	end,
+	prep=function(e,tp,eg)
+		if eg then
+			local g=eg:Filter(function(c,tp) return c:IsFaceup() and c:IsLocation(LOCATION_MZONE) and c:IsSummonPlayer(1-tp) end,nil,tp)
+			Duel.SetTargetCard(g)
+		end
+	end,
+	op=function(e,tp)
+		local g=Duel.GetTargetCards(e):Filter(function(c,tp,e)
+			return c:IsRelateToEffect(e) and c:IsFaceup() and c:IsLocation(LOCATION_MZONE) and c:IsSummonPlayer(1-tp)
+		end,nil,tp,e)
+		for tc in aux.Next(g) do
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_SET_BASE_ATTACK)
+			e1:SetValue(tc:GetBaseAttack()/2)
+			e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+			tc:RegisterEffect(e1)
+		end
+	end}
+R.Act.opp_choose_equip_deck_gy={cat=CATEGORY_TOGRAVE,
+	check=function(e,tp) return Duel.GetFieldGroupCount(tp,0,LOCATION_DECK)>0 end,
+	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,1-tp,LOCATION_DECK) end,
+	op=function(e,tp)
+		local f=function(c) return c:IsType(TYPE_EQUIP) and c:IsAbleToGrave() end
+		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_TOGRAVE)
+		local g=Duel.SelectMatchingCard(1-tp,f,1-tp,LOCATION_DECK,0,1,1,nil)
+		if #g>0 then Duel.SendtoGrave(g,REASON_EFFECT) end
+	end}
+R.Act.opp_choose_insect_decktop={cat=CATEGORY_TODECK,
+	check=function(e,tp) return Duel.GetFieldGroupCount(tp,0,LOCATION_DECK)>0 end,
+	op=function(e,tp)
+		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_CONFIRM)
+		local g=Duel.SelectMatchingCard(1-tp,Card.IsRace,1-tp,LOCATION_DECK,0,1,1,nil,RACE_INSECT)
+		local tc=g:GetFirst()
+		if tc then
+			Duel.ShuffleDeck(1-tp)
+			Duel.MoveSequence(tc,0)
+			Duel.ConfirmDecktop(1-tp,1)
+		end
+	end}
+R.Act.ss_all_banished_both={cat=CATEGORY_SPECIAL_SUMMON,
+	check=function(e,tp)
+		local f=function(c,player) return c:IsFaceup() and c:IsCanBeSpecialSummoned(e,0,player,false,false) end
+		return (Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(f,tp,LOCATION_REMOVED,0,1,nil,tp))
+			or (Duel.GetLocationCount(1-tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(f,tp,0,LOCATION_REMOVED,1,nil,1-tp))
+	end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,2,LOCATION_REMOVED)
+	end,
+	op=function(e,tp)
+		local function summon_for(player)
+			local max=Duel.GetLocationCount(player,LOCATION_MZONE)
+			if max<=0 then return end
+			local loc1,loc2=player==tp and LOCATION_REMOVED or 0,player==tp and 0 or LOCATION_REMOVED
+			local f=function(c) return c:IsFaceup() and c:IsCanBeSpecialSummoned(e,0,player,false,false) end
+			local g=Duel.SelectMatchingCard(player,f,tp,loc1,loc2,0,max,nil)
+			if #g>0 then Duel.SpecialSummon(g,0,player,player,false,false,POS_FACEUP) end
+		end
+		summon_for(tp)
+		summon_for(1-tp)
+	end}
+R.Act.no_traps_activated_turn={cat=0,
+	op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
+		e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+		e1:SetTargetRange(1,1)
+		e1:SetValue(function(se,re) return re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsTrapEffect() end)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e1,tp)
+	end}
+R.Act.disable_defense_monsters_turn={cat=0,
+	op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_DISABLE)
+		e1:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e1:SetTarget(function(se,c) return c:IsDefensePos() end)
+		e1:SetReset(RESET_PHASE|PHASE_END)
+		Duel.RegisterEffect(e1,tp)
+	end}
+R.Act.protect_set_st_until_opp_end={cat=0,
+	op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+		e1:SetTargetRange(LOCATION_SZONE,LOCATION_SZONE)
+		e1:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+		e1:SetTarget(function(se,c) return c:IsFacedown() end)
+		e1:SetValue(1)
+		e1:SetReset(RESET_PHASE|PHASE_END,2)
+		Duel.RegisterEffect(e1,tp)
+	end}
+R.Act.opponent_tribute_monster={cat=0,
+	check=function(e,tp) return Duel.CheckReleaseGroup(1-tp,nil,1,nil) end,
+	op=function(e,tp)
+		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_RELEASE)
+		local g=Duel.SelectReleaseGroup(1-tp,nil,1,1,nil)
+		if g and #g>0 then Duel.Release(g,REASON_RULE,1-tp) end
+	end}
+R.Act.hand_limit_7_duel={cat=0,player_target=true,
+	prep=function(e,tp) Duel.SetTargetPlayer(tp) end,
+	op=function(e,tp)
+		local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_HAND_LIMIT)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetTargetRange(1,0)
+		e1:SetValue(7)
+		Duel.RegisterEffect(e1,p)
+	end}
+R.Act.discard_drawn_card={cat=CATEGORY_HANDES,
+	check=function(e,tp,eg) return eg and #eg>0 end,
+	prep=function(e,tp,eg)
+		Duel.SetTargetCard(eg)
+		Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,1-tp,#eg)
+	end,
+	op=function(e,tp,eg,ep)
+		local g=Duel.GetTargetCards(e):Filter(function(c,e) return c:IsRelateToEffect(e) end,nil,e)
+		if #g==1 then Duel.SendtoGrave(g,REASON_EFFECT|REASON_DISCARD)
+		elseif #g>1 then
+			Duel.Hint(HINT_SELECTMSG,ep,HINTMSG_TOGRAVE)
+			local dg=g:Select(ep,1,1,nil)
+			Duel.SendtoGrave(dg,REASON_EFFECT|REASON_DISCARD)
+		end
+	end}
+R.Act.cup_of_ace_effect={cat=CATEGORY_COIN+CATEGORY_DRAW,
+	check=function(e,tp) return Duel.IsPlayerCanDraw(tp,2) or Duel.IsPlayerCanDraw(1-tp,2) end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_COIN,nil,0,tp,1)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,PLAYER_EITHER,2)
+	end,
+	op=function(e,tp)
+		local coin=Duel.TossCoin(tp,1)
+		local player=(coin==COIN_HEADS and tp) or (coin==COIN_TAILS and 1-tp) or nil
+		if player then Duel.Draw(player,2,REASON_EFFECT) end
+	end}
+R.Act.indestructible_low_water_turn={cat=0,
+	op=function(e,tp)
+		local function protect(code)
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_FIELD)
+			e1:SetCode(code)
+			e1:SetTarget(function(se,c) return c:IsFaceup() and c:IsLevelBelow(3) and c:IsAttribute(ATTRIBUTE_WATER) end)
+			e1:SetTargetRange(LOCATION_MZONE,0)
+			e1:SetReset(RESET_PHASE|PHASE_END)
+			e1:SetValue(1)
+			Duel.RegisterEffect(e1,tp)
+		end
+		protect(EFFECT_INDESTRUCTABLE_BATTLE)
+		protect(EFFECT_INDESTRUCTABLE_EFFECT)
+	end}
+R.Act.destroy_draw_target=targeted({cat=CATEGORY_DESTROY+CATEGORY_DRAW,target=true,loc1=LOCATION_ONFIELD,loc2=LOCATION_ONFIELD,hint=HINTMSG_DESTROY,
+	filter=function(c,e) return c:IsCanBeEffectTarget(e) end,
+	op=function(e,tp)
+		local tc=Duel.GetFirstTarget()
+		if relate(e,tc) and Duel.Destroy(tc,REASON_EFFECT)>0 then Duel.Draw(tp,1,REASON_EFFECT) end
+	end})
+R.Act.destroy_def_below_tribute={cat=CATEGORY_DESTROY,
+	prep=function(e,tp)
+		local atk=e:GetLabel()
+		local g=Duel.GetMatchingGroup(function(c,atk) return c:IsFaceup() and c:IsDefenseBelow(atk) end,tp,LOCATION_MZONE,LOCATION_MZONE,nil,atk)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+	end,
+	op=function(e,tp)
+		local atk=e:GetLabel()
+		local g=Duel.GetMatchingGroup(function(c,atk) return c:IsFaceup() and c:IsDefenseBelow(atk) end,tp,LOCATION_MZONE,LOCATION_MZONE,nil,atk)
+		if #g>0 then Duel.Destroy(g,REASON_EFFECT) end
+	end}
+R.Act.dark_mimic_draw={cat=CATEGORY_DRAW,
+	prep=function(e,tp)
+		local n=e:GetHandler():GetSummonType()==SUMMON_TYPE_SPECIAL+1 and 2 or 1
+		e:SetLabel(n) Duel.SetTargetPlayer(tp) Duel.SetTargetParam(n)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,n)
+	end,
+	op=function(e,tp) Duel.Draw(tp,e:GetLabel(),REASON_EFFECT) end}
+R.Act.destroy_any_st=targeted({cat=CATEGORY_DESTROY,target=true,loc1=LOCATION_ONFIELD,loc2=LOCATION_ONFIELD,hint=HINTMSG_DESTROY,
+	filter=Card.IsSpellTrap,op=function(e) local tc=Duel.GetFirstTarget() if relate(e,tc) then Duel.Destroy(tc,REASON_EFFECT) end end})
+R.Act.ss_filtered={cat=CATEGORY_SPECIAL_SUMMON,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local loc=real_ss_loc(p)
+		return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(real_ss_filter,tp,loc,0,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local loc=real_ss_loc(p)
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,loc)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+		local loc=real_ss_loc(p)
+		local g=Duel.SelectMatchingCard(tp,real_ss_filter,tp,loc,0,1,1,nil,e,tp,p)
+		if #g>0 then Duel.SpecialSummon(g,0,tp,tp,false,false,p.position=='attack' and POS_FACEUP_ATTACK or POS_FACEUP) end
+	end}
+R.Act.ss_any_filtered={cat=CATEGORY_SPECIAL_SUMMON,
+	check=function() return true end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local loc=real_ss_loc(p)
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,0,tp,loc)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local max=Duel.GetLocationCount(tp,LOCATION_MZONE)
+		if max<=0 then return end
+		local loc=real_ss_loc(p)
+		local g=Duel.SelectMatchingCard(tp,real_ss_filter,tp,loc,0,0,max,nil,e,tp,p)
+		if #g==0 then return end
+		local pos=p.position=='attack' and POS_FACEUP_ATTACK or (p.position=='defense' and POS_FACEUP_DEFENSE or (p.position=='facedown' and POS_FACEDOWN_DEFENSE or POS_FACEUP))
+		Duel.SpecialSummon(g,0,tp,tp,false,false,pos)
+	end}
+R.Act.ss_filtered_proc={cat=CATEGORY_SPECIAL_SUMMON,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local loc=p.zone=='deck_hand_gy' and (LOCATION_DECK|LOCATION_HAND|LOCATION_GRAVE) or real_ss_loc(p)
+		local ok=function(c) return real_sel(c,p) and c:IsMonster()
+			and c:IsCanBeSpecialSummoned(e,0,tp,p.ignore_condition==true,p.procedure==true) end
+		return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(ok,tp,loc,0,1,nil)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local loc=p.zone=='deck_hand_gy' and (LOCATION_DECK|LOCATION_HAND|LOCATION_GRAVE) or real_ss_loc(p)
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,loc)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+		local loc=p.zone=='deck_hand_gy' and (LOCATION_DECK|LOCATION_HAND|LOCATION_GRAVE) or real_ss_loc(p)
+		local ok=function(c) return real_sel(c,p) and c:IsMonster()
+			and c:IsCanBeSpecialSummoned(e,0,tp,p.ignore_condition==true,p.procedure==true) end
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local g=Duel.SelectMatchingCard(tp,ok,tp,loc,0,1,1,nil)
+		if #g>0 and Duel.SpecialSummon(g,0,tp,tp,p.ignore_condition==true,p.procedure==true,POS_FACEUP)>0 and p.complete then
+			for tc in aux.Next(g) do tc:CompleteProcedure() end
+		end
+	end}
+R.Act.hand_wipe_draw_same={cat=CATEGORY_HANDES+CATEGORY_DRAW,
+	check=function(e,tp)
+		local h1=Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)
+		local h2=Duel.GetFieldGroupCount(tp,0,LOCATION_HAND)
+		return (h1+h2>0) and (h1==0 or Duel.IsPlayerCanDraw(tp,h1))
+			and (h2==0 or Duel.IsPlayerCanDraw(1-tp,h2))
+	end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,PLAYER_ALL,1)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,PLAYER_ALL,1)
+	end,
+	op=function(e,tp)
+		local h1=Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)
+		local h2=Duel.GetFieldGroupCount(tp,0,LOCATION_HAND)
+		local g=Duel.GetFieldGroup(tp,LOCATION_HAND,LOCATION_HAND)
+		if #g>0 then Duel.SendtoGrave(g,REASON_EFFECT|REASON_DISCARD) end
+		Duel.BreakEffect()
+		if h1>0 then Duel.Draw(tp,h1,REASON_EFFECT) end
+		if h2>0 then Duel.Draw(1-tp,h2,REASON_EFFECT) end
+	end}
+
+R.Act.destroy_banish_duplicates={cat=CATEGORY_DESTROY+CATEGORY_REMOVE,target=true,locs=real_locs,
+	filter=function(c,e,tp,p) return c:IsFacedown() and c:IsAbleToRemove() and real_sel(c,p) end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(function(c,e,tp,p)
+			return c:IsFacedown() and c:IsAbleToRemove() and real_sel(c,p)
+		end,tp,l1,l2,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local g=Duel.SelectTarget(tp,function(c,e,tp,p)
+			return c:IsFacedown() and c:IsAbleToRemove() and real_sel(c,p)
+		end,tp,l1,l2,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
+		Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,1,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if not (tc and relate(e,tc) and tc:IsFacedown()) then return end
+		local code=tc:GetCode()
+		if Duel.Destroy(tc,REASON_EFFECT,LOCATION_REMOVED)<=0 then return end
+		local matches=(p.duplicates=='flip' and tc:IsType(TYPE_FLIP)) or (p.duplicates=='trap' and tc:IsTrap())
+		if matches then
+			local g=Duel.GetMatchingGroup(Card.IsCode,tp,LOCATION_DECK,LOCATION_DECK,nil,code)
+			if #g>0 then Duel.Remove(g,POS_FACEUP,REASON_EFFECT) end
+			local opp=Duel.GetFieldGroup(tp,0,LOCATION_DECK)
+			local own=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
+			Duel.ConfirmCards(tp,opp) Duel.ConfirmCards(1-tp,own)
+			Duel.ShuffleDeck(tp) Duel.ShuffleDeck(1-tp)
+		end
+	end}
+R.Act.shuffle_hand_draw_same={cat=CATEGORY_TODECK+CATEGORY_DRAW,
+	check=function(e,tp)
+		return Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>0 and Duel.IsPlayerCanDraw(tp,1)
+	end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_HAND)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g
+		if p.all then g=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
+		else
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+			g=Duel.SelectMatchingCard(tp,Card.IsAbleToDeck,tp,LOCATION_HAND,0,1,63,nil)
+		end
+		if not g or #g==0 then return end
+		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+		Duel.ShuffleDeck(tp)
+		Duel.BreakEffect()
+		Duel.Draw(tp,#g,REASON_EFFECT)
+	end}
+R.Act.destroy_target_mill_opp={cat=CATEGORY_DESTROY+CATEGORY_DECKDES,target=true,locs=real_locs,
+	filter=function(c,e,tp,p) return real_sel(c,p) end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(function(c,e,tp,p) return real_sel(c,p) end,tp,l1,l2,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local g=Duel.SelectTarget(tp,function(c,e,tp,p) return real_sel(c,p) end,tp,l1,l2,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
+		Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,1-tp,p.n or 0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if tc and relate(e,tc) and Duel.Destroy(tc,REASON_EFFECT)>0 then
+			Duel.BreakEffect()
+			Duel.DiscardDeck(1-tp,p.n or 0,REASON_EFFECT)
+		end
+	end}
+--Move every card the selector names (Heavy Storm, Acid Rain, Giant Trunade, ...). Spells and Traps resolve first, so the
+--card itself is never in the group unless the selector says so.
+R.Act.move_all={cat=0,catf=function(p) return REAL_MOVE_CAT[p.to or 'destroy'] end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p) return #real_group(tp,p,nil):Filter(real_can_move,nil,p)>0 end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=real_group(tp,p,nil):Filter(real_can_move,nil,p)
+		Duel.SetOperationInfo(0,REAL_MOVE_CAT[p.to or 'destroy'],g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p) real_move(real_group(tp,p,nil):Filter(real_can_move,nil,p),p) end}
+--Target 1 (or p.n; up to p.n with p.up_to) card the selector names and move it.
+local function real_target_filter(c,e,tp,p) return real_sel(c,p) and real_can_move(c,p) end
+R.Act.move_target={cat=0,target=true,filter=real_target_filter,locs=real_locs,
+	catf=function(p) return REAL_MOVE_CAT[p.to or 'destroy'] end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(real_target_filter,tp,l1,l2,p.n or 1,e:GetHandler(),e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		local n=p.n or 1
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+		local g=Duel.SelectTarget(tp,real_target_filter,tp,l1,l2,p.up_to and 1 or n,n,e:GetHandler(),e,tp,p)
+		Duel.SetOperationInfo(0,REAL_MOVE_CAT[p.to or 'destroy'],g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=Duel.GetTargetCards(e):Filter(Card.IsRelateToEffect,nil,e)
+		real_move(g,p)
+	end}
+--Target a matching face-up Spell/Trap or a Set card in the Spell & Trap Zone. Set cards are revealed,
+--then destroyed only when their actual type matches p.kind (Armed Ninja, Crimson Ninja, Trap Master).
+local function reveal_destroy_st_filter(c,e,tp,p)
+	if not c:IsLocation(LOCATION_SZONE) then return false end
+	if c:IsFacedown() then return true end
+	return p.kind=='spell' and c:IsSpell() or p.kind=='trap' and c:IsTrap()
+end
+R.Act.reveal_destroy_st={cat=CATEGORY_DESTROY,target=true,
+	locs=function() return LOCATION_SZONE,LOCATION_SZONE end,
+	filter=reveal_destroy_st_filter,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		return Duel.IsExistingTarget(reveal_destroy_st_filter,tp,LOCATION_SZONE,LOCATION_SZONE,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local g=Duel.SelectTarget(tp,reveal_destroy_st_filter,tp,LOCATION_SZONE,LOCATION_SZONE,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=Duel.GetTargetCards(e):Filter(Card.IsRelateToEffect,nil,e)
+		for tc in aux.Next(g) do
+			if tc:IsFacedown() then Duel.ConfirmCards(tp,tc) end
+			if (p.kind=='spell' and tc:IsSpell()) or (p.kind=='trap' and tc:IsTrap()) then
+				Duel.Destroy(tc,REASON_EFFECT)
+			end
+		end
+	end}
+R.Act.reveal_destroy_spell=R.Act.reveal_destroy_st
+--Take control of a selected opponent's monster through the current End Phase.
+local function real_control_filter(c,e,tp,p)
+	return real_sel(c,p) and c:IsControler(1-tp) and c:IsLocation(LOCATION_MZONE)
+		and c:IsControlerCanBeChanged()
+end
+R.Act.take_control_target={cat=CATEGORY_CONTROL,target=true,filter=real_control_filter,locs=real_locs,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(real_control_filter,tp,l1,l2,p.n or 1,e:GetHandler(),e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONTROL)
+		local g=Duel.SelectTarget(tp,real_control_filter,tp,l1,l2,p.n or 1,p.n or 1,e:GetHandler(),e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_CONTROL,g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=Duel.GetTargetCards(e):Filter(Card.IsRelateToEffect,nil,e)
+		for tc in aux.Next(g) do Duel.GetControl(tc,tp,PHASE_END,1) end
+	end}
+R.Act.take_control_direct_target={cat=CATEGORY_CONTROL,target=true,filter=real_control_filter,locs=real_locs,
+		check=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local l1,l2=real_locs(p)
+			return Duel.IsExistingTarget(real_control_filter,tp,l1,l2,p.n or 1,e:GetHandler(),e,tp,p)
+		end,
+		prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local l1,l2=real_locs(p)
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONTROL)
+			local g=Duel.SelectTarget(tp,real_control_filter,tp,l1,l2,p.n or 1,p.n or 1,e:GetHandler(),e,tp,p)
+			Duel.SetOperationInfo(0,CATEGORY_CONTROL,g,#g,0,0)
+		end,
+		op=function(e,tp,eg,ep,ev,re,r,rp,p)
+			local g=Duel.GetTargetCards(e):Filter(Card.IsRelateToEffect,nil,e)
+			for tc in aux.Next(g) do
+				Duel.GetControl(tc,tp,PHASE_END,1)
+				local e1=Effect.CreateEffect(e:GetHandler())
+				e1:SetType(EFFECT_TYPE_SINGLE)
+				e1:SetCode(EFFECT_DIRECT_ATTACK)
+				e1:SetReset(RESETS_STANDARD_PHASE_END)
+				tc:RegisterEffect(e1)
+			end
+		end}
+--Destroy the selected group and calculate damage/LP gain from cards that were actually destroyed.
+R.Act.destroy_payoff_per={cat=0,
+	catf=function(p) return CATEGORY_DESTROY|(p.payoff=='damage' and CATEGORY_DAMAGE or CATEGORY_RECOVER) end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingMatchingCard(function(c) return real_sel(c,p) and real_can_move(c,p) end,
+			tp,l1,l2,1,nil)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=real_group(tp,p,nil):Filter(real_can_move,nil,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=real_group(tp,p,nil):Filter(real_can_move,nil,p)
+		local n=Duel.Destroy(g,REASON_EFFECT)
+		if n>0 then
+			if p.payoff=='damage' then Duel.Damage(1-tp,(p.n or 0)*n,REASON_EFFECT)
+			else Duel.Recover(tp,(p.n or 0)*n,REASON_EFFECT,true) end
+			Duel.RDComplete()
+		end
+	end}
+--Destroy one selected card, then damage both players only if it was successfully destroyed.
+R.Act.destroy_damage_both={cat=CATEGORY_DESTROY+CATEGORY_DAMAGE,target=true,locs=real_locs,
+	filter=function(c,e,tp,p) return real_sel(c,p) end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(function(c,e,tp,p) return real_sel(c,p) end,tp,l1,l2,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local g=Duel.SelectTarget(tp,function(c,e,tp,p) return real_sel(c,p) end,tp,l1,l2,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
+		Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,PLAYER_ALL,(p.n or 0)*2)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if tc and relate(e,tc) and Duel.Destroy(tc,REASON_EFFECT)>0 then
+			Duel.Damage(1-tp,p.n or 0,REASON_EFFECT,true)
+			Duel.Damage(tp,p.n or 0,REASON_EFFECT,true)
+			Duel.RDComplete()
+		end
+	end}
+R.Act.destroy_other_faceup={cat=CATEGORY_DESTROY,
+	check=function(e,tp)
+		return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,e:GetHandler())
+	end,
+	prep=function(e,tp)
+		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,e:GetHandler())
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+	end,
+	op=function(e,tp)
+		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,e:GetHandler())
+		if #g>0 then Duel.Destroy(g,REASON_EFFECT) end
+	end}
+R.Act.stat_mod_perm_target=targeted({cat=CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE,target=true,
+	loc1=LOCATION_MZONE,loc2=LOCATION_MZONE,hint=HINTMSG_FACEUP,
+	filter=function(c,e,tp,p) return c:IsFaceup() and real_sel(c,p) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if not (relate(e,tc) and tc:IsFaceup() and real_sel(tc,p)) then return end
+		local ea=Effect.CreateEffect(e:GetHandler())
+		ea:SetType(EFFECT_TYPE_SINGLE) ea:SetCode(EFFECT_UPDATE_ATTACK) ea:SetValue(p.n or 0)
+		ea:SetReset(RESET_EVENT|RESETS_STANDARD) tc:RegisterEffect(ea)
+		local ed=Effect.CreateEffect(e:GetHandler())
+		ed:SetType(EFFECT_TYPE_SINGLE) ed:SetCode(EFFECT_UPDATE_DEFENSE) ed:SetValue(p.n or 0)
+		ed:SetReset(RESET_EVENT|RESETS_STANDARD) tc:RegisterEffect(ed)
+	end})
+R.Act.destroy_payoff_target={cat=0,catf=function(p)
+		return CATEGORY_DESTROY|(p.payoff=='recover' and CATEGORY_RECOVER or CATEGORY_DAMAGE)
+	end,target=true,locs=real_locs,
+	filter=function(c,e,tp,p) return c~=e:GetHandler() and real_sel(c,p) end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingTarget(function(c,e,tp,p) return c~=e:GetHandler() and real_sel(c,p) end,
+			tp,l1,l2,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local g=Duel.SelectTarget(tp,function(c,e,tp,p) return c~=e:GetHandler() and real_sel(c,p) end,
+			tp,l1,l2,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
+		local cat=p.payoff=='recover' and CATEGORY_RECOVER or CATEGORY_DAMAGE
+		local player=p.player=='controller' and (g:GetFirst() and g:GetFirst():GetControler() or 1-tp) or 1-tp
+		Duel.SetOperationInfo(0,cat,nil,0,player,p.n or 0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if not (tc and relate(e,tc)) then return end
+		local player=p.player=='controller' and tc:GetControler() or 1-tp
+		if Duel.Destroy(tc,REASON_EFFECT)>0 then
+			if p.payoff=='recover' then Duel.Recover(player,p.n or 0,REASON_EFFECT)
+			else Duel.Damage(player,p.n or 0,REASON_EFFECT) end
+		end
+	end}
+local function real_copy_stats_filter(c,e,tp,p)
+	return c:IsFaceup() and c:IsControler(1-tp) and c:IsLocation(LOCATION_MZONE)
+end
+R.Act.copy_stats_target={cat=CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE,target=true,
+	filter=real_copy_stats_filter,locs=real_locs,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		return Duel.IsExistingTarget(real_copy_stats_filter,tp,0,LOCATION_MZONE,1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
+		local g=Duel.SelectTarget(tp,real_copy_stats_filter,tp,0,LOCATION_MZONE,1,1,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_ATKCHANGE,g,1,0,0)
+		Duel.SetOperationInfo(0,CATEGORY_DEFCHANGE,g,1,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		local c=e:GetHandler()
+		if not (c:IsFaceup() and c:IsRelateToEffect(e) and relate(e,tc) and tc:IsFaceup()) then return end
+		local ea=Effect.CreateEffect(c)
+		ea:SetType(EFFECT_TYPE_SINGLE) ea:SetCode(EFFECT_SET_ATTACK_FINAL) ea:SetValue(tc:GetBaseAttack())
+		ea:SetReset(RESET_EVENT|RESETS_STANDARD_DISABLE) c:RegisterEffect(ea)
+		local ed=Effect.CreateEffect(c)
+		ed:SetType(EFFECT_TYPE_SINGLE) ed:SetCode(EFFECT_SET_DEFENSE_FINAL) ed:SetValue(tc:GetBaseDefense())
+		ed:SetReset(RESET_EVENT|RESETS_STANDARD_DISABLE) c:RegisterEffect(ed)
+	end}
+--Add p.n (default 1) cards the selector names from the Deck, the GY or both to your hand.
+local function real_search_loc(p) return p.zone=='gy' and LOCATION_GRAVE or (p.zone=='deck_gy' and (LOCATION_DECK|LOCATION_GRAVE) or LOCATION_DECK) end
+local function real_search_filter(c,p) return real_sel(c,p) and c:IsAbleToHand() end
+R.Act.search_sel={cat=CATEGORY_TOHAND+CATEGORY_SEARCH,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p) return Duel.IsExistingMatchingCard(real_search_filter,tp,real_search_loc(p),0,1,nil,p) end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,real_search_loc(p)) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local n=p.n or 1
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(real_search_filter),tp,real_search_loc(p),0,p.up_to and 1 or n,n,nil,p)
+		if #g>0 then
+			Duel.SendtoHand(g,nil,REASON_EFFECT)
+			Duel.ConfirmCards(1-tp,g)
+			if p.zone~='gy' then Duel.ShuffleDeck(tp) end
+		end
+	end}
+R.Act.search_ritual={cat=CATEGORY_TOHAND+CATEGORY_SEARCH,
+	check=function(e,tp) return Duel.IsExistingMatchingCard(function(c) return c:IsType(TYPE_RITUAL) and c:IsAbleToHand() end,tp,LOCATION_DECK,0,1,nil) end,
+	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK) end,
+	op=function(e,tp)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(function(c) return c:IsType(TYPE_RITUAL) and c:IsAbleToHand() end),tp,LOCATION_DECK,0,1,1,nil)
+		if #g>0 then Duel.SendtoHand(g,nil,REASON_EFFECT) Duel.ConfirmCards(1-tp,g) Duel.ShuffleDeck(tp) end
+	end}
+R.Act.direct_attack_target=targeted({cat=0,target=true,loc1=LOCATION_MZONE,loc2=LOCATION_MZONE,
+	hint=HINTMSG_FACEUP,filter=function(c,e,tp,p) return c:IsFaceup() and real_sel(c,p) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if not (relate(e,tc) and tc:IsFaceup() and real_sel(tc,p)) then return end
+		local ea=Effect.CreateEffect(e:GetHandler())
+		ea:SetType(EFFECT_TYPE_SINGLE) ea:SetCode(EFFECT_DIRECT_ATTACK)
+		ea:SetReset(RESETS_STANDARD_PHASE_END) tc:RegisterEffect(ea)
+	end})
+R.Act.recover_both={cat=CATEGORY_RECOVER,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,PLAYER_ALL,p.n) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p,m)
+		Duel.Recover(tp,p.n*m,REASON_EFFECT,true)
+		Duel.Recover(1-tp,p.n*m,REASON_EFFECT,true)
+		Duel.RDComplete()
+	end}
+
+--Choose (no target) p.n cards the selector names and move them; with p.up_to, 1 to p.n. Looking at an opponent's hand
+--first is what p.zone=='hand' on their side means (Confiscation).
+R.Act.move_select={cat=0,catf=function(p) return REAL_MOVE_CAT[p.to or 'destroy'] end,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.IsExistingMatchingCard(real_target_filter,tp,l1,l2,p.up_to and 1 or (p.n or 1),nil,nil,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.SetOperationInfo(0,REAL_MOVE_CAT[p.to or 'destroy'],nil,p.n or 1,p.side=='opp' and 1-tp or tp,REAL_LOC[p.zone or 'mzone'])
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		if p.zone=='hand' and p.side=='opp' then Duel.ConfirmCards(tp,Duel.GetFieldGroup(tp,0,LOCATION_HAND)) end
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+		local n=p.n or 1
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(real_target_filter),tp,l1,l2,p.up_to and 1 or n,n,nil,nil,tp,p)
+		if p.zone=='hand' and p.side=='opp' then Duel.ShuffleHand(1-tp) end
+		real_move(g,p)
+	end}
+R.Act.recover_opp={cat=CATEGORY_RECOVER,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,1-tp,p.n) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p,m) Duel.Recover(1-tp,p.n*m,REASON_EFFECT) end}
+--Discard p.n cards of your choice from your hand as part of the effect.
+R.Act.discard_hand={cat=CATEGORY_HANDES,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p) return Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>=p.n end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,p.n) end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p) Duel.DiscardHand(tp,aux.TRUE,p.n,p.n,REASON_EFFECT|REASON_DISCARD) end}
+--Target p.n cards the selector names in a GY or banishment and Special Summon them (p.position: attack|defense|facedown;
+--p.no_attack: they cannot attack).
+local function real_ss_target_filter(c,e,tp,p) return real_sel(c,p) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,p.position=='facedown' and POS_FACEDOWN_DEFENSE or (p.position=='defense' and POS_FACEUP_DEFENSE or POS_FACEUP)) end
+R.Act.ss_target={cat=CATEGORY_SPECIAL_SUMMON,target=true,filter=real_ss_target_filter,locs=real_locs,
+	check=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		return Duel.GetLocationCount(tp,LOCATION_MZONE)>=(p.n or 1)
+			and Duel.IsExistingTarget(aux.NecroValleyFilter(real_ss_target_filter),tp,l1,l2,p.n or 1,nil,e,tp,p)
+	end,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local l1,l2=real_locs(p)
+		local n=p.n or 1
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local g=Duel.SelectTarget(tp,aux.NecroValleyFilter(real_ss_target_filter),tp,l1,l2,p.up_to and 1 or n,n,nil,e,tp,p)
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,#g,0,0)
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local g=Duel.GetTargetCards(e):Filter(Card.IsRelateToEffect,nil,e)
+		if #g>Duel.GetLocationCount(tp,LOCATION_MZONE) then g=g:Select(tp,Duel.GetLocationCount(tp,LOCATION_MZONE),Duel.GetLocationCount(tp,LOCATION_MZONE),nil) end
+		local pos=p.position=='facedown' and POS_FACEDOWN_DEFENSE or (p.position=='defense' and POS_FACEUP_DEFENSE or (p.position=='attack' and POS_FACEUP_ATTACK or POS_FACEUP))
+		for tc in aux.Next(g) do
+			if Duel.SpecialSummonStep(tc,0,tp,tp,false,false,pos) and p.no_attack then
+				local e1=Effect.CreateEffect(e:GetHandler())
+				e1:SetType(EFFECT_TYPE_SINGLE)
+				e1:SetCode(EFFECT_CANNOT_ATTACK)
+				e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+				tc:RegisterEffect(e1)
+			end
+		end
+		Duel.SpecialSummonComplete()
+		if p.position=='facedown' then Duel.ConfirmCards(1-tp,g) end
+	end}
+
 --Fusion Summon like Polymerization, through the engine's own Fusion procedure (check, then choose, then resolve).
 local function fusion_act(matfilter,extrafil,extraop)
 	local tg=function() return Fusion.SummonEffTG(nil,matfilter,extrafil,extraop) end
@@ -297,6 +1733,92 @@ R.Act.fusion_summon_gy=fusion_act(aux.FALSE,function(e,tp,mg)
 end,Fusion.BanishMaterial)
 --"destroy that monster" names the summoned monsters without targeting them, so it never uses chkc.
 R.Act.destroy_summoned.notarget=true
+--Owner's Seal: restore control of every monster to its owner until normal reset.
+R.Act.owner_seal={cat=CATEGORY_CONTROL,
+	check=function(e,tp)
+		return Duel.IsExistingMatchingCard(function(c) return c:GetControler()~=c:GetOwner() end,
+			tp,LOCATION_MZONE,LOCATION_MZONE,1,nil)
+	end,
+	op=function(e,tp)
+		local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,LOCATION_MZONE)
+		for tc in aux.Next(g) do
+			if tc:GetControler()~=tc:GetOwner() and not tc:IsImmuneToEffect(e) then
+				tc:ResetEffect(EFFECT_SET_CONTROL,RESET_CODE)
+				local ce=Effect.CreateEffect(e:GetHandler())
+				ce:SetType(EFFECT_TYPE_SINGLE)
+				ce:SetCode(EFFECT_SET_CONTROL)
+				ce:SetValue(tc:GetOwner())
+				ce:SetReset(RESET_EVENT|RESETS_STANDARD-(RESET_TOFIELD|RESET_TEMP_REMOVE|RESET_TURN_SET))
+				tc:RegisterEffect(ce)
+			end
+		end
+	end}
+--Sonic Jammer: the opponent cannot activate Spell Cards through the next End Phase.
+R.Act.no_spells_opp_until_next_end={cat=0,
+	op=function(e,tp)
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
+		e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+		e1:SetTargetRange(0,1)
+		e1:SetValue(function(se,re) return re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsSpellEffect() end)
+		e1:SetReset(RESET_PHASE|PHASE_END,2)
+		Duel.RegisterEffect(e1,tp)
+	end}
+--Gold Sarcophagus: face-up banish a Deck card and return it on the controller's second Standby Phase.
+R.Act.gold_sarcophagus={cat=CATEGORY_REMOVE+CATEGORY_TOHAND,
+	check=function(e,tp) return Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_DECK,0,1,nil) end,
+	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_DECK) end,
+	op=function(e,tp)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+		local tc=Duel.SelectMatchingCard(tp,Card.IsAbleToRemove,tp,LOCATION_DECK,0,1,1,nil):GetFirst()
+		if not tc then return end
+		if Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)==0 or not tc:IsLocation(LOCATION_REMOVED) then return end
+		local ce=Effect.CreateEffect(e:GetHandler())
+		ce:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ce:SetRange(LOCATION_REMOVED)
+		ce:SetCode(EVENT_PHASE+PHASE_STANDBY)
+		ce:SetCountLimit(1)
+		ce:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_STANDBY|RESET_SELF_TURN,2)
+		ce:SetCondition(function(se) return Duel.IsTurnPlayer(se:GetHandlerPlayer()) end)
+		ce:SetOperation(function(se)
+			local ct=se:GetLabel()
+			se:SetLabel(ct+1)
+			if ct==1 and se:GetHandler():IsAbleToHand() then
+				Duel.SendtoHand(se:GetHandler(),nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-se:GetHandlerPlayer(),se:GetHandler())
+			end
+		end)
+		tc:RegisterEffect(ce)
+	end}
+--Makiu, the Magical Mist: target Summoned Skull or a Thunder monster and destroy weaker-DEF monsters.
+R.Act.destroy_def_below_target={cat=CATEGORY_DESTROY,target=true,
+	filter=function(c,e,tp,p)
+		return c:IsFaceup() and (c:IsCode(p.code) or c:IsRace(p.race))
+			and c:IsControler(tp) and c:IsLocation(LOCATION_MZONE) and c:IsCanBeEffectTarget(e)
+			and Duel.IsExistingMatchingCard(function(tc,atk) return tc:IsFaceup() and tc:IsDefenseBelow(atk) end,
+				tp,0,LOCATION_MZONE,1,nil,c:GetAttack())
+	end,
+	loc1=LOCATION_MZONE,loc2=0,hint=HINTMSG_TARGET,
+	prep=function(e,tp,eg,ep,ev,re,r,rp,p)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+		local g=Duel.SelectTarget(tp,function(c,te,p) return R.Act.destroy_def_below_target.filter(c,te,tp,p) end,
+			tp,LOCATION_MZONE,0,1,1,nil,e,p)
+		local tc=g:GetFirst()
+		if tc then
+			local dg=Duel.GetMatchingGroup(function(c,atk) return c:IsFaceup() and c:IsDefenseBelow(atk) end,
+				tp,0,LOCATION_MZONE,nil,tc:GetAttack())
+			Duel.SetOperationInfo(0,CATEGORY_DESTROY,dg,#dg,0,0)
+		end
+	end,
+	op=function(e,tp,eg,ep,ev,re,r,rp,p)
+		local tc=Duel.GetFirstTarget()
+		if tc and tc:IsRelateToEffect(e) and tc:IsFaceup() then
+			local dg=Duel.GetMatchingGroup(function(c,atk) return c:IsFaceup() and c:IsDefenseBelow(atk) end,
+				tp,0,LOCATION_MZONE,nil,tc:GetAttack())
+			Duel.Destroy(dg,REASON_EFFECT)
+		end
+	end}
 
 ---------------------------------------------------------------- unique mechanics
 --Every kind of effect on the user's list of 50 unusual cards (Nov 15), adapted from the real card's script with the
@@ -398,6 +1920,19 @@ U.fiber_reset={cat=CATEGORY_TODECK+CATEGORY_DRAW,
 		Duel.BreakEffect()
 		Duel.Draw(tp,p.n,REASON_EFFECT)
 		Duel.Draw(1-tp,p.n,REASON_EFFECT)
+	end}
+U.morphing_jar_effect={cat=CATEGORY_HANDES+CATEGORY_DRAW,
+	check=function() return true end,
+	prep=function(e,tp)
+		Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,PLAYER_ALL,0)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,PLAYER_ALL,5)
+	end,
+	op=function(e,tp)
+		local g=Duel.GetFieldGroup(tp,LOCATION_HAND,LOCATION_HAND)
+		if #g>0 then Duel.SendtoGrave(g,REASON_DISCARD|REASON_EFFECT) end
+		Duel.BreakEffect()
+		Duel.Draw(tp,5,REASON_EFFECT)
+		Duel.Draw(1-tp,5,REASON_EFFECT)
 	end}
 --Parasite Paracide.
 U.parasite={cat=CATEGORY_TODECK,deck_reverse=true,
@@ -1016,12 +2551,171 @@ R.Aura={
 	aura_opp_down=function(e,p)
 		e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(0,LOCATION_MZONE) e:SetValue(-p.n)
 	end,
+	attr_atk_mod_all=function(e,p)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_UPDATE_ATTACK)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(function(se,c) return c:IsAttribute(p.attr) end)
+		e:SetValue(p.sign=='minus' and -p.n or p.n)
+	end,
+	stat_mod_aura=function(e,p,field)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(p.stat=='DEF' and EFFECT_UPDATE_DEFENSE or EFFECT_UPDATE_ATTACK)
+		e:SetTargetRange(LOCATION_MZONE,field and LOCATION_MZONE or 0)
+		e:SetTarget(function(se,c) return real_sel(c,p) end)
+		e:SetValue(p.sign=='minus' and -p.n or p.n)
+	end,
+	stat_mod_aura_both=function(e,p)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(p.stat=='DEF' and EFFECT_UPDATE_DEFENSE or EFFECT_UPDATE_ATTACK)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(function(se,c) return real_sel(c,p) end)
+		e:SetValue(p.sign=='minus' and -p.n or p.n)
+	end,
+	force_defense_race=function(e,p,field,c)
+		local target=function(se,tc) return real_sel(tc,p) end
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_SET_POSITION)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(target)
+		e:SetValue(POS_FACEUP_DEFENSE)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_FIELD)
+		e2:SetCode(EFFECT_CANNOT_CHANGE_POSITION)
+		e2:SetRange(LOCATION_SZONE)
+		e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e2:SetTarget(target)
+		c:RegisterEffect(e2)
+	end,
+	hand_limit_opp=function(e)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_HAND_LIMIT)
+		e:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e:SetTargetRange(0,1)
+		e:SetValue(5)
+	end,
+	no_attack_race_opp=function(e,p)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_CANNOT_ATTACK_ANNOUNCE)
+		e:SetTargetRange(0,LOCATION_MZONE)
+		e:SetTarget(function(se,tc) return tc:IsRace(p.race) end)
+	end,
+	avoid_battle_damage_fairy=function(e)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+		e:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(function(se,tc) return tc:IsRace(RACE_FAIRY) end)
+		e:SetValue(1)
+	end,
+	self_atk_per_race=function(e,p)
+		e:SetType(EFFECT_TYPE_SINGLE)
+		e:SetCode(EFFECT_UPDATE_ATTACK)
+		e:SetValue(function(se,c)
+			return Duel.GetMatchingGroupCount(Card.IsRace,c:GetControler(),LOCATION_MZONE,0,c,p.race)*(p.n or 0)
+		end)
+	end,
+	battle_indestructible_nonlight_dark=function(e)
+		e:SetType(EFFECT_TYPE_SINGLE)
+		e:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+		e:SetValue(function(se,c)
+			local tc=c:GetBattleTarget()
+			return tc and (tc:IsAttribute(ATTRIBUTE_DARK) or tc:IsAttribute(ATTRIBUTE_EARTH)
+				or tc:IsAttribute(ATTRIBUTE_WATER) or tc:IsAttribute(ATTRIBUTE_FIRE) or tc:IsAttribute(ATTRIBUTE_WIND))
+		end)
+	end,
+	self_avoid_battle_damage=function(e)
+		e:SetType(EFFECT_TYPE_SINGLE)
+		e:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+		e:SetValue(1)
+	end,
+	dragons_untargetable=function(e)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+		e:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+		e:SetRange(LOCATION_MZONE)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(aux.TargetBoolFunction(Card.IsRace,RACE_DRAGON))
+		e:SetValue(aux.tgoval)
+	end,
+	set_defense_level4=function(e)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_SET_POSITION)
+		e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+		e:SetTarget(function(se,c) return c:IsFaceup() and c:IsLevelAbove(4) end)
+		e:SetValue(POS_FACEUP_DEFENSE)
+	end,
 	self_indes=function(e) e:SetType(EFFECT_TYPE_SINGLE) e:SetCode(EFFECT_INDESTRUCTABLE_BATTLE) e:SetValue(1) end,
 	self_pierce_always=function(e) e:SetType(EFFECT_TYPE_SINGLE) e:SetCode(EFFECT_PIERCE) end,
 	equip_atk=function(e,p) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetValue(p.n) end,
 	equip_def=function(e,p) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_UPDATE_DEFENSE) e:SetValue(p.n) end,
 	equip_indes=function(e) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_INDESTRUCTABLE_BATTLE) e:SetValue(1) end,
 	equip_pierce=function(e) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_PIERCE) end,
+	equip_atk_down=function(e,p) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetValue(-p.n) end,
+	equip_def_down=function(e,p) e:SetType(EFFECT_TYPE_EQUIP) e:SetCode(EFFECT_UPDATE_DEFENSE) e:SetValue(-p.n) end,
+	toon_world_destroyed=function(e)
+		e:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		e:SetCode(EVENT_LEAVE_FIELD)
+		e:SetCondition(function(se,tp,eg)
+			return eg:IsExists(function(tc)
+				return tc:IsReason(REASON_DESTROY) and tc:IsPreviousPosition(POS_FACEUP)
+					and tc:GetPreviousCodeOnField()==15259703 and tc:IsPreviousLocation(LOCATION_ONFIELD)
+			end,1,nil)
+		end)
+		e:SetOperation(function(se) Duel.Destroy(se:GetHandler(),REASON_EFFECT) end)
+	end,
+	no_effect_damage=function(e,p,field,c)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_CHANGE_DAMAGE)
+		e:SetRange(LOCATION_MZONE)
+		e:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e:SetTargetRange(1,0)
+		e:SetValue(function(se,re,val,reason) return (reason&REASON_EFFECT)~=0 and 0 or val end)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_FIELD)
+		e2:SetCode(EFFECT_NO_EFFECT_DAMAGE)
+		e2:SetRange(LOCATION_MZONE)
+		e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e2:SetTargetRange(1,0)
+		c:RegisterEffect(e2)
+	end,
+	protect_facedown_from_attack=function(e,p)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
+		e:SetRange(LOCATION_MZONE)
+		e:SetTargetRange(0,LOCATION_MZONE)
+		e:SetValue(function(se,tc) return tc:IsPosition(POS_FACEDOWN_DEFENSE) end)
+	end,
+	no_traps_opp_battle_phase=function(e,p)
+		e:SetType(EFFECT_TYPE_FIELD)
+		e:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e:SetCode(EFFECT_CANNOT_ACTIVATE)
+		e:SetRange(LOCATION_MZONE)
+		e:SetCondition(function() return Duel.IsBattlePhase() end)
+		e:SetTargetRange(0,1)
+		e:SetValue(function(se,re) return re:GetHandler():IsTrap() and re:IsHasType(EFFECT_TYPE_ACTIVATE) end)
+	end,
+	self_direct_always=function(e)
+		e:SetType(EFFECT_TYPE_SINGLE)
+		e:SetCode(EFFECT_DIRECT_ATTACK)
+	end,
+	self_cannot_be_battle_target=function(e)
+		e:SetType(EFFECT_TYPE_SINGLE)
+		e:SetCode(EFFECT_CANNOT_BE_BATTLE_TARGET)
+		e:SetValue(1)
+	end,
+	cannot_attack_special_summon_turn=function(e)
+		e:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+		e:SetCode(EVENT_SPSUMMON_SUCCESS)
+		e:SetOperation(function(se)
+			local c=se:GetHandler()
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_CANNOT_ATTACK)
+			e1:SetReset(RESETS_STANDARD_PHASE_END)
+			c:RegisterEffect(e1)
+		end)
+	end,
 }
 R.Aura.aura_attr_atk=R.Aura.aura_race_atk
 
@@ -1238,6 +2932,20 @@ local function assemble(c,rand,p,range,turn,payoff)
 end
 R.Rule.destiny_board={reg=function(c,rand,p,range) assemble(c,rand,p,range,'opp',false) end}
 R.Rule.sarcophagus={reg=function(c,rand,p,range) assemble(c,rand,p,range,'self',true) end}
+R.Rule.spirit_return={reg=function(c)
+	Spirit.AddProcedure(c,EVENT_SUMMON_SUCCESS,EVENT_FLIP)
+end}
+R.Rule.no_traps_on_normal_summon={reg=function(c)
+	local e=Effect.CreateEffect(c)
+	e:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e:SetCode(EVENT_SUMMON_SUCCESS)
+	e:SetOperation(function()
+		Duel.SetChainLimitTillChainEnd(function(re)
+			return not re:GetHandler():IsTrap() or not re:IsHasType(EFFECT_TYPE_ACTIVATE)
+		end)
+	end)
+	c:RegisterEffect(e)
+end}
 
 ---------------------------------------------------------------- building
 local MONSTER={m_main=true,m_fusion=true,m_ritual=true}
@@ -1276,7 +2984,7 @@ local function aura(c,rand,act)
 	for _,p in ipairs(rand.acts) do
 		if R.Rule[p.k] then R.Rule[p.k].reg(c,rand,p,home(rand.slot),cond,act) else
 		local e=Effect.CreateEffect(c)
-		R.Aura[p.k](e,p,field)
+		R.Aura[p.k](e,p,field,c)
 		if e:IsHasType(EFFECT_TYPE_FIELD) then e:SetRange(home(rand.slot)) end
 		if e:IsHasType(EFFECT_TYPE_SINGLE) then e:SetProperty(EFFECT_FLAG_SINGLE_RANGE) e:SetRange(LOCATION_MZONE) end
 		if cond then e:SetCondition(cond) end
@@ -1327,7 +3035,9 @@ local function target(rand)
 		if chkc then
 			if not tact then return false end
 			local a=R.Act[tact.k]
-			return chkc:IsLocation(a.loc1|a.loc2) and (a.loc1==0 and chkc:IsControler(1-tp) or a.loc2==0 and chkc:IsControler(tp)) and a.filter(chkc,e,tp,tact)
+			local l1,l2=a.loc1,a.loc2
+			if a.locs then l1,l2=a.locs(tact) end
+			return ((l1~=0 and chkc:IsControler(tp) and chkc:IsLocation(l1)) or (l2~=0 and chkc:IsControler(1-tp) and chkc:IsLocation(l2))) and a.filter(chkc,e,tp,tact)
 		end
 		if chk==0 then
 			for _,p in ipairs(rand.acts) do
@@ -1377,18 +3087,24 @@ end
 local function activated(c,id,rand)
 	local slot,ev=rand.slot,event_of(rand)
 	local evt=ev and R.Event[ev] or nil
+	if evt and evt.build then
+		local params
+		for _,part in ipairs(rand.conds) do if part.k==ev then params=part break end end
+		evt=evt.build(params or {})
+	end
 	local range=home(slot)
 	for _,p in ipairs(rand.acts) do if R.Act[p.k].hand then range=LOCATION_HAND|LOCATION_DECK end end
 	local e=Effect.CreateEffect(c)
 	e:SetDescription(aux.Stringid(id,0))
 	local cat=0
-	for _,p in ipairs(rand.acts) do cat=cat|R.Act[p.k].cat end
+	for _,p in ipairs(rand.acts) do cat=cat|(R.Act[p.k].catf and R.Act[p.k].catf(p) or R.Act[p.k].cat) end
 	local w=wrapper(rand)
 	if w and (w.k=='coin' or w.k=='call') then cat=cat|CATEGORY_COIN end
 	if w and (w.k=='dice_mult' or w.k=='dice_branch') then cat=cat|CATEGORY_DICE end
 	e:SetCategory(cat)
 	local tg,has_target=target(rand)
 	local prop=has_target and EFFECT_FLAG_CARD_TARGET or 0
+	for _,p in ipairs(rand.acts) do if R.Act[p.k].player_target then prop=prop|EFFECT_FLAG_PLAYER_TARGET end end
 	if ONE_SHOT[slot] then
 		e:SetType(EFFECT_TYPE_ACTIVATE)
 		e:SetCode(evt and evt.code or EVENT_FREE_CHAIN)
@@ -1397,18 +3113,19 @@ local function activated(c,id,rand)
 		if slot=='t_cont' then e:SetType(EFFECT_TYPE_QUICK_O) e:SetCode(EVENT_FREE_CHAIN) else e:SetType(EFFECT_TYPE_IGNITION) end
 		e:SetRange(range)
 	elseif evt.single then
-		e:SetType(EFFECT_TYPE_SINGLE+(evt.flip and EFFECT_TYPE_FLIP or 0)+EFFECT_TYPE_TRIGGER_O)
+		e:SetType(EFFECT_TYPE_SINGLE+(evt.flip and EFFECT_TYPE_FLIP or 0)+(evt.forced and EFFECT_TYPE_TRIGGER_F or EFFECT_TYPE_TRIGGER_O))
 		e:SetCode(evt.code)
 	elseif evt.quick then
 		e:SetType(EFFECT_TYPE_QUICK_O)
 		e:SetCode(evt.code)
 		e:SetRange(range)
 	else
-		e:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+		e:SetType(EFFECT_TYPE_FIELD+((evt and evt.forced) and EFFECT_TYPE_TRIGGER_F or EFFECT_TYPE_TRIGGER_O))
 		e:SetCode(evt.code)
 		e:SetRange(range)
 	end
 	if evt and evt.delay then prop=prop|EFFECT_FLAG_DELAY end
+	if evt and evt.damage_step then prop=prop|EFFECT_FLAG_DAMAGE_STEP end
 	if e:IsHasType(EFFECT_TYPE_QUICK_O) or slot=='s_quick' or (ONE_SHOT[slot] and slot:sub(1,1)=='t') then
 		e:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	end
@@ -1428,8 +3145,12 @@ local function activated(c,id,rand)
 	e:SetOperation(operation(rand))
 	c:RegisterEffect(e)
 	--A second timing on the same block: Traps also answer Special Summons, Counter Traps both kinds of Summon.
-	local code2=evt and (evt.code2 or (ONE_SHOT[slot] and evt.trap_code2))
-	if code2 then local e2=e:Clone() e2:SetCode(code2) c:RegisterEffect(e2) end
+	if evt and evt.codes then
+		for i=2,#evt.codes do local e2=e:Clone() e2:SetCode(evt.codes[i]) c:RegisterEffect(e2) end
+	else
+		local code2=evt and (evt.code2 or (ONE_SHOT[slot] and evt.trap_code2))
+		if code2 then local e2=e:Clone() e2:SetCode(code2) c:RegisterEffect(e2) end
+	end
 end
 
 local function upkeep(c,id,rand,p)
@@ -1550,6 +3271,7 @@ function R.Build(c,s,id)
 	end
 	if rand.frame=='fusion' then c:EnableReviveLimit() fusion(c,rand) end
 	if rand.frame=='ritual' then c:EnableReviveLimit() end
+	if limit(rand,'cannot_normal') then c:EnableUnsummonable() end
 	if limit(rand,'cannot_ss') then
 		local e=Effect.CreateEffect(c)
 		e:SetType(EFFECT_TYPE_SINGLE)
@@ -1559,7 +3281,12 @@ function R.Build(c,s,id)
 		c:RegisterEffect(e)
 	end
 	local slot,act=rand.slot,nil
-	if slot=='s_equip' then aux.AddEquipProcedure(c)
+	if slot=='s_equip' then
+		if not rand.equip_ready then
+			local eo=limit(rand,'equip_only')
+			if eo then aux.AddEquipProcedure(c,eo.who=='opp' and 1 or nil,function(tc) return real_sel(tc,eo) end)
+			else aux.AddEquipProcedure(c) end
+		end
 	elseif slot=='s_cont' or slot=='s_field' or slot=='t_cont' then act=activation(c) end
 	if #rand.acts>0 then
 		local k=rand.acts[1].k
@@ -1569,4 +3296,48 @@ function R.Build(c,s,id)
 	if up then upkeep(c,id,rand,up) end
 	local cu=other(rand,'curse_damage')
 	if cu then curse(c,rand,cu) end
+end
+
+function R.BuildReal(c,s,id)
+	local source=s.rand
+	local effects=source.effects or {}
+	if #effects==0 then
+		local rand={slot=source.slot,frame=source.frame,conds={},costs={},acts={},limits={},others={}}
+		rand.mats=source.mats
+		rand.ritual_for=source.ritual_for
+		rand.ritual_level=source.ritual_level
+		R.Build(c,{rand=rand},id)
+		return
+	end
+	--An Equip Spell has one equip procedure: it takes the "Equip only to" restriction from whichever effect holds it.
+	local equip_limit
+	if source.slot=='s_equip' then
+		for _,effect in ipairs(effects) do
+			for _,l in ipairs(effect.limits or {}) do if l.k=='equip_only' then equip_limit=l end end
+		end
+	end
+	for index,effect in ipairs(effects) do
+		local rand={
+			slot=source.slot,
+			frame=index==1 and source.frame or '',
+			conds=effect.conds or {},
+			costs=effect.costs or {},
+			acts=effect.acts or {},
+			limits=effect.limits or {},
+			others=effect.others or {},
+		}
+		if equip_limit then
+			if index==1 then
+				local limits={equip_limit}
+				for _,l in ipairs(rand.limits) do if l.k~='equip_only' then limits[#limits+1]=l end end
+				rand.limits=limits
+			else rand.equip_ready=true end
+		end
+		if index==1 then
+			rand.mats=source.mats
+			rand.ritual_for=source.ritual_for
+			rand.ritual_level=source.ritual_level
+		end
+		R.Build(c,{rand=rand},id)
+	end
 end

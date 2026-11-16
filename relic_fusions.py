@@ -104,6 +104,14 @@ def fuse(run):
    if run.get('mirror_copy')==p:run.pop('mirror_copy',None)
   made.append(dict(relic=key,pieces=owned))
  if made:run.setdefault('fusion_events',[]).extend(made);run['sleeve_relic_fusions']=int(run.get('sleeve_relic_fusions',0) or 0)+len(made)
+ # The relic window shows a fused relic's pieces only once the profile knows it; that used to wait for the end of the
+ # next Duel (update_profile), so a new fusion read "???" until then (Discord, 2026-11-16). Solo runs record it now.
+ if made and run.get('history_mode')!='tag':
+  try:
+   import storage
+   prof=storage.profile();known=set(prof.get('fused_relics',[]));new={m['relic'] for m in made}-known
+   if new:prof['fused_relics']=sorted(known|new);storage.write(storage.ROOT/'profile.json',prof)
+  except Exception:pass
  return made
 
 def greed_free_relic(run,rng):

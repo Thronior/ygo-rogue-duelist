@@ -19,7 +19,8 @@ def challenge(g,run):
  run.update(encore_active=True,encore_won=False,encore_opponent=opponent,opponent=opponent,routes=[opponent],stage='draft',boss_curse=None,curses=[])
  import shop_rewards,random
  run['route_rewards']={str(opponent):shop_rewards.reward_from_deck(record['main'],g.BY_ID,random)}
- import content
+ # No local `import content` here: it made `content` local to the whole function, so the Obelisk line above failed
+ # with UnboundLocalError and 'Start Looping' broke from loop 2 on (v0.2.35, Discord Nov 16).
  if content.copies_deck(run):g.copy_deck(run)
  if g.CHARACTERS[run['character']].get('engine_deck'):g.engine_deck(run)
  g.save(run)

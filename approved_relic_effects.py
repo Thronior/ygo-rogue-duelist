@@ -262,6 +262,7 @@ for fc in Duel.GetMatchingGroup(Card.IsType,0,LOCATION_EXTRA,0,nil,TYPE_FUSION):
   local a=Effect.CreateEffect(c) a:SetType(EFFECT_TYPE_SINGLE) a:SetCode(EFFECT_CANNOT_ATTACK) a:SetReset(RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)|RESET_PHASE|PHASE_END) c:RegisterEffect(a) end)
  fc:RegisterEffect(e) end end''')
  elif key=='gate_calling':
+  # The question is the generic 94 like the other relics (Suijin<<4 showed Suijin's own "ATK becomes 0" text, Discord 2026-11-16).
   trio=','.join(map(str,GATE_TRIO))
   out.append(f'''do local used=-1
 local function called(eg,tp) return eg:Filter(function(c) return c:IsControler(tp) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) and c:IsCode({trio}) end,nil):GetFirst() end
@@ -270,7 +271,7 @@ local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS
 e:SetCondition(function(e,tp,eg) local s=called(eg,tp) return used~=Duel.GetTurnCount() and s~=nil and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(other(s,e,tp),0,LOCATION_HAND,0,1,nil) end)
 e:SetOperation(function(e,tp,eg) local s=called(eg,tp) if not s then return end
  local g=Duel.GetMatchingGroup(other(s,e,tp),0,LOCATION_HAND,0,nil) if #g==0 or Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
- --[[relic-ask]] if not Duel.SelectYesNo(0,{GATE_TRIO[2]}<<4) then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
  used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
  --[[relic-hint]] Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end)
 Duel.RegisterEffect(e,0) end''')
@@ -351,11 +352,11 @@ Duel.RegisterEffect(e,0) end''')
    'D.Hint(HINT_SELECTMSG,tp,HINTMSG_DISCARD) local sg=D.GetMatchingGroup(fodder,tp,LOCATION_HAND,0,c):Select(tp,2,2,true,nil) if not sg or #sg~=2 then return false end',
    'used=true Duel.SendtoGrave(sg,REASON_COST|REASON_DISCARD)','false',handlers='function(c) return c:IsMonster() and c:GetOriginalLevel()>=7 end'))
  elif key=='twin_eyes':
-  # Dark Lotus's first-Standby flag. No "you can": the summon happens whenever a monster can be summoned.
+  # Hand or Deck (user, 2026-11-16: an opening hand Red-Eyes left it with nothing to summon). Dark Lotus's first-Standby flag. No "you can": the summon happens whenever a monster can be summoned.
   out.append(f'''do local done=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
 e:SetCondition(function() return not done and Duel.GetTurnPlayer()==0 end)
 e:SetOperation(function(e,tp) done=true if Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
- local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsCode({codes(EYES)}) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_DECK,0,nil)
+ local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsCode({codes(EYES)}) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_HAND|LOCATION_DECK,0,nil)
  if #g==0 then return end
  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
  Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP_ATTACK) end)

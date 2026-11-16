@@ -1,0 +1,90 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet,.patch-notes-sheet *{box-sizing:border-box}
+.patch-notes-sheet{width:1400px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet .kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet section{margin-top:30px}
+.patch-notes-sheet b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet .big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet .big .bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet .big>*{position:relative}
+.patch-notes-sheet .big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet .big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet .big p.lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet .small li{font-size:17px}
+.patch-notes-sheet .ways{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet .way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet .way img{width:96px;height:128px;object-fit:cover;border-radius:8px;border:2px solid #d8b066;flex:none}
+.patch-notes-sheet .way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet .way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet .marks{display:flex;gap:14px;margin-top:12px;align-items:center}
+.patch-notes-sheet .mark{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 22px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba;box-shadow:0 1px 6px #000b}
+.patch-notes-sheet .mark.yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet .mark.no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet .marks .arrow{color:#8fd8d2;font-size:22px}
+.patch-notes-sheet .fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet .note{font-size:16px;color:#c8d8da;margin:12px 0 0}
+.patch-notes-sheet{font-family:Arial,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet h1,.patch-notes-sheet h2,.patch-notes-sheet .big h3,.patch-notes-sheet .kick,.patch-notes-sheet .big em{font-family:Bebas,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet .big h3,.patch-notes-sheet h2{font-weight:700}
+.patch-notes-sheet h1{font-weight:700}</style><div class="patch-notes-sheet"><div class="kick">YGO Rogue Duelist</div><h1>更新 0.2.36</h1>
+
+<section class="big fixhi" style="margin-top:28px"><em>重要修复</em><h3>循环周目和德语恢复正常</h3>
+<p class="lead">0.2.35中从第2周目起<b>开始循环周目</b>会出错，导致无法进入第3周目。已修复。</p>
+<p class="lead" style="margin-top:8px">在德语下打开<b>设置 › 显示</b>（或在那里选择德语）会让游戏卡死，Windows应用和浏览器都会。已修复。</p>
+<p class="lead" style="margin-top:8px"><b>双打：</b>若有一方在单人模式开过随机补充包，相同版本的两名玩家也会被要求更新。已修复，真正版本不同时会提示<b>哪一方</b>的游戏需要更新。</p></section>
+
+<section class="big"><div class="bg" style="background-image:url('assets/packs/RANDOM-PACK.jpg')"></div><em>随机卡</em><h3>随机补充包登陆联机模式</h3>
+<div class="ways">
+<div class="way"><img src="assets/packs/RANDOM-PACK.jpg"><p><b>双打</b>商店可能出售<b>随机补充包</b>（约每20次商店1次），也可能出现<b>绝对随机</b>。两名玩家看到的卡完全相同。</p></div>
+<div class="way"><img src="assets/packs/RANDOM-PACK.jpg" style="object-position:30% center"><p><b>轮抽决斗</b>随机补充包加入<b>轮抽画面</b>的候选，与角色补充包并列。</p></div>
+<div class="way"><img src="assets/relics/Absolute Random.png"><p><b>更清晰的效果</b>随机卡的效果<b>更简单、更整洁</b>：每个效果的代价和动作更少，数值也更接近真实卡片。</p></div>
+</div>
+<p class="note">单人商店中，随机补充包只会占用<b>第二个补充包位置</b>，不会顶替角色补充包。随机卡在<b>终极收藏家中被禁止</b>：导入冒险时它们不会被带入。</p>
+</section>
+
+<section class="cols">
+<div class="big"><div class="bg" style="background-image:url('assets/character-backgrounds/variant-0.jpg')"></div><em>轮抽决斗</em><h3>第二套配置</h3>
+<p class="lead">在轮抽决斗中可选择角色的<b>第二套配置</b>：开局获得<b>该配置的补充包和招牌卡</b>。解锁条件与单人模式相同（挑战等级2或-1）。</p>
+<p class="lead" style="margin-top:8px">Copycat的<b>随机化者</b>开局获得4个随机补充包。</p></div>
+<div class="big"><em>卡组编辑器</em><h3>标记你的卡</h3>
+<p class="lead">在单人和双打中，点击卡片角落即可标记：</p>
+<div class="marks"><span class="mark">☆</span><span class="arrow">›</span><span class="mark yes">★</span><span class="arrow">›</span><span class="mark no">✕</span></div>
+<p class="lead" style="margin-top:10px">标记<b>✕</b>的卡会变灰并排在最后。你的标记会帮助商店挑选适合<b>你</b>卡组的卡。</p></div>
+</section>
+
+<section class="cols">
+<div class="big"><em>卡片窗口</em><h3>更快地组卡</h3>
+<p class="lead">在卡片窗口中直接<b>加入卡组</b>或<b>移出卡组</b>。</p>
+<p class="lead" style="margin-top:8px">点击卡片的<b>种族、属性、等级</b>或文本中的<b>卡名</b>即可搜索。</p></div>
+<div class="big"><em>主菜单</em><h3>更新说明与关闭</h3>
+<p class="lead">Discord旁新增的<b>铃铛</b>可查看所有更新说明，最新一期会在更新后自动弹出一次。</p>
+<p class="lead" style="margin-top:8px">右上角的<b>✕ 关闭</b>按钮可退出游戏（Windows应用和安卓）。</p></div>
+</section>
+
+<section class="cols">
+<div><h2>新内容与改动</h2><ul class="small">
+<li><span>🎚️</span><span><b>遗物</b>窗口会显示本次冒险的<b>挑战等级</b>及其效果。</span></li>
+<li><span>🔢</span><span>等级搜索：<b>等级1~4、5~6、7~8、9~12</b>。按等级排序时，同等级中<b>攻击力最高</b>的排在前面。</span></li>
+<li><span>📚</span><span>超大收藏（<b>9000张以上</b>）在卡组编辑器中也能快速加载。</span></li>
+<li><span>💰</span><span>更多金币档位：<b>伤害、效果伤害和回复的基本分</b>最高32000，<b>单次最大伤害</b>最高10000。</span></li>
+<li><span>🂠</span><span>自己盖放的怪兽会显示含遗物加成的<b>表侧攻击力/守备力</b>。</span></li>
+<li><span>💀</span><span>诅咒遗物画面会显示你的<b>基本分和金币</b>。</span></li>
+<li><span>👁️</span><span><b>双眼</b>现在可从<b>手卡或卡组</b>特殊召唤。</span></li>
+<li><span>⛓️</span><span><b>有时连锁</b>会在伤害步骤询问是否发动<b>附锁链的爆弹</b>。</span></li>
+<li><span>🖼️</span><span>角色头像的尺寸已统一。</span></li>
+<li><span>☁️</span><span><b>云存档</b>暂停或上传失败时，主菜单会提示。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="small">
+<li><span>⭐</span><span><b>隐藏的无遗物对战</b>可能让冒险卡在加载中。</span></li>
+<li><span>🔗</span><span>新的<b>融合遗物</b>在下一场决斗前会显示为???。</span></li>
+<li><span>🧬</span><span>攻击力预测会考虑<b>DNA改造手术</b>宣言的种族。</span></li>
+<li><span>🚪</span><span><b>门之呼唤</b>的询问文字已更正。</span></li>
+<li><span>🩸</span><span><b>血税</b>不再在双打中出现（双打中无法支付基本分）。</span></li>
+<li><span>🔤</span><span>收藏排序在数值相同时保持默认顺序；按攻击力/守备力排序时<b>魔法排在陷阱之前</b>。</span></li></ul></div>
+</section></div>

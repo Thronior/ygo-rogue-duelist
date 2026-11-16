@@ -2,13 +2,15 @@ export {BackupRegistry} from './backup.mjs';
 export {ProgressRegistry} from './progress.mjs';
 export {CollectorRegistry,DraftRegistry} from './collector.mjs';
 export {TagHub,MatchHub} from './hub.mjs';
-// The daily request ceiling (meter.mjs) is switched off on the free plan (user, 2026-11-14): its own reports cost ~16k object
-// requests a day. The class stays exported because migration v8 created it; re-enable the overCap check, the METER binding
-// and DAILY_REQUEST_CAP only if the account moves to Workers Paid.
+// The daily request ceiling (meter.mjs): off on the free plan (2026-11-14, its reports cost object requests), back on
+// for Workers Paid (user, 2026-11-16), where nothing else caps the bill. DAILY_REQUEST_CAP and the METER binding in
+// wrangler.jsonc switch it; without them overCap is always false.
 export {RequestMeter} from './meter.mjs';
+import {overCap} from './meter.mjs';
 import {Registry} from './registry.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
+const limited=()=>reply(503,{error:"The online servers have reached today's usage limit.",serverLimit:true});
 // Online play (tag rooms, relay, Draft Duels, Ultimate Collector) uses /v2 paths. Older clients call /v1, /draft and
 // /collector: LEGACY_MULTIPLAYER in wrangler.jsonc ("allow" or "block"; missing means block) decides whether they may
 // still play online. Blocked calls get 426 here and never reach a Durable Object. Device sync and backups stay
@@ -23,6 +25,7 @@ export function serverTrouble(error){const text=String(error?.message||error||''
 export default {async fetch(request,env,ctx){
  try{
   const path=new URL(request.url).pathname;
+  if(request.method!=='OPTIONS'&&path!=='/health'&&overCap(env,ctx))return limited();
   if(path==='/status'){await env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(new Request('https://rooms/status-ping',{method:'GET'}));return reply(200,{online:true})}
   return await route(request,env);
  }catch(error){return serverTrouble(error)}

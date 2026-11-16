@@ -7,7 +7,13 @@ import campaign
 
 def generate():
  import content,card_rarity
- draft={'characters':[dict(content.CHARACTERS[i],id=i,signatures=[campaign.BY_NAME[n]['id'] for n in content.CHARACTERS[i]['cards']]) for i in content.PLAYABLE_IDS], 'packs':content.PACKS,'weights':{str(c['id']):card_rarity.weight(c['id']) for c in campaign.CARDS if card_rarity.weight(c['id'])!=1}}
+ ids=lambda names:[campaign.BY_NAME[n]['id'] for n in names]
+ # A second loadout carries its own signature card ids (Draft Duels, user 2026-11-16).
+ def character(i):
+  c=dict(content.CHARACTERS[i],id=i,signatures=ids(content.CHARACTERS[i]['cards']))
+  if c.get('alternate'):c['alternate']=dict(c['alternate'],signatures=ids(c['alternate'].get('cards',[])))
+  return c
+ draft={'characters':[character(i) for i in content.PLAYABLE_IDS], 'packs':content.PACKS,'weights':{str(c['id']):card_rarity.weight(c['id']) for c in campaign.CARDS if card_rarity.weight(c['id'])!=1}}
  (ROOT/'multiplayer/cloudflare/draft-catalog.json').write_text(json.dumps(draft,separators=(',',':')),encoding='utf-8')
  generate_draft_relics()
  cards=[{'id':c['id'],'name':c['name'],'type':c['type'],'data':{'type':c['data']['type'],'alias':c['data'].get('alias',0)}} for c in campaign.CARDS]

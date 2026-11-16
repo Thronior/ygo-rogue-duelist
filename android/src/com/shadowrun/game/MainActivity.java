@@ -196,6 +196,11 @@ public final class MainActivity extends Activity {
             });
         }
 
+        /** Main menu close button (Discord, 2026-11-16): saves are already written, so the app just closes. */
+        @JavascriptInterface public void quit() {
+            runOnUiThread(MainActivity.this::finishAndRemoveTask);
+        }
+
         @JavascriptInterface public void openUpdate() {
             runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class)));
         }

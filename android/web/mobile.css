@@ -3292,6 +3292,26 @@ dialog:has(.relic-ledger){width:min(860px,94vw)}
 .relic-ledger-detail .relic-card-art{width:min(130px,40vw);margin-top:0}
 .relic-ledger-detail .relic-card>h3{font-size:19px}
 .relic-ledger-detail .relic-card-text>p{font-size:15px}
+/* The run's challenge level above the relics (relic-inspect.js challengeLevelStrip): the level select's badges and texts,
+   coloured per level. Folded it is one short row; the rainbow badge holds still here (no repaint loop while it is open). */
+.run-challenge-level{margin:0 0 10px;padding:6px 9px;border:1px solid #c2a66a55;border-radius:10px;background:#0b1d26}
+.run-challenge-level>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;min-height:44px}
+.run-challenge-level>summary::-webkit-details-marker{display:none}
+.run-challenge-level>summary>b{font-size:14px;color:#efca79}
+.run-challenge-level>summary::after{content:"";flex:0 0 auto;margin:0 4px 0 auto;width:8px;height:8px;border:solid #efca79;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg)}
+.run-challenge-level[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.run-challenge-level .level-badge{animation:none!important}
+.run-challenge-level>ul{list-style:none;margin:8px 0 2px;padding:8px 0 0;border-top:1px solid #ffffff1a;display:grid;gap:6px}
+.run-challenge-level li{display:flex;align-items:center;gap:9px;font-size:12px;line-height:1.25;opacity:.85}
+.run-challenge-level li.current{opacity:1;font-weight:bold}
+.run-challenge-level li>.level-badge{min-width:34px;padding:2px 5px;font-size:9px}
+.run-challenge-level li>.level-badge strong{font-size:17px}
+/* The whole Relics window scrolls as one (user, 2026-11-16): no inner scroll areas, and the relic detail only stays
+   pinned beside the icons where the window is tall enough to show all of it. */
+#modal[open]:has(.relic-ledger){overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.relic-ledger,.relic-ledger-split,.relic-icon-grid,.relic-ledger-detail{max-height:none;overflow:visible}
+.reward-overlay .relic-ledger{flex:none}
+@media(max-height:699px){.relic-ledger-detail{position:static}}
 @media(orientation:portrait),(max-width:620px){
  .relic-ledger-split{grid-template-columns:minmax(0,1fr);gap:10px}
  .relic-icon-grid{grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}
@@ -3605,3 +3625,34 @@ dialog:has(.lesson-done){overflow:hidden}
 .duel .hand button.selectable{outline:3px solid #ffeb86;outline-offset:-3px;box-shadow:0 0 14px #fffbd2,inset 0 0 12px #fff5a366;cursor:pointer}
 .duel .hand button.target-picked{outline:4px solid #ffda64;outline-offset:-4px;box-shadow:0 0 24px #ffda64;translate:0 -10%}
 .field-selection.field-hint .selection-status{display:block;margin-top:2px;font-size:12px;color:#d9e8ea}
+
+/* Current LP and coins under the cursed relic heading (Discord, 2026-11-16). */
+.cursed-standing{margin:4px 0 0;font-weight:700;color:#ffe3a6;letter-spacing:.3px}
+.cloud-save-notice{display:block;max-width:min(560px,92vw);margin:2px auto 4px;padding:4px 10px;border-radius:8px;background:#3a1f12cc;border:1px solid #d59a4a;color:#ffd9a6;text-align:center}
+
+/* Inspection window: card-text links (dotted underline only) and Add/Remove deck buttons (2026-11-16). */
+.inspect-effect .card-link{color:inherit;text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:2px;cursor:pointer}
+.inspect-effect .card-link:hover,.inspect-effect .card-link:focus-visible{text-decoration-style:solid}
+.inspect-deck-actions{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 8px}
+.inspect-deck-actions button{flex:1 1 0;min-width:max-content}
+/* Card marks in the solo deck editor (2026-11-16): round button top-left, below a MISPRINT banner; No greys the card. */
+.cardbtn .card-mark{position:absolute;top:3px;left:3px;z-index:5;width:22px;height:22px;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;font:700 12px/1 Arial,sans-serif;font-style:normal;background:#07171acc;border:1px solid #9fb4ba;color:#9fb4ba;box-shadow:0 1px 4px #000b;cursor:pointer;-webkit-line-clamp:unset;overflow:visible}
+.cardbtn .card-mark.yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 8px #ffd76a88}
+.cardbtn .card-mark.no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.cardbtn:has(.misprint) .card-mark{top:30px}
+.cardbtn:has(.card-mark) .new-card-marker{left:30px}
+.cardbtn.marked-no>img{filter:grayscale(.85) brightness(.55)}
+.cardbtn.marked-no>span:not(.deck-card-stats):not(.stack-pips){opacity:.55}
+/* Main menu: bell (patch notes) beside Discord, close button at the top right with the language flag beside it (2026-11-16). */
+.title .patch-notes-button{position:absolute;top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 46px);z-index:25;width:38px;height:38px;min-height:0;display:grid;place-items:center;padding:7px;color:#f3d78e;background:#111b2ecc;border:0;border-radius:10px}
+.title .patch-notes-button svg{width:100%;height:100%}
+.title .close-game-button{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:25;width:38px;height:38px;min-height:0;display:grid;place-items:center;padding:0;font:400 28px/1 Arial,sans-serif;color:#e8f3f1;background:#111b2ecc;border:1px solid #53798488;border-radius:10px}
+.title .close-game-button:hover,.title .patch-notes-button:hover{background:#1d3b47}
+.title .language-button{right:calc(max(12px,env(safe-area-inset-right)) + 46px)}
+/* Patch notes window: the sheets keep their 1400 px layout and are zoomed to fit (patch-notes.js). */
+dialog.patch-notes-modal{width:min(1100px,96vw);max-width:96vw}
+.patch-notes{display:grid;gap:18px}
+.patch-notes-sheet{width:1400px;border-radius:12px;overflow:hidden}
+/* A locked duelist's unlock condition sits on the Start button (user, 2026-11-16), in plain readable text. */
+.start-run.start-run-unlock{font:700 15px/1.25 Arial,sans-serif;letter-spacing:0;text-transform:none;padding:6px 10px;white-space:normal;color:#ffe3ee}
+button.start-run.start-run-unlock:disabled{opacity:1!important;filter:none!important;color:#ffe3ee!important;background:#5a2a44!important;cursor:default}

@@ -12,10 +12,11 @@ for metric,label in [('flip_summons','Flip Summons'),('fusion','Fusion Monsters 
 for metric,label in [('races','Different monster Types summoned'),('attributes','Different Attributes summoned')]:
  tiers(metric,label,[(2,3),(3,5),(4,8),(6,15)])
 for metric,label in [('damage','Damage dealt'),('effect_damage','Effect damage dealt'),('healed','LP recovered')]:
- tiers(metric,label,[(500,2),(1500,4),(3000,6),(5000,10),(8000,15)])
+ tiers(metric,label,[(500,2),(1500,4),(3000,6),(5000,10),(8000,15),(12000,17),(16000,19),(24000,22),(32000,25)])
 for metric,label in [('peak_attack','Highest face-up ATK'),('peak_defense','Highest face-up DEF')]:
  tiers(metric,label,[(2000,2),(2500,4),(3000,6),(4000,10),(5000,15)])
-tiers('big_hit','Largest damage hit',[(1000,2),(2000,4),(3000,7),(4000,10),(6000,15)])
+# Tiers past 8,000 (Septarium, 2026-11-16): loops, healing decks and burn reach them; payouts in data/reward-rarity.json.
+tiers('big_hit','Largest damage hit',[(1000,2),(2000,4),(3000,7),(4000,10),(6000,15),(8000,17),(10000,20)])
 tiers('draws','Cards drawn beyond opening hand',[(2,2),(5,4),(8,6),(12,10)])
 tiers('peak_field','Face-up monsters controlled at once',[(2,2),(3,4),(4,7),(5,10)])
 for metric,label,coins in [('exact_lethal','Exact lethal damage',30),('untouched','Win without taking damage',8),('close_call','Win with 500 LP or less',15),('swift','Win within 4 total turns',60),('blitz','Win within 2 total turns',100),('boss_victory','Defeat a boss',10)]:RULES.append((metric,1,label,coins))

@@ -74,7 +74,7 @@ REGULAR=[
 ('master_and_apprentice','Master and Apprentice',100,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
 ('black_chaos_rite','Black Chaos Rite',110,'Once per Duel: You can Tribute 1 "Dark Magician" you control; Special Summon 1 "Dark Magician of Chaos" from your hand or Deck, ignoring its Summoning conditions.','Dark Magician of Chaos'),
 ('dragon_lords_decree',"Dragon Lord's Decree",90,'Once per Duel: You can discard 2 Dragon monsters; Special Summon 1 Level 7 or higher Dragon monster from your hand.','Lord of D.'),
-('twin_eyes','Twin Eyes',150,'Once per Duel, during your first Standby Phase: Special Summon 1 "Blue-Eyes" or "Red-Eyes" monster from your Deck in Attack Position.','Red-Eyes Black Dragon'),
+('twin_eyes','Twin Eyes',150,'Once per Duel, during your first Standby Phase: Special Summon 1 "Blue-Eyes" or "Red-Eyes" monster from your hand or Deck in Attack Position.','Red-Eyes Black Dragon'),
 ('dragon_blood_fusion','Dragon Blood Fusion',100,'Once per turn: You can banish 1 "Blue-Eyes" or "Red-Eyes" monster you control; Special Summon 1 Fusion Monster from your Extra Deck that lists the banished monster as Fusion Material, ignoring its Summoning conditions.','Blue-Eyes Ultimate Dragon'),
 ('titans_charge',"Titan's Charge",100,"Once per turn, when a Level 7 or higher monster you control destroys an opponent's monster by battle: It can make a second attack in a row.",'Tyrant Dragon')]
 CURSED=[
@@ -256,6 +256,9 @@ def eligible(run,key):
  if key=='cursed_blind_fortune' and has(run,'cursed_premature_triumph'):return False
  # Tag shops are shared and locked in together, so a one-purchase limit has no clear owner there.
  if key=='cursed_cursed_restock' and run.get('history_mode')=='tag':return False
+ # Tag pays from the team's shared coins, so Blood Toll's LP payment is off there (payment.in_lp); it did nothing in Tag
+ # (Discord, 2026-11-16), so Tag no longer offers it.
+ if key=='cursed_blood_toll' and run.get('history_mode')=='tag':return False
  # Zombie's Bargain's own reversal would cancel Reversed Remedy's in the core.
  if key=='cursed_reversed_remedy' and has(run,'cursed_zombies_bargain'):return False
  if key=='cursed_zombies_bargain' and has(run,'cursed_reversed_remedy'):return False

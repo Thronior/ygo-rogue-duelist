@@ -3,6 +3,7 @@
 // every owned relic is visible at once and tapping an icon shows that relic.
 import {relicImage,relicArtwork} from './ui-art.js';
 import {cursedMarkup,curseIconFile} from './experience-ui.js';
+import {levelText,levelBadge,levelDescription} from './challenge-level.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const countBadge=count=>count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';
 // Cursed relics show their benefit and drawback apart, as on the cursed relic choice.
@@ -20,14 +21,27 @@ export function permanentCurseEntries(content,keys,describe){
  return Object.entries(counts).map(([key,count])=>({key,count,name:content.curses[key][0]||key,text:describe(key)}));
 }
 const curseCard=c=>`<article class="relic-card permanent-curse" data-relic-card="curse:${esc(c.key)}"><div class="relic-card-art"><img class="relic-artwork curse-artwork" src="${esc(curseIconFile(c.key))}" alt="">${countBadge(c.count)}</div><h3>${esc(c.name)}</h3><b class="relic-card-status">PERMANENT CURSE</b><div class="relic-card-text"><p>${esc(c.text)}</p></div></article>`;
+// The run's challenge level above the relics (2026-11-16), with the badges (in each level's colour) and texts of the
+// level select. It folds to the badge and "Challenge level"; opened, it lists every modifier in effect, highest
+// first. Open or folded is remembered on this device.
+const LEVEL_OPEN_KEY='ygo-relic-level-open';
+const levelOpen=()=>{try{return localStorage.getItem(LEVEL_OPEN_KEY)==='1'}catch{return false}};
+export function challengeLevelStrip(level){
+ level=Number(level);if(!Number.isInteger(level)||level<-1||level>=levelText.length)return '';
+ const levels=level>0?Array.from({length:level},(_,i)=>level-i):[level];
+ const rows=levels.map(n=>`<li${n===level?' class="current"':''}>${levelBadge(n,{colored:true})}<span>${esc(levelDescription(n))}</span></li>`).join('');
+ return `<details class="run-challenge-level"${levelOpen()?' open':''}><summary>${levelBadge(level,{colored:true})}<b>Challenge level</b></summary><ul>${rows}</ul></details>`;
+}
+document.addEventListener('toggle',event=>{if(event.target.classList?.contains('run-challenge-level'))try{localStorage.setItem(LEVEL_OPEN_KEY,event.target.open?'1':'0')}catch{}},true);
 // The icon picked last stays picked when the window is drawn again (after selling another relic).
 let lastPick='';
 // cards: id -> relicCard markup. counts: id -> copies owned. curses: permanentCurseEntries rows, listed after the relics.
-export function relicLedger(content,ids,{intro='',cards,counts=()=>1,negated=false,curses=[]}){
+// level: the run's challenge level, shown above the relics; omitted where the window has no run.
+export function relicLedger(content,ids,{intro='',cards,counts=()=>1,negated=false,curses=[],level=null}){
  const picks=[...ids,...curses.map(c=>'curse:'+c.key)],pick=picks.includes(lastPick)?lastPick:picks[0];
  const curseButtons=curses.length?`<h4 class="relic-grid-label">Permanent curses</h4>${curses.map(c=>`<button type="button" role="option" aria-selected="${'curse:'+c.key===pick}" data-relic-pick="curse:${esc(c.key)}" class="permanent-curse" aria-label="${esc(c.name)}"><img class="relic-artwork" src="${esc(curseIconFile(c.key))}" alt="" loading="lazy" decoding="async">${countBadge(c.count)}</button>`).join('')}`:'';
  const hide=(markup,id)=>markup.replace('<article ',id===pick?'<article ':'<article hidden ');
- return `<div class="relic-ledger">${intro?`<p>${intro}</p>`:''}<div class="relic-ledger-split"><div class="relic-icon-grid" role="listbox" aria-label="Run relics">${ids.map(id=>`<button type="button" role="option" aria-selected="${id===pick}" data-relic-pick="${esc(id)}" class="${relicKind(content,id)}${negated?' negated':''}" aria-label="${esc(content.artifacts[id]?.[0])}">${relicArtwork(relicImage(content.artifactInfo?.[id]?.art),'loading="lazy" decoding="async"')}${countBadge(counts(id))}</button>`).join('')}${curseButtons}</div><div class="relic-ledger-detail">${ids.map(id=>hide(cards(id),id)).join('')}${curses.map(c=>hide(curseCard(c),'curse:'+c.key)).join('')}</div></div></div>`;
+ return `<div class="relic-ledger">${intro?`<p>${intro}</p>`:''}${level==null?'':challengeLevelStrip(level)}<div class="relic-ledger-split"><div class="relic-icon-grid" role="listbox" aria-label="Run relics">${ids.map(id=>`<button type="button" role="option" aria-selected="${id===pick}" data-relic-pick="${esc(id)}" class="${relicKind(content,id)}${negated?' negated':''}" aria-label="${esc(content.artifacts[id]?.[0])}">${relicArtwork(relicImage(content.artifactInfo?.[id]?.art),'loading="lazy" decoding="async"')}${countBadge(counts(id))}</button>`).join('')}${curseButtons}</div><div class="relic-ledger-detail">${ids.map(id=>hide(cards(id),id)).join('')}${curses.map(c=>hide(curseCard(c),'curse:'+c.key)).join('')}</div></div></div>`;
 }
 document.addEventListener('click',event=>{
  const button=event.target.closest?.('[data-relic-pick]');if(!button)return;

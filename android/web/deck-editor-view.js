@@ -6,6 +6,8 @@ import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback
 import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,splitStyle,deckSplitColumns} from './card-search.js';
 import {DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS,rememberDeckSort} from './deck-sort-preference.js';
 import {stacksOn,groupStacks,stackButton} from './deck-stacks.js';
+import {pagedGrid} from './deck-paging.js';
+import {cardMarkVersion,noMarksLast} from './card-marks.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const DECK_TYPE_TABS=['All','Monster','Spell','Trap','Extra'];
 const TYPE_BITS={Monster:1,Spell:2,Trap:4,Extra:64};
@@ -17,6 +19,11 @@ export function resetDeckFilters(ed,searchKey,all=true){ed.deckFilter='All';clea
 // Pool indices in display order. A tap keeps every card in place; the order refreshes only when type, sort, status,
 // search, the pool or the split changes.
 export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
+ // Checked first, so a tap on a 9,000-card collection doesn't filter and sort it all again.
+ // Card marks (card-marks.js) reorder the cards but keep the page count (deck-paging.js), so they key only the order.
+ const base=JSON.stringify([ed.deckFilter,ed.deckSort,ed.deckStatus,searches[searchKey]||null,pool.length,!!ed.deckSplit]),key=base+'|'+cardMarkVersion(run);
+ ed.deckPageKey=base;
+ if(ed.deckOrder&&ed.deckOrderKey===key)return ed.deckOrder.filter(i=>i<pool.length);
  let order=pool.map((_,i)=>i).filter(i=>matchesSearch(lookup(pool[i]),searchKey));
  const inDeck=new Set(selected);
  // The split shows both groups side by side, so In/Out only filter the single grid.
@@ -27,12 +34,13 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  else if(ed.deckSort==='Name')order.sort((a,b)=>name(a).localeCompare(name(b)));
  else if(ed.deckSort==='Attribute')attributeOrder(order,pool,lookup,run);
  else if(ed.deckSort==='ATK'){const attacks=new Map(order.map(i=>[i,lookup(pool[i]).data.type&1?deckStats(lookup(pool[i]),run,i,info)[0]:0]));order.sort((a,b)=>attacks.get(b)-attacks.get(a)||name(a).localeCompare(name(b))||a-b)}
- else if(['DEF','Level'].includes(ed.deckSort)){const key={DEF:'defense',Level:'level'}[ed.deckSort];order.sort((a,b)=>(lookup(pool[b])?.[key]||0)-(lookup(pool[a])?.[key]||0))}
+ else if(ed.deckSort==='DEF')order.sort((a,b)=>(lookup(pool[b])?.defense||0)-(lookup(pool[a])?.defense||0));
+ // Same Level: highest ATK first (Septarium, 2026-11-16).
+ else if(ed.deckSort==='Level'){const atk=i=>{const c=lookup(pool[i]);return c?.data.type&1?deckStats(c,run,i,info)[0]:-1},attacks=new Map(order.map(i=>[i,atk(i)]));order.sort((a,b)=>(lookup(pool[b])?.level||0)-(lookup(pool[a])?.level||0)||attacks.get(b)-attacks.get(a)||name(a).localeCompare(name(b))||a-b)}
  else if(ed.deckSort==='Newest')order.reverse();
+ order=noMarksLast(order,run,i=>pool[i]);
  // Deck first keeps the chosen sort inside each group.
  if(ed.deckStatus==='First')order=[...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))];
- const key=JSON.stringify([ed.deckFilter,ed.deckSort,ed.deckStatus,searches[searchKey]||null,pool.length,!!ed.deckSplit]);
- if(ed.deckOrder&&ed.deckOrderKey===key)return ed.deckOrder.filter(i=>i<pool.length);
  ed.deckOrderKey=key;ed.deckOrder=order;return order;
 }
 
@@ -44,11 +52,12 @@ export function deckToolbar(ed,{searchKey,sorts,action,idPrefix}){
 // The card area: one grid, or Deck and Collection panes when the screen is wide enough.
 // `stack` ({run, attr, extra, locked}) collapses copies when the player stacks them (deck-stacks.js).
 export function deckCardsArea(ed,order,selected,cardMarkup,stack=null){
- const inDeck=new Set(selected),on=stack&&stacksOn();
+ // Big collections draw in pages (deck-paging.js); the page count holds while the order does.
+ const inDeck=new Set(selected),on=stack&&stacksOn(),page={id:'shared-editor',key:`${ed.deckPageKey??ed.deckOrderKey}|${!!on}`};
  if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;
   if(on){const a=groupStacks(deckSide,stack.run,selected,stack.limit),b=groupStacks(rest,stack.run,selected,stack.limit);deckSide=a.order;rest=b.order;markup=i=>stackButton(cardMarkup(i),a.stack(i)||b.stack(i),{...stack,pane:inDeck.has(i)?'deck':'collection'})}
-  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra')}</div>`}
- let cards;if(on){const s=groupStacks(order,stack.run,selected,stack.limit);cards=s.order.map(i=>stackButton(cardMarkup(i),s.stack(i),stack)).join('')}else cards=order.map(cardMarkup).join('');
+  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra',page)}</div>`}
+ let cards;if(on){const s=groupStacks(order,stack.run,selected,stack.limit);cards=pagedGrid(page.id,page.key,s.order,i=>stackButton(cardMarkup(i),s.stack(i),stack))}else cards=pagedGrid(page.id,page.key,order,cardMarkup);
  return `<div class="draft-card-scroll"><div class="cardgrid">${cards||(ed.deckFilter==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`;
 }
 

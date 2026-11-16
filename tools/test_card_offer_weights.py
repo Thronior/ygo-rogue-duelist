@@ -4,6 +4,8 @@ import sys,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import campaign as g,relic_affinity as ra
+# The related-card boost (2026-11-16) is checked in tools/test_card_marks.py; these are the base weights.
+ra.RELATED_BOOST=1.0
 AMA=[c['id'] for c in g.CARDS if c['name'].startswith('Amazoness')]
 run={'pool':AMA*3,'selected':list(range(len(AMA)*3))}
 pick=lambda pred:next(c for c in g.CARDS if pred(c))

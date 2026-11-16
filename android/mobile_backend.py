@@ -44,6 +44,8 @@ def dispatch(raw):
  if action=='free-packs-seen':
   if run:run['free_packs']=[];g.save(run)
   return json.dumps(state(),ensure_ascii=False)
+ if action=='draft-random-cards':
+  return partial(random_cards.draft_cards(value or {}))
  if action=='random-cards':
   random_cards.install(run)
   return partial(dict(key=random_cards.client_key(run),cards=random_cards.client_cards() if run and run.get('random_cards') else []))
@@ -138,6 +140,15 @@ def dispatch(raw):
  elif action=='deselect-all':
   if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
   run['selected']=[]
+ elif action=='mark':
+  # Card marks for this run (minotalen thread, 2026-11-16): Yes 1, No -1, Maybe removes it. relic_affinity.deck_cards
+  # weighs a Yes as 2 more copies in the Deck and a No as none.
+  cid,mark=int(value[0]),int(value[1])
+  if cid not in g.BY_ID or mark not in (-1,0,1):raise ValueError('Unknown card')
+  marks=dict(run.get('card_marks') or {});key=str(cid)
+  if mark:marks[key]=mark
+  else:marks.pop(key,None)
+  run['card_marks']=marks
  elif action=='toggle':
   if content.copies_deck(run):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
   if content.fixed_deck(run):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
@@ -253,6 +264,7 @@ def dispatch(raw):
  else:raise ValueError('Unknown mobile action')
  if action in {'active-curses','peek-deck','tag-view','tag-receipt','tag-auto-preview'}:return partial(result)
  if run and action not in {'import-profile','init','select-slot','new','settings','notices','remember-level','unlock-cpu-viewer','cheat'} and not action.startswith('tag-'):g.save(run)
+ if action=='mark':return partial(persist=True,runPatch={'card_marks':run['card_marks']})
  if action in {'toggle','auto','deselect-all'}:return partial(persist=True,runPatch={'selected':run['selected'],'last_played_at':run.get('last_played_at')})
  if action=='settings':return partial(persist=True,settings=storage.settings())
  return json.dumps(dict(**state(),result=result),ensure_ascii=False)

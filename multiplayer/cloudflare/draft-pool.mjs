@@ -24,20 +24,34 @@ export function openBooster(id,random=secureRandom){
 export function buildable(pool){const counts=new Map();for(const id of pool){const card=byId.get(id);if(card&&!(card.data.type&64))counts.set(card.name,(counts.get(card.name)||0)+1);}return [...counts.values()].reduce((n,count)=>n+Math.min(count,3),0);}
 // loop: the draft-loop opening (each starting booster once, 20-card minimum). Without it, the older best-of-three
 // opening (every starting booster twice, 40-card minimum) for clients from before the loop.
-export function draftPool(character,random=secureRandom,loop=false){
+// Random Pack (user, 2026-11-16): randomized cards exist only on the players' devices. The Worker deals a seed per
+// booster; both clients build the same nine cards from it (random_cards.draft_booster) with ids in that booster's
+// block, so the Worker can check a deck without knowing the cards. Blocks: 199,000,000 + seat x 1,000,000 + k x 1,000.
+// The block numbers live in collector-rules.js, shared with the clients.
+export const RANDOM_PACK='RANDOM-PACK';
+export const randomSeed=(random=secureRandom)=>Math.floor(random()*4294967296)>>>0;
+// Second loadout (user, 2026-11-16): variant 1 plays the character's alternate packs and signature cards.
+export function loadout(character,variant=0){
  const c=catalog.characters.find(c=>c.id===character);if(!c)throw Error('Choose a playable character.');
+ if(variant!==1||!c.alternate)return c;
+ return {...c,...c.alternate,id:c.id,name:c.name,signatures:c.alternate.signatures||[],pack:c.alternate.pack||c.pack,variant:1};
+}
+export function draftPool(character,random=secureRandom,loop=false,variant=0){
+ const c=loadout(character,variant===1?1:0);
  const eligible=catalog.packs.filter(p=>!p.shop_only&&!p.draft_only&&!p.id.startsWith('DRAFT-')&&new Set([...p.common,...(p.rare||[])].map(id=>byId.get(id)?.name).filter(Boolean)).size>=9);
  const usual=c.starting_packs||Array.from({length:4},()=>c.pack==='RANDOM'||c.copycat||c.engine_deck?pick(eligible,random).id:c.pack);
  const ids=loop?[...usual]:[...usual,...usual],minimum=loop?minDeckFor(0):40;
  for(let attempt=0;attempt<500;attempt++){
-  const packs=ids.map(id=>openBooster(id,random)),pool=[...c.signatures,...packs.flat()];
-  if(buildable(pool)>=minimum)return {pool,packs,packIds:ids};
+  // A Random Pack booster is a seed here; its nine cards count towards the minimum (they are all different).
+  const seeds=[],packs=ids.map(id=>id===RANDOM_PACK?(seeds.push(randomSeed(random)),[]):openBooster(id,random)),pool=[...c.signatures,...packs.flat()];
+  if(buildable(pool)+9*seeds.length>=minimum)return {pool,packs,packIds:ids,randomBoosters:seeds,variant:c.variant?1:0};
  }
  throw Error(`Unable to form a legal ${minimum}-card draft. Try another character.`);
 }
 // Three different relics (drawn by rarity weight, without replacement) and three different character packs for one
 // Draft Screen. A "No relics" room (room.noRelics) offers the packs alone.
-export function draftOffer(random=secureRandom,{relics=true}={}){
+// randomPack: rooms of clients that can build Random Packs (draft protocol 4) add it to the pack rotation.
+export function draftOffer(random=secureRandom,{relics=true,randomPack=false}={}){
  const sample=(xs,n,weight=()=>1)=>{const left=[...xs],out=[];while(out.length<n&&left.length){let value=random()*left.reduce((s,x)=>s+weight(x),0),i=0;for(;i<left.length-1;i++){value-=weight(left[i]);if(value<0)break;}out.push(left.splice(i,1)[0]);}return out;};
- return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:sample(DRAFT_PACKS,3)};
+ return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:sample(randomPack?[...DRAFT_PACKS,RANDOM_PACK]:DRAFT_PACKS,3)};
 }

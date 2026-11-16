@@ -40,7 +40,7 @@ class TagCampaign:
    variant=0 if content.CHARACTERS[character].get('alternate',{}).get('randomized') else variants[seat]
    with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variant)
 
-   run['history_mode']='tag';run['history_partner']=characters[1-seat]
+   run['history_mode']='tag';run['history_partner']=characters[1-seat];run['tag_seat']=seat
 
    run['challenge_level']=level
 
@@ -394,7 +394,7 @@ class TagCampaign:
 
    run['artifacts']=deepcopy(self.finale.get('picks',[run['artifacts'],run['artifacts']])[seat])
 
-  return dict(protocol=1,trade=self.trade_view(seat),shopping=self.shopping_view(),finale=deepcopy(self.finale),loopVotes=self.loop_votes[:],loop=self.shared.get('loop',0),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
+  return dict(protocol=1,trade=self.trade_view(seat),shopping=self.shopping_view(),finale=deepcopy(self.finale),loopVotes=self.loop_votes[:],loop=self.shared.get('loop',0),revision=self.revision,phase=self.phase,paused=self.paused,seat=seat,shopSeat=self.shop_seat,ready=self.ready[:],characters=[r['character'] for r in self.players],opponents=[r['opponent'] for r in self.players],modifiers=challenge_levels.active_modifiers(self.players[seat]),randomBoosters=[list(r.get('random_boosters') or []) for r in self.players],run=run,profile=deepcopy(self.profiles[seat]),duel=deepcopy(self.duel) if self.phase=='duel' and seat==0 else None)
 
  def checkpoint(self):
 
@@ -551,6 +551,10 @@ class TagCampaign:
   self.rng=random.Random();self.rng.setstate(tuples(data['rng_state']))
 
   for run in (self.shared,*self.players):ar.drop_removed(run)
+  # Random Pack cards live in the runs as seeds (random_cards.tag_pack); rebuild them for this process.
+  import random_cards
+  for seat,run in enumerate(self.players):run.setdefault('tag_seat',seat)
+  random_cards.install_tag(self.players)
 
   # Finale drafts index into the pool, so keep those indices on the same relics.
 
@@ -595,7 +599,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('mark','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -618,6 +622,29 @@ class TagCampaign:
  def apply(self,seat,action,value):
 
   run=self.players[seat]
+
+  # Card marks (user, 2026-11-16): Yes 1 / No -1 / Maybe 0 for one card of this player's run. They only feed the
+
+  # weighting (relic_affinity.deck_cards), so they apply at once in any phase, even while the player is locked in.
+
+  if action=='mark':
+
+   try:cid,mark=int(value[0]),int(value[1])
+
+   except (TypeError,ValueError,IndexError,KeyError):raise ValueError('Unknown card')
+
+   if cid not in game.BY_ID or mark not in (-1,0,1):raise ValueError('Unknown card')
+
+   marks=dict(run.get('card_marks') or {})
+
+   if mark:marks[str(cid)]=mark
+
+   else:marks.pop(str(cid),None)
+
+   run['card_marks']=marks;return
+
+  # Absolute Random's free packs (2026-11-16): the client opened them.
+  if action=='free-packs-seen':run['free_packs']=[];return
 
   if action=='reveal-opponent':
 

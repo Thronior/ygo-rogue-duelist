@@ -38,7 +38,7 @@ function lookup(s){
   for(const p of patterns){
    if(p.anchor&&!s.includes(p.anchor))continue;
    const m=p.re.exec(s);if(!m)continue;
-   out=p.local.replace(/\{(\d+)\}/g,(x,n)=>{const v=m[p.order.indexOf(+n)+1]??'';return v==='s'?'':v===s?v:lookup(v)??v});break;
+   out=p.local.replace(/\{(\d+)\}/g,(x,n)=>{const v=(m[p.order.indexOf(+n)+1]??'').trim();return v==='s'?'':v===s?v:lookup(v)??v});break;
   }
  }
  if(out===undefined)out=fallback(s);
@@ -67,15 +67,20 @@ export function t(text){if(lang==='en'||text==null)return text;const s=norm(text
 
 const SKIP=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','CODE','NOSCRIPT']);
 const ATTRS=['title','aria-label','placeholder'];
+// Text this module wrote is never translated again (Discord 2026-11-16: German froze on Settings → Display). The
+// observer sees every write, and German "Auto (100 %)" matched "Auto ({0}%)" again with "100 " captured, giving a
+// different spacing each pass, so the page rewrote one label forever. A chain like Traps → Fallen → Gefallen stops too.
+const written=new WeakMap();
 function translateTextNode(node){
- const value=node.nodeValue;if(!value||!LETTER.test(value))return;
+ const value=node.nodeValue;if(!value||!LETTER.test(value)||written.get(node)===value)return;
  const parent=node.parentElement;if(!parent||SKIP.has(parent.tagName)||parent.closest('[data-no-i18n]'))return;
  const s=norm(value),out=lookup(s);
- if(out!==undefined&&out!==s){const lead=/^\s*/.exec(value)[0],trail=/\s*$/.exec(value)[0];node.nodeValue=lead+out+trail}
+ if(out!==undefined&&norm(out)!==s){const lead=/^\s*/.exec(value)[0],trail=/\s*$/.exec(value)[0];node.nodeValue=lead+out+trail;written.set(node,node.nodeValue)}
 }
 function translateAttributes(el){
  if(el.closest('[data-no-i18n]'))return;
- for(const a of ATTRS){const v=el.getAttribute(a);if(v&&LETTER.test(v)){const out=lookup(norm(v));if(out!==undefined&&out!==norm(v))el.setAttribute(a,out)}}
+ let mine=written.get(el);
+ for(const a of ATTRS){const v=el.getAttribute(a);if(v&&LETTER.test(v)&&mine?.[a]!==v){const out=lookup(norm(v));if(out!==undefined&&norm(out)!==norm(v)){el.setAttribute(a,out);if(!mine)written.set(el,mine={});mine[a]=el.getAttribute(a)}}}
 }
 export function translateTree(root){
  if(lang==='en'||!root)return;

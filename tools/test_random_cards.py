@@ -54,6 +54,11 @@ seen=0
 for seed in range(200):
  n=g.new_run(plain,random.Random(seed));n['stage']='shop';g.restock(n,random.Random(seed))
  seen+=any(x['id']==random_cards.RANDOM_PACK for x in n['shop'] if x['kind']=='pack')
+ packs=[x['id'] for x in n['shop'] if x['kind']=='pack']
+ if random_cards.RANDOM_PACK in packs:
+  # Only the second booster slot; the guaranteed pack and the character pack stay (user, 2026-11-16).
+  assert packs.index(random_cards.RANDOM_PACK)==1 and packs.count(random_cards.RANDOM_PACK)==1,packs
+  assert content.CHARACTERS[plain]['pack'] in packs,packs
 # About 1 shop in 20 (SHOP_CHANCE .05, user 2026-11-15): roughly 8 of these 200.
 assert 2<=seen<=25,seen
 n=g.new_run(plain,random.Random(7));n['stage']='shop';n['gold']=999
@@ -66,6 +71,7 @@ assert len(packs)==1 and len(packs[0]['cards'])==9 and n['random_cards']['count'
 g.save(n);random_cards.uninstall();again=g.load_run()
 assert again and all(c in g.BY_ID for c in again['pool'])
 
-# Tag never offers the relic.
-tag=dict(n,history_mode='tag');assert not g.shop_relic_eligible(tag,'absolute_random') if hasattr(g,'shop_relic_eligible') else True
+# Tag offers the relic too since 2026-11-16 (seeded packs, tools/test_tag_random_cards.py).
+import campaign_expansion as cx
+tag=dict(n,history_mode='tag',artifacts=[a for a in n['artifacts'] if a!='absolute_random']);assert cx.shop_relic_eligible(tag,'absolute_random')
 print(f'PASS: Randomizer loadout ({made:.1f} s for {random_cards.RANDOMIZER_POOL} cards), shop and save round trip, Random Pack in {seen}/200 shops, Absolute Random')

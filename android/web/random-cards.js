@@ -6,6 +6,10 @@ import {drawRandomizedCard,donorsFor} from './randomized-card-art.js';
 export const RANDOM_PACK={id:'RANDOM-PACK',name:'Random Pack',region:'EN',code:'RANDOM',common:[],rare:[],size:9,rarities:{},rare_display:[],randomized:true};
 export const RANDOM_PACK_TEXT='Nine randomized cards: new names, art, stats and effects, made for you when you open it. Randomized cards last for this run only.';
 export const isRandomCard=id=>{const n=Number(id);return n>=191000000&&n<201000000};
+// Draft Duels' Random Pack cards (199,000,000 and up, collector-rules.js randomBlock) belong to the match, not to a run:
+// switching runs never clears them (addDraftRandomCards).
+const isDraftCard=id=>Number(id)>=199000000&&isRandomCard(id);
+const isRunCard=id=>isRandomCard(id)&&!isDraftCard(id);
 
 const entries=new Map();          // id -> {card, script}
 const drawn=new Set();            // ids whose picture is ready in cardImages
@@ -32,9 +36,9 @@ export async function syncRandomCards(wanted,fetchCards){
 function clearRandomCards(){
  const {content,cardsById,cardImages}=ctx;
  generation++;backgroundQueue=[];
- content.cards=content.cards.filter(c=>!isRandomCard(c.id));
- for(const id of entries.keys()){cardsById.delete(id);if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));cardImages.delete(id)}
- entries.clear();drawn.clear();pending.clear();key='';runKey='';
+ content.cards=content.cards.filter(c=>!isRunCard(c.id));
+ for(const id of [...entries.keys()]){if(isDraftCard(id))continue;cardsById.delete(id);if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));cardImages.delete(id);entries.delete(id);drawn.delete(id);pending.delete(id)}
+ key='';runKey='';
 }
 
 function installRandomCards(list){
@@ -42,13 +46,28 @@ function installRandomCards(list){
  realCards??=content.cards.filter(c=>c.id<100000000);
  const fresh=new Set(list.map(x=>x.card.id));
  // A different run's cards go; cards already drawn for this run keep their picture.
- for(const id of [...entries.keys()])if(!fresh.has(id)){cardsById.delete(id);if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));cardImages.delete(id);entries.delete(id);drawn.delete(id);pending.delete(id)}
- content.cards=content.cards.filter(c=>!isRandomCard(c.id)||fresh.has(c.id));
+ for(const id of [...entries.keys()])if(isRunCard(id)&&!fresh.has(id)){cardsById.delete(id);if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));cardImages.delete(id);entries.delete(id);drawn.delete(id);pending.delete(id)}
+ content.cards=content.cards.filter(c=>!isRunCard(c.id)||fresh.has(c.id));
  const known=new Set(content.cards.map(c=>c.id));
  for(const x of list){
   const id=x.card.id;entries.set(id,x);cardsById.set(id,x.card);
   if(!known.has(id))content.cards.push(x.card);
   if(!drawn.has(id))cardImages.set(id,`assets/cards/${x.card.randomized.art_from}.jpg`);
+ }
+}
+
+// Draft Duels and Tag (2026-11-16): Random Pack cards built from shared seeds (random_cards.draft_cards).
+// Adds or replaces them; a card drawn before keeps its picture unless its data changed (a new match reuses ids).
+export function addDraftRandomCards(list){
+ if(!ctx)return;const {content,cardsById,cardImages}=ctx;realCards??=content.cards.filter(c=>c.id<100000000);
+ content.cards=[...content.cards];const known=new Map(content.cards.map((c,i)=>[c.id,i]));
+ for(const x of list){
+  const id=x.card.id,old=entries.get(id);
+  if(old&&old.script===x.script&&old.card.name===x.card.name)continue;
+  if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));drawn.delete(id);pending.delete(id);
+  entries.set(id,x);cardsById.set(id,x.card);
+  if(known.has(id))content.cards[known.get(id)]=x.card;else content.cards.push(x.card);
+  cardImages.set(id,`assets/cards/${x.card.randomized.art_from}.jpg`);
  }
 }
 

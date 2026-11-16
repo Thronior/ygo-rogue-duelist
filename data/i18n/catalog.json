@@ -24028,5 +24028,251 @@
   "en": "The run can only be restarted before the end of its first duel.",
   "kind": "exact",
   "ctx": "hold-R restart (2026-11-15)"
+ },
+ {
+  "group": "ui",
+  "en": "Face-up: ATK {0} / DEF {1}",
+  "kind": "pattern",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "{0} LP · {1} coins",
+  "kind": "pattern",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Cloud save is paused: the online servers are at today's limit. Your progress is saved on this device only for now.",
+  "kind": "exact",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Cloud save could not upload. Your progress is saved on this device; it will retry.",
+  "kind": "exact",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Quit game",
+  "kind": "exact",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Once per Duel, during your first Standby Phase: Special Summon 1 \"Blue-Eyes\" or \"Red-Eyes\" monster from your hand or Deck in Attack Position.",
+  "kind": "exact",
+  "ctx": "Discord review 2026-11-16"
+ },
+ {
+  "group": "rules",
+  "en": "Damage dealt: 12,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Damage dealt: 16,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Damage dealt: 24,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Damage dealt: 32,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Effect damage dealt: 12,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Effect damage dealt: 16,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Effect damage dealt: 24,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Effect damage dealt: 32,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "LP recovered: 12,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "LP recovered: 16,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "LP recovered: 24,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "LP recovered: 32,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Largest damage hit: 8,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "rules",
+  "en": "Largest damage hit: 10,000+",
+  "kind": "exact",
+  "ctx": "coin reward condition"
+ },
+ {
+  "group": "ui",
+  "en": "Patch notes",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "What's new in v{0}",
+  "kind": "pattern",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "No patch notes yet. They start with the next update.",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Close the game",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Your progress is saved. Close this tab or window to quit.",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Mark this card",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Marked Yes",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Marked No",
+  "kind": "exact",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "{0} owned · {1} in deck",
+  "kind": "pattern",
+  "ctx": "Discord suggestions 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Randomized cards are banned in Ultimate Collector: they stay behind.",
+  "kind": "exact",
+  "ctx": "Draft Random Pack / Collector ban 2026-11-16"
+ },
+ {
+  "group": "python",
+  "en": "Randomizer saves cannot enter Ultimate Collector.",
+  "kind": "exact",
+  "ctx": "Draft Random Pack / Collector ban 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "This room offers Random Packs. Update or refresh the game to join it.",
+  "kind": "exact",
+  "ctx": "Draft Random Pack / Collector ban 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Unknown randomized card:",
+  "kind": "exact",
+  "ctx": "Draft Random Pack / Collector ban 2026-11-16"
+ },
+ {
+  "group": "ui",
+  "en": "Levels 1-4",
+  "kind": "exact",
+  "ctx": "Level range filter (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Levels 5-6",
+  "kind": "exact",
+  "ctx": "Level range filter (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Levels 7-8",
+  "kind": "exact",
+  "ctx": "Level range filter (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Levels 9-12",
+  "kind": "exact",
+  "ctx": "Level range filter (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Your partner's game is out of date. They need to update to v{0}: reload the page, or install the latest app.",
+  "kind": "pattern",
+  "ctx": "tag-session.js mismatchMessage (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Your partner's game is out of date (v{0}). They need to update to v{1}: reload the page, or install the latest app.",
+  "kind": "pattern",
+  "ctx": "tag-session.js mismatchMessage (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Your game is out of date (v{0}). Your partner has v{1}: reload the page, or install the latest app.",
+  "kind": "pattern",
+  "ctx": "tag-session.js mismatchMessage (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "You both have v{0}, but your card data does not match. Both players: reload the game, then try again.",
+  "kind": "pattern",
+  "ctx": "tag-session.js mismatchMessage (2026-11-16)"
  }
 ]

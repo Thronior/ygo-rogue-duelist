@@ -37,8 +37,8 @@ await guest.receive({kind:'receipt',id:dropped.request.id,result:first});assert.
 // A duel answer saved in an outbox by an older page is acknowledged, never replayed.
 saved.phase='shop';host.engine=null;host.view={phase:'shop'};
 assert.deepEqual(await host.perform(1,{id:'old-response',action:'duel-response'}),{ok:true,stale:true});
-const incompatible=new TagSession(options);await assert.rejects(incompatible.receive({...await hello(incompatible),contentHash:'different'}),/incompatible/);assert(!incompatible.connected);
-const older=new TagSession(options);await assert.rejects(older.receive({...await hello(older),version:4}),/incompatible/);
+const incompatible=new TagSession(options);await assert.rejects(incompatible.receive({...await hello(incompatible),contentHash:'different'}),/out of date|does not match/);assert(!incompatible.connected);
+const older=new TagSession(options);await assert.rejects(older.receive({...await hello(older),version:4}),/out of date|does not match/);
 // A host can reconnect while still waiting for the first teammate: no run exists yet.
 const waiting=new TagSession({...options,backend:async(action,value)=>action==='tag-restore'?null:backend(action,value)});
 waiting.code='ABCDE';waiting.seat=0;waiting.peer.resumed=true;waiting.peer.peerSid='x';waiting.peer.send=()=>{};let marked=false;waiting.peer.request=async action=>{assert.equal(action,'started');marked=true};

@@ -25,5 +25,8 @@ def relicless(game,current):
  run.update(round=8,loop=0,lp=8000,stage='draft',opponent=0,routes=[0],encore_active=True,encore_won=False,secret_challenge='relicless',challenge_level=-1,profile_complete=True,duel=None,shop=[],duel_modifications=[],card_mods={})
  challenge_levels.suppress(run)
  run.pop('mobile_duel',None);run.pop('faulty',None)
+ # Its opponent needs a reward entry like any route; the copied run's entries were for other opponents (Discord, 2026-11-16).
+ import endless,shop_rewards,random
+ run['route_rewards']={'0':shop_rewards.reward_from_deck(endless.CHAMPION['main'],game.BY_ID,random)}
  game.save(run)
  return run

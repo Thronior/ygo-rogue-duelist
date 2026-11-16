@@ -246,6 +246,13 @@ export function smartContext(e,p,L,prompt=null){
  };
  const ritualReady=c=>hand.some(m=>matchesRitual(c,m)&&ritualMaterialReady(c,m));
  const lvl=c=>c.level??e.cards.get(c.code)?.level??0,race=c=>e.cards.get(c.code)?.race||'';
+ // The Type a relic bonus checks (Discord, 2026-11-16: Lord of D. turned Dragon by DNA Surgery showed no Dragon relic
+ // bonus in hand). On the field it is the card's live Type; a face-up DNA Surgery makes every face-up monster the declared
+ // Type, read from any face-up monster, so a card still in hand is forecast with it too.
+ const RACE_LABELS=['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'];
+ const raceName=bits=>{try{const b=BigInt(bits||0);const i=RACE_LABELS.findIndex((_,k)=>b===(1n<<BigInt(k)));return i>=0?RACE_LABELS[i]:''}catch{return ''}};
+ let surgeryCache;const surgeryRace=()=>surgeryCache??=(()=>{const fieldCards=[...q(0,L.SZONE),...q(1,L.SZONE)];if(!fieldCards.some(x=>face(x)&&name(x)==='DNA Surgery'&&!x.is_disabled))return '';const m=[...q(0,L.MZONE),...q(1,L.MZONE)].find(x=>face(x)&&x.race);return m?raceName(m.race):''})();
+ const statRace=c=>(c.location===L.MZONE&&face(c)&&raceName(c.race))||(c.location!==L.MZONE&&(data(c).type&1)&&surgeryRace())||race(c);
  const firePrincess=effectsEnabled(p)&&own.some(c=>face(c)&&name(c)==='Fire Princess'&&!c.is_disabled);
  // Fire Princess only burns face-up: show her when one of our locks guards her, or when nothing face-up out-attacks her 1300 ATK (user, 2026-11-04).
  const firePrincessSafe=()=>effectsEnabled(p)&&(back.some(x=>face(x)&&['Gravity Bind','Messenger of Peace','Swords of Revealing Light'].includes(name(x)))||!enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>1300));
@@ -1991,7 +1998,7 @@ export function smartContext(e,p,L,prompt=null){
   const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
   const is=t=>!!(data(c).type&t),attributes=fieldAttributes(c,side),level=lvl(c);
   return (only?[only]:e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
-   const a=r.amount||0,match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
+   const a=r.amount||0,match=!r.filter||r.filter===statRace(c)||r.filter?.split('/').includes(statRace(c))||statRace(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
    switch(r.effect){
     case 'def':v=a;break;case 'both':v=match?a:0;break;
     case 'approved_brittle_armor':v=900;break;case 'approved_cracked_sword':v=-1000;break;case 'approved_iron_silence':v=600;break;
@@ -2023,7 +2030,7 @@ export function smartContext(e,p,L,prompt=null){
   const handAfter=q(side,L.HAND).filter(x=>!same(x,c)).length;
   const attributes=fieldAttributes(c,side);
   return (only?[only]:e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
-   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===race(c)||r.filter?.split('/').includes(race(c))||race(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
+   const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===statRace(c)||r.filter?.split('/').includes(statRace(c))||statRace(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
    switch(k){
     case 'atk':case 'both':v=match?a:0;break;
     case 'small':v=level<=3?a:0;break;

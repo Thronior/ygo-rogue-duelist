@@ -1,4 +1,5 @@
 import {rewardIcon} from './reward-icons.js';
+import {RANDOM_PACK} from './random-cards.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
 import {bountyBanner} from './bounty-banner.js';
@@ -44,6 +45,7 @@ import * as keeperTalk from './shopkeeper-talk.js';
 import {ownedBadge} from './shop-badges.js';
 import {isFavouritePack,favouritesFirst,packStar,favouritesInStock} from './pack-favourites.js';
 import {relicLockButton,relicLockClass} from './relic-lock.js';
+import {cardMark,nextMark,markTile,paintMarks} from './card-marks.js';
 import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
@@ -79,9 +81,9 @@ export class TagUI {
  // Card records by id: deck and trade views look cards up inside filters and sorts.
  cardById(id){if(this.cardIndex?.source!==this.content.cards)this.cardIndex={source:this.content.cards,byId:new Map(this.content.cards.map(c=>[c.id,c]))};return this.cardIndex.byId.get(id)}
 
- constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null}){
+ constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null,randomCards=null}){
 
-  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
+  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve,randomCards});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
 
   this.click=e=>{const el=e.target.closest('[data-tag]');if(!el||!this.alive)return;e.stopImmediatePropagation();if(this.dragged)return;if(el.dataset.tag==='character')this.sound('flip',.25);else if(el.dataset.tag==='start')this.sound('activate',.4);this.action(el.dataset.tag,el).catch(error=>this.error(error))};
 
@@ -131,7 +133,7 @@ export class TagUI {
 
   const v=this.view,offer=v.run.cursed_offer,disabled=this.working||v.seat!==0||v.paused?'disabled':'';
 
-  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a cursed relic':offer.picked.length>1?'Choose a third cursed relic':'Choose a second cursed relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
+  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a cursed relic':offer.picked.length>1?'Choose a third cursed relic':'Choose a second cursed relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p><p class="cursed-standing">${Number(v.run.lp||0).toLocaleString()} LP · ${Number(v.run.gold||0).toLocaleString()} coins</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
 
  }
 
@@ -227,7 +229,7 @@ export class TagUI {
   // Shared with Draft Duels (deck-editor-view.js); the order holds still while cards are tapped.
   const order=deckOrder(this,{pool:r.pool,selected:r.selected,lookup,run:r,info:this.content.artifactInfo,searchKey:'tag-deck'}),inDeck=new Set(r.selected),name=i=>lookup(r.pool[i])?.name||'';
 
-  const cardMarkup=i=>deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),cards=deckCardsArea(this,order,r.selected,cardMarkup,{run:r,attr:'data-index',extra:'data-tag="card"',locked:!!fixed,limit:r.artifacts?.includes('broken_limiter')?null:r.artifacts?.includes('cursed_singleton_pact')?1:3});
+  const cardMarkup=i=>markTile(deckCardMarkup(`<button class="cardbtn ${r.selected.includes(i)?'selected':''} ${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'golden-card':''}" data-tag="card" data-index="${i}" data-id="${r.pool[i]}"><img src="${this.image(r.pool[i])}" draggable="false"><span>${esc(name(i))}</span>${[...(r.golden_cards||[]),r.golden_card].includes(r.pool[i])?'<span class="golden-sleeve-mark" title="Golden Sleeve">★</span>':''}</button>`,lookup(r.pool[i]),r,i,this.content.artifactInfo),r,r.pool[i]),cards=deckCardsArea(this,order,r.selected,cardMarkup,{run:r,attr:'data-index',extra:'data-tag="card"',locked:!!fixed,limit:r.artifacts?.includes('broken_limiter')?null:r.artifacts?.includes('cursed_singleton_pact')?1:3});
 
   const bossCost=bossRerollPrice(r),known=i=>boss||hasSpyglass(r)||(r.revealed_opponents||[]).includes(i);
   const opponents=r.routes.map(i=>{const o=this.content.characters[i],reward=r.route_rewards[i],pack=this.content.packs.find(p=>p.id===reward?.pack),taken=theirs===i,picked=mine===i,name=known(i)?esc(o?.name||'opponent'):'this opponent';
@@ -338,7 +340,7 @@ export class TagUI {
   const owned=new Map();for(const id of r.pool||[])owned.set(id,(owned.get(id)||0)+1);const copyLimit=r.artifacts?.includes('broken_limiter')?0:3;
   const partner=this.content.characters[v.characters[1-seat]],partnerName=esc(partner?.name||'Your teammate'),partnerArt=`<img src="assets/${esc(partner?.sprite||'')}" alt="">`;
 
-  const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:this.content.packs.find(p=>p.id===x.id)?.name,theirs=partnerCart.has(i);
+  const product=(x,i)=>{const name=x.kind==='single'?this.cardById(x.id)?.name:x.kind==='artifact'?this.content.artifacts[x.id][0]:x.kind==='deck'?x.name:x.id===RANDOM_PACK.id?RANDOM_PACK.name:this.content.packs.find(p=>p.id===x.id)?.name,theirs=partnerCart.has(i);
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
@@ -403,7 +405,7 @@ export class TagUI {
   const v=this.view,r=v.run,sell=v.phase==='shop'&&this.session.connected&&!v.paused,cursed=new Set(r.cursed_artifacts||[]),ids=[...new Set(r.artifacts||[])];
   const copies=id=>r.artifacts.filter(x=>x===id).length;
   const curses=v.phase!=='duel'&&r.challenge_level>=6?permanentCurseEntries(this.content,r.persistent_curses,key=>curseDescription(this.content,key,r.challenge_level)):[];
-  this.dialog('Run relics',relicLedger(this.content,ids,{intro:'Shared run relics · Effects apply when their listed conditions are met.',counts:copies,curses,cards:id=>{const [name,price=0]=this.content.artifacts[id]||[id],coins=Math.floor(price/2);return relicCard(this.content,id,{count:copies(id),action:sell&&!cursed.has(id)?`<button class="sell-owned-relic" data-tag="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(name)} for ${coins} coins">Sell · ${coins} coins</button>`:''})}}));
+  this.dialog('Run relics',relicLedger(this.content,ids,{intro:'Shared run relics · Effects apply when their listed conditions are met.',counts:copies,curses,level:r.challenge_level??0,cards:id=>{const [name,price=0]=this.content.artifacts[id]||[id],coins=Math.floor(price/2);return relicCard(this.content,id,{count:copies(id),action:sell&&!cursed.has(id)?`<button class="sell-owned-relic" data-tag="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(name)} for ${coins} coins">Sell · ${coins} coins</button>`:''})}}));
  }
 
 
@@ -540,7 +542,7 @@ export class TagUI {
 
    const endpoint=await this.endpoint();
 
-   this.session=new TagSession({endpoint,sleeve:this.sleeve(),character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve,event.buyer===this.view?.seat?ownedBefore(this.view?.run?.pool,event.packs):null))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
+   this.session=new TagSession({endpoint,sleeve:this.sleeve(),character:this.character,variant:this.chosenVariant(),profile:this.profile,level:this.level,content:this.content,backend:this.backend,onView:v=>this.update(v),onDuel:(s,c)=>this.onDuel(s,c),onAbandoned:()=>{this.status='Your tag partner abandoned you';this.dialog('Your tag partner abandoned you',`<p>Your partner left the tag room.</p>${button('Return to title','return-title','class="primary"')}`)},randomCards:this.randomCards,onPacks:event=>{this.packQueue=this.packQueue.then(async()=>{await this.onGoldenCards();return !this.alive||!this.openPacks?undefined:new Promise(resolve=>this.openPacks(event.packs,resolve,event.buyer===this.view?.seat?ownedBefore(this.view?.run?.pool,event.packs):null))}).catch(error=>this.error(error))},onStatus:(state,detail)=>{
 
     this.status=state==='connected'||state==='waiting'?'':state==='error'?friendlyError(detail):['disconnected','failed','reconnecting'].includes(state)?'':state==='signaling-error'?'Room service unavailable — retrying':'';
 
@@ -653,6 +655,15 @@ export class TagUI {
 
  }
 
+ // Card marks (card-marks.js): shown at once, then sent to the host, which keeps them in this player's run for the
+ // weighting. Marks are not deck edits, so they work while locked in and travel straight away.
+ async cycleMark(el){
+  const v=this.view;if(!v?.run||this.marking||v.paused||!this.session?.connected||!['draft','shop'].includes(v.phase))return;
+  const id=Number(el.dataset.cardMark),next=nextMark(cardMark(v.run,id)),old=v.run.card_marks;
+  v.run.card_marks={...(old||{})};if(next)v.run.card_marks[id]=next;else delete v.run.card_marks[id];
+  paintMarks(this.root,v.run,id);playUISound('deck-select');this.marking=true;
+  try{await this.session.request('mark',[id,next])}catch(error){if(this.view===v){v.run.card_marks=old;paintMarks(this.root,v.run,id)}this.error(error)}finally{this.marking=false}
+ }
  async unlockForEdit(){this.working=true;try{await this.session.request('unready')}finally{this.working=false}}
 
  saveDraft(){
@@ -672,6 +683,8 @@ export class TagUI {
   if(/That choice is stale|Wait for your teammate\.|No active duel\.|The carts changed|already picked that item|That boss has already changed|State changed/.test(this.status))this.status='';
 
   view=structuredClone(view);
+  // Absolute Random in Tag (2026-11-16): open this player's free Random Packs once, then clear them on the host.
+  const free=view.run?.free_packs;if(free?.length&&this.freePacksShown!==JSON.stringify(free)&&this.openPacks){this.freePacksShown=JSON.stringify(free);this.packQueue=this.packQueue.then(async()=>{await this.session?.randomLoad;if(!this.alive)return;await new Promise(resolve=>this.openPacks(free,resolve));await this.session?.request('free-packs-seen')}).catch(error=>this.error(error))}
 
   if(view.phase==='draft'){
 

@@ -53,8 +53,6 @@ def shop_relic_eligible(run,key):
  # Deck Assembler still cannot buy cards, but he edits his deck, so a lower minimum helps him.
  if (copies_deck(run) or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
- # Randomized cards are made on one device and are not shared in Tag (random_cards.py).
- if effect=='random_pack' and run.get('history_mode')=='tag':return False
  if not archetype_relics.has_member(key,run):return False
  # Gate Calling only shows up while the current Deck holds Sanga of the Thunder, Kazejin or Suijin (user, 2026-11-14).
  if key=='gate_calling' and not {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))}.intersection(GATE_TRIO):return False
@@ -769,9 +767,12 @@ def install(g):
   # A Tag personal pack that is already a guaranteed pack keeps its random slot.
   if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
   if randomized_shop:pack_ids=[random_cards.RANDOM_PACK]*len(pack_ids)
-  # Elsewhere a Random Pack sometimes takes one of the random pack slots (not in Tag: randomized cards are not shared).
-  elif run.get('history_mode')!='tag' and not fixed_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and len(pack_ids)>len(tied_ids) and rng.random()<random_cards.SHOP_CHANCE:
-   pack_ids[-1]=random_cards.RANDOM_PACK
+  # Elsewhere a Random Pack sometimes takes one of the random pack slots. Tag too since 2026-11-16: its cards come from
+  # seeds both devices share (random_cards.tag_pack).
+  # It takes the second booster slot only, never the guaranteed pack or the character pack in the last slot (user, 2026-11-16:
+  # it replaced the character booster).
+  elif not fixed_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and len(tied_ids)==1 and len(pack_ids)>=3 and rng.random()<random_cards.SHOP_CHANCE:
+   pack_ids[1]=random_cards.RANDOM_PACK
   items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n<len(tied_ids))) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])

@@ -69,6 +69,8 @@ def sync():
  (WEB/'content.json').write_text(json.dumps(meta,ensure_ascii=False),encoding='utf8')
  # Interface languages: card texts and translations loaded by android/web/i18n.js (tools/i18n/README.md).
  sys.path.insert(0,str(ROOT/'tools/i18n'));from build_bundles import build as build_language_bundles;build_language_bundles()
+ # In-game patch notes (tools/patch_notes.py): data/patch-notes/<version>/<lang>.html into android/web/patch-notes/.
+ sys.path.insert(0,str(ROOT/'tools'));from patch_notes import build as build_patch_notes;build_patch_notes()
  old=ROOT.parent/'Shadow Run/duel-run/dist'
  # Vendor the working engine once. Subsequent builds are self-contained.
  for folder,source in [('vendor',old/'vendor'),('pyodide',DEP/'pyodide/package')]:

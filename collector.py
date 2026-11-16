@@ -1,6 +1,6 @@
 """Collector local save ownership. Server receipts decide elimination and prizes."""
 import copy, time, uuid
-import storage, content
+import storage, content, random_cards
 
 def load():
  data=storage.read(storage.ROOT/'collector.json',{'duelists':[]})
@@ -23,12 +23,16 @@ def dispatch(action,value):
   if not source or source.get('stage')=='gameover':raise ValueError('Choose an existing living single-player save.')
   if source.get('stage')=='duel':raise ValueError('finish your duel to import this collector')
   if content.CHARACTERS[source['character']].get('copycat'):raise ValueError('Copycat saves cannot enter Ultimate Collector.')
+  # Randomized cards are banned in Ultimate Collector (user, 2026-11-16): they only exist in the run that made them.
+  # A Randomizer run (all of its cards randomized) cannot enter; any other run leaves its randomized cards behind.
+  if content.randomized_run(source):raise ValueError('Randomizer saves cannot enter Ultimate Collector.')
+  source_pool=[cid for cid in source['pool'] if not random_cards.is_random(cid)]
   name=str(value.get('name','')).strip()
   if not name or len(name)>32:raise ValueError('Use a duelist name with 1–32 characters.')
   occupied={d['slot'] for d in data['duelists'] if d['status']=='alive'}
   target=int(value['slot'])
   if target not in range(1,10) or target in occupied:raise ValueError('Choose an empty Collector slot.')
-  duelist=dict(id=uuid.uuid4().hex,token=uuid.uuid4().hex+uuid.uuid4().hex,slot=target,name=name,character=source['character'],pool=copy.deepcopy(source['pool']),status='alive',wins=0,history=[],deck={'main':[],'side':[],'extra':[]},created=int(time.time()*1000))
+  duelist=dict(id=uuid.uuid4().hex,token=uuid.uuid4().hex+uuid.uuid4().hex,slot=target,name=name,character=source['character'],pool=source_pool,status='alive',wins=0,history=[],deck={'main':[],'side':[],'extra':[]},created=int(time.time()*1000))
   data['duelists'].append(duelist);data['pending_move']={'slot':slot,'run':source};save(data)
   storage.clear_run(slot);data.pop('pending_move');save(data)
   return data

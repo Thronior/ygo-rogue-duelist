@@ -76,13 +76,22 @@ def tag_partner(run):
  other=TAG_PARTNER
  if other is None or other is run or run.get('history_mode')!='tag':return None
  return dict(other,artifacts=run.get('artifacts',[]),round=run.get('round',0),loop=run.get('loop',0),history_mode='tag')
+# Card marks (user, 2026-11-16): for weighting only, a card marked Yes counts as MARK_YES_COPIES more copies in the Deck
+# (also when it isn't in it) and a card marked No counts as none (also when it is). run['card_marks'] = {id: 1 or -1}.
+MARK_YES_COPIES=2
 def deck_cards(run):
- """Counter of card ids in the run's current Deck (Main and Extra), from its selected pool indices."""
+ """Counter of card ids in the run's current Deck (Main and Extra) as the weighting sees it: its selected pool indices,
+ plus the run's card marks."""
  import campaign as g
  pool=run.get('pool',[]);out=Counter()
  for index in run.get('selected',[]):
   cid=pool[index] if isinstance(index,int) and 0<=index<len(pool) else None
   if cid in g.BY_ID:out[cid]+=1
+ for key,mark in (run.get('card_marks') or {}).items():
+  try:cid=int(key)
+  except (TypeError,ValueError):continue
+  if mark==-1:out.pop(cid,None)
+  elif mark==1 and cid in g.BY_ID:out[cid]+=MARK_YES_COPIES
  return out
 # Share of the card pool that earns the full multiplier. Narrow themes need fewer cards to count as a plan.
 # Lowered 30% on 2026-11-13 so each matching card adds more (an all-X deck reaches the full boost sooner).
@@ -303,7 +312,51 @@ def _card_multipliers_one(cards,run):
    if have[t]:best=max(best,1+(_card_ceilings.get(t,CEILING_MIN)-1)*(narrow_progress(have[t],run) if _tag_threshold(t)==NARROW else min(1,have[t]/total/_tag_threshold(t))))
   out[c['id']]=min(CARD_BOOST_CAP,best);boosted.append(out[c['id']])
  average=sum(min(NEUTRAL_CARD_CAP,v) for v in boosted)/len(boosted) if boosted else 1.0
- return {k:(average if v is None else v) for k,v in out.items()}
+ out={k:(average if v is None else v) for k,v in out.items()}
+ # Related cards (user, 2026-11-16): a single whose text names a Deck or Yes-marked card, or that one of them names, is
+ # RELATED_BOOST times as likely, so combo pieces (rituals, fusions) turn up for the cards the player builds around.
+ related=related_ids(pool)
+ for c in cards:
+  if canonical_id(c['id']) in related:out[c['id']]=min(CARD_BOOST_CAP,out[c['id']]*RELATED_BOOST)
+ return out
+
+# The same links as the Related Cards tab (android/web/related-cards.js): a quoted card name, or a quoted archetype name
+# standing for its every member; alternate arts count as one card.
+RELATED_BOOST=2.0
+_related_index=None
+def _inset(setcode,code):return (code&0xfff)==(setcode&0xfff) and (code&setcode)==setcode
+def related_index():
+ global _related_index
+ if _related_index is not None:return _related_index
+ import re
+ import campaign as g
+ by_name={};canon={}
+ for c in g.CARDS:by_name.setdefault(c['name'].strip().lower(),c['id'])
+ for c in g.CARDS:canon[c['id']]=by_name[c['name'].strip().lower()]
+ # The archetype list choice_relics.py reads (data/archetypes.json, shipped with the campaign files).
+ try:sets={a['name'].strip().lower():int(a['setcode']) for a in json.loads((Path(__file__).parent/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']}
+ except (OSError,ValueError,KeyError):sets={}
+ members={}
+ def archetype(code):
+  if code not in members:members[code]=[canon[c['id']] for c in g.CARDS if any(_inset(code,int(x)) for x in c['data'].get('setcodes',[]))]
+  return members[code]
+ links={}
+ def link(a,b):
+  if a!=b:links.setdefault(a,set()).add(b);links.setdefault(b,set()).add(a)
+ for c in g.CARDS:
+  me=canon[c['id']]
+  for quoted in re.findall(r'["“”]([^"“”]{2,60})["“”]',c.get('desc') or ''):
+   k=quoted.strip().lower()
+   if k in by_name:link(me,by_name[k])
+   elif k in sets:
+    for other in archetype(sets[k]):link(me,other)
+ _related_index=(canon,links);return _related_index
+def canonical_id(cid):return related_index()[0].get(cid,cid)
+def related_ids(deck):
+ """Canonical ids related to any card in `deck` (a deck_cards Counter)."""
+ canon,links=related_index();out=set()
+ for cid in deck:out|=links.get(canon.get(cid,cid),set())
+ return out
 
 
 # Opponent-screen categories (user, 2026-11-14): same deck weighting as relics. A category's ceiling comes from the share of

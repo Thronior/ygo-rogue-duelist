@@ -4,7 +4,17 @@ export const RANKS = Object.freeze(['Bronze','Silver','Gold','Legend','God']);
 export const rankFor = wins => RANKS[Math.min(4,Math.max(0,wins|0))];
 const counts = cards => cards.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
 export const deckCards = deck => [...(deck.main||[]),...(deck.side||[]),...(deck.extra||[])];
-export function validateDeck(deck,pool,cards,original=null,unrestricted=false,minimum=40) {
+// Draft Random Pack cards (user, 2026-11-16): made on each device from a seed, so the Worker has no data for them.
+// Booster k of seat s numbers its cards inside 199,000,000 + s x 1,000,000 + k x 1,000 (random_cards.draft_booster).
+export const RANDOM_FIRST=199000000,RANDOM_SEAT=1000000,RANDOM_BLOCK=1000,RANDOM_MAX=RANDOM_SEAT/RANDOM_BLOCK;
+export const isRandomId=id=>{const n=Number(id);return n>=191000000&&n<201000000;};
+export const randomBlock=(seat,k)=>RANDOM_FIRST+seat*RANDOM_SEAT+k*RANDOM_BLOCK;
+export const randomBooster=(id,seat)=>{const k=Math.floor((id-RANDOM_FIRST-seat*RANDOM_SEAT)/RANDOM_BLOCK);return Number.isInteger(id)&&k>=0&&k<RANDOM_MAX?k:-1;};
+// The randomized ids a seat may use: one copy each, inside one of its first `count` booster blocks.
+export const randomAllowance=(seat,count)=>id=>{const k=randomBooster(id,seat);return k>=0&&k<count;};
+// randomOk (Draft Duels only): a check for randomized ids. They skip the catalog, copy and name checks; the clients
+// know their frames and keep Fusion Monsters in the Fusion Deck themselves.
+export function validateDeck(deck,pool,cards,original=null,unrestricted=false,minimum=40,randomOk=null) {
  const errors=[], all=deckCards(deck), catalog=new Map(cards.map(c=>[c.id,c]));
  if(!Array.isArray(deck.main)||deck.main.length<minimum||deck.main.length>60)errors.push(`Main Deck must contain ${minimum}–60 cards.`);
  if(!Array.isArray(deck.side)||deck.side.length>(unrestricted?0:15))errors.push(unrestricted?'Draft duels have no Side Deck.':'Side Deck may contain 0–15 cards.');
@@ -13,13 +23,14 @@ export function validateDeck(deck,pool,cards,original=null,unrestricted=false,mi
  const owned=counts(pool), used=counts(all), names={};
  for(const [id,n] of Object.entries(used)) {
   const card=catalog.get(+id);
+  if(randomOk&&isRandomId(id)){if(!randomOk(+id)||n>1)errors.push('Unknown randomized card: '+id);continue;}
   if(!card){errors.push('Unknown card: '+id);continue;}
   if(n>(owned[id]||0))errors.push('Not enough owned copies of '+card.name+'.');
   const alias=card.name;names[alias]=(names[alias]||0)+n;
  }
  for(const [id,n] of Object.entries(names))if(n>(unrestricted?3:Math.min(...cards.filter(c=>c.name===id).map(c=>LIMITS[c.id]??3))))errors.push(id+(unrestricted?' exceeds the three-copy limit.':' exceeds the April 2004 TCG copy limit.'));
  for(const id of deck.main||[])if(catalog.get(id)?.data?.type&64)errors.push('Fusion Monsters belong in the Fusion Deck.');
- for(const id of deck.extra||[])if(!(catalog.get(id)?.data?.type&64))errors.push('Only Fusion Monsters belong in the Fusion Deck.');
+ for(const id of deck.extra||[])if(!(randomOk&&isRandomId(id)&&!catalog.has(id))&&!(catalog.get(id)?.data?.type&64))errors.push('Only Fusion Monsters belong in the Fusion Deck.');
  if(original){if(deck.main.length!==original.main.length)errors.push('Keep your starting Main Deck size.');const previous=counts(deckCards(original));if(Object.keys({...previous,...used}).some(id=>previous[id]!==used[id]))errors.push('Siding must preserve all cards in your match decks.');}
  return [...new Set(errors)];
 }
@@ -33,4 +44,4 @@ export function moveSideCard(deck,from,id,cards){
 }
 
 // Draft loop rooms raise the minimum from 20 to 30 to 40 (draft-pool.mjs minDeckFor).
-export const validateDraftDeck=(deck,pool,cards,minimum=40)=>validateDeck(deck,pool,cards,null,true,minimum);
+export const validateDraftDeck=(deck,pool,cards,minimum=40,randomOk=null)=>validateDeck(deck,pool,cards,null,true,minimum,randomOk);

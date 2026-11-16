@@ -20,5 +20,9 @@ same(chainWindowAllowed(ask([LIMITER],0),'always',[],ctx),true,'Always still off
 const JURAGEDO=id('Juragedo'),mz=codes=>({...ask(codes,0),selects:codes.map(code=>({code,location:L.MZONE}))});
 same(chainWindowAllowed({...mz([JURAGEDO]),hint_timing:Timing.DAMAGE_STEP},'sometimes',[],ctx),true,'Juragedo asks in the Damage Step');
 for(const timing of [0,Timing.SUMMON,Timing.SPSUMMON,Timing.END_PHASE])same(chainWindowAllowed({...mz([JURAGEDO]),hint_timing:timing},'sometimes',[],ctx),false,'Juragedo quiet outside a battle, timing '+timing);
-console.log(`PASS Limiter Removal and Juragedo on Chain Sometimes: attack, Damage Step and chains only, ${checks} checks`);
+// Blast with Chain too (Discord 2026-11-16: it asked on every chain).
+const BLAST=id('Blast with Chain');
+same(chainWindowAllowed(ask([BLAST],Timing.ATTACK),'sometimes',[],ctx),true,'Blast with Chain asks at an attack');
+for(const timing of [0,Timing.SUMMON,Timing.END_PHASE,Timing.MAIN_END])same(chainWindowAllowed(ask([BLAST],timing),'sometimes',[],ctx),false,'Blast with Chain quiet outside a battle, timing '+timing);
+console.log(`PASS Limiter Removal, Juragedo and Blast with Chain on Chain Sometimes: attack, Damage Step and chains only, ${checks} checks`);
 process.exit(0);

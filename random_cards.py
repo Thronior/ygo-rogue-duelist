@@ -122,6 +122,7 @@ def _from_pool(run,count_cards,rng):
 
 def open_pack(run,rng=random):
  """The 9 card ids of a Random Pack."""
+ if run.get('history_mode')=='tag':return tag_pack(run,rng)
  if has_pool(run):return _from_pool(run,PACK_SIZE,rng)
  return sum(_make_bundles(run,PACK_SIZE,rng),[])
 
@@ -146,6 +147,55 @@ def client_cards():
  if _client is None:
   _client=[dict(card=game['card'],script=game['script']) for game in (randomizer.as_game_card(c) for c in sorted(_cards.values(),key=lambda c:c['id']))]
  return _client
+
+# Draft Duels (user, 2026-11-16): the rooms Worker deals a seed per Random Pack booster, and both players' devices build
+# the same nine cards from it. Booster k of seat s numbers its cards from DRAFT_FIRST + s*DRAFT_SEAT + k*DRAFT_BLOCK
+# (collector-rules.js randomBlock). They belong to no run, so nothing here is registered or saved.
+DRAFT_FIRST=199_000_000;DRAFT_SEAT=1_000_000;DRAFT_BLOCK=1_000
+
+def draft_booster(seed,first):
+ """The 9 randomized cards of one draft booster, as randomizer card dicts (whole bundles, ids inside the block)."""
+ rng=random.Random(int(seed));counter=iter(range(first,first+DRAFT_BLOCK));used=set();out=[]
+ for _ in range(PACK_SIZE*40):
+  if len(out)>=PACK_SIZE:break
+  try:batch=randomizer.make_card(random.Random(rng.random()),lambda:next(counter),used)
+  except StopIteration:break
+  if len(out)+len(batch)>PACK_SIZE:continue
+  out+=batch
+ for card in out:card.setdefault('strings',randomizer._strings(card))
+ return out
+
+def draft_cards(value):
+ """value: {'players': [[seed, ...] per seat]}. Each booster's card ids, and every card as the client needs it."""
+ boosters=[];cards=[]
+ for seat,seeds in enumerate(value.get('players') or []):
+  ids=[]
+  for k,seed in enumerate((seeds or [])[:DRAFT_SEAT//DRAFT_BLOCK]):
+   made=draft_booster(seed,DRAFT_FIRST+seat*DRAFT_SEAT+k*DRAFT_BLOCK)
+   ids.append([c['id'] for c in made])
+   cards+=[dict(card=game['card'],script=game['script']) for game in (randomizer.as_game_card(c) for c in made)]
+  boosters.append(ids)
+ return {'boosters':boosters,'cards':cards}
+
+# Tag (user, 2026-11-16): the host's campaign rolls a seed per Random Pack and keeps it in that player's run
+# (run['random_boosters']); both devices build the cards from the seeds with draft_booster, in the same seat blocks as
+# Draft Duels (run['tag_seat']). The cards are registered in g.BY_ID only, never in a run's own store, and are rebuilt
+# from the seeds whenever a Tag campaign is restored (install_tag).
+def _register_shared(cards):
+ for card in cards:g.BY_ID[card['id']]=randomizer.as_game_card(card)['card']
+
+def tag_pack(run,rng=random):
+ seeds=run.setdefault('random_boosters',[]);seat=int(run.get('tag_seat',0));k=len(seeds)
+ if k>=DRAFT_SEAT//DRAFT_BLOCK:raise ValueError('Too many Random Packs in this run.')
+ seed=rng.getrandbits(32);seeds.append(seed)
+ cards=draft_booster(seed,DRAFT_FIRST+seat*DRAFT_SEAT+k*DRAFT_BLOCK);_register_shared(cards)
+ return [c['id'] for c in cards]
+
+def install_tag(runs):
+ """Registers every Random Pack card of a Tag campaign's two runs (after a restore or a reload)."""
+ for seat,run in enumerate(runs):
+  for k,seed in enumerate(run.get('random_boosters') or ()):
+   _register_shared(draft_booster(seed,DRAFT_FIRST+seat*DRAFT_SEAT+k*DRAFT_BLOCK))
 
 def free_pack(run,rng=random):
  """Absolute Random: one free Random Pack per copy after each victory. Returns the packs for the client to open."""

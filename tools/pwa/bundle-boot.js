@@ -1,6 +1,9 @@
 const EXPECTED='__BUNDLE_VERSION__';
 const status=()=>new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>reject(Error('An update is ready. Close all game windows and reopen to finish updating.')),8000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data);};navigator.serviceWorker.controller.postMessage({type:'BUNDLE_STATUS'},[channel.port2]);});
 try{
+ // The itch.io desktop app serves games from itch-cave://, where no service worker can run (Discord, 2026-11-16).
+ // The Windows app is the one desktop version (user, 2026-11-16), so this points there.
+ if(!/^https?:$/.test(location.protocol))throw Error('The itch.io desktop app cannot run this game. Play it in your web browser on itch.io, or get the Windows app, which runs fully offline: github.com/Thronior/ygo-rogue-duelist/releases/latest/download/YGO-Rogue-Windows-Setup.exe');
  if(!navigator.serviceWorker)throw Error('This browser cannot load artwork inside the embedded player. Please open the game directly.');
  const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
  await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(Error('The embedded player could not finish loading. Please retry or open the game directly.')),25000))]);
