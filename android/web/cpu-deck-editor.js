@@ -1,4 +1,5 @@
 import {playUISound} from './ui-sounds.js';
+import {isRandomId} from './collector-rules.js';
 import {cloneDeck,fingerprint,deckIssues,textDeck,compareCards} from './cpu-deck-model.js';
 import {saveDeckImage} from './save-deck-image.js';
 import {renderDeckImage} from './deck-image.js';
@@ -7,7 +8,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const KEY='cpu-deck-suggestions-v1';
 export class CPUDeckEditor{
  constructor({root,content,inspect,onBack,onExit,onTestDeck}){
- Object.assign(this,{root,content,inspect,onBack,onExit,onTestDeck});this.cards=content.cards;this.by=new Map(this.cards.map(c=>[c.id,c]));this.rows=[];
+ Object.assign(this,{root,content,inspect,onBack,onExit,onTestDeck});this.cards=content.cards.filter(c=>!isRandomId(c.id));// CPU decks use real cards only (Discord, 2026-11-17).this.by=new Map(this.cards.map(c=>[c.id,c]));this.rows=[];
  for(const [id,decks] of Object.entries(content.cpuDecks))for(const d of decks)this.rows.push({character:id,key:id+':'+d.label,title:content.characters[id].name,label:d.label,portrait:content.characters[id].sprite,original:cloneDeck(d)});
  this.saved={};try{const raw=JSON.parse(localStorage.getItem(KEY)||'{}');for(const [k,v] of Object.entries(raw)){if(v&&typeof v.title==='string'&&v.deck&&['main','extra'].every(z=>Array.isArray(v.deck[z])&&v.deck[z].length<=10000&&v.deck[z].every(Number.isSafeInteger)))this.saved[k]=v}}catch{this.notice='Saved drafts could not be read. Export your work before leaving.';this.storageFailed=true}
  for(const [key,v] of Object.entries(this.saved))if(key.startsWith('custom:'))this.rows.push({key,title:v.title,label:'Custom deck',original:{main:[],extra:[]}});

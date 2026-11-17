@@ -80,13 +80,18 @@
   "Yami Yugi": {
     "rare": [
       "Judgment of the Pharaoh",
-      "Mystical Refpanel"
+      "Mystical Refpanel",
+      "Magician's Valkyria"
     ],
     "common": [
       "Makiu, the Magical Mist",
       "Unity",
       "Yu-Jo Friendship",
-      "Silent Swordsman LV7"
+      "Silent Swordsman LV7",
+      "Gemini Elf",
+      "Neo the Magic Swordsman",
+      "Rogue Doll",
+      "Ancient Elf"
     ]
   },
   "Yami Marik": {
@@ -101,8 +106,32 @@
     ]
   },
   "Serenity Wheeler": {
+    "rare": [
+      "Musician King",
+      "Sanwitch",
+      "Twin-Headed Thunder Dragon",
+      "Kaiser Dragon",
+      "Master of Oz",
+      "Thousand Dragon",
+      "Gaia the Dragon Champion",
+      "Sangan"
+    ],
     "common": [
-      "Teva"
+      "Teva",
+      "Lady of Faith",
+      "Thunder Dragon",
+      "Fairy Dragon",
+      "Big Koala",
+      "Des Kangaroo",
+      "Time Wizard",
+      "Baby Dragon",
+      "Gaia The Fierce Knight",
+      "Curse of Dragon",
+      "De-Fusion",
+      "Metamorphosis",
+      "Beastking of the Swamps",
+      "The Earth - Hex-Sealed Fusion",
+      "Winged Dragon, Guardian of the Fortress #1"
     ]
   },
   "Odion": {

@@ -1,0 +1,122 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet,.patch-notes-sheet *{box-sizing:border-box}
+.patch-notes-sheet{width:1400px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet .kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet section{margin-top:30px}
+.patch-notes-sheet b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet .big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet .big .bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet .big>*{position:relative}
+.patch-notes-sheet .big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet .big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet .big p.lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet .small li{font-size:17px}
+.patch-notes-sheet .ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet .way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet .way img{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b04a4a;flex:none}
+.patch-notes-sheet .way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet .way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet .way p i{color:#ff9d8a;font-style:normal}
+.patch-notes-sheet .marks{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.patch-notes-sheet .mark{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 20px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba;box-shadow:0 1px 6px #000b}
+.patch-notes-sheet .mark.yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet .mark.no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet .step{display:inline-flex;align-items:center;gap:8px;margin-left:6px}
+.patch-notes-sheet .step span{width:42px;height:36px;border:1px solid #b5824a;border-radius:6px;display:grid;place-items:center;font:700 22px/1 Arial,sans-serif;background:#16303b}
+.patch-notes-sheet .step b{font-size:19px;color:#f2dc89}
+.patch-notes-sheet .fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet .note{font-size:16px;color:#c8d8da;margin:12px 0 0}
+.patch-notes-sheet .bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:12px}
+.patch-notes-sheet .bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet .bal ul{gap:6px}
+.patch-notes-sheet .bal li{font-size:16px;gap:8px}
+.patch-notes-sheet .bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet .was{color:#9fb4ba;text-decoration:line-through}</style><div class="patch-notes-sheet"><div class="kick">YGO Rogue Duelist</div><h1>Actualización 0.2.37</h1>
+
+<section class="big fixhi" style="margin-top:28px"><em>Correcciones importantes</em><h3>Salas Tag, partidas grandes y guardado</h3>
+<p class="lead">En <b>Duelo Tag</b> las salas aparecían llenas al llegar a 256. Ahora <b>no hay límite</b>, y las salas vacías se borran tras 10 minutos.</p>
+<p class="lead" style="margin-top:8px">Las partidas con <b>más de 10.000 cartas</b> no se podían cargar («no hay partida guardada válida»). Vuelven a cargar.</p>
+<p class="lead" style="margin-top:8px"><b>App de Windows:</b> «Local save operation failed» cuando Documentos se sincroniza con <b>OneDrive</b>. Corregido.</p>
+<p class="lead" style="margin-top:8px">Las largas <b>cadenas de curación y daño</b> (con Princesa de Fuego) ya no congelan el duelo.</p></section>
+
+<section class="big"><div class="bg" style="background-image:url('assets/cursed-relic-background.png')"></div><em>Reliquias malditas</em><h3>Dos nuevas reliquias malditas</h3>
+<div class="ways">
+<div class="way"><img src="assets/relics/22589918.jpg"><p><b>Oferta de mulligan</b>Una vez por Duelo, en tu primera Standby Phase: baraja en tu Deck <b>cualquier número</b> de cartas de tu mano y roba esa cantidad. <i>No puedes añadir cartas de tu Deck a tu mano salvo robando.</i></p></div>
+<div class="way"><img src="assets/relics/74137509.jpg"><p><b>Dados Elegantes y Dados Calavera</b>El primer dado que tiras cada turno: ganas <b>resultado ×100 LP</b>. <i>Tus monstruos boca arriba pierden resultado ×100 ATK este turno.</i></p></div>
+</div>
+</section>
+
+<section class="big"><em>Equilibrio</em><h3>Cambios en reliquias</h3>
+<div class="bal">
+<div><h4>Más baratas</h4><ul>
+<li><span>◆</span><span><b>Destierro Total</b> <span class="was">150</span> 80</span></li>
+<li><span>◆</span><span><b>La Tercera Puerta</b> <span class="was">135</span> 100</span></li>
+<li><span>◆</span><span><b>Sin Dolor No Hay Gloria</b> <span class="was">100</span> 70</span></li>
+<li><span>◆</span><span><b>Maestro y Aprendiz</b> <span class="was">100</span> 70</span></li>
+<li><span>◆</span><span><b>Llamada del Guardián</b> <span class="was">90</span> 70</span></li>
+<li><span>◆</span><span><b>Banda Ojama</b> <span class="was">90</span> 60</span></li>
+<li><span>◆</span><span><b>Pergamino Ninja, Reloj de Arena del Destino, Arsenal del Guardián, Emblema del Escorpión</b> <span class="was">85</span> 60, y al comprarla añades <b>1 carta de su grupo</b></span></li>
+</ul></div>
+<div><h4>Más fuertes</h4><ul>
+<li><span>◆</span><span><b>Emblema del Dragón:</b> 400 ATK <b>y DEF</b> <span class="was">300 ATK</span></span></li>
+<li><span>◆</span><span><b>Báculo del Mago:</b> los monstruos "Mago Oscuro" ganan <b>300 más</b></span></li>
+<li><span>◆</span><span><b>Fragmento de Cristal:</b> monedas de recompensa <b>×3</b> <span class="was">×2</span></span></li>
+<li><span>◆</span><span><b>Llamada de la Puerta, Vínculo del Mago:</b> también con <b>Invocaciones Especiales</b></span></li>
+<li><span>◆</span><span><b>Escuadrón Escorpión Oscuro</b> también cuenta tu <b>Cementerio</b></span></li>
+<li><span>◆</span><span><b>Grilletes Legendarios</b> ofrece piezas <b>que aún no tienes</b> y luego apoyo de Exodia</span></li>
+<li><span>◆</span><span><b>Cámara de Fusión</b> ofrece Fusiones de las que tienes <b>un Material</b></span></li>
+</ul></div>
+<div><h4>Reliquias malditas, más suaves</h4><ul>
+<li><span>◆</span><span><b>Juramento del Gigante:</b> Nivel 4 o menos pierden <b>300</b> <span class="was">400</span></span></li>
+<li><span>◆</span><span><b>Cicatriz Ritual:</b> pierden <b>300</b> <span class="was">500</span></span></li>
+<li><span>◆</span><span><b>Tirano Solitario:</b> <b>+600</b> solo <span class="was">400</span>, <b>−400</b> con más <span class="was">500</span></span></li>
+<li><span>◆</span><span><b>Lanza Temeraria:</b> pierden <b>700</b> <span class="was">1000</span></span></li>
+<li><span>◆</span><span><b>Triunfo Prematuro:</b> <b>1</b> carta inicial menos <span class="was">2</span></span></li>
+</ul>
+<h4 style="margin-top:16px">Sobres</h4><ul>
+<li><span>◆</span><span><b>Yami Yugi:</b> Elfo Géminis, Neo, Muñeca Pícara, Duende Antiguo, Valquiria del Mago</span></li>
+<li><span>◆</span><span><b>Serenity:</b> Fusiones como Rey Músico, Kaiser dragón, Dragón Milenario</span></li>
+</ul></div>
+</div></section>
+
+<section class="cols">
+<div class="big"><em>Editor de deck</em><h3>Marcas en todas partes</h3>
+<p class="lead">La ventana de carta ahora tiene <span class="step"><span>−</span><b>1/3</b><span>+</span></span> bajo la imagen, con la marca de la carta debajo:</p>
+<div class="marks"><span class="mark">☆</span><span class="mark yes">★</span><span class="mark no">✕</span></div>
+<p class="lead" style="margin-top:10px">Nueva opción <b>Primero las marcadas</b> en el menú Estado del deck. <b>★</b> ahora ayuda a las cartas que <b>aún no están en tu Deck</b>; <b>✕</b> solo atenúa y ordena al final.</p></div>
+<div class="big"><div class="bg" style="background-image:url('assets/cards/83011277.jpg')"></div><em>Duelos</em><h3>Reliquias primero, sin ataques suicidas</h3>
+<p class="lead">Los <b>efectos de tus reliquias</b> siempre se resuelven primero, así que una ventana obligatoria ya no te hace usar una carta en su lugar.</p>
+<p class="lead" style="margin-top:8px">La CPU ya no ataca para perder y activar <b>Sangan, Bruja del Bosque Negro, Tomate Místico</b> y similares. Coloca a Sangan y a la Bruja.</p></div>
+</section>
+
+<section class="cols">
+<div class="big"><div class="bg" style="background-image:url('assets/cards/60229110.jpg')"></div><em>Rivales CPU</em><h3>Decks de Roca, Toon y Zombi</h3>
+<p class="lead">Nuevas reglas de la CPU para <b>Orden de Carga, Perdición Silenciosa, Corazón del Oprimido, Barrera de Polvo, Defensa Toon</b>, Sacrificios Toon, <b>Momia del Hacha Gigante, Maldición del Vampiro</b> y Metamorfosis.</p>
+<p class="lead" style="margin-top:8px">El deck de Tier 3 de <b>Aknadin</b> ahora es de <b>Roca / Tierra</b>.</p></div>
+<div class="big"><em>Duelos de Draft</em><h3>Drafts más limpios</h3>
+<p class="lead">La primera variante de Copycat y las dos de <b>Dueling Engine</b> aparecen en gris; Copycat juega como el <b>Aleatorizador</b>.</p>
+<p class="lead" style="margin-top:8px">Las reliquias que solo funcionan <b>fuera de los duelos</b> (monedas, tienda, reglas de deck) salen del grupo de reliquias de Draft; entran las dos nuevas reliquias malditas.</p></div>
+</section>
+
+<section class="cols">
+<div><h2>Cambios</h2><ul class="small">
+<li><span>🌈</span><span>Las cartas aleatorias tienen un <b>marco arcoíris</b> y ya no aparecen en el Selector de Cartas, la Colección, Cartas relacionadas ni el Historial de partidas.</span></li>
+<li><span>🎲</span><span>Los duelos con cartas aleatorias <b>se atascan menos</b>, y sus nombres vuelven a ser totalmente aleatorios.</span></li>
+<li><span>🔗</span><span>Las <b>reliquias fusionadas</b> tienen su propio grupo en Colección › Reliquias.</span></li>
+<li><span>⚖️</span><span>Tener una reliquia ya no reduce las probabilidades de las <b>reliquias relacionadas</b>.</span></li>
+<li><span>📜</span><span>Las nuevas <b>notas del parche</b> aparecen en cada inicio hasta que las cierres.</span></li>
+<li><span>🩺</span><span>La pantalla de error al iniciar tiene <b>Detalles</b> y <b>Copiar detalles</b> para reportar errores.</span></li>
+</ul></div>
+<div><h2>Correcciones</h2><ul class="small">
+<li><span>🧱</span><span><b>Muro de Luz Reveladora</b> funciona con cualquier cantidad de LP (con más de 999 LP el duelo se atascaba).</span></li>
+<li><span>⚙️</span><span><b>Metalmorph</b> pregunta en el Damage Step con <b>Encadenar a veces</b>.</span></li>
+<li><span>🔢</span><span>El <b>contador del Deck</b> en la vista dividida incluye las copias apiladas.</span></li>
+<li><span>☁️</span><span>«Guardado en la nube en pausa» ya no se queda todo el día tras un corte breve.</span></li>
+</ul></div>
+</section></div>

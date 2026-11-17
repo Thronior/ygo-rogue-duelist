@@ -43,6 +43,8 @@ def convert_selector(part):
     """Turn Type and Attribute names in a block's parameters into the engine's bit masks."""
     if isinstance(part.get("race"), str):
         part["race"] = r.RACES[part["race"]]
+    if isinstance(part.get("exclude_race"), str):
+        part["exclude_race"] = r.RACES[part["exclude_race"]]
     if isinstance(part.get("races"), list):
         part["race"] = sum(r.RACES[name] for name in part.pop("races"))
     if isinstance(part.get("attr"), str):

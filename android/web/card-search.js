@@ -18,7 +18,9 @@ export function matchesSearch(c,key){const s=searches[key]||{};if(!c)return fals
 export function searchButton(key){const s=searches[key],n=s?(s.effects?.length||0)+!!s.q+!!s.race+!!s.attribute+!!s.level:0;return `<button type="button" data-effect-search="${key}" title="Search card text and effects" aria-label="Search card text and effects${n?', '+n+' filters active':''}"><img class="genre-icon" src="assets/icons/yugipedia/genres-search-deck.png" alt="">${n?`<small>${n}</small>`:''}</button>${n?`<button type="button" class="effect-search-clear" data-effect-search-clear="${key}" title="Clear filters" aria-label="Clear filters">×</button>`:''}`}
 export function clearSearch(key){delete searches[key]}
 // Deck editors (solo and Tag) share the deck-status dropdown, the Deselect icon and the reset button.
-export const DECK_STATUS_OPTIONS=[['Any','Any card'],['In','In deck'],['Out','Not in deck'],['First','Deck first']];
+export const DECK_STATUS_OPTIONS=[['Any','Any card'],['In','In deck'],['Out','Not in deck'],['First','Deck first'],['Marked','Marked first']];
+// Marked first (user, 2026-11-17): ★ cards, then unmarked ones, then ✕, each group in the chosen sort. Draft Duels have
+// no marks, so their editor leaves it out.
 export const deselectIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="3" width="12" height="17" rx="1.6"/><path d="M9 8.5l6 6M15 8.5l-6 6"/></svg>';
 // Wide deck editors (2026-11-06): when Auto Deck Card Size would fit 18+ cards per row, solo and Tag split into a Deck pane
 // (8 per row) and a Collection pane. Shared by mobile.js and tag-ui.js.
@@ -40,9 +42,10 @@ export function deckSplitColumns(host,area,auto){
 // The Deck side shows 5 per row (8 from 18) and the Collection side the rest, so cards are the same size in both panes.
 export function splitStyle(total){const deck=total>=DECK_SPLIT_COLUMNS?8:5,rest=Math.max(1,total-deck);return `style="grid-template-columns:minmax(0,${deck}fr) minmax(0,${rest}fr);--split-deck:${deck};--split-rest:${rest}"`}
 // `page` ({id, key, after}) draws each pane in pages (deck-paging.js).
-export function splitDeckMarkup(deck,rest,cardMarkup,extraTab,page=null){
+// counts: the real card counts when stacks fold copies into one tile (Discord, 2026-11-17: "Deck 10" for 12 cards).
+export function splitDeckMarkup(deck,rest,cardMarkup,extraTab,page=null,counts=null){
  const tiles=(kind,list)=>page?pagedGrid(`${page.id}-${kind}`,page.key,list,cardMarkup,page.after):list.map(cardMarkup).join('');
- const pane=(kind,title,list,empty)=>`<section class="deck-split-pane ${kind}"><h3>${title} <span>${list.length}</span></h3><div class="deck-split-scroll"><div class="cardgrid">${tiles(kind,list)||`<p class="muted">${empty}</p>`}</div></div></section>`;
+ const pane=(kind,title,list,empty)=>`<section class="deck-split-pane ${kind}"><h3>${title} <span>${counts?.[kind]??list.length}</span></h3><div class="deck-split-scroll"><div class="cardgrid">${tiles(kind,list)||`<p class="muted">${empty}</p>`}</div></div></section>`;
  return pane('deck-pane','Deck',deck,'Tap a card in your collection to add it.')+pane('collection-pane','Collection',rest,extraTab?'No Extra Deck cards to add.':'Every card is in your deck.');
 }
 // Scroll positions of every deck scroller in `root` (one grid, or both split panes), so a redraw can put them back.

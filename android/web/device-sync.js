@@ -11,7 +11,7 @@ export class DeviceSync{
   const config=await fetch('multiplayer-config.json').then(r=>r.json());
   // text/plain: a simple CORS request with no OPTIONS preflight; the Worker reads the raw body.
   const response=await fetch(config.signalingUrl.replace(/\/$/,'')+'/progress/'+op,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({...local.link,code:code?.toUpperCase().replace(/[\s-]/g,''),progress:local.progress}),signal:AbortSignal.timeout(15000)});
-  const result=await response.json().catch(()=>({}));if(!response.ok){if(quotaExhausted(response.status,result.error))pauseForQuota('progress');throw Error(result.error||'Could not sync. Try again.')}clearQuotaPause('progress');
+  const result=await response.json().catch(()=>({}));if(!response.ok){if(quotaExhausted(response.status,result.error,result))pauseForQuota('progress');throw Error(result.error||'Could not sync. Try again.')}clearQuotaPause('progress');
   if(result.group)await this.backend('device-sync-link',{group:result.group,token:result.token});
   if(JSON.stringify(local.progress)!==JSON.stringify(result.progress))await this.backend('device-sync-merge',result.progress);
   this.linked=true;

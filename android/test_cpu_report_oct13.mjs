@@ -7,7 +7,7 @@ for(const p of [0,1]){
  const c=(n,l=L.MZONE,side=p,pos=1)=>({code:id(n),controller:side,location:l,sequence:0,position:pos,attack:data[id(n)].attack,defense:data[id(n)].defense});const put=(s,l,...cards)=>zones[s+':'+l]=cards;const policy=()=>smartContext(e,p,L);
  const sangan=c('Sangan');put(p,L.MZONE,sangan);put(p,L.DECK,...Array(20).fill(c('Battle Ox',L.DECK)));
  const elf=c('Mystical Elf',L.MZONE,1-p,4);put(1-p,L.MZONE,elf);assert.equal(policy().suicideScore(sangan),0);
- const ox=c('Battle Ox',L.MZONE,1-p);put(1-p,L.MZONE,ox);assert(policy().suicideScore(sangan)>0);assert.equal(policy().suicideScore(sangan,elf),0);
+ const ox=c('Battle Ox',L.MZONE,1-p);put(1-p,L.MZONE,ox);assert.equal(policy().suicideScore(sangan),0,'Sangan no longer attacks to die (user, 2026-11-17)');assert(policy().preferSet(sangan),'it is Set instead');assert.equal(policy().suicideScore(sangan,elf),0);
  zones={};const serket=c('Mystical Beast of Serket',L.GRAVE);put(p,L.GRAVE,serket);assert.equal(policy().specialOk(serket),false);assert(policy().activation(c('Monster Reborn',L.HAND))<0);
  put(p,L.SZONE,c('Temple of the Kings',L.SZONE));assert(policy().specialOk(serket));
  zones={};put(p,L.MZONE,c('Gearfried the Iron Knight'));assert(policy().activation(c('Malevolent Nuzzler',L.HAND))<0);put(p,L.MZONE,c('Battle Ox'));assert(policy().activation(c('Malevolent Nuzzler',L.HAND))>=0);
@@ -44,3 +44,13 @@ assert(chainWindowAllowed({spe_count:127,selects:[{code:id('Sangan')}]},'sometim
 assert(!chainWindowAllowed({spe_count:127,selects:[{code:id('Sangan')}]},'never'));
 assert(!chainWindowAllowed({spe_count:0,selects:[]},'sometimes'));
 console.log('PASS optional trigger prompts preserve player chain preferences');
+// Discord cpu-improvement (2026-11-16): Sangan/Witch never attack to die and search (user, 2026-11-17); they are Set.
+for(const p of [0,1]){
+ const e=new MobileDuel(meta.cards);Object.assign(e,{data,lp:[8000,8000],player:p,turn:3,phase:4,activeChain:[],battleProtected:[false,false]});let zones={};e.query=(s,l)=>zones[s+':'+l]||[];
+ const c=(n,l=L.MZONE,side=p,pos=1)=>({code:id(n),controller:side,location:l,sequence:0,position:pos,attack:data[id(n)].attack,defense:data[id(n)].defense});const put=(s,l,...cards)=>zones[s+':'+l]=cards;const policy=()=>smartContext(e,p,L);
+ const sangan=c('Sangan'),witch=c('Witch of the Black Forest');put(p,L.MZONE,sangan,witch);put(p,L.DECK,...Array(20).fill(c('Battle Ox',L.DECK)));
+ const big=c('Blue-Eyes White Dragon',L.MZONE,1-p),mid=c('Dark Magician',L.MZONE,1-p);put(1-p,L.MZONE,big,mid);
+ assert.equal(policy().suicideScore(sangan,mid),0,'Sangan into 2,500 is 1,500 LP for a search');
+ assert.equal(policy().suicideScore(witch,big),0,'Witch into 3,000');assert(policy().preferSet(witch)&&policy().preferSet(sangan));
+}
+console.log('PASS Sangan and Witch are Set, never sent to die for a search');

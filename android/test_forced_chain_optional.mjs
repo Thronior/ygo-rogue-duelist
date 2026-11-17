@@ -31,3 +31,12 @@ assert.equal(roar(Timing.MAIN_END,{turnPlayer:0}),false,'your own turn');
 assert.equal(roar(Timing.MAIN_END,{phase:256}),false,'Main Phase 2 has no attacks left');
 assert.equal(roar(Timing.STANDBY_PHASE||0,{phase:2}),false,'no window in other phases');
 console.log('PASS forced chain windows pick the sole mandatory trigger; set-card activations stay optional');
+// Relic triggers (user, 2026-11-17): a run effect (code 0, location 0) always activates first, forced or not.
+{const relic={code:0,controller:2,location:0,sequence:0,position:0,description:'0'},unity={code:14731897,controller:0,location:2,sequence:2,position:10,description:'0'};
+ const standby={type:M.SELECT_CHAIN,player:0,forced:true,spe_count:0,hint_timing:2,selects:[relic,unity]};
+ assert.deepEqual(automaticChainResponse(standby,false,M,R),{type:R.SELECT_CHAIN,index:0},'the Standby relic trigger activates instead of forcing Unity');
+ assert.deepEqual(automaticChainResponse({...standby,selects:[unity,relic]},false,M,R),{type:R.SELECT_CHAIN,index:1});
+ assert.deepEqual(automaticChainResponse({...standby,forced:false},false,M,R),{type:R.SELECT_CHAIN,index:0});
+ assert.deepEqual(mandatoryChainResponse({...standby,selects:[unity,relic]}),{type:R.SELECT_CHAIN,index:1});
+ assert.equal(automaticChainResponse({...standby,forced:false,selects:[unity]},false,M,R),null,'Unity alone stays the player\'s choice');}
+console.log('PASS relic triggers activate first');

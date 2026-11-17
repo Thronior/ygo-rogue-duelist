@@ -1040,6 +1040,42 @@ class TagCampaign:
 
   self.finale['status']='playing';self.phase='duel';self.ready=[False,False]
 
+ def admin(self,action):
+  """Room tool (tools/room-admin) on the host: team coins, LP, relics and curses, or cards for one seat's pool.
+  Host engine only; a remote player can never send this."""
+  kind=(action or {}).get('kind');shared=self.shared
+  if kind=='coins':shared['gold']=max(0,int(shared['gold'])+int(action['amount']))
+  elif kind=='run-lp':shared['lp']=max(1,int(shared['lp'])+int(action['amount']))
+  elif kind in ('relic-add','relic-remove'):
+   key=action.get('key')
+   if key not in content.ART_INFO:raise ValueError('Unknown relic.')
+   if kind=='relic-add':
+    if key in shared['artifacts']:raise ValueError('The team already has this relic.')
+    shared['artifacts'].append(key)
+    import relic_fusions
+    relic_fusions.fuse(shared)
+   else:
+    if key not in shared['artifacts']:raise ValueError('The team does not have this relic.')
+    shared['artifacts'].remove(key)
+  elif kind in ('curse-add','curse-remove'):
+   key=action.get('key')
+   if key not in content.CURSES:raise ValueError('Unknown curse.')
+   if kind=='curse-add':shared['curses'].append(key)
+   else:
+    if key not in shared['curses']:raise ValueError('The team does not have this curse.')
+    shared['curses'].remove(key)
+   # Duel preparation rebuilds the team's curses from both runs, so both runs carry the change.
+   for run in self.players:run['curses']=list(shared['curses'])
+  elif kind=='pool':
+   seat,cid,count=action.get('side'),action.get('code'),action.get('count',1)
+   if seat not in (0,1):raise ValueError('Seat must be 0 or 1.')
+   if cid not in game.BY_ID:raise ValueError('Unknown card.')
+   if type(count)!=int or not 1<=count<=3:raise ValueError('Copies must be 1-3.')
+   self.players[seat]['pool'].extend([cid]*count)
+  else:raise ValueError('Unknown room tool action.')
+  self.sync();self.revision+=1
+  return dict(coins=shared['gold'],lp=shared['lp'],relics=shared['artifacts'][:],curses=shared['curses'][:])
+
  def finish(self,winner,lp,events,reason=0):
 
   """Host engine only. Never exposed as an action a remote player may submit."""

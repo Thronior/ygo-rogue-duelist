@@ -6,7 +6,7 @@ def install(artifact):
   artifact('attribute_'+attr.lower(),name,90,f'Your monsters in your hand, Deck, GY and on the field become {attr}. With other Surgery relics, they have all of those Attributes.',art,'attribute',0,'offense',attr)
  artifact('arcane_resonance','Arcane Resonance',130,'Monsters you control gain 100 ATK for each face-up Spell/Trap on the field.','Mage Power','backrow_atk',100,'offense')
  artifact('waning_star','Waning Star',95,'Once per turn, at the start of your Standby Phase, reduce the Level of 1 random Level 2 or higher monster in your hand by 1 until the end of this turn.','Cost Down','hand_level',1,'draw')
- artifact('third_gate','The Third Gate',135,'Count non-Token cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.','Banisher of the Light','third_banish',3,'offense')
+ artifact('third_gate','The Third Gate',100,'Count non-Token cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.','Banisher of the Light','third_banish',3,'offense')
  artifact('exile_standard','Exile Standard',100,'Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.','Soul Release','banished_atk',50,'offense')
  artifact('field_amplifier','Field Amplifier',120,'Double ATK/DEF increases applied by the effects of face-up Field Spells you control. ATK/DEF decreases are unchanged.','Terraforming','field_double',1,'offense')
  artifact('returning_tide','Returning Tide',300,'Once per turn, at the start of your Standby Phase, return 1 Spell/Trap on the field to the hand.','Giant Trunade','standby_bounce',1,'defense')
@@ -26,7 +26,7 @@ def install(artifact):
  artifact('protection_charm','Protection Charm',120,'If curses are active, 1 random curse is disabled until the end of the Duel. Relic Seal stops this.','Hallowed Life Barrier','protection_charm',0,'defense')
  artifact('fire_extinguisher','Fire Extinguisher',110,'Once per turn, negate the first effect damage you would take from a card. LP costs and relics are not affected.','Damage Condenser','first_effect_damage',0,'defense')
  artifact('hot_deck','Hot Deck',100,'Each time your opponent draws 1 or more cards, they also send that many cards from the top of their Deck to the GY.','Needle Worm','hot_deck',0,'offense')
- artifact('no_pain_no_gain','No Pain No Gain',100,'Earn 5 coins every time you lose LP, paid after each victory.','Attack and Receive','lp_loss_coins',5,'other')
+ artifact('no_pain_no_gain','No Pain No Gain',70,'Earn 5 coins every time you lose LP, paid after each victory.','Attack and Receive','lp_loss_coins',5,'other')
  artifact('token_defender','Token Defender',90,'During your End Phase, if you control no monsters, Special Summon a Lamb Token (Beast/EARTH/Level 1/ATK 0/DEF 0) in Defense Position.','Stray Lambs','token_defender',0,'defense')
  artifact('the_creator','The Creator',300,'Once per turn, during your Standby Phase, Special Summon 1 monster from your GY. This relic appears less often than other relics.','The Creator','standby_revive',0,'other')
  artifact('normal_barrier','Normal Barrier',150,"Normal Monsters you control are unaffected by your opponent's Spell Cards.",'Spell Shield Type-8','normal_spell_immune',0,'defense')
@@ -41,10 +41,11 @@ def install(artifact):
   ('gravekeepers_union',"Gravekeeper's Union","Gravekeeper's Spy",'0x2e',"Gravekeeper's"),
   ('amazoness_hunters','Amazoness Hunters','Amazoness Archers','0x4','Amazoness'),
   ('harpies_of_a_feather','Harpies of a Feather','Harpie Lady Sisters','0x64','Harpie')]:
-  artifact(key,name,90,f'Your {series_name} monsters{" and Don Zaloog" if series=="0x1a" else ""} gain 200 ATK for each face-up matching monster on the field.',art,'archetype_atk',200,'offense',series)
+  # Dark Scorpion Squad also counts your GY (2026-11-16 balance picks; artifact_effects.py).
+  artifact(key,name,90,f'Your {series_name} monsters{" and Don Zaloog" if series=="0x1a" else ""} gain 200 ATK for each face-up matching monster on the field{" and each matching monster in your GY" if series=="0x1a" else ""}.',art,'archetype_atk',200,'offense',series)
  artifact('demonic_pact','Demonic Pact',90,"Recover half the LP cost whenever you pay it for an Archfiend card. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of the prevented amount.","Archfiend's Oath",'archfiend_cost',0,'healing')
  artifact('all_for_one_terrorking','All for One Terrorking',100,'Terrorking Archfiend gains 500 ATK for each other Archfiend on the field.','Checkmate','terrorking_atk',500,'offense','35975813')
- artifact('ojama_gang','Ojama Gang',90,'Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.','Ojama Delta Hurricane!!','archetype_atk',1000,'offense','0xf')
+ artifact('ojama_gang','Ojama Gang',60,'Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.','Ojama Delta Hurricane!!','archetype_atk',1000,'offense','0xf')
  artifact('tribute_free','Tribute Free',110,'Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Ante','tribute_free',0,'other')
  artifact('fusion_time','Fusion Time',120,'Fusion Summon Fusion Monsters from your Extra Deck using materials from your field, without Polymerization.','Metamorphosis','fusion_time',0,'summoning')
  artifact('level_one','Level One',90,'Add a random Level 1–4 LV monster from your Deck to your starting hand.','Ultimate Insect LV1','starting_low_level',0,'draw')

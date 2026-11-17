@@ -24274,5 +24274,239 @@
   "en": "You both have v{0}, but your card data does not match. Both players: reload the game, then try again.",
   "kind": "pattern",
   "ctx": "tag-session.js mismatchMessage (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Dragon monsters you control gain 400 ATK/DEF.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Spellcaster monsters you control gain 300 ATK. \"Dark Magician\" monsters you control gain 300 more ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Adds one extra random Exodia piece you do not own yet to every shop and reroll. Once you own all five, it adds a random Exodia support card instead.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Fusion support cards, and Fusion Monsters you own at least one Fusion Material for.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Your starting LP become 2,000 in each Duel, before boss LP penalties. Triple your victory coin rewards.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Coin rewards are tripled.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, when you Tribute Summon or Special Summon \"Sanga of the Thunder\", \"Kazejin\" or \"Suijin\", you can Special Summon one of the other two from your hand.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, if you Normal or Special Summon a \"Dark Magician\" monster: You can add 1 card that mentions \"Dark Magician\" from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 5 or higher monsters you control gain 800 ATK. Level 4 or lower monsters you control lose 300 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Level 4 or lower monsters you control lose 300 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control exactly 1 monster, it gains 600 ATK. While you control 2 or more monsters, they lose 400 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control exactly 1 monster, it gains 600 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control 2 or more monsters, they lose 400 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control can attack directly. They lose 700 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 700 ATK.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control lose 300 ATK. They gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "You always go first. Your opening hand contains 1 fewer card (min. 0).",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Your opening hand contains 1 fewer card (min. 0).",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Your Dark Scorpion monsters and Don Zaloog gain 200 ATK for each face-up matching monster on the field and each matching monster in your GY.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Dark Scorpion cards and Don Zaloog. When acquired, add 1 random card from this pool to your card pool.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Ninja monsters and Ninjitsu support. When acquired, add 1 random card from this pool to your card pool.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Guardian monsters and their dedicated equipment. When acquired, add 1 random card from this pool to your card pool.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Destiny Board, Spirit Messages, or Final Countdown. When acquired, add 1 random card from this pool to your card pool.",
+  "kind": "exact",
+  "ctx": "Balance picks (2026-11-16)"
+ },
+ {
+  "group": "ui",
+  "en": "Not available in Draft Duels",
+  "kind": "exact",
+  "ctx": "Draft Duels character select (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "This loadout is not available in Draft Duels.",
+  "kind": "exact",
+  "ctx": "Draft Duels character select (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Fused Relics",
+  "kind": "exact",
+  "ctx": "Collection relic groups (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Marked first",
+  "kind": "exact",
+  "ctx": "Deck status dropdown (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "Mulligan's Offer",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "Graceful & Skull Dice",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot add cards from your Deck to your hand except by drawing them.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "The first time you roll a die each turn: gain LP equal to the result x100.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards. You cannot add cards from your Deck to your hand except by drawing them.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "relic",
+  "en": "The first time you roll a die each turn: gain LP equal to the result x100. Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",
+  "kind": "exact",
+  "ctx": "Cursed relics approved on Discord (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Details",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen diagnostics (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Copy details",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen diagnostics (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Copy failed",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen diagnostics (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Retrying once…",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen diagnostics (2026-11-17)"
  }
 ]

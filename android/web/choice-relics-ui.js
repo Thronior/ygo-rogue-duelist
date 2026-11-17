@@ -1,6 +1,8 @@
 // Prompts for relics that ask for a choice when acquired: Relic Picker, Card Picker, Name Changer and the weighted relics.
 // The run holds the pending choice (choice_relics.py); these only draw it. Lists stay short so typing stays smooth.
 import {safe} from './experience-ui.js';
+// Randomized cards (Random Pack) are not real cards: the Card Picker never offers them (Discord, 2026-11-17).
+import {isRandomId} from './collector-rules.js';
 
 const ANCIENT_TREASURE=190000050,RESULTS=60;
 export const cardPick={q:'',type:'all',selected:null};
@@ -24,7 +26,7 @@ export function cardPickMarkup(btn){
 }
 export function cardPickResults(content,{cardButton}){
  const words=cardPick.q.toLowerCase().split(/\s+/).filter(Boolean);
- const list=content.cards.filter(c=>c.id!==ANCIENT_TREASURE&&(cardPick.type==='all'||typeOf(c)===cardPick.type)&&(!words.length||words.every(w=>(c.name+' '+c.desc).toLowerCase().includes(w))));
+ const list=content.cards.filter(c=>c.id!==ANCIENT_TREASURE&&!isRandomId(c.id)&&(cardPick.type==='all'||typeOf(c)===cardPick.type)&&(!words.length||words.every(w=>(c.name+' '+c.desc).toLowerCase().includes(w))));
  // Name matches first, then alphabetical.
  const q=cardPick.q.toLowerCase();list.sort((a,b)=>(b.name.toLowerCase().includes(q)-a.name.toLowerCase().includes(q))||a.name.localeCompare(b.name));
  const shown=list.slice(0,RESULTS);

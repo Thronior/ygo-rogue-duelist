@@ -54,6 +54,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
+ if(k==='atk'&&r.parameters?.dark_magician&&(t&1)&&c.name.includes('Dark Magician'))a+=Number(r.parameters.dark_magician)||0;// Magician Staff (2026-11-16)
  if(k==='atk'&&matches)a+=n;else if(k==='def')d+=n;else if(k==='both'&&matches){a+=n;d+=n;}else if(k==='normal'&&(t&16)||k==='tribute'&&l>=5||k==='small'&&l<=3)a+=n;
 
 
@@ -72,11 +73,11 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  else if(k==='approved_ashen_nursery')a+=l<=3?700:l>=5?-700:0;
 
- else if(k==='approved_giants_oath')a+=l>=5?800:l<=4?-400:0;
+ else if(k==='approved_giants_oath')a+=l>=5?800:l<=4?-300:0;
  else if(k==='approved_commoners_chain'){const v=t&16?300:t&32?-200:0;a+=v;d+=v;}
  else if(k==='approved_zombies_bargain')a+=800;
  else if(k==='approved_warriors_vow')a+=200;
- else if(k==='approved_ritual_scar')a+=100*(run.ritual_scar_count||0)-500;
+ else if(k==='approved_ritual_scar')a+=100*(run.ritual_scar_count||0)-300;
  else if(k==='approved_fusion_fever'&&(t&64))a+=1000;
  else if(k==='variant_swordsman_oath'&&c.data.setcodes?.some(code=>(Number(code)&0xfff)===0x41))a+=400;
  else if(k==='approved_golden_grave')d-=400;

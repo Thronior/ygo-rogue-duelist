@@ -3633,8 +3633,18 @@ dialog:has(.lesson-done){overflow:hidden}
 /* Inspection window: card-text links (dotted underline only) and Add/Remove deck buttons (2026-11-16). */
 .inspect-effect .card-link{color:inherit;text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:2px;cursor:pointer}
 .inspect-effect .card-link:hover,.inspect-effect .card-link:focus-visible{text-decoration-style:solid}
-.inspect-deck-actions{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 8px}
-.inspect-deck-actions button{flex:1 1 0;min-width:max-content}
+/* Add/remove under the card art (user, 2026-11-17): − in deck/owned +. The details column spans both rows beside it. */
+.inspect.has-deck-step{grid-auto-flow:row dense;grid-template-rows:auto 1fr}
+.inspect.has-deck-step>.inspect-step+div{grid-row:span 2}
+#modal.card-inspect-modal .inspect.has-deck-step{grid-template-rows:minmax(0,max-content) minmax(min-content,1fr)}
+.inspect-step{grid-column:1;align-self:start;justify-self:center;display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;max-width:220px}
+.inspect-step-row{display:flex;align-items:center;justify-content:center;gap:6px}
+.inspect-step-row button{flex:1 1 0;min-width:36px;min-height:34px;padding:0;font-size:20px;font-weight:700;line-height:1}
+.inspect-step .inspect-mark{display:flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:2px 8px;font-size:13px;font-weight:700;color:#9fb4ba;border-color:#9fb4ba}
+.inspect-mark i{font:700 14px/1 Arial,sans-serif;font-style:normal}
+.inspect-step .inspect-mark.yes{color:#ffd76a;border-color:#ffd76a;background:#3a2a07ee;box-shadow:0 0 8px #ffd76a55}
+.inspect-step .inspect-mark.no{color:#ff8a8a;border-color:#ff6b6b;background:#3a0b0bee}
+.inspect-step b{flex:none;min-width:36px;text-align:center;font-size:15px;color:#f2dc89}
 /* Card marks in the solo deck editor (2026-11-16): round button top-left, below a MISPRINT banner; No greys the card. */
 .cardbtn .card-mark{position:absolute;top:3px;left:3px;z-index:5;width:22px;height:22px;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;font:700 12px/1 Arial,sans-serif;font-style:normal;background:#07171acc;border:1px solid #9fb4ba;color:#9fb4ba;box-shadow:0 1px 4px #000b;cursor:pointer;-webkit-line-clamp:unset;overflow:visible}
 .cardbtn .card-mark.yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 8px #ffd76a88}
@@ -3656,3 +3666,11 @@ dialog.patch-notes-modal{width:min(1100px,96vw);max-width:96vw}
 /* A locked duelist's unlock condition sits on the Start button (user, 2026-11-16), in plain readable text. */
 .start-run.start-run-unlock{font:700 15px/1.25 Arial,sans-serif;letter-spacing:0;text-transform:none;padding:6px 10px;white-space:normal;color:#ffe3ee}
 button.start-run.start-run-unlock:disabled{opacity:1!important;filter:none!important;color:#ffe3ee!important;background:#5a2a44!important;cursor:default}
+/* Room tool centre text (room-admin.js). Above every screen, never takes taps. */
+.admin-banner{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100000;max-width:min(90vw,720px);padding:14px 22px;border-radius:12px;background:rgba(10,8,20,.86);border:2px solid #d9b45a;color:#fff3cf;font-size:clamp(20px,4.5vw,40px);font-weight:700;line-height:1.25;text-align:center;text-shadow:0 2px 6px #000;pointer-events:none;white-space:pre-wrap;overflow-wrap:anywhere;animation:admin-banner-in .25s ease-out}
+.admin-banner.leaving{opacity:0;transition:opacity .4s}
+@keyframes admin-banner-in{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* "Could not start" diagnostics (2026-11-17, boot-diagnostics.js): collapsed details and a Copy details button. */
+.boot-details{width:min(560px,92vw);margin:12px auto 0;text-align:left;font-size:13px}.boot-details summary{cursor:pointer;text-align:center;color:#cfe3e8}
+.boot-details pre{margin:8px 0 0;padding:8px;max-height:32dvh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.35;background:#0b1a22cc;border:1px solid #9cb6bd55;border-radius:6px;user-select:text;-webkit-user-select:text}
+#copy-boot-details{margin-top:8px}

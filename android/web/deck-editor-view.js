@@ -7,7 +7,7 @@ import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,desele
 import {DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS,rememberDeckSort} from './deck-sort-preference.js';
 import {stacksOn,groupStacks,stackButton} from './deck-stacks.js';
 import {pagedGrid} from './deck-paging.js';
-import {cardMarkVersion,noMarksLast} from './card-marks.js';
+import {cardMarkVersion,noMarksLast,yesMarksFirst} from './card-marks.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const DECK_TYPE_TABS=['All','Monster','Spell','Trap','Extra'];
 const TYPE_BITS={Monster:1,Spell:2,Trap:4,Extra:64};
@@ -41,12 +41,13 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  order=noMarksLast(order,run,i=>pool[i]);
  // Deck first keeps the chosen sort inside each group.
  if(ed.deckStatus==='First')order=[...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))];
+ else if(ed.deckStatus==='Marked')order=yesMarksFirst(order,run,i=>pool[i]);
  ed.deckOrderKey=key;ed.deckOrder=order;return order;
 }
 
 // Type tabs, search, Deck status, Sort and Deselect. `action(label, name, attrs)` makes a button for the host UI.
 export function deckToolbar(ed,{searchKey,sorts,action,idPrefix}){
- return `<div class="draft-tabs deck-filter-row">${deckSearchButtons(searchKey,deckFiltered(ed))}${DECK_TYPE_TABS.map(t=>action(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${ed.deckFilter===t?'active':''}"`)).join('')}<select id="${idPrefix}-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([value,label])=>`<option value="${value}" ${ed.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="${idPrefix}-deck-sort" data-draft-sort aria-label="Sort cards">${sorts.map(t=>`<option value="${t}" ${ed.deckSort===t?'selected':''}>${t}</option>`).join('')}</select>${action(deselectIcon,'deselect-all','class="deck-deselect" aria-label="Deselect all" title="Deselect all"')}<span class="deck-filter-break" aria-hidden="true"></span></div>`;
+ return `<div class="draft-tabs deck-filter-row">${deckSearchButtons(searchKey,deckFiltered(ed))}${DECK_TYPE_TABS.map(t=>action(t==='Extra'?'Extra Deck':t,'deck-filter',`data-filter="${t}" class="${ed.deckFilter===t?'active':''}"`)).join('')}<select id="${idPrefix}-deck-status" data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.filter(([value])=>value!=='Marked'||!ed.isDraft).map(([value,label])=>`<option value="${value}" ${ed.deckStatus===value?'selected':''}>${label}</option>`).join('')}</select><select id="${idPrefix}-deck-sort" data-draft-sort aria-label="Sort cards">${sorts.map(t=>`<option value="${t}" ${ed.deckSort===t?'selected':''}>${t}</option>`).join('')}</select>${action(deselectIcon,'deselect-all','class="deck-deselect" aria-label="Deselect all" title="Deselect all"')}<span class="deck-filter-break" aria-hidden="true"></span></div>`;
 }
 
 // The card area: one grid, or Deck and Collection panes when the screen is wide enough.
@@ -54,9 +55,9 @@ export function deckToolbar(ed,{searchKey,sorts,action,idPrefix}){
 export function deckCardsArea(ed,order,selected,cardMarkup,stack=null){
  // Big collections draw in pages (deck-paging.js); the page count holds while the order does.
  const inDeck=new Set(selected),on=stack&&stacksOn(),page={id:'shared-editor',key:`${ed.deckPageKey??ed.deckOrderKey}|${!!on}`};
- if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;
+ if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;const counts={'deck-pane':deckSide.length,'collection-pane':rest.length};
   if(on){const a=groupStacks(deckSide,stack.run,selected,stack.limit),b=groupStacks(rest,stack.run,selected,stack.limit);deckSide=a.order;rest=b.order;markup=i=>stackButton(cardMarkup(i),a.stack(i)||b.stack(i),{...stack,pane:inDeck.has(i)?'deck':'collection'})}
-  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra',page)}</div>`}
+  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra',page,counts)}</div>`}
  let cards;if(on){const s=groupStacks(order,stack.run,selected,stack.limit);cards=pagedGrid(page.id,page.key,s.order,i=>stackButton(cardMarkup(i),s.stack(i),stack))}else cards=pagedGrid(page.id,page.key,order,cardMarkup);
  return `<div class="draft-card-scroll"><div class="cardgrid">${cards||(ed.deckFilter==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`;
 }

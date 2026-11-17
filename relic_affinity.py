@@ -76,12 +76,13 @@ def tag_partner(run):
  other=TAG_PARTNER
  if other is None or other is run or run.get('history_mode')!='tag':return None
  return dict(other,artifacts=run.get('artifacts',[]),round=run.get('round',0),loop=run.get('loop',0),history_mode='tag')
-# Card marks (user, 2026-11-16): for weighting only, a card marked Yes counts as MARK_YES_COPIES more copies in the Deck
-# (also when it isn't in it) and a card marked No counts as none (also when it is). run['card_marks'] = {id: 1 or -1}.
+# Card marks (user, 2026-11-16; changed 2026-11-17): for weighting only, a card marked Yes that is not in the Deck counts
+# as MARK_YES_COPIES copies of it; a Yes card already in the Deck counts as its usual copies, and No changes nothing
+# (it only greys the card out and sorts it last). run['card_marks'] = {id: 1 or -1}.
 MARK_YES_COPIES=2
 def deck_cards(run):
  """Counter of card ids in the run's current Deck (Main and Extra) as the weighting sees it: its selected pool indices,
- plus the run's card marks."""
+ plus the run's Yes marks on cards outside the Deck."""
  import campaign as g
  pool=run.get('pool',[]);out=Counter()
  for index in run.get('selected',[]):
@@ -90,8 +91,7 @@ def deck_cards(run):
  for key,mark in (run.get('card_marks') or {}).items():
   try:cid=int(key)
   except (TypeError,ValueError):continue
-  if mark==-1:out.pop(cid,None)
-  elif mark==1 and cid in g.BY_ID:out[cid]+=MARK_YES_COPIES
+  if mark==1 and cid in g.BY_ID and not out[cid]:out[cid]=MARK_YES_COPIES
  return out
 # Share of the card pool that earns the full multiplier. Narrow themes need fewer cards to count as a plan.
 # Lowered 30% on 2026-11-13 so each matching card adds more (an all-X deck reaches the full boost sooner).
@@ -151,7 +151,7 @@ RULES={
  **{f'attribute_{a.lower()}':((f'attr:{a}',),BROAD) for a in ('LIGHT','DARK','FIRE','WATER','WIND','EARTH')},
  'armory_aid':(('equip',),NARROW),'spiritual_retribution':(('spirit',),NARROW),'cursed_vampiric_contact':(('heal',),NARROW),'cursed_reversed_remedy':(('lp_cost','burn'),NARROW),
  # 2026-11-15 Discord relics (the Dark Magician, Blue-Eyes and Red-Eyes ones weigh as archetypes: archetype_relics.CARD_THEMES).
- 'dragon_lords_decree':(('level:7+dragon',),NARROW),'titans_charge':(('level:7+',),NARROW),'cursed_poison_of_the_old_man':(('coin',),NARROW),
+ 'dragon_lords_decree':(('level:7+dragon',),NARROW),'titans_charge':(('level:7+',),NARROW),'cursed_poison_of_the_old_man':(('coin',),NARROW),'cursed_graceful_skull_dice':(('dice',),NARROW),
 }
 # Further weight groups for relics that suit more than one kind of deck (user, 2026-11-14). Each group is weighed on its own
 # and the relic takes the strongest one: a relic in two groups is never boosted by both at once.
@@ -403,7 +403,7 @@ def category_multipliers(keys,run):
 #   50% at double that.
 # - Archetype groups (an archetype relic's card list): 25% when the archetype is the majority of the Deck's monsters (or a
 #   quarter of the minimum in cards), almost 50% for an all-archetype Deck.
-# Owning any relic of a group ends that group's chance. The shop category picked after a Duel lifts a group it shares a
+# Owning a relic only takes that relic out of its group (user, 2026-11-17); the group keeps its chance for the rest. The shop category picked after a Duel lifts a group it shares a
 # relic with to almost 90% for that stock, when the Deck fits the theme (archetype_relics.themed_picks).
 THEME_START,THEME_TOP,THEME_CATEGORY=.25,.48,.88
 # Specific themes come first (user, 2026-11-14): archetypes, then card-count themes (gambling, burn...), then the broad ones
@@ -475,7 +475,7 @@ def theme_card_lists():
 
 def theme_chances(run):
  """{theme id: (chance, [relic keys], strength, rank)} for the run's current Deck (rank: THEME_RANK, lower is more specific);
- themes with an owned relic are left out."""
+ owned relics are left out of their theme, and a theme with none left is skipped."""
  import campaign as g
  pool=deck_cards(run);total=sum(pool.values())
  if not total:return {}
@@ -499,7 +499,8 @@ def theme_chances(run):
    # Broad themes (Attributes, Types, Levels, walls, GY) top out at 25% for a Deck made only of them.
    return share
  for gid,(parts,members) in theme_groups().items():
-  if owned.intersection(members):continue
+  members=[k for k in members if k not in owned]
+  if not members:continue
   # A theme is as strong as its best-fitting part (the strongest group applies, never several at once).
   x=max(strength(kind,spec) for kind,spec in parts.values())
   p=theme_chance(x)

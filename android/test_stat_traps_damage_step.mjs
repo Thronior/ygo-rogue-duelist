@@ -18,6 +18,11 @@ same(chainWindowAllowed(ask([WALLS],ATTACK),'sometimes',[{}],ctx),true,'answerin
 same(chainWindowAllowed(ask([id('Mirror Wall')],ATTACK),'sometimes',[],ctx),true,'Mirror Wall, a Continuous Trap, keeps the attack declaration');
 same(chainWindowAllowed(ask([WALLS],ATTACK),'always',[],ctx),true,'Always is unchanged');
 same(chainWindowAllowed(ask([WALLS],DAMAGE_STEP),'never',[],ctx),false,'Never is unchanged');
+// Metalmorph (an equip that also gives 300 DEF) asks in the Damage Step too (Discord 2026-11-17); Kunai with Chain keeps
+// the attack declaration, where it can switch the attacker to Defense Position.
+same(chainWindowAllowed(ask([id('Metalmorph')],ATTACK),'sometimes',[],ctx),false,'Metalmorph waits past the attack declaration');
+same(chainWindowAllowed(ask([id('Metalmorph')],DAMAGE_STEP),'sometimes',[],ctx),true,'and is offered in the Damage Step');
+same(chainWindowAllowed(ask([id('Kunai with Chain')],DAMAGE_STEP|ATTACK),'sometimes',[],ctx)||chainWindowAllowed(ask([id('Kunai with Chain')],ATTACK),'sometimes',[],ctx),true,'Kunai with Chain still answers attacks');
 
 // The real core: Castle Walls set beside a face-down Giant Soldier of Stone, attacked by Battle Ox.
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';

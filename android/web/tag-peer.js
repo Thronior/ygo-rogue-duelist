@@ -39,8 +39,11 @@ export class TagPeer {
   if(packet.hub==='welcome'){if(packet.peer)this.announce();else if(!this.directUp)this.linkDown();return}
   if(packet.hub==='peer'){if(packet.online)this.announce();else if(!this.directUp)this.linkDown();return}
   if(packet.sig){this.signal(packet.sig);return}
+  if(packet.hub==='admin'){this.onAdmin?.(packet.action);return}
   this.frame(packet);
  }
+ // The host's answer to the room tool; the hub keeps it and never forwards it.
+ adminReport(report){try{this.hub?.send(JSON.stringify({adminReport:report}))}catch{}}
  announce(){this.hub?.send(JSON.stringify({l:this.sid,to:this.peerSid}))}
  linkDown(){if(!this.linked)return;this.linked=false;this.onState('disconnected')}
  frame(packet){

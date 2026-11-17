@@ -14,7 +14,8 @@ def ok(value,why):
  assert value,why;checks+=1
 
 A=content.ARTIFACTS
-NEW={'guardians_call':("Guardian's Call",90),'soul_fusion':('Soul Fusion',120),'gate_calling':('Gate Calling',80),'dark_lotus':('Dark Lotus',500),'ring_of_defense':('Ring of Defense',110),'ultimate_armory':('Ultimate Armory',130)}
+# Guardian's Call 90 -> 70 in the 2026-11-16 balance picks.
+NEW={'guardians_call':("Guardian's Call",70),'soul_fusion':('Soul Fusion',120),'gate_calling':('Gate Calling',80),'dark_lotus':('Dark Lotus',500),'ring_of_defense':('Ring of Defense',110),'ultimate_armory':('Ultimate Armory',130)}
 for key,(name,price) in NEW.items():ok(A[key][:2]==(name,price),f'{name} costs {price}')
 ok('Once per turn' in A['guardians_call'][2] and 'Once per turn' in A['gate_calling'][2],"Guardian's Call and Gate Calling are once per turn")
 ok('from your hand' in A['gate_calling'][2] and 'Deck' not in A['gate_calling'][2],'Gate Calling summons from the hand only')
@@ -91,7 +92,7 @@ def themed(names,artifacts=()):
  r=g.new_run(0,random.Random(1),0);ids=[g.BY_NAME[n]['id'] for n in names];r.update(pool=ids,selected=list(range(len(ids))),artifacts=list(artifacts),round=0);return r
 earthy=[c['name'] for c in g.CARDS if c['data']['type']&1 and c.get('attribute')=='EARTH' and not c['data']['type']&0x40 and not c['data'].get('setcodes')][:20]
 p=stock_chance(themed(earthy),['earth','attribute_earth']);ok(.2<p<.31,f'all-EARTH Deck: about 25% for Earth Orb or EARTH Surgery ({p:.3f})')
-p=stock_chance(themed(earthy,['earth']),['attribute_earth']);ok(p<.1,f'owning Earth Orb ends the EARTH theme ({p:.3f})')
+p=stock_chance(themed(earthy,['earth']),['attribute_earth']);ok(.2<p<.31,f'owning Earth Orb leaves EARTH Surgery its theme chance (user, 2026-11-17) ({p:.3f})')
 amz=[c['name'] for c in g.CARDS if 'Amazoness' in c['name'] and c['data']['type']&1 and not c['data']['type']&0x40]
 amz_relics=['amazoness_standard','amazoness_hunters']
 p=stock_chance(themed((amz*4)[:20]),amz_relics);ok(.4<p<.55,f'all-Amazoness Deck: almost 50% ({p:.3f})')

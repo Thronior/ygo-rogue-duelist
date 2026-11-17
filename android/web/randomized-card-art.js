@@ -100,6 +100,14 @@ export function drawRandomizedCard(canvas, card, images, fonts = {name: 'Spectra
   const [ax0, ay0, ax1, ay1] = ART, inset = 0.006, insetBottom = 0.014;
   ctx.drawImage(art, (ax0 + inset) * art.width, (ay0 + inset) * art.height, (ax1 - ax0 - 2 * inset) * art.width, (ay1 - ay0 - inset - insetBottom) * art.height,
     ax0 * W, ay0 * H, (ax1 - ax0) * W, (ay1 - ay0) * H);
+  // Rainbow frame around the art (user, 2026-11-17), so randomized cards stand out in a deck at a glance.
+  {
+    const lw = W * 0.014, rainbow = ctx.createLinearGradient(ax0 * W, ay0 * H, ax1 * W, ay1 * H);
+    ['#ff3b3b', '#ff9f1c', '#ffe03a', '#4ade50', '#2ec4f0', '#5b6cff', '#c04bff'].forEach((c, i, a) => rainbow.addColorStop(i / (a.length - 1), c));
+    ctx.save(); ctx.strokeStyle = rainbow; ctx.lineWidth = lw;
+    ctx.strokeRect(ax0 * W + lw / 2, ay0 * H + lw / 2, (ax1 - ax0) * W - lw, (ay1 - ay0) * H - lw);
+    ctx.restore();
+  }
 
   // Text box: type line for monsters, then the text, shrunk until it fits.
   const box = isMon ? TEXT : TEXT_ST;

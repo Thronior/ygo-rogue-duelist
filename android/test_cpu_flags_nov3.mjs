@@ -43,19 +43,16 @@ const at=c=>({controller:c.controller,location:c.location,sequence:c.sequence});
  same(d.auto({type:M.SELECT_CHAIN,player:1,forced:false,selects:[{...jura,description:String(BigInt(JURA)<<20n)}]}).index,null,'47f89670f3: Juragedo stays when only Defense Position monsters could take the ATK');
 }
 
-// 2. Mystic Tomato attacks into a bigger monster: it floats a DARK monster from the Deck.
+// 2. Mystic Tomato and a bigger monster. Since 2026-11-17 (user) the CPU never attacks to die on purpose, floaters
+// included: offered only Roulette Barrel (7da2c1f32f: the guarded 600-ATK monster cannot be attacked), it cancels.
 {
  const TOMATO=id('Mystic Tomato');
  const tomato=mon('Mystic Tomato',1,2,1,{attack:1800}),barrel=mon('Roulette Barrel',0,2,1,{attack:2400}),twin=mon('Twin-Barrel Dragon',0,1,1,{attack:600});
  const deck=[...filler(1,10),card('Witch of the Black Forest',L.DECK,1,10,10)];
  const e=duel({1:{[L.MZONE]:[tomato],[L.DECK]:deck},0:{[L.MZONE]:[twin,barrel]}},{phase:8,lp:[3400,5600],selectionHint:549,attacker:{player:1,sequence:2,attack:1800,code:TOMATO,controller:1,location:L.MZONE}});
- // 7da2c1f32f: the guarded 600-ATK monster cannot be attacked, so only Roulette Barrel is offered.
  const r=e.auto({type:M.SELECT_CARD,player:1,can_cancel:true,min:1,max:1,selects:[at(barrel)]});
- same(r.indicies,[0],'7da2c1f32f: Mystic Tomato goes through with the attack on Roulette Barrel');
- const policy=smartContext(e,1,L,{});
- assert(policy.suicideScore(tomato,barrel)>0,'Tomato floats');checks++;
- const dry=duel({1:{[L.MZONE]:[tomato]},0:{[L.MZONE]:[twin,barrel]}},{phase:8,lp:[3400,5600]});
- same(smartContext(dry,1,L,{}).suicideScore(tomato,barrel),0,'no DARK monster to float into: no suicide attack');
+ assert(!r.indicies?.length,'Mystic Tomato does not go through with the attack on Roulette Barrel: '+JSON.stringify(r));checks++;
+ same(smartContext(e,1,L,{}).suicideScore(tomato,barrel),0,'no suicide attacks');
 }
 
 // 3. A Hero Emerges against Asura Priest (Discord): a random Lady Ninja Yae only feeds the attacker.

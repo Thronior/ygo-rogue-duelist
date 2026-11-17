@@ -10,6 +10,7 @@ import {collectorIntroductionMarkup,collectorLanding} from './collector-introduc
 import {collectorRosterMarkup} from './collector-roster.js';
 import {validateDeck,deckCards,rankFor,LIMITS,moveSideCard} from './collector-rules.js';
 import {decode} from './tag-session.js';
+import {showAdminText} from './room-admin.js';
 import {TagDuel} from './tag-duel.js';
 import {replayVersion} from './replay-version.js';
 import {HubSocket} from './hub-socket.js';
@@ -97,6 +98,8 @@ export class CollectorUI {
  }
  if(m.t==='room'){this.nudge();return;}
  if(m.t==='emote'){if(this.room?.phase==='duel')showDuelEmote(m.emoji,m.seat===this.seat);return;}
+ // Room tool text and emotes (room-admin.js); duel changes arrive as hub events below. `side` is a room seat.
+ if(m.t==='admin'){const a=m.action||{};if(a.kind==='text')showAdminText(a.text,a.seconds);if(a.kind==='emote'&&this.room?.phase==='duel')showDuelEmote(a.emoji,(a.side??1-this.seat)===this.seat);return;}
  if(m.t==='desync'){this.resultSent=[];this.rebuild();return;}
  const log=this.duelLog;
  if(m.t==='sync'){
@@ -114,7 +117,7 @@ export class CollectorUI {
   this.hubClock(m);
   if(!log||log.game!==m.game){this.nudge();return;}
   if(m.n>log.events.length){this.hubHello();return;}
-  if(m.n===log.events.length)log.events.push({seat:m.seat,response:m.response,...(m.h===undefined?{}:{h:m.h})});
+  if(m.n===log.events.length)log.events.push({seat:m.seat,response:m.response,...(m.h===undefined?{}:{h:m.h}),...(m.admin?{admin:m.admin}:{})});
   log.confirmed=Math.max(log.confirmed,m.n+1);log.outbox.delete(m.n);
   this.enqueue(()=>this.updateDuel(this.room));return;
  }
@@ -166,7 +169,10 @@ export class CollectorUI {
  }
  async updateDuel(r){if(!this.alive||r?.phase!=='duel'||r!==this.room)return;if(!r.hub){if(!this.oldMatchNotice){this.oldMatchNotice=true;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector','<p>This match started on an older version of the game, so it cannot continue here. Reopen it on the version it started on, or surrender it from there.</p>');}return;}const key=r.code+':'+r.game,engineSeat=this.seat^r.first;let fresh=false;
  if(this.gameKey!==key||!this.game){this.game?.destroy();this.game=new TagDuel([...this.content.cards,...this.content.tokenCards]);const created=this.game;await created.init();if(!this.alive){created.destroy();return;}this.randomCards?.prepare?.(created);const setup=this.duelSetup?await this.duelSetup(r):{};if(!this.alive){created.destroy();return;}if(this.game!==created)return;this.gameKey=key;this.applied=0;this.shown=-1;const order=[r.first,1-r.first];this.game.startTag({teams:order.map(i=>[{main:r.decks[i].main,extra:r.decks[i].extra}]),lp:8000,enemyLP:8000,seed:r.seed,mode:'pvp',rules:2,names:order.map(i=>[this.content.characters[r.players[i].character].name]),...setup});fresh=true;}
- while(this.applied<r.events.length){const event=r.events[this.applied];try{this.game.respondFor(event.seat^r.first,this.applied,decode(structuredClone(event.response)));}catch(error){console.warn('Duel step refused:',error.message);if(this.applied<this.duelLog.confirmed){this.status=error.message;return;}this.rebuild();return;}this.applied++;if(event.h!==undefined&&event.h!==this.game.checksum()&&!this.splitSeen?.has(key+':'+this.applied)){(this.splitSeen??=new Set()).add(key+':'+this.applied);console.warn('Duel state split at step',this.applied);this.rebuild();return;}}
+ while(this.applied<r.events.length){const event=r.events[this.applied];
+ // A room tool change (hub.mjs MatchHub.admin) takes a step of its own, so the engine's answer count moves with it.
+ if(event.admin){try{this.game.adminApply({...event.admin,side:event.admin.side^r.first});}catch(error){console.warn('Room tool change refused:',error.message);}this.game.responseNumber++;this.applied++;continue;}
+ try{this.game.respondFor(event.seat^r.first,this.applied,decode(structuredClone(event.response)));}catch(error){console.warn('Duel step refused:',error.message);if(this.applied<this.duelLog.confirmed){this.status=error.message;return;}this.rebuild();return;}this.applied++;if(event.h!==undefined&&event.h!==this.game.checksum()&&!this.splitSeen?.has(key+':'+this.applied)){(this.splitSeen??=new Set()).add(key+':'+this.applied);console.warn('Duel state split at step',this.applied);this.rebuild();return;}}
  if(fresh||this.shown!==this.applied){const visuals=this.game.visuals.splice(0),cues=(this.restoring||fresh&&this.applied)?[]:this.game.cuesFor(engineSeat,visuals);const snap=this.game.snapshotFor(engineSeat);await this.onDuel(snap,cues);if(!this.alive)return;this.shown=this.applied;}
  if(!this.alive||this.gameKey!==key||!this.game)return;
  // Responses already carry the next actor, so the timer needs a vote only when the two disagree.

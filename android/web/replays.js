@@ -60,7 +60,7 @@ export function sendUnsentFlags(){
   for(const row of rows){try{
    if(row.bytes.byteLength>=20000)throw Error('Replay exceeds the 20 kB upload limit.');
    const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:row.bytes,signal:AbortSignal.timeout(20000)});
-   if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=quotaExhausted(response.status,detail?.error);throw error;}
+   if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=quotaExhausted(response.status,detail?.error,detail);throw error;}
    const result=await response.json();if(!result.ok||result.id!==row.id)throw Error('The service did not confirm this report.');
    await flagTransaction(store=>store.delete(row.id));sent++;
   }catch(error){errors.push(error.message);if(error.serviceUnavailable)break}}

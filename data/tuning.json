@@ -81,10 +81,10 @@
     "dragon": {
       "name": "Dragon Crest",
       "price": 70,
-      "description": "Dragon monsters you control gain 300 ATK.",
+      "description": "Dragon monsters you control gain 400 ATK/DEF.",
       "art": "Blue-Eyes White Dragon",
-      "effect": "atk",
-      "amount": 300,
+      "effect": "both",
+      "amount": 400,
       "tag": "offense",
       "filter": "Dragon",
       "parameters": {}
@@ -92,13 +92,15 @@
     "mage": {
       "name": "Magician Staff",
       "price": 70,
-      "description": "Spellcaster monsters you control gain 300 ATK.",
+      "description": "Spellcaster monsters you control gain 300 ATK. \"Dark Magician\" monsters you control gain 300 more ATK.",
       "art": "Mage Power",
       "effect": "atk",
       "amount": 300,
       "tag": "offense",
       "filter": "Spellcaster",
-      "parameters": {}
+      "parameters": {
+        "dark_magician": 300
+      }
     },
     "blade": {
       "name": "Warrior Blade",
@@ -648,7 +650,7 @@
     "legendary_shackles": {
       "name": "Legendary Shackles",
       "price": 85,
-      "description": "Adds one extra random Exodia piece to every shop and reroll.",
+      "description": "Adds one extra random Exodia piece you do not own yet to every shop and reroll. Once you own all five, it adds a random Exodia support card instead.",
       "art": "Kunai with Chain",
       "effect": "like_exodia",
       "amount": 0,
@@ -681,7 +683,7 @@
     "fusion_chamber": {
       "name": "Fusion Chamber",
       "price": 80,
-      "description": "Every shop and reroll offers one additional random Fusion Monster or Fusion support card.",
+      "description": "Every shop and reroll offers one additional random card from this pool: Fusion support cards, and Fusion Monsters you own at least one Fusion Material for.",
       "art": "Polymerization",
       "effect": "archetype_stock",
       "amount": 1,
@@ -714,13 +716,15 @@
     "glass_shard": {
       "name": "Glass Shard",
       "price": 70,
-      "description": "Your starting LP become 2,000 in each Duel, before boss LP penalties. Double your victory coin rewards.",
+      "description": "Your starting LP become 2,000 in each Duel, before boss LP penalties. Triple your victory coin rewards.",
       "art": "Gamble",
       "effect": "glass",
       "amount": 2000,
       "tag": "economy",
       "filter": "",
-      "parameters": {}
+      "parameters": {
+        "coins": 3
+      }
     },
     "deck_spyglass": {
       "name": "Deck Spyglass",
@@ -848,7 +852,7 @@
     },
     "third_gate": {
       "name": "The Third Gate",
-      "price": 135,
+      "price": 100,
       "description": "Count non-Token cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.",
       "art": "Banisher of the Light",
       "effect": "third_banish",

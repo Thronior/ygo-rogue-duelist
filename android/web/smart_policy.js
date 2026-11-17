@@ -159,6 +159,9 @@ export function smartContext(e,p,L,prompt=null){
  }
  function resourceOption(options){
   const fx=e.name(e.effect?.code),find=v=>options.findIndex(x=>BigInt(x)===BigInt(v));
+  // Vampire Lord and Vampire Lady: the opponent sends a card of the declared type from their Deck to the GY, and picks it.
+  // A Monster feeds their revival cards; declare Spell (DECLTYPE_SPELL 71), as their decks hold the most Spells (2026-11-17).
+  if(['Vampire Lord','Vampire Lady'].includes(e.name(e.effect?.code||e.resolvingChain))&&find(71)>=0&&find(70)>=0)return find(71);
   // Formation Union: equip a Union (option 1) rather than Special Summoning an equipped one.
   // Cyber Raider: take your own Equip Card rather than destroy it. Option 1 destroys, option 2 equips.
   if(fx==='Cyber Raider'){const wanted=raiderHurtsOwn()?2n:1n,index=options.findIndex(x=>(BigInt(x)&0xfn)===wanted);if(index>=0)return index;}
@@ -259,6 +262,7 @@ export function smartContext(e,p,L,prompt=null){
  const fireBonus=firePrincess?35:0;
  const umiActive=has(back,'Umi')||has(back,'A Legendary Ocean');
  const toonWorld=has(back,'Toon World');
+ const TOON_TRIBUTES={'Toon Summoned Skull':1,'Toon Dark Magician Girl':1,'Blue-Eyes Toon Dragon':2};
  const gyLight=grave.filter(c=>(e.cards.get(c.code)?.attribute)==='LIGHT'),gyDark=grave.filter(c=>(e.cards.get(c.code)?.attribute)==='DARK');
  const chaosPair=gyLight.length>0&&gyDark.length>0;
  const atkAfter=(c,bonus)=>atk(c)+bonus;
@@ -1027,6 +1031,23 @@ export function smartContext(e,p,L,prompt=null){
   if(babel===1-p&&!remedy&&burnDamage(3000)>0&&!backRemoval.has(name(c))&&name(c)!=='Giant Trunade')return Math.max(value,burnDamage(3000)>=e.lp[1-p]?100:92);
   return value;
  }
+ // Normal Monster decks (deck trace, 2026-11-17). A Normal Monster, a Trap Monster summoned "as a Normal Monster"
+ // (Swamp Mirrorer) included; never a Token.
+ function normalMonster(c){const t=data(c).type||0;return !(t&0x4000)&&((t&0x11)===0x11||c.location===L.MZONE&&!!(t&4)&&/as a Normal Monster/i.test(e.cards.get(c.code)?.desc||''));}
+ // Order to Charge's Tribute: what the Normal Monster is worth to us (a Defense Position wall keeps half its DEF),
+ // nothing when it is lost anyway (their removal aims at it, or it loses the battle it is in).
+ function chargeLost(x){if((e.activeChain||[]).some(l=>!l.inactive&&l.player!==p&&/destroy|banish|return|control/i.test(e.cards.get(l.code)?.desc||'')&&(l.targets||[]).some(t=>same(t,x))))return true;
+  const a=e.attackCard?.controller===1-p&&same(x,e.attackTarget)?enemy.find(y=>same(y,e.attackCard)):null;return !!a&&atk(a)>power(x);}
+ function chargeCost(x){return chargeLost(x)?0:Math.max(expendable(x),x.position&1?0:def(x)*.5);}
+ function chargeFodder(){return own.filter(x=>face(x)&&normalMonster(x)).sort((a,b)=>chargeCost(a)-chargeCost(b));}
+ // The monster it destroys, picked on resolution (no target, so a face-down one too): the most valuable one it can
+ // destroy, or their attacker during their battle. Not that attacker when it attacks the Tributed monster and a
+ // stronger one stands behind it: the attack is replayed anyway, and killing a 1600 Overdrive left a 2450 Pendulum
+ // Machine to attack directly (deck trace, 2026-11-17).
+ function chargePrey(c){const legal=enemy.filter(x=>removalAffects(c,x,'Order to Charge',{destroy:true,targeting:false})&&!reservedForRemoval(x)).sort((a,b)=>targetValue(b)-targetValue(a));
+  const attacker=e.player!==p&&legal.find(x=>same(x,e.attackCard));
+  if(attacker&&legal[0]&&targetValue(legal[0])>targetValue(attacker)+500&&own.some(x=>same(x,e.attackTarget)&&face(x)&&normalMonster(x)))return legal[0];
+  return attacker||legal[0]||null;}
  function activationValue(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
   if(c.code===190000050)return coinSpellValue(e,p,L);
   // Tower of Babel itself (a Continuous Trap): flip it at the first chance, since only Spells activated while it is
@@ -1152,6 +1173,54 @@ export function smartContext(e,p,L,prompt=null){
    if(e.player!==p)return attacker&&face(attacker)&&(attacker.position&1)&&!moonPending(attacker)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
    return canBattle&&enemy.some(x=>!moonPending(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>!moonPending(x)&&resetValue(x)>=65)?70:-1;
   }
+  // Order to Charge (Quick-Play): Tribute our face-up Normal Monster, destroy one of their monsters. With no rule it was
+  // Set 53 times in 50 duels and never used (deck trace, 2026-11-17). In answer to removal aimed at the Normal Monster;
+  // on their attacker when the attack costs us; on our turn for lethal or a kill worth more than the Tribute.
+  if(n==='Order to Charge'){
+   const fodder=chargeFodder(),prey=fodder.length?chargePrey(c):null;if(!prey)return -1;
+   const cost=chargeCost(fodder[0]),gain=targetValue(prey);
+   if(chain&&fodder.some(x=>chargeLost(x)&&!same(x,e.attackTarget)))return 95;
+   if(e.player!==p){
+    const stopped=e.battleProtected?.[p]||(e.activeChain||[]).some(l=>!l.inactive&&l.player===p&&attackStops.has(e.name(l.code)));
+    const attacked=chargeLost(fodder[0])&&same(fodder[0],e.attackTarget);
+    if(chain&&!stopped&&wabokuWorthUsing()&&(same(prey,e.attackCard)?chargeLost(fodder[0])||gain+1000>=cost:attacked))return 92;
+    return e.phase===0x200&&gain>=cost+800?75:-1;
+   }
+   if(canBattle&&planDamage([],[prey],[fodder[0]])>=e.lp[1-p])return 120;
+   return gain>=cost+800&&(e.phase===4||e.phase===256)?85:-1;
+  }
+  // Silent Doom: a Normal Monster from our GY in face-up Defense Position that cannot attack; never used with no rule
+  // (deck trace, 2026-11-17). A wall that cuts their next attack, the Tribute a strong Level 5-8 in hand still needs,
+  // or a body for a held Order to Charge to trade for one of theirs.
+  if(n==='Silent Doom'){
+   const pool=grave.filter(x=>normalMonster(x)&&specialOk(x));if(e.player!==p||own.length>=5||!pool.length)return -1;
+   const pick=pool.reduce((b,x)=>def(x)>def(b)?x:b),wall=def(pick);
+   const normalLeft=(prompt?.summons?.length||prompt?.monster_sets?.length)||e.normalSummonTurn?.[p]!==e.turn;
+   const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;
+   if(normalLeft&&hand.some(m=>(data(m).type&1)&&!(data(m).type&0xc0)&&need(m)===own.length+1&&(projectedAttack(m)>=1800&&projectedAttack(m)>threat||monarchHasTarget(name(m)))))return 84;
+   const now=nextTurnDamage();if(now>0&&nextTurnDamage(wall)<now)return 82;
+   // An empty field after our own Dark Hole: Mako's fresh 1400 ATK attacker took the last 1250 LP while it waited for one.
+   if(!own.length&&wall>=1500&&(enemy.length||e.lp[p]<=4000))return 78;
+   const charge=[...hand,...back].some(x=>name(x)==='Order to Charge'&&!same(x,c))&&!chargeFodder().length;
+   return charge&&enemy.some(x=>known(x)&&targetValue(x)>=Math.max(atk(pick),wall*.5)+800)?80:-1;
+  }
+  // Heart of the Underdog: a lasting draw for a deck with Normal Monsters; never used with no rule (deck trace, 2026-11-17).
+  // Its Draw Phase draw follows the deck-out guard.
+  if(n==='Heart of the Underdog'){
+   if(e.phase===1)return optionalDrawSafe(1)?80:-1;
+   // One copy: a second only burns the Deck faster and takes a Trap's zone (the generic duplicate check comes later).
+   if(back.some(x=>face(x)&&name(x)===n&&!same(x,c)))return -1;
+   const library=q(p,L.DECK),normals=library.filter(x=>(data(x).type&0x4011)===0x11).length;
+   return e.player===p&&normals>=3&&normals*5>=library.length&&myDeck>8&&back.filter(x=>x.sequence<5).length<=2?60:-1;
+  }
+  // Dust Barrier: our face-up Normal Monsters ignore their Spells until our second Standby Phase; never used with no rule
+  // (deck trace, 2026-11-17). After battle, when it guards a real monster and they show no Normal Monster that our
+  // own Spells would then miss.
+  if(n==='Dust Barrier'){
+   if(e.player!==p||canBattle&&e.phase===4||back.some(x=>face(x)&&name(x)===n&&!same(x,c)))return -1;
+   const guarded=own.filter(x=>face(x)&&normalMonster(x)).reduce((s,x)=>s+targetValue(x),0);
+   return guarded>=1500&&!enemy.some(x=>face(x)&&normalMonster(x))&&back.filter(x=>x.sequence<5).length<=3?55:-1;
+  }
   if(['Reinforcements','Rush Recklessly'].includes(n)){
    if(!chain||!e.attackCard||e.player!==p&&!(e.inDamageStep||e.phase===32||e.phase===64))return -1;
    const our=own.find(x=>same(x,e.attackCard)||same(x,e.attackTarget)),other=enemy.find(x=>same(x,e.attackCard)||same(x,e.attackTarget));
@@ -1189,7 +1258,8 @@ export function smartContext(e,p,L,prompt=null){
   if(chain&&attackStops.has(n)&&e.attackCard&&reservedForRemoval(e.attackCard))return -1;
   // Resolved protection survives CHAIN_END; do not spend another pure battle stopper.
   if(chain&&['Waboku','Threatening Roar','Negate Attack'].includes(n)&&e.battleProtected?.[p])return -1;
-  if(['Waboku','Negate Attack','Threatening Roar','Enchanted Javelin','Draining Shield'].includes(n)&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&['Negate Attack','Waboku','Threatening Roar','Draining Shield','Magic Cylinder','Mirror Force'].includes(e.name(x.code))))return -1;
+  // Order to Charge on their turn destroys the attacker (chargePrey), so a stopper on top of it is wasted (deck trace, 2026-11-17).
+  if(['Waboku','Negate Attack','Threatening Roar','Enchanted Javelin','Draining Shield'].includes(n)&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&['Negate Attack','Waboku','Threatening Roar','Draining Shield','Magic Cylinder','Mirror Force','Order to Charge'].includes(e.name(x.code))))return -1;
   // Our Enemy Controller already in this chain on the attacker stops the attack (switched to Defense or taken over):
   // a pure stopper on top is wasted (flag 7db4ef7d, 2026-11-08).
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n)&&e.attackCard&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&e.name(x.code)==='Enemy Controller'&&x.targets?.some(t=>same(t,e.attackCard))))return -1;
@@ -1379,6 +1449,19 @@ export function smartContext(e,p,L,prompt=null){
    if(chain||e.player!==p||own.length>=5)return -1;
    const pair=genesisPair();
    return pair&&projectedAttack(pair.target)>=1500&&projectedAttack(pair.target)>handLoss(pair.discard)+300?86:-1;
+  }
+  // Vampire's Curse comes back in the Standby Phase after it was destroyed by battle, for 500 LP and with +500 ATK. With no
+  // rule it passed whenever another card shared the chain window (PaniK deck trace, 2026-11-17).
+  if(n==="Vampire's Curse"&&c.location===L.GRAVE)return chain&&e.lp[p]>1500&&own.length<5?88:-1;
+  // Giant Axe Mummy turns itself face-down once per turn: a 2000 DEF wall that destroys attackers with less ATK. It never
+  // did in 150 duels (PaniK deck trace, 2026-11-17). It attacks first when it has a target, since the flip can wait for
+  // Main Phase 2; an Equip Card on it would be lost.
+  if(n==='Giant Axe Mummy'&&c.location===L.MZONE){
+   // The idle list's entry has no position: read the live card.
+   const m=own.find(x=>same(x,c))||c;
+   if(chain||e.player!==p||!face(m)||back.some(x=>same(x.equipCard||x.equip_card,m)))return -1;
+   if(e.phase===4&&prompt?.to_bp&&!openingTurn&&!attackBlocked(m,p)&&!(m.attack_count>0)&&(!enemy.length||enemy.some(t=>known(t)&&atk(m)>power(t))))return -1;
+   return 70;
   }
   // Robbin' Zombie mills a card whenever our monster deals battle damage: turn it on while we have an attacker,
   // on our turn before the attacks or at the end of theirs (2026-11-06).
@@ -1634,6 +1717,25 @@ export function smartContext(e,p,L,prompt=null){
    return preventsLethal||savesBody?120:expectedDamage+opponentBattleDamage/2>=900?90:-1;
   }
   if(n==='Mirror Wall')return chain&&e.player!==p&&danger?90:-1;
+  // Toon Defense (Continuous Trap) must be face-up before the attack is declared: its trigger cannot answer an attack that
+  // came first. It was Set 17 times in 50 duels and never flipped (deck trace, 2026-11-17). Flip it in the opponent's turn,
+  // outside an attack, while we have a face-up Level 4 or lower Toon and they have an attacker. Its trigger then turns an
+  // attack on that Toon into a direct one when the Toon would lose the battle and the hit leaves us 2000 LP or more.
+  if(n==='Toon Defense'){
+   if(!chain||e.player===p)return -1;
+   const smallToon=x=>face(x)&&(data(x).type&0x400000)&&lvl(x)<=4;
+   // The trigger's yes/no prompt carries no position: with no live Set card found, an attack in progress means the trigger.
+   const live=back.find(x=>same(x,c));
+   if(live?!face(live):!e.attackCard)return !e.attackCard&&e.phase<=8&&own.some(smallToon)&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0)?70:-1;
+   const attacker=e.attackCard?.controller===1-p?enemy.find(x=>same(x,e.attackCard)):null,defender=e.attackTarget&&own.find(x=>same(x,e.attackTarget));
+   if(!attacker||!defender||!smallToon(defender))return -1;
+   // A Set answer to the attack comes first: Toon Defense and then Mirror Wall turned a 500 reflect onto a Toon Cannon Soldier
+   // into 800 direct damage to us (deck trace, 2026-11-17).
+   if(back.some(x=>!face(x)&&['Mirror Force','Sakuretsu Armor','Mirror Wall','Negate Attack','Magic Cylinder','Waboku','Draining Shield','Dimension Wall','Spellbinding Circle'].includes(name(x))))return -1;
+   const hit=combatPower(attacker,defender),guard=defender.position&1?atk(defender):def(defender);
+   const loses=!resilient(defender,attacker)&&(hit>guard||(defender.position&1)&&hit===guard&&hit>0);
+   return loses&&e.lp[p]-battleDamage(combatPower(attacker),1-p)>=2000?90:-1;
+  }
   // Mask of Weakness (-700 ATK) on an attack: only when the cut changes the battle (the defender survives or
   // wins) or stops lethal damage. Copies already on the chain count; a lost cause keeps the card.
   if(n==='Mask of Weakness'){
@@ -2032,11 +2134,11 @@ export function smartContext(e,p,L,prompt=null){
   return (only?[only]:e.aiModifiers?.statRelics?.[side]||[]).reduce((sum,r)=>{
    const a=r.amount||0,k=r.effect||'atk',match=!r.filter||r.filter===statRace(c)||r.filter?.split('/').includes(statRace(c))||statRace(c)==='Beast-Warrior'&&['Warrior','Beast'].includes(r.filter)||attributes.has(String(r.filter).toUpperCase());let v=0;
    switch(k){
-    case 'atk':case 'both':v=match?a:0;break;
+    case 'atk':case 'both':v=match?a:0;if(k==='atk'&&r.parameters?.dark_magician&&name(c).includes('Dark Magician'))v+=Number(r.parameters.dark_magician)||0;break;
     case 'small':v=level<=3?a:0;break;
     case 'normal':v=is(0x10)?a:0;break;case 'tribute':v=level>=5?a:0;break;
     case 'empty_hand':v=handAfter===0?a:0;break;case 'solo':v=field.length===1?a:0;break;
-    case 'archetype_atk':{const set=Number(r.filter),member=x=>setMatch(x,set)||(set===0x1a&&name(x)==='Don Zaloog');v=member(c)?a*[...field,...q(1-side,L.MZONE)].filter(x=>face(x)&&member(x)).length:0;break;}
+    case 'archetype_atk':{const set=Number(r.filter),member=x=>setMatch(x,set)||(set===0x1a&&name(x)==='Don Zaloog');v=member(c)?a*([...field,...q(1-side,L.MZONE)].filter(x=>face(x)&&member(x)).length+(set===0x1a?q(side,L.GRAVE).filter(x=>(data(x).type&1)&&member(x)).length:0)):0;break;}
     case 'diversity':v=Math.min(r.parameters?.cap??500,new Set(field.filter(face).map(race)).size*a);break;
     case 'normal_grave':v=Math.min(r.parameters?.cap??600,monsters(L.GRAVE).filter(x=>data(x).type&0x10).length*a);break;
     case 'eclipse':v=['LIGHT','DARK'].every(at=>monsters(L.GRAVE).some(x=>hasAttribute(x,at)))?a:0;break;
@@ -2046,13 +2148,13 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=300;break;
     case 'approved_zombies_bargain':v=800;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
     case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
-    case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_reckless_spear':v=-1000;break;
+    case 'approved_trap_weaver':v=is(0x100)?400:0;break;case 'approved_reckless_spear':v=-700;break;
     case 'approved_twin_banner':v=field.length===2&&field.some(x=>face(x)&&race(x)!==race(c))?200:0;break;
-    case 'approved_ashen_nursery':v=level<=3?700:level>=5?-700:0;break;case 'approved_giants_oath':v=level>=5?800:level<=4?-400:0;break;
+    case 'approved_ashen_nursery':v=level<=3?700:level>=5?-700:0;break;case 'approved_giants_oath':v=level>=5?800:level<=4?-300:0;break;
     case 'approved_commoners_chain':v=is(0x10)?300:is(0x20)?-200:0;break;
-    case 'approved_ritual_scar':v=100*(e.aiModifiers?.ritualScar||0)-500;break;case 'approved_fusion_fever':v=is(0x40)?1000:0;break;
+    case 'approved_ritual_scar':v=100*(e.aiModifiers?.ritualScar||0)-300;break;case 'approved_fusion_fever':v=is(0x40)?1000:0;break;
     case 'approved_empty_hand_pact':v=handAfter===0?1000:0;break;
-    case 'approved_solitary_tyrant':v=field.length===1?400:-500;break;
+    case 'approved_solitary_tyrant':v=field.length===1?600:-400;break;
     case 'approved_crowded_crypt':v=Math.min(750,75*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_nocturnal_guard':v=e.player===side?-300:0;break;
     case 'approved_anime_rule_3':v=q(side,L.SZONE).some(x=>x.sequence===5&&face(x))?0:-1000;break;
@@ -2106,7 +2208,7 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
   if(n==='Spirit Reaper')return !reaperDirectReady(c);
   if(n==='Dancing Fairy')return openingTurn||prompt?.to_bp===false||attackBlocked(c,p,true)||projectedAttack(c)<=threat;
   if(data(c).type&0x200&&!(back.some(x=>enabled(x)&&name(x)==='Spiritual Energy Settle Machine'))&&(e.turn===1||prompt?.to_bp===false||battleLocked))return true;
-  return !!(data(c).type&0x200000)||['Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts','Blast Sphere','Kiseitai','Nimble Momonga','Newdoria','Greenkappa','Hane-Hane','Needle Worm','Cyber Jar','4-Starred Ladybug of Doom','Slate Warrior'].includes(n);}
+  return !!(data(c).type&0x200000)||['Guardian Sphinx','Swarm of Scarabs','Swarm of Locusts','Blast Sphere','Kiseitai','Nimble Momonga','Newdoria','Greenkappa','Hane-Hane','Needle Worm','Cyber Jar','4-Starred Ladybug of Doom','Slate Warrior','Sangan','Witch of the Black Forest'].includes(n);}
  function scientistRemovalTargets(){
   return enemy.filter(c=>face(c)&&!c.is_immune&&!reservedForRemoval(c)&&
    !/cannot be targeted by (?:card|monster) effects|unaffected by (?:other )?monster effects/i.test(e.cards.get(c.code)?.desc||'')&&
@@ -2209,7 +2311,7 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
    if(n==='Thestalos the Firestorm Monarch')return q(1-p,L.HAND).length>0;
    return false;
   }
-  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;/* Gigantes and The Rock Spirit come from the hand for a Graveyard EARTH monster: a free blocker on an empty field against their attackers; only attackers were Special Summoned, so Gigantes stayed in hand under a 2700 + 1900 attack (deck trace, 2026-11-17). */if((n==='Gigantes'||n==='The Rock Spirit')&&c.location===L.HAND&&!own.length&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0))return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;/* Toon Mermaid comes from the hand for free beside Toon World and attacks directly from next turn while they have no Toon. With only 1400 ATK it never passed the attacker check and sat in hand on empty fields, a Toon Summoned Skull and a Blue-Eyes Toon Dragon waiting for a Tribute beside it (deck trace, 2026-11-17). */if(n==='Toon Mermaid'&&c.location===L.HAND&&toonWorld&&own.length<5&&!attackBlocked(c,p,true)&&!enemy.some(x=>face(x)&&(data(x).type&0x400000)))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -2244,7 +2346,34 @@ if(!effectsEnabled(p))return 0;
   if(n==='Lava Golem'){if(enemy.length<2)return false;const answer=own.some(x=>face(x)&&atk(x)>=3000)||hand.some(x=>['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break','Raigeki','Dark Hole','Change of Heart','Snatch Steal'].includes(name(x)));if(e.lp[1-p]<=3000||answer)return true;return false;}
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return false;
   if((n==='Toon Mermaid'||n==='Blue-Eyes Toon Dragon')&&!toonWorld)return false;
+  if(TOON_TRIBUTES[n]&&c.location===L.HAND&&!toonTributeOk(c))return false;
   return true;}
+ // Toon Summoned Skull and Toon Dark Magician Girl Tribute 1 monster to come out from the hand, Blue-Eyes Toon Dragon 2; the
+ // cheapest go first (see the Release rule in targetScore). Only a real upgrade is worth the card: on turn 1 the CPU turned Toon
+ // Goblin Attack Force into Toon Summoned Skull, that Skull into a second Skull and the second into Toon Dark Magician Girl, ending
+ // with one 2000 ATK monster (deck trace, 2026-11-17). Skull and Blue-Eyes cannot attack the turn they arrive, so in Main Phase 1
+ // they wait for Main Phase 2 while a Tribute can still attack: Toon Gemini Elf lost a 1900 direct attack that way.
+ function toonTributeOk(c){
+  const need=TOON_TRIBUTES[name(c)];if(!toonWorld)return false;
+  const pool=own.filter(x=>!(effectsEnabled(p)&&name(x)==='Relinquished')).sort((a,b)=>expendable(a)-tributeAdj(a)-expendable(b)+tributeAdj(b));
+  if(pool.length<need)return false;
+  // A borrowed or locked Tribute (Change of Heart, Spellbinding Circle) costs nothing.
+  const paid=pool.slice(0,need),newAtk=projectedAttack(c),cost=paid.reduce((n,x)=>n+(borrowedMonster(x)||attackBlocked(x,p)?0:expendable(x)),0);
+  const battleAhead=e.player===p&&e.phase===4&&!!prompt?.to_bp,enemyToon=enemy.some(t=>face(t)&&(data(t).type&0x400000));
+  // Toons cannot attack the turn they are summoned (STATUS_SUMMON_TURN, FLIP_SUMMON_TURN, SPSUMMON_TURN); Toon Dark Magician Girl
+  // only after a Normal Summon, which she never gets.
+  const fresh=x=>(data(x).type&0x400000)&&name(x)!=='Toon Dark Magician Girl'&&!!((x.status||0)&0x60000800);
+  const canHit=x=>face(x)&&(x.position&1)&&atk(x)>0&&!fresh(x)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,p)&&((data(x).type&0x400000)&&!enemyToon||!enemy.length||enemy.some(t=>known(t)&&atk(x)>power(t)));
+  if(name(c)==='Toon Dark Magician Girl'){
+   // She attacks the turn she arrives: a Toon Summoned Skull that cannot attack yet is fair trade for 2000 direct damage now.
+   if(newAtk>cost)return true;
+   return battleAhead&&!enemyToon&&!paid.some(canHit)&&newAtk+500>=cost;
+  }
+  // Blue-Eyes Toon Dragon is judged per Tribute, as tributeWorth judges a Tribute Summon: summing both kept it in hand for a
+  // Toon Mermaid and a Toon Goblin Attack Force, and the 3000 ATK body won those duels.
+  if(need===1?newAtk<=cost:paid.some(x=>!borrowedMonster(x)&&!attackBlocked(x,p)&&expendable(x)>=newAtk))return false;
+  return !battleAhead||!paid.some(canHit);
+ }
  // handSize lets the idle planner ask about the hand left after this turn's other plays.
  function cyberJarFlipUseful(handSize=hand.length){
   if(myDeck<=8)return false;
@@ -2531,14 +2660,10 @@ if(!effectsEnabled(p))return 0;
   if(pierce(a)&&t&&!(t.position&1))s+=Math.max(0,atk(a)-((t.defense??e.data[t.code]?.defense)??0));
   if(n==='Newdoria'&&dmg<=0&&t&&power(t)>atk(a))s+=50;
   return s;}
- // Battle floaters: destroyed by battle, they Special Summon a 1500-or-less ATK monster of this Attribute from the Deck.
- const battleFloaters={'Mystic Tomato':'DARK','Giant Rat':'EARTH','Shining Angel':'LIGHT','Mother Grizzly':'WATER','Flying Kamakiri #1':'WIND','UFO Turtle':'FIRE'};
- function suicideScore(a,target=null){const n=name(a),floatAttr=battleFloaters[n];if(!floatAttr&&!['Witch of the Black Forest','Sangan'].includes(n))return 0;
-  if(!enabled(a)||!effectsEnabled(p)||e.lp[p]<=2000||q(p,L.DECK).length<=3||[...own,...enemy].some(x=>enabled(x)&&name(x)==='Banisher of the Light'))return 0;
-  if(floatAttr&&!q(p,L.DECK).some(x=>(data(x).type&1)&&hasAttribute(x,floatAttr)&&atk(x)<=1500))return 0;
-  // Baou negates what it destroys, so dying to its holder finds nothing.
-  const baou=x=>[...back,...theirBack].some(y=>enabled(y)&&name(y)==='Wicked-Breaking Flamberge - Baou'&&same(y.equipCard||y.equip_card,x));
-  return (target?[target]:enemy).some(x=>face(x)&&(x.position&1)&&power(x)>atk(a)&&power(x)<=atk(a)+1500&&!baou(x))?800:0;}
+ // The CPU never attacks into a stronger monster to die on purpose (user, 2026-11-17): not Sangan or Witch of the
+ // Black Forest (Set in Defense Position instead, preferSet), and not the battle floaters (Mystic Tomato, Giant Rat...).
+ // Kept as a stub so the battle code's callers stay the same.
+ function suicideScore(){return 0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
   if(borrowedMonster(c))return 1000000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
@@ -2670,6 +2795,14 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(fxN==='Mobius the Frost Monarch')return cand.controller!==p?20000+backValue(cand):-1000000000;
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
   if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
+  // Order to Charge Tributes our cheapest Normal Monster (the generic pick took our strongest) and destroys the monster
+  // its rule judged; Silent Doom revives our best wall (deck trace, 2026-11-17).
+  if(fxN==='Order to Charge'&&cand.location===L.MZONE){
+   if(cand.controller===p){const live=own.find(x=>same(x,cand))||cand;return chargeFodder().some(x=>same(x,live))?50000-chargeCost(live):-1000000000;}
+   const live=enemy.find(x=>same(x,cand))||cand,prey=chargePrey(source||{code:cand.code,controller:p});
+   return (same(live,prey)?100000:0)+20000+targetValue(live);
+  }
+  if(fxN==='Silent Doom')return cand.controller===p&&cand.location===L.GRAVE&&normalMonster(cand)&&specialOk(cand)?30000+def(cand):-1000000000;
   if(['Change of Heart','Brain Control'].includes(fxN))return cand.controller!==p?temporaryControlValue(enemy.find(x=>same(x,cand))||cand,fxN):-1000000000;
   if(fxN==='Snatch Steal'){
    if(cand.controller===p||!snatchStealWorthy(cand))return -1000000000;
@@ -2773,6 +2906,11 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(/Bubonic Vermin/.test(fxN||''))return cand.controller===p&&cand.location===L.DECK&&nm==='Bubonic Vermin'&&optionalMillSafe()?100000:-100000;
   if(/Creature Swap/.test(fxN||'')){if(cand.controller===p)return nm==='The Bistro Butcher'?100000:(data(cand).type&0x200)?50000:-expendable(cand);return 10000+atk(cand);}
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
+  // A summoning procedure's own Tribute (Toon Summoned Skull, Toon Dark Magician Girl, Blue-Eyes Toon Dragon) comes as a plain
+  // card selection with the Release hint and no effect. It fell to the highest-ATK default and Tributed a 1900 ATK Toon Gemini Elf
+  // over a 1400 ATK Toon Cannon Soldier (deck trace, 2026-11-17): score it as a Tribute Summon's Tribute is scored.
+  // No effect is resolving: the name comes through as '#undefined', so test the code.
+  if(!e.effect?.code&&e.selectionHint===500&&cand.controller===p&&cand.location===L.MZONE){const live=own.find(x=>same(x,cand))||cand;return -expendable(live)+(data(live).type&0x4000?5000:0)+tributeAdj(live);}
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};

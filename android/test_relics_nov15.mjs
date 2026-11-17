@@ -57,6 +57,19 @@ async function bond(artifacts){
 const bonded=await bond(['magicians_bond','cursed_conscription_drum']);console.log("Magician's Bond",bonded);
 same(bonded,{summoned:2,added:1,asked:1},'one card that mentions "Dark Magician" is added, once per turn');
 same((await bond(['cursed_conscription_drum'])).added,0,'without the relic nothing is added');
+// Special Summons count too (2026-11-16 balance picks): Monster Reborn brings Dark Magician back from the GY.
+const REBORN=id('Monster Reborn');
+async function rebornBond(artifacts){
+ let before=null,asked=0;const play=steps([[I.SELECT_ACTIVATE,REBORN,'activates']]);
+ const e=await duel({script:runScript(artifacts)+'\n'+setup([[DM,'grave'],[REBORN,'hand']]),deck:deckOf([DM,REBORN,KNIVES,KNIVES,KNIVES]),enemy:fill(WABOKU),drive(e,m){
+  if(m.player===0&&m.type===M.SELECT_IDLECMD&&before===null)before=count(e,0,L.HAND,KNIVES);
+  if(m.player===0&&m.type===M.SELECT_YESNO)asked++;
+  return play(e,m)}});
+ const out={revived:count(e,0,L.MZONE,DM),added:count(e,0,L.HAND,KNIVES)+count(e,0,L.GRAVE,KNIVES)-before,asked};e.destroy();return out;
+}
+const rebonded=await rebornBond(['magicians_bond']);console.log("Magician's Bond (Special Summon)",rebonded);
+same(rebonded,{revived:1,added:1,asked:1},'a Special Summoned Dark Magician also adds a card that mentions it');
+same((await rebornBond([])).added,0,'without the relic Monster Reborn adds nothing');
 
 // Blue-Eyes Radiance: 3 Blue-Eyes White Dragon from the hand bring Blue-Eyes Shining Dragon from the Deck; it survives the
 // player's own Dark Hole that turn, but not two turns later. Once per turn: the second Shining Dragon is not offered.

@@ -56,7 +56,9 @@ def pick_card(run,cid):
  import campaign as g
  cid=int(cid)
  if run.get('card_picks',0)<=0:raise ValueError('No Card Picker choice is waiting.')
- if cid not in g.BY_ID or cid==ANCIENT_TREASURE:raise ValueError('That card cannot be chosen.')
+ # Randomized cards are run-only and never offered by the picker (user, Nov 17); refuse them here too.
+ import random_cards
+ if cid not in g.BY_ID or cid==ANCIENT_TREASURE or random_cards.is_random(cid):raise ValueError('That card cannot be chosen.')
  run['card_picks']-=1;run['pool'].append(cid);run['purchased']=run.get('purchased',0)+1
  return cid
 

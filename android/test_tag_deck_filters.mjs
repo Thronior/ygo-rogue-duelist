@@ -27,7 +27,7 @@ ui.resetDeckFilters();
 assert.deepEqual([ui.deckFilter,ui.deckSort,ui.deckStatus,searches['tag-deck']],['All','Newest','First',undefined]);
 
 assert.equal(ui.deckStatus,'First','Deck first is the default');
-assert.deepEqual(DECK_STATUS_OPTIONS.map(([value])=>value),['Any','In','Out','First']);
+assert.deepEqual(DECK_STATUS_OPTIONS.map(([value])=>value),['Any','In','Out','First','Marked'],'Marked first (user, 2026-11-17)');
 assert.doesNotMatch(deckSearchButtons('tag-deck',false),/effect-search-clear/,'no × when nothing is filtered');
 assert.match(deckSearchButtons('tag-deck',true),/data-effect-search-clear="tag-deck"/,'× when only tab, sort or status is changed');
 TagUI.prototype.render=render;

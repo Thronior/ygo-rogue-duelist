@@ -1,6 +1,6 @@
 import {clearDuelEmotes} from './duel-emotes.js';
 import {roomCodeControl} from './room-code.js';
-import {draftCharacterSelect} from './draft-character-select.js';
+import {draftCharacterSelect,draftBlocked} from './draft-character-select.js';
 import {CollectorUI} from './collector-ui.js';
 import {ownedBefore} from './pack-opening.js';
 import {validateDraftDeck,randomAllowance,isRandomId} from './collector-rules.js';
@@ -23,7 +23,7 @@ const button=(label,action,attrs='')=>`<button data-collector="${action}" ${attr
 // `draft:4` (2026-11-16) builds Random Pack boosters from the room's seeds and plays second loadouts.
 const DRAFT_PROTOCOL=4,NO_RELICS_KEY='ygo-draft-no-relics';
 export class DraftUI extends CollectorUI {
- constructor(options){super({...options,validateDeck:validateDraftDeck});this.isDraft=true;this.storageKey='ygo-draft-session-v1';this.python=options.backend;this.installHold();this.deckFilter='All';try{this.noRelics=localStorage.getItem(NO_RELICS_KEY)==='1';}catch{this.noRelics=false;}this.deckSort=savedDeckSort(DRAFT_DECK_SORTS);this.deckStatus=savedDeckStatus();this.deckSplit=0;
+ constructor(options){super({...options,validateDeck:validateDraftDeck});this.isDraft=true;this.storageKey='ygo-draft-session-v1';this.python=options.backend;this.installHold();this.deckFilter='All';try{this.noRelics=localStorage.getItem(NO_RELICS_KEY)==='1';}catch{this.noRelics=false;}this.deckSort=savedDeckSort(DRAFT_DECK_SORTS);this.deckStatus=savedDeckStatus();if(this.deckStatus==='Marked')this.deckStatus='First';this.deckSplit=0;
   if(typeof window!=='undefined'){let timer=0;this.onResize=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(this.alive&&this.mode==='editor')this.checkDeckSplit()},200)};window.addEventListener('resize',this.onResize,{passive:true})}
   // The Main Deck minimum grows 20 → 30 → 40 with each draft (draft-pool.mjs minDeckFor).
   this.validateDeck=(deck,pool,cards)=>validateDraftDeck(deck,pool,cards,this.minDeck(),this.randomOk());
@@ -34,7 +34,8 @@ export class DraftUI extends CollectorUI {
  // Random Pack cards follow the Worker's rule: one copy each, from this seat's own boosters.
  randomOk(){const seat=this.seat??-1,count=this.room?.players?.[seat]?.random?.length||0;return seat>=0?randomAllowance(seat,count):null;}
  // Second loadout (2026-11-16): unlocked like in solo and Tag (Challenge LVL 2 or LVL -1); Randomizer included.
- variantFor(character){return this.content.characters[character]?.alternate&&alternateUnlocked(this.profile,character)?(this.variants?.[character]||0):0;}
+ // Copycat starts on its Randomizer, the only loadout Draft allows for it.
+ variantFor(character){const c=this.content.characters[character];return c?.alternate&&alternateUnlocked(this.profile,character)?(this.variants?.[character]??(c.copycat?1:0)):0;}
  save(){localStorage.setItem(this.storageKey,JSON.stringify(this.duelist));}
  resetSelection(){this.closeHub();this.duelLog=null;this.hubInfo=null;clearTimeout(this.timer);clearInterval(this.countdown);this.closePacks?.();this.closePacks=null;this.game?.destroy();this.game=null;this.gameKey=null;this.room=null;this.duelist=null;this.draft=null;this.status='';this.session.connected=false;this.session.code='';localStorage.removeItem(this.storageKey);document.getElementById('collector-reconnect-timer')?.remove();document.getElementById('collector-turn-timer')?.remove();this.drawTurnTimer();this.mode='characters';this.view={phase:'characters'};this.onView(this.view);this.render();}
  paired(room=this.room,now=Date.now()+(this.serverOffset||0)){return this.session.connected&&room?.players.length===2&&room.seen?.every(t=>now-t<15000);}
@@ -154,9 +155,10 @@ export class DraftUI extends CollectorUI {
   if(action==='help'){this.dialog('Draft Duels','<p>Choose a character, open their four starting boosters and build a deck of at least 20 cards. After each duel both players draft: the loser picks one relic and one character pack (two boosters) first, then the winner. The minimum deck grows to 30, then 40 cards. Relics are active in every later duel. First to 3 wins takes the match; if both agree, play on to 6, 9 and more. Maximum three copies by card name, no banned list or siding, 8,000 LP each.</p><p>The host can tick No relics: the Draft Screen then offers character packs only, and every duel is played without relics.</p>');return;}
   if(action==='no-relics'){this.noRelics=!!el.checked;try{localStorage.setItem(NO_RELICS_KEY,this.noRelics?'1':'0');}catch{}return;}
   if(action==='select-character'){this.selectedCharacter=+el.dataset.character;this.render();return;}
-  if(action==='choose-variant'){const c=this.selectedCharacter??this.content.playable[0];if(!alternateUnlocked(this.profile,c))return;this.variants={...this.variants,[c]:+el.dataset.variant?1:0};this.render();return;}
+  if(action==='choose-variant'){const c=this.selectedCharacter??this.content.playable[0];if(!alternateUnlocked(this.profile,c)||draftBlocked(this.content.characters[c],+el.dataset.variant?1:0))return;this.variants={...this.variants,[c]:+el.dataset.variant?1:0};this.render();return;}
   if(action==='draft-host'||action==='draft-join'){
    const character=this.selectedCharacter??this.content.playable[0];
+   if(draftBlocked(this.content.characters[character],this.variantFor(character)))throw Error('This loadout is not available in Draft Duels.');
    this.duelist={id:crypto.randomUUID(),token:crypto.randomUUID()+crypto.randomUUID(),character,variant:this.variantFor(character),name:this.content.characters[character].name,pool:[],deck:{main:[],side:[],extra:[]}};this.save();
    await this.sync(await this.api('register',{duelist:this.duelist}));
    if(action==='draft-join'){this.mode='join';this.render();return;}

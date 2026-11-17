@@ -30,7 +30,7 @@ for(const [key,text] of Object.entries(scripts)){e.start(Array(40).fill(OX),Arra
  const c=(name,seq)=>({code:id(name),attack:data[id(name)].attack,defense:data[id(name)].defense,position:1,controller:0,location:L.MZONE,sequence:seq});
  const ox=c('Battle Ox',0),mag=c('Dark Magician',1);d.query=(side,loc)=>side===0&&loc===L.MZONE?[ox,mag,null,null,null]:[];d.core={duelQueryCount:()=>0};
  const s=smartContext(d,0,L),a=s.statSources(ox,0),b=s.statSources(mag,0);
- same(a.relics,[{key:'cursed_reckless_spear',atk:-1000,def:0}],'only the relic that applies');
+ same(a.relics,[{key:'cursed_reckless_spear',atk:-700,def:0}],'only the relic that applies');
  same(b.relics.map(x=>x.key),['cursed_reckless_spear','mage'],'a Spellcaster also gets the Spellcaster relic');
  same(a.curses,[{key:'frailty',atk:-200,def:0}],'curses are listed separately');
  same(d.aiModifiers.activeCurses,['frailty'],'and the curse list is left as it was');

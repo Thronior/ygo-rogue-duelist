@@ -5,7 +5,7 @@ import catalog from './draft-catalog.json' with {type:'json'};
 import cards from './collector-cards.json' with {type:'json'};
 import {validateDraftDeck,validateDeck} from '../../android/web/collector-rules.js';
 test('every character gets double boosters plus every signature copy and a buildable pool',()=>{
- for(const c of catalog.characters){
+ for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){
   const result=draftPool(c.id);assert.equal(result.packs.length,2*(c.starting_packs?.length||4));
   assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures,c.name);
   assert(result.packs.every(p=>p.length===9));

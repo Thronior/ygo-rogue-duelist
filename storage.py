@@ -135,11 +135,12 @@ def run_slots():
 
 def archive_run(run):
  """Compact terminal summary, saved before a lost slot is cleared. Upsert per loop."""
+ # Randomized cards (ids 191,000,000-200,999,999) live only in their run save, so history keeps real cards only (Nov 17).
  if not isinstance(run,dict) or run.get('stage') not in ('complete','gameover'):return
  stable=run.get('history_id') or hashlib.sha256(encoded([run.get('started_at'),run.get('character'),run.get('_save_slot'),run.get('packs',[])])).hexdigest()[:24]
  run['history_id']=stable;key=stable+':'+str(run.get('loop',0))
  row={k:run.get(k) for k in ('character','challenge_level','round','loop','lp','gold','started_at','finished_at','stats','loss','artifacts','encore_won','unlocks_earned','content_unlocks_earned')}
- row.update(id=key,cursed_artifacts=run.get('cursed_artifacts'),secret_challenge=run.get('secret_challenge'),deck=[run['pool'][i] for i in run.get('selected',[]) if 0<=i<len(run.get('pool',[]))],mode=run.get('history_mode','solo'),partner=run.get('history_partner'),result='complete' if run.get('round',0)>=9 or run.get('stage')=='complete' else 'lost',timeline=[x for x in run.get('timeline',[]) if x.get('loop',1)==run.get('loop',0)+1])
+ row.update(id=key,cursed_artifacts=run.get('cursed_artifacts'),secret_challenge=run.get('secret_challenge'),deck=[cid for cid in (run['pool'][i] for i in run.get('selected',[]) if 0<=i<len(run.get('pool',[]))) if not 191_000_000<=cid<201_000_000],mode=run.get('history_mode','solo'),partner=run.get('history_partner'),result='complete' if run.get('round',0)>=9 or run.get('stage')=='complete' else 'lost',timeline=[x for x in run.get('timeline',[]) if x.get('loop',1)==run.get('loop',0)+1])
  p=profile();rows=p.setdefault('run_history',[])
  old=next((i for i,x in enumerate(rows) if x.get('id')==key),None)
  if old is not None:

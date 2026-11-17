@@ -28,3 +28,17 @@ Tests: `npm test` here, then with a local `wrangler dev --port 8799`: `android/t
 Current clients use `/v2/...` for tag rooms and the relay, `/v2/draft/...` and `/v2/collector/...`. Older clients call `/v1/...`, `/draft/...` and `/collector/...`. `LEGACY_MULTIPLAYER` in `wrangler.jsonc` decides whether those older clients may still play online: `allow`, or `block` (also the behaviour when the value is missing), which answers 426 "update to keep playing multiplayer" without touching a Durable Object. `/progress/` (device sync) and `/backup/` stay unversioned for every version, and the statistics and replay Workers are separate.
 
 Release order when online play changes version: deploy this Worker with `allow`, publish the web, itch and Android clients, then set `block`, deploy again and check that `/health` reports `legacyClients: blocked` and `POST /v1/poll` returns 426. `tools/refresh_fallen_collectors.py` tries `/v2/collector/fallen` first and falls back to the legacy path on a Worker that predates it. Already-open old tabs keep retrying refused calls until they reload; each retry still counts as a Worker request but no longer reaches a Durable Object. The gate itself takes effect at once, but a busy Durable Object can keep running the previous code for a few minutes after a deploy (about five minutes for the room registry on 2026-10-26), so re-check `/v2/relay` before calling a deploy verified.
+
+## Room tool route
+
+`POST /v3/admin` (`admin.mjs`) serves the local developer tool in `tools/room-admin`.
+
+- It needs `Authorization: Bearer <ADMIN_TOKEN>`. `ADMIN_TOKEN` is a Worker secret, and its only local copy is the
+  ignored `.admin-token`. Without the secret the route answers 401.
+- Tag rooms: the action goes to `TagHub`, which sends it to both seats. The host applies duel changes as a shared
+  duel-log entry and run changes through `tag-admin`. It then reports back with an `adminReport` frame, which the hub
+  stores and never forwards.
+- Draft rooms: `DraftRegistry` changes pool cards and relics itself. `MatchHub` adds duel changes to the event list
+  (seat -1) and broadcasts text and emotes.
+- Tests: `admin.test.mjs`, `android/test_room_admin.mjs` and `tools/test_tag_room_admin.py`.
+- Deploy: this Worker goes out before the clients. Then set the secret once, on stdin (see `tools/room-admin/README.md`).

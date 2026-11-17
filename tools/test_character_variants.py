@@ -18,6 +18,9 @@ for k,row in v.VARIANTS.items():
  alt=v.loadout(c.CHARACTERS,i,1,p);assert alt['name']==c.CHARACTERS[i]['name']
  if basechar.get('random_packs'):
   assert not alt.get('starting_packs')
+ elif row.get('randomized'):
+  # Copycat's Randomizer starts with 4 Random Packs instead of a character pack (v0.2.35).
+  assert alt['starting_packs']==['RANDOM-PACK']*4
  else:
   assert len(alt['starting_packs'])==4
   assert alt['starting_packs'][:2]==[basechar['pack']]*2

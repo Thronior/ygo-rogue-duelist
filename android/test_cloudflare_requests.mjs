@@ -11,14 +11,20 @@ let clock=Date.UTC(2026,10,11,12,0,0);const realNow=Date.now;Date.now=()=>clock;
 const calls=[];let reply=()=>new Response('{}');
 globalThis.fetch=async(url,options={})=>{calls.push({url:String(url),options});return reply(String(url),options)};
 
-// 1. Quota pause: until the next 00:00 UTC plus up to 30 minutes.
+// 1. Quota pause: 30 to 60 minutes, or until just after the 00:00 UTC reset if that is sooner (2026-11-16).
 const quota=await import('./web/quota-pause.js');
 assert.equal(quota.nextUtcMidnight(Date.UTC(2026,10,11,23,59)),Date.UTC(2026,10,12));
 assert(quota.quotaExhausted(503)&&quota.quotaExhausted(429)&&quota.quotaExhausted(400,'Exceeded allowed rows written')&&quota.quotaExhausted(503,'')&&!quota.quotaExhausted(400,'Too many requests. Try again in a minute.'));
-const until=quota.pauseForQuota('demo',{now:clock,random:()=>.5});assert.equal(until,Date.UTC(2026,10,12)+900000);
+// The Worker's own 503s say whether the day's limit was hit; a passing outage never pauses.
+assert(quota.quotaExhausted(503,'x',{serverLimit:true})&&!quota.quotaExhausted(503,'The online servers are not responding.',{serverLimit:false}));
+const until=quota.pauseForQuota('demo',{now:clock,random:()=>.5});assert.equal(until,Math.min(Date.UTC(2026,10,12)+900000,clock+2700000));
 assert.equal(quota.quotaPausedUntil('demo',{now:clock}),until);assert.equal(quota.quotaPausedUntil('demo',{now:until}),0);
+const late=Date.UTC(2026,10,11,23,50);assert.equal(quota.pauseForQuota('demo',{now:late,random:()=>.5}),Date.UTC(2026,10,12)+900000,'just before midnight: the reset comes first');
 quota.clearQuotaPause('demo');assert.equal(quota.quotaPausedUntil('demo',{now:clock}),0);
+// A pause from an older version (until the next midnight, hours away) is dropped.
+localStorage.setItem('ygo-quota-pause-v1',JSON.stringify({demo:clock+5*3600000}));assert.equal(quota.quotaPausedUntil('demo',{now:clock}),0);quota.clearQuotaPause('demo');
 
+const quotaState=()=>quota.quotaPausedUntil('backup',{now:clock});
 // 4. Cloud save: unchanged progress is not re-sent, even after a restart or when only play time moved; no .bak files.
 const backup=await import('./web/device-backup.js');
 const server=[];let status=200,timers=[];
@@ -34,10 +40,11 @@ statsExtra(160);clock+=60000;client.queue(JSON.stringify(saves));await client.fl
 client.destroy();client=make();clock+=60000;client.queue(JSON.stringify(saves));await client.flush();assert.equal(server.length,1,'a restart does not force an upload');
 saves['run.bak']='{"round":2}';clock+=60000;client.queue(JSON.stringify(saves));await client.flush();assert.equal(server.length,1,'.bak changes alone are not sent');
 saves['run.json']='{"round":3}';clock+=60000;client.queue(JSON.stringify(saves));await client.flush();assert.equal(server.length,2,'a real change (a duel) is sent');
-// Out of quota: the next attempts wait for the daily reset without a request.
+// Out of quota: the next attempts wait 30 to 60 minutes without a request, then try again (2026-11-16: on Workers
+// Paid the servers can be back long before midnight). A success clears the pause.
 status=503;saves['run.json']='{"round":4}';clock+=60000;client.queue(JSON.stringify(saves));await client.flush();assert.equal(server.length,3);
-status=200;clock+=60000;await client.flush();clock+=3600000;await client.flush();assert.equal(server.length,3,'paused');assert(timers.at(-1)<=3600000);
-clock=Date.UTC(2026,10,13,0,40);await client.flush();assert.equal(server.length,4,'sent after the reset');client.destroy();
+status=200;clock+=60000;await client.flush();assert.equal(server.length,3,'paused');assert(timers.at(-1)<=3600000);
+clock+=3600000;await client.flush();assert.equal(server.length,4,'tried again within the hour');assert.equal(quotaState(),0,'pause cleared');client.destroy();
 
 // 5. Replays and flags go as text/plain (no preflight).
 const replays=await import('./web/replays.js');const sent=[];
@@ -46,4 +53,4 @@ await replays.sendReplayBatch([{bytes}],async(url,options)=>{sent.push(options.h
 assert.equal(sent[0],'text/plain;charset=UTF-8');
 
 Date.now=realNow;
-console.log('PASS quota pause until 00:00 UTC, cloud save skips play-time-only/.bak-only/restart re-sends and pauses on quota, text/plain uploads');
+console.log('PASS quota pause for 30-60 min (or until 00:00 UTC), outages that are not the limit never pause, cloud save skips play-time-only/.bak-only/restart re-sends and pauses on quota, text/plain uploads');

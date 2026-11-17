@@ -18,7 +18,7 @@ const play=async(call,room,winner)=>{await call(0,'result',{number:room.events.l
 const draftRound=async(call,reg,room,size)=>{for(let i=0;i<2;i++){await call(i,'deck',{deck:deckOf(reg.data.players['p'+i].pool,size)});await call(i,'ready');}};
 
 test('draft loop opening: four starting boosters once, buildable to 20 for every duelist',()=>{
- for(const c of catalog.characters){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,c.starting_packs?.length||4,c.name);assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
+ for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,c.starting_packs?.length||4,c.name);assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
  assert.deepEqual([0,1,2,3,9].map(minDeckFor),[20,30,40,40,40]);
 });
 

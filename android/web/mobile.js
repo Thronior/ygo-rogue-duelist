@@ -54,6 +54,7 @@ import {cloudSettingsMarkup,cloudCodeMarkup,cloudRestoreMarkup,cloudFoundMarkup,
 import {characterEntrance,cancelCharacterEntrance} from './character-entrance.js';
 
 import {decorateEffectTargets,pulseRelic,relicAskArt,negateCard,deckReadyFeedback,cardPlace} from './selection-feedback.js';
+import {compactLifeBursts} from './lp-cue-burst.js';
 
 import {configureCounterAudio,stopCounterAudio,purchaseCoins,stopPurchaseCoins} from './counter-audio.js';
 
@@ -105,7 +106,7 @@ function cloudSaveNotice(){
 import {checkAndroidUpdate,startupAndroidUpdate} from './android-update.js';
 
 import {showNetStatus,hideNetStatus} from './net-status.js';
-import {collectorResponseOverlay,automaticChainResponse,chainWindowAllowed,liveCardFacts,waitForTossStart,mandatoryChainResponse,revealInPick} from './duel-presentation.js';
+import {collectorResponseOverlay,automaticChainResponse,chainWindowAllowed,liveCardFacts,waitForTossStart,mandatoryChainResponse,revealInPick,relicTriggerIndex} from './duel-presentation.js';
 import {smartContext} from './smart_policy.js';
 
 import {playlists,bossTheme} from './music-config.js';
@@ -117,11 +118,11 @@ import {balancedVolume,resumeBalancedAudio,preloadSoundEffects,setMasterVolume,s
 import {searches as deckSearches} from './card-search.js';
 import {cardTextHtml,linkSearch} from './card-links.js';
 import {pagedGrid} from './deck-paging.js';
-import {cardMark,nextMark,cardMarkVersion,markTile,paintMarks,onMarkTap} from './card-marks.js';
+import {MARKS,cardMark,nextMark,cardMarkVersion,markTile,paintMarks,onMarkTap,yesMarksFirst} from './card-marks.js';
 import {openPatchNotes,maybeShowNewPatchNotes} from './patch-notes.js';
 import {savedDeckSort,savedDeckStatus,rememberDeckSort,DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS} from './deck-sort-preference.js';
 
-import {rankFor} from './collector-rules.js';
+import {rankFor,isRandomId} from './collector-rules.js';
 
 import {CollectorUI} from './collector-ui.js';
 
@@ -177,6 +178,9 @@ import {cardImages,preloadCards} from './card-assets.js';
 import {RANDOM_PACK,RANDOM_PACK_TEXT,setupRandomCards,syncRandomCards,prepareEngine,drawRandomCards,needsDrawing,drawInBackground,hatLoading,addDraftRandomCards} from './random-cards.js';
 
 import {loadPyodide} from './pyodide/pyodide.mjs';
+import {checkStdlib,stderrTail,details as bootDetails,startupRetried,clearRetry,retryOnce,copyText} from './boot-diagnostics.js';
+// Startup stage and Python diagnostics for the "Could not start" screen (boot-diagnostics.js).
+let bootDiag=null;
 
 import {MobileDuel,M,R,I,B,L,P} from './duel.js';
 import {LANGUAGES,savedLanguage,browserLanguage,setLanguage,attachContent,currentLanguage,flagSvg} from './i18n.js';
@@ -573,7 +577,7 @@ async function offerGoldenCards(){
 
 }
 
-function inspect(id,poolIndex=null){let c=card(id);if(!c)return;playUISound('inspect-open');if(screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const live=engine?.query(p,loc)?.[seq];if(live?.code===c.id&&(p===0||live.position&5))c=liveCardFacts(c,live,content.cards);}const mod=poolIndex===null?null:state.run?.card_mods?.[poolIndex];const previous=modal.open?{nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent}:null;if(poolIndex!==null)c=modifiedCard(c,state.run,poolIndex);dialog(c.name,`<div class="inspect"><img src="${image(id)}"><div>${cardFacts(c)}<p class="copy-count">${(inspectDeckRun()?.pool||[]).filter(x=>x===Number(id)).length} owned · ${(inspectDeckRun()?.selected||[]).filter(i=>inspectDeckRun().pool[i]===Number(id)).length} in deck</p>${inspectDeck()?`<div class="inspect-deck-actions" data-inspect-deck="${id}" data-pool-index="${poolIndex??""}"></div>`:""}${liveCardDetails(Number(id))}${mod?'<p class="badges">Faulty Printer: this copy has modified stats, Type, or Attribute.</p>':''}<h4>Effect / card text</h4><p class="inspect-effect" data-no-i18n>${cardTextHtml(displayCardText(c.desc),content,!!cardLinkSearchKey())}</p>${(screen==='draft'||tagUI?.view?.phase==='draft')&&state.run?.artifacts.filter(x=>x==='golden_sleeve').length>(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).length&&!(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).includes(Number(id))&&state.run.selected.some(i=>state.run.pool[i]===Number(id))?btn('Permanently designate golden card','golden-card',`data-code="${id}"`):''}</div></div>`);inspectParent=previous;fillInspectDeck();setupInspectTabs(id,screen==='collection'&&collectionKind==='cards'||screen==='draft'||screen==='tag'&&tagUI?.tab==='deck');}
+function inspect(id,poolIndex=null){let c=card(id);if(!c)return;playUISound('inspect-open');if(screen==='duel'&&previewLocation){const [p,loc,seq]=previewLocation;const live=engine?.query(p,loc)?.[seq];if(live?.code===c.id&&(p===0||live.position&5))c=liveCardFacts(c,live,content.cards);}const mod=poolIndex===null?null:state.run?.card_mods?.[poolIndex];const previous=modal.open?{nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent}:null;if(poolIndex!==null)c=modifiedCard(c,state.run,poolIndex);const deckStep=inspectDeck();dialog(c.name,`<div class="inspect${deckStep?' has-deck-step':''}"><img src="${image(id)}">${deckStep?`<span class="inspect-step inspect-deck-actions" data-inspect-deck="${id}" data-pool-index="${poolIndex??""}"></span>`:''}<div>${cardFacts(c)}<p class="copy-count"${deckStep?' hidden':''}>${(inspectDeckRun()?.pool||[]).filter(x=>x===Number(id)).length} owned · ${(inspectDeckRun()?.selected||[]).filter(i=>inspectDeckRun().pool[i]===Number(id)).length} in deck</p>${liveCardDetails(Number(id))}${mod?'<p class="badges">Faulty Printer: this copy has modified stats, Type, or Attribute.</p>':''}<h4>Effect / card text</h4><p class="inspect-effect" data-no-i18n>${cardTextHtml(displayCardText(c.desc),content,!!cardLinkSearchKey())}</p>${(screen==='draft'||tagUI?.view?.phase==='draft')&&state.run?.artifacts.filter(x=>x==='golden_sleeve').length>(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).length&&!(state.run.golden_cards||[state.run.golden_card].filter(Boolean)).includes(Number(id))&&state.run.selected.some(i=>state.run.pool[i]===Number(id))?btn('Permanently designate golden card','golden-card',`data-code="${id}"`):''}</div></div>`);inspectParent=previous;fillInspectDeck();setupInspectTabs(id,screen==='collection'&&collectionKind==='cards'||screen==='draft'||screen==='tag'&&tagUI?.tab==='deck');}
 
 let previewLocation=null;
 
@@ -592,11 +596,20 @@ function fillInspectDeck(){
  const box=modal.querySelector('.inspect-deck-actions');if(!box)return;const ctx=inspectDeck();if(!ctx){box.remove();return}
  const id=Number(box.dataset.inspectDeck),r=ctx.run,inDeck=new Set(r.selected),copies=r.pool.map((x,i)=>x===id?i:-1).filter(i=>i>=0);
  const ins=copies.filter(i=>inDeck.has(i)).length,limit=copyLimit(r),canAdd=copies.length>ins&&!(limit!=null&&ins>=limit);
- box.innerHTML=`<button type="button" data-inspect-deck-do="add" ${canAdd?'':'disabled'}>Add to deck</button><button type="button" data-inspect-deck-do="remove" ${ins?'':'disabled'}>Remove from deck</button>`;
+ // Under the card art (user, 2026-11-17): − in deck/owned +, like the Related Cards tab.
+ // The card's mark (card-marks.js) below it (user, 2026-11-17); a tap cycles it like the tile's button.
+ const [cls,sym,label]=MARKS[cardMark(r,id)],mark=`<button type="button" class="inspect-mark ${cls}" data-inspect-mark="${id}" aria-label="${label}" title="${label}"><i>${sym}</i><span>${label}</span></button>`;
+ box.innerHTML=`<span class="inspect-step-row"><button type="button" data-inspect-deck-do="remove" aria-label="Remove from deck" title="Remove from deck" ${ins?'':'disabled'}>−</button><b aria-label="${ins} in deck, ${copies.length} owned">${ins}/${copies.length}</b><button type="button" data-inspect-deck-do="add" aria-label="Add to deck" title="Add to deck" ${canAdd?'':'disabled'}>+</button></span>${mark}`;
  const count=modal.querySelector('.copy-count');if(count)count.textContent=`${copies.length} owned · ${ins} in deck`;
 }
 const cardLinkSearchKey=()=>screen==='draft'&&state.run?'draft':screen==='collection'&&collectionKind==='cards'?'collection':screen==='tag'&&tagUI?.tab==='deck'&&tagUI.view?.run?'tag-deck':null;
 document.addEventListener('click',async e=>{
+ const mk=e.target.closest('[data-inspect-mark]');
+ if(mk){
+  const el={dataset:{cardMark:mk.dataset.inspectMark}};mk.disabled=true;
+  try{if(screen==='draft')await cycleMark(el);else if(screen==='tag')await tagUI?.cycleMark(el)}finally{fillInspectDeck()}
+  return;
+ }
  const b=e.target.closest('[data-inspect-deck-do]');
  if(b){
   const box=b.closest('.inspect-deck-actions'),ctx=inspectDeck();if(!box||!ctx||b.disabled)return;
@@ -617,7 +630,7 @@ document.addEventListener('click',async e=>{
 function setupInspectTabs(id,withSources){
 
  const details=modal.querySelector('.inspect');if(!details)return;
- const related=relatedCards(relatedIndex(content.cards,content.archetypes),id),relatedTotal=relatedCount(related);
+ const related=relatedCards(relatedIndex(collectionCards(),content.archetypes),id),relatedTotal=relatedCount(related);
  if(!withSources&&!relatedTotal)return;
 
  const tabs=document.createElement('nav'),panels=[details];details.id='collection-details-panel';
@@ -637,7 +650,7 @@ function setupInspectTabs(id,withSources){
  const select=index=>{panels.forEach((p,i)=>p.hidden=i!==index);buttons.forEach((button,i)=>{button.setAttribute('aria-selected',String(i===index));button.tabIndex=i===index?0:-1;});modal.scrollTop=0;
 
   if(panels[index]===sources&&!loading){loading=true;void showCollectionSources(id,sources);}
-  if(panels[index]===relatedPanel)mountRelated(relatedPanel,id,{cards:content.cards,archetypes:content.archetypes,card,image,inspect,deck:relatedDeck,error:e=>toast(e.message)});
+  if(panels[index]===relatedPanel)mountRelated(relatedPanel,id,{cards:collectionCards(),archetypes:content.archetypes,card,image,inspect,deck:relatedDeck,error:e=>toast(e.message)});
 
  };
 
@@ -922,7 +935,7 @@ const draftFiltered=()=>draftTab!=='All'||draftSort!=='Newest'||draftDeck!=='Fir
 // After a duel only the type tab and the search reset; the reset button (all) also restores the default Sort and Deck status.
 function resetDraftFilters(all=true){draftTab='All';delete deckSearches.draft;if(all){draftSort=DEFAULT_DECK_SORT;draftDeck=DEFAULT_DECK_STATUS;rememberDeckSort({sort:draftSort,status:draftDeck})}}
 // Deck first keeps the chosen sort inside each group.
-function draftOrder(pool,selected){const order=draftSorted(pool,selected);if(draftDeck!=='First')return order;const inDeck=new Set(selected);return [...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))]}
+function draftOrder(pool,selected){const order=draftSorted(pool,selected);if(draftDeck==='Marked')return yesMarksFirst(order,state.run,i=>pool[i]);if(draftDeck!=='First')return order;const inDeck=new Set(selected);return [...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))]}
 // The sorted order is cached until a filter, the sort, the pool, relics or misprints change, so a tap on a 9,000-card
 // collection doesn't sort it all again (Nori, 2026-11-16).
 let draftSortCache=null;
@@ -950,7 +963,7 @@ function splitDeckPanes(r){
  const deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i));
  if(!stacksOn())return splitDeckMarkup(deckSide,rest,i=>draftCard(r,i),draftTab==='Extra',draftPage(r));
  const a=groupStacks(deckSide,r,r.selected,copyLimit(r)),b=groupStacks(rest,r,r.selected,copyLimit(r));
- return splitDeckMarkup(a.order,b.order,i=>stackButton(draftCard(r,i),a.stack(i)||b.stack(i),{attr:'data-pick',pane:inDeck.has(i)?'deck':'collection'}),draftTab==='Extra',draftPage(r));
+ return splitDeckMarkup(a.order,b.order,i=>stackButton(draftCard(r,i),a.stack(i)||b.stack(i),{attr:'data-pick',pane:inDeck.has(i)?'deck':'collection'}),draftTab==='Extra',draftPage(r),{'deck-pane':deckSide.length,'collection-pane':rest.length});
 }
 function checkDraftSplit(){
  if(screen!=='draft'){draftSplit=0;return}
@@ -1089,8 +1102,12 @@ function registeredCard(id){if(registeredSource!==state.registeredCards){registe
 
 // Starter decks first, then Structure Decks, each oldest first.
 const collectionDecks=()=>[...(content.preconstructedDecks||[])].sort((a,b)=>a.name.includes('Structure')-b.name.includes('Structure')||a.date.localeCompare(b.date));
-function renderCollection(){if(collectionKind==='achievements'){renderAchievements();return;}if(collectionKind==='collectors'){void renderCollectorLeaderboard();return;}if(['personal','global','characters'].includes(collectionKind))collectionKind='cards';if(collectionKind==='history'){renderRunHistory();return}let rows=collectionKind==='cards'?content.cards.map(c=>({id:c.id,name:c.name,img:image(c.id)})):collectionKind==='packs'?[...content.packs.map(p=>({id:p.id,name:p.name,img:'assets/packs/'+p.id+'.jpg'})),...collectionDecks().map(d=>({id:'deck:'+d.id,name:d.name,img:'assets/decks/'+d.art+'.jpg'}))]:Object.entries(content.artifacts).filter(([id])=>!(content.retiredArtifacts||[]).includes(id)&&(!(content.fusedRelics||[]).includes(id)||(state.profile?.fused_relics||[]).includes(id))).map(([id,r])=>({id,name:r[0],img:relicImage(content.artifactInfo[id].art)}));if(collectionKind==='packs'){loadFavouritePacks(state.settings?.favoritePacks);if(collectionFavouritePacks)rows=rows.filter(r=>isFavouritePack(r.id));rows=favouritesFirst(rows,r=>r.id)}rows=rows.filter(r=>(r.name+' '+(collectionKind==='cards'?card(r.id).desc:'')).toLowerCase().includes(collectionQuery.toLowerCase())&&(collectionKind!=='cards'||matchesFilters(card(r.id),collectionType,collectionAttribute,'Any effect')&&matchesSearch(card(r.id),'collection')));if(collectionKind==='cards'&&collectionRegistration!=='All cards')rows=rows.filter(r=>registeredCard(r.id)===(collectionRegistration==='Registered'));if(collectionKind==='cards')rows.sort((a,b)=>(collectionSort==='Default'?0:collectionSort==='Name'?a.name.localeCompare(b.name):collectionSort==='ATK'?(card(b.id).atk||0)-(card(a.id).atk||0):collectionSort==='DEF'?(card(b.id).defense||0)-(card(a.id).defense||0):(card(b.id).level||0)-(card(a.id).level||0)||(card(b.id).atk||0)-(card(a.id).atk||0))||frameLevelName(card(a.id),card(b.id)));// Ties keep the Default order, so Spells and Traps no longer mix (Discord, 2026-11-16).
-if(collectionKind==='relics')rows=sortRelicCollection(rows,content.artifacts);const pages=Math.max(1,Math.ceil(rows.length/36));collectionPage=Math.min(collectionPage,pages-1);shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k===collectionKind?'primary':'')).join('')}<input id="collection-search" placeholder="Search collection" value="${esc(collectionQuery)}">${btn('Search','collection-search')}${collectionKind==='packs'?btn('<span aria-hidden="true">★</span> <span>Favourites</span>','collection-favourite-packs',`aria-pressed="${collectionFavouritePacks}"`,collectionFavouritePacks?'primary':''):''}${collectionKind==='cards'?searchButton('collection')+collectionFilters()+`<label>Sort<select data-collection-sort>${['Default','Name','ATK','DEF','Level'].map(v=>`<option value="${v}" ${v===collectionSort?'selected':''}>${v}</option>`).join('')}</select></label><label>Registration<select data-collection-filter="registration">${['All cards','Registered','Missing'].map(x=>`<option value="${x}" ${x===collectionRegistration?'selected':''}>${x}</option>`).join('')}</select></label><small class="registration-progress">${content.cards.filter(c=>registeredCard(c.id)).length} / ${content.cards.length} registered</small>`:''}</div><div class="scroll cardgrid">${collectionKind==='packs'&&collectionFavouritePacks&&!rows.length?'<p class="collection-empty">No favourite packs yet. Tap ☆ on a pack here or in the shop.</p>':''}${rows.slice(collectionPage*36,(collectionPage+1)*36).map((r,index)=>`${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind)?`<h2 class="relic-group-heading">${r.relicKind}</h2>`:''}${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind||rows[collectionPage*36+index-1].effectGroup!==r.effectGroup)?`<h3 class="relic-group-heading">${r.effectGroup}</h3>`:''}${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?`<div class="collection-pack${isFavouritePack(r.id)?' favourite-pack':''}">`:''}<button class="cardbtn ${collectionKind==='cards'&&registeredCard(r.id)?'card-registered':''}" ${collectionKind==='cards'?`data-inspect="${r.id}"`:`data-do="collection-item" data-id="${r.id}"`}>${collectionKind==='relics'?`<div class="collection-relic-art">${relicArtwork(r.img)}</div>`:`<img loading="lazy" src="${r.img}">`}<span>${esc(r.name)}</span></button>${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?packStar(r.id,r.name,'collection-pack-fav')+'</div>':''}`).join('')}</div><footer>${btn('Previous','collection-prev',collectionPage?'':'disabled')} ${rows.length} entries · ${collectionPage+1} / ${pages} ${btn('Next','collection-next',collectionPage+1<pages?'':'disabled')}</footer>`)}
+// Collection › Cards lists real cards only: a run's randomized cards are not part of the game's collection (Discord, 2026-11-17).
+// Cached per content.cards array and length, so Related Cards keeps its index (related-cards.js caches by list).
+let collectionCache=null;
+const collectionCards=()=>{const all=content.cards;if(collectionCache?.all!==all||collectionCache.n!==all.length)collectionCache={all,n:all.length,list:all.filter(c=>!isRandomId(c.id))};return collectionCache.list};
+function renderCollection(){if(collectionKind==='achievements'){renderAchievements();return;}if(collectionKind==='collectors'){void renderCollectorLeaderboard();return;}if(['personal','global','characters'].includes(collectionKind))collectionKind='cards';if(collectionKind==='history'){renderRunHistory();return}let rows=collectionKind==='cards'?collectionCards().map(c=>({id:c.id,name:c.name,img:image(c.id)})):collectionKind==='packs'?[...content.packs.map(p=>({id:p.id,name:p.name,img:'assets/packs/'+p.id+'.jpg'})),...collectionDecks().map(d=>({id:'deck:'+d.id,name:d.name,img:'assets/decks/'+d.art+'.jpg'}))]:Object.entries(content.artifacts).filter(([id])=>!(content.retiredArtifacts||[]).includes(id)&&(!(content.fusedRelics||[]).includes(id)||(state.profile?.fused_relics||[]).includes(id))).map(([id,r])=>({id,name:r[0],img:relicImage(content.artifactInfo[id].art)}));if(collectionKind==='packs'){loadFavouritePacks(state.settings?.favoritePacks);if(collectionFavouritePacks)rows=rows.filter(r=>isFavouritePack(r.id));rows=favouritesFirst(rows,r=>r.id)}rows=rows.filter(r=>(r.name+' '+(collectionKind==='cards'?card(r.id).desc:'')).toLowerCase().includes(collectionQuery.toLowerCase())&&(collectionKind!=='cards'||matchesFilters(card(r.id),collectionType,collectionAttribute,'Any effect')&&matchesSearch(card(r.id),'collection')));if(collectionKind==='cards'&&collectionRegistration!=='All cards')rows=rows.filter(r=>registeredCard(r.id)===(collectionRegistration==='Registered'));if(collectionKind==='cards')rows.sort((a,b)=>(collectionSort==='Default'?0:collectionSort==='Name'?a.name.localeCompare(b.name):collectionSort==='ATK'?(card(b.id).atk||0)-(card(a.id).atk||0):collectionSort==='DEF'?(card(b.id).defense||0)-(card(a.id).defense||0):(card(b.id).level||0)-(card(a.id).level||0)||(card(b.id).atk||0)-(card(a.id).atk||0))||frameLevelName(card(a.id),card(b.id)));// Ties keep the Default order, so Spells and Traps no longer mix (Discord, 2026-11-16).
+if(collectionKind==='relics')rows=sortRelicCollection(rows,content.artifacts,content.fusedRelics);const pages=Math.max(1,Math.ceil(rows.length/36));collectionPage=Math.min(collectionPage,pages-1);shell('Collection',`<div class="collection-nav">${COLLECTION_TABS.map(([k,label])=>btn(label,'collection-kind',`data-kind="${k}"`,k===collectionKind?'primary':'')).join('')}<input id="collection-search" placeholder="Search collection" value="${esc(collectionQuery)}">${btn('Search','collection-search')}${collectionKind==='packs'?btn('<span aria-hidden="true">★</span> <span>Favourites</span>','collection-favourite-packs',`aria-pressed="${collectionFavouritePacks}"`,collectionFavouritePacks?'primary':''):''}${collectionKind==='cards'?searchButton('collection')+collectionFilters()+`<label>Sort<select data-collection-sort>${['Default','Name','ATK','DEF','Level'].map(v=>`<option value="${v}" ${v===collectionSort?'selected':''}>${v}</option>`).join('')}</select></label><label>Registration<select data-collection-filter="registration">${['All cards','Registered','Missing'].map(x=>`<option value="${x}" ${x===collectionRegistration?'selected':''}>${x}</option>`).join('')}</select></label><small class="registration-progress">${collectionCards().filter(c=>registeredCard(c.id)).length} / ${collectionCards().length} registered</small>`:''}</div><div class="scroll cardgrid">${collectionKind==='packs'&&collectionFavouritePacks&&!rows.length?'<p class="collection-empty">No favourite packs yet. Tap ☆ on a pack here or in the shop.</p>':''}${rows.slice(collectionPage*36,(collectionPage+1)*36).map((r,index)=>`${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind)?`<h2 class="relic-group-heading">${r.relicKind}</h2>`:''}${collectionKind==='relics'&&(index===0||rows[collectionPage*36+index-1].relicKind!==r.relicKind||rows[collectionPage*36+index-1].effectGroup!==r.effectGroup)?`<h3 class="relic-group-heading">${r.effectGroup}</h3>`:''}${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?`<div class="collection-pack${isFavouritePack(r.id)?' favourite-pack':''}">`:''}<button class="cardbtn ${collectionKind==='cards'&&registeredCard(r.id)?'card-registered':''}" ${collectionKind==='cards'?`data-inspect="${r.id}"`:`data-do="collection-item" data-id="${r.id}"`}>${collectionKind==='relics'?`<div class="collection-relic-art">${relicArtwork(r.img)}</div>`:`<img loading="lazy" src="${r.img}">`}<span>${esc(r.name)}</span></button>${collectionKind==='packs'&&!String(r.id).startsWith('deck:')?packStar(r.id,r.name,'collection-pack-fav')+'</div>':''}`).join('')}</div><footer>${btn('Previous','collection-prev',collectionPage?'':'disabled')} ${rows.length} entries · ${collectionPage+1} / ${pages} ${btn('Next','collection-next',collectionPage+1<pages?'':'disabled')}</footer>`)}
 
 let tutorialPage=0,tutorialReturn="title";
 
@@ -1220,7 +1237,7 @@ function variantUnlockMarkup(r){const base=content.characters[r.character],alt=b
 // A past run, from its history row. Older rows have no deck, so a win's card leaves it out.
 function showRunCard(row){
  const c=content.characters[row.character];if(!c)return;
- const deck=row.deck||[],run={...row,stage:row.result==='complete'?'complete':'gameover',pool:deck,selected:deck.map((_,i)=>i)};
+ const deck=(row.deck||[]).filter(id=>card(id)),run={...row,stage:row.result==='complete'?'complete':'gameover',pool:deck,selected:deck.map((_,i)=>i)};
  viewedRun=run;dialog('',`<div class="run-card-dialog">${runCardMarkup()}</div>`);modal.classList.add('run-card-modal');
  const canvas=modal.querySelector('.run-card-canvas');
  mountRunCard(canvas,run,{content,character:c,card,cardImage:image,relicImage,assetURL,finalChallengeName}).then(()=>{if(canvas.isConnected)modal.querySelectorAll('.run-card-copy').forEach(b=>b.disabled=false)}).catch(e=>{console.error(e);const s=modal.querySelector('.run-card-status');if(s)s.textContent='The run summary image could not be drawn.'});
@@ -1655,7 +1672,7 @@ function trackMotion(owner,...effects){
 }
 
 async function playDuelCues(playerAction=false,answered=false){
- const presentationOwner=engine,cues=engine.visuals.splice(0),fusionCue=cues.find(c=>c.kind==='fusion-summon'),legendaryShown=new Set(),quick=playerAction&&!!state.settings?.fasterAnimations;
+ const presentationOwner=engine,cues=compactLifeBursts(engine.visuals.splice(0)),fusionCue=cues.find(c=>c.kind==='fusion-summon'),legendaryShown=new Set(),quick=playerAction&&!!state.settings?.fasterAnimations;
  // A summon plays over the board, so the prompt the player just answered leaves first.
  if(fusionCue||answered&&cues.some(c=>c.kind==='summon'||c.kind==='signature-summon')){for(const prompt of document.querySelectorAll('.duel-main .selection-dialog,.duel-main .field-selection,.duel-main .return-prompt,.duel-main .reaction-prompt,.duel-main .field-reaction,.duel-main .reaction-picker,.duel-main .reaction-orb,.duel-main>.prompt'))prompt.remove();}
  const merged=new Set();
@@ -1696,7 +1713,7 @@ async function playDuelCue(cue,{field,playerAction,quick=false,owner,legendarySh
  }
  if(cue.kind==='lethal-hit'){
   // One impact: the damage that follows lands now, with a single heavy shake and its number.
-  const hit=next.find(c=>c.kind==='lp'&&c.player===cue.player);if(hit)merged.add(hit);
+  const hit=next.find(c=>c.kind==='lp'&&c.player===cue.player&&c.amount<0)||next.find(c=>c.kind==='lp'&&c.player===cue.player);if(hit)merged.add(hit);
   const life=document.querySelector(cue.player===1?'.life.enemy .life-value, .life.enemy strong':'.life .life-value, .life strong');
   if(hit)playLifeCue(hit,{field,owner,motion,lethal:true});else duelSfx.cue(cue);
   if(life&&!reduced){
@@ -2132,7 +2149,7 @@ function releaseHeldAlwaysChain(e){
  if(screen==='duel'&&!busy&&!heldChainPrompt){renderDuel();scheduleAI();}
 }
 
-function scheduleAI(){clearTimeout(aiTimer);if(duelEnding)return;if(lesson)return scheduleLesson();if(inspectionPaused())return;const pending=engine?.pending;const manualWindow=pending?.type===M.SELECT_CHAIN&&pending.player===0&&engine.player!==0&&!pending.forced&&!offerChain(pending)&&pending.selects?.some(c=>(c.controller??c.player)===0&&[L.HAND,L.MZONE,L.SZONE,L.GRAVE,L.REMOVED].includes(c.location));if(manualWindow){if(manualChainPrompt!==pending){clearTimeout(manualChainTimer);manualChainPrompt=pending;manualChainTimer=setTimeout(()=>{if(engine?.pending===pending&&!heldChainPrompt){manualChainPrompt=null;manualChainTimer=0;respond({type:R.SELECT_CHAIN,index:null})}},Math.max(0,Math.min(2000,Number(state?.settings?.manualResponseWindow??200)||0)))}return;}clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;const automatic=automaticChainResponse(engine?.pending,!offerChain(engine?.pending),M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,!offerChain(pending),M,R);if(current)respond(current)}},50);return;}const placed=screen==='duel'&&autoPlacement(engine?.pending);if(placed&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel')respond(placed)},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.duelReady)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;markCpuDue(pending);aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?50:120)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
+function scheduleAI(){clearTimeout(aiTimer);if(duelEnding)return;if(lesson)return scheduleLesson();if(inspectionPaused())return;const pending=engine?.pending;const manualWindow=pending?.type===M.SELECT_CHAIN&&pending.player===0&&engine.player!==0&&!pending.forced&&relicTriggerIndex(pending)<0&&!offerChain(pending)&&pending.selects?.some(c=>(c.controller??c.player)===0&&[L.HAND,L.MZONE,L.SZONE,L.GRAVE,L.REMOVED].includes(c.location));if(manualWindow){if(manualChainPrompt!==pending){clearTimeout(manualChainTimer);manualChainPrompt=pending;manualChainTimer=setTimeout(()=>{if(engine?.pending===pending&&!heldChainPrompt){manualChainPrompt=null;manualChainTimer=0;respond({type:R.SELECT_CHAIN,index:null})}},Math.max(0,Math.min(2000,Number(state?.settings?.manualResponseWindow??200)||0)))}return;}clearTimeout(manualChainTimer);manualChainTimer=0;manualChainPrompt=null;const automatic=automaticChainResponse(engine?.pending,!offerChain(engine?.pending),M,R);if(screen==='duel'&&automatic&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel'){const current=automaticChainResponse(pending,!offerChain(pending),M,R);if(current)respond(current)}},50);return;}const placed=screen==='duel'&&autoPlacement(engine?.pending);if(placed&&(!tagUI||tagUI.session.duelReady)){const owner=engine,pending=engine.pending;aiTimer=setTimeout(()=>{if(engine===owner&&engine.pending===pending&&screen==='duel')respond(placed)},50);return;}if(tagUI){if(screen==='duel'&&engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending)&&tagUI.session.duelReady)aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(screen!=='duel'||!engine?.pending)return;if(engine.pending.player===0&&engine.pending.type===M.SELECT_CHAIN&&!offerChain(engine.pending)){aiTimer=setTimeout(()=>{if(engine?.pending?.type===M.SELECT_CHAIN&&!offerChain(engine.pending))respond({type:R.SELECT_CHAIN,index:null})},50);return}if(engine.pending.player===1){const pending=engine.pending;markCpuDue(pending);aiTimer=setTimeout(()=>{try{const response=engine.auto();const pass=pending.type===M.SELECT_CHAIN&&response.index==null;if(pass)respond(response);else aiTimer=setTimeout(()=>{if(engine.pending===pending&&screen==='duel')respond(response)},engine.inDamageStep?50:120)}catch(e){toast('Opponent paused: '+e.message)}},0)}}
 
 // Stall watch (2026-11-03): in a solo duel, once the CPU has been handed a prompt (scheduleAI), it answers within a
 // fraction of a second. If it still hasn't after 10 seconds of unpaused play, offer a behaviour flag with the replay,
@@ -2665,7 +2682,13 @@ async function boot(){try{
 
  const preloadVisuals=await chooseStartupPreload(document.querySelector('.loading'));
 
- document.querySelector('#loading-status').textContent='Step 3 of 6 · Starting campaign runtime…';py=await loadPyodide({indexURL:new URL('pyodide/',location.href).href});installMemfsRenameCleanup(py.FS);
+ document.querySelector('#loading-status').textContent='Step 3 of 6 · Starting campaign runtime…';
+ // Python reads its standard library from python_stdlib.zip. It is checked first and the checked bytes are what Pyodide
+ // loads, so a failure after a passing check rules the file out (Discord, 2026-11-17: exit(1) in init_fs_encoding).
+ const pyIndex=new URL('pyodide/',location.href).href,stdlib=await checkStdlib(pyIndex,{retry:startupRetried()}),pyErrors=stderrTail();
+ bootDiag={stage:'python',zip:stdlib.report,stderr:pyErrors.lines};
+ try{py=await loadPyodide({indexURL:pyIndex,...(stdlib.url?{stdLibURL:stdlib.url}:{}),stderr:pyErrors.write})}finally{stdlib.release()}
+ bootDiag.stage='campaign';installMemfsRenameCleanup(py.FS);
 
  py.FS.mkdirTree('/game/data');py.FS.mkdirTree('/game/data/decks');py.FS.mkdirTree('/game/saves');py.FS.mkdirTree('/game/runtime');
 
@@ -2689,11 +2712,18 @@ async function boot(){try{
  document.querySelector('#loading-status').textContent='Step 6 of 6 · Preparing sound effects…';await preloadSoundEffects(effects.filter(path=>!/\/(?:kill-[a-z]+|you-lose)\.wav$/.test(path)));
 
  screen='title';render();await notices();document.dispatchEvent(new CustomEvent('game-startup-ready',{detail:{newDevice:Object.keys(saved).length===0}}));if(!new URLSearchParams(location.search).has('desktop'))cloudStartup(Object.keys(saved).length===0);firefoxNotice();if(new URLSearchParams(location.search).has('desktop')){if(new URLSearchParams(location.search).get('mode')==='cpu')await openCPU();else await openTag();}
- startDeviceSync();
+ startDeviceSync();clearRetry();
 
  window.shadowTest={command,state:()=>state,collector:()=>tagUI?.isCollector?tagUI:null,engine:()=>engine,screen:()=>screen,go,startDuel,respond};
 
- }catch(e){app.innerHTML=`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>Could not start</h1><p>${esc(e.message)}</p><button id="retry-startup">Retry loading</button></section>`;document.querySelector('#retry-startup').onclick=()=>location.reload();console.error(e);
+ }catch(e){console.error(e);
+ // Python failing to start is retried once on its own; the delay lets pwa.js apply a waiting update first.
+ const retried=startupRetried(),retrying=bootDiag?.stage==='python'&&retryOnce({reload:()=>setTimeout(()=>location.reload(),600)});
+ const report=bootDetails({version:replayVersion,error:e,zip:bootDiag?.zip,stderr:bootDiag?.stderr,native:!!window.ShadowNative,retried});
+ app.innerHTML=retrying?`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>Could not start</h1><p>Retrying once…</p></section>`
+  :`<section class="loading"><img class="loading-wizard" src="assets/time-wizard.png" alt="Time Wizard"><h1>Could not start</h1><p>${esc(e.message)}</p><button id="retry-startup">Retry loading</button><details class="boot-details"><summary>Details</summary><pre>${esc(report)}</pre></details><button id="copy-boot-details">Copy details</button></section>`;
+ document.querySelector('#retry-startup')?.addEventListener('click',()=>location.reload());
+ const copyButton=document.querySelector('#copy-boot-details');copyButton?.addEventListener('click',async()=>{copyButton.textContent=await copyText(report)?'Copied':'Copy failed'});
  // A broken start may already be fixed by a newer version: the web app applies a waiting update at once (pwa.js).
  document.documentElement.dataset.bootFailed='true';window.dispatchEvent(new Event('ygo-boot-failed'))}}
 
@@ -2858,7 +2888,7 @@ const relicInfoMarkup=id=>relicCard(content,id,{count:relicCopies(id),extra:fusi
 // beside the picked relic's card.
 const relicCopies=id=>(state.run?.artifacts||[]).filter(x=>x===id).length;
 // Relics that grow with the run's Ritual Summons show where they stand now (Discord, Nov 15: Ritual Scar's current ATK).
-function ritualCountStatus(id){const n=state.run?.ritual_scar_count||0,atk=id==='cursed_ritual_scar'?100*n-500:id==='grand_ritual_altar'?200*n:null;return atk===null?'':`<small>Currently ${atk>0?'+':''}${atk} ATK</small>`}
+function ritualCountStatus(id){const n=state.run?.ritual_scar_count||0,atk=id==='cursed_ritual_scar'?100*n-300:id==='grand_ritual_altar'?200*n:null;return atk===null?'':`<small>Currently ${atk>0?'+':''}${atk} ATK</small>`}
 function ownedRelicCard(id,allowSell=true){const cursed=(state.run?.cursed_artifacts||[]).includes(id),coins=Math.floor((content.artifacts[id]?.[1]||0)/2);return relicCard(content,id,{count:relicCopies(id),negated:relicNegated(),status:relicNegated()?'NEGATED THIS DUEL':'',extra:fusionMaterialMarkup(id)+(id==='cursed_ominous_clock'?clockStatus():'')+(id==='magic_mirror'&&state.run.mirror_copy?`<small>Current copy: ${esc(content.artifacts[state.run.mirror_copy]?.[0]||'')}</small>`:'')+ritualCountStatus(id),action:allowSell&&screen==='shop'&&!cursed?`<button class="sell-owned-relic" data-do="sell-relic" data-relic="${esc(id)}" aria-label="Sell ${esc(content.artifacts[id][0])} for ${coins} coins">Sell · ${coins} coins</button>`:''})}
 // curses: list the Level 6 permanent curses too; never in a duel, where the Curses window shows them.
 function relicLedgerMarkup(only=null,allowSell=true,curses=screen!=='duel'){if(only)return ownedRelicCard(only,allowSell);const r=state.run||{};return relicLedger(content,ownedRelics(),{curses:curses&&r.challenge_level>=6?permanentCurseEntries(content,r.persistent_curses,key=>curseDescription(content,key,r.challenge_level)):[],intro:`Permanent run relics · ${relicNegated()?'Relic Seal negates all duel effects until this duel ends.':'Effects apply when their listed conditions are met.'}`,cards:id=>ownedRelicCard(id,allowSell),counts:relicCopies,negated:relicNegated(),level:state.run?r.challenge_level??0:null})}

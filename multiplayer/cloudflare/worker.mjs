@@ -8,6 +8,7 @@ export {TagHub,MatchHub} from './hub.mjs';
 export {RequestMeter} from './meter.mjs';
 import {overCap} from './meter.mjs';
 import {Registry} from './registry.mjs';
+import {adminRoute} from './admin.mjs';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
 const limited=()=>reply(503,{error:"The online servers have reached today's usage limit.",serverLimit:true});
@@ -34,6 +35,8 @@ async function route(request,env){
  let path=new URL(request.url).pathname;
  // Browsers otherwise re-send this preflight every 5 s (Chrome honours up to 2 h).
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Max-Age':'86400'}});
+ // Developer room tool (admin.mjs): needs the ADMIN_TOKEN secret, which no client holds.
+ if(path==='/v3/admin'&&request.method==='POST')return adminRoute(request,env);
  if(path.startsWith('/backup/')&&request.method==='POST')return env.BACKUP.get(env.BACKUP.idFromName('backups-v1')).fetch(request);
  if(path.startsWith('/progress/')&&request.method==='POST')return env.PROGRESS.get(env.PROGRESS.idFromName('progress-v1')).fetch(request);
  if(path==='/health')return reply(200,{service:'shadow-run-rooms',protocol:1,relayConfigured:true,relayTransport:'websocket',legacyClients:env.LEGACY_MULTIPLAYER==='allow'?'allowed':'blocked'});
@@ -66,8 +69,13 @@ export class RoomRegistry {
     const changed=[...next].filter(([k,v])=>previous.get(k)!==v),removed=[...previous.keys()].filter(k=>!next.has(k));
     if(changed.length||removed.length)await ctx.storage.transaction(async tx=>{for(const [k,v] of changed)await tx.put('room:'+k,JSON.parse(v));for(const k of removed)await tx.delete('room:'+k);});
     previous=next;
-   },ice:()=>this.ice()});
+   },ice:()=>this.ice(),presence:code=>this.presence(code)});
   });
+ }
+ // Whether anyone is connected to a Tag room's hub (Registry.pruneEmpty deletes rooms empty for 10 minutes).
+ async presence(code){
+  const r=await this.env.TAG_HUB.get(this.env.TAG_HUB.idFromName(code)).fetch(new Request('https://hub/presence',{method:'POST'}));
+  if(!r.ok)return true;return !!(await r.json()).occupied;
  }
  async ice(){
   if(!this.env.TURN_KEY_ID||!this.env.TURN_KEY_API_TOKEN){return [{urls:'stun:stun.cloudflare.com:3478'}]}
@@ -76,6 +84,13 @@ export class RoomRegistry {
  }
  async fetch(request){
   try{
+   // Only adminRoute (admin.mjs) builds this path, after checking the admin token.
+   if(new URL(request.url).pathname==='/v3/admin'){
+    const {code,action}=await request.json(),room=this.registry.rooms.get(code);
+    if(!room||Date.now()-room.touched>=86400000)return reply(404,{error:'No Tag room with that code.'});
+    const hub=await this.env.TAG_HUB.get(this.env.TAG_HUB.idFromName(code)).fetch(new Request('https://hub/admin',{method:'POST',body:JSON.stringify(action)}));
+    return reply(hub.status,{mode:'tag',seats:[true,!!room.tokens[1]],started:!!room.started,...await hub.json()});
+   }
    if(new URL(request.url).pathname==='/v3/hub'){
     const parts=(request.headers.get('Sec-WebSocket-Protocol')||'').split(',').map(x=>x.trim());
     const code=parts.find(x=>x.startsWith('room.'))?.slice(5),token=parts.find(x=>x.startsWith('auth.'))?.slice(5);

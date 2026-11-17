@@ -45,6 +45,17 @@ for c in MONSTERS:
  if c['atk']>=0 and c['defense']>=0:BY_LEVEL[c['level']].append(c)
 RACE_WEIGHTS=Counter(c['race'] for c in MONSTERS if c['race'] in RACES)
 ATTR_WEIGHTS=Counter(c['attribute'] for c in MONSTERS if c['attribute'] in ATTRIBUTES)
+# Type and Attribute rolled together, as real cards pair them (user, Nov 17: no WATER Fiends or EARTH Aqua).
+PAIR_WEIGHTS=Counter((c['race'],c['attribute']) for c in MONSTERS if c['race'] in RACES and c['attribute'] in ATTRIBUTES)
+# Flavor texts by Type, for Normal Monsters whose name card has none.
+MONSTER_BY_ID={c['id']:c for c in MONSTERS}
+MONSTERS_BY_RACE=defaultdict(list)
+for _c in MONSTERS:MONSTERS_BY_RACE[_c['race']].append(_c)
+# Types with enough main-deck monsters to be a Fusion Material (counted once, not per roll).
+MATERIAL_RACES={r:w for r,w in RACE_WEIGHTS.items() if sum(c['race']==r for c in MAIN_MONSTERS)>=20}
+FLAVOR_BY_RACE=defaultdict(list)
+for _c in MONSTERS:
+ if _c['type']=='Normal Monster' and _c['desc'].strip():FLAVOR_BY_RACE[_c['race']].append(_c['desc'])
 LEVELS={frame:Counter(c['level'] for c in group) for frame,group in {
  'normal':[c for c in MAIN_MONSTERS if c['data']['type']&TYPE_NORMAL],
  'effect':[c for c in MAIN_MONSTERS if c['data']['type']&TYPE_EFFECT],
@@ -139,6 +150,7 @@ CONDS={
  'direct_damage':dict(kind='event',fits=MONSTER_SLOTS,text='If this card inflicts battle damage to your opponent by a direct attack'),
  'standby':dict(kind='event',fits=MONSTER_SLOTS|{'s_cont','t_cont'},text='During your Standby Phase'),
  'quick':dict(kind='event',fits=MONSTER_SLOTS|{'t_cont'},text="During either player's turn",repeat=True),
+ 'shabti_window':dict(kind='event',fits={'m_main'},text="During either player's turn, except during the Main Phase 2 or End Phase",real_only=True),
  'opp_attack':dict(kind='event',fits=MONSTER_SLOTS|{'s_cont','t_normal','t_cont','t_counter'},text="When an opponent's monster declares an attack",repeat=True),
  'opp_summon':dict(kind='event',fits=MONSTER_SLOTS|{'s_cont','t_normal','t_cont'},text='When your opponent Normal Summons a monster',
   trap_text='When your opponent Normal or Special Summons a monster',repeat=True),
@@ -176,7 +188,7 @@ NUMERIC={'recover','damage','self_atk','atk_down'}
 # Effects that bring a card back from the GY, undoing a Tribute or discard cost.
 RECOVERS={'revive','gy_to_hand'}
 ACTS={
- 'draw':dict(fits=ACTIVATED,text='draw {n} card{s}',n=R(1,4),label='Draw'),
+ 'draw':dict(fits=ACTIVATED,text='draw {n} card{s}',n=R(1,3),label='Draw'),   # up to 3 (Nov 16: draw 4 never on a real card)
  'recover':dict(fits=ACTIVATED,text='gain {n} LP',n=R(100,4000,100),label='Gain LP'),
  'damage':dict(fits=ACTIVATED,text='inflict {n} damage to your opponent',n=R(100,3000,100),label='Damage'),
  'destroy_st':dict(fits=ACTIVATED,tclause='target 1 Spell/Trap your opponent controls',text='destroy it',target=True,label='Destroy a Spell/Trap'),
@@ -372,25 +384,186 @@ SET_ONLY={'set_piece','summon_by'}
 # ---- real-card blocks (recreation)
 LIMITS['cannot_normal']=dict(fits=MONSTER_SLOTS,text='Cannot be Normal Summoned/Set.',real_only=True)
 ACTS['self_set']=dict(fits={'m_main'},text='change this card to face-down Defense Position',real_only=True)
+ACTS['self_atk_def_temp']=dict(fits=MONSTER_SLOTS,text='this card gains {n} ATK and DEF until the end of this turn',real_only=True)
+ACTS['recover_battle_damage']=dict(fits=MONSTER_SLOTS,text='gain LP equal to the Battle Damage this card inflicted to your opponent',real_only=True)
+AURAS['self_def_after_attack']=dict(fits={'m_main'},text='After this card battles as the attacker, change it to face-up Defense Position',real_only=True)
+AURAS['pierce_friendly_races']=dict(fits={'m_main'},text='Your {filter} inflict piercing Battle Damage when they attack Defense Position monsters',real_only=True)
+AURAS['no_attack_summon_turn']=dict(fits={'s_cont'},text='Monsters cannot attack the turn they are Summoned, Flip Summoned, or Special Summoned',real_only=True)
+AURAS['indes_battle_equal_attack']=dict(fits={'s_cont'},text="Your monsters cannot be destroyed by battle with an opponent's monster that has equal ATK",real_only=True)
+AURAS['recover_on_monster_return']=dict(fits={'s_cont'},text='When a monster returns from the field to the hand, gain 500 LP',real_only=True)
+AURAS['dark_room_bonus_damage']=dict(fits={'s_cont'},text='When your opponent takes effect damage, inflict 300 more damage',real_only=True)
+AURAS['no_hand_limit']=dict(fits={'s_cont'},text='There is no hand size limit for either player',real_only=True)
+AURAS['spell_absorption']=dict(fits={'s_cont'},text='When a Spell Card resolves, gain 500 LP',real_only=True)
+AURAS['recover_opp_discard']=dict(fits={'s_cont'},text='When your opponent makes you discard from your hand by a card effect, gain 1000 LP',real_only=True)
+AURAS['spell_economics']=dict(fits={'s_cont'},text='You do not pay LP to activate Spell Cards',real_only=True)
+AURAS['opp_attack_target_named']=dict(fits={'s_cont'},text='While face-up {name} is in your Monster Zone, your opponent can only attack it',real_only=True)
+AURAS['heart_of_underdog']=dict(fits={'s_cont'},text='During your Draw Phase, when you draw a Normal Monster, you can reveal it to draw 1 more card',real_only=True)
+CONDS['tribute_summon_2plus']=dict(kind='event',fits={'s_cont'},text='When you Tribute Summon using 2 or more monsters',real_only=True)
+CONDS['activate_any']=dict(kind='event',fits={'t_counter'},text='When a card is activated',real_only=True)
+CONDS['summon_try_any']=dict(kind='event',fits={'t_counter'},text='When a monster would be Summoned',real_only=True)
+CONDS['spell_targets_one_monster']=dict(kind='event',fits={'t_counter'},text='When a Spell effect targets exactly 1 monster on the field',real_only=True)
+CONDS['monster_effect_any']=dict(kind='event',fits={'t_counter'},text='When a monster effect is activated',real_only=True)
+CONDS['st_targets_zombie']=dict(kind='event',fits={'t_counter'},text='When a Spell/Trap Card is activated that targets exactly 1 Zombie monster on the field',real_only=True)
+CONDS['summon_same_race']=dict(kind='event',fits={'t_counter'},text='When a monster is Summoned whose Type matches a face-up monster on the field',real_only=True)
+COSTS['discard_cost_change']=dict(fits={'t_counter'},spends=True,text='discard 1 card from your hand',real_only=True)
+AURAS['opp_attack_deck_cost']=dict(fits={'s_cont'},text='Your opponent must send the top card(s) of their Deck to the GY to declare an attack',real_only=True)
+AURAS['one_attack_per_battle_phase']=dict(fits={'s_cont'},text='Only 1 monster can attack during each Battle Phase',real_only=True)
 ACTS['self_atk_permanent']=dict(fits=MONSTER_SLOTS,text='this card permanently gains {n} ATK',real_only=True)
 ACTS['self_def_permanent']=dict(fits=MONSTER_SLOTS,text='this card permanently gains {n} DEF',real_only=True)
 ACTS['reduce_battle_opponent_both']=dict(fits=MONSTER_SLOTS,text='the monster that battled this card loses {n} ATK and DEF',real_only=True)
 CONDS['field_named']=dict(kind='state',fits=MONSTER_SLOTS,text='a face-up \"{name}\" is on the field',real_only=True)
+CONDS['field_named_any']=dict(kind='state',fits={'s_normal'},text='a face-up card with either listed name is on the field',real_only=True)
 AURAS['toon_world_destroyed']=dict(fits=MONSTER_SLOTS,text='If \"Toon World\" on the field is destroyed, destroy this card.',real_only=True)
 AURAS['no_effect_damage']=dict(fits=MONSTER_SLOTS,text='You take no effect damage.',real_only=True)
 AURAS['protect_facedown_from_attack']=dict(fits={'m_main'},text='Your opponent cannot select face-down Defense Position monsters as attack targets.',real_only=True)
 AURAS['no_traps_opp_battle_phase']=dict(fits={'m_main'},text='Your opponent cannot activate Trap Cards during the Battle Phase.',real_only=True)
+AURAS['battle_damage_is_effect']=dict(fits={'m_main'},text='Battle Damage this card inflicts to your opponent is treated as effect damage.',real_only=True)
+AURAS['opp_cannot_target_set']=dict(fits=MONSTER_SLOTS,text='{filter} monsters cannot be targeted by your opponent\'s card effects.',real_only=True)
+AURAS['no_player_targets_dragons']=dict(fits={'m_main'},text='Neither player can target Dragon monsters with card effects.',real_only=True)
+AURAS['opp_cannot_banish_gy']=dict(fits={'m_main'},text='Your opponent cannot banish cards from either GY.',real_only=True)
+AURAS['self_atk_if_attr']=dict(fits={'m_main'},text='This card gains {n} ATK while a face-up {attr} monster is on the field.',n=R(100,1000,100),real_only=True)
+AURAS['self_no_control_change_if_attr']=dict(fits={'m_main'},text='While a face-up {attr} monster is on the field, control of this card cannot change.',real_only=True)
+AURAS['self_no_control_change']=dict(fits={'m_main'},text='Control of this card cannot change.',real_only=True)
+AURAS['name_treated_as']=dict(fits={'m_main'},text='This card’s name is treated as {name}.',real_only=True)
+AURAS['banish_battle_destroyed_monsters']=dict(fits={'m_main'},text='Monsters destroyed by battle with this card are banished.',real_only=True)
+AURAS['archfiend_setcode']=dict(fits={'m_main','m_fusion'},text='This card is treated as an "Archfiend" card.',real_only=True)
+AURAS['self_indes_battle_atk_min']=dict(fits={'m_main'},text='This card cannot be destroyed by battle with a monster that has {n} or more ATK.',n=R(1500,2500,100),real_only=True)
+AURAS['self_indes_battle_equal_atk']=dict(fits={'m_main'},text='This card cannot be destroyed by battle with a monster that has the same ATK.',real_only=True)
+AURAS['negate_battled_flip_monster']=dict(fits={'m_main'},text='Negate the effects of Flip monsters destroyed by battle with this card.',real_only=True)
+AURAS['battled_opponent_cannot_attack']=dict(fits={'m_main'},text='A monster that battles this card cannot attack during your opponent’s next 2 turns.',real_only=True)
+AURAS['opp_cannot_draw_except_draw_phase']=dict(fits={'m_main'},text='Your opponent cannot draw cards except during the Draw Phase.',real_only=True)
+AURAS['reveal_both_hands']=dict(fits={'m_main'},text='Both players keep their hands revealed.',real_only=True)
+AURAS['self_atk_per_gy_sel']=dict(fits={'m_main'},text='This card gains {n} ATK for each {filter} in both GYs.',n=R(100,500,100),real_only=True)
+AURAS['choose_opp_attack_targets']=dict(fits={'m_main'},text='You choose the attack targets for your opponent’s attacks.',real_only=True)
+AURAS['self_extra_attack_one']=dict(fits={'m_main'},text='This card can make one additional attack each Battle Phase{constraint}',real_only=True)
+AURAS['all_battle_destroyed_to_deck']=dict(fits={'m_main'},text='Monsters destroyed by battle are shuffled into the Deck instead of going to the GY.',real_only=True)
+ACTS['end_battle_phase_now']=dict(fits={'m_main'},text='End the current Battle Phase.',real_only=True)
+ACTS['destroy_battle_destroyer']=dict(fits={'m_main'},text='destroy the opponent’s monster that destroyed this card by battle',real_only=True)
+ACTS['self_direct_attack_turn']=dict(fits={'m_main'},text='this card can attack directly this turn',real_only=True)
+ACTS['no_attack_opp_next_turn']=dict(fits={'m_main'},text='your opponent’s monsters cannot attack during their next turn',real_only=True)
+ACTS['self_atk_permanent_dice']=dict(fits={'m_main'},text='this card permanently gains {n} ATK per die result',n=R(100,500,100),real_only=True)
+CONDS['added_to_hand_from_deck_by_effect']=dict(kind='event',fits={'m_main'},text='If this card is added from your Deck to your hand by a card effect',real_only=True)
+AURAS['self_atk_def_per_selector']=dict(fits={'m_main'},text='This card gains {n} ATK and {def_n} DEF for each {filter}.',n=R(100,500,100),real_only=True)
+AURAS['double_tribute_attribute']=dict(fits={'m_main'},text='This card can be treated as 2 Tributes for the Tribute Summon of an {attr} monster.',real_only=True)
+AURAS['self_lp_cost_to_attack']=dict(fits={'m_main'},text='Pay {n} LP to declare an attack with this card.',n=R(500,2000,500),real_only=True)
+AURAS['self_atk_def_per_hand']=dict(fits={'m_main'},text='This card gains {n} ATK and DEF for each card in your hand.',n=R(100,500,100),real_only=True)
+AURAS['berserk_gorilla_rules']=dict(fits={'m_main'},text='If this card is in face-up Defense Position, destroy it. This card must attack if able.',real_only=True)
+AURAS['spell_immune_while_umi']=dict(fits={'m_main'},text='While Umi is active, this card is unaffected by Spell effects.',real_only=True)
+AURAS['reveal_opp_hand']=dict(fits={'m_main'},text='Your opponent plays with their hand revealed.',real_only=True)
+AURAS['self_direct_while_umi']=dict(fits={'m_main'},text='While Umi is face-up, this card can attack directly.',real_only=True)
+AURAS['opp_cannot_activate_quickplay']=dict(fits={'m_main'},text='Your opponent cannot activate Quick-Play Spell Cards.',real_only=True)
+AURAS['opp_monsters_cannot_attack_summon_turn']=dict(fits={'m_main'},text='Monsters your opponent controls cannot attack the turn they are Summoned.',real_only=True)
+AURAS['self_atk_when_battling_attr']=dict(fits={'m_main'},text='This card gains {n} ATK while battling a face-up {attr} monster during the Damage Step.',n=R(100,1500,100),real_only=True)
+AURAS['self_atk_if_empty_hand_st']=dict(fits={'m_main'},text='This card gains {n} ATK while you have no cards in your hand or Spell & Trap Zones.',n=R(500,2000,100),real_only=True)
+AURAS['self_atk_per_opp_race_field_gy']=dict(fits={'m_main'},text='This card gains {n} ATK for each {race} monster your opponent controls or in their GY.',n=R(100,1000,100),real_only=True)
+AURAS['self_atk_when_race_destroyed']=dict(fits={'m_main'},text='When a face-up {race} monster is destroyed, this card gains {n} ATK.',n=R(100,1000,100),real_only=True)
+ACTS['decktop_battle_target']=dict(fits={'m_main'},text='place the opponent’s monster destroyed by this card on top of their Deck',real_only=True)
+AURAS['destroy_battle_target_selector']=dict(fits={'m_main'},text='When this card battles a monster with {filter}, destroy that monster after the Damage Step.',real_only=True)
+ACTS['double_base_atk_then_destroy_end_phase']=dict(fits={'m_main'},text='double this card’s original ATK until the End Phase, then destroy it',real_only=True)
+AURAS['cannot_direct_attack']=dict(fits={'m_main'},text='This card cannot attack directly.',real_only=True)
+ACTS['lose_200_atk']=dict(fits={'m_main'},text='this card permanently loses 200 ATK',real_only=True)
+ACTS['lose_atk_permanent']=dict(fits={'m_main'},text='this card permanently loses {n} ATK',n=R(100,1000,100),real_only=True)
+AURAS['attack_all_opp_monsters']=dict(fits={'m_main'},text='This card can attack all monsters your opponent controls once each.',real_only=True)
+AURAS['double_tribute_light']=dict(fits={'m_main'},text='This card can be treated as 2 Tributes for the Tribute Summon of a LIGHT monster.',real_only=True)
+ACTS['send_extra_to_gy']=dict(fits={'m_main'},text='send 1 card from your Extra Deck to the GY',real_only=True)
+ACTS['banish_opp_gy_monsters']=dict(fits={'m_main'},target=True,tclause='target up to 2 monsters in your opponent\'s GY',text='banish those targets',real_only=True)
+ACTS['activator_may_draw']=dict(fits={'m_main'},text='the player who activated Pot of Greed may draw 1 card',real_only=True)
+ACTS['destroy_attacked_this_card']=dict(fits={'m_main'},text='destroy the monster that attacked this card',real_only=True)
+ACTS['change_battle_target_def']=dict(fits={'m_main'},text='change the monster that battled this card to face-up Defense Position',real_only=True)
+ACTS['return_equip_no_activate']=dict(fits={'s_normal'},target=True,tclause='target 1 Equip Spell in your GY',text='add it to your hand, but it cannot be activated this turn',real_only=True)
+ACTS['destroy_facedown_battle_target']=dict(fits={'m_main'},text='destroy the face-down Defense Position monster this card is attacking',real_only=True)
 AURAS['self_direct_always']=dict(fits=MONSTER_SLOTS,text='This card can attack directly.',real_only=True)
 AURAS['self_cannot_be_battle_target']=dict(fits=MONSTER_SLOTS,text='This card cannot be targeted for attacks.',real_only=True)
 AURAS['cannot_attack_special_summon_turn']=dict(fits=MONSTER_SLOTS,text='This card cannot attack the turn it is Special Summoned.',real_only=True)
 ACTS['prevent_effect_damage_turn']=dict(fits=ACTIVATED,text='You take no effect damage until the end of this turn.',real_only=True)
 ACTS['no_battle_damage_turn']=dict(fits=ACTIVATED,text='You take no battle damage this turn.',real_only=True)
+ACTS['no_battle_damage_this_battle']=dict(fits={'m_main'},hand=True,text='You take no Battle Damage from that battle',real_only=True)
+ACTS['indestructible_battle_selector_turn']=dict(fits={'m_main'},hand=True,text='your {filter} monsters cannot be destroyed by battle this turn',real_only=True)
+ACTS['self_atk_level_500']=dict(fits={'m_main'},text='this card gains 500 ATK and 1 Level',real_only=True)
+ACTS['self_change_attribute']=dict(fits={'m_main'},text='change this card’s Attribute to another Attribute until it leaves the field',real_only=True)
+ACTS['pixie_knight_spell_topdeck']=dict(fits={'m_main'},target=True,tclause='target 1 Spell in your GY; your opponent selects it',text='place it on top of your Deck',real_only=True)
 ACTS['indes_battle_turn']=dict(fits=ACTIVATED,text='Your monsters cannot be destroyed by battle this turn.',real_only=True)
 ACTS['destroy_all_monsters']=dict(fits=ACTIVATED,text='destroy all {side}',real_only=True)
+ACTS['destroy_all_lock_named']=dict(fits=ACTIVATED,text='destroy all opposing monsters; your named monster cannot attack this turn',real_only=True)
 ACTS['bounce_all_opp_mon']=dict(fits=ACTIVATED,text='return all monsters your opponent controls to the hand',real_only=True)
 CONDS['flip_summoned']=dict(kind='event',fits=MONSTER_SLOTS,text='When this card is Flip Summoned',real_only=True)
+CONDS['battle_destroyed_by_race']=dict(kind='event',fits={'m_main'},text='When this card is destroyed by battle with a {race} monster',real_only=True)
+CONDS['battled_face_down_target']=dict(kind='event',fits={'m_main'},text='After this card battles while it was the face-down attack target',real_only=True)
+CONDS['attacked_by_this_card']=dict(kind='event',fits={'m_main'},text='After this card attacks a monster',real_only=True)
+CONDS['battle_damage_event']=dict(kind='event',fits={'s_quick'},text='When you take at least {n} battle damage from one attack',real_only=True)
+CONDS['opp_damage_calc_battle_damage']=dict(kind='event',fits={'m_main'},text='During damage calculation, if you would take Battle Damage from an opponent’s attack',real_only=True)
+CONDS['this_card_direct_battle_damage']=dict(kind='event',fits={'m_main'},text='When this card inflicts Battle Damage to your opponent by a direct attack',real_only=True)
+CONDS['attacked_still_in_battle']=dict(kind='event',fits={'m_main'},text='At the end of the Damage Step, if this card attacked and remains in the battle',real_only=True)
+CONDS['standby_faceup_attack']=dict(kind='event',fits={'m_main'},text='During your Standby Phase, while this card is in face-up Attack Position',real_only=True)
+CONDS['this_card_battle_damage_to_opp']=dict(kind='event',fits={'m_main'},text='When this card inflicts Battle Damage to your opponent',real_only=True)
+ACTS['damage_battle_attacker']=dict(fits={'m_main'},text='inflict {n} damage to the controller of the monster that attacked this card',n=R(100,2000,100),real_only=True)
+ACTS['reduce_battle_target_atk_500']=dict(fits={'m_main'},text='the face-up monster this card attacked loses 500 ATK until the End Phase',real_only=True)
+AURAS['rocket_warrior_protection']=dict(fits={'m_main'},text='During your turn, this card cannot be destroyed by battle and you take no battle damage from battles involving it.',real_only=True)
+ACTS['banish_all_monsters_deck_gy']=dict(fits={'s_quick'},text='banish all monsters in both players’ Decks and GYs',real_only=True)
+ACTS['set_target_def_to_total_original_def']=dict(fits={'s_quick'},target=True,
+    tclause='target 1 face-up monster you control',text='its DEF becomes the combined original DEF of all face-up monsters you control until the End Phase',real_only=True)
+ACTS['riryoku']=dict(fits={'s_normal'},target=True,
+    tclause='target 2 face-up monsters on the field',text='halve one target’s ATK, then give the lost ATK to the other target until the End Phase',real_only=True)
+CONDS['opponent_attacks_stronger_defense']=dict(kind='event',fits={'t_normal'},text='At the end of the Damage Step, if an opponent attacked a Defense Position monster with higher DEF than the attacker’s ATK',real_only=True)
+ACTS['destroy_current_attacker']=dict(fits={'t_normal'},target=True,tclause='target the attacking monster',text='destroy it',real_only=True)
+ACTS['dimension_jar']=dict(fits={'m_main'},text='each player may banish up to 3 monsters from their opponent’s GY',real_only=True)
+CONDS['your_standby_phase']=dict(kind='event',fits={'s_normal'},text='During your Standby Phase',real_only=True)
+ACTS['lock_positions_turn']=dict(fits={'s_normal'},text='monsters cannot change their battle positions until the End Phase, except by card effects',real_only=True)
+ACTS['ss_self_banished_dino_boost']=dict(fits={'m_main'},text='Special Summon this card from banishment; it gains 200 ATK for each of your face-up banished Dinosaur monsters',real_only=True)
+ACTS['spear_cretin_revive_both']=dict(fits={'m_main'},target=True,text='each player targets 1 monster in their GY and Special Summons it in face-up Attack or face-down Defense Position',real_only=True)
+ACTS['familiar_knight_summon']=dict(fits={'m_main'},text='each player may Special Summon 1 Level 4 monster from their hand',real_only=True)
+CONDS['destroyed_opp_by_battle']=dict(kind='event',fits={'m_main'},text='When this card destroys an opponent’s monster by battle',real_only=True)
+CONDS['destroyed_opp_by_battle_sent_gy']=dict(kind='event',fits={'m_main'},text='When this card destroys an opponent’s monster by battle and sends it to the GY',real_only=True)
+ACTS['draw_then_bottomdeck_one']=dict(fits={'m_main'},text='draw 1 card, then return 1 card from your hand to the bottom of your Deck',real_only=True)
+ACTS['mysterious_guard']=dict(fits={'m_main'},target=True,text='target 1 face-up monster to place on top of the Deck, or with a face-up Warrior, target 2 and return one to hand after placing the other on top',real_only=True)
+ACTS['swap_target_base_atk_def']=dict(fits={'m_main'},target=True,
+    tclause='target 1 face-up EARTH monster on the field',text='swap its original ATK and DEF until the End Phase',real_only=True)
+AURAS['half_battle_damage_to_opp']=dict(fits={'m_main'},text='Halve the Battle Damage this card inflicts to your opponent.',real_only=True)
+ACTS['equip_spell_from_gy']=dict(fits={'m_main'},target=True,
+    tclause='target 1 Equip Spell in your GY that can equip to this card',text='equip it to this card',real_only=True)
+CONDS['battle_damage_to_opp']=dict(kind='event',fits={'m_main'},text='When this card inflicts Battle Damage to your opponent',real_only=True)
+ACTS['opp_choose_spell_deck_gy']=dict(fits={'m_main'},text='your opponent sends 1 Spell from their Deck to the GY',real_only=True)
 CONDS['normal_summoned_mandatory']=dict(kind='event',fits={'m_main'},
                                         text='When this card is Normal Summoned',real_only=True)
+CONDS['opp_monster_changed_to_defense']=dict(kind='event',fits={'t_normal'},
+                                             text='When an opponent monster changes from face-up Attack to face-up Defense Position',real_only=True)
+CONDS['destroyed_face_down_trap']=dict(kind='event',fits={'t_normal'},
+                                       text='When this Set card is destroyed and sent to the GY',real_only=True)
+ACTS['pyramid_energy_choice']=dict(fits=ACTIVATED,text='Choose one: your face-up monsters gain 200 ATK or 500 DEF until the End Phase.',real_only=True)
+ACTS['dicephoon']=dict(fits={'s_quick'},text='Roll a six-sided die: destroy one Spell/Trap on 2-4, two on 5, or take 1000 damage on 1 or 6.',real_only=True)
+ACTS['dark_coffin']=dict(fits={'t_normal'},text='Your opponent chooses: discard a random card from their hand, or destroy one monster they control.',real_only=True)
+AURAS['megamorph']=dict(fits={'s_equip'},text='If your LP are lower than your opponent\'s, the equipped monster has double its original ATK; if higher, it has half its original ATK.',real_only=True)
+AURAS['sword_dragon_soul']=dict(fits={'s_equip'},text='When the equipped monster battles a Dragon monster, destroy that monster after the battle.',real_only=True)
+AURAS['hydro_pressure_cannon']=dict(fits={'s_equip'},text='When the equipped Level 3 or lower WATER monster destroys an opponent\'s monster by battle, send a random card from their hand to the GY.',real_only=True)
+AURAS['big_bang_shot']=dict(fits={'s_equip'},text='When this card leaves the field, banish the monster it was equipped to.',real_only=True)
+AURAS['ring_of_magnetism']=dict(fits={'s_equip'},text='Equip only to your monster. It loses 500 ATK and DEF, and your opponent can only attack it.',real_only=True)
+AURAS['necklace_of_command']=dict(fits={'s_equip'},text='If the equipped monster you control is destroyed by battle and this card is sent to the GY, choose to draw 1 card or make your opponent discard a random card.',real_only=True)
+AURAS['dragonic_attack']=dict(fits={'s_equip'},text='The equipped Warrior becomes a Dragon and gains 500 ATK and DEF.',real_only=True)
+ACTS['trap_monster_normal']=dict(fits={'t_cont'},text='Special Summon this card as a Normal Trap Monster ({race}/{attr}/Level {l}/ATK {n}/DEF {d}).',ss=True,real_only=True)
+ACTS['trap_monster_effect']=dict(fits={'t_cont'},text='Special Summon this card as an Effect Trap Monster with its mapped Type, Attribute, Level, ATK, and DEF.',ss=True,real_only=True)
+AURAS['tiki_soul_protect']=dict(fits={'t_cont'},text='While this card is a monster, you can Set your other Trap Monsters that would be destroyed by your opponent.',real_only=True)
+ACTS['mesmeric_control']=dict(fits={'s_normal'},text='Your opponent cannot change the battle positions of monsters during their next turn.',real_only=True)
+COSTS['sanctity_banish']=dict(fits={'s_normal'},spends=True,text='banish all other cards you control and in your hand face-up',real_only=True)
+CONDS['effect_damage_to_you']=dict(kind='event',fits={'t_counter'},text='When an activated card effect will inflict effect damage to you',real_only=True)
+ACTS['reflect_effect_damage']=dict(fits={'t_counter'},text='Reflect that effect damage to your opponent instead.',real_only=True)
+AURAS['shadow_spell']=dict(fits={'t_cont'},text='Target an opponent monster; it loses 700 ATK, cannot attack or change position, and this card is destroyed when it leaves the field.',real_only=True)
+AURAS['harpies_hunting_ground']=dict(fits={'s_field'},text='When Harpie Lady or Harpie Lady Sisters is Summoned, the summoning player targets and destroys a Spell/Trap on the field.',real_only=True)
+AURAS['legendary_ocean']=dict(fits={'s_field'},text='This card is also treated as Umi; WATER monsters gain 200 ATK/DEF and lose 1 Level in both players’ hands and on the field.',real_only=True)
+AURAS['amazoness_village']=dict(fits={'s_field'},text='Amazoness monsters gain 200 ATK; when one is destroyed and sent to the GY, Special Summon a lower-Level Amazoness from your Deck.',real_only=True)
+AURAS['fusion_gate']=dict(fits={'s_field'},text='Either player can Fusion Summon using Fusion Materials from their hand or field, banishing those materials.',real_only=True)
+AURAS['array_revealing_light']=dict(fits={'s_field'},text='Declare a Type; monsters of that Type cannot attack during the turn they are Summoned.',real_only=True)
+AURAS['fairy_king_truesdale']=dict(fits={'m_main'},text='While this card is in Defense Position, Plant monsters you control gain 500 ATK and DEF.',real_only=True)
+CONDS['main_phase']=dict(kind='state',fits={'t_cont'},text='it is a Main Phase',real_only=True)
+AURAS['stronghold_gadget_bonus']=dict(fits={'t_cont'},text='If you control Green Gadget, Red Gadget, and Yellow Gadget, this card gains 3000 ATK.',real_only=True)
+AURAS['zoma_burn']=dict(fits={'t_cont'},text='If this Trap Monster is destroyed by battle, inflict damage to your opponent equal to the battling monster\'s ATK.',real_only=True)
+AURAS['narrow_pass']=dict(fits={'t_cont'},text='Activate only if each player controls 2 or fewer monsters; neither player can Normal Summon while they control 2 or more monsters.',real_only=True)
+AURAS['forced_requisition']=dict(fits={'t_cont'},text='Activate when you discard; whenever you discard cards while this remains face-up, your opponent discards the same number.',real_only=True)
+AURAS['eye_of_truth']=dict(fits={'t_cont'},text='Your opponent keeps their hand revealed. Once per turn during their Standby Phase, if they have a Spell in hand, they gain 1000 LP.',real_only=True)
+ACTS['half_or_nothing']=dict(fits={'t_normal'},text='Your opponent chooses: halve the ATK of all their monsters until the end of the Battle Phase, or end the Battle Phase.',real_only=True)
+AURAS['fairy_box']=dict(fits={'t_cont'},text='When your opponent attacks, toss a coin; if heads, the attacking monster has 0 ATK for the Battle Phase.',real_only=True)
+ACTS['swamp_mirrorer']=dict(fits={'t_cont'},text='Declare a Type and Attribute; Special Summon this as a Level 4 Normal Trap Monster (1800 ATK/1000 DEF) with them.',ss=True,real_only=True)
+ACTS['tiki_curse']=dict(fits={'t_cont'},text='Special Summon this as an Effect Trap Monster (Rock/DARK/Level 4/1800 ATK/1000 DEF); if another Trap Monster battles, destroy its opponent battle target after damage calculation.',ss=True,real_only=True)
+ACTS['scapegoat_tokens']=dict(fits={'s_quick'},text='Special Summon four Sheep Tokens (Beast/EARTH/Level 1/0 ATK/0 DEF) in Defense Position; they cannot be Tributed for a Tribute Summon.',ss=True,real_only=True)
 CONDS['any_special_summoned']=dict(kind='event',fits=MONSTER_SLOTS,
                                    text='If this card is Special Summoned',real_only=True)
 CONDS['special_summoned_from_gy']=dict(kind='event',fits=MONSTER_SLOTS,
@@ -431,6 +604,7 @@ ACTS['ss_filtered']=dict(fits=ACTIVATED,text='Special Summon 1 {filter} from you
 ACTS['ss_any_filtered']=dict(fits=ACTIVATED,text='Special Summon any number of {filter} from your {zone}{position}',race=True,attr=True,real_only=True)
 ACTS['dark_mimic_draw']=dict(fits={'m_main'},text='draw 1 card, or 2 if this card was Special Summoned by Dark Mimic LV1',real_only=True)
 ACTS['destroy_any_st']=dict(fits=ACTIVATED,text='destroy 1 Spell/Trap on the field',target=True,real_only=True)
+ACTS['destroy_up_to_two_st']=dict(fits={'m_main'},text='target up to 2 Spell/Trap Cards on the field; destroy them',target=True,real_only=True)
 CONDS['opp_normal_summon']=dict(kind='event',fits={'t_normal'},text='When your opponent Normal Summons a monster',real_only=True)
 CONDS['opp_flip_summon']=dict(kind='event',fits={'t_normal'},text='When your opponent Flip Summons a monster',real_only=True)
 CONDS['summon_event']=dict(kind='event',fits={'t_normal','m_main'},text='When {summon_side} {methods} Summons {filter}',real_only=True)
@@ -440,7 +614,7 @@ ACTS['set_defense_summoned']=dict(fits={'s_cont'},text='change the Summoned mons
 ACTS['morphing_jar_effect']=dict(fits={'m_main'},text='each player discards their hand, then each player draws 5 cards',real_only=True)
 ACTS['reveal_deck_top']=dict(fits={'s_normal'},text='look at the top {n} cards of {deck_owner} Deck',real_only=True)
 ACTS['discard_up_to']=dict(fits={'s_normal'},text='discard 1 to {n} {filter} from your hand',real_only=True)
-ACTS['shuffle_opp_hand_draw_same']=dict(fits={'t_normal'},text='your opponent shuffles their hand into the Deck, then draws the same number of cards',real_only=True)
+ACTS['shuffle_opp_hand_draw_same']=dict(fits={'t_normal','s_quick'},text='your opponent shuffles their hand into the Deck, then draws the same number of cards',real_only=True)
 ACTS['no_attack_facedown_turn']=dict(fits={'t_normal'},text='monsters cannot attack face-down monsters this turn',real_only=True)
 ACTS['all_your_monsters_dragon_turn']=dict(fits={'t_normal'},text='all face-up monsters you control become Dragon-Type until the End Phase',real_only=True)
 ACTS['remove_spell_counters_all']=dict(fits={'t_normal'},text='remove all Spell Counters from face-up cards on the field',real_only=True)
@@ -475,6 +649,51 @@ ACTS['no_spells_opp_until_next_end']=dict(fits={'m_main'},text='your opponent ca
 ACTS['gold_sarcophagus']=dict(fits={'s_normal'},text='banish 1 card from your Deck face-up; during your 2nd Standby Phase, add it to your hand',real_only=True)
 ACTS['destroy_def_below_target']=dict(fits={'s_normal'},target=True,tclause='target 1 face-up Summoned Skull or Thunder monster you control',text='destroy all face-up monsters your opponent controls with DEF less than or equal to its ATK',real_only=True)
 CONDS['main1']=dict(kind='state',fits={'s_normal'},text='it is your Main Phase 1',real_only=True)
+CONDS['attacked_by_weaker']=dict(kind='event',fits={'m_main'},text='At the end of the Damage Step, if a weaker monster attacked this Defense Position card',real_only=True)
+CONDS['control_changed']=dict(kind='event',fits={'m_main'},text='When control of this face-up card changes',real_only=True)
+CONDS['attacks_facedown']=dict(kind='event',fits={'m_main'},text='When this card attacks a face-down Defense Position monster',real_only=True)
+CONDS['pot_of_greed_activation']=dict(kind='event',fits={'m_main'},text='When Pot of Greed is activated',real_only=True)
+CONDS['equipped_to_this']=dict(kind='event',fits={'m_main'},text='When an Equip Card is equipped to this card',real_only=True)
+ACTS['destroy_equipped_event']=dict(fits={'m_main'},text='destroy the Equip Card(s) equipped to this card',real_only=True)
+CONDS['damage_to_controller']=dict(kind='event',fits={'t_normal'},text='When you take damage',real_only=True)
+CONDS['opp_monster_reborn']=dict(kind='event',fits={'t_normal'},text='When your opponent activates "Monster Reborn" and its effect can be negated',real_only=True)
+CONDS['your_monster_to_gy']=dict(kind='event',fits={'t_normal'},text='When one of your monsters is sent from the field to your GY',real_only=True)
+CONDS['opp_activates_named']=dict(kind='event',fits={'t_normal'},text='When your opponent activates a listed card and its activation can be negated',real_only=True)
+CONDS['continuous_type_activated']=dict(kind='event',fits={'t_normal'},text='When a listed type of Spell/Trap Card is activated',real_only=True)
+CONDS['battle_damage_2000_plus']=dict(kind='event',fits={'t_normal'},text='During damage calculation, when you would take at least 2000 battle damage',real_only=True)
+CONDS['opp_monster_changed_facedown']=dict(kind='event',fits={'t_normal'},text='When an opponent\'s monster changes from face-up to face-down',real_only=True)
+CONDS['opp_monster_set']=dict(kind='event',fits={'t_normal'},text='When a monster is Set on your opponent\'s field',real_only=True)
+CONDS['opp_monster_ss_facedown']=dict(kind='event',fits={'t_normal'},text='When a monster is Special Summoned face-down to your opponent\'s field',real_only=True)
+CONDS['your_direct_battle_damage']=dict(kind='event',fits={'s_quick'},text='When your monster inflicts Battle Damage to your opponent by a direct attack',real_only=True)
+CONDS['equip_card_equipped']=dict(kind='state',fits={'t_normal'},text='a monster on the field is equipped with an Equip Card',real_only=True)
+CONDS['main1_first']=dict(kind='state',fits={'s_normal'},text='it is the first action of your Main Phase 1',real_only=True)
+ACTS['heal_1000_plus_named_gy']=dict(fits={'t_normal'},text='gain 1000 LP, plus 500 for each copy of this card in your GY',real_only=True)
+CONDS['changed_from_attack_to_defense']=dict(kind='event',fits={'m_main'},text='When this card changes from Attack Position to face-up Defense Position',real_only=True)
+CONDS['changed_from_defense_to_attack']=dict(kind='event',fits={'m_main'},text='When this card changes from Defense Position to face-up Attack Position',real_only=True)
+ACTS['destroy_target_opp']=dict(fits={'m_main'},target=True,tclause='target 1 monster your opponent controls',text='destroy it',real_only=True)
+CONDS['battle_phase']=dict(kind='state',fits={'s_cont'},text='it is the Battle Phase',real_only=True)
+AURAS['your_stat_mod_aura']=dict(fits={'s_cont'},text='Your {filter} gain {n} {stat} during the Battle Phase',real_only=True)
+AURAS['non_effect_monsters_spell_immune']=dict(fits={'s_cont'},text='Non-Effect Monsters are unaffected by Spell effects',real_only=True)
+CONDS['ss_from_own_gy']=dict(kind='event',fits={'s_cont'},text='When a monster is Special Summoned from your GY',real_only=True)
+CONDS['no_monsters']=dict(kind='state',fits={'s_cont'},text='you control no monsters',real_only=True)
+CONDS['beast_battle_damage_opp']=dict(kind='event',fits={'s_cont'},text='When a Beast monster you control inflicts Battle Damage to your opponent',real_only=True)
+CONDS['your_battle_damage_opp']=dict(kind='event',fits={'t_cont'},text='When a monster you control inflicts Battle Damage to your opponent',real_only=True)
+CONDS['your_faceup_fire_destroyed']=dict(kind='event',fits={'t_cont'},text='If a face-up FIRE monster you control is destroyed and sent from the field to the GY',real_only=True)
+CONDS['non_token_banished']=dict(kind='event',fits={'s_cont'},text='When one or more non-Token cards are banished',real_only=True)
+ACTS['recover_per_banished']=dict(fits={'s_cont'},text='gain 500 LP for each non-Token card banished',real_only=True)
+CONDS['battled']=dict(kind='event',fits={'m_main'},text="After this card battles an opponent's monster",real_only=True)
+ACTS['banish_battle_participants']=dict(fits={'m_main'},text='banish this card and the monster it battled',real_only=True)
+ACTS['opp_mon_cannot_attack_while_this_faceup']=dict(fits={'m_main'},target=True,tclause='target 1 face-up monster your opponent controls',text='it cannot attack while this card remains face-up',real_only=True)
+ACTS['draw_plus_named_faceup']=dict(fits={'m_main'},text='draw 1 card, plus 1 for each face-up named monster you control',real_only=True)
+ACTS['flip_search_or_top']=dict(fits={'m_main'},text='select 1 {filter} from your Deck; add it to your hand if Necrovalley is active, or place it on top of your Deck',real_only=True)
+ACTS['discard_one_each']=dict(fits={'m_main'},text='each player discards 1 card',real_only=True)
+ACTS['weaken_battle_destroyer']=dict(fits={'m_main'},text='the monster that destroyed this card loses 500 ATK and DEF',real_only=True)
+ACTS['poisonous_snake_token']=dict(fits={'m_main'},text='Special Summon 1 Poisonous Snake Token (Reptile/EARTH/Level 3/ATK 1200/DEF 1200); if it is destroyed by battle, inflict 500 damage to your opponent',real_only=True)
+CONDS['flipped_then_sent_gy']=dict(kind='event',fits={'m_main'},text='If this card, after being flipped face-up, is sent from the field to the GY',real_only=True)
+CONDS['not_battle_phase']=dict(kind='state',fits={'m_main'},text='it is not the Battle Phase',real_only=True)
+COSTS['banish_hand_random']=dict(fits={'m_main'},spends=True,text='banish {n} random cards from your hand face-up as cost',real_only=True)
+ACTS['swap_control_with_opp_mon']=dict(fits={'m_main'},target=True,tclause='target 1 monster your opponent controls',text='switch control of that monster and this card',real_only=True)
+ACTS['magical_merchant_excavate']=dict(fits={'m_main'},text='reveal cards from your Deck until you reach a Spell/Trap; add it to your hand and send the other revealed cards to the GY',real_only=True)
 ACTS['move_summoned']=dict(fits=ACTIVATED,target=True,tclause='target {filter}',text='{verb} it',real_only=True)
 ACTS['damage_attacker_atk']=dict(fits={'t_normal'},target=True,tclause='target the attacking monster',text='negate that attack, and if you do, inflict damage to your opponent equal to that monster\'s ATK',real_only=True)
 ACTS['recover_attacker_atk']=dict(fits={'t_normal'},target=True,tclause='target the attacking monster',text='{attacker_recover_text}',real_only=True)
@@ -510,6 +729,93 @@ AURAS['hand_limit_opp']=dict(fits={'t_cont'},text="Your opponent's hand size lim
 AURAS['no_attack_race_opp']=dict(fits={'s_cont','t_cont'},text='Your opponent cannot attack with {race} monsters.',real_only=True)
 AURAS['avoid_battle_damage_fairy']=dict(fits={'s_field'},text='The controller of a Fairy monster involved in battle takes no battle damage from that battle.',real_only=True)
 AURAS['self_atk_per_race']=dict(fits=MONSTER_SLOTS,text='This card gains {n} ATK for each other {race} monster you control.',real_only=True)
+AURAS['self_atk_per_gy_monsters']=dict(fits=MONSTER_SLOTS,text='This card gains 300 ATK for each monster in your GY',real_only=True)
+CONDS['zolga_tribute_release']=dict(kind='event',fits={'m_main'},text='When this card is Tributed for a Tribute Summon',real_only=True)
+ACTS['zolga_recover']=dict(fits={'m_main'},text='the owner of this card gains 2000 LP',real_only=True)
+ACTS['look_reorder_top5']=dict(fits={'m_main','t_normal','s_normal','s_quick'},text='look at the top {n} cards of your Deck, then place them on the top in any order',n=R(1,5),real_only=True)
+ACTS['ss_self_hand']=dict(fits={'m_main'},text='Special Summon this card from your hand',real_only=True)
+AURAS['cannot_be_tributed']=dict(fits={'m_main'},text='This card cannot be Tributed',real_only=True)
+ACTS['self_change_defense']=dict(fits={'m_main'},text='change this card to Defense Position',real_only=True)
+ACTS['ss_level4_noattack']=dict(fits={'m_main'},text='Special Summon 1 Level 4 monster from your Deck; it cannot attack this turn',real_only=True)
+AURAS['self_atk_per_field_race']=dict(fits={'m_main'},text='This card gains {n} ATK for each {race} monster on the field',n=R(100,500,100),real_only=True)
+AURAS['toon_direct_summon_lock']=dict(fits={'m_main'},text='Cannot attack the turn Summoned; while you control Toon World and your opponent controls no Toon monsters, this card can attack directly',real_only=True)
+AURAS['goblin_king_stats']=dict(fits={'m_main'},text='This card’s ATK and DEF become the number of other face-up Fiend monsters on the field x 1000',real_only=True)
+AURAS['goblin_king_protection']=dict(fits={'m_main'},text='While you control another face-up Fiend monster, your opponent cannot target this card for attacks',real_only=True)
+AURAS['atk_per_race_count']=dict(fits={'s_cont'},text='All face-up {race} monsters you control gain {n} ATK for each face-up monster of either listed Type you control',real_only=True)
+AURAS['burn_on_recover']=dict(fits={'m_main'},text='When you gain LP, inflict {n} damage to your opponent',n=R(100,1000,100),real_only=True)
+AURAS['self_cannot_be_attacked_if_race']=dict(fits={'m_main'},text='This card cannot be targeted for attacks while you control another face-up {race} monster',real_only=True)
+ACTS['ss_banish_attr_gy']=dict(fits=MONSTER_SLOTS,attr=True,text='You can Special Summon this card from your hand by banishing 1 {attr} monster from your GY',real_only=True)
+ACTS['ss_banish_attr_gy_or_field']=dict(fits=MONSTER_SLOTS,attr=True,text='You can Special Summon this card from your hand by banishing 1 {attr} monster from your GY or field',real_only=True)
+AURAS['self_atk_battle_phase']=dict(fits=MONSTER_SLOTS,text='During your Battle Phase, this card gains {n} ATK',n=R(100,1000,100),real_only=True)
+AURAS['black_tyranno_direct_attack']=dict(fits={'m_main'},text='This card can attack directly while your opponent controls no Spell/Trap Cards and no Attack Position monsters.',real_only=True)
+AURAS['shadowslayer_direct_attack']=dict(fits={'m_main'},text='This card can attack directly while your opponent controls no Attack Position monsters.',real_only=True)
+AURAS['emissary_of_oasis']=dict(fits={'m_main'},text='If you control a face-up Level 3 or lower Normal Monster, this card cannot be targeted for attacks. Battle Damage from battles involving a Level 3 or lower Normal Monster is prevented for its controller.',real_only=True)
+AURAS['amazoness_tiger']=dict(fits={'m_main'},text='You can only control 1 of this card. It gains 400 ATK for each Amazoness monster you control; your opponent cannot attack other face-up Amazoness monsters.',real_only=True)
+AURAS['arsenal_bug_stats']=dict(fits={'m_main'},text='If you control no other face-up Insect monsters, this card’s ATK and DEF become 1000.',real_only=True)
+AURAS['protect_other_race_from_attack']=dict(fits={'m_main'},race=True,text='Your other {race} monsters cannot be targeted for attacks.',real_only=True)
+AURAS['self_stats_per_banished']=dict(fits={'m_main'},text='This card’s ATK and DEF become the number of your banished cards x {n}.',n=R(100,1000,100),real_only=True)
+AURAS['maiden_of_aqua_environment']=dict(fits={'m_main'},text='While this face-up card is on the field, the Duel environment is treated as Umi.',real_only=True)
+ACTS['damage_battle_target_level']=dict(fits={'m_main'},text='inflict damage to your opponent equal to the Level of the monster this card destroyed by battle x 500',real_only=True)
+ACTS['dark_sleep_lock_target']=dict(fits={'m_main'},target=True,tclause='target 1 monster your opponent controls',text='it cannot attack while this card remains face-up',real_only=True)
+AURAS['fusilier_no_tribute']=dict(fits={'m_main'},text='You can Normal Summon/Set this card without Tributing, but its original ATK and DEF become halved.',real_only=True)
+ACTS['reveal_opp_set_all_spell']=dict(fits={'s_normal'},text='reveal all Set cards your opponent controls',real_only=True)
+ACTS['otohime_change_position']=dict(fits={'m_main'},target=True,tclause='target 1 face-up monster your opponent controls',text='change its battle position',damage_step=True,real_only=True)
+ACTS['destroy_all_st']=dict(fits=MONSTER_SLOTS,text='destroy all Spell/Trap Cards on the field',real_only=True)
+ACTS['destroy_jars_turn_dragons_attack']=dict(fits={'m_main'},text='destroy all face-up listed cards in the Spell & Trap Zone; if any are destroyed, change all face-up Defense Position Dragons to Attack Position',real_only=True)
+ACTS['shuffle_opp_hand_draw_two']=dict(fits={'t_normal'},text='your opponent shuffles their entire hand into the Deck, then draws 2 cards',player_target=True,real_only=True)
+ACTS['ss_up_to_n_filtered']=dict(fits=ACTIVATED,text='Special Summon up to {n} {filter} from your {zone}{position}',race=True,attr=True,real_only=True)
+ACTS['choose_attack_target']=dict(fits={'t_normal'},text='choose a legal target for the opponent\'s attack',real_only=True)
+ACTS['paths_of_destiny']=dict(fits={'t_normal'},text='both players toss a coin; each gains 2000 LP on Heads or takes 2000 damage on Tails',real_only=True)
+ACTS['legacy_yata_draw']=dict(fits={'t_normal'},text='draw 1 card, or draw 2 if your opponent controls a face-up Spirit monster',player_target=True,real_only=True)
+ACTS['destroy_two_own_one_opp']=dict(fits={'t_normal'},target=True,tclause='target 2 monsters you control and 1 monster your opponent controls',text='destroy all 3 targets',real_only=True)
+ACTS['good_goblin_housekeeping']=dict(fits={'t_normal'},text='draw 1 card plus 1 for each copy of this card in your GY, then place 1 card from your hand on the bottom of your Deck',player_target=True,real_only=True)
+ACTS['turn_event_opp_monsters_faceup_attack']=dict(fits={'t_normal'},text='change the affected face-down monsters to face-up Attack Position without activating their Flip effects',real_only=True)
+ACTS['dragons_gunfire']=dict(fits={'s_normal'},text='inflict 800 damage to your opponent, or destroy 1 face-up monster with 800 or less DEF',real_only=True)
+ACTS['cost_down']=dict(fits={'s_normal'},text='reduce the Levels of monsters in your hand by 2 until the End Phase',real_only=True)
+ACTS['beckoning_light']=dict(fits={'t_normal'},text='discard your hand, then add that many LIGHT monsters from your GY to your hand',real_only=True)
+ACTS['delinquent_duo']=dict(fits={'s_normal'},text='your opponent discards 1 random card, then discards 1 card of your choice if they still have one',player_target=True,real_only=True)
+ACTS['sebek_recover_damage']=dict(fits={'s_quick'},text='gain LP equal to the Battle Damage your monster inflicted by a direct attack',player_target=True,real_only=True)
+ACTS['wild_nature_release']=dict(fits={'s_normal'},target=True,tclause='target 1 Beast or Beast-Warrior monster with nonzero DEF',text='it gains ATK equal to its current DEF until the End Phase, then destroy it',real_only=True)
+ACTS['cold_wave']=dict(fits={'s_normal'},text='neither player can activate or Set Spell/Trap Cards until your next turn',real_only=True)
+ACTS['limiter_removal']=dict(fits={'s_quick'},text='double your face-up Machine monsters\' ATK until the End Phase, then destroy them',damage_step=True,real_only=True)
+ACTS['machine_duplication']=dict(fits={'s_normal'},target=True,tclause='target 1 face-up Machine you control with 500 or less ATK',text='Special Summon up to 2 monsters with the same name from your Deck',real_only=True)
+COSTS['send_st_cost_max5']=dict(fits={'s_quick'},spends=True,text='send 1 to 5 other Spell/Trap Cards you control to the GY as cost',real_only=True)
+ACTS['recover_1000_per_st_cost']=dict(fits={'s_quick'},text='gain 1000 LP for each Spell/Trap sent as cost',player_target=True,real_only=True)
+ACTS['big_march_beast_atk']=dict(fits={'s_quick'},text='Your face-up Beast monsters gain 200 ATK for each face-up Beast monster you control until the End Phase',damage_step=True,real_only=True)
+ACTS['declare_race_destroy']=dict(fits={'m_main'},text='discard 1 card; declare a monster Type and destroy all face-up monsters of that Type',real_only=True)
+ACTS['attack_and_receive']=dict(fits={'t_normal'},text='inflict 700 damage to your opponent, plus 300 for each copy of this card in your GY',player_target=True,real_only=True)
+ACTS['negate_effect_only']=dict(fits={'t_normal'},text='negate that effect',real_only=True)
+ACTS['negate_destroy_group']=dict(fits={'t_normal'},text='negate that activation, and if you do, destroy all opposing {kind} cards',real_only=True)
+ACTS['dust_tornado']=dict(fits={'t_normal'},target=True,tclause='target 1 Spell/Trap your opponent controls',text='destroy it, then you can Set 1 Spell/Trap from your hand',real_only=True)
+ACTS['energy_drain']=dict(fits={'t_normal'},target=True,tclause='target 1 face-up monster you control',text='it gains 200 ATK and DEF for each card in your opponent\'s hand until the End Phase',damage_step=True,real_only=True)
+ACTS['disable_continuous_type_until_end']=dict(fits={'t_normal'},text='negate the effects of all listed Spell/Trap Cards until the End Phase',real_only=True)
+COSTS['tribute_level_for_fusion']=dict(fits={'s_normal'},spends=True,text='Tribute 1 monster; its Level determines the Fusion Monster you can Special Summon from your Extra Deck',real_only=True)
+ACTS['ss_fusion_same_level']=dict(fits={'s_normal'},text='Special Summon 1 Fusion Monster from your Extra Deck with the same Level as the Tributed monster',real_only=True)
+ACTS['declare_race_hunter']=dict(fits={'m_main'},text='declare 1 monster Type; this card gains 1000 ATK when battling that Type during Damage Calculation',real_only=True)
+COSTS['dark_curtain_cost']=dict(fits={'s_normal'},spends=True,text='Pay half your LP; you cannot Summon or Special Summon other monsters for the rest of this turn',real_only=True)
+ACTS['summon_dark_magician']=dict(fits={'s_normal'},text='Special Summon 1 "Dark Magician" from your Deck',real_only=True)
+AURAS['umi_fisherman']=dict(fits={'m_main'},text='While Umi is the active Field Spell, this card is unaffected by Spell effects and cannot be targeted for attacks',real_only=True)
+ACTS['illusionist_fusion']=dict(fits={'m_main'},text='Tribute 1 other monster; Special Summon 1 Fusion Monster from your Extra Deck, then destroy it during the End Phase',real_only=True)
+ACTS['dice_jar']=dict(fits={'m_main'},text='Both players roll a die; the lower result takes 500 damage per point, but if the winner rolls 6 the loser takes 6000, and ties are rerolled',real_only=True)
+CONDS['bounder_attacked_faceup']=dict(kind='event',fits={'m_main'},text='When this face-up Attack Position monster is attacked',real_only=True)
+ACTS['reflect_attacker_atk']=dict(fits={'m_main'},text='inflict damage to your opponent equal to the attacking monster’s ATK; if damage is inflicted, destroy this card after damage calculation',real_only=True)
+CONDS['bounder_damaged_battle']=dict(kind='event',fits={'m_main'},text='If this card inflicted damage during the battle',real_only=True)
+ACTS['destroy_self_battle']=dict(fits={'m_main'},text='destroy this card',real_only=True)
+ACTS['thousand_energy']=dict(fits={'s_normal'},text='Increase the original ATK and DEF of your face-up Level {level} Normal Monsters by {n} until the End Phase, then destroy all your face-up Level {level} Normal Monsters',real_only=True)
+ACTS['wingbeat_dragon']=dict(fits={'s_normal'},text='Return 1 face-up Level 5 or higher Dragon you control to the hand, then destroy all Spell/Trap Cards on the field if it returns',real_only=True)
+COSTS['stray_lambs_lock']=dict(fits={'s_normal','s_quick'},spends=True,text='You cannot Normal Summon, Flip Summon, or Special Summon other monsters this turn (but you can Set).',real_only=True)
+ACTS['stray_lambs_tokens']=dict(fits={'s_normal'},text='Special Summon 2 Lamb Tokens in face-up Defense Position',real_only=True)
+CONDS['necrovalley_environment']=dict(kind='state',fits={'s_normal'},text='if Necrovalley is the active Field Spell',real_only=True)
+ACTS['royal_tribute']=dict(fits={'s_normal'},text='both players discard all Monster Cards in their hands',real_only=True)
+ACTS['ss_dark_scorpions_unique']=dict(fits={'s_normal'},text='Special Summon as many Dark Scorpion monsters with different names from your hand as possible',real_only=True)
+CONDS['attacks_facedown_pre_damage']=dict(kind='event',fits={'m_main'},text='Before damage calculation, if this card attacks a face-down Defense Position monster',real_only=True)
+ACTS['set_self_atk_2400_damage']=dict(fits={'m_main'},text='this card’s ATK becomes 2400 during damage calculation',real_only=True)
+ACTS['set_target_faceup_opp']=dict(fits={'m_main'},target=True,tclause='target 1 face-up monster your opponent controls that can be turned face-down',text='change it to face-down Defense Position',real_only=True)
+CONDS['banished_faceup']=dict(kind='event',fits={'m_main'},text='When this card is banished face-up',real_only=True)
+ACTS['return_self_end_phase']=dict(fits={'m_main'},text='During the End Phase, Special Summon this banished card in Attack Position',real_only=True)
+AURAS['atk_bonus_attacking_wind']=dict(fits={'m_main'},text='During the Damage Step, this card gains 1000 ATK while attacking a face-up WIND monster',real_only=True)
+CONDS['standby_empty_hand']=dict(kind='event',fits={'m_main'},text='During your Standby Phase, if you have no cards in your hand',real_only=True)
+ACTS['return_self_gy_hand']=dict(fits={'m_main'},text='add this card from your GY to your hand if your hand is still empty',real_only=True)
 AURAS['battle_indestructible_nonlight_dark']=dict(fits={'m_fusion'},text='This card cannot be destroyed by battle with DARK, EARTH, WATER, FIRE, or WIND monsters.',real_only=True)
 AURAS['self_avoid_battle_damage']=dict(fits=MONSTER_SLOTS,text='You take no Battle Damage from battles involving this card.',real_only=True)
 AURAS['dragons_untargetable']=dict(fits={'m_fusion'},text='Dragon monsters on the field cannot be targeted by card effects.',real_only=True)
@@ -521,7 +827,7 @@ ACTS['skip_phase']=dict(fits=ACTIVATED,text='{skip_phrase}',real_only=True)
 ACTS['direct_attack_turn']=dict(fits=ACTIVATED,text='your opponent\'s monsters can attack directly this turn',real_only=True)
 ACTS['no_damage_turn']=dict(fits=ACTIVATED,text='{damage_turn_text}',real_only=True)
 ACTS['fire_darts']=dict(fits={'t_normal'},text='roll a six-sided die 3 times, and inflict damage equal to the total result x 100',real_only=True)
-CONDS['hand_count']=dict(kind='state',fits={'t_normal'},text='{hand_condition_text}',real_only=True)
+CONDS['hand_count']=dict(kind='state',fits={'t_normal','s_quick'},text='{hand_condition_text}',real_only=True)
 CONDS['lp_max']=dict(kind='state',fits={'t_normal'},text='your LP are {n} or less',real_only=True)
 CONDS['not_damage_calculated']=dict(kind='state',fits={'t_normal'},text='',real_only=True)
 CONDS['opp_before_main2']=dict(kind='state',fits={'t_normal'},text='',real_only=True)
@@ -534,7 +840,9 @@ COSTS['lp_half']=dict(fits=ACTIVATED,spends=True,text='pay half your LP',real_on
 COSTS['tribute_sel']=dict(fits=ACTIVATED,spends=True,text='Tribute {n} {filter}',real_only=True)
 COSTS['send_self_mzone']=dict(fits={'m_main'},spends=True,leaves=True,field=True,
                               text='send this monster from your field to the GY',real_only=True)
+COSTS['discard_self_hand']=dict(fits={'m_main'},spends=True,leaves=True,text='discard this card from your hand',real_only=True)
 COSTS['banish_top_deck']=dict(fits={'m_main'},spends=True,text='banish the top {n} cards of your Deck face-up',real_only=True)
+COSTS['send_equipped']=dict(fits={'m_main'},spends=True,text='send 1 Equip Card equipped to this card to the GY as cost',real_only=True)
 COSTS['tribute_recover_stat']=dict(fits={'t_normal','s_quick'},spends=True,text='Tribute 1 monster you control to gain LP based on its ATK or DEF',real_only=True)
 ACTS['move_all']=dict(fits=ACTIVATED,text='{verb} all {filter}',real_only=True)
 ACTS['move_target']=dict(fits=ACTIVATED,tclause='target {n} {filter}',text='{verb} it',target=True,real_only=True)
@@ -542,8 +850,122 @@ ACTS['search_sel']=dict(fits=ACTIVATED,text='add {n} {filter} from your {zone} t
 ACTS['search_ritual']=dict(fits=ACTIVATED,text='add 1 Ritual Monster or Ritual Spell from your Deck to your hand',real_only=True)
 ACTS['recover_both']=dict(fits=ACTIVATED,text='both players gain {n} LP',real_only=True)
 LIMITS['equip_only']=dict(fits={'s_equip'},text='Equip only to {filter}.',real_only=True)
+LIMITS['unnegatable']=dict(fits={'s_normal'},text='This card\'s activation and effect cannot be negated.',real_only=True)
 AURAS['equip_atk_down']=dict(fits={'s_equip'},text='The equipped monster loses {n} ATK',real_only=True)
 AURAS['equip_def_down']=dict(fits={'s_equip'},text='The equipped monster loses {n} DEF',real_only=True)
+AURAS['equip_indes_effect']=dict(fits={'s_equip'},text='The equipped monster cannot be destroyed by card effects',real_only=True)
+AURAS['no_attack_level']=dict(fits={'t_cont'},text='Level {l} or higher monsters cannot attack',l=R(4,8),real_only=True)
+AURAS['no_attack_atk_min']=dict(fits={'m_main','s_cont'},text='Monsters with {n} or more ATK cannot attack',n=R(1000,3000,100),real_only=True)
+AURAS['destroy_lower_atk_attacker']=dict(fits=MONSTER_SLOTS,text='If this Defense Position card is attacked by a monster with lower ATK, destroy that attacker at the end of the Damage Step.',real_only=True)
+AURAS['destroy_lower_atk_attacker_facedown']=dict(fits={'m_main'},text='If this face-down Defense Position card is attacked by a monster with lower ATK, destroy that attacker at the end of the Damage Step.',real_only=True)
+AURAS['self_atk_per_equip']=dict(fits={'m_main'},text='This card gains 500 ATK for each Equip Card equipped to it.',real_only=True)
+AURAS['opponent_attacker_base_atk_200']=dict(fits={'m_main'},text="During your opponent's turn, if this card is attacked, the attacking monster's original ATK becomes 200 during the Damage Step.",real_only=True)
+AURAS['negate_faceup_monster_effects']=dict(fits={'t_cont'},text='Negate the effects of all face-up monsters while they are face-up on the field.',real_only=True)
+AURAS['same_name_field_stat']=dict(fits={'t_cont'},text='Face-up monsters with another face-up monster of the same name gain 500 ATK and DEF.',real_only=True)
+AURAS['skull_invitation_damage']=dict(fits={'t_cont'},text='Each time a card is sent to the GY, its owner takes 300 damage.',real_only=True)
+AURAS['return_battle_damage_monster']=dict(fits={'t_cont'},text='If a monster inflicts battle damage to a player, return that monster to the hand.',real_only=True)
+AURAS['curse_of_darkness_spell_damage']=dict(fits={'t_cont'},text='After a Spell Card resolves, its activator takes 1000 damage.',real_only=True)
+AURAS['no_bp_if_no_spells_gy']=dict(fits={'s_cont'},text='While you have no Spell Cards in your GY, neither player can conduct a Battle Phase.',real_only=True)
+AURAS['toll_attack_cost']=dict(fits={'s_cont'},text='Each player pays 500 LP to declare an attack.',real_only=True)
+AURAS['chain_energy_cost']=dict(fits={'s_cont'},text='Each player pays 500 LP for each card they Normal Summon, Special Summon, Set, or activate from their hand.',real_only=True)
+ACTS['return_high_level_draw']=dict(fits={'s_cont'},text='Once per turn, return a Level 7 or higher monster from your hand to your Deck, shuffle, then draw 1 card.',real_only=True)
+ACTS['shuffle_either_deck']=dict(fits={'s_cont'},text='Once per turn, shuffle either player’s Deck.',real_only=True)
+AURAS['senri_eye']=dict(fits={'s_cont'},text='During your Standby Phase, you can pay 100 LP to look at the top card of your opponent’s Deck.',real_only=True)
+AURAS['continuous_destroy_weaker_attacker']=dict(fits={'s_cont'},text='When an opponent attacks your Defense Position monster with lower ATK than its DEF, destroy the attacking monster at the end of the Damage Step.',real_only=True)
+AURAS['two_man_cell_battle']=dict(fits={'s_cont'},text='During each player’s End Phase, that player can Special Summon a Level 4 Normal Monster from their hand.',real_only=True)
+AURAS['inspection']=dict(fits={'s_cont'},text='During your opponent’s Standby Phase, you can pay 500 LP to look at a random card in their hand.',real_only=True)
+AURAS['recycle_nonmonster_gy']=dict(fits={'s_cont'},text='During your Standby Phase, you can pay 300 LP to target a non-Monster Card in your GY and place it on the bottom of your Deck.',real_only=True)
+AURAS['dust_barrier']=dict(fits={'s_cont'},text='Face-up Normal Monsters are unaffected by your opponent’s Spell Cards. Destroy this card during your second Standby Phase after activation.',real_only=True)
+AURAS['swords_concealing']=dict(fits={'s_cont'},text='When activated, change all opponent monsters to face-down Defense Position. While this card is face-up, they cannot change battle positions. Destroy it during your second Standby Phase after activation.',real_only=True)
+AURAS['dangerous_machine_type6']=dict(fits={'s_cont'},text='During each of your Standby Phases, roll a die and apply the result: discard, draw, destroy an opponent monster, or destroy this card.',real_only=True)
+AURAS['weapon_change']=dict(fits={'s_cont'},text='During your Standby Phase, pay 700 LP to target a face-up Warrior or Machine you control; switch its current ATK/DEF until the end of your opponent’s next turn.',real_only=True)
+AURAS['ectoplasmer']=dict(fits={'s_cont'},text='During each player’s End Phase, that player Tributes a face-up monster and inflicts half its original ATK as damage to the opponent.',real_only=True)
+AURAS['spiral_spear_strike']=dict(fits={'s_cont'},text='Gaia the Fierce Knight, Swift Gaia the Fierce Knight, and Gaia the Dragon Champion inflict piercing damage; if Gaia the Dragon Champion does so, draw 2 then discard 1.',real_only=True)
+AURAS['double_battle_damage_when_attacked']=dict(fits={'m_main'},text='Double any battle damage your opponent takes when they attack this card.',real_only=True)
+AURAS['nuvia_the_wicked']=dict(fits={'m_main'},text='Destroy this card when it is Normal Summoned. It loses 200 ATK for each monster your opponent controls.',real_only=True)
+AURAS['minor_goblin_official']=dict(fits={'t_cont'},text='Activate only while your opponent has 3000 LP or less. Inflict 500 damage to them during each of their Standby Phases.',real_only=True)
+AURAS['avoid_battle_damage_with_monster']=dict(fits={'t_cont'},text='While you control a monster, you take no Battle Damage.',real_only=True)
+AURAS['pierce_dragons']=dict(fits={'t_cont'},text='Your Dragon monsters inflict piercing Battle Damage when they attack Defense Position monsters.',real_only=True)
+AURAS['mask_of_restrict']=dict(fits={'t_cont'},text='Neither player can Tribute cards.',real_only=True)
+AURAS['solemn_wishes']=dict(fits={'t_cont'},text='When you draw a card, gain 500 LP.',real_only=True)
+AURAS['coffin_seller']=dict(fits={'t_cont'},text='When a monster is sent to your opponent\'s GY, inflict 300 damage to your opponent.',real_only=True)
+AURAS['remove_brainwashing']=dict(fits={'t_cont'},text='Return all monsters to their owners.',real_only=True)
+AURAS['final_attack_orders']=dict(fits={'t_cont'},text='Change all monsters to Attack Position and prevent their battle positions from changing.',real_only=True)
+AURAS['emperor_holiday']=dict(fits={'t_cont'},text='Negate other Equip Card effects on the field.',real_only=True)
+AURAS['royal_command']=dict(fits={'t_cont'},text='Negate the activations of Flip monster effects.',real_only=True)
+AURAS['chain_burst']=dict(fits={'t_cont'},text='After a Trap Card resolves, its activator takes 1000 damage.',real_only=True)
+AURAS['equip_lock_opp_position']=dict(fits={'s_equip'},text='Monsters your opponent controls cannot change their battle positions.',real_only=True)
+AURAS['demotion']=dict(fits={'s_equip'},text='The equipped monster loses 2 Levels.',real_only=True)
+AURAS['mage_power']=dict(fits={'s_equip'},text='The equipped monster gains 500 ATK and DEF for each Spell/Trap you control.',real_only=True)
+AURAS['stim_pack']=dict(fits={'s_equip'},text='The equipped monster gains {n} ATK, then loses {d} ATK during each of your Standby Phases.',real_only=True)
+AURAS['lightning_blade']=dict(fits={'s_equip'},text='All WATER monsters lose 500 ATK.',real_only=True)
+AURAS['united_we_stand']=dict(fits={'s_equip'},text='The equipped monster gains 800 ATK/DEF for each face-up monster you control.',real_only=True)
+AURAS['rod_of_minds_eye']=dict(fits={'s_equip'},text='Battle Damage the equipped monster inflicts to your opponent becomes 1000.',real_only=True)
+AURAS['mask_of_brutality_upkeep']=dict(fits={'s_equip'},text='During each of your Standby Phases, pay 1000 LP or destroy this card.',real_only=True)
+AURAS['mask_of_accursed']=dict(fits={'s_equip'},text='The equipped monster cannot attack. During each of your Standby Phases, inflict 500 damage to its controller.',real_only=True)
+AURAS['ballista_rampart_smashing']=dict(fits={'s_equip'},text='If the equipped monster attacks a face-down Defense Position monster, it gains 1500 ATK during damage calculation.',real_only=True)
+AURAS['royal_decree']=dict(fits={'t_cont'},text='Negate all other Trap effects on the field, including Trap Monsters.',real_only=True)
+AURAS['scroll_bewitchment']=dict(fits={'s_equip'},text='Choose an Attribute; the equipped monster becomes that Attribute.',real_only=True)
+AURAS['dna_surgery']=dict(fits={'t_cont'},text='Declare a Type; all face-up monsters become that Type.',real_only=True)
+AURAS['dna_transplant']=dict(fits={'t_cont'},text='Declare an Attribute; all face-up monsters become that Attribute.',real_only=True)
+AURAS['germ_infection']=dict(fits={'s_equip'},text='Equip only to a non-Machine monster. Its ATK decreases by 300 during each of your Standby Phases.',real_only=True)
+AURAS['des_counterblow']=dict(fits={'t_cont'},text='Destroy a monster that inflicts Battle Damage by a direct attack.',real_only=True)
+AURAS['astral_barrier']=dict(fits={'t_cont'},text='When your opponent attacks your monster, make that attack direct.',real_only=True)
+ACTS['mind_control']=dict(fits=ACTIVATED,target=True,tclause='target 1 monster your opponent controls',text='take control of it until the End Phase; it cannot attack or be Tributed',real_only=True)
+AURAS['goblin_of_greed']=dict(fits={'m_main'},text='Neither player can discard cards from their hand.',real_only=True)
+AURAS['white_hole']=dict(fits={'t_normal'},text='When your opponent activates Dark Hole, your monsters cannot be destroyed by its effect.',real_only=True)
+AURAS['xing_zhen_hu']=dict(fits={'t_cont'},text='Target 2 Set Spell/Trap Cards; they cannot be activated while this card remains face-up.',real_only=True)
+AURAS['spellbinding_circle']=dict(fits={'t_cont'},text='Target an opponent\'s monster; it cannot attack or change position, and when it is destroyed, destroy this card.',real_only=True)
+ACTS['shallow_grave']=dict(fits=ACTIVATED,text='Each player Special Summons 1 monster from their GY in face-down Defense Position.',real_only=True)
+ACTS['graceful_dice']=dict(fits={'s_quick'},text='Roll a six-sided die; your monsters gain ATK and DEF equal to the result x 100 until the end of this turn.',real_only=True)
+ACTS['summon_wall_shadow']=dict(fits=ACTIVATED|{'s_equip'},text='Special Summon Wall Shadow from your Deck, ignoring its Summoning conditions.',real_only=True)
+COSTS['tribute_labyrinth_pair']=dict(fits=ACTIVATED|{'s_equip'},spends=True,text='Tribute this card and the monster equipped to it',real_only=True)
+AURAS['anti_spell_counter_trap']=dict(fits={'t_counter'},text='Remove 2 Spell Counters to negate a Spell Card activation and destroy it.',real_only=True)
+ACTS['fengsheng_mirror']=dict(fits={'s_normal'},text='Reveal your opponent\'s hand, then discard 1 Spirit monster from it if possible.',real_only=True)
+ACTS['delta_attacker']=dict(fits={'s_normal'},text='If you control 3 face-up Normal Monsters with the same name, they can attack directly this turn.',real_only=True)
+AURAS['rite_of_spirit_nvalley']=dict(fits={'t_normal'},text='This card is unaffected by Necrovalley.',real_only=True)
+AURAS['after_the_struggle']=dict(fits={'s_normal'},text='During Main Phase 1, destroy all monsters that are involved in damage calculation this turn during the Battle Phase.',real_only=True)
+AURAS['wall_of_revealing_light']=dict(fits={'t_cont'},text='Pay any multiple of 1000 LP; your opponent\'s monsters with ATK up to that amount cannot attack.',real_only=True)
+AURAS['spell_of_pain']=dict(fits={'s_quick'},text='When an opponent\'s effect would inflict damage to you, make them take it instead.',real_only=True)
+AURAS['raregold_armor']=dict(fits={'s_equip'},text='While you control the equipped monster, your opponent must attack that monster.',real_only=True)
+AURAS['nightmares_steelcage']=dict(fits={'s_normal'},text='No monsters can attack. Destroy this card after 2 of your opponent\'s turns.',real_only=True)
+AURAS['butterfly_dagger']=dict(fits={'s_equip'},text='If this card is destroyed while equipped, you can return it to your hand.',real_only=True)
+AURAS['infinite_dismissal']=dict(fits={'t_cont'},text='During the End Phase, destroy Level 3 or lower monsters Normal or Flip Summoned this turn.',real_only=True)
+AURAS['greed']=dict(fits={'t_cont'},text='During the End Phase, each player takes 500 damage for each card they drew by card effects this turn.',real_only=True)
+AURAS['canyon']=dict(fits={'s_field'},text='When a Rock monster in Defense Position is attacked, double battle damage to the attacking monster\'s controller.',real_only=True)
+AURAS['seven_completed']=dict(fits={'s_equip'},text='Choose ATK or DEF when equipped; a Machine monster gains 700 in that stat.',real_only=True)
+ACTS['mystic_box']=dict(fits={'s_normal'},text='Target an opponent\'s monster and your monster; destroy the first, then give the second to your opponent.',real_only=True)
+AURAS['jar_robber']=dict(fits={'s_quick'},text='When Pot of Greed is activated, negate its effect and draw 1 card.',real_only=True)
+AURAS['judgment_desert']=dict(fits={'t_cont'},text='Monsters flipped face-up after this card resolves cannot change battle position except by card effects.',real_only=True)
+AURAS['real_set_piece']=dict(fits={'s_cont'},text='This card can only be placed on the field by its board effect.',real_only=True)
+AURAS['first_sarcophagus']=dict(fits={'t_cont'},text='During each opponent End Phase, place the next Sarcophagus from your hand or Deck; when all are present, send them to the GY and Special Summon Spirit of the Pharaoh.',real_only=True)
+AURAS['smoke_grenade_thief']=dict(fits={'s_equip'},text='If this card is destroyed by a card effect while equipped, reveal your opponent\'s hand and discard 1 card from it.',real_only=True)
+AURAS['bad_reaction_simochi']=dict(fits={'t_cont'},text='Any effect that would increase your opponent\'s Life Points inflicts that much damage to them instead.',real_only=True)
+AURAS['magical_thorn']=dict(fits={'t_cont'},text='When one or more of your opponent\'s cards are discarded from their hand to the GY, inflict 500 damage to them for each card.',real_only=True)
+AURAS['tornado_wall']=dict(fits={'t_cont'},text='While Umi is active, you take no battle damage. Destroy this card if Umi is not active.',real_only=True)
+AURAS['anti_spell_fragrance']=dict(fits={'t_cont'},text='Both players must Set Spells and wait until the next turn before activating them.',real_only=True)
+AURAS['light_of_intervention']=dict(fits={'t_cont'},text='Monster Cards cannot be Set or turned face-down; monsters that would be Set are Normal Summoned face-up in Defense Position.',real_only=True)
+AURAS['labyrinth_of_nightmare']=dict(fits={'t_cont'},text='Once per turn, during each End Phase, change all face-up monsters the turn player controls to the opposite battle position.',real_only=True)
+AURAS['ominous_fortunetelling']=dict(fits={'t_cont'},text='Once per turn during your Standby Phase, reveal a random card in your opponent\'s hand; if you correctly call its type, inflict 700 damage.',real_only=True)
+AURAS['pyramid_of_light']=dict(fits={'t_cont'},text='If this face-up card leaves your field, destroy and banish your face-up Andro Sphinx and Sphinx Teleia.',real_only=True)
+AURAS['jam_defender']=dict(fits={'t_cont'},text='When your opponent attacks a monster you control, you can target a face-up Revival Jam you control that can be attacked; make it the attack target.',real_only=True)
+ACTS['shuffle_own_deck']=dict(fits={'m_main'},text='Shuffle your Deck.',real_only=True)
+AURAS['atk_down_if_opp_monster']=dict(fits={'m_main'},text='While your opponent controls a monster, this card loses 1000 ATK.',real_only=True)
+AURAS['fatal_abacus']=dict(fits={'t_cont'},text='When monsters are sent from the field to the GY, their owners take 500 damage for each.',real_only=True)
+AURAS['rod_silence_kayest']=dict(fits={'s_equip'},text='Other Spell effects that target the equipped monster are negated, then that Spell is destroyed.',real_only=True)
+ACTS['damage_turn_player']=dict(fits={'s_cont'},text='the turn player takes {n} damage',n=R(100,1000,100),real_only=True)
+CONDS['any_standby_phase']=dict(kind='event',fits={'s_cont'},text='During each player’s Standby Phase',real_only=True)
+ACTS['self_set_main_phase']=dict(fits={'m_main'},text='Once per turn, during your Main Phase, change this card to face-down Defense Position.',real_only=True)
+AURAS['self_lose_atk_def_per_hand']=dict(fits={'m_main'},text='This card loses {n} ATK and DEF for each card in your hand.',n=R(100,500,100),real_only=True)
+AURAS['draw_if_flipped_battle_destroyed']=dict(fits={'m_main'},text='If this card was flipped face-up before it was destroyed by battle, draw 1 card.',real_only=True)
+AURAS['self_atk_per_named_gy']=dict(fits={'m_main'},text='This card gains {n} ATK for each {names} in both GYs.',n=R(100,500,100),real_only=True)
+AURAS['equip_direct']=dict(fits={'s_equip'},text='The equipped monster can attack directly',real_only=True)
+AURAS['equip_no_attack_non_machine']=dict(fits={'s_equip'},text='The equipped non-Machine monster cannot attack',real_only=True)
+AURAS['equip_return_top']=dict(fits={'s_equip'},text='If this card is sent to the GY, place it on top of the Deck.',real_only=True)
+AURAS['equip_return_top_pay']=dict(fits={'s_equip'},text='If this card is sent from the field to the GY, you can pay 500 LP to place it on top of the Deck.',real_only=True)
+AURAS['equip_send_field_damage']=dict(fits={'s_equip'},text='If this card is sent from the field to the GY, inflict {n} damage to your opponent.',n=R(100,1000,100),real_only=True)
+AURAS['equip_send_field_recover']=dict(fits={'s_equip'},text='If this card is sent from the field to the GY, gain {n} LP.',n=R(100,1500,100),real_only=True)
+AURAS['equip_battle_damage_recover']=dict(fits={'s_equip'},text='If the equipped monster inflicts battle damage to your opponent, gain that much LP.',real_only=True)
 COSTS['send_hand']=dict(fits=ACTIVATED,spends=True,text='send {n} {filter} from your hand to the GY',real_only=True)
 ACTS['move_select']=dict(fits=ACTIVATED,text='choose {n} {filter} and {verb} {n}',real_only=True)
 ACTS['reveal_destroy_st']=dict(fits={'m_main'},target=True,
@@ -566,9 +988,13 @@ ACTS['damage_self']=dict(fits=ACTIVATED,text='you take {n} damage',real_only=Tru
 ACTS['destroy_attack_target']=dict(fits={'m_main'},text='destroy the face-up Defense Position monster this card is attacking',real_only=True)
 ACTS['reveal_opp_set_all']=dict(fits={'m_main'},text='reveal all Set cards your opponent controls',real_only=True)
 ACTS['recover_tribute_stat']=dict(fits={'t_normal','s_quick'},text='gain LP equal to the selected monster stat',real_only=True)
+CONDS['st_destroyed_opp']=dict(kind='event',fits={'t_normal'},text='When one or more of your Spell/Trap Cards are destroyed and sent to the GY by your opponent\'s card effect',real_only=True)
 ACTS['reveal_destroy_set_mon']=dict(fits={'m_main'},target=True,
                                    tclause='target 1 face-down monster your opponent controls',
                                    text='reveal it and destroy it if it is an Effect Monster',real_only=True)
+ACTS['acid_trap_hole']=dict(fits={'s_normal','t_normal'},target=True,
+                             tclause='target 1 face-down Defense Position monster on the field',
+                             text='flip it face-up; destroy it if its DEF is 2000 or less, otherwise Set it again',real_only=True)
 ACTS['spell_counter_all']=dict(fits={'m_main'},text='place 1 Spell Counter on each face-up card that can hold one',real_only=True)
 ACTS['return_self_hand']=dict(fits={'m_main'},text='return this face-up card to its owner\'s hand',real_only=True)
 ACTS['return_battle_target']=dict(fits={'m_main'},text='return the opponent\'s monster that battled this card to the hand',real_only=True)
@@ -627,7 +1053,8 @@ BLOCK_WEIGHTS.update({'upkeep':.45,'curse_damage':.1,'coin':.9,'call':.7,
  'no_bp':.25,'no_ss':.15,'once_duel':.2,'self_no_attack':.6,
  'recover':4,'mill_opp':.3,'discard_opp':1,'flip':30,'standby':8,
  # Deck searches 3.1% -> 1.3%, "negate the attack" 3.1% -> 0.2% (Counter Traps still get theirs from settle()), dice 0.1% -> 1.2%.
- 'search_race':2,'negate_attack':1,'dice_mult':2,'dice_branch':2,'cannot_ss':6})
+ 'search_race':2,'negate_attack':1,'dice_mult':2,'dice_branch':2,'cannot_ss':6,
+ 'draw':1.5})   # draws rarer than on real cards (user, Nov 17): 2.8% -> about 1% of cards
 
 # Real-card blocks in the random rotation (user, Nov 16: the recreation blocks that are different enough from the
 # existing ones). Each was forced onto 6 cards and played in the duel engine first (400 duels, 0 Lua errors, every
@@ -641,11 +1068,11 @@ ROTATION={
  'self_set':(dict(label='Set this card',self=True),2),
  'self_atk_permanent':(dict(label='Gain ATK',self=True,n=R(100,1000,100)),1),
  'damage_both':(dict(label='Damage',n=R(500,2000,100),d=R(200,1000,100)),1),
- 'destroy_all_monsters':(dict(label='Destroy all monsters',fixed={'side':'all'}),.3),   # Dark Hole: every monster on the field
- 'bounce_all_opp_mon':(dict(label='Return all monsters'),.3),
+ 'destroy_all_monsters':(dict(label='Destroy all monsters',fixed={'side':'all'},fits={'s_normal','s_quick','t_normal'}),.3),   # one use, like Dark Hole: every turn locked duels (Nov 17)   # Dark Hole: every monster on the field
+ 'bounce_all_opp_mon':(dict(label='Return all monsters',fits={'s_normal','s_quick','t_normal'}),.3),
  'indes_battle_turn':(dict(label='Protect'),1.5),
  'no_battle_damage_turn':(dict(label='No battle damage'),1.5),
- 'shuffle_hand_draw_same':(dict(label='Shuffle and draw'),1),
+ 'shuffle_hand_draw_same':(dict(label='Shuffle and draw'),.5),
  'end_battle_phase':(dict(label='End the Battle Phase',ctx='opp_attack'),1.5),
  'damage_attacker_atk':(dict(label='Reflect the attack',ctx='opp_attack'),.5),
  'recover_attacker_atk':(dict(label='Gain LP',ctx='opp_attack'),1),
@@ -656,13 +1083,29 @@ ROTATION={
  'no_attack_race_opp':(dict(race=True),1),
  'equip_atk_down':(dict(n=R(300,1500,100)),1),
  'equip_def_down':(dict(n=R(300,1500,100)),1),
+ # Second batch (user, Nov 17), tested the same way: 90 cards, 320 duels, 0 Lua errors, every activated block used.
+ 'battled':(dict(),1.5),
+ 'damage_to_controller':(dict(repeat=True),1),
+ 'your_battle_damage_opp':(dict(repeat=True),1),
+ 'gy_empty':(dict(),1),
+ 'self_atk_def_per_hand':(dict(n=R(100,500,100)),1),
+ 'self_atk_when_battling_attr':(dict(attr=True,no_match=True,n=R(300,1000,100)),1),   # the opponent's Attribute
+ 'attack_all_opp_monsters':(dict(),.5),
+ 'no_attack_atk_min':(dict(n=R(1500,2500,500),fits={'s_cont'}),.4),   # Messenger of Peace: a Continuous Spell, never below 1500
+ 'equip_direct':(dict(),1.5),
+ 'equip_send_field_damage':(dict(n=R(300,1000,100)),1),
+ 'no_traps_opp_battle_phase':(dict(),1),
+ 'banish_battle_destroyed_monsters':(dict(),1),
+ 'look_reorder_top5':(dict(label='Look at your Deck',n=R(3,5)),.75),
+ 'double_tribute_attribute':(dict(attr=True),1),
+ 'no_traps_on_normal_summon':(dict(),.75),
 }
 for _k,(_extra,_w) in ROTATION.items():
  _meta=next(t[_k] for t in CATEGORIES.values() if _k in t)
- _meta.update(_extra);_meta.pop('real_only',None);BLOCK_WEIGHTS[_k]=_w
+ _meta.update({k:v for k,v in _extra.items() if k!='fits'});_meta.pop('real_only',None);BLOCK_WEIGHTS[_k]=_w
  # The generator adds its own full stop, and an activated effect continues the sentence ("...; you take no ...").
  _t=_meta['text'].rstrip('.')
- if _k not in AURAS and _t[:1].isupper():_t=_t[:1].lower()+_t[1:]
+ if _k not in AURAS and _k not in CONDS and _t[:1].isupper():_t=_t[:1].lower()+_t[1:]
  _meta['text']=_t
 
 # High amounts get likelier with more conditions (user, Nov 15), without being guaranteed. An amount is rolled
@@ -707,9 +1150,21 @@ def _roll_block(rng,cat,key,card):
 
 EVOLVE_TARGETS=[c for c in MAIN_MONSTERS if c['data']['type']&TYPE_EFFECT and 6<=c['level']<=8]
 
+# Which blocks a slot can roll depends only on the slot, so it is worked out once (Nov 17: with 600+ blocks, filtering
+# on every roll made 1,000 cards take seconds, and the Randomizer loadout makes 1,000 on the phone at run start).
+_CANDIDATES={}
 def _candidates(cat,slot,card):
+ if (cat,slot) not in _CANDIDATES:_CANDIDATES[cat,slot]=_find_candidates(cat,slot)
+ return _CANDIDATES[cat,slot]
+
+def _generator_fit(key,slot,meta):
+ rotation=ROTATION.get(key)
+ slots=rotation[0].get('fits') if rotation else None
+ return slot in meta['fits'] and (not slots or slot in slots)
+
+def _find_candidates(cat,slot):
  table=CATEGORIES[cat]
- keys=[k for k,m in table.items() if slot in m['fits']]
+ keys=[k for k,m in table.items() if _generator_fit(k,slot,m)]
  # Win conditions come only with a win effect (see _pull_win_conditions); 'needed' blocks only with the effect
  # that needs them; set pieces only with their set.
  if cat=='conds':keys=[k for k in keys if k not in WIN_CONDS]
@@ -756,7 +1211,7 @@ def problem(parts,slot):
   for i,p in enumerate(items):
    if (cat,p['k']) in seen:return cat,i,'the same block twice'
    seen.add((cat,p['k']))
-   if slot not in CATEGORIES[cat][p['k']]['fits']:return cat,i,'does not fit this kind of card'
+   if not _generator_fit(p['k'],slot,CATEGORIES[cat][p['k']]):return cat,i,'does not fit this kind of card'
  conds,costs,acts,limits,others=(parts[c] for c in CATEGORIES)
  events=[i for i,p in enumerate(conds) if CONDS[p['k']]['kind']=='event']
  if len(events)>1:return 'conds',events[1],'two timings'
@@ -873,7 +1328,7 @@ def _pull_needs(rng,parts,slot,log):
    if need not in {q['k'] for q in parts[cat]} and slot in CATEGORIES[cat][need]['fits']:
     parts[cat].append(_roll_block(rng,cat,need,{}));log.append(f"added '{need}' for '{p['k']}'")
   if p['k']=='final_countdown' and not any(CONDS[c['k']]['kind']=='state' for c in parts['conds']):
-   pool=[k for k,m in CONDS.items() if m['kind']=='state' and slot in m['fits'] and not m.get('needed') and k not in WIN_CONDS]
+   pool=[k for k,m in CONDS.items() if m['kind']=='state' and _generator_fit(k,slot,m) and not m.get('needed') and k not in WIN_CONDS and not m.get('real_only')]
    k=_sample(rng,pool,1)[0];parts['conds'].append(_roll_block(rng,'conds',k,{}));log.append(f"added condition '{k}' (a countdown win needs one)")
 
 def _pull_win_conditions(rng,parts,slot,log):
@@ -886,7 +1341,7 @@ def _pull_win_conditions(rng,parts,slot,log):
   conds.append(_roll_block(rng,'conds',k,{}));log.append(f"added win condition '{k}'")
  while len(conds)<WIN_MIN_CONDITIONS:
   have={p['k'] for p in conds}
-  pool=[k for k,m in CONDS.items() if m['kind']=='state' and slot in m['fits'] and k not in have and not m.get('real_only')]
+  pool=[k for k,m in CONDS.items() if m['kind']=='state' and _generator_fit(k,slot,m) and k not in have and not m.get('real_only')]
   k=_sample(rng,pool,1)[0];conds.append(_roll_block(rng,'conds',k,{}));log.append(f"added condition '{k}' (an instant win needs {WIN_MIN_CONDITIONS})")
 
 def _roll_amounts_for_conditions(rng,parts,log):
@@ -933,6 +1388,20 @@ def settle(rng,parts,slot,log):
   parts['acts']=[_roll_block(rng,'acts',rng.choice(keys),{})];log.append(f"Spell/Trap had no effect left: rolled '{parts['acts'][0]['k']}'")
   return settle(rng,parts,slot,log)
  if problem(parts,slot):return settle(rng,parts,slot,log)
+ # A strong effect on a card that stays (a monster or Continuous card), usable any turn without a timing, costs
+ # something, like real cards (Nov 17: free "Once per turn: return 1 monster to the hand" locked test duels).
+ acts=parts['acts']
+ if (slot in MONSTER_SLOTS|{'s_cont','t_cont'} and acts and acts[0]['k'] not in AURAS and not _event(parts)
+     and not parts['costs'] and _power(acts)>=1):
+  for k in _sample(rng,_candidates('costs',slot,{}),99):   # weighted order, every cost tried
+   parts['costs']=[_roll_block(rng,'costs',k,{})]
+   if not problem(parts,slot):log.append(f"strong repeatable effect: added cost '{k}'");break
+  else:parts['costs']=[]
+ # Paying LP for it every turn costs at least 1000, as on real cards (Nov 17: "pay 200 LP; destroy 1 monster" each
+ # turn locked test duels).
+ if slot in MONSTER_SLOTS|{'s_cont','t_cont'} and acts and acts[0]['k'] not in AURAS and _power(acts)>=1:
+  for p in parts['costs']:
+   if p['k']=='lp' and p.get('n',0)<1000:log.append(f"repeatable strong effect: LP cost {p['n']} -> 1000");p['n']=1000
  # Once per turn (user): an activated effect with no timing, or a timing that can happen many times a turn,
  # gets "Once per turn" unless a stricter limit is already there. Cards used once are exempt.
  # An instant win needs no Once per turn: it ends the Duel.
@@ -983,8 +1452,8 @@ def _fmt(text,p,card):
   hand_condition=(f"your opponent has at least {p.get('n')} cards in their hand" if hand_mode=='min' else f"your opponent has {p.get('n')} or fewer cards in their hand")
  else:
   hand_condition=(f"you have at least {p.get('n')} cards in your hand" if hand_mode=='min' else ('you have no cards in your hand' if p.get('n')==0 else f"you have {p.get('n')} or fewer cards in your hand"))
- return text.format(n=n,s='' if n==1 else 's',race=p.get('race',''),attr=p.get('attr',''),how=how,l=p.get('l'),d=p.get('d'),
-  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter','monster'),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','faceup':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect={'add':f"it gains {p.get('n')} {p.get('stat','ATK')}",'set':f"its {p.get('stat','ATK')} becomes {p.get('n')}",'half':'its original ATK becomes half its original ATK'}.get(p.get('mode'),'changes its stats')
+ return text.format(n=n,s='' if n==1 else 's',race=p.get('race',''),attr=p.get('attr',''),how=how,level=p.get('level',2),l=p.get('l'),d=p.get('d'),
+  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter','monster'),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck','deck_hand_gy':'hand, Deck, or GY'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','faceup':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect={'add':f"it gains {p.get('n')} {p.get('stat','ATK')}",'set':f"its {p.get('stat','ATK')} becomes {p.get('n')}",'half':'its original ATK becomes half its original ATK'}.get(p.get('mode'),'changes its stats')
   ).replace('the top 1 card ','the top card ').replace('During your next Standby Phase after this','During your next Standby Phase')
 
 # What a lost coin toss or a wrong call does.
@@ -1072,14 +1541,16 @@ def effect_text(card):
  return ' '.join(lines)
 
 # ---------------------------------------------------------------- whole cards
-def _fusion_materials(rng):
+def _fusion_materials(rng,race=None):
  # 2 or 3 materials, each a Type, Attribute, Level band, "Normal Monster" or one named card. Every material
  # matches at least 20 main-deck monsters in the pool, so the Fusion can always be made.
  mats=[]
  for _ in range(rng.choice((2,2,3))):
   kind=rng.choices(['race','attr','low','high','normal','code'],[4,3,2,1,1,2])[0]
   if kind=='race':
-   race=pick(rng,{r:w for r,w in RACE_WEIGHTS.items() if sum(c['race']==r for c in MAIN_MONSTERS)>=20});mats.append({'k':'race','v':RACES[race],'text':f'1 {race} monster'})
+   ok=MATERIAL_RACES
+   # Usually the Fusion's own Type, like real Fusions (a Dragon made from Dragons).
+   r=race if race in ok and rng.random()<.7 else pick(rng,ok);mats.append({'k':'race','v':RACES[r],'text':f'1 {r} monster'})
   elif kind=='attr':
    attr=pick(rng,ATTR_WEIGHTS);mats.append({'k':'attr','v':ATTRIBUTES[attr],'text':f'1 {attr} monster'})
   elif kind=='low':mats.append({'k':'low','text':'1 Level 4 or lower monster'})
@@ -1096,11 +1567,16 @@ def _stats(rng,level):
    a,d=rng.sample(BY_LEVEL[lv],2);return a,d
  raise RuntimeError('no stat donors')
 
-def _name_art(rng,group,used):
- # Name from one card, art from a different card, both of the same kind (monster/Spell/Trap).
- # Unused cards first; once fewer than 2 are left (around 1,000 cards in), names and art may repeat.
+def _one_unused(rng,group,used,fallback):
+ # One card of the group not used yet by this run (then any of the group, then any of the fallback).
+ free=[c for c in group if c['id'] not in used] or group or fallback
+ c=rng.choice(free);used.add(c['id']);return c
+
+def _name_art(rng,group,used,fallback=None):
+ # Name from one card, art from a different card, both of the same kind (monster/Spell/Trap) and, for monsters, the
+ # same Type. Unused cards first; then any card of the group; then the fallback (all monsters).
  free=[c for c in group if c['id'] not in used]
- if len(free)<2:free=group
+ if len(free)<2:free=group if len(group)>=2 else [c for c in fallback if c['id'] not in used] or fallback
  name,art=rng.sample(free,2);used.update((name['id'],art['id']));return name,art
 
 def _engine_data(card):
@@ -1131,9 +1607,27 @@ def _match_type(rng,card,log):
  """The monster takes the Type / Attribute its effect names (TYPE_MATCH of the time). Effects come first, then
  conditions and costs, so "If you control a Zombie monster: add 1 Dragon monster" makes a Dragon."""
  for key,field in (('race','race'),('attr','attribute')):
-  named=[p[key] for cat in ('acts','conds','costs','others') for p in card['parts'][cat] if key in p]
+  # Blocks about the opponent's monsters ('no_match': "while battling a LIGHT monster") say nothing about this card.
+  named=[p[key] for cat in ('acts','conds','costs','others') for p in card['parts'][cat] if key in p and not CATEGORIES[cat][p['k']].get('no_match')]
   if named and named[0]!=card[field] and rng.random()<TYPE_MATCH:
    log.append(f"{field} {card[field]} -> {named[0]}: its effect names {named[0]}");card[field]=named[0]
+   # The other half of the pair follows, unless the effect names it too (a Dragon is then likelier LIGHT or DARK).
+   other,okey='attribute' if field=='race' else 'race','attr' if field=='race' else 'race'
+   if not any(okey in p for cat in card['parts'].values() for p in cat):
+    pairs={pr:w for pr,w in PAIR_WEIGHTS.items() if pr[0 if field=='race' else 1]==named[0]}
+    if pairs:card[other]=pick(rng,pairs)[1 if field=='race' else 0]
+
+def _stat_budget(rng,card,log):
+ """Strong effects come on weaker bodies, like real cards (user, Nov 17): a strong effect keeps the lower ATK of 2
+ donors of its Level, a very strong one the lowest of 3. Always-on effects count as ordinary."""
+ acts=card['parts']['acts']
+ power=_power(acts) if acts and acts[0]['k'] not in AURAS else 0
+ if not power:return
+ lv=min(BY_LEVEL,key=lambda l:(abs(l-card['level']),l))
+ donors=rng.sample(BY_LEVEL[lv],min(len(BY_LEVEL[lv]),power+1))+[MONSTER_BY_ID[card['atk_from']]]
+ low=min(donors,key=lambda c:c['atk'])
+ if low['id']!=card['atk_from']:
+  log.append(f"strong effect: ATK {card['atk']} -> {low['atk']}");card.update(atk=low['atk'],atk_from=low['id'])
 
 def make_card(rng,next_id,used,kind=None,frame=None,sub=None,log=None):
  """One randomized card (two for a Ritual Monster: it brings its Ritual Spell). Returns a list of cards."""
@@ -1142,12 +1636,11 @@ def make_card(rng,next_id,used,kind=None,frame=None,sub=None,log=None):
  card={'id':next_id(),'kind':kind,'log':log}
  if kind=='monster':
   frame=frame or pick(rng,FRAME_WEIGHTS)
-  name,art=_name_art(rng,MONSTERS,used)
   level=pick(rng,LEVELS[frame]);atk_from,def_from=_stats(rng,level)
-  race,attr=pick(rng,RACE_WEIGHTS),pick(rng,ATTR_WEIGHTS)
+  race,attr=pick(rng,PAIR_WEIGHTS)
   slot={'normal':'m_none','effect':'m_main','fusion':'m_fusion','ritual':'m_ritual'}[frame]
   card.update(frame=frame,slot=slot,level=level,race=race,attribute=attr,atk=atk_from['atk'],defense=def_from['defense'],
-   name=name['name'],name_from=name['id'],art_from=art['id'],atk_from=atk_from['id'],def_from=def_from['id'])
+   name='',atk_from=atk_from['id'],def_from=def_from['id'])
   card['parts']={c:[] for c in CATEGORIES}
   if frame!='normal':
    card['parts']=settle(rng,_roll_parts(rng,slot,card),slot,log)
@@ -1156,6 +1649,13 @@ def make_card(rng,next_id,used,kind=None,frame=None,sub=None,log=None):
     frame='normal';card.update(frame='normal',slot='m_none');card['parts']={c:[] for c in CATEGORIES}
     log.append('every effect was dropped: it became a Normal Monster')
   _match_type(rng,card,log)
+  race,attr=card['race'],card['attribute']
+  # Art from a real monster of this Type, so the picture fits; the name from any monster (user, Nov 17: names stay
+  # completely random).
+  art=_one_unused(rng,MONSTERS_BY_RACE[race],used,MONSTERS)
+  name=_one_unused(rng,MONSTERS,used,MONSTERS)   # the art card is already used, so it is not picked again
+  card.update(name=name['name'],name_from=name['id'],art_from=art['id'])
+  _stat_budget(rng,card,log)
   extra=_make_set(rng,next_id,used,card)
   flip=_event(card['parts'])=='flip'
   has_effect=bool(card['parts']['acts'])
@@ -1167,14 +1667,14 @@ def make_card(rng,next_id,used,kind=None,frame=None,sub=None,log=None):
   if flip:label='Flip Effect Monster'
   elif frame in ('fusion','ritual') and has_effect:label=label.replace(' Monster',' Effect Monster')
   card['type']=label
-  card['type_line']='['+'/'.join([race]+(['Fusion'] if frame=='fusion' else ['Ritual'] if frame=='ritual' else [])+(['Flip'] if flip else [])+(['Effect'] if has_effect else [])+(['Normal'] if frame=='normal' else []))+']'
+  card['type_line']='['+'/'.join([card['race']]+(['Fusion'] if frame=='fusion' else ['Ritual'] if frame=='ritual' else [])+(['Flip'] if flip else [])+(['Effect'] if has_effect else [])+(['Normal'] if frame=='normal' else []))+']'
   if frame=='normal':
-   desc=next((c['desc'] for c in MONSTERS if c['id']==name['id'] and c['type']=='Normal Monster'),None) or rng.choice(NORMAL_FLAVOR)
+   desc=(name['desc'] if name['type']=='Normal Monster' else None) or rng.choice(FLAVOR_BY_RACE.get(race) or NORMAL_FLAVOR)
    card['desc']=desc;card['flavor']=True
   else:card['desc']=effect_text(card)
   out=[card]
   if frame=='fusion':
-   card['materials']=_fusion_materials(rng)
+   card['materials']=_fusion_materials(rng,race)
    card['desc']=' + '.join(m['text'] for m in card['materials'])+('\n'+card['desc'] if card['desc'] else '')
   if frame=='ritual':
    spell=make_ritual_spell(rng,next_id,used,card,log=[])

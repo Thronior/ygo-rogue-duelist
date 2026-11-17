@@ -1,0 +1,126 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet,.patch-notes-sheet *{box-sizing:border-box}
+.patch-notes-sheet{width:1400px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet .kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet section{margin-top:30px}
+.patch-notes-sheet b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet .big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet .big .bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet .big>*{position:relative}
+.patch-notes-sheet .big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet .big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet .big p.lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet .small li{font-size:17px}
+.patch-notes-sheet .ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet .way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet .way img{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b04a4a;flex:none}
+.patch-notes-sheet .way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet .way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet .way p i{color:#ff9d8a;font-style:normal}
+.patch-notes-sheet .marks{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.patch-notes-sheet .mark{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 20px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba;box-shadow:0 1px 6px #000b}
+.patch-notes-sheet .mark.yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet .mark.no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet .step{display:inline-flex;align-items:center;gap:8px;margin-left:6px}
+.patch-notes-sheet .step span{width:42px;height:36px;border:1px solid #b5824a;border-radius:6px;display:grid;place-items:center;font:700 22px/1 Arial,sans-serif;background:#16303b}
+.patch-notes-sheet .step b{font-size:19px;color:#f2dc89}
+.patch-notes-sheet .fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet .note{font-size:16px;color:#c8d8da;margin:12px 0 0}
+.patch-notes-sheet .bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:12px}
+.patch-notes-sheet .bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet .bal ul{gap:6px}
+.patch-notes-sheet .bal li{font-size:16px;gap:8px}
+.patch-notes-sheet .bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet .was{color:#9fb4ba;text-decoration:line-through}
+.patch-notes-sheet{font-family:Arial,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet h1,.patch-notes-sheet h2,.patch-notes-sheet h4,.patch-notes-sheet .big h3,.patch-notes-sheet .kick,.patch-notes-sheet .big em{font-family:Bebas,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet .big h3,.patch-notes-sheet h2,.patch-notes-sheet h4{font-weight:700}
+.patch-notes-sheet h1{font-weight:700}</style><div class="patch-notes-sheet"><div class="kick">YGO Rogue Duelist</div><h1>アップデート 0.2.37</h1>
+
+<section class="big fixhi" style="margin-top:28px"><em>重要な修正</em><h3>タッグのルーム、大規模ラン、セーブ</h3>
+<p class="lead"><b>タッグ</b>ではルームが256個になると満員と表示されていました。現在は<b>上限なし</b>で、誰もいないルームは10分後に削除されます。</p>
+<p class="lead" style="margin-top:8px"><b>10,000枚を超える</b>カードを持つランが「有効なセーブデータがない」と読み込めませんでした。再び読み込めます。</p>
+<p class="lead" style="margin-top:8px"><b>Windowsアプリ：</b>ドキュメントが<b>OneDrive</b>と同期されていると「Local save operation failed」になっていました。修正しました。</p>
+<p class="lead" style="margin-top:8px">長い<b>回復・バーンの連鎖</b>（ビッグバンガール構築）でデュエルが固まらなくなりました。</p></section>
+
+<section class="big"><div class="bg" style="background-image:url('assets/cursed-relic-background.png')"></div><em>呪いのレリック</em><h3>新しい呪いのレリック2種</h3>
+<div class="ways">
+<div class="way"><img src="assets/relics/22589918.jpg"><p><b>マリガンの申し出</b>デュエル中1度、最初のスタンバイフェイズに：手札を<b>好きな枚数</b>デッキに戻してシャッフルし、同じ枚数ドローする。<i>ドロー以外でデッキから手札にカードを加えられない。</i></p></div>
+<div class="way"><img src="assets/relics/74137509.jpg"><p><b>グレイスフル・ダイス＆スカル・ダイス</b>各ターン最初にサイコロを振った時：<b>出た目×100 LP</b>回復。<i>このターン、自分の表側モンスターの攻撃力は出た目×100ダウン。</i></p></div>
+</div>
+</section>
+
+<section class="big"><em>バランス調整</em><h3>レリックの変更</h3>
+<div class="bal">
+<div><h4>値下げ</h4><ul>
+<li><span>◆</span><span><b>全方位除外</b> <span class="was">150</span> 80</span></li>
+<li><span>◆</span><span><b>第三の門</b> <span class="was">135</span> 100</span></li>
+<li><span>◆</span><span><b>痛みなくして得るものなし</b> <span class="was">100</span> 70</span></li>
+<li><span>◆</span><span><b>師匠と弟子</b> <span class="was">100</span> 70</span></li>
+<li><span>◆</span><span><b>ガーディアンの呼び声</b> <span class="was">90</span> 70</span></li>
+<li><span>◆</span><span><b>おジャマ軍団</b> <span class="was">90</span> 60</span></li>
+<li><span>◆</span><span><b>忍者の巻物、運命の砂時計、ガーディアンの武器庫、蠍の紋章</b> <span class="was">85</span> 60。購入時に<b>対象カード1枚</b>を追加</span></li>
+</ul></div>
+<div><h4>強化</h4><ul>
+<li><span>◆</span><span><b>ドラゴンの紋章：</b>攻撃力<b>と守備力</b>400 <span class="was">攻撃力300</span></span></li>
+<li><span>◆</span><span><b>魔術師の杖：</b>「ブラック・マジシャン」モンスターはさらに<b>300アップ</b></span></li>
+<li><span>◆</span><span><b>ガラスの破片：</b>報酬コイン<b>3倍</b> <span class="was">2倍</span></span></li>
+<li><span>◆</span><span><b>ゲートの呼び声、魔術師の絆：</b><b>特殊召喚</b>でも発動</span></li>
+<li><span>◆</span><span><b>黒蠍団</b>は自分の<b>墓地</b>も数える</span></li>
+<li><span>◆</span><span><b>伝説の枷</b>は<b>未所持の</b>パーツを出し、その後エクゾディアのサポート</span></li>
+<li><span>◆</span><span><b>融合室</b>は<b>素材</b>を1体以上持つ融合モンスターを出す</span></li>
+</ul></div>
+<div><h4>呪いのレリック緩和</h4><ul>
+<li><span>◆</span><span><b>巨人の誓い：</b>レベル4以下は<b>300</b>ダウン <span class="was">400</span></span></li>
+<li><span>◆</span><span><b>儀式の傷跡：</b><b>300</b>ダウン <span class="was">500</span></span></li>
+<li><span>◆</span><span><b>孤独な暴君：</b>1体なら<b>+600</b> <span class="was">400</span>、複数なら<b>−400</b> <span class="was">500</span></span></li>
+<li><span>◆</span><span><b>無謀な槍：</b><b>700</b>ダウン <span class="was">1000</span></span></li>
+<li><span>◆</span><span><b>早すぎた勝利：</b>初期手札<b>1</b>枚減 <span class="was">2</span></span></li>
+</ul>
+<h4 style="margin-top:16px">パック</h4><ul>
+<li><span>◆</span><span><b>Yami Yugi：</b>ヂェミナイ・エルフ、魔法剣士ネオ、ホーリー・ドール、エンシェント・エルフ、マジシャンズ・ヴァルキリア</span></li>
+<li><span>◆</span><span><b>Serenity：</b>音楽家の帝王、カイザー・ドラゴン、千年竜などの融合モンスター</span></li>
+</ul></div>
+</div></section>
+
+<section class="cols">
+<div class="big"><em>デッキ編集</em><h3>どこでも印</h3>
+<p class="lead">カード画面のイラストの下に<span class="step"><span>−</span><b>1/3</b><span>+</span></span>、その下にカードの印ボタンを追加：</p>
+<div class="marks"><span class="mark">☆</span><span class="mark yes">★</span><span class="mark no">✕</span></div>
+<p class="lead" style="margin-top:10px">デッキの状態メニューに<b>印つき優先</b>を追加。<b>★</b>は<b>まだデッキに入っていない</b>カードに効くようになり、<b>✕</b>は灰色にして最後に並べるだけになりました。</p></div>
+<div class="big"><div class="bg" style="background-image:url('assets/cards/83011277.jpg')"></div><em>デュエル</em><h3>レリック優先、自爆攻撃なし</h3>
+<p class="lead"><b>レリックの誘発</b>が常に先に処理されるので、強制タイミングで代わりにカードを使わされなくなりました。</p>
+<p class="lead" style="margin-top:8px">CPUは<b>クリッター、黒き森のウィッチ、キラー・トマト</b>などの効果のために負ける攻撃をしなくなりました。クリッターとウィッチはセットします。</p></div>
+</section>
+
+<section class="cols">
+<div class="big"><div class="bg" style="background-image:url('assets/cards/60229110.jpg')"></div><em>CPU対戦相手</em><h3>岩石族・トゥーン・アンデットデッキ</h3>
+<p class="lead"><b>突撃指令、黙する死者、凡骨の意地、砂塵の結界、トゥーン・ディフェンス</b>、トゥーンのリリース、<b>ジャイアントマミー、カース・オブ・ヴァンパイア</b>、突然変異の新しいCPUルール。</p>
+<p class="lead" style="margin-top:8px"><b>Aknadin</b>のティア3デッキは<b>岩石族／地属性</b>デッキになりました。</p></div>
+<div class="big"><em>ドラフトデュエル</em><h3>すっきりしたドラフト</h3>
+<p class="lead">Copycatの1つ目のロードアウトと<b>Dueling Engine</b>の両ロードアウトは選べません。Copycatは<b>ランダマイザー</b>で参戦します。</p>
+<p class="lead" style="margin-top:8px"><b>デュエル外</b>でしか働かないレリック（コイン、ショップ、デッキのルール）はドラフトのレリックプールから外れ、新しい呪いのレリック2種が加わりました。</p></div>
+</section>
+
+<section class="cols">
+<div><h2>変更点</h2><ul class="small">
+<li><span>🌈</span><span>ランダムカードに<b>虹色の枠</b>が付き、カードピッカー、コレクション、関連カード、ラン履歴には出なくなりました。</span></li>
+<li><span>🎲</span><span>ランダムカードを使うデュエルが<b>止まりにくく</b>なり、名前も再び完全にランダムになりました。</span></li>
+<li><span>🔗</span><span><b>融合レリック</b>はコレクション › レリックで専用のグループに分かれました。</span></li>
+<li><span>⚖️</span><span>レリックを持っていても<b>関連レリック</b>の出やすさが下がらなくなりました。</span></li>
+<li><span>📜</span><span>新しい<b>パッチノート</b>は閉じるまで起動のたびに表示されます。</span></li>
+<li><span>🩺</span><span>起動エラー画面に、不具合報告用の<b>詳細</b>と<b>詳細をコピー</b>を追加しました。</span></li>
+</ul></div>
+<div><h2>修正</h2><ul class="small">
+<li><span>🧱</span><span><b>光の護封壁</b>はどのLPでも使えます（999 LPを超えるとデュエルが止まっていました）。</span></li>
+<li><span>⚙️</span><span><b>時々チェーン</b>で<b>メタル化・魔法反射装甲</b>をダメージステップに確認します。</span></li>
+<li><span>🔢</span><span>分割表示の<b>デッキ枚数</b>が重ねたカードも数えるようになりました。</span></li>
+<li><span>☁️</span><span>短い障害のあと「クラウドセーブは一時停止中」が一日中残らなくなりました。</span></li>
+</ul></div>
+</section></div>

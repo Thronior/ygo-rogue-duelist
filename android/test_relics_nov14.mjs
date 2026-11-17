@@ -83,6 +83,18 @@ e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(Card.IsCode,0
 const gated=await gate(['gate_calling']);console.log('Gate Calling',gated);
 same(gated,{sanga:1,others:1,hand:1},'Sanga brings one of the other two from the hand, once per turn');
 same(await gate([]),{sanga:1,others:0,hand:2},'without the relic the others stay in the hand');
+// Special Summons count too (2026-11-16 balance picks): Monster Reborn brings Sanga back from the GY.
+const REBORN=id('Monster Reborn');
+async function reborn(artifacts){
+ let out=null;const play=steps([[I.SELECT_ACTIVATE,REBORN,'activates']]);
+ const e=await duel({script:runScript(artifacts)+'\n'+setup([[SANGA,'grave'],[REBORN,'hand'],[KAZEJIN,'hand'],[SUIJIN,'hand']]),deck:[SANGA,REBORN,KAZEJIN,SUIJIN,...fill(WABOKU).slice(4)],enemy:fill(WABOKU),drive(e,m){
+  if(m.player===0&&m.type===M.SELECT_IDLECMD&&count(e,0,L.MZONE,SANGA)&&!out)out={sanga:count(e,0,L.MZONE,SANGA),others:count(e,0,L.MZONE,KAZEJIN)+count(e,0,L.MZONE,SUIJIN),hand:count(e,0,L.HAND,KAZEJIN)+count(e,0,L.HAND,SUIJIN)};
+  return play(e,m)}});
+ e.destroy();return out;
+}
+const revived=await reborn(['gate_calling']);console.log('Gate Calling (Special Summon)',revived);
+same(revived,{sanga:1,others:1,hand:1},'a Special Summoned Sanga also brings one of the other two, once per turn');
+same(await reborn([]),{sanga:1,others:0,hand:2},'without the relic Monster Reborn only brings Sanga');
 
 // Dark Lotus: at the first Standby Phase, Gate Guardian comes from the Deck ignoring its summoning conditions; not again.
 async function lotus(artifacts,turns=3){

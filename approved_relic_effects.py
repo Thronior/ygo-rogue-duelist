@@ -57,7 +57,7 @@ def effect(kind):
  elif key=='starving_library':
   out.append(player_rule('EFFECT_DRAW_COUNT',2));handlimit(3)
  elif key=='ashen_nursery':atk(700,'c:IsLevelBelow(3)');atk(-700,'c:IsLevelAbove(5)')
- elif key=='giants_oath':atk(800,'c:IsLevelAbove(5)');atk(-400,'c:IsLevelBelow(4)')
+ elif key=='giants_oath':atk(800,'c:IsLevelAbove(5)');atk(-300,'c:IsLevelBelow(4)')
  elif key=='commoners_chain':both(300,'c:IsType(TYPE_NORMAL)');both(-200,'c:IsType(TYPE_EFFECT)')
  elif key=='zombies_bargain':
   atk(800);out.append(player_rule('EFFECT_REVERSE_RECOVER',1));out.append(player_rule('EFFECT_CHANGE_DAMAGE','function(e,re,val,r,rp) if (r&REASON_RRECOVER)~=0 then return 0 end return val end'))
@@ -65,7 +65,7 @@ def effect(kind):
  elif key=='ritual_scar':
   # Each copy keeps its own count, as Tag seats and Relic Mirror register separately. RITUAL_SCAR_COUNT comes from passives.py;
   # the hint tells finish_duel to carry this duel's summons over.
-  out.append('do local n=RITUAL_SCAR_COUNT');atk('function() return 100*n-500 end')
+  out.append('do local n=RITUAL_SCAR_COUNT');atk('function() return 100*n-300 end')
   out.append(event('EVENT_SPSUMMON_SUCCESS','local g=eg:Filter(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_RITUAL) end,nil) n=n+#g if #g>0 then --[[relic-hint]] end for c in g:Iter() do Duel.Hint(HINT_MESSAGE,c:GetControler(),1900000051) end'));out.append('end')
  elif key=='fusion_fever':
   atk(1000,'c:IsType(TYPE_FUSION)');out.append(stat('EFFECT_PIERCE',1,'c:IsType(TYPE_FUSION)'))
@@ -103,11 +103,11 @@ local function can(c,e,l,p) return c:IsMonster() and c:GetLevel()==l and c:IsCan
   hit='function(c) return c:IsPreviousControler(1) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsReason(REASON_EFFECT) end'
   out.append(event('EVENT_DESTROYED',f'local sum=0 for c in eg:Filter({hit},nil):Iter() do sum=sum+math.floor(math.max(0,c:GetPreviousAttackOnField())/2) end if sum>0 then Duel.Damage(1,sum,REASON_EFFECT) end',f'rp==0 and eg:IsExists({hit},1,nil)'))
   out.append(stat('EFFECT_CANNOT_DIRECT_ATTACK',1))
- elif key=='solitary_tyrant':atk(400,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1');atk(-500,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)>1')
+ elif key=='solitary_tyrant':atk(600,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==1');atk(-400,'Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)>1')
  elif key=='crowded_crypt':atk('function() return math.min(750,75*Duel.GetMatchingGroupCount(Card.IsMonster,0,LOCATION_GRAVE,0,nil)) end');handlimit(2)
  elif key=='golden_grave':defense(-400)
  elif key=='scorched_clock':out.extend([phase('STANDBY','Duel.Damage(1,400,REASON_EFFECT)'),phase('END','Duel.Damage(0,300,REASON_EFFECT)')])
- elif key=='reckless_spear':out.append(stat('EFFECT_DIRECT_ATTACK',1));atk(-1000)
+ elif key=='reckless_spear':out.append(stat('EFFECT_DIRECT_ATTACK',1));atk(-700)
  elif key=='nocturnal_guard':defense(600,'Duel.GetTurnPlayer()==1');atk(-300,'Duel.GetTurnPlayer()==0')
  elif key=='narrow_gate':
   out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
@@ -263,9 +263,10 @@ for fc in Duel.GetMatchingGroup(Card.IsType,0,LOCATION_EXTRA,0,nil,TYPE_FUSION):
  fc:RegisterEffect(e) end end''')
  elif key=='gate_calling':
   # The question is the generic 94 like the other relics (Suijin<<4 showed Suijin's own "ATK becomes 0" text, Discord 2026-11-16).
+  # Special Summons count too since the 2026-11-16 balance picks; the relic's own summon is the turn's one use, so it cannot chain.
   trio=','.join(map(str,GATE_TRIO))
   out.append(f'''do local used=-1
-local function called(eg,tp) return eg:Filter(function(c) return c:IsControler(tp) and c:IsSummonType(SUMMON_TYPE_TRIBUTE) and c:IsCode({trio}) end,nil):GetFirst() end
+local function called(eg,tp) return eg:Filter(function(c) return c:IsControler(tp) and c:IsCode({trio}) and (c:IsSummonType(SUMMON_TYPE_TRIBUTE) or c:IsSummonType(SUMMON_TYPE_SPECIAL)) end,nil):GetFirst() end
 local function other(s,e,tp) return function(c) return c:IsCode({trio}) and not c:IsCode(s:GetCode()) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
 e:SetCondition(function(e,tp,eg) local s=called(eg,tp) return used~=Duel.GetTurnCount() and s~=nil and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(other(s,e,tp),0,LOCATION_HAND,0,1,nil) end)
@@ -274,7 +275,7 @@ e:SetOperation(function(e,tp,eg) local s=called(eg,tp) if not s then return end
  --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
  used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
  --[[relic-hint]] Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end)
-Duel.RegisterEffect(e,0) end''')
+Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_SUCCESS) Duel.RegisterEffect(special,0) end''')
  elif key=='dark_lotus':
   # A reset effect can no longer summon, so the first Standby Phase is marked with a flag instead.
   out.append('''do local done=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
@@ -301,6 +302,7 @@ c:SetCondition(function(e,tp,eg,ep,ev,re) return ep==0 and card(re) end) c:SetOp
  # 2026-11-15 Discord relics, with the same player-argument rules as the 2026-11-14 ones above. "You can" summons from the
  # hand, Deck or Extra Deck are summon procedures (the card shows "Special Summon", like Guardian's Call); triggered ones ask.
  elif key=='magicians_bond':
+  # Normal or Special Summon since the 2026-11-16 balance picks.
   out.append(f'''do local used=-1
 local function search(c) return c:IsCode({codes(DARK_MAGICIAN_MENTIONS)}) and c:IsAbleToHand() end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
@@ -309,7 +311,7 @@ e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(search,0,LOCATION
  --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
  used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil)
  Duel.SendtoHand(s,0,REASON_EFFECT) Duel.ConfirmCards(1,s) end)
-Duel.RegisterEffect(e,0) end''')
+Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_SUCCESS) Duel.RegisterEffect(special,0) end''')
  elif key=='blue_eyes_radiance':
   # The 3 "Blue-Eyes White Dragon" are the cost. With no free Monster Zone, one of them must come from the field.
   # "Other card effects": its own effects still apply, and so do relics and curses (handler-less global effects).
@@ -377,6 +379,16 @@ e:SetCondition(function(e,tp,eg) local a,d=Duel.GetAttacker(),Duel.GetAttackTarg
  return used~=Duel.GetTurnCount() and a~=nil and d~=nil and eg:IsContains(a) and a:IsControler(0) and a:IsLevelAbove(7) and a:IsRelateToBattle() and (d:IsPreviousControler(1) or d:IsControler(1)) end)
 e:SetOperation(function(e) used=Duel.GetTurnCount() --[[relic-hint]] Duel.ChainAttack() end)
 Duel.RegisterEffect(e,0) end''')
+ elif key=='mulligans_offer':
+  # Once per Duel, your first Standby Phase (user's Discord approval, 2026-11-17). Choosing no cards keeps the hand.
+  # The drawback is Mistake's rule on your own Deck: nothing goes from it to your hand except by drawing.
+  out.append('do local used=false '+phase('STANDBY','used=true local n=Duel.GetFieldGroupCount(0,LOCATION_HAND,0) if n==0 then return end --[[relic-hint]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_TODECK) local g=Duel.SelectMatchingCard(0,aux.TRUE,0,LOCATION_HAND,0,0,n,nil) if not g or #g==0 then return end local k=Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT) Duel.ShuffleDeck(0) if k>0 then Duel.Draw(0,k,REASON_EFFECT) end','not used')+' end')
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_TO_HAND) e:SetTargetRange(LOCATION_DECK,0) Duel.RegisterEffect(e,0) end')
+ elif key=='graceful_skull_dice':
+  # The first die you roll each turn (the low byte of ev counts the roller's dice): gain result x100 LP, and your
+  # face-up monsters lose that much ATK until the End Phase. Almighty (RogueAlmighty) keeps the ATK loss off.
+  out.append('do local turn=-1 '+event('EVENT_TOSS_DICE','''turn=Duel.GetTurnCount() local v=(Duel.GetDiceResult() or 0)*100 if v<=0 then return end --[[relic-hint]] Duel.Recover(0,v,REASON_EFFECT)
+if not RogueAlmighty then for c in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATION_MZONE,0,nil):Iter() do local e1=Effect.CreateEffect(c) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(EFFECT_UPDATE_ATTACK) e1:SetValue(-v) e1:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) c:RegisterEffect(e1) end end''','ep==0 and (ev&0xff)>0 and turn~=Duel.GetTurnCount()')+' end')
  elif key=='poison_of_the_old_man':
   # A real coin toss, so coin relics and cards that change or redo tosses apply. "Lose" LP is not damage. Recover and SetLP
   # are called through locals so the relic is shown once, before the toss.

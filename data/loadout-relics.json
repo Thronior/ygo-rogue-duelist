@@ -69,6 +69,7 @@
  "36:0": ["stone", "restless_stone", "earth", "small", "underdog_clause"],
  "36:1": ["lets_go_gambling", "weighted_coins", "weighted_dice", "dice_jar", "stone"],
  "37:0": ["magic_mirror", "mage", "light", "deck_spyglass", "eye"],
+ "37:1": ["carbon_copy", "booster_shelf", "prospector_lens", "dna_rewrite", "dice_jar"],
  "38:0": ["satchel", "deck_spyglass", "urn", "interest", "bargain"],
  "38:1": ["deck_thinning", "satchel", "razor", "deck_spyglass", "urn"]
 }

@@ -15,6 +15,27 @@ def _base(character):
  run.update(artifacts=[],curses=[],loop=0,first_player=0,mirror_copy=None,challenge_level=0)
  return run
 
+# Relics whose effect, or whose upside, happens outside the duel (user, 2026-11-16): coins, healing between duels, shop
+# prices and stock, deck-building rules, run curses. In a Draft match they would do nothing, or only their downside.
+# Premature Triumph and Blind Fortune pick who goes first, which the Draft room decides itself.
+NOT_IN_DUEL=frozenset({
+ 'machine_foundry',                # Fusion Dividend: coins per Fusion Summon
+ 'cursed_loaded_purse',            # coins after a win (opponent +4000 LP)
+ 'cursed_glass_treasury',          # more victory coins, no LP recovery between duels
+ 'cursed_wounded_merchant',        # shop discount (-1000 starting LP)
+ 'cursed_rusted_compass',          # shop relic stock and prices
+ 'cursed_cursed_refund',           # booster refunds and single prices
+ 'cursed_collectors_burden',       # reward cards and deck minimum
+ 'cursed_golden_grave',            # coins per monster in the GY (-400 DEF)
+ 'cursed_blind_fortune',           # coins after a win, always go second
+ 'cursed_premature_triumph',       # always go first (1 fewer opening card)
+ 'cursed_black_market_seal',       # shop prices
+ 'cursed_singleton_pact',          # deck-building rules
+ 'cursed_blood_toll',              # pay the shop with LP
+ 'cursed_cursed_restock',          # shop rerolls
+ 'protection_charm',               # disables run curses; Draft has none
+})
+
 def eligible():
  """Every relic that changes a duel: no shop/coin relics, removed relics or relics that ask for a campaign choice.
  Cursed relics are included (the user's choice, 2026-11-13); fused relics are not (user, 2026-11-15: they made
@@ -23,7 +44,7 @@ def eligible():
  strip=lambda s:re.sub(r'-- SHADOW_RUN_AI .*','',s)
  base=_base(0);plain=strip(passives.multiplayer_script(base,1));keys=[]
  for key,info in content.ART_INFO.items():
-  if key in ar.REMOVED or key in ar.CHOICE_RELICS or key in relic_fusions.KEYS or info.get('tag')=='economy':continue
+  if key in ar.REMOVED or key in ar.CHOICE_RELICS or key in relic_fusions.KEYS or key in NOT_IN_DUEL or info.get('tag')=='economy':continue
   if key in OPENING or info.get('effect')=='opening' or strip(passives.multiplayer_script(dict(base,artifacts=[key]),1))!=plain:keys.append(key)
  return keys
 

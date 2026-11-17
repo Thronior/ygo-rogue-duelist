@@ -51,3 +51,10 @@ test('Randomizer loadout and a Random Pack pick: seeds, seat blocks and deck che
  await call(1,'deck',{deck:{main:deck,side:[],extra:[]}});
  assert.match((await call(1,'deck',{deck:{main:[...deck,randomBlock(1,2)],side:[],extra:[]}},400)).error,/randomized/);
 });
+
+test('Copycat standard and both Dueling Engine loadouts are refused (2026-11-17)',async()=>{
+ const reg=await registry(),call=caller(reg);
+ for(const [character,variant] of [[37,0],[38,0],[38,1]])assert.match((await call(0,'register',{duelist:{id:'p0',name:'X',character,variant}},400)).error,/not available in Draft Duels/,`${character}/${variant}`);
+ assert.match((await call(0,'register',{duelist:{id:'p0',name:'X',character:37,variant:1},draft:3},400)).error,/not available/,'draft:3 clients cannot play the Randomizer, so Copycat is refused');
+ await call(0,'register',{duelist:{id:'p0',name:'Hat',character:37,variant:1}});
+});

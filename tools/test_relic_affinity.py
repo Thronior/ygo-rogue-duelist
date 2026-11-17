@@ -107,3 +107,9 @@ except ValueError:pass
 # Relics are off at LVL -1, so a chosen face must not apply there.
 assert 'SetRogueWeight' not in passives.script(dict(character=1,artifacts=['weighted_coins'],round=0,curses=[],weighted_coin=1,challenge_level=-1))
 print('PASS collection weights stay within each relic ceiling (specific relics higher), nothing is guaranteed or hidden, archetype locks, weighted relic choices')
+# Owning a relic no longer ends its theme (user, 2026-11-17): with Let's Go Gambling owned, the gambling theme still
+# offers Weighted Coins, and Let's Go Gambling itself leaves the theme.
+_coin=[c['id'] for c in g.CARDS if 'coin' in ra.card_tags(c)][:12]
+_ch=ra.theme_chances({'pool':_coin,'selected':list(range(len(_coin))),'artifacts':['lets_go_gambling']})
+assert any('weighted_coins' in v[1] and 'lets_go_gambling' not in v[1] and v[0]>=.25 for v in _ch.values()),_ch
+print('PASS an owned relic leaves its theme; the rest keep its chance')

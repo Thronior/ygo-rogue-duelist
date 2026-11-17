@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {MobileDuel} from '../android/web/duel.js';
-import {M} from '../android/web/engine.js';
+import {M,R} from '../android/web/engine.js';
 import {shuffleCPUDeck} from '../android/web/cpu-deck-model.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -92,6 +92,13 @@ function choose() {
     }
     case M.SELECT_CHAIN: pick = find(c => isRand(c.code)); break;
     case M.SELECT_EFFECTYN: case M.SELECT_YESNO: if (isRand(m.code)) pick = list[0]; break;
+    case M.ANNOUNCE_RACE: {
+      const available = BigInt(m.available);
+      let race = 1n;
+      while ((available & race) === 0n) race <<= 1n;
+      pick = {response: {type: R.ANNOUNCE_RACE, races: [race]}};
+      break;
+    }
   }
   const chosen = pick ? pick.response : engine.auto();
   const label = (pick || list.find(c => c.response === chosen))?.label || String(chosen?.type);

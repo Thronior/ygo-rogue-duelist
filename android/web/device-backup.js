@@ -1,5 +1,5 @@
 import {replayVersion} from './replay-version.js';
-import {quotaExhausted,pauseForQuota,quotaPausedUntil} from './quota-pause.js';
+import {quotaExhausted,pauseForQuota,quotaPausedUntil,clearQuotaPause} from './quota-pause.js';
 const OPT_IN='ygo-cloud-saves-enabled';
 export function hasEarnedUnlock(profile){return (profile.unlocked||[]).some(id=>Number(id)!==0&&Number(id)!==1)||Object.values(profile.character_levels||{}).some(level=>Number(level)>=0)||['gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked'].some(k=>profile[k]===true);}
 // LEGACY is the pre-v0.2.10 unencrypted backup identity; it is only read to delete that backup after migrating.
@@ -89,7 +89,7 @@ export function createBackupClient({storage=localStorage,online=()=>navigator.on
   if(!optedIn()||closed||!uploadGuard()||code()!==current)return;last=now();const r=await post('save',{id,auth,blob});
   // Another save already uses this code (about a one-in-a-quadrillion chance): pick a new one and show it.
   if(r.status===409){assignCode('changed');throw Error('Code in use')}
-  if(!r.ok){const detail=await r.json().catch(()=>null);if(quotaExhausted(r.status,detail?.error))pauseForQuota('backup',{storage,now:now()});throw Error('Backup unavailable')}const result=await r.json();
+  if(!r.ok){const detail=await r.json().catch(()=>null);if(quotaExhausted(r.status,detail?.error,detail))pauseForQuota('backup',{storage,now:now()});throw Error('Backup unavailable')}const result=await r.json();clearQuotaPause('backup',{storage});
   storage.setItem(SENT,JSON.stringify({code:current,hash}));if(latest===queued)latest=null;failures=0;lastError='';storage.setItem(STATE,JSON.stringify({updatedAt:result.updatedAt}));
   await forgetLegacy().catch(()=>{});
  }catch(error){failures++;lastError=error.message}finally{busy=false;if(!closed)schedule(failures?Math.min(300000,30000*2**Math.min(failures,4)):60000)}}

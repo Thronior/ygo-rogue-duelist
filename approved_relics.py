@@ -45,7 +45,7 @@ REGULAR=[
 ('typhoon','Typhoon',135,"Once per turn, during your opponent's End Phase, you can destroy 1 Spell or Trap Card on your side of the field. If you do, destroy 1 Spell or Trap Card your opponent controls.",'Mystical Space Typhoon'),
 ('machine_duplication','Machine Duplication',110,"Once per turn, during your End Phase, you can target 1 Machine monster you control: Special Summon 1 Clone Token in Attack Position with half that monster's ATK and DEF (rounded down).",'Machine Duplication'),
 ('ghost_destruction','Ghost Destruction',80,"If a monster you control inflicts battle damage to your opponent: You can target 1 monster in your or your opponent's GY; banish it.",'Kycoo the Ghost Destroyer'),
-('omni_banishment','Omni Banishment',150,'Once per turn, during your Standby Phase, you can banish 1 card from your Deck.','Return from the Different Dimension'),
+('omni_banishment','Omni Banishment',80,'Once per turn, during your Standby Phase, you can banish 1 card from your Deck.','Return from the Different Dimension'),
 ('dimensional_rift','Dimensional Rift',300,'All cards that would be sent to the GY are banished instead. This relic appears less often than other relics.','Banisher of the Light'),
 ('spell_provider','Spell Provider',60,'Once per turn, during your Standby Phase, you can place 1 Spell Counter on a card you control that can hold a Spell Counter.','Magical Plant Mandragola'),
 # Deds's "Disturbed Sleep" as the user reworded it, and the user's three Gadget relics in place of Prunk44's Gadget Pack
@@ -60,18 +60,18 @@ REGULAR=[
 # Discord relic suggestions of 2026-11-14 with the user's changes: Guardian's Call (Dragunfire), Soul Fusion (was TRUANT's
 # Union Cannon Activation), Gate Calling (Dragunfire), Dark Lotus (Kzulu) and Ring of Defense (TRUANT's "Roused from
 # Self Destruction"). Soul Fusion, Dark Lotus and Ring of Defense use custom art (data/relic-custom-art.json).
-('guardians_call',"Guardian's Call",90,'Once per turn, you can Special Summon a "Guardian" monster from your hand while you control a face-up Equip Spell that lists its name.','Guardian Ceal'),
+('guardians_call',"Guardian's Call",70,'Once per turn, you can Special Summon a "Guardian" monster from your hand while you control a face-up Equip Spell that lists its name.','Guardian Ceal'),
 ('soul_fusion','Soul Fusion',120,'Once per Duel, you can Fusion Summon a monster from your Extra Deck by banishing its materials from your GY. It cannot attack the turn it is Summoned.','Miracle Fusion'),
-('gate_calling','Gate Calling',80,'Once per turn, when you Tribute Summon "Sanga of the Thunder", "Kazejin" or "Suijin", you can Special Summon one of the other two from your hand.','Suijin'),
+('gate_calling','Gate Calling',80,'Once per turn, when you Tribute Summon or Special Summon "Sanga of the Thunder", "Kazejin" or "Suijin", you can Special Summon one of the other two from your hand.','Suijin'),
 ('dark_lotus','Dark Lotus',500,'Once per Duel, at the start of your first Standby Phase, you can Special Summon 1 monster from your Deck or Extra Deck, ignoring its Summoning conditions.','Samsara Lotus'),
 ('ring_of_defense','Ring of Defense',110,'After each Duel, recover the LP you lost to your own card effects and costs during it (up to your LP limit).','Ring of Defense'),
 # The user's own relic, 2026-11-14.
 ('ultimate_armory','Ultimate Armory',130,'While a monster you control is equipped with 3 or more Equip Spells, it cannot be destroyed by card effects.','Gearfried the Swordmaster'),
 # Discord relic suggestions of 2026-11-15, with the user's texts and prices. Titan's Charge was "Dragon Rider's Pact" (renamed
 # by the user). Art picks other than Sage's Stone, Blue-Eyes Shining Dragon and Poison of the Old Man are mine.
-('magicians_bond',"Magician's Bond",90,'Once per turn, if you Normal Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
+('magicians_bond',"Magician's Bond",90,'Once per turn, if you Normal or Special Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
 ('blue_eyes_radiance','Blue-Eyes Radiance',85,'Once per turn: You can send 3 "Blue-Eyes White Dragon" from your hand and/or field to the GY; Special Summon 1 "Blue-Eyes Shining Dragon" from your hand or Deck, ignoring its Summoning conditions. It is unaffected by other card effects until the end of your opponent\'s next turn.','Blue-Eyes Shining Dragon'),
-('master_and_apprentice','Master and Apprentice',100,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
+('master_and_apprentice','Master and Apprentice',70,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
 ('black_chaos_rite','Black Chaos Rite',110,'Once per Duel: You can Tribute 1 "Dark Magician" you control; Special Summon 1 "Dark Magician of Chaos" from your hand or Deck, ignoring its Summoning conditions.','Dark Magician of Chaos'),
 ('dragon_lords_decree',"Dragon Lord's Decree",90,'Once per Duel: You can discard 2 Dragon monsters; Special Summon 1 Level 7 or higher Dragon monster from your hand.','Lord of D.'),
 ('twin_eyes','Twin Eyes',150,'Once per Duel, during your first Standby Phase: Special Summon 1 "Blue-Eyes" or "Red-Eyes" monster from your hand or Deck in Attack Position.','Red-Eyes Black Dragon'),
@@ -85,14 +85,14 @@ CURSED=[
 (5,'cracked_sword','Cracked Sword','Monsters you control gain 300 ATK, but lose 1000 DEF.','Sword of Deep-Seated'),
 (7,'starving_library','Starving Library','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 3.','Pot of Greed'),
 (8,'ashen_nursery','Ashen Nursery','Level 3 or lower monsters you control gain 700 ATK. Level 5 or higher monsters you control lose 700 ATK.','Baby Dragon'),
-(9,'giants_oath',"Giant's Oath",'Level 5 or higher monsters you control gain 800 ATK. Level 4 or lower monsters you control lose 400 ATK.','Summoned Skull'),
+(9,'giants_oath',"Giant's Oath",'Level 5 or higher monsters you control gain 800 ATK. Level 4 or lower monsters you control lose 300 ATK.','Summoned Skull'),
 (10,'commoners_chain',"Commoner's Chain",'Normal Monsters you control gain 300 ATK/DEF. Effect Monsters you control lose 200 ATK/DEF.','Kunai with Chain'),
 (14,'zombies_bargain',"Zombie's Bargain",'Monsters you control gain 800 ATK. You cannot gain LP.','Vampire Lord'),
 (16,'warriors_vow',"Warrior's Vow",'Monsters you control gain 200 ATK. You cannot manually change your monsters from Attack Position to Defense Position.','Axe Raider'),
-(17,'ritual_scar','Ritual Scar','Monsters you control lose 500 ATK. They gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Relinquished'),
+(17,'ritual_scar','Ritual Scar','Monsters you control lose 300 ATK. They gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Relinquished'),
 (18,'fusion_fever','Fusion Fever','Fusion Monsters you control gain 1000 ATK and inflict piercing battle damage. You cannot Tribute Summon or Tribute Set monsters.','Polymerization'),
 (19,'empty_hand_pact','Empty-Hand Pact','While your hand is empty, monsters you control gain 1000 ATK. Your hand size limit is reduced by 2 (min. 0).','Card Destruction'),
-(20,'solitary_tyrant','Solitary Tyrant','While you control exactly 1 monster, it gains 400 ATK. While you control 2 or more monsters, they lose 500 ATK.','Dark Ruler Ha Des'),
+(20,'solitary_tyrant','Solitary Tyrant','While you control exactly 1 monster, it gains 600 ATK. While you control 2 or more monsters, they lose 400 ATK.','Dark Ruler Ha Des'),
 (21,'crowded_crypt','Crowded Crypt','Monsters you control gain 75 ATK for each monster in your GY (max. 750). Your hand size limit is reduced by 4 (min. 0).','Call of the Haunted'),
 (23,'glass_treasury','Glass Treasury','Earn 25% more victory coins (rounded down). You cannot recover LP between Duels.','Gamble'),
 (24,'wounded_merchant','Wounded Merchant','Shop prices are reduced by 50%. You start each Duel with 1000 fewer LP (min. 1).','Goblin of Greed'),
@@ -102,13 +102,13 @@ CURSED=[
 (29,'golden_grave','Golden Grave','After each victory, earn 6 additional coins for each monster in your GY (max. 90). Monsters you control lose 400 DEF.','Foolish Burial'),
 (33,'scorched_clock','Scorched Clock','Once per turn, at the start of your Standby Phase, inflict 400 damage to your opponent. Once per turn, at the start of your End Phase, take 300 damage.','Ookazi'),
 (35,'duelists_wager',"Duelist's Wager",'Increase battle damage either player takes by 50% (rounded down).','Gamble'),
-(37,'reckless_spear','Reckless Spear','Monsters you control can attack directly. They lose 1000 ATK.','Fairy Meteor Crush'),
+(37,'reckless_spear','Reckless Spear','Monsters you control can attack directly. They lose 700 ATK.','Fairy Meteor Crush'),
 (38,'nocturnal_guard','Nocturnal Guard','During your opponent\'s turn, monsters you control gain 600 DEF. During your turn, monsters you control lose 300 ATK.','Castle Walls'),
 (40,'narrow_gate','Narrow Gate','Neither player can use the fourth or fifth Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
 (42,'trapbound_idol','Trapbound Idol','Your Trap Monsters cannot be destroyed by battle. You pay 300 LP to activate each Spell Card.','Embodiment of Apophis'),
 (44,'iron_silence','Iron Silence',"Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate all your monsters' activated effects everywhere.",'Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),
-(48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 2 fewer cards (min. 0).','Time Wizard'),
+(48,'premature_triumph','Premature Triumph','You always go first. Your opening hand contains 1 fewer card (min. 0).','Time Wizard'),
 (49,'black_market_seal','Black Market Seal','Single-card prices are reduced by 40%. Booster-pack prices are increased by 40%.','Goblin of Greed'),
 (52,'defense_proficiency','Defense Proficiency','Halve all damage you take (rounded down). Halve all battle damage your opponent takes (rounded down).','Spirit Barrier'),
 (53,'singleton_pact','Singleton Pact','Your Main Deck minimum is always 20 cards. Your Deck can contain only 1 copy of each card.','Prohibition'),
@@ -129,14 +129,18 @@ CURSED=[
 # TRUANT's cursed relic (Discord, 2026-11-13), added as posted.
 (66,'vampiric_contact','Vampiric Contact','Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.',"Vampire's Domain"),
 # The user's cursed relic (Discord review, 2026-11-15), text as the user wrote it.
-(67,'poison_of_the_old_man','Poison of the Old Man','Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP. Tails: Lose 500 LP.','Poison of the Old Man')]
+(67,'poison_of_the_old_man','Poison of the Old Man','Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP. Tails: Lose 500 LP.','Poison of the Old Man'),
+# Discord suggestions the user approved (2026-11-17): Eriko's Mulligan's Offer with the user's drawback (art: Reload,
+# as Card Trader is not in the game), and M's dice curse as the user reworded it.
+(68,'mulligans_offer',"Mulligan's Offer","Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards. You cannot add cards from your Deck to your hand except by drawing them.",'Reload'),
+(69,'graceful_skull_dice','Graceful & Skull Dice',"The first time you roll a die each turn: gain LP equal to the result x100. Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",'Graceful Dice')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
 CURSED_PARTS={
  'cursed_trapbound_idol':('Your Trap Monsters cannot be destroyed by battle.','You pay 300 LP to activate each Spell Card.'),
  'cursed_jesters_coin':('At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase.','Tails: they lose 300 ATK/DEF until then.'),
- 'glass_shard':('Coin rewards are doubled.','You start every duel with 2000 LP.'),
+ 'glass_shard':('Coin rewards are tripled.','You start every duel with 2000 LP.'),
  'cursed_duelists_wager':('Battle damage you inflict is increased by 50%.','Battle damage you take is increased by 50%.'),
  'cursed_ominous_clock':("At the start of your opponent's Standby Phase, inflict 600 damage to them.",'Every 10 turns, across all your duels, this drops by 100. Below 0, it heals them instead.'),
  'cursed_narrow_gate':('Your opponent has only 3 Main Monster Zones and 3 Spell & Trap Zones.','You also have only 3 of each. Field Zones are unaffected.'),
@@ -144,9 +148,11 @@ CURSED_PARTS={
  'cursed_brittle_armor':('Monsters you control gain 900 DEF.','Monsters you control lose 300 ATK.'),
  'cursed_cracked_sword':('Monsters you control gain 300 ATK.','Monsters you control lose 1000 DEF.'),
  'cursed_iron_silence':('Monsters you control gain 600 ATK/DEF.',"Their effects are negated. Negate all your monsters' activated effects everywhere."),
- 'cursed_reckless_spear':('Monsters you control can attack directly.','Monsters you control lose 1000 ATK.'),
- 'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Monsters you control lose 500 ATK.'),
+ 'cursed_reckless_spear':('Monsters you control can attack directly.','Monsters you control lose 700 ATK.'),
+ 'cursed_ritual_scar':('Monsters you control gain 100 ATK for each time you Ritual Summon a monster after getting this relic, across all Duels.','Monsters you control lose 300 ATK.'),
  'cursed_poison_of_the_old_man':('Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP.','Tails: Lose 500 LP.'),
+ 'cursed_mulligans_offer':("Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards.","You cannot add cards from your Deck to your hand except by drawing them."),
+ 'cursed_graceful_skull_dice':("The first time you roll a die each turn: gain LP equal to the result x100.","Your face-up monsters lose ATK equal to the result x100 until the end of this turn."),
 }
 
 def install(artifact):
@@ -215,7 +221,7 @@ CHOICE_RELICS=('relic_picker','card_picker','name_changer','weighted_coins','wei
 CONSUMED_RELICS=('relic_picker','card_picker')
 
 # The opening hand can go down to 0 cards (user, 2026-11-11), like the hand size limit.
-def opening(run,normal):return max(0,normal-2*copies(run,'cursed_premature_triumph'))
+def opening(run,normal):return max(0,normal-copies(run,'cursed_premature_triumph'))
 
 def first(run,random_first):
  reconcile_turn_order(run)

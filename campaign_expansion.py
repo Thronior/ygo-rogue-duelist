@@ -96,7 +96,7 @@ def install(g):
     random_cards.install(r)
     return (isinstance(r,dict) and 0<=r['character']<len(CHARACTERS) and 0<=r['round']<=12
      and 0<=r['lp'] and 0<=r['gold']
-     and len(r['pool'])<=10000 and all(aliases.get(c,c) in g.BY_ID for c in r['pool'])
+     and len(r['pool'])<=MAX_POOL and all(aliases.get(c,c) in g.BY_ID for c in r['pool'])
      and all(isinstance(i,int) and 0<=i<len(r['pool']) for i in r['selected'])
      and len(set(r['selected']))==len(r['selected'])
      and all(a in ARTIFACTS or a in ar.REMOVED for a in r.get('artifacts',[]))
@@ -500,7 +500,9 @@ def install(g):
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
   if owns(run,'glass_shard'):
-   multiplier=4 if 'glass_shard' in run['artifacts'] and run.get('mirror_copy')=='glass_shard' else 2
+   # Tripled since 2026-11-16 (balance picks); a Magic Mirror copy multiplies again.
+   factor=int(ART_INFO['glass_shard'].get('parameters',{}).get('coins',3))
+   multiplier=factor*factor if 'glass_shard' in run['artifacts'] and run.get('mirror_copy')=='glass_shard' else factor
    tally['Glass Shard']=total*(multiplier-1);total*=multiplier
   if ar.has(run,'cursed_glass_treasury'):
    bonus=int(total*((1.25**ar.copies(run,'cursed_glass_treasury'))-1));tally['Glass Treasury']=bonus;total+=bonus
@@ -735,10 +737,11 @@ def install(g):
   rest.append(removal)
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
-  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))] if 'archfiend_contract' in _arts else []),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()] if 'toon_world' in _arts else []),('legendary_shackles',[g.BY_NAME[n] for n in ('Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One')])]:
+  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))] if 'archfiend_contract' in _arts else []),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()] if 'toon_world' in _arts else []),('legendary_shackles',shackles_stock(run,eligible+[removal]))]:
    if relic in _arts and bonus:singles.append(rng.choice(bonus))
+  owned=[g.BY_ID[cid] for cid in set(run.get('pool',[])) if cid in g.BY_ID]
   for relic in sorted(archetype_relics.NEW_IDS & _arts):
-   bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c)]
+   bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c) and (relic!='fusion_chamber' or archetype_relics.fusion_offerable(c,owned))]
    if bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   # Copycat's Randomizer (user, 2026-11-15): every single is one of the run's randomized cards, sold with the cards
@@ -852,6 +855,12 @@ def install(g):
   stats=run.setdefault('stats',{});stats['coins_earned']=stats.get('coins_earned',0)+price
   save(run)
   return dict(relic=key,coins=price,gold=run['gold'])
+ def shackles_stock(run,cards):
+  # Legendary Shackles (2026-11-16 balance picks): only Forbidden One pieces the card pool does not hold yet; with all five,
+  # Exodia support cards (the Exodia shop category's other cards) instead.
+  held={g.BY_ID[cid]['name'] for cid in run.get('pool',[]) if cid in g.BY_ID}
+  missing=[g.BY_NAME[n] for n in sorted(archetype_relics.EXODIA-held)]
+  return missing or [c for c in cards if shop_rewards.matches(c,'exodia') and c['name'] not in archetype_relics.EXODIA]
  def acquire_relic(run,key,rng=random):
   """Add a relic and run its on-acquire effects; returns any cards it grants."""
   import choice_relics
@@ -861,6 +870,11 @@ def install(g):
   if key=='bounty_list':ensure_bounty(run,rng,force=True)
   if key=='booster_shelf':ensure_shop_packs(run,rng)
   if key=='final_hour':obtained.append(g.BY_NAME['Final Countdown']['id'])
+  # Ninja Scroll, Destiny Hourglass, Guardian Arsenal and Scorpion Emblem bring 1 card of their pool (2026-11-16 balance picks).
+  # Not for decks the player does not build from the card pool, or a randomized run's own cards.
+  if key in archetype_relics.STARTER_CARD and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck') or random_cards.has_pool(run)):
+   cards=[c for c in g.CARDS if unlocks.card_allowed(c) and archetype_relics.matches(key,c)]
+   if cards:obtained.append(rng.choices(cards,weights=[card_rarity.weight(c['id']) for c in cards],k=1)[0]['id'])
   if key=='stamp':run['stamped_singles']=0
   if key=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
   if any(f['relic']=='grand_bazaar' for f in relic_fusions.fuse(run)):ensure_shop_packs(run,rng)

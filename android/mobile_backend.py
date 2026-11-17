@@ -90,6 +90,7 @@ def dispatch(raw):
    tag_session.journal(value)
    if value.get('checkpoint',True):checkpoint()
    return partial(persist=value.get('checkpoint',True))
+  elif action=='tag-admin':result=tag_session.admin(value);checkpoint()
   elif action=='tag-journal-trim':tag_session.trim_journal(value['count']);checkpoint()
   elif action=='tag-finish':tag_session.finish(value['winner'],value['lp'],value['events'],value.get('reason',0));checkpoint()
   else:raise ValueError('Unknown tag operation.')

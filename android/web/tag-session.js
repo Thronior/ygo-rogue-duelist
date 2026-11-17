@@ -5,6 +5,7 @@ import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFla
 import {TagPeer} from './tag-peer.js';
 import {TagDuel} from './tag-duel.js';
 import {replayVersion} from './replay-version.js';
+import {isDuelAdmin,isRunAdmin,showAdminText} from './room-admin.js';
 const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 export const decode=value=>{if(value&&typeof value==='object'){if(Object.keys(value).length===1&&'__bigint'in value)return BigInt(value.__bigint);for(const key of Object.keys(value))value[key]=decode(value[key])}return value};
 // 5: shared opponent screen and shop lock-ins (2026-11-08).
@@ -41,6 +42,7 @@ export class TagSession {
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
   this.contentHash=contentHash(content);
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
+  this.peer.onAdmin=action=>this.enqueue(()=>this.admin(action));
   // The CPU never stops to think, so a quiet link during its turn means something is wrong. A partner's turn can be
   // silent for minutes, and pinging through those would spend requests.
   this.peer.expecting=()=>{const e=this.engine;return !!e&&!e.pvp&&!e.finished&&e.player===1&&e.respondingSeat!==this.seat};
@@ -200,8 +202,8 @@ export class TagSession {
   const e=this.engine;
   if(!e||i<this.log.length)return;
   if(i>this.log.length){this.requestRebuild();return}
-  const before={turn:e.turn,phase:e.phase},response=decode(structuredClone(entry.response));
-  try{if(entry.seat===null)e.respond(response);else e.respondFor(entry.seat,entry.number,response)}
+  const before={turn:e.turn,phase:e.phase},response=entry.admin?null:decode(structuredClone(entry.response));
+  try{if(entry.admin)e.adminApply(entry.admin);else if(entry.seat===null)e.respond(response);else e.respondFor(entry.seat,entry.number,response)}
   catch(error){console.warn('Duel step refused:',error.message);await this.requestRebuild();return}
   await this.commit(entry,before,true);
   if(h!==undefined&&h!==e.checksum()&&!e.finished){console.warn('Duel state split at step',i);await this.requestRebuild()}
@@ -288,6 +290,7 @@ export class TagSession {
   this.engine.startTag(config);this.duelSeed=config.seed;this.log=[];this.resyncs=0;let trimmed=false;
   for(const [index,entry] of (config.responses||[]).entries()){
    try{
+    if(entry.admin){this.engine.adminApply(entry.admin);this.log.push(entry);continue}
     const response=decode(structuredClone(entry.response));
     if(entry.seat===null){if(this.engine.pending?.player!==1)throw Error('CPU answer without a CPU prompt.');this.engine.respond(response)}else this.engine.respondFor(entry.seat,entry.number,response);
    }catch(error){
@@ -312,6 +315,34 @@ export class TagSession {
    if(ticket!==this.aiTicket||this.engine!==owner||owner.pending?.player!==1)return;
    const before={turn:owner.turn,phase:owner.phase},response=owner.auto();owner.respond(response);await this.commit({seat:null,response:encode(response)},before);
   })}),this.engine.inDamageStep?40:120);
+ }
+ // Room tool actions (room-admin.js, tools/room-admin) arrive from the hub on both devices. Each shows text and emotes
+ // itself; the host alone changes the duel (one shared log entry, so the guest applies it at the same step) or the run
+ // (then a fresh view), and reports back to the hub for the tool.
+ async admin(action){
+  if(!action||typeof action!=='object')return;
+  if(action.kind==='text'){showAdminText(action.text,action.seconds);}
+  if(action.kind==='emote'&&this.engine&&this.view?.phase==='duel'){
+   const e=this.engine,side=action.side??1;
+   if(e.pvp)showDuelEmote(action.emoji,side===this.seat);else showDuelEmote(action.emoji,false,{ally:side===0});
+  }
+  if(this.seat!==0)return;
+  let result={id:action.id,kind:action.kind,ok:true};
+  try{
+   if(isDuelAdmin(action)){
+    const e=this.engine;if(!e||!this.greeted||e.finished||this.view?.phase!=='duel')throw Error('No duel is running.');
+    const before={turn:e.turn,phase:e.phase},op={kind:action.kind,side:action.side,amount:action.amount,code:action.code};
+    e.adminApply(op);await this.commit({seat:-1,admin:op},before);
+   }else if(isRunAdmin(action)){
+    if(!this.active)throw Error('No tag run is active.');
+    result.value=await this.backend('tag-admin',action);await this.broadcast();
+   }
+  }catch(error){result={...result,ok:false,error:error.message}}
+  this.peer.adminReport?.({result,state:this.adminState()});
+ }
+ adminState(){
+  const v=this.view,run=v?.run||{},name=id=>this.content?.characters?.[id]?.name??id,e=this.engine;
+  return {phase:v?.phase??null,connected:this.connected,paused:!!v?.paused,players:(v?.characters||[]).map(name),opponents:(v?.opponents||[]).map(id=>id===null||id===undefined?null:name(id)),characterIds:[...(v?.characters||[])],opponentIds:[...(v?.opponents||[])],coins:run.gold??null,lp:run.lp??null,round:run.round??null,loop:v?.loop??0,relics:run.artifacts||[],curses:run.curses||[],duel:e?{mode:e.pvp?'pvp':'tag',lp:[...e.lp],turn:e.turn,steps:this.log.length,finished:!!e.finished}:null};
  }
  async reconnect(){this.partnerLeft=false;await this.peer.reconnect()}
  async exit(){

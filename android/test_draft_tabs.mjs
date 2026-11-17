@@ -13,8 +13,11 @@ const extract = name => {
     if (src[i] === '}') { depth--; if (!depth) return src.slice(start, i + 1); }
   }
 };
-const body = `${extract('draftOrder')}
+// draftSorted caches its order (draftSortCache) and puts No marks last; draftSortedFresh sorts (2026-11-16).
+const body = `let draftSortCache=null;
+${extract('draftOrder')}
 ${extract('draftSorted')}
+${extract('draftSortedFresh')}
 return draftOrder(pool,selected)`;
 const MON = [
   { name: 'Zebra', data: { type: 0x11, attribute: 1, race: 0 }, type: 'Normal', race: 'Beast', atk: 1500, defense: 1200, level: 4 },
@@ -25,7 +28,9 @@ const MON = [
 ].map((c, i) => ({ ...c, id: 10 + i, desc: '' }));
 const card = id => MON[id - 10];
 const pool = [10, 11, 12, 13, 14], selected = [0, 4];
-const helpers = { matchesSearch: () => true, frameLevelName, deckStats, attributeOrder, state: { run: { artifacts: [] } }, content: { artifactInfo: {} } };
+globalThis.document ??= {};
+const {cardMark,cardMarkVersion,yesMarksFirst}=await import('./web/card-marks.js');
+const helpers = { matchesSearch: () => true, frameLevelName, deckStats, attributeOrder, state: { run: { artifacts: [] } }, content: { artifactInfo: {} }, deckSearches: {}, cardMark, cardMarkVersion, yesMarksFirst };
 const run = (tab, sort, deck = 'Any') => new Function('card', 'draftTab', 'draftSort', 'draftDeck', 'pool', 'selected', ...Object.keys(helpers), body)(card, tab, sort, deck, pool, selected, ...Object.values(helpers));
 // Default is frame (Normal, Effect, ..., Spell, Trap), then level, then name since v0.1.85 (was first-seen grouping).
 assert.deepEqual(run('All', 'Default'), [0, 3, 4, 1, 2]);
@@ -42,4 +47,8 @@ assert.deepEqual(run('All', 'ATK'), [4, 0, 3, 1, 2]);
 assert.deepEqual(run('All', 'Type'), [0, 3, 4, 1, 2]);
 assert.deepEqual(run('All', 'Newest'), [4, 0, 3, 2, 1]);
 assert.deepEqual(run('All', 'Attribute'), [0, 3, 4, 1, 2]);
+// Marked first (user, 2026-11-17): Yes cards first, No cards last, the chosen sort otherwise.
+helpers.state.run.card_marks={14:1,10:-1};
+assert.deepEqual(run('All', 'Name', 'Marked'), [4, 1, 2, 3, 0]);
+delete helpers.state.run.card_marks;
 console.log('PASS mobile draft tabs + sorts');

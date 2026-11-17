@@ -28,9 +28,11 @@ e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsType(TYP
  if kind=='archetype_atk':
   # Don Zaloog leads the Dark Scorpions but has no archetype code of his own.
   zaloog=lambda v:f' or {v}:IsCode(76922029)' if attribute=='0x1a' else ''
+  # Dark Scorpion Squad also counts the Dark Scorpions and Don Zaloog in your GY (2026-11-16 balance picks).
+  grave=f'+{amount}*Duel.GetMatchingGroupCount(function(m) return m:IsMonster() and (m:IsSetCard({attribute}){zaloog("m")}) end,0,LOCATION_GRAVE,0,nil)' if attribute=='0x1a' else ''
   return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsFaceup() and (c:IsSetCard({attribute}){zaloog('c')}) end)
-e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(m) return m:IsFaceup() and (m:IsSetCard({attribute}){zaloog('m')}) end,0,LOCATION_MZONE,LOCATION_MZONE,nil) end)
+e:SetValue(function(e,c) return {amount}*Duel.GetMatchingGroupCount(function(m) return m:IsFaceup() and (m:IsSetCard({attribute}){zaloog('m')}) end,0,LOCATION_MZONE,LOCATION_MZONE,nil){grave} end)
 Duel.RegisterEffect(e,0) end'''
  if kind=='terrorking_atk':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0)
 e:SetTarget(function(e,c) return c:IsFaceup() and c:IsCode({attribute}) end)

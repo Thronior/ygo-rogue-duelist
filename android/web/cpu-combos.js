@@ -261,8 +261,11 @@ export function comboPlanner(x){
  function metamorphosisPick(){
   const enemyBest=Math.max(0,...enemy.filter(face).map(atk));let best=null;
   const worth=f=>name(f)==='Thousand-Eyes Restrict'?enemyBest:power(f);
+  // A monster borrowed with Change of Heart or Snatch Steal costs nothing to Tribute: Metamorphosis keeps its Fusion for good.
+  // PaniK's Zombie decks never cast it in 150 duels (deck trace, 2026-11-17).
+  const lent=c=>c.owner!==undefined&&c.owner!==p;
   for(const body of own)for(const f of extra())if(lvl(f)===lvl(body)&&specialOk(f)){
-   const gain=worth(f)-Math.max(0,atk(body));
+   const gain=worth(f)-(lent(body)?0:Math.max(0,atk(body)));
    if(!best||gain>best.gain)best={body,fusion:f,gain,bonus:name(f)==='Thousand-Eyes Restrict'?enemyBest:0};
   }
   return best&&best.gain>=1000?best:null;

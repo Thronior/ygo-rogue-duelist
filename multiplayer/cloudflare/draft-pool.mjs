@@ -38,6 +38,8 @@ export function loadout(character,variant=0){
 }
 export function draftPool(character,random=secureRandom,loop=false,variant=0){
  const c=loadout(character,variant===1?1:0);
+ // Not in Draft Duels (user, 2026-11-17): Copycat's standard loadout and both Dueling Engine loadouts.
+ if(c.engine_deck||(c.copycat&&!c.variant))throw Error('This loadout is not available in Draft Duels.');
  const eligible=catalog.packs.filter(p=>!p.shop_only&&!p.draft_only&&!p.id.startsWith('DRAFT-')&&new Set([...p.common,...(p.rare||[])].map(id=>byId.get(id)?.name).filter(Boolean)).size>=9);
  const usual=c.starting_packs||Array.from({length:4},()=>c.pack==='RANDOM'||c.copycat||c.engine_deck?pick(eligible,random).id:c.pack);
  const ids=loop?[...usual]:[...usual,...usual],minimum=loop?minDeckFor(0):40;

@@ -9,6 +9,9 @@ export function relicEffectGroup(id,text){
  if(/damage|opponent starts.*fewer LP/i.test(benefit))return 'Damage';
  return 'Other';
 }
-export function sortRelicCollection(rows,artifacts){
- return rows.map(row=>({...row,relicKind:row.id.startsWith('cursed_')?'Cursed Relics':'Normal Relics',effectGroup:relicEffectGroup(row.id,artifacts[row.id][2])})).sort((a,b)=>Number(a.relicKind==='Cursed Relics')-Number(b.relicKind==='Cursed Relics')||relicEffectGroups.indexOf(a.effectGroup)-relicEffectGroups.indexOf(b.effectGroup)||a.name.localeCompare(b.name));
+// Collection › Relics groups (2026-11-17): normal, then fused (every fusion, cursed pieces included), then cursed.
+export const relicKinds=['Normal Relics','Fused Relics','Cursed Relics'];
+export function sortRelicCollection(rows,artifacts,fused=[]){
+ const fusedIds=new Set(fused),kind=id=>fusedIds.has(id)?'Fused Relics':id.startsWith('cursed_')?'Cursed Relics':'Normal Relics';
+ return rows.map(row=>({...row,relicKind:kind(row.id),effectGroup:relicEffectGroup(row.id,artifacts[row.id][2])})).sort((a,b)=>relicKinds.indexOf(a.relicKind)-relicKinds.indexOf(b.relicKind)||relicEffectGroups.indexOf(a.effectGroup)-relicEffectGroups.indexOf(b.effectGroup)||a.name.localeCompare(b.name));
 }

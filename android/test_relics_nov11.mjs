@@ -123,7 +123,7 @@ ok((await espionage([])).offered,'without the relic Trap Hole is offered');
 const rules=JSON.parse(py(`import approved_relics as ar,challenge_levels as cl,content
 run=dict(artifacts=['overkill_bounty'],curses=[],challenge_level=0)
 print(json.dumps(dict(big=ar.rewards(run,[dict(kind='overkill',amount=2500)],False),small=ar.rewards(run,[dict(kind='overkill',amount=999)],False),none=ar.rewards(dict(run,artifacts=[]),[dict(kind='overkill',amount=5000)],False),
- opening=ar.opening(dict(artifacts=['cursed_premature_triumph']*3,challenge_level=0),5),thin=cl.curse_opening_hand(dict(curses=['short_handed']*3,challenge_level=0),5),printer=content.ART_INFO['faulty_printer']['amount'])))`));
+ opening=ar.opening(dict(artifacts=['cursed_premature_triumph']*6,challenge_level=0),5),thin=cl.curse_opening_hand(dict(curses=['short_handed']*3,challenge_level=0),5),printer=content.ART_INFO['faulty_printer']['amount'])))`));
 console.log('rules',rules);
 same(rules.big['Overkill Bounty'],40,'2500 excess damage pays 40 coins');
 ok(!('Overkill Bounty' in rules.small)&&!('Overkill Bounty' in rules.none),'under 1000 excess, or without the relic, it pays nothing');

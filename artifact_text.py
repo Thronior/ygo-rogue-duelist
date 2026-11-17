@@ -7,6 +7,8 @@ def description(key,info,previous):
  if f in ('Warrior','Beast'):types.append('Beast-Warrior')
  label=', '.join(types[:-1])+', and '+types[-1] if len(types)>2 else ' and '.join(types)
  subject=(label+' monsters' if label else 'Monsters')+' you control'
+ # Glass Shard's coin multiplier (tripled since 2026-11-16).
+ coins={2:'Double',3:'Triple'}.get(int(p.get('coins',3)),f"Multiply by {p.get('coins')}")
  patterns={
  'atk':f'{subject} gain {n(a)} ATK.', 'def':f'Monsters you control gain {n(a)} DEF.',
  'both':f'{subject} gain {n(a)} ATK/DEF.',
@@ -47,7 +49,7 @@ def description(key,info,previous):
  'underdog_gold':f'After each victory, earn {a} additional coins for each Level 3 or lower monster in your Main Deck.',
  'trap_negate':'Negate all Trap effects on the field and all activated Trap effects.',
  'spell_negate':'Negate all Spell effects on the field and all activated Spell effects.',
- 'like_exodia':'Adds one extra random Exodia piece to every shop and reroll.',
+ 'like_exodia':'Adds one extra random Exodia piece you do not own yet to every shop and reroll. Once you own all five, it adds a random Exodia support card instead.',
  'like_archfiend':'Adds one extra random Archfiend card to every shop and reroll.',
  'like_toon':'Adds one extra random card with "Toon" in its name to every shop and reroll.',
  'like_ritual':'Ritual Monsters and Ritual Spells appear more often in shops.',
@@ -55,7 +57,7 @@ def description(key,info,previous):
  'phoenix':f'Once per Duel, if your LP become 0, your LP become {n(a)} instead and you do not lose the Duel for having 0 LP. After this effect is applied, this relic is consumed.',
  'cursed_pick':'You can select a second cursed relic after each boss fight.',
  'bounty_list':'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.',
- 'glass':f'Your starting LP become {n(a)} in each Duel, before boss LP penalties. Double your victory coin rewards.',
+ 'glass':f'Your starting LP become {n(a)} in each Duel, before boss LP penalties. {coins} your victory coin rewards.',
  'spyglass':"Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",
  'rulebook':'Both players start each Duel with 1 card in their hand, regardless of other opening-hand bonuses.',
  }
@@ -66,4 +68,6 @@ def description(key,info,previous):
  from relic_fusions import KEYS
  if key in KEYS:return previous
  text=patterns.get(kind,previous)
+ # Magician Staff (2026-11-16 balance picks): "Dark Magician" monsters get a second bonus on top.
+ if kind=='atk' and p.get('dark_magician'):text+=f' "Dark Magician" monsters you control gain {n(p["dark_magician"])} more ATK.'
  return text

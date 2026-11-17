@@ -27,14 +27,16 @@ function fit(box){
 }
 
 // Opens the window with the given entries (newest first). `dialog(title, html)` is mobile.js's window.
-async function show(dialog,entries,title){
+// `onClosed` runs when the player closes this window, not when another window replaces it.
+async function show(dialog,entries,title,onClosed=null){
  const parts=await Promise.all(entries.map(sheet));
  const body=parts.filter(Boolean).join('');
  dialog(title,body?`<div class="patch-notes" data-no-i18n>${body}</div>`:'<p class="muted patch-notes">No patch notes yet. They start with the next update.</p>');
  const box=document.querySelector('#modal .patch-notes, dialog[open] .patch-notes');if(!box)return;
  box.closest('dialog')?.classList.add('patch-notes-modal');
  fit(box);const ro=new ResizeObserver(()=>fit(box));ro.observe(box);
- box.closest('dialog')?.addEventListener('close',()=>{ro.disconnect();box.closest('dialog')?.classList.remove('patch-notes-modal')},{once:true});
+ const win=box.closest('dialog');
+ win?.addEventListener('close',()=>{ro.disconnect();win.classList.remove('patch-notes-modal');if(box.isConnected)onClosed?.()},{once:true});
 }
 
 export async function openPatchNotes(dialog){
@@ -42,12 +44,15 @@ export async function openPatchNotes(dialog){
  await show(dialog,versions,'Patch notes');
 }
 
-// Once per version, on the main menu, when this version has notes and nothing else is open.
+// On the main menu, when this version has notes and nothing else is open. It counts as seen only once the player
+// closes it (user, 2026-11-17): if the game is quit or another window takes its place first, it opens again at the
+// next start.
+let showing=false;
 export async function maybeShowNewPatchNotes(dialog,canShow){
  let seen=null;try{seen=localStorage.getItem(SEEN_KEY)}catch{}
- if(seen===replayVersion)return;
+ if(seen===replayVersion||showing)return;
  const {versions}=await loadIndex(),entry=versions.find(v=>v.version===replayVersion);
- if(!entry||!canShow())return;
- try{localStorage.setItem(SEEN_KEY,replayVersion)}catch{}
- await show(dialog,[entry],`What's new in v${replayVersion}`);
+ if(!entry||showing||!canShow())return;
+ showing=true;
+ await show(dialog,[entry],`What's new in v${replayVersion}`,()=>{try{localStorage.setItem(SEEN_KEY,replayVersion)}catch{}});
 }

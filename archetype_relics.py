@@ -1,7 +1,7 @@
 """Curated bonus-stock relics; weights are relative to an ordinary relic."""
 import re
 DEFINITIONS=[
- ('fusion_chamber','Fusion Chamber','Fusion Monsters and Fusion support','Polymerization'),
+ ('fusion_chamber','Fusion Chamber','Fusion support cards, and Fusion Monsters you own at least one Fusion Material for','Polymerization'),
  ('amazoness_standard','Amazoness Standard','Amazoness cards and support','Amazoness Archers'),
  ('necrovalley_tablet','Necrovalley Tablet',"Gravekeeper’s cards and Necrovalley support",'Necrovalley'),
  ('harpie_feather','Harpie Feather','Harpie cards and support',"Harpie's Feather Duster"),
@@ -20,9 +20,15 @@ GUARDIAN_EQUIPS={'Wicked-Breaking Flamberge - Baou','Shooting Star Bow - Ceal','
 GUARDIAN_ARSENAL={'Arsenal Summoner','Guardian Baou','Guardian Ceal','Guardian Elma',"Guardian Grarl","Guardian Kay'est",'Guardian Tryce'}|GUARDIAN_EQUIPS
 METALMORPH_CARDS={'Metalmorph','Zoa','Metalzoa','Red-Eyes Black Dragon','Red-Eyes Black Metal Dragon'}
 FAMILY=NEW_IDS|{'toon_world','legendary_shackles','archfiend_contract'}
+# Rarely bought archetype relics (2026-11-16 balance picks): 60 coins, and buying one adds 1 random card from its pool
+# to the card pool (campaign_expansion.acquire_relic). A starting relic does not add one.
+STARTER_CARD={'ninja_scroll','destiny_hourglass','guardian_arsenal','scorpion_emblem'}
+PRICES={'fusion_chamber':80,'ritual_dagger':80}|{key:60 for key in STARTER_CARD}
 def install(artifact):
  for key,name,label,art in DEFINITIONS:
-  artifact(key,name,80 if key in ('fusion_chamber','ritual_dagger') else 85,f'Every shop and reroll offers one additional random card from this pool: {label}.',art,'archetype_stock',1,'economy')
+  text=f'Every shop and reroll offers one additional random card from this pool: {label}.'
+  if key in STARTER_CARD:text+=' When acquired, add 1 random card from this pool to your card pool.'
+  artifact(key,name,PRICES.get(key,85),text,art,'archetype_stock',1,'economy')
 def weight(key,run):
  weight=1.0
  if key in FAMILY:weight*=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
@@ -186,6 +192,17 @@ def matches(key,c):
  if key=='evolution_tablet':return (bool(typ&1) and bool(re.search(r' LV[0-9]+$',n))) or n in {'Level Up!','The Graveyard in the Fourth Dimension',"Horus' Servant"}
  if key=='destiny_hourglass':return n in {'Destiny Board','Spirit Message "I"','Spirit Message "N"','Spirit Message "A"','Spirit Message "L"','Final Countdown'}
  return False
+
+# Fusion Chamber (2026-11-16 balance picks): a Fusion Monster is offered only while the card pool holds one of its Fusion
+# Materials: a monster named in its material line, or for a line like "5 Dragon monsters" a monster of that Type.
+# Fusion support cards (Spells, Fusion Substitutes) are always offered.
+def fusion_materials(c):
+ line=(c.get('desc') or '').split('\n')[0]
+ return set(re.findall(r'"([^"]+)"',line)),set(re.findall(r'\b([A-Z][A-Za-z-]+?)(?:-Type)? monsters?\b',re.sub(r'"[^"]*"','',line)))
+def fusion_offerable(c,owned):
+ if not c['data']['type']&0x40:return True
+ names,races=fusion_materials(c)
+ return any(o['name'] in names or (o['data']['type']&1 and o.get('race') in races) for o in owned)
 
 # Archetype relics only appear once your card pool holds a card they help (Thronior, 2026-10-28).
 EXODIA={'Exodia the Forbidden One','Right Arm of the Forbidden One','Left Arm of the Forbidden One','Right Leg of the Forbidden One','Left Leg of the Forbidden One'}

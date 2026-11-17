@@ -27,9 +27,9 @@ const board=relics=>{
 };
 let m=board([]);same(m.summons.some(c=>c.code===SKULL),true,'baseline: Skull can be Tribute Summoned');same(m.monster_sets.some(c=>c.code===SKULL),true,'baseline: Skull can be Tribute Set');
 m=board(['cursed_fusion_fever']);same(m.summons.some(c=>c.code===SKULL),false,'Fusion Fever stops the Tribute Summon');same(m.monster_sets.some(c=>c.code===SKULL),false,'and the Tribute Set');same(m.summons.some(c=>c.code===OX),e.query(0,L.HAND).some(c=>c?.code===OX),'Level 4s are untouched');
-// Ritual Scar: -500 at first and +100 per earlier Ritual Summon.
+// Ritual Scar: -300 at first (was -500 before the 2026-11-16 balance picks) and +100 per earlier Ritual Summon.
 const ox=count=>{e.start(Array(40).fill(OX),foe,8000,8000,5,3,[],[],script(['cursed_ritual_scar'],{ritual_scar_count:count}));idle(0);e.respond({type:R.SELECT_IDLECMD,action:I.SELECT_SUMMON,index:0});settle();return e.query(0,L.MZONE).find(Boolean).attack};
-same(ox(0),1200,'1700 - 500');same(ox(5),1700,'five Ritual Summons break even');same(ox(12),2400,'and it keeps climbing');
+same(ox(0),1400,'1700 - 300');same(ox(3),1700,'three Ritual Summons break even');same(ox(12),2600,'and it keeps climbing');
 // A Ritual Summon counts during the Duel and reaches the run through the events.
 const RITUAL=id('Black Illusion Ritual'),RELINQUISHED=id('Relinquished'),IDOL=id('Thousand-Eyes Idol');
 const deck=Array.from({length:40},(_,i)=>[RITUAL,RELINQUISHED,IDOL,OX][i%4]),text=script(['cursed_ritual_scar'],{ritual_scar_count:6});let done=false;
@@ -39,6 +39,6 @@ for(let seed=1;seed<120&&!done;seed++){
  if(!e.query(0,L.MZONE).some(c=>c?.code===RELINQUISHED)||!before)continue;done=true;
  same(e.events.filter(x=>x.kind==='ritual_scar').length,1,'the Summon reaches the run');
  const q=e.pending,s=q.summons.findIndex(c=>c.code===OX);assert(s>=0,'Ox can be Normal Summoned');e.respond({type:R.SELECT_IDLECMD,action:I.SELECT_SUMMON,index:s});settle();
- same(e.query(0,L.MZONE).find(c=>c?.code===OX).attack,1900,'7 Ritual Summons: 1700 - 500 + 700, updated mid-Duel');
+ same(e.query(0,L.MZONE).find(c=>c?.code===OX).attack,2100,'7 Ritual Summons: 1700 - 300 + 700, updated mid-Duel');
 }
 assert(done,'a Ritual Summon happened');assert.deepEqual(e.errors,[],'no script errors');console.log(`PASS Fusion Fever and Ritual Scar: ${checks} checks`);process.exit(0);

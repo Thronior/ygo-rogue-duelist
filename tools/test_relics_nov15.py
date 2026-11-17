@@ -15,11 +15,12 @@ def ok(value,why):
  assert value,why;checks+=1
 
 A=content.ARTIFACTS
-# The user's texts, word for word (real card-text conventions).
+# The user's texts, word for word (real card-text conventions). 2026-11-16 balance picks: Magician's Bond also triggers on
+# Special Summons, Master and Apprentice costs 70.
 NEW={
- 'magicians_bond':("Magician's Bond",90,'Once per turn, if you Normal Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
+ 'magicians_bond':("Magician's Bond",90,'Once per turn, if you Normal or Special Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
  'blue_eyes_radiance':('Blue-Eyes Radiance',85,'Once per turn: You can send 3 "Blue-Eyes White Dragon" from your hand and/or field to the GY; Special Summon 1 "Blue-Eyes Shining Dragon" from your hand or Deck, ignoring its Summoning conditions. It is unaffected by other card effects until the end of your opponent\'s next turn.','Blue-Eyes Shining Dragon'),
- 'master_and_apprentice':('Master and Apprentice',100,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
+ 'master_and_apprentice':('Master and Apprentice',70,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
  'black_chaos_rite':('Black Chaos Rite',110,'Once per Duel: You can Tribute 1 "Dark Magician" you control; Special Summon 1 "Dark Magician of Chaos" from your hand or Deck, ignoring its Summoning conditions.','Dark Magician of Chaos'),
  'dragon_lords_decree':("Dragon Lord's Decree",90,'Once per Duel: You can discard 2 Dragon monsters; Special Summon 1 Level 7 or higher Dragon monster from your hand.','Lord of D.'),
  'twin_eyes':('Twin Eyes',150,'Once per Duel, during your first Standby Phase: Special Summon 1 "Blue-Eyes" or "Red-Eyes" monster from your hand or Deck in Attack Position.','Red-Eyes Black Dragon'),

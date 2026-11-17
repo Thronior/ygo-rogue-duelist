@@ -1,6 +1,9 @@
-import {draftPool,draftOffer,openBooster,minDeckFor,RANDOM_PACK,randomSeed} from './draft-pool.mjs';
+import {draftPool,draftOffer,openBooster,minDeckFor,RANDOM_PACK,randomSeed,DRAFT_RELICS} from './draft-pool.mjs';
 import {validateDeck,validateDraftDeck,deckCards,rankFor,randomAllowance} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
+import {isDuelAdmin,isShowAdmin} from '../../android/web/room-admin.js';
+const DRAFT_RELIC_KEYS=new Set(DRAFT_RELICS);
+const adminClients=version=>{const [a,b,c]=String(version||'0').split('.').map(n=>parseInt(n,10)||0);return a>0||b>2||b===2&&c>=37};
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
 // Both clients run the duel engine themselves, so a room only pairs players on the same game version.
 // Clients before 0.2.4 send none and still pair with each other.
@@ -90,7 +93,7 @@ export class CollectorRegistry {
  expireBoth(room,now=Date.now()){room.phase='complete';room.winner=null;room.reason='Both disconnect allowances expired';for(const id of room.players){const p=this.data.players[id],seat=room.players.indexOf(id);p.defeatedDeck=structuredClone(room.decks?.[seat]||room.startDecks?.[seat]||p.deck);p.defeatedAt=now;p.defeatReason=room.reason;p.status='eliminated';p.pool=[];p.deck={main:[],side:[],extra:[]};p.history.push({room:room.code,at:now,won:false,reason:room.reason,cards:[]});}}
  expire(){for(const room of Object.values(this.data.rooms))this.tick(room);}
  async alarm(){const job=this.tail.then(async()=>{this.alarmAt=null;this.expire();await this.persist();});this.tail=job.catch(()=>{});await job;}
- fetch(request){const socket=request.headers.get('Upgrade')?.toLowerCase()==='websocket',report=request.headers.get('X-Hub-Report');const job=this.tail.then(()=>socket?this.connectHub(request):report?this.hubReport(request):this.handle(request));this.tail=job.catch(()=>{});return job;}
+ fetch(request){const socket=request.headers.get('Upgrade')?.toLowerCase()==='websocket',report=request.headers.get('X-Hub-Report'),admin=this.draftMode&&new URL(request.url).pathname==='/v3/admin';const job=this.tail.then(()=>socket?this.connectHub(request):admin?this.admin(request):report?this.hubReport(request):this.handle(request));this.tail=job.catch(()=>{});return job;}
  deckErrors(deck,p){return this.validate(deck,p.pool,cards)}
  hubKind(){return this.draftMode?'draft':'collector'}
  hubStub(code){const hub=this.env?.MATCH_HUB;return hub?.get(hub.idFromName(this.hubKind()+':'+code))}
@@ -204,5 +207,34 @@ export class DraftRegistry extends CollectorRegistry {
   // Once someone reached the target the match is already decided; ending it (either choice, leaving, a lost link) keeps that result.
   if(room.loop&&room.phase==='decided'){room.phase='complete';room.ended=reason;return;}
   if(room.loop){room.phase='complete';room.winner=1-loser;room.reason=reason;room.claimed=true;this.data.players[room.players[room.winner]].wins++;this.record(room);return;}room.phase='complete';room.winner=1-loser;room.reason=reason;room.claimed=true;for(let seat=0;seat<2;seat++){const p=this.data.players[room.players[seat]];if(seat===room.winner)p.wins++;p.history.push({room:room.code,won:seat===room.winner,reason,at:Date.now(),games:room.games||[]});}}
+ // Room tool (admin.mjs; only adminRoute builds /v3/admin). Duel changes, text and emotes go to the match hub, which
+ // puts duel changes in the event list both clients replay. Pool cards and relics change here; the hub's nudge makes
+ // both clients poll, and a relic counts from the next duel, when relics are loaded.
+ adminInfo(room){return {mode:'draft',phase:room.phase,game:room.game||0,score:room.score,target:room.target??null,round:room.round??0,loop:!!room.loop,players:room.players.map((id,seat)=>{const p=this.data.players[id];return {seat,name:p.name,character:p.character,pool:p.pool.length,relics:[...(room.relics?.[seat]||[])],status:p.status}})}}
+ async admin(request){
+  const {code,action}=await request.json(),room=this.data.rooms[code];
+  if(!room||room.phase==='complete')return this.reply({error:'No Draft room with that code.'},404);
+  if(action.kind==='info')return this.reply(this.adminInfo(room));
+  // Clients before 0.2.37 cannot read a room tool event, and would stall on it.
+  if(isDuelAdmin(action)&&!adminClients(room.version))return this.reply({error:'This room runs an older game version that cannot take duel changes.'},409);
+  if(isDuelAdmin(action)||isShowAdmin(action)){
+   if(!room.hub)return this.reply({error:'This match started on an older version and has no hub.'},409);
+   const response=await this.hubStub(code).fetch(new Request('https://internal/admin',{method:'POST',body:JSON.stringify(action)}));
+   return this.reply({...this.adminInfo(room),...await response.json()},response.status);
+  }
+  if(!['pool','relic-add','relic-remove'].includes(action.kind))return this.reply({error:'Not available in Draft Duels.'},400);
+  const p=this.data.players[room.players[action.side]];
+  if(!p)return this.reply({error:'No player in that seat.'},409);
+  if(action.kind==='pool'){if(!cards.some(c=>c.id===action.code))return this.reply({error:'That card is not in the Draft card list.'},400);for(let i=0;i<action.count;i++)p.pool.push(action.code);}
+  else if(action.kind==='relic-add'||action.kind==='relic-remove'){
+   if(!room.loop||room.noRelics)return this.reply({error:'This room has no relics.'},409);
+   if(!DRAFT_RELIC_KEYS.has(action.key))return this.reply({error:'Not a Draft relic.'},400);
+   room.relics??=[[],[]];const list=room.relics[action.side];
+   if(action.kind==='relic-add')list.push(action.key);else{const at=list.indexOf(action.key);if(at<0)return this.reply({error:'That player does not hold this relic.'},409);list.splice(at,1);}
+  }
+  await this.persist();
+  const stub=this.hubStub(code);if(room.hub&&stub)await stub.fetch(new Request('https://internal/sync',{method:'POST',headers:{'X-Hub-Sync':'1'},body:JSON.stringify({...this.hubSummary(room),nudge:this.hubState(room)+':admin:'+action.id})})).catch(()=>{});
+  return this.reply({...this.adminInfo(room),ok:true});
+ }
  expireBoth(room,now=Date.now()){const saved=room.players.map(id=>structuredClone(this.data.players[id]));super.expireBoth(room,now);for(let i=0;i<room.players.length;i++)Object.assign(this.data.players[room.players[i]],saved[i]);}
 }

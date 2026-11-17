@@ -23,10 +23,16 @@ export function noMarksLast(order,run,idOf){
  const no=i=>cardMark(run,idOf(i))===-1;
  return [...order.filter(i=>!no(i)),...order.filter(no)];
 }
+// Marked first: Yes cards before the rest, keeping the order otherwise (No cards are already last).
+export function yesMarksFirst(order,run,idOf){
+ if(!run?.card_marks)return order;
+ const yes=i=>cardMark(run,idOf(i))===1;
+ return [...order.filter(yes),...order.filter(i=>!yes(i))];
+}
 // The mark sits inside the card's button: its taps are caught before the deck editors' own handlers see them.
 let onTap=null;
 export function onMarkTap(fn){onTap=fn}
-if(typeof document?.addEventListener==='function'){
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function'){
  document.addEventListener('pointerdown',e=>{if(e.target.closest?.('[data-card-mark]'))e.stopPropagation()},true);
  document.addEventListener('pointerup',e=>{const m=e.target.closest?.('[data-card-mark]');if(!m)return;e.stopPropagation();if(e.button===0)onTap?.(m)},true);
  document.addEventListener('click',e=>{if(e.target.closest?.('[data-card-mark]')){e.stopPropagation();e.preventDefault()}},true);

@@ -1,5 +1,5 @@
-"""Card marks and related singles (user, 2026-11-16). A Yes mark counts as 2 more copies in the Deck for weighting, also
-for a card outside the Deck; a No mark counts as none, also for a card in it. Singles related to a Deck or Yes card
+"""Card marks and related singles (user, 2026-11-16; changed 2026-11-17). A Yes mark on a card outside the Deck counts as
+2 copies of it for weighting; a Yes card in the Deck keeps its usual copies, and a No mark changes nothing. Singles related to a Deck or Yes card
 (Related Cards tab links) weigh RELATED_BOOST times more. The backend 'mark' command stores and clears marks."""
 import sys,json
 from pathlib import Path
@@ -8,17 +8,17 @@ import campaign as g,relic_affinity as ra
 dm=g.BY_NAME['Dark Magician']['id'];dmg=g.BY_NAME['Dark Magician Girl']['id'];kuri=g.BY_NAME['Kuriboh']['id']
 run={'pool':[dm,dm,kuri],'selected':[0,2]}
 assert ra.deck_cards(run)=={dm:1,kuri:1}
-assert ra.deck_cards(dict(run,card_marks={str(dm):1}))=={dm:3,kuri:1},'Yes adds two copies'
+assert ra.deck_cards(dict(run,card_marks={str(dm):1}))=={dm:1,kuri:1},'Yes leaves a Deck card as it is'
 assert ra.deck_cards(dict(run,card_marks={str(dmg):1}))=={dm:1,kuri:1,dmg:2},'Yes counts outside the Deck too'
-assert ra.deck_cards(dict(run,card_marks={str(dm):-1}))=={kuri:1},'No counts as none even in the Deck'
+assert ra.deck_cards(dict(run,card_marks={str(dm):-1}))=={dm:1,kuri:1},'No no longer removes weight'
 assert ra.deck_cards(dict(run,card_marks={'junk':1,str(dm):0}))=={dm:1,kuri:1}
-# Related singles: Dark Magician Girl names Dark Magician, so she is boosted for a Dark Magician Deck, and not once a No
-# mark takes Dark Magician out of the weighting.
+# Related singles: Dark Magician Girl names Dark Magician, so she is boosted for a Dark Magician Deck, also when it is
+# marked No.
 base=dict(run);ra.RELATED_BOOST=1.0;plain=ra.card_multipliers([g.BY_ID[dmg]],base)[dmg]
 ra.RELATED_BOOST=2.0;boosted=ra.card_multipliers([g.BY_ID[dmg]],base)[dmg]
 assert abs(boosted-min(ra.CARD_BOOST_CAP,plain*2))<1e-9,(plain,boosted)
 assert ra.canonical_id(dmg) in ra.related_ids({dm:1})
-no=dict(run,card_marks={str(dm):-1});assert ra.canonical_id(dmg) not in ra.related_ids(ra.deck_cards(no))
+no=dict(run,card_marks={str(dm):-1});assert ra.canonical_id(dmg) in ra.related_ids(ra.deck_cards(no))
 # A Yes mark on a card outside the Deck brings its related cards in as well.
 yes=dict(pool=[kuri],selected=[0],card_marks={str(dm):1});assert ra.canonical_id(dmg) in ra.related_ids(ra.deck_cards(yes))
 # Backend command.
@@ -47,4 +47,4 @@ ra.TAG_PARTNER=dict(pool=[],selected=[],card_marks={str(dm):1})
 mine=dict(pool=[kuri],selected=[0],history_mode='tag')
 assert ra.deck_cards(ra.tag_partner(mine))=={dm:2},'a Yes mark of the teammate counts in the shared weighting'
 ra.TAG_PARTNER=None
-print('PASS card marks: Yes +2 copies, No none, Tag host marks, related singles x%.1f (DMG %.2f -> %.2f)'%(ra.RELATED_BOOST,plain,boosted))
+print('PASS card marks: Yes 2 copies outside the Deck, No unchanged, Tag host marks, related singles x%.1f (DMG %.2f -> %.2f)'%(ra.RELATED_BOOST,plain,boosted))

@@ -25,6 +25,10 @@ class Hub {
 // unacknowledged frames and resends them when the partner returns.
 export class TagHub extends Hub {
  async fetch(request){
+  // Player sockets keep their /v3/hub URL, so only the registry's admin call reaches this path (admin.mjs).
+  if(new URL(request.url).pathname==='/admin')return this.admin(await request.json());
+  // The room registry asks before deleting a room left empty (silent sockets count as gone).
+  if(new URL(request.url).pathname==='/presence'){this.stale(0);this.stale(1);return reply(200,{occupied:this.online(0)||this.online(1)})}
   const seat=Number(request.headers.get('X-Seat'));if(seat!==0&&seat!==1)return reply(403,{error:'Invalid seat.'});
   this.replace(seat);const {server,response}=this.accept(seat);
   server.send(JSON.stringify({hub:'welcome',seat,peer:this.online(1-seat)}));
@@ -36,7 +40,17 @@ export class TagHub extends Hub {
   if(typeof message!=='string'||message.length>1048576){ws.close(1009,'Packet too large');return}
   const other=1-attachment.seat;
   if(message==='check'){if(this.stale(other))this.tell(attachment.seat,{hub:'peer',online:false});return}
+  // The host's answer to the room tool: the run's state and the last action it applied. Kept for the tool, never forwarded.
+  if(attachment.seat===0&&message.startsWith('{"adminReport"')){try{const report=JSON.parse(message).adminReport;if(report&&typeof report==='object')this.ctx.storage.put('admin-report',{...report,at:Date.now()})}catch{}return}
   for(const peer of this.sockets(other))try{peer.send(message)}catch{}
+ }
+ // Room tool actions go to both seats: each shows text and emotes itself, and the host alone applies duel and run
+ // changes, which then reach the guest through the duel log or the next view, so the two devices never disagree.
+ async admin(action){
+  const online=[this.online(0),this.online(1)];
+  if(action.kind!=='info'){if(!online[0]&&!online[1])return reply(409,{error:'Neither player is connected to the room.',online});for(const seat of [0,1])this.tell(seat,{hub:'admin',action})}
+  else this.tell(0,{hub:'admin',action});
+  return reply(200,{online,report:await this.ctx.storage.get('admin-report')??null});
  }
  webSocketClose(ws){const attachment=ws.deserializeAttachment();try{ws.close(1000,'Connection closed')}catch{}if(!attachment?.replaced)this.tell(1-attachment.seat,{hub:'peer',online:false})}
 }
@@ -59,6 +73,8 @@ export class MatchHub extends Hub {
  })}
  async fetch(request){
   const summary=request.headers.get('X-Hub-Summary');
+  // Player sockets keep their /v3/... URL, so only the registry's admin call reaches this path (admin.mjs).
+  if(new URL(request.url).pathname==='/admin')return this.admin(await request.json());
   if(request.headers.get('X-Hub-Sync')){await this.apply(await request.json());return reply(200,{ok:true})}
   const seat=Number(request.headers.get('X-Seat'));if(seat!==0&&seat!==1||!summary)return reply(403,{error:'Invalid seat.'});
   await this.apply(JSON.parse(summary));
@@ -181,6 +197,19 @@ export class MatchHub extends Hub {
   }
   if(done.length){await this.arm();await this.save(chunks);const clock=this.clock();for(const d of done)this.broadcast({t:'ev',game:m.game,n:d.n,...d.event,...clock})}
   if(refused)ws.send(JSON.stringify({t:'reject',game:m.game,n,count:m.count}));
+ }
+ // Room tool (admin.mjs). A duel change joins the event list like an answer (seat -1, no response), so both clients
+ // apply it at the same step; it leaves the actor, turn and clock alone. Text and emotes are only shown.
+ async admin(action){
+  const m=this.meta,online=[this.online(0),this.online(1)];
+  if(!m)return reply(404,{error:'This match has no hub state yet.',online});
+  if(action.kind==='text'||action.kind==='emote'){this.broadcast({t:'admin',action});return reply(200,{ok:true,online})}
+  if(m.phase!=='duel')return reply(409,{error:'No duel is running in this match.',online});
+  const event={seat:-1,admin:action},n=m.count++,chunks={};
+  m.open.push(event);m.openBytes+=JSON.stringify(event).length;
+  if(m.open.length>=EVENT_CHUNK||m.openBytes>=CHUNK_BYTES){chunks[chunkKey(m.game,m.openFrom)]=m.open;m.open=[];m.openFrom=m.count;m.openBytes=0}
+  await this.save(chunks);this.broadcast({t:'ev',game:m.game,n,...event,...this.clock()});
+  return reply(200,{ok:true,n,online});
  }
  accepts(seat,v){const m=this.meta;return v.n===m.count&&m.actor===seat&&[0,1,null].includes(v.nextActor)&&Number.isInteger(v.turn)&&v.turn>=m.turn&&v.turn<=m.turn+1&&!!v.response&&JSON.stringify(v.response).length<=16384}
  // Applies one accepted answer in memory; the caller stores it (and any closed chunk) with one save.

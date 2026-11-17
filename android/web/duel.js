@@ -579,6 +579,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    return {type:m.type===M.SELECT_TRIBUTE?R.SELECT_TRIBUTE:R.SELECT_CARD,indicies};
   }
   if(m.type===M.SELECT_CHAIN){
+   // Relic triggers (no card: code 0, location 0) always activate first (user, 2026-11-17), as for the player.
+   {const relic=(m.selects||[]).findIndex(c=>!Number(c?.code)&&!Number(c?.location));if(relic>=0){this.effect={code:0,player:p};return {type:R.SELECT_CHAIN,index:relic};}}
    // Rank every legal response rather than accepting the first adequate one.
    const choices=m.selects.map((c,index)=>{
     const name=this.name(c.code);let score=smart.activation(c,true);

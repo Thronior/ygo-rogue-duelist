@@ -16,13 +16,13 @@ const summonOx=()=>{until(mine);const m=e.pending;e.respond({type:R.SELECT_IDLEC
 {
  e.start(Array(40).fill(OX),Array(40).fill(id('Giant Soldier of Stone')),8000,8000,5,3,[],[],script(['cursed_reckless_spear']));until(mine);
  e.respond({type:R.SELECT_IDLECMD,action:I.TO_EP,index:null});until(()=>e.turn>=3&&mine());summonOx();
- same(e.query(0,L.MZONE).find(c=>c?.code===OX).attack,700,'1700 - 1000');
+ same(e.query(0,L.MZONE).find(c=>c?.code===OX).attack,1000,'1700 - 700 (2026-11-16 balance picks)');
  assert(e.query(1,L.MZONE).some(Boolean),'the opponent has a blocker');checks++;
  e.respond({type:R.SELECT_IDLECMD,action:I.TO_BP,index:null});until(()=>e.pending?.type===M.SELECT_BATTLECMD&&e.pending?.player===0);
  const m=e.pending;same(m.attacks[0].can_direct,true,'direct attack is offered over a blocker');
  const lp=e.lp[1];e.respond({type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:0});
  for(let i=0;i<40&&e.lp[1]===lp;i++){const p=e.pending;if(!p)break;if([M.SELECT_YESNO,M.SELECT_EFFECTYN].includes(p.type)&&Number(p.description)===31)e.respond({type:R.SELECT_YESNO,yes:true});else e.respond(e.auto())}
- same(lp-e.lp[1],700,'the attack lands for its reduced ATK');
+ same(lp-e.lp[1],1000,'the attack lands for its reduced ATK');
 }
 // Trapbound Idol: each Spell Card costs 300 LP, and one you cannot pay for cannot be activated.
 const openPot=(relics,lp)=>{for(let seed=1;seed<40;seed++){e.start(Array.from({length:40},(_,i)=>i%2?POT:OX),VOID,lp,8000,5,seed,[],[],script(relics));until(mine);if(e.query(0,L.HAND).some(c=>c?.code===POT))return e.pending}assert.fail('no Pot in hand')};

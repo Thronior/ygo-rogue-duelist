@@ -18,11 +18,11 @@ const idle=(hand)=>({type:M.SELECT_IDLECMD,player:1,summons:hand,monster_sets:ha
 const ctx=(mine,options)=>{const e=duel(mine,[],options);return [e,smartContext(e,1,L,null)]};
 const baou=(sequence=0)=>({...back('Wicked-Breaking Flamberge - Baou',0,0),equipCard:{controller:0,location:L.MZONE,sequence,position:1}});
 
-// Flag 0be76afa: Sangan dies to a monster holding Baou and searches nothing.
+// Flag 0be76afa: Sangan dies to a monster holding Baou and searches nothing. Since 2026-11-17 (user) Sangan never
+// attacks to die and search at all.
 {const sangan=mon('Sangan',1,2,1),emissary=mon('Emissary of the Afterlife',0,0,1);
- let [,s]=ctx([emissary],{ownBoard:[sangan]});assert.equal(s.suicideScore(sangan,emissary),800,'a plain 1600 ATK target is worth dying to');
- [,s]=ctx([emissary],{ownBoard:[sangan],theirBack:[baou()]});assert.equal(s.suicideScore(sangan,emissary),0,'Baou negates the search');assert.equal(s.suicideScore(sangan),0,'and it is the only target');
- const other=mon('Battle Ox',0,1,1);[,s]=ctx([emissary,other],{ownBoard:[sangan],theirBack:[baou()]});assert.equal(s.suicideScore(sangan,other),800,'the monster without Baou still counts');
+ let [,s]=ctx([emissary],{ownBoard:[sangan]});assert.equal(s.suicideScore(sangan,emissary),0,'Sangan no longer dies for a search');
+ [,s]=ctx([emissary],{ownBoard:[sangan],theirBack:[baou()]});assert.equal(s.suicideScore(sangan),0);
  const e=duel([emissary],[],{ownBoard:[sangan],theirBack:[baou()]}),a=e.auto({type:M.SELECT_BATTLECMD,player:1,attacks:[{...sangan}],chains:[],to_m2:true,to_ep:true});assert.notEqual(a.action,1,'no attack is declared');}
 
 // Flag 03dcbf9a: each Battleguard gains 500 ATK for the other.

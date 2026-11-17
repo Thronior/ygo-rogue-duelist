@@ -29,9 +29,19 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 		end
 		return Duel.CheckLPCost(tp,1000)
 	end
-	local lp=Duel.GetLP(tp)
+	--Shadow Run (2026-11-17): the core's number prompt holds at most 255 choices (999 wrapped to 231, and huge LP
+	--left none, so the duel stuck). Above 200 amounts, first choose where the range starts, then the exact amount.
+	local lo,hi=1,math.floor(Duel.GetLP(tp)/1000)
+	while hi-lo+1>200 do
+		local size=math.ceil((hi-lo+1)/200)
+		local starts={}
+		for v=lo,hi,size do starts[#starts+1]=v*1000 end
+		Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,0))
+		lo=Duel.AnnounceNumber(tp,table.unpack(starts))//1000
+		hi=math.min(hi,lo+size-1)
+	end
 	local t={}
-	for i=1,math.floor((lp)/1000) do t[i]=i*1000 end
+	for i=lo,hi do t[#t+1]=i*1000 end
 	Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,0))
 	local announce=Duel.AnnounceNumber(tp,table.unpack(t))
 	Duel.PayLPCost(tp,announce)

@@ -218,6 +218,9 @@ THEMES={
 RUN_LENGTH=9
 MAX_COINS=999999
 MAX_LP=999999
+# Sanity limit on a saved run's card pool. 10,000 refused real loop-8 runs (Discord, Nori, 2026-11-17): the run saved,
+# then "This slot has no valid saved run." A 100,000-card pool is under 1 MB, well inside storage.read's 8 MB file limit.
+MAX_POOL=100000
 BOSS_EVERY=3
 # Keep stable save/opponent IDs; the three retired TP slots are not selectable.
 PLAYABLE_IDS=[i for i in range(len(CHARACTERS)) if i not in (25,26,27)]

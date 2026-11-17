@@ -1,4 +1,4 @@
-import {MobileDuel,M,L} from './duel.js';
+import {MobileDuel,M,L,P} from './duel.js';
 export function flipPerspective(value){
  if(Array.isArray(value))return value.map(flipPerspective);
  if(!value||typeof value!=='object')return value;
@@ -76,6 +76,25 @@ export class TagDuel extends MobileDuel {
   // Movement animations must not expose either human's private card identities.
   const safe=cues.filter(c=>c.kind!=='reveal'||c.public===true||c.audience===seat).map(c=>c.kind==='move'?{...c,code:0}:c);
   return seat===1?flipPerspective(safe):safe;
+ }
+ // Room tool changes (room-admin.js), applied between two answers at the same log step on both devices. Only direct
+ // state edits are safe while a prompt waits: Duel.SetLP from a Lua chunk, and a new card in the hand. Neither starts
+ // engine processing, so the waiting prompt stays valid; a new hand card can be used from the next prompt on.
+ // `side` is the engine player. The core keeps its last messages until the next process call, so only the tail is new.
+ adminApply(op){
+  const side=op.side,seen=this.core.duelGetMessage(this.h).length;
+  if(side!==0&&side!==1)throw Error('Invalid side.');
+  if(op.kind==='hand'){
+   if(!this.data[op.code])throw Error('Unknown card.');
+   this.core.duelNewCard(this.h,{code:op.code,team:side,duelist:0,controller:side,location:L.HAND,sequence:0,position:P.FACEDOWN_DEFENSE});
+  }else{
+   const amount=Math.max(0,Math.floor(Number(op.amount)||0));
+   const lp=op.kind==='damage'?`math.max(0,Duel.GetLP(${side})-${amount})`:op.kind==='heal'?`Duel.GetLP(${side})+${amount}`:op.kind==='set-lp'?String(amount):null;
+   if(lp===null)throw Error('Unknown duel change.');
+   this.core.loadScript(this.h,'shadow-room-admin.lua',`Duel.SetLP(${side},${lp})`);
+  }
+  for(const m of this.core.duelGetMessage(this.h).slice(seen)){this.onMessage?.(m);if(m.type===M.LPUPDATE)this.lp[m.player]=m.lp}
+  if(this.replayRecord)(this.replayRecord.admin??=[]).push({at:this.replayRecord.responses.length,op:{...op}});
  }
  // Cheap fingerprint of the shared state. Both clients compute it after every step, so a split is caught at once.
  checksum(){

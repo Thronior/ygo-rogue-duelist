@@ -34,7 +34,10 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // face-down monster that is flipped by the attack can be chosen (Discord 2026-11-05: Castle Walls). Continuous Traps such
  // as Mirror Wall only act on later attacks, so they keep the attack declaration.
  if(mode==='sometimes'&&selects.length&&!activeChain.length){
-  const statTrap=choice=>{const type=Number(context.card?.(choice.code)?.data?.type||0),s=context.script?.(choice.code)||'';return !!(type&4)&&!(type&0x20000)&&s.includes('EFFECT_FLAG_DAMAGE_STEP')&&s.includes('EVENT_FREE_CHAIN')&&/CATEGORY_(?:ATK|DEF)CHANGE/.test(s)};
+  const statTrap=choice=>{const type=Number(context.card?.(choice.code)?.data?.type||0),s=context.script?.(choice.code)||'';return !!(type&4)&&!(type&0x20000)&&s.includes('EFFECT_FLAG_DAMAGE_STEP')&&s.includes('EVENT_FREE_CHAIN')&&(/CATEGORY_(?:ATK|DEF)CHANGE/.test(s)||(s.includes('StatChangeDamageStepCondition')&&!s.includes('EVENT_ATTACK_ANNOUNCE')))};
+  // Metalmorph is an equip (no ATK/DEF category) but uses the core's Damage Step stat-change condition: it asks in the
+  // Damage Step too, so its 300 DEF can save a flipped monster (Discord 2026-11-17). Kunai with Chain also answers the
+  // attack declaration (EVENT_ATTACK_ANNOUNCE), so it keeps that window.
   const timing=Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0);
   if(timing&Timing.DAMAGE_STEP&&selects.some(statTrap))return true;
   if(timing&Timing.ATTACK&&!(timing&Timing.DAMAGE_STEP)&&selects.every(statTrap))return false;
@@ -75,8 +78,15 @@ const SZONE=0x08;
 const optionalActivation=c=>c?.location===SZONE&&!(Number(c.position)&5)&&String(c.description??'')==='0';
 function soleMandatory(m){const left=(m.selects||[]).map((c,i)=>({c,i})).filter(x=>!optionalActivation(x.c));return left.length===1&&m.selects.length>1?left[0].i:null}
 
+// Relic triggers (user, 2026-11-17) are run effects registered with the duel, with no card behind them (code 0,
+// location 0). They have no place on the board to tap, so they always activate first; the player's own cards
+// come back in the next chain window. Before this a forced Standby relic trigger next to Unity in hand showed only
+// Unity, so the player had to activate it.
+export const relicTriggerIndex=m=>(m?.selects||[]).findIndex(c=>!Number(c?.code)&&!Number(c?.location));
 export function mandatoryChainResponse(m){
- if(m?.type!==Message.SELECT_CHAIN||!m.forced)return null;
+ if(m?.type!==Message.SELECT_CHAIN)return null;
+ const relic=relicTriggerIndex(m);if(relic>=0)return {type:Response.SELECT_CHAIN,index:relic};
+ if(!m.forced)return null;
  const total=m.selects?.length||0,optional=Number(m.spe_count)||0;
  if(total>1&&optional===total-1)return {type:Response.SELECT_CHAIN,index:0};
  const index=soleMandatory(m);return index===null?null:{type:Response.SELECT_CHAIN,index};
@@ -86,6 +96,7 @@ export function mandatoryChainResponse(m){
 // window come back in the next chain window, after the mandatory trigger starts the chain.
 export function automaticChainResponse(m,skipOptional,M,R){
  if(m?.player!==0||m.type!==M.SELECT_CHAIN)return null;
+ const relic=relicTriggerIndex(m);if(relic>=0)return {type:R.SELECT_CHAIN,index:relic};
  if(m.forced&&m.selects?.length===1)return {type:R.SELECT_CHAIN,index:0};
  if(m.forced){const index=soleMandatory(m);if(index!==null)return {type:R.SELECT_CHAIN,index}}
  if(!m.forced&&skipOptional)return {type:R.SELECT_CHAIN,index:null};

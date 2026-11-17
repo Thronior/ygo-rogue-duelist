@@ -3,7 +3,7 @@
 // puts Sort and Deck status back to the defaults and remembers that.
 const KEY='ygo-deck-sort';
 export const DEFAULT_DECK_SORT='Newest',DEFAULT_DECK_STATUS='First';
-const STATUSES=['Any','In','Out','First'];
+const STATUSES=['Any','In','Out','First','Marked'];
 let saved=null;
 function read(){
  if(saved)return saved;

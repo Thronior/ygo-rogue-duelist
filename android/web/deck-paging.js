@@ -39,7 +39,7 @@ let queued=false;
 function schedule(){if(queued||typeof requestAnimationFrame!=='function')return;queued=true;requestAnimationFrame(()=>requestAnimationFrame(fill))}
 // Scroll events don't bubble, so one capturing listener sees every scroller. Nothing runs without a marker.
 // (Guarded so Node tests can import the deck editor modules with a stub document.)
-if(typeof document?.addEventListener==='function'){
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function'){
  document.addEventListener('scroll',()=>{if(!queued&&document.querySelector('[data-deck-more]'))schedule()},{capture:true,passive:true});
  globalThis.addEventListener?.('resize',()=>{if(document.querySelector('[data-deck-more]'))schedule()},{passive:true});
 }

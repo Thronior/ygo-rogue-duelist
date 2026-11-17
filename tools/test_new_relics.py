@@ -71,7 +71,8 @@ assert tally["Golden Card"] == 50, tally.get("Golden Card")
 pups = sum(1 for c in g.deck(run) if g.BY_ID[c]["data"]["type"] & 1
            and g.BY_ID[c]["level"] <= 3)
 assert tally.get("Underdog's Clause", 0) == pups * ART_INFO["underdog_clause"]["amount"], (tally.get("Underdog's Clause"), pups)
-assert tally["Glass Shard"] > 0 and total == tally["Glass Shard"] * 2
+# Tripled since the 2026-11-16 balance picks: the bonus is twice the base payout.
+assert tally["Glass Shard"] > 0 and total * 2 == tally["Glass Shard"] * 3
 run["round"] = 2
 run["artifacts"].append("champion_trophy")
 tally2, _ = g.rewards(run, [])
