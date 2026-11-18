@@ -9,14 +9,16 @@ import archetype_relics,relic_affinity
 # Synthetic pool: 10 plain relics (no weight giver), 10 boosted 3x by the run's cards, 10 deck relics with no matching cards
 # (x0.4) and 2 held back (as a second archetype relic would be).
 plain=[f'o{i}' for i in range(10)];boosted=[f'b{i}' for i in range(10)];dead=[f'd{i}' for i in range(10)];held=['h0','h1']
-real_details,real_weight=relic_affinity.details,archetype_relics.weight
-relic_affinity.details=lambda keys,run:{k:(3.0,True,True) if k[0]=='b' else (1.0,True,False) if k[0]=='d' else (1.0,False,False) for k in keys}
-archetype_relics.weight=lambda k,run:0.25 if k.startswith('h') else 1.0
+real_details,real_rarity=relic_affinity.details,dict(archetype_relics.RARITY)
+# details: (has a card rule, matching Deck cards). Held-back relics are given a 0.25 rarity.
+relic_affinity.details=lambda keys,run:{k:(True,5) if k[0]=='b' else (True,0) if k[0]=='d' else (False,0) for k in keys}
+archetype_relics.RARITY.update({'h0':.25,'h1':.25})
 try:
  rng=random.Random(7);N=40000;slots=[Counter() for _ in range(5)]
  for _ in range(N):
   for slot,key in enumerate(archetype_relics.shop_sample(plain+boosted+dead+held,5,{},rng)):slots[slot][key[0]]+=1
-finally:relic_affinity.details,archetype_relics.weight=real_details,real_weight
+finally:
+ relic_affinity.details=real_details;archetype_relics.RARITY.clear();archetype_relics.RARITY.update(real_rarity)
 share=[{k:c[k]/N for k in 'obdh'} for c in slots]
 for i,s in enumerate(share):print(f'slot {i+1}: plain {s["o"]:.3f}  boosted {s["b"]:.3f}  no cards {s["d"]:.3f}  held back {s["h"]:.3f}')
 # Slot 1 (theme chances, 2026-11-14): the Deck no longer multiplies weights, so relics with matching cards ("boosted") and

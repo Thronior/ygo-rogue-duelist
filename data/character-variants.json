@@ -867,7 +867,8 @@
     },
     "36": {
       "name": "Fortune's Favorite",
-      "starting_relic": "random_archetype",
+      "starting_relic": "random_pack_archetype",
+      "one_character_packs": true,
       "cards": [
         "Morphing Jar",
         "Change of Heart"

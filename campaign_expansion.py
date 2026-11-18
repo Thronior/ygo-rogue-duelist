@@ -54,8 +54,10 @@ def shop_relic_eligible(run,key):
  if (copies_deck(run) or character.get('engine_deck')) and effect in FIXED_DECK_UNUSED_SHOP_EFFECTS and (fixed_deck(run) or effect!='approved_deck_thinning'):return False
  if key in ar.CHOICE_RELICS and run.get('history_mode')=='tag':return False
  if not archetype_relics.has_member(key,run):return False
+ # Absolute Random above challenge level 3 waits until this character has beaten that level (random_cards.allowed).
+ if key=='absolute_random' and not random_cards.allowed(run):return False
  # Gate Calling only shows up while the current Deck holds Sanga of the Thunder, Kazejin or Suijin (user, 2026-11-14).
- if key=='gate_calling' and not {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))}.intersection(GATE_TRIO):return False
+ if key in ('gate_calling','jin_trio') and not {run['pool'][i] for i in run.get('selected',[]) if i<len(run.get('pool',[]))}.intersection(GATE_TRIO):return False
  # Likewise Magician's Bond needs a "Dark Magician" monster in the Deck, Blue-Eyes Radiance a Blue-Eyes White Dragon (user, 2026-11-15).
  if key in DECK_NEEDS:
   import campaign as g
@@ -65,6 +67,24 @@ def shop_relic_eligible(run,key):
  if key=='deck_thinning' and run.get('secret_challenge'):return False
  # Engine converts this bonus into an extra reward-deck choice.
  return not (copies_deck(run) and effect=='reward_card')
+
+# Fortune's Favorite (user, 2026-11-18): the archetype relics a pack supports, an archetype counting as present when the
+# pack holds at least PACK_ARCHETYPE_CARDS different cards of it. Card-specific and loadout-only relics are left out.
+PACK_ARCHETYPE_CARDS=2
+_pack_relics={}
+def pack_archetype_relics(pack_id):
+ if pack_id in _pack_relics:return _pack_relics[pack_id]
+ import campaign as g
+ pack=PACK_BY_ID.get(pack_id) or {}
+ cards=[g.BY_ID[cid] for cid in {*pack.get('common',[]),*pack.get('rare',[])} if cid in g.BY_ID]
+ cursed=set(cursed_relics.approved());out=[]
+ for key in ARTIFACTS:
+  effect=ART_INFO.get(key,{}).get('effect','')
+  if key in RETIRED_ARTIFACTS or key in cursed or key in relic_fusions.KEYS or key in archetype_relics.SPECIFIC_CARDS or effect=='terrorking_atk' or effect.startswith('variant_'):continue
+  test=archetype_relics.member_test(key,{'pool':[],'artifacts':[]})
+  if test is None or test is True:continue
+  if len({c['name'] for c in cards if test(c)})>=PACK_ARCHETYPE_CARDS:out.append(key)
+ _pack_relics[pack_id]=out;return out
 
 def install(g):
  g.CARDS=json.loads((g.ROOT/'data/era-cards.json').read_text(encoding='utf8'))+custom_cards.CARDS
@@ -256,6 +276,12 @@ def install(g):
   import character_variants
   char=character_variants.loadout(CHARACTERS,index,variant,storage.profile());signatures=[g.BY_NAME[n]['id'] for n in char['cards']]
   pack_ids=char.get('starting_packs') if variant and char.get('starting_packs') else starting_packs(index,rng)
+  # Ryou Bakura's Fortune's Favorite (user, 2026-11-18): 4 copies of one random character's draft pack, and a starting
+  # archetype relic for an archetype in that pack (pack_archetype_relics).
+  pack_relics=[]
+  if char.get('one_character_packs'):
+   choices=[p['id'] for p in PACKS if p['id'].startswith('DRAFT-') and pack_archetype_relics(p['id'])]
+   one=rng.choice(choices);pack_ids=[one]*4;pack_relics=pack_archetype_relics(one)
   # Copycat's Randomizer: its packs come from the run's own randomized cards, made once the run exists (below).
   if char.get('randomized'):random_cards.uninstall()
   for _ in range(0 if char.get('randomized') else 500):
@@ -277,8 +303,9 @@ def install(g):
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
   cursed=cursed_relics.approved()
-  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and k not in relic_fusions.KEYS],1,r,rng)[0]
+  if relic=='random':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and k not in relic_fusions.KEYS and (k!='absolute_random' or random_cards.allowed(r))],1,r,rng)[0]
   elif relic=='random_archetype':relic=archetype_relics.sample([k for k in ARTIFACTS if k not in RETIRED_ARTIFACTS and k not in cursed and ART_INFO.get(k,{}).get('effect')=='archetype_stock'],1,r,rng)[0]
+  elif relic=='random_pack_archetype':relic=rng.choice(pack_relics) if pack_relics else 'none'
   if relic in (None,'none'):r['artifacts']=[];r['starting_relic']='none'
   else:
    r['artifacts']=[relic];r['starting_relic']=relic
@@ -421,6 +448,8 @@ def install(g):
   # Gadget Stronghold (2026-11-13), the same way: its script moves the copy to the starting hand.
   from approved_relic_effects import STRONGHOLD
   if owns(duel_run,'gadget_stronghold') and STRONGHOLD not in main:main.append(STRONGHOLD)
+  # Ultimate Gate Combination (2026-11-18) likewise hands over Sanga of the Thunder, Kazejin and Suijin.
+  if owns(duel_run,'ultimate_gate_combination'):main+=[cid for cid in sorted(GATE_TRIO) if cid not in main]
   mods=run.setdefault('card_mods',{})
   if run.get('faulty'):
    for i,cid in enumerate(run['pool']):
@@ -451,6 +480,8 @@ def install(g):
   enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
   if fallen:enemy_name='Fallen '+fallen['name']
   if run.get('encore_active'):enemy_name=endless.encore_record(run)['name']
+  # The shopkeeper's secret duel (user, 2026-11-18).
+  if run.get('secret_challenge')=='relicless':enemy_name='Angry Grandpa'
   hand0=ar.opening(duel_run,1 if owns(duel_run,'rulebook') else 5+amount(duel_run,"opening"))
   hand0=challenge_levels.curse_opening_hand(run,hand0)
   hand1=ar.opening(mirror,1 if owns(duel_run,'rulebook') else 5+amount(mirror,'opening'))
@@ -465,6 +496,7 @@ def install(g):
   tmp=g.RUNTIME/'campaign-request.tmp';tmp.write_text(json.dumps(request),encoding='utf8');tmp.replace(g.RUNTIME/'campaign-request.json')
   run['duel']=request;run['stage']='duel';save(run);return request
  old_rewards=g.rewards
+ FINAL_COUNTDOWN_COINS=300
  def rewards(run,events,reason=None):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
@@ -497,6 +529,10 @@ def install(g):
    back=max(0,-(earned-earned//3)-tally['Slow duel'])
    if back:tally['Deck-out win']=back
    if sum(tally.values())<30:tally['Victory minimum']=30-sum(tally.values())
+  # Final Countdown wins (user, 2026-11-18): no slow duel penalty, and at least FINAL_COUNTDOWN_COINS after every
+  # deduction (the line 'Final Countdown win' tops the total up, below).
+  countdown=reason==0x11
+  if countdown:tally.pop('Slow duel',None);tally.pop('Victory minimum',None)
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
   if owns(run,'glass_shard'):
@@ -508,6 +544,7 @@ def install(g):
    bonus=int(total*((1.25**ar.copies(run,'cursed_glass_treasury'))-1));tally['Glass Treasury']=bonus;total+=bonus
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
+  if countdown and total<FINAL_COUNTDOWN_COINS:tally['Final Countdown win']=FINAL_COUNTDOWN_COINS-total;total=FINAL_COUNTDOWN_COINS
   bonus=custom_cards.coins(events)
   if bonus:tally['Ancient Treasure']=bonus;total+=bonus
   bonus=variant_relics.coins(run,events)
@@ -774,7 +811,7 @@ def install(g):
   # seeds both devices share (random_cards.tag_pack).
   # It takes the second booster slot only, never the guaranteed pack or the character pack in the last slot (user, 2026-11-16:
   # it replaced the character booster).
-  elif not fixed_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and len(tied_ids)==1 and len(pack_ids)>=3 and rng.random()<random_cards.SHOP_CHANCE:
+  elif not fixed_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and len(tied_ids)==1 and len(pack_ids)>=3 and random_cards.allowed(run) and rng.random()<random_cards.SHOP_CHANCE:
    pack_ids[1]=random_cards.RANDOM_PACK
   items += [dict(kind='pack',id=p,price=35,sold=False,opponent_pack=(n<len(tied_ids))) for n,p in enumerate(pack_ids)]
   pre=json.loads((g.ROOT/'data/preconstructed.json').read_text(encoding='utf8'))

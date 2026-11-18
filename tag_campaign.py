@@ -599,7 +599,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('mark','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('mark','marks','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -626,6 +626,24 @@ class TagCampaign:
   # Card marks (user, 2026-11-16): Yes 1 / No -1 / Maybe 0 for one card of this player's run. They only feed the
 
   # weighting (relic_affinity.deck_cards), so they apply at once in any phase, even while the player is locked in.
+
+  # A player's saved Character settings marks, sent once when the run starts (user, 2026-11-18). Marks already set in
+  # this run win, so a resend never undoes a tap.
+  if action=='marks':
+
+   if not isinstance(value,dict):raise ValueError('Unknown card')
+
+   marks={}
+
+   for cid,mark in list(value.items())[:5000]:
+
+    try:cid,mark=int(cid),int(mark)
+
+    except (TypeError,ValueError):continue
+
+    if cid in game.BY_ID and mark in (-1,1):marks[str(cid)]=mark
+
+   marks.update(run.get('card_marks') or {});run['card_marks']=marks;return
 
   if action=='mark':
 

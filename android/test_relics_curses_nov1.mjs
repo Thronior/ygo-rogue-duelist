@@ -69,7 +69,7 @@ p=storage.profile();p['unlocked']=list(content.PLAYABLE_IDS);storage.write(base/
 r=g.new_run(0,random.Random(2),0);r['pool']=[c['id'] for c in g.CARDS if c['data']['type']&1 and not c['data']['type']&64][:40];r['selected']=list(range(40));r['stage']='draft';r['round']=2;r['artifacts'].append('protection_charm');g.routes(r,random.Random(1));r['opponent']=r['routes'][0];g.prepare_duel(r,random.Random(1))
 charm=[r.get('charmed_curse') in content.CURSES,r['charmed_curse'] not in r['curses']]
 pool=[c['id'] for c in g.CARDS if c['name']=='Scapegoat']+[c['id'] for c in g.CARDS if c['name']=='Battle Ox']*39
-tok=lambda s:aff.multipliers(['token_regiment'],dict(pool=pool,selected=s))['token_regiment']
+tok=lambda s:aff.details(['token_regiment'],dict(pool=pool,selected=s))['token_regiment'][1]
 print(json.dumps(dict(dupes=[str(k) for k,n in seen.items() if n>1],charm=charm,deck=[tok([]),tok([0])],picker='almighty' in choice_relics.relic_pool(dict(r,artifacts=[])),drain=[cl.drained_lp(dict(curses=['drain'],challenge_level=0),4000),cl.drained_lp(dict(curses=['drain'],challenge_level=0),2500),cl.drained_lp(dict(curses=['drain'],challenge_level=2),2500),cl.drained_lp(dict(curses=['drain'],challenge_level=2),500)])))`],{cwd:root,maxBuffer:1<<26}).toString().trim().split('\n').at(-1));
 same(out.dupes,[],'every relic has its own art');same(out.charm,[true,true],'Protection Charm lifts one curse');ok(out.deck[1]>out.deck[0],'deck cards count more than collection cards');ok(out.picker,'Relic Picker can offer very rare relics');same(out.drain,[3000,2000,1000,500],'Withering Soul keeps its floor');
 console.log(`PASS relics and curses: ${checks} checks`);

@@ -9,7 +9,7 @@ const meta=json('android/web/content.json'),data=json('android/web/engine-data.j
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';
 const py=(code,...args)=>execFileSync(python,['-B','-c',"import sys,json;sys.path.insert(0,'.');"+code,...args],{cwd:root,encoding:'utf8',env:{...process.env,PYTHONUTF8:'1'}}).trim();
 const relicScript=(artifacts,side=0)=>py('import passives;print(passives.multiplayer_script(json.loads(sys.argv[1]),int(sys.argv[2])))',JSON.stringify({curses:[],artifacts,cursed_artifacts:artifacts.filter(a=>a.startsWith('cursed_')),challenge_level:0}),String(side));
-const OX=id('Battle Ox'),SKULL=id('Summoned Skull'),WABOKU=id('Waboku'),RAIGEKI=id('Raigeki'),TRAP_HOLE=id('Trap Hole'),FISSURE=id('Fissure');
+const OX=id('Battle Ox'),SKULL=id('Summoned Skull'),WABOKU=id('Waboku'),RAIGEKI=id('Raigeki'),TRAP_HOLE=id('Trap Hole'),FISSURE=id('Fissure'),FOOLISH=id('Foolish Burial');
 let checks=0;const ok=(value,why)=>{assert(value,why);checks++},same=(a,b,why)=>{assert.deepEqual(a,b,why);checks++};
 for(const name of ['Illusionary Tribute','Overkill Bounty','Parting Gift','Tactical Espionage','Stars Aligned','Anime Rule #2'])ok(Object.values(meta.artifacts).some(a=>a[0]===name),name+' is in content.json');
 
@@ -51,11 +51,12 @@ const noTribute=await tribute([]);console.log('no relic',noTribute);
 same(noTribute.offers,0,'without the relic a Set Trap is not a Tribute');
 
 // Stars Aligned: only Level 4 monsters on your field and in your GY, so the End Phase summons another from the hand.
-async function stars(artifacts){
+// Foolish Burial puts a Battle Ox in the GY first: an empty GY no longer counts (user, 2026-11-18).
+async function stars(artifacts,burial=true){
  let asked=false;
- const e=await duel({artifacts,deck:fill(OX),enemy:fill(WABOKU),turns:1,drive(e,m){
+ const e=await duel({artifacts,deck:burial?fill(OX,OX,FOOLISH):fill(OX),enemy:fill(WABOKU),turns:1,drive(e,m){
   if(m.player!==0)return null;
-  if(m.type===M.SELECT_IDLECMD)return (!count(e,0,L.MZONE)&&idle(m,I.SELECT_SUMMON,OX,'summons'))||{type:R.SELECT_IDLECMD,action:I.TO_EP,index:null};
+  if(m.type===M.SELECT_IDLECMD)return (burial&&!count(e,0,L.GRAVE,OX)&&idle(m,I.SELECT_ACTIVATE,FOOLISH,'activates'))||(!count(e,0,L.MZONE)&&idle(m,I.SELECT_SUMMON,OX,'summons'))||{type:R.SELECT_IDLECMD,action:I.TO_EP,index:null};
   if(m.type===M.SELECT_BATTLECMD)return {type:R.SELECT_BATTLECMD,action:B.TO_EP,index:null};
   if(m.type===M.SELECT_CARD&&m.selects.every(c=>c.location===L.HAND)){asked=true;return {type:R.SELECT_CARD,indicies:[0]}}
   return null}});
@@ -65,6 +66,7 @@ const withStars=await stars(['stars_aligned']);console.log('Stars Aligned',withS
 ok(withStars.asked,'the End Phase asks for a monster from the hand');
 same(withStars.oxen,2,'a second Level 4 monster is Special Summoned');
 same((await stars([])).oxen,1,'without the relic nothing is summoned');
+const emptyGrave=await stars(['stars_aligned'],false);ok(!emptyGrave.asked&&emptyGrave.oxen===1,'with an empty GY the relic does nothing');
 
 // Anime Rule #2: Fissure destroys the opponent's Battle Ox (1700 ATK) for 850 damage; no direct attacks.
 async function burn(artifacts){

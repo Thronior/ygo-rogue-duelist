@@ -48,6 +48,25 @@ def record_run_start(run):
   p['last_counted_run']=ident
   write(ROOT/'profile.json',p)
 
+# Character settings (itch.io request, user 2026-11-18): per character, saved card marks ({card id: 1 or -1}) that every
+# new run of that character starts with, and whether marks set during a run are saved back here (keepRunMarks).
+def character_settings(raw):
+ out={}
+ if not isinstance(raw,dict):return out
+ for key,row in list(raw.items())[:200]:
+  try:index=int(key)
+  except (TypeError,ValueError):continue
+  if not isinstance(row,dict) or not 0<=index<1000:continue
+  marks={}
+  for cid,mark in list((row.get('marks') if isinstance(row.get('marks'),dict) else {}).items())[:5000]:
+   try:cid=int(cid);mark=int(mark)
+   except (TypeError,ValueError):continue
+   if 0<cid<2**31 and mark in (-1,1):marks[str(cid)]=mark
+  entry={'marks':marks,'keepRunMarks':bool(row.get('keepRunMarks',False))}
+  if marks or entry['keepRunMarks']:out[str(index)]=entry
+ return out
+def saved_marks(character):
+ return dict(settings().get('characterSettings',{}).get(str(character),{}).get('marks') or {})
 def settings():
  p=read(ROOT/'settings.json',{})
  if not isinstance(p,dict):p={}
@@ -60,7 +79,7 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),autoPlacement=bool(p.get('autoPlacement',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=75 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),sleeve=sleeve_setting(p.get('sleeve')))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),autoPlacement=bool(p.get('autoPlacement',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=75 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),sleeve=sleeve_setting(p.get('sleeve')),characterSettings=character_settings(p.get('characterSettings')))
 
 
 def sleeve_setting(value):

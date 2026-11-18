@@ -295,6 +295,21 @@ export function comboPlanner(x){
   const taken=[...enemy].sort((a,b)=>targetValue(b)-targetValue(a)).slice(0,2).reduce((sum,c)=>sum+targetValue(c),0);
   return taken>=1500?[{id:'lava-golem',start,payoff:[],normal:false,lost:[],bonus:taken}]:[];
  }
+ // Snipe Hunter destroys their only monster (2 in 3 rolls) so the rest attack directly (replay review 2026-11-18:
+ // a0d7481415c5@3, players summoned it to snipe a Set Giant Soldier of Stone and hit for 3400; the CPU summoned
+ // Gemini Elf into the wall). Judged by expected damage against the best plain summon, and only when Snipe Hunter's
+ // own activation check (smart_policy snipeNet: gain against the cheapest discard) will then fire.
+ function snipeLine(){
+  if(enemy.length!==1||free<1||!effectsEnabled(p)||!x.snipeNet)return [];
+  const start=summonStep('Snipe Hunter'),hunter=hand.find(c=>name(c)==='Snipe Hunter');
+  if(!start||!hunter)return [];
+  const target=enemy[0],strikers=[power(hunter)];
+  const net=x.snipeNet({...hunter,controller:p},strikers);
+  if(!net||net.juragedo||net.gain<net.cost+200)return [];
+  const expected=planDamage(strikers,[target])*2/3+planDamage(strikers)/3;
+  const plain=Math.max(planDamage(),...list('summons').filter(c=>tributes(c)===0&&name(c)!=='Snipe Hunter').map(c=>planDamage([power(c)])));
+  return expected>=plain+600?[{id:'snipe',start,payoff:[],kept:[hunter],normal:true,lost:[],removed:[target],strikers}]:[];
+ }
  // Attacks that are worth making because of what they do, not the damage. A monster that could win a fight fights normally.
  const TRADES=new Set(['Hyper Hammerhead','D.D. Warrior']);
  function battleLine(ready){
@@ -323,14 +338,14 @@ export function comboPlanner(x){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
   const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine];
-  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine]:[contactLine];
+  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine,...(main?[snipeLine]:[])]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
   for(const line of cached){line.kept??=[];line.lost??=[];line.strikers??=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
   return cached;
  }
  // Lethal first, then the line ending on the biggest board. These lines are justified by what they do,
  // not by the size of the monster they leave behind.
- const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget','ritual-search']);
+ const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget','ritual-search','snipe']);
  function choose(useful){
   const direct=Math.max(0,...list('summons').filter(c=>tributes(c)===0).map(power));
   const candidates=lines().map(line=>({...line,lethal:(line.burn||0)>=e.lp[1-p]||line.strikers.length>0&&planDamage(line.strikers,line.removed||[],line.lost)>=e.lp[1-p]})).filter(line=>{

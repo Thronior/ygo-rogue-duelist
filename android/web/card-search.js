@@ -61,5 +61,8 @@ export function openSearch(key,cards,onApply){
  const form=d.querySelector('form');const read=()=>({...Object.fromEntries(new FormData(form)),all:form.elements.match.value==='all',effects:[...s.effects]});
  const count=()=>{const old=searches[key];searches[key]=read();d.querySelector('output').textContent=cards.filter(c=>matchesSearch(c,key)).length+' cards';searches[key]=old};
  d.addEventListener('click',e=>{const b=e.target.closest('[data-genre]');if(b){const id=b.dataset.genre;s.effects=s.effects.includes(id)?s.effects.filter(x=>x!==id):[...s.effects,id];b.setAttribute('aria-pressed',String(s.effects.includes(id)));count()}if(e.target.closest('[data-reset]')){form.reset();for(const k of ['q','race','attribute','level'])form.elements[k].value='';form.elements.match.value='any';s.effects=[];d.querySelectorAll('[data-genre]').forEach(b=>b.setAttribute('aria-pressed','false'));count()}});
+ // Enter in the text box applies the search (user, 2026-11-18). Without this the form's first button, the × close,
+ // took the Enter and closed the window without applying. Not while an IME is still composing (Japanese, Chinese, Korean).
+ form.elements.q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();d.close('apply')}});
  form.addEventListener('input',count);d.addEventListener('close',()=>{if(d.returnValue==='apply'){searches[key]=read();onApply()}d.remove()});document.body.append(d);d.showModal();count();
 }

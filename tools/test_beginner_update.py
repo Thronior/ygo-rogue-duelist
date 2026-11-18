@@ -24,8 +24,10 @@ for i in range(7):
  deck=g.opponent_deck(0,tutorial_variant=i);monsters=[g.BY_ID[c] for c in deck if g.BY_ID[c]['data']['type']&1]
  assert 1000<=max(c['atk'] for c in monsters)<=1100 and max(c['atk'] for c in monsters)>max(c['defense'] for c in monsters)
  assert any(g.BY_ID[c]['data']['type']&2 for c in deck) and any(g.BY_ID[c]['data']['type']&4 for c in deck)
- # Tutorial .ydk decks were rebalanced from 23 to 40 cards in 0.1.33 (enemy deck balancing).
+ # Tutorial .ydk decks were rebalanced from 23 to 40 cards in 0.1.33 (enemy deck balancing), then got 3 Dust Tornado,
+ # De-Spell and Remove Trap (user, 2026-11-18) so beating duel 1 can reward Spell/Trap removal.
  assert len(deck)==40 and max(Counter(deck).values())<=3
+ assert Counter(deck)[60082869]==3 and 19159413 in deck and 51482758 in deck
 for i in encounters.EARLY_IDS:
  deck=g.opponent_deck(1,opponent=i);assert 20<=len(deck)<=60
  assert max(Counter(deck).values())<=3
@@ -36,7 +38,7 @@ for i in content.PLAYABLE_IDS:
  else:assert len(r['artifacts'])==1 and r['artifacts'][0] in content.ARTIFACTS
 # Ryou Bakura's standard start is the Blank Relic (data/character-progression.json); the random relic
 # moved to his alternate variant, Fortune's Favorite, which draws a random archetype relic.
-assert {g.new_run(36,random.Random(i))['artifacts'][0] for i in range(5)}=={'blank_relic'}
+assert {g.new_run(36,random.Random(i))['artifacts'][0] for i in range(5)}=={'duelist_catalogue'}
 p=storage.profile();p['character_levels']={'36':99};storage.write(base/'profile.json',p)
 assert len({g.new_run(36,random.Random(i),variant=1)['artifacts'][0] for i in range(15)})>5
 print('PASS: fixed round-zero and early decks, Copycat opens on an exact Tier 1 mirror, all starting relics')

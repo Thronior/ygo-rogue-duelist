@@ -29,29 +29,46 @@ def install(artifact):
   text=f'Every shop and reroll offers one additional random card from this pool: {label}.'
   if key in STARTER_CARD:text+=' When acquired, add 1 random card from this pool to your card pool.'
   artifact(key,name,PRICES.get(key,85),text,art,'archetype_stock',1,'economy')
+# Family relics (user, 2026-11-18): never offered before the card pool holds one of their cards (has_member, in
+# campaign_expansion.shop_relic_eligible); after that FAMILY_BASE plus FAMILY_PER_CARD for every matching Deck card (a Yes
+# mark on an owned card outside the Deck counts as relic_affinity.MARK_YES_COPIES cards), up to FAMILY_CAP.
+FAMILY_BASE,FAMILY_PER_CARD,FAMILY_CAP=.25,1.0,10.0
+def family_weight(matches):return min(FAMILY_CAP,FAMILY_BASE+FAMILY_PER_CARD*max(0,matches))
 def weight(key,run):
- weight=1.0
- if key in FAMILY:weight*=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
- from content import ART_INFO
- owned=[ART_INFO.get(x,{}) for x in run.get('artifacts',[]) if ART_INFO.get(x,{}).get('effect') in ('attribute','both') and ART_INFO.get(x,{}).get('filter') in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'}]
- if owned:
-  candidate=ART_INFO.get(key,{})
-  filt=candidate.get('filter','')
-  if candidate.get('effect')=='attribute' or (candidate.get('effect')=='both' and filt in {'LIGHT','DARK','FIRE','WATER','WIND','EARTH'} and any(filt!=owned_relic.get('filter','') for owned_relic in owned)):weight*=0.5
- return weight
-
+ """A relic's base weight before rarity and the shop modifiers: 1, or the family weight for its matching Deck cards."""
+ if key not in FAMILY:return 1.0
+ import relic_affinity
+ return family_weight(relic_affinity.details([key],run)[key][1])
 # Offer weights (user, 2026-11-13). Every relic offer (shop, Relic Picker, cursed and choice offers) goes through offer_weights:
-# - weight(): hold-backs (a second family or attribute relic) and RARITY, the relics that appear less often by design.
+# - weight(): family relics by their matching Deck cards, and RARITY, the relics that appear less often by design.
 # - The Deck: since 2026-11-14 its themes no longer multiply weights; each theme gets a chance per stock or offer instead
 #   (relic_affinity.theme_chances, themed_picks below). A relic whose cards are missing from the Deck still counts DEAD_RELIC.
 # - In the shop, the category picked after the Duel (x5, capped at BOOST_CAP) and the hidden loadout lists (x2).
 # - Plain relics (Merchant Urn, Demonic Sword...) count 1.
 # - Shop only: a relic offered and not bought counts SKIPPED for the next SKIP_VISITS stocks, and in the first
 #   EARLY_SHOPS shops a relic costing more than the player's coins plus EARLY_SLACK counts PRICEY.
-RARITY={'traps_no_more':.25,'spells_no_more':.25,'duelist_catalogue':.2,'cursed_reversed_remedy':.6,
+RARITY={'traps_no_more':.25,'spells_no_more':.25,'cursed_reversed_remedy':.6,
         'almighty':.1,'the_creator':.1,'dimensional_rift':.1,'dark_lotus':.1}
 BOOST_CAP=10.0
-NEUTRAL_AVERAGE_CAP=2.0
+# Relics that name specific cards and do nothing without them (user, 2026-11-18): x NOT_OWNED in every offer while the
+# run's card pool lacks them. (names, how many different ones are needed). Archetype relics and relics that hand you the
+# card themselves (Final Hour, Level Up!, Metal Coating, Gadget Stronghold) are not listed.
+SPECIFIC_CARDS={
+ 'gate_calling':(('Sanga of the Thunder','Kazejin','Suijin'),2),
+ 'jin_trio':(('Sanga of the Thunder','Kazejin','Suijin'),1),
+ 'blue_eyes_radiance':(('Blue-Eyes White Dragon','Blue-Eyes Shining Dragon'),2),
+ 'black_chaos_rite':(('Dark Magician','Dark Magician of Chaos'),2),
+ 'all_for_one_terrorking':(('Terrorking Archfiend',),1),
+}
+NOT_OWNED=.3
+def owns_named_cards(key,run):
+ """False when a SPECIFIC_CARDS relic's cards are missing from the run's card pool."""
+ need=SPECIFIC_CARDS.get(key)
+ if not need:return True
+ import campaign as g
+ names,count=need
+ owned={g.BY_ID[cid]['name'] for cid in set(run.get('pool',[])) if cid in g.BY_ID}
+ return len(owned.intersection(names))>=count
 DEAD_RELIC=.4
 SKIPPED,SKIP_VISITS=.5,2
 PRICEY,EARLY_SHOPS,EARLY_SLACK=.5,3,50
@@ -69,7 +86,7 @@ def loadout_relics(run):
  try:key=f"{int(run.get('character'))}:{int(run.get('variant') or 0)}"
  except (TypeError,ValueError):return set()
  return _loadout_relics.get(key,set())
-LOADOUT_GAIN,LOADOUT_MIN=2.0,2.0
+LOADOUT_MIN=2.0
 
 def offer_weights(options,run,favored=(),favor=1,prices=None,shop=False):
  """{key:(base,boost,giver)}; in Tag each player's Deck (and hidden loadout list) adds half of its boost change."""
@@ -77,7 +94,12 @@ def offer_weights(options,run,favored=(),favor=1,prices=None,shop=False):
  mine=_offer_weights_one(options,run,favored,favor,prices,shop);other=relic_affinity.tag_partner(run)
  if other is None:return mine
  theirs=_offer_weights_one(options,other,favored,favor,None,False)
- return {k:(mine[k][0],1+.5*(mine[k][1]-1)+.5*(theirs[k][1]-1),mine[k][2] or theirs[k][2]) for k in mine}
+ # Family relics: each Deck adds half of its family weight (the rest of the base, rarity and shop modifiers, is the host's).
+ family=[k for k in mine if k in FAMILY]
+ if family:
+  m,t=relic_affinity.details(family,run),relic_affinity.details(family,other)
+  share={k:(.5*family_weight(m[k][1])+.5*family_weight(t[k][1]))/family_weight(m[k][1]) for k in family}
+ return {k:(mine[k][0]*(share[k] if k in FAMILY else 1),1+.5*(mine[k][1]-1)+.5*(theirs[k][1]-1),mine[k][2] or theirs[k][2]) for k in mine}
 
 def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
  """{key:(base,boost,giver)}: base is rarity, hold-backs and shop modifiers; boost is the capped weight-giver multiplier."""
@@ -86,28 +108,23 @@ def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
  mapped=set().union(*shop_rewards.CATEGORY_RELICS.values())
  boost,givers={},set();loadout=loadout_relics(run)
  for key in options:
-  multiplier,rule,matched=detail[key]
+  rule,matches=detail[key]
   # The Deck's themes act through theme chances (relic_affinity.theme_chances, themed_picks), not by multiplying weights,
   # so the per-roll chances the user set are not exceeded (user, 2026-11-14).
   if key in loadout:
    value=LOADOUT_MIN*(favor if key in favored else 1);givers.add(key)
    boost[key]=min(BOOST_CAP,value);continue
   value=favor if key in favored else 1
-  if rule and not matched:value*=DEAD_RELIC
+  # Family relics weigh their Deck cards in weight(), so they skip the missing-cards factor.
+  if rule and not matches and key not in FAMILY:value*=DEAD_RELIC
   if rule or key in mapped:givers.add(key)
   boost[key]=min(BOOST_CAP,value)
  skips=(run.get('relic_skips') or {}) if shop else {}
  early=shop and prices is not None and int(run.get('round',0) or 0)<EARLY_SHOPS
  gold=int(run.get('gold',0) or 0);out={}
  for key in options:
-  base=weight(key,run)*RARITY.get(key,1.0)
-  # A family relic's hold-back (x0.25, x0.125 with one owned) fades as the deck commits to its cards: none for an all-X deck.
-  if key in FAMILY and key in givers:
-   multiplier,rule,matched=detail[key]
-   hold=0.125 if FAMILY.intersection(run.get('artifacts',[])) else 0.25
-   top=relic_affinity.ceiling(key,member_test(key,run) if member_test(key,run) not in (None,True) else None)
-   share=1.0 if top<=1 else max(0.0,min(1.0,(multiplier-1)/(top-1)))
-   base*=(hold+(1-hold)*share)/hold
+  base=(family_weight(detail[key][1]) if key in FAMILY else 1.0)*RARITY.get(key,1.0)
+  if not owns_named_cards(key,run):base*=NOT_OWNED
   if skips.get(key,0)>0:base*=SKIPPED
   if early and prices.get(key,0)>gold+EARLY_SLACK:base*=PRICEY
   # Without deck multipliers there is nothing for plain relics to keep up with: they count 1 (theme chances, 2026-11-14).

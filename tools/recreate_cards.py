@@ -99,6 +99,10 @@ def export_cards(out_path, ids=(), batches=RECREATE / "cards"):
         if entry.get("ritual_for") is not None:
             rand["ritual_for"] = entry["ritual_for"]
             rand["ritual_level"] = entry["ritual_level"]
+        if entry.get("ritual_attribute") is not None:
+            rand["ritual_attribute"] = entry["ritual_attribute"]
+        if entry.get("equip_ready"):
+            rand["equip_ready"] = True
         script = (
             "if not Randomizer then Duel.LoadScript(\"randomizer.lua\") end\n"
             "local s,id=GetID()\n"
@@ -129,6 +133,8 @@ def export_cards(out_path, ids=(), batches=RECREATE / "cards"):
                 "slot": entry["slot"],
                 "materials": material_list,
                 **({"ritual_for": entry["ritual_for"]} if entry.get("ritual_for") is not None else {}),
+                **({"ritual_attribute": entry["ritual_attribute"]} if entry.get("ritual_attribute") is not None else {}),
+                **({"equip_ready": True} if entry.get("equip_ready") else {}),
             },
         }
         exported.append({"card": real_card, "script": script})
@@ -567,8 +573,12 @@ def check_entry(entry, card, issue, valid_ritual_ids):
                 issue("fusion material has an invalid kind")
     if slot == "s_ritual" and entry.get("coverage") == "full":
         ritual_for = entry.get("ritual_for")
-        if type(ritual_for) is not int or ritual_for not in valid_ritual_ids:
-            issue("Ritual Spell must name a Ritual Monster in ritual_for")
+        ritual_attribute = entry.get("ritual_attribute")
+        if ritual_for is not None:
+            if type(ritual_for) is not int or ritual_for not in valid_ritual_ids:
+                issue("Ritual Spell must name a Ritual Monster in ritual_for")
+        elif ritual_attribute not in (1, 2, 4, 8, 16, 32):
+            issue("Ritual Spell must name a valid ritual_attribute or ritual_for")
 
 
 def check(batches, through_batch=None):

@@ -42,13 +42,12 @@ assert not a.matches('guardian_arsenal',g.BY_NAME['Celtic Guardian'])
 assert not a.matches('evolution_tablet',g.BY_NAME['Level Limit - Area B'])
 assert a.matches('union_dock',g.BY_NAME['XYZ-Dragon Cannon'])
 assert a.matches('union_dock',g.BY_NAME['Heavy Mech Support Platform'])
+# Family relics (user, 2026-11-18): FAMILY_BASE with no Deck cards, whatever other family relics you own; plain relics 1.
 for key in a.FAMILY:
- assert a.weight(key,{})==.25
- for owned in a.FAMILY:assert a.weight(key,{'artifacts':[owned]})==.125
- assert a.weight(key,{'artifacts':list(a.FAMILY)})==.125
+ assert a.weight(key,{})==a.FAMILY_BASE and a.weight(key,{'artifacts':list(a.FAMILY)})==a.FAMILY_BASE
 assert a.weight('scarab',{'artifacts':list(a.FAMILY)})==1
 rng=random.Random(9);counts=[sum(a.sample(['scarab','amazoness_standard'],1,run,rng)[0]=='amazoness_standard' for _ in range(10000)) for run in [{},{'artifacts':['toon_world']}]]
-# Empty Deck: Amazoness Standard x0.25 hold-back x0.4 (no cards) against Jade Pendant's 1 (plain relics count 1 since 2026-11-14).
-assert 800<counts[0]<1050 and 400<counts[1]<560,counts
+# Empty Deck: Amazoness Standard at FAMILY_BASE against Jade Pendant's 1, owning Toon World or not.
+assert 1800<counts[0]<2200 and 1800<counts[1]<2200,counts
 r['artifacts']=list(a.NEW_IDS);g.restock(r,random.Random(5));assert sum(x['kind']=='single' for x in r['shop'])==10+len(a.NEW_IDS)
 print('PASS pools exclude unrelated names, all bonuses stack, rarity and ownership weighting',counts)

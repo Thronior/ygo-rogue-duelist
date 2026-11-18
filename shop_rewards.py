@@ -295,7 +295,7 @@ CATEGORY_RELICS={
  'spirit':('good_spirits','deep_pockets','spiritual_retribution'),'flip':('jar_of_echoes','buckler','disturbed_sleep'),
  'normal':('normal','epitaph','normal_barrier','tenacity_of_the_weak'),'effect':('menagerie','kindred_bond'),
  'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass','stars_aligned'),
- 'highlevel':('tribute','tribute_dividend','gate_calling'),'toplevel':('tribute_free','boss_monster','tribute','dark_lotus','gate_calling','solo','titans_charge','dragon_lords_decree'),
+ 'highlevel':('tribute','tribute_dividend','gate_calling','jin_trio'),'toplevel':('tribute_free','boss_monster','tribute','dark_lotus','gate_calling','solo','titans_charge','dragon_lords_decree'),
  'burn':('flame','burn_proficiency','static_coil'),'heal':('healing_echo','spring','quiet_library','ring_of_defense'),
  'stall':('patient_guardian','quiet_library','buckler','straw_doll','sword_and_shield'),'pierce':('pierce','battle_proficiency'),
  'direct':('battle_proficiency','seal'),'draw':('eye','second_wind','deep_pockets'),

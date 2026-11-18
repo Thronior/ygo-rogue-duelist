@@ -122,9 +122,12 @@ end'''
  end
  install(EFFECT_DECREASE_TRIBUTE) install(EFFECT_DECREASE_TRIBUTE_SET)
 end'''
- if kind=='fusion_time':return '''do
- local fusions=Duel.GetMatchingGroup(Card.IsType,0,LOCATION_EXTRA,0,nil,TYPE_FUSION)
- for fc in fusions:Iter() do
+ if kind=='fusion_time':
+  # each_card: a Tag partner's Extra Deck is only reachable on their turn.
+  from approved_relic_effects import each_card
+  start,finish=each_card('fc','Duel.GetMatchingGroup(Card.IsType,0,LOCATION_EXTRA,0,nil,TYPE_FUSION)')
+  return '''do
+ '''+start+'''
   local e=Effect.CreateEffect(fc) e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SPSUMMON_PROC)
   e:SetProperty(EFFECT_FLAG_UNCOPYABLE) e:SetRange(LOCATION_EXTRA) e:SetValue(SUMMON_TYPE_FUSION)
   e:SetCondition(function(e,c)
@@ -142,8 +145,7 @@ end'''
    local sg=e:GetLabelObject() if not sg then return end
    Duel.SendtoGrave(sg,REASON_MATERIAL|REASON_FUSION) sg:DeleteGroup() e:SetLabelObject(nil)
   end)
-  fc:RegisterEffect(e)
- end
+  fc:RegisterEffect(e)'''+finish+'''
 end'''
  if kind=='starting_field_spell':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''

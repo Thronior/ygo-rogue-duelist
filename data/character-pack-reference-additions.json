@@ -7,57 +7,9 @@
   },
   {
     "pack": "Paradox Brothers",
-    "card": "Tainted Wisdom",
-    "pool": "common",
-    "requiredBy": "Skull Knight"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Ancient Brain",
-    "pool": "common",
-    "requiredBy": "Skull Knight"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Elegant Egotist",
-    "pool": "common",
-    "requiredBy": "Harpie Lady Sisters"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Hibikime",
-    "pool": "common",
-    "requiredBy": "Empress Judge"
-  },
-  {
-    "pack": "Paradox Brothers",
     "card": "Sanga of the Thunder",
     "pool": "common",
     "requiredBy": "Gate Guardian"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Ultimate Insect LV1",
-    "pool": "common",
-    "requiredBy": "Ultimate Insect LV3"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Time Wizard",
-    "pool": "common",
-    "requiredBy": "Thousand Dragon"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Baby Dragon",
-    "pool": "common",
-    "requiredBy": "Thousand Dragon"
-  },
-  {
-    "pack": "Paradox Brothers",
-    "card": "Protector of the Throne",
-    "pool": "common",
-    "requiredBy": "Giltia the D. Knight"
   },
   {
     "pack": "Mai Valentine",

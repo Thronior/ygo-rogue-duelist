@@ -1,63 +1,23 @@
-"""Collection-based relic offer weights: a relic never drops below its base chance; how high it can go depends on how
-specific it is (see ceiling)."""
+"""Deck-based relic and card weighting: which relics a Deck can use (details), theme chances, single-card and category
+weights. Relic offer weights themselves live in archetype_relics.offer_weights."""
 import re
 from collections import Counter
 
-MAX_MULTIPLIER=3
-# Specific relics gain more from a deck built around them (user, 2026-11-13): an Amazoness deck should pull Amazoness relics
-# well before Warrior or EARTH ones. A relic's ceiling comes from the share of the game's cards it supports (monster-only
-# tags such as Types and Attributes are measured among monsters): 30% of cards gives x2, every halving adds CEILING_SLOPE,
-# clamped to CEILING_MIN..CEILING_MAX. Examples: Amazoness x8, Rituals ~x5.9, Zombie ~x4.6, Warrior x3, DARK and
-# Normal Monsters x2.
-# Raised for "all X" decks (user, 2026-11-13, second pass): x2 to x8, +1 per halving.
+# Single cards and shop categories gain more the more specific their feature is (user, 2026-11-13): a ceiling from the share
+# of the game's cards with that feature (monster-only tags such as Types and Attributes are measured among monsters): 30%
+# of cards gives x2, every halving adds CEILING_SLOPE, clamped to CEILING_MIN..CEILING_MAX.
 CEILING_MIN,CEILING_MAX,CEILING_BASE_SHARE,CEILING_SLOPE=2.0,8.0,.30,1.0
-# Every archetype relic (an archetype_relics.member_test card list: Amazoness, Harpie, Toon, Ritual Dagger...) shares
-# Amazoness Standard's ceiling (user, 2026-11-13), however many cards its archetype has.
+# Archetype features (set codes, archetype categories) share Amazoness's ceiling (user, 2026-11-13).
 ARCHETYPE_CEILING=7.5
 MONSTER_TAGS=('race:','attr:','level:','normal','spirit','union','flip')
-# The build writes every relic's ceiling to data/relic-ceilings.json (write_ceilings, from tools/build_android.py), so a
-# phone never scans the whole card list; anything missing there is computed once and cached.
 from pathlib import Path
 import json
-CEILINGS_FILE=Path(__file__).parent/'data/relic-ceilings.json'
-try:_ceilings={k:float(v) for k,v in json.loads(CEILINGS_FILE.read_text(encoding='utf8')).items()}
-except (OSError,ValueError):_ceilings={}
-def ceiling(key,test=None,fresh=False,group=0):
- """Highest multiplier the run's cards can give this relic (its weight group `group`); cached, since it only depends on
- the card list. Groups after the first (EXTRA_RULES) are cached as "key#n"."""
- import math
- import campaign as g
- name=key if not group else f'{key}#{group}'
- if name in _ceilings and not fresh:return _ceilings[name]
- if test is not None and not group:
-  _ceilings[key]=ARCHETYPE_CEILING;return ARCHETYPE_CEILING
- elif key in RULES or group:
-  wanted=set((EXTRA_RULES[key][group-1] if group else RULES[key])[0]);base=[c for c in g.CARDS if c['data']['type']&1] if all(w.startswith(MONSTER_TAGS) for w in wanted) else g.CARDS
-  share=sum(1 for c in base if card_tags(c)&wanted)/max(1,len(base))
- else:return 1.0
- value=round(min(CEILING_MAX,max(CEILING_MIN,2+CEILING_SLOPE*math.log2(CEILING_BASE_SHARE/max(share,1e-4)))),3)
- _ceilings[name]=value;return value
-
-def compute_ceilings():
- """{relic: ceiling} for every relic the run's cards can boost, from the current card list and rules."""
- import archetype_relics
- from content import ARTIFACTS
- run={'artifacts':[],'pool':[]};out={}
- for key in ARTIFACTS:
-  test=archetype_relics.member_test(key,run)
-  if test is True:continue
-  if test is not None or key in RULES:out[key]=ceiling(key,test,fresh=True)
-  for n in range(1,len(EXTRA_RULES.get(key,()))+1):out[f'{key}#{n}']=ceiling(key,test,fresh=True,group=n)
- return dict(sorted(out.items()))
-
 def write_ceilings():
- CEILINGS_FILE.write_text(json.dumps(compute_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  CARD_CEILINGS_FILE.write_text(json.dumps(compute_card_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  CATEGORY_CEILINGS_FILE.write_text(json.dumps(compute_category_ceilings(),indent=0)+chr(10),encoding='utf8',newline=chr(10))
  THEMES_FILE.write_text(json.dumps(compute_theme_card_lists(),separators=(',',':'))+chr(10),encoding='utf8',newline=chr(10))
 # Weights come from the current Deck only (user, 2026-11-13): cards that only sit in the collection count for nothing, so
-# a feature the Deck lacks makes its relics and singles x0.4 (archetype_relics.DEAD_RELIC). DECK_WEIGHT is kept for old callers.
-DECK_WEIGHT=3
+# a feature the Deck lacks makes its relics and singles x0.4 (archetype_relics.DEAD_RELIC).
 # Narrow themes (archetypes and effect tags) count cards rather than deck share (user, 2026-11-13): 2 cards reach half the
 # boost and 5 cards the full boost in a 20-card Deck (1 card a quarter), scaled with the run's Deck minimum (4 and 10 at 40).
 NARROW_HALF,NARROW_FULL,NARROW_BASE_DECK=2,5,20
@@ -79,19 +39,20 @@ def tag_partner(run):
 # Card marks (user, 2026-11-16; changed 2026-11-17): for weighting only, a card marked Yes that is not in the Deck counts
 # as MARK_YES_COPIES copies of it; a Yes card already in the Deck counts as its usual copies, and No changes nothing
 # (it only greys the card out and sorts it last). run['card_marks'] = {id: 1 or -1}.
+# Only owned cards count (user, 2026-11-18): a Yes mark adds weight only for a card the collection holds at least 1 copy of
 MARK_YES_COPIES=2
 def deck_cards(run):
  """Counter of card ids in the run's current Deck (Main and Extra) as the weighting sees it: its selected pool indices,
- plus the run's Yes marks on cards outside the Deck."""
+ plus the run's Yes marks on owned cards outside the Deck."""
  import campaign as g
- pool=run.get('pool',[]);out=Counter()
+ pool=run.get('pool',[]);out=Counter();owned=set(pool)
  for index in run.get('selected',[]):
   cid=pool[index] if isinstance(index,int) and 0<=index<len(pool) else None
   if cid in g.BY_ID:out[cid]+=1
  for key,mark in (run.get('card_marks') or {}).items():
   try:cid=int(key)
   except (TypeError,ValueError):continue
-  if mark==1 and cid in g.BY_ID and not out[cid]:out[cid]=MARK_YES_COPIES
+  if mark==1 and cid in owned and cid in g.BY_ID and not out[cid]:out[cid]=MARK_YES_COPIES
  return out
 # Share of the card pool that earns the full multiplier. Narrow themes need fewer cards to count as a plan.
 # Lowered 30% on 2026-11-13 so each matching card adds more (an all-X deck reaches the full boost sooner).
@@ -137,7 +98,7 @@ RULES={
  # 2026-11-13 Discord relics.
  'disturbed_sleep':(('flip',),NARROW),'gadget_call':(('gadget',),NARROW),'gadget_stronghold':(('gadget',),NARROW),
  # 2026-11-14 Discord relics.
- 'guardians_call':(('guardian',),NARROW),'soul_fusion':(('fusion',),NARROW),'gate_calling':(('gate_trio',),NARROW),'ring_of_defense':(('lp_cost',),NARROW),
+ 'guardians_call':(('guardian',),NARROW),'soul_fusion':(('fusion',),NARROW),'gate_calling':(('gate_trio',),NARROW),'jin_trio':(('gate_trio',),NARROW),'ring_of_defense':(('lp_cost',),NARROW),
  'dark_lotus':(('level:7+',),COMMON),'ultimate_armory':(('equip',),NARROW),
  # Deck-style relics that had no weight (user, 2026-11-14: only where the relic suits a kind of deck; coin, shop and plain
  # stat relics stay unweighted).
@@ -214,38 +175,27 @@ def card_tags(c):
  result=frozenset(tags);_tags[c['id']]=result
  return result
 
-def multipliers(keys,run):
- """Offer multiplier per relic, from 1 (no matching cards) to 3 (a dedicated collection)."""
- return {key:value[0] for key,value in details(keys,run).items()}
-
 def details(keys,run):
- """Per relic: (multiplier, whether the run's cards can boost it at all, whether any card in the Deck matches)."""
+ """Per relic: (whether the run's cards can matter to it at all, how many Deck cards match it). A relic in several weight
+ groups (EXTRA_RULES) counts its best group."""
  import archetype_relics
  import campaign as g
  pool=deck_cards(run)
- total=sum(pool.values())
- if not total:return {key:(1.0,key in RULES or key in EXTRA_RULES or archetype_relics.member_test(key,run) is not None,False) for key in keys}
  tags=Counter()
  for cid,copies in pool.items():
   for tag in card_tags(g.BY_ID[cid]):tags[tag]+=copies
  def count(wanted):
   return tags[wanted[0]] if len(wanted)==1 else sum(copies for cid,copies in pool.items() if card_tags(g.BY_ID[cid]).intersection(wanted))
- def boost(key):
+ def one(key):
   test=archetype_relics.member_test(key,run)
-  if test is True:return (CEILING_MAX,True,True)
-  # A relic in several weight groups takes the strongest group's boost, never the groups multiplied (user, 2026-11-14).
-  groups=[]
-  if test is not None:groups.append((sum(copies for cid,copies in pool.items() if test(g.BY_ID[cid])),NARROW,ceiling(key,test)))
-  elif key in RULES:
-   wanted,full=RULES[key]
-   # A card can carry several wanted tags (Fusion Beast-Warrior for Warrior-or-Beast-Warrior), so count cards once.
-   groups.append((count(wanted),full,ceiling(key)))
-  for n,(wanted,full) in enumerate(EXTRA_RULES.get(key,()),1):groups.append((count(wanted),full,ceiling(key,group=n)))
-  if not groups:return (1.0,False,False)
-  best=max(1+(top-1)*(narrow_progress(matches,run) if full==NARROW else min(1,matches/total/full)) for matches,full,top in groups)
-  return (best,True,any(matches>0 for matches,_,_ in groups))
- return {key:boost(key) for key in keys}
-
+  # Name Changer already makes every monster a member.
+  if test is True:return (True,sum(pool.values()))
+  counts=[]
+  if test is not None:counts.append(sum(copies for cid,copies in pool.items() if test(g.BY_ID[cid])))
+  elif key in RULES:counts.append(count(RULES[key][0]))
+  counts+=[count(wanted) for wanted,_ in EXTRA_RULES.get(key,())]
+  return (bool(counts),max(counts,default=0))
+ return {key:one(key) for key in keys}
 
 # General stock singles use the same deck weighting as relics (user, 2026-11-13). A card's weight givers are its Type,
 # Attribute, archetype (set code) and effect features; the strongest one the run's cards share decides its boost, with the

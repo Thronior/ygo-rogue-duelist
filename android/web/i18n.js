@@ -15,6 +15,8 @@ export function browserLanguage(){
 }
 let lang='en',locale='en-US',ui=new Map(),patterns=[],cards=null,cardMaps=null,memo=new Map(),observer=null,content=null,cleanText=s=>s;
 export const currentLanguage=()=>lang;
+// The BCP 47 locale of the language (en-US for English), for dates drawn on canvas (run card).
+export const currentLocale=()=>locale;
 const norm=s=>String(s).replace(/\s+/g,' ').trim();
 const LETTER=/[A-Za-z]/;
 
@@ -56,6 +58,20 @@ function fallback(s){
   const out=s.split(SEPARATOR).map((part,i)=>{if(i%2||!LETTER.test(part))return part;const v=lookup(part.trim());if(v===undefined||v===part.trim())return part;changed=true;return v}).join('');
   return changed?out:undefined;
  }
+ // A numbered effect option ("1: Gain 1200 Life Points.") keeps its number and translates the card's own string
+ // (itch.io, a Chinese player, 2026-11-18: Yu-Jo Friendship and Poison of the Old Man options stayed English).
+ const numbered=/^(\d+: )(.+)$/.exec(s);
+ if(numbered){const v=lookup(numbered[2]);return v===undefined?undefined:numbered[1]+v}
+ // A chain or activation choice names the card, then its effect string: "Poison of the Old Man — Gain 1200 Life
+ // Points." (2026-11-18). Each side is translated on its own; a side without an entry stays as it is.
+ if(s.includes(' — ')){
+  const parts=s.split(' — '),out=parts.map(p=>LETTER.test(p)?lookup(p.trim()):undefined);
+  return out.some(v=>v!==undefined)?parts.map((p,i)=>out[i]??p).join(' — '):undefined;
+ }
+ // "Name: text", like a draft relic tile's hover text "Diamond Ankh: When acquired, …" (2026-11-18). The text must
+ // translate; the name keeps its English form when it has no entry.
+ const labelled=/^([^:]{1,80}): (.+)$/.exec(s);
+ if(labelled&&LETTER.test(labelled[2])){const v=lookup(labelled[2]);if(v!==undefined)return (lookup(labelled[1])??labelled[1])+': '+v}
  if(/[A-Z]{2}/.test(s)&&!/[a-z]/.test(s)){
   const lower=s.toLowerCase();
   for(const c of [lower[0].toUpperCase()+lower.slice(1),lower.replace(/(^|\s)\S/g,x=>x.toUpperCase()),lower]){const v=exact(c);if(v!==undefined)return v.toLocaleUpperCase(locale)}

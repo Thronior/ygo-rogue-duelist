@@ -48,6 +48,8 @@ FUSED=[
  ('living_traps','Living Traps','Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by battle. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.','Zoma the Spirit',('cursed_trapbound_idol','trap_weaver')),
  ('scorched_hourglass','Scorched Hourglass','At the start of your Standby Phase, inflict 500 damage to your opponent. Whenever you inflict effect damage to your opponent from another source, inflict 500 additional damage. This bonus applies once per originating damage event. Damage caused by this relic cannot trigger the bonus.','Dark Room of Nightmare',('cursed_scorched_clock','flame','static_coil')),
  ('guardians_armory',"Guardian’s Armory","Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by your opponent's card effects while its corresponding Equip Spell is face-up on the field.",'Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
+ # The user's design, 2026-11-18: Jin Trio and Gate Calling. The text spells the effects out because no relic text names its pieces.
+ ('ultimate_gate_combination','Ultimate Gate Combination','At the start of each Duel, add "Sanga of the Thunder", "Kazejin" and "Suijin" to your hand. Your "Gate Guardian", "Sanga of the Thunder", "Kazejin" and "Suijin" gain these effects, whatever else you control: When it attacks an opponent\'s monster, that monster\'s ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent\'s turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.','Sanga of the Thunder',('jin_trio','gate_calling')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -269,6 +271,16 @@ if c then Duel.SSet(c:GetControler(),c) end''',f'not used and eg:IsExists({summo
     'not busy and ep==1 and rp==0 and ev>0 and (r&REASON_EFFECT)~=0 and (not re or re:GetLabel()~=937202)')
   marker="e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS)"
   return 'do local busy=false '+(standby+'\n'+bonus).replace(marker,marker+' e:SetLabel(937202)')+' end'
+ if key=='ultimate_gate_combination':
+  # Like Gadget Stronghold: the Duel adds a missing trio card to the Deck (campaign_expansion), and this moves one of each to the hand.
+  from approved_relic_effects import jin_trio,GATE_TRIO
+  trio=','.join(map(str,GATE_TRIO))
+  return jin_trio(True)+f'''
+do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local g=Group.CreateGroup()
+ for _,code in ipairs({{{trio}}}) do if not Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,code) then
+  local tc=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,code):GetFirst() if tc then g:AddCard(tc) end end end
+ if #g>0 then Duel.SendtoHand(g,0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if key=='guardians_armory':
   return stat('EFFECT_UPDATE_ATTACK',500,'#c:GetEquipGroup()>0')+'''
 do local pairs={{73544866,68427465},{10755153,95638658},{74367458,69243953},

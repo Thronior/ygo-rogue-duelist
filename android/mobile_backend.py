@@ -116,6 +116,8 @@ def dispatch(raw):
   slot=int(value.get('slot',storage.active_slot()));storage.run_path(slot)
   if storage.read(storage.run_path(slot)) and not value.get('replace'):raise ValueError('Confirm before replacing this saved run.')
   candidate=g.new_run(int(value['character']),level=int(value.get('level',0)),variant=int(value.get('variant',0)));candidate['_save_slot']=slot
+  # The character's saved card marks (Character settings) start every new run.
+  if storage.saved_marks(candidate['character']):candidate['card_marks']=storage.saved_marks(candidate['character'])
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
   profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
  elif action=='restart-run':
@@ -124,6 +126,8 @@ def dispatch(raw):
   if not restartable(run):raise ValueError('The run can only be restarted before the end of its first duel.')
   slot=storage.active_slot()
   candidate=g.new_run(int(run['character']),level=int(run.get('challenge_level',0)),variant=int(run.get('variant',0)));candidate['_save_slot']=slot
+  # The character's saved card marks (Character settings) start every new run.
+  if storage.saved_marks(candidate['character']):candidate['card_marks']=storage.saved_marks(candidate['character'])
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
  elif action=='secret-champion':
   import secret_challenge

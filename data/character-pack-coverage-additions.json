@@ -114,7 +114,11 @@
       "Master of Oz",
       "Thousand Dragon",
       "Gaia the Dragon Champion",
-      "Sangan"
+      "Sangan",
+      "Black Skull Dragon",
+      "Meteor Black Dragon",
+      "Red-Eyes Black Dragon",
+      "Summoned Skull"
     ],
     "common": [
       "Teva",
@@ -131,7 +135,8 @@
       "Metamorphosis",
       "Beastking of the Swamps",
       "The Earth - Hex-Sealed Fusion",
-      "Winged Dragon, Guardian of the Fortress #1"
+      "Winged Dragon, Guardian of the Fortress #1",
+      "Meteor Dragon"
     ]
   },
   "Odion": {
@@ -396,5 +401,24 @@
       "Soul Charge"
     ],
     "common": []
+  },
+  "Paradox Brothers": {
+    "rare": [
+      "Guardian Angel Joan",
+      "Tyrant Dragon",
+      "Gilford the Lightning",
+      "Mystical Knight of Jackal",
+      "Fusilier Dragon, the Dual-Mode Beast",
+      "Thestalos the Firestorm Monarch",
+      "Granmarg the Rock Monarch"
+    ],
+    "common": [
+      "Tri-Horned Dragon",
+      "Sinister Serpent",
+      "Mystic Tomato",
+      "Giant Germ",
+      "Nimble Momonga",
+      "Mausoleum of the Emperor"
+    ]
   }
 }

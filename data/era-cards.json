@@ -109489,5 +109489,51 @@
       "",
       ""
     ]
+  },
+  {
+    "id": 80921533,
+    "name": "Mausoleum of the Emperor",
+    "desc": "During the Main Phase: The turn player can activate these effect(s).\n● Pay 1000 LP; immediately after this effect resolves, Normal Summon 1 monster from your hand that requires 1 Tribute, without Tributing.\n● Pay 2000 LP; immediately after this effect resolves, Normal Summon 1 monster from your hand that requires 2 Tributes, without Tributing.\n(This is their one Normal Summon/Set for that turn.)",
+    "type": "Spell Card",
+    "race": "Field",
+    "attribute": "",
+    "level": 0,
+    "atk": 0,
+    "defense": 0,
+    "date": "2006-05-18",
+    "sets": [],
+    "image": "https://images.ygoprodeck.com/images/cards/80921533.jpg",
+    "data": {
+      "code": 80921533,
+      "alias": 0,
+      "setcodes": [],
+      "type": 524290,
+      "level": 0,
+      "attribute": 0,
+      "race": "0",
+      "attack": 0,
+      "defense": 0,
+      "lscale": 0,
+      "rscale": 0,
+      "link_marker": 0
+    },
+    "strings": [
+      "Activate 1 of these effects",
+      "Normal Summon/Set a monster that requires 1 Tribute",
+      "Normal Summon/Set a monster that requires 2 Tributes",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
   }
 ]

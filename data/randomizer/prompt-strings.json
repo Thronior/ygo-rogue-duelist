@@ -1,0 +1,22 @@
+{
+ "_comment": "Option and question texts of randomized cards (randomizer.lua R.Text), merged into the client's system strings by tools/build_android.py. Translations: data/i18n/ui/<lang>.json.",
+ "1960000001": "Gain LP equal to its ATK",
+ "1960000002": "Gain LP equal to its DEF",
+ "1960000003": "Gain 200 ATK",
+ "1960000004": "Gain 500 DEF",
+ "1960000005": "Add it to your hand instead of placing it on top of your Deck?",
+ "1960000006": "Draw 1 card?",
+ "1960000007": "Shuffle your Deck",
+ "1960000008": "Shuffle your opponent's Deck",
+ "1960000009": "Return 1 face-up monster to the top of the Deck",
+ "1960000010": "Return 1 face-up monster to the top of the Deck and 1 to the hand",
+ "1960000011": "Special Summon 1 monster from your GY?",
+ "1960000012": "Gain 1000 ATK",
+ "1960000013": "Gain 700 ATK",
+ "1960000014": "Gain 700 DEF",
+ "1960000015": "Place the destroyed Trap Monster(s) in your Spell & Trap Zone instead?",
+ "1960000016": "Special Summon 1 Fairy monster from your GY?",
+ "1960000017": "Change the attacking monster to Defense Position",
+ "1960000018": "Equip this card to a face-up monster you control",
+ "1960000019": "Activate both effects"
+}

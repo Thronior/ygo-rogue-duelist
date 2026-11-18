@@ -13,47 +13,24 @@ ids=lambda *names:[g.BY_NAME[n]['id'] for n in names]
 VORSE,ZOMBIE,RITUAL=ids('Vorse Raider','Armored Zombie','Black Illusion Ritual')
 # Weights read the Deck only (2026-11-13): these staged runs put every card of the pool in the Deck.
 def run(pool):return dict(character=1,artifacts=[],round=4,pool=pool,selected=list(range(len(pool))))
-boost=lambda key,pool:ra.multipliers([key],run(pool))[key]
+matches=lambda key,pool:ra.details([key],run(pool))[key][1]
 
-# Base chance with no matching cards, more cards mean more weight, up to the relic's own ceiling.
-assert boost('bone',[VORSE]*40)==1 and boost('bone',[])==1
-steps=[boost('bone',[ZOMBIE]*n+[VORSE]*(40-n)) for n in range(0,41,2)]
-assert steps==sorted(steps) and steps[0]==1 and steps[3]>steps[0] and max(steps)==ra.ceiling('bone')
-assert all(1<=v<=ra.CEILING_MAX for v in ra.multipliers(list(c.ARTIFACTS),run([VORSE]*20+[ZOMBIE]*20+[RITUAL]*5)).values())
-# Specific relics gain more than broad ones (2026-11-13, raised the same day): archetypes ~x7.5-8, Rituals ~x5.9,
-# Zombie ~x4.6, Warrior x3, EARTH/DARK/Normal Monsters x2; never below CEILING_MIN or above CEILING_MAX.
-top=ra.ceiling
-assert 5.5<top('ritual_vestment')<6.5
-# Every archetype relic shares Amazoness Standard's ceiling (2026-11-13).
-import json as _j
-archetypes=[k for k in _j.loads(ra.CEILINGS_FILE.read_text(encoding='utf8')) if a.member_test(k,{'artifacts':[],'pool':[]}) not in (None,True)]
-assert len(archetypes)>20 and all(top(k)==ra.ARCHETYPE_CEILING==top('amazoness_standard') for k in archetypes),[(k,top(k)) for k in archetypes]
-assert top('amazoness_standard')>top('blade')>top('earth')>=top('normal')>=ra.CEILING_MIN
-assert 4.3<top('bone')<5 and 2.7<top('blade')<3.3
-# An Amazoness deck (all Amazoness Warriors, EARTH) pulls Amazoness relics far above Warrior or EARTH ones.
-AMAZONESS=[x['id'] for x in g.CARDS if x['name'].startswith('Amazoness') and x['data']['type']&1][:4]*10
-m=ra.multipliers(['amazoness_standard','blade','earth'],run(AMAZONESS))
-assert m['amazoness_standard']>m['blade']+1.5 and m['amazoness_standard']>m['earth']+1.5,m
-# The build's precomputed ceilings match the current cards and rules (rerun tools/build_android.py --sync-only).
-import json
-assert json.loads(ra.CEILINGS_FILE.read_text(encoding='utf8'))==ra.compute_ceilings(),'data/relic-ceilings.json is stale'
-# Narrow themes reach their ceiling with fewer cards than Types do.
-progress=lambda key,pool:(boost(key,pool)-1)/(top(key)-1)
-# Narrow themes count cards (2026-11-13): 2 cards half, 5 cards full at a 20-card minimum, scaled with the minimum.
-# These staged runs are on round 4, so the minimum is 30: 3 cards half, 7.5 cards full.
-import approved_relics
-assert approved_relics.minimum(run([]))==30
-assert abs(progress('ritual_vestment',[RITUAL]*3+[VORSE]*37)-0.5)<1e-9 and progress('ritual_vestment',[RITUAL]*8+[VORSE]*32)==1
-assert abs(progress('ritual_vestment',[RITUAL]*1+[VORSE]*39)-1/6)<1e-9
-early=lambda pool:dict(run(pool),round=0)
-assert abs((ra.multipliers(['ritual_vestment'],early([RITUAL]*2+[VORSE]*18))['ritual_vestment']-1)/(top('ritual_vestment')-1)-0.5)<1e-9
-assert ra.multipliers(['ritual_vestment'],early([RITUAL]*5+[VORSE]*15))['ritual_vestment']==top('ritual_vestment')
-# Broad Types still follow their share of the Deck.
-assert progress('bone',[ZOMBIE]*4+[VORSE]*36)<0.5
-# A relic without a card requirement is untouched by the collection.
-assert boost('urn',[ZOMBIE]*40)==1
+# details (2026-11-18): whether a relic has a card rule, and how many Deck cards match it (its best weight group).
+assert ra.details(['urn'],run([ZOMBIE]*40))['urn']==(False,0),'a relic without a card rule'
+assert matches('bone',[VORSE]*40)==0 and matches('bone',[ZOMBIE]*6+[VORSE]*34)==6
 assert all(key in c.ARTIFACTS for key in ra.RULES)
-
+# Family relics (user, 2026-11-18): FAMILY_BASE with no Deck cards, FAMILY_PER_CARD more for every matching one, capped.
+AMAZONESS=[x['id'] for x in g.CARDS if x['name'].startswith('Amazoness') and x['data']['type']&1][:4]
+fam=lambda pool:a.offer_weights(['amazoness_standard'],run(pool))['amazoness_standard'][0]
+assert fam([VORSE]*30)==a.FAMILY_BASE and fam(AMAZONESS[:1]+[VORSE]*29)==a.FAMILY_BASE+a.FAMILY_PER_CARD
+assert fam(AMAZONESS*10)==a.FAMILY_CAP,'capped'
+# A Yes mark on an owned card outside the Deck counts as MARK_YES_COPIES; marks on cards you do not own count nothing.
+marked=dict(run([VORSE]*30),pool=[VORSE]*30+AMAZONESS[:1],card_marks={str(AMAZONESS[0]):1})
+assert a.offer_weights(['amazoness_standard'],marked)['amazoness_standard'][0]==a.FAMILY_BASE+a.FAMILY_PER_CARD*ra.MARK_YES_COPIES
+unowned=dict(run([VORSE]*30),card_marks={str(AMAZONESS[0]):1})
+assert a.offer_weights(['amazoness_standard'],unowned)['amazoness_standard'][0]==a.FAMILY_BASE
+# No more Attribute hold-back: owning one Attribute relic leaves the others at 1.
+assert a.offer_weights(['earth'],dict(run([VORSE]*30),artifacts=['dark']))['earth'][0]==1.0
 # Real draws (offer weights, 2026-11-13): Bone (all Zombies) at its ceiling, Dragon with no Dragons x0.4, Eye (a shop-category
 # relic, not favoured now) x1, and Urn, which nothing can boost, takes their average, so boosts move odds between relics
 # that care about the deck instead of away from plain ones.
@@ -85,7 +62,7 @@ assert cursed[target]>0 and favoured[target]>3*cursed[target],(cursed[target],fa
 for key,card in [('demonic_pact','Archfiend Soldier'),('level_one','Horus the Black Flame Dragon LV4'),('level_up_relic','Horus the Black Flame Dragon LV4'),('dark_scorpion_squad','Dark Scorpion - Chick the Yellow')]:
  assert not a.has_member(key,run([VORSE]*30)),key
  assert a.has_member(key,run([VORSE]*30+ids(card))),key
- assert boost(key,[VORSE]*30+ids(card))>1,key
+ assert matches(key,[VORSE]*30+ids(card))>0,key
 
 # Weighted relics: required choice, legal faces, cleared on sale, and only active once chosen.
 live=g.new_run(1,random.Random(1));g.auto_deck(live);live.update(stage='shop',round=4,gold=500)
@@ -106,7 +83,7 @@ try:cr.choose_weight(live,1);raise SystemExit('accepted a choice with nothing wa
 except ValueError:pass
 # Relics are off at LVL -1, so a chosen face must not apply there.
 assert 'SetRogueWeight' not in passives.script(dict(character=1,artifacts=['weighted_coins'],round=0,curses=[],weighted_coin=1,challenge_level=-1))
-print('PASS collection weights stay within each relic ceiling (specific relics higher), nothing is guaranteed or hidden, archetype locks, weighted relic choices')
+print('PASS deck matches, family weights per card, owned-only marks, no Attribute hold-back, archetype locks, weighted relic choices')
 # Owning a relic no longer ends its theme (user, 2026-11-17): with Let's Go Gambling owned, the gambling theme still
 # offers Weighted Coins, and Let's Go Gambling itself leaves the theme.
 _coin=[c['id'] for c in g.CARDS if 'coin' in ra.card_tags(c)][:12]

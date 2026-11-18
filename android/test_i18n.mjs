@@ -83,7 +83,36 @@ assert.equal(i18n.t('Unknown opponent. Reveal for 15 coins'),french.ui['Unknown 
 assert.equal(i18n.t('Pyro monsters'),french.ui['Pyro monsters'],'every shop boost label exists');
 assert.equal(i18n.t('Some text the dictionary has never seen'),'Some text the dictionary has never seen','unknown text is left alone');
 
+// 2026-11-18 (itch.io, a Chinese player): duel option buttons and hover texts.
+const content=JSON.parse(readFileSync(resolve(root,'android/web/content.json'),'utf8'));
+i18n.attachContent(content);
+const poison=french.cards['8842266'];
+assert.equal(i18n.t('1: Gain 1200 Life Points.'),`1: ${poison[2][0]}`,'a numbered SELECT_OPTION button keeps its number and uses the official string');
+assert.equal(i18n.t('Activate · Poison of the Old Man — Inflict 800 damage to your opponent.'),`${french.ui['Activate']} · ${poison[0]} — ${poison[2][1]}`,'a chain choice translates the card name and its effect string');
+assert.equal(i18n.t('Equip this card to a face-up monster you control'),french.ui['Equip this card to a face-up monster you control'],'a misaligned official string (Kunai with Chain) is replaced by the ui entry');
+assert.notEqual(i18n.t('Equip this card to a face-up monster you control'),french.cards['37390589'][2][1],'Kunai with Chain must not show "use both effects" for its equip option');
+assert.equal(i18n.t('Make your opponent skip their next Draw Phase'),french.ui['Make your opponent skip their next Draw Phase'],'Yata-Garasu shows its own effect, not "Return to hand"');
+assert.equal(i18n.t('You own 2 copies'),'Vous possédez 2 exemplaires','shop badge hover text with its plural');
+const ankh=content.artifacts.diamond_ankh||Object.values(content.artifacts).find(a=>a?.[0]&&a?.[2]);
+assert.equal(i18n.t(`${ankh[0]}: ${ankh[2]}`),`${i18n.t(ankh[0])}: ${i18n.t(ankh[2])}`,'a "Name: text" relic hover text translates both parts');
+// Title attributes are translated when rendered and when code changes them later (room-code.js sets el.title).
+const element=(attrs)=>({nodeType:1,tagName:'BUTTON',attrs:{...attrs},getAttribute(a){return this.attrs[a]??null},setAttribute(a,v){this.attrs[a]=String(v)},closest(){return null},querySelectorAll(){return []}});
+const copy=element({title:'Copy room code','aria-label':'Copy room code'});
+i18n.translateTree(copy);
+assert.equal(copy.attrs.title,french.ui['Copy room code'],'a rendered title attribute is translated');
+assert.equal(copy.attrs['aria-label'],french.ui['Copy room code']);
+copy.attrs.title='Code copied';
+observers[0].callback([{type:'attributes',target:copy,attributeName:'title'}]);
+assert.equal(copy.attrs.title,french.ui['Code copied'],'a title changed later is translated by the observer');
+const counter=element({title:'3 Spell Counters'});
+i18n.translateTree(counter);
+assert.equal(counter.attrs.title,french.ui['{0} Spell Counters'].replace('{0}','3'),'a title built from a template uses its {0} pattern');
+
 await i18n.setLanguage('en',{remember:false});
 assert.equal(observers.length,1,'switching to English must not create an observer');
 assert.equal(observers[0].observed,false,'English should disconnect the active observer');
-console.log(`i18n checks passed: ${langs.length} bundles, ${catalogKeys.length} catalog keys, browser/saved preference, lookups, empty suffix, observer policy`);
+// Every reachable option string and hover text has a translation in every language (tools/i18n/check_coverage.mjs).
+const {execFileSync}=await import('child_process');
+const coverage=execFileSync(process.execPath,[resolve(root,'tools/i18n/check_coverage.mjs')],{encoding:'utf8',timeout:240000});
+assert.match(coverage,/i18n coverage passed/,coverage);
+console.log(`i18n checks passed: ${langs.length} bundles, ${catalogKeys.length} catalog keys, browser/saved preference, lookups, empty suffix, observer policy, option strings, hover texts`);

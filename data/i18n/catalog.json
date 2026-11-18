@@ -931,7 +931,7 @@
  },
  {
   "group": "ui",
-  "en": "Attributes: LIGHT, DARK, WATER.",
+  "en": "Attributes: LIGHT, DARK.",
   "kind": "exact",
   "ctx": "experience-ui.js"
  },
@@ -24508,5 +24508,1745 @@
   "en": "Retrying once…",
   "kind": "exact",
   "ctx": "\"Could not start\" screen diagnostics (2026-11-17)"
+ },
+ {
+  "group": "ui",
+  "en": "Activate this card by targeting 1 monster in your GY; Special Summon that target in Attack Position",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Afected by \"{0}\": cannot Normal Summon/Set this turn",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Affected by \"{0}\": cannot Normal Summon/Set, Flip Summon, Special Summon, Set, or activate monster effects and their monster effects are negated",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Affected by \"{0}\": cannot Normal/Flip Summon",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Affected by \"{0}\": cannot Special Summon",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Affected by \"{0}\": cannot Summon",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Affected by \"{0}\": cannot Summon other monsters",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Confirm activation",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Face-down attack",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Face-down defense",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Face-up attack",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Face-up defense",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Fusion Summon 1 Fusion Monster from your Extra Deck",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "No · decline",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Normal Summon (\"{0}\")",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent’s monster zone {0}",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent’s spell / trap zone {0}",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon (\"{0}\")",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon 1 \"{0}\" from your hand or Deck",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon 1 Level 3 or lower Normal Monster from your Graveyard?",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon 3 \"Ojama Tokens\"",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon WATER monsters from your hand, up to the number of monsters destroyed by this effect?",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon this card as a Normal Monster",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Summon procedure",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tribute",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tribute Set",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tribute Summon",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tributes",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Yes · activate / confirm",
+  "kind": "exact",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Your monster zone {0}",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Your spell / trap zone {0}",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · {1} selected",
+  "kind": "pattern",
+  "ctx": "Summoning words, positions and card summon labels (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Character settings",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · Settings",
+  "kind": "pattern",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · Card marks",
+  "kind": "pattern",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Save marks from runs",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "★ and ✕ you set during a run are also saved for this character's next runs.",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Saved card marks",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Every new run with this character starts with these marks. You can still change them during the run.",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Edit card marks",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tap a card to cycle ☆ → ★ → ✕.",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Marked",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "★ only",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "✕ only",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "No cards match.",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Previous page",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Next page",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} / {1} · {2} cards",
+  "kind": "pattern",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "No character in this duel.",
+  "kind": "exact",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Final Countdown (yours): {0} turns left",
+  "kind": "pattern",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Final Countdown (opponent): {0} turns left",
+  "kind": "pattern",
+  "ctx": "Character settings / Final Countdown (2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0}: maximum {1} across all decks",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "Tap to remove; hold for details: {0}",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "{0} from the top",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "{0} turns elapsed",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "{0} Spell Counters",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "{0} win rate",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "{0} picked this",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "Buy, Reroll and Next duel happen when both players press them",
+  "kind": "exact",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "You own {0} copy",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "You own {0} copies",
+  "kind": "pattern",
+  "ctx": "hover text (title), 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase, if you have at least 1 monster in your GY and all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Monsters you control can make 1 more attack during each Battle Phase than they otherwise could. You cannot Set monsters or Special Summon them in Defense Position.",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Final Countdown win",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Character draft packs can appear in the random booster slots on shop visits and rerolls.",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Start with 4 copies of one random character pack and a relic for an archetype in that pack.",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Angry Grandpa",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Choose a save slot",
+  "kind": "exact",
+  "ctx": "relic text changed 2026-11-18"
+ },
+ {
+  "group": "ui",
+  "en": "RUN LOST · DUEL {0} OF {1}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "TAG RUN LOST · DUEL {0} OF {1}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Challenge LVL {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} DEFEATED",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "ATTACKS",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "SUMMONS",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "ACTIVATIONS",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "BOSSES",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "PACKS",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "DECK",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "DAMAGE",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "& {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Run time {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} min",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} h {1} min",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Attacked by {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Defeated by the effect of {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Defeated by the effect of \"{0}\"",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Decked out by the effect of {0}",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} damage",
+  "kind": "pattern",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Your browser can't copy images. Right-click the card and choose Copy image.",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Your browser can't copy images. Long-press the card and choose Copy image.",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "This embedded page can't copy images. Right-click the card and choose Copy image.",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "This embedded page can't copy images. Long-press the card and choose Copy image.",
+  "kind": "exact",
+  "ctx": "run-card.js canvas text (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain LP equal to its ATK",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain LP equal to its DEF",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 200 ATK",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 500 DEF",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 700 ATK",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 700 DEF",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 1000 ATK",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Add it to your hand instead of placing it on top of your Deck?",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Draw 1 card?",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Shuffle your Deck",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Shuffle your opponent's Deck",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Return 1 face-up monster to the top of the Deck",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Return 1 face-up monster to the top of the Deck and 1 to the hand",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon 1 monster from your GY?",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon 1 Fairy monster from your GY?",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Place the destroyed Trap Monster(s) in your Spell & Trap Zone instead?",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Pay LP to keep \"{0}\"?",
+  "kind": "pattern",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "ATK to 0",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Absorb",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Add from GY",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Ante",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Capsule",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Countdown",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Designate",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy a Spell/Trap",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy a monster",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy all monsters",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy it",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy the attacker",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy weak monsters",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Dice duel",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Direct attack",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Discard their hand",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Draw the Duel",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "End the Battle Phase",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "End the turn",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Evolve",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Exchange",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain ATK",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Gain LP",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Give away",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Guess",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Handshake",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Hats",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Last battle",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Look at your Deck",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Lower ATK",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Mill",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Negate",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Negate the Summon",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Negate the attack",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "No battle damage",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Ordeal",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Parasite",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Possess",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Protect",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Question",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Quiz",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Random discard",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Reasoning",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Reflect the attack",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Return a monster",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Return all monsters",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Revolution",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Seal",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Set this card",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Shuffle and draw",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Skip the draw",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Stop attacks",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Swap Deck and GY",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Take control",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Traps from the hand",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Treasure",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Win the Duel",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Wipe",
+  "kind": "exact",
+  "ctx": "randomized card activation label (randomizer.py ACTS) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Spell Counter Engine",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "During your Standby Phase, place up to 2 Spell Counters on cards you control that can hold them. Monsters you control gain 200 ATK for each Spell Counter on your field.",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Terrorking Magnus",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Whenever you pay LP for an Archfiend card, recover twice the amount paid. Each Archfiend monster you control gains 400 ATK for each Archfiend monster you control, including itself.",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Spirit Sanctuary",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Spirit monsters you control gain 500 ATK and may stay on the field during the End Phase. You can Tribute Summon Spirit monsters by banishing monsters from your GY in place of Tributes. Whenever a monster returns from the field to your hand, gain 500 LP.",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by battle. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "Scorched Hourglass",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of your Standby Phase, inflict 500 damage to your opponent. Whenever you inflict effect damage to your opponent from another source, inflict 500 additional damage. This bonus applies once per originating damage event. Damage caused by this relic cannot trigger the bonus.",
+  "kind": "exact",
+  "ctx": "relic added after the Nov 17 translation pass (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0}’S TURN",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Final Countdown ({0}): {1} turns left",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Negated this duel.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Special Summon from your Deck",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "This concedes the current duel. Your opponent gains one win in the best-of-three match.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "All fused relics and their Fusion Materials are shown in Collection.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "MISPRINT",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Saved marks:",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Tutorial could not start:",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "unknown error",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "No resumable mobile duel.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · LVL {1} · Loop {2} · {3}/9 victories",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0}Duel {1}: {2} — {3} · {4} LP",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} defeated. Keep your cards, coins and relics. Each loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} per row",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} flag(s) sent. No unsent flags remain.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} sent; {1} still saved for retry. {2}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} images could not load; checking remaining cards…",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} card images could not load ({1} / {2} loaded). Please retry.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0}, duel {1}: no replay",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} entries · {1} / {2}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · {1} match wins",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · Hold a card to inspect · Drag to scroll",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} after turn {1}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} ATK/DEF",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Levels {0}-{1}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Main Deck must contain {0}–60 cards.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Booster packs{0}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Cards from",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Entire collection",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Pack opening:",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": ", or leave the match now and give your opponent the win",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Random Pack cards:",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Could not load",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "BOUNTY",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "DEFEAT",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "FINAL",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Final Countdown duel result",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "ANNIHILATION",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "APOCALYPSE",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "BRUTAL",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "CATACLYSM",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "DEVASTATING",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "GODLIKE",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "OVERKILL",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "PERFECT",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "SAVAGE",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "SOLD",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "TEAM COINS",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "· Team coins {0}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Locked in · waiting for {0}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Locked in · waiting for {0}. Editing your deck unlocks your pick.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Locked in · tapping a card unlocks your pick",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Locked in ✓",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} · locked in",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} is locked in on {1} · pick another",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} is making a relic choice",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} cards received from your teammate. Added to your collection; edit your deck to use them.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} main cards; you need {1}–60. Edit your deck first.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Both bosses are on both screens · each player locks in one",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Both players are locked in",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Both players are locked in.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Shopping together",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Together",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Teammate’s pick",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Not enough gold for both carts",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Leaving the tag room failed",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Choosing",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Waiting",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Unlock",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "on a boss to lock in your deck and pick.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "on an opponent to lock in your deck and pick.",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Finish your Golden Card Sleeve or DNA Rewrite choice first.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Invalid shop choice.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Invalid shopping cart.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Not enough coins to reroll the shop.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Not enough coins to reroll this boss.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Only relics in stock can be locked.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Pick something to buy first.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "That boss has already changed.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "That item is no longer for sale.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The carts changed. Check them and press Buy again.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The shop changed. Pick your items again.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The shop is closed.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The team already has this relic.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The team does not have this relic.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "The team does not have this curse.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Unknown card.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Unknown card",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Unknown curse.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Unknown relic.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Unlock this boss before rerolling it.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Too many Random Packs in this run.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "No Type choice is pending.",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Uncommon",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "Very rare",
+  "kind": "exact",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "python",
+  "en": "{0}: {1} has {2} copies; Ultimate Collector allows {3}.",
+  "kind": "pattern",
+  "ctx": "campaign error shown in a toast (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Change the attacking monster to Defense Position",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Equip this card to a face-up monster you control",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Activate both effects",
+  "kind": "exact",
+  "ctx": "randomized card option (data/randomizer/prompt-strings.json) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Waiting for {0} to press {1}",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} is ready to buy",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} wants to reroll",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} is ready for the next duel",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "{0} ✓",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Press",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Show",
+  "kind": "exact",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Your zone {0}: ATK {1} ({2}) · DEF {3} ({4}) versus printed stats.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "Opponent zone {0}: ATK {1} ({2}) · DEF {3} ({4}) versus printed stats.",
+  "kind": "pattern",
+  "ctx": "duel and menu texts (mobile.js, tag-ui.js and others) (prompt audit 2026-11-18)"
+ },
+ {
+  "group": "ui",
+  "en": "A Zombie deck that keeps raising its dead from the Graveyard.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-18"
+ },
+ {
+  "group": "relic",
+  "en": "Jin Trio",
+  "kind": "exact",
+  "ctx": "text added 2026-11-18 (Jin Trio, Ultimate Gate Combination)"
+ },
+ {
+  "group": "relic",
+  "en": "Ultimate Gate Combination",
+  "kind": "exact",
+  "ctx": "text added 2026-11-18 (Jin Trio, Ultimate Gate Combination)"
+ },
+ {
+  "group": "relic",
+  "en": "Your \"Sanga of the Thunder\", \"Kazejin\" and \"Suijin\" gain effects for each of them you control. 1 or more: When one of them attacks an opponent's monster, that monster's ATK becomes 0 in the Damage Step, until the End Phase. 2 or more: Once per turn each, during your opponent's turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. 3: Once per turn, you can Special Summon \"Gate Guardian\" from your Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-18 (Jin Trio, Ultimate Gate Combination)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, add \"Sanga of the Thunder\", \"Kazejin\" and \"Suijin\" to your hand. Your \"Gate Guardian\", \"Sanga of the Thunder\", \"Kazejin\" and \"Suijin\" gain these effects, whatever else you control: When it attacks an opponent's monster, that monster's ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent's turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon \"Gate Guardian\" from your Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-18 (Jin Trio, Ultimate Gate Combination)"
  }
 ]

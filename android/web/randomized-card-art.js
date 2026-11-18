@@ -112,6 +112,14 @@ export function drawRandomizedCard(canvas, card, images, fonts = {name: 'Spectra
   // Text box: type line for monsters, then the text, shrunk until it fits.
   const box = isMon ? TEXT : TEXT_ST;
   fill(ctx, W, H, box);
+  // A faint rainbow over the text box (user, 2026-11-18): the effect is randomized, not the real card's.
+  {
+    const [bx0, by0, bx1, by1] = box, tint = ctx.createLinearGradient(bx0 * W, by0 * H, bx1 * W, by1 * H);
+    ['#ff3b3b', '#ff9f1c', '#ffe03a', '#4ade50', '#2ec4f0', '#5b6cff', '#c04bff'].forEach((c, i, a) => tint.addColorStop(i / (a.length - 1), c));
+    ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = tint;
+    ctx.fillRect(bx0 * W, by0 * H, (bx1 - bx0) * W, (by1 - by0) * H);
+    ctx.restore();
+  }
   ctx.fillStyle = '#16110c';
   let top = box[1] * H + H * 0.004;
   if (isMon) {

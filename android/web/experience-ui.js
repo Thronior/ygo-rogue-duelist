@@ -20,8 +20,8 @@ export function packSummary(content,pid){
  const present=new Set();
  for(const c of cards){const text=`${c.name} ${c.desc||''}`;for(const [name,re] of archetypes)if(re?.test(text))present.add(name);if(c.data?.type&0x200)present.add('Spirit');if(c.data?.type&0x400000)present.add('Toon');for(const code of c.data?.setcodes||[]){const series={4:'Amazoness',15:'Ojama',26:'Dark Scorpion',46:'Gravekeeper',65:'LV',69:'Archfiend',100:'Harpie'}[Number(code)&0xfff];if(series)present.add(series)}}
  const isDartz=pid==='DRAFT-DARTZ';
- const series=isDartz?['Chaos','Umi']:archetypes.map(([name])=>name).filter(name=>present.has(name));
- const composition=isDartz?'Attributes: LIGHT, DARK, WATER. ':
+ const series=isDartz?['Chaos']:archetypes.map(([name])=>name).filter(name=>present.has(name));
+ const composition=isDartz?'Attributes: LIGHT, DARK. ':
   `${types.length?'Main monster types: '+types.join(', ')+'. ':''}`;
  return `${composition}${series.length?'Archetypes: '+series.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${ids.size} different cards. Click to inspect.`;
 }

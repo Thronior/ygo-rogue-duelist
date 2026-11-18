@@ -44,7 +44,7 @@ assert.equal(won.duels[0].lp,3000);
 assert.deepEqual(won.deck.main,[pool[2],pool[5],pool[1],pool[0],pool[3]].map(id=>`assets/cards/${id}.jpg`));
 assert.deepEqual(won.deck.extra,[`assets/cards/${pool[4]}.jpg`]);
 assert.match(won.label,/won the run at Challenge Level 3 with 9 of 9 victories/);
-assert.equal(runCardData({stage:'complete',character:1,challenge_level:6,encore_won:true,round:9},{...deps,character:content.characters[1]}).title,'2004 WORLD CHAMPION DEFEATED');
+assert.equal(runCardData({stage:'complete',character:1,challenge_level:6,encore_won:true,round:9},{...deps,character:content.characters[1]}).title,'2004 World Champion DEFEATED','the champion keeps its case so it translates; header() draws the title in capitals');
 assert.deepEqual(won.curses,[],'runs from before curse tracking show no curse strip');
 
 // Cursed relics are flagged (boss picks, or the cursed_ prefix on older runs); only the final duel's curses are shown.

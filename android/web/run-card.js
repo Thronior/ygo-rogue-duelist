@@ -1,7 +1,7 @@
 // Shareable end-of-run tablet, drawn on canvas so the on-screen card and the copied PNG are identical.
 // Stone and crack textures: Poly Haven "Grey Plaster 02" and "Cracked Concrete" (CC0), see assets/CREDITS.md.
 import {replayVersion} from './replay-version.js';
-import {t as tr} from './i18n.js';
+import {t as tr,currentLocale} from './i18n.js';
 import {saveDeckImage} from './save-deck-image.js';
 import {curseIconFile} from './experience-ui.js';
 export const RUN_CARD_SIZE={width:1080,height:1350};
@@ -44,7 +44,8 @@ function roman(n){if(!(n>0)||n>3999)return String(n);let s='';for(const [v,r] of
 function layer(){const c=document.createElement('canvas');c.width=W;c.height=H;return c}
 function gradient(ctx,stops,x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1);stops.forEach(([o,c])=>g.addColorStop(o,c));return g}
 
-function text(ctx,t,str,x,y,o={}){str=tr(str);
+// o.upper writes the translated text in capitals, so a name inside it (Obelisk the Tormenter) is translated first.
+function text(ctx,t,str,x,y,o={}){str=tr(str);if(o.upper)str=String(str).toLocaleUpperCase(currentLocale());
  ctx.save();let size=o.size||20;const family=o.family||UI,weight=o.weight||'bold',f=s=>`${weight} ${s}px ${family}`;
  if('letterSpacing' in ctx)ctx.letterSpacing=(o.spacing||0)+'px';ctx.font=f(size);
  if(o.fit)while(size>(o.min||14)&&ctx.measureText(str).width>o.fit){size-=2;ctx.font=f(size)}
@@ -146,7 +147,7 @@ function edges(ctx,d,t,shape){
 
 function header(ctx,d,t){
  if(d.eyebrow)text(ctx,t,d.eyebrow,W/2,104,{size:22,spacing:3,align:'center',color:d.won?t.accent:t.bad});
- text(ctx,t,d.title,W/2,d.eyebrow?166:150,{size:62,family:DISPLAY,weight:'normal',spacing:1,fit:R-L,min:36,align:'center',color:d.won?'#ffe066':t.ink,glow:t.flair&&rgba(t.accent,.85)});
+ text(ctx,t,d.title,W/2,d.eyebrow?166:150,{upper:true,size:62,family:DISPLAY,weight:'normal',spacing:1,fit:R-L,min:36,align:'center',color:d.won?'#ffe066':t.ink,glow:t.flair&&rgba(t.accent,.85)});
 }
 
 function niche(c,x,y,w,h){const a=64;c.moveTo(x,y+a);c.quadraticCurveTo(x,y,x+w/2,y);c.quadraticCurveTo(x+w,y,x+w,y+a);c.lineTo(x+w,y+h);c.lineTo(x,y+h);c.closePath()}
@@ -261,11 +262,14 @@ const CURSE_EDGE={enemy_power:'#ffd06c',drain:'#af8fff'};
 const CURSE_TINTS={hand_limiter:'hue-rotate(200deg) saturate(1.25)',fireproof_vest:'hue-rotate(150deg) saturate(1.25)',effect_reverser:'invert(1) hue-rotate(270deg) saturate(1.25)',spell_jammer:'hue-rotate(120deg) saturate(1.25)',trap_jammer:'hue-rotate(240deg) saturate(1.25)',monster_jammer:'hue-rotate(40deg) saturate(1.25)',hunger:'hue-rotate(72deg) saturate(1.25)',enemy_power:'hue-rotate(144deg) saturate(1.25)',brittle:'hue-rotate(216deg) saturate(1.25)',mirror_stats:'hue-rotate(288deg) saturate(1.25)',drain:'hue-rotate(120deg) saturate(1.2)',exposed:'invert(1) hue-rotate(35deg) saturate(1.15)'};
 function curseStrip(ctx,t,curses,x,bottom,w){
  if(!curses.length)return 0;
- const g=10,n=curses.length,s=Math.max(26,Math.min(46,(w-56-(n-1)*g)/n)),strip=s+40,top=bottom-strip;
+ // Too many for one row at the smallest size (Discord, 2026-11-18: 18 curses ran past both edges): wrap onto
+ // more rows, each centred; the relic grid above takes the rest of the panel.
+ const g=10,n=curses.length,room=w-56,s=Math.max(26,Math.min(46,(room-(n-1)*g)/n)),cols=Math.max(1,Math.min(n,Math.floor((room+g)/(s+g)))),rows=Math.ceil(n/cols);
+ const strip=rows*s+(rows-1)*g+40,top=bottom-strip;
  ctx.save();ctx.strokeStyle='rgba(255,110,120,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+24,top);ctx.lineTo(x+w-24,top);ctx.stroke();ctx.restore();
- const ox=x+(w-(n*s+(n-1)*g))/2,oy=top+18;
  curses.forEach((c,i)=>{
-  const cx=ox+i*(s+g),pad=s*.14;
+  const row=Math.floor(i/cols),inRow=row===rows-1?n-row*cols:cols,ox=x+(w-(inRow*s+(inRow-1)*g))/2,oy=top+18+row*(s+g);
+  const cx=ox+(i-row*cols)*(s+g),pad=s*.14;
   ctx.save();path(ctx,p=>addRR(p,cx,oy,s,s,7));ctx.fillStyle='rgba(73,25,43,.85)';ctx.fill();
   ctx.lineWidth=1.5;ctx.strokeStyle=CURSE_EDGE[c.key]||'#dc879a';if(c.key==='hunger')ctx.setLineDash([4,3]);ctx.stroke();ctx.restore();
   if(c.img){ctx.save();ctx.imageSmoothingEnabled=false;if(CURSE_TINTS[c.key]&&'filter' in ctx)ctx.filter=CURSE_TINTS[c.key];ctx.drawImage(c.img,cx+pad,oy+pad,s-2*pad,s-2*pad);ctx.restore()}
@@ -337,7 +341,8 @@ export function drawRunCard(canvas,d){
 const count=n=>Number(n||0).toLocaleString('en-US');
 function runTime(r){const start=+r.started_at||0,end=+r.finished_at||0;if(!start||end<=start)return '';const minutes=Math.max(1,Math.round((end-start)/60));return minutes<60?`${minutes} min`:`${Math.floor(minutes/60)} h ${minutes%60} min`}
 // Monsters by ATK (highest first), then spells, then traps, as in deck-image.js.
-function deckOrder(ids,card){const kind=id=>{const c=card(id);return c.data.type&1?[0,-(c.atk||0)]:c.data.type&2?[1,0]:[2,0]};return [...ids].sort((a,b)=>{const x=kind(a),y=kind(b);return x[0]-y[0]||x[1]-y[1]})}
+function deckOrder(ids,card){const kind=id=>{const c=card(id);return c.data.type&1?[0,-(c.atk||0)]:c.data.type&2?[1,0]:[2,0]};return [...ids].sort((a,b)=>{const x=kind(a),y=kind(b);return x[0]-y[0]||x[1]-y[1]||String(card(a).name).localeCompare(String(card(b).name))||a-b})}
+// Copies of a card sit together (user, 2026-11-18: Spell and Trap copies were scattered in pool order): ties go by name, then id.
 
 export const bossDuel=n=>n%BOSS_EVERY===0;
 // A Tag run's teammate: a history row keeps mode/partner, the live run history_mode/history_partner.
@@ -371,7 +376,7 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  const mate=tagPartner(r),s=r.stats||{},stats=(mate==null?[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['PACKS',s.packs_bought],['COINS EARNED',s.coins_earned],['COINS SPENT',s.coins_spent],['COINS LEFT',r.gold]]
   // Tag leaves out coins earned: each teammate's run counts its own payout, which can differ from the team's.
   :[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['COINS LEFT',r.gold]]).map(([k,v])=>[k,count(v)]);
- const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
+ const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString(currentLocale()==='en-US'?'en-GB':currentLocale(),{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
  const variant=runCardVariant(r,level),d={won,variant,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
   recordTitle:mate!=null?`DUEL RECORD · ${character.name.toUpperCase()}’S OPPONENTS`:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
   textures:{backdrop:assetURL('assets/character-select-background.png'),stone:assetURL('assets/ui/run-card-stone.jpg'),cracks:assetURL('assets/ui/run-card-cracks.jpg')}};
@@ -383,7 +388,7 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  if(won){
   if(variant==='flawless')d.eyebrow=d.tag?'FLAWLESS TAG RUN · NO DAMAGE TAKEN':'FLAWLESS RUN · NO DAMAGE TAKEN';
   else if(d.tag)d.eyebrow='TAG RUN';
-  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`.toUpperCase():level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
+  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`:level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
   // Card artwork is already cached by the startup preload, so the deck uses the same images as the rest of the game.
   const ids=(r.selected||[]).map(i=>r.pool?.[i]).filter(id=>card(id)),extra=id=>card(id).data.type&64;
   d.deck={main:deckOrder(ids.filter(id=>!extra(id)),card).map(cardImage),extra:deckOrder(ids.filter(extra),card).map(cardImage)};
@@ -391,7 +396,8 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  }else{
   d.eyebrow=`${d.tag?'TAG RUN':'RUN'} LOST · DUEL ${lostDuel} OF ${runLength}`;d.title='THE SHADOWS CLAIM THIS RUN';d.subtitle=`${d.tag?'Tag · ':''}Challenge LVL ${level}`;
   const killer=r.loss?.card?card(r.loss.card):null,text=String(r.loss?.text||'Your life points reached 0').replace(/\s+—\s+[\d,]+ damage$/,''),at=killer?text.lastIndexOf(killer.name):-1;
-  d.outcome={lead:at>0?text.slice(0,at).trim():text,cardName:at>0?killer.name:'',amount:r.loss?.damage>0?count(r.loss.damage):'',detail:lost?`Duel ${lost.duel} · ${names(lost.opponent)}`:`Duel ${lostDuel}`,card:killer?cardImage(killer.id):''};
+  // The lead stops before the card name, without the quote mark of 'Defeated by the effect of "Exodia…"'.
+  d.outcome={lead:at>0?text.slice(0,at).replace(/["“]\s*$/,'').trim():text,cardName:at>0?killer.name:'',amount:r.loss?.damage>0?count(r.loss.damage):'',detail:lost?`Duel ${lost.duel} · ${names(lost.opponent)}`:`Duel ${lostDuel}`,card:killer?cardImage(killer.id):''};
   d.label=`${d.tag?`${d.name} and ${d.tag.name} lost the Tag run`:`${d.name} lost`} on duel ${lostDuel} of ${runLength} at Challenge Level ${level}. ${r.loss?.text||''}`.trim()
  }
  return d

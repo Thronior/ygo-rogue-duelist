@@ -8,6 +8,6 @@ const e=new MobileDuel([...meta.cards,...meta.tokenCards]);
 let checks=0;
 for(const name of ['Nuvia the Wicked','Boar Soldier']){assert(e.destroyedOnNormalSummon({code:id(name)}),`${name} is never Normal Summoned`);checks++}
 for(const name of ['Dark Dust Spirit','Dragon Seeker','Battle Ox','Spirit Reaper']){assert(!e.destroyedOnNormalSummon({code:id(name)}),`${name} can be Normal Summoned`);checks++}
-const policy=fs.readFileSync(root+'android/web/smart_policy.js','utf8'),equip=policy.slice(policy.indexOf(' function equipUseful('),policy.indexOf(' function equipUseful(')+400);
+const policy=fs.readFileSync(root+'android/web/smart_policy.js','utf8'),equip=policy.slice(policy.indexOf(' function equipUseful('),policy.indexOf(' function equipUseful(')+900);
 assert.match(equip,/destroyedWhenTargeted\(target\)/,'equipUseful skips your own destroyed-when-targeted monsters');checks++;
 console.log(`PASS Nuvia/Boar Soldier summons and Spirit Reaper equips (${checks} checks)`);

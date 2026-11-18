@@ -1561,5 +1561,12 @@
     "tier": 4,
     "deck": "opponent-82-tier-4",
     "source": "User-provided Spirits decklist"
+  },
+  "97": {
+    "character": 97,
+    "title": "PaniK — Endless",
+    "tier": 4,
+    "deck": "opponent-97-tier-4",
+    "source": "Deds' PaniK decklist (Discord), placed by the user as PaniK Tier 4 (Endless)"
   }
 }

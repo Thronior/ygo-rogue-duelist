@@ -917,6 +917,30 @@
       "source": "Dragunfire's Discord deck suggestion (#Sid t3, 2026-11-12), placed as Duke Devlin by the user",
       "fixed": true,
       "reward_pack": "WC4-24"
+    },
+    {
+      "character": 97,
+      "name": "PaniK",
+      "tier": 4,
+      "deck": "opponent-97-tier-4",
+      "tier_decks": {
+        "3": "opponent-97-tier-3",
+        "4": "opponent-97-tier-4"
+      },
+      "sprite": "panik.png",
+      "background": "character-backgrounds/33.jpg",
+      "theme": "A Zombie deck that keeps raising its dead from the Graveyard.",
+      "reward_themes": [
+        "Zombie",
+        "graveyard",
+        "DARK",
+        "control",
+        "draw",
+        "destruction"
+      ],
+      "source": "Deds' PaniK decklists (Discord), placed by the user as PaniK Tier 3 and Tier 4 (Endless), 2026-11-18",
+      "fixed": true,
+      "reward_pack": "WC4-24"
     }
   ]
 }

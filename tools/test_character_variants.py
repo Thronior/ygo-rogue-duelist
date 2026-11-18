@@ -10,7 +10,7 @@ for k,row in v.VARIANTS.items():
  # Deck Assembler starts from a Structure Deck, not boosters; see tools/test_deck_assembler.py.
  if basechar.get('engine_deck'):continue
  if row['starting_relic'] in c.ARTIFACTS:relics.append(row['starting_relic'])
- else:assert row['starting_relic']=='random_archetype'
+ else:assert row['starting_relic'] in ('random_archetype','random_pack_archetype')
  for level in [-1,0,1]:
   try:v.loadout(c.CHARACTERS,i,1,{'character_levels':{k:level}})
   except ValueError:pass
@@ -27,11 +27,14 @@ for k,row in v.VARIANTS.items():
   assert set(alt['starting_packs'][2:]).isdisjoint(c.starting_packs(i)[2:]),('support overlap',i)
   # Signature cards are granted directly; character boosters are curated separately.
   for name in basechar['cards']+row['cards']+row.get('pack_additions',[]):assert name in g.BY_NAME,(i,name)
+ from campaign_expansion import pack_archetype_relics as ce_relics
  for seed in range(3):
   r=g.new_run(i,random.Random(seed),0,1)
   if row['starting_relic']=='random_archetype':
    import content
    assert content.ART_INFO[r['starting_relic']]['effect']=='archetype_stock'
+  # Fortune's Favorite: an archetype relic for its character pack (tools/test_bakura_loadouts.py).
+  elif row['starting_relic']=='random_pack_archetype':assert r['starting_relic'] in ce_relics(r['pack_ids'][0])
   else:assert r['starting_relic']==row['starting_relic']
   assert r['variant']==1
   if basechar.get('random_packs'):assert len(r['pack_ids'])==4

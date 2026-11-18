@@ -3,6 +3,10 @@
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
 // A socket that stopped pinging this long ago is treated as gone. Hidden pages ping about once a minute.
 export const STALE_SOCKET=75000;
+// How long a Tag room must have had nobody connected before the registry may delete it (Registry.pruneEmpty).
+export const EMPTY_FOR=600000;
+// A connected socket that has not pinged for this long is treated as gone by the room's presence check only.
+export const PRESENCE_SILENCE=600000;
 class Hub {
  constructor(ctx,env){this.ctx=ctx;this.env=env;ctx.setWebSocketAutoResponse?.(new WebSocketRequestResponsePair('ping','pong'))}
  sockets(seat){return this.ctx.getWebSockets('seat'+seat).filter(ws=>ws.readyState===1&&!ws.deserializeAttachment()?.replaced)}
@@ -13,8 +17,8 @@ class Hub {
   return {server,response:new Response(null,{status:101,webSocket:client,headers:{'Sec-WebSocket-Protocol':'shadowrun'}})};
  }
  // Half-open sockets never fire a close event, so the waiting player asks.
- stale(seat,now=Date.now()){
-  const silent=[];for(const ws of this.sockets(seat)){const last=this.ctx.getWebSocketAutoResponseTimestamp?.(ws)?.getTime()||ws.deserializeAttachment()?.at||now;if(now-last>=STALE_SOCKET)silent.push(ws)}
+ stale(seat,now=Date.now(),limit=STALE_SOCKET){
+  const silent=[];for(const ws of this.sockets(seat)){const last=this.ctx.getWebSocketAutoResponseTimestamp?.(ws)?.getTime()||ws.deserializeAttachment()?.at||now;if(now-last>=limit)silent.push(ws)}
   for(const ws of silent){ws.serializeAttachment({...ws.deserializeAttachment(),replaced:true});try{ws.close(4003,'Connection went silent')}catch{}}
   return silent.length>0;
  }
@@ -27,9 +31,20 @@ export class TagHub extends Hub {
  async fetch(request){
   // Player sockets keep their /v3/hub URL, so only the registry's admin call reaches this path (admin.mjs).
   if(new URL(request.url).pathname==='/admin')return this.admin(await request.json());
-  // The room registry asks before deleting a room left empty (silent sockets count as gone).
-  if(new URL(request.url).pathname==='/presence'){this.stale(0);this.stale(1);return reply(200,{occupied:this.online(0)||this.online(1)})}
+  // The room registry asks before deleting a room left empty. A player still in the room counts as connected, whatever
+  // screen they are on (Discord, 2026-11-18: a room expired while one player edited a deck and the other was away; a
+  // background tab pings about once a minute, so the 75-second silence rule used to close its socket here). Only a
+  // socket that closed, or stayed silent for PRESENCE_SILENCE, counts as gone, and the room counts as empty only once
+  // nobody has been connected for EMPTY_FOR: the first empty answer starts the count and any connect clears it.
+  if(new URL(request.url).pathname==='/presence'){
+   const now=Date.now();this.stale(0,now,PRESENCE_SILENCE);this.stale(1,now,PRESENCE_SILENCE);
+   if(this.online(0)||this.online(1)){await this.ctx.storage.delete('emptySince');return reply(200,{occupied:true})}
+   const since=await this.ctx.storage.get('emptySince');
+   if(since==null){await this.ctx.storage.put('emptySince',now);return reply(200,{occupied:true})}
+   return reply(200,{occupied:now-since<EMPTY_FOR})
+  }
   const seat=Number(request.headers.get('X-Seat'));if(seat!==0&&seat!==1)return reply(403,{error:'Invalid seat.'});
+  await this.ctx.storage.delete('emptySince');
   this.replace(seat);const {server,response}=this.accept(seat);
   server.send(JSON.stringify({hub:'welcome',seat,peer:this.online(1-seat)}));
   this.tell(1-seat,{hub:'peer',online:true});return response;

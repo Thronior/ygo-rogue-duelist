@@ -25,6 +25,16 @@ RANDOMIZER_POOL=1000
 SHOP_CHANCE=.05  # 1 in 20 normal shops (user, 2026-11-15; was 1 in 5)
 VERSION=1
 
+# Challenge levels above OPEN_LEVEL, so from Level 3 (user, 2026-11-18): the shop's Random Pack and the Absolute Random relic
+# stay away until this character has beaten that level once. The Randomizer loadout's own randomized cards are not affected.
+OPEN_LEVEL=2
+def allowed(run):
+ try:level=int(run.get('challenge_level') or 0)
+ except (TypeError,ValueError):level=0
+ if level<=OPEN_LEVEL:return True
+ import storage,challenge_levels
+ return challenge_levels.highest(storage.profile(),run.get('character'))>=level
+
 _cards={}        # id -> randomizer card dict for the run in memory
 _key=None        # run['random_cards']['key'] of the cards in _cards
 _client=None     # cached client_cards() result

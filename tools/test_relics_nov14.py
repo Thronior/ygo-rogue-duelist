@@ -67,15 +67,15 @@ ok(content.ART_INFO['gate_calling']['art']!=content.ART_INFO['almighty']['art'],
 for lang in ('de','es','fr','it','pt','ja','ko','zh'):
  bundle=json.loads((ROOT/f'android/web/i18n/{lang}.json').read_text(encoding='utf8'))['ui']
  for key in NEW:ok(A[key][0] in bundle and A[key][2] in bundle,f'{lang}: {A[key][0]}')
-# A relic in two weight groups takes the stronger group's boost, never both multiplied (Dark Lotus: Level 7+ and Fusion).
+# A relic in two weight groups counts its best group, never both added (Dark Lotus: Level 7+ and Fusion).
 def deck_of(names):
  pool=[g.BY_NAME[n]['id'] for n in names];return {'pool':pool,'selected':list(range(len(pool))),'artifacts':[]}
 big=['Gate Guardian','Summoned Skull','Dark Magician']*4+['Waboku']*28
 fus=['Gaia the Dragon Champion','Polymerization']*6+['Waboku']*28
 both=['Gate Guardian','Summoned Skull','Dark Magician']*4+['Gaia the Dragon Champion','Polymerization']*6+['Waboku']*16
-m=lambda names:relic_affinity.details(['dark_lotus'],deck_of(names))['dark_lotus'][0]
-ok(m(big)>1 and m(fus)>1,'each group boosts on its own')
-ok(abs(m(both)-max(m(big),m(fus)))<.5 and m(both)<m(big)*m(fus)-.5,f'both groups: the stronger boost, not the product ({m(big):.2f}, {m(fus):.2f}, {m(both):.2f})')
+m=lambda names:relic_affinity.details(['dark_lotus'],deck_of(names))['dark_lotus'][1]
+ok(m(big)>0 and m(fus)>0,'each group counts on its own')
+ok(max(m(big),m(fus))<=m(both)<m(big)+m(fus),f'both groups: the best group, not the sum ({m(big)}, {m(fus)}, {m(both)})')
 # Deck-style relics now weighted; coin and shop relics stay unweighted.
 for key in ('cursed_scorched_clock','cursed_brittle_armor','cursed_crowded_crypt','solo','stars_aligned','no_pain_no_gain'):ok(key in relic_affinity.RULES,key+' has a weight rule')
 for key in ('urn','bargain','map','ankh'):ok(key not in relic_affinity.RULES,key+' stays unweighted')

@@ -106,5 +106,4 @@ for lang in ('de','es','fr','it','pt','ja','ko','zh'):
  for key in list(NEW)+[CURSE]:ok(A[key][0] in bundle and A[key][2] in bundle,f'{lang}: {A[key][0]}')
  for half in ar.CURSED_PARTS[CURSE]:ok(half in bundle,f'{lang}: {half}')
 ok(json.loads(relic_affinity.THEMES_FILE.read_text(encoding='utf8'))==relic_affinity.compute_theme_card_lists(),'data/relic-theme-cards.json is current (run build_android.py --sync-only)')
-ok(json.loads(relic_affinity.CEILINGS_FILE.read_text(encoding='utf8'))==relic_affinity.compute_ceilings(),'data/relic-ceilings.json is current (run build_android.py --sync-only)')
 print('PASS Nov 15:',checks,'checks')

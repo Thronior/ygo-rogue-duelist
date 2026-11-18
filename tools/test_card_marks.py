@@ -9,7 +9,8 @@ dm=g.BY_NAME['Dark Magician']['id'];dmg=g.BY_NAME['Dark Magician Girl']['id'];ku
 run={'pool':[dm,dm,kuri],'selected':[0,2]}
 assert ra.deck_cards(run)=={dm:1,kuri:1}
 assert ra.deck_cards(dict(run,card_marks={str(dm):1}))=={dm:1,kuri:1},'Yes leaves a Deck card as it is'
-assert ra.deck_cards(dict(run,card_marks={str(dmg):1}))=={dm:1,kuri:1,dmg:2},'Yes counts outside the Deck too'
+assert ra.deck_cards(dict(run,card_marks={str(dmg):1}))=={dm:1,kuri:1},'a Yes mark on a card you do not own counts nothing (2026-11-18)'
+assert ra.deck_cards(dict(run,pool=run['pool']+[dmg],card_marks={str(dmg):1}))=={dm:1,kuri:1,dmg:2},'Yes counts an owned card outside the Deck'
 assert ra.deck_cards(dict(run,card_marks={str(dm):-1}))=={dm:1,kuri:1},'No no longer removes weight'
 assert ra.deck_cards(dict(run,card_marks={'junk':1,str(dm):0}))=={dm:1,kuri:1}
 # Related singles: Dark Magician Girl names Dark Magician, so she is boosted for a Dark Magician Deck, also when it is
@@ -20,7 +21,7 @@ assert abs(boosted-min(ra.CARD_BOOST_CAP,plain*2))<1e-9,(plain,boosted)
 assert ra.canonical_id(dmg) in ra.related_ids({dm:1})
 no=dict(run,card_marks={str(dm):-1});assert ra.canonical_id(dmg) in ra.related_ids(ra.deck_cards(no))
 # A Yes mark on a card outside the Deck brings its related cards in as well.
-yes=dict(pool=[kuri],selected=[0],card_marks={str(dm):1});assert ra.canonical_id(dmg) in ra.related_ids(ra.deck_cards(yes))
+yes=dict(pool=[kuri,dm],selected=[0],card_marks={str(dm):1});assert ra.canonical_id(dmg) in ra.related_ids(ra.deck_cards(yes))
 # Backend command.
 import mobile_backend as mb
 src=(ROOT/'android/mobile_backend.py').read_text(encoding='utf8')
@@ -43,7 +44,7 @@ s.command(0,{'id':'m3','revision':s.revision,'action':'mark','value':[dm,0]});as
 for bad in ([999999999,1],[dm,2],'x',None):
  try:s.apply(0,'mark',bad);raise SystemExit(f'bad mark accepted: {bad}')
  except ValueError:pass
-ra.TAG_PARTNER=dict(pool=[],selected=[],card_marks={str(dm):1})
+ra.TAG_PARTNER=dict(pool=[dm],selected=[],card_marks={str(dm):1})
 mine=dict(pool=[kuri],selected=[0],history_mode='tag')
 assert ra.deck_cards(ra.tag_partner(mine))=={dm:2},'a Yes mark of the teammate counts in the shared weighting'
 ra.TAG_PARTNER=None

@@ -5,7 +5,7 @@ REGULAR=[
 ('dice_jar','Dice Jar',100,'Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice.','Dice Jar'),
 ('morphing_jar_2','Morphing Jar #2',100,'Shop rerolls restock your character booster pack, allowing you to buy it again.','Morphing Jar #2'),
 ('cyber_jar','Cyber Jar',100,'Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter.','Cyber Jar'),
-('duelist_catalogue',"Duelist's Catalogue",120,'Character draft packs can appear in the random booster slots on shop visits and rerolls. This relic appears less often than other relics.','Exchange'),
+('duelist_catalogue',"Duelist's Catalogue",120,'Character draft packs can appear in the random booster slots on shop visits and rerolls.','Exchange'),
 ('booster_shelf','Booster Box',90,'Shops offer a fourth booster pack. Adds the extra pack immediately when purchased and on every shop visit and reroll.','Jar of Greed'),
 ('second_wind','Second Wind',110,'Once per Duel, at the start of your End Phase, if your hand is empty, draw 2 cards.','Pot of Greed'),
 ('grave_lantern','Grave Lantern',80,'Monsters you control gain 100 DEF for each monster in your GY (max. 800).','Spirit of the Pharaoh'),
@@ -35,7 +35,7 @@ REGULAR=[
 ('overkill_bounty','Overkill Bounty',90,"If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",'Meteor of Destruction'),
 ('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Last Will'),
 ('tactical_espionage','Tactical Espionage',100,'When you Normal Summon a monster, no Trap Cards can be activated.','Tactical Espionage Expert'),
-('stars_aligned','Stars Aligned',100,'Once per turn, during your End Phase, if all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
+('stars_aligned','Stars Aligned',100,'Once per turn, during your End Phase, if you have at least 1 monster in your GY and all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
 # Requested by the user on 2026-11-04.
 ('deep_pockets','Deep Pockets',70,'Your hand size limit is increased by 3.','Infinite Cards'),
 # Requested by the user on 2026-11-06.
@@ -63,6 +63,8 @@ REGULAR=[
 ('guardians_call',"Guardian's Call",70,'Once per turn, you can Special Summon a "Guardian" monster from your hand while you control a face-up Equip Spell that lists its name.','Guardian Ceal'),
 ('soul_fusion','Soul Fusion',120,'Once per Duel, you can Fusion Summon a monster from your Extra Deck by banishing its materials from your GY. It cannot attack the turn it is Summoned.','Miracle Fusion'),
 ('gate_calling','Gate Calling',80,'Once per turn, when you Tribute Summon or Special Summon "Sanga of the Thunder", "Kazejin" or "Suijin", you can Special Summon one of the other two from your hand.','Suijin'),
+# The user's design, 2026-11-18. Its effects are tiered by how many of the three you control (approved_relic_effects.jin_trio).
+('jin_trio','Jin Trio',60,'Your "Sanga of the Thunder", "Kazejin" and "Suijin" gain effects for each of them you control. 1 or more: When one of them attacks an opponent\'s monster, that monster\'s ATK becomes 0 in the Damage Step, until the End Phase. 2 or more: Once per turn each, during your opponent\'s turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. 3: Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.','Kazejin'),
 ('dark_lotus','Dark Lotus',500,'Once per Duel, at the start of your first Standby Phase, you can Special Summon 1 monster from your Deck or Extra Deck, ignoring its Summoning conditions.','Samsara Lotus'),
 ('ring_of_defense','Ring of Defense',110,'After each Duel, recover the LP you lost to your own card effects and costs during it (up to your LP limit).','Ring of Defense'),
 # The user's own relic, 2026-11-14.
@@ -115,7 +117,7 @@ CURSED=[
 (51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase. Tails: they lose 300 ATK/DEF until then.','Fairy Box'),
 (54,'blood_toll','Blood Toll','You pay with LP instead of coins: 10 LP for every coin a purchase or reroll costs, after discounts. You cannot pay if it would leave you below 1 LP.','Toll'),
 # Thronior's picks from the 2026-10-29 cursed relic ideas.
-(55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make a second attack during each Battle Phase. You cannot Set monsters or Special Summon them in Defense Position.','Berserk Gorilla'),
+(55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make 1 more attack during each Battle Phase than they otherwise could. You cannot Set monsters or Special Summon them in Defense Position.','Berserk Gorilla'),
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
 (59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage or pay LP, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
 (61,'conscription_drum','Conscription Drum','You can Normal Summon or Set 1 additional monster each turn. Monsters you control cannot attack the turn they are Normal Summoned.','Ultimate Offering'),

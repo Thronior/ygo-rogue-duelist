@@ -30,7 +30,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
  }
- start(...args){this.normalSummonTurn=null;this.ordealKnown=[[],[]];this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.cardTargets=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
+ start(...args){this.finalCountdowns=[];this.normalSummonTurn=null;this.ordealKnown=[[],[]];this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.cardTargets=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  // Ordeal of a Traveler shows its controller's random hand card to the attacker, and the hand is shuffled after.
  // ordealKnown[side] holds codes of distinct cards in that side's hand the other side has seen this way. Cards that
  // join the hand only add unknowns; a card leaving face-up drops its code; one leaving unseen (Set, to the deck,
@@ -176,10 +176,17 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.CHAINING){this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys.clear();this.chainDepth=m.chain_size||1;(this.activeChain??=[]).push({code:m.code,player:m.triggering_controller??m.player??m.controller,targets:[],location:m.location,sequence:m.sequence,controller:m.controller,link:m.chain_size||1});}
   if(m.type===M.BECOME_TARGET&&this.activeChain?.length)this.activeChain[this.activeChain.length-1].targets.push(...m.cards);
   if([M.CHAIN_SOLVING,M.CHAIN_NEGATED,M.CHAIN_DISABLED].includes(m.type)){const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link)this.visuals.push({kind:'chain',stage:m.type===M.CHAIN_SOLVING?'resolve':'negated',code:link.code,link:link.link,text:this.name(link.code),card:{controller:link.controller??link.player,location:link.location,sequence:link.sequence}});}
+  // Final Countdown (CITYDRIVER, Discord 2026-11-18): the card counts turn ends from the Graveyard, where nobody sees it.
+  // Each resolved copy is remembered with its turn, so the duel can show the turns left (the activation turn is turn 1).
+  // Checked before the link is marked inactive just below.
+  if(m.type===M.CHAIN_SOLVED){const x=this.activeChain?.find(c=>c.link===m.chain_size);if(x&&!x.inactive&&x.code===95308449)(this.finalCountdowns??=[]).push({player:x.player,turn:this.turn})}
   if([M.CHAIN_NEGATED,M.CHAIN_DISABLED,M.CHAIN_SOLVED].includes(m.type)){
    const link=this.activeChain?.find(c=>c.link===m.chain_size);if(link)link.inactive=true;
   }
   if(m.type===M.CHAIN_END){this.activeChain=[];this.chainDepth=0;this.effect=null;this.materialSubject=null;}
+  // An effect that resolves outside any chain (Maharaghi's Draw Phase look) must not borrow an older card's name: the
+  // reveal window was titled "Swords of Revealing Light" turns later (Discord, Eriko, 2026-11-18).
+  if([M.NEW_PHASE,M.NEW_TURN].includes(m.type)&&!this.activeChain?.length)this.effect=null;
   if(m.type===M.HINT&&m.hint_type===3)this.selectionHint=Number(m.hint);
   // Card sleeve feats (sleeve-metrics.js), read before this damage lowers the LP.
   observeSleeveMessage(this,m);
@@ -391,14 +398,14 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(m.to_bp&&!enemy.length&&!this.battleProtected?.[1-p]&&m.summons.length){
     const ready=own.filter(c=>(c.position&1)&&smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p)).reduce((n,c)=>n+smart.battleDamage(atk(c)),0);
     const lethal=m.summons.map((c,i)=>{const level=this.cards.get(c.code)?.level||0,tributes=level>6?2:level>4?1:0;
-     const damage=smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p,true)?smart.battleDamage(smart.projectedAttack(c)):0;
+     const damage=smart.attackAllowed(c,true)&&!smart.attackBlocked(c,p,true)?smart.battleDamage(smart.projectedAttack(c))*smart.swings(c):0;
      return {i,damage,total:damage+(tributes?0:ready)};}).filter(x=>x.damage>0&&x.total>=this.lp[1-p]).sort((a,b)=>b.damage-a.damage);
     if(lethal.length)return idle(I.SELECT_SUMMON,lethal[0].i);
    }
    // Lethal through defenders (2026-10-28 replay review): Normal Summon, or switch to Attack, the monster
    // that makes the battle plan lethal, instead of setting it or leaving it in Defense.
    if(m.to_bp&&!this.battleProtected?.[1-p]&&!theyPickTargets&&smart.planDamage()<this.lp[1-p]){
-    const summon=m.summons.map((c,i)=>({i,level:this.cards.get(c.code)?.level||0,a:smart.projectedAttack(c)})).filter(x=>x.level<=4&&smart.attackAllowed(m.summons[x.i],!enemy.length)&&!smart.attackBlocked(m.summons[x.i],p,true)&&smart.planDamage([x.a])>=this.lp[1-p]).sort((a,b)=>b.a-a.a)[0];
+    const summon=m.summons.map((c,i)=>({i,level:this.cards.get(c.code)?.level||0,a:smart.projectedAttack(c)})).filter(x=>x.level<=4&&smart.attackAllowed(m.summons[x.i],!enemy.length)&&!smart.attackBlocked(m.summons[x.i],p,true)&&smart.planDamage(Array(smart.swings(m.summons[x.i])).fill(x.a))>=this.lp[1-p]).sort((a,b)=>b.a-a.a)[0];
     if(summon)return idle(I.SELECT_SUMMON,summon.i);
     const toAttack=m.pos_changes.map((c,i)=>({i,f:this.query(p,L.MZONE)[c.sequence]})).filter(x=>x.f&&!(x.f.position&1)&&!exodiaPieces.has(x.f.code)&&!(this.name(x.f.code)==='Mystical Beast of Serket'&&smart.flipUseful('Mystical Beast of Serket',x.f)===false)&&!(stat(x.f).type&0x200000&&!visible(x.f))&&atk(x.f)>0&&smart.attackAllowed(x.f,!enemy.length)&&!smart.attackBlocked(x.f,p)&&smart.planDamage([atk(x.f)])>=this.lp[1-p]).sort((a,b)=>atk(b.f)-atk(a.f))[0];
     if(toAttack)return idle(I.SELECT_POS_CHANGE,toAttack.i);

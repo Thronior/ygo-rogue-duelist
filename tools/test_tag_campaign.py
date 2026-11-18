@@ -90,7 +90,9 @@ for key,row in cv.VARIANTS.items():
   assert v.players[0]['variant']==0 and not v.players[0].get('random_cards'),key;continue
  assert v.players[0]['variant']==1 and v.players[0]['variant_name']==row['name'],key
  assert v.players[1]['variant']==0,key
- assert row['starting_relic'] in ('random_archetype','none') or row['starting_relic'] in v.shared['artifacts'],key
+ assert row['starting_relic'] in ('random_archetype','random_pack_archetype','none') or row['starting_relic'] in v.shared['artifacts'],key
+ # Ryou Bakura's Fortune's Favorite rolls a relic for an archetype in its packs: the rolled relic is shared.
+ if row['starting_relic']=='random_pack_archetype':assert v.players[0]['starting_relic'] in v.shared['artifacts'],key
 v=TagCampaign([1,0],[vp,vp],seed=9,variants=[0,1]);assert v.players[1]['variant']==1 and 'fusion_time' in v.shared['artifacts']
 locked=storage.profile();locked['unlocked']=[0,1];locked['character_levels']={}
 try:TagCampaign([0,1],[locked,vp],seed=9,variants=[1,0]);raise AssertionError('locked variant accepted')

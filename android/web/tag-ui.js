@@ -81,9 +81,9 @@ export class TagUI {
  // Card records by id: deck and trade views look cards up inside filters and sorts.
  cardById(id){if(this.cardIndex?.source!==this.content.cards)this.cardIndex={source:this.content.cards,byId:new Map(this.content.cards.map(c=>[c.id,c]))};return this.cardIndex.byId.get(id)}
 
- constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null,randomCards=null}){
+ constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null,randomCards=null,onRunMark=()=>{}}){
 
-  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve,randomCards});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
+  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve,randomCards,onRunMark});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
 
   this.click=e=>{const el=e.target.closest('[data-tag]');if(!el||!this.alive)return;e.stopImmediatePropagation();if(this.dragged)return;if(el.dataset.tag==='character')this.sound('flip',.25);else if(el.dataset.tag==='start')this.sound('activate',.4);this.action(el.dataset.tag,el).catch(error=>this.error(error))};
 
@@ -147,6 +147,18 @@ export class TagUI {
 
   finally{this.tradeAckPending=false;this.render();}
 
+ }
+
+ // Each player's profile lives in the host's room while they play (wins, levels, sleeves); it reached the device only on
+ // Exit, so closing the app after a run lost that run's progress (Discord, 2026-11-18: Twin-Headed Thunder Dragon sleeve
+ // missing after Tag wins with two duelists). Now it is saved whenever it changes, compared by a few cheap counters.
+ saveProfile(profile){
+  if(!profile||typeof this.backend!=='function')return;
+  const key=JSON.stringify([profile.wins,profile.victories,profile.runs,profile.won_as,profile.character_levels,(profile.sleeves_earned||[]).length,(profile.sleeve_marks||[]).length,(profile.run_history||[]).length,profile.fused_relics?.length]);
+  if(this.savedProfileKey===undefined){this.savedProfileKey=key;return}
+  if(key===this.savedProfileKey)return;
+  this.savedProfileKey=key;
+  Promise.resolve(this.backend('tag-profile',profile)).catch(()=>{});
  }
 
  updateRoomBadge(){
@@ -244,7 +256,7 @@ export class TagUI {
 
   const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>${bountyBanner(r)}`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${bountyBanner(r)}${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
-  const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',waiting||this.working?'disabled':''):'';
+  const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',`class="tag-trade-vote" ${waiting||this.working?'disabled':''}`):'';
 
   this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+(boss&&this.tab!=='deck'?' boss':''));if(this.tab!=='deck')mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content});
 
@@ -316,7 +328,7 @@ export class TagUI {
 
   const base=this.content.characters[this.character],unlocked=alternateUnlocked(this.profile,this.character),variant=this.chosenVariant(),c=variant?{...base,...base.alternate,name:base.name}:base,packs=c.copycat||c.engine_deck||c.random_packs?[]:c.starting_packs||[c.pack,c.pack,c.pack,c.pack];
 
-  const relic=c.starting_relic,info=this.content.artifactInfo[relic],relicName=relic==='none'?'No relic':relic==='random'?'Random relic':relic==='random_archetype'?'Random archetype relic':this.content.artifacts[relic]?.[0]||'',relicText=relic==='none'?'The Dueling Engine starts with no relic.':relic==='random'?'A different relic is rolled for each new run.':relic==='random_archetype'?'Start with a random relic that adds cards from an archetype to shop stock.':this.content.artifacts[relic]?.[2]||'';
+  const relic=c.starting_relic,info=this.content.artifactInfo[relic],relicName=relic==='none'?'No relic':relic==='random'?'Random relic':relic==='random_archetype'||relic==='random_pack_archetype'?'Random archetype relic':this.content.artifacts[relic]?.[0]||'',relicText=relic==='none'?'The Dueling Engine starts with no relic.':relic==='random'?'A different relic is rolled for each new run.':relic==='random_archetype'?'Start with a random relic that adds cards from an archetype to shop stock.':relic==='random_pack_archetype'?'Start with 4 copies of one random character pack and a relic for an archetype in that pack.':this.content.artifacts[relic]?.[2]||'';
 
   const packArt=packs.length?packs.map((id,n)=>`<img data-tag="pack" data-pack="${id}" src="assets/packs/${id}.jpg" style="--n:${n}" alt="Starting pack">`).join(''):`<img src="assets/card-back.jpg" style="--n:1"><span>${c.copycat?'Borrowed deck':c.engine_deck?'Victory deck choices':'4 random packs'}</span>`;
 
@@ -662,7 +674,7 @@ export class TagUI {
   const id=Number(el.dataset.cardMark),next=nextMark(cardMark(v.run,id)),old=v.run.card_marks;
   v.run.card_marks={...(old||{})};if(next)v.run.card_marks[id]=next;else delete v.run.card_marks[id];
   paintMarks(this.root,v.run,id);playUISound('deck-select');this.marking=true;
-  try{await this.session.request('mark',[id,next])}catch(error){if(this.view===v){v.run.card_marks=old;paintMarks(this.root,v.run,id)}this.error(error)}finally{this.marking=false}
+  try{await this.session.request('mark',[id,next]);this.onRunMark(v.run.character,id,next)}catch(error){if(this.view===v){v.run.card_marks=old;paintMarks(this.root,v.run,id)}this.error(error)}finally{this.marking=false}
  }
  async unlockForEdit(){this.working=true;try{await this.session.request('unready')}finally{this.working=false}}
 
@@ -720,7 +732,7 @@ export class TagUI {
   if(before==='duel'&&view.phase!=='duel')this.resetDeckFilters(false);
   // After a duel the shop shows first; after the shop, opponent select. A deck editor that is open stays open.
   if(before==='duel'&&view.phase==='shop')this.tab='opponents';
-  this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.onView(view);
+  this.view=view;if(view.phase!=='shop')keeperTalk.hush();this.updateRoomBadge();this.profile=view.profile;this.saveProfile(view.profile);this.onView(view);
 
   if(view.phase!=='duel'){this.render();restoreDeckScroll(tagDeckArea(this.root),scroll)}
 
