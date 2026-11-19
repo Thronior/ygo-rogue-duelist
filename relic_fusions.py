@@ -16,7 +16,7 @@ FUSED=[
  ('amazoness_village','Amazoness Village','Your Amazoness monsters gain 800 ATK and inflict piercing battle damage.','Amazoness Village',('amazoness_standard','amazoness_hunters')),
  ('necrovalley_throne','Necrovalley Throne',"Your Gravekeeper's monsters gain 800 ATK/DEF. Your Field Spell cannot be destroyed.",'Necrovalley',('necrovalley_tablet','gravekeepers_union')),
  ('fusion_gate','Fusion Gate','During your Standby Phase, if you control no monsters, Special Summon 1 monster from your Fusion Deck.','Fusion Gate',('fusion_chamber','fusion_insignia','fusion_time','machine_foundry')),
- ('jar_of_greed','Jar of Greed','Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.','Jar Robber',('dice_jar','cyber_jar','morphing_jar_2')),
+ ('jar_of_greed','Jar of Greed','Gain 1 free reroll in each shop and 1 additional reroll for each shadow relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.','Jar Robber',('dice_jar','cyber_jar','morphing_jar_2')),
  ('second_coin_toss','Divine Gambler','You choose the results of all your coin tosses and dice rolls.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice')),
  ('scapegoat_pasture','Scapegoat Pasture',"During your opponent's Standby Phase, Special Summon 1 Sheep Token in Defense Position. Once per turn, during your Standby Phase, select 1 face-up monster on either side of the field. All Tokens you control receive the same Type, Level, Attribute, name, and original ATK and DEF as that monster until the End Phase.",'Sogen',('token_defender','token_martyrs','token_regiment','token_resonance')),
  ('sacred_phoenix','Sacred Phoenix','Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.','Sacred Phoenix of Nephthys',('phoenix_rebirth','phoenix_debt','second_wind')),
@@ -24,7 +24,7 @@ FUSED=[
  # User request 2026-11-09: all three Union relics.
  ('union_buster','Union Buster','Monsters you control gain 400 ATK for each monster equipped to them. When you Normal Summon a monster whose name is listed on a Union monster in your hand or Deck: Equip 1 of those Union monsters to that monster.','XYZ-Dragon Cannon',('union_dock','union_hangar','unionize')),
  ('attribute_mutation','Attribute Mutation','All your monsters are treated as having every Attribute.','DNA Transplant',tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
- # Cursed fusions (2026-11-04): one cursed relic and its regular partners. A relic may belong to several sets;
+ # Cursed fusions (2026-11-04): one shadow relic and its regular partners. A relic may belong to several sets;
  # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
  ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
  ('gaia_plate','Gaia Plate','Monsters you control gain 1,500 DEF. Once per turn, a Defense Position monster you control cannot be destroyed by battle.','Big Shield Gardna',('cursed_brittle_armor','buckler')),
@@ -50,6 +50,8 @@ FUSED=[
  ('guardians_armory',"Guardian’s Armory","Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by your opponent's card effects while its corresponding Equip Spell is face-up on the field.",'Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
  # The user's design, 2026-11-18: Jin Trio and Gate Calling. The text spells the effects out because no relic text names its pieces.
  ('ultimate_gate_combination','Ultimate Gate Combination','At the start of each Duel, add "Sanga of the Thunder", "Kazejin" and "Suijin" to your hand. Your "Gate Guardian", "Sanga of the Thunder", "Kazejin" and "Suijin" gain these effects, whatever else you control: When it attacks an opponent\'s monster, that monster\'s ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent\'s turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.','Sanga of the Thunder',('jin_trio','gate_calling')),
+ # The user's design, 2026-11-19 (TRUANT's Discord list): the four Dark Magician relics. Dark Magic Attack art is mine.
+ ('immortal_dark_magic','Immortal Dark Magic','Spellcaster monsters you control gain 600 ATK. When you Normal Summon a Spellcaster monster: You can Special Summon 1 "Dark Magician" monster from your Deck, and add 1 card that mentions "Dark Magician" from your Deck to your hand. When a "Dark Magician" monster you control is destroyed and sent to the GY: Special Summon 1 monster that mentions "Dark Magician" from your Deck or Extra Deck, ignoring its Summoning conditions.','Dark Magic Attack',('mage','magicians_bond','master_and_apprentice','black_chaos_rite')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -281,6 +283,9 @@ e:SetOperation(function(e) e:Reset() local g=Group.CreateGroup()
  for _,code in ipairs({{{trio}}}) do if not Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,code) then
   local tc=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,code):GetFirst() if tc then g:AddCard(tc) end end end
  if #g>0 then Duel.SendtoHand(g,0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+ if key=='immortal_dark_magic':
+  from approved_relic_effects import immortal_dark_magic
+  return immortal_dark_magic()
  if key=='guardians_armory':
   return stat('EFFECT_UPDATE_ATTACK',500,'#c:GetEquipGroup()>0')+'''
 do local pairs={{73544866,68427465},{10755153,95638658},{74367458,69243953},

@@ -1,0 +1,116 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38{font-family:Arial,"Malgun Gothic",sans-serif}
+.patch-notes-sheet.pn0_2_38 h1,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font-family:Bebas,"Malgun Gothic",sans-serif}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_38 h1{font-weight:700}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>업데이트 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>중요 수정</em><h3>태그 방과 진행 상황</h3>
+<p class="pn0_2_38-lead"><b>태그 방</b>이 덱을 편집하거나 게임을 백그라운드 탭에 두는 등 아직 안에 있는데도 만료될 수 있었습니다. 이제 누군가 있는 한 방이 유지됩니다.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>태그 진행 상황</b>(승리, 도전 레벨, 슬리브)은 나가기를 누르지 않고 게임을 닫아도 바로 저장됩니다.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">0.2.37에서 일부 플레이어에게 생긴 <b>덱 편집기</b> 오류를 수정했습니다.</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>새 기능</em><h3>캐릭터 설정</h3>
+<p class="pn0_2_38-lead">캐릭터의 <span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span>를 누르거나, 듀얼 중 <b>설정 › 캐릭터</b>을 엽니다.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>저장된 카드 표시</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span>는 그 캐릭터의 모든 새 런에 처음부터 적용됩니다(태그 포함). <b>전체 컬렉션이나 팩 하나</b>에서 카드를 고를 수 있습니다.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>런의 표시 저장</b>로 플레이 중 단 표시를 남깁니다.</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>새 상대</em><h3>패닉</h3>
+<p class="pn0_2_38-lead"><b>패닉</b>가 상대로 합류합니다. 티어 3은 <b>생자의 서－금단의 주술－ / 뱀파이어</b> 덱, 엔드리스는 새 덱입니다.</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">CPU 상대</em></p>
+<p class="pn0_2_38-lead">플레이어의 <b>37,000턴</b>을 CPU의 선택과 비교했습니다. 이제 레벨 4로 공격하는 쪽이 더 강하면 릴리스를 아끼고, <b>번개와 블랙홀</b>로 마무리 길을 열고, <b>스나이프 스토커</b>로 저격하며, 뒷면 카드에는 더 안전한 마무리를 고르고 2회 공격도 계산합니다.</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>유물</em><h3>새 유물과 개편</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>마신 트리오</b>자신의 "번개 마신－썬가", "풍 마신－휴가", "수 마신－스가"는 자신이 컨트롤하는 그것들의 수에 따라 효과를 얻는다. 1장 이상: 그것들이 상대 몬스터를 공격할 경우, 데미지 스텝에 그 상대 몬스터의 공격력은 엔드 페이즈까지 0이 된다. 2장 이상: 각각 1턴에 1번, 상대 턴에 상대가 몬스터의 효과 또는 마법 카드를 발동했을 때, 그 효과를 무효로 하고, 그 카드를 패로 되돌릴 수 있다. 3장: 1턴에 1번, 덱에서 "게이트 가디언" 1장을 소환 조건을 무시하고 특수 소환할 수 있다.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>궁극의 게이트 콤비네이션</b><i>융합 유물.</i> 각 듀얼 개시시에, "번개 마신－썬가", "풍 마신－휴가", "수 마신－스가"를 패에 넣는다. 자신의 "게이트 가디언", "번개 마신－썬가", "풍 마신－휴가", "수 마신－스가"는 그 밖에 무엇을 컨트롤하든 이하의 효과를 얻는다. 그 몬스터가 상대 몬스터를 공격할 경우, 데미지 스텝에 그 상대 몬스터의 공격력은 엔드 페이즈까지 0이 된다. 각각 1턴에 1번, 상대 턴에 상대가 몬스터의 효과 또는 마법 카드를 발동했을 때, 그 효과를 무효로 하고, 그 카드를 패로 되돌릴 수 있다. 1턴에 1번, 덱에서 "게이트 가디언" 1장을 소환 조건을 무시하고 특수 소환할 수 있다.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>광전사의 계약</b>자신 필드의 몬스터는 각 배틀 페이즈 중에 원래 공격할 수 있는 횟수보다 1번 더 공격할 수 있다. 자신은 몬스터를 세트하거나 수비 표시로 특수 소환할 수 없다.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>별들의 정렬</b>1턴에 1번, 자신 엔드 페이즈에, 자신 묘지에 몬스터가 1장 이상 존재하고, 자신의 묘지와 자신 필드의 몬스터가 전부 같은 레벨일 경우, 그 레벨의 몬스터 1장을 패에서 특수 소환한다.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>캐릭터</em><h3>캐릭터 팩과 로드아웃</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>패러독스 형제</b>새 레어: <b>가디언 엔젤 잔느, 타이란트 드래곤, 길포드 더 라이트닝, 자칼의 성전사, 가변기수 간나드래곤, 화염 제왕 테스탈로스</b>, <b>땅의 제왕 그란마그</b>. 새 커먼: 트라이혼 드래곤, 킬러 스네이크, 킬러 토마토, 자이언트 바이러스, 재빠른 날다람쥐, 그리고 새 카드 <b>사황제의 능묘</b>. <i>약한 카드 57장 제외: 융합 연쇄, 하피, 얼티밋 인섹트 계열.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>다츠</b>이제 <b>제외</b> 팩입니다: <b>다크 네크로피어, 카오스 엔드, 원초의 종, 말살의 사도, 이차원 격리장치</b>, 이차원의 야수, 디멘션 포드 등, 그리고 제외용 약한 빛·어둠 일반 몬스터. <i>물 속성과 바다 카드는 빠졌습니다.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>조앤</b><b>블랙 데몬즈 드래곤</b>와 <b>메테오 블랙 드래곤</b>가 그녀의 팩에 추가되고, 소재인 붉은 눈의 흑룡, 데몬 소환, 메테오 드래곤도 들어갑니다.</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>바크라</b><b>듀얼리스트의 카탈로그</b>로 시작: 상점에 캐릭터 팩이 나올 수 있습니다. 두 번째 로드아웃 <b>행운의 총아</b>는 <b>무작위 캐릭터 한 명의 팩 4개</b>를 열고 <b>그 팩의 아키타입</b> 유물로 시작합니다.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>밸런스</em><h3>유물 확률과 런</h3>
+<div class="pn0_2_38-bal">
+<div><h4>유물 확률</h4><ul>
+<li><span>◆</span><span><b>아키타입 유물</b>(아마조네스의 군기, 툰 월드 등)은 해당 카드를 하나 가지면 나오고, <b>덱에 있는 장수마다</b> 훨씬 자주 나옵니다.</span></li>
+<li><span>◆</span><span><b>특정 카드</b>용 유물(게이트의 부름, 검은 혼돈의 의식 등)은 그 카드가 없는 동안 더 드물게 나옵니다.</span></li>
+<li><span>◆</span><span><b>듀얼리스트의 카탈로그</b>는 더 이상 희귀하지 않습니다. 속성 유물을 가져도 다른 속성 유물이 줄지 않습니다.</span></li>
+<li><span>◆</span><span><b>★</b> 표시는 가지고 있지만 덱에 없는 카드에만 적용됩니다.</span></li>
+</ul></div>
+<div><h4>런</h4><ul>
+<li><span>◆</span><span><b>도전 레벨 3</b>부터는 그 캐릭터로 해당 레벨을 깨기 전까지 무작위 팩과 절대 무작위이 나오지 않습니다.</span></li>
+<li><span>◆</span><span>첫 듀얼의 덱에 <b>더스트 토네이도, 마법 제거, 함정 해제</b>이 들어가 보상으로 얻을 수 있습니다.</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>언어</em><h3>모든 곳 번역</h3>
+<p class="pn0_2_38-lead">카드의 <b>선택 버튼</b>, 마우스오버 텍스트, <b>런 시트</b>, 팩 이름과 설명, 캐릭터 이름, 소환 방식 표시가 모두 8개 언어로 나옵니다. 일부 선택지가 <b>잘못된 공식 문구</b>(쇠사슬 부메랑 등)를 보여 주던 것도 고쳤습니다.</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>변경 사항</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>종언의 카운트 다운</b>은 턴 표시 아래에 남은 턴 <span class="pn0_2_38-chip">⌛ 3</span>을 보여 주고, 새 <b>불꽃 피날레</b>로 승리하며, 장기전 페널티 없이 최소 <b>300코인</b>을 줍니다.</span></li>
+<li><span>🗂️</span><span>런 시트에서 <b>같은 카드 사본</b>이 함께 묶이고, 긴 저주 목록은 넘치지 않고 줄바꿈됩니다.</span></li>
+<li><span>🌈</span><span>무작위 카드의 <b>효과 텍스트</b>에 옅은 무지개색이 들어갑니다.</span></li>
+<li><span>🔤</span><span><b>죽음의 메시지</b> 카드가 TCG 일러스트로 바뀌어 글자가 FINAL이 됩니다.</span></li>
+<li><span>🤝</span><span>태그 덱 편집의 <span class="pn0_2_38-trade">교환 0/2</span> 버튼이 눈에 잘 띕니다.</span></li>
+<li><span>⏎</span><span>검색창에서 <b>Enter</b>를 누르면 검색합니다.</span></li>
+<li><span>🃏</span><span>카드 창 버튼이 좁은 휴대폰에도 맞고, 새 런 창에는 <b>"저장 슬롯을 고르세요"</b>이라고 나옵니다.</span></li>
+</ul></div>
+<div><h2>수정</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>드래곤 지배자의 칙령</b> 같은 유물이 이제 태그 파트너의 카드에도 적용됩니다.</span></li>
+<li><span>🛡️</span><span>CPU가 <b>변경의 대현자</b>으로 자기 장착 카드를 파괴하지 않습니다.</span></li>
+<li><span>💤</span><span>공격이 더 강한 몬스터로 옮겨질 경우 CPU가 <b>환영의 요정</b>를 공격하지 않습니다.</span></li>
+<li><span>⏱️</span><span>게임으로 돌아왔을 때 "CPU가 움직이지 않음"이 잘못 뜨지 않습니다.</span></li>
+<li><span>🌀</span><span><b>마하라기</b>의 공개 창에 체인의 마지막 카드 이름이 나오지 않습니다.</span></li>
+<li><span>🎲</span><span>무작위 카드 버튼이 "효과 처리" 대신 무엇을 하는지 보여 줍니다.</span></li>
+<li><span>📋</span><span>도전 레벨 1에 "이전 모든 수정치 포함"이 더 이상 나오지 않습니다.</span></li>
+</ul></div>
+</section></div>

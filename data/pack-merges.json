@@ -48,10 +48,5 @@
     "canonical": "WC4-23",
     "merge": ["WC4-24"],
     "reason": "Purple Millennium Puzzle is contained in Eye of Wdjat"
-  },
-  {
-    "canonical": "DRAFT-YAMI-YUGI",
-    "merge": ["DRAFT-YUGI-MUTO"],
-    "reason": "Near-duplicate Yugi character pack pools"
   }
 ]

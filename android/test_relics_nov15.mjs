@@ -1,5 +1,5 @@
 // The relics added on 2026-11-15 from the Discord review, in real-core duels: Magician's Bond, Blue-Eyes Radiance, Master and
-// Apprentice, Black Chaos Rite, Dragon Lord's Decree, Twin Eyes, Dragon Blood Fusion, Titan's Charge and the cursed relic
+// Apprentice, Black Chaos Rite, Dragon Lord's Decree, Twin Eyes, Dragon Blood Fusion, Titan's Charge and the shadow relic
 // Poison of the Old Man; also copies the CPU gets from Relic Mirror. Prices, shop rules, weights and translations are in
 // tools/test_relics_nov15.py.
 import fs from 'node:fs';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';

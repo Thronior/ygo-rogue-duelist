@@ -206,8 +206,26 @@
     ]
   },
   "Yugi Muto": {
+    "rare": [
+      "Sanwitch",
+      "Gold Sarcophagus",
+      "Horus the Black Flame Dragon LV6",
+      "Horus the Black Flame Dragon LV8",
+      "Armed Dragon LV5",
+      "Armed Dragon LV7"
+    ],
     "common": [
-      "Stronghold the Moving Fortress"
+      "Stronghold the Moving Fortress",
+      "Horus the Black Flame Dragon LV4",
+      "Armed Dragon LV3",
+      "Jar of Greed",
+      "Upstart Goblin",
+      "Reload",
+      "Smashing Ground",
+      "Tribute to the Doomed",
+      "Trap Hole",
+      "Sakuretsu Armor",
+      "Book of Moon"
     ]
   },
   "Shadi": {

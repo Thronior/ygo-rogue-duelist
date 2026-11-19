@@ -7,13 +7,18 @@
 // - Stylesheet backgrounds and masks (the shop interior, field-spell placeholder, CSS icons) get one override rule each.
 // - Inline <svg> icons are drawn once into a hard-edged bitmap; single-colour ones become a mask over currentColor, so
 //   hover and active colours still apply.
-// - Background videos are copied into a one-sixth-resolution canvas eight times a second (the clip itself runs underneath).
-const BLOCK=3,ICON_BLOCK=2,VIDEO_BLOCK=6,VIDEO_FPS=8,MIN_BOX=12,MAX_CACHE=900;
-const SIZES=[6,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,256,320];
+// - Background videos are copied into a half-resolution canvas eight times a second (the clip itself runs underneath).
+// One block size for pictures, icons and clips (user, 2026-11-19: a finer grid, the same everywhere; it was 3 for
+// pictures and 6 for clips, so backgrounds looked far coarser than cards).
+const BLOCK=2,ICON_BLOCK=2,VIDEO_BLOCK=2,VIDEO_FPS=8,MIN_BOX=12,MAX_CACHE=900;
+// Card pictures in the deck editor (solo, Tag and Draft share .draft-card-scroll) are left smooth.
+const SMOOTH='.draft-card-scroll';
+const SIZES=[6,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,256,320,384,448,512,640];
 let on=false,mutations=null,visible=null,running=0;
 const cache=new Map(),pending=new Map(),ours=new Map(),lastSize=new Map(),queue=[],videos=new Map();
-// Pictures already drawn as pixel art (assets/icons/pixel) are left alone.
-const skip=src=>!src||ours.has(src)||/\/pixel\//.test(src);
+// Pictures already drawn as pixel art (assets/icons/pixel) are left alone, and so are the language flags
+// (assets/i18n/flags, user 2026-11-19: flags stay smooth everywhere).
+const skip=src=>!src||ours.has(src)||/\/pixel\/|\/flags\//.test(src);
 const bucket=px=>SIZES.find(s=>s>=px)||SIZES.at(-1);
 const blockFor=box=>Math.max(box.width,box.height)<=48?ICON_BLOCK:BLOCK;
 const urlsIn=text=>[...String(text).matchAll(/url\((['"]?)([^'")]+)\1\)/g)].map(m=>m[2]);
@@ -164,6 +169,9 @@ function measured(el,box){
  if(el instanceof SVGSVGElement){measureIcon(el,box);return}
  if(el instanceof HTMLImageElement){
   const current=el.getAttribute('src')||'',src=ours.has(current)?el.dataset.pixOrig:current;if(!src||skip(src))return;
+  // Deck editor cards stay smooth (user, 2026-11-19: pixelated card text was unreadable). Not measured here, so they
+  // neither set a rule's size nor get their own copy; mobile.css undoes the shared rules (.draft-card-scroll).
+  if(el.closest(SMOOTH))return;
   const size=sizeOf(box),rule=rules.get(src);
   if(!rule||size*1.4<rule.size)request(src,box).then(url=>addRule(src,url,size),()=>{});
   else if(size>rule.size*1.4){el.dataset.pixOrig=src;request(src,box).then(url=>setImage(el,url),()=>{})}

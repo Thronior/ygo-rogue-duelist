@@ -8,7 +8,7 @@
 // Prompt audit (2026-11-18): every string the end-of-run card draws on its canvas, the randomized cards' option texts
 // and activation labels (and that each randomizer.lua prompt names a text), the defeat reasons and the pack summaries.
 // Usage: runtime/ai/node.exe tools/i18n/check_coverage.mjs [--list]   (--list prints every checked string)
-import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';
+import fs from 'node:fs';import path from 'node:path';import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),web=path.join(root,'android/web');
 const LANGS=['de','es','fr','it','ja','ko','pt','zh'];
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
@@ -206,7 +206,8 @@ const lossReasons=new Map();
 
 // Pack hover summaries (experience-ui.js packSummary): one text run per pack, translated by generated {0} patterns
 // (add_nov18_pack_summary_terms.mjs). A pack whose cards changed needs that script rerun; this names it.
-const {packSummary}=await import(`data:text/javascript;base64,${Buffer.from(read('android/web/experience-ui.js').replace(/^import .*$/gm,'')).toString('base64')}`);
+// Imported as a module: packSummary reads its pieces from pack-summary.js (2026-11-19).
+const {packSummary}=await import(pathToFileURL(path.join(web,'experience-ui.js')).href);
 const packSummaries=new Map(content.packs.map(p=>[packSummary(content,p.id),`pack ${p.id}`]).filter(([s])=>s));
 
 // ---- Lookup through the real i18n.js --------------------------------------------------------------------------------

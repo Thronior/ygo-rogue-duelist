@@ -22,6 +22,9 @@ export const ACTIVATION_REASONS={
  counter:'Counter Traps can only be activated in response to the specific action they name.',
  generic:'This card’s activation conditions aren’t met right now.',
 };
+// Spell Sanctuary (shadow relic, 2026-11-19): your Spells are activated only once Set, from the next turn on. {0} is the relic.
+const SANCTUARY={hand:'{0}: Spells must be Set before they can be activated.',setTurn:'{0}: Spells can’t be activated the turn they’re Set.'};
+export const SANCTUARY_PATTERNS=SANCTUARY;
 const COST={spell:'Can’t pay the cost: {0} makes activating a Spell cost {1} LP, and you have {2} LP.',trap:'Can’t pay the cost: {0} makes activating a Trap cost {1} LP, and you have {2} LP.'};
 export const ACTIVATION_COST_PATTERNS=COST;
 
@@ -43,7 +46,11 @@ export function activationBlock(info){
   if(m.type===M.SELECT_BATTLECMD&&m.chains?.some(c=>own(c,loc,seq)))return '';
   if(m.type===M.SELECT_CHAIN&&m.selects?.some(c=>own(c,loc,seq)))return '';
  }
- const quick=spell&&!!(T&TYPE_QUICKPLAY),R=ACTIVATION_REASONS;
+ // With Spell Sanctuary, a Set Spell has Quick-Play timing (approved_relic_effects.py, EFFECT_BECOME_QUICK).
+ const sanctuary=spell&&(info.modifiers?.activeRelics?.[0]||[]).includes('cursed_spell_sanctuary'),sanctuaryName=()=>info.relicName?.('cursed_spell_sanctuary')||'Spell Sanctuary';
+ if(sanctuary&&loc===L.HAND)return SANCTUARY.hand.replace('{0}',sanctuaryName());
+ if(sanctuary&&(Number(info.status)&STATUS_SET_TURN))return SANCTUARY.setTurn.replace('{0}',sanctuaryName());
+ const quick=spell&&(!!(T&TYPE_QUICKPLAY)||sanctuary),R=ACTIVATION_REASONS;
  // Card rules first: they hold whatever the timing. A card whose own text makes an exception falls through.
  if(trap&&loc===L.HAND&&!/activate (this card )?(from|in) (your|the) hand/i.test(text))return R.trapInHand;
  // setTurnException: a face-up card of yours lets cards be activated the turn they are Set (Temple of the Kings).

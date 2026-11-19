@@ -1,0 +1,112 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>Mise à jour 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>Corrections importantes</em><h3>Salons et progression en Duel Tag</h3>
+<p class="pn0_2_38-lead">Les <b>salons Tag</b> pouvaient expirer alors que vous y étiez encore, par exemple pendant l'édition du deck ou avec le jeu dans un onglet en arrière-plan. Un salon reste désormais tant que quelqu'un s'y trouve.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">La <b>progression en Duel Tag</b> (victoires, niveaux de défi, protège-cartes) est enregistrée tout de suite, même si vous fermez le jeu sans appuyer sur Quitter.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">L'erreur de l'<b>éditeur de deck</b> rencontrée par certains en 0.2.37 est corrigée.</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>Nouveau</em><h3>Paramètres du personnage</h3>
+<p class="pn0_2_38-lead">Touchez la <span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span> d'un personnage, ou ouvrez <b>Paramètres › Personnage</b> en duel.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Marques de cartes enregistrées</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span> s'appliquent à chaque nouvelle partie avec ce personnage, aussi en Duel Tag. Choisissez des cartes dans <b>toute votre collection ou un booster</b>.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Garder les marques des parties</b> conserve les marques posées en jouant.</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>Nouvel adversaire</em><h3>PaniK</h3>
+<p class="pn0_2_38-lead"><b>PaniK</b> rejoint les adversaires avec un deck <b>Le Livre de la Vie / Vampires</b> au Palier 3 et un nouveau deck Infini.</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">Adversaires CPU</em></p>
+<p class="pn0_2_38-lead">Nous avons comparé <b>37 000 tours de joueurs</b> aux choix de la CPU. Elle garde désormais ses Tributs quand une attaque de Niveau 4 fait plus mal, utilise <b>Raigeki et Trou Noir</b> pour ouvrir le coup fatal, tire avec <b>Chasseur de Précision</b>, choisit des coups fatals plus sûrs contre les cartes face cachée et compte les doubles attaques.</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>Reliques</em><h3>Reliques nouvelles et revues</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>Trio Jin</b>Vos « Sanga du Tonnerre », « Kazejin » et « Suijin » gagnent des effets selon le nombre d'entre eux que vous contrôlez. 1 ou plus : Lorsque l'un d'eux attaque un monstre de votre adversaire, l'ATK de ce monstre devient 0 durant la Damage Step, jusqu'à la End Phase. 2 ou plus : Une fois par tour chacun, durant le tour de votre adversaire, lorsque votre adversaire active un effet de monstre ou une Carte Magie, vous pouvez annuler cet effet, puis renvoyer cette carte dans la main. 3 : Une fois par tour, vous pouvez Invoquer Spécialement « Gardien de la Porte » depuis votre Deck, en ignorant ses conditions d'Invocation.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>Combinaison Ultime de la Porte</b><i>Relique fusionnée.</i> Au début de chaque Duel, ajoutez « Sanga du Tonnerre », « Kazejin » et « Suijin » à votre main. Vos « Gardien de la Porte », « Sanga du Tonnerre », « Kazejin » et « Suijin » gagnent ces effets, quoi que vous contrôliez d'autre : Lorsqu'il attaque un monstre de votre adversaire, l'ATK de ce monstre devient 0 durant la Damage Step, jusqu'à la End Phase. Une fois par tour chacun, durant le tour de votre adversaire, lorsque votre adversaire active un effet de monstre ou une Carte Magie, vous pouvez annuler cet effet, puis renvoyer cette carte dans la main. Une fois par tour, vous pouvez Invoquer Spécialement « Gardien de la Porte » depuis votre Deck, en ignorant ses conditions d'Invocation.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>Pacte du Berserker</b>Les monstres que vous contrôlez peuvent effectuer 1 attaque de plus durant chaque Battle Phase qu'ils ne le pourraient autrement. Vous ne pouvez pas Poser de monstres ni les Invoquer Spécialement en Position de Défense.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>Étoiles Alignées</b>Une fois par tour, durant votre End Phase, si vous avez au moins 1 monstre dans votre Cimetière et que tous les monstres dans votre Cimetière et sur votre Terrain ont le même Niveau : Invoquez Spécialement 1 monstre de ce Niveau depuis votre main.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>Personnages</em><h3>Boosters et équipements des personnages</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>Frères Paradox</b>Nouvelles rares : <b>Ange-Gardien Joan, Dragon Tyran, Gilford, L'Éclair, Chevalier Mystique du Chacal, Dragon Fusilier, la Bête Bi-Modale, Thestalos, le Monarque de la Tempête de Feu</b> et <b>Grandmarg le Monarque des Roches</b>. Nouvelles communes : Dragon à Trois Cornes, Serpent Sinistre, Tomate Mystique, Germe Géant, Momonga Agile et une nouvelle carte, <b>Mausolée de l'Empereur</b>. <i>57 cartes faibles partent : chaînes de Fusion, les Harpies et la lignée de l'Insecte Ultime.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>Dartz</b>Désormais un booster de <b>bannissement</b> : <b>Necrofear des Ténèbres, Fin du Chaos, Germe Primitif, Seigneur de la Suppression, Barrière vers une Autre Dimension</b>, Bête Folle D.D., Jarre Dimensionnelle et d'autres, plus de faibles monstres Normaux LUMIÈRE et TÉNÈBRES à bannir. <i>Les cartes EAU et Umi partent.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>Serenity</b><b>Dragon Crâne Noir</b> et <b>Dragon Noir Météore</b> rejoignent son booster, avec leurs matériels Dragon Noir aux Yeux Rouges, Crâne Invoqué et Dragon Météore.</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>Ryou Bakura</b>Commence avec <b>Catalogue du Duelliste</b> : les boosters de personnage peuvent apparaître en boutique. Son second équipement, <b>Favori de la Fortune</b>, ouvre <b>4 exemplaires du booster d'un personnage au hasard</b> et commence avec une relique pour un <b>archétype de ce booster</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Équilibrage</em><h3>Chances des reliques et parties</h3>
+<div class="pn0_2_38-bal">
+<div><h4>Chances des reliques</h4><ul>
+<li><span>◆</span><span>Les <b>reliques d'archétype</b> (Étendard Amazonesse, Monde des Toons…) apparaissent dès que vous possédez une de leurs cartes, et bien plus souvent <b>pour chacune dans votre deck</b>.</span></li>
+<li><span>◆</span><span>Les reliques de <b>cartes précises</b> (Appel de la Porte, Rite du Chaos Noir…) sont plus rares tant que vous n'avez pas ces cartes.</span></li>
+<li><span>◆</span><span><b>Catalogue du Duelliste</b> n'est plus rare. Posséder une relique d'Attribut ne réduit plus les autres.</span></li>
+<li><span>◆</span><span>Les marques <b>★</b> ne comptent que pour les cartes que vous possédez et qui ne sont pas dans votre deck.</span></li>
+</ul></div>
+<div><h4>Parties</h4><ul>
+<li><span>◆</span><span>Dès le <b>niveau de défi 3</b>, les Boosters aléatoires et Hasard Absolu n'apparaissent qu'une fois ce niveau battu avec ce personnage.</span></li>
+<li><span>◆</span><span>Les decks du premier duel contiennent désormais <b>Tornade de Poussière, Exorcisme et Piège Supprimé</b>, qui peuvent donc tomber en récompense.</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Langues</em><h3>Traduit partout</h3>
+<p class="pn0_2_38-lead">Tous les <b>boutons d'option</b> des cartes, les infobulles, la <b>fiche de partie</b>, les noms et descriptions des boosters, les noms des personnages et les types d'invocation sont désormais dans les 8 langues. Certaines options affichaient le <b>mauvais texte officiel</b> (comme Kunai avec Chaîne) et sont corrigées.</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>Changements</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>Compte à Rebours Final</b> affiche les tours restants <span class="pn0_2_38-chip">⌛ 3</span> sous le compteur de tours, gagne avec un nouveau <b>final de flammes</b> et rapporte au moins <b>300 pièces</b> sans pénalité de duel lent.</span></li>
+<li><span>🗂️</span><span>La fiche de partie regroupe les <b>copies d'une même carte</b>, et une longue liste de malédictions passe à la ligne au lieu de déborder.</span></li>
+<li><span>🌈</span><span>Les cartes aléatoires ont un léger arc-en-ciel sur leur <b>texte d'effet</b>.</span></li>
+<li><span>🔤</span><span>Les cartes <b>Message Spirituel</b> affichent l'illustration TCG : les lettres forment FINAL.</span></li>
+<li><span>🤝</span><span>Le bouton <span class="pn0_2_38-trade">Échange 0/2</span> de l'éditeur de deck Tag ressort mieux.</span></li>
+<li><span>⏎</span><span><b>Entrée</b> dans une zone de recherche lance la recherche.</span></li>
+<li><span>🃏</span><span>Les boutons de la fenêtre de carte tiennent sur les téléphones étroits ; la fenêtre de nouvelle partie indique <b>« Choisissez un emplacement de sauvegarde »</b>.</span></li>
+</ul></div>
+<div><h2>Corrections</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>Décret du Seigneur des Dragons</b> et les reliques semblables touchent désormais les cartes de votre partenaire Tag.</span></li>
+<li><span>🛡️</span><span>La CPU ne détruit plus ses propres équipements avec <b>Le Sage de la Frontière</b>.</span></li>
+<li><span>💤</span><span>La CPU n'attaque plus <b>Lutin Onirique</b> quand l'attaque serait redirigée vers un monstre plus fort.</span></li>
+<li><span>⏱️</span><span>Plus de faux signalement « la CPU ne joue pas » au retour dans le jeu.</span></li>
+<li><span>🌀</span><span>La révélation de <b>Maharaghi</b> ne nomme plus la dernière carte de la chaîne.</span></li>
+<li><span>🎲</span><span>Les boutons des cartes aléatoires disent ce qu'ils font au lieu de « Résoudre l'effet ».</span></li>
+<li><span>📋</span><span>Le niveau de défi 1 n'affiche plus « Inclut tous les modificateurs précédents ».</span></li>
+</ul></div>
+</section></div>

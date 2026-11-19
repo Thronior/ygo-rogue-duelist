@@ -55,7 +55,7 @@ def description(key,info,previous):
  'like_ritual':'Ritual Monsters and Ritual Spells appear more often in shops.',
  'like_fusion':'Fusion Monsters, "Polymerization", and "Fusion Sage" appear more often in shops.',
  'phoenix':f'Once per Duel, if your LP become 0, your LP become {n(a)} instead and you do not lose the Duel for having 0 LP. After this effect is applied, this relic is consumed.',
- 'cursed_pick':'You can select a second cursed relic after each boss fight.',
+ 'cursed_pick':'You can select a second shadow relic after each boss fight.',
  'bounty_list':'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.',
  'glass':f'Your starting LP become {n(a)} in each Duel, before boss LP penalties. {coins} your victory coin rewards.',
  'spyglass':"Reveals opponent portraits and lets you view their decks on the opponent-selection screen.",

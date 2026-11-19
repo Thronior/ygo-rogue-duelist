@@ -1,0 +1,112 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>Update 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>Important fixes</em><h3>Tag rooms and Tag progress</h3>
+<p class="pn0_2_38-lead"><b>Tag rooms</b> could expire while you were still in them, for example while editing your deck or with the game in a background tab. A room now stays as long as anyone is in it.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Tag progress</b> (wins, Challenge Levels, sleeves) is saved right away, even if you close the game without pressing Exit.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">The <b>deck editor</b> error some players got in 0.2.37 is fixed.</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>New</em><h3>Character settings</h3>
+<p class="pn0_2_38-lead">Tap the <span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span> on a character, or open <b>Settings › Character</b> in a duel.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Saved card marks</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span> start every new run with that character, also in Tag. Pick cards from your <b>whole collection or one pack</b>.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Save marks from runs</b> keeps the marks you set while playing.</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>New opponent</em><h3>PaniK</h3>
+<p class="pn0_2_38-lead"><b>PaniK</b> joins the opponents with a <b>Book of Life / Vampire</b> deck at Tier 3 and a new Endless deck.</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">CPU opponents</em></p>
+<p class="pn0_2_38-lead">We compared <b>37,000 player turns</b> with the CPU's choices. It now keeps Tributes when a Level 4 attack hits harder, uses <b>Raigeki and Dark Hole</b> to open lethal, snipes with <b>Snipe Hunter</b>, picks safer lethal lines into face-down cards and counts double attackers.</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>Relics</em><h3>New relics and reworks</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>Jin Trio</b>Your "Sanga of the Thunder", "Kazejin" and "Suijin" gain effects for each of them you control. 1 or more: When one of them attacks an opponent's monster, that monster's ATK becomes 0 in the Damage Step, until the End Phase. 2 or more: Once per turn each, during your opponent's turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. 3: Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>Ultimate Gate Combination</b><i>Fused relic.</i> At the start of each Duel, add "Sanga of the Thunder", "Kazejin" and "Suijin" to your hand. Your "Gate Guardian", "Sanga of the Thunder", "Kazejin" and "Suijin" gain these effects, whatever else you control: When it attacks an opponent's monster, that monster's ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent's turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>Berserker's Pact</b>Monsters you control can make 1 more attack during each Battle Phase than they otherwise could. You cannot Set monsters or Special Summon them in Defense Position.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>Stars Aligned</b>Once per turn, during your End Phase, if you have at least 1 monster in your GY and all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>Characters</em><h3>Character packs and loadouts</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>Paradox Brothers</b>New rares: <b>Guardian Angel Joan, Tyrant Dragon, Gilford the Lightning, Mystical Knight of Jackal, Fusilier Dragon, Thestalos</b> and <b>Granmarg</b>. New commons: Tri-Horned Dragon, Sinister Serpent, Mystic Tomato, Giant Germ, Nimble Momonga and a new card, <b>Mausoleum of the Emperor</b>. <i>57 weak cards are out: Fusion chains, the Harpies and the Ultimate Insect line.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>Dartz</b>Now a <b>banish</b> pack: <b>Dark Necrofear, Chaos End, Primal Seed, Nobleman of Crossout, Different Dimension Gate</b>, D.D. Crazy Beast, Dimension Jar and more, plus weak LIGHT and DARK Normal monsters to banish. <i>The WATER and Umi cards are out.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>Serenity</b><b>Black Skull Dragon</b> and <b>Meteor Black Dragon</b> join her pack, with their materials Red-Eyes Black Dragon, Summoned Skull and Meteor Dragon.</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>Ryou Bakura</b>Starts with <b>Duelist's Catalogue</b>: character packs can appear in the shop. His second loadout, <b>Fortune's Favorite</b>, opens <b>4 copies of one random character's pack</b> and starts with a relic for an <b>archetype in that pack</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Balance</em><h3>Relic odds and runs</h3>
+<div class="pn0_2_38-bal">
+<div><h4>Relic odds</h4><ul>
+<li><span>◆</span><span><b>Archetype relics</b> (Amazoness Standard, Toon World…) appear once you own one of their cards, and much more often <b>for every one in your Deck</b>.</span></li>
+<li><span>◆</span><span>Relics for <b>specific cards</b> (Gate Calling, Black Chaos Rite…) are rarer while you don't own those cards.</span></li>
+<li><span>◆</span><span><b>Duelist's Catalogue</b> is no longer rare. Owning an Attribute relic no longer lowers the others.</span></li>
+<li><span>◆</span><span><b>★</b> marks count only for cards you own that aren't in your Deck.</span></li>
+</ul></div>
+<div><h4>Runs</h4><ul>
+<li><span>◆</span><span>From <b>Challenge LVL 3</b>, Random Packs and Absolute Random appear only once that character has beaten that level.</span></li>
+<li><span>◆</span><span>The first duel's decks now hold <b>Dust Tornado, De-Spell and Remove Trap</b>, so they can drop as rewards.</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Languages</em><h3>Translated everywhere</h3>
+<p class="pn0_2_38-lead">Every card's <b>option buttons</b>, every hover text, the <b>run sheet</b>, pack names and descriptions, character names and summon labels are now in all 8 languages. Some options showed the <b>wrong official wording</b> (like Kunai with Chain) and are fixed.</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>Changes</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>Final Countdown</b> shows the <span class="pn0_2_38-chip">⌛ 3</span> turns left under the turn counter, wins with a new <b>flame finale</b>, and pays at least <b>300 coins</b> with no slow duel penalty.</span></li>
+<li><span>🗂️</span><span>The run sheet groups <b>copies of the same card</b>, and a long curse list wraps instead of spilling out.</span></li>
+<li><span>🌈</span><span>Randomized cards get a faint rainbow over their <b>effect text</b>.</span></li>
+<li><span>🔤</span><span>The <b>Spirit Message</b> cards show the TCG art, so the letters spell FINAL.</span></li>
+<li><span>🤝</span><span>The <span class="pn0_2_38-trade">Trade 0/2</span> button in the Tag deck builder stands out.</span></li>
+<li><span>⏎</span><span><b>Enter</b> in a search box runs the search.</span></li>
+<li><span>🃏</span><span>The card window's buttons fit narrow phones; the new-run window says <b>"Choose a save slot"</b>.</span></li>
+</ul></div>
+<div><h2>Fixes</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>Dragon Lord's Decree</b> and similar relics now reach your Tag partner's cards.</span></li>
+<li><span>🛡️</span><span>The CPU no longer destroys its own equips with <b>Frontier Wiseman</b>.</span></li>
+<li><span>💤</span><span>The CPU no longer attacks into <b>Dreamsprite</b> when the attack would be moved onto a stronger monster.</span></li>
+<li><span>⏱️</span><span>No false "CPU made no move" report after returning to the game.</span></li>
+<li><span>🌀</span><span><b>Maharaghi</b>'s reveal no longer names the last card on the chain.</span></li>
+<li><span>🎲</span><span>Randomized cards' buttons say what they do instead of "Resolve effect".</span></li>
+<li><span>📋</span><span>Challenge LVL 1 no longer says "Includes all previous modifiers".</span></li>
+</ul></div>
+</section></div>

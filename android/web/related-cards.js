@@ -9,7 +9,7 @@ const key=s=>String(s).trim().toLowerCase();
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
 // EDOPro IsSetCard: the base archetype (low 12 bits) must match, and any sub-archetype bits must be present.
-const inSet=(set,code)=>(code&0xfff)===(set&0xfff)&&(code&set)===set;
+export const inSet=(set,code)=>(code&0xfff)===(set&0xfff)&&(code&set)===set;
 
 let cached=null;
 export function relatedIndex(cards,archetypes=[]){

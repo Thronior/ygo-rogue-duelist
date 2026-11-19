@@ -108,6 +108,10 @@ def sync():
  for card in custom_cards.CARDS:
   engine_data[str(card['id'])]=card['data']
   scripts[f'c{card["id"]}.lua']=(ROOT/f'runtime/script/custom/c{card["id"]}.lua').read_text(encoding='utf8')
+ # Cards always treated as an archetype's card (data/card-archetype-rules.json): the engine reads the setcodes that
+ # campaign_expansion.install gave the card (Dark Sage is a "Dark Magician" card, 2026-11-19).
+ for cid in json.loads((ROOT/'data/card-archetype-rules.json').read_text(encoding='utf8'))['cards']:
+  engine_data[cid]['setcodes']=list(game.BY_ID[int(cid)]['data']['setcodes'])
  (WEB/'engine-data.json').write_text(json.dumps(engine_data,ensure_ascii=False),encoding='utf8')
  (WEB/'scripts.json').write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  # Card assets include all pool cards, every token and the menu's decorative cards.

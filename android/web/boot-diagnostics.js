@@ -1,9 +1,16 @@
 // Startup diagnostics for "Could not start: Program terminated with exit(1)" (Discord, 2026-11-17: Redmi Note 12 in the
-// APK and Kiwi, and another phone in Chrome). Python stopped in init_fs_encoding with "no codec search functions
-// registered", which means it could not import `encodings` from python_stdlib.zip. The APK serves that file from its
-// own assets, so a bad download alone cannot explain it. These checks show which part fails:
+// APK and Kiwi, and another phone in Chrome; 2026-11-19: Android 14 WebView, Chrome 157). Python stopped in
+// init_fs_encoding with "LookupError: no codec search functions registered".
+// Cause (reproduced in Node, 2026-11-19): that exact message means `encodings` was imported as an empty namespace
+// package. Python's list of the zip held the `encodings/` directory entry (7th in the zip) but not
+// `encodings/__init__.py` (248th): Python 3.12's zipimport (_read_directory) stops without an error at the first central
+// directory record it cannot read. A missing or unreadable zip gives "No module named 'encodings'" instead. The zip checks
+// out in those reports, so the bytes go wrong between JavaScript and Python's reads on those devices.
 // - checkStdlib fetches the zip itself, checks it is a complete ZIP holding `encodings`, and hands Pyodide those bytes.
-//   If the check passes and Python still fails, the zip is ruled out.
+// - prepareStdlib: on the automatic retry (and from then on, once that has worked on this device) the checked zip is
+//   unpacked by the browser's own DecompressionStream into a plain folder, /lib/python3.12, and Pyodide gets an empty
+//   zip, so Python reads its standard library as plain files, without zipimport or its zlib. After a zip-mode failure
+//   it compares Python's copy of the zip with the checked bytes, for the details.
 // - details() is the text behind the error screen's Copy details button, for Discord reports.
 // - retryOnce() restarts once on its own (saves are untouched).
 const RETRY_KEY='ygo-boot-retry';
@@ -23,13 +30,72 @@ export function inspectZip(buffer){
  const entries=u16(b,end+10),dirSize=u32(b,end+12),dirStart=u32(b,end+16);
  if(dirStart+dirSize!==end||u32(b,dirStart)!==0x02014b50)return {ok:false,size:n,entries,problem:'damaged ZIP directory'};
  let encodings=false;
- for(let i=dirStart,k=0;k<entries&&i+46<=end;k++){
-  if(u32(b,i)!==0x02014b50)return {ok:false,size:n,entries,problem:'damaged ZIP directory'};
-  const nameLength=u16(b,i+28),name=new TextDecoder().decode(b.subarray(i+46,i+46+nameLength));
-  if(name.startsWith('encodings/'))encodings=true;
-  i+=46+nameLength+u16(b,i+30)+u16(b,i+32);
+ for(const entry of directory(b,dirStart,end,entries)){
+  if(!entry)return {ok:false,size:n,entries,problem:'damaged ZIP directory'};
+  if(entry.name.startsWith('encodings/'))encodings=true;
  }
  return encodings?{ok:true,size:n,entries}:{ok:false,size:n,entries,problem:'no encodings module'};
+}
+
+// Central directory records; null for a damaged one, which ends the walk.
+function* directory(b,dirStart,end,entries){
+ const text=new TextDecoder();
+ for(let i=dirStart,k=0;k<entries&&i+46<=end;k++){
+  if(u32(b,i)!==0x02014b50){yield null;return}
+  const nameLength=u16(b,i+28);
+  yield {name:text.decode(b.subarray(i+46,i+46+nameLength)),method:u16(b,i+10),crc:u32(b,i+16),packed:u32(b,i+20),size:u32(b,i+24),offset:u32(b,i+42)};
+  i+=46+nameLength+u16(b,i+30)+u16(b,i+32);
+ }
+}
+
+// Pyodide 0.27.7 runs Python 3.12 (test_boot_diagnostics.mjs checks pyodide-lock.json).
+export const STDLIB_DIR='/lib/python3.12',STDLIB_ZIP='/lib/python312.zip';
+// End-of-central-directory record only: Python opens it, finds nothing and reads /lib/python3.12 instead. Served as a
+// blob: URL, which index.html's connect-src allows (data: is not).
+const EMPTY_ZIP=new Uint8Array([0x50,0x4b,5,6,...new Array(18).fill(0)]);
+const UNPACKED_KEY='ygo-stdlib-unpacked';
+
+// Every file of a checked zip as [name, bytes]. Deflated entries are wrapped as gzip members, so DecompressionStream
+// ('gzip', Chrome 80+) inflates them natively and checks their CRC-32 and size on the way.
+export async function unpackStdlib(buffer,{Stream=globalThis.DecompressionStream}={}){
+ if(typeof Stream!=='function')throw Error('DecompressionStream not available');
+ const b=new Uint8Array(buffer),n=b.length;
+ let end=-1;for(let i=n-22;i>=Math.max(0,n-65557);i--)if(u32(b,i)===0x06054b50){end=i;break}
+ if(end<0)throw Error('no ZIP directory');
+ const files=[];
+ for(const entry of directory(b,u32(b,end+16),end,u16(b,end+10))){
+  if(!entry)throw Error('damaged ZIP directory');
+  if(entry.name.endsWith('/'))continue;
+  const at=entry.offset;if(u32(b,at)!==0x04034b50)throw Error('bad local header: '+entry.name);
+  const start=at+30+u16(b,at+26)+u16(b,at+28),packed=b.subarray(start,start+entry.packed);
+  let data;
+  if(entry.method===0)data=packed.slice();
+  else if(entry.method===8){
+   const gzip=new Uint8Array(packed.length+18),view=new DataView(gzip.buffer);
+   gzip.set([0x1f,0x8b,8,0,0,0,0,0,0,255]);gzip.set(packed,10);
+   view.setUint32(packed.length+10,entry.crc,true);view.setUint32(packed.length+14,entry.size,true);
+   data=new Uint8Array(await new Response(new Blob([gzip]).stream().pipeThrough(new Stream('gzip'))).arrayBuffer());
+  }else throw Error(`compression ${entry.method}: ${entry.name}`);
+  if(data.length!==entry.size)throw Error('wrong size: '+entry.name);
+  files.push([entry.name,data]);
+ }
+ if(!files.some(([name])=>name==='encodings/__init__.py'))throw Error('no encodings module');
+ return files;
+}
+
+export function writeStdlib(FS,files){
+ for(const [name,data] of files){
+  const path=`${STDLIB_DIR}/${name}`;FS.mkdirTree(path.slice(0,path.lastIndexOf('/')));FS.writeFile(path,data,{canOwn:true});
+ }
+}
+
+// Python's copy of the zip against the checked bytes, read back from Pyodide's in-memory files after a failed start.
+export function compareCopy(FS,buffer,path=STDLIB_ZIP){
+ let copy;try{copy=FS.readFile(path)}catch{return 'missing'}
+ const original=new Uint8Array(buffer);
+ if(copy.length!==original.length)return `${copy.length} bytes`;
+ for(let i=0;i<original.length;i++)if(copy[i]!==original[i])return `differs at byte ${i}`;
+ return 'same';
 }
 
 // Fetches the zip (bypassing the HTTP cache on the retry) and returns {url,report,release}. With a sound zip, url is a
@@ -43,8 +109,25 @@ export async function checkStdlib(indexURL,{retry=false,fetchImpl=fetch}={}){
   const buffer=await response.arrayBuffer();Object.assign(report,inspectZip(buffer));
   if(!report.ok||typeof URL.createObjectURL!=='function')return {url:null,report,release(){}};
   const url=URL.createObjectURL(new Blob([buffer],{type:'application/zip'}));
-  return {url,report,release(){try{URL.revokeObjectURL(url)}catch{}}};
+  return {url,buffer,report,release(){try{URL.revokeObjectURL(url)}catch{}}};
  }catch(error){report.problem='fetch failed: '+(error?.message||error);return {url:null,report,release(){}}}
+}
+
+// loadPyodide options and the steps around it. Unpacked mode on the automatic retry, or when it has already worked on this
+// device (remembered, so that device skips the failing start and its reload). An unpack failure keeps the zip as before.
+export async function prepareStdlib(indexURL,{retry=false,fetchImpl=fetch,storage=globalThis.localStorage,Stream=globalThis.DecompressionStream}={}){
+ const checked=await checkStdlib(indexURL,{retry,fetchImpl}),report=checked.report;
+ let remembered=false;try{remembered=storage?.getItem(UNPACKED_KEY)==='1'}catch{}
+ let files=null,fs=null;
+ if((retry||remembered)&&checked.url){try{files=await unpackStdlib(checked.buffer,{Stream})}catch(error){report.unpackProblem=String(error?.message||error)}}
+ report.mode=files?'unpacked':'zip';
+ const options={fsInit(FS){fs=FS;if(files)writeStdlib(FS,files)}},empty=files?URL.createObjectURL(new Blob([EMPTY_ZIP],{type:'application/zip'})):null;
+ if(files)Object.assign(options,{stdLibURL:empty,env:{PYTHONDONTWRITEBYTECODE:'1'}});
+ else if(checked.url)options.stdLibURL=checked.url;
+ return {options,report,
+  failed(){if(fs&&!files&&checked.buffer)report.copy=compareCopy(fs,checked.buffer)},
+  started(){if(files)try{storage?.setItem(UNPACKED_KEY,'1')}catch{}},
+  release(){files=null;fs=null;checked.release();if(empty)try{URL.revokeObjectURL(empty)}catch{}}};
 }
 
 // Python's own last lines (Pyodide prints them to stderr) go in the details; console output is unchanged.
@@ -64,6 +147,7 @@ export function details({version,error,zip,stderr=[],nav=globalThis.navigator,na
   `Browser: ${chrome?`Chrome ${chrome}`:'unknown'}${/; wv\)/.test(ua)?' (WebView)':''}${android?` · Android ${android}`:''}`,
   `Device memory: ${nav?.deviceMemory?nav.deviceMemory+' GB':'unknown'}`,
   `Stdlib zip: ${zipLine}${zip?.retry?' · re-downloaded':''}`,
+  ...(zip?.mode?[`Stdlib start: ${zip.mode==='unpacked'?'unpacked folder':'zip'}${zip.copy?` · Python's copy ${zip.copy}`:''}${zip.unpackProblem?` · unpack failed: ${zip.unpackProblem}`:''}`]:[]),
   `Automatic retry: ${retried?'used':'not used'}`,
   `Error: ${error?.message||error||'unknown'}`,
   ...pythonCause(stderr).map(line=>'Python: '+line),

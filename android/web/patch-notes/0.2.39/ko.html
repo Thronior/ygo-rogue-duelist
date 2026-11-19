@@ -1,0 +1,99 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_39,.patch-notes-sheet.pn0_2_39 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_39{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_39 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_39 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_39 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_39 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_39 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big .pn0_2_39-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big>*{position:relative}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big p.pn0_2_39-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way img,.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-relics .pn0_2_39-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-packs .pn0_2_39-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39{font-family:Arial,"Malgun Gothic",sans-serif}
+.patch-notes-sheet.pn0_2_39 h1,.patch-notes-sheet.pn0_2_39 h2,.patch-notes-sheet.pn0_2_39 h4,.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3,.patch-notes-sheet.pn0_2_39 .pn0_2_39-kick,.patch-notes-sheet.pn0_2_39 .pn0_2_39-big em{font-family:Bebas,"Malgun Gothic",sans-serif}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3,.patch-notes-sheet.pn0_2_39 h2,.patch-notes-sheet.pn0_2_39 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_39 h1{font-weight:700}
+.patch-notes-sheet.pn0_2_39{word-break:keep-all}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shot{display:block;width:100%;border:2px solid #b5824a;border-radius:10px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots img{width:100%;border:2px solid #b5824a;border-radius:10px;display:block;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cap{height:0;overflow:hidden;visibility:hidden;font-size:15px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 img+.pn0_2_39-cap{height:auto;visibility:visible;margin-top:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-pmark{display:inline-block;width:21px;height:21px;vertical-align:middle;margin:0 3px}</style><div class="patch-notes-sheet pn0_2_39"><div class="pn0_2_39-kick">YGO Rogue Duelist</div><h1>업데이트 0.2.39</h1>
+
+<section class="pn0_2_39-big" style="margin-top:28px"><em>듀얼 테마</em><h3>픽셀 아트 개편</h3>
+<p class="pn0_2_39-lead">듀얼 중 카드는 이제 <b>카드 색의 평평한 테두리</b> 안에 <b>큰 일러스트</b>가 들어가 한눈에 읽기 쉽습니다. 픽셀 필터는 <b>더 촘촘해져</b> <b>화면 전체</b>에 적용되며, 글자와 국기는 선명하게 유지됩니다. <b>덱 편집기</b>의 카드는 더 이상 픽셀화되지 않으며, 카드 표시는 <b>픽셀 별과 X</b>입니다 <svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ffd76a" d="M3 0h1v2h3v1h-1v1h-1v3h-1v-1h-1v1h-1v-3h-1v-1h-1v-1h3z"/></svg><svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ff6b6b" d="M0 0h2v1h1v1h1v-1h1v-1h2v2h-1v1h-1v1h1v1h1v2h-2v-1h-1v-1h-1v1h-1v1h-2v-2h1v-1h1v-1h-1v-1h-1z"/></svg>.</p>
+<div class="pn0_2_39-shots"><div><div class="pn0_2_39-cap">새 픽셀 아트 테마의 듀얼</div></div>
+<div><div class="pn0_2_39-cap">픽셀 아트 캐릭터 선택</div></div></div></section>
+
+<section class="pn0_2_39-big"><em>듀얼 테마</em><h3>모든 테마의 캐릭터 선택</h3>
+<p class="pn0_2_39-lead">캐릭터 선택 화면이 이제 <b>듀얼 테마</b>에 맞춰 바뀝니다: 건메탈과 금색의 듀얼 디스크, 안개 낀 어둠의 세계, 깔끔한 토너먼트, 천년 석판, 카이바 홀로그램, 그리고 픽셀 아트(위 참고). <b>꾸미기</b>에서 바꿀 수 있습니다.</p>
+</section>
+
+<section class="pn0_2_39-big pn0_2_39-relics"><div class="pn0_2_39-bg" style="background-image:url('assets/cards/46986414.jpg')"></div><em>유물</em><h3>그림자 유물과 흑마술</h3>
+<p class="pn0_2_39-lead"><b>저주받은 유물은 이제 그림자 유물이라고 부릅니다</b>. 보스의 저주와 헷갈리지 않게 하기 위해서이며, 그 밖에는 아무것도 바뀌지 않습니다.</p>
+<div class="pn0_2_39-ways">
+<div class="pn0_2_39-way"><img src="assets/relics/56433456.jpg"><p><b>마법의 성역</b><i>새 그림자 유물.</i> 자신은 상대 턴에 마법 카드를 발동할 수 있다. <i>단점:</i> 자신은 마법 카드를 먼저 세트하지 않으면 발동할 수 없다. 세트한 마법 카드는 세트한 턴에는 발동할 수 없다.</p></div>
+<div class="pn0_2_39-way"><img src="assets/relics/2314238.jpg"><p><b>불멸의 흑마술</b><i>합성 유물: 마법사의 지팡이, 마술사의 인연, 스승과 제자, 검은 혼돈의 의식.</i> 자신 필드의 마법사족 몬스터의 공격력은 600 올린다. 마법사족 몬스터를 일반 소환했을 경우에 발동할 수 있다. 덱에서 "블랙 매지션" 몬스터 1장을 특수 소환하고, "블랙 매지션"의 카드명이 쓰여진 카드 1장을 덱에서 패에 넣는다. 자신 필드의 "블랙 매지션" 몬스터가 파괴되어 묘지로 보내졌을 경우에 발동한다. "블랙 매지션"의 카드명이 쓰여진 몬스터 1장을 덱 또는 엑스트라 덱에서 소환 조건을 무시하고 특수 소환한다.</p></div>
+<div class="pn0_2_39-way"><div class="pn0_2_39-art" style="background-image:url('assets/cards/92377303.jpg')"></div><p><b>검은 옷의 대현자</b>이제 <b>항상 "블랙 매지션" 카드로 취급</b>됩니다(데몬 소환이 "데몬"으로 취급되는 것처럼). 모든 블랙 매지션 유물이 이 카드를 셉니다.</p></div>
+<div class="pn0_2_39-way"><img class="pn0_2_39-sprite" src="assets/dm06.png"><p><b>유희 전용 팩</b>유희는 더 이상 어둠의 유희와 팩을 공유하지 않습니다. 89장 구성: 암흑 기사 가이아, 카오스 솔저, 빅 실드 가드너, 크리보, 마그넷 워리어, 가제트, 아르카나 나이트, LV 몬스터, 엑조디아, 그리고 많은 드로우와 제거 카드.</p></div>
+</div></section>
+
+<section class="pn0_2_39-cols">
+<div class="pn0_2_39-big"><em>랜더마이저</em><h3>무작위 카드 재구성</h3>
+<p class="pn0_2_39-lead">무지개 카드는 이제 <b>실제 카드</b>의 구성을 바탕으로 만들어져, 효과와 카드 종류, 수치가 실제 카드만큼 자주 나옵니다. 카테고리 효과가 있는 카드는 <b>이름에 카테고리명</b>이 붙고, 문장이 더 명확해졌으며, 모순되는 효과는 사라졌고, 패에서 공짜로 자신을 소환하는 효과에는 코스트나 조건이 필요합니다.</p></div>
+<div class="pn0_2_39-big"><em>Windows 앱</em><h3>앱이 스스로 업데이트</h3>
+<p class="pn0_2_39-lead">이번 버전부터 <b>Windows 앱이 업데이트를 스스로 설치</b>합니다. 이전 버전을 쓰고 있다면 메인 메뉴에 안내가 나옵니다: <b>설치 프로그램을 한 번 더 내려받으세요</b>. 저장 데이터는 그대로 유지됩니다.</p>
+<p class="pn0_2_39-lead" style="margin-top:8px">문서 폴더가 막혀 있으면 두 번째 폴더에 저장되며, 런 시트의 <b>이미지 복사</b>는 이미지를 저장하지 않고 복사합니다.</p></div>
+</section>
+
+<section class="pn0_2_39-cols">
+<div><h2>변경 사항</h2><ul class="pn0_2_39-small">
+<li><span>🌈</span><span><b>스타터 덱</b>은 살 수 있을 때만 상점에 나타나며, 놓치지 않도록 무지갯빛으로 빛납니다.</span></li>
+<li><span>🔎</span><span>팩 상세 정보에서 <b>종족, 속성, 카테고리가 링크</b>가 되었습니다. 하나를 누르면 그 팩에서 해당하는 카드만 보여 줍니다.</span></li>
+<li><span>🃏</span><span><b>상대 덱 보기</b>가 팩 보기만큼 넓어져 한 번에 더 많은 카드를 보여 줍니다.</span></li>
+<li><span>⚡</span><span>효과를 <b>반드시</b> 발동해야 할 때 <b>✕</b>가 더 이상 회색으로 비활성화되지 않습니다. 누르면 효과가 발동합니다.</span></li>
+<li><span>🈶</span><span>캐릭터 이름에 <b>공식 일본어·한국어·중국어</b> 이름을 사용합니다.</span></li>
+<li><span>🤖</span><span>CPU를 <b>게임 속 모든 덱</b>으로 점검했습니다. 아마조네스의 궁수대, 중강갑 거북, 심술꾸러기의 저주, 여첩자 야에 등 예전에 무시하던 카드 수십 장을 이제 사용하며, 장착과 화목의 사자 판단도 더 좋아졌습니다.</span></li>
+<li><span>↕️</span><span>덱 위의 카드 순서를 정할 때(빅 아이 등) 끝나면 <b>✓</b>를 누르라는 안내가 나옵니다.</span></li>
+</ul></div>
+<div><h2>수정</h2><ul class="pn0_2_39-small">
+<li><span>📰</span><span>게임 내 <b>패치 노트</b> 이미지가 다시 제대로 표시되며, 이제 모든 업데이트를 출시 전에 확인합니다.</span></li>
+<li><span>📜</span><span>카드 창의 긴 카드 텍스트가 다시 <b>스크롤</b>됩니다.</span></li>
+<li><span>🔮</span><span><b>네임 체인저</b>로 "블랙 매지션"을 선언하면 이제 마술사의 인연 및 스승과 제자에서 셉니다.</span></li>
+<li><span>📱</span><span>Android 앱이 드물게 생기는 Python 오류 <b>"시작할 수 없음"</b>에서 스스로 복구하며, 그래도 안 되면 해결 방법을 안내합니다.</span></li>
+<li><span>🧠</span><span>CPU 수정: 가시의 요정, 고양이귀족, 전설의 도시 아틀란티스, 신성한 몬스터 셀케트, 아마조네스의 검사, 카운터 머신건 펀치, 뒤집힌 힘 상태의 리버스.</span></li>
+<li><span>🔤</span><span>런 시트에 캐릭터 이름이 설정한 언어로 표시됩니다.</span></li>
+</ul></div>
+</section></div>

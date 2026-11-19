@@ -1873,7 +1873,7 @@
  },
  {
   "group": "ui",
-  "en": "Choose a cursed relic",
+  "en": "Choose a shadow relic",
   "kind": "exact",
   "ctx": "mobile.js,tag-ui.js"
  },
@@ -2833,13 +2833,13 @@
  },
  {
   "group": "ui",
-  "en": "Cursed relics",
+  "en": "Shadow relics",
   "kind": "exact",
   "ctx": "mobile.js"
  },
  {
   "group": "ui",
-  "en": "Cursed Relics",
+  "en": "Shadow Relics",
   "kind": "exact",
   "ctx": "relic-collection.js"
  },
@@ -10993,33 +10993,9 @@
  },
  {
   "group": "python",
-  "en": "Activating a Spell Card costs 600 LP.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Activating a Trap Card costs 600 LP.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Activating a monster effect costs 600 LP.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "All eligible opponents in this journey have been defeated.",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
- },
- {
-  "group": "python",
-  "en": "All enemies start with 8000 LP",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -11029,21 +11005,9 @@
  },
  {
   "group": "python",
-  "en": "Amplified Boss Curses",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "Applies",
   "kind": "exact",
   "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Aqua",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
  },
  {
   "group": "python",
@@ -11086,24 +11050,6 @@
   "en": "BOSS:",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
- },
- {
-  "group": "python",
-  "en": "Banish cards",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Beast",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Beast-Warrior",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
  },
  {
   "group": "python",
@@ -11221,7 +11167,7 @@
  },
  {
   "group": "python",
-  "en": "Choose a cursed relic before continuing to the shop.",
+  "en": "Choose a shadow relic before continuing to the shop.",
   "kind": "exact",
   "ctx": "cursed_relics.py"
  },
@@ -11257,13 +11203,7 @@
  },
  {
   "group": "python",
-  "en": "Choose an opponent first.",
-  "kind": "exact",
-  "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Choose one of the offered cursed relics.",
+  "en": "Choose one of the offered shadow relics.",
   "kind": "exact",
   "ctx": "cursed_relics.py"
  },
@@ -11296,12 +11236,6 @@
   "en": "Command needs a unique ID.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Common",
-  "kind": "exact",
-  "ctx": "custom_cards.py"
  },
  {
   "group": "python",
@@ -11347,7 +11281,7 @@
  },
  {
   "group": "python",
-  "en": "Cursed relics cannot be sold.",
+  "en": "Shadow relics cannot be sold.",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
  },
@@ -11503,21 +11437,9 @@
  },
  {
   "group": "python",
-  "en": "Dinosaur",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Direct Attacks",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Disable all relics or curses",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -11527,19 +11449,7 @@
  },
  {
   "group": "python",
-  "en": "Divine-Beast",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Divine-Beast monsters",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Dragon",
   "kind": "exact",
   "ctx": "shop_rewards.py"
  },
@@ -11611,18 +11521,6 @@
  },
  {
   "group": "python",
-  "en": "Effect damage you inflict to your opponent becomes healing, and healing you give your opponent becomes damage.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Endless",
-  "kind": "exact",
-  "ctx": "campaign_catalog.py"
- },
- {
-  "group": "python",
   "en": "Enemy cards destroyed",
   "kind": "exact",
   "ctx": "duel_rewards.py"
@@ -11671,12 +11569,6 @@
  },
  {
   "group": "python",
-  "en": "Fairy",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Fallen",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
@@ -11701,21 +11593,9 @@
  },
  {
   "group": "python",
-  "en": "Fiend",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Finish the card trade before continuing.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Fish",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
  },
  {
   "group": "python",
@@ -11846,12 +11726,6 @@
  {
   "group": "python",
   "en": "Hole Traps",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Insect",
   "kind": "exact",
   "ctx": "shop_rewards.py"
  },
@@ -12109,12 +11983,6 @@
  },
  {
   "group": "python",
-  "en": "Machine",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Machine monsters",
   "kind": "exact",
   "ctx": "shop_rewards.py"
@@ -12235,7 +12103,7 @@
  },
  {
   "group": "python",
-  "en": "No cursed-relic reroll remains.",
+  "en": "No shadow-relic reroll remains.",
   "kind": "exact",
   "ctx": "cursed_relics.py"
  },
@@ -12250,12 +12118,6 @@
   "en": "No mode roll is waiting to resolve.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "No modifiers",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -12349,12 +12211,6 @@
  },
  {
   "group": "python",
-  "en": "Once per Duel, during your Standby Phase, send the top 50% of your Deck to the GY (rounded down).",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "Only the host can start the run.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
@@ -12370,18 +12226,6 @@
   "en": "Opponent rewards specify card properties, not just monster races. Every opponent draws its shop theme from one shared list (see reward_keys); there is no longer a per-opponent theme table.",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Opponents receive a thematic combat relic",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Opponent’s",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -12421,39 +12265,15 @@
  },
  {
   "group": "python",
-  "en": "Piercing damage",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Plant",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Play your signature card",
   "kind": "exact",
   "ctx": "duel_rewards.py"
  },
  {
   "group": "python",
-  "en": "Pyro",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Quick-Play Spells and Counter Traps",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Rare",
-  "kind": "exact",
-  "ctx": "custom_cards.py"
  },
  {
   "group": "python",
@@ -12481,12 +12301,6 @@
  },
  {
   "group": "python",
-  "en": "Reptile",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Result already processed.",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
@@ -12511,21 +12325,9 @@
  },
  {
   "group": "python",
-  "en": "Rock",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Sacred Phoenix",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
- },
- {
-  "group": "python",
-  "en": "Sea Serpent",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
  },
  {
   "group": "python",
@@ -12577,12 +12379,6 @@
  },
  {
   "group": "python",
-  "en": "Spellcaster",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Spells activated",
   "kind": "exact",
   "ctx": "duel_rewards.py"
@@ -12598,24 +12394,6 @@
   "en": "Spirit monsters",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Standard",
-  "kind": "exact",
-  "ctx": "campaign_expansion.py"
- },
- {
-  "group": "python",
-  "en": "Start this duel with 2000 fewer LP, minimum 1000.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Start this duel with 3 fewer cards in your hand, minimum 1.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -12649,21 +12427,9 @@
  },
  {
   "group": "python",
-  "en": "Swap the original ATK and DEF of only your monsters.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "Sword cards",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "Take 500 damage at the end of each of your turns.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -12739,7 +12505,7 @@
  },
  {
   "group": "python",
-  "en": "There are not enough different cursed relics to reroll.",
+  "en": "There are not enough different shadow relics to reroll.",
   "kind": "exact",
   "ctx": "cursed_relics.py"
  },
@@ -12841,12 +12607,6 @@
  },
  {
   "group": "python",
-  "en": "Thunder",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Tier",
   "kind": "exact",
   "ctx": "campaign_catalog.py"
@@ -12880,12 +12640,6 @@
   "en": "Two players are required.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Ultra Rare",
-  "kind": "exact",
-  "ctx": "campaign_expansion.py"
  },
  {
   "group": "python",
@@ -13027,18 +12781,6 @@
  },
  {
   "group": "python",
-  "en": "Waiting for your teammate to reconnect.",
-  "kind": "exact",
-  "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Warrior",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "Warrior monsters",
   "kind": "exact",
   "ctx": "shop_rewards.py"
@@ -13081,12 +12823,6 @@
  },
  {
   "group": "python",
-  "en": "Winged Beast",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "World Championship",
   "kind": "exact",
   "ctx": "campaign_catalog.py"
@@ -13111,27 +12847,9 @@
  },
  {
   "group": "python",
-  "en": "You cannot Special Summon monsters.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "You cannot Summon or Set monsters in Defense Position. Effects that would Summon a monster in Defense Position cannot be activated.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "You do not own that relic.",
   "kind": "exact",
   "ctx": "campaign_expansion.py"
- },
- {
-  "group": "python",
-  "en": "Your",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
  },
  {
   "group": "python",
@@ -13153,18 +12871,6 @@
  },
  {
   "group": "python",
-  "en": "Your hand size limit is reduced by 3 (min. 0).",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Your life points reached 0",
-  "kind": "exact",
-  "ctx": "loss_reason.py"
- },
- {
-  "group": "python",
   "en": "Your main deck needs",
   "kind": "exact",
   "ctx": "campaign.py"
@@ -13177,33 +12883,9 @@
  },
  {
   "group": "python",
-  "en": "Your monsters lose 200 ATK and 400 DEF.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Your monsters lose 600 DEF.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "Your outgoing battle damage is reduced to one third.",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
   "en": "Your teammate chose this opponent. Choose a different one.",
   "kind": "exact",
   "ctx": "tag_campaign.py"
- },
- {
-  "group": "python",
-  "en": "Zombie",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
  },
  {
   "group": "python",
@@ -13243,12 +12925,6 @@
  },
  {
   "group": "python",
-  "en": "coin toss",
-  "kind": "exact",
-  "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
   "en": "copies; Ultimate Collector allows",
   "kind": "exact",
   "ctx": "deck_files.py"
@@ -13270,12 +12946,6 @@
   "en": "die roll",
   "kind": "exact",
   "ctx": "shop_rewards.py"
- },
- {
-  "group": "python",
-  "en": "finish your duel to import this collector",
-  "kind": "exact",
-  "ctx": "collector.py"
  },
  {
   "group": "python",
@@ -13412,12 +13082,6 @@
  {
   "group": "python",
   "en": "you control",
-  "kind": "exact",
-  "ctx": "challenge_levels.py"
- },
- {
-  "group": "python",
-  "en": "your opponent controls",
   "kind": "exact",
   "ctx": "challenge_levels.py"
  },
@@ -13849,12 +13513,6 @@
  },
  {
   "group": "relic",
-  "en": "Silver Chalice",
-  "kind": "exact",
-  "ctx": "relic name (chalice)"
- },
- {
-  "group": "relic",
   "en": "After each victory, gain 600 LP. After-duel healing past your current healing limit, from any source, is not lost: every 100 LP over becomes 3 coins.",
   "kind": "exact",
   "ctx": "relic effect (chalice)"
@@ -14029,21 +13687,9 @@
  },
  {
   "group": "relic",
-  "en": "Razor Ledger",
-  "kind": "exact",
-  "ctx": "relic name (razor)"
- },
- {
-  "group": "relic",
   "en": "If you win a Duel while your Main Deck has exactly this run’s current minimum number of cards, earn 30 additional coins.",
   "kind": "exact",
   "ctx": "relic effect (razor)"
- },
- {
-  "group": "relic",
-  "en": "Phoenix IOU",
-  "kind": "exact",
-  "ctx": "relic name (phoenix_debt)"
  },
  {
   "group": "relic",
@@ -14110,12 +13756,6 @@
   "en": "Each card obtained from a booster pack or single-card purchase has a 15% chance to grant an extra copy.",
   "kind": "exact",
   "ctx": "relic effect (carbon_copy)"
- },
- {
-  "group": "relic",
-  "en": "Golden Card Sleeve",
-  "kind": "exact",
-  "ctx": "relic name (golden_sleeve)"
  },
  {
   "group": "relic",
@@ -14215,21 +13855,9 @@
  },
  {
   "group": "relic",
-  "en": "Champion Trophy",
-  "kind": "exact",
-  "ctx": "relic name (champion_trophy)"
- },
- {
-  "group": "relic",
-  "en": "You can select a second cursed relic after each boss fight.",
+  "en": "You can select a second shadow relic after each boss fight.",
   "kind": "exact",
   "ctx": "relic effect (champion_trophy)"
- },
- {
-  "group": "relic",
-  "en": "Glass Shard",
-  "kind": "exact",
-  "ctx": "relic name (glass_shard)"
  },
  {
   "group": "relic",
@@ -14296,12 +13924,6 @@
   "en": "Insect monsters you control gain 400 DEF.",
   "kind": "exact",
   "ctx": "relic effect (chitin_carapace)"
- },
- {
-  "group": "relic",
-  "en": "Fusion Dividend",
-  "kind": "exact",
-  "ctx": "relic name (machine_foundry)"
  },
  {
   "group": "relic",
@@ -14581,7 +14203,7 @@
  },
  {
   "group": "relic",
-  "en": "Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice.",
+  "en": "Gain 1 free reroll in each shop and 1 additional reroll for each shadow relic choice.",
   "kind": "exact",
   "ctx": "relic effect (dice_jar)"
  },
@@ -14827,33 +14449,15 @@
  },
  {
   "group": "relic",
-  "en": "Relic Picker",
-  "kind": "exact",
-  "ctx": "relic name (relic_picker)"
- },
- {
-  "group": "relic",
   "en": "When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). This relic is then consumed.",
   "kind": "exact",
   "ctx": "relic effect (relic_picker)"
  },
  {
   "group": "relic",
-  "en": "Card Picker",
-  "kind": "exact",
-  "ctx": "relic name (card_picker)"
- },
- {
-  "group": "relic",
   "en": "When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.",
   "kind": "exact",
   "ctx": "relic effect (card_picker)"
- },
- {
-  "group": "relic",
-  "en": "Name Changer",
-  "kind": "exact",
-  "ctx": "relic name (name_changer)"
  },
  {
   "group": "relic",
@@ -15100,12 +14704,6 @@
   "en": "Monsters you control gain 75 ATK for each monster in your GY (max. 750). Your hand size limit is reduced by 4 (min. 0).",
   "kind": "exact",
   "ctx": "relic effect (cursed_crowded_crypt)"
- },
- {
-  "group": "relic",
-  "en": "Glass Treasury",
-  "kind": "exact",
-  "ctx": "relic name (cursed_glass_treasury)"
  },
  {
   "group": "relic",
@@ -15799,12 +15397,6 @@
  },
  {
   "group": "relic",
-  "en": "No Pain No Gain",
-  "kind": "exact",
-  "ctx": "relic name (no_pain_no_gain)"
- },
- {
-  "group": "relic",
   "en": "Earn 5 coins every time you lose LP, paid after each victory.",
   "kind": "exact",
   "ctx": "relic effect (no_pain_no_gain)"
@@ -16099,12 +15691,6 @@
  },
  {
   "group": "relic",
-  "en": "Bounty List",
-  "kind": "exact",
-  "ctx": "relic name (bounty_list)"
- },
- {
-  "group": "relic",
   "en": "Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.",
   "kind": "exact",
   "ctx": "relic effect (bounty_list)"
@@ -16213,7 +15799,7 @@
  },
  {
   "group": "relic",
-  "en": "Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.",
+  "en": "Gain 1 free reroll in each shop and 1 additional reroll for each shadow relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.",
   "kind": "exact",
   "ctx": "relic effect (jar_of_greed)"
  },
@@ -16243,21 +15829,9 @@
  },
  {
   "group": "relic",
-  "en": "Sacred Phoenix",
-  "kind": "exact",
-  "ctx": "relic name (sacred_phoenix)"
- },
- {
-  "group": "relic",
   "en": "Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.",
   "kind": "exact",
   "ctx": "relic effect (sacred_phoenix)"
- },
- {
-  "group": "relic",
-  "en": "Pharaoh's Hoard",
-  "kind": "exact",
-  "ctx": "relic name (gold_sarcophagus)"
  },
  {
   "group": "relic",
@@ -16276,12 +15850,6 @@
   "en": "All your monsters are treated as having every Attribute.",
   "kind": "exact",
   "ctx": "relic effect (attribute_mutation)"
- },
- {
-  "group": "relic",
-  "en": "Bottomless Purse",
-  "kind": "exact",
-  "ctx": "relic name (bottomless_purse)"
  },
  {
   "group": "relic",
@@ -16432,12 +16000,6 @@
   "en": "Monsters you control cannot be targeted or destroyed by your opponent's Spell and Trap effects.",
   "kind": "exact",
   "ctx": "relic effect (invincible)"
- },
- {
-  "group": "relic",
-  "en": "DNA Rewrite",
-  "kind": "exact",
-  "ctx": "relic name (dna_rewrite)"
  },
  {
   "group": "relic",
@@ -16594,12 +16156,6 @@
   "en": "Reversed Might",
   "kind": "exact",
   "ctx": "boss curse name (mirror_stats)"
- },
- {
-  "group": "curse",
-  "en": "Swap the original ATK and DEF of all monsters.",
-  "kind": "exact",
-  "ctx": "boss curse effect (mirror_stats)"
  },
  {
   "group": "curse",
@@ -17323,12 +16879,6 @@
  },
  {
   "group": "tutorial",
-  "en": "Build your deck",
-  "kind": "exact",
-  "ctx": "tutorial section title"
- },
- {
-  "group": "tutorial",
   "en": "Tap cards to add or remove them. Start with at least 20 Main Deck cards. Each boss you beat raises the minimum by 10, up to 40. Relics can also change the minimum. You can use up to 3 copies of the same card. Fusion monsters go in the Extra Deck. Hold a card to read it. Your starting signature cards can be removed too.",
   "kind": "exact",
   "ctx": "tutorial section text"
@@ -17401,15 +16951,9 @@
  },
  {
   "group": "tutorial",
-  "en": "Relics and Cursed Relics",
+  "en": "Relics and Shadow Relics",
   "kind": "exact",
   "ctx": "tutorial title"
- },
- {
-  "group": "tutorial",
-  "en": "Relics",
-  "kind": "exact",
-  "ctx": "tutorial section title"
  },
  {
   "group": "tutorial",
@@ -17419,13 +16963,7 @@
  },
  {
   "group": "tutorial",
-  "en": "Cursed relics",
-  "kind": "exact",
-  "ctx": "tutorial section title"
- },
- {
-  "group": "tutorial",
-  "en": "After a boss, choose 1 of 3 cursed relics. Each has a benefit and a drawback. You get one reroll of the choices. The relic stays with you for the run, so read both parts before picking. This choice is skipped on the easiest level.",
+  "en": "After a boss, choose 1 of 3 shadow relics. Each has a benefit and a drawback. You get one reroll of the choices. The relic stays with you for the run, so read both parts before picking. This choice is skipped on the easiest level.",
   "kind": "exact",
   "ctx": "tutorial section text"
  },
@@ -17443,7 +16981,7 @@
  },
  {
   "group": "tutorial",
-  "en": "Every third duel is a boss. Read its curses before you start. A curse is like a relic for that encounter: it changes the rules and can make the fight harder. Boss curses apply to that fight; a cursed relic you take afterwards stays with your run.",
+  "en": "Every third duel is a boss. Read its curses before you start. A curse is like a relic for that encounter: it changes the rules and can make the fight harder. Boss curses apply to that fight; a shadow relic you take afterwards stays with your run.",
   "kind": "exact",
   "ctx": "tutorial section text"
  },
@@ -17464,12 +17002,6 @@
   "en": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. After completing your second loop, Obelisk the Tormenter becomes the required opponent to start further loops. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
   "kind": "exact",
   "ctx": "tutorial section text"
- },
- {
-  "group": "tutorial",
-  "en": "Online",
-  "kind": "exact",
-  "ctx": "tutorial title"
  },
  {
   "group": "tutorial",
@@ -17509,12 +17041,6 @@
  },
  {
   "group": "tutorial",
-  "en": "Collection",
-  "kind": "exact",
-  "ctx": "tutorial title"
- },
- {
-  "group": "tutorial",
   "en": "Track the cards you have found",
   "kind": "exact",
   "ctx": "tutorial section title"
@@ -17539,12 +17065,6 @@
  },
  {
   "group": "tutorial",
-  "en": "Other",
-  "kind": "exact",
-  "ctx": "tutorial title"
- },
- {
-  "group": "tutorial",
   "en": "Send replays",
   "kind": "exact",
   "ctx": "tutorial section title"
@@ -17566,12 +17086,6 @@
   "en": "During a singleplayer duel, open Options, then Flag behaviour. Say what the CPU did and what you expected. The game attaches the replay up to that moment. Send unsent flags when you are back online.",
   "kind": "exact",
   "ctx": "tutorial section text"
- },
- {
-  "group": "tutorial",
-  "en": "Link devices",
-  "kind": "exact",
-  "ctx": "tutorial section title"
  },
  {
   "group": "tutorial",
@@ -18559,42 +18073,6 @@
  },
  {
   "group": "rules",
-  "en": "Exact lethal damage",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Win without taking damage",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Win with 500 LP or less",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Win within 4 total turns",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Win within 2 total turns",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Defeat a boss",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
   "en": "Win within 6 total turns",
   "kind": "exact",
   "ctx": "coin reward condition"
@@ -18614,12 +18092,6 @@
  {
   "group": "rules",
   "en": "Win within 20 total turns",
-  "kind": "exact",
-  "ctx": "coin reward condition"
- },
- {
-  "group": "rules",
-  "en": "Play your signature card",
   "kind": "exact",
   "ctx": "coin reward condition"
  },
@@ -18829,12 +18301,6 @@
  },
  {
   "group": "system",
-  "en": "Special Summon",
-  "kind": "exact",
-  "ctx": "engine system string 2"
- },
- {
-  "group": "system",
   "en": "Flip Summon",
   "kind": "exact",
   "ctx": "engine system string 3"
@@ -18859,12 +18325,6 @@
  },
  {
   "group": "system",
-  "en": "Activate",
-  "kind": "exact",
-  "ctx": "engine system string 7"
- },
- {
-  "group": "system",
   "en": "Remove the Counter(s)",
   "kind": "exact",
   "ctx": "engine system string 10"
@@ -18883,18 +18343,6 @@
  },
  {
   "group": "system",
-  "en": "Draw Phase",
-  "kind": "exact",
-  "ctx": "engine system string 20"
- },
- {
-  "group": "system",
-  "en": "Standby Phase",
-  "kind": "exact",
-  "ctx": "engine system string 21"
- },
- {
-  "group": "system",
   "en": "Main Phase",
   "kind": "exact",
   "ctx": "engine system string 22"
@@ -18907,21 +18355,9 @@
  },
  {
   "group": "system",
-  "en": "Battle Phase",
-  "kind": "exact",
-  "ctx": "engine system string 24"
- },
- {
-  "group": "system",
   "en": "End of the Battle Phase",
   "kind": "exact",
   "ctx": "engine system string 25"
- },
- {
-  "group": "system",
-  "en": "End Phase",
-  "kind": "exact",
-  "ctx": "engine system string 26"
  },
  {
   "group": "system",
@@ -18946,12 +18382,6 @@
   "en": "A replay occurred, continue the attack?",
   "kind": "exact",
   "ctx": "engine system string 30"
- },
- {
-  "group": "system",
-  "en": "Attack directly?",
-  "kind": "exact",
-  "ctx": "engine system string 31"
  },
  {
   "group": "system",
@@ -18988,18 +18418,6 @@
   "en": "At the end of Damage Step",
   "kind": "exact",
   "ctx": "engine system string 44"
- },
- {
-  "group": "system",
-  "en": "Heads",
-  "kind": "exact",
-  "ctx": "engine system string 60"
- },
- {
-  "group": "system",
-  "en": "Tails",
-  "kind": "exact",
-  "ctx": "engine system string 61"
  },
  {
   "group": "system",
@@ -19138,12 +18556,6 @@
   "en": "Go second",
   "kind": "exact",
   "ctx": "engine system string 101"
- },
- {
-  "group": "system",
-  "en": "Your",
-  "kind": "exact",
-  "ctx": "engine system string 102"
  },
  {
   "group": "system",
@@ -19561,12 +18973,6 @@
  },
  {
   "group": "system",
-  "en": "Select",
-  "kind": "exact",
-  "ctx": "engine system string 560"
- },
- {
-  "group": "system",
   "en": "Select the battle position",
   "kind": "exact",
   "ctx": "engine system string 561"
@@ -19681,45 +19087,9 @@
  },
  {
   "group": "system",
-  "en": "Deck",
-  "kind": "exact",
-  "ctx": "engine system string 1000"
- },
- {
-  "group": "system",
-  "en": "Hand",
-  "kind": "exact",
-  "ctx": "engine system string 1001"
- },
- {
-  "group": "system",
-  "en": "Monster Zone",
-  "kind": "exact",
-  "ctx": "engine system string 1002"
- },
- {
-  "group": "system",
   "en": "Spell/Trap Zone",
   "kind": "exact",
   "ctx": "engine system string 1003"
- },
- {
-  "group": "system",
-  "en": "Graveyard",
-  "kind": "exact",
-  "ctx": "engine system string 1004"
- },
- {
-  "group": "system",
-  "en": "Banished",
-  "kind": "exact",
-  "ctx": "engine system string 1005"
- },
- {
-  "group": "system",
-  "en": "Extra Deck",
-  "kind": "exact",
-  "ctx": "engine system string 1006"
  },
  {
   "group": "system",
@@ -19783,162 +19153,6 @@
  },
  {
   "group": "system",
-  "en": "Warrior",
-  "kind": "exact",
-  "ctx": "engine system string 1020"
- },
- {
-  "group": "system",
-  "en": "Spellcaster",
-  "kind": "exact",
-  "ctx": "engine system string 1021"
- },
- {
-  "group": "system",
-  "en": "Fairy",
-  "kind": "exact",
-  "ctx": "engine system string 1022"
- },
- {
-  "group": "system",
-  "en": "Fiend",
-  "kind": "exact",
-  "ctx": "engine system string 1023"
- },
- {
-  "group": "system",
-  "en": "Zombie",
-  "kind": "exact",
-  "ctx": "engine system string 1024"
- },
- {
-  "group": "system",
-  "en": "Machine",
-  "kind": "exact",
-  "ctx": "engine system string 1025"
- },
- {
-  "group": "system",
-  "en": "Aqua",
-  "kind": "exact",
-  "ctx": "engine system string 1026"
- },
- {
-  "group": "system",
-  "en": "Pyro",
-  "kind": "exact",
-  "ctx": "engine system string 1027"
- },
- {
-  "group": "system",
-  "en": "Rock",
-  "kind": "exact",
-  "ctx": "engine system string 1028"
- },
- {
-  "group": "system",
-  "en": "Winged Beast",
-  "kind": "exact",
-  "ctx": "engine system string 1029"
- },
- {
-  "group": "system",
-  "en": "Plant",
-  "kind": "exact",
-  "ctx": "engine system string 1030"
- },
- {
-  "group": "system",
-  "en": "Insect",
-  "kind": "exact",
-  "ctx": "engine system string 1031"
- },
- {
-  "group": "system",
-  "en": "Thunder",
-  "kind": "exact",
-  "ctx": "engine system string 1032"
- },
- {
-  "group": "system",
-  "en": "Dragon",
-  "kind": "exact",
-  "ctx": "engine system string 1033"
- },
- {
-  "group": "system",
-  "en": "Beast",
-  "kind": "exact",
-  "ctx": "engine system string 1034"
- },
- {
-  "group": "system",
-  "en": "Beast-Warrior",
-  "kind": "exact",
-  "ctx": "engine system string 1035"
- },
- {
-  "group": "system",
-  "en": "Dinosaur",
-  "kind": "exact",
-  "ctx": "engine system string 1036"
- },
- {
-  "group": "system",
-  "en": "Fish",
-  "kind": "exact",
-  "ctx": "engine system string 1037"
- },
- {
-  "group": "system",
-  "en": "Sea Serpent",
-  "kind": "exact",
-  "ctx": "engine system string 1038"
- },
- {
-  "group": "system",
-  "en": "Reptile",
-  "kind": "exact",
-  "ctx": "engine system string 1039"
- },
- {
-  "group": "system",
-  "en": "Psychic",
-  "kind": "exact",
-  "ctx": "engine system string 1040"
- },
- {
-  "group": "system",
-  "en": "Divine-Beast",
-  "kind": "exact",
-  "ctx": "engine system string 1041"
- },
- {
-  "group": "system",
-  "en": "Creator God",
-  "kind": "exact",
-  "ctx": "engine system string 1042"
- },
- {
-  "group": "system",
-  "en": "Wyrm",
-  "kind": "exact",
-  "ctx": "engine system string 1043"
- },
- {
-  "group": "system",
-  "en": "Cyberse",
-  "kind": "exact",
-  "ctx": "engine system string 1044"
- },
- {
-  "group": "system",
-  "en": "Illusion",
-  "kind": "exact",
-  "ctx": "engine system string 1045"
- },
- {
-  "group": "system",
   "en": "Cyborg",
   "kind": "exact",
   "ctx": "engine system string 1046"
@@ -19963,24 +19177,6 @@
  },
  {
   "group": "system",
-  "en": "Monster",
-  "kind": "exact",
-  "ctx": "engine system string 1050"
- },
- {
-  "group": "system",
-  "en": "Spell",
-  "kind": "exact",
-  "ctx": "engine system string 1051"
- },
- {
-  "group": "system",
-  "en": "Trap",
-  "kind": "exact",
-  "ctx": "engine system string 1052"
- },
- {
-  "group": "system",
   "en": "Normal",
   "kind": "exact",
   "ctx": "engine system string 1054"
@@ -19993,12 +19189,6 @@
  },
  {
   "group": "system",
-  "en": "Fusion",
-  "kind": "exact",
-  "ctx": "engine system string 1056"
- },
- {
-  "group": "system",
   "en": "Ritual",
   "kind": "exact",
   "ctx": "engine system string 1057"
@@ -20008,18 +19198,6 @@
   "en": "Trap Monster",
   "kind": "exact",
   "ctx": "engine system string 1058"
- },
- {
-  "group": "system",
-  "en": "Spirit",
-  "kind": "exact",
-  "ctx": "engine system string 1059"
- },
- {
-  "group": "system",
-  "en": "Union",
-  "kind": "exact",
-  "ctx": "engine system string 1060"
  },
  {
   "group": "system",
@@ -20065,12 +19243,6 @@
  },
  {
   "group": "system",
-  "en": "Field",
-  "kind": "exact",
-  "ctx": "engine system string 1069"
- },
- {
-  "group": "system",
   "en": "Counter",
   "kind": "exact",
   "ctx": "engine system string 1070"
@@ -20083,12 +19255,6 @@
  },
  {
   "group": "system",
-  "en": "Toon",
-  "kind": "exact",
-  "ctx": "engine system string 1072"
- },
- {
-  "group": "system",
   "en": "Xyz",
   "kind": "exact",
   "ctx": "engine system string 1073"
@@ -20098,12 +19264,6 @@
   "en": "Pendulum",
   "kind": "exact",
   "ctx": "engine system string 1074"
- },
- {
-  "group": "system",
-  "en": "Link",
-  "kind": "exact",
-  "ctx": "engine system string 1076"
  },
  {
   "group": "system",
@@ -20155,12 +19315,6 @@
  },
  {
   "group": "system",
-  "en": "Send to GY",
-  "kind": "exact",
-  "ctx": "engine system string 1104"
- },
- {
-  "group": "system",
   "en": "Send to Hand",
   "kind": "exact",
   "ctx": "engine system string 1105"
@@ -20182,12 +19336,6 @@
   "en": "Draw",
   "kind": "exact",
   "ctx": "engine system string 1108"
- },
- {
-  "group": "system",
-  "en": "Search",
-  "kind": "exact",
-  "ctx": "engine system string 1109"
  },
  {
   "group": "system",
@@ -20242,12 +19390,6 @@
   "en": "Damage LP",
   "kind": "exact",
   "ctx": "engine system string 1118"
- },
- {
-  "group": "system",
-  "en": "Recover LP",
-  "kind": "exact",
-  "ctx": "engine system string 1119"
  },
  {
   "group": "system",
@@ -20341,12 +19483,6 @@
  },
  {
   "group": "system",
-  "en": "Boss Duel",
-  "kind": "exact",
-  "ctx": "engine system string 1136"
- },
- {
-  "group": "system",
   "en": "Battle City",
   "kind": "exact",
   "ctx": "engine system string 1137"
@@ -20437,12 +19573,6 @@
  },
  {
   "group": "system",
-  "en": "Resolve effect",
-  "kind": "exact",
-  "ctx": "engine system string 1161"
- },
- {
-  "group": "system",
   "en": "Reset effect",
   "kind": "exact",
   "ctx": "engine system string 1162"
@@ -20452,18 +19582,6 @@
   "en": "Pendulum Summon",
   "kind": "exact",
   "ctx": "engine system string 1163"
- },
- {
-  "group": "system",
-  "en": "Fusion Summon",
-  "kind": "exact",
-  "ctx": "engine system string 1170"
- },
- {
-  "group": "system",
-  "en": "Ritual Summon",
-  "kind": "exact",
-  "ctx": "engine system string 1171"
  },
  {
   "group": "system",
@@ -20521,21 +19639,9 @@
  },
  {
   "group": "system",
-  "en": "Exit",
-  "kind": "exact",
-  "ctx": "engine system string 1210"
- },
- {
-  "group": "system",
   "en": "OK",
   "kind": "exact",
   "ctx": "engine system string 1211"
- },
- {
-  "group": "system",
-  "en": "Cancel",
-  "kind": "exact",
-  "ctx": "engine system string 1212"
  },
  {
   "group": "system",
@@ -20569,12 +19675,6 @@
  },
  {
   "group": "system",
-  "en": "Ready",
-  "kind": "exact",
-  "ctx": "engine system string 1218"
- },
- {
-  "group": "system",
   "en": "Not Ready",
   "kind": "exact",
   "ctx": "engine system string 1219"
@@ -20596,18 +19696,6 @@
   "en": "Password:",
   "kind": "exact",
   "ctx": "engine system string 1222"
- },
- {
-  "group": "system",
-  "en": "Join",
-  "kind": "exact",
-  "ctx": "engine system string 1223"
- },
- {
-  "group": "system",
-  "en": "Host",
-  "kind": "exact",
-  "ctx": "engine system string 1224"
  },
  {
   "group": "system",
@@ -20842,12 +19930,6 @@
   "en": "Card info",
   "kind": "exact",
   "ctx": "engine system string 1270"
- },
- {
-  "group": "system",
-  "en": "Log",
-  "kind": "exact",
-  "ctx": "engine system string 1271"
  },
  {
   "group": "system",
@@ -22549,7 +21631,7 @@
  },
  {
   "group": "ui",
-  "en": "Choose a second cursed relic",
+  "en": "Choose a second shadow relic",
   "kind": "exact",
   "ctx": "mobile.js, tag-ui.js"
  },
@@ -22567,7 +21649,7 @@
  },
  {
   "group": "ui",
-  "en": "Choose a third cursed relic",
+  "en": "Choose a third shadow relic",
   "kind": "exact",
   "ctx": "mobile.js, tag-ui.js"
  },
@@ -26248,5 +25330,119 @@
   "en": "At the start of each Duel, add \"Sanga of the Thunder\", \"Kazejin\" and \"Suijin\" to your hand. Your \"Gate Guardian\", \"Sanga of the Thunder\", \"Kazejin\" and \"Suijin\" gain these effects, whatever else you control: When it attacks an opponent's monster, that monster's ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent's turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon \"Gate Guardian\" from your Deck, ignoring its Summoning conditions.",
   "kind": "exact",
   "ctx": "text added 2026-11-18 (Jin Trio, Ultimate Gate Combination)"
+ },
+ {
+  "group": "duel",
+  "en": "Top card first. Use the arrows to change the order, then press ✓.",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "New Windows app available",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Download the installer again and run it. Your saves are kept, and from then on the app updates itself.",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Copy download link",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Link copied. Paste it into your browser's address bar.",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Press Ctrl+C to copy the selected link.",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Level 5 Survivor",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "duel",
+  "en": "Later",
+  "kind": "exact",
+  "ctx": "deck order prompt, 2026-11-19"
+ },
+ {
+  "group": "relic",
+  "en": "Spell Sanctuary",
+  "kind": "exact",
+  "ctx": "Spell Sanctuary cursed relic (2026-11-19)"
+ },
+ {
+  "group": "relic",
+  "en": "You can activate Spell Cards during your opponent's turn.",
+  "kind": "exact",
+  "ctx": "Spell Sanctuary cursed relic (2026-11-19)"
+ },
+ {
+  "group": "relic",
+  "en": "You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set.",
+  "kind": "exact",
+  "ctx": "Spell Sanctuary cursed relic (2026-11-19)"
+ },
+ {
+  "group": "relic",
+  "en": "You can activate Spell Cards during your opponent's turn. You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set.",
+  "kind": "exact",
+  "ctx": "Spell Sanctuary cursed relic (2026-11-19)"
+ },
+ {
+  "group": "ui",
+  "en": "{0}: Spells must be Set before they can be activated.",
+  "kind": "pattern",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0}: Spells can’t be activated the turn they’re Set.",
+  "kind": "pattern",
+  "ctx": "activation-reasons.js"
+ },
+ {
+  "group": "ui",
+  "en": "The game engine could not start on this device. Your saves are safe.",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen after the automatic retry (2026-11-19)"
+ },
+ {
+  "group": "ui",
+  "en": "Close the app fully and open it again. If it keeps happening, update Android System WebView and Chrome from the Play Store, then press Copy details and send them to us on Discord.",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen after the automatic retry (2026-11-19)"
+ },
+ {
+  "group": "ui",
+  "en": "Close this tab and open the game again. If it keeps happening, update your browser or try another one, then press Copy details and send them to us on Discord.",
+  "kind": "exact",
+  "ctx": "\"Could not start\" screen after the automatic retry (2026-11-19)"
+ },
+ {
+  "group": "relic",
+  "en": "Immortal Dark Magic",
+  "kind": "exact",
+  "ctx": "text added 2026-11-19 (Immortal Dark Magic)"
+ },
+ {
+  "group": "relic",
+  "en": "Spellcaster monsters you control gain 600 ATK. When you Normal Summon a Spellcaster monster: You can Special Summon 1 \"Dark Magician\" monster from your Deck, and add 1 card that mentions \"Dark Magician\" from your Deck to your hand. When a \"Dark Magician\" monster you control is destroyed and sent to the GY: Special Summon 1 monster that mentions \"Dark Magician\" from your Deck or Extra Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-19 (Immortal Dark Magic)"
  }
 ]

@@ -15,7 +15,7 @@ g.RUNTIME.mkdir()
 rng = random.Random(12)
 
 assert ART_INFO['champion_trophy']['effect'] == 'cursed_pick'
-assert ARTIFACTS['champion_trophy'][2] == 'You can select a second cursed relic after each boss fight.'
+assert ARTIFACTS['champion_trophy'][2] == 'You can select a second shadow relic after each boss fight.'
 
 
 def boss_run(artifacts):

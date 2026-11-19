@@ -1,0 +1,18 @@
+{
+  "note": "House rules: cards always treated as an archetype's card, like Summoned Skull and \"Archfiend\" (user, 2026-11-19: Dark Sage is a \"Dark Magician\" card). campaign_expansion.install adds the setcodes and the English line after the card's text, tools/build_android.py adds the setcodes to engine-data.json, and tools/i18n/build_bundles.py adds the translated line. The card's script is unchanged.",
+  "cards": {
+    "92377303": {
+      "name": "Dark Sage",
+      "setcodes": ["0x10a2"],
+      "en": "(This card is always treated as a \"Dark Magician\" card.)",
+      "de": "(Diese Karte wird immer als „Dunkler Magier“-Karte behandelt.)",
+      "es": "(Esta carta se trata siempre como una carta \"Mago Oscuro\".)",
+      "fr": "(Cette carte est toujours traitée comme carte \"Magicien Sombre\".)",
+      "it": "(Questa carta è sempre considerata come una carta \"Mago Nero\".)",
+      "pt": "(Este card é sempre tratado como um card \"Mago Negro\".)",
+      "ja": "（このカードは「ブラック・マジシャン」カードとしても扱う。）",
+      "ko": "(이 카드는 \"블랙 매지션\" 카드로도 취급한다.)",
+      "zh": "（这张卡也当作「黑魔术师」卡使用。）"
+    }
+  }
+}

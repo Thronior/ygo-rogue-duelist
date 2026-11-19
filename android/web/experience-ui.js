@@ -1,29 +1,13 @@
 import {freeJarUse,restockFreeLeft} from './jar-relics.js';
+import {packSummaryParts} from './pack-summary.js';
 export const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function lastPlayed(value){const date=new Date(Number(value)*1000);return value&&Number.isFinite(+date)?date.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'Not recorded';}
+// The pieces come from pack-summary.js, which also decides the cards each linked term in the pack window stands for.
 export function packSummary(content,pid){
- const p=content.packs.find(p=>p.id===pid);if(!p)return '';
- const ids=new Set([...(p.common||[]),...(p.rare||[])]),cards=content.cards.filter(c=>ids.has(c.id)),counts={};
- for(const c of cards)if(c.data.type&1)counts[c.race]=(counts[c.race]||0)+1;
- const types=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name])=>name);
- const attributes=[...new Set(cards.filter(c=>c.data.type&1).map(c=>c.attribute).filter(Boolean))].sort();
- const themes=[];if(cards.some(c=>c.data.type&128))themes.push('Ritual Summoning');if(cards.some(c=>c.data.type&64))themes.push('Fusion Summoning');
- if(cards.filter(c=>/destroy|banish|return.*hand/i.test(c.desc)).length>=6)themes.push('removal and control');
- if(cards.filter(c=>/gain.*LP|increase.*Life Points/i.test(c.desc)).length>=4)themes.push('LP recovery');
- const archetypes=[
-  ['Chaos',/\bChaos\b/i],['Amazoness',/\bAmazoness\b/i],['Archfiend',/\bArchfiend\b/i],['Blue-Eyes',/Blue-Eyes/i],['Buster Blader',/Buster Blader/i],
-  ['Dark Magician',/Dark Magician/i],['Dark Scorpion',/Dark Scorpion/i],['Destiny Board',/Destiny Board|Spirit Message/i],['Exodia',/Exodia|Forbidden One/i],
-  ['Gravekeeper',/Gravekeeper|Necrovalley/i],['Harpie',/Harpie/i],['Horus LV',/Horus.*LV|LV[0-9]/i],['Magnet Warrior',/Magnet Warrior/i],
-  ['Ninja',/Ninja|Ninjitsu/i],['Ojama',/Ojama/i],['Red-Eyes',/Red-Eyes/i],['Relinquished',/Relinquished|Black Illusion Ritual/i],['Spirit',null],['Toon',/Toon/i],
-  ['Union',/\bUnion\b|X-Head Cannon|XY-Dragon|XYZ-Dragon|XZ-Tank|YZ-Tank/i],['Umi',/\bUmi\b|Legendary Fisherman/i]
- ];
- const present=new Set();
- for(const c of cards){const text=`${c.name} ${c.desc||''}`;for(const [name,re] of archetypes)if(re?.test(text))present.add(name);if(c.data?.type&0x200)present.add('Spirit');if(c.data?.type&0x400000)present.add('Toon');for(const code of c.data?.setcodes||[]){const series={4:'Amazoness',15:'Ojama',26:'Dark Scorpion',46:'Gravekeeper',65:'LV',69:'Archfiend',100:'Harpie'}[Number(code)&0xfff];if(series)present.add(series)}}
- const isDartz=pid==='DRAFT-DARTZ';
- const series=isDartz?['Chaos']:archetypes.map(([name])=>name).filter(name=>present.has(name));
- const composition=isDartz?'Attributes: LIGHT, DARK. ':
-  `${types.length?'Main monster types: '+types.join(', ')+'. ':''}`;
- return `${composition}${series.length?'Archetypes: '+series.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${ids.size} different cards. Click to inspect.`;
+ const parts=packSummaryParts(content,pid);if(!parts)return '';
+ const {types,attributes,series,themes,count}=parts;
+ const composition=attributes.length?`Attributes: ${attributes.join(', ')}. `:`${types.length?'Main monster types: '+types.join(', ')+'. ':''}`;
+ return `${composition}${series.length?'Archetypes: '+series.join(', ')+'. ':''}Support: ${themes.join(', ')||'mixed monsters, Spells and Traps'}. ${count} different cards. Click to inspect.`;
 }
 // The split comes from the relic data (approved_relics.CURSED_PARTS, shipped as artifactInfo.parts) when the text
 // alone does not split cleanly.

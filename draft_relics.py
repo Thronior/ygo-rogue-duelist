@@ -38,7 +38,7 @@ NOT_IN_DUEL=frozenset({
 
 def eligible():
  """Every relic that changes a duel: no shop/coin relics, removed relics or relics that ask for a campaign choice.
- Cursed relics are included (the user's choice, 2026-11-13); fused relics are not (user, 2026-11-15: they made
+ Shadow relics are included (the user's choice, 2026-11-13); fused relics are not (user, 2026-11-15: they made
  matches unfair too fast)."""
  import re
  strip=lambda s:re.sub(r'-- SHADOW_RUN_AI .*','',s)
@@ -49,7 +49,7 @@ def eligible():
  return keys
 
 # Rarity (user, 2026-11-15): offers stay random, but stronger relics come up less often. The tier follows the shop
-# price; cursed relics cost nothing in the shop and count as Uncommon. archetype_relics.RARITY (relics rare by design)
+# price; shadow relics cost nothing in the shop and count as Uncommon. archetype_relics.RARITY (relics rare by design)
 # multiplies on top. No rarity label is shown to players.
 TIERS=((95,1.0,'Common'),(150,.6,'Uncommon'),(250,.3,'Rare'))
 VERY_RARE=(.1,'Very rare')

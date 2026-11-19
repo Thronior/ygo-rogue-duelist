@@ -324,7 +324,7 @@ c:SetCondition(function(e,tp,eg,ep,ev,re) return ep==0 and card(re) end) c:SetOp
   out.append(f'''do local used=-1
 local function search(c) return c:IsCode({codes(DARK_MAGICIAN_MENTIONS)}) and c:IsAbleToHand() end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
-e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(function(c) return c:IsControler(0) and c:IsCode({codes(DARK_MAGICIANS)}) end,1,nil) and Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) end)
+e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(function(c) return c:IsControler(0) and (c:IsCode({codes(DARK_MAGICIANS)}) or c:IsSetCard({DARK_MAGICIAN_SET})) end,1,nil) and Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) end)
 e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(search,0,LOCATION_DECK,0,nil) if #g==0 then return end
  --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
  used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil)
@@ -347,8 +347,8 @@ Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_
   # Battle or card effect; the summon waits for no chain, like Gate Calling's.
   dm=codes(DARK_MAGICIANS)
   out.append(f'''do local used=-1
-local function lost(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and (c:IsCode({dm}) or c:IsPreviousCodeOnField({dm})) end
-local function can(c,e,tp) return c:IsCode({dm}) and c:IsCanBeSpecialSummoned(e,0,tp,true,false) end
+local function lost(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and (c:IsCode({dm}) or c:IsPreviousCodeOnField({dm}) or c:IsPreviousSetCard({DARK_MAGICIAN_SET})) end
+local function can(c,e,tp) return (c:IsCode({dm}) or c:IsSetCard({DARK_MAGICIAN_SET})) and c:IsCanBeSpecialSummoned(e,0,tp,true,false) end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_DESTROYED)
 e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(lost,1,nil) and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(can,0,LOCATION_HAND,0,1,nil,e,tp) end)
 e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(can,0,LOCATION_HAND,0,nil,e,tp) if #g==0 or Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
@@ -407,6 +407,14 @@ Duel.RegisterEffect(e,0) end''')
   # face-up monsters lose that much ATK until the End Phase. Almighty (RogueAlmighty) keeps the ATK loss off.
   out.append('do local turn=-1 '+event('EVENT_TOSS_DICE','''turn=Duel.GetTurnCount() local v=(Duel.GetDiceResult() or 0)*100 if v<=0 then return end --[[relic-hint]] Duel.Recover(0,v,REASON_EFFECT)
 if not RogueAlmighty then for c in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATION_MZONE,0,nil):Iter() do local e1=Effect.CreateEffect(c) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(EFFECT_UPDATE_ATTACK) e1:SetValue(-v) e1:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) c:RegisterEffect(e1) end end''','ep==0 and (ev&0xff)>0 and turn~=Duel.GetTurnCount()')+' end')
+ elif key=='spell_sanctuary':
+  # The user's shadow relic (2026-11-19). EFFECT_BECOME_QUICK gives your Spells Quick-Play speed in the core (effect.cpp
+  # get_speed and is_activateable): Set ones can be activated in your opponent's turn and in chains, but never the turn
+  # they were Set, nor from the hand in your opponent's turn. The second rule stops every Spell activation from the hand,
+  # so each Spell, Field Spells included, is Set first. EFFECT_FLAG_SET_AVAILABLE: the core skips face-down cards on the
+  # field otherwise (effect::is_target). Ignition effects of face-up Spells are not card activations and keep their speed.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_BECOME_QUICK) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_HAND|LOCATION_SZONE,0) e:SetTarget(function(e,c) return c:IsSpell() end) Duel.RegisterEffect(e,0) end')
+  out.append(player_rule('EFFECT_CANNOT_ACTIVATE','function(e,re,tp) return re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsActiveType(TYPE_SPELL) and re:GetHandler():IsLocation(LOCATION_HAND) end'))
  elif key=='poison_of_the_old_man':
   # A real coin toss, so coin relics and cards that change or redo tosses apply. "Lose" LP is not damage. Recover and SetLP
   # are called through locals so the relic is shown once, before the toss.
@@ -480,8 +488,41 @@ local function gate(e,tp) return function(x) return x:IsCode({GATE_GUARDIAN}) an
 # tools/test_relics_nov15.py checks these lists against the card list.
 DARK_MAGICIAN,DARK_MAGICIAN_OF_CHAOS,BEWD,SHINING=46986414,40737112,89631139,53347303
 DARK_MAGICIANS=(46986414,38033121,50725996,40737112,73752131,90960358)
+# The "Dark Magician" archetype (Dark Magician Girl's 0x30a2 included): Name Changer's pick adds it to your other monsters,
+# and Master and Apprentice and Magician's Bond ignored those (user on Discord, 2026-11-19).
+DARK_MAGICIAN_SET='0x10a2'
 DARK_MAGICIAN_MENTIONS=(13722870,2314238,99789342,38033121,98502113,92377303,69542930,87210505,67227834,68334074,13604200,73752131,63391643,90960358)
 EYES=(53347303,53183600,23995346,89631139,74677422,64335804,96561011)
+
+def immortal_dark_magic():
+ """Immortal Dark Magic (relic_fusions.py, user's text 2026-11-19): the four Dark Magician relics fused.
+ No once-per-turn limits, as the text has none: the Normal Summon effect only Special Summons, so it cannot set itself off
+ again, and each Deck/Extra Deck summon needs a new "Dark Magician" monster destroyed. "Dark Magician" monsters and cards that
+ mention it are Magician's Bond's and Master and Apprentice's (DARK_MAGICIANS or the archetype, DARK_MAGICIAN_MENTIONS)."""
+ dm,mentions=codes(DARK_MAGICIANS),codes(DARK_MAGICIAN_MENTIONS)
+ return stat('EFFECT_UPDATE_ATTACK',600,'c:IsRace(RACE_SPELLCASTER)')+f'''
+do local function magician(c,e,tp) return c:IsMonster() and (c:IsCode({dm}) or c:IsSetCard({DARK_MAGICIAN_SET})) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
+local function search(c) return c:IsCode({mentions}) and c:IsAbleToHand() end
+local function caster(c) return c:IsControler(0) and c:IsFaceup() and c:IsRace(RACE_SPELLCASTER) end
+local n=Effect.GlobalEffect() n:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) n:SetCode(EVENT_SUMMON_SUCCESS)
+n:SetCondition(function(e,tp,eg) return eg:IsExists(caster,1,nil) and (Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(magician,0,LOCATION_DECK,0,1,nil,e,tp) or Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil)) end)
+n:SetOperation(function(e,tp,eg)
+ --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
+ local g=Duel.GetMatchingGroup(magician,0,LOCATION_DECK,0,nil,e,tp)
+ if #g>0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 then Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+  Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end
+ local s=Duel.GetMatchingGroup(search,0,LOCATION_DECK,0,nil)
+ if #s>0 then Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local h=s:Select(0,1,1,nil) Duel.SendtoHand(h,0,REASON_EFFECT) Duel.ConfirmCards(1,h) end end)
+Duel.RegisterEffect(n,0)
+local function lost(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsReason(REASON_DESTROY) and (c:IsCode({dm}) or c:IsPreviousCodeOnField({dm}) or c:IsPreviousSetCard({DARK_MAGICIAN_SET})) end
+local function called(c,e,tp) return c:IsMonster() and c:IsCode({mentions}) and c:IsCanBeSpecialSummoned(e,0,tp,true,true)
+ and (c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0 or c:IsLocation(LOCATION_DECK) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0) end
+local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_TO_GRAVE)
+d:SetCondition(function(e,tp,eg) return eg:IsExists(lost,1,nil) and Duel.IsExistingMatchingCard(called,0,LOCATION_DECK|LOCATION_EXTRA,0,1,nil,e,tp) end)
+d:SetOperation(function(e,tp) local g=Duel.GetMatchingGroup(called,0,LOCATION_DECK|LOCATION_EXTRA,0,nil,e,tp) if #g==0 then return end
+ --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ Duel.SpecialSummon(tc,0,tp,tp,true,true,POS_FACEUP) if tc:IsPreviousLocation(LOCATION_DECK) then Duel.ShuffleDeck(0) end end)
+Duel.RegisterEffect(d,0) end'''
 
 def spirit_tribute(once):
  script='''do local used=false local function gy(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end

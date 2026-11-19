@@ -61,7 +61,7 @@
     "image": ""
   },
   {
-    "title": "Relics and Cursed Relics",
+    "title": "Relics and Shadow Relics",
     "sections": [
       {
         "title": "Relics",
@@ -69,8 +69,8 @@
         "image": "tutorial/guide/relics.jpg"
       },
       {
-        "title": "Cursed relics",
-        "text": "After a boss, choose 1 of 3 cursed relics. Each has a benefit and a drawback. You get one reroll of the choices. The relic stays with you for the run, so read both parts before picking. This choice is skipped on the easiest level.",
+        "title": "Shadow relics",
+        "text": "After a boss, choose 1 of 3 shadow relics. Each has a benefit and a drawback. You get one reroll of the choices. The relic stays with you for the run, so read both parts before picking. This choice is skipped on the easiest level.",
         "image": "tutorial/guide/cursed.jpg"
       }
     ],
@@ -82,7 +82,7 @@
     "sections": [
       {
         "title": "Boss encounters",
-        "text": "Every third duel is a boss. Read its curses before you start. A curse is like a relic for that encounter: it changes the rules and can make the fight harder. Boss curses apply to that fight; a cursed relic you take afterwards stays with your run.",
+        "text": "Every third duel is a boss. Read its curses before you start. A curse is like a relic for that encounter: it changes the rules and can make the fight harder. Boss curses apply to that fight; a shadow relic you take afterwards stays with your run.",
         "image": "tutorial/guide/boss.jpg"
       }
     ],

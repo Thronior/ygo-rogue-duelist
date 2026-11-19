@@ -1,0 +1,94 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_39,.patch-notes-sheet.pn0_2_39 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_39{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_39 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_39 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_39 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_39 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_39 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big .pn0_2_39-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big>*{position:relative}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big p.pn0_2_39-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way img,.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-relics .pn0_2_39-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-packs .pn0_2_39-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shot{display:block;width:100%;border:2px solid #b5824a;border-radius:10px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots img{width:100%;border:2px solid #b5824a;border-radius:10px;display:block;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cap{height:0;overflow:hidden;visibility:hidden;font-size:15px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 img+.pn0_2_39-cap{height:auto;visibility:visible;margin-top:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-pmark{display:inline-block;width:21px;height:21px;vertical-align:middle;margin:0 3px}</style><div class="patch-notes-sheet pn0_2_39"><div class="pn0_2_39-kick">YGO Rogue Duelist</div><h1>Update 0.2.39</h1>
+
+<section class="pn0_2_39-big" style="margin-top:28px"><em>Duell-Designs</em><h3>Pixel-Art, überarbeitet</h3>
+<p class="pn0_2_39-lead">Karten im Duell sind jetzt ein <b>flacher Rahmen in der Farbe der Karte</b> mit <b>großem Artwork</b> darin, auf einen Blick lesbar. Der Pixelfilter ist <b>feiner</b> und deckt den <b>ganzen Bildschirm</b> ab, während Texte und Flaggen scharf bleiben. Karten im <b>Deck-Editor</b> sind nicht mehr verpixelt, und Kartenmarkierungen sind ein <b>Pixel-Stern und -Kreuz</b> <svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ffd76a" d="M3 0h1v2h3v1h-1v1h-1v3h-1v-1h-1v1h-1v-3h-1v-1h-1v-1h3z"/></svg><svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ff6b6b" d="M0 0h2v1h1v1h1v-1h1v-1h2v2h-1v1h-1v1h1v1h1v2h-2v-1h-1v-1h-1v1h-1v1h-2v-2h1v-1h1v-1h-1v-1h-1z"/></svg>.</p>
+<div class="pn0_2_39-shots"><div><div class="pn0_2_39-cap">Ein Duell im neuen Pixel-Art-Design</div></div>
+<div><div class="pn0_2_39-cap">Charakterauswahl in Pixel-Art</div></div></div></section>
+
+<section class="pn0_2_39-big"><em>Duell-Designs</em><h3>Charakterauswahl in jedem Design</h3>
+<p class="pn0_2_39-lead">Die Charakterauswahl passt sich jetzt deinem <b>Duell-Design</b> an: Duel Disk in Metallgrau und Gold, Nebel im Reich der Schatten, Schlichtes Turnier, Millenniumsstein, Kaiba-Hologramm und Pixel-Art (siehe oben). Ändern kannst du es unter <b>Kosmetik</b>.</p>
+</section>
+
+<section class="pn0_2_39-big pn0_2_39-relics"><div class="pn0_2_39-bg" style="background-image:url('assets/cards/46986414.jpg')"></div><em>Relikte</em><h3>Schattenrelikte und Dunkle Magie</h3>
+<p class="pn0_2_39-lead"><b>Verfluchte Relikte heißen jetzt Schattenrelikte</b>, damit man sie nicht mehr mit den Flüchen eines Bosses verwechselt. Sonst ändert sich an ihnen nichts.</p>
+<div class="pn0_2_39-ways">
+<div class="pn0_2_39-way"><img src="assets/relics/56433456.jpg"><p><b>Zauberheiligtum</b><i>Neues Schattenrelikt.</i> Du kannst Zauberkarten während des Spielzugs deines Gegners aktivieren. <i>Nachteil:</i> Du kannst Zauberkarten nur aktivieren, wenn sie zuvor gesetzt wurden. Du kannst eine gesetzte Zauberkarte nicht in dem Spielzug aktivieren, in dem sie gesetzt wurde.</p></div>
+<div class="pn0_2_39-way"><img src="assets/relics/2314238.jpg"><p><b>Unsterbliche Dunkle Magie</b><i>Fusioniertes Relikt: Magierstab, Band des Magiers, Meister und Lehrling, Ritus des Schwarzen Chaos.</i> Alle Hexer-Monster, die du kontrollierst, erhalten 600 ATK. Wenn du ein Hexer-Monster als Normalbeschwörung beschwörst: Du kannst 1 „Dunkler Magier“-Monster als Spezialbeschwörung von deinem Deck beschwören und 1 Karte, die „Dunkler Magier“ nennt, von deinem Deck deiner Hand hinzufügen. Wenn ein „Dunkler Magier“-Monster, das du kontrollierst, zerstört und auf den Friedhof gelegt wird: Beschwöre 1 Monster, das „Dunkler Magier“ nennt, als Spezialbeschwörung von deinem Deck oder Extra Deck, wobei du seine Beschwörungsbedingungen ignorierst.</p></div>
+<div class="pn0_2_39-way"><div class="pn0_2_39-art" style="background-image:url('assets/cards/92377303.jpg')"></div><p><b>Dunkler Gelehrter</b>Wird jetzt <b>immer als „Dunkler Magier“-Karte behandelt</b>, so wie Herbeigerufener Totenkopf als Erzunterweltler gilt. Damit zählt ihn jedes „Dunkler Magier“-Relikt.</p></div>
+<div class="pn0_2_39-way"><img class="pn0_2_39-sprite" src="assets/dm06.png"><p><b>Ein eigener Booster für Yugi Muto</b>Yugi Muto teilt sich nicht mehr den Booster von Yami Yugi. Seine 89 Karten: Gaia, zorniger Ritter, Schwarz Glänzender Soldat, Großschild-Wache, Kuriboh, die Magnetkrieger, Apparate, die Arkana-Ritter, LV-Monster, Exodia und jede Menge Zieh- und Entfernungskarten.</p></div>
+</div></section>
+
+<section class="pn0_2_39-cols">
+<div class="pn0_2_39-big"><em>Randomisierer</em><h3>Zufallskarten, neu gebaut</h3>
+<p class="pn0_2_39-lead">Regenbogenkarten entstehen jetzt aus dem Aufbau <b>echter Karten</b>, daher kommen Effekte, Kartentypen und Werte so oft vor wie auf echten Karten. Karten mit Archetyp-Effekten tragen den <b>Archetyp im Namen</b>, die Texte sind klarer, widersprüchliche Effekte sind weg, und kostenlose Beschwörungen aus der Hand brauchen Kosten oder eine Bedingung.</p></div>
+<div class="pn0_2_39-big"><em>Windows-App</em><h3>Automatische Updates</h3>
+<p class="pn0_2_39-lead">Ab dieser Version <b>installiert die Windows-App ihre Updates selbst</b>. Wenn du eine ältere Version hast, zeigt das Hauptmenü einen Hinweis: <b>Lade den Installer noch einmal herunter</b>, deine Spielstände bleiben erhalten.</p>
+<p class="pn0_2_39-lead" style="margin-top:8px">Ist der Ordner Dokumente gesperrt, wird in einen zweiten Ordner gespeichert, und <b>Bild kopieren</b> auf der Durchlaufkarte kopiert das Bild, statt es zu speichern.</p></div>
+</section>
+
+<section class="pn0_2_39-cols">
+<div><h2>Änderungen</h2><ul class="pn0_2_39-small">
+<li><span>🌈</span><span><b>Starterdecks</b> erscheinen im Shop nur, wenn du sie dir leisten kannst, und leuchten in Regenbogenfarben, damit du sie nicht übersiehst.</span></li>
+<li><span>🔎</span><span>In den Booster-Details sind <b>Typen, Eigenschaften und Archetypen Links</b>: Tippe auf einen, um nur die passenden Karten dieses Boosters zu sehen.</span></li>
+<li><span>🃏</span><span>Die <b>Ansicht des Gegnerdecks</b> ist so breit wie die Booster-Ansicht und zeigt mehr Karten auf einmal.</span></li>
+<li><span>⚡</span><span>Wenn ein Effekt aktiviert werden <b>muss</b>, ist <b>✕</b> nicht mehr ausgegraut: Ein Druck darauf aktiviert den Effekt.</span></li>
+<li><span>🈶</span><span>Charaktere tragen ihre <b>offiziellen japanischen, koreanischen und chinesischen</b> Namen.</span></li>
+<li><span>🤖</span><span>Die CPU wurde mit <b>jedem Deck im Spiel</b> überprüft: Sie spielt jetzt Dutzende Karten, die sie früher ignorierte, etwa Amazonische Bogenschützinnen, Katapult-Schildkröte, Falle umkehren und Ninjalady Yae, und trifft bessere Entscheidungen bei Ausrüstungen und Waboku.</span></li>
+<li><span>↕️</span><span>Beim Ordnen von Karten oben auf dem Deck (Großes Auge und andere) wirst du aufgefordert, <b>✓</b> zu drücken, wenn du fertig bist.</span></li>
+</ul></div>
+<div><h2>Fehlerbehebungen</h2><ul class="pn0_2_39-small">
+<li><span>📰</span><span>Die Bilder der <b>Patchnotes</b> im Spiel werden wieder richtig angezeigt, und jedes Update wird jetzt vor der Veröffentlichung geprüft.</span></li>
+<li><span>📜</span><span>Lange Kartentexte im Kartenfenster lassen sich wieder <b>scrollen</b>.</span></li>
+<li><span>🔮</span><span><b>Namenswechsler</b> mit dem Namen „Dunkler Magier“ zählt jetzt für Band des Magiers und Meister und Lehrling.</span></li>
+<li><span>📱</span><span>Die Android-App erholt sich selbst vom seltenen Python-Fehler <b>„Start nicht möglich“</b> und erklärt, was zu tun ist, falls es weiter nicht klappt.</span></li>
+<li><span>🧠</span><span>CPU-Korrekturen: Stachelfee, Stamm der Katzenohren, Ein Legendärer Ozean, Mystisches Ungeheuer von Serket, Amazonische Schwertkämpferin, Anhaltender Zerstörungshieb und Flips unter Umgekehrte Macht.</span></li>
+<li><span>🔤</span><span>Die Durchlaufkarte zeigt Charakternamen in deiner Sprache.</span></li>
+</ul></div>
+</section></div>

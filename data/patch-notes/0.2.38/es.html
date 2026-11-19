@@ -1,0 +1,112 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>Actualización 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>Correcciones importantes</em><h3>Salas y progreso del Duelo Tag</h3>
+<p class="pn0_2_38-lead">Las <b>salas Tag</b> podían caducar con vosotros dentro, por ejemplo al editar el mazo o con el juego en una pestaña de fondo. Ahora una sala se mantiene mientras haya alguien dentro.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">El <b>progreso del Duelo Tag</b> (victorias, niveles de desafío, fundas) se guarda al momento, aunque cierres el juego sin pulsar Salir.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">Se corrigió el error del <b>editor de mazos</b> que algunos tuvieron en la 0.2.37.</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>Nuevo</em><h3>Ajustes del personaje</h3>
+<p class="pn0_2_38-lead">Toca la <span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span> de un personaje, o abre <b>Ajustes › Personaje</b> en un duelo.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Marcas de cartas guardadas</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span> se aplican en cada nueva partida con ese personaje, también en Duelo Tag. Elige cartas de <b>toda tu colección o de un sobre</b>.</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>Guardar las marcas de las partidas</b> conserva las marcas que pongas al jugar.</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>Nuevo rival</em><h3>PaniK</h3>
+<p class="pn0_2_38-lead"><b>PaniK</b> se une a los rivales con un mazo de <b>Libro de la Vida / Vampiros</b> en el Nivel 3 y un nuevo mazo Infinito.</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">Rivales CPU</em></p>
+<p class="pn0_2_38-lead">Comparamos <b>37.000 turnos de jugadores</b> con las decisiones de la CPU. Ahora guarda los Tributos cuando un ataque de Nivel 4 hace más daño, usa <b>Raigeki y Agujero Oscuro</b> para abrir el golpe final, dispara con <b>Cazador Escondido</b>, elige golpes finales más seguros contra cartas boca abajo y cuenta los dobles ataques.</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>Reliquias</em><h3>Reliquias nuevas y renovadas</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>Trío Jin</b>Tus "Sanga del Trueno", "Kazejin" y "Suijin" obtienen efectos según cuántos de ellos controles. 1 o más: Cuando uno de ellos ataque a un monstruo de tu adversario, el ATK de ese monstruo pasa a ser 0 en el Damage Step, hasta la End Phase. 2 o más: Una vez por turno cada uno, durante el turno de tu adversario, cuando tu adversario active un efecto de monstruo o una Carta Mágica, puedes negar ese efecto y, después, devolver esa carta a la mano. 3: Una vez por turno, puedes Invocar de Modo Especial "Guardián de la Puerta" desde tu Deck, ignorando sus condiciones de Invocación.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>Combinación Definitiva de la Puerta</b><i>Reliquia fusionada.</i> Al principio de cada Duelo, añade "Sanga del Trueno", "Kazejin" y "Suijin" a tu mano. Tus "Guardián de la Puerta", "Sanga del Trueno", "Kazejin" y "Suijin" obtienen estos efectos, controles lo que controles: Cuando ataque a un monstruo de tu adversario, el ATK de ese monstruo pasa a ser 0 en el Damage Step, hasta la End Phase. Una vez por turno cada uno, durante el turno de tu adversario, cuando tu adversario active un efecto de monstruo o una Carta Mágica, puedes negar ese efecto y, después, devolver esa carta a la mano. Una vez por turno, puedes Invocar de Modo Especial "Guardián de la Puerta" desde tu Deck, ignorando sus condiciones de Invocación.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>Pacto del Berserker</b>Los monstruos que controles pueden hacer 1 ataque más durante cada Battle Phase de los que podrían hacer normalmente. No puedes Colocar monstruos ni Invocarlos de Modo Especial en Posición de Defensa.</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>Estrellas Alineadas</b>Una vez por turno, durante tu End Phase, si tienes al menos 1 monstruo en tu Cementerio y todos los monstruos en tu Cementerio y en tu Campo tienen el mismo Nivel: Invoca de Modo Especial, desde tu mano, 1 monstruo de ese Nivel.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>Personajes</em><h3>Sobres y configuraciones de personaje</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>Hermanos Paradox</b>Nuevas raras: <b>Angel Guardián Joan, Dragón Tirano, Gilford el Relámpago, Caballero Místico del Chacal, Dragón Fusilero, la Bestia de Modo Dual, Thestalos el Monarca de la Tormenta de Fuego</b> y <b>Granmarg el Monarca de Roca</b>. Nuevas comunes: Dragón de Tres Cuernos, Serpiente Siniestra, Tomate Místico, Germen Gigante, Momonga Ágil y una carta nueva, <b>Mausoleo del Emperador</b>. <i>Salen 57 cartas débiles: cadenas de Fusión, las Arpías y la línea del Insecto Supremo.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>Dartz</b>Ahora es un sobre de <b>destierro</b>: <b>Necrofear Oscuro, Final del Caos, Semilla Primigenia, Noble de Crossout, Puerta a Otra Dimensión</b>, Bestia Loca D.D., Jarra Dimensional y más, además de monstruos Normales débiles de LUZ y OSCURIDAD para desterrar. <i>Salen las cartas de AGUA y de Umi.</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>Serenity</b><b>Dragón de Cráneo Negro</b> y <b>Dragón Meteoro Negro</b> entran en su sobre, con sus materiales Dragón Negro de Ojos Rojos, Cráneo Convocado y Dragón Meteoro.</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>Ryou Bakura</b>Empieza con <b>Catálogo del Duelista</b>: los sobres de personaje pueden salir en la tienda. Su segunda configuración, <b>Favorito de la Fortuna</b>, abre <b>4 copias del sobre de un personaje al azar</b> y empieza con una reliquia de un <b>arquetipo de ese sobre</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Equilibrio</em><h3>Probabilidad de reliquias y partidas</h3>
+<div class="pn0_2_38-bal">
+<div><h4>Probabilidad de reliquias</h4><ul>
+<li><span>◆</span><span>Las <b>reliquias de arquetipo</b> (Estandarte Amazoness, Mundo Toon…) aparecen cuando tienes una de sus cartas, y mucho más <b>por cada una en tu mazo</b>.</span></li>
+<li><span>◆</span><span>Las reliquias de <b>cartas concretas</b> (Llamada de la Puerta, Rito del Caos Negro…) son más raras mientras no tengas esas cartas.</span></li>
+<li><span>◆</span><span><b>Catálogo del Duelista</b> ya no es rara. Tener una reliquia de Atributo ya no reduce las demás.</span></li>
+<li><span>◆</span><span>Las marcas <b>★</b> solo cuentan para cartas que tienes y no están en tu mazo.</span></li>
+</ul></div>
+<div><h4>Partidas</h4><ul>
+<li><span>◆</span><span>Desde el <b>nivel de desafío 3</b>, los Sobres aleatorios y Azar Absoluto solo aparecen cuando ese personaje ha superado ese nivel.</span></li>
+<li><span>◆</span><span>Los mazos del primer duelo ahora llevan <b>Tornado de Polvo, Exorcismo y Trampa de Eliminación</b>, así pueden salir como recompensa.</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>Idiomas</em><h3>Traducido en todas partes</h3>
+<p class="pn0_2_38-lead">Todos los <b>botones de opción</b> de las cartas, los textos emergentes, la <b>hoja de partida</b>, los nombres y descripciones de sobres, los nombres de personajes y los tipos de invocación están ya en los 8 idiomas. Algunas opciones mostraban el <b>texto oficial equivocado</b> (como Kunai con Cadena) y están corregidas.</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>Cambios</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>Cuenta Atrás Final</b> muestra los turnos restantes <span class="pn0_2_38-chip">⌛ 3</span> bajo el contador de turnos, gana con un nuevo <b>final de llamas</b> y paga al menos <b>300 monedas</b> sin penalización por duelo lento.</span></li>
+<li><span>🗂️</span><span>La hoja de partida agrupa las <b>copias de la misma carta</b>, y una lista larga de maldiciones pasa a otra línea en vez de salirse.</span></li>
+<li><span>🌈</span><span>Las cartas aleatorias tienen un arcoíris suave sobre su <b>texto de efecto</b>.</span></li>
+<li><span>🔤</span><span>Las cartas <b>Mensaje Espiritual</b> muestran el arte del TCG, así las letras forman FINAL.</span></li>
+<li><span>🤝</span><span>El botón <span class="pn0_2_38-trade">Intercambio 0/2</span> del editor de mazo Tag destaca más.</span></li>
+<li><span>⏎</span><span><b>Intro</b> en un cuadro de búsqueda busca.</span></li>
+<li><span>🃏</span><span>Los botones de la ventana de carta caben en móviles estrechos; la ventana de nueva partida dice <b>«Elige una ranura de guardado»</b>.</span></li>
+</ul></div>
+<div><h2>Correcciones</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>Decreto del Señor de los Dragones</b> y reliquias parecidas ahora afectan a las cartas de tu compañero de Tag.</span></li>
+<li><span>🛡️</span><span>La CPU ya no destruye sus propios equipos con <b>Sabio de la Frontera</b>.</span></li>
+<li><span>💤</span><span>La CPU ya no ataca a <b>Duende del Sueño</b> si el ataque se desviaría a un monstruo más fuerte.</span></li>
+<li><span>⏱️</span><span>Ya no aparece el falso aviso «la CPU no se mueve» al volver al juego.</span></li>
+<li><span>🌀</span><span>La revelación de <b>Maharaghi</b> ya no nombra la última carta de la cadena.</span></li>
+<li><span>🎲</span><span>Los botones de las cartas aleatorias dicen lo que hacen en vez de «Resolver efecto».</span></li>
+<li><span>📋</span><span>El nivel de desafío 1 ya no dice «Incluye todos los modificadores anteriores».</span></li>
+</ul></div>
+</section></div>

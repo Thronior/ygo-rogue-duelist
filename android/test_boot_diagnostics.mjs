@@ -58,6 +58,7 @@ ok(retryOnce({storage:null,reload})===false,'no sessionStorage: no retry loop');
 
 // mobile.js loads the checked bytes, retries only Python failures, and offers Copy details.
 const mobile=readFileSync(fileURLToPath(new URL('./web/mobile.js',import.meta.url)),'utf8');
-ok(/loadPyodide\(\{indexURL:pyIndex,\.\.\.\(stdlib\.url\?\{stdLibURL:stdlib\.url\}:\{\}\),stderr:pyErrors\.write\}\)/.test(mobile),'stdLibURL wiring');
+ok(mobile.includes('stdlib=await prepareStdlib(pyIndex,{retry:startupRetried()})')&&mobile.includes('py=await loadPyodide({indexURL:pyIndex,...stdlib.options,stderr:pyErrors.write});stdlib.started()}catch(error){stdlib.failed();throw error}finally{stdlib.release()}'),'stdlib wiring (test_boot_stdlib_fallback.mjs boots it)');
+ok(mobile.includes('<p>The game engine could not start on this device. Your saves are safe.</p>'),'plain message after the retry');
 ok(mobile.includes("bootDiag?.stage==='python'&&retryOnce(")&&mobile.includes('id="copy-boot-details"')&&mobile.includes('startDeviceSync();clearRetry();'),'error screen wiring');
 console.log(`PASS boot diagnostics: ${checks} checks`);

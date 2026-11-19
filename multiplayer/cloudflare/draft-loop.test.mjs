@@ -84,9 +84,9 @@ test('older clients keep best of three with eight boosters',async()=>{
 // Seeded so the weighted-draw counts below are the same on every run.
 const seeded=seed=>()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
 test('relic rarity: offers are drawn by weight, never repeat, and never include fused relics',()=>{
- // A sample of relic_fusions.FUSED results (2026-11-15: fused relics are out of Draft); cursed relics stay in.
+ // A sample of relic_fusions.FUSED results (2026-11-15: fused relics are out of Draft); shadow relics stay in.
  for(const fused of ['chaos_orb','four_elements','masterwork_blade','gaia_plate','invincible','tyrants_throne','sacred_phoenix','attribute_mutation'])assert(!DRAFT_RELICS.includes(fused),fused);
- assert(DRAFT_RELICS.some(k=>k.startsWith('cursed_')),'cursed relics stay in');
+ assert(DRAFT_RELICS.some(k=>k.startsWith('cursed_')),'shadow relics stay in');
  assert(DRAFT_RELICS.every(k=>DRAFT_RELIC_WEIGHTS[k]>0&&DRAFT_RELIC_WEIGHTS[k]<=1));
  const random=seeded(15),seen=new Map();
  for(let i=0;i<20000;i++){const o=draftOffer(random);assert.equal(new Set(o.relics).size,3);for(const k of o.relics)seen.set(k,(seen.get(k)||0)+1);}

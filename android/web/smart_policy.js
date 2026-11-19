@@ -420,6 +420,10 @@ export function smartContext(e,p,L,prompt=null){
   // Without a Temple of the Kings a Set Serket is a 2000 DEF wall that destroys itself once flipped: worth a spent flip
   // monster (Mask of Darkness, Man-Eater Bug), not an 1800 DEF Embodiment of Apophis it was Tribute-Set for (deck trace, 2026-11-08).
   if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>name(x)==='Temple of the Kings')&&!own.some(x=>!noTributeSummon(x)&&Math.max(atk(x),def(x))<=1200))return false;
+  // Fusilier Dragon can be Normal Summoned without Tributes at half its stats (1400/1000): with fewer than two Tributes
+  // it is a plain Level 4 body, not a stranded Level 7 (all-decks sweep, 2026-11-19: Bandit Keith held it for turns
+  // with an empty field).
+  if(n==='Fusilier Dragon, the Dual-Mode Beast'&&c.location===L.HAND&&own.length<2)return true;
   const required=n==='The Wicked Eraser'?3:effectiveLevel(c,true)>6?2:effectiveLevel(c,true)>4?1:0;
   if(required){
    // A borrowed monster (Brain Control, Change of Heart, Snatch Steal) is paid first: it costs us nothing (flag c9299a1c2a, 2026-11-07).
@@ -428,8 +432,7 @@ export function smartContext(e,p,L,prompt=null){
    const paid=eligible.slice(0,required),newAtk=projectedAttack(c),newDef=projectedDefense(c),free=paid.every(borrowedMonster);
    const freed=x=>attackBlocked(x,p)&&!attackBlocked(c,p,true)&&newAtk>0;
    // A Set is judged on DEF alone: comparing ATK kept every 0-ATK wall (Labyrinth Wall, Millennium Shield) in hand (user, 2026-11-04).
-   if(paid.some(x=>!freed(x)&&!borrowedMonster(x)&&(setting?newDef<Math.max(atk(x),x.defense??0):newAtk<atk(x))))return false;
-   const released=paid.some(freed)&&paid.every(x=>freed(x)||newAtk>=atk(x));
+   if(paid.some(x=>!freed(x)&&!borrowedMonster(x)&&(setting?newDef<Math.max(atk(x),x.defense??0):newAtk<atk(x))))return false;   const released=paid.some(freed)&&paid.every(x=>freed(x)||newAtk>=atk(x));
    const enemyAtk=Math.max(0,...enemy.filter(face).map(atk));
    const wall=paid.some(x=>!borrowedMonster(x)&&(x.defense??0)>=enemyAtk&&(x.defense??0)>newDef);
    // A set Cyber Jar has an unusually large, board-wide effect. Keep it from
@@ -625,7 +628,9 @@ export function smartContext(e,p,L,prompt=null){
   return cost;
  }
  const backRemoval=new Set(['Heavy Storm',"Harpie's Feather Duster",'Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap']);
- function backValue(c){c=[...back,...theirBack].find(x=>same(x,c))||c;return known(c)?(lockValue(c)|| (LOCK.includes(name(c))?1500:0) ? Math.max(lockValue(c),1500):engineThreats.has(name(c))?3200:(data(c).type&(0x20000|0x80000|0x40000))?1500:400):900;}
+ // Destroying Toon World destroys its controller's Toon monsters too (all-decks review, 2026-11-19: Heavy Storm was held
+ // against Toon World, Mirror Wall and Mirror Force while Blue-Eyes Toon Dragon beat us).
+ function backValue(c){c=[...back,...theirBack].find(x=>same(x,c))||c;if(known(c)&&name(c)==='Toon World')return 1500+q(c.controller??1-p,L.MZONE).filter(x=>face(x)&&/Toon/.test(name(x))).reduce((v,x)=>v+targetValue(x),0);return known(c)?(lockValue(c)|| (LOCK.includes(name(c))?1500:0) ? Math.max(lockValue(c),1500):engineThreats.has(name(c))?3200:(data(c).type&(0x20000|0x80000|0x40000))?1500:400):900;}
  // Snipe Hunter's legal, worthwhile targets: the opponent's cards it can destroy, never our own.
  function snipeTargets(source){
   // Skip a visible monster one of our remaining attackers already destroys in battle: save the discard.
@@ -805,6 +810,21 @@ export function smartContext(e,p,L,prompt=null){
  const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
+ // Amazoness Spellcaster: the pair (our attack-ready Amazoness, their face-up monster) whose original ATK swap lets our
+ // Amazoness beat a monster it cannot beat now; the most valuable such monster (all-decks sweep, 2026-11-19).
+ function spellcasterPick(){
+  const base=x=>Math.max(0,data(x).attack??0);let best=null;
+  for(const ours of own.filter(x=>face(x)&&(x.position&1)&&name(x).includes('Amazoness')&&!(x.attack_count>0)&&attackAllowed(x,false)))
+   for(const theirs of enemy.filter(face)){
+    if(base(theirs)<=base(ours))continue;
+    const mine=atk(ours)-base(ours)+base(theirs),guard=theirs.position&1?atk(theirs)-base(theirs)+base(ours):def(theirs);
+    if(atk(ours)>power(theirs)||mine<=guard)continue;
+    const value=targetValue(theirs);if(!best||value>best.value)best={ours,theirs,value};
+   }
+  return best;
+ }
+ // Monsters that Special Summon or search a replacement when destroyed by battle.
+ const battleFloaters=new Set(['Mystic Tomato','Giant Rat','Shining Angel','Mother Grizzly','Flying Kamakiri #1','UFO Turtle','Pyramid Turtle','Masked Dragon','Hyena','Troop Dragon','Giant Germ','Nimble Momonga','Sangan','Witch of the Black Forest','Birdface']);
  function wabokuWorthUsing(){
   if(e.player===p||!e.attackCard||e.attackCard.controller!==1-p)return false;
   const current=enemy.find(x=>same(x,e.attackCard));
@@ -821,7 +841,10 @@ export function smartContext(e,p,L,prompt=null){
     const attackPosition=!!(defender.position&1),strength=attackPosition?atk(defender):(def(defender));
     const difference=atk(attacker)-strength;
     const immune=effectsEnabled(p)&&!defender.is_disabled&&battleProof(defender,attacker,1-p);
-    if(!immune&&(attackPosition?difference>=0&&atk(attacker)>0:difference>0))return true;
+    // A battle floater (Mystic Tomato...) replaces itself when destroyed: only its battle damage counts (PaniK T2
+    // review, 2026-11-19: Waboku saved a defending Mystic Tomato from Roc, then 5900 damage came into an empty field).
+    const floats=effectsEnabled(p)&&!defender.is_disabled&&battleFloaters.has(name(defender));
+    if(!immune&&!floats&&(attackPosition?difference>=0&&atk(attacker)>0:difference>0))return true;
     chip=Math.max(chip,attackPosition||pierce(attacker,1-p)?Math.max(0,difference):0);
    }
    damage+=chip;
@@ -1122,6 +1145,10 @@ export function smartContext(e,p,L,prompt=null){
   if(friendlyEquip(c)&&prompt?.summons?.some(x=>lvl(x)>=5&&tributeWorth(x)!==false&&projectedAttack(x)>Math.max(0,...own.map(atk))))return -1;
   if(n==='Black Luster Soldier - Envoy of the Beginning'&&!enemy.length&&Number(BigInt(c.description||0)&0xfffffn)!==2)return -1;
   if(friendlyEquip(c)&&(c.location===L.HAND||c.location===L.SZONE&&!face(c))&&!own.some(face))return -1;
+  // Main Phase 1 with a summon still to come: an equip waits for a monster that can attack with it, instead of going on
+  // a defending wall (PaniK T2 review, 2026-11-19: Dark Energy on a Defense Position Castle of Dark Illusions, then the
+  // Archfiend Soldier summoned after it attacked without the 300 ATK it needed).
+  if(friendlyEquip(c)&&c.location===L.HAND&&e.player===p&&e.phase===4&&(prompt?.summons?.length||prompt?.special_summons?.length)&&!own.some(x=>face(x)&&(x.position&1)&&equipUseful(c,x)&&!attackBlocked(x,p)))return -1;
   if(n==='Bubonic Vermin')return optionalMillSafe()&&q(p,L.DECK).some(x=>name(x)===n)?85:-1;
   if(n==='Nimble Momonga')return optionalMillSafe()&&q(p,L.DECK).some(x=>name(x)===n)?85:-1;
   if(n==='Cyber Jar')return cyberJarFlipUseful()?85:-1;
@@ -1253,11 +1280,14 @@ export function smartContext(e,p,L,prompt=null){
    const guarded=own.filter(x=>face(x)&&normalMonster(x)).reduce((s,x)=>s+targetValue(x),0);
    return guarded>=1500&&!enemy.some(x=>face(x)&&normalMonster(x))&&back.filter(x=>x.sequence<5).length<=3?55:-1;
   }
-  if(['Reinforcements','Rush Recklessly'].includes(n)){
+  // Deal of Phantom gives the monster in the battle 100 ATK per monster in our GY: judged like Reinforcements. With no
+  // rule it was never activated in 2118 chain windows (all-decks sweep, 2026-11-19).
+  if(['Reinforcements','Rush Recklessly','Deal of Phantom'].includes(n)){
    if(!chain||!e.attackCard||e.player!==p&&!(e.inDamageStep||e.phase===32||e.phase===64))return -1;
    const our=own.find(x=>same(x,e.attackCard)||same(x,e.attackTarget)),other=enemy.find(x=>same(x,e.attackCard)||same(x,e.attackTarget));
    if(!our||!(our.position&1)||e.battleProtected?.[e.player===p?1-p:p])return -1;
-   const bonus=n==='Reinforcements'?500:700;
+   const bonus=n==='Reinforcements'?500:n==='Deal of Phantom'?100*grave.filter(x=>data(x).type&1).length:700;
+   if(bonus<=0)return -1;
    return other&&atk(our)<=power(other)&&atk(our)+bonus>power(other)||!other&&e.player===p&&atk(our)<e.lp[1-p]&&atk(our)+bonus>=e.lp[1-p]?95:-1;
   }
   const stall=lockActivation(c);if(stall!==null)return stall;
@@ -1536,7 +1566,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Reckless Greed')return optionalDrawSafe(2)?(chain&&hand.length<=1?75:65):-1;
   // Character-specific packages: only commit when their real prerequisite is present.
   if(['Thousand Knives','Dark Magic Attack','Dark Magic Curtain','Diffusion Wave-Motion'].includes(n)){
-   if(n==='Dark Magic Curtain')return !own.length&&has(q(p,L.DECK),'Dark Magician')&&e.lp[p]>2000?98:-1;
+   // Also with a weak field and healthy LP in Main Phase 1, when Dark Magician has something to beat: the Arkana deck
+   // held it for 7 turns at 6200 LP behind Set 1000-ATK monsters (all-decks review, 2026-11-19).
+   if(n==='Dark Magic Curtain')return has(q(p,L.DECK),'Dark Magician')&&own.length<5&&(!own.length&&e.lp[p]>2000||e.player===p&&e.phase===4&&e.lp[p]>=4000&&!own.some(x=>face(x)&&atk(x)>=2500)&&(!enemy.length||enemy.some(x=>known(x)&&power(x)<2500)))?98:-1;
    if(n==='Diffusion Wave-Motion')return e.lp[p]>1500&&remainingAttackers().some(x=>race(x)==='Spellcaster'&&lvl(x)>=7&&enemy.filter(t=>!known(t)||atk(x)>power(t)).length>=2)?85:-1;
    return has(own,'Dark Magician')&&(n==='Thousand Knives'?enemy.length:theirBack.length)?110:-1;
   }
@@ -1850,6 +1882,129 @@ export function smartContext(e,p,L,prompt=null){
    // Save a losing defender; never spend the trap on an already-safe or doomed wall.
    return atk(attacker)>defense&&atk(attacker)<=defense+500?90:-1;
   }
+  // Reverse Trap turns every ATK/DEF gain into a loss (and every loss into a gain) on the field until the End Phase.
+  // Without a rule it was Set 13 times in 30 duels and never activated (PaniK T2 review, 2026-11-19). Spring it at an
+  // attack when the reversed numbers clearly turn that battle our way: a printed stat less the current modifier,
+  // never a face-down monster's hidden stats. Reversed Equips and Field Spells on our side count against it.
+  // battleSwing(change): how much better the declared battle goes for us when change(monster,'attack'|'defense') gives
+  // the new stats: destroyed monsters (1000 + printed ATK each) and battle damage. null for no battle or a hidden target.
+  const battleSwing=change=>{
+   if(!e.attackCard)return null;
+   const live=ref=>ref&&q(ref.controller,L.MZONE).find(x=>x.sequence===ref.sequence);
+   const a=live(e.attackCard),t=e.attackTarget?live(e.attackTarget):null;
+   if(!a||!face(a)||(e.attackTarget&&(!t||!known(t))))return null;
+   const mine=a.controller===p,worth=x=>1000+Math.max(0,data(x).attack??0),key=t&&!(t.position&1)?'defense':'attack';
+   const battle=(av,tv)=>{
+    if(!t)return mine?av:-av;
+    const up=!!(t.position&1);let v=0;
+    if(av>tv){v+=mine?worth(t):-worth(t);if(up)v+=mine?av-tv:-(av-tv);}
+    else if(av<tv){if(up)v+=mine?-worth(a):worth(a);v+=mine?-(tv-av):tv-av;}
+    else if(up)v+=mine?worth(t)-worth(a):worth(a)-worth(t);
+    return v;};
+   const stat=(x,k)=>k==='attack'?atk(x):def(x);
+   return battle(change(a,'attack'),t?change(t,key):0)-battle(atk(a),t?stat(t,key):0);
+  };
+  if(n==='Reverse Trap'){
+   if(!chain)return -1;
+   // The printed stat comes from the card data: a field card's own attack/defense are its current values.
+   const swing=battleSwing((x,key)=>Math.max(0,2*Math.max(0,data(x)[key]??0)-(key==='attack'?atk(x):def(x))));
+   return swing!==null&&swing>=800?88:-1;
+  }
+  // Amazoness Archers (all-decks sweep, 2026-11-19, never activated without a rule): at their attack, while we control an
+  // Amazoness, every monster they control loses 500 ATK. Spring it when that turns the battle, or saves us from a lethal
+  // direct attack.
+  if(n==='Amazoness Archers'){
+   if(!chain||e.player===p||e.attackCard?.controller!==1-p||!own.some(x=>face(x)&&name(x).includes('Amazoness')))return -1;
+   const attacker=enemy.find(x=>same(x,e.attackCard));
+   if(attacker&&!e.attackTarget&&atk(attacker)>=e.lp[p]&&atk(attacker)-500<e.lp[p])return 95;
+   const swing=battleSwing((x,key)=>x.controller!==p&&key==='attack'?Math.max(0,atk(x)-500):key==='attack'?atk(x):def(x));
+   return swing!==null&&swing>=800?86:-1;
+  }
+  // Windstorm of Etaqua (all-decks sweep, 2026-11-19, never activated without a rule) changes every face-up monster they
+  // control to the other position: at their attack it switches the attacker to Defense Position, a Waboku-like stop.
+  if(n==='Windstorm of Etaqua'){
+   if(!chain||(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&attackStops.has(e.name(x.code))))return -1;
+   const attacker=enemy.find(x=>same(x,e.attackCard));
+   return attacker&&face(attacker)&&(attacker.position&1)&&wabokuWorthUsing()?89:-1;
+  }
+  // Dark Mirror Force (all-decks sweep, 2026-11-19): at their attack, banish all their Defense Position monsters.
+  if(n==='Dark Mirror Force'){
+   if(!chain||e.player===p||e.attackCard?.controller!==1-p)return -1;
+   const walls=enemy.filter(x=>!(x.position&1));
+   return walls.length>=2||walls.some(x=>targetValue(x)>=1500)?85:-1;
+  }
+  // Dramatic Rescue (all-decks sweep, 2026-11-19): their card targets our Amazoness; save it to the hand and Special
+  // Summon another monster from the hand.
+  if(n==='Dramatic Rescue'){
+   if(!chain)return -1;
+   const link=(e.activeChain||[]).findLast(x=>!x.inactive&&x.player!==p);
+   const saved=link&&(link.targets||[]).some(t=>{const x=own.find(y=>same(y,t));return x&&name(x).includes('Amazoness');});
+   return saved&&hand.some(x=>(data(x).type&1)&&specialOk(x))?88:-1;
+  }
+  // Soul Rope (all-decks sweep, 2026-11-19): pay 1000 LP to Special Summon a Level 4 from the Deck after a monster of
+  // ours is destroyed by an effect.
+  if(n==='Soul Rope')return chain&&e.lp[p]>2500&&own.length<5&&q(p,L.DECK).some(x=>(data(x).type&1)&&(e.cards.get(x.code)?.level||0)===4)?80:-1;
+  // Optional battle-destruction triggers that had no rule, so they passed whenever another card triggered with them
+  // (all-decks sweep, 2026-11-19): Birdface searches a Harpie Lady; Amazoness Chain Master pays 1500 LP to take a
+  // monster from their hand, worth it while our LP is healthy and their hand holds cards.
+  if(n==='Birdface'&&c.location===L.GRAVE)return 90;
+  if(n==='Amazoness Chain Master'&&c.location===L.GRAVE)return e.lp[p]>3500&&q(1-p,L.HAND).length?80:-1;
+  // Amazoness Archer Tributes 2 monsters for 1200 damage: only as the finishing blow.
+  if(n==='Amazoness Archer'&&c.location===L.MZONE)return burnDamage(1200)>=e.lp[1-p]?95:-1;
+  // Karate Man doubles its original ATK and dies in the End Phase (all-decks sweep, 2026-11-19, never used): spend it
+  // in Main Phase 1 on a kill worth the card, or on lethal damage to an empty field.
+  if(n==='Karate Man'&&c.location===L.MZONE){
+   c=own.find(x=>same(x,c))||c; // The idle activate entry carries no position.
+   if(e.player!==p||e.phase!==4||!face(c)||!(c.position&1)||c.attack_count>0||!attackAllowed(c,!enemy.length))return -1;
+   const now=atk(c),then=now+Math.max(0,data(c).attack??0);
+   if(!enemy.length){const total=remainingAttackers().reduce((s,x)=>s+Math.max(0,atk(x)),0);return total<e.lp[1-p]&&total+then-now>=e.lp[1-p]?90:-1;}
+   return enemy.some(x=>known(x)&&power(x)>=now&&power(x)<then&&targetValue(x)>=1500)?75:-1;
+  }
+  // Triangle Ecstasy Spark (all-decks sweep, 2026-11-19, never used): Harpie Lady Sisters become 2700 ATK and their
+  // Traps are shut off for the turn. Use it in Main Phase 1 when a Sisters can attack and it opens a kill, lethal, or a
+  // safe attack past Set cards.
+  if(n==='Triangle Ecstasy Spark'){
+   if(e.player!==p||e.phase!==4)return -1;
+   const sisters=own.filter(x=>face(x)&&(x.position&1)&&name(x)==='Harpie Lady Sisters'&&!(x.attack_count>0)&&attackAllowed(x,!enemy.length));
+   if(!sisters.length)return -1;
+   const gain=Math.max(...sisters.map(x=>2700-atk(x)));
+   const kill=enemy.some(x=>known(x)&&sisters.some(s=>power(x)>=atk(s)&&power(x)<2700));
+   const lethal=!enemy.length&&remainingAttackers().reduce((s,x)=>s+Math.max(0,atk(x)),0)+gain*sisters.length>=e.lp[1-p];
+   return gain>0&&(kill||lethal)||gain>=0&&theirBack.some(x=>!face(x))?80:-1;
+  }
+  // Amazoness Spellcaster swaps the original ATK of our Amazoness and their face-up monster (all-decks sweep,
+  // 2026-11-19, never used): only when the swap lets that Amazoness win a battle it would lose (spellcasterPick).
+  if(n==='Amazoness Spellcaster')return e.player===p&&e.phase===4&&spellcasterPick()?80:-1;
+  // Reload shuffles the hand back and draws as many (all-decks sweep, 2026-11-19, never used): only a mostly dead
+  // hand (stranded high-Level monsters, see handLoss) is worth redrawing, with Deck to spare.
+  if(n==='Reload'){
+   if(e.player!==p||e.phase!==4||chain||exodiaPlan)return -1;
+   const rest=hand.filter(x=>!same(x,c));
+   if(rest.length<2||myDeck<rest.length+8)return -1;
+   return rest.filter(x=>handLoss(x)<=400).length*2>=rest.length?70:-1;
+  }
+  // More cards the all-decks sweep (2026-11-19) found never played for want of a rule:
+  // Backup Soldier returns up to 3 non-Effect monsters with 1500 or less ATK from the GY (5+ monsters there).
+  if(n==='Backup Soldier'){
+   const back3=grave.filter(x=>(data(x).type&1)&&!(data(x).type&0x20)&&Math.max(0,data(x).attack??0)<=1500).length;
+   return back3>=2||back3===1&&hand.length<=1?75:-1;
+  }
+  // Archfiend's Roar: pay 500 LP for an Archfiend from the GY that attacks this turn and dies in the End Phase.
+  if(n==="Archfiend's Roar"){
+   if(e.player!==p||e.phase!==4||own.length>=5||e.lp[p]<=1500)return -1;
+   const best=Math.max(0,...grave.filter(x=>(data(x).type&1)&&/Archfiend/.test(name(x))&&specialOk(x)).map(x=>Math.max(0,data(x).attack??0)));
+   return best>0&&(!enemy.length||enemy.some(x=>known(x)&&best>power(x)))?75:-1;
+  }
+  // Lady Ninja Yae discards a WIND monster to return all their Spells and Traps to the hand: worth it against two or
+  // more, or one lock card (Swords of Revealing Light, Gravity Bind...).
+  if(n==='Lady Ninja Yae'&&c.location===L.MZONE){
+   if(e.player!==p||![4,256].includes(e.phase)||!hand.some(x=>(data(x).type&1)&&hasAttribute(x,'WIND')))return -1;
+   return theirBack.length>=2||theirBack.some(x=>face(x)&&LOCK.includes(name(x)))?80:-1;
+  }
+  // Miracle Restoring revives Dark Magician or Buster Blader (the engine checks the 2 Spell Counters).
+  if(n==='Miracle Restoring')return own.length<5&&grave.some(x=>['Dark Magician','Buster Blader'].includes(name(x))&&specialOk(x))?85:-1;
+  // Catapult Turtle Tributes a monster for half its ATK as damage: only as the finishing blow.
+  if(n==='Catapult Turtle'&&c.location===L.MZONE)return own.some(x=>!same(x,c)&&burnDamage(Math.floor(atk(x)/2))>=e.lp[1-p])?95:-1;
   if(n==='Destiny Board')return back.length<=1?80:-1;
   if(n.startsWith('Spirit Message'))return -1;
   if(n==='Gravity Bind')return own.every(x=>(e.cards.get(x.code)?.level||0)<4)&&enemy.some(x=>(e.cards.get(x.code)?.level||0)>=4)?75:-1;
@@ -2199,6 +2354,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_titans_covenant':v=level>=5?1200:0;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_undying_legion':v=race(c)==='Zombie'?1200:0;break;case 'fused_grand_ritual_altar':v=200*(e.aiModifiers?.ritualScar||0);break;
     case 'fused_tyrants_throne':v=field.length===1?1200:0;break;
+    case 'fused_immortal_dark_magic':v=race(c)==='Spellcaster'?600:0;break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'variant_village_banner':v=level===4?200:0;break;
     case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
@@ -2222,7 +2378,7 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
   // Slate Warrior's 1900 ATK is worth attacking with now: summon it when it can attack this turn, instead of
   // Setting it for a flip it may never get (player report, 2026-11-04). Against an empty field it is Set unless
   // it can attack directly this turn (Main Phase 1, Battle Phase ahead, direct attacks allowed).
-  if(n==='Slate Warrior'&&e.phase===4&&prompt?.to_bp===true&&!openingTurn&&!battleLocked&&!attackBlocked(c,p,true)&&(enemy.length?enemy.some(x=>face(x)&&projectedAttack(c)>power(x)):attackAllowed(c,true)))return false;if(n==='Viser Des'&&effectsEnabled(p))return false;if(n==='Tribe-Infecting Virus'&&effectsEnabled(p)&&virusSweep(c))return false;if(n==='Orca Mega-Fortress of Darkness'&&effectsEnabled(p)&&orcaReady(c))return false;if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return false;if(ojamaComboSummon(c))return false;if(clearedLane(c)&&!(data(c).type&0x200000)&&!['Spirit Reaper','Dancing Fairy'].includes(n))return false;const safe=saferPosition(c);if(safe!==null)return !safe;
+  if(n==='Slate Warrior'&&e.phase===4&&prompt?.to_bp===true&&!openingTurn&&!battleLocked&&!attackBlocked(c,p,true)&&(enemy.length?enemy.some(x=>face(x)&&projectedAttack(c)>power(x)):attackAllowed(c,true)))return false;if(n==='Viser Des'&&effectsEnabled(p))return false;if(n==='Tribe-Infecting Virus'&&effectsEnabled(p)&&virusSweep(c))return false;if(n==='Orca Mega-Fortress of Darkness'&&effectsEnabled(p)&&orcaReady(c))return false;if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return false;if(ojamaComboSummon(c))return false;if(clearedLane(c)&&!(data(c).type&0x200000)&&!['Spirit Reaper','Dancing Fairy'].includes(n))return false;if(swordsWomanShield(c))return false;const safe=saferPosition(c);if(safe!==null)return !safe;
 
 
   if((data(c).type&0x200)&&e.turn<=2)return true;
@@ -2337,7 +2493,17 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
    if(n==='Thestalos the Firestorm Monarch')return q(1-p,L.HAND).length>0;
    return false;
   }
-  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;/* Gigantes and The Rock Spirit come from the hand for a Graveyard EARTH monster: a free blocker on an empty field against their attackers; only attackers were Special Summoned, so Gigantes stayed in hand under a 2700 + 1900 attack (deck trace, 2026-11-17). */if((n==='Gigantes'||n==='The Rock Spirit')&&c.location===L.HAND&&!own.length&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0))return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;/* Toon Mermaid comes from the hand for free beside Toon World and attacks directly from next turn while they have no Toon. With only 1400 ATK it never passed the attacker check and sat in hand on empty fields, a Toon Summoned Skull and a Blue-Eyes Toon Dragon waiting for a Tribute beside it (deck trace, 2026-11-17). */if(n==='Toon Mermaid'&&c.location===L.HAND&&toonWorld&&own.length<5&&!attackBlocked(c,p,true)&&!enemy.some(x=>face(x)&&(data(x).type&0x400000)))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
+ // Amazoness Swords Woman hands the opponent the battle damage of her battles.
+ function swordsWoman(c){return !!c&&name(c)==='Amazoness Swords Woman'&&!c.is_disabled&&effectsEnabled(p);}
+ // Against a visible attacker that none of our summons can match, she is the monster to show: their attack hurts them.
+ // On turn 2 against a piercing 2800 ATK Gearfried the CPU summoned an 1800 ATK Amazoness Paladin and took 1000 instead
+ // (behaviour flag 2026-11-19).
+ function swordsWomanShield(c){
+  if(!swordsWoman(c)||c.location!==L.HAND)return false;
+  const strongest=Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)&&!attackBlocked(x,1-p,true)).map(atk));
+  return strongest>projectedAttack(c)&&!(prompt?.summons||[]).some(x=>projectedAttack(x)>=strongest);
+ }
+  function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;/* Gigantes and The Rock Spirit come from the hand for a Graveyard EARTH monster: a free blocker on an empty field against their attackers; only attackers were Special Summoned, so Gigantes stayed in hand under a 2700 + 1900 attack (deck trace, 2026-11-17). */if((n==='Gigantes'||n==='The Rock Spirit')&&c.location===L.HAND&&!own.length&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0))return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(swordsWomanShield(c))return true;/* Toon Mermaid comes from the hand for free beside Toon World and attacks directly from next turn while they have no Toon. With only 1400 ATK it never passed the attacker check and sat in hand on empty fields, a Toon Summoned Skull and a Blue-Eyes Toon Dragon waiting for a Tribute beside it (deck trace, 2026-11-17). */if(n==='Toon Mermaid'&&c.location===L.HAND&&toonWorld&&own.length<5&&!attackBlocked(c,p,true)&&!enemy.some(x=>face(x)&&(data(x).type&0x400000)))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
   function summonScore(c){if(exodiaPieces.has(c.code))return -1;
 
   if(replayRule('restricted_attackers')){
@@ -2348,9 +2514,15 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
   if((data(c).type&0x200)&&e.turn<=2)return -1; // early spirits set instead of summoning
   const n=name(c);if(egyptianGods.has(n))return 1000000;
 if(!effectsEnabled(p))return 0;
+  if(swordsWomanShield(c))return 40;
   if(n==='Rescue Cat')return rescueCatReady()?180:-1;
   if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return 180;
   if(n==='Exiled Force')return enemy.some(x=>!reservedForRemoval(x)&&targetValue(x)>=1400)?105:-1;
+  // Spirit deck losses (all-decks review, 2026-11-19): Tsukuyomi was Normal Summoned with no face-up monster to turn
+  // face-down, so its effect turned itself face-down; Yata-Garasu was never chosen against an empty field, where one
+  // hit of battle damage skips their Draw Phase (Susa Soldier's 1000 damage won instead).
+  if(n==='Tsukuyomi'&&!enemy.some(face)&&!own.some(x=>face(x)&&name(x)==='Magician of Faith'))return -1;
+  if(n==='Yata-Garasu'&&!enemy.length&&!openingTurn&&!attackBlocked(c,p,true))return 150;
   if(ojamaComboSummon(c))return 170;
   if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return 120;
   if(n==='The Wicked Eraser')return own.length>=3&&enemy.length+theirBack.length>=4?60:-1;
@@ -2445,7 +2617,15 @@ if(!effectsEnabled(p))return 0;
  // Reaper on the Nightmare and Nightmare Horse attack directly past monsters: Attack Position whenever that attack is
  // open this turn (the Fusion was summoned in Defense Position and never attacked, deck trace 2026-11-06).
  function directAttackNow(c){return e.player===p&&e.phase===4&&!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&!e.battleProtected?.[1-p]&&!attackBlocked(c,p,true)&&!(c.attack_count>0);}
- function flipUseful(n,field){if((n==='Reaper on the Nightmare'||n==='Nightmare Horse')&&field&&face(field)&&!(field.position&1)&&enabled(field))return directAttackNow(field);if(n==='Fire Princess')return firePrincessSafe();if(n==='Cyber Raider'&&raiderHurtsOwn())return false;if(n==='Frontier Wiseman'&&wisemanHurtsOwn())return false;if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];if(field&&!face(field)&&ojamaParts.includes(n)&&ojamaParts.every(part=>own.some(x=>name(x)===part))&&(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')||back.some(x=>name(x)==='Ojama Delta Hurricane!!')))return true;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
+ // A Set monster shows its printed stats; face-up it takes Mirror Stats and relic changes. A Set Luster Dragon (1900) was
+ // flipped to Attack Position as 1300 ATK beside a 1700 ATK attacker (behaviour flag 2026-11-19). Keep a plain monster Set
+ // when its face-up ATK loses to a visible attacker and beats nothing there.
+ function flipWeakened(field){
+  if(!field||face(field)||field.location!==L.MZONE||(data(field).type&0x200000))return false;
+  const real=projectedAttack({...field,location:L.HAND},{equips:false});
+  return real<atk(field)&&enemy.some(x=>face(x)&&(x.position&1)&&!attackBlocked(x,1-p,true)&&atk(x)>real)&&!enemy.some(t=>face(t)&&real>power(t));
+ }
+ function flipUseful(n,field){if(flipWeakened(field))return false;if((n==='Reaper on the Nightmare'||n==='Nightmare Horse')&&field&&face(field)&&!(field.position&1)&&enabled(field))return directAttackNow(field);if(n==='Fire Princess')return firePrincessSafe();if(n==='Cyber Raider'&&raiderHurtsOwn())return false;if(n==='Frontier Wiseman'&&wisemanHurtsOwn())return false;if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];if(field&&!face(field)&&ojamaParts.includes(n)&&ojamaParts.every(part=>own.some(x=>name(x)===part))&&(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')||back.some(x=>name(x)==='Ojama Delta Hurricane!!')))return true;if(replayRule('clown_removal')&&n==='Crass Clown'&&effectsEnabled(p)&&field?.position===4)return enemy.length>0;
   if(!effectsEnabled(p))return false;
   // Flip Summoned triggers: these monsters earn their effect every time they turn face-up this way.
   if(field&&!face(field)){if(n==='Stealth Bird')return true;if(n==='Des Lacooda')return q(p,L.DECK).length>5;if(['Medusa Worm','Guardian Statue','Golem Sentry'].includes(n))return enemy.length>0}
@@ -2528,8 +2708,11 @@ if(!effectsEnabled(p))return 0;
   // from the hand in Defense Position means a Set.
   if(sleepFlips&&!attackPosition&&c?.location===L.HAND&&prompt?.monster_sets)attackPosition=true;
   const flipped=x=>sleepFlips&&!face(x)&&!(x.position&1)?{...x,position:1,attack:atk(x)}:x;
-  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))).map(flipped).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
-   attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}]);
+  // A monster that cannot be attacked (The Legendary Fisherman under Umi) blocks nothing: with only those left, every
+  // attack is direct. Two Fishermen under A Legendary Ocean were counted as walls and took 5600 direct (behaviour flag
+  // 2026-11-19).
+  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))&&!attackLocked(x,true)).map(flipped).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
+   attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}].filter(x=>!attackLocked(x,true)));
   // Shield Bash attacks with DEF from Defense Position; Berserker's Pact gives each monster a second attack (capped to keep the search small).
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
   const attackers=enemy.filter(x=>face(x)&&swing(x)>0&&!attackBlocked(x,1-p,true)).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:swing(x)}));
@@ -2546,6 +2729,8 @@ if(!effectsEnabled(p))return 0;
      let raw=d.position&1?Math.max(0,ap-dp):a.forecastPierce?Math.max(0,ap-dp):0;
      // Exarion can buy piercing for 400 ATK during its next Battle Step.
      if(!(d.position&1)&&a.forecastExarion)raw=Math.max(raw,ap-400-dp,0);
+     // Amazoness Swords Woman sends battle damage from her battles to the opponent (behaviour flag 2026-11-19).
+     if(swordsWoman(d))raw=0;
      best=Math.max(best,battleDamage(raw,1-p)+visit(next,left));
     }
    }memo.set(key,best);return best;
@@ -2608,14 +2793,17 @@ if(!effectsEnabled(p))return 0;
    if(defenders.length&&(defenderBack.length||defenders.some(c=>!face(c)||atk(c)<1600)))return false;
   }
   if(n==='Panther Warrior'&&!own.some(c=>pantherTributeAllowed(a,c,direct)))return false;
+  // Serket destroys itself without a face-up Temple of the Kings, so it never stays to attack. It was Tribute Summoned
+  // for "lethal" onto an empty field and died at once (behaviour flag 2026-11-19).
+  if(n==='Mystical Beast of Serket'&&effectsEnabled(a.controller??p)&&!q(a.controller??p,L.SZONE).some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;
   if(attackBlocked(a,a.controller??p))return false;
   if(['Zombyra the Dark','Giant Rex'].includes(n)&&direct)return false;
   if(["Queen's Double",'Inaba White Rabbit'].includes(n)&&!direct)return false;
   return true;}
  // Cards that keep a monster out of attack range. The core never offers it as a target, so it can't justify a
  // summon or an attack: a 0 DEF Relinquished beside Magician's Valkyria only looks like a free kill.
- function attackLocked(t){
-  const side=own.some(x=>same(x,t))?own:enemy,others=side.filter(x=>!same(x,t)),field=side===own?back:theirBack,n=name(t);
+ function attackLocked(t,mine=own.some(x=>same(x,t))){
+  const side=mine?own:enemy,others=side.filter(x=>!same(x,t)),field=side===own?back:theirBack,n=name(t);
   const guard=(card,covers)=>covers&&others.some(x=>name(x)===card&&enabled(x));
   if(!face(t))return t.position===8&&guard('Hieracosphinx',true);
   if(guard("Magician's Valkyria",race(t)==='Spellcaster')||guard('Marauding Captain',race(t)==='Warrior')||guard('Amazoness Tiger',n.includes('Amazoness'))||guard('Vilepawn Archfiend',n.includes('Archfiend')&&n!=='Vilepawn Archfiend')||guard('Batteryman D',race(t)==='Thunder'&&n!=='Batteryman D'))return true;
@@ -2677,6 +2865,21 @@ if(!effectsEnabled(p))return 0;
   // not commit to an attack that would defeat the CPU before that damage is
   // resolved, even if the Bounder would also be destroyed in battle.
   if(known&&face(t)&&name(known)==='Reflect Bounder'&&enabled(t)&&effectsEnabled(t.controller??1-p)&&burnDamage(combatPower(a,t))>=e.lp[p])return -100000;
+  // Cat's Ear Tribe makes the original ATK of a monster battling it in its opponent's turn 200, so judge our attack with
+  // that ATK. Three attacks into a 700 DEF Cat's Ear Tribe cost 1500 LP (behaviour flag 2026-11-19).
+  if(known&&name(known)==="Cat's Ear Tribe"&&!t.is_disabled&&effectsEnabled(t.controller??1-p)){
+   const original=Math.max(0,(swapOriginalStats(p)?data(a).defense:data(a).attack)??0),reduced=Math.max(0,200+combatPower(a,t)-original);
+   if(reduced<=(face(t)?power(t):Math.max(0,data(known).defense??0)))return -100000;
+  }
+  // Prickle Fairy turns its attacker to Defense Position after the battle: a 300 ATK wall is not worth that while another
+  // target is open. Soul of Purity and Light hit it and left a 2400 ATK Granmarg alone (behaviour flag 2026-11-19).
+  if(t&&enabled(t)&&name(t)==='Prickle Fairy')s-=1000;
+  // Continuous Destruction Punch destroys an attacker that hits a higher DEF. An unknown Set monster is then a gamble while
+  // a visible target is open: Cyber Raider died on a Set Prickle Fairy beside a 100 ATK Big Shield Gardna in Attack
+  // Position (behaviour flag 2026-11-19).
+  if(t&&!face(t)&&!trapNegated&&theirBack.some(x=>enabled(x)&&name(x)==='Continuous Destruction Punch')){
+   if(!known)s-=1500;else if(Math.max(0,data(known).defense??0)>=combatPower(a,t))return -100000;
+  }
 
   if(known&&enabled(t)&&['D.D. Assailant','D.D. Warrior Lady'].includes(name(known))&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known))return -100000;
   if(known&&name(known)==='Yomi Ship'&&enabled(t)&&effectsEnabled(1-p)&&!(dmg>0&&dmg>=e.lp[1-p])&&atk(a)>atk(known)&&!['Dark Balter the Terrible','Dark Ruler Ha Des'].includes(n))return -100000;
@@ -2759,6 +2962,17 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
    const hunter=own.find(x=>name(x)==='Snipe Hunter')||source;
    return (snipeTargets(hunter).some(x=>same(x,live))?20000:1000)+snipeValue(live);
   }
+  // Catapult Turtle is only activated for lethal (activationValue): Tribute the monster with the most ATK, not ourselves.
+  if(fxN==='Catapult Turtle'&&cand.location===L.MZONE&&cand.controller===p)return nm==='Catapult Turtle'?-100000:atk(own.find(x=>same(x,cand))||cand);
+  if(fxN==='Amazoness Spellcaster'&&cand.location===L.MZONE){const pick=spellcasterPick();return pick&&(same(cand,pick.ours)||same(cand,pick.theirs))?100000:cand.controller===p?-100000:10000+atk(cand);}
+  // Reaper of the Cards' FLIP picks a Set card or a face-up Trap in either Spell & Trap Zone and destroys it only if
+  // it is a Trap (PaniK T2 review, 2026-11-19): the opponent's face-up Trap first (a sure hit), then their Set cards
+  // by value; ours only when nothing else is there, a Spell (which survives) before a Trap.
+  if(fxN==='Reaper of the Cards'&&cand.location===L.SZONE){
+   if(cand.controller===p){const live=back.find(x=>same(x,cand))||cand;return data(live).type&4?-1000000000:-100000;}
+   const live=theirBack.find(x=>same(x,cand))||cand;
+   return (face(live)?30000:20000)+backValue(live);
+  }
   // Blast with Chain's trigger destroys any card on the field (HINTMSG_DESTROY): never one of ours.
   if(fxN==='Blast with Chain'&&e.selectionHint===502){
    if(cand.controller===p)return -1000000000;
@@ -2834,7 +3048,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(['Unity','The Reliable Guardian'].includes(fxN))return cand.controller!==p?-1000000000:same(cand,e.attackTarget)?100000:1000+((own.find(x=>same(x,cand))?.position&12)?2000:0)+(own.find(x=>same(x,cand))?.defense??0);
   if(fxN==='Mobius the Frost Monarch')return cand.controller!==p?20000+backValue(cand):-1000000000;
   if(fxN==='Castle Walls'){const defender=castleWallsDefender();return cand.controller!==p?-1000000000:defender&&same(cand,defender)?100000:1000+(own.find(x=>same(x,cand))?.defense??0);}
-  if(['Reinforcements','Rush Recklessly'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
+  if(['Reinforcements','Rush Recklessly','Deal of Phantom'].includes(fxN))return cand.controller!==p?-1000000000:(same(cand,e.attackCard)||same(cand,e.attackTarget)?100000:1000+atk(cand));
   // Order to Charge Tributes our cheapest Normal Monster (the generic pick took our strongest) and destroys the monster
   // its rule judged; Silent Doom revives our best wall (deck trace, 2026-11-17).
   if(fxN==='Order to Charge'&&cand.location===L.MZONE){
@@ -2866,7 +3080,10 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
    // Armed Samurai - Ben Kei gains an attack for each Equip Card, this one included (user, 2026-11-06).
    const benKei=enabled(cand)&&nm==='Armed Samurai - Ben Kei';
    const attacks=enabled(cand)&&['Mataza the Zapper','Hayabusa Knight'].includes(nm)?2:benKei?attached+2:1;
-   const remaining=attackAllowed(cand,!enemy.length)?Math.max(0,attacks-(cand.attack_count||0)):0;
+   // A Defense Position monster (unless we may switch it) or one locked out of attacking cannot swing with the bonus
+   // (PaniK T2 review, 2026-11-19: Dark Energy went on a defending Castle over an attacking King of Yamimakai).
+   const swings=(cand.position&1||(prompt?.pos_changes||[]).some(x=>same(x,cand)))&&!attackBlocked(cand,p);
+   const remaining=swings&&attackAllowed(cand,!enemy.length)?Math.max(0,attacks-(cand.attack_count||0)):0;
    // Value additional usable damage, but avoid piling every equip onto one removal target.
    // Only known blockers contribute thresholds; never read a face-down card's printed stats.
    const clears=enemy.some(x=>known(x)&&atk(cand)<=power(x)&&atk(cand)+gain>power(x));

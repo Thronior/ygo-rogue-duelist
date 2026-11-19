@@ -42,7 +42,8 @@ FIXED_DECK_UNUSED_SHOP_EFFECTS=frozenset({
 # Sanga of the Thunder, Kazejin, Suijin (Gate Calling).
 GATE_TRIO=frozenset({25955164,62340868,98434877})
 # Relics offered only while the current Deck holds a card they need (by name, so alternate artworks count).
-DECK_NEEDS={'magicians_bond':lambda c:bool(c['data']['type']&1) and 'Dark Magician' in c['name'],
+# "Dark Magician" monsters include the archetype (0x10a2), so Dark Sage counts too (data/card-archetype-rules.json, 2026-11-19).
+DECK_NEEDS={'magicians_bond':lambda c:bool(c['data']['type']&1) and ('Dark Magician' in c['name'] or any(int(x)&0xfff==0xa2 and int(x)&0x1000 for x in c['data'].get('setcodes',[]))),
  'blue_eyes_radiance':lambda c:c['name']=='Blue-Eyes White Dragon'}
 
 def shop_relic_eligible(run,key):
@@ -94,6 +95,14 @@ def install(g):
  # Dev notes for confusing old rulings go after the card's text (data/card-dev-notes.json).
  for cid,row in json.loads((g.ROOT/'data/card-dev-notes.json').read_text(encoding='utf8'))['cards'].items():
   if int(cid) in g.BY_ID and row['en'] not in g.BY_ID[int(cid)]['desc']:g.BY_ID[int(cid)]['desc']+=' '+row['en']
+ # Cards always treated as an archetype's card (data/card-archetype-rules.json): its setcodes and a line after the text,
+ # set apart like Summoned Skull's. tools/build_android.py gives the engine the same setcodes.
+ for cid,row in json.loads((g.ROOT/'data/card-archetype-rules.json').read_text(encoding='utf8'))['cards'].items():
+  card=g.BY_ID.get(int(cid))
+  if not card:continue
+  setcodes=card['data'].setdefault('setcodes',[])
+  setcodes.extend([code for code in (int(s,16) for s in row['setcodes']) if code not in setcodes])
+  if row['en'] not in card['desc']:card['desc']+='\n\n'+row['en']
  aliases={int(k):v for k,v in json.loads((g.ROOT/'data/card-aliases.json').read_text()).items()}
  g.CHARACTERS=CHARACTERS;g.ARTIFACTS=ARTIFACTS;g.OPPONENTS=['Act I']*3+['Act II']*3+['Act III']*3
  def ensure_bounty(run,rng=random,force=False):
@@ -726,7 +735,8 @@ def install(g):
   price=ar.price(run,'pack',max(1,round(35*max(0,1-amount(run,'discount')/100))))
   for pid in (options if random_cards.has_pool(run) else rng.sample(options,min(count,len(options)))):run['shop'].append(dict(kind='pack',id=pid,price=price,sold=False,opponent_pack=False))
   return bool(options)
- def restock(run,rng=random,general_stock=False):
+ def restock(run,rng=random,general_stock=False,spend=0):
+  import payment
   challenge_levels.suppress(run)
   reload_tuning()
   shop_rewards.normalize_run(run)
@@ -818,7 +828,15 @@ def install(g):
   chance=min(pre['max_chance'],pre['base_chance']+max(0,run.get('gold_leaving_shop',0))*pre['chance_per_gold'])
   if not copies_deck(run) and not CHARACTERS[run['character']].get('engine_deck') and rng.random()<chance:
    choice=rng.choice(pre['decks'])
-   items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
+   # A starter deck the player cannot pay for is not offered (Discord via the user, 2026-11-19: runs felt decided by
+   # whether a deck showed up when it was affordable). The roll still happens, so no other odds or later draws move,
+   # and nothing takes its place. The check uses the deck's final price (discounts and price relics below) and the
+   # coins (LP with Blood Toll) left once `spend` (a reroll's price, charged after the new stock) is paid. In Tag the
+   # host's run rolls the shared shop and holds the team's shared coins, which both carts are paid from.
+   deck_price=ar.price(run,'deck',max(1,round(pre['price']*max(0,1-amount(run,'discount')/100))))
+   # A run with no purse yet (bare test or legacy runs) keeps the old behaviour and is offered the deck.
+   if 'gold' not in run and not payment.in_lp(run) or payment.can_pay(run,deck_price+max(0,int(spend or 0))):
+    items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
   cursed=cursed_relics.approved()
   import choice_relics
   # How rare a relic is lives in archetype_relics.RARITY (was a coin flip here before 2026-11-13).
@@ -866,7 +884,7 @@ def install(g):
   if not payment.can_pay(run,price):payment.pay(run,price,'a reroll')
   # Rerolls replace the encounter's featured singles with general stock.
   # Generate first so a failed restock cannot charge the player.
-  restock(run,rng,general_stock=True)
+  restock(run,rng,general_stock=True,spend=price)
   payment.pay(run,price,'a reroll')
   run['sleeve_rerolls']=int(run.get('sleeve_rerolls',0) or 0)+1  # Morphing Jar sleeve (sleeve_progress.py)
   if price==0 and ar.free_use(run,'dice_jar','shop'):ar.use_free(run,'shop')
@@ -877,7 +895,7 @@ def install(g):
   cursed_relics.require_choice(run)
   if run.get('stage')!='shop':raise ValueError('Relics can only be sold in the shop.')
   if key not in ARTIFACTS or key not in run.get('artifacts',[]):raise ValueError('You do not own that relic.')
-  if key in run.get('cursed_artifacts',[]) or key in cursed_relics.approved():raise ValueError('Cursed relics cannot be sold.')
+  if key in run.get('cursed_artifacts',[]) or key in cursed_relics.approved():raise ValueError('Shadow relics cannot be sold.')
   if key=='broken_limiter' and run['artifacts'].count(key)==1:
    counts=Counter(g.limit_identity(run['pool'][i]) for i in run.get('selected',[]))
    if max(counts.values(),default=0)>3:raise ValueError('Remove extra copies from your deck before selling Broken Limiter.')

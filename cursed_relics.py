@@ -29,15 +29,15 @@ def create_offer(run,rng=random):
 
 def reroll(run,rng=random):
  offer=run.get('cursed_offer')
- if not offer or offer['rerolls_left']<=0:raise ValueError('No cursed-relic reroll remains.')
+ if not offer or offer['rerolls_left']<=0:raise ValueError('No shadow-relic reroll remains.')
  eligible=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[]) and k not in offer['options']]
  count=min(len(offer['options']),3) if offer.get('picked') else 3
- if len(eligible)<count:raise ValueError('There are not enough different cursed relics to reroll.')
+ if len(eligible)<count:raise ValueError('There are not enough different shadow relics to reroll.')
  offer['options']=archetype_relics.sample(eligible,count,run,rng);offer['rerolls_left']-=1
 
 def choose(run,key,rng=random):
  offer=run.get('cursed_offer')
- if not offer or key not in offer['options'] or key not in approved() or key not in ARTIFACTS:raise ValueError('Choose one of the offered cursed relics.')
+ if not offer or key not in offer['options'] or key not in approved() or key not in ARTIFACTS:raise ValueError('Choose one of the offered shadow relics.')
  if key in run['artifacts']:raise ValueError('You already own that relic.')
  # Champion Trophy: each copy owned when the first pick is made (before that pick can fuse one away) allows one
  # more pick from the same offer. offer['picked'] lists the picks so far; offer['extra_picks'] counts those left.
@@ -60,8 +60,8 @@ def finish(run,rng=random):
 def skip(run,rng=random):
  """Champion Trophy extra picks are optional; the first pick never is."""
  offer=run.get('cursed_offer')
- if not offer or not offer.get('picked'):raise ValueError('Choose a cursed relic before continuing to the shop.')
+ if not offer or not offer.get('picked'):raise ValueError('Choose a shadow relic before continuing to the shop.')
  finish(run,rng)
 
 def require_choice(run):
- if pending(run):raise ValueError('Choose a cursed relic before continuing to the shop.')
+ if pending(run):raise ValueError('Choose a shadow relic before continuing to the shop.')

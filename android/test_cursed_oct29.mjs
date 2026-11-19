@@ -1,4 +1,4 @@
-// Thronior's 2026-10-29 cursed relics, in real engine duels: Berserker's Pact, Shield Bash,
+// Thronior's 2026-10-29 shadow relics, in real engine duels: Berserker's Pact, Shield Bash,
 // Reversed Remedy and Conscription Drum, plus the CPU forecast.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -104,4 +104,4 @@ let checks=0;const ok=(v,msg)=>{assert.ok(v,msg);checks++};
  ok(forecast(['cursed_shield_bash','cursed_berserkers_pact'],gardna).incomingDamage(wall,false)===2600,'forecast: Shield Bash Gardna attacks with 2600 DEF');
  ok(forecast([],vorse).healingAllowed(1)&&!forecast(['cursed_reversed_remedy'],vorse).healingAllowed(1),'forecast: Reversed Remedy makes healing harmful for the CPU too');
 }
-console.log(`PASS cursed relics (2026-10-29): ${checks} checks`);
+console.log(`PASS shadow relics (2026-10-29): ${checks} checks`);

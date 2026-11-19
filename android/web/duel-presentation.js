@@ -65,7 +65,10 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  if(opponentEnd&&(m.selects||[]).some(choice=>{
   const c=context.card?.(choice.code),type=Number(c?.data?.type||0),text=c?.desc||'';
   const continuousTrap=!!(type&4)&&!!(type&0x20000);
-  const removal=(type&4||type&2&&type&0x10000)&&/(destroy|banish|return)/i.test(text)&&/(spell|trap|cards? on the field)/i.test(text);
+  // A face-down Spell that is not a Quick-Play is only listed here under Spell Sanctuary (shadow relic, 2026-11-19), which
+  // gives Set Spells Quick-Play timing: Harpie's Feather Duster or Heavy Storm then ask like Mystical Space Typhoon.
+  const setSpell=!!(type&2)&&choice.location===0x08&&!(Number(choice.position)&5);
+  const removal=(type&4||type&2&&type&0x10000||setSpell)&&/(destroy|banish|return)/i.test(text)&&/(spell|trap|cards? on the field)/i.test(text);
   return continuousTrap||removal;
  }))return true;
  return !!(timing&(Timing.SUMMON|Timing.SPSUMMON|Timing.FLIPSUMMON|Timing.ATTACK))||activeChain.length>0;
@@ -90,6 +93,16 @@ export function mandatoryChainResponse(m){
  const total=m.selects?.length||0,optional=Number(m.spe_count)||0;
  if(total>1&&optional===total-1)return {type:Response.SELECT_CHAIN,index:0};
  const index=soleMandatory(m);return index===null?null:{type:Response.SELECT_CHAIN,index};
+}
+// Cancel on a forced chain window (user, 2026-11-19) is never greyed out: it activates the effect that has to activate,
+// as if the player had picked it. That is the sole mandatory trigger when one is known, otherwise the first listed entry
+// that is not a plain card activation. The core lists a forced window by effect id, mandatory effects first (ocgcore
+// processor.cpp phase and SEGOC windows), so that entry is a mandatory one. With several mandatory triggers the core asks
+// again for the rest, so Cancel keeps resolving them one at a time.
+export function forcedCancelResponse(m){
+ const known=mandatoryChainResponse(m);if(known)return known;
+ if(m?.type!==Message.SELECT_CHAIN||!m.forced||!m.selects?.length)return null;
+ return {type:Response.SELECT_CHAIN,index:Math.max(0,m.selects.findIndex(c=>!optionalActivation(c)))};
 }
 
 // Only collapse prompts with no timing/order decision left to make. The optional activations of a forced

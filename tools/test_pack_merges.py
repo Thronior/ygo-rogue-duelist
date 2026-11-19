@@ -55,8 +55,9 @@ for retired_id, canonical_id in expected_aliases.items():
 
 characters_by_name = {character['name']: character for character in content.CHARACTERS}
 assert characters_by_name['Yami Yugi']['pack'] == 'DRAFT-YAMI-YUGI'
-assert characters_by_name['Yugi Muto']['pack'] == 'DRAFT-YAMI-YUGI'
-assert characters_by_name['Yugi Muto']['starting_packs'][0] == 'DRAFT-YAMI-YUGI'
+# Little Yugi has had his own pack since 2026-11-19 (user request).
+assert characters_by_name['Yugi Muto']['pack'] == 'DRAFT-YUGI-MUTO'
+assert characters_by_name['Yugi Muto']['starting_packs'][0] == 'DRAFT-YUGI-MUTO'
 
 for group in MERGE_GROUPS:
     pack = content.PACK_BY_ID[group['canonical']]

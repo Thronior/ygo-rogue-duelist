@@ -1,0 +1,116 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38{font-family:Arial,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet.pn0_2_38 h1,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font-family:Bebas,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_38 h1{font-weight:700}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>アップデート 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>重要な修正</em><h3>タッグのルームと進行状況</h3>
+<p class="pn0_2_38-lead"><b>タッグのルーム</b>が、デッキ編集中やゲームを裏のタブにしているときなど、まだ中にいるのに期限切れになることがありました。今は誰かがいる限りルームは残ります。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>タッグの進行状況</b>（勝利、チャレンジレベル、スリーブ）は、「終了」を押さずにゲームを閉じてもすぐに保存されます。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">0.2.37で一部のプレイヤーに出ていた<b>デッキ編集</b>のエラーを修正しました。</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>新機能</em><h3>キャラクター設定</h3>
+<p class="pn0_2_38-lead">キャラクターの<span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span>をタップするか、デュエル中に<b>設定 › キャラクター</b>を開きます。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>保存したカードの印</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span>は、そのキャラクターの新しいランすべてで最初から有効です（タッグでも）。<b>コレクション全体か1つのパック</b>からカードを選べます。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>ランの印を保存</b>で、プレイ中につけた印を残せます。</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>新しい対戦相手</em><h3>「闇」のプレイヤーキラー</h3>
+<p class="pn0_2_38-lead"><b>「闇」のプレイヤーキラー</b>が対戦相手に加わります。ティア3では<b>生者の書－禁断の呪術－／ヴァンパイア</b>デッキ、エンドレスでは新デッキを使います。</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">CPUの対戦相手</em></p>
+<p class="pn0_2_38-lead">プレイヤーの<b>37,000ターン</b>をCPUの選択と比べました。CPUはレベル4で攻撃したほうが大きいときはリリースを温存し、<b>サンダー・ボルトやブラック・ホール</b>でとどめの道を開き、<b>スナイプストーカー</b>で狙い撃ちし、裏側のカードにはより安全なとどめを選び、2回攻撃も数に入れます。</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>レリック</em><h3>新レリックと調整</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>魔神トリオ</b>自分の「雷魔神－サンガ」「風魔神－ヒューガ」「水魔神－スーガ」は、自分がコントロールするそれらの数に応じて効果を得る。1体以上：それらが相手モンスターに攻撃する場合、ダメージステップにその相手モンスターの攻撃力はエンドフェイズまで０になる。2体以上：それぞれ1ターンに1度、相手ターンに相手がモンスターの効果または魔法カードを発動した時、その効果を無効にし、そのカードを手札に戻す事ができる。3体：1ターンに1度、デッキから「ゲート・ガーディアン」1体を召喚条件を無視して特殊召喚できる。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>究極ゲート・コンビネーション</b><i>融合レリック。</i>各デュエル開始時に、「雷魔神－サンガ」「風魔神－ヒューガ」「水魔神－スーガ」を手札に加える。自分の「ゲート・ガーディアン」「雷魔神－サンガ」「風魔神－ヒューガ」「水魔神－スーガ」は、他に何をコントロールしていても以下の効果を得る。そのモンスターが相手モンスターに攻撃する場合、ダメージステップにその相手モンスターの攻撃力はエンドフェイズまで０になる。それぞれ1ターンに1度、相手ターンに相手がモンスターの効果または魔法カードを発動した時、その効果を無効にし、そのカードを手札に戻す事ができる。1ターンに1度、デッキから「ゲート・ガーディアン」1体を召喚条件を無視して特殊召喚できる。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>狂戦士の契約</b>自分フィールドのモンスターは、1度のバトルフェイズ中に本来の攻撃回数より1回多く攻撃できる。自分はモンスターをセットできず、守備表示で特殊召喚できない。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>星の整列</b>1ターンに1度、自分エンドフェイズに、自分の墓地にモンスターが1体以上存在し、自分の墓地と自分フィールドのモンスターが全て同じレベルの場合、そのレベルのモンスター1体を手札から特殊召喚する。</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>キャラクター</em><h3>キャラクターパックとロードアウト</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>迷宮兄弟</b>新しいレア：<b>守護天使 ジャンヌ, タイラント・ドラゴン, ギルフォード・ザ・ライトニング, ジャッカルの聖戦士, 可変機獣 ガンナードラゴン, 炎帝テスタロス</b>、<b>地帝グランマーグ</b>。新しいコモン：トライホーン・ドラゴン, キラー・スネーク, キラー・トマト, ジャイアントウィルス, 素早いモモンガ、そして新カード<b>死皇帝の陵墓</b>。<i>弱いカード57枚を削除：融合の連鎖、ハーピィ、アルティメット・インセクトの系列。</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>ダーツ</b><b>除外</b>のパックになりました：<b>ダーク・ネクロフィア, カオス・エンド, 原初の種, 抹殺の使徒, 異次元隔離マシーン</b>、異次元の狂獣、ディメンション・ポッドなど。除外用に弱い光・闇の通常モンスターも入ります。<i>水属性と海のカードは削除。</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>川井静香</b><b>ブラック・デーモンズ・ドラゴン</b>と<b>メテオ・ブラック・ドラゴン</b>が彼女のパックに加わり、素材の真紅眼の黒竜、デーモンの召喚、メテオ・ドラゴンも入ります。</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>獏良了</b><b>デュエリストのカタログ</b>で開始：ショップにキャラクターパックが並ぶことがあります。2つ目のロードアウト<b>幸運の寵児</b>は<b>ランダムな1キャラクターのパックを4つ</b>開け、<b>そのパックのアーキタイプ</b>のレリックで始まります。</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>バランス</em><h3>レリックの出現率とラン</h3>
+<div class="pn0_2_38-bal">
+<div><h4>レリックの出現率</h4><ul>
+<li><span>◆</span><span><b>アーキタイプのレリック</b>（アマゾネスの軍旗、トゥーン・ワールドなど）は、対応カードを1枚持つと出現し、<b>デッキに入っている枚数が多いほど</b>ずっと出やすくなります。</span></li>
+<li><span>◆</span><span><b>特定のカード</b>用のレリック（ゲートの呼び声、黒き混沌の儀など）は、そのカードを持っていない間は出にくくなります。</span></li>
+<li><span>◆</span><span><b>デュエリストのカタログ</b>はレアではなくなりました。属性レリックを持っていても他の属性レリックは出にくくなりません。</span></li>
+<li><span>◆</span><span><b>★</b>の印は、持っていてデッキに入っていないカードにだけ効きます。</span></li>
+</ul></div>
+<div><h4>ラン</h4><ul>
+<li><span>◆</span><span><b>チャレンジレベル3</b>以上では、そのキャラクターでそのレベルをクリアするまでランダムパックとアブソリュート・ランダムは出ません。</span></li>
+<li><span>◆</span><span>最初のデュエルのデッキに<b>砂塵の大竜巻、魔法除去、罠はずし</b>が入り、報酬で手に入るようになりました。</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>言語</em><h3>すべて翻訳</h3>
+<p class="pn0_2_38-lead">カードの<b>選択肢ボタン</b>、ホバー表示、<b>ランシート</b>、パック名と説明、キャラクター名、召喚方法の表示がすべて8言語に対応しました。一部の選択肢は<b>誤った公式テキスト</b>（鎖付きブーメランなど）を表示していたため修正しました。</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>変更点</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>終焉のカウントダウン</b>はターン表示の下に残りターン<span class="pn0_2_38-chip">⌛ 3</span>を表示し、新しい<b>炎のフィナーレ</b>で勝利し、長期戦ペナルティなしで最低<b>300コイン</b>もらえます。</span></li>
+<li><span>🗂️</span><span>ランシートで<b>同じカードの複数枚</b>がまとまり、長い呪いの列ははみ出さずに折り返します。</span></li>
+<li><span>🌈</span><span>ランダム化カードの<b>効果テキスト</b>にうっすら虹色がかかります。</span></li>
+<li><span>🔤</span><span><b>死のメッセージ</b>のカードがTCG版のイラストになり、文字がFINALとそろいます。</span></li>
+<li><span>🤝</span><span>タッグのデッキ編集の<span class="pn0_2_38-trade">トレード 0/2</span>ボタンが目立つようになりました。</span></li>
+<li><span>⏎</span><span>検索欄で<b>Enter</b>を押すと検索します。</span></li>
+<li><span>🃏</span><span>カード画面のボタンが細いスマホにも収まり、新しいランの画面は<b>「セーブスロットを選択」</b>と表示します。</span></li>
+</ul></div>
+<div><h2>修正</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>竜の支配者の勅令</b>などのレリックが、タッグのパートナーのカードにも効くようになりました。</span></li>
+<li><span>🛡️</span><span>CPUが<b>辺境の大賢者</b>で自分の装備を破壊しなくなりました。</span></li>
+<li><span>💤</span><span>攻撃がより強いモンスターに移される場合、CPUは<b>幻影の妖精</b>を攻撃しなくなりました。</span></li>
+<li><span>⏱️</span><span>ゲームに戻ったときに「CPUが動かない」と誤って出なくなりました。</span></li>
+<li><span>🌀</span><span><b>磨破羅魏</b>の公開で、チェーンの最後のカード名が出なくなりました。</span></li>
+<li><span>🎲</span><span>ランダム化カードのボタンが「効果を処理」ではなく内容を表示します。</span></li>
+<li><span>📋</span><span>チャレンジレベル1に「これまでの全補正を含む」と出なくなりました。</span></li>
+</ul></div>
+</section></div>

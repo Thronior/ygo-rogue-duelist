@@ -26,7 +26,7 @@
  "11:1": ["ember", "burn_proficiency", "static_coil", "flame", "horn"],
  "12:0": ["blade", "earth", "epitaph", "normal_barrier", "tenacity_of_the_weak"],
  "12:1": ["blade", "earth", "dark", "normal", "sword"],
- "13:0": ["stone", "earth", "mage", "blade", "tribute"],
+ "13:0": ["stone", "earth", "field_of_attraction", "blade", "tribute"],
  "13:1": ["level_up_relic", "level_one", "mage", "blade", "light"],
  "14:0": ["earth", "healing_echo", "trap_weaver", "necrovalley_tablet", "tribute"],
  "14:1": ["gravekeepers_union", "dark", "terraforming_relic", "field_amplifier", "mage"],

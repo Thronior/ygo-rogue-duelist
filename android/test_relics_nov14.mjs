@@ -110,7 +110,7 @@ same(bloomed,{gate:1,asked:1},'Gate Guardian is Special Summoned from the Deck a
 same((await lotus([])).gate,0,'without the relic it stays in the Deck');
 
 // Ring of Defense: Messenger of Peace's upkeep (100 LP, a cost) is reported each of your Standby Phases; Blood Crown's
-// 300 End Phase damage comes from a cursed relic, not a card, so it is not.
+// 300 End Phase damage comes from a shadow relic, not a card, so it is not.
 const MESSENGER=id('Messenger of Peace');
 async function ring(artifacts){
  const e=await duel({script:runScript(artifacts)+'\n'+setup([[MESSENGER,'hand']]),deck:[MESSENGER,...fill(WABOKU).slice(1)],enemy:fill(WABOKU),turns:3,drive:steps([[I.SELECT_ACTIVATE,MESSENGER,'activates']])});
@@ -121,7 +121,7 @@ same(ringed.messenger,1,'Messenger of Peace stays on the field');
 same(ringed.lost,[100],'its 100 LP upkeep is reported; Blood Crown damage is not');
 ok(ringed.lp<=8000-100-300,'both losses happened');
 same((await ring(['cursed_blood_crown'])).lost,[],'without the relic nothing is reported');
-// Trapbound Idol's 300 LP per Spell is a cursed relic's cost, not a card's: only the upkeep counts.
+// Trapbound Idol's 300 LP per Spell is a shadow relic's cost, not a card's: only the upkeep counts.
 same((await ring(['ring_of_defense','cursed_trapbound_idol'])).lost,[100],"a curse's LP cost is not refunded");
 
 // The CPU with a copy (Relic Mirror): its Dark Lotus picks the strongest monster, Gate Guardian, over Battle Ox.

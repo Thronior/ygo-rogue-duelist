@@ -3449,6 +3449,54 @@ dialog:has(.lesson-done){overflow:hidden}
 :root[data-duel-theme="pixel-art"] .duel .inspection{background:#141830f2!important;border-right:4px solid var(--pix-ink)!important;box-shadow:4px 0 0 0 #0007}
 :root[data-duel-theme="pixel-art"] .duel .inspection h3{color:var(--pix-gold)!important}
 :root[data-duel-theme="pixel-art"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0a0c1c9e;pointer-events:none}
+/* Pixel Art readability (user, 2026-11-19). Deck editor cards (solo, Tag, Draft: .draft-card-scroll) are not pixelated:
+   the shared img[src] swap rules from pixel-art.js are undone here, and pixel-art.js never measures these pictures. */
+:root[data-duel-theme="pixel-art"] .draft-card-scroll img:not([src*="/pixel/"]){content:normal!important;image-rendering:auto!important}
+/* Language flags stay smooth too (user, 2026-11-19); pixel-art.js skips assets/i18n/flags. */
+:root[data-duel-theme="pixel-art"] img[src*="/flags/"]{content:normal!important;image-rendering:auto!important}
+/* Card marks as pixel art (user, 2026-11-19): a 7x7 star and cross (crispEdges SVG masks over the mark's own colour),
+   drawn at whole multiples of the grid (2px cells, 3px on the card window's mark), so they stay hard-edged at every
+   Text Size and card size. The glyph stays in the DOM for screen readers and paintMarks; only its paint is hidden.
+   An unmarked card (☆) shows the star dimmed. Glyphs inside sentences and dropdown options stay text. */
+:root[data-duel-theme="pixel-art"]{
+ --pix-mark-star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h1v1h-1zM2 1h3v1h-3zM0 2h7v1h-7zM1 3h5v1h-5zM2 4h3v1h-3zM1 5h2v1h-2zM4 5h2v1h-2zM1 6h1v1h-1zM5 6h1v1h-1z'/%3E%3C/svg%3E");
+ --pix-mark-cross:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h2v1h-2zM5 0h2v1h-2zM0 1h3v1h-3zM4 1h3v1h-3zM1 2h5v1h-5zM2 3h3v1h-3zM1 4h5v1h-5zM0 5h3v1h-3zM4 5h3v1h-3zM0 6h2v1h-2zM5 6h2v1h-2z'/%3E%3C/svg%3E")}
+:root[data-duel-theme="pixel-art"] :is(.card-mark,.inspect-mark>i,.char-mark-sample){-webkit-text-fill-color:transparent}
+:root[data-duel-theme="pixel-art"] :is(.inspect-mark>i,.char-mark-sample){position:relative}
+:root[data-duel-theme="pixel-art"] :is(.card-mark,.inspect-mark>i,.char-mark-sample)::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;translate:-50% -50%;background:currentColor;
+ -webkit-mask:var(--pix-mark-star) center/100% 100% no-repeat;mask:var(--pix-mark-star) center/100% 100% no-repeat}
+:root[data-duel-theme="pixel-art"] .inspect-mark>i::before{width:21px;height:21px}
+:root[data-duel-theme="pixel-art"] :is(.card-mark.no,.inspect-mark.no>i,.char-mark-sample.no)::before{-webkit-mask-image:var(--pix-mark-cross);mask-image:var(--pix-mark-cross)}
+:root[data-duel-theme="pixel-art"] :is(.card-mark:not(.yes):not(.no),.inspect-mark:not(.yes):not(.no)>i)::before{opacity:.55}
+/* Duel cards face up in hand and on the field (data-frame, set by mobile.js) are a frame in the card's colour with the
+   art large inside it, cropped from the same card picture with object-view-box (the art box, as in the sleeve
+   generator and randomized-card-art.js), so no new images and no canvas. The card panel keeps the full card.
+   Face-down cards have no data-frame and keep their sleeve. Without object-view-box (Safari, Firefox) cards stay as before. */
+@supports (object-view-box:inset(0)){
+ :root[data-duel-theme="pixel-art"] .duel [data-frame]{--pix-card:#ee7d32}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="normal"]{--pix-card:#f4c84a}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="ritual"]{--pix-card:#3f78d8}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="fusion"]{--pix-card:#8f52c8}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="spell"]{--pix-card:#2fa86a}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="trap"]{--pix-card:#cc3f93}
+ :root[data-duel-theme="pixel-art"] .duel [data-frame^="token"]{--pix-card:#8b909c}
+ /* A card-shaped tile: a thin frame (4% of its width) round a tall art box at the top, the frame colour below it (where
+    the field's ATK/DEF label sits). The art's sides are trimmed (x 15-85%, y 19-70% of the card: aspect .94).
+    The view box only sets the picture's shape and does not clip it, so the padding gives the content box that shape
+    and object-fit:cover fills it with the art alone. Flat colours and hard edges only (user, 2026-11-19): no
+    gradients, bevels or soft shadows, so the field's drop-shadow is removed too. */
+ :root[data-duel-theme="pixel-art"] .duel :is(.zone,.hand>button)[data-frame]>img{box-sizing:border-box;object-view-box:inset(19% 15% 30% 15%);object-fit:cover;
+  background:var(--pix-card);box-shadow:inset 0 0 0 1px var(--pix-ink)}
+ /* Hand: the button is the card's width. */
+ :root[data-duel-theme="pixel-art"] .duel .hand>button[data-frame]>img{height:auto;aspect-ratio:.685;padding:4% 4% 44.2%}
+ /* Field: the zone is any shape (wider than a card on phones), so the tile is the largest card shape that fits it,
+    from the zone's own size (a size container; zones are sized by the field grid, never by their content). */
+ :root[data-duel-theme="pixel-art"] .duel .zone[data-frame]{container-type:size}
+ :root[data-duel-theme="pixel-art"] .duel .zone[data-frame]>img{--th:min(100cqh,146cqw);height:var(--th);width:calc(var(--th)*.685);max-width:none;margin:auto;filter:none;
+  padding:calc(var(--th)*.0274) calc(var(--th)*.0274) calc(var(--th)*.3031)}
+ /* Randomized cards keep a rainbow edge: four solid colours round the frame (their ? marker sits in the art box). */
+ :root[data-duel-theme="pixel-art"] .duel [data-frame~="random"]>img{border:3px solid;border-color:#ff4d6d #ffe14d #4dc3ff #b05cff}
+}
 /* Draft Duels loop: Draft Screen (relic + character pack picks) and match point (draft-ui.js, 2026-11-13).
    Art-only tiles like the shop (hover tooltip, hold or right-click for details); fits one screen without scrolling. */
 .collector-content:has(>.draft-pick-screen){display:flex;flex-direction:column;overflow:hidden;padding:4px 8px}
@@ -3630,7 +3678,7 @@ dialog:has(.lesson-done){overflow:hidden}
 .duel .hand button.target-picked{outline:4px solid #ffda64;outline-offset:-4px;box-shadow:0 0 24px #ffda64;translate:0 -10%}
 .field-selection.field-hint .selection-status{display:block;margin-top:2px;font-size:12px;color:#d9e8ea}
 
-/* Current LP and coins under the cursed relic heading (Discord, 2026-11-16). */
+/* Current LP and coins under the shadow relic heading (Discord, 2026-11-16). */
 .cursed-standing{margin:4px 0 0;font-weight:700;color:#ffe3a6;letter-spacing:.3px}
 .cloud-save-notice{display:block;max-width:min(560px,92vw);margin:2px auto 4px;padding:4px 10px;border-radius:8px;background:#3a1f12cc;border:1px solid #d59a4a;color:#ffd9a6;text-align:center}
 
@@ -3640,7 +3688,9 @@ dialog:has(.lesson-done){overflow:hidden}
 /* Add/remove under the card art (user, 2026-11-17): − in deck/owned +. The details column spans both rows beside it. */
 .inspect.has-deck-step{grid-auto-flow:row dense;grid-template-rows:auto 1fr}
 .inspect.has-deck-step>.inspect-step+div{grid-row:span 2}
-#modal.card-inspect-modal .inspect.has-deck-step{grid-template-rows:minmax(0,max-content) minmax(min-content,1fr)}
+/* minmax(auto,1fr), not min-content: the details column spans this row and scrolls, so its minimum is 0; min-content
+   grew the row to the whole card text, which pushed the art row to 0 px and stopped the text scrolling (Discord, Nov 19). */
+#modal.card-inspect-modal .inspect.has-deck-step{grid-template-rows:minmax(0,max-content) minmax(auto,1fr)}
 /* The control fits the art column however narrow it gets (portrait phones give it ~66-90px; Discord, Nov 18: it spilled
    over the card text), so nothing here has a fixed minimum width. */
 .inspect-step{grid-column:1;align-self:start;justify-self:center;display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;max-width:220px;min-width:0}
@@ -3739,3 +3789,265 @@ button.start-run.start-run-unlock:disabled{opacity:1!important;filter:none!impor
 .final-countdown-finale .exodia-finale-result{z-index:3;align-items:flex-end;padding-bottom:7dvh}
 /* No movement: the card, a lit ring and the result. */
 .final-countdown-finale .fc-flame:has(img){}
+
+/* Deck-order prompt (Big Eye, behaviour flag 2026-11-19): the list scrolls inside the panel on short screens, and the ✓
+   sits on its own panel instead of floating over a hand card, where the player read it as a mark on that card. */
+.selection-dialog>.prompt>.sort-cards{flex:1;min-height:0;overflow:auto}
+.duel .selection-dialog:has(.sort-cards)>.selection-actions{background:#102c36f5;border:1px solid #8eaeb5;border-radius:8px;padding:4px;align-self:center;min-width:120px}
+/* Old Windows launcher: reinstall notice on the main menu (user, 2026-11-19). */
+.launcher-notice{z-index:3;display:grid;gap:5px;max-width:min(560px,92vw);margin:2px auto 6px;padding:8px 12px;border-radius:8px;background:#0c1824f2;border:1px solid #c9a227;color:#f2ead3;text-align:center}
+.launcher-notice b{color:#f4cf57}
+.launcher-notice .launcher-link{width:100%;font-size:12px;padding:4px 6px;background:#06121a;color:#cfe3e8;border:1px solid #4b6b75;border-radius:5px;text-align:center}
+.launcher-notice .launcher-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.launcher-notice .launcher-status:empty{display:none}
+/* Starter and structure decks in the shop (user, 2026-11-19), solo and Tag: the Level 6 roster rainbow rolls behind the
+   deck box, with a still glow. One compositor-only loop (the 400% layer slides with transform, roster-rainbow, never
+   repainted). It is a pseudo-element, which animation-speed.js does not slow, so it steps every 60 ms itself (6 s,
+   steps(100)) and ambient-clock.js puts it on the shared idle ticks. It holds still under Reduce Motion, Performance
+   and Compatibility Mode, once sold and while a pack opens. */
+.shop-product.shop-deck{isolation:isolate;padding:6px;border-color:#fff;box-shadow:0 0 10px #ff8fd6aa,0 0 4px #9fe8ff,inset 0 0 10px 2px #ffffff88}
+.shop-product.shop-deck::before{content:"";position:absolute;pointer-events:none;inset:0 auto 0 0;width:400%;z-index:-1;opacity:.9;background:linear-gradient(90deg,#ff4f8b,#ff9f43,#ffe45c,#5cf08f,#45c8ff,#8f6bff,#ff5fd2,#ff4f8b) 0 0/50% 100% repeat-x;will-change:transform;animation:roster-rainbow 6s steps(100) infinite}
+.shop-product.shop-deck .product-art>img{padding:4px;filter:drop-shadow(0 0 3px #000c)}
+.shop-product.shop-deck.sold{box-shadow:none}.shop-product.shop-deck.sold::before{animation:none;will-change:auto;opacity:.3}
+:root:has(dialog.pack-theatre[open]) .shop-product.shop-deck::before{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.shop-product.shop-deck::before{animation:none;will-change:auto}}
+html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .shop-product.shop-deck::before{animation:none;will-change:auto}
+
+/* Opponent deck viewer (Nori, Discord 2026-11-19): as wide as the pack view, so wide screens show more cards per row and
+   more rows; the window keeps its height cap and scrolls. */
+#modal:has(.opponent-deck-grid){width:min(1100px,94vw);max-width:94vw}
+#modal:has(.opponent-deck-grid) .opponent-deck-grid{grid-template-columns:repeat(auto-fill,minmax(min(104px,calc((94vw - 70px)/3)),1fr))}
+
+/* Pack details summary links (CITYDRIVER, Discord 2026-11-19): Types, Attributes, archetypes and Support themes filter the
+   pack's card list. Same dotted underline as the inspection window's card-text links; the active one turns gold. */
+.pack-summary .card-link{color:inherit;text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;border-radius:3px}
+.pack-summary .card-link:hover,.pack-summary .card-link:focus-visible{text-decoration-style:solid}
+.pack-summary .card-link.active{color:var(--gold,#efca79);font-weight:700;text-decoration-style:solid}
+@media (pointer:coarse){.pack-summary{line-height:2}}
+.pack-term-filter{display:flex;align-items:center;flex-wrap:wrap;gap:8px;width:fit-content;max-width:100%;margin:0 0 12px;padding:4px 4px 4px 12px;border:1px solid var(--gold,#efca79);border-radius:999px;background:#2b2410d9}
+.pack-term-filter[hidden]{display:none}
+.pack-term-filter b{color:var(--gold,#efca79)}
+.pack-term-filter .pack-term-clear{min-width:32px;min-height:32px;padding:2px 8px;border-radius:999px;line-height:1}
+#modal:has(.pack-term-filter:not([hidden])){min-height:min(var(--pack-term-height,0px),88dvh)}
+/* Character select skinned per Duel Look (user approved the mockup, 2026-11-19; temp/charselect-looks-demo).
+   Each look sets --cs-* variables on :root[data-duel-theme=...]; the shared rules below are scoped to .character-select-page.
+   Default (no data-duel-theme) is untouched; layout never changes, only colours, frames, fonts and the background tint. */
+/* ---------- Per-look variables ---------- */
+:root[data-duel-theme="duel-disk"]{
+ --cs-tint:linear-gradient(#0a0e14b8,#0a0e14e0);
+ --cs-texture:repeating-linear-gradient(135deg,#ffffff06 0 2px,transparent 2px 7px);
+ --cs-panel-bg:linear-gradient(#262b34f2,#101318f2);--cs-panel-line:#6c6048;--cs-panel-top:3px solid #c9a24a;--cs-panel-radius:3px;
+ --cs-panel-shadow:inset 0 1px 0 #ffffff1a,0 3px 0 #000;
+ --cs-tile-line:#7d6f4f;--cs-tile-radius:4px;--cs-tile-shadow:inset 0 1px 0 #ffffff26,inset 0 -1px 0 #0009;--cs-tile-clip:none;
+ --cs-sel-line:#5fd2ff;--cs-sel-shadow:0 0 0 1px #0b4c78,0 0 12px #5fd2ffaa,inset 0 0 10px #5fd2ff66;
+ --cs-strip:linear-gradient(transparent,#0c0f14 70%);--cs-name-font:Impact,'Arial Black',sans-serif;--cs-name-weight:400;--cs-name-color:#ffe08a;
+ --cs-name-stroke:1px #000;--cs-name-shadow:1px 2px 0 #000;--cs-name-case:uppercase;--cs-name-spacing:.5px;
+ --cs-hero-line:2px solid #c9a24a;--cs-hero-radius:2px;--cs-hero-shadow:inset 0 0 0 1px #000,0 0 0 1px #000,0 3px 0 #000;
+ --cs-title-font:Impact,'Arial Black',sans-serif;--cs-title-color:#ffe08a;--cs-title-shadow:0 2px 0 #000;--cs-title-spacing:1px;
+ --cs-accent:#ffe08a;--cs-text:#c7cdd6;
+ --cs-badge-line:2px solid #c9a24a;--cs-badge-radius:0;--cs-badge-shadow:none;--cs-badge-clip:polygon(0 0,100% 0,100% 78%,78% 100%,22% 100%,0 78%);--cs-badge-font:Impact,'Arial Black',sans-serif;
+ --cs-start-font:Impact,'Arial Black',sans-serif;--cs-start-spacing:3px;--cs-start-clip:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);--cs-start-shadow:none;
+ --cs-scroll:#c9a24a #14171d;
+ --lv-m1:linear-gradient(#a3b0bb,#5d6c79 48%,#3e4a56 52%,#76858f);
+ --lv0:linear-gradient(#6fd3a8,#2a8560 48%,#185440 52%,#3fa67c);
+ --lv1:linear-gradient(#7cc0f2,#2a78bb 48%,#173c89 52%,#4d93d6);
+ --lv2:linear-gradient(#c19be6,#8a55bd 48%,#4b2379 52%,#9d6fd0);
+ --lv3:linear-gradient(#f08aa0,#c2405f 48%,#7d183c 52%,#d55a76);
+ --lv4:linear-gradient(#f5b67c,#c26a28 48%,#8b3c12 52%,#dc853d);
+ --lv5:linear-gradient(#fff6c8,#e7c25a 48%,#b07f1e 52%,#ffe38b)}
+
+:root[data-duel-theme="shadow-realm"]{
+ --cs-tint:radial-gradient(ellipse at 50% 115%,#7a3fd166,transparent 62%),#14082cd0;
+ --cs-texture:radial-gradient(ellipse at 15% 10%,#b77bff1f,transparent 40%),radial-gradient(ellipse at 85% 30%,#ff3f7f14,transparent 45%);
+ --cs-panel-bg:#120920e8;--cs-panel-line:#7a3fd1aa;--cs-panel-top:1px solid #7a3fd1aa;--cs-panel-radius:16px;
+ --cs-panel-shadow:inset 0 0 26px #6a33d14d,0 0 20px #000a;
+ --cs-tile-line:#5a2fa8;--cs-tile-radius:14px;--cs-tile-shadow:inset 0 0 14px #6a33d166;--cs-tile-clip:none;
+ --cs-sel-line:#d2a8ff;--cs-sel-shadow:0 0 16px #b77bffbb,inset 0 0 14px #b77bff77;
+ --cs-strip:linear-gradient(transparent,#0d0618e6 65%);--cs-name-font:"YGO Card Name",Georgia,serif;--cs-name-weight:600;--cs-name-color:#f2e6ff;
+ --cs-name-stroke:0 transparent;--cs-name-shadow:0 0 6px #a56bff,0 1px 0 #000,0 0 2px #000;--cs-name-case:none;--cs-name-spacing:.3px;
+ --cs-hero-line:1px solid #a56bff;--cs-hero-radius:12px;--cs-hero-shadow:0 0 18px #7a3fd188,inset 0 0 30px #14082c99;
+ --cs-title-font:"YGO Card Name",Georgia,serif;--cs-title-color:#e6d4ff;--cs-title-shadow:0 0 10px #a56bff;--cs-title-spacing:.5px;
+ --cs-accent:#d9bfff;--cs-text:#e9dcffcc;
+ --cs-badge-line:2px solid #c7a2ff;--cs-badge-radius:50%;--cs-badge-shadow:0 0 12px #a46cffaa,inset 0 0 8px #0008;--cs-badge-clip:none;--cs-badge-font:Georgia,serif;
+ --cs-start-font:"YGO Card Name",Georgia,serif;--cs-start-spacing:2px;--cs-start-clip:none;--cs-start-shadow:0 0 16px #a52f6a99,inset 0 0 0 1px #ff9cc955;
+ --cs-scroll:#7d4bc0 #0d0618;
+ --lv-m1:radial-gradient(circle at 50% 105%,#6c8192cc,#150a24 78%);
+ --lv0:radial-gradient(circle at 50% 105%,#31966ccc,#150a24 78%);
+ --lv1:radial-gradient(circle at 50% 105%,#368cd0cc,#150a24 78%);
+ --lv2:radial-gradient(circle at 50% 105%,#9860cfdd,#150a24 78%);
+ --lv3:radial-gradient(circle at 50% 105%,#d14f70cc,#150a24 78%);
+ --lv4:radial-gradient(circle at 50% 105%,#dc853dcc,#150a24 78%);
+ --lv5:radial-gradient(circle at 50% 105%,#ffe38b,#bc791c 55%,#2a1640 92%)}
+
+:root[data-duel-theme="clean-tournament"]{
+ --cs-tint:#0e1419e0;--cs-texture:none;
+ --cs-panel-bg:#121a21;--cs-panel-line:#ffffff1f;--cs-panel-top:1px solid #ffffff1f;--cs-panel-radius:10px;--cs-panel-shadow:none;
+ --cs-tile-line:#ffffff17;--cs-tile-radius:8px;--cs-tile-shadow:none;--cs-tile-clip:none;
+ --cs-sel-line:#ffffff;--cs-sel-shadow:none;
+ --cs-strip:#0e1419d0;--cs-name-font:"Segoe UI",Arial,sans-serif;--cs-name-weight:700;--cs-name-color:#fff;
+ --cs-name-stroke:0 transparent;--cs-name-shadow:none;--cs-name-case:none;--cs-name-spacing:0;
+ --cs-hero-line:0 solid transparent;--cs-hero-radius:8px;--cs-hero-shadow:none;
+ --cs-title-font:"Segoe UI",Arial,sans-serif;--cs-title-color:#fff;--cs-title-shadow:none;--cs-title-spacing:0;
+ --cs-accent:#fff;--cs-text:#b8c7cd;
+ --cs-badge-line:0 solid transparent;--cs-badge-radius:8px;--cs-badge-shadow:none;--cs-badge-clip:none;--cs-badge-font:"Segoe UI",Arial,sans-serif;
+ --cs-start-font:"Segoe UI",Arial,sans-serif;--cs-start-spacing:2px;--cs-start-clip:none;--cs-start-shadow:none;
+ --cs-scroll:#3a4a55 #0e1419;
+ --lv-m1:#3f4d59;--lv0:#24745a;--lv1:#2a6aa6;--lv2:#6c4a9e;--lv3:#a33b56;--lv4:#a85f22;--lv5:#d9a53a}
+
+:root[data-duel-theme="millennium-stone"]{
+ --cs-tint:linear-gradient(#2a1c0cbb,#1a120ad8);
+ --cs-texture:radial-gradient(#ffe9b00b 1px,transparent 1.5px) 0 0/7px 7px,radial-gradient(#0000002a 1px,transparent 1.5px) 3px 4px/9px 9px;
+ --cs-panel-bg:linear-gradient(160deg,#4f4434f4,#2c241af4 70%);--cs-panel-line:#a68a56;--cs-panel-top:3px solid #a68a56;--cs-panel-radius:2px;
+ --cs-panel-shadow:inset 0 0 0 2px #0005,inset 0 0 0 3px #d9b45c33,inset 1px 1px 0 4px #ffffff14,0 4px 10px #000b;
+ --cs-tile-line:#a68a56;--cs-tile-radius:3px;--cs-tile-shadow:inset 0 0 0 1px #0007,inset 2px 2px 0 1px #ffffff1c,inset -2px -2px 0 1px #00000055;--cs-tile-clip:none;
+ --cs-sel-line:#f2d27c;--cs-sel-shadow:0 0 0 1px #2a1e0c,0 0 12px #d9b45caa,inset 0 0 0 2px #f2d27c66;
+ --cs-strip:linear-gradient(transparent,#231b11ee 60%);--cs-name-font:"YGO Card Name",Georgia,serif;--cs-name-weight:600;--cs-name-color:#ffe9b0;
+ --cs-name-stroke:0 transparent;--cs-name-shadow:0 1px 0 #000,0 -1px 0 #0009,0 0 3px #000;--cs-name-case:none;--cs-name-spacing:.3px;
+ --cs-hero-line:3px solid #a68a56;--cs-hero-radius:2px;--cs-hero-shadow:inset 0 0 0 2px #0007,0 0 0 1px #2a1e0c,0 3px 8px #000a;
+ --cs-title-font:"YGO Card Name",Georgia,serif;--cs-title-color:#ffe9b0;--cs-title-shadow:0 1px 0 #000,0 -1px 0 #0008;--cs-title-spacing:1px;
+ --cs-accent:#f2d27c;--cs-text:#efe2bdd9;
+ --cs-badge-line:2px solid #d9b45c;--cs-badge-radius:4px 4px 16px 16px;--cs-badge-shadow:0 2px 6px #000a,inset 0 1px 0 #ffffff40;--cs-badge-clip:none;--cs-badge-font:Georgia,serif;
+ --cs-start-font:"YGO Card Name",Georgia,serif;--cs-start-spacing:3px;--cs-start-clip:none;--cs-start-shadow:inset 1px 1px 0 #ffffff30,inset -1px -1px 0 #00000070,0 2px 0 #1a120a;
+ --cs-scroll:#a68a56 #231b11;
+ --lv-m1:linear-gradient(160deg,#7c7466,#4a4538);
+ --lv0:linear-gradient(160deg,#4f8a68,#24503a);
+ --lv1:linear-gradient(160deg,#41709f,#1f3a62);
+ --lv2:linear-gradient(160deg,#7a5a96,#41295a);
+ --lv3:linear-gradient(160deg,#a64a3c,#5e221a);
+ --lv4:linear-gradient(160deg,#b07a32,#6b4518);
+ --lv5:linear-gradient(160deg,#ffe9a8,#c0953b 55%,#f2d27c)}
+
+:root[data-duel-theme="kaiba-hologram"]{
+ --cs-tint:#021222cc;
+ --cs-texture:linear-gradient(#2fd0ff12 1px,transparent 1px) 0 0/36px 36px,linear-gradient(90deg,#2fd0ff12 1px,transparent 1px) 0 0/36px 36px;
+ --cs-panel-bg:repeating-linear-gradient(0deg,#2fd0ff0b 0 1px,transparent 1px 4px),#04121ee8;--cs-panel-line:#2fd0ff;--cs-panel-top:1px solid #2fd0ff;--cs-panel-radius:0;
+ --cs-panel-shadow:inset 0 0 24px #2fd0ff26,0 0 12px #2fd0ff33;
+ --cs-tile-line:#2fd0ff77;--cs-tile-radius:0;--cs-tile-shadow:inset 0 0 12px #2fd0ff2a;--cs-tile-clip:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+ --cs-sel-line:#5fe0ff;--cs-sel-shadow:inset 0 0 0 1px #5fe0ff,inset 0 0 18px #2fd0ffaa;
+ --cs-strip:linear-gradient(transparent,#04121eee 60%);--cs-name-font:Consolas,"Courier New",monospace;--cs-name-weight:700;--cs-name-color:#d9f6ff;
+ --cs-name-stroke:0 transparent;--cs-name-shadow:0 0 6px #2fd0ff,0 1px 0 #000;--cs-name-case:uppercase;--cs-name-spacing:.5px;
+ --cs-hero-line:1px solid #2fd0ff;--cs-hero-radius:0;--cs-hero-shadow:inset 0 0 22px #2fd0ff55,0 0 10px #2fd0ff55;
+ --cs-title-font:Consolas,"Courier New",monospace;--cs-title-color:#d9f6ff;--cs-title-shadow:0 0 8px #2fd0ff;--cs-title-spacing:2px;
+ --cs-accent:#7fd8f2;--cs-text:#d9f6ffcc;
+ --cs-badge-line:1px solid #2fd0ff;--cs-badge-radius:0;--cs-badge-shadow:none;--cs-badge-clip:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);--cs-badge-font:Consolas,"Courier New",monospace;
+ --cs-start-font:Consolas,"Courier New",monospace;--cs-start-spacing:6px;--cs-start-clip:var(--btn-clip);--cs-start-shadow:none;
+ --cs-scroll:#2fd0ff #04121e;
+ --lv-m1:linear-gradient(135deg,#6c819288,#04121e 85%);
+ --lv0:linear-gradient(135deg,#31d69aaa,#04121e 85%);
+ --lv1:linear-gradient(135deg,#2fa0ffaa,#04121e 85%);
+ --lv2:linear-gradient(135deg,#a070ffaa,#04121e 85%);
+ --lv3:linear-gradient(135deg,#ff5a6eaa,#04121e 85%);
+ --lv4:linear-gradient(135deg,#ff9a3daa,#04121e 85%);
+ --lv5:linear-gradient(135deg,#fff0a0,#ffcf4d 45%,#04121e 95%)}
+
+/* Pixel Art: flat fills, square corners, stepped frames and hard drop shadows only (no gradients, glows or blur).
+   Pictures are pixelated by pixel-art.js; text stays crisp in DotGothic16. */
+:root[data-duel-theme="pixel-art"]{
+ --cs-tint:#0a0c1ca8;--cs-texture:none;
+ --cs-panel-bg:var(--pix-panel);--cs-panel-line:transparent;--cs-panel-top:0 solid transparent;--cs-panel-radius:0;
+ --cs-panel-shadow:var(--pix-bevel),var(--pix-frame),4px 4px 0 0 #000a;
+ --cs-tile-line:var(--pix-ink);--cs-tile-radius:0;--cs-tile-shadow:inset 2px 2px 0 0 #ffffff2e,inset -2px -2px 0 0 #0006,3px 3px 0 0 #000a;--cs-tile-clip:none;
+ --cs-sel-line:var(--pix-gold);--cs-sel-shadow:inset 0 0 0 2px var(--pix-gold),0 0 0 2px var(--pix-ink),4px 4px 0 2px #000a;
+ --cs-strip:#0c0b14d0;--cs-name-font:"YGO Pixel","Courier New",monospace;--cs-name-weight:400;--cs-name-color:var(--pix-text);
+ --cs-name-stroke:0 transparent;--cs-name-shadow:1px 1px 0 #000;--cs-name-case:uppercase;--cs-name-spacing:0;
+ --cs-hero-line:0 solid transparent;--cs-hero-radius:0;--cs-hero-shadow:var(--pix-frame),4px 4px 0 2px #000a;
+ --cs-title-font:"YGO Pixel","Courier New",monospace;--cs-title-color:var(--pix-gold);--cs-title-shadow:2px 2px 0 #000;--cs-title-spacing:0;
+ --cs-accent:var(--pix-gold);--cs-text:#c7cfe8;
+ --cs-badge-line:0 solid transparent;--cs-badge-radius:0;--cs-badge-shadow:var(--pix-bevel),var(--pix-frame),2px 3px 0 2px #000a;--cs-badge-clip:none;--cs-badge-font:"YGO Pixel","Courier New",monospace;
+ --cs-start-font:"YGO Pixel","Courier New",monospace;--cs-start-spacing:2px;--cs-start-clip:none;--cs-start-shadow:var(--btn-shadow);
+ --cs-scroll:var(--pix-gold) var(--pix-ink);
+ --lv-m1:#566c86;--lv0:#38b764;--lv1:#3b5dc9;--lv2:#8f52c8;--lv3:#b13e53;--lv4:#ef7d57;--lv5:#ffcd75}
+
+/* ---------- Shared rules (any look but Default) ---------- */
+/* Background: the scene keeps playing; each look lays its own tint and texture over it, as the duel field does. */
+:root[data-duel-theme] .character-select-page .bg-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--cs-texture),var(--cs-tint)}
+:root[data-duel-theme="clean-tournament"] .character-select-page .bg-stage::after,:root[data-duel-theme="pixel-art"] .character-select-page .bg-stage::after{background:var(--cs-tint)}
+
+/* Header title */
+:root[data-duel-theme] .character-select-page>header h2{font-family:var(--cs-title-font);color:var(--cs-title-color);text-shadow:var(--cs-title-shadow);letter-spacing:var(--cs-title-spacing);font-weight:700}
+:root[data-duel-theme="duel-disk"] .character-select-page>header h2,:root[data-duel-theme="kaiba-hologram"] .character-select-page>header h2{text-transform:uppercase;font-weight:400}
+
+/* Roster tiles */
+:root[data-duel-theme] .character-select-page .roster{scrollbar-color:var(--cs-scroll)}
+:root[data-duel-theme] .character-select-page .portrait{border-color:var(--cs-tile-line);border-radius:var(--cs-tile-radius);box-shadow:var(--cs-tile-shadow);clip-path:var(--cs-tile-clip)}
+:root[data-duel-theme] .character-select-page .portrait.selected{border-color:var(--cs-sel-line);box-shadow:var(--cs-sel-shadow);outline:0}
+:root[data-duel-theme] .character-select-page .portrait span{background:var(--cs-strip);font-family:var(--cs-name-font);font-weight:var(--cs-name-weight);color:var(--cs-name-color);-webkit-text-stroke:var(--cs-name-stroke);text-shadow:var(--cs-name-shadow);text-transform:var(--cs-name-case);letter-spacing:var(--cs-name-spacing)}
+:root[data-duel-theme] .character-select-page .portrait.locked span{color:#aab1b6}
+/* Level colours: same meaning in every look, drawn in the look's material. Level 6 keeps its rainbow. */
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="-1"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="-1"]{background:var(--lv-m1)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="0"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="0"]{background:var(--lv0)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="1"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="1"]{background:var(--lv1)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="2"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="2"]{background:var(--lv2)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="3"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="3"]{background:var(--lv3)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="4"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="4"]{background:var(--lv4)}
+:root[data-duel-theme] .character-select-page .portrait[data-completed-level="5"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="5"]{background:var(--lv5)}
+:root[data-duel-theme] .character-select-page .portrait.locked{background:#2a3036}
+:root[data-duel-theme="shadow-realm"] .character-select-page .portrait.locked{background:#120a1c}
+:root[data-duel-theme="millennium-stone"] .character-select-page .portrait.locked{background:#3a352c}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .portrait.locked{background:#061320}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait.locked{background:#333c57}
+
+/* Details panel */
+:root[data-duel-theme] .character-select-page .duelist-selection .char-details{background:var(--cs-panel-bg);border:1px solid var(--cs-panel-line);border-top:var(--cs-panel-top);border-radius:var(--cs-panel-radius);box-shadow:var(--cs-panel-shadow)}
+:root[data-duel-theme] .character-select-page .duelist-hero{border:var(--cs-hero-line);border-radius:var(--cs-hero-radius);box-shadow:var(--cs-hero-shadow)}
+:root[data-duel-theme] .character-select-page .duelist-hero h2{font-family:var(--cs-name-font);font-weight:var(--cs-name-weight);color:var(--cs-name-color);-webkit-text-stroke:var(--cs-name-stroke);text-shadow:var(--cs-name-shadow);letter-spacing:var(--cs-title-spacing)}
+:root[data-duel-theme] .character-select-page .starting-relic h3{font-family:var(--cs-title-font);color:var(--cs-accent)}
+:root[data-duel-theme] .character-select-page .starting-relic p{color:var(--cs-text)}
+
+/* LVL badge (top right of the portrait) */
+:root[data-duel-theme] .character-select-page .level-badge{border:var(--cs-badge-line);border-radius:var(--cs-badge-radius);box-shadow:var(--cs-badge-shadow);clip-path:var(--cs-badge-clip);font-family:var(--cs-badge-font)}
+
+/* Start Run: the shared button rule already gives it the look's primary colours; here only its lettering and edge. */
+:root[data-duel-theme] .character-select-page .start-run:not(.start-run-unlock){font-family:var(--cs-start-font);letter-spacing:var(--cs-start-spacing);clip-path:var(--cs-start-clip)!important;box-shadow:var(--cs-start-shadow)!important}
+
+/* ---------- Look-specific touches ---------- */
+/* Duel Disk: gold plate lettering on the duelist's name, chrome-cut Start, metal-cut loadout tabs. */
+:root[data-duel-theme="duel-disk"] .character-select-page .duelist-hero h2{-webkit-text-stroke:0;text-shadow:none;color:transparent;background:linear-gradient(#fff6cf,#ffd976 45%,#c9962e 56%,#ffe08a);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000) drop-shadow(2px 3px 0 #000)}
+:root[data-duel-theme="duel-disk"] .character-select-page .variant-selector>button{clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)!important;text-transform:uppercase}
+:root[data-duel-theme="duel-disk"] .character-select-page .level-badge{color:#fff;text-shadow:0 1px 0 #000a}
+:root[data-duel-theme="duel-disk"] .character-select-page .level-badge[data-challenge-level="5"]{color:#2a1600;text-shadow:0 1px 0 #fff8}
+
+/* Shadow Realm: round, glowing badge; soft purple aura behind the duelist. */
+:root[data-duel-theme="shadow-realm"] .character-select-page .level-badge{width:52px;height:52px;padding:0;display:grid;place-content:center;font-size:11px}
+:root[data-duel-theme="shadow-realm"] .character-select-page .level-badge strong{font-size:22px}
+:root[data-duel-theme="shadow-realm"] .character-select-page .duelist-hero{overflow:hidden}
+:root[data-duel-theme="shadow-realm"] .character-select-page .duelist-hero h2{bottom:-2px;font-size:clamp(22px,2.6vw,38px)}
+:root[data-duel-theme="shadow-realm"] .character-select-page .variant-selector>button{border-radius:999px!important}
+
+/* Clean Tournament: flat, mixed-case labels, white selection ring, name as plain bold type. */
+:root[data-duel-theme="clean-tournament"] .character-select-page .portrait span{padding:4px 3px 3px;bottom:0;font-size:clamp(10px,1.05vw,14px)}
+:root[data-duel-theme="clean-tournament"] .character-select-page .portrait.selected{box-shadow:0 0 0 2px #fff}
+:root[data-duel-theme="clean-tournament"] .character-select-page .duelist-hero h2{font-weight:800;text-transform:none;text-align:left;padding:0 12px;bottom:6px;font-size:clamp(20px,2.2vw,32px);text-shadow:0 1px 4px #000c}
+:root[data-duel-theme="clean-tournament"] .character-select-page .level-badge{font-weight:700}
+:root[data-duel-theme="clean-tournament"] .character-select-page .start-run{text-transform:uppercase;font-weight:800}
+
+/* Millennium Stone: carved tablet badge, engraved serif names, gold inlay on the selected tile. */
+:root[data-duel-theme="millennium-stone"] .character-select-page .portrait span{font-size:clamp(10px,1.2vw,15px)}
+:root[data-duel-theme="millennium-stone"] .character-select-page .duelist-hero h2{text-transform:none;font-size:clamp(22px,2.6vw,38px);bottom:-4px;text-shadow:0 2px 0 #3a2a10,0 0 10px #000,0 0 2px #000}
+:root[data-duel-theme="millennium-stone"] .character-select-page .level-badge{color:#ffe9b0;text-shadow:0 1px 0 #000;padding:4px 8px 7px}
+:root[data-duel-theme="millennium-stone"] .character-select-page .level-badge[data-challenge-level="5"]{color:#2a1e0c;text-shadow:0 1px 0 #fff6}
+:root[data-duel-theme="millennium-stone"] .character-select-page .start-run{text-shadow:0 1px 0 #000,0 -1px 0 #0008}
+:root[data-duel-theme="millennium-stone"] .character-select-page .duelist-loadout,:root[data-duel-theme="millennium-stone"] .character-select-page .starting-relic{border-top:1px solid #a68a5666;padding-top:6px}
+
+/* Kaiba Hologram: cut-corner tiles and badge, HUD double frame on the portrait, monospace readouts. */
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .duelist-hero{outline:1px solid #2fd0ff55;outline-offset:3px}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .duelist-hero h2{text-transform:uppercase;letter-spacing:4px;-webkit-text-stroke:0;text-shadow:0 0 10px #2fd0ff,0 0 2px #2fd0ff,0 2px 0 #000}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .level-badge{color:#d9f6ff;text-shadow:0 0 6px #2fd0ff}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .level-badge[data-challenge-level="5"]{color:#04121e;text-shadow:none}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .starting-relic h3{text-transform:uppercase;letter-spacing:1px}
+:root[data-duel-theme="kaiba-hologram"] .character-select-page .portrait.golden-complete{box-shadow:inset 0 0 0 1px #ffe182,inset 0 0 16px #ffd15d88}
+
+/* Pixel Art: replace every soft glow and gradient on this screen with hard pixels. */
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait span{padding:3px 2px 2px;bottom:0;-webkit-text-stroke:0}
+:root[data-duel-theme="pixel-art"] .character-select-page .duelist-hero h2{color:var(--pix-gold);-webkit-text-stroke:0;text-shadow:2px 0 0 #000,-2px 0 0 #000,0 2px 0 #000,0 -2px 0 #000,2px 2px 0 #000,4px 4px 0 #000;bottom:-8px}
+:root[data-duel-theme="pixel-art"] .character-select-page .level-badge{color:var(--pix-text);text-shadow:1px 1px 0 #000}
+:root[data-duel-theme="pixel-art"] .character-select-page .level-badge[data-challenge-level="5"]{color:#2b1a08;text-shadow:none}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait.golden-complete{box-shadow:inset 0 0 0 2px #fff6c8,inset 2px 2px 0 2px #ffffff40,3px 3px 0 0 #000a}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait.golden-complete::before{background:none;box-shadow:inset 0 0 0 2px #ffe9a8}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait.golden-complete::after{background:linear-gradient(110deg,transparent 46%,#ffffffb0 46% 51%,transparent 51%)}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait[data-completed-level="6"]::before{background:linear-gradient(90deg,#ff4f8b 0 12.5%,#ff9f43 0 25%,#ffe45c 0 37.5%,#5cf08f 0 50%,#45c8ff 0 62.5%,#8f6bff 0 75%,#ff5fd2 0 87.5%,#ff4f8b 0) 0 0/50% 100% repeat-x}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait[data-completed-level="6"]{box-shadow:inset 0 0 0 2px #fff,3px 3px 0 0 #000a}
+:root[data-duel-theme="pixel-art"] .character-select-page .level-badge[data-challenge-level="6"]{background:linear-gradient(100deg,#ff4f8b 0 12.5%,#ff9f43 0 25%,#ffe45c 0 37.5%,#5cf08f 0 50%,#45c8ff 0 62.5%,#8f6bff 0 75%,#ff5fd2 0 87.5%,#ff4f8b 0) 0 50%/200% 100%;text-shadow:1px 1px 0 #000}
+:root[data-duel-theme="pixel-art"] .character-select-page .portrait .relicless-clear-star{border-radius:0;box-shadow:var(--pix-frame);text-shadow:none}
+/* Georgia's figures are old-style (0 reads as o): badge numbers use a lining serif. */
+:root:is([data-duel-theme="shadow-realm"],[data-duel-theme="millennium-stone"]) .character-select-page .level-badge strong{font-family:"Palatino Linotype","Times New Roman",serif;font-weight:700}

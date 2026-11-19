@@ -705,7 +705,7 @@
     "champion_trophy": {
       "name": "Champion Trophy",
       "price": 60,
-      "description": "You can select a second cursed relic after each boss fight.",
+      "description": "You can select a second shadow relic after each boss fight.",
       "art": "Victory Dragon",
       "effect": "cursed_pick",
       "amount": 1,

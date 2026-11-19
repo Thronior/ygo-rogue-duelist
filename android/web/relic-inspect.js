@@ -6,7 +6,7 @@ import {cursedMarkup,curseIconFile} from './experience-ui.js';
 import {levelText,levelBadge,levelDescription} from './challenge-level.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const countBadge=count=>count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';
-// Cursed relics show their benefit and drawback apart, as on the cursed relic choice.
+// Shadow relics show their benefit and drawback apart, as on the shadow relic choice.
 const relicKind=(content,id)=>/^cursed_/.test(id)||content.artifactInfo?.[id]?.parts?.length===2?'cursed':content.fusionMaterials?.[id]?'fused':'';
 // status: a short line under the name. price: markup for a price. extra: more markup under the text. action: a button.
 export function relicCard(content,id,{count=1,status='',price='',extra='',action='',negated=false}={}){

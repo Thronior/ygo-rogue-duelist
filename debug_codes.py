@@ -42,6 +42,32 @@ def apply(profile, character, level):
     return levels[str(character)]
 
 
+
+RELIC_PREFIX = 'relic:'
+
+
+def give_relic(run, wanted):
+    """Debug (user, 2026-11-19): the debug code "relic:<key or name>" gives the current solo run that relic, as if it had
+    been bought or chosen: shadow relics are marked as cursed and fusions happen as usual. Keys (cursed_spell_sanctuary)
+    and names (Spell Sanctuary) both work, ignoring case and spaces at the ends."""
+    import content, approved_relics as ar, relic_fusions
+    if not run:
+        raise ValueError('Start a run first.')
+    wanted = str(wanted or '').strip()
+    fold = wanted.casefold()
+    key = wanted if wanted in content.ARTIFACTS else next((k for k, row in content.ARTIFACTS.items() if k.casefold() == fold or str(row[0]).casefold() == fold), None)
+    if not key or key in ar.REMOVED:
+        raise ValueError(f'Unknown relic: {wanted}')
+    if key in run.get('artifacts', []):
+        raise ValueError('The run already has that relic.')
+    run.setdefault('artifacts', []).append(key)
+    if key in ar.CURSED_IDS:
+        run.setdefault('cursed_artifacts', []).append(key)
+    relic_fusions.fuse(run)
+    ar.reconcile_turn_order(run)
+    return dict(relic=content.ARTIFACTS[key][0], key=key)
+
+
 if __name__ == '__main__':
     import content
     for character in content.PLAYABLE_IDS:

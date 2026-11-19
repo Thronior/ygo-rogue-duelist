@@ -372,12 +372,12 @@
     },
     {
       "card": "Judgment of the Pharaoh",
-      "pack": "Yugi Muto",
+      "pack": "Yami Yugi",
       "pool": "rare"
     },
     {
       "card": "Makiu, the Magical Mist",
-      "pack": "Yugi Muto",
+      "pack": "Yami Yugi",
       "pool": "common"
     },
     {
@@ -387,7 +387,7 @@
     },
     {
       "card": "Toon Dark Magician Girl",
-      "pack": "Yugi Muto",
+      "pack": "Yami Yugi",
       "pool": "rare"
     },
     {
@@ -443,13 +443,13 @@
   ],
   "dependencies": [
     {
-      "pack": "Yugi Muto",
+      "pack": "Yami Yugi",
       "card": "Unity",
       "pool": "common",
       "requiredBy": "Judgment of the Pharaoh"
     },
     {
-      "pack": "Yugi Muto",
+      "pack": "Yami Yugi",
       "card": "Toon World",
       "pool": "rare",
       "requiredBy": "Toon Dark Magician Girl"

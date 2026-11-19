@@ -84,21 +84,12 @@ export function deckPolicy(x){
    .reduce((sum,c)=>sum+value(c)/5,0);
   return expected>=350?Math.round(75+Math.min(20,expected/160)):-1;
  };
+ // Canyon doubles the battle damage the attacking player takes when a Defense Position Rock is attacked: the recoil from
+ // a wall such as Giant Soldier of Stone. The old rule read it as piercing for our attacks, so it was refused in all
+ // 424 chances (all-decks sweep, 2026-11-19). Play it with a Rock wall of ours, never over our own Field Spell.
  const canyonValue=()=>{
-  if(e.player!==p||e.phase!==4)return -1;
-  const enemyRocks=enemy.filter(c=>race(c)==='Rock'&&face(c)&&!(c.position&1));
-  const ownRocks=own.filter(c=>race(c)==='Rock'&&!(c.position&1));
-  const bonus=enemyRocks.reduce((sum,rock)=>{
-   const defense=rock.defense??data(rock).defense??0;
-   const bestMargin=Math.max(0,...own.filter(c=>face(c)&&(c.position&1)).map(c=>atk(c)-defense));
-   return sum+(bestMargin>0?battleDamage(bestMargin):0);
-  },0);
-  const risk=ownRocks.reduce((sum,rock)=>{
-   const defense=rock.defense??data(rock).defense??0;
-   const bestMargin=Math.max(0,...enemy.filter(c=>face(c)&&(c.position&1)).map(c=>atk(c)-defense));
-   return sum+(bestMargin>0?battleDamage(bestMargin):0);
-  },0);
-  return bonus>risk*1.25&&bonus-risk>=300?90+Math.min(20,(bonus-risk)/250):-1;
+  if(e.player!==p||e.phase!==4||back.some(x=>x.sequence===5&&face(x)))return -1;
+  return own.some(c=>race(c)==='Rock'&&!(c.position&1)&&(c.defense??data(c).defense??0)>=1500)?70:-1;
  };
  function setScore(c){
   const n=name(c);
@@ -223,7 +214,10 @@ export function deckPolicy(x){
   if(n==='Pandemonium')return archfiendBody||archfiendDeck()?90:-1;
   if(n==='Frontline Base'){
    const unionInHand=hand.some(x=>x.code!==c.code&&(data(x).type&1024)&&lvl(x)<=4);
-   return free>0&&unionInHand?c.location===L.HAND?100:c.location===L.SZONE&&face(c)?110:-1:-1;
+   // The idle list's activate entry carries no position: read the live card, or a face-up Base refused every offer
+   // (109 of 109 in the all-decks sweep, 2026-11-19).
+   const live=back.find(x=>same(x,c))||c;
+   return free>0&&unionInHand?c.location===L.HAND?100:c.location===L.SZONE&&face(live)?110:-1:-1;
   }
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
   if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpTarget(x)))?100:-1;

@@ -171,7 +171,7 @@ function victories(ctx,d,t,x,ty,w){
  }
 }
 function identity(ctx,d,t,x,y,w){
- text(ctx,t,d.name.toUpperCase(),x,y+60,{size:66,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:34});
+ text(ctx,t,d.name,x,y+60,{upper:true,size:66,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:34});
  if(d.subtitle)text(ctx,t,d.subtitle,x,y+98,{size:24,weight:'normal',color:t.soft,max:w});
  const ty=y+(d.subtitle?136:112);victories(ctx,d,t,x,ty,w);
  // Attribute block of the character sheet.
@@ -204,8 +204,8 @@ function duo(ctx,d,t,x,y,w,h){
 }
 // Duel stats are the team's, because a Tag duel counts both teammates as one side. The last row is this player's own.
 function tagIdentity(ctx,d,t,x,y,w){
- text(ctx,t,d.name.toUpperCase(),x,y+56,{size:58,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:30});
- text(ctx,t,`& ${d.tag.name.toUpperCase()}`,x,y+100,{size:36,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:22,color:t.soft});
+ text(ctx,t,d.name,x,y+56,{upper:true,size:58,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:30});
+ text(ctx,t,`& ${tr(d.tag.name)}`,x,y+100,{upper:true,size:36,family:DISPLAY,weight:'normal',spacing:1,fit:w,min:22,color:t.soft});
  if(d.subtitle)text(ctx,t,d.subtitle,x,y+132,{size:22,weight:'normal',color:t.soft,max:w});
  const ty=y+(d.subtitle?164:142),gap=8,bw=(w-gap*2)/3,bh=62,gy=ty+50;victories(ctx,d,t,x,ty,w);
  d.stats.forEach(([label,value],i)=>{
@@ -214,7 +214,7 @@ function tagIdentity(ctx,d,t,x,y,w){
   text(ctx,t,label,bx+bw/2,by+bh/2+30,{size:15,spacing:.5,align:'center',color:t.soft,fit:bw-12,min:11})
  });
  const py=gy+2*(bh+gap),ph=y+422-py,cw=(w-32)/3;panel(ctx,t,x,py,w,ph,6);
- text(ctx,t,d.name.toUpperCase(),x+16,py+21,{size:14,spacing:1.5,color:t.accent,max:w-32});
+ text(ctx,t,d.name,x+16,py+21,{upper:true,size:14,spacing:1.5,color:t.accent,max:w-32});
  d.tag.own.forEach(([label,value],i)=>{const cx=x+16+cw*(i+.5);text(ctx,t,value,cx,py+ph-24,{size:26,align:'center',fit:cw-8,min:16});text(ctx,t,label,cx,py+ph-7,{size:13,spacing:.5,align:'center',color:t.soft,fit:cw-8,min:10})})
 }
 
@@ -283,7 +283,7 @@ function drawRelics(ctx,d,t,slots){
   ctx.save();path(ctx,c=>addRR(c,x,y,s,s,6));ctx.clip();ctx.fillStyle='#0b1820';ctx.fillRect(x,y,s,s);
   if(r.img){const k=Math.max(s/r.img.width,s/r.img.height);if('filter' in ctx)ctx.filter='saturate(1.3) contrast(1.06)';ctx.drawImage(r.img,x+(s-r.img.width*k)/2,y+(s-r.img.height*k)/2,r.img.width*k,r.img.height*k)}
   ctx.restore();
-  // Cursed relics keep a red edge so their drawback reads at a glance.
+  // Shadow relics keep a red edge so their drawback reads at a glance.
   ctx.save();path(ctx,c=>addRR(c,x,y,s,s,6));ctx.lineWidth=r.cursed?3:2;ctx.strokeStyle=r.cursed?'#ff4d5a':d.won?t.accent:'#628994';if(r.cursed){ctx.shadowColor='rgba(255,60,75,.55)';ctx.shadowBlur=8}ctx.stroke();ctx.restore();
   if(r.count>1){const bx=x+s-4,by=y+4;ctx.save();ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.shadowOffsetY=2;path(ctx,c=>addCircle(c,bx,by,15));ctx.fillStyle=d.won?t.accent:'#e8f3f1';ctx.fill();ctx.restore();
    ctx.save();ctx.font=`bold 15px ${UI}`;ctx.textAlign='center';ctx.fillStyle='#06121a';ctx.fillText('×'+r.count,bx,by+5);ctx.restore()}
@@ -378,7 +378,7 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
   :[['DAMAGE DEALT',s.damage_dealt],['ATTACKS',s.attacks_declared],['SUMMONS',s.monsters_summoned],['ACTIVATIONS',s.cards_activated],['BOSSES',s.bosses_defeated],['COINS LEFT',r.gold]]).map(([k,v])=>[k,count(v)]);
  const when=new Date((+r.finished_at||Date.now()/1000)*1000).toLocaleDateString(currentLocale()==='en-US'?'en-GB':currentLocale(),{day:'numeric',month:'short',year:'numeric'}),time=runTime(r);
  const variant=runCardVariant(r,level),d={won,variant,seed:Math.floor(+r.started_at||1),challengeLevel:level,name:character.name,portrait:assetURL(`assets/${character.sprite}`),victories:r.round||0,runLength,duels,relics,curses,stats,
-  recordTitle:mate!=null?`DUEL RECORD · ${character.name.toUpperCase()}’S OPPONENTS`:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
+  recordTitle:mate!=null?`DUEL RECORD · ${tr(character.name).toLocaleUpperCase(currentLocale())}’S OPPONENTS`:loop>1?`DUEL RECORD · LOOP ${loop}`:'DUEL RECORD',footerLeft:time?`${when} · Run time ${time}`:when,footerRight:`YGO ROGUE DUELIST · v${replayVersion}`,
   textures:{backdrop:assetURL('assets/character-select-background.png'),stone:assetURL('assets/ui/run-card-stone.jpg'),cracks:assetURL('assets/ui/run-card-cracks.jpg')}};
  if(mate!=null){
   // Only this player's deck, shopping and opponents are saved on their device; the teammate is a character.
@@ -440,7 +440,9 @@ export async function copyRunCard(canvas,name){
  if(native?.shareImage)return native.shareImage(name,await base64(await png))?'Copied! Paste it into Discord, or pick an app to share it.':'Could not prepare the image. Try again.';
  let blocked=false;
  // Safari needs the clipboard write to start inside the tap, so the blob is passed as a promise.
- if(!native&&navigator.clipboard?.write&&typeof ClipboardItem!=='undefined'){try{await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);return 'Copied! Paste it into Discord or any chat.'}catch(e){blocked=e?.name==='NotAllowedError'||e?.name==='SecurityError'}}
+ // The Windows app's bridge (load/store only) has no image calls, so it copies like a browser; it used to fall through to
+ // a download (Discord, Nov 19: "copy just saves it").
+ if(!native?.saveDeckImage&&navigator.clipboard?.write&&typeof ClipboardItem!=='undefined'){try{await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);return 'Copied! Paste it into Discord or any chat.'}catch(e){blocked=e?.name==='NotAllowedError'||e?.name==='SecurityError'}}
  const blob=await png;
  if(native?.saveDeckImage)return `Image copying needs the latest app version. ${await saveDeckImage(blob,name)}`;
  const touch=!!globalThis.matchMedia?.('(pointer:coarse)').matches;

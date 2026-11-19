@@ -1,0 +1,98 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_39,.patch-notes-sheet.pn0_2_39 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_39{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_39 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_39 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_39 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_39 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_39 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big .pn0_2_39-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big>*{position:relative}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big p.pn0_2_39-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way img,.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way .pn0_2_39-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-relics .pn0_2_39-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-packs .pn0_2_39-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-mark.pn0_2_39-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_39{font-family:Arial,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_39 h1,.patch-notes-sheet.pn0_2_39 h2,.patch-notes-sheet.pn0_2_39 h4,.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3,.patch-notes-sheet.pn0_2_39 .pn0_2_39-kick,.patch-notes-sheet.pn0_2_39 .pn0_2_39-big em{font-family:Bebas,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-big h3,.patch-notes-sheet.pn0_2_39 h2,.patch-notes-sheet.pn0_2_39 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_39 h1{font-weight:700}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shot{display:block;width:100%;border:2px solid #b5824a;border-radius:10px;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-shots img{width:100%;border:2px solid #b5824a;border-radius:10px;display:block;margin-top:12px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-cap{height:0;overflow:hidden;visibility:hidden;font-size:15px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_39 img+.pn0_2_39-cap{height:auto;visibility:visible;margin-top:4px}
+.patch-notes-sheet.pn0_2_39 .pn0_2_39-pmark{display:inline-block;width:21px;height:21px;vertical-align:middle;margin:0 3px}</style><div class="patch-notes-sheet pn0_2_39"><div class="pn0_2_39-kick">YGO Rogue Duelist</div><h1>更新 0.2.39</h1>
+
+<section class="pn0_2_39-big" style="margin-top:28px"><em>决斗外观</em><h3>像素风全面改版</h3>
+<p class="pn0_2_39-lead">决斗中的卡片现在是<b>卡片颜色的平面边框</b>，里面是<b>放大的卡图</b>，一眼就能看清。像素滤镜<b>更精细</b>，覆盖<b>整个画面</b>，文字和旗帜依旧清晰。<b>卡组编辑器</b>中的卡片不再像素化，卡片标记改为<b>像素星形和叉号</b><svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ffd76a" d="M3 0h1v2h3v1h-1v1h-1v3h-1v-1h-1v1h-1v-3h-1v-1h-1v-1h3z"/></svg><svg class="pn0_2_39-pmark" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#ff6b6b" d="M0 0h2v1h1v1h1v-1h1v-1h2v2h-1v1h-1v1h1v1h1v2h-2v-1h-1v-1h-1v1h-1v1h-2v-2h1v-1h1v-1h-1v-1h-1z"/></svg>。</p>
+<div class="pn0_2_39-shots"><div><div class="pn0_2_39-cap">新像素风外观下的决斗</div></div>
+<div><div class="pn0_2_39-cap">像素风下的角色选择</div></div></div></section>
+
+<section class="pn0_2_39-big"><em>决斗外观</em><h3>角色选择适配所有外观</h3>
+<p class="pn0_2_39-lead">角色选择界面现在会随<b>决斗外观</b>变化：枪灰与金色的决斗盘、雾气笼罩的暗影界、简约竞技场、千年石板、海马全息影像，以及像素风（见上）。可在<b>外观</b>中更改。</p>
+</section>
+
+<section class="pn0_2_39-big pn0_2_39-relics"><div class="pn0_2_39-bg" style="background-image:url('assets/cards/46986414.jpg')"></div><em>遗物</em><h3>暗影遗物与黑魔术</h3>
+<p class="pn0_2_39-lead"><b>诅咒遗物现在改名为暗影遗物</b>，以免与首领的诅咒混淆。除此之外没有任何变化。</p>
+<div class="pn0_2_39-ways">
+<div class="pn0_2_39-way"><img src="assets/relics/56433456.jpg"><p><b>魔法圣域</b><i>新暗影遗物。</i>自己可以在对方回合中发动魔法卡。<i>代价：</i>自己的魔法卡必须先盖放才能发动。盖放的魔法卡在盖放的回合不能发动。</p></div>
+<div class="pn0_2_39-way"><img src="assets/relics/2314238.jpg"><p><b>不灭的黑魔术</b><i>融合遗物：魔术师之杖、魔术师之绊、师父与徒弟、黑色混沌之仪。</i>自己场上的魔法师族怪兽的攻击力上升600。魔法师族怪兽通常召唤的场合才能发动。从卡组把1只「黑魔术师」怪兽特殊召唤，从卡组把1张有「黑魔术师」的卡名记述的卡加入手卡。自己场上的「黑魔术师」怪兽被破坏送去墓地的场合发动。从卡组或额外卡组把1只有「黑魔术师」的卡名记述的怪兽无视召唤条件特殊召唤。</p></div>
+<div class="pn0_2_39-way"><div class="pn0_2_39-art" style="background-image:url('assets/cards/92377303.jpg')"></div><p><b>黑衣大贤者</b>现在<b>始终当作「黑魔术师」卡使用</b>，就像恶魔召唤属于「恶魔」一样，因此所有黑魔术师遗物都会计入它。</p></div>
+<div class="pn0_2_39-way"><img class="pn0_2_39-sprite" src="assets/dm06.png"><p><b>武藤游戏的专属补充包</b>武藤游戏不再与暗游戏共用补充包。收录89张卡：暗黑骑士 盖亚、混沌战士、巨盾守卫者、栗子球、磁石战士、零件、天位骑士、LV怪兽、艾克佐迪亚，以及大量抽卡和除去。</p></div>
+</div></section>
+
+<section class="pn0_2_39-cols">
+<div class="pn0_2_39-big"><em>随机化者</em><h3>随机卡全面重做</h3>
+<p class="pn0_2_39-lead">彩虹卡现在以<b>真实卡片</b>的结构为基础生成，因此效果、卡片种类和数值的出现频率与真实卡片相同。带有字段效果的卡会在<b>卡名中加上字段名</b>，文本更清晰，矛盾的效果已移除，从手卡免费特殊召唤自身的效果需要代价或条件。</p></div>
+<div class="pn0_2_39-big"><em>Windows 应用</em><h3>应用自动更新</h3>
+<p class="pn0_2_39-lead">从本版本起，<b>Windows 应用会自行安装更新</b>。如果你使用的是旧版本，主菜单会显示提示：<b>请再下载一次安装程序</b>，存档会保留。</p>
+<p class="pn0_2_39-lead" style="margin-top:8px">如果“文档”文件夹被阻止，会改存到第二个文件夹；冒险总结上的<b>复制图片</b>会复制图片而不是保存。</p></div>
+</section>
+
+<section class="pn0_2_39-cols">
+<div><h2>改动</h2><ul class="pn0_2_39-small">
+<li><span>🌈</span><span><b>初始卡组</b>只在你买得起时才会出现在商店，并带有彩虹光芒，不会错过。</span></li>
+<li><span>🔎</span><span>在补充包详情中，<b>种族、属性和字段都成了链接</b>：点击即可只查看该补充包中符合的卡。</span></li>
+<li><span>🃏</span><span><b>对方卡组查看器</b>与补充包视图一样宽，一次显示更多卡。</span></li>
+<li><span>⚡</span><span>当效果<b>必须</b>发动时，<b>✕</b>不再显示为灰色：按下它会发动效果。</span></li>
+<li><span>🈶</span><span>角色名使用<b>官方日文、韩文和中文</b>名称。</span></li>
+<li><span>🤖</span><span>已用<b>游戏中的所有卡组</b>检查电脑：现在它会使用几十张以前忽略的卡，如亚马逊弩弓队、弹射龟、天邪鬼的诅咒、女忍者 八重，装备和和睦的使者的选择也更好了。</span></li>
+<li><span>↕️</span><span>在卡组顶端排列卡片时（眼球大王等），会提示你完成后按<b>✓</b>。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_39-small">
+<li><span>📰</span><span>游戏内<b>更新说明</b>的图片恢复正常显示，今后每次更新都会在发布前检查。</span></li>
+<li><span>📜</span><span>卡片窗口中的长卡片文本可以重新<b>滚动</b>了。</span></li>
+<li><span>🔮</span><span><b>名称变更器</b>宣言「黑魔术师」时，现在会计入魔术师之绊和师父与徒弟。</span></li>
+<li><span>📱</span><span>Android 应用会自动从少见的 Python 错误<b>“无法开始”</b>中恢复，若仍无法启动会说明该怎么做。</span></li>
+<li><span>🧠</span><span>电脑修复：棘之妖精、猫耳族、传说之都 亚特兰蒂斯、圣兽 塞勒凯特、亚马逊剑士、反击机枪拳，以及力量逆转下的反转。</span></li>
+<li><span>🔤</span><span>冒险总结会以你的语言显示角色名。</span></li>
+</ul></div>
+</section></div>

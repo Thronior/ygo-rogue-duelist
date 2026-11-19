@@ -47,7 +47,7 @@ assert.match(won.label,/won the run at Challenge Level 3 with 9 of 9 victories/)
 assert.equal(runCardData({stage:'complete',character:1,challenge_level:6,encore_won:true,round:9},{...deps,character:content.characters[1]}).title,'2004 World Champion DEFEATED','the champion keeps its case so it translates; header() draws the title in capitals');
 assert.deepEqual(won.curses,[],'runs from before curse tracking show no curse strip');
 
-// Cursed relics are flagged (boss picks, or the cursed_ prefix on older runs); only the final duel's curses are shown.
+// Shadow relics are flagged (boss picks, or the cursed_ prefix on older runs); only the final duel's curses are shown.
 const cursed=runCardData({stage:'complete',character:1,round:9,artifacts:[relicIds[0],'cursed_giants_oath','glass_shard'],cursed_artifacts:['glass_shard'],
  timeline:[{...duel(3,10,true,8000,1),curses:['frailty']},{...duel(3,10,true,8000,2),curses:['relic_seal']},{...duel(6,10,true,8000,2),curses:['relic_seal','exposed']}]},{...deps,character:content.characters[1]});
 assert.deepEqual(cursed.relics.map(r=>r.cursed),[false,true,true]);

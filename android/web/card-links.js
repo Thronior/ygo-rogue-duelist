@@ -50,3 +50,37 @@ export function cardTextHtml(text,content,linked){
 
 // The search a link sets: only that filter, replacing any other.
 export const linkSearch=({cardLink,value})=>({effects:[],...(cardLink==='name'?{q:value}:{[cardLink]:value})});
+
+// Pack details window (CITYDRIVER on Discord, 2026-11-19): the summary (experience-ui.js packSummary, from
+// pack-summary.js parts) with each Type, Attribute, archetype and Support theme a link. A link carries the English
+// term in data-value, so the pack filter works in every language. Translated here as one run per piece, built the way
+// tools/i18n/add_nov18_pack_summary_terms.mjs composes the whole sentence; mark the host data-no-i18n.
+// `base` is a Millennium Puzzle pack's own sentence (pack-inspection.js), shown before its archetype list.
+export function packSummaryHtml(parts,base=''){
+ if(!parts)return '';
+ const cjk=['ja','zh'].includes(currentLanguage()),sep=cjk?'、':', ',end=cjk?'。':'. ';
+ const label=en=>{const v=t(en);return esc(v.endsWith('：')?v:v+' ')},tip=esc(t('Show only these cards from this pack'));
+ const link=(kind,value)=>`<a href="#" role="button" class="card-link pack-term" data-pack-term="${kind}" data-value="${esc(value)}" title="${tip}" aria-pressed="false">${esc(t(value))}</a>`;
+ const list=(kind,values)=>values.map(v=>link(kind,v)).join(sep);
+ if(base)return `<span>${esc(t(base))}</span>${parts.series.length?` ${label('Archetypes:')}${list('series',parts.series)}`:''}`;
+ let out='';
+ if(parts.attributes.length){
+  // One whole sentence ("Attributes: LIGHT, DARK."), its Attribute words then turned into links.
+  let s=esc(t(`Attributes: ${parts.attributes.join(', ')}.`));
+  let from=0;for(const a of parts.attributes){const word=esc(t(a)),at=s.indexOf(word,from);if(at<0)continue;const html=link('attribute',a);s=s.slice(0,at)+html+s.slice(at+word.length);from=at+html.length}
+  out+=s+(cjk?'':' ');
+ }
+ if(parts.types.length)out+=label('Main monster types:')+list('race',parts.types)+end;
+ if(parts.series.length)out+=label('Archetypes:')+list('series',parts.series)+end;
+ out+=label('Support:')+(parts.themes.length?list('theme',parts.themes):esc(t('mixed monsters, Spells and Traps')));
+ return out+translateWith('. {0} different cards. Click to inspect.',parts.count);
+}
+
+// A "{0}" pattern translated through i18n.js, then filled with HTML (already escaped) or a number.
+// Each slot travels as a word no dictionary holds, so the pattern still matches and the slot comes back unchanged.
+export function translateWith(en,...values){
+ const slot=n=>`Xpackslot${n}x`;
+ let s=esc(t(en.replace(/\{(\d+)\}/g,(m,n)=>slot(n))));
+ values.forEach((v,n)=>{s=s.split(slot(n)).join(String(v))});
+ return s;
+}

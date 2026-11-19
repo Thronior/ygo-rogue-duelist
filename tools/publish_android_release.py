@@ -8,6 +8,12 @@ parser.add_argument('--target-commitish',default='main',help='Remote branch or c
 parser.add_argument('--replace-assets',action='store_true',help='Replace release assets whose names already exist but whose digests differ.')
 args=parser.parse_args()
 version=(root/'VERSION').read_text().strip()
+# Patch notes must draw correctly inside the game, and the built web release must carry the checked sheets (user, 2026-11-18).
+import sys
+subprocess.run([sys.executable,'-B',str(root/'tools/patch_notes.py'),'check'],cwd=root,check=True)
+for sheet in (root/'android/web/patch-notes').rglob('*.html'):
+ shipped=root/'releases'/('web-'+version)/sheet.relative_to(root/'android/web')
+ assert shipped.exists() and shipped.read_bytes()==sheet.read_bytes(),f'{shipped} differs from the checked patch notes: rebuild the release'
 from finalize_releases import finalize
 manifest=finalize()
 assert manifest['version']==version, 'Build version does not match source VERSION'

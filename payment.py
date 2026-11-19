@@ -1,4 +1,4 @@
-"""Run purchases: coins, or LP with the Blood Toll cursed relic (10 LP per coin, after every discount)."""
+"""Run purchases: coins, or LP with the Blood Toll shadow relic (10 LP per coin, after every discount)."""
 KEY='cursed_blood_toll';LP_PER_COIN=10
 def in_lp(run):return KEY in run.get('artifacts',[]) and run.get('history_mode')!='tag'
 def cost(run,coins):return coins*LP_PER_COIN if in_lp(run) else coins

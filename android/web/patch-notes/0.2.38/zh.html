@@ -1,0 +1,116 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_38,.patch-notes-sheet.pn0_2_38 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_38{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_38 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_38 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_38 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_38 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_38 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big .pn0_2_38-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big>*{position:relative}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big p.pn0_2_38-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way img,.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way .pn0_2_38-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-relics .pn0_2_38-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-packs .pn0_2_38-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-mark.pn0_2_38-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_38{font-family:Arial,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_38 h1,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 .pn0_2_38-kick,.patch-notes-sheet.pn0_2_38 .pn0_2_38-big em{font-family:Bebas,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_38 .pn0_2_38-big h3,.patch-notes-sheet.pn0_2_38 h2,.patch-notes-sheet.pn0_2_38 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_38 h1{font-weight:700}</style><div class="patch-notes-sheet pn0_2_38"><div class="pn0_2_38-kick">YGO Rogue Duelist</div><h1>更新 0.2.38</h1>
+
+<section class="pn0_2_38-big pn0_2_38-fixhi" style="margin-top:28px"><em>重要修复</em><h3>双打房间与进度</h3>
+<p class="pn0_2_38-lead"><b>双打房间</b>可能在你们仍在其中时过期，例如编辑卡组或游戏处于后台标签页时。现在只要有人在，房间就会保留。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>双打进度</b>（胜利、挑战等级、卡套）会立即保存，即使你没有按“退出”就关闭了游戏。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px">修复了部分玩家在 0.2.37 中遇到的<b>卡组编辑器</b>错误。</p></section>
+
+<section class="pn0_2_38-cols">
+<div class="pn0_2_38-big"><em>新功能</em><h3>角色设置</h3>
+<p class="pn0_2_38-lead">点击角色上的<span class="pn0_2_38-gear"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffe3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></span>，或在决斗中打开<b>设置 › 角色</b>。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>已保存的卡片标记</b> <span class="pn0_2_38-marks"><span class="pn0_2_38-mark pn0_2_38-yes">★</span><span class="pn0_2_38-mark pn0_2_38-no">✕</span></span>会在该角色的每次新冒险开始时生效（双打也一样）。可从<b>整个收藏或单个补充包</b>中选卡。</p>
+<p class="pn0_2_38-lead" style="margin-top:8px"><b>保存冒险中的标记</b>会保留你在游戏中设置的标记。</p></div>
+<div class="pn0_2_38-big"><div class="pn0_2_38-bg" style="background-image:url('assets/panik.png');opacity:.22"></div><em>新对手</em><h3>暗之玩家杀手</h3>
+<p class="pn0_2_38-lead"><b>暗之玩家杀手</b>加入对手阵容：第3层使用<b>生者之书-禁断的咒术-／吸血鬼</b>卡组，无尽模式使用新卡组。</p>
+<p class="pn0_2_38-lead" style="margin-top:14px"><em style="font-size:22px">电脑对手</em></p>
+<p class="pn0_2_38-lead">我们把<b>37,000个玩家回合</b>与电脑的选择做了对比。现在电脑会在4星攻击伤害更高时保留祭品，用<b>雷击和黑洞</b>打开斩杀，用<b>潜行狙击手</b>狙击，面对盖放卡选择更安全的斩杀路线，并计算两次攻击。</p></div>
+</section>
+
+<section class="pn0_2_38-big pn0_2_38-relics"><div class="pn0_2_38-bg" style="background-image:url('assets/cards/62340868.jpg')"></div><em>遗物</em><h3>新遗物与调整</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><img src="assets/relics/62340868.jpg"><p><b>魔神三人组</b>自己的「雷魔神-桑迦」「风魔神-修迦」「水魔神-斯迦」根据自己控制的这些怪兽数量得到效果。1只以上：这些怪兽攻击对方怪兽的场合，伤害步骤中那只对方怪兽的攻击力直到结束阶段变成0。2只以上：各自1回合1次，对方回合中对方把怪兽的效果或魔法卡发动时，可以把那个效果无效，那张卡回到手卡。3只：1回合1次，可以从卡组把1只「门之守护神」无视召唤条件特殊召唤。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/25955164.jpg"><p><b>究极门之组合</b><i>融合遗物。</i>每场决斗开始时，把「雷魔神-桑迦」「风魔神-修迦」「水魔神-斯迦」加入手卡。自己的「门之守护神」「雷魔神-桑迦」「风魔神-修迦」「水魔神-斯迦」不论自己还控制什么都得到以下效果。那只怪兽攻击对方怪兽的场合，伤害步骤中那只对方怪兽的攻击力直到结束阶段变成0。各自1回合1次，对方回合中对方把怪兽的效果或魔法卡发动时，可以把那个效果无效，那张卡回到手卡。1回合1次，可以从卡组把1只「门之守护神」无视召唤条件特殊召唤。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/Berserker%27s%20Pact.png"><p><b>狂战士之契</b>①：自己场上的怪兽在每次战斗阶段中可以比原本多作1次攻击。②：自己不能盖放怪兽，也不能把怪兽守备表示特殊召唤。</p></div>
+<div class="pn0_2_38-way"><img src="assets/relics/67629977.jpg"><p><b>群星连珠</b>1回合1次，自己结束阶段，自己墓地有怪兽存在，且自己墓地和自己场上的怪兽全部是相同等级的场合，从手卡把1只那个等级的怪兽特殊召唤。</p></div>
+</div></section>
+
+<section class="pn0_2_38-big pn0_2_38-packs"><em>角色</em><h3>角色补充包与配置</h3>
+<div class="pn0_2_38-ways">
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/80921533.jpg')"></div><p><b>迷宫兄弟</b>新稀有：<b>守护天使 贞德, 暴君龙, 闪电之战士 吉尔福德, 胡狼圣战士, 可变机兽 炮手龙, 炎帝 泰斯塔罗斯</b>、<b>地帝 格兰玛格</b>。新普通：三角魔龙, 杀人蛇, 杀人番茄, 巨型病毒, 迅捷鼯鼠，以及新卡<b>死皇帝的陵墓</b>。<i>移除57张弱卡：融合链、哈比，以及究极昆虫系列。</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/31829185.jpg')"></div><p><b>达姿</b>现在是<b>除外</b>补充包：<b>暗黑人偶 妮可罗菲娅, 混沌终结, 原初之种, 抹杀之使徒, 异次元隔离机</b>、异次元的狂兽、次元壶等，另有用于除外的弱小光·暗属性通常怪兽。<i>移除水属性与海相关的卡。</i></p></div>
+<div class="pn0_2_38-way"><div class="pn0_2_38-art" style="background-image:url('assets/cards/11901678.jpg')"></div><p><b>川井静香</b><b>暗黑魔龙</b>和<b>流星黑龙</b>加入她的补充包，并附带素材真红眼黑龙、恶魔召唤和流星之龙。</p></div>
+<div class="pn0_2_38-way"><img class="pn0_2_38-sprite" src="assets/dsod15.png"><p><b>貘良了</b>以<b>决斗者目录</b>开局：商店里可能出现角色补充包。第二套配置<b>幸运宠儿</b>会开启<b>随机1名角色的补充包×4</b>，并以<b>该补充包中某系列</b>的遗物开局。</p></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>平衡</em><h3>遗物概率与冒险</h3>
+<div class="pn0_2_38-bal">
+<div><h4>遗物概率</h4><ul>
+<li><span>◆</span><span><b>系列遗物</b>（亚马逊战旗、卡通世界等）在你拥有其一张卡后出现，<b>卡组中每有一张</b>都会更常出现。</span></li>
+<li><span>◆</span><span><b>指定卡</b>的遗物（门之呼唤、黑色混沌之仪等）在你没有这些卡时更少出现。</span></li>
+<li><span>◆</span><span><b>决斗者目录</b>不再稀有。拥有属性遗物不再降低其他属性遗物的概率。</span></li>
+<li><span>◆</span><span><b>★</b>标记只对你拥有且不在卡组中的卡生效。</span></li>
+</ul></div>
+<div><h4>冒险</h4><ul>
+<li><span>◆</span><span>从<b>挑战等级3</b>起，随机补充包和绝对随机要等该角色通关该等级后才会出现。</span></li>
+<li><span>◆</span><span>第一场决斗的卡组现在包含<b>沙尘之大龙卷、魔法除去和陷阱拆除</b>，可作为奖励获得。</span></li>
+</ul></div>
+</div></section>
+
+<section class="pn0_2_38-big"><em>语言</em><h3>全面翻译</h3>
+<p class="pn0_2_38-lead">卡片的<b>选项按钮</b>、悬停提示、<b>冒险总结</b>、补充包名称与说明、角色名称和召唤方式现在都支持8种语言。部分选项曾显示<b>错误的官方文本</b>（如附锁链的回力镖），已修正。</p></section>
+
+<section class="pn0_2_38-cols">
+<div><h2>改动</h2><ul class="pn0_2_38-small">
+<li><span>⌛</span><span><b>终焉的倒计时</b>在回合数下方显示剩余回合<span class="pn0_2_38-chip">⌛ 3</span>，胜利时播放新的<b>火焰终幕</b>，并至少获得<b>300金币</b>，不受慢速决斗惩罚。</span></li>
+<li><span>🗂️</span><span>冒险总结会把<b>同名卡</b>放在一起，过长的诅咒列表会换行而不会溢出。</span></li>
+<li><span>🌈</span><span>随机卡的<b>效果文本</b>上会有淡淡的彩虹色。</span></li>
+<li><span>🔤</span><span><b>死亡讯息</b>卡改用TCG版卡图，字母拼出FINAL。</span></li>
+<li><span>🤝</span><span>双打卡组编辑中的<span class="pn0_2_38-trade">交换 0/2</span>按钮更醒目了。</span></li>
+<li><span>⏎</span><span>在搜索框按<b>Enter</b>即可搜索。</span></li>
+<li><span>🃏</span><span>卡片窗口的按钮在窄屏手机上也能放下；新冒险窗口显示<b>“选择一个存档位”</b>。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_38-small">
+<li><span>🐉</span><span><b>龙之支配者的敕令</b>等遗物现在也作用于双打队友的卡。</span></li>
+<li><span>🛡️</span><span>电脑不再用<b>边境的大贤者</b>破坏自己的装备卡。</span></li>
+<li><span>💤</span><span>当攻击会被转移到更强的怪兽时，电脑不再攻击<b>幻影妖精</b>。</span></li>
+<li><span>⏱️</span><span>返回游戏后不再误报“电脑没有行动”。</span></li>
+<li><span>🌀</span><span><b>磨破罗魏</b>的公开不再显示连锁中最后一张卡的名字。</span></li>
+<li><span>🎲</span><span>随机卡的按钮会显示具体作用，而不是“处理效果”。</span></li>
+<li><span>📋</span><span>挑战等级1不再显示“包含之前所有修正”。</span></li>
+</ul></div>
+</section></div>

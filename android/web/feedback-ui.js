@@ -90,6 +90,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_titans_covenant'&&l>=5)a+=1200;
  else if(k==='fused_commoners_crown'&&(t&16)){a+=1000;d+=1000;}
  else if(k==='fused_undying_legion'&&c.race==='Zombie')a+=1200;
+ else if(k==='fused_immortal_dark_magic'&&c.race==='Spellcaster')a+=600;
  else if(k==='fused_grand_ritual_altar')a+=200*(run.ritual_scar_count||0);
  // Archetype and card-type bonuses (Discord, 2026-11-14: Spirit Sanctuary's +500 was missing from the editor).
  else if(k==='fused_spirit_sanctuary'&&(t&0x200))a+=500;

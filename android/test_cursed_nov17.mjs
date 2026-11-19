@@ -39,7 +39,7 @@ const steps=(list,{pick}={})=>{const done=new Set();return (e,m)=>{
  return null}};
 const offered=(m,code)=>m.player===0&&m.type===M.SELECT_IDLECMD&&(m.special_summons||[]).some(c=>c.code===code);
 
-// Cursed relics approved on Discord (2026-11-17): Mulligan's Offer and Graceful & Skull Dice, in real-core duels.
+// Shadow relics approved on Discord (2026-11-17): Mulligan's Offer and Graceful & Skull Dice, in real-core duels.
 const ARMY=id('Reinforcement of the Army'),GRACEFUL=id('Graceful Dice'),POT=id('Pot of Greed');
 // Mulligan's Offer: at your first Standby Phase you choose cards (none is allowed) to shuffle back and draw as many; once per Duel.
 async function mulligan(pickTwo){
@@ -72,4 +72,4 @@ same((await mulligan(false)).prompts,1,'choosing none is allowed');
  ok(atkAfter>1700&&atkAfter<=2300,`the relic took back only the first roll's ATK (${atkAfter})`);
  e.destroy();
 }
-console.log(`PASS cursed relics Nov 17: ${checks} checks`);
+console.log(`PASS shadow relics Nov 17: ${checks} checks`);

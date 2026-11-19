@@ -505,7 +505,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    }
    // Keep one main back-row slot free for spells from hand; the Field Zone is separate.
    const backrowCount=this.query(p,L.SZONE).filter((c,i)=>c&&(c.sequence??i)<5).length;
-   const setCandidates=m.spell_sets.map((c,index)=>({c,index})).filter(x=>smart.setAllowed(x.c)&&(stat(x.c).type&4||stat(x.c).type&0x10000)).sort((a,b)=>smart.setScore(b.c)-smart.setScore(a.c));const set=!holdHand&&backrowCount<(this.aiModifiers?.spellTrapZones??5)-1?(setCandidates[0]?.index??-1):-1;if(set>=0)return idle(I.SELECT_SPELL_SET,set);
+   // Spell Sanctuary (shadow relic, 2026-11-19): no Spell can be activated from the hand, so every Spell is Set to be used
+   // from the next turn on, and no slot is kept free for one. A Field Spell goes to the Field Zone, whatever the back row.
+   const sanctuary=(this.aiModifiers?.activeRelics?.[p]||[]).includes('cursed_spell_sanctuary'),backrowFree=backrowCount<(this.aiModifiers?.spellTrapZones??5)-(sanctuary?0:1);
+   const setCandidates=m.spell_sets.map((c,index)=>({c,index})).filter(x=>smart.setAllowed(x.c)&&(stat(x.c).type&4||stat(x.c).type&0x10000||sanctuary&&stat(x.c).type&2)&&(backrowFree||sanctuary&&stat(x.c).type&0x80000&&!this.query(p,L.SZONE)[5])).sort((a,b)=>smart.setScore(b.c)-smart.setScore(a.c));const set=!holdHand?(setCandidates[0]?.index??-1):-1;if(set>=0)return idle(I.SELECT_SPELL_SET,set);
    // Never switch an attacker to Defense when the board already has lethal through the blockers.
    const boardLethal=m.to_bp&&!this.battleProtected?.[1-p]&&!theyPickTargets&&smart.planDamage()>=this.lp[1-p];
    const attackPlan=m.to_bp&&!theyPickTargets?smart.battleLine(smart.readyAttackers()):null;

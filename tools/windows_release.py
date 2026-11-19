@@ -18,6 +18,10 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 INSTALLER_NAME='YGO-Rogue-Windows-Setup.exe'
 INSTALLER=ROOT/'releases/windows'/INSTALLER_NAME
+# The launcher's build number, written by build.ps1 -CopyToRelease. Installed launchers since build 2 read it from the
+# latest release and update themselves when it is higher (LauncherUpdate.cs, user 2026-11-19).
+LAUNCHER_MANIFEST_NAME='windows-launcher.json'
+LAUNCHER_MANIFEST=ROOT/'releases/windows'/LAUNCHER_MANIFEST_NAME
 MAX_ZIP,MAX_EXPANDED,MAX_ENTRY,MAX_ENTRIES=600_000_000,1_500_000_000,30_000_000,25000
 EXTENSIONS={'.js','.mjs','.json','.html','.css','.wasm','.zip','.gz','.png','.jpg','.jpeg','.webp','.gif','.svg','.ico',
  '.woff','.woff2','.ttf','.otf','.mp3','.wav','.ogg','.flac','.webmanifest','.txt','.md','.map','.avif','.dat','.bin',
@@ -58,8 +62,11 @@ def check_web_zip(path,version):
 def assets(version):
  """{release asset name: local file} the Windows app needs on every release."""
  assert INSTALLER.is_file(),f'Missing Windows installer {INSTALLER}'
+ assert LAUNCHER_MANIFEST.is_file(),f'Missing {LAUNCHER_MANIFEST}: rebuild Setup with build.ps1 -CopyToRelease'
+ assert LAUNCHER_MANIFEST.stat().st_mtime>=INSTALLER.stat().st_mtime-120,'windows-launcher.json is older than the installer: rebuild with build.ps1 -CopyToRelease'
+ json.loads(LAUNCHER_MANIFEST.read_text())['build']
  check_web_zip(web_zip(version),version)
- return {f'web-{version}.zip':web_zip(version),INSTALLER_NAME:INSTALLER,**web_deltas(version)}
+ return {f'web-{version}.zip':web_zip(version),INSTALLER_NAME:INSTALLER,LAUNCHER_MANIFEST_NAME:LAUNCHER_MANIFEST,**web_deltas(version)}
 
 def web_deltas(version,count=3):
  """{web-<old>-to-<version>.delta.gz: file} from the last `count` earlier web ZIPs in releases/.

@@ -2,7 +2,7 @@
 # id, name, price, rules text, illustration
 REGULAR=[
 ('solemn_relic','Solemn Relic',150,"Once per duel, negate your opponent's first Spell, Trap, or monster effect activation that can be negated.",'Solemn Judgment'),
-('dice_jar','Dice Jar',100,'Gain 1 free reroll in each shop and 1 additional reroll for each cursed relic choice.','Dice Jar'),
+('dice_jar','Dice Jar',100,'Gain 1 free reroll in each shop and 1 additional reroll for each shadow relic choice.','Dice Jar'),
 ('morphing_jar_2','Morphing Jar #2',100,'Shop rerolls restock your character booster pack, allowing you to buy it again.','Morphing Jar #2'),
 ('cyber_jar','Cyber Jar',100,'Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter.','Cyber Jar'),
 ('duelist_catalogue',"Duelist's Catalogue",120,'Character draft packs can appear in the random booster slots on shop visits and rerolls.','Exchange'),
@@ -116,7 +116,7 @@ CURSED=[
 (53,'singleton_pact','Singleton Pact','Your Main Deck minimum is always 20 cards. Your Deck can contain only 1 copy of each card.','Prohibition'),
 (51,'jesters_coin',"Jester's Coin",'At the start of your Standby Phase, toss a coin. Heads: monsters you control gain 300 ATK/DEF until your next Standby Phase. Tails: they lose 300 ATK/DEF until then.','Fairy Box'),
 (54,'blood_toll','Blood Toll','You pay with LP instead of coins: 10 LP for every coin a purchase or reroll costs, after discounts. You cannot pay if it would leave you below 1 LP.','Toll'),
-# Thronior's picks from the 2026-10-29 cursed relic ideas.
+# Thronior's picks from the 2026-10-29 shadow relic ideas.
 (55,'berserkers_pact',"Berserker's Pact",'Monsters you control can make 1 more attack during each Battle Phase than they otherwise could. You cannot Set monsters or Special Summon them in Defense Position.','Berserk Gorilla'),
 (56,'shield_bash','Shield Bash','Defense Position monsters you control can attack, using their DEF for damage calculation. Attack Position monsters you control cannot attack.','Total Defense Shogun'),
 (59,'reversed_remedy','Reversed Remedy','Each time either player would take effect damage or pay LP, they gain that much LP instead. Each time either player would gain LP during a Duel, they take that much damage instead.','Bad Reaction to Simochi'),
@@ -128,16 +128,18 @@ CURSED=[
 # (Discord, 2026-11-12). Anime Rule #3's art is mine; none was given.
 (64,'anime_rule_3','Anime Rule #3','You can Normal Summon or Set Level 5 or higher monsters without Tributing. Monsters you control lose 1000 ATK and DEF unless you control a face-up Field Spell.','Mountain'),
 (65,'cursed_restock','Cursed Restock','You get 2 free rerolls per shop. You can only buy one item per reroll.','Card Shuffle'),
-# TRUANT's cursed relic (Discord, 2026-11-13), added as posted.
+# TRUANT's shadow relic (Discord, 2026-11-13), added as posted.
 (66,'vampiric_contact','Vampiric Contact','Each time you destroy a monster by battle, gain 500 LP. Each time a monster you control is destroyed by battle, you lose LP equal to its ATK.',"Vampire's Domain"),
-# The user's cursed relic (Discord review, 2026-11-15), text as the user wrote it.
+# The user's shadow relic (Discord review, 2026-11-15), text as the user wrote it.
 (67,'poison_of_the_old_man','Poison of the Old Man','Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP. Tails: Lose 500 LP.','Poison of the Old Man'),
 # Discord suggestions the user approved (2026-11-17): Eriko's Mulligan's Offer with the user's drawback (art: Reload,
 # as Card Trader is not in the game), and M's dice curse as the user reworded it.
 (68,'mulligans_offer',"Mulligan's Offer","Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards. You cannot add cards from your Deck to your hand except by drawing them.",'Reload'),
-(69,'graceful_skull_dice','Graceful & Skull Dice',"The first time you roll a die each turn: gain LP equal to the result x100. Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",'Graceful Dice')]
+(69,'graceful_skull_dice','Graceful & Skull Dice',"The first time you roll a die each turn: gain LP equal to the result x100. Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",'Graceful Dice'),
+# The user's shadow relic (2026-11-19), text as the user wrote it in card templating. Art: The Sanctuary in the Sky.
+(70,'spell_sanctuary','Spell Sanctuary',"You can activate Spell Cards during your opponent's turn. You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set.",'The Sanctuary in the Sky')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
-# How the cursed relic screen splits a relic into its upside and drawback, where the rules text alone does not
+# How the shadow relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).
 CURSED_PARTS={
  'cursed_trapbound_idol':('Your Trap Monsters cannot be destroyed by battle.','You pay 300 LP to activate each Spell Card.'),
@@ -155,6 +157,7 @@ CURSED_PARTS={
  'cursed_poison_of_the_old_man':('Once per turn, during your End Phase: Toss a coin. Heads: Gain 500 LP.','Tails: Lose 500 LP.'),
  'cursed_mulligans_offer':("Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards.","You cannot add cards from your Deck to your hand except by drawing them."),
  'cursed_graceful_skull_dice':("The first time you roll a die each turn: gain LP equal to the result x100.","Your face-up monsters lose ATK equal to the result x100 until the end of this turn."),
+ 'cursed_spell_sanctuary':("You can activate Spell Cards during your opponent's turn.","You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set."),
 }
 
 def install(artifact):

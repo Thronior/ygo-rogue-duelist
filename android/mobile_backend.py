@@ -259,6 +259,10 @@ def dispatch(raw):
    p=storage.profile();p['sleeves_all']=True;storage.write(storage.ROOT/'profile.json',p)
   elif value=='touchgrass':
    p=storage.profile();p.update(unlock_all=True,unlocked=content.PLAYABLE_IDS,relicless_unlocked=True,testing_all_clears=True,character_levels={str(i):6 for i in content.PLAYABLE_IDS});storage.write(storage.ROOT/'profile.json',p)
+  elif str(value).strip().lower().startswith('relic:'):
+   # relic:<key or name> gives the current solo run that relic (debug_codes.give_relic, user 2026-11-19).
+   import debug_codes
+   result=debug_codes.give_relic(run,str(value).strip()[len(debug_codes.RELIC_PREFIX):]);g.save(run)
   else:
    # <3 digits><duelist>lvl<level>: that duelist has beaten that Challenge Level (debug_codes.py).
    import debug_codes
