@@ -1,0 +1,1095 @@
+{
+ "_note": "Big randomizer blocks rebuilt from smaller ones, per real card (user, Nov 19). Read by tools/build_randomizer_templates.py.",
+ "splits": {
+  "coach_goblin": {
+   "Coach Goblin": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "end_phase"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_select",
+       "side": "you",
+       "zone": "hand",
+       "kind": "monster",
+       "normal": true,
+       "n": 1,
+       "to": "deck",
+       "filter": "1 Normal Monster in your hand"
+      },
+      {
+       "k": "draw",
+       "n": 1,
+       "link": "if_done"
+      }
+     ],
+     "limits": [
+      {
+       "k": "opt"
+      }
+     ]
+    }
+   ]
+  },
+  "return_high_level_draw": {
+   "Lighten the Load": [
+    {
+     "kind": "activated",
+     "acts": [
+      {
+       "k": "move_select",
+       "side": "you",
+       "zone": "hand",
+       "kind": "monster",
+       "level_min": 7,
+       "n": 1,
+       "to": "deck",
+       "filter": "1 Level 7 or higher monster in your hand"
+      },
+      {
+       "k": "draw",
+       "n": 1,
+       "link": "if_done"
+      }
+     ],
+     "limits": [
+      {
+       "k": "hopt"
+      }
+     ]
+    }
+   ]
+  },
+  "delinquent_duo": {
+   "Delinquent Duo": [
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "lp",
+       "n": 1000
+      }
+     ],
+     "acts": [
+      {
+       "k": "discard_opp"
+      },
+      {
+       "k": "move_select",
+       "side": "opp",
+       "zone": "hand",
+       "n": 1,
+       "to": "grave",
+       "filter": "1 card in your opponent's hand"
+      }
+     ]
+    }
+   ]
+  },
+  "trap_of_board_eraser": {
+   "Trap of Board Eraser": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "damage_or_reversed_recover_to_you"
+      }
+     ],
+     "acts": [
+      {
+       "k": "prevent_effect_damage_turn"
+      },
+      {
+       "k": "discard_opp"
+      }
+     ]
+    }
+   ]
+  },
+  "dramatic_rescue": {
+   "Dramatic Rescue": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "amazoness_becomes_target"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_target",
+       "side": "you",
+       "zone": "mzone",
+       "kind": "monster",
+       "faceup": true,
+       "setcode": 4,
+       "n": 1,
+       "to": "hand",
+       "filter": "1 face-up Amazoness monster you control"
+      },
+      {
+       "k": "ss_filtered",
+       "zone": "hand",
+       "kind": "monster",
+       "filter": "1 other monster from your hand",
+       "link": "if_done"
+      }
+     ]
+    }
+   ]
+  },
+  "destroy_jars_turn_dragons_attack": {
+   "Dragon Piper": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "flip"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "st",
+       "faceup": true,
+       "names": [
+        "Dragon Capture Jar"
+       ],
+       "codes": [
+        50045299
+       ],
+       "to": "destroy",
+       "filter": "face-up \"Dragon Capture Jar\" on the field"
+      },
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "mzone",
+       "kind": "monster",
+       "race": "Dragon",
+       "faceup": true,
+       "pos": "defense",
+       "to": "attack",
+       "filter": "face-up Defense Position Dragon monsters on the field",
+       "link": "if_done"
+      }
+     ]
+    }
+   ]
+  },
+  "negate_spell_activation_faceup": {
+   "Horus the Black Flame Dragon LV8": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "opp_negatable_spell_activate"
+      }
+     ],
+     "acts": [
+      {
+       "k": "negate_spell_activation"
+      }
+     ]
+    }
+   ]
+  },
+  "fushioh_richie": {
+   "Fushioh Richie": [
+    {
+     "kind": "activated",
+     "acts": [
+      {
+       "k": "self_set"
+      }
+     ],
+     "limits": [
+      {
+       "k": "opt"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "flip_summoned"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_target",
+       "side": "you",
+       "zone": "gy",
+       "kind": "monster",
+       "race": "Zombie",
+       "n": 1,
+       "filter": "1 Zombie monster in your GY"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "targeted_st"
+      }
+     ],
+     "acts": [
+      {
+       "k": "negate_targeting"
+      }
+     ]
+    }
+   ]
+  },
+  "great_dezard": {
+   "Great Dezard": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "targeted_st"
+      },
+      {
+       "k": "kills",
+       "n": 1
+      }
+     ],
+     "acts": [
+      {
+       "k": "negate_targeting"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "kills",
+       "n": 2
+      }
+     ],
+     "costs": [
+      {
+       "k": "tribute_self"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered_proc",
+       "zone": "deck_hand",
+       "kind": "monster",
+       "names": [
+        "Fushioh Richie"
+       ],
+       "ignore_condition": true,
+       "procedure": true,
+       "complete": true,
+       "filter": "1 \"Fushioh Richie\" from your hand or Deck",
+       "codes": [
+        39711336
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "horus_lv6": {
+   "Horus the Black Flame Dragon LV6": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "silent_magician_lv8_spell_immune"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "end_phase"
+      },
+      {
+       "k": "kills",
+       "n": 1
+      }
+     ],
+     "costs": [
+      {
+       "k": "send_self_mzone"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered_proc",
+       "zone": "deck_hand",
+       "kind": "monster",
+       "names": [
+        "Horus the Black Flame Dragon LV8"
+       ],
+       "ignore_condition": true,
+       "procedure": true,
+       "complete": true,
+       "filter": "1 \"Horus the Black Flame Dragon LV8\" from your hand or Deck",
+       "codes": [
+        48229808
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "silent_swordsman_lv3": {
+   "Silent Swordsman LV3": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "silent_magician_lv8_spell_immune"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "standby"
+      }
+     ],
+     "costs": [
+      {
+       "k": "send_self_mzone"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered_proc",
+       "zone": "deck_hand",
+       "kind": "monster",
+       "names": [
+        "Silent Swordsman LV5"
+       ],
+       "ignore_condition": true,
+       "procedure": true,
+       "complete": true,
+       "filter": "1 \"Silent Swordsman LV5\" from your hand or Deck",
+       "codes": [
+        74388798
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "sacred_phoenix_nephthys": {
+   "Sacred Phoenix of Nephthys": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "destroyed_not_battle"
+      }
+     ],
+     "acts": [
+      {
+       "k": "revival_jam_mark"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "special_summoned_from_gy"
+      }
+     ],
+     "acts": [
+      {
+       "k": "destroy_all_st"
+      }
+     ]
+    }
+   ]
+  },
+  "blast_held_by_tribute": {
+   "Blast Held by a Tribute": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "opp_tribute_summon_attack"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_all",
+       "side": "opp",
+       "zone": "mzone",
+       "kind": "monster",
+       "faceup": true,
+       "pos": "attack",
+       "to": "destroy",
+       "filter": "face-up Attack Position monsters your opponent controls"
+      },
+      {
+       "k": "damage",
+       "n": 1000,
+       "link": "if_done"
+      }
+     ]
+    }
+   ]
+  },
+  "destroy_target_mill_opp": {
+   "Assault on GHQ": [
+    {
+     "kind": "activated",
+     "acts": [
+      {
+       "k": "move_target",
+       "side": "you",
+       "zone": "mzone",
+       "kind": "monster",
+       "n": 1,
+       "to": "destroy",
+       "filter": "1 monster you control"
+      },
+      {
+       "k": "mill_opp",
+       "n": 2
+      }
+     ]
+    }
+   ]
+  },
+  "negate_destroy_group": {
+   "Anti Raigeki": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "opp_activates_named",
+       "names": [
+        "Raigeki"
+       ],
+       "codes": [
+        12580477
+       ]
+      }
+     ],
+     "acts": [
+      {
+       "k": "negate_effect"
+      },
+      {
+       "k": "destroy_all_monsters",
+       "side": "opp",
+       "link": "if_done"
+      }
+     ]
+    }
+   ],
+   "Gryphon Wing": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "opp_activates_named",
+       "names": [
+        "Harpie's Feather Duster"
+       ],
+       "codes": [
+        18144506
+       ]
+      }
+     ],
+     "acts": [
+      {
+       "k": "negate_effect"
+      },
+      {
+       "k": "move_all",
+       "side": "opp",
+       "zone": "st",
+       "kind": "st",
+       "to": "destroy",
+       "filter": "Spells and Traps your opponent controls",
+       "link": "if_done"
+      }
+     ]
+    }
+   ]
+  },
+  "ring_of_magnetism": {
+   "Ring of Magnetism": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "equip_atk_down",
+       "n": 500
+      },
+      {
+       "k": "equip_def_down",
+       "n": 500
+      },
+      {
+       "k": "raregold_armor"
+      }
+     ],
+     "limits": [
+      {
+       "k": "equip_only",
+       "filter": "a monster you control",
+       "kind": "monster"
+      }
+     ]
+    }
+   ]
+  },
+  "nightmare_wheel": {
+   "Nightmare Wheel": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "spellbinding_circle"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "standby"
+      }
+     ],
+     "acts": [
+      {
+       "k": "damage",
+       "n": 500
+      }
+     ],
+     "limits": [
+      {
+       "k": "opt"
+      }
+     ]
+    }
+   ]
+  },
+  "hino_kagu_tsuchi": {
+   "Hino-Kagu-Tsuchi": [
+    {
+     "kind": "rule",
+     "limits": [
+      {
+       "k": "cannot_ss"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "battle_damage"
+      }
+     ],
+     "acts": [
+      {
+       "k": "hand_wipe_next_draw"
+      }
+     ]
+    }
+   ]
+  },
+  "vampire_lord": {
+   "Vampire Lord": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "this_card_battle_damage_to_opp"
+      }
+     ],
+     "acts": [
+      {
+       "k": "vampire_lady"
+      }
+     ]
+    },
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "gernia_revival"
+      }
+     ]
+    }
+   ]
+  },
+  "skilled_magician": {
+   "Skilled White Magician": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "royal_magical_library_counters"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "remove_self_spell_counter",
+       "n": 3
+      },
+      {
+       "k": "tribute_self"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered",
+       "zone": "deck_hand_gy",
+       "kind": "monster",
+       "names": [
+        "Buster Blader"
+       ],
+       "position": "faceup",
+       "filter": "1 \"Buster Blader\" from your hand, Deck, or GY",
+       "codes": [
+        78193831
+       ]
+      }
+     ]
+    }
+   ],
+   "Skilled Dark Magician": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "royal_magical_library_counters"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "remove_self_spell_counter",
+       "n": 3
+      },
+      {
+       "k": "tribute_self"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered",
+       "zone": "deck_hand_gy",
+       "kind": "monster",
+       "names": [
+        "Dark Magician"
+       ],
+       "position": "faceup",
+       "filter": "1 \"Dark Magician\" from your hand, Deck, or GY",
+       "codes": [
+        46986414
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ultimate_insect_lv1": {
+   "Ultimate Insect LV1": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "silent_magician_lv8_spell_immune"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "standby"
+      }
+     ],
+     "costs": [
+      {
+       "k": "send_self_mzone"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered_proc",
+       "zone": "deck_hand",
+       "names": [
+        "Ultimate Insect LV3"
+       ],
+       "filter": "1 \"Ultimate Insect LV3\" from your hand or Deck",
+       "codes": [
+        34088136
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "valkyrion_magna_warrior": {
+   "Valkyrion the Magna Warrior": [
+    {
+     "kind": "rule",
+     "acts": [
+      {
+       "k": "gate_guardian_proc",
+       "names": [
+        "Alpha The Magnet Warrior",
+        "Beta The Magnet Warrior",
+        "Gamma the Magnet Warrior"
+       ],
+       "filter": "\"Alpha The Magnet Warrior\", \"Beta The Magnet Warrior\", and \"Gamma the Magnet Warrior\"",
+       "codes": [
+        99785935,
+        39256679,
+        11549357
+       ]
+      }
+     ],
+     "limits": [
+      {
+       "k": "cannot_normal"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "tribute_self"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_up_to_n_filtered",
+       "zone": "gy",
+       "n": 3,
+       "kind": "monster",
+       "names": [
+        "Alpha The Magnet Warrior",
+        "Beta The Magnet Warrior",
+        "Gamma the Magnet Warrior"
+       ],
+       "codes": [
+        99785935,
+        39256679,
+        11549357
+       ],
+       "filter": "up to 3 \"Alpha The Magnet Warrior\", \"Beta The Magnet Warrior\" or \"Gamma the Magnet Warrior\""
+      }
+     ]
+    }
+   ]
+  },
+  "spirit_of_the_pharaoh": {
+   "Spirit of the Pharaoh": [
+    {
+     "kind": "rule",
+     "limits": [
+      {
+       "k": "cannot_normal"
+      },
+      {
+       "k": "summon_by",
+       "board": 31076103,
+       "board_name": "The First Sarcophagus"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "any_special_summoned"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_up_to_n_filtered",
+       "zone": "gy",
+       "n": 4,
+       "kind": "monster",
+       "race": "Zombie",
+       "level_max": 2,
+       "normal": true,
+       "filter": "up to 4 Level 2 or lower Zombie Normal Monsters"
+      }
+     ]
+    }
+   ]
+  },
+  "wingbeat_dragon": {
+   "A Wingbeat of Giant Dragon": [
+    {
+     "kind": "activated",
+     "acts": [
+      {
+       "k": "move_select",
+       "side": "you",
+       "zone": "mzone",
+       "kind": "monster",
+       "faceup": true,
+       "race": "Dragon",
+       "level_min": 5,
+       "n": 1,
+       "to": "hand",
+       "filter": "1 face-up Level 5 or higher Dragon monster you control"
+      },
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "st",
+       "kind": "st",
+       "to": "destroy",
+       "filter": "Spell and Trap Cards on the field",
+       "link": "if_done"
+      }
+     ]
+    }
+   ]
+  },
+  "magical_dimension": {
+   "Magical Dimension": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "control_sel",
+       "kind": "monster",
+       "race": "Spellcaster",
+       "faceup": true,
+       "zone": "mzone",
+       "side": "you"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered",
+       "zone": "hand",
+       "kind": "monster",
+       "race": "Spellcaster",
+       "filter": "1 Spellcaster monster"
+      },
+      {
+       "k": "destroy_any_mon"
+      }
+     ]
+    }
+   ]
+  },
+  "ss_level4_noattack": {
+   "Summoner Monk": [
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "discard_spell"
+      }
+     ],
+     "acts": [
+      {
+       "k": "ss_filtered",
+       "zone": "deck",
+       "kind": "monster",
+       "level_eq": 4,
+       "no_attack": true,
+       "filter": "1 Level 4 monster; it cannot attack this turn"
+      }
+     ],
+     "limits": [
+      {
+       "k": "opt"
+      }
+     ]
+    }
+   ]
+  },
+  "ocean_dragonlord": {
+   "Ocean Dragon Lord - Neo-Daedalus": [
+    {
+     "kind": "rule",
+     "acts": [
+      {
+       "k": "ss_tribute_named_hand",
+       "names": [
+        "Levia-Dragon - Daedalus"
+       ],
+       "codes": [
+        37721209
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "costs": [
+      {
+       "k": "send_field_cost",
+       "zone": "field",
+       "side": "you",
+       "kind": "spell",
+       "stype": "field",
+       "faceup": true,
+       "names": [
+        "Umi"
+       ],
+       "filter": "face-up \"Umi\" Field Spell",
+       "codes": [
+        22702055
+       ]
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "field",
+       "exclude_handler": true,
+       "to": "grave",
+       "filter": "all other cards on the field"
+      },
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "hand",
+       "to": "grave",
+       "filter": "all cards in both players' hands"
+      }
+     ]
+    }
+   ]
+  },
+  "relieve_monster": {
+   "Relieve Monster": [
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "opp_attack"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_target",
+       "side": "you",
+       "zone": "mzone",
+       "kind": "monster",
+       "n": 1,
+       "to": "hand",
+       "filter": "1 monster you control"
+      },
+      {
+       "k": "ss_filtered",
+       "zone": "hand",
+       "kind": "monster",
+       "level_eq": 4,
+       "filter": "1 Level 4 monster"
+      }
+     ]
+    }
+   ]
+  },
+  "wicked_eraser": {
+   "The Wicked Eraser": [
+    {
+     "kind": "rule",
+     "acts": [
+      {
+       "k": "dreadroot_three_tribute_rule"
+      }
+     ],
+     "limits": [
+      {
+       "k": "cannot_ss"
+      }
+     ]
+    },
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "self_atk_def_per_selector",
+       "n": 1000,
+       "def_n": 1000,
+       "side": "opp",
+       "zone": "field",
+       "filter": "card your opponent controls"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "acts": [
+      {
+       "k": "destroy_self_battle"
+      }
+     ]
+    },
+    {
+     "kind": "activated",
+     "conds": [
+      {
+       "k": "destroyed_mandatory"
+      }
+     ],
+     "acts": [
+      {
+       "k": "move_all",
+       "side": "both",
+       "zone": "field",
+       "to": "destroy",
+       "filter": "all cards on the field"
+      }
+     ]
+    }
+   ]
+  },
+  "pandemonium": {
+   "Pandemonium": [
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "archetype_no_standby_cost",
+       "setcode": 69,
+       "filter": "Archfiend"
+      }
+     ]
+    },
+    {
+     "kind": "continuous",
+     "acts": [
+      {
+       "k": "archetype_destroyed_search",
+       "setcode": 69,
+       "filter": "Archfiend"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

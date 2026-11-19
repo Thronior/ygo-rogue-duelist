@@ -1,0 +1,1162 @@
+{
+ "_note": "Card wording for randomizer blocks (user, Nov 19): key -> {text, tclause}. Copied into data/randomizer-templates.json by tools/build_randomizer_templates.py.",
+ "abyssal_designator": {
+  "text": "pay 1000 LP, then declare 1 Type and 1 Attribute; your opponent sends 1 monster with that Type and Attribute from their hand or Deck to the GY"
+ },
+ "agido_die_revive": {
+  "text": "when this card is destroyed by battle, roll a six-sided die; Special Summon 1 Fairy monster from your GY whose Level equals the result (if the result is 6, a Level 6 or higher Fairy monster)"
+ },
+ "amazoness_swords_woman_reflect": {
+  "text": "Any battle damage you would take from battles involving this card is inflicted to your opponent instead."
+ },
+ "amazoness_village": {
+  "text": "All Amazoness monsters gain 200 ATK. When an Amazoness monster is destroyed and sent to the GY, Special Summon 1 Amazoness monster with a lower Level from your Deck."
+ },
+ "anti_spell_fragrance": {
+  "text": "Both players must Set Spell Cards before activating them, and cannot activate them until their next turn."
+ },
+ "arcana_knight_joker": {
+  "text": "Must be Fusion Summoned with Queen's Knight, Jack's Knight, and King's Knight. Once per turn, when a Spell, Trap, or monster effect targets this face-up card, you can discard 1 card of the same type (Monster, Spell, or Trap); negate that effect"
+ },
+ "attacked_not_destroyed": {
+  "text": "After this card is attacked, if the attacking monster was not destroyed by battle"
+ },
+ "autonomous_action_unit": {
+  "text": "Pay 1500 LP, then target 1 monster in your opponent's GY; Special Summon it in Attack Position and equip this card to it. When this card leaves the field, destroy that monster."
+ },
+ "axe_of_despair": {
+  "text": "The equipped monster gains 1000 ATK. When this card is sent from the field to the GY, you can Tribute 1 monster to place this card on top of your Deck."
+ },
+ "banish_hand_temp": {
+  "text": "banish 1 random card from your opponent's hand face-down; it returns to their hand during their {nth} Standby Phase after this effect resolves"
+ },
+ "baou": {
+  "text": "Discard 1 card to activate this card. The equipped monster gains 500 ATK, and the effects of monsters it destroys by battle are negated."
+ },
+ "battle_scarred": {
+  "text": "choose 1 Archfiend monster; each time its controller pays LP for its Standby Phase effect, their opponent pays the same amount. When this card leaves the field, destroy that monster, and when that monster leaves the field, destroy this card"
+ },
+ "bes_big_core": {
+  "text": "Place 3 counters on this card when it is Normal Summoned. This card cannot be destroyed by battle. At the end of each Damage Step in which this card battles, remove 1 counter from it, or destroy it if it has no counters."
+ },
+ "brain_jacker": {
+  "text": "FLIP: Equip this card to 1 face-up monster your opponent controls and take control of it. During each of your Standby Phases, your opponent gains 500 LP."
+ },
+ "castle_gate": {
+  "text": "Cannot be destroyed by battle. Once per turn, while this card is in Attack Position, you can Tribute 1 Level 5 or lower monster to inflict damage to your opponent equal to its original ATK."
+ },
+ "chain_burst": {
+  "text": "After a Trap Card resolves, the player who activated it takes 1000 damage."
+ },
+ "chaos_command_negate_target": {
+  "text": "Negate the effects of Effect Monsters that target only this card"
+ },
+ "chick_yellow_choice": {
+  "text": "return 1 card on the field to its owner's hand, or look at the top card of your opponent's Deck and place it on the top or bottom of their Deck"
+ },
+ "chosen_one": {
+  "text": "choose 1 monster that can be Special Summoned and 2 Spell/Trap Cards from your hand; your opponent picks 1 of them at random; if it is the monster, Special Summon it, otherwise send all 3 cards to the GY"
+ },
+ "cloning_token": {
+  "text": "When your opponent Normal or Flip Summons a monster with a Level, Special Summon 1 Clone Token with the same original ATK, DEF, Level, Type, and Attribute as that monster. When that monster is destroyed, destroy the Token."
+ },
+ "continuous_destroy_weaker_attacker": {
+  "text": "When your opponent's monster attacks a Defense Position monster you control whose DEF is higher than the attacker's ATK, destroy the attacking monster at the end of the Damage Step."
+ },
+ "cross_counter_window": {
+  "text": "During damage calculation, if your opponent's monster attacks a face-up Defense Position monster you control whose DEF is higher than the attacker's ATK"
+ },
+ "cursed_seal_discard_spell": {
+  "text": "discard 1 Spell Card"
+ },
+ "cyber_jar": {
+  "text": "FLIP: Destroy all monsters on the field, then each player reveals the top 5 cards of their Deck; each player Special Summons any Level 4 or lower monsters among them in face-up Attack Position or face-down Defense Position, then adds the rest to their hand"
+ },
+ "cybernetic_zone": {
+  "text": "target 1 face-up Machine Fusion Monster you control; banish it until the End Phase, and when it returns, its ATK becomes double its original ATK; destroy it during your next Standby Phase"
+ },
+ "dark_designator_search": {
+  "text": "declare 1 monster card name (except an Extra Deck monster); if that card is in your opponent's Deck, they add 1 copy of it to their hand"
+ },
+ "dark_necrofear": {
+  "text": "Special Summon this card from your hand by banishing 3 Fiend monsters from your field or GY. If this card is destroyed in your Monster Zone by your opponent and sent to the GY, during the End Phase, equip it to 1 monster your opponent controls and take control of that monster."
+ },
+ "dd_designator": {
+  "text": "declare 1 card name; if that card is in your opponent's hand, banish it, otherwise banish 1 random card from your hand"
+ },
+ "deck_devastation_virus": {
+  "text": "Tribute 1 DARK monster with 2000 or more ATK; reveal your opponent's hand and destroy all monsters your opponent has with 1500 or less ATK, then do the same to monsters they draw during their next 3 turns"
+ },
+ "dice_jar": {
+  "text": "each player rolls a six-sided die (reroll ties); the player with the lower result takes damage equal to the higher result x 500, or 6000 damage if the higher result is 6"
+ },
+ "dicephoon": {
+  "text": "roll a six-sided die; on a 2, 3, or 4, destroy 1 Spell/Trap Card on the field; on a 5, destroy 2 Spell/Trap Cards on the field; on a 1 or 6, you take 1000 damage"
+ },
+ "dna_surgery": {
+  "text": "Declare 1 Type. All face-up monsters on the field become that Type."
+ },
+ "double_spell": {
+  "text": "Discard 1 Spell Card, then target 1 Spell Card in your opponent's GY; place it on your field and apply its effect as if you activated it"
+ },
+ "dragged_down": {
+  "text": "each player reveals their hand and discards 1 card chosen by their opponent, then each player draws 1 card"
+ },
+ "dramatic_rescue": {
+  "text": "return the targeted Amazoness monster(s) to your hand, then Special Summon 1 monster from your hand, except those monsters"
+ },
+ "ectoplasmer": {
+  "text": "During each player's End Phase, that player Tributes 1 face-up monster they control and inflicts damage to their opponent equal to half its original ATK."
+ },
+ "end_battle_phase_now": {
+  "text": "end the Battle Phase"
+ },
+ "fengsheng_mirror": {
+  "text": "look at your opponent's hand and discard 1 Spirit monster from it, if any"
+ },
+ "fiendish_engine_omega": {
+  "text": "During your End Phase, Special Summon 1 Engine Token (Machine/EARTH/Level 1/ATK 200/DEF 200); once per turn, this card can gain 1000 ATK until the End Phase, and if it does, destroy it during that End Phase"
+ },
+ "final_attack_orders": {
+  "text": "Change all monsters on the field to Attack Position; their battle positions cannot be changed."
+ },
+ "flint": {
+  "text": "equip this card to 1 face-up monster; it loses 300 ATK and cannot attack or change its battle position, unless it is a face-up Flint Lock; if the equipped monster is destroyed, equip this card to another face-up monster"
+ },
+ "forgotten_temple": {
+  "text": "This card's name is treated as Umi. Once per turn, you can banish 1 face-up Level 4 or lower Fish, Sea Serpent, or Aqua monster you control, then Special Summon it during your End Phase."
+ },
+ "freed_matchless_general": {
+  "text": "Negate the activation of Spell Cards that target this card, and destroy them. During your Draw Phase, instead of drawing, you can add 1 Level 4 or lower Warrior monster from your Deck to your hand."
+ },
+ "gaia_soul_combustible_collective": {
+  "text": "Tribute 1 or 2 Pyro monsters; this card gains 1000 ATK for each monster Tributed until the End Phase. If this card attacks a Defense Position monster, inflict piercing battle damage. Destroy this card during the End Phase."
+ },
+ "gemini_imps": {
+  "text": "From your hand, when your opponent activates a card or effect that would make you discard, send this card to the GY; negate the activation, and if you do, destroy that card, then draw 1 card."
+ },
+ "ghost_knight_jackal": {
+  "text": "Special Summon the monster this card destroyed by battle from your opponent's GY in face-up Defense Position"
+ },
+ "goblin_attack_force_lock": {
+  "text": "After this card attacks, change it to Defense Position at the end of the Battle Phase; its battle position cannot be changed until the End Phase of your next turn."
+ },
+ "graceful_dice": {
+  "text": "roll a six-sided die; monsters you control gain ATK and DEF equal to the result x 100 until the end of this turn"
+ },
+ "great_maju_garzett": {
+  "text": "When this card is Tribute Summoned, its ATK becomes double the original ATK of the first monster Tributed for it."
+ },
+ "ground_collapse": {
+  "text": "On activation, choose 2 unused Main Monster Zones; neither player can use them."
+ },
+ "hex_sealed_fusion": {
+  "text": "substitute this card for any 1 Fusion Material; while this card is on the field, Tribute it and the other Fusion Materials you control to Special Summon 1 {attr} Fusion Monster from your Extra Deck"
+ },
+ "hourglass_of_courage": {
+  "text": "When this card is Normal or Flip Summoned, its original ATK and DEF are halved until the End Phase of your next turn, then doubled after that."
+ },
+ "insect_imitation_tribute": {
+  "text": "Tribute 1 monster"
+ },
+ "kazejin_attacked": {
+  "text": "During your opponent's turn, when this card is attacked (once while it is face-up on the field)"
+ },
+ "kotodama": {
+  "text": "Destroy all face-up monsters that share a name with another face-up monster on the field."
+ },
+ "level_conversion_lab": {
+  "text": "reveal 1 monster in your hand and roll a six-sided die; if the result is 1, send it to the GY, otherwise its Level becomes the result until the End Phase"
+ },
+ "light_of_intervention": {
+  "text": "Monsters cannot be Set or changed to face-down. Monsters that would be Set are Normal Summoned in face-up Defense Position instead."
+ },
+ "magical_marionette_counters": {
+  "text": "Each time a Spell Card is activated, place 1 Spell Counter on this card when it resolves. This card gains 200 ATK for each Spell Counter on it"
+ },
+ "major_riot": {
+  "text": "Activate only when your opponent's card effect returns a monster you control from the field to your hand: return all monsters on the field to their owners' hands, then each player Special Summons up to that many Level 4 or lower monsters from their hand in face-down Defense Position"
+ },
+ "manticore_send_cost": {
+  "text": "send 1 Beast, Beast-Warrior, or Winged Beast monster from your hand or field to the GY"
+ },
+ "mask_of_dispel": {
+  "text": "target 1 face-up Spell Card on the field; its controller takes 500 damage during each of your Standby Phases, and when that card leaves the field, destroy this card"
+ },
+ "mercury_empty_hand_draw": {
+  "text": "If you have no cards in your hand at the end of your opponent's turn while this card is face-up on the field, draw 1 card during your next Standby Phase."
+ },
+ "mirror_of_yata": {
+  "text": "The equipped Spirit monster does not have to return to the hand by its own effect. If it would be destroyed by battle, destroy this card instead."
+ },
+ "monster_gate": {
+  "text": "reveal cards from the top of your Deck until you reveal a monster that can be Normal Summoned/Set; Special Summon it, and send the other revealed cards to the GY"
+ },
+ "move_target_n_if_available": {
+  "text": "{verb} them"
+ },
+ "muko_replace_draw": {
+  "text": "send the same number of cards from the top of that player's Deck to the GY instead of that draw"
+ },
+ "mystic_swordsman_lv6_destroy": {
+  "text": "destroy the face-down monster this card is battling; if your opponent owns it, you can place it on top of their Deck instead"
+ },
+ "necrovalley": {
+  "text": "Gravekeeper monsters gain 500 ATK and DEF; cards in either GY cannot be banished, negate card effects that would move cards out of the GY or change cards in the GY, and monsters cannot be Special Summoned from the GY except by activated effects"
+ },
+ "nightmare_wheel": {
+  "text": "Target 1 monster; it cannot attack or change its battle position. During each Standby Phase, inflict 500 damage to your opponent. When that monster leaves the field, destroy this card."
+ },
+ "obelisk_divine_beast": {
+  "text": "Requires 3 Tributes to Normal Summon (cannot be Normal Set). Its Normal Summon cannot be negated, and cards and effects cannot be activated in response to its Summon. This card cannot be targeted. If Special Summoned, send it to the GY during the End Phase. You can Tribute 2 monsters to destroy all monsters your opponent controls; this card cannot attack the turn you do."
+ },
+ "ominous_fortunetelling": {
+  "text": "Once per turn, during your Standby Phase, call a card type (Monster, Spell, or Trap) and reveal 1 random card in your opponent's hand; if it is that type, inflict 700 damage to your opponent."
+ },
+ "opp_choose_equip_deck_gy": {
+  "text": "your opponent sends 1 Equip Spell Card of their choice from their Deck to the GY"
+ },
+ "opp_trap_activation": {
+  "text": "When your opponent activates a Trap Card or Trap effect"
+ },
+ "orb_of_yasaka": {
+  "text": "equip only to a Spirit monster; when it destroys a monster by battle and sends it to the GY, gain LP equal to the destroyed monster's original ATK; if this card is sent to the GY because the equipped monster returned to the hand, return this card to your hand"
+ },
+ "painful_choice": {
+  "text": "choose {n} cards from your Deck; your opponent picks 1 of them for you to add to your hand, and send the rest to the GY"
+ },
+ "pandemonium": {
+  "text": "Archfiend monsters do not have to pay LP during the Standby Phase. When an Archfiend monster is destroyed and sent to the GY other than by battle, its controller can add 1 Archfiend monster with a lower Level from their Deck to their hand"
+ },
+ "physical_double_token": {
+  "text": "During your opponent's turn, target 1 face-up monster with a Level your opponent controls; Special Summon 1 Mirage Token with the same ATK, DEF, Level, Type, and Attribute as that monster. Destroy the Token during the End Phase."
+ },
+ "prepare_to_strike_back": {
+  "text": "When your opponent attacks a face-up Defense Position monster you control, call a coin toss; if you call it right, change that monster to Attack Position, otherwise take battle damage equal to the difference between the attacker's ATK and its DEF"
+ },
+ "proton_blast": {
+  "text": "Once per turn, after a card effect that tosses coins resolves, apply these effects by the number of Heads: 1 or more, inflict 500 damage to your opponent; 2 or more, also destroy 1 card your opponent controls; 3 or more, also look at your opponent's hand and discard 1 card from it. When 2 or more coins are tossed, you can banish this card from your GY to make all results Heads"
+ },
+ "pyramid_energy_choice": {
+  "text": "choose 1: face-up monsters you control gain 200 ATK, or 500 DEF, until the End Phase"
+ },
+ "rare_metalmorph": {
+  "text": "Equip this card to 1 face-up Machine monster; it gains 500 ATK, and negate the first Spell effect that targets it. When the equipped monster leaves the field, destroy this card."
+ },
+ "reaper_on_nightmare": {
+  "text": "Cannot be destroyed by battle; this card can attack directly; when it inflicts battle damage to your opponent by a direct attack, they discard 1 random card; when this card is targeted by a card effect, destroy it"
+ },
+ "recover_opp_discard": {
+  "text": "When a card effect your opponent controls makes you discard a card from your hand, gain 1000 LP"
+ },
+ "recover_tribute_stat": {
+  "text": "gain LP equal to the Tributed monster's ATK or DEF"
+ },
+ "relinquished_absorb": {
+  "text": "equip that monster to this card (max. 1); this card gains its ATK and DEF, if this card would be destroyed by battle, destroy the equipped monster instead, and your opponent also takes any battle damage you take from battles involving this card"
+ },
+ "revival_jam_mark": {
+  "text": "Special Summon this card from the GY during your next Standby Phase"
+ },
+ "riryoku": {
+  "text": "halve the ATK of 1 of them, and the other gains ATK equal to the ATK lost, until the End Phase"
+ },
+ "roulette_spider": {
+  "text": "When your opponent declares an attack, roll a six-sided die and apply the result: 1, halve your LP; 2, the attack becomes a direct attack; 3, the attack target becomes 1 monster you control; 4, the attack target becomes another monster your opponent controls; 5, negate the attack and inflict damage to your opponent equal to the attacking monster's ATK; 6, destroy the attacking monster"
+ },
+ "royal_magical_library_counters": {
+  "text": "Place 1 Spell Counter on this card each time a Spell Card is activated and resolves (max. 3)"
+ },
+ "sand_gambler": {
+  "text": "toss 3 coins; if all 3 are Heads, destroy all monsters your opponent controls; if all 3 are Tails, destroy all monsters you control"
+ },
+ "seven_trio": {
+  "text": "if you control exactly 3 face-up \"7\" cards, draw 3 cards, then destroy all \"7\" cards on the field; if this card is sent from the field to the GY, gain 700 LP"
+ },
+ "shifting_shadows_shuffle": {
+  "text": "shuffle all face-down monsters in your Main Monster Zones, then Set them again in face-down Defense Position"
+ },
+ "sixth_sense": {
+  "text": "declare 2 different numbers from 1 to 6, then your opponent rolls a six-sided die; if the result is one of your numbers, draw that many cards, otherwise send that many cards from your Deck to the GY"
+ },
+ "sorcerer_dark_magic": {
+  "text": "Cannot be Special Summoned except from your hand by Tributing 2 Level 6 or higher Spellcaster monsters; during either player's turn, negate the activation of Trap Cards and destroy them"
+ },
+ "soul_demolition": {
+  "text": "while you control a face-up Fiend monster, pay 500 LP; each player targets 1 monster on the other player's field or in their GY, then banish both targets"
+ },
+ "spell_counter_per_spell_activation": {
+  "text": "Each time a Spell Card is activated, place 1 Spell Counter on this card when it resolves."
+ },
+ "spell_vanishing": {
+  "text": "when a Spell Card is activated, discard 2 cards; negate the activation and destroy it, then send all cards with that name from your opponent's hand and Deck to the GY"
+ },
+ "spirits_invitation": {
+  "text": "When a face-up Spirit monster you control returns from the field to your hand, your opponent returns 1 monster they control to the hand. During each of your Standby Phases, pay 500 LP or destroy this card."
+ },
+ "ss_self_banished_dino_boost": {
+  "text": "Special Summon this banished card; it gains 200 ATK for each of your face-up banished Dinosaur monsters"
+ },
+ "strike_ninja_banish_dark_gy": {
+  "text": "banish 2 DARK monsters from your GY"
+ },
+ "send_self_hand_cost": {
+  "text": "send this card from your hand to the GY"
+ },
+ "sword_of_soul_eater": {
+  "text": "equip only to a Level 3 or lower Normal Monster you control; when this card is activated, Tribute all other Normal Monsters you control (except Tokens), and the equipped monster gains 1000 ATK for each monster Tributed"
+ },
+ "tailor_of_the_fickle": {
+  "text": "target 1 Equip Card and 1 face-up monster it could equip to, other than the monster it is equipped to; equip that card to that monster, or send it to the GY if it can no longer equip to that monster"
+ },
+ "targeted_spelltrap_destroy_activation": {
+  "text": "When a Spell/Trap Card is activated that targets only 1 Spell/Trap Card on the field and would destroy it"
+ },
+ "tiki_soul_protect": {
+  "text": "While this card is a monster, if another Trap Monster you control would be destroyed by your opponent, you can Set it instead."
+ },
+ "trap_monster_effect": {
+  "text": "Special Summon this card as an Effect Monster (this card is also still a Trap Card)"
+ },
+ "trap_of_darkness": {
+  "text": "If your LP is 3000 or less, pay 1000 LP, then target 1 other Normal Trap Card in your GY; apply that card's effect, then banish it"
+ },
+ "tribute_level_for_fusion": {
+  "text": "Tribute 1 monster"
+ },
+ "twin_headed_behemoth": {
+  "text": "If this card is destroyed on the field and sent to the GY, Special Summon it during the End Phase; its ATK and DEF become 1000. You can only use this effect once per Duel."
+ },
+ "vandalgyon": {
+  "text": "If a Counter Trap negates your opponent's Spell, Trap, or monster effect, Special Summon this card from your hand. Then apply the effect for each type of card negated: Spell, inflict 1500 damage to your opponent; Trap, target 1 card on the field and destroy it; Monster, Special Summon 1 monster from your GY."
+ },
+ "witch_search_lock": {
+  "text": "add 1 monster with 1500 or less DEF from your Deck to your hand; cards and effects with that name cannot be activated for the rest of this turn"
+ },
+ "yu_jo_friendship": {
+  "text": "offer your opponent a handshake; if they accept, each player's LP becomes half of both players' combined LP; if you reveal \"Unity\" from your hand, your opponent must accept"
+ },
+ "pixie_knight_spell_topdeck": {
+  "tclause": "target 1 Spell Card in your GY chosen by your opponent"
+ },
+ "redirect_spell_st_target": {
+  "tclause": "target 1 other Spell/Trap Card that Spell Card could target"
+ },
+ "acid_trap_hole": {
+  "text": "flip it face-up, then destroy it if its DEF is 2000 or less; otherwise, change it back to face-down Defense Position"
+ },
+ "amazoness_tiger": {
+  "text": "You can only control 1 of this card. It gains 400 ATK for each Amazoness monster you control, and your opponent cannot target your other face-up Amazoness monsters for attacks."
+ },
+ "amplifier": {
+  "text": "equip only to Jinzo; Trap Cards you control are unaffected by the equipped monster's effect; if this card leaves the field, destroy the equipped monster; this card's activation and effect cannot be negated"
+ },
+ "ante": {
+  "text": "each player reveals 1 card from their hand; the player whose card has the lower Level (Spells and Traps count as Level 0) sends it to the GY and takes {n} damage"
+ },
+ "appropriate": {
+  "text": "When your opponent draws a card outside of their Draw Phase, draw 2 cards."
+ },
+ "attacked_still_in_battle": {
+  "text": "At the end of the Damage Step, if this card attacked and is still on the field"
+ },
+ "avoid_battle_damage_fairy": {
+  "text": "Neither player takes battle damage from battles involving a Fairy monster they control."
+ },
+ "balloon_lizard": {
+  "text": "Place 1 counter on this card during each of your Standby Phases. When this card is destroyed, the player who destroyed it takes 400 damage for each counter on it."
+ },
+ "battle_opponent_not_destroyed": {
+  "text": "At the end of the Damage Step, if this card battled an opponent's monster that was not destroyed"
+ },
+ "behemoth_king_of_animals": {
+  "text": "Can be Normal Summoned/Set with 1 Tribute, but its original ATK becomes 2000. When this card is Tribute Summoned, target Beast monsters in your GY equal to the number of monsters Tributed; return them to your hand."
+ },
+ "black_luster_soldier_envoy": {
+  "text": "Special Summon this card from your hand by banishing 1 LIGHT and 1 DARK monster from your GY. Once per turn, you can target 1 monster on the field; banish it, but this card cannot attack this turn. If this card destroys an opponent's monster by battle, it can attack again in a row."
+ },
+ "blast_magician": {
+  "text": "each time a Spell Card resolves, place 1 Spell Counter on this card; you can remove any number of Spell Counters from this card to destroy 1 face-up monster with ATK less than or equal to the number of counters removed x 700"
+ },
+ "bottomless_shifting_sand": {
+  "text": "During your opponent's End Phase, destroy the face-up monster(s) with the highest ATK. During your Standby Phase, destroy this card if you have 4 or fewer cards in your hand."
+ },
+ "breaker_counter_atk": {
+  "text": "This card gains 300 ATK for each Spell Counter on it (max. 1)"
+ },
+ "card_of_demise_lock": {
+  "text": "you cannot Special Summon during the turn you activate this card"
+ },
+ "ceasefire": {
+  "text": "flip all face-down Defense Position monsters on the field face-up (Flip effects are not activated), then inflict 500 damage to your opponent for each face-up Effect Monster on the field"
+ },
+ "chain_destruction": {
+  "text": "destroy all cards with that name in its controller's hand and Deck"
+ },
+ "chain_master_battle_destroyed": {
+  "text": "If this card is destroyed by battle and sent to the GY while your opponent has a monster in their hand"
+ },
+ "chaos_emperor_envoy": {
+  "text": "Cannot be Normal Summoned/Set. Special Summon this card from your hand by banishing 1 LIGHT and 1 DARK monster from your GY. Once per turn, you can pay 1000 LP to send all cards on the field and in both players' hands to the GY, then inflict 300 damage to your opponent for each card sent to their GY; no other card effects can be activated this turn"
+ },
+ "choose_attack_target": {
+  "text": "choose the target of your opponent's attack"
+ },
+ "coin_destroy_battling": {
+  "text": "toss a coin, and if the result is Heads, destroy the monster battling this card"
+ },
+ "combination_attack": {
+  "text": "During the Battle Phase, target 1 monster that has attacked and is equipped with a Union Monster; Special Summon its equipped Union Monster(s), and the target can attack again this turn"
+ },
+ "criosphinx": {
+  "text": "When a monster is returned from the field to the hand, its owner sends 1 card from their hand to the GY"
+ },
+ "crush_card_virus": {
+  "text": "Tribute 1 DARK monster with 1000 or less ATK; reveal your opponent's hand and destroy all monsters with more than 1500 ATK in their hand and on their field, then you can destroy up to 3 more from their Deck; your opponent takes no effect damage until the end of their next turn"
+ },
+ "curse_of_anubis": {
+  "text": "change all face-up Attack Position Effect Monsters to Defense Position; their original DEF becomes 0, and their battle positions cannot be changed this turn"
+ },
+ "cursed_seal_negate": {
+  "text": "negate the activation and destroy that Spell; cards with that name cannot be activated for the rest of the Duel"
+ },
+ "cyber_raider_choice": {
+  "text": "choose 1 Equip Card equipped to a monster on the field, and either destroy it or equip it to this card"
+ },
+ "damage_battle_destroyer": {
+  "text": "inflict {n} damage to the player who destroyed this card by battle"
+ },
+ "dark_balter": {
+  "text": "must be Fusion Summoned; you can pay 1000 LP to negate the effect of a Normal Spell Card; monsters this card destroys by battle have their effects negated"
+ },
+ "dark_magician_of_chaos": {
+  "text": "During the End Phase of the turn this card is Summoned, add 1 Spell from your GY to your hand; banish any monster this card destroys by battle; if this face-up card leaves the field, banish it"
+ },
+ "dark_renewal": {
+  "text": "target that Summoned monster and 1 Spellcaster you control; send them to the GY, then you can Special Summon 1 DARK Spellcaster from your Deck or GY"
+ },
+ "dark_snake_syndrome": {
+  "text": "During each of your Standby Phases, inflict 200 damage to both players. The damage doubles each time this effect is applied."
+ },
+ "darkbishop_archfiend": {
+  "text": "Pay 500 LP during each Standby Phase or destroy this card. When your opponent's card effect targets a face-up Archfiend monster you control, roll a six-sided die; if the result is 1, 3, or 6, negate that effect and destroy that card."
+ },
+ "de_fusion": {
+  "text": "Target 1 face-up Fusion Monster; return it to the Extra Deck, then, if it was Fusion Summoned and all the Fusion Materials used for that Summon are still in your GY, you can Special Summon them."
+ },
+ "declare_race_hunter": {
+  "text": "declare 1 Type, and this card gains 1000 ATK during damage calculation while it battles a monster of that Type"
+ },
+ "destiny_board": {
+  "text": "During each of your opponent's End Phases, place 1 card from your hand or Deck face-up in your Spell & Trap Zone, in this order: {names}. When all of them are on your field, you win the Duel. If this card leaves the field, send them to the GY"
+ },
+ "different_dimension_gate": {
+  "text": "target 1 monster each player controls; banish them, and if this card is destroyed and sent to the GY, return those monsters to the field in the same battle positions"
+ },
+ "dimensionhole": {
+  "text": "banish it until your next Standby Phase; its Monster Zone cannot be used while it is banished"
+ },
+ "discard_dragon_cost": {
+  "text": "discard 1 Dragon monster"
+ },
+ "discard_monster_cost": {
+  "text": "discard 1 monster"
+ },
+ "discard_wind_cost": {
+  "text": "discard 1 WIND monster"
+ },
+ "dragon_bead_discard": {
+  "text": "discard 1 card"
+ },
+ "effect_damage_to_you": {
+  "text": "When a card effect is activated that would inflict damage to you"
+ },
+ "element_magician": {
+  "text": "While there is a face-up WATER monster on the field, control of this card cannot switch. While there is a face-up WIND monster on the field, this card can attack again in a row if it destroys a monster by battle."
+ },
+ "elemental_burst_cost": {
+  "text": "Tribute 1 WIND, 1 WATER, 1 FIRE, and 1 EARTH monster"
+ },
+ "equip_no_attack_non_machine": {
+  "text": "If the equipped monster is not a Machine monster, it cannot attack"
+ },
+ "exarion_universe": {
+  "text": "Once per turn, when this card attacks a Defense Position monster, you can have it lose 400 ATK until the End Phase; if you do, it inflicts piercing battle damage."
+ },
+ "fairy_hand_mirror_redirect": {
+  "text": "change the target of that Spell to another appropriate monster"
+ },
+ "fake_trap_protect": {
+  "text": "destroy this card instead of your Trap Cards that would be destroyed, and reveal any face-down Trap Cards that effect targets"
+ },
+ "fatal_abacus": {
+  "text": "When a monster is sent from the field to the GY, its owner takes 500 damage."
+ },
+ "final_countdown": {
+  "text": "after {n} turns have passed (counting this turn), you win the Duel"
+ },
+ "forced_requisition": {
+  "text": "Activate only when you discard. Each time you discard a card(s) while this card is face-up, your opponent discards the same number of cards."
+ },
+ "formation_union": {
+  "text": "apply 1 of these effects: equip 1 face-up Union Monster you control to an appropriate monster you control, or Special Summon 1 Union Monster equipped to a monster you control in face-up Attack Position"
+ },
+ "frontier_wiseman": {
+  "text": "Negate the effects of Spell Cards that target a face-up Warrior monster you control, and destroy them"
+ },
+ "fushioh_richie": {
+  "text": "Once per turn, you can change this card to face-down Defense Position. When this card is Flip Summoned, Special Summon 1 Zombie monster from your GY. Negate the activation of any card that targets this card, and destroy it"
+ },
+ "gambler_of_legend": {
+  "text": "toss a coin 3 times: 3 Heads, destroy all monsters your opponent controls; 2 Heads, your opponent discards 1 random card; 1 Heads, destroy 1 card you control; 3 Tails, discard your entire hand"
+ },
+ "germ_infection": {
+  "text": "Equip only to a non-Machine monster. During each of your Standby Phases, it loses 300 ATK."
+ },
+ "gilasaurus_procedure_summoned": {
+  "text": "When this card is Special Summoned from your hand by its own effect"
+ },
+ "goddess_of_whim_coin": {
+  "text": "toss a coin: if Heads, this card's ATK is doubled until the End Phase, otherwise it is halved"
+ },
+ "gora_turtle_target_negate": {
+  "text": "Negate the effects of your opponent's Spell/Trap Cards that target this face-up card, and destroy them."
+ },
+ "great_phantom_thief": {
+  "text": "when this card inflicts battle damage to your opponent, declare 1 card name; look at your opponent's hand, and they discard all cards with that name from it"
+ },
+ "half_or_nothing": {
+  "text": "your opponent chooses to either halve the ATK of all monsters they control until the end of the Battle Phase, or end the Battle Phase"
+ },
+ "hannibal_normal_summon_counter": {
+  "text": "place 1 Spell Counter on this card"
+ },
+ "helpoemer": {
+  "text": "Cannot be Special Summoned from the GY. If this card is destroyed by battle and sent to the GY, your opponent discards 1 random card at the end of their next Battle Phase."
+ },
+ "hino_kagu_tsuchi": {
+  "text": "Cannot be Special Summoned. If this card inflicts battle damage to your opponent, they discard their entire hand during their next Draw Phase."
+ },
+ "imperial_order": {
+  "text": "Negate all Spell effects on the field. During each Standby Phase, pay 700 LP or destroy this card."
+ },
+ "infinite_dismissal": {
+  "text": "During each End Phase, destroy all Level 3 or lower monsters that were Normal or Flip Summoned this turn."
+ },
+ "injection_lily_pay": {
+  "text": "pay 2000 LP (once per battle)"
+ },
+ "jigen_bakudan_arm": {
+  "text": "Tribute this card during your next Standby Phase to destroy all monsters you control and inflict damage to your opponent equal to half their combined ATK"
+ },
+ "juragedo": {
+  "text": "Once per turn, during the Battle Step, you can Special Summon this card from your hand and gain 1000 LP. You can Tribute this card to target 1 face-up monster you control; it gains 1000 ATK until the End Phase. Both are Quick Effects."
+ },
+ "lava_golem_standby_burn": {
+  "text": "During each of your Standby Phases, you take 1000 damage."
+ },
+ "legendary_ocean": {
+  "text": "This card's name is treated as Umi. All WATER monsters on the field gain 200 ATK and DEF, and WATER monsters in both players' hands and on the field have their Levels reduced by 1."
+ },
+ "magical_dimension": {
+  "tclause": "target 1 monster you control",
+  "text": "Tribute it, then Special Summon 1 Spellcaster from your hand, then you can destroy 1 monster on the field"
+ },
+ "magical_merchant_excavate": {
+  "text": "excavate cards from the top of your Deck until you excavate a Spell/Trap; add it to your hand, and send the other excavated cards to the GY"
+ },
+ "maharaghi_next_draw": {
+  "text": "during your next Draw Phase, look at the top card of your Deck before you draw; you can place it on the bottom of your Deck"
+ },
+ "mind_crush": {
+  "text": "declare 1 Main Deck monster name; your opponent discards all cards with that name from their hand, or if they have none, you discard 1 random card"
+ },
+ "mirror_wall": {
+  "text": "Each of your opponent's monsters that attacks has its ATK halved while this card is face-up on the field."
+ },
+ "monster_recovery": {
+  "text": "Target 1 monster you own and control; shuffle it and your entire hand into the Deck, then draw as many cards as you had in your hand. Cannot be activated if you have a card your opponent owns in your hand."
+ },
+ "morphing_jar_two": {
+  "text": "FLIP: Shuffle all monsters on the field into their owners' Decks. Then each player excavates cards from the top of their Deck until they excavate as many monsters as were shuffled into their Deck, Special Summons all excavated Level 4 or lower monsters in face-down Defense Position, and sends the rest to the GY"
+ },
+ "needle_wall": {
+  "text": "During your Standby Phase, roll a six-sided die, rolling again on a 6, then destroy the monster in your opponent's Monster Zone that matches the result."
+ },
+ "negate_destroy_group": {
+  "text": "negate that activation, and if you do, destroy all {kind} cards your opponent controls"
+ },
+ "negate_faceup_monster_effects": {
+  "text": "Negate the effects of all face-up monsters on the field."
+ },
+ "ninjitsu_transform_summon": {
+  "text": "Special Summon 1 Beast, Winged Beast, or Insect monster with a Level up to 3 higher than the Tributed monster's from your hand or Deck, and equip this card to it"
+ },
+ "opp_attack_target_named": {
+  "text": "While you control a face-up {name}, your opponent can only target it for attacks"
+ },
+ "opponent_tribute_monster": {
+  "text": "your opponent Tributes 1 monster they control"
+ },
+ "ordeal_guess": {
+  "text": "your opponent picks 1 random card from your hand and declares its type (Monster, Spell, or Trap). If they are wrong, return the attacking monster to its owner's hand"
+ },
+ "penguin_knight": {
+  "text": "If this card is sent from your Deck to the GY by your opponent's card effect, shuffle all cards in your GY into your Deck."
+ },
+ "pineapple_blast": {
+  "text": "your opponent destroys monsters they control until they control the same number of monsters as you"
+ },
+ "puppet_magic_dark_ruler": {
+  "text": "target 1 Fiend monster in your GY; banish monsters you control whose total Levels exactly equal its Level, then Special Summon it"
+ },
+ "pyro_clock": {
+  "text": "advance the turn count of 1 effect that counts turns by 1"
+ },
+ "recycle_nonmonster_gy": {
+  "text": "During your Standby Phase, you can pay 300 LP to target 1 Spell/Trap in your GY; place it on the bottom of your Deck."
+ },
+ "remove_brainwashing": {
+  "text": "Control of all monsters on the field returns to their owners."
+ },
+ "rivalry_of_warlords": {
+  "text": "Each player can only control 1 Type of monster; each player sends their face-up monsters of other Types to the GY, and cannot Summon monsters of other Types."
+ },
+ "rope_of_life_discard": {
+  "text": "discard all other cards in your hand (min. 1)"
+ },
+ "royal_oppression": {
+  "text": "either player can pay 800 LP to negate the Special Summon of a monster, or to negate the activation of a card or effect that would Special Summon a monster and destroy that card"
+ },
+ "same_name_field_stat": {
+  "text": "Face-up monsters gain 500 ATK and DEF while there is another face-up monster with the same name on the field."
+ },
+ "sangan_search_lock": {
+  "text": "add 1 monster with 1500 or less ATK from your Deck to your hand, but cards with that name cannot be activated for the rest of this turn"
+ },
+ "self_lp_cost_to_attack": {
+  "text": "This card cannot declare an attack unless you pay {n} LP."
+ },
+ "send_field_cost": {
+  "text": "send {filter} you control to the GY"
+ },
+ "shabti_window": {
+  "text": "During either player's turn, except during Main Phase 2 or the End Phase"
+ },
+ "shuffle_hand_draw_same": {
+  "text": "shuffle any number of cards from your hand into the Deck, then draw the same number of cards"
+ },
+ "sinister_serpent_recycle": {
+  "text": "add this card to your hand, then during your opponent's next End Phase, banish 1 card with this card's name from your GY"
+ },
+ "skull_lair_banish": {
+  "text": "banish any number of monsters from your field and/or GY"
+ },
+ "soul_exchange": {
+  "text": "target 1 monster your opponent controls; this turn, you can Tribute it as if you controlled it, but you cannot conduct your Battle Phase"
+ },
+ "spell_absorbing_life": {
+  "text": "flip all face-down monsters on the field face-up (Flip effects are not activated), then gain 400 LP for each face-up Effect Monster on the field"
+ },
+ "spell_special_summon": {
+  "text": "When a Spell Card that would Special Summon a monster is activated"
+ },
+ "spirit_elimination": {
+  "text": "this turn, when you would banish monsters from your GY, banish monsters from your field instead"
+ },
+ "spirit_ryu_battle": {
+  "text": "During your Battle Phase, if this card attacks or is attacked"
+ },
+ "spiritual_energy_settle": {
+  "text": "Spirit monsters on the field cannot return to the hand; when this card leaves the field, return all face-up Spirit monsters to the hand; during each of your End Phases, discard 1 card or destroy this card"
+ },
+ "stray_lambs_lock": {
+  "text": "You cannot Normal Summon, Flip Summon, or Special Summon other monsters this turn (but you can Set)"
+ },
+ "summon_same_race": {
+  "text": "When a monster is Summoned with the same Type as a face-up monster on the field"
+ },
+ "swords_concealing": {
+  "text": "When this card is activated, change all monsters your opponent controls to face-down Defense Position. While this card is face-up, those monsters cannot change their battle positions. Destroy this card during your 2nd Standby Phase after activation."
+ },
+ "take_control_direct_target": {
+  "text": "take control of it until the End Phase; it can attack directly this turn"
+ },
+ "toon_defense": {
+  "text": "When your opponent's monster attacks a face-up Level 4 or lower Toon monster you control, change that attack to a direct attack, if possible."
+ },
+ "tour_of_doom": {
+  "text": "During each of your opponent's Standby Phases, toss a coin. If Heads, your opponent cannot Normal or Flip Summon this turn. If Tails, you cannot Normal or Flip Summon during your next turn."
+ },
+ "turn_event_opp_monsters_faceup_attack": {
+  "text": "change those monsters to face-up Attack Position (Flip effects are not activated)"
+ },
+ "two_man_cell_battle": {
+  "text": "During each player's End Phase, that player can Special Summon 1 Level 4 Normal Monster from their hand."
+ },
+ "ultimate_insect_lv": {
+  "text": "If this card was Special Summoned by the effect of a lower Ultimate Insect LV monster, your opponent's monsters lose {n} ATK; during your Standby Phase, except the turn this card was Summoned, send it to the GY to Special Summon Ultimate Insect LV{l} from your hand or Deck, ignoring its Summoning conditions"
+ },
+ "union_rider_unencumbered": {
+  "text": "this card is not equipped with a Union Monster by this effect"
+ },
+ "unhappy_girl_battle_lock": {
+  "text": "Cannot be destroyed by battle while in face-up Attack Position. Monsters that battle this card cannot attack or change their battle positions while it remains in face-up Attack Position"
+ },
+ "vampire_lord": {
+  "text": "When this card inflicts battle damage to your opponent, declare 1 card type (Monster, Spell, or Trap); your opponent sends 1 card of that type from their Deck to the GY. If this card is destroyed by your opponent's card effect, Special Summon it during your next Standby Phase."
+ },
+ "wave_motion_counter": {
+  "text": "Place 1 counter on this card during each of your Standby Phases"
+ },
+ "after_the_struggle": {
+  "text": "During Main Phase 1, destroy all monsters that were involved in damage calculation this turn."
+ },
+ "amazoness_archers_effect": {
+  "text": "change all monsters your opponent controls to face-up Attack Position (Flip effects are not activated); they lose 500 ATK and must attack this turn, if able"
+ },
+ "amazoness_swap_original_atk": {
+  "text": "switch the original ATK of those monsters until the End Phase"
+ },
+ "amazoness_trainee": {
+  "text": "Monsters destroyed by battle with this card are placed on the bottom of the Deck instead of going to the GY. Each time this card destroys a monster by battle, it gains 200 ATK."
+ },
+ "ancient_lamp_attacked_facedown": {
+  "text": "When your opponent's monster attacks this face-down Defense Position card"
+ },
+ "anti_spell_counter_trap": {
+  "text": "Remove 2 Spell Counters to negate the activation of a Spell Card and destroy it."
+ },
+ "any_standby_phase": {
+  "text": "During each Standby Phase"
+ },
+ "aqua_spirit_position": {
+  "text": "During each of your opponent's Standby Phases, target 1 face-up monster your opponent controls; change its battle position, and it cannot change its battle position again this turn"
+ },
+ "archfiend_standby_boost": {
+  "text": "During each Standby Phase, target 1 face-up Archfiend monster you control; it gains {n} ATK until the End Phase."
+ },
+ "armor_exe": {
+  "text": "Cannot attack the turn it is Summoned. During each Standby Phase, remove 1 Spell Counter from your field or destroy this card."
+ },
+ "astral_barrier": {
+  "text": "When your opponent's monster attacks a monster you control, make it a direct attack instead."
+ },
+ "attack_guidance_redirect": {
+  "text": "change the attack target to that monster and perform damage calculation"
+ },
+ "bait_doll": {
+  "text": "reveal it; if it is a Trap Card, apply its effect if it could be activated now, otherwise destroy it; if it is not a Trap Card, return it face-down; then shuffle this card into the Deck"
+ },
+ "banish_hand_random": {
+  "text": "banish {n} random cards from your hand"
+ },
+ "banisher_of_the_light": {
+  "text": "Any card sent to the GY is banished instead."
+ },
+ "bark_of_dark_ruler": {
+  "text": "pay LP in multiples of 100, then target your opponent's battling monster; it loses ATK and DEF equal to the LP paid until the End Phase"
+ },
+ "battle_damage_event": {
+  "text": "When you take {n} or more battle damage from a single attack"
+ },
+ "battle_destroying_mandatory": {
+  "text": "When this card destroys an opponent's monster by battle"
+ },
+ "battled_face_down_target": {
+  "text": "After damage calculation, if this card was attacked while face-down"
+ },
+ "beast_soul_swap": {
+  "text": "return it to the hand, then Special Summon 1 Beast monster with the same Level from your hand"
+ },
+ "big_march_beast_atk": {
+  "text": "increase the ATK of all face-up Beast monsters you control by 200 for each face-up Beast monster you control, until the End Phase"
+ },
+ "big_shield_targeted_spell": {
+  "text": "When your opponent activates a Spell Card that targets this card"
+ },
+ "blast_sphere": {
+  "text": "If this face-down Defense Position card is attacked, equip it to the attacking monster; during your opponent's next Standby Phase, destroy that monster and inflict damage to your opponent equal to its ATK"
+ },
+ "bounder_damaged_battle": {
+  "text": "If this card inflicts battle damage"
+ },
+ "breaker_place_counter": {
+  "text": "place 1 Spell Counter on this card (max. 1)"
+ },
+ "canyon": {
+  "text": "When a Defense Position Rock monster is attacked, any battle damage the attacking monster's controller takes from that battle is doubled."
+ },
+ "castle_dark_illusions_growth": {
+  "text": "increase the ATK and DEF of all Zombie monsters currently on the field by 200, and by 200 more during each of your next 4 Standby Phases"
+ },
+ "centrifugal_field": {
+  "text": "When a Fusion Monster is destroyed by a card effect and sent to the GY, its owner can Special Summon 1 of the Fusion Materials listed on it from their GY."
+ },
+ "chain_disappearance": {
+  "text": "banish the Summoned monster(s) with 1000 or less ATK, then banish all cards with the same name from your opponent's hand and Deck"
+ },
+ "chain_master_steal_monster": {
+  "text": "reveal your opponent's hand and add 1 monster from it to your hand, then your opponent shuffles their hand"
+ },
+ "cliff_choice": {
+  "text": "destroy 1 Spell/Trap Card on the field, or send the top 2 cards of your opponent's Deck to the GY"
+ },
+ "contact_cannon": {
+  "text": "Must be Special Summoned from your Extra Deck by banishing the above face-up cards you control; cannot be Special Summoned from the GY; discard 1 card to target and destroy 1 {filter} your opponent controls"
+ },
+ "copy_stats_target": {
+  "text": "this card's ATK and DEF become that monster's original ATK and DEF"
+ },
+ "covering_fire_window": {
+  "text": "During the Damage Step, when your opponent's monster attacks a face-up monster you control"
+ },
+ "cup_of_ace_effect": {
+  "text": "toss a coin; if it is Heads, draw 2 cards, and if it is Tails, your opponent draws 2 cards"
+ },
+ "cyber_archfiend": {
+  "text": "At the start of your Draw Phase, if you have no cards in your hand, you can draw 1 card; during your End Phase, if you have a card in your hand, destroy this card"
+ },
+ "cybernetic_fusion_support": {
+  "text": "Once per turn, pay half your LP; this turn, when you Fusion Summon a Machine Fusion Monster, you can banish monsters from your hand, field, or GY as Fusion Material"
+ },
+ "damage_battle_target_level": {
+  "text": "inflict damage to your opponent equal to the destroyed monster's Level x 500"
+ },
+ "dark_coffin": {
+  "text": "your opponent chooses to either discard 1 random card or destroy 1 monster they control"
+ },
+ "dark_master_zorc_dice": {
+  "text": "Once per turn, roll a six-sided die. 1 or 2: destroy all monsters your opponent controls. 3, 4 or 5: destroy 1 monster your opponent controls. 6: destroy all monsters you control"
+ },
+ "dd_capsule": {
+  "text": "banish 1 card from your Deck face-down, and during your {nth} Standby Phase after activation, add it to your hand"
+ },
+ "decktop_battle_target": {
+  "text": "place the monster this card destroyed on top of your opponent's Deck"
+ },
+ "delayed_battle_destroy": {
+  "text": "when this card attacks a face-up monster, destroy that monster during the {nth} End Phase after the battle"
+ },
+ "destroy_all_lock_named": {
+  "text": "destroy all monsters your opponent controls; your named monster cannot attack this turn"
+ },
+ "destroy_equipped_event": {
+  "text": "destroy all Equip Cards equipped to this card"
+ },
+ "destroyed_face_down_monster": {
+  "text": "If this face-down Defense Position card is destroyed and sent to the GY"
+ },
+ "dice_re_roll": {
+  "text": "Once this turn, when either player rolls dice, you can make that player roll them again"
+ },
+ "diffusion_wave_motion": {
+  "text": "Pay 1000 LP, then target 1 Level 7 or higher Spellcaster monster you control; it must attack each monster your opponent controls once, your other monsters cannot attack this turn, and the effects of monsters it destroys by battle are negated"
+ },
+ "discard_one_cost": {
+  "text": "discard 1 card"
+ },
+ "discard_random_cost": {
+  "text": "discard 1 random card"
+ },
+ "discard_spell_cost": {
+  "text": "discard 1 Spell Card"
+ },
+ "dora_of_fate": {
+  "text": "During your opponent's turn, target 1 face-up Level 2 or higher monster your opponent controls; if you Normal Summon a monster exactly 1 Level lower than it this turn, inflict damage to your opponent equal to the target's Level x 500."
+ },
+ "ekibyo_drakmord": {
+  "text": "equip this card to 1 monster; it cannot attack. At the end of its controller's 2nd turn after this card was equipped, destroy that monster, and if you do, return this card to your hand"
+ },
+ "element_doom": {
+  "text": "When this card destroys a monster by battle, if an EARTH monster is on the field, negate that monster's effects, and if a WIND monster is on the field, this card can attack once again."
+ },
+ "element_saurus": {
+  "text": "While a FIRE monster is on the field, this card gains 500 ATK. While an EARTH monster is on the field, negate the effects of monsters destroyed by battle with this card."
+ },
+ "emissary_of_oasis": {
+  "text": "If you control a face-up Level 3 or lower Normal Monster, this card cannot be targeted for attacks. The controller of a Level 3 or lower Normal Monster takes no battle damage from battles involving it."
+ },
+ "extra_attack_per_equip": {
+  "text": "This card can make additional attacks each Battle Phase, up to the number of Equip Cards equipped to it."
+ },
+ "fairy_box": {
+  "text": "When your opponent's monster declares an attack, toss a coin; if it is Heads, the attacking monster's ATK becomes 0 until the end of the Battle Phase."
+ },
+ "falling_down": {
+  "text": "During each of your opponent's Standby Phases, you take 800 damage. Destroy this card if you do not control a face-up Archfiend monster."
+ },
+ "fiends_sanctuary": {
+  "text": "Special Summon 1 Fiend Token (ATK 0/DEF 0). It cannot attack, and battle damage you would take from battles involving it is inflicted to your opponent instead. During each of your Standby Phases, pay 1000 LP or destroy it."
+ },
+ "fire_darts": {
+  "text": "roll a six-sided die 3 times and inflict damage to your opponent equal to the total x 100"
+ },
+ "flipped_then_sent_gy": {
+  "text": "If this card is sent from the field to the GY after being flipped face-up"
+ },
+ "fox_fire": {
+  "text": "Cannot be Tributed while face-up. If this face-up card is destroyed by battle, Special Summon it during the End Phase of that turn."
+ },
+ "furinkazan_choice": {
+  "text": "apply 1 of these effects: destroy all monsters your opponent controls; destroy all Spell and Trap Cards your opponent controls; your opponent discards 2 random cards; or draw 2 cards"
+ },
+ "fusilier_no_tribute": {
+  "text": "You can Normal Summon/Set this card without Tributing, but its original ATK and DEF are halved."
+ },
+ "gandora_dragon_destruction": {
+  "text": "Cannot be Special Summoned. If this card is Normal or Flip Summoned, send it to the GY during the End Phase. Pay half your LP to destroy and banish all other cards on the field; this card gains 300 ATK for each card destroyed."
+ },
+ "gilasaurus_ss_proc": {
+  "text": "You can Special Summon this card from your hand"
+ },
+ "goblin_king_stats": {
+  "text": "This card's ATK and DEF are equal to the number of other face-up Fiend monsters on the field x 1000"
+ },
+ "gorg_strong_choice": {
+  "text": "return 1 monster your opponent controls to the top of the Deck, or send the top card of your opponent's Deck to the GY"
+ },
+ "guardian_kayest": {
+  "text": "Cannot be Summoned without the named face-up support. Unaffected by Spell effects, and cannot be targeted for attacks."
+ },
+ "hero_emerges": {
+  "text": "your opponent chooses 1 random card from your hand; if it is a monster that can be Special Summoned, Special Summon it, otherwise send it to the GY"
+ },
+ "hiro_shadow_scout": {
+  "text": "your opponent draws 3 cards and reveals them, then discards all Spell Cards among them and shuffles their hand"
+ },
+ "hydro_pressure_cannon": {
+  "text": "When the equipped Level 3 or lower WATER monster destroys an opponent's monster by battle, send 1 random card from your opponent's hand to the GY."
+ },
+ "injection_lily_battle_window": {
+  "text": "During damage calculation, once per battle, if this card battles"
+ },
+ "insect_imitation": {
+  "text": "Special Summon 1 Insect monster from your Deck whose Level is 1 higher than the Tributed monster's"
+ },
+ "insect_queen": {
+  "text": "This card gains 200 ATK for each face-up Insect monster on the field. To declare an attack with this card, you must Tribute 1 monster. Once per turn, during the End Phase, if this card destroyed an opponent's monster by battle this turn, Special Summon 1 Insect Monster Token (Insect/EARTH/Level 1/ATK 100/DEF 100) in Attack Position"
+ },
+ "inspection": {
+  "text": "During your opponent's Standby Phase, you can pay 500 LP to look at 1 random card in their hand."
+ },
+ "jinzo_trap_lock": {
+  "text": "Trap Cards on the field cannot be activated. Negate all Trap effects on the field."
+ },
+ "kaiser_colosseum": {
+  "text": "Your opponent cannot control more monsters than you control."
+ },
+ "kiseitai": {
+  "text": "when this face-down card is attacked, equip it to the attacking monster; during each of your opponent's Standby Phases, gain LP equal to half that monster's ATK"
+ },
+ "kunai_with_chain": {
+  "text": "change 1 attacking monster your opponent controls to Defense Position, equip this card to 1 face-up monster you control to give it 500 ATK, or both"
+ },
+ "legion_fiend_jester": {
+  "text": "While this card is face-up, you can Tribute Summon 1 Spellcaster monster in addition to your Normal Summon/Set. Once per turn, if this card is sent from the field to the GY, add 1 Spellcaster Normal Monster from your Deck or GY to your hand"
+ },
+ "lp_gap": {
+  "text": "your opponent has at least {n} more LP than you"
+ },
+ "lucky_chance": {
+  "text": "when a monster effect that tosses exactly 1 coin is activated, call Heads or Tails, and if you call it right, draw 1 card after the toss"
+ },
+ "magic_drain": {
+  "text": "your opponent can discard 1 Spell Card to negate this card's effect; otherwise, negate the activation and destroy that Spell Card"
+ },
+ "maiden_of_aqua_environment": {
+  "text": "While this card is face-up on the field, the field is treated as Umi."
+ },
+ "mask_remnants_shuffle": {
+  "text": "shuffle this card into its owner's Deck"
+ },
+ "mausoleum_summon": {
+  "text": "during a Main Phase, Normal Summon/Set 1 monster from your hand without Tributing by paying 1000 LP if it requires 1 Tribute, or 2000 LP if it requires 2"
+ },
+ "megarock_dragon_proc": {
+  "text": "Special Summon this card from your hand by banishing 1 or more Rock monsters from your field or GY; its original ATK and DEF become the number of monsters banished x 700"
+ },
+ "mirage": {
+  "text": "During your opponent's Standby Phase, draw until you have {n} cards in your hand. During your next Standby Phase, discard that many random cards."
+ },
+ "mystic_box": {
+  "text": "target 1 monster your opponent controls and 1 monster you control; destroy the first target, then give control of the second target to your opponent"
+ },
+ "mystical_refpanel": {
+  "text": "When a Spell Card that targets 1 player is activated, change that target to the other player"
+ },
+ "necklace_of_command": {
+  "text": "If the equipped monster you control is destroyed by battle and this card is sent to the GY, either draw 1 card or make your opponent discard 1 random card."
+ },
+ "ninja_battle_protection": {
+  "text": "target 1 face-up Ninja monster; it cannot be destroyed by battle while this card is face-up on the field"
+ },
+ "ninjitsu_transform_tribute": {
+  "text": "Tribute 1 face-up Ninja monster"
+ },
+ "no_traps_on_normal_summon": {
+  "text": "When this card is Normal Summoned, Trap Cards cannot be activated in response."
+ },
+ "opponent_attacks_stronger_defense": {
+  "text": "At the end of the Damage Step, if your opponent's monster attacked a Defense Position monster whose DEF was higher than the attacking monster's ATK"
+ },
+ "owner_seal": {
+  "text": "return control of all monsters on the field to their owners"
+ },
+ "paths_of_destiny": {
+  "text": "each player tosses a coin; if it is Heads, that player gains 2000 LP, and if it is Tails, that player takes 2000 damage"
+ },
+ "pharaoh_treasure": {
+  "text": "shuffle this card face-up into your Deck; when you draw it, send it to the GY, then target 1 other card in your GY and add it to your hand"
+ },
+ "pitch_black_power_stone": {
+  "text": "Activate this card by placing 3 Spell Counters on it. Once per turn, during your turn, move 1 Spell Counter from this card to another face-up card that can hold Spell Counters. When this card has no Spell Counters, destroy it"
+ },
+ "question_revive": {
+  "text": "your opponent declares the name of the bottom monster in your GY without looking; if they are wrong, Special Summon it, and if they are right, banish it"
+ },
+ "ra_divine_beast": {
+  "text": "Requires 3 Tributes to Normal Summon, and cannot be Normal Set or Special Summoned. Its Normal Summon cannot be negated, and no cards or effects can be activated in response. When it is Normal Summoned, pay LP until you have 100 LP left; it gains ATK and DEF equal to the LP paid. Pay 1000 LP to target and destroy 1 monster on the field."
+ },
+ "regulation_of_tribe": {
+  "text": "Declare 1 Type; monsters of that Type cannot attack. During each of your Standby Phases, Tribute 1 monster or destroy this card."
+ },
+ "remove_self_spell_counter": {
+  "text": "remove {n} Spell Counter{s} from this card"
+ },
+ "remove_three_self_spell_counters": {
+  "text": "remove 3 Spell Counters from this card"
+ },
+ "reveal_opp_set_card": {
+  "text": "look at it, then return it to its original position"
+ },
+ "revive_battle_destroyed_same_side": {
+  "text": "Special Summon that monster to the field of the player who controlled it, in the battle position it was in"
+ },
+ "ring_of_magnetism": {
+  "text": "Equip only to a monster you control. It loses 500 ATK and DEF, and your opponent can only target it for attacks."
+ },
+ "rod_silence_kayest": {
+  "text": "Negate any other Spell effect that targets the equipped monster, and destroy that Spell Card."
+ },
+ "roulette_barrel_dice_destroy": {
+  "text": "once per turn, roll 2 six-sided dice, choose 1 of the results, and destroy 1 face-up monster with that Level"
+ },
+ "sanctity_banish": {
+  "text": "banish all other cards on your field and in your hand"
+ },
+ "scroll_bewitchment": {
+  "text": "Declare 1 Attribute; the equipped monster becomes that Attribute."
+ },
+ "self_indes_non_target_spell_trap": {
+  "text": "This card cannot be destroyed by Spell/Trap effects that do not target it."
+ },
+ "send_equipped": {
+  "text": "send 1 Equip Card equipped to this card to the GY"
+ },
+ "send_fire_monster_cost": {
+  "text": "send 1 other face-up FIRE monster you control to the GY"
+ },
+ "send_st_cost_max5": {
+  "text": "send 1 to 5 other Spell/Trap Cards you control to the GY"
+ },
+ "serial_spell": {
+  "text": "Activate only when you activate a Normal Spell Card. Discard your entire hand; apply that Spell Card's effect again."
+ },
+ "seven_completed": {
+  "text": "Choose ATK or DEF when this card is equipped; the equipped Machine monster gains 700 of the chosen stat."
+ },
+ "shadow_spell": {
+  "text": "Target 1 monster your opponent controls; it loses 700 ATK and cannot attack or change its battle position. When it leaves the field, destroy this card."
+ },
+ "shift": {
+  "text": "when your opponent targets exactly 1 monster you control for an attack or with a card effect, target another monster you control that would be a valid target, and change the target to it"
+ },
+ "sinister_serpent_standby": {
+  "text": "During your Standby Phase, if this card is in your GY"
+ },
+ "skull_lair_destroy": {
+  "text": "destroy 1 face-up monster on the field with a Level equal to the number of cards banished"
+ },
+ "snatch_steal_control": {
+  "text": "Take control of the equipped monster."
+ },
+ "soul_charge": {
+  "text": "Special Summon them, then lose 1000 LP for each monster Special Summoned by this effect; you cannot conduct your Battle Phase this turn"
+ },
+ "spell_immune_while_umi": {
+  "text": "While Umi is on the field, this card is unaffected by Spell effects."
+ },
+ "spirit_reaper_targeted": {
+  "text": "If this face-up card is targeted by a card effect or for an attack, destroy it after that effect resolves or the battle ends."
+ },
+ "ss_skull_knight_copy": {
+  "text": "Special Summon another copy of this card from your Deck, then shuffle your Deck"
+ },
+ "suijin_attack_zero": {
+  "text": "Once while this card is face-up on the field, during damage calculation, when your opponent's monster attacks this card, the attacking monster's ATK becomes 0 during that damage calculation only."
+ },
+ "swamp_mirrorer": {
+  "text": "declare 1 Type and 1 Attribute; Special Summon this card as a Normal Trap Monster with that Type and Attribute (Level 4/ATK 1800/DEF 1000)"
+ },
+ "sword_hunter": {
+  "text": "During the end of the Battle Phase, equip all monsters destroyed by battle with this card this turn from the GYs to this card; it gains 200 ATK for each monster equipped by this effect"
+ },
+ "swords_revealing": {
+  "text": "When this card is activated, change all face-down monsters your opponent controls to face-up Attack Position. While this card is face-up, your opponent's monsters cannot attack. Destroy this card during your opponent's 3rd End Phase after activation."
+ },
+ "tiki_curse": {
+  "text": "Special Summon this card as an Effect Trap Monster (Rock/DARK/Level 4/ATK 1800/DEF 1000). If another Trap Monster battles, destroy the monster it battled after damage calculation"
+ },
+ "tornado_wall": {
+  "text": "While Umi is on the field, you take no battle damage. If Umi is not on the field, destroy this card."
+ },
+ "tower_of_babel": {
+  "text": "Place 1 Spell Counter on this card each time a Spell Card resolves. When the 4th is placed, destroy this card and inflict 3000 damage to the player who activated that Spell Card."
+ },
+ "tyrant_dragon": {
+  "text": "If your opponent controls a monster after this card's first attack, it can make a second attack during that Battle Phase. Negate any Trap effect that targets this card, and destroy that Trap Card. You must Tribute 1 Dragon monster to Special Summon this card from the GY"
+ },
+ "ultimate_obedient_fiend": {
+  "text": "Cannot attack unless this is the only card you control and you have no cards in your hand. Negate the effects of Effect Monsters destroyed by battle with this card."
+ },
+ "umi_fisherman": {
+  "text": "While Umi is on the field, this card is unaffected by Spell effects and cannot be targeted for attacks"
+ },
+ "union_attack": {
+  "text": "During Main Phase 1, target 1 face-up monster you control; until the end of the Battle Phase, it gains ATK equal to the total ATK of all other face-up monsters you control, but it cannot inflict battle damage to your opponent, and your other face-up Attack Position monsters cannot attack this turn."
+ },
+ "vampire_baby_revive": {
+  "text": "At the end of the Battle Phase, Special Summon to your field as many monsters as possible that were destroyed by battle with this card this turn and sent to the GY."
+ },
+ "vampires_curse": {
+  "text": "If this card is destroyed by battle and sent to the GY, during the next Standby Phase you can pay 500 LP to Special Summon it, and it gains 500 ATK."
+ },
+ "vilepawn_archfiend_guard": {
+  "text": "Your opponent cannot target other face-up Archfiend monsters you control for attacks."
+ },
+ "viser_des": {
+  "text": "When this card is Normal Summoned, target 1 monster your opponent controls; while that monster is on the field, this card cannot be destroyed by battle, and during your 3rd Standby Phase after activation, destroy that monster."
+ },
+ "wave_motion_damage": {
+  "text": "inflict 1000 damage to your opponent for each of your Standby Phases since this card was activated"
+ },
+ "wicked_eraser": {
+  "text": "Cannot be Special Summoned. Requires 3 Tributes to Normal Summon/Set. This card's ATK and DEF are equal to the number of cards your opponent controls x 1000. During your Main Phase, you can destroy this card. If this card is destroyed and sent to the GY, destroy all cards on the field"
+ },
+ "wingbeat_dragon": {
+  "text": "return 1 face-up Level 5 or higher Dragon monster you control to the hand, and if you do, destroy all Spell and Trap Cards on the field"
+ },
+ "dna_checkup": {
+  "text": "reveal it; if its Attribute matches either declared Attribute, your opponent draws 2 cards, otherwise you draw 2 cards",
+  "tclause": "target 1 face-down monster you control; your opponent declares 2 Attributes"
+ },
+ "equip_spell_from_gy": {
+  "text": "equip it to this card",
+  "tclause": "target 1 Equip Spell in your GY that can be equipped to this card"
+ },
+ "forgiving_maiden_recover": {
+  "text": "return it to your hand",
+  "tclause": "target 1 monster in your GY that was destroyed by battle this turn"
+ }
+}

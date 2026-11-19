@@ -114,6 +114,8 @@ for (const group of groups) {
   currentGroup = group;
   for (let d = 0; d < DUELS; d++) {
     const a = deckFor(group), b = deckFor(group), seed = 1000 + d * 7919;
+    // One line per duel on stderr, so a run stuck inside one engine call shows which cards it was on.
+    if (process.env.RANDOMIZER_PROGRESS) process.stderr.write(`group ${groups.indexOf(group)} duel ${d} cards ${group.map(c => c.card.id).join(',')}\n`);
     engine.errors.length = 0; chainCodes = []; lastRand = null; duels++;
     let state, steps = 0;
     try {
@@ -135,7 +137,7 @@ for (const group of groups) {
       if (state.finished) finished++; else capped++;
       if (steps >= 6000) failures.push({kind: 'stall', seed, turn: state.turn, cards: group.map(c => c.card.id), recent: [...recent]});
     } catch (error) {
-      failures.push({kind: 'crash', seed, card: lastRand, error: String(error.stack || error).slice(0, 400)});
+      failures.push({kind: 'crash', seed, card: lastRand, cards: group.map(c => c.card.id), recent: [...recent], error: String(error.stack || error).slice(0, 400)});
     } finally { try { engine.destroy(); } catch {} }
   }
 }
