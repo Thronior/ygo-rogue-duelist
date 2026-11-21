@@ -4,9 +4,9 @@
 // when a monster arrives on it or changes position.
 import {M,L} from './engine.js';
 
-const TYPE_MONSTER=0x1,TYPE_SPELL=0x2,TYPE_TRAP=0x4,TYPE_TOKEN=0x4000,TYPE_TOON=0x400000;
+const TYPE_MONSTER=0x1,TYPE_SPELL=0x2,TYPE_TRAP=0x4,TYPE_EQUIP=0x40000,TYPE_TOKEN=0x4000,TYPE_TOON=0x400000;
 const RACE_DRAGON=0x2000,RACE_DIVINE=0x200000,ATTRIBUTE_LIGHT=0x10,ATTRIBUTE_DARK=0x20;
-const REASON_DESTROY=0x1,REASON_RELEASE=0x2,REASON_SUMMON=0x10,REASON_BATTLE=0x20;
+const REASON_DESTROY=0x1,REASON_RELEASE=0x2,REASON_SUMMON=0x10,REASON_BATTLE=0x20,REASON_DISCARD=0x4000;
 // The core reports some card fields (race on the field) as BigInt; bit tests need plain numbers.
 const bits=value=>Number(value||0);
 const onField=location=>location===L.MZONE||location===L.SZONE;
@@ -18,7 +18,26 @@ export function sleeveMetrics(duel){
   releases:0,link:null,
   // Cute sleeves (2026-11-15): weak summons, small finishers, LP gained and lifetime counts.
   summons:0,maxSummonAtk:0,weakFinish:false,ownBattleDestroyed:0,lpGained:0,spellActivated:false,
-  flipSummons:0,directAttacks:0,bounced:0,spellsRecovered:0,faceDownDestroyed:0}
+  flipSummons:0,directAttacks:0,bounced:0,spellsRecovered:0,faceDownDestroyed:0,
+  // Deds' sleeves (2026-11-20): finishes by ATK or name, and lifetime counts of summons, costs and effects.
+  bigFinish:false,lowFinish:false,dmgFinish:false,dmSummons:0,tributeSummons:0,toExtra:0,lpPaid:0,coinKills:0,flippedDown:0,
+  oppDiscards:0,trapsActivated:0,equipActivated:false,handLooks:0,
+  // Hidden coin feats (user, 2026-11-20; duel_rewards.SECRET): the card whose attack dealt the winning damage, how far
+  // past 0 the final hit went, the lowest LP the player fell to, and a win from full LP within one turn.
+  finisher:0,bestOverkill:0,lowestLp:null,oneTurnKill:false,oppTurnLp:null,oppPeakLp:0}
+}
+
+// Hidden coin feats: one cheap check per LP message, never per frame.
+function observeFeatMessage(duel,s,m){
+ if(!duel.lp)return;
+ if(m.type===M.NEW_TURN){s.oppTurnLp=duel.lp[1];s.oppPeakLp=Math.max(s.oppPeakLp,duel.lp[1])}
+ if(m.player===0&&((m.type===M.DAMAGE||m.type===M.PAY_LPCOST)&&m.amount>0||m.type===M.LPUPDATE)){const lp=Math.max(0,m.type===M.LPUPDATE?m.lp:duel.lp[0]-m.amount);s.lowestLp=Math.min(s.lowestLp??lp,lp)}
+ if(m.type===M.DAMAGE&&m.player===1&&m.amount>0&&m.amount>=duel.lp[1]){
+  s.bestOverkill=Math.max(s.bestOverkill,m.amount-duel.lp[1]);
+  if(s.oppTurnLp!==null&&s.oppTurnLp>=s.oppPeakLp)s.oneTurnKill=true;
+  const a=duel.inDamageStep&&duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;
+  if(attacker)s.finisher=Number(attacker.code)||0;
+ }
 }
 
 function readField(duel,s){
@@ -32,7 +51,7 @@ function readField(duel,s){
 
 // Called from MobileDuel.onMessage before the core's LP change is applied (duel.lp is the LP before the damage).
 export function observeSleeveMessage(duel,m){
- const s=sleeveMetrics(duel);
+ const s=sleeveMetrics(duel);observeFeatMessage(duel,s,m);
  if(m.type===M.NEW_TURN){s.turnMonsters=0;s.turnSpells=0}
  if(m.type===M.NEW_PHASE)s.releases=0;
  if(m.type===M.DRAW&&m.player===0)s.draws+=m.drawn?.length||0;
@@ -43,7 +62,8 @@ export function observeSleeveMessage(duel,m){
    const a=duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;
    if(attacker&&attacker.owner===1&&m.amount>=duel.lp[1])s.stolenFinish=true}
   else s.effectDamage+=m.amount;
-  if(battle&&m.amount>=duel.lp[1]){const a=duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;if(attacker&&attacker.attack<=500)s.weakFinish=true}
+  if(battle&&m.amount>=duel.lp[1]){const a=duel.attackCard,attacker=a?.controller===0?duel.query(0,L.MZONE)[a.sequence]:null;if(attacker&&attacker.attack<=500)s.weakFinish=true;
+   if(attacker){if(attacker.attack>=3000)s.bigFinish=true;if(attacker.attack<=1000)s.lowFinish=true;if(duel.name(attacker.code)==='Dark Magician Girl')s.dmgFinish=true}}
  }
  // Lifetime toss counts unlock Duke Devlin (Roll 10 dice and toss 10 coins, 2026-11-13).
  if(m.type===M.TOSS_DICE&&m.player===0)s.diceRolled+=m.results?.length||0;
@@ -52,11 +72,18 @@ export function observeSleeveMessage(duel,m){
   s.coinStreak=heads?s.coinStreak+1:0;s.bestCoinStreak=Math.max(s.bestCoinStreak,s.coinStreak);
   if(heads&&duel.name(duel.effect?.code)==='Time Wizard')s.timeWizardWins++;
  }
+ // A chain link of yours that tossed a coin: monsters it destroys count as coin-toss kills (Sasuke Samurai #4).
+ if(m.type===M.TOSS_COIN&&s.link?.player===0)s.link.coin=true;
+ if(m.type===M.PAY_LPCOST&&m.player===0)s.lpPaid+=m.amount||0;
+ if(m.type===M.CONFIRM_CARDS&&m.player===0&&(m.cards||[]).some(c=>c.controller===1&&c.location===L.HAND))s.handLooks++;
+ if(m.type===M.POS_CHANGE&&s.link?.player===0){const before=bits(m.prev_position??m.previous_position),now=bits(m.position??m.current_position);if((before&5)&&(now&8))s.flippedDown++}
  if(m.type===M.CHAINING){s.releases=0;const player=m.triggering_controller??m.player??m.controller;
-  if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_TRAP))s.trapActivated=true;if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_SPELL))s.spellActivated=true}
+  if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_TRAP)){s.trapActivated=true;s.trapsActivated++}
+  if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_SPELL)&&(bits(duel.data[m.code]?.type)&TYPE_EQUIP))s.equipActivated=true;if(player===0&&(bits(duel.data[m.code]?.type)&TYPE_SPELL))s.spellActivated=true}
  if(m.type===M.CHAIN_SOLVING){const link=duel.activeChain?.find(c=>c.link===m.chain_size);s.link=link?{player:link.player,trap:!!(bits(duel.data[link.code]?.type)&TYPE_TRAP),cards:0,monsters:0}:null}
  if(m.type===M.CHAIN_SOLVED||m.type===M.CHAIN_END){if(s.link?.player===0){s.bestOneEffect=Math.max(s.bestOneEffect,s.link.cards);if(s.link.trap)s.bestMirror=Math.max(s.bestMirror,s.link.monsters)}s.link=null}
- if(m.type===M.SUMMONING&&m.controller===0){if(s.releases>=3)s.tribute3=true;s.releases=0}
+ if(m.type===M.SUMMONING&&m.controller===0){if(s.releases>=3)s.tribute3=true;if(s.releases>=1)s.tributeSummons++;s.releases=0}
+ if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type)&&m.controller===0&&duel.name(m.code)==='Dark Magician')s.dmSummons++;
  // Original ATK from the card data, so relic or equip boosts never count; ? ATK counts as strong.
  if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type)&&m.controller===0){const atk=Number(duel.data[m.code]?.attack??0);s.summons++;s.maxSummonAtk=Math.max(s.maxSummonAtk,atk<0?99999:atk);if(m.type===M.FLIPSUMMONING)s.flipSummons++}
  if(m.type===M.RECOVER&&m.player===0)s.lpGained+=m.amount||0;
@@ -69,6 +96,9 @@ export function observeSleeveMessage(duel,m){
   if(to.location===L.REMOVED&&from.location!==L.REMOVED){s.banished++;if(monster&&(bits(data.attribute)&ATTRIBUTE_LIGHT))s.lightBanished++;if(monster&&(bits(data.attribute)&ATTRIBUTE_DARK))s.darkBanished++}
   if(from.location===L.GRAVE&&to.location===L.MZONE&&to.controller===0)s.graveSpecials++;
   if(from.controller===1&&from.location===L.MZONE&&to.location===L.HAND)s.bounced++;
+  if(from.controller===0&&from.location===L.MZONE&&to.location===L.EXTRA)s.toExtra++;
+  if(from.controller===1&&from.location===L.HAND&&to.location===L.GRAVE&&(reason&REASON_DISCARD)&&s.link?.player===0)s.oppDiscards++;
+  if(reason&REASON_DESTROY&&from.controller===1&&from.location===L.MZONE&&s.link?.player===0&&s.link.coin)s.coinKills++;
   if(from.location===L.GRAVE&&to.location===L.HAND&&to.controller===0&&(bits(data.type)&TYPE_SPELL))s.spellsRecovered++;
   if(reason&REASON_DESTROY&&from.location===L.MZONE){if(from.controller===0&&(reason&REASON_BATTLE))s.ownBattleDestroyed++;if(from.controller===1&&(bits(from.position)&10))s.faceDownDestroyed++}
   if(reason&REASON_DESTROY&&onField(from.location)){
@@ -86,8 +116,10 @@ const count=(duel,location,player=0)=>duel.core?.duelQueryCount?duel.core.duelQu
 // The end-of-duel half: what the player controls, holds and has left when the duel is decided.
 export function sleeveMetricsEvent(duel){
  const s=sleeveMetrics(duel),faceUp=duel.query(0,L.MZONE).filter(c=>c&&(c.position&5)),field=faceUp.map(c=>duel.name(c.code));
- const {link,releases,coinStreak,turnMonsters,turnSpells,...rest}=s;
- return {kind:'sleeve_metrics',...rest,field:[...new Set(field)],hand:count(duel,L.HAND),deck:count(duel,L.DECK),grave:count(duel,L.GRAVE),
-  oppHand:count(duel,L.HAND,1),zeroAtk:faceUp.some(c=>Number(c.attack)===0),
+ const {link,releases,coinStreak,turnMonsters,turnSpells,oppTurnLp,oppPeakLp,...rest}=s;
+ // fieldRaces: every Type among your face-up monsters at the end (the "win while you control a Warrior" sleeves).
+ const fieldRaces=faceUp.reduce((r,c)=>r|bits(duel.data[c.code]?.race||c.race),0);
+ return {kind:'sleeve_metrics',...rest,field:[...new Set(field)],fieldRaces,hand:count(duel,L.HAND),deck:count(duel,L.DECK),grave:count(duel,L.GRAVE),
+  oppHand:count(duel,L.HAND,1),monsters:count(duel,L.MZONE),oppMonsters:count(duel,L.MZONE,1),zeroAtk:faceUp.some(c=>Number(c.attack)===0),
   turn:duel.turn,winReason:duel.finished?Number(duel.finished.reason):null}
 }

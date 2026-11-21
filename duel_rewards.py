@@ -34,6 +34,58 @@ for metric,turns,coins in [('quick',6,10),('early_eight',8,10),('early_ten',10,4
  RULES.append((metric,1,f'Win within {turns} total turns',coins))
 
 RULES.append(('signature_played',1,'Play your signature card',10))
+# jerichoholic on Discord, agreed by the user 2026-11-20: the battle damage that ends the duel comes from a monster the
+# opponent owns (Change of Heart, Monster Reborn, Brain Control). sleeve-metrics.js records it as stolenFinish.
+# Hidden 2026-11-20 at 15 coins with the other hidden feats below (user: "beating your opponent with an attack from
+# their monster that you control ... make it give 15").
+RULES.append(('stolen_finish',1,'Beat them with their own monster',15))
+
+# Hidden coin feats (jerichoholic and CITYDRIVER on Discord, list picked by the user 2026-11-20): paid like any rule,
+# but never listed before a player earns one. build_android.py keeps them out of battleCoinRules (the shop Coin
+# scorecard and the in-duel bonus list) and sends them as secretCoinRules; campaign_expansion.update_profile records
+# each one earned in profile['secret_coin_feats'], and the shop scorecard lists the discovered ones from then on.
+# Never list them in Help, tips or patch notes.
+SECRET={
+ 'stolen_finish':'Beat them with their own monster',
+ 'forbidden_slap':'Slapped by the Forbidden One',   # the winning attack is by an Exodia arm
+ 'little_finish':'Little but mighty',               # the winning attacker has 500 ATK or less
+ 'one_turn_kill':'One Turn Kill',                   # from full LP to 0 within one turn
+ 'godlike':"That's Godlike",                        # the final hit goes 7,000+ past 0
+ 'last_stand':'Hanging by a thread',                # win with 100 LP or less
+ 'brink':'Back from the brink',                     # fell to 1,000 LP or less, won with 4,000+
+ 'outnumbered':'Against all odds',                  # the opponent controls more monsters at the end
+ 'last_draw':'The last draw',                       # win with no cards left in your Deck
+ 'no_monsters':'No monsters needed',                # win without summoning or setting a monster
+ 'wipeout':'Total annihilation',                    # one card effect destroys 4+ opponent cards
+ 'god_tribute':'Three tributes for a god',          # a Tribute Summon using 3 monsters
+ 'triple_threat':'Triple threat',                   # 3 face-up monsters with the same name
+ 'three_gods':'The gods walk the earth',            # 3 different Divine-Beasts at once
+ 'lady_luck':'Lady Luck',                           # 3 coin tosses in a row land heads
+}
+SECRET_COINS={'forbidden_slap':30,'little_finish':10,'one_turn_kill':50,'godlike':50,'last_stand':40,'brink':30,'outnumbered':20,
+ 'last_draw':100,'no_monsters':40,'wipeout':20,'god_tribute':10,'triple_threat':20,'three_gods':80,'lady_luck':15}
+for _metric,_coins in SECRET_COINS.items():RULES.append((_metric,1,SECRET[_metric],_coins))
+SECRET_LABELS=set(SECRET.values())
+EXODIA_ARMS={'Right Arm of the Forbidden One','Left Arm of the Forbidden One'}
+
+def secret_metrics(m,e,by_id,run):
+ '''The hidden feats read from the duel's sleeve_metrics summary (android/web/sleeve-metrics.js).'''
+ lp_win=e.get('winReason') in (None,1)
+ finisher=by_id.get(e.get('finisher'))
+ m['forbidden_slap']=int(lp_win and bool(finisher) and finisher['name'] in EXODIA_ARMS)
+ m['little_finish']=int(lp_win and bool(e.get('weakFinish')))
+ m['one_turn_kill']=int(lp_win and bool(e.get('oneTurnKill')))
+ m['godlike']=int(lp_win and e.get('bestOverkill',0)>=7000)
+ low=e.get('lowestLp')
+ m['brink']=int(low is not None and low<=1000 and run.get('lp',0)>=4000)
+ m['outnumbered']=int('oppMonsters' in e and e['oppMonsters']>e.get('monsters',0))
+ m['last_draw']=int(e.get('deck',-1)==0)
+ m['no_monster_summary']=int('summons' in e and e['summons']==0)
+ m['wipeout']=int(e.get('bestOneEffect',0)>=4)
+ m['god_tribute']=int(bool(e.get('tribute3')))
+ m['triple_threat']=int(e.get('sameName',0)>=3)
+ m['three_gods']=int(e.get('divine',0)>=3)
+ m['lady_luck']=int(e.get('bestCoinStreak',0)>=3)
 
 def metrics(run,events,by_id):
  m=Counter();summoned=set();races=set();attrs=set();known=False;spell_names=set();trap_names=set();effect_names=set();spell_types=set()
@@ -67,6 +119,8 @@ def metrics(run,events,by_id):
    if card and typ&1:m['monster_sets']+=1
    if card and typ&6:m['spell_trap_sets']+=1
   elif kind=='effect_damage':m['effect_damage']+=e.get('amount',0)
+  # The blow must be the one that won: a later card win (Exodia, Final Countdown) does not count.
+  elif kind=='sleeve_metrics':m['stolen_finish']=int(bool(e.get('stolenFinish')) and e.get('winReason') in (None,1));secret_metrics(m,e,by_id,run)
  m.update(unique_monsters=len(summoned),races=len(races),attributes=len(attrs),mixed=int(m['spells']>0 and m['traps']>0),healed=m['recover'],no_spells=int(m['spells']==0),no_traps=int(m['traps']==0),no_summons=int(m['summons']==0 and m['monster_sets']==0),effect_win=int(m['effect_damage']>0))
  opening=(1 if 'rulebook' in run.get('artifacts',[]) else 5)+(1 if 'eye' in run.get('artifacts',[]) else 0)
  m['draws']=max(0,m['draw']-opening)
@@ -104,12 +158,15 @@ def metrics(run,events,by_id):
  'boss_victory':boss,'boss_untouched':boss and m['untouched'],'boss_swift':boss and m['quick'],
  'champion_victory':run.get('encore_active',False),
  'comeback_damage':m['damage_taken']>m['damage']>0,
+ # Hidden: no summon or set events and a duel summary that saw no summon of yours either.
+ 'no_monsters':known and m['no_monster_summary'] and m['summons']==0 and m['monster_sets']==0,
  }
  m.update({k:int(bool(v)) for k,v in conditions.items()})
  return m
 
 # These conditions can only be decided at victory; all other thresholds are monotonic.
-VICTORY_ONLY={'early_twenty','early_eight','early_ten','untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage'}
+VICTORY_ONLY={'early_twenty','early_eight','early_ten','untouched','close_call','healthy','swift','blitz','quick','no_spells','no_traps','no_summons','effect_win','survivor','last_stand','no_special','normal_team','spell_specialist','trap_specialist','monster_specialist','all_battle','all_effect','no_attacks','minimalist','boss_victory','boss_untouched','boss_swift','champion_victory','comeback_damage','stolen_finish',
+ 'forbidden_slap','little_finish','one_turn_kill','godlike','brink','outnumbered','last_draw','no_monsters'}
 def pace_penalty(turns,turn_offset=0):
  """Continuous brackets: 7/turn after 10, 12/turn after 20, then +3 each decade."""
  turns=int(turns);offset=int(bool(turn_offset))

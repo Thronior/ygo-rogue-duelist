@@ -7,6 +7,7 @@ import {deckOrder,deckToolbar,deckCardsArea,wireDeckToolbar,resetDeckFilters,upd
 import {revealPrice} from './jar-relics.js';
 
 import {deckMinimum,fixedDeck,overCopyLimit} from './deck-minimum.js';
+import {tapIntent,applyTaps,steadyTap} from './deck-stacks.js';
 
 import {playUISound,playRerollSound} from './ui-sounds.js';
 import {bossNameVoice} from './juice.js';
@@ -31,7 +32,7 @@ import {shopRerollPrice} from './experience-ui.js';
 
 import {isShopUltra,announceShopUltra} from './shop-ultra.js';
 
-import {curseIcons,curseDescription,cursedMarkup} from './experience-ui.js';
+import {curseIcons,curseDescription,curseInfoMarkup,cursedMarkup} from './experience-ui.js';
 
 import {savedDeckSort,savedDeckStatus,rememberDeckSort,DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS} from './deck-sort-preference.js';
 import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,saveDeckScroll,restoreDeckScroll,deckSplitColumns,splitStyle} from './card-search.js';
@@ -46,6 +47,7 @@ import {ownedBadge} from './shop-badges.js';
 import {isFavouritePack,favouritesFirst,packStar,favouritesInStock} from './pack-favourites.js';
 import {relicLockButton,relicLockClass} from './relic-lock.js';
 import {cardMark,nextMark,markTile,paintMarks} from './card-marks.js';
+import {searchMarks} from './card-search.js';
 import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
@@ -89,11 +91,12 @@ export class TagUI {
 
   document.addEventListener('click',this.click,true);
 
-  this.cancelTradeHold=()=>clearTimeout(this.tradeHold);this.down=e=>{this.cancelTradeHold();this.origin=[e.clientX,e.clientY];this.dragged=false;const el=e.target.closest('[data-tag="trade-card"], [data-tag="card"]');if(el&&!el.disabled&&e.button===0)this.tradeHold=setTimeout(()=>{this.dragged=true;this.inspect(Number(el.dataset.id),el.dataset.tag==='card'?Number(el.dataset.index):null)},500)};this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10){this.dragged=true;this.cancelTradeHold()}};
+  this.cancelTradeHold=()=>clearTimeout(this.tradeHold);this.down=e=>{this.cancelTradeHold();this.origin=[e.clientX,e.clientY];this.dragged=false;const el=e.target.closest('[data-tag="trade-card"], [data-tag="trade-request"], [data-tag="card"]');if(el&&!el.disabled&&e.button===0)this.tradeHold=setTimeout(()=>{this.dragged=true;this.inspect(Number(el.dataset.id),el.dataset.tag==='card'?Number(el.dataset.index):null)},500)};this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10){this.dragged=true;this.cancelTradeHold()}};
 
   root.addEventListener('pointerup',this.cancelTradeHold);root.addEventListener('pointercancel',this.cancelTradeHold);root.addEventListener('scroll',this.cancelTradeHold,true);
 
-  this.viewport=()=>root.style.setProperty('--tag-visible-height',(window.visualViewport?.height||innerHeight)+'px');this.viewport();window.visualViewport?.addEventListener('resize',this.viewport);
+  // UI Scale zooms the page, so the visible height is divided by --ui-scale like sizeModalViewport in mobile.js (2026-11-20).
+  this.viewport=()=>{const z=parseFloat(document.documentElement?.style?.getPropertyValue('--ui-scale'))||1;root.style.setProperty('--tag-visible-height',(window.visualViewport?.height||innerHeight)/z+'px')};this.viewport();window.visualViewport?.addEventListener('resize',this.viewport);window.addEventListener('ygo-ui-scale',this.viewport);
 
   this.context=e=>{const el=e.target.closest('[data-tag="trade-card"], [data-tag="card"], [data-tag="pack"]');if(!el||!this.alive)return;e.preventDefault();if(e.button!==2||e.pointerType==='touch'||el.disabled)return;this.cancelTradeHold();if(el.dataset.tag==='pack')this.action('pack',el).catch(error=>this.error(error));else this.inspect(Number(el.dataset.id),el.dataset.tag==='card'?Number(el.dataset.index):null)};root.addEventListener('contextmenu',this.context);
 
@@ -117,7 +120,11 @@ export class TagUI {
  }
  // After a duel only the type tab and the search reset; the reset button (all) also restores the default Sort and Deck status.
  resetDeckFilters(all=true){resetDeckFilters(this,'tag-deck',all)}
+ // Deck taps redraw on the next frame, so taps queued behind a slow redraw share one; the timer covers a WebView that holds frames back.
+ renderSoon(){if(this.renderFrame)return;const run=()=>{if(!this.renderFrame)return;clearTimeout(this.renderTimer);this.renderFrame=0;if(this.alive)this.render()};this.renderFrame=requestAnimationFrame(run);this.renderTimer=setTimeout(run,100)}
  render(){
+
+  if(this.renderFrame){cancelAnimationFrame(this.renderFrame);clearTimeout(this.renderTimer);this.renderFrame=0}
 
   this.updateRoomBadge();
 
@@ -238,6 +245,8 @@ export class TagUI {
 
   const lookup=id=>this.cardById(id),main=mainCount;
 
+  // ★ in the search window keeps this player's cards marked Yes (user, 2026-11-20).
+  searchMarks('tag-deck',()=>this.view?.run);
   // Shared with Draft Duels (deck-editor-view.js); the order holds still while cards are tapped.
   const order=deckOrder(this,{pool:r.pool,selected:r.selected,lookup,run:r,info:this.content.artifactInfo,searchKey:'tag-deck'}),inDeck=new Set(r.selected),name=i=>lookup(r.pool[i])?.name||'';
 
@@ -426,7 +435,7 @@ export class TagUI {
 
   const v=this.view,t=v.trade,r=v.run,waiting=!this.session.connected||v.paused;
 
-  if(this.tradeId!==t.id){this.tradeId=t.id;this.tradeSelection=new Set(t.selected||[]);this.tradeFilter='All'}
+  if(this.tradeId!==t.id){this.tradeId=t.id;this.tradeSelection=new Set(t.selected||[]);this.tradeFilter='All';this.tradeSide='mine';this.tradeRequests=new Set(t.requested||[])}
 
   const sent=t.sent[v.seat],received=t.status==='received';
 
@@ -434,15 +443,23 @@ export class TagUI {
 
 
 
-  const rows=received?t.received.map((id,i)=>({id,i})):r.pool.map((id,i)=>({id,i}));
+  // Teammate's cards (Nemu on Discord, user 2026-11-20): while both pick, their collection and deck show read-only and a tap
+  // requests a copy. Requests are only a wish list; each player still picks what to send.
+  const partner=!received&&t.partner,theirs=partner&&this.tradeSide==='theirs',partnerSent=t.sent[1-v.seat],asked=new Set(t.requestedMine||[]),partnerDeck=new Set(partner?.deck||[]),partnerMods=new Set(partner?.mods||[]);
+  const rows=received?t.received.map((id,i)=>({id,i})):(theirs?partner.pool:r.pool).map((id,i)=>({id,i}));
 
   const lookup=id=>this.cardById(id);
 
-  const filtered=rows.filter(({id,i})=>this.tradeFilter==='Selected'?this.tradeSelection.has(i):this.tradeFilter==='All'||lookup(id)?.data.type&({Monster:1,Spell:2,Trap:4}[this.tradeFilter]||0));
+  const filters=theirs?[['All','All'],['Monster','Monster'],['Spell','Spell'],['Trap','Trap'],['Deck','In their deck'],['Requested','Requested']]:[['All','All'],['Monster','Monster'],['Spell','Spell'],['Trap','Trap'],...(partner?[['Requested','Requested']]:[]),['Selected','Selected']];
+  if(!filters.some(([f])=>f===this.tradeFilter))this.tradeFilter='All';
+  const filtered=rows.filter(({id,i})=>this.tradeFilter==='Selected'?this.tradeSelection.has(i):this.tradeFilter==='Requested'?(theirs?this.tradeRequests.has(i):asked.has(i)):this.tradeFilter==='Deck'?partnerDeck.has(i):this.tradeFilter==='All'||lookup(id)?.data.type&({Monster:1,Spell:2,Trap:4}[this.tradeFilter]||0));
+  const requested='<small class="trade-requested">Requested</small>';
+  const tile=({id,i})=>theirs?`<button class="cardbtn ${this.tradeRequests.has(i)?'selected':''}" data-tag="trade-request" data-id="${id}" data-index="${i}" ${partnerSent||waiting?'disabled':''}><img draggable="false" loading="lazy" src="${this.image(id)}"><span>${esc(lookup(id)?.name||id)}</span>${partnerDeck.has(i)?'<small>In their deck</small>':''}${partnerMods.has(i)?'<small>Modified copy</small>':''}${this.tradeRequests.has(i)?requested:''}</button>`:
+   `<button class="cardbtn ${!received&&this.tradeSelection.has(i)?'selected':''}" data-tag="${received?'inspect':'trade-card'}" data-id="${id}" data-index="${i}" ${!received&&sent?'disabled':''}><img draggable="false" loading="lazy" src="${this.image(id)}"><span>${esc(lookup(id)?.name||id)}</span>${!received&&r.selected.includes(i)?'<small>In your deck</small>':''}${!received&&r.card_mods?.[i]?'<small>Modified copy</small>':''}${!received&&asked.has(i)?requested:''}</button>`;
 
   const controls=received?button(t.ack[v.seat]?'Waiting for teammate':'Back to shop','trade-ack',`class="primary trade-send" ${waiting||t.ack[v.seat]?'disabled':''}`):button(sent?'Sent — waiting for teammate':'Send','trade-send',`class="primary trade-send" ${waiting||sent?'disabled':''}`);
 
-  this.root.innerHTML=this.header(`<div class="trade-heading"><h1>${received?'Cards received':'Trade cards'}</h1><p>${received?`${t.received.length} cards received from your teammate. Added to your collection; edit your deck to use them.`:sent?'Your offer is locked. Cards transfer when your teammate presses Send.':'Tap copies to select · Hold to inspect · Sending zero cards is allowed.'}</p><b>${received?'Exchange complete':t.sent.filter(Boolean).length+'/2 players sent'}</b></div>${!received?`<div class="draft-tabs">${['All','Monster','Spell','Trap','Selected'].map(f=>button(f,'trade-filter',`data-filter="${f}" class="${this.tradeFilter===f?'active':''}"`)).join('')}</div>`:''}<div class="scroll draft-scroll tag-deck-scroll"><div class="trade-cards cardgrid">${(received?rows:filtered).map(({id,i})=>`<button class="cardbtn ${!received&&this.tradeSelection.has(i)?'selected':''}" data-tag="${received?'inspect':'trade-card'}" data-id="${id}" data-index="${i}" ${!received&&sent?'disabled':''}><img draggable="false" loading="lazy" src="${this.image(id)}"><span>${esc(lookup(id)?.name||id)}</span>${!received&&r.selected.includes(i)?'<small>In your deck</small>':''}${!received&&r.card_mods?.[i]?'<small>Modified copy</small>':''}</button>`).join('')||'<p>No cards '+(received?'received.':'match this filter.')+'</p>'}</div></div><footer class="tag-lock-in"><span>${received?'Cards belong to you now':this.tradeSelection.size+' cards selected to send'}</span>${controls}${waiting?'<small>Waiting for connection. Your trade is saved.</small>':''}</footer>`,'','tag-trade');
+  this.root.innerHTML=this.header(`<div class="trade-heading"><h1>${received?'Cards received':'Trade cards'}</h1><p>${received?`${t.received.length} cards received from your teammate. Added to your collection; edit your deck to use them.`:theirs?(partnerSent?'Your teammate has already sent their cards.':'Tap to request · Hold to inspect'):sent?'Your offer is locked. Cards transfer when your teammate presses Send.':'Tap copies to select · Hold to inspect · Sending zero cards is allowed.'}</p><b>${received?'Exchange complete':t.sent.filter(Boolean).length+'/2 players sent'}</b></div>${partner?`<div class="draft-tabs trade-sides">${[['mine','Your cards'],['theirs','Teammate’s cards']].map(([side,label])=>button(label,'trade-side',`data-side="${side}" class="${(theirs?'theirs':'mine')===side?'active':''}"`)).join('')}</div>`:''}${!received?`<div class="draft-tabs">${filters.map(([f,label])=>button(label,'trade-filter',`data-filter="${f}" class="${this.tradeFilter===f?'active':''}"`)).join('')}</div>`:''}<div class="scroll draft-scroll tag-deck-scroll"><div class="trade-cards cardgrid">${(received?rows:filtered).map(tile).join('')||'<p>No cards '+(received?'received.':'match this filter.')+'</p>'}</div></div><footer class="tag-lock-in"><span>${received?'Cards belong to you now':theirs?this.tradeRequests.size+' cards requested':this.tradeSelection.size+' cards selected to send'}</span>${controls}${waiting?'<small>Waiting for connection. Your trade is saved.</small>':''}</footer>`,'','tag-trade');
 
  }
 
@@ -452,7 +469,7 @@ export class TagUI {
 
   if(action==='poke'){keeperTalk.say('poke');return}
   if(action==='relic-lock'){const v=this.view;if(v?.paused||!this.session?.connected||v?.phase!=='shop'||this.relicLocking)return;this.relicLocking=true;try{await this.session.request('relic-lock',Number(el.dataset.index))}catch(error){this.error(error)}finally{this.relicLocking=false}return}
-  if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(this.content,el.dataset.curse,this.view?.run?.challenge_level))}</p>`);return}
+  if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',curseInfoMarkup(this.content,el.dataset.curse,this.view?.run?.challenge_level,+el.dataset.count||1));return}
 
 
 
@@ -488,6 +505,9 @@ export class TagUI {
 
   if(action==='trade-receipt'){this.receivedTradeId=null;this.renderTrade();return}
 
+  if(action==='trade-side'){this.tradeSide=el.dataset.side;this.render();const area=tradeScroller(this.root);if(area)area.scrollTop=0;return}
+  if(action==='trade-request'){const t=this.view.trade;if(t.sent[1-this.view.seat])return;if(this.tradeRequests.has(index))this.tradeRequests.delete(index);else this.tradeRequests.add(index);this.render();
+   this.session.request('trade-request',{id:t.id,cards:[...this.tradeRequests]}).catch(error=>{this.tradeRequests=new Set(this.view?.trade?.requested||[]);this.error(error);this.render()});return}
   if(action==='trade-filter'){this.tradeFilter=el.dataset.filter;this.render();const area=tradeScroller(this.root);if(area)area.scrollTop=0;return}
 
   if(action==='trade-card'){if(this.view.trade.sent[this.view.seat])return;if(this.tradeSelection.has(index))this.tradeSelection.delete(index);else this.tradeSelection.add(index);this.render();return}
@@ -611,13 +631,17 @@ export class TagUI {
 
    if(fixedDeck(this.view.run,this.content.characters[this.view.run.character])||!['draft','shop'].includes(this.view.phase))return;
 
+   // What the tap meant when it was drawn (deck-stacks.js tapIntent): a full stack takes every copy out, − one copy.
+   // It is resolved against the deck after any wait, so a quick second tap on a stale tile never puts a copy back.
+   const tap=steadyTap(this.view.run,tapIntent(el,'index'));
+
    // Editing a locked-in deck unlocks the pick first; press the swords again when it's done.
    if(this.view.phase==='draft'&&this.view.ready[this.view.seat])await this.unlockForEdit();
 
-   // A full stack (deck-stacks.js) takes every copy out at once.
-   let selected=[...this.view.run.selected];const clear=el?.dataset?.stackClear?.split(',').map(Number);if(clear)selected=selected.filter(i=>!clear.includes(i));else{const at=selected.indexOf(index);if(at>=0)selected.splice(at,1);else selected.push(index);}
+   const {selected}=applyTaps(this.view.run,this.view.run.selected,[tap]);
 
-   this.editDeck(selected);playUISound('deck-select');this.render();return;
+   // Taps that arrive within one frame redraw once (Nori, Discord 2026-11-20): the redraw still lands before the next paint.
+   this.editDeck(selected);playUISound('deck-select');this.renderSoon();return;
 
   }
 
@@ -793,7 +817,7 @@ export class TagUI {
 
  }
 
- destroy(){clearTimeout(this.cartTimer);cancelCharacterEntrance();this.closeStartingPacks?.();this.closeStartingPacks=null;this.root.removeEventListener('contextmenu',this.context);this.roomBadge?.remove();clearTimeout(this.finaleRollTimer);this.cancelTradeHold();this.root.removeEventListener('pointerup',this.cancelTradeHold);this.root.removeEventListener('pointercancel',this.cancelTradeHold);this.root.removeEventListener('scroll',this.cancelTradeHold,true);window.visualViewport?.removeEventListener('resize',this.viewport);this.root.style.removeProperty('--tag-visible-height');this.alive=false;clearTimeout(this.tap?.timer);document.removeEventListener('click',this.click,true);this.root.removeEventListener('pointerdown',this.down);this.root.removeEventListener('pointermove',this.move)}
+ destroy(){clearTimeout(this.cartTimer);cancelCharacterEntrance();this.closeStartingPacks?.();this.closeStartingPacks=null;this.root.removeEventListener('contextmenu',this.context);this.roomBadge?.remove();clearTimeout(this.finaleRollTimer);this.cancelTradeHold();this.root.removeEventListener('pointerup',this.cancelTradeHold);this.root.removeEventListener('pointercancel',this.cancelTradeHold);this.root.removeEventListener('scroll',this.cancelTradeHold,true);window.visualViewport?.removeEventListener('resize',this.viewport);window.removeEventListener('ygo-ui-scale',this.viewport);this.root.style.removeProperty('--tag-visible-height');this.alive=false;clearTimeout(this.tap?.timer);document.removeEventListener('click',this.click,true);this.root.removeEventListener('pointerdown',this.down);this.root.removeEventListener('pointermove',this.move)}
 
 }
 

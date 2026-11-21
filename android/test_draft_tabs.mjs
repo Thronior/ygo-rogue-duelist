@@ -30,7 +30,8 @@ const card = id => MON[id - 10];
 const pool = [10, 11, 12, 13, 14], selected = [0, 4];
 globalThis.document ??= {};
 const {cardMark,cardMarkVersion,yesMarksFirst}=await import('./web/card-marks.js');
-const helpers = { matchesSearch: () => true, frameLevelName, deckStats, attributeOrder, state: { run: { artifacts: [] } }, content: { artifactInfo: {} }, deckSearches: {}, cardMark, cardMarkVersion, yesMarksFirst };
+const {bossStatCurses}=await import('./web/feedback-ui.js');
+const helpers = { matchesSearch: () => true, frameLevelName, deckStats, attributeOrder, state: { run: { artifacts: [] } }, content: { artifactInfo: {} }, deckSearches: {}, cardMark, cardMarkVersion, yesMarksFirst, bossStatCurses };
 const run = (tab, sort, deck = 'Any') => new Function('card', 'draftTab', 'draftSort', 'draftDeck', 'pool', 'selected', ...Object.keys(helpers), body)(card, tab, sort, deck, pool, selected, ...Object.values(helpers));
 // Default is frame (Normal, Effect, ..., Spell, Trap), then level, then name since v0.1.85 (was first-seen grouping).
 assert.deepEqual(run('All', 'Default'), [0, 3, 4, 1, 2]);

@@ -5,7 +5,7 @@ import {loadingTip} from './loading-tips.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
 import {replayVersion} from './replay-version.js';
 import {loadEngineData} from './engine.js';
-import {frameLevelName,deckCardMarkup,modifiedCard,deckStats,attributeOrder,misprintNoticeLine} from './feedback-ui.js';
+import {frameLevelName,deckCardMarkup,modifiedCard,deckStats,attributeOrder,misprintNoticeLine,bossStatCurses,bossCurseNote} from './feedback-ui.js';
 import {iconChoices,iconChoiceGrid} from './type-attribute-icons.js';
 
 import {openDeckPreview} from './deck-preview.js';
@@ -124,6 +124,9 @@ import {allCardsPackDescription,formatPackChance,sortPackCards} from './pack-ins
 import {balancedVolume,resumeBalancedAudio,preloadSoundEffects,setMasterVolume,setAudioSilent} from './audio-balance.js';
 
 import {searches as deckSearches} from './card-search.js';
+import {searchMarks} from './card-search.js';
+// ★ in the solo deck editor's search window keeps cards marked Yes in this run (user, 2026-11-20).
+searchMarks('draft',()=>state.run);
 import {cardTextHtml,linkSearch,packSummaryHtml,translateWith} from './card-links.js';
 import {packSummaryParts,packTermMatcher} from './pack-summary.js';
 import {pagedGrid} from './deck-paging.js';
@@ -166,7 +169,7 @@ import {cardFacts,displayCardText} from './card-inspection.js';
 
 import {installShopGestures} from './shop-gestures.js';
 
-import {victoryRewardsMarkup,lastPlayed,packSummary,cursedMarkup,curseIcons,curseIconFile,curseDescription,matchesFilters,EFFECT_FILTERS,materialStatus} from './experience-ui.js';
+import {victoryRewardsMarkup,lastPlayed,packSummary,cursedMarkup,curseIcons,curseIconFile,curseDescription,curseInfoMarkup,matchesFilters,EFFECT_FILTERS,materialStatus} from './experience-ui.js';
 
 import {openPacks} from './pack-opening.js';
 
@@ -185,10 +188,11 @@ import {promptContext} from './prompt-context.js';
 import {TagUI} from './tag-ui.js';
 
 import {cardImages,preloadCards} from './card-assets.js';
+import {setupLocalizedCards,resetLocalizedCards,localizedImage,warmLocalizedCards} from './localized-cards.js';
 import {RANDOM_PACK,RANDOM_PACK_TEXT,setupRandomCards,syncRandomCards,prepareEngine,drawRandomCards,needsDrawing,drawInBackground,hatLoading,addDraftRandomCards} from './random-cards.js';
 
 import {loadPyodide} from './pyodide/pyodide.mjs';
-import {prepareStdlib,stderrTail,details as bootDetails,startupRetried,clearRetry,retryOnce,copyText} from './boot-diagnostics.js';
+import {asciiTimeZoneNames,prepareStdlib,stderrTail,details as bootDetails,startupRetried,clearRetry,retryOnce,copyText} from './boot-diagnostics.js';
 // Startup stage and Python diagnostics for the "Could not start" screen (boot-diagnostics.js).
 let bootDiag=null;
 
@@ -199,7 +203,7 @@ import {relicLockButton,relicLockClass} from './relic-lock.js';
 import {relatedIndex,relatedCards,relatedCount,mountRelated} from './related-cards.js';
 import {Lesson,startLessonDuel,LESSON_PLAYER,LESSON_OPPONENT,LESSON_POOL,LESSON_LP,FINISH} from './tutorial-duel.js';
 import {LessonCoach} from './tutorial-coach.js';
-import {stacksOn,setStacks,groupStacks,stackButton} from './deck-stacks.js';
+import {stacksOn,setStacks,groupStacks,stackButton,tapIntent,applyTaps,steadyTap} from './deck-stacks.js';
 import {installCardNav,cardNavAttach,closeCardArt,noteCardNavSource} from './card-nav.js';
 
 const app=document.querySelector('#app'),modal=document.querySelector('#modal');
@@ -228,7 +232,9 @@ const cardsById=new Map(),previewRenders=new WeakMap();
 
 const card=id=>cardsById.get(Number(id));
 
-const image=id=>cardImages.get(Number(id))||`assets/cards/${id}.jpg`;
+// In another language a card shows its translated picture once localized-cards.js has drawn it (2026-11-20).
+const image=id=>localizedImage(Number(id))||cardImages.get(Number(id))||`assets/cards/${id}.jpg`;
+setupLocalizedCards({card});
 // Pixel Art look (2026-11-19): face-up duel cards in hand and on the field are drawn as their art inside a frame in the
 // card's colour (mobile.css, data-frame); randomized cards add 'random' for a rainbow edge. Other looks ignore it.
 const cardFrame=id=>{const c=card(id),t=Number(c?.data?.type)||0;return (t&0x4000?'token':t&2?'spell':t&4?'trap':t&0x40?'fusion':t&0x80?'ritual':t&0x20?'effect':'normal')+(c?.randomized?' random':'')};
@@ -305,7 +311,7 @@ async function fetchRandomCards(){py.globals.set('request_json',JSON.stringify({
 
 function command(action,value){const payload=JSON.stringify({action,value});const job=commandQueue.then(()=>executeCommand(payload));commandQueue=job.catch(()=>{});return job}
 
-async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(['reward-progress','pack-inspect','card-sources','cpu-catalog','draft-duel-setup','draft-random-cards'].includes(statsRequest.action))return result.result;const sleevesBefore=state?.profile?new Set(state.profile.sleeves_earned||[]):null;state=applyCommandUpdate(state,result,statsRequest.action);if(await syncRandomCards(state?.randomCards,fetchRandomCards))drawInBackground(state?.run?.pool||[]);announceSleeves(sleevesBefore,statsRequest.action);if(lesson){lesson.saved={...state,run:lesson.saved.run};state={...state,run:lesson.run}}loadFavouritePacks(state?.settings?.favoritePacks);noteDeviceSyncChange(statsRequest.action);if(result.persist!==false&&statsRequest.action!=='device-sync-read')await persist(statsRequest.action==='finish');if(statsRequest.action==='finish'&&state?.run?.stage==='complete')void deviceBackup.saveNow();if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish')resetDraftFilters(false);if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);recordRunResult(result.run);}return result.result}
+async function executeCommand(payload){const statsRequest=JSON.parse(payload),statsDuel=state?.run?.duel?.id;py.globals.set('request_json',payload);const result=JSON.parse(await py.runPythonAsync('mobile_backend.dispatch(request_json)'));if(['reward-progress','pack-inspect','card-sources','cpu-catalog','draft-duel-setup','draft-random-cards'].includes(statsRequest.action))return result.result;const sleevesBefore=state?.profile?new Set(state.profile.sleeves_earned||[]):null;state=applyCommandUpdate(state,result,statsRequest.action);if(await syncRandomCards(state?.randomCards,fetchRandomCards))drawInBackground(state?.run?.pool||[]);warmLocalizedCards(state?.run?.pool);announceSleeves(sleevesBefore,statsRequest.action);if(lesson){lesson.saved={...state,run:lesson.saved.run};state={...state,run:lesson.run}}loadFavouritePacks(state?.settings?.favoritePacks);noteDeviceSyncChange(statsRequest.action);if(result.persist!==false&&statsRequest.action!=='device-sync-read')await persist(statsRequest.action==='finish');if(statsRequest.action==='finish'&&state?.run?.stage==='complete')void deviceBackup.saveNow();if(['new','secret-champion','secret-relicless'].includes(statsRequest.action))recordStat('runs',result.run?.started_at||result.run?.history_id);if(statsRequest.action==='begin')recordStat('duels',result.run?.duel?.id);if(statsRequest.action==='finish')resetDraftFilters(false);if(statsRequest.action==='finish'&&statsDuel){recordStat('duels',statsDuel);recordStat(statsRequest.value.winner===0?'wins':'losses',statsDuel);recordRunResult(result.run);}return result.result}
 
 async function notices(){const list=state.profile.achievement_notices||[];if(list.length){await command('notices');list.forEach(n=>toast('Achievement complete: '+n.name+' — '+n.reward))}}
 
@@ -540,9 +546,12 @@ modal.addEventListener('close',syncModalChain);
 
 new MutationObserver(syncModalChain).observe(modal,{attributes:true,attributeFilter:['open']});
 
-function sizeModalViewport(){const v=window.visualViewport;if(!v||Math.abs(v.scale-1)<.01)document.documentElement.style.setProperty('--app-viewport-height',`${Math.round(v?.height||innerHeight)}px`);modal.style.setProperty('--modal-viewport-height',`${v?.height||innerHeight}px`);modal.style.setProperty('--modal-viewport-width',`${v?.width||innerWidth}px`);modal.style.setProperty('--modal-top',`${v?.offsetTop||0}px`);modal.style.setProperty('--modal-left',`${v?.offsetLeft||0}px`)}
+// UI Scale zooms the page (display-options.js), and a zoomed CSS pixel is bigger than the window's, so the measured sizes are
+// divided by the scale. Unscaled, a 150% UI Scale made the page and the card window 1.5x the window's height: the window's
+// bottom, its Previous/Next row and the end of its scrolling text were off screen (deck editor card window, Discord 2026-11-20).
+function sizeModalViewport(){const v=window.visualViewport,z=parseFloat(document.documentElement.style.getPropertyValue('--ui-scale'))||1,px=n=>`${n/z}px`;if(!v||Math.abs(v.scale-1)<.01)document.documentElement.style.setProperty('--app-viewport-height',`${Math.round((v?.height||innerHeight)/z)}px`);modal.style.setProperty('--modal-viewport-height',px(v?.height||innerHeight));modal.style.setProperty('--modal-viewport-width',px(v?.width||innerWidth));modal.style.setProperty('--modal-top',px(v?.offsetTop||0));modal.style.setProperty('--modal-left',px(v?.offsetLeft||0))}
 
-window.visualViewport?.addEventListener('resize',sizeModalViewport);window.visualViewport?.addEventListener('scroll',sizeModalViewport);window.addEventListener('resize',sizeModalViewport);
+window.addEventListener('ygo-ui-scale',sizeModalViewport);window.visualViewport?.addEventListener('resize',sizeModalViewport);window.visualViewport?.addEventListener('scroll',sizeModalViewport);window.addEventListener('resize',sizeModalViewport);
 
 let viewportFrame=0,viewportSettle=0;function settleViewport(){cancelAnimationFrame(viewportFrame);clearTimeout(viewportSettle);viewportFrame=requestAnimationFrame(()=>{sizeModalViewport();viewportSettle=setTimeout(sizeModalViewport,250)})}
 
@@ -954,17 +963,21 @@ function draftOrder(pool,selected){const order=draftSorted(pool,selected);if(dra
 // The sorted order is cached until a filter, the sort, the pool, relics or misprints change, so a tap on a 9,000-card
 // collection doesn't sort it all again (Nori, 2026-11-16).
 let draftSortCache=null;
-function draftSorted(pool,selected,anyStatus=false){const r=state.run,key=JSON.stringify([draftTab,draftSort,draftDeck,deckSearches.draft||null,pool.length,anyStatus,anyStatus||!['In','Out'].includes(draftDeck)?'':selected.join(','),r?.artifacts?.length||0,Object.keys(r?.card_mods||{}).length,cardMarkVersion(r)]);if(draftSortCache?.key!==key){const order=draftSortedFresh(pool,selected,anyStatus),no=i=>cardMark(r,pool[i])===-1;draftSortCache={key,order:[...order.filter(i=>!no(i)),...order.filter(no)]}}return [...draftSortCache.order]}
+function draftSorted(pool,selected,anyStatus=false){const r=state.run,key=JSON.stringify([draftTab,draftSort,draftDeck,deckSearches.draft||null,pool.length,anyStatus,anyStatus||!['In','Out'].includes(draftDeck)?'':selected.join(','),r?.artifacts?.length||0,Object.keys(r?.card_mods||{}).length,cardMarkVersion(r),bossStatCurses(r).join()]);if(draftSortCache?.key!==key){const order=draftSortedFresh(pool,selected,anyStatus),no=i=>cardMark(r,pool[i])===-1;draftSortCache={key,order:[...order.filter(i=>!no(i)),...order.filter(no)]}}return [...draftSortCache.order]}
 function draftSortedFresh(pool,selected,anyStatus){let base=pool.map((_,i)=>i).filter(i=>matchesSearch(card(pool[i]),'draft'));if(!anyStatus&&(draftDeck==='In'||draftDeck==='Out')){const inDeck=new Set(selected);base=base.filter(i=>inDeck.has(i)===(draftDeck==='In'))}if(draftTab==='Monster')base=base.filter(i=>card(pool[i]).data.type&1);else if(draftTab==='Spell')base=base.filter(i=>card(pool[i]).data.type&2);else if(draftTab==='Trap')base=base.filter(i=>card(pool[i]).data.type&4);else if(draftTab==='Extra')base=base.filter(i=>card(pool[i]).data.type&64);const first={},last={};for(const i of base){const n=card(pool[i]).name.toLowerCase();if(!(n in first))first[n]=i;last[n]=i}const cat=c=>c.data.type&1?0:c.data.type&2?1:c.data.type&4?2:3,sub=c=>String(c.race||''),nm=i=>card(pool[i]).name.toLowerCase();if(draftSort==='Default')return base.sort((a,b)=>frameLevelName(card(pool[a]),card(pool[b]))||a-b);if(draftSort==='Attribute')return attributeOrder(base,pool,card,state.run);if(draftSort==='Name')return base.sort((a,b)=>nm(a)<nm(b)?-1:nm(a)>nm(b)?1:pool[a]-pool[b]);if(draftSort==='Type')return base.sort((a,b)=>cat(card(pool[a]))-cat(card(pool[b]))||sub(card(pool[a])).localeCompare(sub(card(pool[b])))||nm(a).localeCompare(nm(b))||a-b);if(draftSort==='ATK'){const attacks=new Map(base.map(i=>[i,card(pool[i]).data.type&1?deckStats(card(pool[i]),state.run,i,content.artifactInfo)[0]:0]));return base.sort((a,b)=>{const ca=card(pool[a]),cb=card(pool[b]);return Number(!(ca.data.type&1))-Number(!(cb.data.type&1))||attacks.get(b)-attacks.get(a)||(ca.data.type&6)-(cb.data.type&6)||nm(a).localeCompare(nm(b))||a-b});}if(draftSort==='DEF'){const defenses=new Map(base.map(i=>[i,card(pool[i]).data.type&1?deckStats(card(pool[i]),state.run,i,content.artifactInfo)[1]:(card(pool[i]).defense||0)]));return base.sort((a,b)=>{const ca=card(pool[a]),cb=card(pool[b]);return Number(!(ca.data.type&1))-Number(!(cb.data.type&1))||defenses.get(b)-defenses.get(a)||(ca.data.type&6)-(cb.data.type&6)||(nm(a)<nm(b)?-1:nm(a)>nm(b)?1:0)||a-b});}// Same Level: highest ATK first (Septarium, 2026-11-16), so Level 1-4 monsters line up by strength.
 if(draftSort==='Level'){const attacks=new Map(base.map(i=>[i,card(pool[i]).data.type&1?deckStats(card(pool[i]),state.run,i,content.artifactInfo)[0]:-1]));return base.sort((a,b)=>((card(pool[b]).level||0)-(card(pool[a]).level||0))||attacks.get(b)-attacks.get(a)||nm(a).localeCompare(nm(b))||a-b)}if(draftSort==='Newest')return base.sort((a,b)=>last[nm(b)]-last[nm(a)]||a-b);return base.sort((a,b)=>first[nm(a)]-first[nm(b)]||a-b)}
 
 function markGoldenCards(root,r){const ids=[...(r.golden_cards||[]),r.golden_card];for(const el of root.querySelectorAll('[data-pick]:not(.golden-card)'))if(ids.includes(r.pool[Number(el.dataset.pick)])){el.classList.add('golden-card');el.insertAdjacentHTML('beforeend','<span class="golden-sleeve-mark" title="Golden Sleeve" aria-label="Golden Sleeve">★</span>')}}
 
 
-function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${DRAFT_SORTS.map(o=>`<option value="${o}" ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(draftSplit)}>${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftGridCards(r)||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
+function renderDraft(){const r=state.run,copy=fixedDeck(r,character()),main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;let count={};r.selected.forEach(i=>count[r.pool[i]]=(count[r.pool[i]]||0)+1);shell('Build your deck',`<div class="scroll draft-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${copy?(character().copycat?'Copycat’s borrowed deck is read-only.':'Dueling Engine’s fixed starter deck is read-only.') : ''}</p><p class="draft-inspect-help">Hold a card to inspect · Drag to scroll</p>${bossCurseNote(r,curseIconFile)}</div><button class="tag-choose-opponent draft-next deck-count-arrow" data-do="routes" ${!copy&&(main<(deckMinimum(r,content.characters[r.character]))||main>60)?'disabled':''} aria-label="${main}/${deckMinimum(r,content.characters[r.character])}+ main deck cards — Next duel"><span><span class="tag-next-label"><strong>${main}/${deckMinimum(r,content.characters[r.character])}+</strong></span></span></button></div><div class="draft-tabs deck-filter-row">${deckSearchButtons('draft',draftFiltered())}${['All','Monster','Spell','Trap','Extra'].map(t=>`<button data-draft-tab="${t}" class="${draftTab===t?'active':''}">${t==='Extra'?'Extra Deck':t}</button>`).join('')}<select data-draft-deck aria-label="Deck status">${DECK_STATUS_OPTIONS.map(([v,label])=>`<option value="${v}" ${v===draftDeck?'selected':''}>${label}</option>`).join('')}</select><select data-draft-sort aria-label="Sort">${DRAFT_SORTS.map(o=>`<option value="${o}" ${o===draftSort?'selected':''}>${o}</option>`).join('')}</select><button class="deck-deselect" data-do="deselect-all" aria-label="Deselect all" title="Deselect all" ${copy?'disabled':''}>${deselectIcon}</button><span class="deck-filter-break" aria-hidden="true"></span></div>${bountyBanner(r)}${draftSplit?`<div class="draft-card-scroll deck-split" ${splitStyle(draftSplit)}>${splitDeckPanes(r)}</div>`:`<div class="draft-card-scroll"><div class="cardgrid">${draftGridCards(r)||(draftTab==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`}</div>`,`${rewardDeckReturn?btn('Back to rewards','reward-return'):r.stage==='shop'?btn('Back to shop','shop'):''}`);markGoldenCards(app,r);deckReadyFeedback(app,main,deckMinimum(r,content.characters[r.character]));checkDraftSplit()}
 // Big collections draw in pages (deck-paging.js); the page count holds while the order does.
 const draftPage=r=>({id:'solo-deck',key:JSON.stringify([draftTab,draftSort,draftDeck,deckSearches.draft||null,r.pool.length,stacksOn(),!!draftSplit]),after:()=>markGoldenCards(app,r)});
-function draftGridCards(r){const order=draftOrder(r.pool,r.selected),page=draftPage(r);if(!stacksOn())return pagedGrid(page.id,page.key,order,i=>draftCard(r,i),page.after);const s=groupStacks(order,r,r.selected,copyLimit(r)),locked=!!fixedDeck(r,character());return pagedGrid(page.id,page.key,s.order,i=>stackButton(draftCard(r,i),s.stack(i),{attr:'data-pick',locked}),page.after)}
+// The selection the grid was last laid out with. A tap redraws the stacks in place, like the plain grid and Tag (Nori,
+// Discord 2026-11-20: with Deck first an emptied stack jumped away and the next quick tap added the card that slid under
+// the finger). A full redraw (renderDraft: a tab, filter or sort change) lays the grid out again.
+let draftLayout=null;
+function draftGridCards(r,keepLayout=false){if(!keepLayout||!draftLayout)draftLayout=[...r.selected];const order=draftOrder(r.pool,draftLayout),page=draftPage(r);if(!stacksOn())return pagedGrid(page.id,page.key,order,i=>draftCard(r,i),page.after);const s=groupStacks(order,r,r.selected,copyLimit(r)),locked=!!fixedDeck(r,character());return pagedGrid(page.id,page.key,s.order,i=>stackButton(draftCard(r,i),s.stack(i),{attr:'data-pick',locked}),page.after)}
 const draftCard=(r,i)=>markTile(deckCardMarkup(cardButton(r.pool[i],`data-pick="${i}"`,r.selected.includes(i),!!(r.card_mods&&r.card_mods[i]!==undefined)),card(r.pool[i]),r,i,content.artifactInfo),r,r.pool[i]);
 // Card marks (card-marks.js): the solo tap cycles the mark through the backend; Tag sends it to the host (tag-ui.js).
 let markBusy=false;
@@ -994,7 +1007,7 @@ function updateSplitPanes(r){
 }
 
 // Stacks (deck-stacks.js) change shape on every tap, so the grid is rebuilt; every scroll position is put back.
-function updateStackedGrid(r){const grid=app.querySelector('.draft-card-scroll .cardgrid'),scrollers=[...app.querySelectorAll('.draft-card-scroll,.draft-scroll')],tops=scrollers.map(s=>s.scrollTop);if(!grid)return;grid.innerHTML=draftGridCards(r);scrollers.forEach((s,n)=>s.scrollTop=tops[n]);markGoldenCards(app,r)}
+function updateStackedGrid(r){const grid=app.querySelector('.draft-card-scroll .cardgrid'),scrollers=[...app.querySelectorAll('.draft-card-scroll,.draft-scroll')],tops=scrollers.map(s=>s.scrollTop);if(!grid)return;grid.innerHTML=draftGridCards(r,true);scrollers.forEach((s,n)=>s.scrollTop=tops[n]);markGoldenCards(app,r)}
 function updateDraft(){if(screen!=='draft')return;const r=state.run,main=r.selected.filter(i=>!(card(r.pool[i]).data.type&64)).length;const minimum=deckMinimum(r,content.characters[r.character]),arrow=document.querySelector('.deck-count-arrow');if(arrow){arrow.disabled=!fixedDeck(r,character())&&(main<minimum||main>60);arrow.querySelector('strong').textContent=`${main}/${minimum}+`;arrow.setAttribute('aria-label',`${main}/${minimum}+ main deck cards — Next duel`);markGoldenCards(app,r);deckReadyFeedback(app,main,minimum);}document.querySelector('.draft-count').textContent=`${main} / ${deckMinimum(r,content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${copyLimitText(r)} ${fixedDeck(r,character())?'Fixed deck is read-only.':''}`;if(draftSplit)return updateSplitPanes(r);if(stacksOn())return updateStackedGrid(r);document.querySelectorAll('[data-pick]').forEach(el=>{const active=r.selected.includes(+el.dataset.pick);el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active))})}
 
 let draftTap=null,draftPointer=null;
@@ -1009,8 +1022,23 @@ function doubleTap(key,code){const now=performance.now();if(lastTap&&lastTap.key
 // Discord 2026-11-08) made every deck tap and inspect quietly do nothing until a restart; it is closed instead.
 function modalBlocking(){if(!modal.open)return false;let shown=true;try{shown=modal.matches(':modal')}catch{}if(!shown)modal.close();return shown}
 document.addEventListener('pointerdown',()=>{if(modal.open)modalBlocking()},true);
-async function toggleStack(el){if(!el.dataset.stackClear)return command('toggle',+el.dataset.pick);for(const i of el.dataset.stackClear.split(',').map(Number))await command('toggle',i)}
-function tapDraft(el){if(modalBlocking()||screen!=='draft')return;toggleStack(el).then(()=>{updateDraft();playUISound('deck-select')}).catch(e=>toast(e.message))}
+// Deck taps (Nori, Discord 2026-11-20): each tap keeps what it meant when it was drawn (deck-stacks.js tapIntent) and is
+// resolved against the deck when it runs, so a quick second − never puts a copy back. Taps made while one is saving go
+// to the backend together as one toggle list, and the grid is redrawn once, when no tap is waiting; a lone tap is as fast as before.
+let deckTaps=[],deckTapsRun=null;
+function queueDeckTap(el){deckTaps.push(steadyTap(state.run,tapIntent(el)));return deckTapsRun??=runDeckTaps().finally(()=>{deckTapsRun=null})}
+async function runDeckTaps(){
+ let changed=false;
+ while(deckTaps.length){
+  const taps=deckTaps.splice(0),r=state.run;if(screen!=='draft'||!r)break;
+  const limit=copyLimit(r),{toggles,blocked}=applyTaps(r,r.selected,taps,taps.length>1?limit:null);
+  if(blocked)toast(limit===1?'Singleton Pact allows only 1 copy of each card.':'Maximum three copies of a card.');
+  if(toggles.length)try{await command('toggle',toggles.length>1?toggles:toggles[0]);changed=true}catch(e){deckTaps.length=0;toast(e.message)}
+  if(changed&&!deckTaps.length){changed=false;updateDraft();playUISound('deck-select')}
+ }
+ deckTaps.length=0;
+}
+function tapDraft(el){if(modalBlocking()||screen!=='draft')return;void queueDeckTap(el)}
 
 function cancelDraftHold(){if(draftPointer){clearTimeout(draftPointer.timer);draftPointer.cancel=true}}
 
@@ -1038,7 +1066,7 @@ function warmOpponents(ids){if(state.settings.simpleBackgrounds||state.settings.
 const warmedArt=new Set();
 function warmDeckArt(ids){for(const id of new Set(ids)){if(warmedArt.has(id)||warmedArt.size>400)continue;warmedArt.add(id);const img=new Image();img.decoding='async';img.src=image(id)}}
 
-function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;warmOpponents(r.routes||[]);const key=JSON.stringify([r.started_at,r.character,r.loop,r.round,r.boss_rerolls||0,r.routes]);shell(`Loop ${(r.loop||0)+1} · Duel ${r.round+1} / 9${boss?'<span class="header-extra"> — BOSS ENCOUNTER</span>':''}`,`${boss?bossBanner(r):''}<div class="routes">${r.routes.map(i=>encounterCard(content,r,i,{button:btn,curseIcons})).join('')}</div>${boss?bossControls(r):''}`,`${!boss?`<span class="route-coins"><img src="assets/ui/coins.png" alt="Coins"><b>${coinLabel(r.gold)}</b></span>`:''}${r.stage==='shop'?btn('Back to shop','shop','','route-shop-back'):''}${fixedDeck(r,character())?'':`<button class="navigation-icon-button" data-do="draft" aria-label="Edit deck" title="Edit deck">${deckEditIcon}</button>`}`,`route-page${boss?' boss':''}`);mountRunStrip();if(boss&&!seenBossReveals.has(key)){seenBossReveals.add(key);if(seenBossReveals.size>64)seenBossReveals.delete(seenBossReveals.values().next().value);busy=true;playEncounterReveal({run:r,voice:juice.bossNameVoice,content,collectors:r.fallen_routes,opponents:r.routes,slot:true,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'}).finally(()=>busy=false)}}
+function renderRoutes(){const r=state.run,boss=(r.round+1)%3===0;warmOpponents(r.routes||[]);const key=JSON.stringify([r.started_at,r.character,r.loop,r.round,r.boss_rerolls||0,r.routes]);shell(`Loop ${(r.loop||0)+1} · Duel ${r.round+1} / 9${boss?'<span class="header-extra"> — BOSS ENCOUNTER</span>':''}`,`${boss?bossBanner(r):''}<div class="routes">${r.routes.map(i=>encounterCard(content,r,i,{button:btn,curseIcons})).join('')}</div>${boss?bossControls(r):''}`,`<span class="route-stats"><span class="route-lp"><b>${Number(r.lp||0).toLocaleString()}</b> LP</span>${!boss?`<span class="route-coins"><img src="assets/ui/coins.png" alt="Coins"><b>${coinLabel(r.gold)}</b></span>`:''}</span>${r.stage==='shop'?btn('Back to shop','shop','','route-shop-back'):''}${fixedDeck(r,character())?'':`<button class="navigation-icon-button" data-do="draft" aria-label="Edit deck" title="Edit deck">${deckEditIcon}</button>`}`,`route-page${boss?' boss':''}`);mountRunStrip();if(boss&&!seenBossReveals.has(key)){seenBossReveals.add(key);if(seenBossReveals.size>64)seenBossReveals.delete(seenBossReveals.values().next().value);busy=true;playEncounterReveal({run:r,voice:juice.bossNameVoice,content,collectors:r.fallen_routes,opponents:r.routes,slot:true,sound:duelSound,tickSound:slotTickSound,stopTick:()=>slotTick.pause(),active:()=>screen==='routes'}).finally(()=>busy=false)}}
 
 let shopSelection=new Set(),shopInventoryKey=null;
 
@@ -1164,10 +1192,11 @@ const duelThemeSetting=()=>`<div class="set-row set-looks"><span class="set-text
 // Card sleeves (2026-11-12, sleeves.js): duelist sleeves (Challenge Level 6 wins) and card-art sleeves (their own
 // conditions). Standard first, then every unlocked sleeve, then the locked ones greyed out; pressing a locked one
 // says how to unlock it (user, 2026-11-12). The bronze, silver and gold sleeves shine here only, never in a duel.
+// The credit line names Deds, the Discord player who drew the sleeve art (user, 2026-11-20).
 const sleeveSetting=()=>{const chosen=chosenSleeve(state.settings,state.profile,content),keys=allSleeves(content),open=keys.filter(k=>sleeveUnlocked(state.profile,k));
  const option=(key,src,name,ok,checked,tier='')=>`<label class="sleeve-option${ok?'':' locked'}" title="${esc(name)}"${tier?` data-tier="${tier}"`:''}${ok?'':` data-sleeve-locked="${esc(String(key))}"`}><input type="radio" name="card-sleeve" value="${esc(String(key))}" ${checked?'checked':''} ${ok?'':'aria-disabled="true"'}><img src="${src}" alt="" loading="lazy"><span>${esc(name)}</span></label>`;
  const row=key=>option(key,sleeveImage(content,key),sleeveName(content,key),sleeveUnlocked(state.profile,key),chosen===key,sleeveTier(content,key));
- return `<div class="set-row set-sleeves"><span class="set-text"><b>Card Sleeve</b><small class="sleeve-count">${open.length} / ${keys.length}</small></span><div class="sleeve-picker" role="radiogroup" aria-label="Card Sleeve">${option(-1,CARD_BACK,'Standard',true,chosen==null)}${open.map(row).join('')}${keys.filter(k=>!open.includes(k)).map(row).join('')}</div></div>`};
+ return `<div class="set-row set-sleeves"><span class="set-text"><b>Card Sleeve</b><small class="sleeve-count">${open.length} / ${keys.length}</small></span><p class="sleeve-credit">Sleeve designs by Deds</p><div class="sleeve-picker" role="radiogroup" aria-label="Card Sleeve">${option(-1,CARD_BACK,'Standard',true,chosen==null)}${open.map(row).join('')}${keys.filter(k=>!open.includes(k)).map(row).join('')}</div></div>`};
 document.addEventListener('click',e=>{const locked=e.target.closest?.('[data-sleeve-locked]');if(locked){e.preventDefault();const raw=locked.dataset.sleeveLocked;toast(sleeveCondition(content,/^\d+$/.test(raw)?Number(raw):raw),{replace:true})}});
 document.addEventListener('sleeve-mark',e=>{if(['draft'].includes(e.detail))void command('sleeve-mark',e.detail)});
 document.addEventListener('change',async e=>{if(e.target.name!=='card-sleeve')return;const raw=e.target.value,key=/^-?\d+$/.test(raw)?Number(raw):raw;if(key!==-1&&!sleeveUnlocked(state.profile,key))return;state.settings.sleeve=key;await command('settings',state.settings)});
@@ -2245,7 +2274,7 @@ function showVictoryReceipt(){
 
  rewardPresentation?.destroy();rewardPresentation=null;
 
- dialog('',`<section class="reward-tally">${deckMinimumNotice(state.run)}<strong class="reward-tally-total">+${Number(state.run.last_gold||0).toLocaleString()} <img class="earned-coin" src="assets/ui/coins.png" alt="coins"></strong>${(state.run.personal_bests||[]).map(x=>`<p class="reward-best">${esc(x)}</p>`).join('')}<div class="reward-tally-lines">${victoryRewardsMarkup(state.run.last_rewards,content.battleBonusLabels)}</div><button class="primary" data-do="reward-slots">Continue</button></section>`,false);
+ dialog('',`<section class="reward-tally">${deckMinimumNotice(state.run)}<strong class="reward-tally-total">+${Number(state.run.last_gold||0).toLocaleString()} <img class="earned-coin" src="assets/ui/coins.png" alt="coins"></strong>${(state.run.personal_bests||[]).map(x=>`<p class="reward-best">${esc(x)}</p>`).join('')}<div class="reward-tally-lines">${victoryRewardsMarkup(state.run.last_rewards,content.battleBonusLabels,secretCoinLabels())}</div><button class="primary" data-do="reward-slots">Continue</button></section>`,false);
 
  // The total counts up and the window celebrates by tier (juice.js), all inside the window.
  requestAnimationFrame(()=>juice.coinTally(modal.querySelector('.reward-tally'),Number(state.run.last_gold||0)));
@@ -2349,7 +2378,7 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
  if(el.dataset.openPack!==undefined){effect(true);openDraftPack(+el.dataset.openPack,true);return}
 
- if(el.dataset.pick!==undefined){if(e.detail===0&&!e.pointerType&&!modal.open){flushDraftTap();await toggleStack(el);updateDraft()}return}
+ if(el.dataset.pick!==undefined){if(e.detail===0&&!e.pointerType&&!modal.open){flushDraftTap();await queueDeckTap(el)}return}
 
  if(el.dataset.draftTab!==undefined){draftTab=el.dataset.draftTab;renderDraft();return}
 
@@ -2375,6 +2404,8 @@ document.addEventListener('click',async e=>{if(e.detail>0&&e.target.closest('[da
 
 });
 
+// Hidden coin feats (duel_rewards.SECRET): never listed until earned, then marked as found.
+const secretCoinLabels=()=>(content.secretCoinRules||[]).map(r=>r.label);
 function coinBonusMarkup(earned={}){
 
  const rules=content.battleCoinRules||[],pvp=!!snapshot?.tag?.pvp,won=snapshot?.finished?.player===0;
@@ -2385,7 +2416,7 @@ function coinBonusMarkup(earned={}){
 
  const row=(label,value,note)=>`<div class="coin-bonus-row ${value?'earned':''}" role="listitem"><span>${esc(label)}<small>${note}</small></span><b>${value>0?'+':''}${value}<img src="assets/ui/coins.png" alt="coins"></b></div>`;
 
- return `<div class="coin-bonus-summary"><b>${pvp?'No campaign coins in PvP':`${count} / ${rules.length} bonuses earned · ${total>=0?'+':''}${total} coins`}</b><p>${pvp?'These bonuses apply to campaign duels.':'Bonuses are paid if you win. Victory adds 30 coins; tiers stack, up to 400 total before relic modifiers. Early wins earn up to 205 extra coins. Turn penalties increase after turns 10, 20, 30 and onward. See the shop coin scorecard for amounts.'}</p></div><div class="coin-bonus-list" role="list" tabindex="0">${rules.map(x=>{const got=!pvp&&Object.hasOwn(earned,x.label);return row(x.label,got?x.coins:x.coins,x.label&&(got?'✓ Earned':x.victoryOnly&&!won?'Decided at victory':'Not yet earned'))}).join('')}${extra.map(([label,value])=>row(label,value,label.startsWith('Ancient Treasure')?'Earned by card effect':'Decided at victory')).join('')}</div>`;
+ return `<div class="coin-bonus-summary"><b>${pvp?'No campaign coins in PvP':`${count} / ${rules.length} bonuses earned · ${total>=0?'+':''}${total} coins`}</b><p>${pvp?'These bonuses apply to campaign duels.':'Bonuses are paid if you win. Victory adds 30 coins; tiers stack, up to 400 total before relic modifiers. Early wins earn up to 205 extra coins. Turn penalties increase after turns 10, 20, 30 and onward. See the shop coin scorecard for amounts.'}</p></div><div class="coin-bonus-list" role="list" tabindex="0">${rules.map(x=>{const got=!pvp&&Object.hasOwn(earned,x.label);return row(x.label,got?x.coins:x.coins,x.label&&(got?'✓ Earned':x.victoryOnly&&!won?'Decided at victory':'Not yet earned'))}).join('')}${extra.map(([label,value])=>row(label,value,label.startsWith('Ancient Treasure')?'Earned by card effect':secretCoinLabels().includes(label)?'Hidden feat!':'Decided at victory')).join('')}</div>`;
 
 }
 
@@ -2442,7 +2473,7 @@ async function action(a,el={dataset:{}},silent=false){
 
  if(a==='reward-accept'){if(modal.querySelector('[data-do="reward-accept"]')?.disabled)return;if(tagUI)await tagUI.session.request('reward-accept',rewardPresentation?.selected);else await command('reward-accept',rewardPresentation?.selected);rewardPresentation?.destroy();rewardPresentation=null;modal.close();render();await showFreePacks();return;}
 
- if(a==='reward-details'){const previous={nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent};dialog('Victory coin breakdown',victoryRewardsMarkup(state.run.last_rewards,content.battleBonusLabels));inspectParent=previous;return;}
+ if(a==='reward-details'){const previous={nodes:[...modal.childNodes],scroll:modal.scrollTop,focus:document.activeElement,parent:inspectParent};dialog('Victory coin breakdown',victoryRewardsMarkup(state.run.last_rewards,content.battleBonusLabels,secretCoinLabels()));inspectParent=previous;return;}
 
  if(a==='reward-deck'){if(!modal.querySelector('.reward-screen')||!state.run?.reward_slots?.pending)return;rewardDeckReturn=true;modal.close();go('draft');return;}
 
@@ -2476,7 +2507,7 @@ async function action(a,el={dataset:{}},silent=false){
  if(a==='char-marks-back'){const i=+el.dataset.charIndex,from=charEditor?.from;charEditor=null;if(from==='duel'){duelSettingsTab='character';dialog('Settings',duelSettingsMarkup())}else openCharacterSettings(i);return}
  if(a==='duel-settings-tab'){duelSettingsTab=el.dataset.tab;const box=el.closest('.duel-settings');box.querySelectorAll('[data-do="duel-settings-tab"]').forEach(b=>{const on=b===el;b.classList.toggle('active',on);b.setAttribute('aria-selected',on)});box.querySelectorAll('.duel-set-pane').forEach(p=>p.hidden=p.dataset.pane!==duelSettingsTab);return}
 
-if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);return;}if(a==='collection-collector-back'){collectionKind='cards';renderCollection();return;}if(a==='collector-decklist'){const d=collectorLeaders[+el.dataset.index];if(d)dialog(d.name,Object.entries(d.deck).map(([zone,ids])=>`<h3>${esc(zone==='extra'?'Fusion':zone)}</h3><div class="cardgrid collector-decklist-grid">${ids.map(id=>`<button data-inspect="${id}"><img src="${image(id)}" alt="${esc(card(id)?.name)}"></button>`).join('')}</div>`).join(''));return;}if(a==='coin-bonuses'){await showCoinBonuses();return}if(a==='curse-info'){dialog(content.curses[el.dataset.curse]?.[0]||'Curse',`<p>${esc(curseDescription(content,el.dataset.curse,state.run?.challenge_level))}</p>`);return}if(a==='cpu'){if(state.profile.cpu_viewer_unlocked)await openCPU();return}if(a==='tag'){await openTag();return}if(a==='draft-pvp'){await openCollector(true);return}if(a==='collector'){await openCollector();return}if(tagUI){if(a==='active-curses'){dialog(tagUI.isCollector?'Opponent relics':'Curses & LVL modifiers',modifierRowsMarkup(tagUI.view.modifiers));return}if(a==='pause'||a==='pause-title'||a==='title'){await tagUI.action('exit',{dataset:{}});return}if(a==='surrender'){dialog(tagUI.isCollector?'Surrender this duel?':'Surrender the team’s run?',tagUI.isCollector?`<p>This concedes the current duel. Your opponent gains one win in the best-of-three match.</p><div class="collector-surrender-actions">${duelConfirm('Confirm surrender','confirm-surrender')}${duelDecision('Cancel surrender','close','',true)}</div>`:duelConfirm('Confirm surrender','confirm-surrender'));return}if(a==='confirm-surrender'){modal.close();await tagUI.session.request('surrender');return}}if(busy&&!['close','toggle-chain','choose-monster-type','golden-card','relic-pick','relic-pick-reroll','weight-pick','card-pick-type','card-pick-select','card-pick-confirm','name-pick-select','name-pick-confirm','relic-ledger','relic-detail','active-curses','curse-info','surrender','confirm-surrender','resume-duel'].includes(a))return;if(!silent&&!['buy','close','select-purchase','shop-reroll','sell-relic'].includes(a)){if((screen==='shop'&&a==='draft')||(screen==='draft'&&a==='shop'))playUISound('window-close');else effect(['start','new','confirm-new'].includes(a));}
+if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);return;}if(a==='collection-collector-back'){collectionKind='cards';renderCollection();return;}if(a==='collector-decklist'){const d=collectorLeaders[+el.dataset.index];if(d)dialog(d.name,Object.entries(d.deck).map(([zone,ids])=>`<h3>${esc(zone==='extra'?'Fusion':zone)}</h3><div class="cardgrid collector-decklist-grid">${ids.map(id=>`<button data-inspect="${id}"><img src="${image(id)}" alt="${esc(card(id)?.name)}"></button>`).join('')}</div>`).join(''));return;}if(a==='coin-bonuses'){await showCoinBonuses();return}if(a==='curse-info'){dialog(content.curses[el.dataset.curse]?.[0]||'Curse',curseInfoMarkup(content,el.dataset.curse,state.run?.challenge_level,+el.dataset.count||1));return}if(a==='cpu'){if(state.profile.cpu_viewer_unlocked)await openCPU();return}if(a==='tag'){await openTag();return}if(a==='draft-pvp'){await openCollector(true);return}if(a==='collector'){await openCollector();return}if(tagUI){if(a==='active-curses'){dialog(tagUI.isCollector?'Opponent relics':'Curses & LVL modifiers',modifierRowsMarkup(tagUI.view.modifiers));return}if(a==='pause'||a==='pause-title'||a==='title'){await tagUI.action('exit',{dataset:{}});return}if(a==='surrender'){dialog(tagUI.isCollector?'Surrender this duel?':'Surrender the team’s run?',tagUI.isCollector?`<p>This concedes the current duel. Your opponent gains one win in the best-of-three match.</p><div class="collector-surrender-actions">${duelConfirm('Confirm surrender','confirm-surrender')}${duelDecision('Cancel surrender','close','',true)}</div>`:duelConfirm('Confirm surrender','confirm-surrender'));return}if(a==='confirm-surrender'){modal.close();await tagUI.session.request('surrender');return}}if(busy&&!['close','toggle-chain','choose-monster-type','golden-card','relic-pick','relic-pick-reroll','weight-pick','card-pick-type','card-pick-select','card-pick-confirm','name-pick-select','name-pick-confirm','relic-ledger','relic-detail','active-curses','curse-info','surrender','confirm-surrender','resume-duel'].includes(a))return;if(!silent&&!['buy','close','select-purchase','shop-reroll','sell-relic'].includes(a)){if((screen==='shop'&&a==='draft')||(screen==='draft'&&a==='shop'))playUISound('window-close');else effect(['start','new','confirm-new'].includes(a));}
 
  if(a==='active-curses'){const rows=await command('active-curses');dialog('This duel: curses & difficulty',modifierRowsMarkup(rows));return}
 
@@ -2516,7 +2547,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  // Language picker (title screen flag): native names are never translated; the screen redraws in the new language.
  if(a==='language'){dialog('Language',`<div class="language-list">${LANGUAGES.map(([code,name])=>`<button data-do="set-language" data-lang="${code}" class="${code===currentLanguage()?'active':''}" data-no-i18n>${flagSvg(code)}<span>${name}</span></button>`).join('')}</div>`);return}
- if(a==='set-language'){modal.close();await setLanguage(el.dataset.lang).catch(error=>toast(error.message));render();return}
+ if(a==='set-language'){modal.close();await setLanguage(el.dataset.lang).catch(error=>toast(error.message));resetLocalizedCards();render();return}
  if(a==='deselect-all'&&screen==='draft'){dialog('Deselect all?',`<p>Take every card out of your deck?</p>${btn('Deselect all','deselect-all-confirm','','primary')}`);return}
  if(a==='deselect-all'||a==='deselect-all-confirm'){if(a==='deselect-all-confirm')modal.close();flushDraftTap();await command('deselect-all');updateDraft();return}
 
@@ -2644,7 +2675,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='counters'){const counters=[...document.querySelectorAll('[data-counter]')].map(x=>+x.value);if(counters.reduce((a,b)=>a+b,0)!==engine.pending.count)return toast('Select the required counter total.');return respond({type:R.SELECT_COUNTER,counters})}
 
- if(a==='scorecard'){dialog('Coin scorecard',coinScorecardMarkup(content.battleCoinRules,state.run?.last_rewards));return}
+ if(a==='scorecard'){const found=new Set(state.profile?.secret_coin_feats||[]);dialog('Coin scorecard',coinScorecardMarkup(content.battleCoinRules,state.run?.last_rewards,(content.secretCoinRules||[]).filter(r=>found.has(r.id))));return}
 
  if(a==='relic-ledger'){if(modal.open&&modal.querySelector('.reward-screen'))showRewardOverlay('Run relics',relicLedgerMarkup(null,false,true));else dialog('Run relics',relicLedgerMarkup());return}
 
@@ -2727,6 +2758,7 @@ window.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target
 async function boot(){try{
  // Interface language: the player's saved choice, else the browser's language (2026-11-08).
  await setLanguage(savedLanguage()||browserLanguage(),{remember:false}).catch(error=>console.warn('Language',error));
+ resetLocalizedCards();
 
  // Ask about an update first: it would replace everything loaded below. A slow check must not hold up the game.
  let updatePromptOpen=false;
@@ -2757,8 +2789,9 @@ async function boot(){try{
 
  document.querySelector('#loading-status').textContent='Step 3 of 6 · Starting campaign runtime…';
  // Python reads its standard library from python_stdlib.zip. It is checked first and the checked bytes are what Pyodide
- // loads (Discord, 2026-11-17: exit(1) in init_fs_encoding). Some devices still lose `encodings` inside Python's zip
- // reader (2026-11-19), so the automatic retry starts Python from an unpacked folder of the same bytes (boot-diagnostics.js).
+ // loads. The exit(1) reports (Discord, 2026-11-17 to 11-20) came from phones in Arabic and other languages whose time
+ // zone names Python could not read: asciiTimeZoneNames() gives Pyodide English names (boot-diagnostics.js).
+ asciiTimeZoneNames();
  const pyIndex=new URL('pyodide/',location.href).href,stdlib=await prepareStdlib(pyIndex,{retry:startupRetried()}),pyErrors=stderrTail();
  bootDiag={stage:'python',zip:stdlib.report,stderr:pyErrors.lines};
  try{py=await loadPyodide({indexURL:pyIndex,...stdlib.options,stderr:pyErrors.write});stdlib.started()}catch(error){stdlib.failed();throw error}finally{stdlib.release()}

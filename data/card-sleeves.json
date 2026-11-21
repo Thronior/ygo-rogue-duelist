@@ -782,6 +782,814 @@
    "card": 62873545
   },
   {
+   "id": "dark-magician",
+   "art": "Dark Magician",
+   "text": "Summon Dark Magician.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "dmSummons",
+    "min": 1
+   },
+   "card": 46986414
+  },
+  {
+   "id": "dark-magician-2",
+   "art": "Dark Magician",
+   "text": "Summon Dark Magician 10 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "dmSummons",
+    "min": 10
+   },
+   "card": 46986414
+  },
+  {
+   "id": "dark-magician-3",
+   "art": "Dark Magician",
+   "text": "Summon Dark Magician 25 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "dmSummons",
+    "min": 25
+   },
+   "card": 46986414
+  },
+  {
+   "id": "dark-magician-girl-2",
+   "art": "Dark Magician Girl",
+   "text": "Deal the final blow with Dark Magician Girl.",
+   "rule": {
+    "kind": "win",
+    "key": "dmgFinish",
+    "min": 1
+   },
+   "card": 38033121
+  },
+  {
+   "id": "blue-eyes-white-dragon",
+   "art": "Blue-Eyes White Dragon",
+   "text": "Deal the final blow with a monster that has 3,000 or more ATK.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:bigFinish",
+    "min": 1
+   },
+   "card": 89631139
+  },
+  {
+   "id": "blue-eyes-white-dragon-2",
+   "art": "Blue-Eyes White Dragon",
+   "text": "Deal the final blow with a monster that has 3,000 or more ATK in 10 duels (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:bigFinish",
+    "min": 10
+   },
+   "card": 89631139
+  },
+  {
+   "id": "red-eyes-black-dragon",
+   "art": "Red-Eyes Black Dragon",
+   "text": "Win a duel while you control Red-Eyes Black Dragon.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:name:Red-Eyes Black Dragon",
+    "min": 1
+   },
+   "card": 74677422
+  },
+  {
+   "id": "red-eyes-black-dragon-2",
+   "art": "Red-Eyes Black Dragon",
+   "text": "Win 10 duels while you control Red-Eyes Black Dragon (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:name:Red-Eyes Black Dragon",
+    "min": 10
+   },
+   "card": 74677422
+  },
+  {
+   "id": "black-luster-soldier",
+   "art": "Black Luster Soldier",
+   "text": "Ritual Summon 10 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "ritual",
+    "min": 10
+   },
+   "card": 5405694
+  },
+  {
+   "id": "black-luster-soldier-2",
+   "art": "Black Luster Soldier",
+   "text": "Ritual Summon 25 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "ritual",
+    "min": 25
+   },
+   "card": 5405694
+  },
+  {
+   "id": "black-luster-soldier-3",
+   "art": "Black Luster Soldier",
+   "text": "Ritual Summon 100 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "ritual",
+    "min": 100
+   },
+   "card": 5405694
+  },
+  {
+   "id": "celtic-guardian",
+   "art": "Celtic Guardian",
+   "text": "Win 10 duels while you control a Warrior monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Warrior",
+    "min": 10
+   },
+   "card": 91152256
+  },
+  {
+   "id": "celtic-guardian-2",
+   "art": "Celtic Guardian",
+   "text": "Win 25 duels while you control a Warrior monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Warrior",
+    "min": 25
+   },
+   "card": 91152256
+  },
+  {
+   "id": "celtic-guardian-3",
+   "art": "Celtic Guardian",
+   "text": "Win 50 duels while you control a Warrior monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Warrior",
+    "min": 50
+   },
+   "card": 91152256
+  },
+  {
+   "id": "obnoxious-celtic-guard",
+   "art": "Obnoxious Celtic Guard",
+   "text": "Win 100 duels while you control a Warrior monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Warrior",
+    "min": 100
+   },
+   "card": 52077741
+  },
+  {
+   "id": "thousand-dragon",
+   "art": "Thousand Dragon",
+   "text": "Win a duel that lasts 20 turns or more.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:turns20",
+    "min": 1
+   },
+   "card": 41462083
+  },
+  {
+   "id": "thousand-dragon-2",
+   "art": "Thousand Dragon",
+   "text": "Win 5 duels that last 20 turns or more (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:turns20",
+    "min": 5
+   },
+   "card": 41462083
+  },
+  {
+   "id": "thousand-dragon-3",
+   "art": "Thousand Dragon",
+   "text": "Win 10 duels that last 20 turns or more (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:turns20",
+    "min": 10
+   },
+   "card": 41462083
+  },
+  {
+   "id": "thousand-dragon-4",
+   "art": "Thousand Dragon",
+   "text": "Win 25 duels that last 20 turns or more (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:turns20",
+    "min": 25
+   },
+   "card": 41462083
+  },
+  {
+   "id": "ancient-golem",
+   "art": "Ancient Golem",
+   "text": "Win 10 duels while you control a Machine monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Machine",
+    "min": 10
+   }
+  },
+  {
+   "id": "ancient-golem-2",
+   "art": "Ancient Golem",
+   "text": "Win 25 duels while you control a Machine monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Machine",
+    "min": 25
+   }
+  },
+  {
+   "id": "harpie-lady-1",
+   "art": "Harpie Lady 1",
+   "text": "Win a duel while you control a \"Harpie\" monster.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:nameHas:Harpie",
+    "min": 1
+   },
+   "card": 91932350
+  },
+  {
+   "id": "harpie-lady-2",
+   "art": "Harpie Lady 2",
+   "text": "Win 10 duels while you control a \"Harpie\" monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:nameHas:Harpie",
+    "min": 10
+   },
+   "card": 27927359
+  },
+  {
+   "id": "harpie-lady-3",
+   "art": "Harpie Lady 3",
+   "text": "Win 25 duels while you control a \"Harpie\" monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:nameHas:Harpie",
+    "min": 25
+   },
+   "card": 54415063
+  },
+  {
+   "id": "super-robolady",
+   "art": "Super Robolady",
+   "text": "Return 5 of your monsters to the Extra Deck (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "toExtra",
+    "min": 5
+   },
+   "card": 75923050
+  },
+  {
+   "id": "super-roboyarou",
+   "art": "Super Roboyarou",
+   "text": "Return 10 of your monsters to the Extra Deck (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "toExtra",
+    "min": 10
+   },
+   "card": 1412158
+  },
+  {
+   "id": "dark-paladin-2",
+   "art": "Dark Paladin",
+   "text": "Win runs on Challenge Level 2 or higher with 5 different duelists.",
+   "rule": {
+    "kind": "duelists_level",
+    "level": 2,
+    "min": 5
+   },
+   "card": 98502113
+  },
+  {
+   "id": "gemini-elf-2",
+   "art": "Gemini Elf",
+   "text": "Win 5 Tag runs.",
+   "rule": {
+    "kind": "lifetime",
+    "key": "tagWins",
+    "min": 5
+   },
+   "card": 69140098
+  },
+  {
+   "id": "polymerization-2",
+   "art": "Polymerization",
+   "text": "Fusion Summon 3 times in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "fusionDuel",
+    "min": 3
+   },
+   "card": 24094653
+  },
+  {
+   "id": "polymerization-3",
+   "art": "Polymerization",
+   "text": "Fusion Summon 5 times in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "fusionDuel",
+    "min": 5
+   },
+   "card": 24094653
+  },
+  {
+   "id": "pot-of-greed-2",
+   "art": "Pot of Greed",
+   "text": "Draw 1,000 cards (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "draws",
+    "min": 1000
+   },
+   "card": 55144522
+  },
+  {
+   "id": "time-wizard-2",
+   "art": "Time Wizard",
+   "text": "Win the Time Wizard toss 3 times in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "timeWizardWins",
+    "min": 3
+   },
+   "card": 71625222
+  },
+  {
+   "id": "mokey-mokey-2",
+   "art": "Mokey Mokey",
+   "text": "Deal the final blow with a monster that has 500 or less ATK in 10 duels (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:weakFinish",
+    "min": 10
+   },
+   "card": 27288416
+  },
+  {
+   "id": "sasuke-samurai-2",
+   "art": "Sasuke Samurai #2",
+   "text": "Pay 10,000 LP for card costs (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "lpPaid",
+    "min": 10000
+   },
+   "card": 11760174
+  },
+  {
+   "id": "sasuke-samurai-4",
+   "art": "Sasuke Samurai #4",
+   "text": "Destroy 25 monsters with coin-toss effects (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "coinKills",
+    "min": 25
+   },
+   "card": 64538655
+  },
+  {
+   "id": "nightmare-penguin",
+   "art": "Nightmare Penguin",
+   "text": "Return 100 of your opponent's monsters to the hand (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "bounced",
+    "min": 100
+   },
+   "card": 81306586
+  },
+  {
+   "id": "slate-warrior",
+   "art": "Slate Warrior",
+   "text": "Flip Summon 50 monsters (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "flipSummons",
+    "min": 50
+   },
+   "card": 78636495
+  },
+  {
+   "id": "perfectly-ultimate-great-moth",
+   "art": "Perfectly Ultimate Great Moth",
+   "text": "Win a duel that lasts 60 turns or more.",
+   "rule": {
+    "kind": "win",
+    "key": "turn",
+    "min": 60
+   },
+   "card": 48579379
+  },
+  {
+   "id": "xyz-dragon-cannon-2",
+   "art": "XYZ-Dragon Cannon",
+   "text": "Make 25 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 25
+   },
+   "card": 91998119
+  },
+  {
+   "id": "xyz-dragon-cannon-3",
+   "art": "XYZ-Dragon Cannon",
+   "text": "Make 50 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 50
+   },
+   "card": 91998119
+  },
+  {
+   "id": "xyz-dragon-cannon-4",
+   "art": "XYZ-Dragon Cannon",
+   "text": "Make 75 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 75
+   },
+   "card": 91998119
+  },
+  {
+   "id": "vw-tiger-catapult",
+   "art": "VW-Tiger Catapult",
+   "text": "Make 100 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 100
+   }
+  },
+  {
+   "id": "vwxyz-dragon-catapult-cannon",
+   "art": "VWXYZ-Dragon Catapult Cannon",
+   "text": "Make 150 relic fusions (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "relicFusions",
+    "min": 150
+   }
+  },
+  {
+   "id": "allure-of-darkness",
+   "art": "Allure of Darkness",
+   "text": "Banish 100 DARK monsters (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "darkBanished",
+    "min": 100
+   }
+  },
+  {
+   "id": "book-of-moon",
+   "art": "Book of Moon",
+   "text": "Change 50 monsters to face-down Defense Position with card effects (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "flippedDown",
+    "min": 50
+   },
+   "card": 14087893
+  },
+  {
+   "id": "castle-of-dark-illusions",
+   "art": "Castle of Dark Illusions",
+   "text": "Defeat PaniK as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:PaniK",
+    "min": 5
+   },
+   "card": 62121
+  },
+  {
+   "id": "dark-necrofear",
+   "art": "Dark Necrofear",
+   "text": "Win a duel while you control Dark Necrofear.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Dark Necrofear"
+    ]
+   },
+   "card": 31829185
+  },
+  {
+   "id": "delinquent-duo",
+   "art": "Delinquent Duo",
+   "text": "Make your opponent discard 30 cards (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "oppDiscards",
+    "min": 30
+   },
+   "card": 44763025
+  },
+  {
+   "id": "masked-beast-des-gardius",
+   "art": "Masked Beast Des Gardius",
+   "text": "Defeat Lumis and Umbra as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Lumis and Umbra",
+    "min": 5
+   },
+   "card": 48948935
+  },
+  {
+   "id": "divine-serpent-geh",
+   "art": "Divine Serpent Geh",
+   "text": "Win a duel after taking 10,000 or more damage.",
+   "rule": {
+    "kind": "win",
+    "key": "damageTaken",
+    "min": 10000
+   }
+  },
+  {
+   "id": "embodiment-of-apophis",
+   "art": "Embodiment of Apophis",
+   "text": "Activate 100 Trap Cards (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "trapsActivated",
+    "min": 100
+   },
+   "card": 28649820
+  },
+  {
+   "id": "flame-swordsman",
+   "art": "Flame Swordsman",
+   "text": "Win a duel while you control Flame Swordsman.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Flame Swordsman"
+    ]
+   },
+   "card": 45231177
+  },
+  {
+   "id": "fortress-whale",
+   "art": "Fortress Whale",
+   "text": "Win a duel while you control Fortress Whale.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Fortress Whale"
+    ]
+   },
+   "card": 62337487
+  },
+  {
+   "id": "gandora-the-dragon-of-destruction",
+   "art": "Gandora the Dragon of Destruction",
+   "text": "Win a duel while you control Gandora the Dragon of Destruction.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Gandora the Dragon of Destruction"
+    ]
+   },
+   "card": 64681432
+  },
+  {
+   "id": "gearfried-the-iron-knight",
+   "art": "Gearfried the Iron Knight",
+   "text": "Win a run without activating an Equip Spell.",
+   "rule": {
+    "kind": "run",
+    "key": "no_equips"
+   },
+   "card": 423705
+  },
+  {
+   "id": "gogiga-gagagigo",
+   "art": "Gogiga Gagagigo",
+   "text": "Win 10 duels while you control a Reptile monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Reptile",
+    "min": 10
+   },
+   "card": 39674352
+  },
+  {
+   "id": "gravekeepers-visionary",
+   "art": "Gravekeeper's Visionary",
+   "text": "Win 5 duels with an empty Graveyard (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:emptyGrave",
+    "min": 5
+   }
+  },
+  {
+   "id": "guardian-angel-joan",
+   "art": "Guardian Angel Joan",
+   "text": "Gain 10,000 or more LP in one duel.",
+   "rule": {
+    "kind": "duel",
+    "key": "lpGained",
+    "min": 10000
+   },
+   "card": 68007326
+  },
+  {
+   "id": "the-inexperienced-spy",
+   "art": "The Inexperienced Spy",
+   "text": "Look at your opponent's hand with card effects 25 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "handLooks",
+    "min": 25
+   },
+   "card": 81820689
+  },
+  {
+   "id": "insect-queen",
+   "art": "Insect Queen",
+   "text": "Defeat Weevil Underwood as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Weevil Underwood",
+    "min": 5
+   },
+   "card": 91512835
+  },
+  {
+   "id": "jerry-beans-man",
+   "art": "Jerry Beans Man",
+   "text": "Win a duel with a Main Deck whose monsters are all Normal Monsters.",
+   "rule": {
+    "kind": "win",
+    "key": "normalDeck",
+    "min": 1
+   }
+  },
+  {
+   "id": "la-jinn",
+   "art": "La Jinn the Mystical Genie of the Lamp",
+   "text": "Defeat the World Champion 3 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:World Champion",
+    "min": 3
+   },
+   "card": 97590747
+  },
+  {
+   "id": "lava-golem",
+   "art": "Lava Golem",
+   "text": "Defeat Yami Marik as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Yami Marik",
+    "min": 5
+   },
+   "card": 102380
+  },
+  {
+   "id": "mask-of-dispel",
+   "art": "Mask of Dispel",
+   "text": "Deal 25,000 effect damage (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "effectDamage",
+    "min": 25000
+   },
+   "card": 20765952
+  },
+  {
+   "id": "millennium-golem",
+   "art": "Millennium Golem",
+   "text": "Defeat Aknadin as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Aknadin",
+    "min": 5
+   },
+   "card": 47986555
+  },
+  {
+   "id": "mobius-the-frost-monarch",
+   "art": "Mobius the Frost Monarch",
+   "text": "Tribute Summon 50 monsters (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "tributeSummons",
+    "min": 50
+   },
+   "card": 4929256
+  },
+  {
+   "id": "mudora",
+   "art": "Mudora",
+   "text": "Win a duel with 20 or more cards in your Graveyard.",
+   "rule": {
+    "kind": "win",
+    "key": "grave",
+    "min": 20
+   },
+   "card": 82108372
+  },
+  {
+   "id": "orgoth-the-relentless",
+   "art": "Orgoth the Relentless",
+   "text": "Defeat Duke Devlin as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Duke Devlin",
+    "min": 5
+   }
+  },
+  {
+   "id": "pumpking-the-king-of-ghosts",
+   "art": "Pumpking the King of Ghosts",
+   "text": "Win 10 duels while you control a Zombie monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Zombie",
+    "min": 10
+   },
+   "card": 29155212
+  },
+  {
+   "id": "saggi-the-dark-clown",
+   "art": "Saggi the Dark Clown",
+   "text": "Deal the final blow with a monster that has 1,000 or less ATK in 25 duels (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:lowFinish",
+    "min": 25
+   },
+   "card": 66602787
+  },
+  {
+   "id": "the-seal-of-orichalcos",
+   "art": "The Seal of Orichalcos",
+   "text": "Defeat Dartz as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Dartz",
+    "min": 5
+   }
+  },
+  {
+   "id": "shinato-king-of-a-higher-plane",
+   "art": "Shinato, King of a Higher Plane",
+   "text": "Defeat Noah Kaiba as an opponent 5 times (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "beat:Noah Kaiba",
+    "min": 5
+   },
+   "card": 86327225
+  },
+  {
+   "id": "thunder-dragon",
+   "art": "Thunder Dragon",
+   "text": "Win 10 duels while you control a Thunder monster (across runs).",
+   "rule": {
+    "kind": "lifetime",
+    "key": "wins:race:Thunder",
+    "min": 10
+   },
+   "card": 31786629
+  },
+  {
+   "id": "vampire-genesis",
+   "art": "Vampire Genesis",
+   "text": "Win a duel while you control Vampire Genesis.",
+   "rule": {
+    "kind": "win_control",
+    "cards": [
+     "Vampire Genesis"
+    ]
+   },
+   "card": 22056710
+  },
+  {
    "id": "rainbow",
    "art": "Rainbow",
    "text": "Win a run on Challenge Level 6 with every duelist.",

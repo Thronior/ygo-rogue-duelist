@@ -71,7 +71,7 @@ R.State={
 	--Conditions of the unique mechanics (user's list of 50 cards).
 	opp_turn=function(e,tp) return Duel.IsTurnPlayer(1-tp) end,
 	opp_bp=function(e,tp) return Duel.IsTurnPlayer(1-tp) and Duel.IsBattlePhase() end,
-	lp_gap=function(e,tp,p) return Duel.GetLP(1-tp)-Duel.GetLP(tp)>=p.n end,
+	lp_gap=function(e,tp,p) return Duel.GetLP(1-tp)-Duel.GetLP(tp)>=(p.n or 1) end,   --"more LP than you" (a bare piece had no n, Nov 20)
 	gy_cards=function(e,tp,p) return Duel.GetFieldGroupCount(tp,LOCATION_GRAVE,0)>=p.n end,
 	kills=function(e,tp,p) return e:GetHandler():GetFlagEffect(191999001)>=p.n end,
 	control_normals=function(e,tp,p)
@@ -19243,8 +19243,18 @@ R.Rule.double_spell={reg=function(c)
 		if chk==0 then return Duel.IsExistingMatchingCard(filter,tp,LOCATION_HAND,0,1,e:GetHandler()) end
 		Duel.DiscardHand(tp,filter,1,1,REASON_COST|REASON_DISCARD)
 	end)
+	--Not another copy of this effect (Double Spell or a randomized card with it): copying a copy crashed the duel engine
+	--(Nov 20, "memory access out of bounds"). No Equip Spells: copying a randomized one hung or crashed it.
+	local function copies(tc)
+		if tc:IsCode(24096228) then return true end
+		local mt=tc:GetMetatable()
+		for _,ef in ipairs(mt and mt.rand and mt.rand.effects or {}) do
+			for _,a in ipairs(ef.acts or {}) do if a.k=='double_spell' then return true end end
+		end
+		return false
+	end
 	local filter=function(tc,e,tp,eg,ep,ev,re,r,rp)
-		return tc:IsSpell() and tc:CheckActivateEffect(false,false,false)~=nil
+		return tc:IsSpell() and not tc:IsType(TYPE_EQUIP) and not copies(tc) and tc:CheckActivateEffect(false,false,false)~=nil
 	end
 	effect:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk)
 		if chk==0 then return Duel.IsExistingTarget(filter,tp,0,LOCATION_GRAVE,1,e:GetHandler(),e,tp,eg,ep,ev,re,r,rp) end

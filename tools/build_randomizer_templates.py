@@ -47,7 +47,13 @@ SENTENCE=re.compile(r'^(Once|When|If|During|While|At|Each|You cannot|This card)\
 # An action that only works with its real timing (it negates, or reads the attack or battle) keeps that timing, and
 # one that reads its cost ("the number banished for this effect", "that many") keeps its costs.
 NEEDS_TIMING=re.compile(r'negate|attack|battl|chain|redirect')
-TIMING_TEXT=re.compile(r'\bnegate|\bthat (?:Spell|Trap|card|monster|attack|effect)\b|\bthe (?:attack|attacking|attacked|activated|Summoned)\b',re.I)
+TIMING_TEXT=re.compile(r'\bnegate|\bthat (?:Spell|Trap|card|monster|attack|effect|draw)\b|\bthe (?:attack|attacking|attacked|activated|Summoned)\b',re.I)
+# Pieces that only set up another effect of their card (counters it places, a count it keeps): dealt alone they did
+# nothing ("Place 1 counter on this card during each of your Standby Phases", Discord Nov 20). A card with one keeps
+# all its effects, whole.
+SETUP_ONLY={'wave_motion_counter','breaker_place_counter','hannibal_counter_setup','hannibal_normal_summon_counter',
+ 'royal_magical_library_counters','spell_counter_per_spell_activation','mausoleum_proc',
+ 'manticore_grave_flag'}   # "If this card is sent to the GY, remember it until the End Phase" (Nov 20)
 READS_COST=re.compile(r'for this effect|for the cost|that many|the (?:discarded|Tributed|banished|sent|paid)\b|as many',re.I)
 DCATS=('conds','costs','acts','limits','others')
 # Archetypes (user, Nov 19): a piece that names an archetype ("Archfiend monster", "'Gravekeeper's' monster", or an
@@ -141,6 +147,7 @@ def build_deck(cards,named):
   if slot=='s_ritual':continue   # a Ritual Spell is made with its Ritual Monster
   tags=[t for t in c.get('frame_tags',[]) if t in KIND_TAGS+('flip',)]
   sh=dict(s=slot,f=c.get('frame',''),t=tags,an=[],sk=[])
+  pinned=any(p['k'] in SETUP_ONLY for e in c.get('effects',[]) for cat in DCATS for p in e.get(cat,[]))
   for e in c.get('effects',[]):
    keys={p['k'] for cat in DCATS for p in e.get(cat,[])}
    # what makes a Spirit or a Toon, and every summoning rule, stays with its card
@@ -151,6 +158,10 @@ def build_deck(cards,named):
     else:excluded['rule naming a real card']+=1
     continue
    if not e.get('acts'):continue
+   if pinned:
+    if all(ok(cat,p) for cat in DCATS for p in e.get(cat,[])):sh['an'].append({x:[markar(x,mark(p)) for p in e.get(x,[])] for x in DCATS}|{'kind':e['kind'],'whole':True})
+    else:excluded['effect of a card with a setup piece, naming a real card']+=1
+    continue
    if any(p['k'] not in SHUFFLED_RULES and (p['k'] in LUA_RULES or SENTENCE.match(R.ACTS.get(p['k'],R.AURAS.get(p['k'],{})).get('text',''))) for p in e['acts']):
     if all(ok(cat,p) for cat in DCATS for p in e.get(cat,[])):
      sh['an'].append({x:[markar(x,mark(p)) for p in e.get(x,[])] for x in DCATS}|{'kind':e['kind'],'whole':True})
@@ -204,7 +215,10 @@ def build_deck(cards,named):
     bags[f'{k}|conds|{sub}'].append({**p,'_s':slot})
   if c['frame'] in ('normal','effect','fusion','ritual'):
    r=next(x for x in json_era if x['id']==c['id'])
-   sh['st']=[r['level'],r['atk'],r['defense']];sh['ra']=[r['race'],r['attribute']]
+   # a "?" ATK or DEF (-1/-2 in the card data) only means something with its card's own effect; dealt to another
+   # card it was a 0/0 Level 10 (Nov 20), so that stat line is left out
+   if r['atk']>=0 and r['defense']>=0:sh['st']=[r['level'],r['atk'],r['defense']]
+   sh['ra']=[r['race'],r['attribute']]
   shells.append(sh)
  return dict(shells=shells,bags=dict(bags),excluded=dict(excluded),lua_rules=sorted(LUA_RULES))
 

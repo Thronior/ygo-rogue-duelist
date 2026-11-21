@@ -133,6 +133,13 @@ function buildCardMaps(){
  for(const a of content.archetypes||[]){const local=cards.setnames?.[a.setcode];if(local)add(a.name,local)}
  cardMaps=map;memo.clear();
 }
+// A card's name and text in the current language, as the inspect panel shows them (localized-cards.js draws them on the
+// card picture). Null in English or when the language has no entry for the card.
+export function localCardText(c){
+ if(lang==='en'||!cards||!c)return null;const local=cards[c.id];if(!local)return null;
+ const own=ui.get(norm(cleanText(c.desc||'')));
+ return {name:local[0],desc:own??local[1]??c.desc};
+}
 export function attachContent(c,displayCardText){content=c;if(displayCardText)cleanText=displayCardText;buildCardMaps()}
 
 // Loads a language bundle (android/web/i18n/<code>.json) and starts translating the page.

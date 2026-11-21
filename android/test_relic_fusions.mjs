@@ -131,6 +131,15 @@ for(const key of ['','undying_legion']){let healed=false;
   return null}});
  assert.ok(healed,'Dian Keto was played');
  assert.equal(e.lp[0],key?8500:9000,key?'Undying Legion: 1,000 LP gained becomes 500':'without the relic Dian Keto gains 1,000');}
+// Undying Legion's Standby revive (user, 2026-11-20): Foolish Burial sends Armored Zombie on turn 1; on turn 3 one comes back
+// in Attack Position although a Zombie is already on the field.
+for(const key of ['','undying_legion']){let buried=false;
+ duel(key,fill('Foolish Burial','Armored Zombie'),WALL,{turns:3,summon:[id('Armored Zombie')],step:m=>{
+  if(m.type===M.SELECT_IDLECMD&&e.turn===1&&!buried){const k=m.activates.findIndex(c=>c.code===id('Foolish Burial'));if(k>=0){buried=true;return {type:R.SELECT_IDLECMD,action:I.SELECT_ACTIVATE,index:k}}}
+  return null}});
+ assert.ok(buried,'Foolish Burial was played');assert.equal(e.query(0,L.GRAVE).filter(c=>c?.code===id('Armored Zombie')).length,key?0:1,key?'Undying Legion: the buried Zombie left the GY':'without the relic it stays in the GY');
+ assert.equal(mine().filter(c=>c.code===id('Armored Zombie')).length,key?3:2,key?'Undying Legion: revived at the Standby Phase with a monster already out':'without the relic only the 2 Normal Summons');
+ if(key)assert.ok(mine().every(c=>c.position&1),'Undying Legion: the revived Zombie is in Attack Position');}
 // Titan's Covenant: Dark Magician (Level 7) needs only 1 Tribute and gains 1,200 ATK.
 duel('titans_covenant',fill('Mystical Elf','Dark Magician'),WALL,{turns:3,step:m=>{
  if(m.type===M.SELECT_IDLECMD&&e.turn===3){const k=m.summons.findIndex(c=>c.code===id('Dark Magician'));if(k>=0)return {type:R.SELECT_IDLECMD,action:I.SELECT_SUMMON,index:k}}

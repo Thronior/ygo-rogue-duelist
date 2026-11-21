@@ -9,11 +9,12 @@ const body=(src,name)=>{const start=src.indexOf(`function ${name}(`);assert(star
 
 // Solo: a tap only toggles classes on the cards already shown, so neither scroll nor order changes.
 const mobile=source('mobile.js');
-for(const name of ['tapDraft','flushDraftTap','updateDraft']){
+for(const name of ['tapDraft','runDeckTaps','flushDraftTap','updateDraft']){
  const fn=body(mobile,name);
  assert.doesNotMatch(fn,/renderDraft\(|innerHTML|scrollTop/,`${name} must not redraw the deck editor`);
 }
-assert.match(body(mobile,'tapDraft'),/updateDraft\(/);
+// Taps queue (test_deck_editor_nov20.mjs) and the queue updates the cards when it empties.
+assert.match(body(mobile,'tapDraft'),/queueDeckTap\(/);assert.match(body(mobile,'runDeckTaps'),/updateDraft\(/);
 // Stacked duplicates (deck-stacks.js) rebuild the grid on a tap, so that redraw must put every scroll position back.
 const stacked=body(mobile,'updateStackedGrid');assert.match(stacked,/tops=scrollers\.map\(s=>s\.scrollTop\)/);assert.match(stacked,/s\.scrollTop=tops\[n\]/);assert.match(body(mobile,'flushDraftTap'),/updateDraft/);
 

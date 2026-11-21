@@ -25444,5 +25444,653 @@
   "en": "Spellcaster monsters you control gain 600 ATK. When you Normal Summon a Spellcaster monster: You can Special Summon 1 \"Dark Magician\" monster from your Deck, and add 1 card that mentions \"Dark Magician\" from your Deck to your hand. When a \"Dark Magician\" monster you control is destroyed and sent to the GY: Special Summon 1 monster that mentions \"Dark Magician\" from your Deck or Extra Deck, ignoring its Summoning conditions.",
   "kind": "exact",
   "ctx": "text added 2026-11-19 (Immortal Dark Magic)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, if you Normal or Special Summon a \"Dark Magician\" monster: You can add 1 \"Dark Magician\" monster or card that mentions it in its card text from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "Magician's Bond text, 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Card stats include the next boss's curses.",
+  "kind": "exact",
+  "ctx": "deck editor, Nori 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Exodia win",
+  "kind": "exact",
+  "ctx": "victory coin line: an Exodia win pays at least 150 coins, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Beat them with their own monster",
+  "kind": "exact",
+  "ctx": "coin reward condition: final blow by a monster the opponent owns, 2026-11-20"
+ },
+ {
+  "group": "relic",
+  "en": "Zombie monsters you control gain 1,200 ATK. Once per turn, at the start of your Standby Phase, if you have a free Monster Zone, Special Summon 1 random Zombie monster from your GY in Attack Position. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.",
+  "kind": "exact",
+  "ctx": "relic effect (undying_legion)"
+ },
+ {
+  "group": "ui",
+  "en": "Teammate’s cards",
+  "kind": "exact",
+  "ctx": "tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "In their deck",
+  "kind": "exact",
+  "ctx": "tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Requested",
+  "kind": "exact",
+  "ctx": "tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "cards requested",
+  "kind": "exact",
+  "ctx": "tag-ui.js"
+ },
+ {
+  "group": "ui",
+  "en": "Tap to request · Hold to inspect",
+  "kind": "exact",
+  "ctx": "tag-ui.js"
+ },
+ {
+  "group": "python",
+  "en": "Your teammate has already sent their cards.",
+  "kind": "exact",
+  "ctx": "tag_campaign.py, tag-ui.js"
+ },
+ {
+  "group": "python",
+  "en": "Choose valid, distinct copies from your teammate's collection.",
+  "kind": "exact",
+  "ctx": "tag_campaign.py"
+ },
+ {
+  "group": "ui",
+  "en": "Randomized only",
+  "kind": "exact",
+  "ctx": "card-search.js"
+ },
+ {
+  "group": "ui",
+  "en": "Sleeve designs by Deds",
+  "kind": "exact",
+  "ctx": "Cosmetics › Card Sleeve: credit for the artist of the sleeve art, a person's name, 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Ancient Golem",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Allure of Darkness",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Divine Serpent Geh",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Gravekeeper's Visionary",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Jerry Beans Man",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Orgoth the Relentless",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "The Seal of Orichalcos",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "VW-Tiger Catapult",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "VWXYZ-Dragon Catapult Cannon",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Summon Dark Magician.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal the final blow with Dark Magician Girl.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal the final blow with a monster that has 3,000 or more ATK.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control Red-Eyes Black Dragon (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel while you control a \"Harpie\" monster.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win runs on Challenge Level 2 or higher with 5 different duelists.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 5 Tag runs.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Draw 1,000 cards (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win the Time Wizard toss 3 times in one duel.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Pay 10,000 LP for card costs (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Destroy 25 monsters with coin-toss effects (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Return 100 of your opponent's monsters to the hand (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Flip Summon 50 monsters (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Banish 100 DARK monsters (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Change 50 monsters to face-down Defense Position with card effects (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat the World Champion 3 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make your opponent discard 30 cards (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel after taking 10,000 or more damage.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Activate 100 Trap Cards (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a run without activating an Equip Spell.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 5 duels with an empty Graveyard (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Gain 10,000 or more LP in one duel.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Look at your opponent's hand with card effects 25 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with a Main Deck whose monsters are all Normal Monsters.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal 25,000 effect damage (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Tribute Summon 50 monsters (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel with 20 or more cards in your Graveyard.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Summon Dark Magician 10 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Summon Dark Magician 25 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Ritual Summon 10 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Ritual Summon 25 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Ritual Summon 100 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel that lasts 20 turns or more.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win a duel that lasts 60 turns or more.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 5 duels that last 20 turns or more (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels that last 20 turns or more (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 25 duels that last 20 turns or more (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a \"Harpie\" monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 25 duels while you control a \"Harpie\" monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Return 5 of your monsters to the Extra Deck (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Return 10 of your monsters to the Extra Deck (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Fusion Summon 3 times in one duel.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Fusion Summon 5 times in one duel.",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make 25 relic fusions (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make 50 relic fusions (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make 75 relic fusions (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make 100 relic fusions (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Make 150 relic fusions (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal the final blow with a monster that has 3,000 or more ATK in 10 duels (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal the final blow with a monster that has 500 or less ATK in 10 duels (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Deal the final blow with a monster that has 1,000 or less ATK in 25 duels (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a Warrior monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 25 duels while you control a Warrior monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 50 duels while you control a Warrior monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 100 duels while you control a Warrior monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a Machine monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 25 duels while you control a Machine monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a Reptile monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a Zombie monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Win 10 duels while you control a Thunder monster (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat PaniK as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Lumis and Umbra as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Weevil Underwood as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Yami Marik as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Aknadin as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Duke Devlin as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Dartz as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "ui",
+  "en": "Defeat Noah Kaiba as an opponent 5 times (across runs).",
+  "kind": "exact",
+  "ctx": "Deds' card sleeve name or unlock condition (Cosmetics, Achievements), 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Slapped by the Forbidden One",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Little but mighty",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "One Turn Kill",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "That's Godlike",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Hanging by a thread",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Back from the brink",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Against all odds",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "The last draw",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "No monsters needed",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Total annihilation",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Three tributes for a god",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Triple threat",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "The gods walk the earth",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Lady Luck",
+  "kind": "exact",
+  "ctx": "hidden coin feat label, shown only once earned, 2026-11-20"
+ },
+ {
+  "group": "rules",
+  "en": "Hidden feats",
+  "kind": "exact",
+  "ctx": "shop Coin scorecard section listing the hidden coin feats the player has found"
+ },
+ {
+  "group": "rules",
+  "en": "Hidden feat!",
+  "kind": "exact",
+  "ctx": "mark above a hidden coin feat on the victory coin lines and in-duel bonus list"
+ },
+ {
+  "group": "rules",
+  "en": "Found",
+  "kind": "exact",
+  "ctx": "tag on a hidden coin feat the player has discovered (a feat, feminine in es/it/pt)"
  }
 ]

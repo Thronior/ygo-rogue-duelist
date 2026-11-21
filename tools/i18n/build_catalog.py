@@ -114,6 +114,8 @@ for r in content['battleCoinRules']:
     add('rules', r['label'], 'exact', 'coin reward condition')
 for label in content.get('battleBonusLabels', []):
     add('rules', label, 'exact', 'coin reward condition')
+for r in content.get('secretCoinRules', []):
+    add('rules', r['label'], 'exact', 'hidden coin feat, shown once earned')
 # 5. Cards whose game text differs from the official text on purpose (pre-errata prints and custom cards).
 for cid, row in pre_errata.items():
     add('card-override', row['desc'], 'exact', f"pre-errata card text: {row['name']} [{cid}]")

@@ -51,7 +51,7 @@ export function smartContext(e,p,L,prompt=null){
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
  const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
- const rescueCatReady=()=>{const beasts=q(p,L.DECK).filter(c=>(data(c).type&1)&&race(c)==='Beast'&&lvl(c)<=3);if(5-own.length<2||beasts.length<2||e.turn<=1)return false;const missing=['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));if(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>beasts.some(x=>name(x)===part)))return true;return !enemy.length&&beasts.map(atk).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)>=1000};
+ const rescueCatReady=()=>{const beasts=q(p,L.DECK).filter(c=>(data(c).type&1)&&race(c)==='Beast'&&lvl(c)<=3);if(5-own.length<2||beasts.length<2||e.turn<=1)return false;const missing=['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));if(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>beasts.some(x=>name(x)===part)))return true;/* Their Beasts are destroyed at the End Phase: on an opening turn with no Battle Phase (the CPU starts) they hit nothing (flag 7e51fc19, 2026-11-20). */return !openingTurn&&!enemy.length&&beasts.map(atk).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)>=1000};
  const heldPieces=new Set(hand.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
  e.exodiaPlan??=[false,false];if(heldPieces.size)e.exodiaPlan[p]=true;
  const exodiaPlan=e.exodiaPlan[p],missingPiece=c=>exodiaPieces.has(c.code)&&!heldPieces.has(c.code);
@@ -1759,7 +1759,9 @@ export function smartContext(e,p,L,prompt=null){
    const rawDamage=defender?(defender.position&1?Math.max(0,combatPower(attacker,defender)-atk(defender)):pierce(attacker)?Math.max(0,combatPower(attacker,defender)-def(defender)):0):combatPower(attacker);
    const incoming=battleDamage(rawDamage,1-p);
    const canWaitForLarger=enemy.some(x=>!same(x,attacker)&&face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,1-p)&&atk(x)>atk(attacker));
-   return canWaitForLarger&&!danger&&e.lp[p]+gain>incoming?-1:90;
+   // A bigger attacker still to come gains more, so wait unless this hit alone is lethal. The 'danger' guard (their board
+   // 1000 over ours) spent it on a 1300 ATK attack beside a 2000 ATK one (behaviour flag 2026-11-20).
+   return canWaitForLarger&&e.lp[p]>incoming?-1:90;
   }
   if(n==='Fairy Box'){
    if(!chain||e.player===p||!e.attackCard||e.attackCard.controller!==1-p||e.lp[p]<=500)return -1;
@@ -1819,6 +1821,13 @@ export function smartContext(e,p,L,prompt=null){
    // a weak hit. In particular, it avoids consuming Cylinder and then Negate
    // Attack on separate small/large attacks.
    if(alternative&&damage<Math.min(1300,Math.ceil(e.lp[p]*0.2)))return -1;
+   // A much bigger attacker can still attack and this one destroys nothing and is not lethal: keep Cylinder for it. It was
+   // spent on an attack under 1000 ATK beside a 3000+ ATK monster (behaviour flag 2026-11-20).
+   {const defender=e.attackTarget&&own.find(x=>same(x,e.attackTarget)),hit=combatPower(attacker,defender);
+    const lost=!!defender&&!resilient(defender,attacker)&&(defender.position&1?hit>=atk(defender):hit>def(defender));
+    const taken=battleDamage(defender?(defender.position&1?Math.max(0,hit-atk(defender)):pierce(attacker,1-p)?Math.max(0,hit-def(defender)):0):hit,1-p);
+    const bigger=enemy.some(x=>!same(x,attacker)&&face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,1-p)&&atk(x)>=Math.max(2*hit,hit+1500));
+    if(bigger&&!lost&&taken<e.lp[p])return -1;}
    return damage>0?100+Math.min(100,Math.floor(damage/100)):-1;
   }
   if(['Mirror Force','Trap Hole','Bottomless Trap Hole','Sakuretsu Armor','Anti Raigeki','Gryphon Wing','Call of the Grave','Numinous Healer','Shadow of Eyes'].includes(n))return chain?100:-1;
@@ -2516,6 +2525,9 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
 if(!effectsEnabled(p))return 0;
   if(swordsWomanShield(c))return 40;
   if(n==='Rescue Cat')return rescueCatReady()?180:-1;
+  // Zaborg's Tribute Summon effect must destroy a monster on the field: with none of theirs it destroyed itself after
+  // taking the only other monster as Tribute (behaviour flag 2026-11-20).
+  if(n==='Zaborg the Thunder Monarch'&&!enemy.length)return -1;
   if(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))return 180;
   if(n==='Exiled Force')return enemy.some(x=>!reservedForRemoval(x)&&targetValue(x)>=1400)?105:-1;
   // Spirit deck losses (all-decks review, 2026-11-19): Tsukuyomi was Normal Summoned with no face-up monster to turn
@@ -2818,6 +2830,10 @@ if(!effectsEnabled(p))return 0;
  function attackScore(a,t,ctx){const n=name(a),dmg=(ctx&&ctx.dmg)||0,deckOut=!!(ctx&&ctx.deckOut);let s=0;
   if(t&&attackLocked(t))return -100000;
   if(attackBackfires(a,t))return -100000;
+  // A Token costs its controller no card: never trade a monster for one at equal ATK. Giant Turtle (1400) hit Physical
+  // Double's 1400 Mirage Token on the attack replay and both died, though the Token was gone at the End Phase anyway
+  // (behaviour flag 2026-11-20).
+  if(t&&face(t)&&(t.position&1)&&(data(t).type&0x4000)&&!battleProof(a,t,p)&&combatPower(a,t)<=combatPower(t,a)&&!(dmg>0&&dmg>=e.lp[1-p]))return -100000;
   // Our Spirit on their side comes back to our hand at the End Phase; destroying it throws the card away.
   if(t&&t.owner===p&&t.controller!==p&&face(t)&&(data(t).type&0x200)&&dmg<e.lp[1-p])return -100000;
   // A face-up Mirror Wall halves the attacking monster's ATK during damage

@@ -2446,6 +2446,10 @@ body:has(#modal[open] .reward-tally) .page.shop>*{visibility:hidden}
 .reward-tally-total.fx-radiant{background:linear-gradient(180deg,#fffbe0 10%,#ffd34d 50%,#d98a00 90%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1px #4a2a00}
 .fx-tally-ring{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,215,110,.55),rgba(255,180,60,.18) 55%,transparent 72%);opacity:0;z-index:-1}
 .reward-tally-lines .row{position:relative;overflow:hidden}
+/* Hidden coin feats (2026-11-20): a gold mark above the label when one is earned; static, no animation. */
+.row.secret-feat{border-left:3px solid #efca79;padding-left:8px;background:linear-gradient(90deg,rgba(239,202,121,.16),transparent 70%)}
+.row.secret-feat small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#efca79}
+.sc-feat.secret em{color:#efca79}
 .fx-row-light{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,220,130,.4),transparent)}
 .fx-in-coin{position:absolute;z-index:3;width:22px;height:22px;pointer-events:none}
 .fx-frame{position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;padding:3px;overflow:hidden;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
@@ -2822,6 +2826,7 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 /* Card sleeves (2026-11-12, sleeves.js): Settings › Display picker and the run end unlock. */
 .set-row.set-sleeves{flex-direction:column;align-items:stretch;cursor:default}
 .set-sleeves .sleeve-count{color:#ffe2a3;font-weight:700}
+.set-sleeves .sleeve-credit{margin:2px 0 8px;font-size:12px;line-height:1.3;color:#cfe0e6;font-style:italic}
 .sleeve-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;max-height:min(52vh,420px);overflow-y:auto;padding:2px}
 .sleeve-option{position:relative;display:block;min-width:0;margin:0;padding:0;border:2px solid #53798466;border-radius:7px;overflow:hidden;background:#0c222d;cursor:pointer}
 .sleeve-option input{position:absolute;opacity:0;pointer-events:none}
@@ -3691,6 +3696,10 @@ dialog:has(.lesson-done){overflow:hidden}
 /* minmax(auto,1fr), not min-content: the details column spans this row and scrolls, so its minimum is 0; min-content
    grew the row to the whole card text, which pushed the art row to 0 px and stopped the text scrolling (Discord, Nov 19). */
 #modal.card-inspect-modal .inspect.has-deck-step{grid-template-rows:minmax(0,max-content) minmax(auto,1fr)}
+/* The spanning details column must not size the rows at all: its whole card text still went into row 1's max-content, so on
+   short or large-text windows the grid outgrew the window, the art fell below the clip and the text stopped scrolling
+   (Discord, magna98, 2026-11-20, Chrome PC). contain:size gives it no intrinsic height; it stretches over both rows and scrolls. */
+#modal.card-inspect-modal .inspect.has-deck-step>.inspect-step+div{contain:size;align-self:stretch}
 /* The control fits the art column however narrow it gets (portrait phones give it ~66-90px; Discord, Nov 18: it spilled
    over the card text), so nothing here has a fixed minimum width. */
 .inspect-step{grid-column:1;align-self:start;justify-self:center;display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;max-width:220px;min-width:0}
@@ -3973,19 +3982,15 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 :root[data-duel-theme] .character-select-page .portrait.selected{border-color:var(--cs-sel-line);box-shadow:var(--cs-sel-shadow);outline:0}
 :root[data-duel-theme] .character-select-page .portrait span{background:var(--cs-strip);font-family:var(--cs-name-font);font-weight:var(--cs-name-weight);color:var(--cs-name-color);-webkit-text-stroke:var(--cs-name-stroke);text-shadow:var(--cs-name-shadow);text-transform:var(--cs-name-case);letter-spacing:var(--cs-name-spacing)}
 :root[data-duel-theme] .character-select-page .portrait.locked span{color:#aab1b6}
-/* Level colours: same meaning in every look, drawn in the look's material. Level 6 keeps its rainbow. */
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="-1"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="-1"]{background:var(--lv-m1)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="0"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="0"]{background:var(--lv0)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="1"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="1"]{background:var(--lv1)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="2"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="2"]{background:var(--lv2)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="3"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="3"]{background:var(--lv3)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="4"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="4"]{background:var(--lv4)}
-:root[data-duel-theme] .character-select-page .portrait[data-completed-level="5"],:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="5"]{background:var(--lv5)}
-:root[data-duel-theme] .character-select-page .portrait.locked{background:#2a3036}
-:root[data-duel-theme="shadow-realm"] .character-select-page .portrait.locked{background:#120a1c}
-:root[data-duel-theme="millennium-stone"] .character-select-page .portrait.locked{background:#3a352c}
-:root[data-duel-theme="kaiba-hologram"] .character-select-page .portrait.locked{background:#061320}
-:root[data-duel-theme="pixel-art"] .character-select-page .portrait.locked{background:#333c57}
+/* Level colours: the roster tiles keep the game's own level colours in every look, so ranks read at a glance (user, 2026-11-20:
+   Shadow Realm had lost them; Lexi: ranks hard to see in some looks on phones). Only the LVL badge takes the look's material. */
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="-1"]{background:var(--lv-m1)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="0"]{background:var(--lv0)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="1"]{background:var(--lv1)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="2"]{background:var(--lv2)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="3"]{background:var(--lv3)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="4"]{background:var(--lv4)}
+:root[data-duel-theme] .character-select-page .level-badge[data-challenge-level="5"]{background:var(--lv5)}
 
 /* Details panel */
 :root[data-duel-theme] .character-select-page .duelist-selection .char-details{background:var(--cs-panel-bg);border:1px solid var(--cs-panel-line);border-top:var(--cs-panel-top);border-radius:var(--cs-panel-radius);box-shadow:var(--cs-panel-shadow)}
@@ -4051,3 +4056,25 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 :root[data-duel-theme="pixel-art"] .character-select-page .portrait .relicless-clear-star{border-radius:0;box-shadow:var(--pix-frame);text-shadow:none}
 /* Georgia's figures are old-style (0 reads as o): badge numbers use a lining serif. */
 :root:is([data-duel-theme="shadow-realm"],[data-duel-theme="millennium-stone"]) .character-select-page .level-badge strong{font-family:"Palatino Linotype","Times New Roman",serif;font-weight:700}
+/* Stacked curses (Nov 20): repeated curses show once with an xN badge in the corner. */
+.curse-icon,.replay-modifiers .replay-curse{position:relative}
+.curse-icon>.curse-count,.replay-curse>.curse-count{all:unset;position:absolute;top:0;right:0;z-index:3;box-sizing:border-box;max-width:100%;padding:1px 3px;border-radius:0 7px 0 5px;background:#102632eb;border-left:1px solid #ebce78;border-bottom:1px solid #ebce78;color:#ffe7a3;font:700 11px/1 Arial,sans-serif;white-space:nowrap;pointer-events:none}
+.active-curse-strip .curse-icon>.curse-count,.replay-curse>.curse-count{padding:1px 2px;border:0;border-radius:0 0 0 4px;font-size:9px}
+.curse-stack-count{margin:0 0 6px}.curse-stack-count>.curse-count{position:static;display:inline-block}
+/* Deck editor (Nori, Discord 2026-11-20): windowed grids keep released rows' height in .deck-gap (deck-paging.js); the
+   the next boss's stat curses note. Randomized only is the ? icon in the search window now (user, 2026-11-20), so the
+   split editor hides Deck status again. */
+.cardgrid>.deck-gap{grid-column:1/-1;pointer-events:none}.cardgrid>.deck-more[hidden]{display:none}
+.deck-boss-curses{display:flex;align-items:center;gap:6px;margin:2px 0 0;font-size:12px;font-weight:bold;color:#f2a58f}.deck-boss-curse-icons{display:inline-flex;gap:2px}.deck-boss-curse-icons img{width:18px;height:18px}
+/* Your LP on the solo opponent screen, beside the coins (CITYDRIVER, user 2026-11-20); sized like .route-coins. Phones
+ stack LP over the coins so the header buttons still fit beside Back to shop. */
+.route-stats{display:inline-flex;align-items:center;gap:14px;flex:none}
+.route-lp{display:inline-flex;align-items:baseline;gap:5px;color:#e6f1ef;font-size:24px;white-space:nowrap;text-shadow:0 2px 3px #000}.route-lp b{font-size:inherit}
+@media(max-width:650px){.route-page>header .route-stats{flex-direction:column;align-items:flex-end;gap:1px;line-height:1.1}.route-page>header .route-stats>:is(.route-lp,.route-coins){font-size:15px;gap:3px}}
+@media(orientation:landscape) and (max-height:500px){.route-page>header .route-stats{gap:8px}.route-page>header .route-lp{font-size:17px;gap:3px}}
+@media(max-width:340px){.route-page>header .route-stats>:is(.route-lp,.route-coins){font-size:13px}}
+/* Tag trade requests (Nemu, user 2026-11-20): Your cards / Teammate's cards tabs and the gold Requested label. */
+.tag-trade .trade-sides{display:flex;gap:6px;flex:none;padding:0 15px 4px}.tag-trade .trade-sides button{flex:1;font-weight:bold}
+.tag-trade .cardbtn small.trade-requested{display:block;margin:2px auto 0;width:max-content;padding:0 6px;border-radius:4px;background:#ffd86e;color:#2a1600;font-weight:bold}
+/* ★ Marked Yes and ? Randomized only in the search window (user, 2026-11-20), drawn like the effect icons. */
+.effect-icon-grid .search-flag span{display:block;width:26px;height:26px;margin:auto;font:bold 22px/26px serif;color:#ffd46c;text-shadow:0 1px 2px #000}

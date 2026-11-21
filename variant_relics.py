@@ -37,8 +37,11 @@ def effect(kind):
  if key=='dragon_triumph':return event('EVENT_BATTLE_DESTROYING','Duel.Damage(1,500,REASON_EFFECT)','eg:IsExists(function(c) return c:IsControler(0) and c:IsRace(RACE_DRAGON) and c:IsStatus(STATUS_OPPO_BATTLE) end,1,nil)')
  # Magnet Warrior is set code 0x3066 (Alpha, Beta, Gamma); Valkyrion is a Magna Warrior (0x1066) and isn't searched.
  if key=='field_of_attraction':
-  magnet='function(c) return c:IsControler(0) and c:IsSetCard(0x3066) end'
-  return event('EVENT_SUMMON_SUCCESS',f'local sc=eg:Filter({magnet},nil):GetFirst() if not sc then return end local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x3066) and not c:IsCode(sc:GetCode()) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g==0 then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil) --[[relic-hint]] Duel.SendtoHand(s,nil,REASON_EFFECT) Duel.ConfirmCards(1,s)',f'eg:IsExists({magnet},1,nil)')
+  # Name Changer's "Magnet Warrior" is 0x2066 (data/archetypes.json), which 0x3066 does not match: its monsters never set
+  # this off (Discord, 2026-11-20). The added set code counts; an original 0x2066 card (Panther Warrior) still does not.
+  member='(c:IsSetCard(0x3066) or c:IsSetCard(0x2066) and not c:IsOriginalSetCard(0x2066))'
+  magnet=f'function(c) return c:IsControler(0) and {member} end'
+  return event('EVENT_SUMMON_SUCCESS',f'local sc=eg:Filter({magnet},nil):GetFirst() if not sc then return end local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and {member} and not c:IsCode(sc:GetCode()) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g==0 then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local s=g:Select(0,1,1,nil) --[[relic-hint]] Duel.SendtoHand(s,nil,REASON_EFFECT) Duel.ConfirmCards(1,s)',f'eg:IsExists({magnet},1,nil)')
  if key=='armory_crest':return stat('EFFECT_UPDATE_ATTACK',300,'c:GetEquipCount()>0')
  if key=='metal_coating':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,0,LOCATION_HAND,0,1,nil,{METALMORPH}) then return end local g=Duel.GetMatchingGroup(Card.IsCode,0,LOCATION_DECK,0,nil,{METALMORPH}) if #g>0 then Duel.SendtoHand(g:GetFirst(),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''

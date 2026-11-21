@@ -1,0 +1,95 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_40,.patch-notes-sheet.pn0_2_40 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_40{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_40 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_40 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_40 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_40 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_40 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big .pn0_2_40-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big>*{position:relative}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big p.pn0_2_40-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way img,.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-relics .pn0_2_40-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-packs .pn0_2_40-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark.pn0_2_40-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark.pn0_2_40-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shot{display:block;width:100%;border:2px solid #b5824a;border-radius:10px;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shots{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shots img{width:100%;border:2px solid #b5824a;border-radius:10px;display:block;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-cap{height:0;overflow:hidden;visibility:hidden;font-size:15px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 img+.pn0_2_40-cap{height:auto;visibility:visible;margin-top:4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-sleeves{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-top:14px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-sleeves img{width:100%;aspect-ratio:214/307;object-fit:cover;border-radius:6px;border:2px solid #b5824a;display:block}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-pmark{display:inline-block;width:21px;height:21px;vertical-align:middle;margin:0 3px}</style><div class="patch-notes-sheet pn0_2_40"><div class="pn0_2_40-kick">YGO Rogue Duelist</div><h1>Aggiornamento 0.2.40</h1>
+
+<section class="pn0_2_40-big" style="margin-top:28px"><em>Cosmetici</em><h3>74 nuove bustine protettive di Deds</h3>
+<p class="pn0_2_40-lead">L'artista della community <b>Deds</b> ha ridisegnato tutte le <b>bustine protettive dei duellanti del Livello 6</b> e gran parte di quelle delle carte, e ha creato <b>74 bustine protettive nuove di zecca</b>, ognuna con il proprio obiettivo di sblocco. Sono <b>182 bustine protettive</b> da collezionare in <b>Cosmetici</b>, e sono più leggere da caricare di prima.</p>
+<div class="pn0_2_40-sleeves">
+<img src="assets/sleeves/yami-yugi.jpg"><img src="assets/sleeves/seto-kaiba.jpg"><img src="assets/sleeves/joey-wheeler.jpg"><img src="assets/sleeves/mai-valentine.jpg">
+<img src="assets/sleeves/cards/dark-magician-2.jpg"><img src="assets/sleeves/cards/blue-eyes-white-dragon.jpg"><img src="assets/sleeves/cards/red-eyes-black-dragon.jpg"><img src="assets/sleeves/cards/black-luster-soldier.jpg">
+</div></section>
+
+<section class="pn0_2_40-cols">
+<div class="pn0_2_40-big"><em>Lingue</em><h3>Carte nella tua lingua</h3>
+<p class="pn0_2_40-lead">Se giochi in un'altra lingua, l'immagine di ogni carta reale ora mostra il suo <b>nome e testo ufficiali tradotti</b>, direttamente sulla carta. L'inglese resta com'era.</p></div>
+<div class="pn0_2_40-big"><em>Duelli Tag</em><h3>Richieste, negozio più ampio</h3>
+<p class="pn0_2_40-lead">La schermata di scambio ha una scheda <b>Carte del compagno di squadra</b>: tocca una carta per <b>richiederla</b> e il tuo compagno la vedrà segnata. Il negozio Tag ora offre <b>2 buste in più</b>.</p></div>
+</section>
+
+<section class="pn0_2_40-cols">
+<div class="pn0_2_40-big"><em>Monete</em><h3>Monete bonus</h3>
+<p class="pn0_2_40-lead">Una <b>Vittoria con Exodia</b> ora frutta almeno <b>150 monete</b>, senza penalità per i duelli lenti.</p>
+<p class="pn0_2_40-lead" style="margin-top:8px"><b>Bonus di monete nascosti:</b> compi qualcosa di speciale in un duello e potresti guadagnare monete che non conoscevi. Una volta scoperti, compaiono nel <b>Riepilogo monete</b> del negozio.</p></div>
+<div class="pn0_2_40-big"><em>Randomizzatore</em><h3>Carte arcobaleno, rifinite</h3>
+<p class="pn0_2_40-lead">I Mostri Trappola hanno valori reali, i testi vuoti o poco chiari sono corretti (ora indicano <b>quale giocatore</b>), i loop di auto-rianimazione e due crash del motore sono spariti, e oltre 1.000 duelli di prova ora filano lisci.</p></div>
+</section>
+
+<section class="pn0_2_40-cols">
+<div><h2>Modifiche</h2><ul class="pn0_2_40-small">
+<li><span>📊</span><span>Le statistiche del mazzo includono le <b>maledizioni del prossimo Boss</b>, così puoi prepararti.</span></li>
+<li><span>⚡</span><span>L'editor del mazzo resta fluido anche con <b>migliaia di carte</b>.</span></li>
+<li><span>🔍</span><span>La ricerca carte ha i filtri <b>★</b> (carte segnate) e <b>?</b> (carte casuali).</span></li>
+<li><span>❤️</span><span>La schermata dell'avversario mostra i <b>tuoi LP</b> accanto alle monete.</span></li>
+<li><span>✖️</span><span>Le maledizioni del Boss ripetute compaiono una volta sola con <b>×3</b>.</span></li>
+<li><span>🪄</span><span><b>Legame del Mago</b> può aggiungere anche mostri "Mago Nero".</span></li>
+<li><span>🧟</span><span><b>Legione Immortale</b> rianima anche uno Zombie a caso dal tuo Cimitero all'inizio della tua Standby Phase, una volta per turno.</span></li>
+<li><span>🛡️</span><span>Gli scaffali dei Guardiani ora contengono soprattutto le carte <b>Guardiano</b> e i loro Equipaggiamenti.</span></li>
+<li><span>🤖</span><span>La CPU ora tiene <b>Cilindro Magico</b> e <b>Lancia Incantata</b> per attaccanti più forti e non spreca più Zaborg il Monarca del Tuono, Gatto da Soccorso e i Segna-Mostro.</span></li>
+</ul></div>
+<div><h2>Correzioni</h2><ul class="pn0_2_40-small">
+<li><span>📱</span><span>Corretto l'errore Android <b>«Impossibile avviare»</b> sui telefoni impostati in alcune lingue.</span></li>
+<li><span>📜</span><span>Le finestre delle carte entrano nello schermo e scorrono con la <b>Scala dell'interfaccia</b> sopra il 100%, anche nei Duelli Tag.</span></li>
+<li><span>🃏</span><span><b>Carte correlate</b> non aggiunge più una carta casuale con lo stesso nome.</span></li>
+<li><span>👆</span><span>Toccare rapidamente le carte impilate non riaggiunge più copie.</span></li>
+<li><span>🧲</span><span><b>Cambia Nome</b> funziona con Campo di Attrazione e Occhi Gemelli.</span></li>
+<li><span>🌈</span><span>La selezione del personaggio mostra i <b>colori dei livelli</b> in ogni Stile del Duello.</span></li>
+<li><span>🔤</span><span>Gli obiettivi di sblocco usano i nomi dei personaggi nella tua lingua.</span></li>
+</ul></div>
+</section></div>

@@ -27,7 +27,10 @@ ui.resetDeckFilters();
 assert.deepEqual([ui.deckFilter,ui.deckSort,ui.deckStatus,searches['tag-deck']],['All','Newest','First',undefined]);
 
 assert.equal(ui.deckStatus,'First','Deck first is the default');
+// Randomized only moved to the ? icon in the search window (user, 2026-11-20; test_search_flags.mjs).
 assert.deepEqual(DECK_STATUS_OPTIONS.map(([value])=>value),['Any','In','Out','First','Marked'],'Marked first (user, 2026-11-17)');
+// The × also clears the search window's ★ and ? filters.
+searches['tag-deck']={effects:[],random:true,marked:true};ui.resetDeckFilters();assert.equal(searches['tag-deck'],undefined,'the × clears ★ and ?');
 assert.doesNotMatch(deckSearchButtons('tag-deck',false),/effect-search-clear/,'no × when nothing is filtered');
 assert.match(deckSearchButtons('tag-deck',true),/data-effect-search-clear="tag-deck"/,'× when only tab, sort or status is changed');
 TagUI.prototype.render=render;

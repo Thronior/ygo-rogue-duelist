@@ -49,8 +49,25 @@ export function misprintBadges(c,run,index){
 
 // Preview permanent modifiers. Field/turn-dependent effects are evaluated by the duel core.
 
+// Boss curses in the deck editor (Nori, Discord 2026-11-20): when the next duel is a boss whose curses are already known
+// (boss_preview.py keeps them in run.next_boss, the ones the boss screen shows), the curses that change your monsters'
+// ATK/DEF or seal your relics count in the shown stats, so a deck can be built against that boss. Solo only: Tag offers
+// several bosses. Not during the duel itself, where LVL 6 already lists the boss's curse with the permanent ones.
+export const STAT_CURSES=['frailty','hunger','brittle','mirror_stats','relic_seal'];
+export function bossStatCurses(run){
+ const plan=run?.next_boss,round=run?.round||0;
+ if(!plan||run.history_mode==='tag'||run.encore_active||run.stage==='duel'||run.challenge_level===-1||round>=9||(round+1)%3)return [];
+ if(plan.loop!==(run.loop||0)||plan.round!==round||!Array.isArray(plan.curses))return [];
+ return plan.curses.filter(k=>STAT_CURSES.includes(k));
+}
+// The note under the deck count while bossStatCurses() changes the shown stats; `icon` maps a curse to its icon file.
+export function bossCurseNote(run,icon){
+ const keys=[...new Set(bossStatCurses(run))];if(!keys.length)return '';
+ return `<p class="deck-boss-curses"><span class="deck-boss-curse-icons" aria-hidden="true">${keys.map(k=>`<img src="${icon(k)}" alt="">`).join('')}</span>Card stats include the next boss's curses.</p>`;
+}
+
 export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}// From Level 6 curses stay for the whole run, so the deck editor shows them too (doubled, as in passives.py).
- const sticky=run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
+ const sticky=[...(run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[]),...bossStatCurses(run)],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
 
  for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
@@ -101,7 +118,8 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
  }
 
- a-=400*curses('frailty')+200*curses('brittle');d-=600*curses('hunger')+400*curses('brittle');
+ // Doubled from LVL 2, as in passives.py (LVL 6's permanent curses always are).
+ const scale=run.challenge_level>=2?2:1;a-=scale*(200*curses('frailty')+100*curses('brittle'));d-=scale*(300*curses('hunger')+200*curses('brittle'));
  return [Math.max(0,a),Math.max(0,d)];
 
 }

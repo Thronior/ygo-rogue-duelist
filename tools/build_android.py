@@ -10,6 +10,7 @@ os.environ['TMP']=os.environ['TEMP']=str(BUILD_TEMP)
 
 import campaign as game,content,approved_relics
 A=ROOT/'android';WEB=A/'web';BUILD=A/'build';DEP=ROOT/'dependencies/android'
+SLEEVE_HEIGHT=307  # shipped card sleeve height (sync below)
 
 def copy(source,destination):
  destination.parent.mkdir(parents=True,exist_ok=True)
@@ -50,14 +51,16 @@ def sync():
    if row:token_cards.append(dict(id=cid,name=row[0],desc=row[1],type='Token',level=row[3]&255,atk=row[4],defense=row[5],race='Token',attribute='',data=dict(type=row[2]),strings=[]))
  custom_relic_art=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
  meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),preconstructedDecks=[{key:deck[key] for key in ('id','name','date','art','cards')} for deck in json.loads((ROOT/'data/preconstructed.json').read_text(encoding='utf8'))['decks']],characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,retiredArtifacts=sorted(content.RETIRED_ARTIFACTS),artifactInfo={key:dict(value,art=custom_relic_art.get(key) or next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id']),**({'parts':list(approved_relics.CURSED_PARTS[key])} if key in approved_relics.CURSED_PARTS else {})) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
- from duel_rewards import RULES, VICTORY_ONLY
- meta['battleBonusLabels']=[label for _,_,label,_ in RULES]
+ from duel_rewards import RULES, VICTORY_ONLY, SECRET
+ # Hidden coin feats (2026-11-20) stay out of every public list; the shop Coin scorecard shows the ones a player found.
+ meta['battleBonusLabels']=[label for metric,_,label,_ in RULES if metric not in SECRET]
+ meta['secretCoinRules']=[dict(id=metric,label=label,coins=coins) for metric,_,label,coins in RULES if metric in SECRET]
  import relic_fusions
  meta['fusedRelics']=sorted(relic_fusions.KEYS)
  # Shown only once the player has fused that relic (user, 2026-11-05); undiscovered ones show "???".
  meta['fusionMaterials']={k:{'pieces':list(p),'needed':relic_fusions.NEEDED.get(k,len(p))} for k,p in sorted(relic_fusions.RECIPES.items())}
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
- meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES]
+ meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES if metric not in SECRET]
  meta['bossDeckNames']=json.loads((ROOT/'data/boss-deck-names.json').read_text(encoding='utf8'))['names']
  # Card-art sleeves (android/web/sleeves.js); the unlock rules stay in sleeve_progress.py.
  meta['cardSleeves']=[{k:s[k] for k in ('id','art','text','tier') if k in s} for s in json.loads((ROOT/'data/card-sleeves.json').read_text(encoding='utf8'))['sleeves']]
@@ -128,13 +131,17 @@ def sync():
   if relative.parts[0]=='cards' and int(source.stem) not in ids:continue
   dest=WEB/'assets'/relative;dest.parent.mkdir(parents=True,exist_ok=True)
   variant_icon=relative.parts[0]=='relics' and source.name.startswith('variant-')
+  # Card sleeves only cover small face-down cards: shipped at half size, 307 px tall (user, 2026-11-20). The Rainbow
+  # strip keeps its three-sleeve width. Sources in assets/sleeves stay full size for the generators.
+  sleeve=relative.parts[0]=='sleeves'
   if dest.exists() and dest.stat().st_mtime>=source.stat().st_mtime:
-   if not variant_icon:continue
+   if not variant_icon and not sleeve:continue
    with Image.open(dest) as current:
-    if max(current.size)<=512:continue
+    if max(current.size)<=512 and not sleeve or sleeve and current.size[1]<=SLEEVE_HEIGHT:continue
   if source.suffix.lower() in ('.jpg','.png'):
    with Image.open(source) as im:
-    im.thumbnail((288,420) if relative.parts[0]=='cards' else (512,512) if variant_icon else (1280,900),Image.Resampling.LANCZOS)
+    if sleeve:im=im.resize((round(im.width*SLEEVE_HEIGHT/im.height),SLEEVE_HEIGHT),Image.Resampling.LANCZOS) if im.height>SLEEVE_HEIGHT else im
+    else:im.thumbnail((288,420) if relative.parts[0]=='cards' else (512,512) if variant_icon else (1280,900),Image.Resampling.LANCZOS)
     if source.suffix.lower()=='.jpg':im=im.convert('RGB')
     im.save(dest,quality=85,optimize=True)
   else:copy(source,dest)

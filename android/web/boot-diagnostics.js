@@ -1,19 +1,32 @@
 // Startup diagnostics for "Could not start: Program terminated with exit(1)" (Discord, 2026-11-17: Redmi Note 12 in the
 // APK and Kiwi, and another phone in Chrome; 2026-11-19: Android 14 WebView, Chrome 157). Python stopped in
-// init_fs_encoding with "LookupError: no codec search functions registered".
-// Cause (reproduced in Node, 2026-11-19): that exact message means `encodings` was imported as an empty namespace
-// package. Python's list of the zip held the `encodings/` directory entry (7th in the zip) but not
-// `encodings/__init__.py` (248th): Python 3.12's zipimport (_read_directory) stops without an error at the first central
-// directory record it cannot read. A missing or unreadable zip gives "No module named 'encodings'" instead. The zip checks
-// out in those reports, so the bytes go wrong between JavaScript and Python's reads on those devices.
+// init_fs_encoding with "LookupError: no codec search functions registered"; on v0.2.39 (unpacked folder, 2026-11-20) it
+// got further and stopped in jsproxy with "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xd8 in position 8".
+// Real cause (both reproduced exactly in Node, 2026-11-20): the phone's language. See asciiTimeZoneNames() below.
+// - asciiTimeZoneNames: the fix. Pyodide's time zone setup gets English (ASCII) zone names.
 // - checkStdlib fetches the zip itself, checks it is a complete ZIP holding `encodings`, and hands Pyodide those bytes.
-// - prepareStdlib: on the automatic retry (and from then on, once that has worked on this device) the checked zip is
-//   unpacked by the browser's own DecompressionStream into a plain folder, /lib/python3.12, and Pyodide gets an empty
-//   zip, so Python reads its standard library as plain files, without zipimport or its zlib. After a zip-mode failure
-//   it compares Python's copy of the zip with the checked bytes, for the details.
+// - prepareStdlib (v0.2.39, written for a wrong first diagnosis of the same report, kept as a harmless fallback): on the
+//   automatic retry the checked zip is unpacked by DecompressionStream into a plain folder, /lib/python3.12, and Pyodide
+//   gets an empty zip. After a zip-mode failure it compares Python's copy of the zip with the checked bytes.
 // - details() is the text behind the error screen's Copy details button, for Discord reports.
 // - retryOnce() restarts once on its own (saves are untouched).
 const RETRY_KEY='ygo-boot-retry';
+
+// Pyodide 0.27.7's time zone setup (pyodide.asm.js _tzset_js) names the zone in the device's language:
+// toLocaleTimeString(undefined,{hour12:false,timeZoneName:'short'}).split(' ')[1]. Python keeps only its first 9 bytes,
+// so a non-ASCII name longer than that is cut inside a character (Arabic "غرينتش+٣" is 15 bytes; also Persian, Hebrew,
+// Thai, Greek, Burmese, Khmer, Nepali, Sinhala, Pashto, Sorani Kurdish, depending on the zone). Python's `time` module then
+// cannot decode it: a stdlib zip start fails in init_fs_encoding ("no codec search functions registered"), a folder start
+// fails importing `time` later (UnicodeDecodeError in logging, then jsproxy). Default-locale calls that ask for a zone
+// name use English instead ("GMT+3"); the game never formats times with zone names itself, so nothing visible changes.
+export function asciiTimeZoneNames(proto=globalThis.Date?.prototype){
+ const original=proto?.toLocaleTimeString;
+ if(typeof original!=='function'||original.asciiZones)return ()=>{};
+ const wrapped=function(locales,options){return original.call(this,locales==null&&options?.timeZoneName?'en-US':locales,options)};
+ wrapped.asciiZones=true;proto.toLocaleTimeString=wrapped;
+ return ()=>{if(proto.toLocaleTimeString===wrapped)proto.toLocaleTimeString=original};
+}
+
 const u16=(b,i)=>b[i]|b[i+1]<<8,u32=(b,i)=>(b[i]|b[i+1]<<8|b[i+2]<<16|b[i+3]<<24)>>>0;
 
 // A structural check only (no checksums): first local header, end-of-central-directory record, central directory
@@ -146,6 +159,7 @@ export function details({version,error,zip,stderr=[],nav=globalThis.navigator,na
   `Game v${version} · ${native?'Android app':'Web'}`,
   `Browser: ${chrome?`Chrome ${chrome}`:'unknown'}${/; wv\)/.test(ua)?' (WebView)':''}${android?` · Android ${android}`:''}`,
   `Device memory: ${nav?.deviceMemory?nav.deviceMemory+' GB':'unknown'}`,
+  `Language: ${nav?.language||'unknown'}`,
   `Stdlib zip: ${zipLine}${zip?.retry?' · re-downloaded':''}`,
   ...(zip?.mode?[`Stdlib start: ${zip.mode==='unpacked'?'unpacked folder':'zip'}${zip.copy?` · Python's copy ${zip.copy}`:''}${zip.unpackProblem?` · unpack failed: ${zip.unpackProblem}`:''}`]:[]),
   `Automatic retry: ${retried?'used':'not used'}`,

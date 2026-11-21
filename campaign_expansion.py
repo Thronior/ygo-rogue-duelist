@@ -72,6 +72,12 @@ def shop_relic_eligible(run,key):
 # Fortune's Favorite (user, 2026-11-18): the archetype relics a pack supports, an archetype counting as present when the
 # pack holds at least PACK_ARCHETYPE_CARDS different cards of it. Card-specific and loadout-only relics are left out.
 PACK_ARCHETYPE_CARDS=2
+# Tag teams split one shop, so it sells two more booster packs (Nemu on Discord, user agreed 2026-11-20). Packs, not
+# singles: the booster row is the shop's short row (3 offers beside two 5-card shelves), and 5 packs line up with those
+# shelves on every screen. Singles and relics stay as in solo play.
+TAG_EXTRA_PACKS=2
+def shop_pack_count(run):
+ return (4 if ar.has(run,'booster_shelf') else 3)+(TAG_EXTRA_PACKS if run.get('history_mode')=='tag' else 0)
 _pack_relics={}
 def pack_archetype_relics(pack_id):
  if pack_id in _pack_relics:return _pack_relics[pack_id]
@@ -506,6 +512,8 @@ def install(g):
   run['duel']=request;run['stage']='duel';save(run);return request
  old_rewards=g.rewards
  FINAL_COUNTDOWN_COINS=300
+ # Exodia wins (CITYDRIVER, user 2026-11-20): handled like Final Countdown, with a lower floor ("maybe not 300").
+ EXODIA_COINS=150
  def rewards(run,events,reason=None):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
@@ -538,10 +546,10 @@ def install(g):
    back=max(0,-(earned-earned//3)-tally['Slow duel'])
    if back:tally['Deck-out win']=back
    if sum(tally.values())<30:tally['Victory minimum']=30-sum(tally.values())
-  # Final Countdown wins (user, 2026-11-18): no slow duel penalty, and at least FINAL_COUNTDOWN_COINS after every
-  # deduction (the line 'Final Countdown win' tops the total up, below).
-  countdown=reason==0x11
-  if countdown:tally.pop('Slow duel',None);tally.pop('Victory minimum',None)
+  # Final Countdown (0x11, user 2026-11-18) and Exodia (0x10, user 2026-11-20) wins: no slow duel penalty, and at least
+  # their floor after every deduction (the line 'Final Countdown win' / 'Exodia win' tops the total up, below).
+  card_win={0x11:('Final Countdown win',FINAL_COUNTDOWN_COINS),0x10:('Exodia win',EXODIA_COINS)}.get(reason)
+  if card_win:tally.pop('Slow duel',None);tally.pop('Victory minimum',None)
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
   if owns(run,'glass_shard'):
@@ -553,7 +561,7 @@ def install(g):
    bonus=int(total*((1.25**ar.copies(run,'cursed_glass_treasury'))-1));tally['Glass Treasury']=bonus;total+=bonus
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
-  if countdown and total<FINAL_COUNTDOWN_COINS:tally['Final Countdown win']=FINAL_COUNTDOWN_COINS-total;total=FINAL_COUNTDOWN_COINS
+  if card_win and total<card_win[1]:tally[card_win[0]]=card_win[1]-total;total=card_win[1]
   bonus=custom_cards.coins(events)
   if bonus:tally['Ancient Treasure']=bonus;total+=bonus
   bonus=variant_relics.coins(run,events)
@@ -565,6 +573,11 @@ def install(g):
   had_variant=character_variants.unlocked(p,run['character'])
   p['max_gold']=max(p['max_gold'],run['gold']);p['max_bought']=max(p['max_bought'],run.get('purchased',0));p['max_artifacts']=max(p['max_artifacts'],len(run['artifacts']))
   if won:p['victories']+=1
+  # Hidden coin feats earned (user, 2026-11-20): from then on the shop Coin scorecard lists them.
+  import duel_rewards
+  earned=run.get('last_rewards') or {}
+  feats=sorted(set(p.get('secret_coin_feats',[]))|{k for k,label in duel_rewards.SECRET.items() if label in earned})
+  if feats:p['secret_coin_feats']=feats
   # Fused relics stay out of the collection until this player has made one.
   found=sorted(set(p.get('fused_relics',[]))|{a for a in run.get('artifacts',[]) if a in relic_fusions.KEYS})
   if found:p['fused_relics']=found
@@ -726,7 +739,7 @@ def install(g):
  def ensure_shop_packs(run,rng=random):
   if run.get('stage')!='shop' or copies_deck(run) or CHARACTERS[run['character']].get('engine_deck'):return
   current=[x['id'] for x in run.get('shop',[]) if x['kind']=='pack']
-  count=(4 if ar.has(run,'booster_shelf') else 3)-len(current)
+  count=shop_pack_count(run)-len(current)
   if count<=0:return
   profile=storage.profile()
   options=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in current and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
@@ -748,10 +761,10 @@ def install(g):
   like=set();_arts=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
   # Legendary Shackles likewise grants its own slot below.
   # Toon World now grants a separate guaranteed slot instead of weighting general stock.
-  def stock_sample(cards,count,affinity=None):
+  def stock_sample(cards,count,affinity=None,focus=''):
    # General stock uses the run's deck weighting (relic_affinity.card_multipliers, 2026-11-13); featured stock keeps its theme.
    boost=relic_affinity.card_multipliers(cards,run) if affinity else {}
-   return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id'])*boost.get(c['id'],1.0))),reverse=True)[:count]
+   return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id'])*boost.get(c['id'],1.0)*shop_rewards.focus_weight(c,focus))),reverse=True)[:count]
   themed=[c for c in eligible if c['id'] not in custom_cards.IDS]
   pool=preferred or themed
   if general_stock:
@@ -759,7 +772,7 @@ def install(g):
   elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
    top=shop_rewards.tag_featured(themed+[removal],run['tag_shop_rewards'],rng)
   else:
-   top=stock_sample(pool,min(5,len(pool)))
+   top=stock_sample(pool,min(5,len(pool)),focus=bias)
    top+=stock_sample([c for c in themed if c not in top],5-len(top))
   # Exodia always shows at least one Forbidden One piece in its featured stock.
   tag_rewards=run.get('tag_shop_rewards',[])
@@ -810,12 +823,18 @@ def install(g):
    for reward in tag_rewards:
     pid=usable(reward.get('pack','EN-LOB'))
     if pid not in tied_ids:tied_ids.append(pid)
-  pack_count=4 if ar.has(run,'booster_shelf') else 3
-  others=rng.sample([p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in tied_ids and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)],pack_count-len(tied_ids))
+  pack_count=shop_pack_count(run)
+  pack_pool=[p['id'] for p in PACKS if (not p.get('draft_only') or ar.has(run,'duelist_catalogue')) and p['id'] not in tied_ids and shop_rewards.pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
+  others=rng.sample(pack_pool,min(len(pack_pool),pack_count-len(tied_ids)))
   pack_ids=tied_ids+others
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
   # A Tag personal pack that is already a guaranteed pack keeps its random slot.
-  if (not general_stock or ar.has(run,'morphing_jar_2')) and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  if (not general_stock or ar.has(run,'morphing_jar_2')) and len(pack_ids)>2 and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  # The slots after the character pack (Booster Shelf, Tag's extra packs) never repeat a pack already on the shelf.
+  for n in range(3,len(pack_ids)):
+   if pack_ids[n] in pack_ids[:n]:
+    spare=[p for p in pack_pool if p not in pack_ids]
+    if spare:pack_ids[n]=rng.choice(spare)
   if randomized_shop:pack_ids=[random_cards.RANDOM_PACK]*len(pack_ids)
   # Elsewhere a Random Pack sometimes takes one of the random pack slots. Tag too since 2026-11-16: its cards come from
   # seeds both devices share (random_cards.tag_pack).

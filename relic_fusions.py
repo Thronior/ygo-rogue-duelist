@@ -33,7 +33,7 @@ FUSED=[
  ('giant_killers_cradle',"Giant-Killer's Cradle",'Level 3 or lower monsters you control gain 1,000 ATK and cannot be destroyed by battle with Level 5 or higher monsters.','Little-Winguard',('cursed_ashen_nursery','small','protect_the_weak')),
  ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
  ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and cannot be destroyed by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
- ('undying_legion','Undying Legion','Zombie monsters you control gain 1,200 ATK. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.','Book of Life',('cursed_zombies_bargain','bone','restless_dead')),
+ ('undying_legion','Undying Legion','Zombie monsters you control gain 1,200 ATK. Once per turn, at the start of your Standby Phase, if you have a free Monster Zone, Special Summon 1 random Zombie monster from your GY in Attack Position. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.','Book of Life',('cursed_zombies_bargain','bone','restless_dead')),
  ('grand_ritual_altar','Grand Ritual Altar','Monsters you control gain 200 ATK for each time you Ritual Summon a monster during this run, across all Duels. Each time you Ritual Summon, draw 1 card.',"Shinato's Ark",('cursed_ritual_scar','ritual_incense','ritual_vestment')),
  ('tyrants_throne',"Tyrant's Throne","While you control exactly 1 monster, it gains 1,200 ATK, can make a second attack during each Battle Phase, and is unaffected by your opponent's Spell Cards.",'Dark Master - Zorc',('cursed_solitary_tyrant','solo','sword')),
  ('mass_grave','Mass Grave','Monsters you control gain 100 ATK/DEF for each monster in your GY (max. 1,500). Your hand size limit is reduced by 2.','Skull Lair',('cursed_crowded_crypt','grave_lantern')),
@@ -201,12 +201,17 @@ e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetV
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsLevelAbove(5)')+'\n'+base('tribute_free',0,'')
  if key=='commoners_crown':return both(1000,'c:IsType(TYPE_NORMAL)')+'\n'+stat('EFFECT_INDESTRUCTABLE_EFFECT','function(e,re,rp) return rp==1 end','c:IsType(TYPE_NORMAL)')
  if key=='undying_legion':
+  # Restless Dead's Standby revive kept, without its empty-field condition and in Attack Position (Uby on Discord: fusing
+  # lost the revive; user, 2026-11-20).
   fallen='function(c) return c:IsPreviousControler(0) and c:IsLocation(LOCATION_GRAVE) and c:IsRace(RACE_ZOMBIE) end'
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsRace(RACE_ZOMBIE)')+f'''
 do local fallen,turn=nil,-1
 local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_BATTLE_DESTROYED)
 d:SetCondition(function(e,tp,eg) return turn~=Duel.GetTurnCount() and eg:IsExists({fallen},1,nil) end)
 d:SetOperation(function(e,tp,eg) turn=Duel.GetTurnCount() fallen=eg:Filter({fallen},nil):GetFirst() end) Duel.RegisterEffect(d,0)
+local sb=Effect.GlobalEffect() sb:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) sb:SetCode(EVENT_PHASE_START|PHASE_STANDBY) sb:SetCountLimit(1)
+sb:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
+sb:SetOperation(function(e) local g=Duel.GetMatchingGroup(function(c) return c:IsRace(RACE_ZOMBIE) and c:IsCanBeSpecialSummoned(e,0,0,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_GRAVE,0,nil) if #g>0 then Duel.SpecialSummon(g:RandomSelect(0,1),0,0,0,false,false,POS_FACEUP_ATTACK) end end) Duel.RegisterEffect(sb,0)
 local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(EVENT_PHASE|PHASE_BATTLE)
 s:SetCondition(function() return fallen~=nil end)
 s:SetOperation(function(e) local c=fallen fallen=nil if c:IsLocation(LOCATION_GRAVE) and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,0,false,false) then Duel.SpecialSummon(c,0,0,0,false,false,POS_FACEUP) end end) Duel.RegisterEffect(s,0)

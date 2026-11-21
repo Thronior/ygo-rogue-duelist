@@ -59,7 +59,7 @@ export const UI_SCALE_MIN=75,UI_SCALE_MAX=200;
 export const autoUiScale=()=>innerWidth<=2600||innerHeight<=1300?100:Math.min(UI_SCALE_MAX,Math.max(100,Math.floor(Math.min(innerWidth/1920,innerHeight/1080)*20)*5));
 export const uiScaleValue=value=>Number(value)>=UI_SCALE_MIN?Math.min(UI_SCALE_MAX,Math.round(Number(value)/5)*5):0;
 const VIEWPORT=/(-?\d*\.?\d+)(dvh|svh|lvh|vh|dvw|svw|lvw|vw|vmin|vmax)\b/g,VIEWPORT_TEST=/\d(dvh|svh|lvh|vh|dvw|svw|lvw|vw|vmin|vmax)\b/;
-let viewportFixed=false,viewportRules=null,zoomsViewport=null,uiAuto=false;
+let viewportFixed=false,viewportRules=null,zoomsViewport=null,uiAuto=false,appliedScale=1;
 const fitViewport=value=>viewportFixed?value.replace(VIEWPORT,'calc($1$2 / var(--ui-scale,1))'):value;
 // Every other declaration with a viewport unit; font sizes that Text Size scales are already in textRules.
 function findViewportRules(rules,out,skip){
@@ -94,6 +94,8 @@ function applyUiScale(setting){
  const value=uiScaleValue(setting);uiAuto=!value;const scale=(value||autoUiScale())/100,html=document.documentElement;
  html.style.setProperty('--ui-scale',scale);html.style.zoom=scale===1?'':String(scale);
  fixViewport(scale!==1&&zoomStretchesViewport());
+ // mobile.js sizes the page and windows from the window in zoomed pixels (sizeModalViewport).
+ if(scale!==appliedScale){appliedScale=scale;dispatchEvent(new Event('ygo-ui-scale'))}
 }
 addEventListener('resize',()=>{if(uiAuto)applyUiScale(0)});
 export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=20;

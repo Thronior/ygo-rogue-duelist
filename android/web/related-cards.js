@@ -4,6 +4,8 @@
 // The index is built once, on the first inspect, in one pass over the card texts (a few ms on a low-end phone).
 // In a deck editor each related card the player owns gets − / + to take a copy out of or put one into the deck.
 
+import {isRandomId} from './collector-rules.js';
+
 const QUOTED=/["“”]([^"“”]{2,60})["“”]/g;
 const key=s=>String(s).trim().toLowerCase();
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
@@ -46,10 +48,13 @@ export function relatedCards(index,id){
 }
 export const relatedCount=groups=>new Set([...groups.mentionsThis,...groups.mentionedByThis]).size;
 
-// Copies by name in a run: pool indexes owned, in the deck, and owned but out of the deck.
+// Copies by name in a run: pool indexes owned, in the deck, and owned but out of the deck. Alternate arts count as the
+// card; a randomized card never does, even when its made-up name matches (Nori, Discord 2026-11-20: + put the run's
+// randomized namesake in the deck). Copies of the exact card shown come first, so + adds that card.
 function counts(run,card,id){
  if(!run)return null;const target=key(card(id)?.name),selected=new Set(run.selected||[]),owned=[],inDeck=[];
- (run.pool||[]).forEach((code,i)=>{if(key(card(code)?.name)===target){owned.push(i);if(selected.has(i))inDeck.push(i)}});
+ (run.pool||[]).forEach((code,i)=>{if(!isRandomId(code)&&key(card(code)?.name)===target){owned.push(i);if(selected.has(i))inDeck.push(i)}});
+ const exact=i=>Number(run.pool[i])===Number(id)?0:1;owned.sort((a,b)=>exact(a)-exact(b)||a-b);
  return {owned,inDeck,spare:owned.filter(i=>!selected.has(i))};
 }
 

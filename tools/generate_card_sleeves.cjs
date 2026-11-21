@@ -1,12 +1,17 @@
 // Card-art sleeves (2026-11-12): each card's artwork filling a card-back sized sleeve inside a thin frame.
 // The duelist-count sleeves at 20, 30 and 36 get bronze, silver and gold foil frames (the gold one with a rainbow edge).
 // The foil is baked into the image, so the duel draws a still picture; the Settings picker adds the moving sheen.
-// Usage: runtime/ai/node.exe tools/generate_card_sleeves.cjs [--only <sleeve id>]
+// Art: the card's artwork box, or tools/sleeve-art/cards/<id>.webp when present (Deds' fuller arts, 2026-11-20, his own
+// frame already trimmed off), used whole.
+// Usage: runtime/ai/node.exe tools/generate_card_sleeves.cjs [--only <sleeve id>[,<sleeve id>...]]
+// Rendered at half scale (deviceScaleFactor .5): sleeves only cover small face-down cards, so they ship 214x307 (the
+// Rainbow strip 642x307; user, 2026-11-20). Layout stays in 428x614 CSS pixels.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const root=path.resolve(__dirname,'..'),out=path.join(root,'assets/sleeves/cards');
-const only=process.argv.includes('--only')?process.argv[process.argv.indexOf('--only')+1]:null;
-const rows=JSON.parse(fs.readFileSync(path.join(root,'data/card-sleeves.json'),'utf8')).sleeves.filter(s=>!only||s.id===only);
+const only=process.argv.includes('--only')?process.argv[process.argv.indexOf('--only')+1].split(','):null;
+const rows=JSON.parse(fs.readFileSync(path.join(root,'data/card-sleeves.json'),'utf8')).sleeves.filter(s=>!only||only.includes(s.id))
+ .map(s=>({...s,artFile:fs.existsSync(path.join(root,'tools/sleeve-art/cards',s.id+'.webp'))?`/tools/sleeve-art/cards/${s.id}.webp`:null}));
 if(!rows.length)throw Error('No sleeve matched');
 const R='#ff4f8b,#ff9f43,#ffe45c,#5cf08f,#45c8ff,#8f6bff,#ff5fd2,#ff4f8b';
 const FRAMES={
@@ -29,7 +34,7 @@ const css=`*{box-sizing:border-box}html,body{margin:0;background:#000}
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,channel:'chrome'});
-  const page=await browser.newPage({viewport:{width:428,height:614}});await page.goto(`http://127.0.0.1:${server.address().port}/`);
+  const page=await browser.newPage({viewport:{width:428,height:614},deviceScaleFactor:.5});await page.goto(`http://127.0.0.1:${server.address().port}/`);
   for(const row of rows){
    // The Rainbow sleeve (every duelist beat Level 6) is the Level 6 portrait rainbow alone, at an angle. One rainbow spans
    // two sleeve widths, like the roster portraits; the picture is three sleeves wide and repeats every 856 px across, so
@@ -42,10 +47,10 @@ const css=`*{box-sizing:border-box}html,body{margin:0;background:#000}
     await page.evaluate(()=>{document.querySelector('#s').style.width=''});await page.setViewportSize({width:428,height:614});continue;
    }
    const f=FRAMES[row.tier||'plain'];
-   await page.evaluate(async([row,f])=>{const im=new Image();im.src=`/assets/cards/${row.card}.jpg`;await im.decode();const w=im.naturalWidth,h=im.naturalHeight;
+   await page.evaluate(async([row,f])=>{const im=new Image();im.src=row.artFile||`/assets/cards/${row.card}.jpg`;await im.decode();const w=im.naturalWidth,h=im.naturalHeight;
     const pad=f.width,ratio=(428-2*pad)/(614-2*pad);
-    // The card's artwork box (x 12.5-87.5%, y 19-70%), cropped to the sleeve's inner shape.
-    const ax=w*.125,aw=w*.75,ay=h*.19,ah=h*.512;let cw=aw,ch=cw/ratio;if(ch>ah){ch=ah;cw=ch*ratio}const cx=ax+(aw-cw)/2,cy=ay+(ah-ch)/2;
+    // The card's artwork box (x 12.5-87.5%, y 19-70%), or a sleeve-art file whole, cropped to the sleeve's inner shape.
+    const [ax,aw,ay,ah]=row.artFile?[0,w,0,h]:[w*.125,w*.75,h*.19,h*.512];let cw=aw,ch=cw/ratio;if(ch>ah){ch=ah;cw=ch*ratio}const cx=ax+(aw-cw)/2,cy=ay+(ah-ch)/2;
     const rainbow=f.rainbow?'<div class="edge"></div>':'';
     document.querySelector('#s').innerHTML=`${rainbow}<div class="frame" style="background:${f.frame};${f.rainbow?'inset:5px;border-radius:4px':''}"></div>${f.width>10?'<div class="foil"></div>':''}<div class="inner" style="inset:${pad}px;box-shadow:0 0 0 1.5px ${f.line},0 0 0 3px #0008"><svg viewBox="${cx} ${cy} ${cw} ${ch}" preserveAspectRatio="xMidYMid slice"><image href="${im.src}" width="${w}" height="${h}"/></svg><div class="gloss"></div></div>`;
     await Promise.all([...document.images].map(i=>i.decode()))},[row,f]);

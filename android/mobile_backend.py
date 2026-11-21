@@ -157,15 +157,18 @@ def dispatch(raw):
  elif action=='toggle':
   if content.copies_deck(run):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
   if content.fixed_deck(run):raise ValueError('The Dueling Engine uses a fixed deck chosen after victories.')
-  index=int(value)
-  if index<0 or index>=len(run['pool']):raise ValueError('Unknown card')
-  if index in run['selected']:run['selected'].remove(index)
-  else:
+  # One index, or a list in order: quick deck-editor taps made while one was saving (mobile.js runDeckTaps, 2026-11-20).
+  # A list is applied to a copy, so a refused add leaves the deck as it was.
+  from approved_relics import copy_limit
+  limit=copy_limit(run);selected=list(run['selected'])
+  for index in (value if isinstance(value,list) else [value]):
+   index=int(index)
+   if index<0 or index>=len(run['pool']):raise ValueError('Unknown card')
+   if index in selected:selected.remove(index);continue
    cid=run['pool'][index]
-   from approved_relics import copy_limit
-   limit=copy_limit(run)
-   if limit is not None and sum(g.limit_identity(run['pool'][i])==g.limit_identity(cid) for i in run['selected'])>=limit:raise ValueError('Maximum three copies of a card.' if limit==3 else 'Singleton Pact allows only 1 copy of each card.')
-   run['selected'].append(index)
+   if limit is not None and sum(g.limit_identity(run['pool'][i])==g.limit_identity(cid) for i in selected)>=limit:raise ValueError('Maximum three copies of a card.' if limit==3 else 'Singleton Pact allows only 1 copy of each card.')
+   selected.append(index)
+  run['selected']=selected
  elif action=='choose':
   if int(value) not in run['routes']:raise ValueError('Unavailable opponent')
   run['opponent']=int(value)

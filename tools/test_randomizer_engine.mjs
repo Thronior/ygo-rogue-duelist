@@ -127,6 +127,13 @@ for (const group of groups) {
         let response = choose();
         try { state = engine.respond(response); }
         catch (error) { failures.push({kind: 'rejected', seed, card: lastRand, error: String(error.message || error)}); state = engine.respond(engine.auto()); }
+        // A randomized Trap that Special Summoned itself must have the stats its text gives (it came out 0/0, Discord Nov 20).
+        for (const side of state.players || []) for (const c of side.monsters || []) {
+          const entry = c && byId.get(c.code), want = /ATK (\d+)\/DEF (\d+)/.exec(entry?.card.desc || '');
+          if (want && entry.card.type?.includes('Trap') && (+want[1] || +want[2]) && !c.attack && !c.defense && (c.position & 5)
+            && !failures.some(f => f.kind === 'trap-monster-stats' && f.seed === seed && f.card === c.code))
+            failures.push({kind: 'trap-monster-stats', seed, card: c.code, got: [c.level, c.attack, c.defense], want: [+want[1], +want[2]]});
+        }
         if (engine.errors.length > before) for (const text of engine.errors.slice(before)) {
           const code = Number(/c(19\d{7})\.lua/.exec(text)?.[1]) || chainCodes.findLast?.(isRand) || lastRand;
           (stats.get(code)?.errors || failures).push(text.slice(0, 300));

@@ -1,0 +1,99 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_40,.patch-notes-sheet.pn0_2_40 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_40{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_40 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_40 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_40 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_40 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_40 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big .pn0_2_40-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big>*{position:relative}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big p.pn0_2_40-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way img,.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way .pn0_2_40-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-relics .pn0_2_40-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-packs .pn0_2_40-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark.pn0_2_40-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-mark.pn0_2_40-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_40{font-family:Arial,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_40 h1,.patch-notes-sheet.pn0_2_40 h2,.patch-notes-sheet.pn0_2_40 h4,.patch-notes-sheet.pn0_2_40 .pn0_2_40-big h3,.patch-notes-sheet.pn0_2_40 .pn0_2_40-kick,.patch-notes-sheet.pn0_2_40 .pn0_2_40-big em{font-family:Bebas,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-big h3,.patch-notes-sheet.pn0_2_40 h2,.patch-notes-sheet.pn0_2_40 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_40 h1{font-weight:700}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shot{display:block;width:100%;border:2px solid #b5824a;border-radius:10px;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shots{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-shots img{width:100%;border:2px solid #b5824a;border-radius:10px;display:block;margin-top:12px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-cap{height:0;overflow:hidden;visibility:hidden;font-size:15px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_40 img+.pn0_2_40-cap{height:auto;visibility:visible;margin-top:4px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-sleeves{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-top:14px}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-sleeves img{width:100%;aspect-ratio:214/307;object-fit:cover;border-radius:6px;border:2px solid #b5824a;display:block}
+.patch-notes-sheet.pn0_2_40 .pn0_2_40-pmark{display:inline-block;width:21px;height:21px;vertical-align:middle;margin:0 3px}</style><div class="patch-notes-sheet pn0_2_40"><div class="pn0_2_40-kick">YGO Rogue Duelist</div><h1>更新 0.2.40</h1>
+
+<section class="pn0_2_40-big" style="margin-top:28px"><em>外观</em><h3>Deds绘制的74款新卡套</h3>
+<p class="pn0_2_40-lead">社区画师<b>Deds</b>重新设计了所有<b>挑战等级6决斗者卡套</b>和大部分卡片卡套，并绘制了<b>74款全新卡套</b>，每款都有自己的解锁目标。现在共有<b>182款卡套</b>可在<b>外观</b>中收集，加载也比以前更轻快。</p>
+<div class="pn0_2_40-sleeves">
+<img src="assets/sleeves/yami-yugi.jpg"><img src="assets/sleeves/seto-kaiba.jpg"><img src="assets/sleeves/joey-wheeler.jpg"><img src="assets/sleeves/mai-valentine.jpg">
+<img src="assets/sleeves/cards/dark-magician-2.jpg"><img src="assets/sleeves/cards/blue-eyes-white-dragon.jpg"><img src="assets/sleeves/cards/red-eyes-black-dragon.jpg"><img src="assets/sleeves/cards/black-luster-soldier.jpg">
+</div></section>
+
+<section class="pn0_2_40-cols">
+<div class="pn0_2_40-big"><em>语言</em><h3>卡片显示你的语言</h3>
+<p class="pn0_2_40-lead">用其他语言游戏时，每张真实卡片的卡图上现在都会直接绘制<b>官方翻译的卡名和文本</b>。英文保持不变。</p></div>
+<div class="pn0_2_40-big"><em>双打决斗</em><h3>交换请求，商店扩充</h3>
+<p class="pn0_2_40-lead">交换界面新增<b>队友的卡片</b>标签页：点按卡片即可<b>请求</b>，队友会看到它被标记。双打商店现在额外提供<b>2个补充包</b>。</p></div>
+</section>
+
+<section class="pn0_2_40-cols">
+<div class="pn0_2_40-big"><em>金币</em><h3>额外金币</h3>
+<p class="pn0_2_40-lead"><b>艾克佐迪亚胜利</b>现在至少获得<b>150金币</b>，且没有慢速决斗惩罚。</p>
+<p class="pn0_2_40-lead" style="margin-top:8px"><b>隐藏金币奖励：</b>在决斗中做出特别的操作，可能会获得你不知道的金币。一旦发现，它们会列在商店的<b>金币记分卡</b>中。</p></div>
+<div class="pn0_2_40-big"><em>随机化者</em><h3>彩虹卡打磨优化</h3>
+<p class="pn0_2_40-lead">陷阱怪兽有了真实数值，空白和含糊的文本已修正（现在会写明<b>哪位玩家</b>），自我复活循环和两个引擎崩溃已消除，1000多场测试决斗现已顺利运行。</p></div>
+</section>
+
+<section class="pn0_2_40-cols">
+<div><h2>改动</h2><ul class="pn0_2_40-small">
+<li><span>📊</span><span>卡组数值会计入<b>下一个首领的诅咒</b>，方便你针对性组卡。</span></li>
+<li><span>⚡</span><span>即使有<b>数千张卡</b>，卡组编辑器也依然流畅。</span></li>
+<li><span>🔍</span><span>卡片搜索新增<b>★</b>（已标记卡）和<b>?</b>（随机生成卡）筛选。</span></li>
+<li><span>❤️</span><span>对手界面会在金币旁显示<b>你的基本分</b>。</span></li>
+<li><span>✖️</span><span>重复的首领诅咒只显示一次，并标注<b>×3</b>。</span></li>
+<li><span>🪄</span><span><b>魔术师之绊</b>也能把「黑魔术师」怪兽加入手卡。</span></li>
+<li><span>🧟</span><span><b>不死军团</b>还会在你的准备阶段开始时，从墓地随机复活1只不死族，每回合1次。</span></li>
+<li><span>🛡️</span><span>守护者货架现在主要是<b>守护者</b>卡及其装备卡。</span></li>
+<li><span>🤖</span><span>电脑现在会把<b>魔法筒</b>和<b>神圣标枪</b>留给更强的攻击者，不再浪费雷帝 扎博尔格、救援猫和衍生物。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_40-small">
+<li><span>📱</span><span>修复了部分语言设置的手机上出现的 Android <b>“无法开始”</b>错误。</span></li>
+<li><span>📜</span><span><b>界面缩放</b>超过100%时，卡片窗口也能适应屏幕并滚动，双打中同样如此。</span></li>
+<li><span>🃏</span><span><b>相关卡片</b>不再加入同名的随机生成卡。</span></li>
+<li><span>👆</span><span>快速点按堆叠的卡片不再会把副本加回去。</span></li>
+<li><span>🧲</span><span><b>名称变更器</b>现在可与磁引力场和双眼配合使用。</span></li>
+<li><span>🌈</span><span>角色选择界面在所有决斗外观中都会显示<b>等级颜色</b>。</span></li>
+<li><span>🔤</span><span>解锁目标会使用你所选语言的角色名。</span></li>
+</ul></div>
+</section></div>

@@ -31,11 +31,12 @@ for seed in range(12):
    ids=[x['id'] for x in shop]
    assert a in ids and b in ids,(seed,seat,a,b,ids)
    assert [x['id'] for x in shop if x['opponent_pack']]==[a,b],(seed,ids)
-   assert len(ids)==(4 if shelf else 3),ids
+   # Tag shops sell two more packs than solo ones (campaign_expansion.TAG_EXTRA_PACKS, 2026-11-20).
+   assert len(ids)==(6 if shelf else 5) and len(set(ids))==len(ids),ids
    checked+=1
 # The same pick from both seats offers that pack once, plus the usual random slots.
 r=s.players[0];r['tag_shop_rewards']=[dict(r['tag_shop_rewards'][0]),dict(r['tag_shop_rewards'][0])];r['artifacts']=[]
 with s.scope(0):game.restock(r,random.Random(5))
 ids=[x['id'] for x in r['shop'] if x['kind']=='pack']
-assert len(ids)==3 and ids.count(r['tag_shop_rewards'][0]['pack'])>=1 and [x['opponent_pack'] for x in r['shop'] if x['kind']=='pack'][:1]==[True],ids
+assert len(ids)==5 and len(set(ids))==5 and ids.count(r['tag_shop_rewards'][0]['pack'])>=1 and [x['opponent_pack'] for x in r['shop'] if x['kind']=='pack'][:1]==[True],ids
 print(f'PASS: both Tag guaranteed packs offered in {checked} shops (with and without Booster Shelf), duplicate pick collapses')

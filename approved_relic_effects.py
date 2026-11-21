@@ -320,9 +320,10 @@ c:SetCondition(function(e,tp,eg,ep,ev,re) return ep==0 and card(re) end) c:SetOp
  # 2026-11-15 Discord relics, with the same player-argument rules as the 2026-11-14 ones above. "You can" summons from the
  # hand, Deck or Extra Deck are summon procedures (the card shows "Special Summon", like Guardian's Call); triggered ones ask.
  elif key=='magicians_bond':
-  # Normal or Special Summon since the 2026-11-16 balance picks.
+  # Normal or Special Summon since the 2026-11-16 balance picks. It also adds "Dark Magician" monsters (DARK_MAGICIANS or the
+  # archetype, as Name Changer gives it): Dark Magician does not mention itself, so 2 in the Deck were never listed (user, 2026-11-20).
   out.append(f'''do local used=-1
-local function search(c) return c:IsCode({codes(DARK_MAGICIAN_MENTIONS)}) and c:IsAbleToHand() end
+local function search(c) return (c:IsCode({codes(DARK_MAGICIAN_MENTIONS)}) or c:IsMonster() and (c:IsCode({codes(DARK_MAGICIANS)}) or c:IsSetCard({DARK_MAGICIAN_SET}))) and c:IsAbleToHand() end
 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
 e:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(function(c) return c:IsControler(0) and (c:IsCode({codes(DARK_MAGICIANS)}) or c:IsSetCard({DARK_MAGICIAN_SET})) end,1,nil) and Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) end)
 e:SetOperation(function(e,tp,eg) local g=Duel.GetMatchingGroup(search,0,LOCATION_DECK,0,nil) if #g==0 then return end
@@ -372,11 +373,12 @@ Duel.RegisterEffect(e,0) end''')
    'D.Hint(HINT_SELECTMSG,tp,HINTMSG_DISCARD) local sg=D.GetMatchingGroup(fodder,tp,LOCATION_HAND,0,c):Select(tp,2,2,true,nil) if not sg or #sg~=2 then return false end',
    'used=true Duel.SendtoGrave(sg,REASON_COST|REASON_DISCARD)','false',handlers='function(c) return c:IsMonster() and c:GetOriginalLevel()>=7 end'))
  elif key=='twin_eyes':
+  # Name Changer's "Blue-Eyes" (0xdd added to every monster) counts too; real cards stay the EYES list (2026-11-20).
   # Hand or Deck (user, 2026-11-16: an opening hand Red-Eyes left it with nothing to summon). Dark Lotus's first-Standby flag. No "you can": the summon happens whenever a monster can be summoned.
   out.append(f'''do local done=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY)
 e:SetCondition(function() return not done and Duel.GetTurnPlayer()==0 end)
 e:SetOperation(function(e,tp) done=true if Duel.GetLocationCount(0,LOCATION_MZONE)<1 then return end
- local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsCode({codes(EYES)}) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_HAND|LOCATION_DECK,0,nil)
+ local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and (c:IsCode({codes(EYES)}) or c:IsSetCard(0xdd) and not c:IsOriginalSetCard(0xdd)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end,0,LOCATION_HAND|LOCATION_DECK,0,nil)
  if #g==0 then return end
  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
  Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP_ATTACK) end)

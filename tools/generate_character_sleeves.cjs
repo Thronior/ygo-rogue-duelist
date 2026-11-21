@@ -1,6 +1,9 @@
 // Level 6 sleeves: the character pack layout (portrait over the signature card's art) with the Level 6
 // rainbow instead of the pack's single tint, and no logo. One JPEG per playable character, card-back sized.
+// A finished design in tools/sleeve-art/duelists/<slug>.webp (Deds' redesigns, 2026-11-20) is used as it is instead.
 // Usage: runtime/ai/node.exe tools/generate_character_sleeves.cjs [--only "Seto Kaiba"]
+// Rendered at half scale (deviceScaleFactor .5): sleeves only cover small face-down cards, so they ship 214x307 (the
+// Rainbow strip 642x307; user, 2026-11-20). Layout stays in 428x614 CSS pixels.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('./require-module.cjs').requireModule('playwright');
 const root=path.resolve(__dirname,'..'),out=path.join(root,'assets/sleeves');
@@ -13,7 +16,8 @@ const rows=content.playable.map(i=>content.characters[i]).filter(c=>!only||c.nam
  const pack=packArt.find(p=>p.name===c.name);
  const named=c.cards?.length?content.cards.find(x=>x.name===c.cards[0]):null;
  // No character pack: the first signature card, else the card back itself (Dueling Engine).
- return {name:c.name,slug:slug(c.name),sprite:c.sprite,art:pack?`/assets/cards/${pack.card}.jpg`:named?`/assets/cards/${named.id}.jpg`:'/assets/card-back.jpg',cardArt:!!(pack||named)};
+ const design=fs.existsSync(path.join(root,'tools/sleeve-art/duelists',slug(c.name)+'.webp'))?`/tools/sleeve-art/duelists/${slug(c.name)}.webp`:null;
+ return {name:c.name,slug:slug(c.name),design,sprite:c.sprite,art:pack?`/assets/cards/${pack.card}.jpg`:named?`/assets/cards/${named.id}.jpg`:'/assets/card-back.jpg',cardArt:!!(pack||named)};
 });
 if(!rows.length)throw Error('No character matched');
 const R='#ff4f8b,#ff9f43,#ffe45c,#5cf08f,#45c8ff,#8f6bff,#ff5fd2,#ff4f8b';
@@ -31,9 +35,10 @@ const css=`*{box-sizing:border-box}html,body{margin:0;background:#000}
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,channel:'chrome'});
-  const page=await browser.newPage({viewport:{width:428,height:614}});await page.goto(`http://127.0.0.1:${server.address().port}/`);
+  const page=await browser.newPage({viewport:{width:428,height:614},deviceScaleFactor:.5});await page.goto(`http://127.0.0.1:${server.address().port}/`);
   for(const row of rows){
-   await page.evaluate(async row=>{const im=new Image();im.src=row.art;await im.decode();const w=im.naturalWidth,h=im.naturalHeight;
+   if(row.design)await page.evaluate(async src=>{document.querySelector('#s').innerHTML=`<img src="${src}" style="position:absolute;inset:0;width:100%;height:100%">`;await document.images[0].decode()},row.design);
+   else await page.evaluate(async row=>{const im=new Image();im.src=row.art;await im.decode();const w=im.naturalWidth,h=im.naturalHeight;
     // A card's artwork box (x 12-88%, y 19-71.5%), cropped to the sleeve's inner shape; the card back is used whole.
     const ratio=408/594;let ax=0,ay=0,aw=w,ah=h;if(row.cardArt){ax=w*.12;aw=w*.76;ay=h*.19;ah=h*.525}
     let cw=aw,ch=cw/ratio;if(ch>ah){ch=ah;cw=ch*ratio}const cx=ax+(aw-cw)/2,cy=ay+(ah-ch)/2;

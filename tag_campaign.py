@@ -402,13 +402,22 @@ class TagCampaign:
 
  @staticmethod
 
- def new_trade():return dict(id=uuid.uuid4().hex,status='idle',votes=[False,False],sent=[False,False],offers=[[],[]],received=[[],[]],ack=[False,False])
+ # requests[seat]: copies (indices into the teammate's pool) that seat asked for (Nemu on Discord, user 2026-11-20). Only a
+ # wish list: the owner still picks what to send. Checkpoints saved before it have no 'requests' (trade_requests).
+ def new_trade():return dict(id=uuid.uuid4().hex,status='idle',votes=[False,False],sent=[False,False],offers=[[],[]],received=[[],[]],ack=[False,False],requests=[[],[]])
 
  def trade_view(self,seat):
 
   t=self.trade
 
-  return dict(id=t['id'],status=t['status'],votes=t['votes'][:],sent=t['sent'][:],selected=t['offers'][seat][:],received=t['received'][seat][:],ack=t['ack'][:],available=not any(content.fixed_deck(r) for r in self.players))
+  view=dict(id=t['id'],status=t['status'],votes=t['votes'][:],sent=t['sent'][:],selected=t['offers'][seat][:],received=t['received'][seat][:],ack=t['ack'][:],available=not any(content.fixed_deck(r) for r in self.players))
+  # While both pick cards, each screen also gets the teammate's collection and deck, so it can show them and request copies.
+  if t['status']=='select':
+   other=self.players[1-seat];requests=self.trade_requests()
+   view.update(partner=dict(pool=other['pool'][:],deck=other.get('selected',[])[:],mods=sorted(int(i) for i in (other.get('card_mods') or {}))),requested=requests[seat][:],requestedMine=requests[1-seat][:])
+  return view
+
+ def trade_requests(self):return self.trade.setdefault('requests',[[],[]])
 
  def trade_command(self,seat,action,value):
 
@@ -446,6 +455,13 @@ class TagCampaign:
 
    return
 
+  if action=='trade-request':
+   if t['status']!='select':raise ValueError('This trade has changed. Please try again.')
+   if t['sent'][1-seat]:raise ValueError('Your teammate has already sent their cards.')
+   wanted=value.get('cards');size=len(self.players[1-seat]['pool'])
+   if not isinstance(wanted,list) or any(type(i)!=int or not 0<=i<size for i in wanted) or len(set(wanted))!=len(wanted):raise ValueError("Choose valid, distinct copies from your teammate's collection.")
+   self.trade_requests()[seat]=wanted[:]
+   return
   if action=='trade-ack':
 
    if t['status']!='received':raise ValueError('Wait until both players have sent their cards.')
@@ -599,7 +615,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('mark','marks','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('mark','marks','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-request','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 

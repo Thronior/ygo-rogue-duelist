@@ -10,8 +10,13 @@ from pathlib import Path
 SLEEVES = json.loads((Path(__file__).parent / 'data/card-sleeves.json').read_text(encoding='utf8'))['sleeves']
 # Per-duel counts from the duel event that add up across runs.
 DUEL_TOTALS = ('graveSpecials', 'dragonsByBattle', 'timeWizardWins', 'lightBanished', 'darkBanished', 'coinsTossed', 'diceRolled',
-               'bounced', 'flipSummons', 'directAttacks', 'spellsRecovered', 'faceDownDestroyed')
+               'bounced', 'flipSummons', 'directAttacks', 'spellsRecovered', 'faceDownDestroyed',
+               # Deds' sleeves (2026-11-20).
+               'draws', 'effectDamage', 'dmSummons', 'tributeSummons', 'toExtra', 'lpPaid', 'coinKills', 'flippedDown',
+               'oppDiscards', 'trapsActivated', 'handLooks')
 MARKS = ('tutorial', 'draft', 'solomon')
+# "Win N duels while you control a <Type> monster" (lifetime key 'wins:race:<Type>'): the core's race bits.
+RACES = {'Warrior': 0x1, 'Zombie': 0x10, 'Machine': 0x20, 'Thunder': 0x1000, 'Reptile': 0x80000}
 
 
 def _met(rule, value):
@@ -26,7 +31,24 @@ def _met(rule, value):
     return True
 
 
-def duel(run, result, won, metrics, cards=(), boss=False):
+def _won_counter(key, m, opponent):
+    """Lifetime keys counted once per won duel: 'wins:<what>' (what the winning board or finish was) and
+    'beat:<opponent name>' (Deds' sleeves, 2026-11-20)."""
+    if key.startswith('beat:'):
+        return key[5:] == opponent
+    what = key[5:]
+    field = m.get('field', [])
+    if what.startswith('race:'):
+        return bool(int(m.get('fieldRaces', 0) or 0) & RACES[what[5:]])
+    if what.startswith('name:'):
+        return what[5:] in field
+    if what.startswith('nameHas:'):
+        return any(what[8:] in name for name in field)
+    return {'emptyGrave': m.get('grave') == 0, 'weakFinish': bool(m.get('weakFinish')), 'lowFinish': bool(m.get('lowFinish')),
+            'bigFinish': bool(m.get('bigFinish')), 'turns20': int(m.get('turn') or 0) >= 20}[what]
+
+
+def duel(run, result, won, metrics, cards=(), boss=False, opponent=None):
     events = result.get('events', [])
     m = next((e for e in events if e.get('kind') == 'sleeve_metrics'), None)
     if m is None:
@@ -42,6 +64,9 @@ def duel(run, result, won, metrics, cards=(), boss=False):
     values['bossNoBattleLoss'] = int(bool(boss) and not m.get('ownBattleDestroyed'))
     values['spellActivated'] = int(bool(m.get('spellActivated')))
     values['zeroAtk'] = int(bool(m.get('zeroAtk')))
+    values['dmgFinish'] = int(bool(m.get('dmgFinish')))
+    values['fusionDuel'] = int(metrics.get('fusion', 0) or 0)
+    values['normalDeck'] = int(bool(monsters) and all(c['data']['type'] & 0x10 for c in monsters))
     run['sleeve_no_damage_streak'] = run.get('sleeve_no_damage_streak', 0) + 1 if won and not m.get('damageTaken') else 0
     feats = set(run.get('sleeve_feats', []))
     for s in SLEEVES:
@@ -63,6 +88,13 @@ def duel(run, result, won, metrics, cards=(), boss=False):
         totals[key] = totals.get(key, 0) + int(metrics.get(key, 0) or 0)
     if m.get('trapActivated'):
         run['sleeve_trap_activated'] = True
+    if m.get('equipActivated'):
+        run['sleeve_equip_activated'] = True
+    if won:
+        keys = {s['rule'].get('key', '') for s in SLEEVES if s['rule']['kind'] == 'lifetime'}
+        for key in sorted(k for k in keys if k.startswith(('wins:', 'beat:'))):
+            if _won_counter(key, m, opponent):
+                totals[key] = totals.get(key, 0) + 1
 
 
 def evaluate(profile, run=None):
@@ -77,6 +109,7 @@ def evaluate(profile, run=None):
     complete = bool(run) and run.get('stage') == 'complete' and not run.get('secret_challenge')
     run_flags = {
         'no_traps': complete and not run.get('sleeve_trap_activated'),
+        'no_equips': complete and not run.get('sleeve_equip_activated'),
         'tag': complete and run.get('history_mode') == 'tag',
         'level_minus_one': complete and run.get('challenge_level') == -1,
         'loop3': bool(run) and int(run.get('loop', 0) or 0) >= 2,
@@ -90,6 +123,7 @@ def evaluate(profile, run=None):
                 or kind == 'lifetime' and stats.get(rule['key'], 0) >= rule['min']
                 or kind == 'lifetime_all' and all(stats.get(k, 0) >= v for k, v in rule['keys'].items())
                 or kind == 'duelists' and duelists >= rule['min']
+                or kind == 'duelists_level' and _duelists_at(profile, rule['level']) >= rule['min']
                 or kind == 'mark' and rule['key'] in marks
                 or kind == 'run' and run_flags.get(rule['key'])):
             earned.add(s['id'])
@@ -104,6 +138,7 @@ def observe(profile, run):
     totals['coins'] = int(run.get('stats', {}).get('coins_earned', 0) or 0)
     totals['rerolls'] = int(run.get('sleeve_rerolls', 0) or 0)
     totals['relicFusions'] = int(run.get('sleeve_relic_fusions', 0) or 0)
+    totals['tagWins'] = int(run.get('stage') == 'complete' and not run.get('secret_challenge') and run.get('history_mode') == 'tag')
     totals['levelMinusOneWins'] = int(run.get('stage') == 'complete' and not run.get('secret_challenge') and run.get('challenge_level') == -1)
     for key, value in totals.items():
         delta = value - credited.get(key, 0)
@@ -130,9 +165,19 @@ def _level_six(profile):
     return sum(int(levels.get(str(i), -1)) >= 6 for i in PLAYABLE_IDS), len(PLAYABLE_IDS)
 
 
+def _duelists_at(profile, level):
+    """Playable duelists with a run won on this Challenge Level or higher (the second Dark Paladin sleeve)."""
+    from content import PLAYABLE_IDS
+    levels = profile.get('character_levels', {})
+    return sum(int(levels.get(str(i), -1)) >= level for i in PLAYABLE_IDS)
+
+
 def _slug(name):
     import re, unicodedata
     return re.sub(r'[^a-z0-9]+', '-', unicodedata.normalize('NFKD', str(name).lower())).strip('-')
+
+
+CUMULATIVE = ('lifetime', 'lifetime_all', 'duelists', 'duelists_level', 'level6_all')
 
 
 def achievements(profile):
@@ -159,9 +204,11 @@ def achievements(profile):
             value, target = duelists, rule['min']
         elif kind == 'level6_all':
             value, target = _level_six(profile)
+        elif kind == 'duelists_level':
+            value, target = _duelists_at(profile, rule['level']), rule['min']
         else:
             value, target = int(s['id'] in earned), 1
-        done = s['id'] in earned or kind in ('lifetime', 'lifetime_all', 'duelists', 'level6_all') and value >= target
+        done = s['id'] in earned or kind in CUMULATIVE and value >= target
         rows.append(dict(id='sleeve:' + s['id'], name=s['art'], reward='Card sleeve', description=s['text'], value=target if done else min(value, target),
-                         target=target, done=done, cumulative=kind in ('lifetime', 'lifetime_all', 'duelists', 'level6_all'), image=f"sleeves/cards/{s['id']}.jpg"))
+                         target=target, done=done, cumulative=kind in CUMULATIVE, image=f"sleeves/cards/{s['id']}.jpg"))
     return rows

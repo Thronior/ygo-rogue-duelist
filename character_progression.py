@@ -39,5 +39,11 @@ def duel(game,run,result,won,boss):
   'champion_win':bool(run.get('encore_active')),
  }
  import sleeve_progress
- sleeve_progress.duel(run,result,won,metrics,cards=cards,boss=boss)
+ # Who was beaten, for the 'Defeat <duelist> 5 times' sleeves (2026-11-20); the loop challenge is the World Champion
+ # on loop 0 and Obelisk after that.
+ if run.get('encore_active') and not run.get('secret_challenge'):opponent='World Champion' if not run.get('encore_opponent') else 'Obelisk the Tormenter'
+ else:
+  index=(run.get('duel') or {}).get('opponent',run.get('opponent'))
+  opponent=game.CHARACTERS[index]['name'] if isinstance(index,int) and 0<=index<len(game.CHARACTERS) else None
+ sleeve_progress.duel(run,result,won,metrics,cards=cards,boss=boss,opponent=opponent)
  run['character_challenges']=sorted(set(run.get('character_challenges',[]))|{k for k,v in conditions.items() if v and (won or k=='two_rituals')})

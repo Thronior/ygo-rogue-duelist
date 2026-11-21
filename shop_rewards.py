@@ -136,12 +136,13 @@ def tag_featured(cards,rewards,rng):
  """Three A offers, then two B offers; reserve scarce matches before overlaps."""
  pools=[[c for c in cards if matches(c,r['key'])] for r in rewards]
  slots=[pools[0]]*3+[pools[1]]*2
+ keys=[rewards[0]['key']]*3+[rewards[1]['key']]*2
  order=sorted(range(5),key=lambda i:len(slots[i]))
  chosen=[None]*5;used=set()
  def choose(depth):
   if depth==5:return True
   i=order[depth];available=[c for c in slots[i] if c['id'] not in used]
-  available.sort(key=lambda c:rng.random()**(1/card_rarity.weight(c['id'])),reverse=True)
+  available.sort(key=lambda c:rng.random()**(1/(card_rarity.weight(c['id'])*focus_weight(c,keys[i]))),reverse=True)
   for c in available:
    chosen[i]=c;used.add(c['id'])
    if choose(depth+1):return True
@@ -199,6 +200,16 @@ PIERCE = {'Fairy Meteor Crush','Spear Dragon','Airknight Parshath','Mad Sword Be
 NEGATION |= {'A-Team: Trap Disposal Unit','Horus the Black Flame Dragon LV8','Silent Swordsman LV7','Sorcerer of Dark Magic','Rare Metalmorph','Arcana Knight Joker','Element Doom','Element Soldier'}
 FUSION_SUPPORT = {'Polymerization','Fusion Sage','Fusion Gate','Metamorphosis','De-Fusion','King of the Swamp','The Light - Hex-Sealed Fusion','The Dark - Hex-Sealed Fusion','The Earth - Hex-Sealed Fusion','Re-Fusion','Centrifugal Field'}
 LABELS['fusion']='Fusion monsters and support'
+
+# Guardian shelves keep every card named "Guardian" but favour the archetype: the six Guardians and their Equip Spells
+# weigh x6, so on average about 1 of the 5 featured cards is outside it (0-2 on 95% of shelves). User, 2026-11-20,
+# after Eriko's Discord report of a shelf of Celtic/Gate/Throne Room Guardians and Shine Palace.
+GUARDIAN_FOCUS_WEIGHT=6
+def focus_weight(card,key):
+ if RETIRED_THEMES.get(key,key)!='guardian':return 1.0
+ from archetype_relics import GUARDIAN_EQUIPS
+ return GUARDIAN_FOCUS_WEIGHT if card['name'] in GUARDIAN_EQUIPS or card['name'] in GUARDIAN_ARCHETYPE else 1.0
+GUARDIAN_ARCHETYPE={'Guardian Baou','Guardian Ceal','Guardian Elma','Guardian Grarl',"Guardian Kay'est",'Guardian Tryce'}
 
 def matches(card,key):
  if card.get('id')==190000050:return False

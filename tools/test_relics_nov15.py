@@ -18,7 +18,8 @@ A=content.ARTIFACTS
 # The user's texts, word for word (real card-text conventions). 2026-11-16 balance picks: Magician's Bond also triggers on
 # Special Summons, Master and Apprentice costs 70.
 NEW={
- 'magicians_bond':("Magician's Bond",90,'Once per turn, if you Normal or Special Summon a "Dark Magician" monster: You can add 1 card that mentions "Dark Magician" from your Deck to your hand.',"Sage's Stone"),
+ # 2026-11-20 (user on Discord): it also adds "Dark Magician" monsters; Deds's wording.
+ 'magicians_bond':("Magician's Bond",90,'Once per turn, if you Normal or Special Summon a "Dark Magician" monster: You can add 1 "Dark Magician" monster or card that mentions it in its card text from your Deck to your hand.',"Sage's Stone"),
  'blue_eyes_radiance':('Blue-Eyes Radiance',85,'Once per turn: You can send 3 "Blue-Eyes White Dragon" from your hand and/or field to the GY; Special Summon 1 "Blue-Eyes Shining Dragon" from your hand or Deck, ignoring its Summoning conditions. It is unaffected by other card effects until the end of your opponent\'s next turn.','Blue-Eyes Shining Dragon'),
  'master_and_apprentice':('Master and Apprentice',70,'Once per turn, if a "Dark Magician" monster you control is destroyed: You can Special Summon 1 "Dark Magician" monster from your hand, ignoring its Summoning conditions.','Dark Magician Girl'),
  'black_chaos_rite':('Black Chaos Rite',110,'Once per Duel: You can Tribute 1 "Dark Magician" you control; Special Summon 1 "Dark Magician of Chaos" from your hand or Deck, ignoring its Summoning conditions.','Dark Magician of Chaos'),
