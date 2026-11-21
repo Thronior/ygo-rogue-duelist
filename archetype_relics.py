@@ -70,6 +70,38 @@ def owns_named_cards(key,run):
  owned={g.BY_ID[cid]['name'] for cid in set(run.get('pool',[])) if cid in g.BY_ID}
  return len(owned.intersection(names))>=count
 DEAD_RELIC=.4
+# LP-recovery relics (Thronior, Discord 2026-11-20; curve and list picked 2026-11-21): in every relic offer they weigh
+# 1 + LOW_LP_SLOPE x the share of the healing limit the player is missing (x1 at full LP, x2 at half, x3 at 0). Relics that
+# heal between Duels skip it while Glass Treasury blocks that healing; every healer skips it while Zombie's Bargain blocks all.
+LOW_LP_SLOPE=2.0
+HEAL_BETWEEN={'scarab','chalice','bandage','ankh'}
+HEAL_IN_DUEL={'spring','patient_guardian','quiet_library','healing_echo'}
+LAST_STAND={'phoenix_rebirth','sacred_phoenix'}
+LP_RECOVERY=HEAL_BETWEEN|HEAL_IN_DUEL|LAST_STAND
+def healing_limit(run):
+ import approved_relics as ar
+ return (4000 if int(run.get('challenge_level',0) or 0)>=4 else 8000)+2000*ar.copies(run,'ankh')
+def low_lp_factor(key,run):
+ """The LP-recovery relics' weight factor at the player's current LP."""
+ if key not in LP_RECOVERY:return 1.0
+ import approved_relics as ar
+ if key not in LAST_STAND and not ar.can_heal(run):return 1.0
+ if key in HEAL_BETWEEN and not ar.can_heal(run,between=True):return 1.0
+ # No LP recorded (a run that hasn't started, or a test's bare dict): no boost.
+ if run.get('lp') is None:return 1.0
+ try:lp=int(run.get('lp',0) or 0)
+ except (TypeError,ValueError):return 1.0
+ limit=healing_limit(run)
+ return 1.0+LOW_LP_SLOPE*max(0.0,min(1.0,(limit-lp)/limit))
+# Broken Limiter (user, 2026-11-21): the more copies of one card the run's card pool holds, the likelier it is offered.
+# The most copies of any single card sets it: 4 copies x2, 5 x3, 6 x4 ... (copies - 2), capped at BOOST_CAP. Tokens never
+# reach the pool; randomized cards count like any other card.
+def copies_factor(key,run):
+ """Broken Limiter's weight factor from the highest copy count of one card in the card pool."""
+ if key!='broken_limiter':return 1.0
+ from collections import Counter
+ most=max(Counter(run.get('pool') or []).values(),default=0)
+ return 1.0 if most<4 else min(BOOST_CAP,float(most-2))
 SKIPPED,SKIP_VISITS=.5,2
 PRICEY,EARLY_SHOPS,EARLY_SLACK=.5,3,50
 
@@ -125,6 +157,8 @@ def _offer_weights_one(options,run,favored=(),favor=1,prices=None,shop=False):
  for key in options:
   base=(family_weight(detail[key][1]) if key in FAMILY else 1.0)*RARITY.get(key,1.0)
   if not owns_named_cards(key,run):base*=NOT_OWNED
+  base*=low_lp_factor(key,run)
+  base*=copies_factor(key,run)
   if skips.get(key,0)>0:base*=SKIPPED
   if early and prices.get(key,0)>gold+EARLY_SLACK:base*=PRICEY
   # Without deck multipliers there is nothing for plain relics to keep up with: they count 1 (theme chances, 2026-11-14).

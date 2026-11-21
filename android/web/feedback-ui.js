@@ -67,7 +67,7 @@ export function bossCurseNote(run,icon){
 }
 
 export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}// From Level 6 curses stay for the whole run, so the deck editor shows them too (doubled, as in passives.py).
- const sticky=[...(run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[]),...bossStatCurses(run)],curses=k=>sticky.filter(x=>x===k).length;if(run.artifacts?.includes('sword_and_shield')||curses('mirror_stats'))[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
+ const sticky=[...(run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[]),...bossStatCurses(run)],curses=k=>sticky.filter(x=>x===k).length;const swords=curses('relic_seal')?0:(run.artifacts||[]).filter(k=>k==='sword_and_shield'||(k==='magic_mirror'&&run.mirror_copy==='sword_and_shield')).length;if((swords+curses('mirror_stats'))%2)[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
 
  for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
@@ -108,6 +108,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_commoners_crown'&&(t&16)){a+=1000;d+=1000;}
  else if(k==='fused_undying_legion'&&c.race==='Zombie')a+=1200;
  else if(k==='fused_immortal_dark_magic'&&c.race==='Spellcaster')a+=600;
+ else if(k==='fused_my_pride_and_soul'&&c.race==='Dragon'){a+=800;d+=800;}
  else if(k==='fused_grand_ritual_altar')a+=200*(run.ritual_scar_count||0);
  // Archetype and card-type bonuses (Discord, 2026-11-14: Spirit Sanctuary's +500 was missing from the editor).
  else if(k==='fused_spirit_sanctuary'&&(t&0x200))a+=500;

@@ -2,6 +2,7 @@ import {GENRES,TYPES,CARD_GENRES} from './card-genres.js';
 import {pagedGrid} from './deck-paging.js';
 import {isRandomId} from './collector-rules.js';
 import {cardMark} from './card-marks.js';
+import {cardMatchesQuery} from './i18n.js';
 export {GENRES,TYPES};
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tests=GENRES.map(g=>[g,g.pattern?new RegExp(g.pattern,'i'):null]);
@@ -20,7 +21,7 @@ export const searches={};
 const markRuns={};
 export function searchMarks(key,run){markRuns[key]=run}
 const FLAGS=[['marked','★','Marked Yes'],['random','?','Randomized only']];
-export function matchesSearch(c,key){const s=searches[key]||{};if(!c)return false;if(s.random&&!isRandomId(c.id))return false;if(s.marked&&cardMark(markRuns[key]?.(),c.id)!==1)return false;const text=(c.name+' '+c.desc).toLowerCase();if(s.q&&!s.q.toLowerCase().split(/\s+/).every(w=>text.includes(w)))return false;if(s.race&&c.race!==s.race)return false;if(s.attribute&&c.attribute!==s.attribute)return false;if(s.level&&!inLevel(c,s.level))return false;if(!s.effects?.length)return true;const tags=genres(c).map(g=>g.id);return s.all?s.effects.every(id=>tags.includes(id)):s.effects.some(id=>tags.includes(id))}
+export function matchesSearch(c,key){const s=searches[key]||{};if(!c)return false;if(s.random&&!isRandomId(c.id))return false;if(s.marked&&cardMark(markRuns[key]?.(),c.id)!==1)return false;if(s.q&&!cardMatchesQuery(c,s.q))return false;if(s.race&&c.race!==s.race)return false;if(s.attribute&&c.attribute!==s.attribute)return false;if(s.level&&!inLevel(c,s.level))return false;if(!s.effects?.length)return true;const tags=genres(c).map(g=>g.id);return s.all?s.effects.every(id=>tags.includes(id)):s.effects.some(id=>tags.includes(id))}
 // While filters are on, a clear button sits next to the search button so one tap resets them.
 export function searchButton(key){const s=searches[key],n=s?(s.effects?.length||0)+!!s.q+!!s.race+!!s.attribute+!!s.level+!!s.marked+!!s.random:0;return `<button type="button" data-effect-search="${key}" title="Search card text and effects" aria-label="Search card text and effects${n?', '+n+' filters active':''}"><img class="genre-icon" src="assets/icons/yugipedia/genres-search-deck.png" alt="">${n?`<small>${n}</small>`:''}</button>${n?`<button type="button" class="effect-search-clear" data-effect-search-clear="${key}" title="Clear filters" aria-label="Clear filters">×</button>`:''}`}
 export function clearSearch(key){delete searches[key]}

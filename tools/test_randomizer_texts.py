@@ -36,10 +36,20 @@ BAD = [
     (re.compile(r'[Yy]our all |\b(?:gains?|loses?) \d+ (?:ATK|DEF) and 0 (?:ATK|DEF)\b|\b(?:gains?|loses?) 0 (?:ATK|DEF)\b'), 'broken stat wording'),
     (re.compile(r'only be placed on the field by its board effect'), 'board piece that can never be played'),
     (re.compile(r'\bremember it until\b'), 'internal marker text'),
+    # the same thing said twice (user, Nov 21: "use 'that card' or 'it' instead of repeating the same thing")
+    (re.compile(r'(1 [^+\n]{3,40}? [Mm]onster) \+ (?:[^\n]*\+ )?\1(?= \+|\n|$)'), 'Fusion Material written twice'),
+    (re.compile(r'( from your [\w ,]{2,30}?(?:Deck|GY|hand))\1\b'), 'place written twice'),
+    (re.compile(r'attacks an? [^:]*monster: [^.]*the [\w -]*monster this card is attacking'), 'attacked monster described twice'),
+    (re.compile(r'Summons? [^:]*: [^.]*\bthe (?:Flip |Normal |Special )?Summoned [\w -]+ monster'), 'Summoned monster described twice'),
+    (re.compile(r'\b[Ss]end this monster from your field\b'), '"this monster from your field" (this card)'),
+    (re.compile(r'\b(?:[Cc]hange|[Tt]urn) to (?:Defense|Attack) Position all\b'), 'object after the position'),
+    (re.compile(r'\bthen (?:shuffle|place) it\.'), 'movement written twice'),
+    (re.compile(r'\bchanges its stats\b|\b(?:gains?|loses?) -\d'), 'stat change without its amount'),
 ]
 SETUP_ALONE = re.compile(r'^Place 1 counter on this card during each of your Standby Phases\.$')
 problems = []
 dealt_names = {c['name'] for c in cards}
+EXTRA = {c['id'] for c in cards if c.get('frame') in ('fusion', 'ritual')}
 for card in cards:
     game = R.as_game_card(card)['card']
     text = (game.get('desc') or '').strip()
@@ -69,6 +79,20 @@ for card in cards:
                     problems.append((card['id'], game['name'], kind, f'{q["k"]} without its amount'))
     if re.match(r'Cannot be Normal Summoned(?:/Set)?\.$', text):
         problems.append((card['id'], game['name'], kind, 'cannot be Normal Summoned and has no Special Summon'))
+    # a Fusion's summoning rule never names materials other than its materials line (Discord Nov 21, "Penguin Soldier":
+    # "1 Level 4 or lower monster + "Big Koala" / Must be Fusion Summoned with Queen's Knight, Jack's Knight, and King's
+    # Knight"), and a Contact Fusion material is never an Extra Deck or Ritual monster
+    if kind.startswith('Fusion'):
+        first, _, rest = text.partition('\n')
+        named = re.search(r'Fusion Summon(?:ed)? (?:only )?with ([^.;]+)', rest)
+        if named and any(n.strip(' "') not in first for n in re.split(r',? and |, ', named.group(1))):
+            problems.append((card['id'], game['name'], kind, 'summoning rule names other materials: ' + named.group(0)[:80]))
+        if 'banishing the above' in rest:
+            bad = [m['text'] for m in card.get('materials') or [] if m.get('k') == 'code' and m.get('v') in EXTRA]
+            if bad:
+                problems.append((card['id'], game['name'], kind, 'Contact Fusion material is a Fusion or Ritual Monster: ' + ', '.join(bad)))
+    if 'Special Summoned from your hand by its own effect' in text and 'Special Summon this card' not in text:
+        problems.append((card['id'], game['name'], kind, 'timing needs a self-Summon effect the card does not have'))
     if SETUP_ALONE.match(text):
         problems.append((card['id'], game['name'], kind, 'setup piece alone'))
     if 'as an Effect Monster' in text or 'as a Normal Monster' in text:

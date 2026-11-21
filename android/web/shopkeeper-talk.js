@@ -1,6 +1,7 @@
 // The shopkeeper talks: one line at a time in a pixel-art speech bubble above his head, for 4 seconds.
 // A new line replaces the old one. Lines wait while a dialog (receipt, purchases, pack opening) covers the
-// shop, so they are seen. Landscape only: mobile.css hides the bubble in portrait, where he is hidden too.
+// shop, so they are seen. Landscape only: mobile.css hides the bubble in portrait, where he is hidden too,
+// except in the empty LVL -1 shop of Copycat's first loadout and Dueling Engine.
 const LINES={
  welcome:['Welcome to my shop!','Ah, a customer! Come in, come in.','Welcome! Take a look around.','Fresh stock, just for you.','Welcome back, duelist!','Browse all you like. Buying is better.','Step right up! Everything is for sale.','Welcome! Mind the price tags.'],
  ultra:['Ooh, one of my best cards!','An Ultra Rare! You have a good eye.','I was saving that one for someone special.','That card is a real treasure.','Now that is a premium pick!','Hard to part with that one...','The crown jewel of my shelf. Sold!','You won’t find a rarer card around here.','Collectors would fight over that one.','Top-shelf taste, I see!'],
@@ -10,6 +11,9 @@ const LINES={
  single:['Good pick! That fits your deck.','Building something nice, are we?','Singles! The smart duelist’s choice.','No gambling, just the cards you want.','Fine cards for a fine deck.','Hand-picked. I like it.','Your deck thanks you.','Solid choice. Solid card.','That’s a card I would play too.','Thank you kindly!'],
  mixed:['Quite the shopping spree!','A little of everything, eh?','Now that is a proper haul!','You’re my favourite customer today.','Business is booming!','Bit of everything! I like your style.','Big spender! I like it.','Let me bag all that up for you.','A balanced diet of goods. Excellent.','Come back soon, and bring more coins!'],
  poke:['Hey! Hands off!','Stop that!','Touch the cards, not me!','Ow! What was that for?','I’m not for sale!','Personal space, please.','Do you mind?','Poke me again and prices go up.','The merchandise is over there!','Careful! I bruise easily.'],
+ // Copycat's first loadout and Dueling Engine at LVL -1: a shop with nothing to sell (Discord, 2026-11-21; the
+ // first line is the user's, the third Deds').
+ empty:['Why are you even here?','There’s nothing for you here.','Get the hell outta my store!','Did you get lost?','Nothing to buy. Move along.'],
  reroll:['Let me show you my other wares.','Not your style? Try these!','Fresh stock, coming up!','Maybe you’ll like these better.','I have plenty more in the back.','Picky, picky! How about these?','Okay, okay. Feast your eyes on this.','One moment... there we go!','These just came in.','Something here should catch your eye.'],
 };
 const SHOW_MS=4000,last={};
@@ -43,6 +47,8 @@ function flush(){
  const keeper=keeperOf();if(!keeper?.getClientRects().length){queued=null;return}
  const kind=queued;queued=null;
  bubble=document.createElement('div');bubble.className='keeper-bubble';bubble.setAttribute('role','status');bubble.textContent=pick(kind);
+ // The empty LVL -1 shop shows him in portrait too, so his bubble is allowed there (mobile.css).
+ if(keeper.closest('.relic-only-shop.relicless-shop'))bubble.classList.add('portrait-ok');
  document.body.append(bubble);place();
  const el=bubble;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)el.animate([{opacity:0,transform:'translateY(6px) scale(.85)'},{opacity:1,transform:'none'}],{duration:180,easing:'steps(4,end)'});

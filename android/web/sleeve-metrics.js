@@ -115,10 +115,12 @@ export function observeSleeveMessage(duel,m){
 const count=(duel,location,player=0)=>duel.core?.duelQueryCount?duel.core.duelQueryCount(duel.h,player,location):duel.query(player,location).filter(Boolean).length;
 // The end-of-duel half: what the player controls, holds and has left when the duel is decided.
 export function sleeveMetricsEvent(duel){
- const s=sleeveMetrics(duel),faceUp=duel.query(0,L.MZONE).filter(c=>c&&(c.position&5)),field=faceUp.map(c=>duel.name(c.code));
+ // "Win while you control X" counts face-down monsters too: a Set monster is still yours (Nori, Discord 2026-11-20:
+ // a face-down Blue-Eyes Ultimate Dragon did not count). Only zeroAtk below needs the monster face-up.
+ const s=sleeveMetrics(duel),controlled=duel.query(0,L.MZONE).filter(c=>c&&c.code),faceUp=controlled.filter(c=>c.position&5),field=controlled.map(c=>duel.name(c.code));
  const {link,releases,coinStreak,turnMonsters,turnSpells,oppTurnLp,oppPeakLp,...rest}=s;
- // fieldRaces: every Type among your face-up monsters at the end (the "win while you control a Warrior" sleeves).
- const fieldRaces=faceUp.reduce((r,c)=>r|bits(duel.data[c.code]?.race||c.race),0);
+ // fieldRaces: every Type among the monsters you control at the end (the "win while you control a Warrior" sleeves).
+ const fieldRaces=controlled.reduce((r,c)=>r|bits(duel.data[c.code]?.race||c.race),0);
  return {kind:'sleeve_metrics',...rest,field:[...new Set(field)],fieldRaces,hand:count(duel,L.HAND),deck:count(duel,L.DECK),grave:count(duel,L.GRAVE),
   oppHand:count(duel,L.HAND,1),monsters:count(duel,L.MZONE),oppMonsters:count(duel,L.MZONE,1),zeroAtk:faceUp.some(c=>Number(c.attack)===0),
   turn:duel.turn,winReason:duel.finished?Number(duel.finished.reason):null}

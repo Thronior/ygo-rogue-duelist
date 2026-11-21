@@ -54,6 +54,10 @@ end""")
   text=text.replace('--[[relic-hint]]',hint)
   # A prompt of the relic's own: the client shows the relic's art first (visual only).
   text=text.replace('--[[relic-ask]]',f'Duel.Hint(HINT_MESSAGE,0,{1850000000+list(ART_INFO).index(current_relic)}) ')
+  # Every other prompt of the relic gets a name-only hint, so the client's prompt names the relic (duel.js
+  # trackPromptRelic; Discord, Deds, 2026-11-21). Prompts follow a selection hint or are a yes/no in an if.
+  label=f'Duel.Hint(HINT_MESSAGE,0,{1860000000+list(ART_INFO).index(current_relic)}) '
+  text=re.sub(r'(?<!'+re.escape(label)+r')(?:Duel\.Hint\(HINT_SELECTMSG,0,|(?<![\w.])if (?:not )?Duel\.Select(?:YesNo|EffectYesNo|Option)\(0,|(?<![\w.])local [\w,]+=Duel\.(?:AnnounceCoin|AnnounceNumber|SelectOption)\(0\b)',lambda m:label+m.group(0),text)
   text=re.sub(r'(?<!return )Duel\.(Draw|Recover|Damage|NegateEffect|SendtoHand|SetLP)\(',lambda m:hint+m.group(0),text)
   # These are often used as values, where a statement can't go: only mark the ones that stand alone.
   def alone(m):

@@ -4,7 +4,7 @@ const {MobileDuel,M,R,I,B,L}=await import('./web/duel.js');
 const root=fileURLToPath(new URL('../',import.meta.url)),json=p=>JSON.parse(fs.readFileSync(root+p,'utf8').replace(/^﻿/,''));
 const meta=json('android/web/content.json'),data=json('android/web/engine-data.json'),id=n=>meta.cards.find(c=>c.name===n).id;
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';
-const KEYS=['chaos_orb','four_elements','harpie_nest','zaloog_hideout','amazoness_village','necrovalley_throne','fusion_gate','jar_of_greed','second_coin_toss','scapegoat_pasture','sacred_phoenix','invincible','attribute_mutation','gaia_plate','masterwork_blade','endless_archive','giant_killers_cradle','titans_covenant','commoners_crown','undying_legion','tyrants_throne','mass_grave','bottomless_purse','grand_bazaar'];
+const KEYS=['chaos_orb','four_elements','harpie_nest','zaloog_hideout','amazoness_village','necrovalley_throne','fusion_gate','jar_of_greed','second_coin_toss','scapegoat_pasture','sacred_phoenix','invincible','attribute_mutation','unstable_dna','gaia_plate','masterwork_blade','endless_archive','giant_killers_cradle','titans_covenant','commoners_crown','undying_legion','tyrants_throne','mass_grave','bottomless_purse','grand_bazaar'];
 const scripts=JSON.parse(execFileSync(python,['-B','-c',`import sys,json;sys.path.insert(0,'.');import passives
 print(json.dumps({**{k:passives.script({'curses':[],'artifacts':[k] if k else [],'challenge_level':0,'character':0}) for k in ${JSON.stringify(['',...KEYS])}},'unionize':passives.script({'curses':[],'artifacts':['unionize'],'challenge_level':0,'character':0}),'union_buster':passives.script({'curses':[],'artifacts':['union_buster'],'challenge_level':0,'character':0}),'union_both':passives.script({'curses':[],'artifacts':['union_buster','unionize'],'challenge_level':0,'character':0})}))`],{cwd:root,encoding:'utf8',maxBuffer:1<<26}));
 const e=await new MobileDuel([...meta.cards,...meta.tokenCards]).init([data,json('android/web/scripts.json')]);
@@ -32,6 +32,17 @@ assert.equal(named('Mystical Elf')?.defense,2000,'Chaos Orb: no DEF bonus');
 
 duel('attribute_mutation',fill('Mystical Elf'),WALL);
 assert.equal(named('Mystical Elf')?.attribute,0x7f,'Attribute Mutation: the monster has every Attribute');
+
+// Unstable DNA (Eriko, 2026-11-21): the first Draw Phase asks a Type and an Attribute; every monster of both players, in every
+// location, becomes them, and monsters you control gain 100 ATK for each face-up monster on the field with both.
+{let asked=[];duel('unstable_dna',fill('Mystical Elf'),fill('Celtic Guardian'),{step:m=>{
+  if(m.type===M.ANNOUNCE_RACE){asked.push('race');return {type:R.ANNOUNCE_RACE,races:[0x2000n]}}
+  if(m.type===M.ANNOUNCE_ATTRIB){asked.push('attribute');return {type:R.ANNOUNCE_ATTRIB,attributes:[0x4]}}
+  return null}});
+ assert.deepEqual(asked,['race','attribute'],'Unstable DNA: one Type, then one Attribute, asked once');
+ const elf=named('Mystical Elf');assert.equal(Number(elf?.race),0x2000,'Unstable DNA: your monster becomes the Type');assert.equal(elf?.attribute,0x4,'Unstable DNA: and the Attribute');
+ assert.equal(elf?.attack,800+100,'Unstable DNA: +100 ATK for the one face-up monster with both');
+ const theirs=e.query(1,L.HAND).filter(Boolean);assert.ok(theirs.length&&theirs.every(c=>Number(c.race)===0x2000&&c.attribute===0x4),'Unstable DNA: the opponent monsters in hand change too');}
 
 duel('four_elements',fill('Mystical Elf','Celtic Guardian'),WALL,{turns:3});
 assert.equal(mine().length,2,'Four Elements: both monsters are out');

@@ -1,5 +1,5 @@
 // Pre-errata cards keep their passcode: the bundle runs the original print's script and the UI shows its text.
-import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,R,I} from './web/duel.js';
+import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileDuel,M,R,I,L} from './web/duel.js';
 const read=name=>JSON.parse(fs.readFileSync(new URL('./web/'+name+'.json',import.meta.url),'utf8'));
 const meta=read('content'),data=read('engine-data'),scripts=read('scripts'),fixture=read('test-fixture');
 const cards=JSON.parse(fs.readFileSync(new URL('../data/pre-errata.json',import.meta.url),'utf8')).cards;
@@ -33,6 +33,29 @@ try{
  state=untilIdle(engine.start([RING,BATTLE_OX,...Array(28).fill(KURIBOH)],fixture.enemy,8000,8000,5,11,[],[],ring));
  assert.ok(!(state.pending.activates||[]).some(c=>c.code===RING),'post-errata Ring is not offered on your own monster during your turn');
  assert.ok(!cards['83555666'],'Ring of Destruction is no longer a pre-errata card');
+ assert.deepEqual(errors(),[]);engine.destroy();
+
+ // Dimension Jar shows the original print ("up to 3 monsters"), so its FLIP banishes monsters only, never Spells
+ // (Discord, masterkast39, 2026-11-20). Both players' GYs hold a Spell and a monster when it flips.
+ const JAR=id('Dimension Jar'),HOLE=id('Dark Hole');
+ const jar=`local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START+PHASE_MAIN1) e:SetCountLimit(1)
+ e:SetOperation(function() for p=0,1 do Duel.SendtoGrave(Group.FromCards(Duel.GetFirstMatchingCard(Card.IsCode,p,LOCATION_DECK,0,nil,${HOLE}),Duel.GetFirstMatchingCard(Card.IsCode,p,LOCATION_DECK,0,nil,${KURIBOH})),REASON_RULE) end
+ Duel.MoveToField(Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,${JAR}),0,0,LOCATION_MZONE,POS_FACEDOWN_DEFENSE,true) e:Reset() end) Duel.RegisterEffect(e,0)`;
+ const deck=[JAR,HOLE,...Array(28).fill(KURIBOH)];
+ state=engine.start(deck,deck,8000,8000,5,11,[],[],jar);
+ // Set on turn 1, Flip Summoned on turn 3 (or flipped earlier by an attack).
+ const offered=[];let asked=0,flipped=false;
+ for(let i=0;i<3000&&!state.finished;i++){
+  const m=state.pending,idle=m?.type===M.SELECT_IDLECMD&&m.player===0;
+  if(idle&&asked)break;
+  if(idle&&!flipped&&engine.turn>=3){const k=(m.repositions||m.pos_changes||[]).findIndex(c=>c.code===JAR);if(k>=0){flipped=true;state=engine.respond({type:R.SELECT_IDLECMD,action:I.SELECT_POS_CHANGE,index:k});continue}}
+  if(m?.type===M.SELECT_YESNO){asked++;state=engine.respond({type:R.SELECT_YESNO,yes:true});continue}
+  if(m?.type===M.SELECT_CARD&&m.selects.some(c=>c.code===HOLE||c.code===KURIBOH)&&asked){offered.push(...m.selects);state=engine.respond({type:R.SELECT_CARD,indicies:m.selects.map((_,k)=>k).slice(0,m.max)});continue}
+  state=engine.respond(engine.auto());
+ }
+ assert.equal(asked,2,'Dimension Jar asks both players');
+ assert.ok(offered.length>=2&&offered.every(c=>c.code===KURIBOH),'Dimension Jar only offers monsters: '+offered.map(c=>c.code));
+ for(const p of [0,1])assert.ok(engine.query(p,L.GRAVE).some(c=>c?.code===HOLE)&&!engine.query(p,L.GRAVE).some(c=>c?.code===KURIBOH),`player ${p}: the Spell stays, the monster is banished`);
  assert.deepEqual(errors(),[]);engine.destroy();
 
  // Every pre-errata script loads and survives auto-played duels.

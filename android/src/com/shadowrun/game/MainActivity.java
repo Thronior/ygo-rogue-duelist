@@ -205,6 +205,12 @@ public final class MainActivity extends Activity {
             runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class)));
         }
 
+        /** The game's language picks the update window's text and, for Chinese, GitHub mirrors first (Discord, 2026-11-21). */
+        @JavascriptInterface public void openUpdateIn(String language) {
+            String code = language != null && language.matches("[a-z]{2}") ? language : "en";
+            runOnUiThread(() -> startActivity(new android.content.Intent(MainActivity.this, UpdateActivity.class).putExtra("language", code)));
+        }
+
         private final AtomicFile file = new AtomicFile(new File(getFilesDir(), "campaign.json"));
         @JavascriptInterface public synchronized String load() {
             try { return new String(file.readFully(), StandardCharsets.UTF_8); } catch(IOException e) { return "{}"; }

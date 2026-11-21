@@ -1646,6 +1646,8 @@ R.Act={
 			elseif p.mode=='set' then code=p.stat=='DEF' and EFFECT_SET_DEFENSE_FINAL or EFFECT_SET_ATTACK_FINAL value=p.n
 			elseif p.stat=='DEF' then code=EFFECT_UPDATE_DEFENSE value=p.n
 			else code=EFFECT_UPDATE_ATTACK value=p.n end
+			--"sub" loses the amount (it gained it before, Discord Nov 21: "Five-Headed Dragon")
+			if p.mode=='sub' then value=-math.abs(p.n or 0) end
 			local e1=Effect.CreateEffect(e:GetHandler())
 			e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(code) e1:SetValue(value) e1:SetReset(RESETS_STANDARD_PHASE_END)
 			tc:RegisterEffect(e1)
@@ -5997,7 +5999,9 @@ R.Act.ss_self_hand={cat=CATEGORY_SPECIAL_SUMMON,hand=true,
 	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,tp,LOCATION_HAND) end,
 	op=function(e,tp)
 		local c=e:GetHandler()
-		if c:IsRelateToEffect(e) and c:IsLocation(LOCATION_HAND) then Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP) end
+		--summon type 1, like the Gilasaurus procedure, so "Special Summoned from your hand by its own effect" still
+		--triggers when a dealt cost replaced the procedure (Nov 21)
+		if c:IsRelateToEffect(e) and c:IsLocation(LOCATION_HAND) then Duel.SpecialSummon(c,1,tp,tp,false,false,POS_FACEUP) end
 	end}
 R.Act.self_change_defense={cat=CATEGORY_POSITION,prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_POSITION,e:GetHandler(),1,0,0) end,
 	op=function(e) local c=e:GetHandler() if c:IsFaceup() and c:IsAttackPos() and c:IsRelateToEffect(e) then Duel.ChangePosition(c,POS_FACEUP_DEFENSE) end end}

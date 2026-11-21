@@ -23,6 +23,9 @@ for seed in range(6):
  # The host's run rolls the shared stock: 10 singles, 5 packs (no repeats), the usual 3 relics.
  assert n['single']==10 and n['pack']==5 and n['artifact']==3,(seed,n)
  assert len(set(packs))==5,packs
+ # Both players' character packs in every Tag shop (ATM, user 2026-11-21): this round's player, then the teammate's.
+ own=[content.CHARACTERS[c]['pack'] for c in (0,2)]
+ assert all(pid in packs for pid in own),(seed,own,packs)
  assert shop==s.players[0]['shop']==s.players[1]['shop'],'both seats see the shared stock'
  # A reroll keeps the larger shelf and the relic count.
  s.shared['gold']=s.players[0]['gold']=500;s.sync()

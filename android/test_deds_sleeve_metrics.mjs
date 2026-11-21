@@ -48,4 +48,26 @@ for(const round of [1,2,3]){
  draws.push(e.summary().find(x=>x.kind==='sleeve_metrics').draws);e.destroy();
 }
 ok(draws[0]>0&&draws.every(d=>d===draws[0]),`a reused engine counts each duel from zero (${draws})`);
+
+// "Win a duel while you control X" counts a face-down X (Nori, Discord 2026-11-20: a Set Blue-Eyes Ultimate Dragon did not
+// count). Blue-Eyes White Dragon wins; Ultimate Dragon sits face-down in Defense Position and may not change position.
+{
+ const ULTIMATE=id('Blue-Eyes Ultimate Dragon'),setUp=`do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP) e:SetOperation(function(e) e:Reset()
+  local a=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,${BEWD}) if a then Duel.SpecialSummon(a,0,0,0,true,false,POS_FACEUP_ATTACK) end
+  local u=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_EXTRA,0,nil,${ULTIMATE}) if u then Duel.SpecialSummon(u,0,0,0,true,false,POS_FACEDOWN_DEFENSE)
+   for _,code in ipairs({EFFECT_CANNOT_CHANGE_POSITION,EFFECT_CANNOT_FLIP_SUMMON}) do local x=Effect.CreateEffect(u) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(code) u:RegisterEffect(x) end end
+ end) Duel.RegisterEffect(e,0) end`;
+ const e=await new MobileDuel([...meta.cards,...meta.tokenCards]).init([data,scripts]);
+ let s=e.start(deck,deck,8000,1000,5,11,[ULTIMATE],[],setUp);
+ for(let i=0;i<4000&&!s.finished;i++){if(!e.pending)break;s=e.respond(e.auto())}
+ assert.deepEqual(e.errors||[],[]);
+ ok(e.finished&&e.finished.player===0,'seat 0 wins with a face-down Ultimate Dragon on the field');
+ const set=e.query(0,4).find(c=>c?.code===ULTIMATE);ok(set&&!(set.position&5),'Ultimate Dragon is still face-down at the end');
+ const event=e.summary().find(x=>x.kind==='sleeve_metrics');e.destroy();
+ ok(event.field.includes('Blue-Eyes Ultimate Dragon'),`face-down monster counts as controlled (${event.field})`);
+ ok((event.fieldRaces&0x2000)!==0,'its Type counts too');
+ const {execFileSync}=await import('node:child_process'),python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';
+ const feats=JSON.parse(execFileSync(python,['-B','-c','import sys,json;sys.path.insert(0,".");import sleeve_progress as s;run={};s.duel(run,{"events":[json.loads(sys.stdin.read())]},True,{});print(json.dumps(run["sleeve_feats"]))'],{cwd:root,input:JSON.stringify(event)}).toString());
+ ok(feats.includes('blue-eyes-ultimate-dragon'),`the Blue-Eyes Ultimate Dragon sleeve unlocks (${feats})`);
+}
 console.log(`PASS Deds' sleeve duel counters: ${checks} checks`);

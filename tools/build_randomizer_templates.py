@@ -53,7 +53,10 @@ TIMING_TEXT=re.compile(r'\bnegate|\bthat (?:Spell|Trap|card|monster|attack|effec
 # all its effects, whole.
 SETUP_ONLY={'wave_motion_counter','breaker_place_counter','hannibal_counter_setup','hannibal_normal_summon_counter',
  'royal_magical_library_counters','spell_counter_per_spell_activation','mausoleum_proc',
- 'manticore_grave_flag'}   # "If this card is sent to the GY, remember it until the End Phase" (Nov 20)
+ 'manticore_grave_flag',   # "If this card is sent to the GY, remember it until the End Phase" (Nov 20)
+ # a timing that needs another effect of its card: "When this card is Special Summoned from your hand by its own
+ # effect" was dealt to cards with no such effect (Discord Nov 21, Minomushi Warrior)
+ 'gilasaurus_procedure_summoned'}
 READS_COST=re.compile(r'for this effect|for the cost|that many|the (?:discarded|Tributed|banished|sent|paid)\b|as many',re.I)
 DCATS=('conds','costs','acts','limits','others')
 # Archetypes (user, Nov 19): a piece that names an archetype ("Archfiend monster", "'Gravekeeper's' monster", or an

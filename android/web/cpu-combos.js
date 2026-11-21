@@ -8,7 +8,7 @@ const HEALS=new Set(['Dian Keto the Cure Master','Poison of the Old Man','Gift o
 const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage"]);
 const LIGHT=0x10,WATER=0x2;
 export function comboPlanner(x){
- const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan,matchesRitual,ritualMaterialReady}=x;
+ const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan,matchesRitual,ritualMaterialReady,removalAffects=()=>true}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),monster=c=>!!(data(c).type&1);
  const list=key=>prompt?.[key]||[],free=5-own.length;
  const fromPrompt=(key,n)=>list(key).findIndex(c=>name(c)===n);
@@ -198,10 +198,12 @@ export function comboPlanner(x){
  function soulExchangeLine(){
   const paid=list('summons').map((c,index)=>({c,index})).filter(({c})=>tributes(c)>own.length&&tributes(c)<=own.length+1);
   if(paid.length){const {c,index}=bestOf(paid.map(x=>x.c)).map(y=>paid.find(x=>x.c===y))[0];return [{id:'soul-exchange',start:{kind:'summon',index,code:name(c)},payoff:[c],normal:true,tribute:true,lost:[]}]}
-  const start=spellsOk&&useStep('Soul Exchange');if(!start||!enemy.length||!normalLeft())return [];
+  // Only their monsters it can affect (Silent Magician LV8 is unaffected by Spells: both copies were wasted on it, 2026-11-21).
+  const start=spellsOk&&useStep('Soul Exchange'),takers=start?enemy.filter(t=>removalAffects(list('activates')[start.index],t,'Soul Exchange',{destroy:false,targeting:true})):[];
+  if(!start||!takers.length||!normalLeft())return [];
   if(own.some(c=>face(c)&&(c.position&1)&&(!enemy.length||enemy.some(t=>!face(t)||atk(c)>(t.position&1?atk(t):t.defense??data(t).defense??0)))))return [];
   const target=bestOf(hand.filter(c=>normalSummonable(c)&&tributes(c)>own.length&&tributes(c)<=own.length+1))[0];
-  return target?[{id:'soul-exchange',start,payoff:[target],normal:true,tribute:true,lost:[],bonus:Math.max(...enemy.map(targetValue))}]:[];
+  return target?[{id:'soul-exchange',start,payoff:[target],normal:true,tribute:true,lost:[],bonus:Math.max(...takers.map(targetValue))}]:[];
  }
  // Kaiser Sea Horse pays both Tributes of a LIGHT monster alone.
  function kaiserLine(){

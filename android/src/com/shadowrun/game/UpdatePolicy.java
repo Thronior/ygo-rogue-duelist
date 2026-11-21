@@ -6,6 +6,9 @@ import java.net.URL;
 /** Pure validation shared by the native updater and its host-side tests. */
 final class UpdatePolicy {
     static final long MAX_APK_BYTES = 1024L * 1024 * 1024;
+    /** Public GitHub release mirrors that work in mainland China (tested 2026-11-21: manifest, Range requests, cache-busting query).
+     *  gh-proxy.com was left out: a DNS security filter sinkholes it. Prefix + GitHub release URL = mirrored URL. */
+    static final String[] MIRRORS = {"https://ghfast.top/", "https://gh-proxy.org/"};
     static boolean newer(String remote, String installed) {
         if (remote==null||installed==null)return false;
         if (!remote.matches("v?\\d+\\.\\d+\\.\\d+") || !installed.matches("v?\\d+\\.\\d+\\.\\d+")) return false;
@@ -26,6 +29,7 @@ final class UpdatePolicy {
     static boolean allowed(URL url) {
         String host=url.getHost();
         return "https".equals(url.getProtocol()) && url.getUserInfo()==null && (url.getPort()==-1||url.getPort()==443) &&
-            (host.equals("api.github.com")||host.equals("github.com")||host.equals("release-assets.githubusercontent.com")||host.equals("objects.githubusercontent.com"));
+            (host.equals("api.github.com")||host.equals("github.com")||host.equals("release-assets.githubusercontent.com")||host.equals("objects.githubusercontent.com")||
+             host.equals("ghfast.top")||host.equals("gh-proxy.org"));
     }
 }

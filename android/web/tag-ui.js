@@ -141,6 +141,8 @@ export class TagUI {
   const v=this.view,offer=v.run.cursed_offer,disabled=this.working||v.seat!==0||v.paused?'disabled':'';
 
   this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a shadow relic':offer.picked.length>1?'Choose a third shadow relic':'Choose a second shadow relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p><p class="cursed-standing">${Number(v.run.lp||0).toLocaleString()} LP · ${Number(v.run.gold||0).toLocaleString()} coins</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
+  // Which battle this is (Discord, Septarium, 2026-11-21): the same VICTORIES strip as the opponent and shop screens.
+  mountRunProgress(this.root.querySelector('.cursed-reward'),v.run,{content:this.content});
 
  }
 

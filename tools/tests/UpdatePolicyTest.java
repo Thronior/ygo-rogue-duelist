@@ -11,6 +11,8 @@ public class UpdatePolicyTest {
   check(!UpdatePolicy.asset(url.replace("Thronior","attacker"),"v0.1.43",hash,10));
   check(!UpdatePolicy.asset(url,"v0.1.43","",10));check(!UpdatePolicy.asset(url,"v0.1.43",hash,0));check(!UpdatePolicy.asset(url,"v0.1.43",hash,UpdatePolicy.MAX_APK_BYTES+1));
   for(String host:new String[]{"api.github.com","github.com","release-assets.githubusercontent.com","objects.githubusercontent.com"})check(UpdatePolicy.allowed(new URL("https://"+host+"/file")));
+  for(String mirror:UpdatePolicy.MIRRORS){check(mirror.startsWith("https://")&&mirror.endsWith("/"));check(UpdatePolicy.allowed(new URL(mirror+url)));}
+  check(!UpdatePolicy.allowed(new URL("https://gh-proxy.com/"+url)));check(!UpdatePolicy.allowed(new URL("https://ghfast.top.evil.test/"+url)));
   for(String bad:new String[]{"http://github.com/file","https://github.com.evil.test/file","https://evil.test/file","https://user@github.com/file","https://github.com:444/file"})check(!UpdatePolicy.allowed(new URL(bad)));
   System.out.println("PASS updater version, artifact identity, digest, size and redirect validation");
  }

@@ -23,6 +23,15 @@ async function transaction(mode,operation){
  try{return await once(mode,operation);}
  catch(error){if(error?.name==='QuotaExceededError')throw error;await drop();return once(mode,operation);}
 }
+// Caches the game rebuilds on demand, in the order they are given up: translated card pictures (localized-cards.js),
+// then the single card-art cache (card-assets.js), then the itch build's artwork bundles (bundle-sw.js), which are
+// fetched again the next time a card needs them. The app's own files are never touched.
+const FREEABLE=[name=>name.startsWith('ygo-card-text-'),name=>name==='ygo-card-art-v1',name=>name==='ygo-artwork-bundles-v1'];
+async function freeCaches(match){
+ if(!globalThis.caches)return false;let freed=false;
+ for(const name of await caches.keys().catch(()=>[]))if(match(name)&&await caches.delete(name).catch(()=>false))freed=true;
+ return freed;
+}
 export function validateSave(text){
  const files=JSON.parse(text);if(!files||Array.isArray(files)||typeof files!=='object')throw Error('Not a game save backup.');
  for(const [name,value] of Object.entries(files)){
@@ -35,7 +44,15 @@ export function validateSave(text){
 export const webStorage={
  async load(){const saved=await transaction('readonly',s=>s.get(KEY));if(saved!==undefined)return saved;
   const legacy=localStorage.getItem(KEY);if(legacy){validateSave(legacy);await this.store(legacy);return legacy;}return '{}';},
- async store(text){try{await transaction('readwrite',s=>s.put(text,KEY));return true;}catch(error){await drop();throw new Error(storageError(error),{cause:error});}},
+ async store(text){
+  const write=()=>transaction('readwrite',s=>s.put(text,KEY));
+  try{await write();return true;}
+  catch(error){
+   // A full browser storage: card pictures (all re-downloadable) share it with the save, so free them, mildest
+   // first, and retry quietly before anything is shown (Discord, yagura99, 2026-11-21).
+   if(error?.name==='QuotaExceededError')for(const group of FREEABLE){if(!await freeCaches(group))continue;try{await write();return true;}catch(next){error=next;if(next?.name!=='QuotaExceededError')break;}}
+   await drop();throw new Error(storageError(error),{cause:error});
+  }},
  async saveGame(text){try{return await this.store(text);}catch(error){return recoverSave(text,error);}}
 };
 

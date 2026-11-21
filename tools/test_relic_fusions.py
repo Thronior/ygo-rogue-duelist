@@ -75,8 +75,13 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
  tally,_=g.rewards(run,[]);assert 'Sacred Phoenix' not in tally
 
  # Divine Gambler (key second_coin_toss): a weighted relic that fuses at once does not ask for its face.
+ # Since 2026-11-21 it also needs the shadow relic Jester's Coin; the three plain pieces alone do not fuse.
  run=shop_run(['lets_go_gambling','weighted_coins']);run['weighted_coin']=1
  g.buy(run,offer(run,'weighted_dice'),rng)
+ assert 'second_coin_toss' not in run['artifacts'] and 'weighted_dice' in run['artifacts']
+ run=shop_run(['lets_go_gambling','weighted_coins','cursed_jesters_coin']);run['cursed_artifacts']=['cursed_jesters_coin'];run['weighted_coin']=1
+ g.buy(run,offer(run,'weighted_dice'),rng)
+ assert 'cursed_jesters_coin' not in run['artifacts']+run['cursed_artifacts']
  assert run['artifacts'].count('second_coin_toss')==1 and not run.get('weight_picks') and 'weighted_coin' not in run,run.get('weight_picks')
 
  # Attribute Mutation: any 3 of the 6 Surgery relics fuse; a later Surgery joins it quietly and none is offered again.

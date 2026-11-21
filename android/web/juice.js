@@ -153,8 +153,12 @@ export const finisherDone=()=>finishing||Promise.resolve();
 export const finisherPlaying=()=>!!finishing;
 // Voice lines start 200 ms after the blow, clear of the hit and coin sounds that land with it.
 const VOICE_DELAY=200;
-// Losing a duel gets its own voice line, through the same voice path and delay as the finishers.
-export function defeatVoice(){later(VOICE_DELAY).then(()=>sound('you-lose'))}
+// Losing a duel gets its own voice line, through the same voice path and delay as the finishers. One line is picked at
+// random (user, 2026-11-21): the original you-lose.wav or a taunt from assets/sfx/lose (content.loseVoices, listed by
+// tools/build_android.py), never the same one twice in a row. They are levelled to the original, so all share its gain.
+let defeatLines=['assets/sfx/you-lose.wav'],lastDefeat=-1;
+export function setDefeatVoices(files=[]){defeatLines=['assets/sfx/you-lose.wav',...files.map(f=>'assets/sfx/lose/'+f)];lastDefeat=-1}
+export function defeatVoice(){let i=Math.floor(Math.random()*defeatLines.length);if(i===lastDefeat)i=(i+1)%defeatLines.length;lastDefeat=i;const path=defeatLines[i];later(VOICE_DELAY).then(()=>player(path,{gain:1.4,voice:true}))}
 // Boss monsters announce themselves during their summon animation (legendary-summon.js).
 export function summonVoice(code){return player(`assets/sfx/summon-${code}.mp3`,{gain:1.4,voice:true})}
 export function bossNameVoice(file){return player(`assets/sfx/boss/${file}`,{gain:1.4,voice:true})}

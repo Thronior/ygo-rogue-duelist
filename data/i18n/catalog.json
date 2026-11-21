@@ -26092,5 +26092,83 @@
   "en": "Found",
   "kind": "exact",
   "ctx": "tag on a hidden coin feat the player has discovered (a feat, feminine in es/it/pt)"
+ },
+ {
+  "group": "ui",
+  "en": "A replay exceeds the 100 kB upload limit.",
+  "kind": "exact",
+  "ctx": "replays.js"
+ },
+ {
+  "group": "ui",
+  "en": "Replay exceeds the 100 kB upload limit.",
+  "kind": "exact",
+  "ctx": "replays.js"
+ },
+ {
+  "group": "ui",
+  "en": "Unlocked first",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Favourite for",
+  "kind": "exact",
+  "ctx": "mobile.js, character-settings.js"
+ },
+ {
+  "group": "ui",
+  "en": "Select all",
+  "kind": "exact",
+  "ctx": "mobile.js, character-settings.js"
+ },
+ {
+  "group": "ui",
+  "en": "Favourite packs",
+  "kind": "exact",
+  "ctx": "mobile.js, character-settings.js"
+ },
+ {
+  "group": "ui",
+  "en": "Packs starred for this character go first on its shop shelf. Star them in the shop or in Collection.",
+  "kind": "exact",
+  "ctx": "mobile.js, character-settings.js"
+ },
+ {
+  "group": "ui",
+  "en": "None yet.",
+  "kind": "exact",
+  "ctx": "mobile.js, character-settings.js"
+ },
+ {
+  "group": "ui",
+  "en": "Unstable DNA",
+  "kind": "exact",
+  "ctx": "relic_fusions.py"
+ },
+ {
+  "group": "ui",
+  "en": "At the start of each Duel, select one Type and one Attribute. All of both players' monsters everywhere become the selected Type and Attribute. Monsters you control gain 100 ATK for every face-up monster on the field with the selected Type and Attribute.",
+  "kind": "exact",
+  "ctx": "relic_fusions.py"
+ },
+ {
+  "group": "ui",
+  "en": "A LIGHT Fairy deck that heals whenever its angels win a battle.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-21"
+ },
+ {
+  "group": "relic",
+  "en": "My Pride and Soul",
+  "kind": "exact",
+  "ctx": "text added 2026-11-21 (My Pride and Soul)"
+ },
+ {
+  "group": "relic",
+  "en": "Dragon monsters you control gain 800 ATK/DEF. Your opponent cannot activate Trap Cards during your Battle Phase. At the start of the Duel: Special Summon 1 \"Blue-Eyes\" monster from your Deck in Attack Position, then add 1 card that mentions \"Blue-Eyes White Dragon\" from your Deck to your hand. Once per turn, when a \"Blue-Eyes\" monster you control is destroyed: You can Special Summon 1 LIGHT Dragon monster from your hand, Deck or Extra Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "text added 2026-11-21 (My Pride and Soul)"
  }
 ]

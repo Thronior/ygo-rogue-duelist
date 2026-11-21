@@ -2180,7 +2180,8 @@ def _place_contradiction(parts):
  ev=_event(parts)
  if not ev:return None
  et=CONDS.get(ev,{}).get('text','')
- if ev!='flip' and not re.search(r'this card|this face-up|this monster|this Set card',et,re.I):return None
+ # "if this Defense Position card was attacked" is about this card on the field too (Nov 21, Ultimate Insect LV5)
+ if ev!='flip' and not re.search(r'\bthis (?:face-up |face-down |Set |(?:Defense|Attack) Position )*(?:card|monster)\b|this face-up',et,re.I):return None
  if re.match(r'(?i)from your hand\b',et) or re.search(r'(?i)this card is in your hand',et):return None   # a hand timing
  for i,p in enumerate(parts.get('acts',[])):
   meta=CATEGORIES['acts'].get(p['k'],{})
@@ -2220,12 +2221,18 @@ def _text_problem(parts,slot):
  body=t.split(':',1)[1] if ':' in t else t
  if ev and GONE_EVENT.search(et) and not any(SUMMONS_SELF.search(_act_text(p,{'slot':slot,'name':'X'})) for p in parts['acts']):
   if ON_FIELD_ACT.search(body):return 'this card has left the field, but the effect needs it there'
+ # "You can send this card to the GY; change this card to face-up Defense Position" (Nov 21): the cost took this card
+ # off the field (or out of the hand), so an action on this card on the field cannot happen
+ if any(p['k'] in SELF_GONE_COSTS for p in parts.get('costs',[])):
+  after=body.split(';',1)[1] if ';' in body else ''
+  if ON_FIELD_ACT.search(after) or re.search(r'(?i)this face-up card|this card (?:gains|loses|cannot|can attack)',after):return 'the cost removed this card, but the effect needs it on the field'
  # "FLIP: ... Special Summon this banished card" (Nov 20): the timing has this card on the field
  if ev and (ev.startswith('flip') or FIELD_EVENT.search(et)) and AWAY_ACT.search(body):return 'this card is on the field, but the effect needs it in the GY or banished'
  return None
 FIELD_EVENT=re.compile(r'(?i)this card is (?:Normal |Flip |Special |Tribute )?Summoned|this card (?:attacks|battles|inflicts|destroys|is attacked)|flipped face-up|this face-up')
 AWAY_ACT=re.compile(r'(?i)this banished card|this card from (?:your GY|banishment)|banish this card from your GY|this card in your GY')
 SELF_COUNTER_COST={'remove_self_spell_counter'}
+SELF_GONE_COSTS={'tribute_self','send_self_mzone','tribute_labyrinth_pair','discard_self_hand','send_self_hand_cost','banish_self'}
 PLACES_COUNTER=re.compile(r'(?i)(?:place|put)s? [^.;]{0,40}Spell Counters? on (?:this card|it\b)|Spell Counters? on this card')
 
 FORCES_ATTACK={'last_turn'}
@@ -2696,8 +2703,19 @@ def _fmt_extra(p):
  label='Equip Spell' if p.get('stype')=='equip' else _CARD_TYPES.get(p.get('card_type'),'Spell')
  art='an' if label[0] in 'AEIOU' else 'a'
  type_activated=(f'When your opponent activates {art} {label} Card' if p.get('side')=='opp' else f'When {art} {label} Card is activated')+(' during the Battle Phase' if p.get('battle_phase') else '')
- return dict(kind=_CARD_TYPES.get(p.get('kind'),p.get('kind') or 'Spell/Trap'),type_activated=type_activated,mon_race=rname(p.get('race'),RACES),mon_attr=rname(p.get('attr'),ATTRIBUTES),dice=_or(dice),dice_s='s' if len(dice)>1 else '',names_or=_or([f'"{x}"' for x in p.get('names') or ([p['name']] if isinstance(p.get('name'),str) and p.get('name') else [])]),
+ return dict(summoned_ref='the Summoned monster' if str(p.get('filter','1 ')).startswith('1 ') else 'the Summoned monster(s)',deck_dest='on top of your Deck' if p.get('to')=='decktop' else 'into your Deck',kind=_CARD_TYPES.get(p.get('kind'),p.get('kind') or 'Spell/Trap'),type_activated=type_activated,mon_race=rname(p.get('race'),RACES),mon_attr=rname(p.get('attr'),ATTRIBUTES),dice=_or(dice),dice_s='s' if len(dice)>1 else '',names_or=_or([f'"{x}"' for x in p.get('names') or ([p['name']] if isinstance(p.get('name'),str) and p.get('name') else [])]),
   races_or=_or(races),card_type_name=_CARD_TYPES.get(ct,str(ct or 'Spell/Trap')),payoff_text=payoff)
+
+def _stat_effect_text(p):
+ """What a targeted stat change does: "it gains 500 ATK", "it loses 500 DEF" (mode sub, or a negative gain), "its DEF
+ becomes 0", "its original ATK becomes half its original ATK". A mode without words read "changes its stats" (Discord
+ Nov 21, "Five-Headed Dragon")."""
+ n,stat,mode=p.get('n') or 0,p.get('stat','ATK'),p.get('mode')
+ if mode=='sub' or (mode=='add' and n<0):return f'it loses {abs(n)} {stat}'
+ if mode=='add':return f'it gains {n} {stat}'
+ if mode=='set':return f'its {stat} becomes {n}'
+ if mode=='half':return 'its original ATK becomes half its original ATK'
+ return f'it gains {n} {stat}' if n>0 else f'it loses {abs(n)} {stat}' if n<0 else 'changes its stats'
 
 def _fmt(text,p,card):
  n=p.get('n');how={'m_fusion':'Fusion','m_ritual':'Ritual'}.get(card['slot'],'')
@@ -2712,7 +2730,7 @@ def _fmt(text,p,card):
  else:
   hand_condition=(f"you have at least {p.get('n')} cards in your hand" if hand_mode=='min' else ('you have no cards in your hand' if p.get('n')==0 else f"you have {p.get('n')} or fewer cards in your hand"))
  return text.format(**_fmt_extra(p),n=n,def_n=p.get('def_n',n),s='' if n==1 else 's',race=p.get('race',''),attr=p.get('attr',''),how=how,level=p.get('level',2),l=p.get('l'),d=p.get('d'),
-  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter','monster'),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck','deck_hand_gy':'hand, Deck, or GY'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','defense':' in Defense Position','faceup':'','facedown':' in face-down Defense Position','any':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect={'add':f"it gains {p.get('n')} {p.get('stat','ATK')}",'set':f"its {p.get('stat','ATK')} becomes {p.get('n')}",'half':'its original ATK becomes half its original ATK'}.get(p.get('mode'),'changes its stats')
+  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter','monster'),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck','deck_hand_gy':'hand, Deck, or GY'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','defense':' in Defense Position','faceup':'','facedown':' in face-down Defense Position','any':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect=_stat_effect_text(p)
   ).replace('the top 1 card ','the top card ').replace('During your next Standby Phase after this','During your next Standby Phase')
 
 # What a lost coin toss or a wrong call does.
@@ -2775,7 +2793,7 @@ def _act_text(p,card,mult=False):
  out=out.rstrip().rstrip('.')
  # Movement blocks name only the verb ("return it"): add where the card goes, from the block's own parameter.
  dest={'hand':' to the hand','deck':' into the Deck','grave':' to the GY','decktop':' on top of the Deck'}.get(p.get('to'))
- if dest and meta.get('templates') and not re.search(r' to the (hand|GY)| into the Deck| on top of',out):out+=dest
+ if dest and meta.get('templates') and not re.search(r' to (?:the|your|its owner\'s) (hand|GY)| into (?:the|your|its owner\'s) Deck| on top of',out):out+=dest
  # Real-card block texts are written as sentences; inside "..., then ..." they start lower-case (not a name or Type).
  word=out.split(' ')[0] if out else ''
  if p['k'] not in AURAS and word[:1].isupper() and word[1:2].islower() and word not in _CAPITAL_WORDS:out=out[:1].lower()+out[1:]
@@ -2885,9 +2903,92 @@ def _tidy(text):
  # Movement verbs that take their object in the middle ("turn face-down it" -> "turn it face-down").
  for rest in ('face-down','to Defense Position','to Attack Position'):
   text=re.sub(rf'\b([Tt]urn|[Cc]hange) {re.escape(rest)} (it|them)\b',rf'\1 \2 {rest}',text)
- return re.sub(r' {2,}',' ',text)
+  # "change to Defense Position all monsters you control" -> "change all monsters you control to Defense Position"
+  text=re.sub(rf'\b([Tt]urn|[Cc]hange) {re.escape(rest)} (all [^.;:]+?)(?=[.;:]|, then|$)',rf'\1 \2 {rest}',text)
+ text=re.sub(r'( from (?:your|the) [\w ,]{2,30}?(?:Deck|GY|hand|field))\1\b',r'\1',text)   # "from your hand, Deck, or GY from your hand, Deck, or GY"
+ text=re.sub(r'\b([Ss])end this monster from your field to the GY\b',r'\1end this card to the GY',text)
+ text=_refer_back(text)
+ text=re.sub(r'(monster\(s\)[^.]*?\b(?:banish|destroy|return|send|shuffle|equip)) it\b',r'\1 them',text)   # "destroy that monster(s), and if you do, banish them"
+ return re.sub(r' {2,}',' ',_merge_sentences(text))
+
+# Back-references (user, Nov 21: "use wording like 'that card' or 'it' instead of repeating the same thing"). A
+# timing that already names the monster ("when this card attacks a face-down Defense Position monster:") is followed
+# by "that monster", not the whole description again. Only where the two mean the same card.
+_ATTACKED=re.compile(r'\bthe (?:face-(?:up|down) )?(?:(?:Defense|Attack) Position )?monster this card is attacking\b')
+_SUMMONED=re.compile(r'\bthe (?:Flip |Normal |Special |Tribute )?Summoned ([^;,.:]*?)monster(\(s\))?(?!s)')
+_QUAL=r'\d+ or (?:more|less) (?:ATK|DEF)|Level \d+ or (?:higher|lower)'
+_SAME_TIME=('during your End Phase','during the End Phase','during your Standby Phase','at the end of the Damage Step','during the Damage Step')
+def _refer_back(text):
+ out=[]
+ for sent in re.split(r'(?<=\.) ',text):
+  lead,sep,body=sent.partition(': ')
+  if not sep or ';' in lead:out.append(sent);continue
+  if re.search(r'\battacks\b',lead):body=_ATTACKED.sub('that monster',body)
+  if 'Summon' in lead:
+   body=_SUMMONED.sub(lambda m:'that monster'+(m.group(2) or '') if all(w in lead for w in m.group(1).split()) else m.group(0),body)
+  # "that monster(s) with 1500 or more ATK" / "if it has 500 or less ATK" after a timing that said so
+  body=re.sub(rf'\b(that monster(?:\(s\))?|that card) with ({_QUAL})',lambda m:m.group(1) if m.group(2) in lead else m.group(0),body)
+  body=re.sub(rf' if it has ({_QUAL})(?=[;,.])',lambda m:'' if m.group(1) in lead else m.group(0),body)
+  for when in _SAME_TIME:   # "During your End Phase: ... change this card to Defense Position during your End Phase"
+   if when.lower() in lead.lower():body=re.sub(rf'\s+{when}(?=[.;,]|$)','',body,flags=re.I)
+  out.append(lead+sep+body)
+ text=' '.join(out)
+ # "..., then destroy all your face-up Level 1 Normal Monsters" after the same group was named: "then destroy them"
+ def them(m):
+  return m.group(1)+'them' if m.group(3) in m.string[:m.start()].split('. ')[-1] else m.group(0)
+ return re.sub(r'(, then (?:destroy|banish|return|send) )(all (?:your )?)?((?:[\w-]+ ){2,}(?:monsters|Monsters|cards))(?=[.;])',them,text)
+
+# One subject, two sentences: "The equipped monster loses 1000 ATK. The equipped monster gains 300 DEF." reads "The
+# equipped monster loses 1000 ATK and gains 300 DEF."; "All Spellcaster monsters gain 200 DEF. ... All Spellcaster
+# monsters gain 200 ATK." reads "All Spellcaster monsters gain 200 ATK and DEF."
+_STAT_LINE=re.compile(r'^(The equipped monster|This card|All [^.]+? monsters|[^.]+? monsters you control) (gains?|loses?) (\d+) (ATK|DEF)\.$')
+def _merge_sentences(text):
+ sents=re.split(r'(?<=\.) (?=[A-Z])',text);out=[]
+ for s in sents:
+  m=_STAT_LINE.match(s)
+  if m:
+   # same subject, verb and amount with the other stat anywhere before: one "ATK and DEF" sentence
+   for i,o in enumerate(out):
+    n=_STAT_LINE.match(o)
+    if n and n.group(1,2,3)==m.group(1,2,3) and n.group(4)!=m.group(4):
+     out[i]=f'{n.group(1)} {n.group(2)} {n.group(3)} ATK and DEF.';break
+   else:
+    n=_STAT_LINE.match(out[-1]) if out else None
+    if n and n.group(1)==m.group(1):out[-1]=out[-1][:-1]+f' and {m.group(2)} {m.group(3)} {m.group(4)}.'
+    else:out.append(s)
+   continue
+  out.append(s)
+ return ' '.join(out)
 
 # ---------------------------------------------------------------- whole cards
+# Fusion rules that register their own materials in the Lua (Fusion.AddProcMix with real codes). A dealt Fusion that
+# keeps one of them lists those materials, or it read "1 Level 4 or lower monster + "Big Koala" / Must be Fusion
+# Summoned with ..." with two different sets (Discord Nov 21, "Penguin Soldier"). Contact Cannon's are its named cards.
+FUSION_RULE_MATS={'dark_balter':(52860176,38742075),'ryu_senshi':(75953262,67957315),'fiend_skull_dragon':(93220472,16475472),
+ 'dark_paladin':(46986414,78193831)}
+def _rule_materials(effects):
+ for e in effects:
+  for p in e.get('acts',[]):
+   if p['k'] in FUSION_RULE_MATS:
+    return [{'k':'code','v':c,'text':f'"{MONSTER_BY_ID[c]["name"]}"'} for c in FUSION_RULE_MATS[p['k']] if c in MONSTER_BY_ID]
+   if p['k']=='contact_cannon' and p.get('codes'):
+    names=p.get('names') or [MONSTER_BY_ID.get(c,{}).get('name','?') for c in p['codes']]
+    return [{'k':'code','v':c,'text':f'"{n}"'} for c,n in zip(p['codes'],names)]
+ return None
+
+def _materials_text(mats):
+ """"1 Warrior monster + 1 EARTH monster + 1 Warrior monster" reads "2 Warrior monsters + 1 EARTH monster" (user,
+ Nov 21: say it once). Named cards stay one per material, as on real cards ("Thunder Dragon" + "Thunder Dragon")."""
+ counts=Counter(m['text'] for m in mats);out=[]
+ for m in mats:
+  t=m['text']
+  if t in out or any(o.endswith(t[2:]+'s') for o in out if t.startswith('1 ')):continue
+  k=counts[t]
+  if k>1 and t.startswith('1 ') and t.lower().endswith(' monster'):out.append(f'{k} {t[2:]}s')
+  elif k>1 and t.startswith('1 '):out.append(f'{k} {t[2:]}')
+  else:out.extend([t]*k)
+ return ' + '.join(out)
+
 def _fusion_materials(rng,race=None):
  # 2 or 3 materials, each a Type, Attribute, Level band, "Normal Monster" or one named card. Every material
  # matches at least 20 main-deck monsters in the pool, so the Fusion can always be made.
@@ -3133,7 +3234,7 @@ def make_card(rng,next_id,used,kind=None,frame=None,sub=None,log=None):
   out=[card]
   if frame=='fusion':
    card['materials']=_fusion_materials(rng,race)
-   card['desc']=' + '.join(m['text'] for m in card['materials'])+('\n'+card['desc'] if card['desc'] else '')
+   card['desc']=_materials_text(card['materials'])+('\n'+card['desc'] if card['desc'] else '')
   if frame=='ritual':
    spell=make_ritual_spell(rng,next_id,used,card,log=[])
    card['ritual_spell']=spell['id']
@@ -3354,6 +3455,10 @@ def _swap_names(d,q,card_id):
  picks=[];pool=[c for c in d.made if c['id']!=card_id]
  for k in kinds:
   options=[c for c in pool if c['kind']==k and c not in picks]
+  # a named monster to Summon, add, send or use as a Contact Fusion material must be one that can be in the hand, Deck
+  # or on the field without its own Summon: never a Fusion or Ritual Monster ("Arcana Knight Joker" as a Contact Fusion
+  # material, Nov 21)
+  if k=='monster':options=[c for c in options if c.get('frame') not in ('fusion','ritual')] or (None if q['k']=='contact_cannon' else options)
   if not options:return False
   picks.append(d.rng.choice(options))
  new_codes=[c['id'] for c in picks];new_names=[c['name'] for c in picks]
@@ -3470,7 +3575,11 @@ def _deal_effect(d,slot,sk,card_id,no_self_ss=False,used_sigs=()):
   # for each use with the card itself; a dealt one is once per turn, or the CPU repeats it forever (engine stalls).
   ev_k=_event(clean)
   window=bool(ev_k) and (CONDS.get(ev_k,{}).get('repeat') or ev_k.endswith('window') or ev_k.endswith('_quick'))   # a timing that stays open
-  if kind=='activated' and slot not in ONE_SHOT and (not ev_k or window) and not any(LIMITS.get(p['k'],{}).get('once') for p in clean['limits']) \
+  # an effect that brings this card back after it was destroyed or sent away revives it again and again ("If this card
+  # is destroyed by battle: Special Summon this card from your GY" against a monster that attacks again stalled, Nov 21)
+  revive=any(re.search(r'(?i)Special Summon this card from (?:your )?GY|Special Summon this (?:banished )?card\b(?! from (?:your )?hand)',
+   _act_text(p,{'slot':slot,'name':'X'})) for p in clean['acts']) and bool(ev_k)
+  if kind=='activated' and slot not in ONE_SHOT and (not ev_k or window or revive) and not any(LIMITS.get(p['k'],{}).get('once') for p in clean['limits']) \
      and not any(COSTS.get(p['k'],{}).get('leaves') for p in clean['costs']):
    clean['limits'].append({'k':'opt'})
   sig=[json.dumps(q,sort_keys=True) for c in CATEGORIES for q in clean[c]]
@@ -3671,7 +3780,9 @@ def _deal_card(d,rng,next_id,used,kind=None,frame=None,sub=None,log=None):
   out=[card]
   if fr=='fusion':
    card['materials']=_fusion_materials(rng,race)
-   card['desc']=' + '.join(m['text'] for m in card['materials'])+('\n'+card['desc'] if card['desc'] else '')
+   own=_rule_materials(effects)
+   if own:card['materials']=own;log.append('its Fusion Materials are the ones its Summoning rule names')
+   card['desc']=_materials_text(card['materials'])+('\n'+card['desc'] if card['desc'] else '')
   if fr=='ritual':
    spell=make_ritual_spell(rng,next_id,used,card,log=[])
    card['ritual_spell']=spell['id']
@@ -3732,6 +3843,16 @@ SPECIFY_TEXT={
  # the name it is treated as was empty: dealt names are a list (Discord, Nov 20: "This card's name is treated as .")
  'name_treated_as':'This card’s name is treated as {names_or}.',
  'activate_type_any':'{type_activated}',
+ # "return 1 of your monsters ... from your GY, then shuffle it" (Nov 21): one movement, said once
+ 'battle_destroyed_mon_to_deck':'{verb} 1 of your monsters destroyed by battle this turn from your GY {deck_dest}',
+ 'self_change_position':'change this card to face-up Defense Position',
+ # Fusion rules: the materials line says which monsters (Discord Nov 21), so the text no longer names them again
+ # or names different ones. Arcana Knight Joker's Lua never checked its three Knights: its Fusion uses the dealt materials.
+ 'arcana_knight_joker':'Once per turn, when a Spell, Trap, or monster effect targets this face-up card, you can discard 1 card of the same type (Monster, Spell, or Trap); negate that effect',
+ 'ryu_senshi':'Must be Fusion Summoned. You can pay 1000 LP to negate the activation of a Trap Card. Negate Spell effects that target this card, and destroy that Spell Card',
+ 'fiend_skull_dragon':'Must be Fusion Summoned. Negate the effects of Flip monsters. Negate Trap effects that target this card. Summoner of Illusions cannot destroy this card during the End Phase',
+ 'dark_paladin':'Must be Fusion Summoned. When a Spell Card is activated, you can discard 1 card; negate the activation, and if you do, destroy it. This card gains 500 ATK for each Dragon monster on the field and in either GY',
+ 'big_shield_change_attack':'change this card to face-up Attack Position if it was face-down when attacked',
  'opp_attack_target_named':'While you control a face-up {names_or}, your opponent can only target it for attacks',
  # Manticore of Darkness's marker (it lets its End Phase effect know the card was sent this turn) says nothing a player
  # needs; its other effect says it ("remember it until the End Phase", Nov 20)
@@ -3745,7 +3866,11 @@ def _apply_specify():
  for k,t in SPECIFY_TEXT.items():
   if k in cat_of:
    meta=CATEGORIES[cat_of[k]][k];meta['gen_text' if 'gen_text' in meta else 'text']=t
-if not _os.environ.get('RANDOMIZER_RAW_TEXT'):_apply_specify()
+if not _os.environ.get('RANDOMIZER_RAW_TEXT'):
+ _apply_specify()
+ # it targets the monster(s) the timing Summoned (Lua: eg), not any monster like it: "target that monster" (Nov 21;
+ # it read "Summons 1 face-up monster with 1000 or more ATK: target 1 face-up monster with 1000 or more ATK")
+ ACTS['move_summoned']['tclause']='target {summoned_ref}'
 
 # Pandemonium's two halves (user, Nov 19). Lua R.Rule blocks, dealt as always-on effects: any archetype (setcode,
 # filter = its name), on any card that stays on the field.

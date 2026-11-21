@@ -1,0 +1,100 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_41,.patch-notes-sheet.pn0_2_41 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_41{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_41 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_41 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_41 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_41 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_41 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big .pn0_2_41-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big>*{position:relative}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big p.pn0_2_41-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way img,.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-relics .pn0_2_41-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-packs .pn0_2_41-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41{font-family:Arial,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_41 h1,.patch-notes-sheet.pn0_2_41 h2,.patch-notes-sheet.pn0_2_41 h4,.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3,.patch-notes-sheet.pn0_2_41 .pn0_2_41-kick,.patch-notes-sheet.pn0_2_41 .pn0_2_41-big em{font-family:Bebas,"Microsoft YaHei",sans-serif}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3,.patch-notes-sheet.pn0_2_41 h2,.patch-notes-sheet.pn0_2_41 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_41 h1{font-weight:700}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}</style><div class="patch-notes-sheet pn0_2_41"><div class="pn0_2_41-kick">YGO Rogue Duelist</div><h1>更新 0.2.41</h1>
+
+<section class="pn0_2_41-cols" style="margin-top:28px">
+<div class="pn0_2_41-big"><em>操作</em><h3>拖动攻击</h3>
+<p class="pn0_2_41-lead">在你的战斗阶段，<b>把你的怪兽拖到想攻击的怪兽上</b>，或拖到空场地进行直接攻击。点按操作照常可用。</p></div>
+<div class="pn0_2_41-big"><em>声音</em><h3>22句全新嘲讽</h3>
+<p class="pn0_2_41-lead">我说服了<b>我的兄弟和一个朋友</b>想出并录制了一些嘲讽：现在输掉决斗时，会随机播放<b>22句全新的"You lose"台词</b>之一（英语），从<i>"Better luck next time"</i>到<i>"Sent to the Shadow Realm"</i>。</p></div>
+</section>
+
+<section class="pn0_2_41-big"><em>对手</em><h3>新的对手卡组</h3>
+<div class="pn0_2_41-ways">
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/opponents/guardian-angel-joan.png"><p><b>守护天使 贞德</b>新的<b>阶级3</b>对手，使用Kyky的光属性天使族卡组：守护天使 贞德、神力女武神、流浪勇者 弗里德和太阳射线。</p></div>
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/panik.png"><p><b>暗之玩家杀手</b>现在也会在前期登场，带来Deds制作的两套全新<b>恶魔族 / 暗</b>卡组（<b>阶级1</b>和<b>阶级2</b>）。</p></div>
+</div></section>
+
+<section class="pn0_2_41-big"><em>遗物</em><h3>两件全新融合遗物</h3>
+<div class="pn0_2_41-ways pn0_2_41-relics">
+<div class="pn0_2_41-way"><img src="assets/relics/17655904.jpg"><p><b>我的骄傲与灵魂</b>海马濑人对不灭的黑魔术的回应：龙族攻击力和守备力<b>上升800</b>，你的战斗阶段对手不能发动陷阱卡，决斗开始时从卡组特殊召唤1只<b>"青眼"</b>怪兽，青眼被破坏时可用光属性龙族接替。</p></div>
+<div class="pn0_2_41-way"><img src="assets/relics/50277973.jpg"><p><b>不稳定DNA</b>决斗开始时选择一个<b>种族</b>和一个<b>属性</b>：双方所有怪兽都变成该种族和属性，场上每有一只符合的怪兽，你的怪兽攻击力就上升。</p></div>
+</div></section>
+
+<section class="pn0_2_41-cols">
+<div class="pn0_2_41-big"><em>角色卡包</em><h3>更强的角色卡包</h3>
+<p class="pn0_2_41-lead"><b>川井静香</b>的卡包现在有了常用卡：强欲之壶、天使的施舍、死者苏生、雷击、神圣防护罩 -反射镜力-等。<b>迷宫兄弟</b>得到了常用卡，以及夺取怪兽来解放的卡（心变、强夺、洗脑、敌人操纵器）。两者都去掉了凑数的卡。</p></div>
+<div class="pn0_2_41-big"><em>卡组构筑</em><h3>终极收藏家升级</h3>
+<p class="pn0_2_41-lead"><b>终极收藏家</b>的卡组编辑器现在与单人模式相同：搜索窗口、类型标签、同名卡堆叠、排序和宽屏分栏。卡片搜索也能按<b>你所选语言的卡名和效果</b>查找。</p></div>
+</section>
+
+<section class="pn0_2_41-cols">
+<div><h2>改动</h2><ul class="pn0_2_41-small">
+<li><span>⭐</span><span>收藏的卡包现在<b>按角色</b>保存，点星标即可选择角色。</span></li>
+<li><span>🤝</span><span>双人决斗商店会提供<b>双方玩家的角色卡包</b>。</span></li>
+<li><span>📿</span><span>在决斗中点按遗物栏里的遗物，会打开完整的<b>冒险遗物</b>窗口。</span></li>
+<li><span>💬</span><span>遗物向你询问时，提示会显示<b>是哪件遗物</b>。</span></li>
+<li><span>❤️</span><span>当你的<b>LP较低</b>时，回复类遗物会更常出现。</span></li>
+<li><span>⛓️</span><span>同一张卡的副本越多，<b>坏掉的限制器</b>越常出现。</span></li>
+<li><span>🧥</span><span>卡套会与其异画版放在一起，并有<b>已解锁优先</b>选项。</span></li>
+<li><span>🏆</span><span>暗影遗物界面会显示你的<b>胜利</b>。</span></li>
+<li><span>👴</span><span>爷爷现在在手机上也会站在Copycat和Dueling Engine的商店里，没东西可卖时还会说上一句。</span></li>
+<li><span>🌈</span><span>随机卡的文字更通顺了（不再重复卡名），"攻击力/守备力下降"的效果也能正常生效。</span></li>
+<li><span>🫙</span><span><b>次元壶</b>改为最初版本：只除外怪兽。</span></li>
+<li><span>🤖</span><span>CPU更会使用天使族卡组，<b>等级上升！</b>只向上升级，不再用装备卡复活铁骑士 基亚·弗里德，也不再在逆转疗法下回复反而受伤。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_41-small">
+<li><span>📱</span><span>应用内更新在网络拥挤时和<b>中国</b>也能正常使用，错误提示也更清楚。</span></li>
+<li><span>🚩</span><span>超长冒险中的行为反馈又能正常上传了。</span></li>
+<li><span>💾</span><span>网页版在浏览器存储已满时会清理卡图，以便<b>继续保存进度</b>，保存错误提示也已翻译。</span></li>
+<li><span>🔄</span><span>攻守互换的诅咒遇上互换遗物时，"场上"数值显示正确了。</span></li>
+<li><span>👻</span><span>被遗物强化的<b>削魂的死灵</b>会主动攻击，而不是躲在守备表示。</span></li>
+<li><span>🧥</span><span>里侧表示的怪兽也计入"在控制…时获胜"的卡套目标。</span></li>
+<li><span>🐧</span><span>随机融合怪兽不再要求两组不同的素材。</span></li>
+</ul></div>
+</section></div>

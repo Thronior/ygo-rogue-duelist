@@ -830,6 +830,12 @@ def install(g):
   personal=CHARACTERS[run.get('shop_pack_character',run['character'])]['pack']
   # A Tag personal pack that is already a guaranteed pack keeps its random slot.
   if (not general_stock or ar.has(run,'morphing_jar_2')) and len(pack_ids)>2 and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
+  # Tag (ATM on Discord, user 2026-11-21): the teammate's character pack takes the first extra slot, so every Tag shop
+  # offers both players' character packs; it is skipped when it is already on the shelf.
+  team=run.get('shop_pack_characters') or []
+  if run.get('history_mode')=='tag' and len(team)==2 and len(pack_ids)>3 and pack_ids[2]==personal and not (general_stock and not ar.has(run,'morphing_jar_2')):
+   other=CHARACTERS[team[1]].get('pack') if 0<=team[1]<len(CHARACTERS) else None
+   if other in PACK_BY_ID and other not in pack_ids[:3]:pack_ids[3]=other
   # The slots after the character pack (Booster Shelf, Tag's extra packs) never repeat a pack already on the shelf.
   for n in range(3,len(pack_ids)):
    if pack_ids[n] in pack_ids[:n]:

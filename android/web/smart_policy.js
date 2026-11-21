@@ -25,6 +25,14 @@ export function preferredSelectionCount(min,max,scores,preferMaximum=false){
 // Printed LP costs: "pay 800 LP", "by paying 1000 Life Points".
 export const LP_COST=/\bpay(?:ing)?\s+([\d,]+)\s*(?:LP|Life Points)/i;
 const BATTLEGUARD_PARTNER={'Lava Battleguard':'Swamp Battleguard','Swamp Battleguard':'Lava Battleguard'};
+// Sword and Shield (every copy, either side) and Reversed Might each register their own EFFECT_SWAP_BASE_AD, and the
+// core swaps once per effect: an even count leaves the printed ATK/DEF (VellianCrowler, 2026-11-21). From Level 2 the
+// curse swaps only your monsters (passives.py).
+export function swapParity(mods,side){
+ let n=0;for(const list of mods?.activeRelics||[])for(const k of list||[])if(k==='sword_and_shield')n++;
+ if((mods?.challengeLevel??0)<2||side===0)for(const k of mods?.activeCurses||[])if(k==='mirror_stats')n++;
+ return n%2===1;
+}
 export function smartContext(e,p,L,prompt=null){
  const replayRule=key=>e.cpuTrialRules?e.cpuTrialRules.includes(key):acceptedReplayRules.has(key);
  const queryCache=new Map(),safetyCache=new Map();
@@ -34,7 +42,7 @@ export function smartContext(e,p,L,prompt=null){
  const relics=side=>e.aiModifiers?.activeRelics?.[side]||[],relic=(side,key)=>relics(side).includes(key),
   // Disturbed Sleep (relic, 2026-11-13): every End Phase flips each face-down Defense Position monster to face-up Attack
   // Position, so a Set monster spends the opponent's next turn in Attack Position, and its FLIP effect fires.
-  sleepFlips=relic(0,'disturbed_sleep')||relic(1,'disturbed_sleep'),swapOriginalStats=side=>relic(0,'sword_and_shield')||relic(1,'sword_and_shield')||((e.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((e.aiModifiers?.challengeLevel??0)<2||side===0));
+  sleepFlips=relic(0,'disturbed_sleep')||relic(1,'disturbed_sleep'),swapOriginalStats=side=>swapParity(e.aiModifiers,side);
  // Reversed Remedy (either owner) and base Effect Reverser: effect damage heals and healing hurts, for both players.
  // Amplified Effect Reverser only flips what the player does to the CPU, so the CPU's own plans stay the same.
  // Reversed Remedy and the base Effect Reverser cancel out.
@@ -58,6 +66,11 @@ export function smartContext(e,p,L,prompt=null){
  const handSearch=new Set(['Sangan','Witch of the Black Forest','Emissary of the Afterlife','Different Dimension Capsule']);
  const handRecovery=new Set(['Backup Soldier','Dark Factory of Mass Production','Monster Reincarnation','Dark Eruption','Return of the Doomed']);
  const revival=new Set(['Monster Reborn','Premature Burial','Call of the Haunted','The Shallow Grave','Soul Charge']);
+ // Revivals that stay on as the monster's Equip Card: a monster that destroys Equip Cards put on it (Gearfried the Iron
+ // Knight) breaks the equip and dies with it. Premature Burial revived Gearfried and lost both (flag 20a8bb28, 2026-11-21).
+ const equipRevivals=new Set(['Premature Burial','Autonomous Action Unit','Fulfillment of the Contract','Re-Fusion']);
+ const dropsEquips=c=>name(c)==='Gearfried the Iron Knight'||/equips? an Equip Card[\s\S]{0,40}to this card[\s\S]{0,40}destroy that Equip/i.test(e.cards.get(c.code)?.desc||'');
+ const reviveKeeps=(n,c)=>!equipRevivals.has(n)||!dropsEquips(c);
  const face=c=>!!(c.position&5),known=c=>face(c)||!!e.knownFieldCard?.(p,c),power=c=>face(c)?Math.max(0,c.position&1?atk(c):def(c)):hiddenDefense(c);
  // Compare remaining turns to deck-out rather than assuming both decks draw at
  // the same rate. Revival Jam plus an active Card of Safe Return is a recurring
@@ -597,6 +610,8 @@ export function smartContext(e,p,L,prompt=null){
    if(isRemoval(n)||wipes.has(n))list=list.filter(c=>removalAffects(source,c,n));
   return list;
  }
+ // Damage a monster we control deals us in each of our Standby Phases (Lava Golem), 0 for any other.
+ function upkeepDamage(x){const m=enabled(x)&&/during your Standby Phase:? take (\d+) damage/i.exec(e.cards.get(x.code)?.desc||'');return m?Number(m[1]):0;}
  function emergency(n,targets){
   if(n==='Ring of Destruction'&&targets.some(c=>atk(c)===e.lp[1-p]))return true;
   const a=enemy.find(x=>same(x,e.attackCard)),t=own.find(x=>same(x,e.attackTarget));
@@ -768,7 +783,11 @@ export function smartContext(e,p,L,prompt=null){
   const lastAnswer=answers.length<=1&&!doomedExiled?450:0;
   const valued=targets.map(x=>({c:x,value:targetValue(x)-(safeBattle(x)?2300:0)})).sort((a,b)=>b.value-a.value);
   if(wipes.has(n)){
-   const ownLoss=['Dark Hole','Torrential Tribute'].includes(n)?own.reduce((v,x)=>v+targetValue(x),0):0;
+   // A monster of ours that burns us every Standby Phase (Lava Golem) is a gain to lose, not a loss: Dark Hole
+   // stayed at -1 with Lava Golem and 2 Stealth Birds burning us 3000 a turn at 3300 LP (Fairy deck trace, 2026-11-21).
+   const ownLoss=['Dark Hole','Torrential Tribute'].includes(n)?own.reduce((v,x)=>v+(upkeepDamage(x)?-2*upkeepDamage(x):targetValue(x)),0):0;
+   const upkeep=['Dark Hole','Torrential Tribute'].includes(n)?own.reduce((v,x)=>v+upkeepDamage(x),0):0;
+   if(upkeep&&upkeep*2>=e.lp[p])return 140;
    const useful=valued.filter(x=>x.value>=1400).length;
    const net=valued.reduce((v,x)=>v+Math.max(0,x.value),0)-ownLoss;
    // Raigeki (or Dark Hole with nothing of ours to lose) on their only monster in our Main Phase 1, when that opens
@@ -807,7 +826,7 @@ export function smartContext(e,p,L,prompt=null){
   return 95+Math.min(20,(target.value-threshold)/200);
  }
  const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon,battleProof});
- const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady});
+ const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady,removalAffects});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
  // Amazoness Spellcaster: the pair (our attack-ready Amazoness, their face-up monster) whose original ATK swap lets our
@@ -1127,6 +1146,42 @@ export function smartContext(e,p,L,prompt=null){
   }
   if(n==='Soul Exchange')return -1; // Only as a planned line: it costs the Battle Phase.
   if(n==='Skilled White Magician')return q(p,L.DECK).concat(hand,grave).some(x=>name(x)==='Buster Blader')?85:-1;
+  // Fairy deck review (2026-11-21). With no rule these three were never used: null refused Freed's "destroy" and passed
+  // Solar Ray in every one of its 1336 chain windows; D.D. Warrior Lady said yes to every banish, even of a monster
+  // the battle destroyed anyway. Freed banishes 2 LIGHT monsters (its target pick takes them from the GY first) to
+  // destroy a face-up monster with more ATK: only with 2 in the GY, never by spending our field.
+  if(n==='Freed the Brave Wanderer'&&c.location===L.MZONE){
+   const self=own.find(x=>same(x,c))||c,light=grave.filter(x=>(data(x).type&1)&&hasAttribute(x,'LIGHT')).length;
+   return light>=2&&enemy.some(x=>face(x)&&atk(x)>atk(self)&&removalAffects(c,x,n,{destroy:true,targeting:true}))?95:-1;
+  }
+  // Solar Ray: 600 per face-up LIGHT monster we control. Fire for lethal, before removal takes our LIGHT monsters or
+  // the Ray itself, when a LIGHT monster loses the battle it is in, or at their End Phase with 2 or more.
+  if(n==='Solar Ray'){
+   const lights=own.filter(x=>face(x)&&hasAttribute(x,'LIGHT')),burn=600*lights.length;
+   if(!lights.length)return -1;
+   if(burn>=e.lp[1-p])return 130;
+   // A single LIGHT monster lost to removal is not worth spending the Ray for 600; the Ray itself under fire is.
+   const links=(e.activeChain||[]).filter(l=>!l.inactive&&l.player!==p);
+   const rayHit=links.some(l=>(l.targets||[]).some(t=>same(t,c))||/destroy all (?:Spell|cards)|return all (?:Spell|cards)/i.test(e.cards.get(l.code)?.desc||''));
+   const lightsHit=links.some(l=>/(destroy|banish|return) all/i.test(e.cards.get(l.code)?.desc||'')||(l.targets||[]).some(t=>lights.some(x=>same(x,t))));
+   if(chain&&(rayHit||lightsHit&&lights.length>=2))return 100;
+   const attacker=e.player!==p&&e.attackCard?.controller===1-p?enemy.find(x=>same(x,e.attackCard)):null,defender=attacker&&lights.find(x=>same(x,e.attackTarget));
+   if(chain&&defender&&lights.length>=2&&face(attacker)&&atk(attacker)>power(defender)&&!battleProof(defender,attacker))return 95;
+   return e.player!==p&&e.phase===512&&lights.length>=2?80:-1;
+  }
+  // D.D. Warrior Lady banishes the monster she battled and herself, after damage calculation. Worth it when she is lost
+  // anyway, the other monster survives the battle and is worth her, or it would trigger on being destroyed (Sangan,
+  // Mystic Tomato); not when the battle destroys it and leaves her standing.
+  if(n==='D.D. Warrior Lady'){
+   const mine=x=>x&&x.controller===p,dd=[e.attackCard,e.attackTarget].find(x=>mine(x)&&name(own.find(y=>same(y,x))||{})===n);
+   const live=dd&&own.find(y=>same(y,dd)),foeRef=dd&&(same(dd,e.attackCard)?e.attackTarget:e.attackCard),foe=foeRef&&enemy.find(y=>same(y,foeRef));
+   if(!live||!foe)return null;
+   const attacking=same(dd,e.attackCard),fa=atk(foe),da=atk(live);
+   const ddDies=attacking?!!(foe.position&1)&&fa>=da:(live.position&1)?fa>=da:fa>def(live);
+   const foeDies=!resilient(foe,attacking?live:null)&&(attacking?(foe.position&1)?da>=fa:da>def(foe):!!(live.position&1)&&da>=fa);
+   const floats=face(foe)&&enabled(foe)&&/destroyed|sent (?:from the field )?to the (?:GY|Graveyard)/i.test(e.cards.get(foe.code)?.desc||'');
+   return ddDies||!foeDies&&targetValue(foe)>=targetValue(live)-300||foeDies&&floats?90:-1;
+  }
   if(replayRule('summon_resources')){
    if(n==='Reasoning')return own.length<5&&q(p,L.DECK).some(x=>(data(x).type&1)&&!(data(x).type&0xc0)&&summonScore(x)>=0)?85:-1;
    if(n==='Reinforcement of the Army')return q(p,L.DECK).some(x=>race(x)==='Warrior'&&effectiveLevel(x,true)<=4)?90:-1;
@@ -1204,7 +1259,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Limiter Removal'){const machines=remainingAttackers().filter(x=>race(x)==='Machine');const lethal=!enemy.length&&machines.reduce((v,x)=>v+atk(x)*2,0)>=e.lp[1-p];const breakthrough=enemy.some(t=>known(t)&&!resilient(t)&&machines.some(a=>atk(a)<=power(t)&&atk(a)*2>power(t)));if(!lethal&&!breakthrough)return -1;}
   const canBattle=e.player===p&&e.turn>1&&e.phase<256&&prompt?.to_bp!==false&&!battleLocked;
   if(n==='Stop Defense'&&!canBattle)return -1;
-  if(n==='Giant Trunade')return canBattle&&(activeAttackers(p).length>0||(prompt?.special_summons?.length>0&&prompt?.summons?.length>0))&&theirBack.length?90:-1;
+  // Their face-up lock (Swords of Revealing Light, Messenger of Peace) goes back to the hand too: count the attackers it
+  // frees. Trunade stayed at -1 for turns under Swords with 1900 and 2000 ATK attackers held back (Fairy deck trace, 2026-11-21).
+  if(n==='Giant Trunade')return canBattle&&(activeAttackers(p).length>0||own.some(x=>face(x)&&(x.position&1)&&atk(x)>0&&!x.attack_disabled&&theirBack.some(l=>face(l)&&LOCK.includes(name(l))&&!attackBlocked(x,p,false,l)))||(prompt?.special_summons?.length>0&&prompt?.summons?.length>0))&&theirBack.length?90:-1;
   // Rite of Spirit revives a Gravekeeper's even under Necrovalley; with no rule it was never used (deck trace, 2026-11-08).
   // Their turn: only to stop lethal or in their End Phase; our turn: an attacker before battle, or a wall in Main Phase 2.
   // Losses showed three slips (deck trace, 2026-11-08): it answered Torrential Tribute on our summon and lost the revived
@@ -1327,7 +1384,8 @@ export function smartContext(e,p,L,prompt=null){
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n)&&e.attackCard&&(e.activeChain||[]).some(x=>!x.inactive&&x.player===p&&e.name(x.code)==='Enemy Controller'&&x.targets?.some(t=>same(t,e.attackCard))))return -1;
   if(['Waboku','Negate Attack','Threatening Roar'].includes(n))return chain&&wabokuWorthUsing()?90:-1;
   // Draining Shield also gains LP equal to the attacker's ATK, so it is the better stop.
-  if(n==='Draining Shield')return chain&&e.attackCard?.controller===1-p&&wabokuWorthUsing()?92:-1;
+  // Under Reversed Remedy its LP gain hurts for the attacker's full ATK, more than the hit it stops (Discord, Twist, 2026-11-21).
+  if(n==='Draining Shield')return chain&&e.attackCard?.controller===1-p&&healingAllowed(p)&&wabokuWorthUsing()?92:-1;
   if(isRemoval(n)&&enemy.length){
    const legal=candidates(n,c);
    if(legal.length&&legal.every(reservedForRemoval)&&!(n==='Raigeki Break'&&backScore(c)>=0))return -1;
@@ -1364,7 +1422,7 @@ export function smartContext(e,p,L,prompt=null){
    }
    if(openingTurn&&!grave.concat(q(1-p,L.GRAVE)).some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&(Math.max(atk(x),def(x))>=1800||summonUtility(x))))return -1;
    const pool=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
-   if(!pool.some(x=>(data(x).type&1)&&specialOk(x)))return -1;
+   if(!pool.some(x=>(data(x).type&1)&&specialOk(x)&&reviveKeeps(n,x)))return -1;
    // Bank revival resources after battle when the existing board already covers
    // the visible threat. Do not apply this to reactive chains or a recovery turn.
    if(!chain&&e.player===p&&e.phase===256&&own.length>=(e.cpuReviewRules?.holdRevival!==false?1:2)&&own.length>=enemy.length){
@@ -1718,7 +1776,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Block Attack')return canBattle&&enemy.some(x=>blockAttackUseful(x))?85:-1;
     if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'){
    const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
-   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code));const best=Math.max(0,...elig.map(atk));
+   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&reviveKeeps(n,x));const best=Math.max(0,...elig.map(atk));
    // Facing lethal on the opponent's turn: any monster that stops it is worth reviving, however weak (2026-10-29).
    if(n!=='The Shallow Grave'&&e.player!==p&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&incomingBattleDamage()>=e.lp[p]&&elig.some(x=>incomingBattleDamage(atk(x))<e.lp[p]))return 115;
    // One more attacker can be lethal even when it is weaker than their strongest monster.
@@ -1753,7 +1811,8 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Swords of Revealing Light')return (enemy.length&&danger||e.player===p&&e.phase===256&&(enemy.length||e.lp[p]<e.lp[1-p]))&&!back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x)))?70:-1;
   if(n==='Enchanted Javelin'&&chain&&wabokuWorthUsing()&&(prompt?.selects||[]).some(x=>name(x)==='Negate Attack'))return -1;
   if(n==='Enchanted Javelin'){
-   if(!chain||e.player===p||!e.attackCard||e.attackCard.controller!==1-p)return -1;
+   // Its whole point is the LP gain, which Reversed Remedy turns into damage (Discord, Twist, 2026-11-21).
+   if(!chain||e.player===p||!e.attackCard||e.attackCard.controller!==1-p||!healingAllowed(p))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard)),room=Math.max(0,99999-(e.lp[p]||0));if(!attacker||room<=0||atk(attacker)<=0||!removalAffects(c,attacker,n,{destroy:false,targeting:true}))return -1;
    const gain=Math.min(room,atk(attacker)),defender=e.attackTarget&&own.find(x=>same(x,e.attackTarget));
    const rawDamage=defender?(defender.position&1?Math.max(0,combatPower(attacker,defender)-atk(defender)):pierce(attacker)?Math.max(0,combatPower(attacker,defender)-def(defender)):0):combatPower(attacker);
@@ -2306,6 +2365,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
     case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?800:0;break;
     case 'fused_gaia_plate':v=1500;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
+    case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'variant_village_banner':v=lvl(c)===4?200:0;break;
     case 'eclipse':v=['LIGHT','DARK'].every(at=>q(side,L.GRAVE).some(x=>(data(x).type&1)&&face(x)&&hasAttribute(x,at)))?a:0;break;
@@ -2364,6 +2424,9 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_undying_legion':v=race(c)==='Zombie'?1200:0;break;case 'fused_grand_ritual_altar':v=200*(e.aiModifiers?.ritualScar||0);break;
     case 'fused_tyrants_throne':v=field.length===1?1200:0;break;
     case 'fused_immortal_dark_magic':v=race(c)==='Spellcaster'?600:0;break;
+    case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
+    // Every monster becomes the chosen Type and Attribute, so each face-up monster on both fields counts (itself included).
+    case 'fused_unstable_dna':v=100*(field.filter(face).length+q(1-side,L.MZONE).filter(face).length);break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'variant_village_banner':v=level===4?200:0;break;
     case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
@@ -2377,6 +2440,15 @@ export function smartContext(e,p,L,prompt=null){
  function reaperDirectReady(c){
   const live=own.find(x=>same(x,c))||c;
   return e.player===p&&(e.phase===4||e.phase===8)&&(prompt?.to_bp===true||e.turn>1)&&prompt?.to_bp!==false&&!enemy.length&&!battleLocked&&!live?.attack_disabled&&!(live?.attack_count>0)&&!attackBlocked(live,p,true)&&!theirBack.some(x=>!face(x));
+ }
+ // Spirit Reaper with relic-boosted ATK can win a battle this turn: stay in Attack Position when it beats a visible
+ // monster and Attack Position costs no more LP through their next turn. A 2200 ATK Reaper went to Defense in front of
+ // a 0/0 Exodia piece under its own Swords of Revealing Light (behaviour flag 2026-11-21).
+ function reaperBattleReady(c){
+  const live=own.find(x=>same(x,c))||c;
+  if(!(e.player===p&&e.phase===4&&prompt?.to_bp===true&&!openingTurn&&!battleLocked&&!live?.attack_disabled&&!(live?.attack_count>0)&&!attackBlocked(live,p)&&attackAllowed(live,false)))return false;
+  const target=enemy.some(t=>face(t)&&!attackLocked(t)&&combatPower(live,t)>power(t)&&attackScore(live,t,{dmg:battleDamage(t.position&1?combatPower(live,t)-power(t):0)})>-99999);
+  return target&&incomingDamage(live,true)<=incomingDamage(live,false);
  }
  const ojamaParts=['Ojama Green','Ojama Yellow','Ojama Black'];
  function ojamaComboSummon(c){
@@ -2936,7 +3008,12 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   function targetScore(fxN,cand,info){if(fxN==='Ready for Intercepting')fxN='Book of Moon';const nm=name(cand),source=e.effect||[...hand,...back,...own].find(x=>name(x)===fxN)||null;
   // Gravekeeper's Assailant switches the monster it is attacking (its activation rule checks that target).
   if(fxN==="Gravekeeper's Assailant")return same(cand,e.attackTarget)?100000:-1000000000;
-  if(fxN==='Soul Exchange')return cand.controller===p?-100000:30000+targetValue(cand);
+  // Only a monster Soul Exchange affects: both copies went on a Silent Magician LV8 (unaffected by Spells), so the
+  // Tribute Summon it was for never came (Fairy deck trace, 2026-11-21).
+  if(fxN==='Soul Exchange'){if(cand.controller===p)return -100000;const live=enemy.find(x=>same(x,cand))||cand;return (removalAffects(source,live,fxN,{destroy:false,targeting:true})?30000:0)+targetValue(cand);}
+  // Freed the Brave Wanderer (2026-11-21): banish the cheapest LIGHT monsters from the GY, never our field, and
+  // destroy their strongest monster, never ours (the target may be on either field).
+  if(fxN==='Freed the Brave Wanderer')return cand.location===L.GRAVE?5000-expendable(cand):cand.controller!==p?20000+targetValue(cand):-100000-targetValue(cand);
   if(fxN==='Cyber Raider')return cand.controller!==p?1000:nm==='Amplifier'?-100000:-1000;
   if(fxN==='Metamorphosis'){
    if(cand.location===L.EXTRA)return 30000+(nm==='Thousand-Eyes Restrict'?Math.max(0,...enemy.filter(face).map(atk)):projectedAttack(cand));
@@ -3110,6 +3187,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(nm==='Relinquished'&&cand.controller===p&&cand.location===L.MZONE&&(/tribute/i.test(e.cards.get(e.effect?.code)?.desc||'')||e.selectionHint===500))return -Infinity;
   const piece=exodiaPieces.has(cand.code),toHand=handSearch.has(fxN)||handRecovery.has(fxN)||e.selectionHint===506;
   if((piece||!specialOk(cand))&&(revival.has(fxN)||e.selectionHint===509))return -Infinity;
+  if(cand.location===L.GRAVE&&!reviveKeeps(fxN,cand))return -Infinity;
   if(cand.controller===p&&piece&&toHand&&cand.location!==L.HAND)return missingPiece(cand)?1000000:900000;
   if(exodiaPlan&&cand.controller===p){
    if(piece&&[L.DECK,L.GRAVE,L.REMOVED].includes(cand.location))return -1000000;
@@ -3187,5 +3265,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {swings,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
+  return {swings,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
 }

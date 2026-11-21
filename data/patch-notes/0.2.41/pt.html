@@ -1,0 +1,96 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_41,.patch-notes-sheet.pn0_2_41 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_41{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_41 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_41 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_41 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_41 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_41 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big .pn0_2_41-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big>*{position:relative}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big p.pn0_2_41-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way img,.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-relics .pn0_2_41-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-packs .pn0_2_41-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}</style><div class="patch-notes-sheet pn0_2_41"><div class="pn0_2_41-kick">YGO Rogue Duelist</div><h1>Atualização 0.2.41</h1>
+
+<section class="pn0_2_41-cols" style="margin-top:28px">
+<div class="pn0_2_41-big"><em>Controles</em><h3>Arraste para atacar</h3>
+<p class="pn0_2_41-lead">Na sua Battle Phase, <b>arraste seu monstro até aquele que quer atacar</b>, ou até um campo vazio para um ataque direto. Tocar continua funcionando como antes.</p></div>
+<div class="pn0_2_41-big"><em>Som</em><h3>22 novas provocações</h3>
+<p class="pn0_2_41-lead">Convenci <b>meu irmão e um amigo</b> a criar e gravar algumas provocações: agora, ao perder um duelo, toca aleatoriamente uma de <b>22 novas falas de "you lose"</b>, de <i>"Better luck next time"</i> a <i>"Sent to the Shadow Realm"</i> (em inglês).</p></div>
+</section>
+
+<section class="pn0_2_41-big"><em>Oponentes</em><h3>Novos decks para enfrentar</h3>
+<div class="pn0_2_41-ways">
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/opponents/guardian-angel-joan.png"><p><b>Joan, o Anjo da Guarda</b>Uma nova oponente de <b>Tier 3</b> com o deck de Fadas da LUZ de Kyky: Joan, o Anjo da Guarda, Bruxa Obscura Dunames, Freed, o Caminhante Corajoso e Raio Solar.</p></div>
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/panik.png"><p><b>PaniK</b>Agora também aparece cedo, com dois novos decks de <b>Demônio / Yami</b> de Deds para <b>Tier 1</b> e <b>Tier 2</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_41-big"><em>Relíquias</em><h3>Duas novas relíquias fundidas</h3>
+<div class="pn0_2_41-ways pn0_2_41-relics">
+<div class="pn0_2_41-way"><img src="assets/relics/17655904.jpg"><p><b>Meu Orgulho e Minha Alma</b>A resposta de Kaiba a Magia Negra Imortal: Dragões ganham <b>800 ATK/DEF</b>, nada de Armadilhas na sua Battle Phase, um <b>"Olhos Azuis"</b> do seu Deck no início do Duelo e um Dragão da LUZ para substituir um Olhos Azuis derrotado.</p></div>
+<div class="pn0_2_41-way"><img src="assets/relics/50277973.jpg"><p><b>DNA Instável</b>No início do Duelo, escolha um <b>Tipo</b> e um <b>Atributo</b>: todos os monstros dos dois jogadores passam a tê-los, e os seus ganham ATK para cada correspondência no campo.</p></div>
+</div></section>
+
+<section class="pn0_2_41-cols">
+<div class="pn0_2_41-big"><em>Pacotes de personagem</em><h3>Pacotes de personagem mais fortes</h3>
+<p class="pn0_2_41-lead">O pacote de <b>Serenity</b> agora tem cartas essenciais: Pote da Ganância, Caridade Graciosa, Reviver Monstro, Raigeki, Força do Espelho e mais. Os <b>Irmãos Paradox</b> recebem essenciais e formas de pegar um monstro para Oferecer como Tributo (Mudança de Opinião, Roubo Precipitado, Controle Cerebral, Controlador de Inimigos). Os dois perdem cartas de enchimento.</p></div>
+<div class="pn0_2_41-big"><em>Montagem de deck</em><h3>Colecionador Supremo, melhorado</h3>
+<p class="pn0_2_41-lead">O editor de deck do <b>Colecionador Supremo</b> agora funciona como o do modo solo: janela de busca, abas de tipo, cópias empilhadas, ordenação e a tela dividida em telas largas. A busca de cards também encontra cards pelo <b>nome e texto no seu idioma</b>.</p></div>
+</section>
+
+<section class="pn0_2_41-cols">
+<div><h2>Mudanças</h2><ul class="pn0_2_41-small">
+<li><span>⭐</span><span>Os pacotes favoritos agora são salvos <b>por personagem</b>; a estrela deixa você escolher quais.</span></li>
+<li><span>🤝</span><span>A loja Tag oferece <b>os pacotes de personagem dos dois jogadores</b>.</span></li>
+<li><span>📿</span><span>Tocar uma relíquia na barra de relíquias do duelo abre a janela completa de <b>Relíquias da jornada</b>.</span></li>
+<li><span>💬</span><span>Quando uma relíquia pergunta algo, o aviso mostra <b>qual relíquia</b> está perguntando.</span></li>
+<li><span>❤️</span><span>Relíquias de cura aparecem com mais frequência quando seus <b>LP estão baixos</b>.</span></li>
+<li><span>⛓️</span><span><b>Limitador Quebrado</b> aparece com mais frequência quanto mais cópias de um card você tiver.</span></li>
+<li><span>🧥</span><span>Os sleeves ficam agrupados com suas artes alternativas, com a opção <b>Desbloqueadas primeiro</b>.</span></li>
+<li><span>🏆</span><span>A tela de relíquias das sombras mostra suas <b>VITÓRIAS</b>.</span></li>
+<li><span>👴</span><span>O vovô agora fica na loja de Copycat e Dueling Engine no celular, e tem algo a dizer quando não há nada para vender.</span></li>
+<li><span>🌈</span><span>Os cards aleatórios ficaram mais legíveis (sem nomes repetidos), e os efeitos de "perde ATK/DEF" funcionam.</span></li>
+<li><span>🫙</span><span><b>Jarro Dimensional</b> é a impressão original: bane apenas monstros.</span></li>
+<li><span>🤖</span><span>A CPU joga melhor com decks de Fada, usa <b>Subida de Nível!</b> só para cima, não revive mais Gearfried, o Cavaleiro de Ferro com Equipamentos e não se cura mais causando dano a si mesma sob Remédio Invertido.</span></li>
+</ul></div>
+<div><h2>Correções</h2><ul class="pn0_2_41-small">
+<li><span>📱</span><span>As atualizações no app funcionam em redes congestionadas e na <b>China</b>, com mensagens de erro mais claras.</span></li>
+<li><span>🚩</span><span>As denúncias de comportamento de jornadas muito longas voltam a ser enviadas.</span></li>
+<li><span>💾</span><span>Na web, um armazenamento do navegador cheio agora apaga imagens de cards para <b>continuar salvando seu progresso</b>, e o erro de salvamento está traduzido.</span></li>
+<li><span>🔄</span><span>As estatísticas "No campo" ficam certas quando uma maldição de troca de ATK/DEF encontra uma relíquia de troca.</span></li>
+<li><span>👻</span><span>Um <b>Ceifeiro de Espíritos</b> fortalecido por relíquias ataca em vez de se esconder em Defesa.</span></li>
+<li><span>🧥</span><span>Monstros com a face para baixo contam para as metas de sleeve "vença controlando…".</span></li>
+<li><span>🐧</span><span>Fusões aleatórias não pedem mais dois conjuntos diferentes de matérias.</span></li>
+</ul></div>
+</section></div>

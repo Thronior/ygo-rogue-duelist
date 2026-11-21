@@ -46,3 +46,6 @@ for name,p in uploads.items():
  print('Verified upload',name,flush=True)
 release=request(release['url'],json.dumps({'draft':False,'make_latest':'true'}).encode(),method='PATCH')
 print('Published',release['html_url'],flush=True)
+# Players in China update through GitHub mirrors (Discord, 2026-11-21); they relay this release, so only confirm they serve it.
+import china_mirrors
+china_mirrors.check(version)

@@ -121,6 +121,7 @@ function observe(){
 
 // Card names, texts and effect labels: English (as shown) → this language, for display only.
 function buildCardMaps(){
+ searchMemo.clear();
  if(!cards||!content){cardMaps=null;return}
  const map=new Map(),add=(en,local)=>{const k=norm(en);if(k&&local&&!map.has(k)&&!ui.has(k))map.set(k,local)};
  for(const c of [...(content.cards||[]),...(content.tokenCards||[])]){
@@ -140,6 +141,17 @@ export function localCardText(c){
  const own=ui.get(norm(cleanText(c.desc||'')));
  return {name:local[0],desc:own??local[1]??c.desc};
 }
+// Card search (Kyky, Discord 2026-11-21): a card matches its English name and text and, in another language, also its
+// translated name and text; case and accents are ignored. Built per card on first use, dropped when the language changes.
+const searchMemo=new Map();
+export const foldSearch=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+export function cardSearchText(c){
+ if(!c)return '';const hit=searchMemo.get(c.id);if(hit&&hit[0]===c.desc&&hit[1]===c.name)return hit[2];
+ const local=lang==='en'?null:localCardText(c),text=foldSearch(c.name+' '+(c.desc||'')+(local?' '+local.name+' '+local.desc:''));
+ searchMemo.set(c.id,[c.desc,c.name,text]);return text;
+}
+// Every word of the query must appear (in either language).
+export function cardMatchesQuery(c,query){const words=foldSearch(query).split(/\s+/).filter(Boolean);if(!words.length)return true;const text=cardSearchText(c);return words.every(w=>text.includes(w))}
 export function attachContent(c,displayCardText){content=c;if(displayCardText)cleanText=displayCardText;buildCardMaps()}
 
 // Loads a language bundle (android/web/i18n/<code>.json) and starts translating the page.
@@ -147,7 +159,7 @@ export async function setLanguage(code,{remember=true}={}){
  if(!codes.has(code))code='en';
  if(remember){try{localStorage.setItem(KEY,code)}catch{}}
  document.documentElement.lang=LANGUAGES.find(l=>l[0]===code)[2];
- if(code==='en'){lang='en';locale='en-US';ui=new Map();patterns=[];cards=null;cardMaps=null;memo.clear();observe();return}
+ if(code==='en'){lang='en';locale='en-US';ui=new Map();patterns=[];cards=null;cardMaps=null;memo.clear();searchMemo.clear();observe();return}
  const bundle=await fetch(`i18n/${code}.json`).then(r=>{if(!r.ok)throw Error(`Language file missing (${r.status})`);return r.json()});
  const nextUi=new Map(),nextPatterns=[];
  for(const [en,local] of Object.entries(bundle.ui||{})){if(/\{\d+\}/.test(en))nextPatterns.push(compile(en,local));else nextUi.set(en,local)}

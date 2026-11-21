@@ -1,7 +1,7 @@
 // Run progress strip between duels: the run card's VICTORIES row for the run in progress (run-progress.js).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {runProgress,runProgressMarkup,nextBoss,bossPreviewMarkup,bossPreview} from './web/run-progress.js';
+import {runProgress,runProgressMarkup,nextBoss,bossPreviewMarkup,bossPreview,mountRunProgress} from './web/run-progress.js';
 import {runCardData,runDuels,bossDuel} from './web/run-card.js';
 
 const content=JSON.parse(fs.readFileSync(new URL('./web/content.json',import.meta.url),'utf8'));
@@ -78,4 +78,17 @@ const opening={round:0,loop:0,timeline:[],challenge_level:6,opponent:4,route_cur
 assert.deepEqual(nextBoss(opening).curses,['frailty']);assert.deepEqual(nextBoss({...opening,opponent:7}).curses,['hunger']);
 assert.match(bossPreviewMarkup(opening,live),/Depends on the curse you take in Duel 1\./);
 
+// The shadow relic choice after a boss shows which battle this is (Discord, Septarium, 2026-11-21): the band goes right
+// under its header, solo (with the boss preview) and Tag (plain).
+{
+ const inserted=[],header={insertAdjacentHTML:(where,html)=>inserted.push([where,html])};
+ const page={querySelector:sel=>sel===':scope>header'?header:null,querySelectorAll:()=>[]};
+ const afterBoss={round:3,loop:0,timeline:[duel(1,9),duel(2,75),duel(3,83)],cursed_offer:{options:[]}};
+ mountRunProgress(page,afterBoss,{content});
+ assert.equal(inserted.length,1);assert.equal(inserted[0][0],'afterend');
+ assert.match(inserted[0][1],/aria-label="Run progress: 3 of 9 victories, Duel 4 next"/);
+ const source=name=>fs.readFileSync(new URL('./web/'+name,import.meta.url),'utf8');
+ assert.match(source('mobile.js'),/function renderCursedRelics\(\)\{[^\n]*<\/section>`;mountRunProgress\(app\.querySelector\('\.cursed-reward'\),state\.run,\{content,dialog\}\)\}/,'solo shadow relic screen');
+ assert.match(source('tag-ui.js'),/<section class="cursed-reward">[^\n]*\n[^\n]*\n\s*mountRunProgress\(this\.root\.querySelector\('\.cursed-reward'\),v\.run,\{content:this\.content\}\)/,'Tag shadow relic screen');
+}
 console.log('run progress ok');

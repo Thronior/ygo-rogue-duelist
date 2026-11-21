@@ -58,7 +58,7 @@ def sync():
  import relic_fusions
  meta['fusedRelics']=sorted(relic_fusions.KEYS)
  # Shown only once the player has fused that relic (user, 2026-11-05); undiscovered ones show "???".
- meta['fusionMaterials']={k:{'pieces':list(p),'needed':relic_fusions.NEEDED.get(k,len(p))} for k,p in sorted(relic_fusions.RECIPES.items())}
+ meta['fusionMaterials']={k:{'pieces':list(p),'needed':relic_fusions.NEEDED.get(k,len(p)),**({'required':list(relic_fusions.REQUIRED[k])} if k in relic_fusions.REQUIRED else {})} for k,p in sorted(relic_fusions.RECIPES.items())}
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']
  meta['battleCoinRules']=[dict(label=label,coins=coins,victoryOnly=metric in VICTORY_ONLY,metric=metric,threshold=threshold) for metric,threshold,label,coins in RULES if metric not in SECRET]
  meta['bossDeckNames']=json.loads((ROOT/'data/boss-deck-names.json').read_text(encoding='utf8'))['names']
@@ -67,6 +67,9 @@ def sync():
  voices=ROOT/'assets/sfx/boss'
  meta['ultimateCollectors']=sorted(content.UC_OPPONENTS)
  meta['bossVoices']=sorted(p.name for p in voices.iterdir() if p.suffix in ('.mp3','.wav')) if voices.exists() else []
+ # Duel-loss taunts (android/web/juice.js defeatVoice), one picked at random with the original you-lose.wav.
+ lose=ROOT/'assets/sfx/lose'
+ meta['loseVoices']=sorted(p.name for p in lose.iterdir() if p.suffix in ('.mp3','.wav')) if lose.exists() else []
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
  from campaign_catalog import watch_catalog
  meta.update(watch_catalog())

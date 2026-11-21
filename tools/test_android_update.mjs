@@ -17,3 +17,15 @@ await startupAndroidUpdate(options);assert.deepEqual(prompts,['0.1.41']);
 await startupAndroidUpdate({...options,check:async()=>({available:false})});
 await startupAndroidUpdate({...options,check:async()=>{throw Error('offline')}});assert.equal(prompts.length,1);
 console.log('PASS boot prompt: Android/online only, version displayed, no prompt when current, silent network failure');
+
+// Chinese players ask the GitHub mirror first; others use it only when the API fails (Discord, 2026-11-21).
+const calls=[];const routed=(apiOk=true)=>async url=>{calls.push(url);
+ if(url==='build.json')return {ok:true,json:async()=>({version:'0.1.40'})};
+ if(url.startsWith('https://api.github.com/'))return apiOk?{ok:true,json:async()=>({tag_name:'v0.1.41',assets:[{name:'YGO-Rogue-Android.apk'}]})}:{ok:false};
+ assert.match(url,/^https:\/\/gh-proxy\.org\/https:\/\/github\.com\/.*release-manifest\.json\?t=\d+$/);
+ return {ok:true,json:async()=>({version:'0.1.42',files:{'YGO-Rogue-Android.apk':{}}})};};
+assert.equal((await checkAndroidUpdate(routed(),'zh')).latest,'v0.1.42');assert.match(calls.filter(u=>u!=='build.json')[0],/gh-proxy/);
+calls.length=0;assert.equal((await checkAndroidUpdate(routed(),'en')).latest,'v0.1.41');assert(!calls.some(u=>u.includes('gh-proxy')));
+assert.equal((await checkAndroidUpdate(routed(false),'en')).latest,'v0.1.42');
+let asked;await startupAndroidUpdate({native:{openUpdate(){}},online:true,language:'zh',check:async(_,language)=>{asked=language;return {available:false}},prompt(){}});assert.equal(asked,'zh');
+console.log('PASS Chinese checks the mirror first, others fall back to it when the GitHub API fails');

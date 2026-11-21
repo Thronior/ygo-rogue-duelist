@@ -37,7 +37,9 @@ document.addEventListener('toggle',event=>{if(event.target.classList?.contains('
 let lastPick='';
 // cards: id -> relicCard markup. counts: id -> copies owned. curses: permanentCurseEntries rows, listed after the relics.
 // level: the run's challenge level, shown above the relics; omitted where the window has no run.
-export function relicLedger(content,ids,{intro='',cards,counts=()=>1,negated=false,curses=[],level=null}){
+// pick: open on this relic (a tap on the duel relic bar, Deds 2026-11-21).
+export function relicLedger(content,ids,{intro='',cards,counts=()=>1,negated=false,curses=[],level=null,pick:want=null}){
+ if(want&&ids.includes(want))lastPick=want;
  const picks=[...ids,...curses.map(c=>'curse:'+c.key)],pick=picks.includes(lastPick)?lastPick:picks[0];
  const curseButtons=curses.length?`<h4 class="relic-grid-label">Permanent curses</h4>${curses.map(c=>`<button type="button" role="option" aria-selected="${'curse:'+c.key===pick}" data-relic-pick="curse:${esc(c.key)}" class="permanent-curse" aria-label="${esc(c.name)}"><img class="relic-artwork" src="${esc(curseIconFile(c.key))}" alt="" loading="lazy" decoding="async">${countBadge(c.count)}</button>`).join('')}`:'';
  const hide=(markup,id)=>markup.replace('<article ',id===pick?'<article ':'<article hidden ');

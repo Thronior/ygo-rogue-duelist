@@ -17,13 +17,16 @@ FUSED=[
  ('necrovalley_throne','Necrovalley Throne',"Your Gravekeeper's monsters gain 800 ATK/DEF. Your Field Spell cannot be destroyed.",'Necrovalley',('necrovalley_tablet','gravekeepers_union')),
  ('fusion_gate','Fusion Gate','During your Standby Phase, if you control no monsters, Special Summon 1 monster from your Fusion Deck.','Fusion Gate',('fusion_chamber','fusion_insignia','fusion_time','machine_foundry')),
  ('jar_of_greed','Jar of Greed','Gain 1 free reroll in each shop and 1 additional reroll for each shadow relic choice. Gain 1 free opponent reveal per encounter and 1 free boss reroll per boss encounter. Shop rerolls restock your character booster pack. Draw 1 additional card during your first turn. 1 relic in each shop costs 0 coins.','Jar Robber',('dice_jar','cyber_jar','morphing_jar_2')),
- ('second_coin_toss','Divine Gambler','You choose the results of all your coin tosses and dice rolls.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice')),
+ ('second_coin_toss','Divine Gambler','You choose the results of all your coin tosses and dice rolls.','Lucky Chance',('lets_go_gambling','weighted_coins','weighted_dice','cursed_jesters_coin')),
+ # Divine Gambler: Jester's Coin added as a 4th piece (Thronior, Discord 2026-11-21: built by Duel 2 too easily).
  ('scapegoat_pasture','Scapegoat Pasture',"During your opponent's Standby Phase, Special Summon 1 Sheep Token in Defense Position. Once per turn, during your Standby Phase, select 1 face-up monster on either side of the field. All Tokens you control receive the same Type, Level, Attribute, name, and original ATK and DEF as that monster until the End Phase.",'Sogen',('token_defender','token_martyrs','token_regiment','token_resonance')),
  ('sacred_phoenix','Sacred Phoenix','Once per Duel, if your LP become 0, your LP become 1,000 instead and you do not lose the Duel for having 0 LP. If you win a Duel in which this saved you, earn 40 additional coins.','Sacred Phoenix of Nephthys',('phoenix_rebirth','phoenix_debt','second_wind')),
  ('gold_sarcophagus',"Pharaoh's Hoard",'Shop prices are reduced by 50%. Earn 50 additional coins after each victory.',"Pharaoh's Treasure",('bargain','urn','receipt','interest')),
  # User request 2026-11-09: all three Union relics.
  ('union_buster','Union Buster','Monsters you control gain 400 ATK for each monster equipped to them. When you Normal Summon a monster whose name is listed on a Union monster in your hand or Deck: Equip 1 of those Union monsters to that monster.','XYZ-Dragon Cannon',('union_dock','union_hangar','unionize')),
  ('attribute_mutation','Attribute Mutation','All your monsters are treated as having every Attribute.','DNA Transplant',tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
+ # Eriko's design (Discord 2026-11-21, built as written at the user's choice): DNA Rewrite + Kindred Bond + any 1 Surgery relic.
+ ('unstable_dna','Unstable DNA',"At the start of each Duel, select one Type and one Attribute. All of both players' monsters everywhere become the selected Type and Attribute. Monsters you control gain 100 ATK for every face-up monster on the field with the selected Type and Attribute.",'Swamp Mirrorer',('dna_rewrite','kindred_bond')+tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
  # Cursed fusions (2026-11-04): one shadow relic and its regular partners. A relic may belong to several sets;
  # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
  ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
@@ -52,11 +55,19 @@ FUSED=[
  ('ultimate_gate_combination','Ultimate Gate Combination','At the start of each Duel, add "Sanga of the Thunder", "Kazejin" and "Suijin" to your hand. Your "Gate Guardian", "Sanga of the Thunder", "Kazejin" and "Suijin" gain these effects, whatever else you control: When it attacks an opponent\'s monster, that monster\'s ATK becomes 0 in the Damage Step, until the End Phase. Once per turn each, during your opponent\'s turn, when your opponent activates a monster effect or a Spell, you can negate that effect, then return that card to the hand. Once per turn, you can Special Summon "Gate Guardian" from your Deck, ignoring its Summoning conditions.','Sanga of the Thunder',('jin_trio','gate_calling')),
  # The user's design, 2026-11-19 (TRUANT's Discord list): the four Dark Magician relics. Dark Magic Attack art is mine.
  ('immortal_dark_magic','Immortal Dark Magic','Spellcaster monsters you control gain 600 ATK. When you Normal Summon a Spellcaster monster: You can Special Summon 1 "Dark Magician" monster from your Deck, and add 1 card that mentions "Dark Magician" from your Deck to your hand. When a "Dark Magician" monster you control is destroyed and sent to the GY: Special Summon 1 monster that mentions "Dark Magician" from your Deck or Extra Deck, ignoring its Summoning conditions.','Dark Magic Attack',('mage','magicians_bond','master_and_apprentice','black_chaos_rite')),
+ # The user's design, 2026-11-21: the four Blue-Eyes relics (Dragon Crest, Blue-Eyes Radiance, Twin Eyes, Dragon's Claws).
+ # Burst Stream of Destruction art is mine (Blue-Eyes White Dragon, Ultimate and Shining are the pieces' and Dragon Blood Fusion's).
+ ('my_pride_and_soul','My Pride and Soul','Dragon monsters you control gain 800 ATK/DEF. Your opponent cannot activate Trap Cards during your Battle Phase. At the start of the Duel: Special Summon 1 "Blue-Eyes" monster from your Deck in Attack Position, then add 1 card that mentions "Blue-Eyes White Dragon" from your Deck to your hand. Once per turn, when a "Blue-Eyes" monster you control is destroyed: You can Special Summon 1 LIGHT Dragon monster from your hand, Deck or Extra Deck, ignoring its Summoning conditions.','Burst Stream of Destruction',('dragon','blue_eyes_radiance','twin_eyes','dragon_triumph')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
 # Sets that fuse once this many of their pieces are owned (2026-11-04: any 3 of the 6 Surgery relics), instead of all of them.
-NEEDED={'attribute_mutation':3}
+NEEDED={'attribute_mutation':3,'unstable_dna':3}
+# Pieces a set always needs; the rest of NEEDED comes from its other pieces (Unstable DNA: both of these + 1 Surgery).
+# Only those pieces are used up, so spare Surgeries still count towards Attribute Mutation.
+REQUIRED={'unstable_dna':('dna_rewrite','kindred_bond')}
+# Unstable DNA takes its Surgery before Attribute Mutation would take them all.
+ORDER=sorted(RECIPES,key=lambda k:k!='unstable_dna')
 # Jar of Greed keeps its jars' shop and encounter effects; every other fused relic replaces its pieces.
 INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2'),'grand_bazaar':('booster_shelf',)}
 # Fused relics whose rules live with the base effect they share (passives.py or the shop/coin code).
@@ -64,7 +75,7 @@ SHARED_EFFECT={'gold_sarcophagus':('discount',50),'sacred_phoenix':('phoenix',10
 SHEEP_TOKEN=73915052
 
 NEW_KEYS=frozenset({'spell_counter_engine','level_up_chain','terrorking_magnus','spirit_sanctuary',
-                    'living_traps','scorched_hourglass','guardians_armory'})
+                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna'})
 
 def install(artifact, new=False):
  from content import ARTIFACTS,ART_INFO
@@ -72,7 +83,8 @@ def install(artifact, new=False):
   if (key in NEW_KEYS)!=new:continue
   effect,amount=SHARED_EFFECT.get(key,('fused_'+key,0))
   tag=next((ART_INFO[p]['tag'] for p in pieces if ART_INFO[p]['tag']!='economy'),'economy')
-  price=sorted(ARTIFACTS[p][1] for p in pieces)[:NEEDED.get(key,len(pieces))]
+  need=REQUIRED.get(key,())
+  price=[ARTIFACTS[p][1] for p in need]+sorted(ARTIFACTS[p][1] for p in pieces if p not in need)[:NEEDED.get(key,len(pieces))-len(need)]
   artifact(key,name,sum(price),text,art,effect,amount,tag)
 
 def includes(run,key):
@@ -83,14 +95,20 @@ def includes(run,key):
 def absorbed(run,key):
  """A piece whose every set this run already fused: it is not offered again."""
  owned=run.get('artifacts',[]);sets=[fused for fused,pieces in RECIPES.items() if key in pieces]
- return bool(sets) and all(fused in owned for fused in sets)
+ # A set with fixed pieces (Unstable DNA) only keeps its optional pieces wanted once all its fixed pieces are owned.
+ closed=lambda fused:fused in owned or (fused in REQUIRED and key not in REQUIRED[fused] and not all(p in owned for p in REQUIRED[fused]))
+ return bool(sets) and all(closed(fused) for fused in sets)
 
 def fuse(run):
  """Fuse every complete set in the run's relics. Returns the fusions made, also queued for the shop animation."""
  made=[]
- for key,pieces in RECIPES.items():
-  artifacts=run.get('artifacts',[])
+ for key in ORDER:
+  pieces=RECIPES[key];artifacts=run.get('artifacts',[])
   owned=[p for p in pieces if p in artifacts]
+  if key in REQUIRED:
+   need=REQUIRED[key]
+   if key in artifacts or not all(p in artifacts for p in need):continue
+   owned=list(need)+[p for p in owned if p not in need][:NEEDED[key]-len(need)]
   if key in artifacts:
    if key not in NEEDED:continue
    # A Surgery that arrives after its set fused (Blank Relic) joins the fused relic quietly.
@@ -126,6 +144,17 @@ def greed_free_relic(run,rng):
  stock=[item for item in run.get('shop',[]) if item['kind']=='artifact' and not item['sold'] and (item['id'] not in run.get('artifacts',[]) or item['id']=='golden_sleeve') and not absorbed(run,item['id'])]
  if not stock or any(item.get('greed') for item in stock):return
  item=rng.choice(stock);item['price']=0;item['greed']=True
+
+_UNSTABLE_RACES=None
+def unstable_races():
+ """Unstable DNA's Type choices as a race mask: every Type a monster in the game has (feedback_update.RACE_VALUES)."""
+ global _UNSTABLE_RACES
+ if _UNSTABLE_RACES is None:
+  import campaign as g
+  from feedback_update import RACE_VALUES
+  races={c['race'] for c in g.BY_ID.values() if c['data']['type']&1}
+  _UNSTABLE_RACES=sum(v for k,v in RACE_VALUES.items() if k in races) or 0xffffffff
+ return hex(_UNSTABLE_RACES)
 
 def effect(kind):
  if not kind.startswith('fused_'):return None
@@ -186,6 +215,23 @@ Duel.RegisterEffect(dice,0) end'''
    local x=Effect.CreateEffect(token) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(row[1]) x:SetValue(row[2]) x:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) token:RegisterEffect(x)
   end
  end''',f'Duel.IsExistingMatchingCard({mine},0,LOCATION_MZONE,0,1,nil)')
+ if key=='unstable_dna':
+  # Asked at the first Draw Phase of the Duel (whoever goes first), then every monster of both players, in every location,
+  # becomes that Type and Attribute. The Types offered are those of the game's monsters, as for DNA Rewrite.
+  return f"""do local race,attr=0,0
+ local function chosen(c) return race~=0 and c:IsFaceup() and c:IsRace(race) and c:IsAttribute(attr) end
+ local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_DRAW)
+ e:SetCondition(function() return race==0 end)
+ e:SetOperation(function(e) e:Reset()
+  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_RACE) race=Duel.AnnounceRace(0,1,{unstable_races()})
+  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATTRIBUTE) attr=Duel.AnnounceAttribute(0,1,ATTRIBUTE_ALL&~ATTRIBUTE_DIVINE)
+  for _,row in ipairs({{{{EFFECT_CHANGE_RACE,race}},{{EFFECT_CHANGE_ATTRIBUTE,attr}}}}) do
+   local x=Effect.GlobalEffect() x:SetType(EFFECT_TYPE_FIELD) x:SetCode(row[1]) x:SetTargetRange(LOCATION_ALL,LOCATION_ALL)
+   x:SetTarget(function(e,c) return c:IsMonster() end) x:SetValue(row[2]) Duel.RegisterEffect(x,0) end end)
+ Duel.RegisterEffect(e,0)
+ local atk=Effect.GlobalEffect() atk:SetType(EFFECT_TYPE_FIELD) atk:SetCode(EFFECT_UPDATE_ATTACK) atk:SetTargetRange(LOCATION_MZONE,0)
+ atk:SetTarget(function(e,c) return c:IsFaceup() end)
+ atk:SetValue(function(e,c) return 100*Duel.GetMatchingGroupCount(chosen,0,LOCATION_MZONE,LOCATION_MZONE,nil) end) Duel.RegisterEffect(atk,0) end"""
  if key=='attribute_mutation':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_ATTRIBUTE)
 e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(ATTRIBUTE_ALL) Duel.RegisterEffect(e,0) end'''
  if key in ('bottomless_purse','grand_bazaar'):return '' # shop and coin rules only (campaign_expansion, approved_relics.price)
@@ -291,6 +337,9 @@ e:SetOperation(function(e) e:Reset() local g=Group.CreateGroup()
  if key=='immortal_dark_magic':
   from approved_relic_effects import immortal_dark_magic
   return immortal_dark_magic()
+ if key=='my_pride_and_soul':
+  from approved_relic_effects import my_pride_and_soul
+  return my_pride_and_soul()
  if key=='guardians_armory':
   return stat('EFFECT_UPDATE_ATTACK',500,'#c:GetEquipGroup()>0')+'''
 do local pairs={{73544866,68427465},{10755153,95638658},{74367458,69243953},

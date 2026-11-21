@@ -2117,6 +2117,9 @@ dialog.cpu-test-picker::backdrop{background:#020910d9;backdrop-filter:blur(3px)}
 .shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper>img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center bottom!important;pointer-events:none!important}
 .shop-compact:not(.relicless-shop) .shop-counter>.shop-balance,.shop-compact:not(.relicless-shop) .shop-counter>button:not(.secret-shopkeeper){z-index:1!important}
 @media(orientation:portrait){.shop-compact:not(.relicless-shop) .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop .shop-counter>.secret-shopkeeper,.shop-compact.relicless-shop>.secret-shopkeeper{display:none!important;visibility:hidden!important}}
+/* Copycat's first loadout and Dueling Engine have no card stock, so their portrait shop has room for Solomon
+   behind the counter (user, 2026-11-21). */
+@media(orientation:portrait){.shop-compact.relic-only-shop:not(.relicless-shop) .shop-counter>.secret-shopkeeper{display:block!important;visibility:visible!important;left:7%!important;width:90%!important}.shop-compact.relic-only-shop:not(.relicless-shop) .shop-layout>aside>:is(h3,.relics){position:relative;z-index:7}.shop-compact.relic-only-shop.relicless-shop>.secret-shopkeeper{display:block!important;visibility:visible!important}}
 
 /* Duel motion (duel-motion.js). Overlays sit above the board, never take input, and animate transform/opacity only. */
 .duel-fx{position:fixed;z-index:245;pointer-events:none}
@@ -2483,7 +2486,7 @@ html.performance-mode .zone.pile>.fx-pile-glow{animation:none;opacity:.6}
 .keeper-bubble{position:fixed;z-index:45;box-sizing:border-box;max-width:min(240px,36vw);padding:6px 10px 7px;background:#fff6dc;color:#2b1a0e;font:700 13px/1.3 "Courier New",Courier,monospace;text-align:center;pointer-events:none;box-shadow:0 -3px #2b1a0e,0 3px #2b1a0e,-3px 0 #2b1a0e,3px 0 #2b1a0e,inset -3px -3px #ead2a0,3px 6px 0 #00000059}
 .keeper-bubble::after{content:"";position:absolute;top:100%;left:calc(var(--tail-x,50%) - 7.5px);width:15px;height:9px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3' shape-rendering='crispEdges'%3E%3Cpath fill='%232b1a0e' d='M0 0h1v1H0zM4 0h1v1H4zM1 1h1v1H1zM3 1h1v1H3zM2 2h1v1H2z'/%3E%3Cpath fill='%23fff6dc' d='M1 0h3v1H1zM2 1h1v1H2z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
 .keeper-bubble[hidden]{display:none}
-@media(orientation:portrait){.keeper-bubble{display:none!important}}
+@media(orientation:portrait){.keeper-bubble:not(.portrait-ok){display:none!important}.keeper-bubble.portrait-ok{max-width:min(240px,62vw)}}
 /* Where he can be poked: his head and body only, so his empty corners never steal a click. */
 .secret-shopkeeper>.keeper-hit{position:absolute;pointer-events:auto!important;cursor:pointer}
 
@@ -2826,6 +2829,7 @@ body:has(#modal.reward-text-stage) .floating-chain-control{display:none!importan
 /* Card sleeves (2026-11-12, sleeves.js): Settings › Display picker and the run end unlock. */
 .set-row.set-sleeves{flex-direction:column;align-items:stretch;cursor:default}
 .set-sleeves .sleeve-count{color:#ffe2a3;font-weight:700}
+.set-sleeves .sleeve-sort{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:#cfe0e6;cursor:pointer}.set-sleeves .sleeve-sort input{width:16px;height:16px;margin:0}
 .set-sleeves .sleeve-credit{margin:2px 0 8px;font-size:12px;line-height:1.3;color:#cfe0e6;font-style:italic}
 .sleeve-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;max-height:min(52vh,420px);overflow-y:auto;padding:2px}
 .sleeve-option{position:relative;display:block;min-width:0;margin:0;padding:0;border:2px solid #53798466;border-radius:7px;overflow:hidden;background:#0c222d;cursor:pointer}
@@ -3234,6 +3238,20 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 .pack-fav-toggle{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:6px 12px;border:1px solid #628994;border-radius:8px;background:#173a46;color:#e8f3f1;font-weight:700}
 .pack-fav-toggle[aria-pressed=true]{border-color:#f0cf86;background:linear-gradient(#c79a45,#8f6a26);color:#fff8e4}
 .collection-empty{grid-column:1/-1;color:#9fb8c1}
+/* Collection: a pack star opens this character list (favourites per character, 2026-11-21). */
+.fav-picker{display:flex;flex-direction:column;background:#0b1f26;border:1px solid #628994;border-radius:10px;box-shadow:0 8px 24px #000b;color:#e8f3f1;font-size:13px}
+.fav-picker.dropdown{position:fixed;z-index:60;max-height:340px}
+.fav-picker.inline{margin:0 0 10px;max-height:260px}
+.fav-picker-head,.fav-picker-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px}
+.fav-picker-head{border-bottom:1px solid #ffffff1f}.fav-picker-foot{border-top:1px solid #ffffff1f;justify-content:flex-end}
+.fav-picker-all{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.fav-picker-list{overflow-y:auto;overscroll-behavior:contain;padding:4px;min-height:0;flex:1}
+.fav-picker-row{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;cursor:pointer}
+.fav-picker-row:hover{background:#ffffff12}
+.fav-picker-row img{width:32px;height:32px;object-fit:cover;object-position:top;border-radius:50%;background:#173a46;flex:none}
+.fav-picker input{width:16px;height:16px;margin:0;flex:none;accent-color:#c79a45}
+.fav-picker-foot button{min-height:0;padding:5px 14px}
+.char-fav-packs{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:60%}.char-fav-pack{width:40px;aspect-ratio:5/7;object-fit:cover;border-radius:3px;box-shadow:0 1px 4px #0008}
 .shop-compact .pack-fav{width:24px;height:24px;font-size:13px;top:2px;right:2px}
 @media(prefers-reduced-motion:reduce){.pack-fav.fav-pop,.pack-fav-toggle.fav-pop{animation:none}}
 /* Button text stays legible in every Duel Look (user, 2026-11-10; measured with a contrast scan of real screens).
@@ -3561,6 +3579,25 @@ dialog:has(.lesson-done){overflow:hidden}
  .draft-deck-page .draft-summary .deck-count-arrow{position:static;width:96px;height:40px;flex:none}
  .draft-deck-page .draft-summary .deck-count-arrow>span{font-size:13px}
  .draft-deck-page .draft-tabs.deck-filter-row{margin:2px 0}
+}
+/* Ultimate Collector deck editor (collector-ui.js editorPage, 2026-11-21): Draft's layout, with the Deck / Side Deck
+   sections leading the filter row and a footer whose legality messages scroll instead of squeezing the cards. */
+.collector-deck-editor>.collector-deck-footer{position:static;flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:6px 10px}
+.collector-deck-editor>.collector-deck-footer>p:first-child{flex:1 1 220px;max-height:5.6em;overflow:auto}
+.collector-deck-editor .collector-section-gap{flex:none;width:1px;align-self:stretch;margin:4px 4px;background:#647d83}
+@media (max-height:500px){
+ .collector-deck-editor .draft-scroll>.draft-summary{left:190px;right:150px}
+ .collector-deck-editor>.collector-deck-footer{padding:3px 10px}
+ .collector-deck-editor>.collector-deck-footer>p:first-child{max-height:2.8em}
+ /* Slimmer section tabs keep the filter row on one line at phone landscape width. */
+ .collector-deck-editor .deck-filter-row>[data-collector="section"]{padding-inline:7px}
+ .collector-deck-editor .collector-section-gap{margin-inline:1px}
+}
+/* Portrait phones: the sections get their own line, with Deselect all at its end, so the type tabs stay together. */
+@media (max-width:480px){
+ .collector-deck-editor .deck-filter-row>[data-collector="section"]{order:-3}
+ .collector-deck-editor .deck-filter-row>.deck-deselect{order:-2;margin-left:auto}
+ .collector-deck-editor .collector-section-gap{order:-1;flex-basis:100%;height:0;margin:0;background:none}
 }
 /* Related Cards tab (2026-11-14): three tabs share the row and wrap their words instead of squeezing on phones. */
 .inspection-tabs button{flex:1 1 0;min-width:0;line-height:1.15;overflow-wrap:anywhere;display:inline-flex;align-items:center;justify-content:center;gap:5px}
@@ -4078,3 +4115,25 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 .tag-trade .cardbtn small.trade-requested{display:block;margin:2px auto 0;width:max-content;padding:0 6px;border-radius:4px;background:#ffd86e;color:#2a1600;font-weight:bold}
 /* ★ Marked Yes and ? Randomized only in the search window (user, 2026-11-20), drawn like the effect icons. */
 .effect-icon-grid .search-flag span{display:block;width:26px;height:26px;margin:auto;font:bold 22px/26px serif;color:#ffd46c;text-shadow:0 1px 2px #000}
+
+/* The relic a prompt belongs to, on the prompt itself (Discord, Deds, 2026-11-21): static, no animation, so it stays with Reduce Motion, Performance and Compatibility. */
+.prompt-relic{display:flex;align-items:center;gap:6px;max-width:calc(100% - 96px);min-width:0;margin:0 0 4px;color:#ffd86b;line-height:1.15}
+.prompt-relic img{flex:none;width:28px;height:28px;object-fit:contain;border-radius:5px;background:#0006}
+.prompt-relic small{flex:none;font-size:11px;text-transform:uppercase;letter-spacing:.04em;opacity:.85}
+.prompt-relic b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.field-selection-panel .prompt-relic{max-width:100%;justify-content:center}/* Shadow relic choice after a boss: the VICTORIES band under the header, inset like the portrait shop pill (Discord, Septarium, 2026-11-21). */
+.cursed-reward>.run-strip{width:min(1100px,100%);margin:0 auto 10px;border:1px solid #66829066;border-radius:12px}
+@media(orientation:landscape) and (max-height:500px){.cursed-reward>.run-strip{margin-bottom:5px}}
+/* Drag to attack (attack-drag.js, user 2026-11-21). Outlines and transforms only, so a drag stays cheap on old phones. */
+.duel .zone.can-attack{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.duel .zone.can-attack img{-webkit-user-drag:none}
+.attack-drag-arrow{position:fixed;width:0;height:0;z-index:210;pointer-events:none;transform-origin:0 0}
+.attack-drag-arrow i{position:absolute;left:0;top:-2px;width:1px;height:4px;transform-origin:left center;background:#ff8a4c;opacity:.55}
+.attack-drag-arrow.on-target i{background:#ffe27a;opacity:.9}
+/* The lifted card under the finger; its own zone keeps a faint ghost. */
+.attack-drag-card{position:fixed;z-index:211;pointer-events:none;will-change:transform;border-radius:3px;box-shadow:0 8px 18px #000a;transform-origin:50% 50%}
+.attack-drag-card img{width:100%;height:100%;object-fit:contain;display:block;border-radius:inherit;-webkit-user-drag:none}
+.attack-drag-card.on-target{box-shadow:0 0 0 2px #ffe27a,0 8px 18px #000a}
+.duel .zone.attack-drag-source img{opacity:.3}
+.duel .attack-drag-target{outline:3px solid #ff8a4c;outline-offset:2px}
+.duel .attack-drag-direct{outline:2px dashed #ffd36a;outline-offset:2px}
+.duel .attack-drag-over{outline:3px solid #fff8d0;outline-offset:2px;filter:brightness(1.2)}

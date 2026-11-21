@@ -145,6 +145,11 @@
       "name": "Karate Man",
       "script": "pre-errata/c23289281.lua",
       "desc": "You can double the original ATK of this card once per turn. If you used this effect, destroy this card during the End Phase."
+    },
+    "73414375": {
+      "name": "Dimension Jar",
+      "script": "pre-errata/c73414375.lua",
+      "desc": "FLIP: Both players can remove from play up to 3 monsters from their opponent's Graveyard."
     }
   }
 }

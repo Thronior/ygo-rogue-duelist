@@ -5,10 +5,12 @@ import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
 import {planBattle} from './battle-planner.js';
 import {FieldKnowledge} from './field-knowledge.js';
-import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount} from './smart_policy.js';
+import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount,swapParity} from './smart_policy.js';
 import {DuelEngine,M,R,I,B,L,P} from './engine.js';
 import {observeSleeveMessage,sleeveMetricsEvent} from './sleeve-metrics.js';
 export {M,R,I,B,L,P};
+// Prompts a relic's own code can open (MobileDuel.trackPromptRelic). Turn flow and chain prompts are never a relic's.
+const RELIC_PROMPTS=new Set([M.SELECT_CARD,M.SELECT_YESNO,M.SELECT_OPTION,M.SELECT_POSITION,M.SELECT_PLACE,M.SELECT_DISFIELD,M.SELECT_TRIBUTE,M.SELECT_SUM,M.SELECT_UNSELECT_CARD,M.SELECT_COUNTER,M.SORT_CARD,M.ANNOUNCE_RACE,M.ANNOUNCE_ATTRIB,M.ANNOUNCE_CARD,M.ANNOUNCE_NUMBER]);
 export class MobileDuel extends DuelEngine {
  constructor(cards){super(cards);this.fieldKnowledge=new FieldKnowledge();this.rebornMonsters=new Map();this.resolvingChain=0}
  trackFusionMaterial(c,{selected=false,moved=false}={}){if(!c?.code||!(Number(this.data[Number(c.code)]?.type)&1))return;const key=[c.controller,c.location,c.sequence,c.code].join(':');let item=this.fusionMaterialCandidates.find(x=>x.key===key);if(!item){item={code:Number(c.code),key,selected:false,moved:false};this.fusionMaterialCandidates.push(item);this.fusionMaterialCandidateKeys.add(key)}item.selected||=selected;item.moved||=moved;}
@@ -66,6 +68,17 @@ export class MobileDuel extends DuelEngine {
  // The opponent's hand codes the CPU has seen through Ordeal, when they account for every card in it.
  ordealHand(side){const known=this.ordealKnown?.[side]||[];const n=this.query(side,L.HAND).filter(Boolean).length;return n&&known.length===n?known:null;}
  handRevealed(viewer,c){return !!c?.code&&(!!c.isPublic||!!c.is_public||this.revealedHands?.[viewer]?.[c.controller+':'+c.sequence]===c.code);}
+ // A relic's prompt names its relic, whatever the motion settings (Discord, Deds, 2026-11-21: several relics asked at
+ // the start of a duel and the art cue alone was skipped). passives.py sends a relic hint just before each relic prompt:
+ // 1850000000+i (art cue too), 1860000000+i (name only) or 1800000000+i (the relic acting, e.g. before a summon's zone
+ // pick). It labels the prompts that follow with only hints in between; anything else ends it.
+ trackPromptRelic(m){
+  if(m.type===M.HINT){if(m.hint_type!==2)return;const v=Number(m.hint),k=v>=1800000000&&v<1870000000?(v-1800000000)%10000000:-1,band=Math.floor((v-1800000000)/10000000);
+   const relic=[0,5,6].includes(band)?this.aiModifiers?.relicFeedback?.[k]:null;if(relic)this.promptRelic={relic,player:m.player};return}
+  const ask=this.promptRelic;if(!ask)return;
+  if(RELIC_PROMPTS.has(m.type)&&m.player===ask.player){m.relic=ask.relic;return}
+  this.promptRelic=null;
+ }
  onMessage(m){
   this.fusionMaterialCandidates??=[];this.fusionMaterialCandidateKeys??=new Set();
   if(m.type===M.HINT&&m.hint_type===2){const marker=Number(m.hint)-1950000000;if(marker>=0&&marker<2000){const hand=this.misprintedHands?.[m.player];if(hand){const sequence=Math.floor(marker/2);if(marker%2)hand.add(sequence);else {hand.delete(sequence);this.misprintedHandStats?.[m.player]?.delete(sequence);}}return;}}
@@ -75,6 +88,7 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.HINT&&m.hint_type===2&&Number(m.hint)===1900000051&&m.player===0)this.events.push({kind:'ritual_scar'});
   this.trackReborn(m);
   if(m.type===M.HINT&&m.hint_type===2){const id=Number(m.hint)-1800000000,relic=this.aiModifiers?.relicFeedback?.[id];if(relic)this.visuals.push({kind:'relic',relic});const asking=this.aiModifiers?.relicFeedback?.[Number(m.hint)-1850000000];if(asking)this.visuals.push({kind:'relic-ask',relic:asking});}
+  this.trackPromptRelic(m);
   if([M.NEW_TURN,M.NEW_PHASE].includes(m.type))this.cancelledAttacks?.clear();
   if(m.type===M.NEW_TURN)this.releasedForSet=[0,0];
   if(m.type===M.MOVE){
@@ -327,7 +341,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   }
   this.fieldKnowledge.observe(m.player,(p,l)=>this.query(p,l),L);
   const p=m.player,own=this.query(p,L.MZONE).filter(Boolean),enemy=this.query(1-p,L.MZONE).filter(Boolean);
-  const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,swapOriginalStats=side=>[0,1].some(owner=>this.aiModifiers?.activeRelics?.[owner]?.includes('sword_and_shield'))||((this.aiModifiers?.activeCurses||[]).includes('mirror_stats')&&((this.aiModifiers?.challengeLevel??0)<2||side===0)),atk=c=>{const current=live(c);if(current?.attack!==undefined)return current.attack;const value=c.attack??stat(c).attack??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??stat(c).defense??value):value},def=c=>{const current=live(c);if(current?.defense!==undefined)return current.defense;const value=c.defense??stat(c).defense??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??stat(c).attack??value):value};
+  const stat=c=>this.data[c.code]||{},live=c=>c.location===L.MZONE?this.query(c.controller??p,L.MZONE)[c.sequence]:null,swapOriginalStats=side=>swapParity(this.aiModifiers,side),atk=c=>{const current=live(c);if(current?.attack!==undefined)return current.attack;const value=c.attack??stat(c).attack??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.defense??stat(c).defense??value):value},def=c=>{const current=live(c);if(current?.defense!==undefined)return current.defense;const value=c.defense??stat(c).defense??0;return (stat(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?(c.attack??stat(c).attack??value):value};
   const smart=smartContext(this,p,L,m);
   // Gambler of Legend's 1 head: destroy our cheapest card (smart.ownLossPick), before the generic selection below.
   if(m.type===M.SELECT_CARD&&this.name(this.resolvingChain)==='Gambler of Legend'&&m.selects.length&&m.selects.every(c=>c.controller===p&&(c.location===L.MZONE||c.location===L.SZONE))){const source=this.activeChain?.find(l=>l.code===this.resolvingChain&&(l.controller??l.player)===p);return {type:R.SELECT_CARD,indicies:[smart.ownLossPick(m.selects.map(c=>({...c,...(this.query(p,c.location)[c.sequence]||{})})),source)]}}
@@ -515,7 +529,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // Never switch an attacker to Defense when the board already has lethal through the blockers.
    const boardLethal=m.to_bp&&!this.battleProtected?.[1-p]&&!theyPickTargets&&smart.planDamage()>=this.lp[1-p];
    const attackPlan=m.to_bp&&!theyPickTargets?smart.battleLine(smart.readyAttackers()):null;
-   const defend=boardLethal||attackPlan?-1:m.pos_changes.findIndex(c=>{const f=this.query(p,L.MZONE)[c.sequence];return f&&(f.position&1)&&smart.saferPosition(f)!==true&&((this.name(f.code)==='Spirit Reaper'&&!smart.reaperDirectReady(f))||(smart.attackBlocked(f,p)&&def(f)>atk(f))||enemy.some(x=>(x.position&1)&&atk(x)>atk(f)))&&(this.name(f.code)==='Spirit Reaper'||!(m.to_bp&&!smart.attackBlocked(f,p)&&enemy.some(x=>atk(f)>strength(x))));});
+   const defend=boardLethal||attackPlan?-1:m.pos_changes.findIndex(c=>{const f=this.query(p,L.MZONE)[c.sequence];return f&&(f.position&1)&&smart.saferPosition(f)!==true&&((this.name(f.code)==='Spirit Reaper'&&!smart.reaperDirectReady(f))||(smart.attackBlocked(f,p)&&def(f)>atk(f))||enemy.some(x=>(x.position&1)&&atk(x)>atk(f)))&&(this.name(f.code)==='Spirit Reaper'?!smart.reaperBattleReady(f):!(m.to_bp&&!smart.attackBlocked(f,p)&&enemy.some(x=>atk(f)>strength(x))));});
    if(defend>=0)return idle(I.SELECT_POS_CHANGE,defend);
    return idle(m.to_bp?I.TO_BP:I.TO_EP);
   }

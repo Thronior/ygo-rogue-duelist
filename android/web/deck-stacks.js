@@ -17,7 +17,8 @@ export function groupStacks(order,run,selected,limit=3){
  const inDeck=new Set(selected),groups=new Map(),reps=[],perCard=new Map();
  for(const i of selected)perCard.set(run.pool[i],(perCard.get(run.pool[i])||0)+1);
  for(const i of order){const k=keyOf(run,i);let g=groups.get(k);if(!g){g={rep:i,all:[],in:[],out:[]};groups.set(k,g);reps.push(i)}g.all.push(i);(inDeck.has(i)?g.in:g.out).push(i)}
- for(const g of groups.values())g.atLimit=limit!=null&&(perCard.get(run.pool[g.rep])||0)>=limit;
+ // A function limit (Ultimate Collector: limits per card name, counted across Main, Side and Fusion) answers per card.
+ for(const g of groups.values())g.atLimit=typeof limit==='function'?!!limit(run.pool[g.rep]):limit!=null&&(perCard.get(run.pool[g.rep])||0)>=limit;
  const byRep=new Map([...groups.values()].map(g=>[g.rep,g]));
  return {order:reps,stack:i=>byRep.get(i)};
 }

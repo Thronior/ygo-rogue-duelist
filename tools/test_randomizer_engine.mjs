@@ -41,7 +41,11 @@ function deckFor(group) {
   for (const {card} of group) {
     const t = card.data.type;
     if (t & 0x40) { extra.push(card.id, card.id); main.push(POLY, POLY);
-      for (const mat of card.randomized.materials || []) { const fit = pool.filter(c => matches(mat, c)); for (let i = 0; i < 2; i++) main.push(fit[rand(fit.length)].id); }
+      // a material can name a dealt card (Contact Fusion, Nov 21): use it when this file has it, else skip that material
+      for (const mat of card.randomized.materials || []) {
+        const fit = mat.k === 'code' && byId.has(mat.v) ? [{id: mat.v}] : pool.filter(c => matches(mat, c));
+        if (fit.length) for (let i = 0; i < 2; i++) main.push(fit[rand(fit.length)].id);
+      }
     } else main.push(card.id, card.id, card.id);
   }
   // Cards that Fusion Summon (like Polymerization) need a Fusion Monster to make: Flame Swordsman and its materials.

@@ -32,7 +32,8 @@ export function deckPolicy(x){
  const chaosSpell=c=>{
   const n=name(c),revive=Math.max(0,...[...grave,...q(1-p,L.GRAVE)].filter(t=>monster(t)&&!(data(t).type&0x40)).map(t=>atk(t))),strongest=best(live(enemy));
   if(n==='Monster Reborn')return 1000+revive;
-  if(n==='Premature Burial')return e.lp[p]>800?500+Math.max(0,...grave.filter(t=>monster(t)&&!(data(t).type&0x40)).map(t=>atk(t))):0;
+  // Gearfried the Iron Knight destroys the Burial equipped to it, and dies with it (flag 20a8bb28, 2026-11-21).
+  if(n==='Premature Burial')return e.lp[p]>800?500+Math.max(0,...grave.filter(t=>monster(t)&&!(data(t).type&0x40)&&name(t)!=='Gearfried the Iron Knight').map(t=>atk(t))):0;
   if(['Snatch Steal','Brain Control','Change of Heart'].includes(n))return strongest?1000+strongest:200;
   if(['Smashing Ground','Lightning Vortex','Fissure','Hammer Shot','Raigeki'].includes(n))return enemy.length?(n==='Raigeki'?enemy.reduce((s,t)=>s+value(t),0):best(enemy)):200;
   if(n==="Harpie's Feather Duster")return theirBack.length*1200;
@@ -137,7 +138,10 @@ export function deckPolicy(x){
  const ninjas=own.filter(c=>face(c)&&(/ninja/i.test(name(c))||/"Ninja"|Ninja monster/i.test(e.cards.get(c.code)?.desc||'')));
  const lvSources=own.filter(c=>face(c)&&/\bLV\d/i.test(name(c)));
  const lvTargetSources=[...lvSources,...grave.filter(c=>/\bLV\d/i.test(name(c)))];
- const levelUpTarget=c=>lvTargetSources.some(source=>(e.cards.get(source.code)?.desc||'').includes(name(c)));
+ // Level Up! only climbs: Horus LV8's text names LV6, and the CPU traded a 3000 LV8 for a 2300 LV6 (flag 18d6e598, 2026-11-21).
+ const lvRank=c=>+(/\bLV(\d+)/i.exec(name(c))||[])[1]||0;
+ const levelUpFrom=(source,c)=>lvRank(c)>lvRank(source)&&(e.cards.get(source.code)?.desc||'').includes(name(c));
+ const levelUpTarget=c=>lvTargetSources.some(source=>levelUpFrom(source,c));
  const transformations=()=>ninjas.some(source=>[...hand,...q(p,L.DECK)].some(c=>monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))&&lvl(c)<=lvl(source)+3));
  const archfiendDeck=()=>q(p,L.DECK).some(c=>monster(c)&&name(c).includes('Archfiend'));
  const archfiendBody=[...hand,...own].some(c=>monster(c)&&name(c).includes('Archfiend'));
@@ -220,7 +224,7 @@ export function deckPolicy(x){
    return free>0&&unionInHand?c.location===L.HAND?100:c.location===L.SZONE&&face(live)?110:-1:-1;
   }
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
-  if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpTarget(x)))?100:-1;
+  if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpFrom(source,x)))?100:-1;
   if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
   if(n==='A Hero Emerges'){
    // The opponent picks a random hand card: only worth it when the likely summon blocks or holds.
@@ -720,7 +724,12 @@ export function deckPolicy(x){
   if(n==='Pandemonium')return ownCard&&c.location===L.DECK&&monster(c)&&name(c).includes('Archfiend')?30000+atk(c):-100000;
   if(n==='Frontline Base')return ownCard&&c.location===L.HAND&&(data(c).type&1024)&&lvl(c)<=4?50000+projectedAttack(c):-100000;
   if(n==='Ninjitsu Art of Transformation')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))?30000+projectedAttack(c):-100000;
-  if(n==='Level Up!')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)?50000+projectedAttack(c):-100000;
+  // Level Up! sends the LV monster with the most to gain from a higher level, then summons the best higher level its text names.
+  if(n==='Level Up!'){
+   if(!ownCard||!monster(c))return -100000;
+   if(c.location===L.MZONE){const ups=[...hand,...q(p,L.DECK)].filter(x=>monster(x)&&levelUpFrom(c,x));return ups.length?50000+Math.max(...ups.map(x=>atk(x)))-atk(c):-100000}
+   return [L.HAND,L.DECK].includes(c.location)?50000+(levelUpTarget(c)?10000:0)+projectedAttack(c):-100000;
+  }
   if(n==='Kaibaman')return ownCard&&c.location===L.HAND&&name(c)==='Blue-Eyes White Dragon'?50000+projectedAttack(c):-100000;
   if(n==='Riryoku'){
    const cands=(info.cands||[]).filter(x=>x.location===L.MZONE&&face(x)),friends=cands.filter(x=>x.controller===p).sort((a,b)=>atk(b)-atk(a)),foes=cands.filter(x=>x.controller!==p).sort((a,b)=>atk(b)-atk(a));

@@ -1,0 +1,100 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_41,.patch-notes-sheet.pn0_2_41 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_41{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_41 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_41 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_41 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_41 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_41 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big .pn0_2_41-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big>*{position:relative}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big p.pn0_2_41-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way img,.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-relics .pn0_2_41-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-packs .pn0_2_41-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-mark.pn0_2_41-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_41{font-family:Arial,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet.pn0_2_41 h1,.patch-notes-sheet.pn0_2_41 h2,.patch-notes-sheet.pn0_2_41 h4,.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3,.patch-notes-sheet.pn0_2_41 .pn0_2_41-kick,.patch-notes-sheet.pn0_2_41 .pn0_2_41-big em{font-family:Bebas,"Yu Gothic UI","Meiryo",sans-serif}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-big h3,.patch-notes-sheet.pn0_2_41 h2,.patch-notes-sheet.pn0_2_41 h4{font-weight:700}
+.patch-notes-sheet.pn0_2_41 h1{font-weight:700}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-way .pn0_2_41-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_41 .pn0_2_41-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}</style><div class="patch-notes-sheet pn0_2_41"><div class="pn0_2_41-kick">YGO Rogue Duelist</div><h1>アップデート 0.2.41</h1>
+
+<section class="pn0_2_41-cols" style="margin-top:28px">
+<div class="pn0_2_41-big"><em>操作</em><h3>ドラッグで攻撃</h3>
+<p class="pn0_2_41-lead">バトルフェイズに<b>自分のモンスターを攻撃したいモンスターへドラッグ</b>できます。何もないフィールドへドラッグすればダイレクトアタックです。タップ操作もこれまで通り使えます。</p></div>
+<div class="pn0_2_41-big"><em>サウンド</em><h3>22種類の新しい煽りボイス</h3>
+<p class="pn0_2_41-lead"><b>兄弟と友人</b>を説得して煽りセリフを考えて録音してもらいました。デュエルに負けると、<b>22種類の新しい「You lose」ボイス</b>（英語）からランダムに1つが流れます。<i>「Better luck next time」</i>から<i>「Sent to the Shadow Realm」</i>まで。</p></div>
+</section>
+
+<section class="pn0_2_41-big"><em>対戦相手</em><h3>新しい相手のデッキ</h3>
+<div class="pn0_2_41-ways">
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/opponents/guardian-angel-joan.png"><p><b>守護天使 ジャンヌ</b>Kykyの光属性天使族デッキを使う、新しい<b>ティア3</b>の対戦相手。守護天使 ジャンヌ、デュナミス・ヴァルキリア、放浪の勇者 フリード、ソーラーレイ。</p></div>
+<div class="pn0_2_41-way"><img class="pn0_2_41-sprite" src="assets/panik.png"><p><b>「闇」のプレイヤーキラー</b>序盤にも登場するようになりました。Dedsによる<b>悪魔族 / 闇</b>の新デッキ2つ（<b>ティア1</b>と<b>ティア2</b>）。</p></div>
+</div></section>
+
+<section class="pn0_2_41-big"><em>レリック</em><h3>新しい融合レリック2種</h3>
+<div class="pn0_2_41-ways pn0_2_41-relics">
+<div class="pn0_2_41-way"><img src="assets/relics/17655904.jpg"><p><b>我が誇りと魂</b>海馬瀬人版の不滅の黒魔術。ドラゴン族は<b>攻撃力・守備力800アップ</b>、自分のバトルフェイズ中は相手は罠カードを発動できず、デュエル開始時にデッキから<b>「ブルーアイズ」</b>モンスター1体、倒れたブルーアイズの代わりに光属性ドラゴン族が出ます。</p></div>
+<div class="pn0_2_41-way"><img src="assets/relics/50277973.jpg"><p><b>不安定なDNA</b>デュエル開始時に<b>種族</b>と<b>属性</b>を1つずつ選びます。お互いのモンスターはすべてそれになり、フィールドの一致するモンスターの数だけ自分のモンスターの攻撃力が上がります。</p></div>
+</div></section>
+
+<section class="pn0_2_41-cols">
+<div class="pn0_2_41-big"><em>キャラクターパック</em><h3>強化されたキャラクターパック</h3>
+<p class="pn0_2_41-lead"><b>川井静香</b>のパックに定番カードが入りました：強欲な壺、天使の施し、死者蘇生、サンダー・ボルト、聖なるバリア －ミラーフォース－など。<b>迷宮兄弟</b>には定番カードと、相手モンスターを奪ってリリースに使うカード（心変わり、強奪、洗脳－ブレインコントロール、エネミーコントローラー）が入りました。どちらも穴埋めのカードは減りました。</p></div>
+<div class="pn0_2_41-big"><em>デッキ構築</em><h3>アルティメット・コレクターがパワーアップ</h3>
+<p class="pn0_2_41-lead"><b>アルティメット・コレクター</b>のデッキ構築が、ソロと同じように使えるようになりました：検索ウィンドウ、種類タブ、同名カードのまとめ表示、並べ替え、横長画面の分割表示。カード検索は<b>設定した言語のカード名とテキスト</b>でも探せます。</p></div>
+</section>
+
+<section class="pn0_2_41-cols">
+<div><h2>変更点</h2><ul class="pn0_2_41-small">
+<li><span>⭐</span><span>お気に入りのパックは<b>キャラクターごと</b>に保存されるようになりました。星から対象を選べます。</span></li>
+<li><span>🤝</span><span>タッグのショップに<b>両プレイヤーのキャラクターパック</b>が並びます。</span></li>
+<li><span>📿</span><span>デュエル中のレリックバーでレリックをタップすると、<b>ランのレリック</b>ウィンドウが開きます。</span></li>
+<li><span>💬</span><span>レリックが何かを尋ねるとき、<b>どのレリックか</b>が表示されます。</span></li>
+<li><span>❤️</span><span><b>LPが少ない</b>ときは回復レリックが出やすくなります。</span></li>
+<li><span>⛓️</span><span>同じカードを多く持つほど<b>壊れたリミッター</b>が出やすくなります。</span></li>
+<li><span>🧥</span><span>スリーブは別イラストごとにまとめて並び、<b>解放済みを先に</b>オプションもあります。</span></li>
+<li><span>🏆</span><span>影のレリックの画面に<b>勝利</b>が表示されます。</span></li>
+<li><span>👴</span><span>スマホでもCopycatとDueling Engineのショップにじいちゃんが立つようになり、売る物がないときは一言あります。</span></li>
+<li><span>🌈</span><span>ランダム化されたカードが読みやすくなり（名前の繰り返しがなくなりました）、「攻撃力・守備力が下がる」効果が正しく働きます。</span></li>
+<li><span>🫙</span><span><b>ディメンション・ポッド</b>は初期のテキストになり、除外するのはモンスターだけです。</span></li>
+<li><span>🤖</span><span>CPUは天使族デッキをうまく使い、<b>レベルアップ！</b>は上のレベルにだけ使い、鉄の騎士 ギア・フリードを装備カードで蘇生しなくなり、反転した治療薬の下で回復してダメージを受けることもなくなりました。</span></li>
+</ul></div>
+<div><h2>修正</h2><ul class="pn0_2_41-small">
+<li><span>📱</span><span>アプリ内アップデートが混雑したネットワークや<b>中国</b>でも動くようになり、エラーメッセージも分かりやすくなりました。</span></li>
+<li><span>🚩</span><span>とても長いランからの挙動報告が、また送信できるようになりました。</span></li>
+<li><span>💾</span><span>ブラウザー版では、ストレージがいっぱいのときにカード画像を消して<b>進行状況の保存</b>を続けます。保存エラーも翻訳されました。</span></li>
+<li><span>🔄</span><span>攻守入れ替えの呪いと入れ替えレリックが重なったときの「フィールド上」の数値が正しくなりました。</span></li>
+<li><span>👻</span><span>レリックで強化された<b>魂を削る死霊</b>は守備表示に隠れず攻撃します。</span></li>
+<li><span>🧥</span><span>裏側表示のモンスターも「…をコントロールした状態で勝つ」スリーブ条件に数えられます。</span></li>
+<li><span>🐧</span><span>ランダム化された融合モンスターが、2種類の異なる素材を要求しなくなりました。</span></li>
+</ul></div>
+</section></div>

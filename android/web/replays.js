@@ -8,7 +8,24 @@ export const parse=text=>JSON.parse(text,(_,v)=>v&&typeof v==='object'&&Object.k
 const clone=value=>parse(stringify(value));
 let database,saveQueue=Promise.resolve(),uploadBusy=false;
 export async function hash(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('')}
-export async function packReplay(record){return new Uint8Array(await new Response(new Blob([stringify(record)]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer())}
+// Upload ceiling, kept in step with MAX_REPLAY_BYTES in multiplayer/replays/worker.mjs. It was 20 kB, but a late-loop run's
+// duel script (start[8], one Lua block per relic) alone gzips to ~20 kB at 150+ relics, so those runs could send no
+// behaviour flag at all (Nori, Discord 2026-11-20). Every relic at once is ~38 kB.
+export const MAX_REPLAY_BYTES=100000,REPLAY_TOO_LARGE='Replay exceeds the 100 kB upload limit.';
+// The "-- SHADOW_RUN_AI {json}" line of the duel script is a Lua comment: the core never runs it. It repeats every
+// relic's full entry for the CPU's stat forecasts, about a third of a big run's replay. Replays drop the entries' art
+// and tag (nothing reads them: smart_policy reads key, effect, amount, filter and parameters) and Python's spaced JSON.
+// The duel itself, every relic and curse, and what the CPU and the replay viewer read are unchanged.
+export function compactPassives(text){
+ if(typeof text!=='string'||!text.includes('-- SHADOW_RUN_AI '))return text;
+ return text.replace(/^-- SHADOW_RUN_AI (.+)$/gm,(line,json)=>{try{const info=JSON.parse(json);
+  if(Array.isArray(info.statRelics))info.statRelics=info.statRelics.map(side=>Array.isArray(side)?side.map(r=>{if(!r||typeof r!=='object')return r;const {art,tag,...used}=r;return used}):side);
+  return '-- SHADOW_RUN_AI '+JSON.stringify(info);}catch{return line}});
+}
+export function compactRecord(record){if(!Array.isArray(record?.start)||typeof record.start[8]!=='string')return record;const start=[...record.start];start[8]=compactPassives(start[8]);return {...record,start};}
+export async function packReplay(record){return new Uint8Array(await new Response(new Blob([stringify(compactRecord(record))]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer())}
+// Bundles of up to 10 that stay under the Worker's 280 kB bundle body (base64 adds a third), so a large replay travels alone.
+export function replayBundles(rows,budget=250000){const bundles=[];let group=[],size=0;for(const row of rows){const cost=Math.ceil(row.bytes.byteLength/3)*4+3;if(group.length&&(group.length>=10||size+cost>budget)){bundles.push(group);group=[];size=0}group.push(row);size+=cost}if(group.length)bundles.push(group);return bundles;}
 export async function unpackReplay(bytes){return parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text())}
 function db(){return database??=new Promise((resolve,reject)=>{const r=indexedDB.open('ygo-duel-replays',3);r.onupgradeneeded=()=>{for(const name of ['duels','flags'])if(!r.result.objectStoreNames.contains(name))r.result.createObjectStore(name,{keyPath:'id'});const duels=r.transaction.objectStore('duels');if(!duels.indexNames.contains('at'))duels.createIndex('at','at')};r.onsuccess=()=>resolve(r.result);r.onerror=()=>{database=null;reject(r.error)}})}
 export async function replayRows(){const d=await db();return new Promise((resolve,reject)=>{const r=d.transaction('duels').objectStore('duels').getAll();r.onsuccess=()=>resolve(r.result.sort((a,b)=>b.at-a.at));r.onerror=()=>reject(r.error)})}
@@ -37,8 +54,10 @@ export async function uploadReplays(progress=()=>{}){
  if(uploadBusy)return;uploadBusy=true;
  try{await saveQueue;const all=await replayRows(),rows=all.filter(r=>!r.uploaded);if(!rows.length){progress(all.length?'All saved replays are already uploaded.':'No recorded duels yet. Play a duel first.');return {uploaded:0}}
  let sent=0;const errors=[];
- for(let offset=0;offset<rows.length;offset+=10){const group=rows.slice(offset,offset+10),valid=group.filter(r=>r.bytes.byteLength<20000);for(const row of group)if(row.bytes.byteLength>=20000)errors.push('A replay exceeds the 20 kB upload limit.');
- progress(`Uploading ${Math.min(offset+10,rows.length)} / ${rows.length}...`);
+ const oversized=rows.filter(r=>r.bytes.byteLength>=MAX_REPLAY_BYTES);if(oversized.length)errors.push('A replay exceeds the 100 kB upload limit.');
+ let done=oversized.length;
+ for(const valid of replayBundles(rows.filter(r=>r.bytes.byteLength<MAX_REPLAY_BYTES))){done+=valid.length;
+ progress(`Uploading ${done} / ${rows.length}...`);
  if(valid.length){let results;try{results=await sendReplayBatch(valid)}catch(error){errors.push(error.message);break}const accepted=valid.filter((row,i)=>results[i].ok);await markUploaded(accepted);sent+=accepted.length;for(const result of results)if(!result.ok)errors.push(result.error);if(results.some(r=>quotaExhausted(r.status,r.error)))break;}
 
  }
@@ -58,7 +77,7 @@ export function sendUnsentFlags(){
  const task=flagSendQueue.then(async()=>{
   const rows=await pendingBehaviourFlags();let sent=0;const errors=[];
   for(const row of rows){try{
-   if(row.bytes.byteLength>=20000)throw Error('Replay exceeds the 20 kB upload limit.');
+   if(row.bytes.byteLength>=MAX_REPLAY_BYTES)throw Error(REPLAY_TOO_LARGE);
    const response=await fetch(REPLAY_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain'},body:row.bytes,signal:AbortSignal.timeout(20000)});
    if(!response.ok){const detail=await response.json().catch(()=>null);const error=Error(detail?.error||`Report upload failed (${response.status}). Your flag remains saved for retry.`);error.serviceUnavailable=quotaExhausted(response.status,detail?.error,detail);throw error;}
    const result=await response.json();if(!result.ok||result.id!==row.id)throw Error('The service did not confirm this report.');

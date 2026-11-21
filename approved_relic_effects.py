@@ -526,6 +526,51 @@ d:SetOperation(function(e,tp) local g=Duel.GetMatchingGroup(called,0,LOCATION_DE
  Duel.SpecialSummon(tc,0,tp,tp,true,true,POS_FACEUP) if tc:IsPreviousLocation(LOCATION_DECK) then Duel.ShuffleDeck(0) end end)
 Duel.RegisterEffect(d,0) end'''
 
+# My Pride and Soul (2026-11-21). "Blue-Eyes" monsters: the "Blue-Eyes" archetype (0xdd, so Name Changer's pick counts) or a
+# name that includes "Blue-Eyes"; Red-Eyes is not one. Cards that mention "Blue-Eyes White Dragon": its quoted name is in their
+# text, or their script lists it (Card.ListsCode, as Union Buster reads Union cards). tools/test_relics_nov15.py-style checks
+# against the card list are in android/test_pride_soul_nov21.mjs.
+BLUE_EYES_SET='0xdd'
+BLUE_EYES=(53347303,53183600,23995346,89631139)
+BLUE_EYES_MENTIONS=(17655904,23995346,34627841,73398797)
+
+def my_pride_and_soul():
+ """My Pride and Soul (relic_fusions.py, user's text 2026-11-21): the four Blue-Eyes relics fused; their own effects are gone.
+ 1. Dragons +800 ATK/DEF. 2. The opponent cannot activate Trap Cards (card activations) from the start to the end of your
+ Battle Phase, Damage Step included. 3. EVENT_STARTUP, as the other "at the start of the Duel" relics: a "Blue-Eyes" monster
+ from the Deck that can be Special Summoned normally (its own conditions apply), in Attack Position; with none, or no free
+ zone, only the search happens. 4. Once per turn, a "Blue-Eyes" monster you control destroyed (battle or effect): you are
+ asked, then any LIGHT Dragon from the hand, Deck or Extra Deck, ignoring its Summoning conditions (Dark Magic's method).
+ The turn's use is spent only on a yes. The global effect is not reset before it summons (Dark Lotus: a reset effect cannot)."""
+ blue,mentions=codes(BLUE_EYES),codes(BLUE_EYES_MENTIONS)
+ lock='''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_ACTIVATE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(0,1)
+e:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.IsBattlePhase() end)
+e:SetValue(function(e,re,tp) return re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsActiveType(TYPE_TRAP) end) Duel.RegisterEffect(e,0) end'''
+ return stat('EFFECT_UPDATE_ATTACK',800,'c:IsRace(RACE_DRAGON)')+'\n'+stat('EFFECT_UPDATE_DEFENSE',800,'c:IsRace(RACE_DRAGON)')+'\n'+lock+f'''
+do local used=-1
+local function eyes(c,e,tp) return c:IsMonster() and (c:IsSetCard({BLUE_EYES_SET}) or c:IsCode({blue})) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_ATTACK) end
+local function search(c) return (c:IsCode({mentions}) or c:ListsCode({BEWD})) and c:IsAbleToHand() end
+local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(EVENT_STARTUP)
+s:SetOperation(function(e,tp)
+ local g=Duel.GetMatchingGroup(eyes,0,LOCATION_DECK,0,nil,e,tp) local can=#g>0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0
+ if can or Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) then --[[relic-ask]] end
+ if can then Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+  Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP_ATTACK) end
+ local h=Duel.GetMatchingGroup(search,0,LOCATION_DECK,0,nil)
+ if #h>0 then Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local sg=h:Select(0,1,1,nil) Duel.SendtoHand(sg,0,REASON_EFFECT) Duel.ConfirmCards(1,sg) end
+ Duel.ShuffleDeck(0) end)
+Duel.RegisterEffect(s,0)
+local function lost(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and (c:IsPreviousSetCard({BLUE_EYES_SET}) or c:IsCode({blue}) or c:IsPreviousCodeOnField({blue})) end
+local function dragon(c,e,tp) return c:IsMonster() and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsRace(RACE_DRAGON) and c:IsCanBeSpecialSummoned(e,0,tp,true,true)
+ and (c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0 or not c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0) end
+local d=Effect.GlobalEffect() d:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) d:SetCode(EVENT_DESTROYED)
+d:SetCondition(function(e,tp,eg) return used~=Duel.GetTurnCount() and eg:IsExists(lost,1,nil) and Duel.IsExistingMatchingCard(dragon,0,LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA,0,1,nil,e,tp) end)
+d:SetOperation(function(e,tp) local g=Duel.GetMatchingGroup(dragon,0,LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA,0,nil,e,tp) if #g==0 then return end
+ --[[relic-ask]] if not Duel.SelectYesNo(0,94) then return end
+ used=Duel.GetTurnCount() Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local tc=g:Select(0,1,1,nil):GetFirst()
+ local deck=tc:IsLocation(LOCATION_DECK) Duel.SpecialSummon(tc,0,tp,tp,true,true,POS_FACEUP) if deck then Duel.ShuffleDeck(0) end end)
+Duel.RegisterEffect(d,0) end'''
+
 def spirit_tribute(once):
  script='''do local used=false local function gy(c) return c:IsMonster() and c:IsAbleToRemoveAsCost() end
 local e=Effect.GlobalEffect() e:SetDescription(1107) e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SUMMON_PROC) e:SetTargetRange(LOCATION_HAND,0) e:SetValue(SUMMON_TYPE_TRIBUTE)

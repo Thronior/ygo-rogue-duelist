@@ -1128,7 +1128,9 @@ class TagCampaign:
 
   pack_character=self.players[self.shared['round']%2]['character']
 
-  for run in self.players:run['tag_shop_rewards']=deepcopy(rewards);run['shop_pack_character']=pack_character
+  # Both character packs in every Tag shop (ATM on Discord, user 2026-11-21): this round's player first, then the teammate's.
+  team_packs=[pack_character,self.players[(self.shared['round']+1)%2]['character']]
+  for run in self.players:run['tag_shop_rewards']=deepcopy(rewards);run['shop_pack_character']=pack_character;run['shop_pack_characters']=list(team_packs)
 
   burden_allowed=all(ar.eligible(dict(r,round=r['round']+1,blocked_cursed=[]),'cursed_collectors_burden') for r in self.players)
 
