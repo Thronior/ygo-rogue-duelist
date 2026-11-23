@@ -1,5 +1,6 @@
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
+export const LINK_CODE_LIFETIME=24*60*60*1000;
 const flags=['gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked','sleeves_all'];
 // Achievements: duelist unlocks (character:N) and card sleeves (sleeve:<id>, data/card-sleeves.json; user, 2026-11-14).
 const ACHIEVEMENT=/^(?:character:(?:[0-9]|[12][0-9]|3[0-8])|sleeve:[a-z0-9-]{1,60})$/;
@@ -32,8 +33,10 @@ export class ProgressRegistry{
   if(op==='sync')return reply({progress:g.progress});
   if(g.code)await this.ctx.storage.delete('code:'+g.code);
   let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(8)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%32]).join('')}while(await this.ctx.storage.get('code:'+code));
-  const expires=now+600000;g.code=code;await this.ctx.storage.put('group:'+group,g);await this.ctx.storage.put('code:'+code,{group,expires});await this.ctx.storage.setAlarm(now+600000);
+  // Codes last 24 hours (user, 2026-11-23, after Sir Renity on Discord: 10 minutes was too short to reach the other device).
+  // The cleanup alarm keeps the earliest pending expiry, so a new code never pushes an older one's cleanup back.
+  const expires=now+LINK_CODE_LIFETIME;g.code=code;await this.ctx.storage.put('group:'+group,g);await this.ctx.storage.put('code:'+code,{group,expires});const alarm=await this.ctx.storage.getAlarm();if(alarm===null||alarm>expires)await this.ctx.storage.setAlarm(expires);
   return reply({group,token:g.token,progress:g.progress,code,expires});
  }catch(e){return reply({error:e instanceof SyntaxError?'Invalid request':e.message},400)}}
- async alarm(){const now=Date.now(),codes=await this.ctx.storage.list({prefix:'code:'});for(const [k,v] of codes)if(v.expires<=now)await this.ctx.storage.delete(k);else await this.ctx.storage.setAlarm(v.expires)}
+ async alarm(){const now=Date.now(),codes=await this.ctx.storage.list({prefix:'code:'});let next=Infinity;for(const [k,v] of codes)if(v.expires<=now)await this.ctx.storage.delete(k);else next=Math.min(next,v.expires);if(next<Infinity)await this.ctx.storage.setAlarm(next)}
 }

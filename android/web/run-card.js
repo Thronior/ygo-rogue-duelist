@@ -44,7 +44,7 @@ function roman(n){if(!(n>0)||n>3999)return String(n);let s='';for(const [v,r] of
 function layer(){const c=document.createElement('canvas');c.width=W;c.height=H;return c}
 function gradient(ctx,stops,x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1);stops.forEach(([o,c])=>g.addColorStop(o,c));return g}
 
-// o.upper writes the translated text in capitals, so a name inside it (Obelisk the Tormenter) is translated first.
+// o.upper writes the translated text in capitals, so a name inside it (Obelisk the Tormentor) is translated first.
 function text(ctx,t,str,x,y,o={}){str=tr(str);if(o.upper)str=String(str).toLocaleUpperCase(currentLocale());
  ctx.save();let size=o.size||20;const family=o.family||UI,weight=o.weight||'bold',f=s=>`${weight} ${s}px ${family}`;
  if('letterSpacing' in ctx)ctx.letterSpacing=(o.spacing||0)+'px';ctx.font=f(size);

@@ -3,7 +3,7 @@
 const SCENES={
  duel:['Yami Bakura','Ryou Bakura','Bonz','PaniK','Weevil Underwood',"Weevil's helper",'The Masked Beast','Sussyboy','Boner','Joeyboy','Man i forgor'],
  'duel-summoning':['Yami Yugi','Dark Magician','Dartz','Rafael','Valon','Alister','Arkana','Lumis and Umbra','Paradox Brothers','Darkbishop Archfiend','Yami Alexander'],
- 'duel-glyphs':['Ishizu Ishtar','Odion','Marik Ishtar','Shadi','Aknadin','Shimon Muran / Simon','Mahad','Anubis','Obelisk the Tormenter','Kisara','Arthur Hawkins'],
+ 'duel-glyphs':['Ishizu Ishtar','Odion','Marik Ishtar','Shadi','Aknadin','Shimon Muran / Simon','Mahad','Anubis','Obelisk the Tormentor','Kisara','Arthur Hawkins'],
  'duel-embers':['Zorc Necrophades','Yami Marik','Thestalos','Bandit Keith','Joey Wheeler','Rex Raptor','Strings','Breaker','Stepdad','Sid'],
  'duel-stars':['Seto Kaiba','Mokuba Kaiba','Noah Kaiba','Roland','Dueling Engine','Leon von Schroeder','Siegfried von Schroeder','Level 5 Survivor','Seeker','Copycat'],
  'duel-aurora':['Mai Valentine','Harpie Lady Sisters','Cecelia Pegasus','Serenity Wheeler','Tea Gardner','Rebecca Hawkins','Maximillion Pegasus','Amazoness Paladin','Princess Adena','Maya HeHee'],

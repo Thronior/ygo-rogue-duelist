@@ -15,6 +15,12 @@ export function browserLanguage(){
 }
 let lang='en',locale='en-US',ui=new Map(),patterns=[],cards=null,cardMaps=null,memo=new Map(),observer=null,content=null,cleanText=s=>s;
 export const currentLanguage=()=>lang;
+// Original Japanese duelist names (character-names.js): checked before the dictionary while the setting is on. In
+// English the observer then runs for them alone; with the setting off English still installs nothing.
+let japanese=false,names=new Map(),namesFor=()=>new Map();
+const active=()=>lang!=='en'||names.size>0;
+// `table(lang)` (character-names.js japaneseNames) is passed in so this module keeps no imports.
+export function setJapaneseNames(on,table=namesFor){japanese=!!on;namesFor=table;names=japanese?namesFor(lang):new Map();memo.clear();observe()}
 // The BCP 47 locale of the language (en-US for English), for dates drawn on canvas (run card).
 export const currentLocale=()=>locale;
 const norm=s=>String(s).replace(/\s+/g,' ').trim();
@@ -28,6 +34,7 @@ function compile(en,local){
  return {re:new RegExp(source+'$'),order,local,anchor:literal.split(/\{\d+\}| /).sort((a,b)=>b.length-a.length)[0]||'',weight:literal.length};
 }
 function exact(s){
+ const n=names.get(s);if(n!==undefined)return n;
  const v=ui.get(s);if(v!==undefined)return v;
  if(cardMaps){const c=cardMaps.get(s);if(c!==undefined)return c}
  return undefined;
@@ -88,7 +95,7 @@ function fallback(s){
  return undefined;
 }
 // For code that draws text itself (canvas images, native confirm dialogs).
-export function t(text){if(lang==='en'||text==null)return text;const s=norm(text);if(!s||!LETTER.test(s))return text;return lookup(s)??text}
+export function t(text){if(!active()||text==null)return text;const s=norm(text);if(!s||!LETTER.test(s))return text;return lookup(s)??text}
 
 const SKIP=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','CODE','NOSCRIPT']);
 const ATTRS=['title','aria-label','placeholder'];
@@ -108,7 +115,7 @@ function translateAttributes(el){
  for(const a of ATTRS){const v=el.getAttribute(a);if(v&&LETTER.test(v)&&mine?.[a]!==v){const out=lookup(norm(v));if(out!==undefined&&norm(out)!==norm(v)){el.setAttribute(a,out);if(!mine)written.set(el,mine={});mine[a]=el.getAttribute(a)}}}
 }
 export function translateTree(root){
- if(lang==='en'||!root)return;
+ if(!active()||!root)return;
  if(root.nodeType===3){translateTextNode(root);return}
  if(root.nodeType!==1&&root.nodeType!==9&&root.nodeType!==11)return;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);for(let n=walker.nextNode();n;n=walker.nextNode())translateTextNode(n);
@@ -116,7 +123,7 @@ export function translateTree(root){
  for(const el of root.querySelectorAll?.('[title],[aria-label],[placeholder]')||[])translateAttributes(el);
 }
 function observe(){
- observer?.disconnect();if(lang==='en')return;
+ observer?.disconnect();if(!active())return;
  observer=new MutationObserver(records=>{
   for(const r of records){
    if(r.type==='childList')for(const n of r.addedNodes)translateTree(n);
@@ -168,12 +175,12 @@ export async function setLanguage(code,{remember=true}={}){
  if(!codes.has(code))code='en';
  if(remember){try{localStorage.setItem(KEY,code)}catch{}}
  document.documentElement.lang=LANGUAGES.find(l=>l[0]===code)[2];
- if(code==='en'){lang='en';locale='en-US';ui=new Map();patterns=[];cards=null;cardMaps=null;memo.clear();searchMemo.clear();observe();return}
+ if(code==='en'){lang='en';locale='en-US';ui=new Map();patterns=[];cards=null;cardMaps=null;names=japanese?namesFor('en'):new Map();memo.clear();searchMemo.clear();observe();return}
  const bundle=await fetch(`i18n/${code}.json`).then(r=>{if(!r.ok)throw Error(`Language file missing (${r.status})`);return r.json()});
  const nextUi=new Map(),nextPatterns=[];
  for(const [en,local] of Object.entries(bundle.ui||{})){if(/\{\d+\}/.test(en))nextPatterns.push(compile(en,local));else nextUi.set(en,local)}
  nextPatterns.sort((a,b)=>b.weight-a.weight);
- lang=code;locale=LANGUAGES.find(l=>l[0]===code)[2];ui=nextUi;patterns=nextPatterns;cards=bundle.cards||null;if(cards&&bundle.setnames)cards.setnames=bundle.setnames;memo.clear();
+ lang=code;locale=LANGUAGES.find(l=>l[0]===code)[2];ui=nextUi;patterns=nextPatterns;cards=bundle.cards||null;if(cards&&bundle.setnames)cards.setnames=bundle.setnames;names=japanese?namesFor(code):new Map();memo.clear();
  buildCardMaps();observe();
 }
 // Native dialogs cannot be observed, so their message is translated on the way in.

@@ -18,6 +18,19 @@ function ring(){const c=500,gold='#e8c47a';let s=`<g fill='none' stroke='${gold}
  for(let i=0;i<72;i++){const a=i*5*Math.PI/180,long=i%6===0,r0=long?446:462;s+=`<line x1='${(c+Math.cos(a)*r0).toFixed(1)}' y1='${(c+Math.sin(a)*r0).toFixed(1)}' x2='${(c+Math.cos(a)*480).toFixed(1)}' y2='${(c+Math.sin(a)*480).toFixed(1)}' stroke-width='${long?5:3}' opacity='.6'/>`}
  for(let i=0;i<12;i++){const a=(i*30+15)*Math.PI/180,x=c+Math.cos(a)*403,y=c+Math.sin(a)*403;s+=`<g transform='translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${i*30+105})' stroke-width='3.5' opacity='.6'><path d='M-18 16L0-20L18 16Z'/><circle r='5'/></g>`}
  return url(1000,1000,s+'</g>')}
+// An aurora curtain tile, 1024 wide so it tiles across: uneven vertical rays standing on a wavy lower edge, bright at
+// the edge and fading up through green to violet. Wave and ray heights use whole cycles per tile so the seam is clean.
+function curtain(seed,{w=1024,h,base,amp,k,rays,tall,edge,low,high}){
+ const r=rng(seed),T=Math.PI*2,p=[r()*T,r()*T,r()*T,r()*T];let s='';
+ const ground=x=>base*h+amp[0]*Math.sin(T*k[0]*x/w+p[0])+amp[1]*Math.sin(T*k[1]*x/w+p[1]);
+ const lift=x=>.5+.3*Math.sin(T*2*x/w+p[2])+.2*Math.sin(T*7*x/w+p[3]);
+ for(let x=0;x<w;){const step=rays[0]+r()*(rays[1]-rays[0]),y=ground(x),t=(tall[0]+(tall[1]-tall[0])*lift(x))*(.7+.3*r()),o=(.25+.6*lift(x)*r()+.15).toFixed(2);
+  for(const dx of [-w,0,w])s+=`<rect x='${(x+dx).toFixed(1)}' y='${(y-t).toFixed(1)}' width='${(step*1.6).toFixed(1)}' height='${(t+26).toFixed(1)}' fill='url(#g)' opacity='${o}'/>`;
+  x+=step}
+ return url(w,h,`<defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${high}' stop-opacity='0'/><stop offset='.35' stop-color='${high}' stop-opacity='.35'/><stop offset='.68' stop-color='${low}' stop-opacity='.62'/><stop offset='.86' stop-color='${edge}' stop-opacity='.78'/><stop offset='1' stop-color='${edge}' stop-opacity='0'/></linearGradient><filter id='f' x='-5%' y='-5%' width='110%' height='110%'><feGaussianBlur stdDeviation='2.5 5'/></filter></defs><g filter='url(#f)'>${s}</g>`);
+}
+// A curtain scrolls one whole tile per loop inside a wrapper that rises and brightens.
+const drape=(key,image,top,h,direction,seconds)=>`<div class="l sway ${key}">`+layer('curtain',`top:${top}px;height:${h}px;background:${image} 0 0/1024px ${h}px repeat-x;`+(direction==='left'?'left:0;right:-1024px;--to:-1024px,0':'left:-1024px;right:0;--to:1024px,0')+`;animation-duration:${seconds}s`)+'</div>';
 // Six-fold, the same for 60 degrees.
 function star(){const c=500,gold='#e8c47a',point=(i,r)=>{const a=(i/6)*Math.PI*2-Math.PI/2;return `${(c+Math.cos(a)*r).toFixed(1)} ${(c+Math.sin(a)*r).toFixed(1)}`},tri=off=>`M${point(off,352)}L${point(2+off,352)}L${point(4+off,352)}Z`;
  return url(1000,1000,`<g fill='none' stroke='${gold}' stroke-width='4.5' opacity='.5'><path d='${tri(0)}'/><path d='${tri(1)}'/><circle cx='${c}' cy='${c}' r='176'/><circle cx='${c}' cy='${c}' r='58'/></g>`)}
@@ -33,7 +46,12 @@ window.duelScenes={
  summoning:{seconds:24,palette:'#0a1016',html:()=>`<div class="still glow"></div>${round(306,ring(),24,false,60)}${round(306,star(),24,true,60)}`},
  stars:{seconds:60,palette:'#070a16',html:()=>scroll('left',dots(11,44,[1.3,1.6],'#cfe2ff'),256,1,60)+scroll('left',dots(23,40,[1.9,2.3],'#ffffff'),512,1,60)+scroll('left',dots(37,14,[3,3.6],'#bcd6ff'),512,2,60)},
  embers:{seconds:48,palette:'#1a0a0a',html:()=>scroll('up',sparks(5,30,[4,5]),512,1,48)+scroll('up',sparks(9,16,[6,8]),512,2,48)+scroll('up',sparks(14,8,[10,13]),512,3,48)},
- aurora:{seconds:96,palette:'#07101e',html:()=>layer('band a')+layer('band b')+layer('band c')},
+ // Natural curtains, a little softer (user, 2026-11-23): three wavy ray curtains drifting at different speeds over
+ // a faint glow. 48 s loop and a higher crf keep the clip under the old one's 0.96 MB. Every period divides 48 s.
+ aurora:{seconds:48,crf:29,palette:'#08141f',html:()=>`<div class="still sky" style="${attr(`background:${dots(41,60,[1,1.3,1.6],'#d6e8ff')} 0 0/512px 512px`)}"></div>${layer('haze')}`
+  +drape('c',curtain(73,{h:420,base:.8,amp:[34,14],k:[2,5],rays:[4,10],tall:[90,210],edge:'#9fe6ff',low:'#3aa8e0',high:'#3b4fb0'}),240,420,'right',48)
+  +drape('b',curtain(52,{h:480,base:.78,amp:[50,18],k:[1,4],rays:[3,9],tall:[120,280],edge:'#b9ffe0',low:'#2fd39a',high:'#7a52d8'}),120,480,'left',48)
+  +drape('a',curtain(31,{h:560,base:.8,amp:[70,22],k:[1,3],rays:[2,7],tall:[150,360],edge:'#d8fff0',low:'#45f0b0',high:'#9a5ae0'}),40,560,'right',48)},
  ripples:{seconds:16,palette:'#061319',html:()=>[0,1,2,3].map(i=>layer('ring',`animation-delay:${-i*4}s`)).join('')},
  rays:{seconds:24,palette:'#1b1409',html:()=>layer('fan a')+layer('fan b')+`<div class="still fade"></div>`},
  glyphs:{seconds:48,palette:'#0b0d0a',html:()=>scroll('down',hieroglyphs(4,16,16,22,'#4d6a5a70','#3d5a4a18'),512,1,48)+scroll('down',hieroglyphs(12,11,11,34,'#9a8344','#a8853a30'),512,2,48)+`<div class="still fade"></div>`},

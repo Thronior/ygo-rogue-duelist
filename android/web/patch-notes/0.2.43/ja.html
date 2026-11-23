@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>アップデート 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>対戦相手</em><h3>ジョニー・ステップ</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>新しいTier 1の対戦相手</b>Kykyさんの<b>融合と装備</b>デッキ：音楽家の帝王、裁きを下す女帝、フュージョン・ウェポン、再融合。</p></div></div></div>
+<div class="pn0_2_43-big"><em>新カード</em><h3>モス ＬＶシリーズ</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>モス ＬＶ１、LV2、LV6、LV8</b>と<b>進化の繭－Ｓ</b>：スタンバイフェイズごとにレベルアップするモス。元のモスが入っているすべてのパックに追加されます。</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>レリック</em><h3>新レリック</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>スフィンクスのレリック</b><b>雷光のピラミッド</b>、<b>エジプトの絆</b>、<b>アヌビスの影</b>、そして融合レリック<b>キメラ・スフィンクス</b>。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>昆虫族のレリック</b><b>モス・ブルード</b>は昆虫族の後ろにモストークンを残し、さらに融合レリック<b>インセクト・スウォーム</b>も。<b>キチンの甲殻</b>は守備力800アップに。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>封じられた運命</b>自分の<b>ウィジャ盤</b>と<b>死のメッセージ</b>カードはカードの効果の対象にならない。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>レリックの調整</b><b>安らげぬ死者</b>は相手のスタンバイフェイズに発動するように。<b>狭き門</b>は外側のゾーンを使えなくするように。</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>操作</em><h3>ドラッグでプレイがより快適に</h3>
+<p class="pn0_2_43-lead"><b>罠</b>をフィールドに落とすとセットされます。出し方が1つしかないカードはそのままプレイされます。選んでいる間、カードは<b>ゾーンの上で待機</b>し、<b>手札の中でドラッグして並べ替え</b>もできます。手札のどのカードも持ち上げて動かせます。</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>アート</em><h3>新しい立ち絵</h3>
+<p class="pn0_2_43-lead"><b>38人のキャラクターの立ち絵</b>を新しいものに差し替え、すべての<b>キャラクターパック</b>もそれに合わせて作り直しました。</p></div>
+<div class="pn0_2_43-big"><em>メインメニュー</em><h3>達成率</h3>
+<p class="pn0_2_43-lead">タイトル画面に、実績から計算した<b>ゲームの達成率</b>が表示されます。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>設定</em><h3>新しい設定</h3>
+<p class="pn0_2_43-lead"><b>スピン/スロット演出</b>：回転するリールをオフにできます。デュエリストの<b>日本語版の名前</b>（カード名はそのまま）。<b>選択肢が1つなら自動選択</b>（初期設定でオン）。<b>自動配置</b>が初期設定でオンになりました。</p></div>
+<div class="pn0_2_43-big"><em>デッキ編集</em><h3>自動補充</h3>
+<p class="pn0_2_43-lead">枚数が足りない？ 枚数表示の横の<b>灰色の矢印</b>が、デッキを埋めるカードを表示し、ワンタップで追加します。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>タッグデュエル</em><h3>ショップでトレード</h3>
+<p class="pn0_2_43-lead">ショップのデッキ編集で<b>トレード</b>ボタンが使えるようになりました。トレード中は買い物が待機します。自分が参加していたルームが<b>満員</b>と表示されることもなくなりました。</p></div>
+<div class="pn0_2_43-big"><em>ドラフト</em><h3>デッキとレリックを確認</h3>
+<p class="pn0_2_43-lead">カードを選んでいる間も、相手を待っている間も<b>デッキを確認</b>できます。待合室には<b>両プレイヤーの名前とレリック</b>が表示され、ドラフトのデッキ編集にも自分のレリックが表示されます。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>変更点</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span><b>ショップツアー</b>が手のアイコンで各部分を指し、ほかを暗くします。</span></li>
+<li><span>♾️</span><span>ライフポイントは<b>10,000,000</b>で止まり、<b>∞</b>と表示されます。</span></li>
+<li><span>❓</span><span>融合のヒントに、まだ見つけていない融合レリックも<b>???</b>のシルエットで表示されます。</span></li>
+<li><span>🔭</span><span><b>デッキの望遠鏡</b>はモンスター、魔法、罠、エクストラデッキの順に表示します。</span></li>
+<li><span>📝</span><span><b>ハーピィ・レディ</b>、<b>儀式モンスター</b>、<b>人喰い虫</b>などに裁定メモを追加。</span></li>
+<li><span>🎨</span><span><b>デュエルスキン</b>の色合いを薄くし、動く背景が見えるようにしました。</span></li>
+<li><span>🐉</span><span><b>ハーピィズペット竜</b>が舞のパックでずっと出やすくなりました。</span></li>
+<li><span>🏆</span><span>報酬画面に<b>エクゾディア</b>や<b>終焉のカウントダウン</b>で勝ったときの最低額が表示されます。</span></li>
+<li><span>🔗</span><span>端末を連携するコードは<b>24時間</b>有効です。</span></li>
+<li><span>🧠</span><span>CPU：同じカードを使うのは<b>1ターンに3回まで</b>。和睦の使者、苦渋の選択、浅すぎた墓穴、再融合、フュージョン・ウェポンの使い方も上手になりました。</span></li>
+<li><span>👴</span><span>縦画面で双六が少しおしゃべりになりました。</span></li>
+</ul></div>
+<div><h2>修正</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>Linux版アプリ：<b>Starting campaign runtime</b>で止まらなくなりました。</span></li>
+<li><span>🪟</span><span>Windows版アプリ：<b>ファイアウォールがオンラインプレイを遮断</b>しているとき、わかりやすく表示します。</span></li>
+<li><span>⚔️</span><span><b>第三の門</b>があっても、<b>墓守の使い魔</b>の下で攻撃できるようになりました。</span></li>
+<li><span>🌀</span><span><b>次元の裂け目</b>はセットされたカードも除外します。</span></li>
+<li><span>✅</span><span>長いカード一覧で<b>✓ / ✕</b>ボタンが隠れなくなり、<b>全方位除外</b>をスキップできます。</span></li>
+<li><span>👀</span><span>相手の<b>苦渋の選択</b>で、選ぶカードが表示されるようになりました。</span></li>
+<li><span>🚫</span><span>封じられたゾーンが次のデュエルに持ち越されなくなりました。</span></li>
+<li><span>⛓️</span><span><b>チェーン：ときどき</b>でも<b>はたき落とし</b>を確認します。</span></li>
+<li><span>💊</span><span>CPUは<b>シモッチによる副作用</b>があるときに回復しなくなりました。</span></li>
+<li><span>🧬</span><span><b>DNA書き換え</b>：手札のカードに新しい種族のボーナスが表示されます。</span></li>
+<li><span>🎲</span><span>レリックなしのドラフトデュエルで、最初のサイコロの目が毎回同じにならなくなりました。</span></li>
+<li><span>⏯️</span><span>最後のデュエルで止まっていたランが再開できるようになりました。</span></li>
+</ul></div>
+</section></div>

@@ -29,7 +29,8 @@ async function pay(lp,want){
  assert(done,'Wall was activated and its amount chosen');
  return {paid:before-e.lp[0],prompts};
 }
-for(const [lp,want] of [[8000,3000],[999999,523000],[1500000,1234000],[30000000,29990000]]){
+// The top case is just below the 10,000,000 LP cap (lp-cap.js, 2026-11-23): at the cap LP is locked and costs are 0.
+for(const [lp,want] of [[8000,3000],[999999,523000],[1500000,1234000],[9999999,9990000]]){
  const r=await pay(lp,want);
  assert.equal(r.paid,want,`${lp} LP: paid ${r.paid}, wanted ${want} (prompts ${r.prompts})`);
  console.log(lp,'LP: paid',r.paid,'in',r.prompts.length,'prompt(s):',r.prompts.join('+'));

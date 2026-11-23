@@ -69,13 +69,18 @@ export class RoomRegistry {
     const changed=[...next].filter(([k,v])=>previous.get(k)!==v),removed=[...previous.keys()].filter(k=>!next.has(k));
     if(changed.length||removed.length)await ctx.storage.transaction(async tx=>{for(const [k,v] of changed)await tx.put('room:'+k,JSON.parse(v));for(const k of removed)await tx.delete('room:'+k);});
     previous=next;
-   },ice:()=>this.ice(),presence:code=>this.presence(code)});
+   },ice:()=>this.ice(),presence:code=>this.presence(code),seatOnline:(code,seat)=>this.seatOnline(code,seat)});
   });
  }
  // Whether anyone is connected to a Tag room's hub (Registry.pruneEmpty deletes rooms empty for 10 minutes).
  async presence(code){
   const r=await this.env.TAG_HUB.get(this.env.TAG_HUB.idFromName(code)).fetch(new Request('https://hub/presence',{method:'POST'}));
   if(!r.ok)return true;return !!(await r.json()).occupied;
+ }
+ // Whether a seat's player is connected to the room hub (Registry join: a lobby seat nobody holds can be taken over).
+ async seatOnline(code,seat){
+  const r=await this.env.TAG_HUB.get(this.env.TAG_HUB.idFromName(code)).fetch(new Request('https://hub/seat',{method:'POST',body:JSON.stringify({seat})}));
+  if(!r.ok)return true;return !!(await r.json()).online;
  }
  async ice(){
   if(!this.env.TURN_KEY_ID||!this.env.TURN_KEY_API_TOKEN){return [{urls:'stun:stun.cloudflare.com:3478'}]}

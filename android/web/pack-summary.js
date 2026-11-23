@@ -5,10 +5,11 @@
 import {inSet} from './related-cards.js';
 
 // Archetypes by name and text. 'Spirit' and 'Toon' also come from the card type, some from their setcode.
+// The custom Moth LV line (2026-11-23) is not Horus LV: its LV numbers used to label seven packs "Horus LV".
 export const PACK_SERIES=[
  ['Chaos',/\bChaos\b/i],['Amazoness',/\bAmazoness\b/i],['Archfiend',/\bArchfiend\b/i],['Blue-Eyes',/Blue-Eyes/i],['Buster Blader',/Buster Blader/i],
  ['Dark Magician',/Dark Magician/i],['Dark Scorpion',/Dark Scorpion/i],['Destiny Board',/Destiny Board|Spirit Message/i],['Exodia',/Exodia|Forbidden One/i],
- ['Gravekeeper',/Gravekeeper|Necrovalley/i],['Harpie',/Harpie/i],['Horus LV',/Horus.*LV|LV[0-9]/i],['Magnet Warrior',/Magnet Warrior/i],
+ ['Gravekeeper',/Gravekeeper|Necrovalley/i],['Harpie',/Harpie/i],['Horus LV',/Horus.*LV|^(?![^]*Moth)[^]*LV[0-9]/i],['Magnet Warrior',/Magnet Warrior/i],
  ['Ninja',/Ninja|Ninjitsu/i],['Ojama',/Ojama/i],['Red-Eyes',/Red-Eyes/i],['Relinquished',/Relinquished|Black Illusion Ritual/i],['Spirit',null],['Toon',/Toon/i],
  ['Union',/\bUnion\b|X-Head Cannon|XY-Dragon|XYZ-Dragon|XZ-Tank|YZ-Tank/i],['Umi',/\bUmi\b|Legendary Fisherman/i]
 ];

@@ -2,9 +2,14 @@ const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const random=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),v=>alphabet[v%32]).join('');
 const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),v=>v.toString(16).padStart(2,'0')).join('');
 export const EMPTY_ROOM_MS=600000,PRUNE_BATCH=50;
+// A lobby seat whose player has been off the room hub this long after joining can go to someone else (SEAT_GRACE covers
+// the moment between the join answer and the player's hub connect).
+export const SEAT_GRACE=30000;
+export const SEAT_TAKEN='Room already has two players.';
+export const SEAT_IN_RUN="Player 2's seat in this run belongs to the device that joined it. Rejoin from that device, or ask the host to open a new room.";
 export class Registry {
- constructor({saved={},clock=()=>Date.now(),save=async()=>{},ice=async()=>[],presence=async()=>true}={}){
-  this.clock=clock;this.saveState=save;this.ice=ice;this.presence=presence;this.rooms=new Map();this.attempts=new Map();this.lastSave=0;this.lastPrune=0;
+ constructor({saved={},clock=()=>Date.now(),save=async()=>{},ice=async()=>[],presence=async()=>true,seatOnline=async()=>true}={}){
+  this.clock=clock;this.saveState=save;this.ice=ice;this.presence=presence;this.seatOnline=seatOnline;this.rooms=new Map();this.attempts=new Map();this.lastSave=0;this.lastPrune=0;
   for(const [code,r]of Object.entries(saved))if(clock()-r.touched<86400000)this.rooms.set(code,{...r,generation:r.generation,queues:r.queues||[[],[]],seq:r.seq||0});
  }
  // Tag rooms that have been empty for 10 minutes are deleted (user, 2026-11-17). Hub sockets don't refresh `touched`,
@@ -21,7 +26,7 @@ export class Registry {
   }
   if(changed)await this.save();
  }
- async save(){const data={};for(const [code,r]of this.rooms)data[code]={tokens:r.tokens,generation:r.generation,touched:r.touched,started:r.started,relay:!!r.relay,queues:r.queues,seq:r.seq};await this.saveState(data);this.lastSave=this.clock()}
+ async save(){const data={};for(const [code,r]of this.rooms)data[code]={tokens:r.tokens,joinedAt:r.joinedAt||0,joinId:r.joinId||null,generation:r.generation,touched:r.touched,started:r.started,relay:!!r.relay,queues:r.queues,seq:r.seq};await this.saveState(data);this.lastSave=this.clock()}
  async request(action,b,auth='',address='unknown'){
   const now=this.clock();for(const [code,r]of this.rooms)if(now-r.touched>=86400000)this.rooms.delete(code);
   if(['create','join'].includes(action)){
@@ -38,11 +43,24 @@ export class Registry {
   }
   const code=String(b.code||'').toUpperCase(),r=this.rooms.get(code);if(!r)throw Error('Room not found or expired.');
   if(action==='join'){
-   let seat,secret,resumed=false;
+   let seat,secret,resumed=false,again=false;
+   const joinId=typeof b.joinId==='string'&&b.joinId.length<=64?b.joinId:null;
    if(b.resumeToken){seat=r.tokens.indexOf(b.resumeToken);if(seat<0)throw Error('This device cannot resume that seat.');secret=b.resumeToken;resumed=true}
-   else{if(r.tokens[1])throw Error('Room already has two players.');seat=1;secret=token()}
+   // A retry of a join whose answer never arrived (the client gives up after 10 s) gets the same seat back.
+   else if(r.tokens[1]&&joinId&&r.joinId===joinId){seat=1;secret=r.tokens[1];again=true}
+   else{
+    // Player 2's seat token lives only on the device that joined. A player who lost it (Exit while offline, a lost
+    // join answer, another device) was told "two players" for good (bug report, 2026-11-23). In the lobby nothing is
+    // lost yet, so a seat whose player is off the hub passes to the new joiner; a started run keeps its seat.
+    if(r.tokens[1]){
+     if(r.started)throw Error(SEAT_IN_RUN);
+     if(now-(r.joinedAt||0)<SEAT_GRACE||await this.seatOnline(code,1).catch(()=>true))throw Error(SEAT_TAKEN);
+    }
+    seat=1;secret=token();
+   }
    const iceServers=await this.ice();
-   if(resumed){r.queues=[[],[]];r.generation++}else r.tokens[1]=secret;
+   if(resumed||again||r.tokens[1]){r.queues=[[],[]];r.generation++}
+   if(!resumed&&!again){r.tokens[1]=secret;r.joinedAt=now;r.joinId=joinId}
    r.touched=now;await this.save();return {code,token:secret,seat,protocol:1,generation:r.generation,started:r.started,relay:!!r.relay,resumed,iceServers};
   }
   const seat=r.tokens.indexOf(auth);if(!auth||seat<0)throw Error('Invalid room session.');r.touched=now;

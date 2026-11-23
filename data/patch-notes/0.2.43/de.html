@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>Update 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>Gegner</em><h3>Johnny Steps</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>Neuer Tier-1-Duellant</b>Kykys <b>Fusions- und Ausrüstungsdeck</b>: Musikerkönig, Kaiserliche Richterin, Fusionswaffe und Re-Fusionierung.</p></div></div></div>
+<div class="pn0_2_43-big"><em>Neue Karten</em><h3>Die Moth-LV-Reihe</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>Motte LV1, LV2, LV6, LV8</b>und <b>Kokon der Evolution - S</b>: ein Falter, der in jeder Standby Phase eine Stufe aufsteigt. Sie sind in jedem Pack, in dem die ursprünglichen Falter sind.</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>Relikte</em><h3>Neue Relikte</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>Sphinx-Relikte</b><b>Blitzpyramide</b>, <b>Band Ägyptens</b> und <b>Schatten des Anubis</b>, dazu das fusionierte Relikt <b>Chimären-Sphinx</b>.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>Insekten-Relikte</b><b>Mottenbrut</b> erzeugt hinter deinen Insekten einen Falter-Spielmarke, dazu das fusionierte Relikt <b>Insektenschwarm</b>. <b>Chitinpanzer</b> gibt jetzt 800 DEF.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>Besiegeltes Schicksal</b>Deine Karten <b>Schicksalstafel</b> und <b>Spirit Message</b> können nicht als Ziel von Karteneffekten gewählt werden.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>Relikt-Anpassungen</b><b>Ruhelose Tote</b> wirkt jetzt in der Standby Phase deines Gegners. <b>Enges Tor</b> sperrt jetzt die äußeren Zonen.</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>Steuerung</em><h3>Ziehen zum Spielen, flüssiger</h3>
+<p class="pn0_2_43-lead">Lässt du eine <b>Falle</b> auf dein Spielfeld fallen, wird sie gesetzt. Eine Karte mit nur einer Spielmöglichkeit wird direkt gespielt. Die Karte <b>wartet auf ihrer Zone</b>, während du wählst, und du kannst <b>Karten auf der Hand verschieben, um sie neu zu ordnen</b>. Jede Handkarte lässt sich aufnehmen und herumschieben.</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Grafik</em><h3>Neue Porträts</h3>
+<p class="pn0_2_43-lead"><b>38 Charakterporträts</b> durch neue ersetzt, und jedes <b>Charakterpack</b> damit neu gestaltet.</p></div>
+<div class="pn0_2_43-big"><em>Hauptmenü</em><h3>Fortschritt</h3>
+<p class="pn0_2_43-lead">Der Titelbildschirm zeigt, <b>wie viel du vom Spiel abgeschlossen hast</b>, gezählt nach deinen Erfolgen.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Einstellungen</em><h3>Neue Einstellungen</h3>
+<p class="pn0_2_43-lead"><b>Dreh-/Walzeneffekte</b>: schaltet die drehenden Walzen ab. <b>Japanische Originalnamen</b> für Duellanten (Karten behalten ihre). <b>Einzige Wahl automatisch</b>, standardmäßig an. <b>Auto-Platzierung</b> ist jetzt standardmäßig an.</p></div>
+<div class="pn0_2_43-big"><em>Deck-Editor</em><h3>Automatisch auffüllen</h3>
+<p class="pn0_2_43-lead">Zu wenige Karten? Der <b>graue Pfeil</b> neben der Kartenzahl zeigt, welche Karten dein Deck auffüllen würden, und fügt sie mit einem Tipp hinzu.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Tag-Duelle</em><h3>Tauschen im Shop</h3>
+<p class="pn0_2_43-lead">Der <b>Tauschen</b>-Knopf funktioniert jetzt im Deck-Editor des Shops. Einkaufen pausiert, solange ein Tausch offen ist. Räume sagen nicht mehr, sie seien <b>voll</b>, wenn du selbst beigetreten warst.</p></div>
+<div class="pn0_2_43-big"><em>Draft</em><h3>Deck und Relikte im Blick</h3>
+<p class="pn0_2_43-lead">Du kannst <b>dein Deck ansehen</b>, während du Karten wählst und während du auf deinen Gegner wartest. Der Warteraum zeigt <b>die Namen und Relikte beider Spieler</b>, und der Draft-Deck-Editor zeigt auch deine Relikte.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>Änderungen</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span>Die <b>Shop-Tour</b> zeigt mit einer Hand auf jeden Bereich und dunkelt den Rest ab.</span></li>
+<li><span>♾️</span><span>Lebenspunkte enden bei <b>10.000.000</b> und zeigen <b>∞</b>.</span></li>
+<li><span>❓</span><span>Fusionshinweise zeigen auch noch nicht gefundene fusionierte Relikte, als <b>???</b>-Silhouetten.</span></li>
+<li><span>🔭</span><span><b>Deck-Fernrohr</b> listet Monster, Zauber, Fallen und dann das Extra Deck.</span></li>
+<li><span>📝</span><span>Regelhinweise zu <b>Harpyie</b>, <b>Ritualmonstern</b>, <b>Menschenfresserkäfer</b> und mehr.</span></li>
+<li><span>🎨</span><span>Hellere <b>Duell-Design</b>-Tönungen, damit animierte Hintergründe durchscheinen.</span></li>
+<li><span>🐉</span><span><b>Spieldrache der Harpyien</b> ist in Mais Pack viel häufiger.</span></li>
+<li><span>🏆</span><span>Die Auszahlung zeigt das Minimum für einen Sieg mit <b>Exodia</b> oder <b>Letzter Countdown</b>.</span></li>
+<li><span>🔗</span><span>Codes zum Verbinden deiner Geräte gelten <b>24 Stunden</b>.</span></li>
+<li><span>🧠</span><span>CPU: nutzt dieselbe Karte höchstens <b>3-mal pro Spielzug</b> und spielt Waboku, Qual der Wahl, Seichtes Grab, Re-Fusionierung und Fusionswaffe besser.</span></li>
+<li><span>👴</span><span>Solomon ist im Hochformat etwas gesprächiger.</span></li>
+</ul></div>
+<div><h2>Korrekturen</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>Linux-App: bleibt nicht mehr bei <b>Starting campaign runtime</b> hängen.</span></li>
+<li><span>🪟</span><span>Windows-App: eine klare Meldung, wenn eine <b>Firewall das Online-Spiel blockiert</b>.</span></li>
+<li><span>⚔️</span><span>Mit <b>Das Dritte Tor</b> kannst du unter <b>Grabwächters Diener</b> wieder angreifen.</span></li>
+<li><span>🌀</span><span><b>Dimensionsriss</b> verbannt auch gesetzte Karten.</span></li>
+<li><span>✅</span><span>Lange Kartenlisten verdecken die Knöpfe <b>✓ / ✕</b> nicht mehr, daher lässt sich <b>Allverbannung</b> überspringen.</span></li>
+<li><span>👀</span><span><b>Qual der Wahl</b> deines Gegners zeigt die Karten, aus denen du wählst.</span></li>
+<li><span>🚫</span><span>Gesperrte Zonen bleiben nicht mehr bis ins nächste Duell gesperrt.</span></li>
+<li><span>⛓️</span><span><b>Fallen lassen</b> fragt bei <b>Kette: Manchmal</b> nach.</span></li>
+<li><span>💊</span><span>Die CPU heilt sich nicht mehr in <b>Simochi-Allergie</b> hinein.</span></li>
+<li><span>🧬</span><span><b>DNA-Umschreibung</b>: Karten auf deiner Hand zeigen die Boni ihres neuen Typs.</span></li>
+<li><span>🎲</span><span>Draft-Duelle ohne Relikte wiederholen ihre ersten Würfelwürfe nicht mehr.</span></li>
+<li><span>⏯️</span><span>Ein Lauf, der beim letzten Duell feststeckte, geht wieder weiter.</span></li>
+</ul></div>
+</section></div>

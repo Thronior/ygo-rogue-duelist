@@ -60,6 +60,10 @@ FUSED=[
  ('my_pride_and_soul','My Pride and Soul','Dragon monsters you control gain 800 ATK/DEF. Your opponent cannot activate Trap Cards during your Battle Phase. At the start of the Duel: Special Summon 1 "Blue-Eyes" monster from your Deck in Attack Position, then add 1 card that mentions "Blue-Eyes White Dragon" from your Deck to your hand. Once per turn, when a "Blue-Eyes" monster you control is destroyed: You can Special Summon 1 LIGHT Dragon monster from your hand, Deck or Extra Deck, ignoring its Summoning conditions.','Burst Stream of Destruction',('dragon','blue_eyes_radiance','twin_eyes','dragon_triumph')),
  # The user's pick, 2026-11-23 (Discord suggestion for Pegasus' Toons): Toon World with Toon Premiere. Toon Dark Magician art is mine.
  ('toon_kingdom','Toon Kingdom','At the start of each Duel, place 1 "Toon World" from your Deck face-up in your Spell & Trap Zone. "Toon World" you control cannot be destroyed by card effects. Toon monsters you control gain 500 ATK and can attack the turn they are Summoned.','Toon Dark Magician',('toon_world','toon_premiere')),
+ # The user's design (2026-11-23): all three Sphinx relics. Its Summon replaces Bond of Egypt's search.
+ ('chimera_sphinx','Chimera Sphinx','At the start of each Duel, place 1 "Pyramid of Light" face-up in your Spell & Trap Zone. "Pyramid of Light" you control cannot be destroyed by card effects. If you Normal or Tribute Summon a "Sphinx" monster: Special Summon 1 "Sphinx" monster, or 1 monster that mentions "Sphinx" in its text, from your Deck, ignoring its Summoning conditions. "Sphinx" monsters in your hand become Level 4.','Theinen the Great Sphinx',('pyramid_of_lightning','bond_of_egypt','shadow_of_anubis')),
+ # The user's design (2026-11-23): the three Insect relics. Perfectly Ultimate Great Moth art is mine.
+ ('insect_swarm','Insect Swarm','Insect monsters you control gain 800 ATK/DEF. Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 "Moth Token" whose ATK/DEF are equal to the combined ATK/DEF of all face-up Insect monsters you control.','Perfectly Ultimate Great Moth',('hive','chitin_carapace','moth_brood')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -75,9 +79,10 @@ INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2'),'grand_bazaar
 # Fused relics whose rules live with the base effect they share (passives.py or the shop/coin code).
 SHARED_EFFECT={'gold_sarcophagus':('discount',50),'sacred_phoenix':('phoenix',1000)}
 SHEEP_TOKEN=73915052
+MOTH_TOKEN=190000057  # data/custom-tokens.json (Insect Swarm)
 
 NEW_KEYS=frozenset({'spell_counter_engine','level_up_chain','terrorking_magnus','spirit_sanctuary',
-                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna'})
+                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna','chimera_sphinx','insect_swarm'})
 
 def install(artifact, new=False):
  from content import ARTIFACTS,ART_INFO
@@ -257,6 +262,17 @@ e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetV
  local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PHASE_START|PHASE_BATTLE_START) b:SetCondition(function() return Duel.GetTurnPlayer()==0 end) b:SetOperation(free) Duel.RegisterEffect(b,0)
 end'''
   return '\n'.join((base('starting_toon_world',0,''),keep,stat('EFFECT_UPDATE_ATTACK',500,'c:IsType(TYPE_TOON)'),fresh))
+ if key=='chimera_sphinx':
+  # Pyramid of Lightning's Pyramid, kept from every card effect (yours too; bouncing or banishing it still works); Shadow of
+  # Anubis' Level 4 without its condition; and on a Normal or Tribute Summon of a "Sphinx", 1 Sphinx monster (or Exxod) from
+  # the Deck ignoring its Summoning conditions, as the Toon Kingdom keep and Gadget Gadget's Summon do.
+  from artifact_effects import effect as base,SET_SPHINX,PYRAMID_OF_LIGHT,SPHINX_MONSTER_MENTIONS
+  keep=f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_SZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() and c:IsCode({PYRAMID_OF_LIGHT}) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
+  can=f'function(c,e) return c:IsMonster() and (c:IsSetCard({SET_SPHINX}) or c:IsCode({SPHINX_MONSTER_MENTIONS})) and c:IsCanBeSpecialSummoned(e,0,0,true,false) end'
+  summon=event('EVENT_SUMMON_SUCCESS',f'''--[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local g=Duel.SelectMatchingCard(0,{can},0,LOCATION_DECK,0,1,1,nil,e)
+if #g>0 then Duel.SpecialSummon(g,0,0,0,true,false,POS_FACEUP) end''',
+   f'eg:IsExists(function(c) return c:IsControler(0) and c:IsFaceup() and c:IsSetCard({SET_SPHINX}) end,1,nil) and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard({can},0,LOCATION_DECK,0,1,nil,e)')
+  return '\n'.join((base('starting_pyramid',0,''),keep,summon,base('sphinx_hand_level',1,'')))
  if key=='titans_covenant':
   from artifact_effects import effect as base
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsLevelAbove(5)')+'\n'+base('tribute_free',0,'')
@@ -300,6 +316,21 @@ local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,
   c=g:Select(0,0,1,nil):GetFirst() end
  if not c or not c:AddCounter(COUNTER_SPELL,1) then break end
 end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
+ if key=='insect_swarm':
+  # The token's ATK/DEF are the live totals (the +800 included), read when it resolves. Moth Token: data/custom-tokens.json.
+  insect='function(c) return c:IsFaceup() and c:IsRace(RACE_INSECT) end'
+  return both(800,'c:IsRace(RACE_INSECT)')+'\n'+phase('STANDBY',f'''local g=Duel.GetMatchingGroup({insect},0,LOCATION_MZONE,0,nil)
+ if #g==0 or Duel.GetLocationCount(0,LOCATION_MZONE)<=0 then return end
+ local atk,def=g:GetSum(function(c) return math.max(c:GetAttack(),0) end),g:GetSum(function(c) return math.max(c:GetDefense(),0) end)
+ if not Duel.IsPlayerCanSpecialSummonMonster(0,{MOTH_TOKEN},0,TYPES_TOKEN,atk,def,3,RACE_INSECT,ATTRIBUTE_EARTH) then return end
+ local token=Duel.CreateToken(0,{MOTH_TOKEN})
+ if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP) then
+  for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,atk}},{{EFFECT_SET_BASE_DEFENSE,def}}}}) do
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
+  end
+ end
+ Duel.SpecialSummonComplete()''',f'Duel.IsExistingMatchingCard({insect},0,LOCATION_MZONE,0,1,nil)')
  if key=='level_up_chain':
   from artifact_effects import effect as base
   lv='c:IsSetCard(SET_LV)'

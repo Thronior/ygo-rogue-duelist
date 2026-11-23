@@ -15325,6 +15325,18 @@
  },
  {
   "group": "relic",
+  "en": "Sealed Fate",
+  "kind": "exact",
+  "ctx": "relic name (sealed_fate)"
+ },
+ {
+  "group": "relic",
+  "en": "\"Destiny Board\" and \"Spirit Message\" cards you control cannot be targeted by card effects.",
+  "kind": "exact",
+  "ctx": "relic effect (sealed_fate)"
+ },
+ {
+  "group": "relic",
   "en": "Toon Kingdom",
   "kind": "exact",
   "ctx": "relic name (toon_kingdom)"
@@ -15334,6 +15346,54 @@
   "en": "At the start of each Duel, place 1 \"Toon World\" from your Deck face-up in your Spell & Trap Zone. \"Toon World\" you control cannot be destroyed by card effects. Toon monsters you control gain 500 ATK and can attack the turn they are Summoned.",
   "kind": "exact",
   "ctx": "relic effect (toon_kingdom)"
+ },
+ {
+  "group": "relic",
+  "en": "Pyramid of Lightning",
+  "kind": "exact",
+  "ctx": "relic name (pyramid_of_lightning)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, place 1 \"Pyramid of Light\" face-up in your Spell & Trap Zone.",
+  "kind": "exact",
+  "ctx": "relic effect (pyramid_of_lightning)"
+ },
+ {
+  "group": "relic",
+  "en": "Bond of Egypt",
+  "kind": "exact",
+  "ctx": "relic name (bond_of_egypt)"
+ },
+ {
+  "group": "relic",
+  "en": "If you Normal or Tribute Summon a \"Sphinx\" monster: Add 1 \"Sphinx\" card, or 1 card that mentions \"Sphinx\" in its text, from your Deck to your hand.",
+  "kind": "exact",
+  "ctx": "relic effect (bond_of_egypt)"
+ },
+ {
+  "group": "relic",
+  "en": "Shadow of Anubis",
+  "kind": "exact",
+  "ctx": "relic name (shadow_of_anubis)"
+ },
+ {
+  "group": "relic",
+  "en": "While you control \"Andro Sphinx\" or \"Sphinx Teleia\", \"Sphinx\" monsters in your hand become Level 4.",
+  "kind": "exact",
+  "ctx": "relic effect (shadow_of_anubis)"
+ },
+ {
+  "group": "relic",
+  "en": "Chimera Sphinx",
+  "kind": "exact",
+  "ctx": "relic name (chimera_sphinx)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, place 1 \"Pyramid of Light\" face-up in your Spell & Trap Zone. \"Pyramid of Light\" you control cannot be destroyed by card effects. If you Normal or Tribute Summon a \"Sphinx\" monster: Special Summon 1 \"Sphinx\" monster, or 1 monster that mentions \"Sphinx\" in its text, from your Deck, ignoring its Summoning conditions. \"Sphinx\" monsters in your hand become Level 4.",
+  "kind": "exact",
+  "ctx": "relic effect (chimera_sphinx)"
  },
  {
   "group": "relic",
@@ -17023,7 +17083,7 @@
  },
  {
   "group": "tutorial",
-  "en": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. After completing your second loop, Obelisk the Tormenter becomes the required opponent to start further loops. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
+  "en": "After 9 wins, you can challenge the World Champion. Beat that extra opponent to start another loop. After completing your second loop, Obelisk the Tormentor becomes the required opponent to start further loops. You keep your cards, coins and relics. Later loops use stronger Tier 4 and fallen Ultimate Collector opponents. Each new loop adds 100 enemy ATK/DEF and 2,000 enemy LP.",
   "kind": "exact",
   "ctx": "tutorial section text"
  },
@@ -26206,5 +26266,113 @@
   "en": "An Exodia Necross deck that buries all five Forbidden One pieces to call up a Necross that grows stronger every turn.",
   "kind": "exact",
   "ctx": "opponent theme added 2026-11-23"
+ },
+ {
+  "group": "ui",
+  "en": "A Fusion deck that calls Musician King and Empress Judge and arms them with Metalmorph and Fusion Weapon.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-23 (Johnny Steps)"
+ },
+ {
+  "group": "card-override",
+  "en": "During your Standby Phase: Tribute this card; Special Summon 1 \"Moth LV2\" from your hand or Deck. You cannot activate this effect the turn this card is Summoned.",
+  "kind": "exact",
+  "ctx": "custom card text: Moth LV1 [190000052]"
+ },
+ {
+  "group": "card-override",
+  "en": "Moth LV1",
+  "kind": "exact",
+  "ctx": "custom card name [190000052]"
+ },
+ {
+  "group": "card-override",
+  "en": "Cannot be Normal Summoned/Set. Cannot be destroyed by battle. During your Standby Phase: Tribute this card; Special Summon 1 \"Moth LV6\" from your hand or Deck. You cannot activate this effect the turn this card is Summoned.",
+  "kind": "exact",
+  "ctx": "custom card text: Moth LV2 [190000053]"
+ },
+ {
+  "group": "card-override",
+  "en": "Moth LV2",
+  "kind": "exact",
+  "ctx": "custom card name [190000053]"
+ },
+ {
+  "group": "card-override",
+  "en": "Cannot be Normal Summoned/Set. Cannot be destroyed by battle. During your Standby Phase: You can Tribute this card; Special Summon 1 \"Moth LV8\" from your hand or Deck. You cannot activate this effect the turn this card is Summoned. If this card destroys a monster by battle: Special Summon 1 \"Moth Token\" (Insect/EARTH/Level 3/ATK 1000/DEF 1000).",
+  "kind": "exact",
+  "ctx": "custom card text: Moth LV6 [190000054]"
+ },
+ {
+  "group": "card-override",
+  "en": "Moth LV6",
+  "kind": "exact",
+  "ctx": "custom card name [190000054]"
+ },
+ {
+  "group": "card-override",
+  "en": "Cannot be Normal Summoned/Set. Cannot be destroyed by battle. If this card destroys a monster by battle: Special Summon 1 \"Moth Token\" (Insect/EARTH/Level 3/ATK ?/DEF ?). Its ATK/DEF are equal to the ATK/DEF the destroyed monster had on the field.",
+  "kind": "exact",
+  "ctx": "custom card text: Moth LV8 [190000055]"
+ },
+ {
+  "group": "card-override",
+  "en": "Moth LV8",
+  "kind": "exact",
+  "ctx": "custom card name [190000055]"
+ },
+ {
+  "group": "card-override",
+  "en": "Tribute 1 \"Moth\" monster; Special Summon 1 Insect monster from your hand, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "custom card text: Cocoon of Evolution - S [190000056]"
+ },
+ {
+  "group": "card-override",
+  "en": "Cocoon of Evolution - S",
+  "kind": "exact",
+  "ctx": "custom card name [190000056]"
+ },
+ {
+  "group": "card-override",
+  "en": "Special Summoned with the effect of \"Moth LV6\" or \"Moth LV8\".",
+  "kind": "exact",
+  "ctx": "custom token text: Moth Token [190000057]"
+ },
+ {
+  "group": "card-override",
+  "en": "Moth Token",
+  "kind": "exact",
+  "ctx": "custom token name [190000057]"
+ },
+ {
+  "group": "relic",
+  "en": "Insect monsters you control gain 800 DEF.",
+  "kind": "exact",
+  "ctx": "relic effect (chitin_carapace)"
+ },
+ {
+  "group": "relic",
+  "en": "Moth Brood",
+  "kind": "exact",
+  "ctx": "relic name (moth_brood)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 \"Moth Token\" with the same Level and Type as the face-up Insect monster you control with the highest ATK, and half its ATK/DEF.",
+  "kind": "exact",
+  "ctx": "relic effect (moth_brood)"
+ },
+ {
+  "group": "relic",
+  "en": "Insect Swarm",
+  "kind": "exact",
+  "ctx": "relic name (insect_swarm)"
+ },
+ {
+  "group": "relic",
+  "en": "Insect monsters you control gain 800 ATK/DEF. Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 \"Moth Token\" whose ATK/DEF are equal to the combined ATK/DEF of all face-up Insect monsters you control.",
+  "kind": "exact",
+  "ctx": "relic effect (insect_swarm)"
  }
 ]

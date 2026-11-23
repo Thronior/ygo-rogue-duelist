@@ -1,6 +1,8 @@
 """Distinct starting relics for alternate character playstyles."""
 ROWS=[
- ('chitin_carapace','Chitin Carapace',85,'Insect monsters you control gain 400 DEF.','Cocoon of Evolution','Insect'),
+ ('chitin_carapace','Chitin Carapace',85,'Insect monsters you control gain 800 DEF.','Cocoon of Evolution','Insect'),
+ # Moth Brood (user, 2026-11-23): uses the Moth Token of the Moth LV line, copying the strongest Insect automatically.
+ ('moth_brood','Moth Brood',90,'Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 "Moth Token" with the same Level and Type as the face-up Insect monster you control with the highest ATK, and half its ATK/DEF.','Larvae Moth','Insect'),
  ('machine_foundry','Fusion Dividend',90,'Earn 30 coins each time you Fusion Summon. Coins are collected after the duel.','Fusion Sage',''),
  ('swordsman_oath','Level Bonus',85,'Your LV monsters gain 400 ATK.','Silent Swordsman LV5','LV'),
  ('static_coil','Damage Echo',90,'Each time you deal effect damage to your opponent, inflict 200 additional effect damage. This cannot trigger itself.','Wave-Motion Cannon',''),
@@ -15,6 +17,7 @@ ROWS=[
  ('metal_coating','Metal Coating',90,'Add 1 "Metalmorph" to your starting hand.','Metalmorph',''),
 ]
 METALMORPH=68540058
+MOTH_TOKEN=190000057  # data/custom-tokens.json
 def install(artifact):
  for key,name,price,text,art,filter in ROWS:artifact(key,name,price,text,art,'variant_'+key,0,'offense',filter)
 
@@ -22,7 +25,23 @@ def effect(kind):
  if not kind.startswith('variant_'):return None
  from approved_relic_effects import stat,event
  key=kind[8:]
- if key=='chitin_carapace':return stat('EFFECT_UPDATE_DEFENSE',400,'c:IsRace(RACE_INSECT)')
+ if key=='chitin_carapace':return stat('EFFECT_UPDATE_DEFENSE',800,'c:IsRace(RACE_INSECT)')  # 400 until 2026-11-23 (user)
+ if key=='moth_brood':
+  # The face-up Insect with the highest ATK is picked automatically (user): no prompt. Halves round up, as the rules do.
+  insect='function(c) return c:IsFaceup() and c:IsRace(RACE_INSECT) end'
+  from approved_relic_effects import phase
+  return phase('STANDBY',f'''local tc=Duel.GetMatchingGroup({insect},0,LOCATION_MZONE,0,nil):GetMaxGroup(Card.GetAttack):GetFirst()
+ if not tc or Duel.GetLocationCount(0,LOCATION_MZONE)<=0 then return end
+ local atk,def,lv,race=math.ceil(math.max(tc:GetAttack(),0)/2),math.ceil(math.max(tc:GetDefense(),0)/2),math.max(tc:GetLevel(),1),tc:GetRace()
+ if not Duel.IsPlayerCanSpecialSummonMonster(0,{MOTH_TOKEN},0,TYPES_TOKEN,atk,def,lv,race,ATTRIBUTE_EARTH) then return end
+ local token=Duel.CreateToken(0,{MOTH_TOKEN})
+ if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP) then
+  for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,atk}},{{EFFECT_SET_BASE_DEFENSE,def}},{{EFFECT_CHANGE_LEVEL,lv}},{{EFFECT_CHANGE_RACE,race}}}}) do
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
+  end
+ end
+ Duel.SpecialSummonComplete()''',f'Duel.IsExistingMatchingCard({insect},0,LOCATION_MZONE,0,1,nil)')
  if key=='machine_foundry':return event('EVENT_SPSUMMON_SUCCESS','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_FUSION) end,nil) if n>0 then --[[relic-hint]] end for i=1,n do Duel.Hint(HINT_MESSAGE,0,900000003) end')
  if key=='swordsman_oath':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(SET_LV)')
  if key=='static_coil':

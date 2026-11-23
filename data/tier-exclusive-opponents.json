@@ -650,7 +650,7 @@
     },
     {
       "character": 75,
-      "name": "Obelisk the Tormenter",
+      "name": "Obelisk the Tormentor",
       "tier": 4,
       "deck": "opponent-75-tier-4",
       "source": "User-provided decklist",
@@ -1014,6 +1014,32 @@
       "reward_pack": "WC4-23",
       "limit_exceptions": {
         "Painful Choice": 3,
+        "Witch of the Black Forest": 3
+      }
+    },
+    {
+      "character": 104,
+      "name": "Johnny Steps",
+      "tier": 1,
+      "deck": "opponent-104-tier-1",
+      "tier_decks": {
+        "1": "opponent-104-tier-1"
+      },
+      "sprite": "opponents/johnny-steps.png",
+      "background": "character-backgrounds/30.jpg",
+      "theme": "A Fusion deck that calls Musician King and Empress Judge and arms them with Metalmorph and Fusion Weapon.",
+      "reward_themes": [
+        "Warrior",
+        "Spellcaster",
+        "normal",
+        "fusion",
+        "equip",
+        "stall"
+      ],
+      "source": "Player decklist (Kyky, Discord #Johnny Steps T1, 2026-11-22; CPU deck review 2026-11-23), placed by the user as Johnny Steps Tier 1, 2026-11-23",
+      "fixed": true,
+      "reward_pack": "WC4-24",
+      "limit_exceptions": {
         "Witch of the Black Forest": 3
       }
     }

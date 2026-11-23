@@ -3,12 +3,15 @@ import fs from 'node:fs';import assert from 'node:assert/strict';import {MobileD
 const read=name=>JSON.parse(fs.readFileSync(new URL('./web/'+name+'.json',import.meta.url),'utf8'));
 const meta=read('content'),data=read('engine-data'),scripts=read('scripts'),fixture=read('test-fixture');
 const cards=JSON.parse(fs.readFileSync(new URL('../data/pre-errata.json',import.meta.url),'utf8')).cards;
+const notes=JSON.parse(fs.readFileSync(new URL('../data/card-dev-notes.json',import.meta.url),'utf8').replace(/^﻿/,'')).cards;
 const id=name=>meta.cards.find(c=>c.name===name).id;
 const KURIBOH=id('Kuriboh'),BLUE_EYES=id('Blue-Eyes White Dragon'),BATTLE_OX=id('Battle Ox'),RING=id('Ring of Destruction'),SANGAN=id('Sangan');
 
 for(const [code,row] of Object.entries(cards)){
  assert.equal(scripts[`c${code}.lua`],fs.readFileSync(new URL('../runtime/script/'+row.script,import.meta.url),'utf8'),`${row.name}: bundled script`);
- assert.equal(meta.cards.find(c=>c.id===Number(code))?.desc,row.desc,`${row.name}: shown text`);
+ // A dev note (data/card-dev-notes.json, 2026-11-23: Sangan, Spiritual Energy Settle Machine) follows the original text.
+ const note=notes[code]?.en;
+ assert.equal(meta.cards.find(c=>c.id===Number(code))?.desc,note?row.desc+' '+note:row.desc,`${row.name}: shown text`);
 }
 
 const engine=await new MobileDuel(meta.cards).init([data,scripts]);

@@ -59,7 +59,10 @@ export function smartContext(e,p,L,prompt=null){
  const def=c=>{const live=liveStat(c,'defense');if(live!==undefined)return live;return (data(c).type&1)&&c.location!==L.MZONE&&swapOriginalStats(c.controller??p)?printed(c,'attack'):printed(c,'defense')};
  // Damage plans include visible prevention/conversion and the defender's known relics.
  const burnDamage=raw=>{if(q(1-p,L.MZONE).some(c=>enabled(c)&&name(c)==='Des Wombat')||[...q(0,L.MZONE),...q(1,L.MZONE)].some(c=>enabled(c)&&name(c)==='Prime Material Dragon'))return 0;const reduction=(e.aiModifiers?.statRelics?.[1-p]||[]).filter(r=>r.effect==='reduce').reduce((v,r)=>v+(r.amount||0),0);const count=(side,key)=>relics(side).filter(k=>k===key).length;const dealt=Math.floor(Math.max(0,raw-reduction)*1.5**(count(1-p,'cursed_hollow_chalice')+count(p,'burn_proficiency'))*.5**count(1-p,'cursed_defense_proficiency'));return remedy?-dealt:dealt};
- const healingAllowed=side=>!relic(side,'cursed_zombies_bargain')&&!remedy;
+ // A face-up Bad Reaction to Simochi or Nurse Reficule the Fallen One on the other side turns this side's healing into
+ // damage (user, 2026-11-23, after Twist on Discord saw the CPU heal itself to death under Simochi): every heal rule asks here.
+ const healTurnedToDamage=side=>q(1-side,L.SZONE).some(c=>(c.position&5)&&!c.is_disabled&&name(c)==='Bad Reaction to Simochi')||q(1-side,L.MZONE).some(c=>(c.position&5)&&!c.is_disabled&&name(c)==='Nurse Reficule the Fallen One');
+ const healingAllowed=side=>!relic(side,'cursed_zombies_bargain')&&!remedy&&!healTurnedToDamage(side);
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
  const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
@@ -79,7 +82,9 @@ export function smartContext(e,p,L,prompt=null){
  const exodiaPlan=e.exodiaPlan[p]&&!necross,missingPiece=c=>exodiaPieces.has(c.code)&&!heldPieces.has(c.code);
  const handSearch=new Set(['Sangan','Witch of the Black Forest','Emissary of the Afterlife','Different Dimension Capsule']);
  const handRecovery=new Set(['Backup Soldier','Dark Factory of Mass Production','Monster Reincarnation','Dark Eruption','Return of the Doomed']);
- const revival=new Set(['Monster Reborn','Premature Burial','Call of the Haunted','The Shallow Grave','Soul Charge']);
+ // Re-Fusion (Johnny Steps deck review, 2026-11-23): a Premature Burial for Fusion Monsters only; without a rule the
+ // generic guess read "destroyed" in its text and refused it 19 times in 30 duels.
+ const revival=new Set(['Monster Reborn','Premature Burial','Call of the Haunted','The Shallow Grave','Soul Charge','Re-Fusion']);
  // Revivals that stay on as the monster's Equip Card: a monster that destroys Equip Cards put on it (Gearfried the Iron
  // Knight) breaks the equip and dies with it. Premature Burial revived Gearfried and lost both (flag 20a8bb28, 2026-11-21).
  const equipRevivals=new Set(['Premature Burial','Autonomous Action Unit','Fulfillment of the Contract','Re-Fusion']);
@@ -275,7 +280,7 @@ export function smartContext(e,p,L,prompt=null){
  const hasAttribute=(c,value)=>attributeSet(c).has(String(value).toUpperCase());
  const attr=c=>attributeSet(c).values().next().value||e.cards.get(c.code)?.attribute;
  const fusionSubstitutes=new Set(['Beastking of the Swamps','King of the Swamp','Goddess with the Third Eye','Mystical Sheep #1','Versago the Destroyer','The Dark - Hex-Sealed Fusion']);
- const fusionReady=()=>q(p,L.EXTRA).some(c=>{const text=e.cards.get(c.code)?.desc||'',materials=[...text.split('\n')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]),available=allOwn.slice();let usedSubstitute=false;const ready=materials.length>1&&materials.every(n=>{let i=available.findIndex(x=>name(x)===n);if(i<0&&!usedSubstitute){i=available.findIndex(x=>fusionSubstitutes.has(name(x)));if(i>=0)usedSubstitute=true;}if(i<0)return false;available.splice(i,1);return true});return ready&&(atk(c)>threat||name(c)==='Reaper on the Nightmare'&&enemy.length>0&&effectsEnabled(p))});
+ const fusionReady=()=>q(p,L.EXTRA).some(c=>{const text=e.cards.get(c.code)?.desc||'',materials=[...text.split('\n')[0].matchAll(/"([^"]+)"/g)].map(m=>m[1]),available=allOwn.slice();let usedSubstitute=false;const ready=materials.length>1&&materials.every(n=>{let i=available.findIndex(x=>name(x)===n);if(i<0&&!usedSubstitute){i=available.findIndex(x=>fusionSubstitutes.has(name(x)));if(i>=0)usedSubstitute=true;}if(i<0)return false;available.splice(i,1);return true});return ready&&(atk(c)+weaponBoost(c)>threat||name(c)==='Reaper on the Nightmare'&&enemy.length>0&&effectsEnabled(p))});
  const matchesRitual=(spell,monster)=>ritualMatches(e.cards.get(spell.code),e.cards.get(monster.code));
  const ritualMaterialReady=(spell,monster)=>{const advanced=name(spell)==='Advanced Ritual Art',source=advanced?q(p,L.DECK):allOwn;
   const levels=source.filter(x=>!same(x,monster)&&data(x).type&1&&(!advanced||data(x).type&16)&&!(x.location===L.MZONE&&name(x)==='Relinquished')).map(x=>x.level??e.cards.get(x.code)?.level??0);
@@ -283,13 +288,18 @@ export function smartContext(e,p,L,prompt=null){
  };
  const ritualReady=c=>hand.some(m=>matchesRitual(c,m)&&ritualMaterialReady(c,m));
  const lvl=c=>c.level??e.cards.get(c.code)?.level??0,race=c=>e.cards.get(c.code)?.race||'';
+ // A Fusion Weapon in hand makes a Level 6 or lower Fusion 1500 ATK stronger: Musician King (1750) and Empress Judge
+ // (2100) beat nothing at T2/T3 on their own, so Polymerization and Re-Fusion sat in hand (Johnny Steps deck review, 2026-11-23).
+ const weaponBoost=x=>(data(x).type&0x40)&&lvl(x)<=6&&hand.some(h=>name(h)==='Fusion Weapon')?1500:0;
  // The Type a relic bonus checks (Discord, 2026-11-16: Lord of D. turned Dragon by DNA Surgery showed no Dragon relic
  // bonus in hand). On the field it is the card's live Type; a face-up DNA Surgery makes every face-up monster the declared
  // Type, read from any face-up monster, so a card still in hand is forecast with it too.
  const RACE_LABELS=['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'];
  const raceName=bits=>{try{const b=BigInt(bits||0);const i=RACE_LABELS.findIndex((_,k)=>b===(1n<<BigInt(k)));return i>=0?RACE_LABELS[i]:''}catch{return ''}};
  let surgeryCache;const surgeryRace=()=>surgeryCache??=(()=>{const fieldCards=[...q(0,L.SZONE),...q(1,L.SZONE)];if(!fieldCards.some(x=>face(x)&&name(x)==='DNA Surgery'&&!x.is_disabled))return '';const m=[...q(0,L.MZONE),...q(1,L.MZONE)].find(x=>face(x)&&x.race);return m?raceName(m.race):''})();
- const statRace=c=>(c.location===L.MZONE&&face(c)&&raceName(c.race))||(c.location!==L.MZONE&&(data(c).type&1)&&surgeryRace())||race(c);
+ // Off the field the core's Type already includes DNA Rewrite (a Type change for every location; Discord, Nori,
+ // 2026-11-23: Dragon Crest showed only on printed Dragons in hand).
+ const statRace=c=>(c.location===L.MZONE&&face(c)&&raceName(c.race))||(c.location!==L.MZONE&&(data(c).type&1)&&surgeryRace())||(c.location!==L.MZONE&&raceName(c.race))||race(c);
  const firePrincess=effectsEnabled(p)&&own.some(c=>face(c)&&name(c)==='Fire Princess'&&!c.is_disabled);
  // Fire Princess only burns face-up: show her when one of our locks guards her, or when nothing face-up out-attacks her 1300 ATK (user, 2026-11-04).
  const firePrincessSafe=()=>effectsEnabled(p)&&(back.some(x=>face(x)&&['Gravity Bind','Messenger of Peace','Swords of Revealing Light'].includes(name(x)))||!enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>1300));
@@ -904,6 +914,9 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player===p||!e.attackCard||e.attackCard.controller!==1-p)return false;
   const current=enemy.find(x=>same(x,e.attackCard));
   if(!current)return false;
+  // An attacker already turned face-down or to Defense (a resolved Book of Moon, Enemy Controller...) has no attack
+  // left to stop (flag ff10d7c1, 2026-11-23: Waboku after Book of Moon resolved).
+  if(!face(current)||!(current.position&1))return false;
   const attackers=[current,...enemy.filter(x=>!same(x,current)&&face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,1-p))];
   let damage=0;
   for(const attacker of attackers){
@@ -929,7 +942,8 @@ export function smartContext(e,p,L,prompt=null){
  }
  // Revival equips and hostile equips have different target ownership rules.
  const hostileEquips=new Set(['Snatch Steal','Falling Down','Mask of the Accursed','Ekibyo Drakmord','Germ Infection','Paralyzing Potion']);
- const nonBuffEquips=new Set(['Premature Burial','Autonomous Action Unit','Demotion','Scroll of Bewitchment','Smoke Grenade of the Thief']);
+ // Re-Fusion revives like Premature Burial: it needs no monster of ours on the field (Johnny Steps review, 2026-11-23).
+ const nonBuffEquips=new Set(['Premature Burial','Re-Fusion','Autonomous Action Unit','Demotion','Scroll of Bewitchment','Smoke Grenade of the Thief']);
  const friendlyEquip=c=>!!(data(c).type&2)&&!!(data(c).type&0x40000)&&!hostileEquips.has(name(c))&&!nonBuffEquips.has(name(c));
  // Check restricted equips before committing: the engine may offer activation
  // solely because an opponent's monster is eligible, leaving a mandatory target.
@@ -1154,6 +1168,8 @@ export function smartContext(e,p,L,prompt=null){
  const babelEscape=c=>['Heavy Storm','Giant Trunade'].includes(name(c))||name(c)==="Harpie's Feather Duster"&&!back.some(x=>face(x)&&name(x)==='Tower of Babel');
  function activation(c,chain=false){
   if(lethalCost(c))return -1;
+  // At most 3 activations of the same card per turn (user, 2026-11-23).
+  if((e.activationCounts?.get(`${e.turn}:${p}:${c.code}`)||0)>=3)return -1;
   const babel=babelVictim(c);
   if(babel===p&&!remedy&&!babelEscape(c))return -1;
   const value=activationValue(c,chain);
@@ -1466,7 +1482,10 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Relinquished')return enemy.length&&back.length<5?140:-1;
   if(n==='The Shallow Grave'){
    const value=c=>Math.max(atk(c),def(c));
-   const mine=grave.filter(c=>(data(c).type&1)&&!exodiaPieces.has(c.code)),theirs=q(1-p,L.GRAVE).filter(c=>data(c).type&1);
+   // Only our monsters it can bring back count: Harpie Lady Sisters ("Must first be Special Summoned with Elegant
+   // Egotist") made a lone Harpie Lady look worth handing back a Destroyer Golem just destroyed (flag 32806f04).
+   const revivable=c=>(data(c).type&1)&&!exodiaPieces.has(c.code)&&!/must (?:first )?be (?:special|fusion|ritual) summoned|cannot be special summoned/i.test(e.cards.get(c.code)?.desc||'')&&specialOk(c);
+   const mine=grave.filter(revivable),theirs=q(1-p,L.GRAVE).filter(c=>data(c).type&1);
    // Both monsters come back face-down: a near-equal pair is a wash. It handed back a Gagagigo just destroyed by
    // Smashing Ground for our Slate Warrior (deck trace, 2026-11-06).
    if(!mine.length||Math.max(...mine.map(value))<Math.max(0,...theirs.map(value))+500)return -1;
@@ -1480,7 +1499,7 @@ export function smartContext(e,p,L,prompt=null){
     if(!canDefend&&!canClose)return -1;
    }
    if(openingTurn&&!grave.concat(q(1-p,L.GRAVE)).some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&(Math.max(atk(x),def(x))>=1800||summonUtility(x))))return -1;
-   const pool=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
+   const pool=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:n==='Re-Fusion'?grave.filter(x=>data(x).type&0x40):grave;
    if(!pool.some(x=>(data(x).type&1)&&specialOk(x)&&reviveKeeps(n,x)))return -1;
    // Bank revival resources after battle when the existing board already covers
    // the visible threat. Do not apply this to reactive chains or a recovery turn.
@@ -1844,25 +1863,27 @@ export function smartContext(e,p,L,prompt=null){
   // face-up one is not when Level Limit - Area B would send it straight back (2026-10-29: an empty list skipped it).
   if(n==='Stop Defense'&&!enemy.some(x=>!(x.position&1)&&!(face(x)&&activeLocks.some(l=>name(l)==='Level Limit - Area B'&&blockedBy(x,1-p,l)))))return -1;
   if(n==='Block Attack')return canBattle&&enemy.some(x=>blockAttackUseful(x))?85:-1;
-    if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'){
-   const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:grave;
+    if(n==='Monster Reborn'||n==='Premature Burial'||n==='Call of the Haunted'||n==='The Shallow Grave'||n==='Re-Fusion'){
+   // Re-Fusion pays 800 LP like Premature Burial and only brings back a Fusion Monster from our GY.
+   const paid=n==='Premature Burial'||n==='Re-Fusion';
+   const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:n==='Re-Fusion'?grave.filter(x=>data(x).type&0x40):grave;
    const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&reviveKeeps(n,x));const best=Math.max(0,...elig.map(atk));
    // Facing lethal on the opponent's turn: any monster that stops it is worth reviving, however weak (2026-10-29).
-   if(n!=='The Shallow Grave'&&e.player!==p&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&incomingBattleDamage()>=e.lp[p]&&elig.some(x=>incomingBattleDamage(atk(x))<e.lp[p]))return 115;
+   if(n!=='The Shallow Grave'&&e.player!==p&&own.length<5&&(!paid||e.lp[p]>800)&&incomingBattleDamage()>=e.lp[p]&&elig.some(x=>incomingBattleDamage(atk(x))<e.lp[p]))return 115;
    // One more attacker can be lethal even when it is weaker than their strongest monster.
-   if(n!=='The Shallow Grave'&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&elig.some(x=>planLethal([...freeSummon(),atk(x)])))return 100;
+   if(n!=='The Shallow Grave'&&own.length<5&&(!paid||e.lp[p]>800)&&elig.some(x=>planLethal([...freeSummon(),atk(x)])))return 100;
    // An empty field facing attackers: revive a wall that stops at least one of them, even if it cannot beat
    // their best monster. Low-ATK decks otherwise hold Monster Reborn all duel (deck-sim, 2026-11-04).
    // The Shallow Grave is left out: it revives a monster for the opponent too.
    // Our turn, and their board kills us (or takes most of our LP) next turn: any revived body that stops it is worth it (deck trace, 2026-11-06).
    // Premature Burial and Call of the Haunted revive in Attack Position: a beaten blocker still takes the difference, and
    // Premature Burial's 800 LP comes off first. A Mystic Tomato revived at 1300 LP left 500 LP to a 900 overflow (deck trace, 2026-11-06).
-   const attackOnly=n!=='Monster Reborn',lpAfter=e.lp[p]-(n==='Premature Burial'?800:0),guard=x=>attackOnly?atk(x):Math.max(atk(x),def(x));
+   const attackOnly=n!=='Monster Reborn',lpAfter=e.lp[p]-(paid?800:0),guard=x=>attackOnly?atk(x):Math.max(atk(x),def(x));
    const afterRevive=x=>{const over=attackOnly&&enemy.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,1-p,true)&&atk(a)>atk(x)).map(atk).sort((a,b)=>a-b)[0];return nextTurnDamage(guard(x))+(over?battleDamage(over-atk(x),1-p):0)};
-   if(n!=='The Shallow Grave'&&e.player===p&&own.length<5&&(n!=='Premature Burial'||e.lp[p]>800)&&nextTurnDamage()>=Math.min(e.lp[p],Math.max(1500,e.lp[p]*.6))&&elig.some(x=>afterRevive(x)<Math.min(lpAfter,Math.max(1500,lpAfter*.6))))return 88;
+   if(n!=='The Shallow Grave'&&e.player===p&&own.length<5&&(!paid||e.lp[p]>800)&&nextTurnDamage()>=Math.min(e.lp[p],Math.max(1500,e.lp[p]*.6))&&elig.some(x=>afterRevive(x)<Math.min(lpAfter,Math.max(1500,lpAfter*.6))))return 88;
    const attackers=enemy.filter(x=>face(x)&&(x.position&1)&&atk(x)>0).map(atk);
-   if(n!=='The Shallow Grave'&&e.player===p&&!own.length&&attackers.length&&(n!=='Premature Burial'||e.lp[p]>1800)&&elig.some(x=>guard(x)>=Math.min(...attackers)))return 85;
-   if(!(own.length<5&&elig.some(x=>atk(x)>threat)&&(n!=='Premature Burial'||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
+   if(n!=='The Shallow Grave'&&e.player===p&&!own.length&&attackers.length&&(!paid||e.lp[p]>1800)&&elig.some(x=>guard(x)>=Math.min(...attackers)))return 85;
+   if(!(own.length<5&&elig.some(x=>atk(x)+weaponBoost(x)>threat)&&(!paid||e.lp[p]>1800)))return -1;if(best>=1800)return 90;const need=m=>effectiveLevel(m,true)>6?2:effectiveLevel(m,true)>4?1:0;return hand.some(m=>!same(m,c)&&(data(m).type&1)&&need(m)>own.length)?90:-1;
   }
   if(n==='Polymerization')return fusionReady()?95:-1;
   if(n==='Fusion Sage')return !has(hand,'Polymerization')&&has(q(p,L.DECK),'Polymerization')?95:-1;
@@ -2011,7 +2032,7 @@ export function smartContext(e,p,L,prompt=null){
    const threatened=e.cpuReviewRules?.chainHealing!==false&&chain&&(e.activeChain||[]).some(link=>!link.inactive&&(['Heavy Storm',"Harpie's Feather Duster",'Giant Trunade'].includes(e.name(link.code))||(link.targets||[]).some(t=>same(t,c))&&['Mystical Space Typhoon','Dust Tornado','Raigeki Break','Tornado Bird','Breaker the Magical Warrior','Mobius the Frost Monarch'].includes(e.name(link.code))));
    return monsters>0&&(threatened||monsters>=3&&e.lp[p]<6000)?50:-1;
   }
-  if(['Red Medicine',"Goblin's Secret Remedy"].includes(n))return e.lp[p]<8000?40:-1;
+  if(['Red Medicine',"Goblin's Secret Remedy"].includes(n))return healingAllowed(p)&&e.lp[p]<8000?40:-1;
   if(n==='Reinforcements'||n==='Rush Recklessly'){if(!chain)return -1;
   if(e.phase===8&&e.attacker&&e.attacker.player===p){
    const ax=e.attacker,orig=ax.attack??0;
@@ -2172,6 +2193,8 @@ export function smartContext(e,p,L,prompt=null){
   }
   if(n==='Gamble'||n==='Monster Recovery')return -1;
   if(n==='Tornado Wall')return has(back,'Umi')||has(back,'A Legendary Ocean')?70:-1;
+  // Solemn Wishes and Life Absorbing Machine only gain LP (2026-11-23: not under Simochi or Nurse Reficule).
+  if(['Solemn Wishes','Life Absorbing Machine'].includes(n)&&!healingAllowed(p))return -1;
   if(['Solemn Wishes','Life Absorbing Machine','Gravekeeper\'s Servant','Robbin\' Goblin','Magical Thorn','Aqua Chorus'].includes(n))return 40;
   // --- Enemy-deck expansion: equip spells (before generic equip fallback) ---
   if(n==='7 Completed')return machineFace.length?((machineFace.some(f=>atk(f)<=threat&&atk(f)+700>threat)||machineFace.some(f=>lethalAfter(atk(f)+700-e.lp[1-p])))?78:50):-1;
@@ -2440,7 +2463,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_anime_rule_3':v=q(side,L.SZONE).some(x=>x.sequence===5&&face(x))?0:-1000;break;
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
-    case 'variant_chitin_carapace':v=race(c)==='Insect'?400:0;break;
+    case 'variant_chitin_carapace':v=race(c)==='Insect'?800:0;break;
     case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?800:0;break;
     case 'fused_gaia_plate':v=1500;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
@@ -2505,6 +2528,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
     // Level Up Chain: LV monsters +500 ATK (Discord, Nameless, 2026-11-22: Horus LV4's forecast left it out).
     case 'fused_level_up_chain':v=setMatch(c,0x41)?500:0;break;
+    case 'fused_toon_kingdom':v=is(0x400000)?500:0;break;
     // Every monster becomes the chosen Type and Attribute, so each face-up monster on both fields counts (itself included).
     case 'fused_unstable_dna':v=100*(field.filter(face).length+q(1-side,L.MZONE).filter(face).length);break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
@@ -3333,8 +3357,9 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if((piece||!specialOk(cand))&&(revival.has(fxN)||e.selectionHint===509))return -Infinity;
   if(cand.location===L.GRAVE&&!reviveKeeps(fxN,cand))return -Infinity;
   if(necross&&cand.controller===p&&cand.location===L.DECK&&e.effect?.player===p){
-   // Painful Choice and Foolish Burial send the pieces; Painful Choice fills up with a missing Necross or Contract.
-   if(fxN==='Painful Choice'||fxN==='Foolish Burial'){if(piece)return 1000000;if(fxN==='Painful Choice'&&necrossCard(cand)&&!hand.some(x=>x.code===cand.code))return cand.code===NECROSS?500000:400000;}
+   // Painful Choice and Foolish Burial send the pieces. Painful Choice never offers Exodia Necross or Contract with
+   // Exodia: the opponent would send them to the GY (flag 6f9402ec, 2026-11-23, Nori); a spare copy of another card fills up.
+   if(fxN==='Painful Choice'||fxN==='Foolish Burial'){if(piece)return 1000000;if(fxN==='Painful Choice'){if(necrossCard(cand))return -1000000;const copies=q(p,L.DECK).filter(x=>x.code===cand.code).length+hand.filter(x=>x.code===cand.code).length;const dead=name(cand)==='Foolish Burial'||name(cand)==='Painful Choice';return 100000+(dead?5000:0)+copies*1000-Math.min(targetValue(cand),999)}}
    // A searcher fetches Exodia Necross first, then a piece to discard.
    if(toHand&&cand.code===NECROSS&&!hand.some(x=>x.code===NECROSS))return 2000000;
   }

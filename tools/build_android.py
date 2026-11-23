@@ -33,7 +33,7 @@ def sync():
  # Option and question texts of randomized cards (randomizer.lua R.Text), shown and translated like system strings.
  system_strings.update({k:v for k,v in json.loads((ROOT/'data/randomizer/prompt-strings.json').read_text(encoding='utf8')).items() if not k.startswith('_')})
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
- shared=['debug_codes.py','feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','draft_relics.py','secret_challenge.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
+ shared=['debug_codes.py','feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','draft_relics.py','secret_challenge.py','deck_view.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
  shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
@@ -49,6 +49,8 @@ def sync():
   for token in tokens:
    cid=token['id'];row=db.execute('SELECT name,desc,type,level,atk,def,race,attribute FROM texts JOIN datas USING(id) WHERE id=?',(cid,)).fetchone()
    if row:token_cards.append(dict(id=cid,name=row[0],desc=row[1],type='Token',level=row[3]&255,atk=row[4],defense=row[5],race='Token',attribute='',data=dict(type=row[2]),strings=[]))
+ import custom_cards
+ token_cards+=[dict(id=t['id'],name=t['name'],desc=t['desc'],type='Token',level=t['level'],atk=t['atk'],defense=t['defense'],race='Token',attribute='',data=dict(type=t['data']['type']),strings=[]) for t in custom_cards.TOKENS]
  custom_relic_art=json.loads((ROOT/'data/relic-custom-art.json').read_text(encoding='utf8'))
  meta=dict(tutorial=json.loads((ROOT/'data/tutorial.json').read_text(encoding='utf8')),preconstructedDecks=[{key:deck[key] for key in ('id','name','date','art','cards')} for deck in json.loads((ROOT/'data/preconstructed.json').read_text(encoding='utf8'))['decks']],characters=content.CHARACTERS,playable=content.PLAYABLE_IDS,packs=content.PACKS,artifacts=content.ARTIFACTS,retiredArtifacts=sorted(content.RETIRED_ARTIFACTS),artifactInfo={key:dict(value,art=custom_relic_art.get(key) or next((c['id'] for c in game.CARDS if c['name'].casefold()==str(value['art']).casefold()),game.BY_NAME['Pot of Greed']['id']),**({'parts':list(approved_relics.CURSED_PARTS[key])} if key in approved_relics.CURSED_PARTS else {})) for key,value in content.ART_INFO.items()},curses=content.CURSES,runLength=content.RUN_LENGTH,cards=game.CARDS,tokenCards=token_cards)
  from duel_rewards import RULES, VICTORY_ONLY, SECRET, SECRET_HINTS
@@ -114,6 +116,8 @@ def sync():
  for card in custom_cards.CARDS:
   engine_data[str(card['id'])]=card['data']
   scripts[f'c{card["id"]}.lua']=(ROOT/f'runtime/script/custom/c{card["id"]}.lua').read_text(encoding='utf8')
+ # Custom tokens (data/custom-tokens.json, Moth Token 2026-11-23) have engine data but no script and are not pool cards.
+ for token in custom_cards.TOKENS:engine_data[str(token['id'])]=token['data']
  # Cards always treated as an archetype's card (data/card-archetype-rules.json): the engine reads the setcodes that
  # campaign_expansion.install gave the card (Dark Sage is a "Dark Magician" card, 2026-11-19).
  for cid in json.loads((ROOT/'data/card-archetype-rules.json').read_text(encoding='utf8'))['cards']:

@@ -14,4 +14,6 @@ same(chainWindowAllowed(summoning([id('The Selection')]),'sometimes',[],ctx),tru
 same(chainWindowAllowed(summoning([id('Horn of Heaven')]),'sometimes',[],ctx),true,'Horn of Heaven asks too');
 same(chainWindowAllowed(summoning([id('The Selection')]),'never',[],ctx),false,'Never still skips it');
 same(chainWindowAllowed(summoning([id('Waboku')]),'sometimes',[],ctx),false,'other cards keep the Sometimes policy: Waboku waits');
+// Drop Off is only offered right after the opponent's normal draw, so Sometimes always asks for it (Discord, 2026-11-23).
+same(chainWindowAllowed({type:M.SELECT_CHAIN,player:0,forced:false,spe_count:1,hint_timing:0,hint_timing_other:0,selects:[{code:id('Drop Off'),location:L.SZONE}]},'sometimes',[],{turnPlayer:1,phase:1,card:code=>byId.get(code)}),true,"Sometimes offers Drop Off on the opponent's draw");
 console.log(`PASS Chain Sometimes asks for summon-negating Traps (${checks} checks)`);

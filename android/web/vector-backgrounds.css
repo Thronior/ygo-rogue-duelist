@@ -10,7 +10,7 @@
 .game-vector-background>.bg-stage[data-scene=duel-summoning]{background:radial-gradient(ellipse at center,#22323c,#0b1218 75%)}
 .game-vector-background>.bg-stage[data-scene=duel-stars]{background:radial-gradient(ellipse at center,#1b2748,#070a16 80%)}
 .game-vector-background>.bg-stage[data-scene=duel-embers]{background:radial-gradient(ellipse at 50% 100%,#7a2a14,#1a0a0a 75%)}
-.game-vector-background>.bg-stage[data-scene=duel-aurora]{background:linear-gradient(#07101e,#143049 60%,#0a1d26)}
+.game-vector-background>.bg-stage[data-scene=duel-aurora]{background:linear-gradient(#060c1a,#14304a 28%,#1d5a4e 42%,#0d2833 62%,#08141a)}
 .game-vector-background>.bg-stage[data-scene=duel-ripples]{background:radial-gradient(ellipse at center,#0f3a48,#061319 80%)}
 .game-vector-background>.bg-stage[data-scene=duel-rays]{background:radial-gradient(ellipse at 50% 0,#5f4618,#120d07 80%)}
 .game-vector-background>.bg-stage[data-scene=duel-glyphs]{background:radial-gradient(ellipse at center,#2a2413,#0b0d0a 80%)}

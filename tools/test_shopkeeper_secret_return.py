@@ -45,4 +45,11 @@ assert lost.get('secret_challenge')=='relicless' and lost['stage']!='shop','a lo
 before=shop_run(11);secret=secret_challenge.relicless(g,before)
 other=shop_run(12);storage.write(storage.ROOT/'before-relicless-secret-run.json',other)
 assert duel(secret,0).get('secret_challenge')=='relicless','only the run this challenge was copied from comes back'
-print('PASS shopkeeper secret: a win continues the run with its relics, a loss ends it')
+# Won before v0.2.42 (no hand-back at the time): the finished run is handed back when the game loads it (Discord 2026-11-23).
+before=shop_run(13);relics=list(before['artifacts']);secret=secret_challenge.relicless(g,before)
+g.prepare_duel(secret);g.finish_duel(secret,dict(protocol=1,id=secret['duel']['id'],winner=0,lp=8000,reason=0,events=[]));secret.pop('mobile_duel',None);g.save(secret)
+stuck=g.load_run();assert stuck['secret_challenge']=='relicless' and stuck['stage']=='complete'
+loaded=secret_challenge.return_after_win(g,stuck)
+assert loaded['stage']=='shop' and loaded['artifacts']==relics and not loaded.get('secret_challenge'),'an old won secret is handed back on load'
+assert g.load_run()['stage']=='shop'
+print('PASS shopkeeper secret: a win continues the run with its relics, a loss ends it, old wins are handed back on load')

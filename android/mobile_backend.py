@@ -107,10 +107,15 @@ def dispatch(raw):
  elif action=='init':
   import collector
   collector.load();run=g.load_run()
+  # A shopkeeper's secret won before v0.2.42 left its run finished; hand back the run from before it (Discord 2026-11-23).
+  import secret_challenge
+  if run:run=secret_challenge.return_after_win(g,run)
  elif action=='select-slot':
   slot=int(value);candidate=g.load_run(slot)
   if not candidate:raise ValueError('This slot has no valid saved run.')
   storage.select_slot(slot);run=candidate
+  import secret_challenge
+  run=secret_challenge.return_after_win(g,run)
  elif action=='new':
   value=value if isinstance(value,dict) else {'character':int(value)}
   slot=int(value.get('slot',storage.active_slot()));storage.run_path(slot)
@@ -142,6 +147,7 @@ def dispatch(raw):
   import endless
   endless.next_loop(g,run)
  elif action=='auto':g.auto_deck(run)
+ elif action=='fill-preview':return partial(g.fill_picks(run))
  elif action=='deselect-all':
   if content.fixed_deck(run):raise ValueError('This character uses a fixed deck.')
   run['selected']=[]
@@ -208,11 +214,12 @@ def dispatch(raw):
   if opponent not in run['routes']:raise ValueError('Unavailable opponent')
   import fallen_collectors
   fallen=fallen_collectors.opponent(run,opponent)
-  if fallen:result=fallen['deck']['main']+fallen['deck']['extra']
+  import deck_view
+  if fallen:result=deck_view.ordered(fallen['deck']['main']+fallen['deck']['extra'],g.BY_ID)
   else:
    main=g.opponent_deck(content.deck_round(run),random.Random(opponent+run['round']*101),opponent,run.get('tutorial_variants',{}).get(str(opponent),0),loop=run.get('loop',0))
    extra=[] if content.deck_round(run)==0 and not run.get('loop') else content.opponent_record(content.deck_round(run),opponent,run.get('loop',0))['extra']
-   result=main+extra
+   result=deck_view.ordered(main+extra,g.BY_ID)
  elif action=='cursed-choose':
   import cursed_relics
   cursed_relics.choose(run,str(value))

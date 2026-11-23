@@ -2,7 +2,7 @@ import {pageRect,pageWidth} from './ui-zoom.js';
 // The shopkeeper talks: one line at a time in a pixel-art speech bubble above his head, for 4 seconds.
 // A new line replaces the old one. Lines wait while a dialog (receipt, purchases, pack opening) covers the
 // shop, so they are seen. Landscape only: mobile.css hides the bubble in portrait, where he is hidden too,
-// except in the empty LVL -1 shop of Copycat's first loadout and Dueling Engine.
+// except in the relic-only shops of Copycat's first loadout and Dueling Engine.
 const LINES={
  welcome:['Welcome to my shop!','Ah, a customer! Come in, come in.','Welcome! Take a look around.','Fresh stock, just for you.','Welcome back, duelist!','Browse all you like. Buying is better.','Step right up! Everything is for sale.','Welcome! Mind the price tags.'],
  ultra:['Ooh, one of my best cards!','An Ultra Rare! You have a good eye.','I was saving that one for someone special.','That card is a real treasure.','Now that is a premium pick!','Hard to part with that one...','The crown jewel of my shelf. Sold!','You won’t find a rarer card around here.','Collectors would fight over that one.','Top-shelf taste, I see!'],
@@ -48,8 +48,9 @@ function flush(){
  const keeper=keeperOf();if(!keeper?.getClientRects().length){queued=null;return}
  const kind=queued;queued=null;
  bubble=document.createElement('div');bubble.className='keeper-bubble';bubble.setAttribute('role','status');bubble.textContent=pick(kind);
- // The empty LVL -1 shop shows him in portrait too, so his bubble is allowed there (mobile.css).
- if(keeper.closest('.relic-only-shop.relicless-shop'))bubble.classList.add('portrait-ok');
+ // Relic-only shops (Copycat's first loadout, Dueling Engine) show him in portrait too, so his bubble is allowed there
+ // (mobile.css). Without it, pokes in portrait looked like they did nothing (player report, 2026-11-23).
+ if(keeper.closest('.relic-only-shop'))bubble.classList.add('portrait-ok');
  document.body.append(bubble);place();
  const el=bubble;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)el.animate([{opacity:0,transform:'translateY(6px) scale(.85)'},{opacity:1,transform:'none'}],{duration:180,easing:'steps(4,end)'});

@@ -21,6 +21,9 @@ def manifest():
    row=db.execute('SELECT t.name,d.type FROM texts t JOIN datas d ON d.id=t.id WHERE t.id=?',(cid,)).fetchone()
    assert row and row[1]&16384,(cid,row)
    entries.append(dict(id=cid,name=row[0],summoner=summoner,summoner_name=byid[summoner]['name'],image=f'https://images.ygoprodeck.com/images/cards/{cid}.jpg'))
+ # Custom tokens (data/custom-tokens.json, Moth Token 2026-11-23) are not in cards.cdb: keep their entries; art is local.
+ for t in json.loads((ROOT/'data/custom-tokens.json').read_text(encoding='utf8')):
+  entries+=[dict(id=t['id'],name=t['name'],summoner=s,summoner_name=next(c['name'] for c in json.loads((ROOT/'data/custom-cards.json').read_text(encoding='utf8')) if c['id']==s),image=t['image']) for s in t['summoners']]
  (ROOT/'data/tokens.json').write_text(json.dumps(entries,indent=2),encoding='utf8');return entries
 if __name__=='__main__':
  tokens=manifest()

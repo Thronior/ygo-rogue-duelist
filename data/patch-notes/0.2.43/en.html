@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>Update 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>Opponents</em><h3>Johnny Steps</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>New Tier 1 duelist</b>Kyky's <b>Fusion and Equip</b> deck: Musician King, Empress Judge, Fusion Weapon and Re-Fusion.</p></div></div></div>
+<div class="pn0_2_43-big"><em>New cards</em><h3>The Moth LV line</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>Moth LV1, LV2, LV6, LV8</b>and <b>Cocoon of Evolution - S</b>: a Moth that levels up each Standby Phase. They join every pack the original Moths are in.</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>Relics</em><h3>New relics</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>Sphinx relics</b><b>Pyramid of Lightning</b>, <b>Bond of Egypt</b> and <b>Shadow of Anubis</b>, plus the fused relic <b>Chimera Sphinx</b>.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>Insect relics</b><b>Moth Brood</b> leaves a Moth Token behind your Insects, plus the fused relic <b>Insect Swarm</b>. <b>Chitin Carapace</b> now gives 800 DEF.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>Sealed Fate</b>Your <b>Destiny Board</b> and <b>Spirit Message</b> cards cannot be targeted by card effects.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>Relic tweaks</b><b>Restless Dead</b> now works in your opponent's Standby Phase. <b>Narrow Gate</b> now closes the outer zones.</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>Controls</em><h3>Drag to play, smoother</h3>
+<p class="pn0_2_43-lead">Drop a <b>Trap</b> on your field and it's Set. A card with only one way to play just plays. The card <b>waits on its zone</b> while you choose, and you can <b>drag cards along your hand to reorder it</b>. Any hand card can be picked up and played with.</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Art</em><h3>New portraits</h3>
+<p class="pn0_2_43-lead"><b>38 character portraits</b> replaced with new ones, and every <b>character pack</b> rebuilt with them.</p></div>
+<div class="pn0_2_43-big"><em>Main menu</em><h3>Completion</h3>
+<p class="pn0_2_43-lead">The title screen shows <b>how complete your game is</b>, counted from your achievements.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Settings</em><h3>New settings</h3>
+<p class="pn0_2_43-lead"><b>Spin/Slots Effects</b>: turn off the spinning reels. <b>Original Japanese Names</b> for duelists (cards keep theirs). <b>Auto-Pick Single Choices</b>, on by default. <b>Auto-Placement</b> is now on by default.</p></div>
+<div class="pn0_2_43-big"><em>Deck editor</em><h3>Auto-fill</h3>
+<p class="pn0_2_43-lead">Short of the minimum? The <b>grey arrow</b> next to the card count shows which cards would fill your deck, and adds them with one tap.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Tag duels</em><h3>Trade in the shop</h3>
+<p class="pn0_2_43-lead">The <b>Trade</b> button now works in the shop's deck editor. Shopping waits while a trade is open. Rooms no longer say they're <b>full</b> when you were the one who joined.</p></div>
+<div class="pn0_2_43-big"><em>Draft</em><h3>See your deck and relics</h3>
+<p class="pn0_2_43-lead">You can <b>view your deck</b> while you pick cards and while you wait for your opponent. The waiting room shows <b>both players' names and relics</b>, and the Draft deck editor shows your relics too.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>Changes</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span>The <b>shop tour</b> points at each part with a hand and dims the rest.</span></li>
+<li><span>♾️</span><span>Life Points stop at <b>10,000,000</b> and show <b>∞</b>.</span></li>
+<li><span>❓</span><span>Fusion hints also list fused relics you haven't found yet, as <b>???</b> silhouettes.</span></li>
+<li><span>🔭</span><span><b>Deck Spyglass</b> lists Monsters, Spells, Traps, then the Extra Deck.</span></li>
+<li><span>📝</span><span>Ruling notes on <b>Harpie Lady</b>, <b>Ritual Monsters</b>, <b>Man-Eater Bug</b> and more.</span></li>
+<li><span>🎨</span><span>Lighter <b>Duel Look</b> tints, so animated backgrounds show through.</span></li>
+<li><span>🐉</span><span><b>Harpie's Pet Dragon</b> is much more common in Mai's pack.</span></li>
+<li><span>🏆</span><span>The payout shows the minimum for an <b>Exodia</b> or <b>Final Countdown</b> win.</span></li>
+<li><span>🔗</span><span>Link codes for your devices last <b>24 hours</b>.</span></li>
+<li><span>🧠</span><span>CPU: uses the same card at most <b>3 times a turn</b>, and plays Waboku, Painful Choice, The Shallow Grave, Re-Fusion and Fusion Weapon better.</span></li>
+<li><span>👴</span><span>Solomon is a little chattier in portrait mode.</span></li>
+</ul></div>
+<div><h2>Fixes</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>Linux app: no longer stuck on <b>Starting campaign runtime</b>.</span></li>
+<li><span>🪟</span><span>Windows app: a clear message when a <b>firewall blocks online play</b>.</span></li>
+<li><span>⚔️</span><span>You can attack again under <b>Gravekeeper's Servant</b> with <b>The Third Gate</b>.</span></li>
+<li><span>🌀</span><span><b>Dimensional Rift</b> also banishes Set cards.</span></li>
+<li><span>✅</span><span>Long card lists no longer hide the <b>✓ / ✕</b> buttons, so <b>Omni Banishment</b> can be skipped.</span></li>
+<li><span>👀</span><span>Your opponent's <b>Painful Choice</b> shows the cards you pick from.</span></li>
+<li><span>🚫</span><span>Locked zones no longer carry into the next duel.</span></li>
+<li><span>⛓️</span><span><b>Drop Off</b> asks on <b>Chain: Sometimes</b>.</span></li>
+<li><span>💊</span><span>The CPU no longer heals into <b>Bad Reaction to Simochi</b>.</span></li>
+<li><span>🧬</span><span><b>DNA Rewrite</b>: cards in your hand show their new Type's bonuses.</span></li>
+<li><span>🎲</span><span>Draft duels without relics no longer repeat their first dice rolls.</span></li>
+<li><span>⏯️</span><span>A run stuck on its last duel continues again.</span></li>
+</ul></div>
+</section></div>

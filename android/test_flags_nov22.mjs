@@ -44,4 +44,23 @@ const idle=(cards,extra={})=>({type:M.SELECT_IDLECMD,player:1,summons:[],special
  const s=smartContext(duel({0:{[L.MZONE]:[gazelle,neo]}},{player:0,phase:8}),1,L);
  ok(s.targetScore('Dark Spirit of the Silent',gazelle,{})>s.targetScore('Dark Spirit of the Silent',neo,{}),'Gazelle (1500) is picked over Neo (2000)');
 }
+// 792f816d (2026-11-23): at most 3 activations of the same card per turn (Magical Scientist under Reversed Remedy).
+{
+ const sci=card('Magical Scientist',L.MZONE,1,0,1);
+ const at=n=>{const e=duel({1:{[L.MZONE]:[sci]}},{player:1,phase:4,turn:6,activationCounts:new Map([[`6:1:${sci.code}`,n]])});return smartContext(e,1,L,{type:M.SELECT_CHAIN,player:1,selects:[sci]}).activation(sci,true)};
+ ok(at(3)<0,'a 4th activation of the same card in one turn is refused');
+}
+// 90d1b091 (2026-11-23): a new duel starts with no locked zones left over from the last one.
+{
+ const src=fs.readFileSync(new URL('./web/duel.js',import.meta.url),'utf8'),start=src.slice(src.indexOf(' start(...args){'),src.indexOf('return super.start(...args)}'));
+ ok(start.includes('this.disabledField=0')&&start.includes('this.trapMonsterZones=[new Map(),new Map()]')&&start.includes('this.activationCounts=new Map()'),'start() clears locked zones and activation counts');
+}
+// ff10d7c1 (2026-11-23): Waboku is kept once a resolved Book of Moon has turned the attacker face-down.
+{
+ const waboku=card('Waboku',L.SZONE,1,2,10),rabbit=card('Inaba White Rabbit',L.MZONE,1,2,8);
+ const at=position=>{const beta=card('Beta The Magnet Warrior',L.MZONE,0,1,position);const e=duel({1:{[L.SZONE]:[waboku],[L.MZONE]:[rabbit]},0:{[L.MZONE]:[beta]}},{player:0,phase:8,turn:3,attackCard:beta,attackTarget:rabbit});
+  return smartContext(e,1,L,{type:M.SELECT_CHAIN,player:1,selects:[waboku]}).activation(waboku,true)};
+ ok(at(1)>0,'Waboku saves the Set Rabbit from an attacking Beta');
+ ok(!(at(8)>0),'not after Book of Moon turned Beta face-down');
+}
 console.log(`flags nov22: ${checks} checks passed`);

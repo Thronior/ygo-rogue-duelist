@@ -289,7 +289,7 @@ CATEGORY_RELIC_BOOST=5
 CATEGORY_RELICS={
  'Aqua':('shell','ocean_relic','tide'),'Beast':('fang','kindred_bond'),'Beast-Warrior':('blade','fang'),
  'Dinosaur':('fossil','earth'),'Dragon':('dragon','dragon_triumph','dragon_lords_decree','twin_eyes','dragon_blood_fusion','blue_eyes_radiance'),'Fairy':('halo','light'),
- 'Fiend':('horn','dark'),'Fish':('shell','ocean_relic','tide'),'Insect':('hive','chitin_carapace'),
+ 'Fiend':('horn','dark'),'Fish':('shell','ocean_relic','tide'),'Insect':('hive','chitin_carapace','moth_brood'),
  'Machine':('gear','union_dock','union_hangar'),'Plant':('hive','earth'),'Pyro':('storm_core','ember'),
  'Reptile':('fossil','kindred_bond'),'Rock':('stone','restless_stone'),'Sea Serpent':('shell','ocean_relic','tide'),
  'Spellcaster':('mage','counterweight'),'Thunder':('storm_core','overcharge'),'Warrior':('blade','armory_crest'),

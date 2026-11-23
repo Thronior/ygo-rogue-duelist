@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>Aggiornamento 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>Avversari</em><h3>Johnny Steps</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>Nuovo duellante di Tier 1</b>Il mazzo <b>Fusione ed Equipaggiamento</b> di Kyky: Re Musicista, Giudice Imperatrice, Arma Fusione e Ri-Fusione.</p></div></div></div>
+<div class="pn0_2_43-big"><em>Nuove carte</em><h3>La linea Moth LV</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>Falena LV1, LV2, LV6, LV8</b>e <b>Bozzolo dell'Evoluzione - S</b>: una Falena che sale di livello a ogni Standby Phase. Sono in ogni busta delle Falene originali.</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>Reliquie</em><h3>Nuove reliquie</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>Reliquie Sfinge</b><b>Piramide del Fulmine</b>, <b>Legame d'Egitto</b> e <b>Ombra di Anubi</b>, più la reliquia fusa <b>Sfinge Chimera</b>.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>Reliquie Insetto</b><b>Covata di Falene</b> lascia una Pedina Falena dietro i tuoi Insetti, più la reliquia fusa <b>Sciame di Insetti</b>. <b>Carapace di Chitina</b> ora dà 800 DEF.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>Destino segnato</b>Le tue carte <b>Tavola del Destino</b> e <b>Spirit Message</b> non possono essere scelte come bersaglio dagli effetti delle carte.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>Ritocchi alle reliquie</b><b>Morti Irrequieti</b> ora funziona nella Standby Phase dell’avversario. <b>Porta Stretta</b> ora chiude le zone esterne.</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>Comandi</em><h3>Trascina per giocare, più fluido</h3>
+<p class="pn0_2_43-lead">Lascia una <b>Trappola</b> sul tuo terreno e viene posizionata coperta. Una carta con un solo modo di giocarla viene giocata subito. La carta <b>aspetta sulla sua zona</b> mentre scegli, e puoi <b>trascinare le carte lungo la mano per riordinarla</b>. Ogni carta della mano si può prendere e muovere.</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Grafica</em><h3>Nuovi ritratti</h3>
+<p class="pn0_2_43-lead"><b>38 ritratti dei personaggi</b> sostituiti con nuovi, e ogni <b>busta personaggio</b> rifatta con loro.</p></div>
+<div class="pn0_2_43-big"><em>Menu principale</em><h3>Completamento</h3>
+<p class="pn0_2_43-lead">La schermata del titolo mostra <b>quanto hai completato del gioco</b>, in base ai tuoi obiettivi.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Impostazioni</em><h3>Nuove impostazioni</h3>
+<p class="pn0_2_43-lead"><b>Effetti di rotazione/slot</b>: disattiva i rulli che girano. <b>Nomi giapponesi originali</b> per i duellanti (le carte tengono i loro). <b>Scelta unica automatica</b>, attivo di base. <b>Piazzamento automatico</b> ora è attivo di base.</p></div>
+<div class="pn0_2_43-big"><em>Editor del mazzo</em><h3>Riempimento automatico</h3>
+<p class="pn0_2_43-lead">Ti mancano carte? La <b>freccia grigia</b> accanto al conteggio mostra quali carte completerebbero il mazzo e le aggiunge con un tocco.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>Duelli Tag</em><h3>Scambi nel negozio</h3>
+<p class="pn0_2_43-lead">Il pulsante <b>Scambia</b> ora funziona nell’editor del mazzo del negozio. Gli acquisti aspettano finché uno scambio è aperto. Le stanze non dicono più di essere <b>piene</b> quando eri tu ad averle raggiunte.</p></div>
+<div class="pn0_2_43-big"><em>Draft</em><h3>Vedi mazzo e reliquie</h3>
+<p class="pn0_2_43-lead">Puoi <b>vedere il tuo mazzo</b> mentre scegli le carte e mentre aspetti l’avversario. La sala d’attesa mostra <b>nomi e reliquie di entrambi i giocatori</b>, e anche l’editor del mazzo del Draft mostra le tue reliquie.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>Modifiche</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span>Il <b>tour del negozio</b> indica ogni parte con una mano e scurisce il resto.</span></li>
+<li><span>♾️</span><span>I Life Point si fermano a <b>10.000.000</b> e mostrano <b>∞</b>.</span></li>
+<li><span>❓</span><span>I suggerimenti di fusione mostrano anche le reliquie fuse non ancora trovate, come sagome <b>???</b>.</span></li>
+<li><span>🔭</span><span><b>Cannocchiale del Deck</b> elenca Mostri, Magie, Trappole e poi l’Extra Deck.</span></li>
+<li><span>📝</span><span>Note sulle regole per <b>Lady Arpia</b>, i <b>Mostri Rituale</b>, <b>Insetto Mangia-Uomini</b> e altro.</span></li>
+<li><span>🎨</span><span>Tinte dello <b>Stile del Duello</b> più leggere, così si vedono gli sfondi animati.</span></li>
+<li><span>🐉</span><span><b>Draghetto delle Arpie</b> è molto più comune nella busta di Mai.</span></li>
+<li><span>🏆</span><span>Il compenso mostra il minimo per una vittoria con <b>Exodia</b> o <b>Conto alla Rovescia</b>.</span></li>
+<li><span>🔗</span><span>I codici per collegare i tuoi dispositivi durano <b>24 ore</b>.</span></li>
+<li><span>🧠</span><span>CPU: usa la stessa carta al massimo <b>3 volte per turno</b> e gioca meglio Waboku, Scelta Dolorosa, La Tomba Vuota, Ri-Fusione e Arma Fusione.</span></li>
+<li><span>👴</span><span>Solomon è un po’ più loquace in verticale.</span></li>
+</ul></div>
+<div><h2>Correzioni</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>App Linux: non si blocca più su <b>Starting campaign runtime</b>.</span></li>
+<li><span>🪟</span><span>App Windows: un messaggio chiaro quando un <b>firewall blocca il gioco online</b>.</span></li>
+<li><span>⚔️</span><span>Con <b>Il Terzo Cancello</b> puoi di nuovo attaccare sotto <b>Servo del Custode di Tombe</b>.</span></li>
+<li><span>🌀</span><span><b>Squarcio Dimensionale</b> bandisce anche le carte coperte.</span></li>
+<li><span>✅</span><span>Le liste lunghe di carte non nascondono più i pulsanti <b>✓ / ✕</b>, quindi <b>Bando Totale</b> si può saltare.</span></li>
+<li><span>👀</span><span>Il <b>Scelta Dolorosa</b> dell’avversario mostra le carte tra cui scegli.</span></li>
+<li><span>🚫</span><span>Le zone bloccate non restano più bloccate nel duello successivo.</span></li>
+<li><span>⛓️</span><span><b>Caduta</b> chiede con <b>Catena: A volte</b>.</span></li>
+<li><span>💊</span><span>La CPU non si cura più contro <b>Brutta Reazione a Simochi</b>.</span></li>
+<li><span>🧬</span><span><b>Riscrittura del DNA</b>: le carte in mano mostrano i bonus del loro nuovo Tipo.</span></li>
+<li><span>🎲</span><span>I duelli Draft senza reliquie non ripetono più i primi lanci di dado.</span></li>
+<li><span>⏯️</span><span>Una partita bloccata all’ultimo duello riprende.</span></li>
+</ul></div>
+</section></div>

@@ -12,14 +12,21 @@ html,body{margin:0;width:1024px;height:1024px;overflow:hidden;background:#000}
 @keyframes bgx-breathe{from{opacity:.4}to{opacity:1}}
 .bgx.stars{background:radial-gradient(ellipse at 50% 42%,#1b2748,#070a16 72%)}
 .bgx.embers{background:radial-gradient(ellipse 70% 62% at 50% 92%,#7a2a14,#2e100d 56%,#0d0808 92%)}
-.bgx.aurora{background:linear-gradient(#050913,#0a1426 62%,#0a1d26)}
-.bgx.aurora .band{left:-30%;width:160%;height:62%;border-radius:50%}
-.bgx.aurora .a{top:8%;background:radial-gradient(closest-side,rgba(50,225,170,.38),transparent);animation:bgx-sway-a 48s ease-in-out infinite alternate}
-.bgx.aurora .b{top:24%;background:radial-gradient(closest-side,rgba(130,90,255,.34),transparent);animation:bgx-sway-b 24s ease-in-out infinite alternate}
-.bgx.aurora .c{top:40%;background:radial-gradient(closest-side,rgba(40,170,240,.28),transparent);animation:bgx-sway-c 16s ease-in-out infinite alternate}
-@keyframes bgx-sway-a{from{transform:translate(-14%,0) scaleY(.8)}to{transform:translate(12%,6%) scaleY(1.15)}}
-@keyframes bgx-sway-b{from{transform:translate(16%,4%) scaleY(1.1)}to{transform:translate(-12%,-6%) scaleY(.75)}}
-@keyframes bgx-sway-c{from{transform:translate(-8%,6%) scaleY(.9)}to{transform:translate(14%,-4%) scaleY(1.2)}}
+/* Natural curtains (user, 2026-11-23): each layer is a tile of uneven rays drawn by curtain() in duel-scenes.js,
+   bright along a wavy lower edge and fading through green to violet. Tiles scroll a whole tile per 48 s; the wrappers
+   rise, stretch and brighten slowly on periods of 48, 24 and 48 s (the loop is 48 s). */
+.bgx.aurora{background:linear-gradient(#060c1a,#0a1828 40%,#0d2833 62%,#0b2029 80%,#08141a)}
+.bgx.aurora .sky{-webkit-mask:linear-gradient(#000 15%,transparent 65%);mask:linear-gradient(#000 15%,transparent 65%);opacity:.5}
+.bgx.aurora .haze{left:-10%;right:-10%;top:8%;height:80%;background:radial-gradient(ellipse 75% 30% at 50% 62%,rgba(40,170,150,.14),transparent),radial-gradient(ellipse 60% 45% at 45% 55%,rgba(50,200,150,.16),transparent),radial-gradient(ellipse 40% 35% at 70% 35%,rgba(130,90,220,.1),transparent);animation:bgx-haze 24s ease-in-out infinite alternate}
+.bgx.aurora .sway{inset:0;mix-blend-mode:screen;transform-origin:50% 70%}
+.bgx.aurora .sway.a{animation:bgx-rise-a 24s ease-in-out infinite alternate}
+.bgx.aurora .sway.b{animation:bgx-rise-b 12s ease-in-out -6s infinite alternate}
+.bgx.aurora .sway.c{animation:bgx-rise-c 24s ease-in-out -10s infinite alternate}
+.bgx.aurora .curtain{animation:bgx-scroll linear infinite}
+@keyframes bgx-rise-a{from{transform:translateY(10px) scaleY(.9);opacity:.75}to{transform:translateY(-14px) scaleY(1.08);opacity:.95}}
+@keyframes bgx-rise-b{from{transform:translateY(-8px) scaleY(1.05);opacity:.5}to{transform:translateY(12px) scaleY(.92);opacity:.8}}
+@keyframes bgx-rise-c{from{transform:translateY(6px) scaleY(.95);opacity:.45}to{transform:translateY(-10px) scaleY(1.06);opacity:.7}}
+@keyframes bgx-haze{from{opacity:.7}to{opacity:1}}
 .bgx.ripples{background:radial-gradient(circle at 50% 50%,#0f3a48,#061319 70%)}
 .bgx.ripples .ring{left:calc(var(--c) - 760px);top:calc(var(--c) - 760px);width:1520px;height:1520px;box-sizing:border-box;border:9px solid #7fe0e6;border-radius:50%;opacity:0;animation:bgx-ripple 16s linear infinite}
 @keyframes bgx-ripple{0%{transform:scale(.03);opacity:0}12%{opacity:.55}100%{transform:scale(1);opacity:0}}

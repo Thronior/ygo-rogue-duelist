@@ -28,8 +28,11 @@ console.log('PASS a Trap Monster locks the Spell & Trap Zone it came from');
 {
  const e=await run(lua(['cursed_narrow_gate']));
  const s=e.snapshot();
- assert(s.players[0].locked&0x1f&&s.players[1].locked&0x1f,'Narrow Gate disables Monster Zones on both sides: '+s.players.map(p=>p.locked.toString(2)));
- assert(s.players[0].locked&(0x1f<<8),'and Spell & Trap Zones');
+ // The first and last of each (user, 2026-11-23): Monster Zones 0 and 4, Spell & Trap Zones 0 and 4, never the Field Zone.
+ for(const p of s.players){
+  assert.equal(p.locked&0x1f,0x11,'Narrow Gate disables Monster Zones 1 and 5 on both sides: '+s.players.map(p=>p.locked.toString(2)));
+  assert.equal((p.locked>>8)&0x3f,0x11,'and Spell & Trap Zones 1 and 5, not the Field Zone: '+p.locked.toString(2));
+ }
  e.destroy();
 }
 console.log('PASS Narrow Gate\u2019s disabled zones are reported as locked');

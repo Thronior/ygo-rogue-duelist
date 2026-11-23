@@ -17,7 +17,7 @@ expected=Counter({
  57953380:1,94163677:1,35346968:3,22567609:3,19613556:1,18144506:1,
 })
 
-assert content.CHARACTERS[OBELISK_ID]['name']=='Obelisk the Tormenter'
+assert content.CHARACTERS[OBELISK_ID]['name']=='Obelisk the Tormentor'
 assert OBELISK_ID not in content.eligible_opponents(0,loop=0)
 assert OBELISK_ID in content.eligible_opponents(0,loop=1)
 deck=content.opponent_record(0,OBELISK_ID,loop=1)

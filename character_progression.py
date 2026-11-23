@@ -41,7 +41,7 @@ def duel(game,run,result,won,boss):
  import sleeve_progress
  # Who was beaten, for the 'Defeat <duelist> 5 times' sleeves (2026-11-20); the loop challenge is the World Champion
  # on loop 0 and Obelisk after that.
- if run.get('encore_active') and not run.get('secret_challenge'):opponent='World Champion' if not run.get('encore_opponent') else 'Obelisk the Tormenter'
+ if run.get('encore_active') and not run.get('secret_challenge'):opponent='World Champion' if not run.get('encore_opponent') else 'Obelisk the Tormentor'
  else:
   index=(run.get('duel') or {}).get('opponent',run.get('opponent'))
   opponent=game.CHARACTERS[index]['name'] if isinstance(index,int) and 0<=index<len(game.CHARACTERS) else None

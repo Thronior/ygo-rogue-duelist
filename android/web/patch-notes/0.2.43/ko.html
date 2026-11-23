@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>업데이트 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>상대</em><h3>조니 스텝</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>새 Tier 1 상대</b>Kyky의 <b>융합과 장착</b> 덱: 음악의 제왕, 심판의 여왕, 퓨전 웨폰, 재융합.</p></div></div></div>
+<div class="pn0_2_43-big"><em>새 카드</em><h3>모스 LV 라인</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>모스 LV1, LV2, LV6, LV8</b>와 <b>진화의 고치 - S</b>: 스탠바이 페이즈마다 레벨이 오르는 모스. 원래 모스가 들어 있는 모든 팩에 추가됩니다.</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>유물</em><h3>새 유물</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>스핑크스 유물</b><b>번개의 피라미드</b>, <b>이집트의 유대</b>, <b>아누비스의 그림자</b>, 그리고 융합 유물 <b>키메라 스핑크스</b>.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>곤충족 유물</b><b>모스 브루드</b>는 곤충족 뒤에 모스 토큰을 남기고, 융합 유물 <b>인섹트 스웜</b>도 추가됩니다. <b>키틴 껍질</b>는 이제 수비력 800을 올립니다.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>봉인된 운명</b>자신의 <b>위저 보드</b>와 <b>사신의 메시지</b> 카드는 카드의 효과의 대상이 되지 않습니다.</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>유물 조정</b><b>잠들지 못하는 망자</b>는 이제 상대 스탠바이 페이즈에 작동합니다. <b>좁은 문</b>는 이제 바깥쪽 존을 막습니다.</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>조작</em><h3>드래그로 플레이, 더 부드럽게</h3>
+<p class="pn0_2_43-lead"><b>함정</b>을 필드에 놓으면 세트됩니다. 내는 방법이 하나뿐인 카드는 바로 플레이됩니다. 선택하는 동안 카드는 <b>존 위에서 기다리고</b>, <b>패 안에서 카드를 끌어 순서를 바꿀</b> 수 있습니다. 패의 어떤 카드든 집어 들고 움직일 수 있습니다.</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>아트</em><h3>새 초상화</h3>
+<p class="pn0_2_43-lead"><b>캐릭터 초상화 38개</b>를 새것으로 교체하고, 모든 <b>캐릭터 팩</b>도 그에 맞춰 다시 만들었습니다.</p></div>
+<div class="pn0_2_43-big"><em>메인 메뉴</em><h3>달성률</h3>
+<p class="pn0_2_43-lead">타이틀 화면에 업적으로 계산한 <b>게임 달성률</b>이 표시됩니다.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>설정</em><h3>새 설정</h3>
+<p class="pn0_2_43-lead"><b>회전/슬롯 효과</b>: 돌아가는 릴을 끌 수 있습니다. 듀얼리스트의 <b>일본 원작 이름</b>(카드 이름은 그대로). <b>단일 선택 자동</b>, 기본으로 켜짐. <b>자동 배치</b>가 이제 기본으로 켜져 있습니다.</p></div>
+<div class="pn0_2_43-big"><em>덱 편집</em><h3>자동 채우기</h3>
+<p class="pn0_2_43-lead">카드가 부족한가요? 카드 수 옆의 <b>회색 화살표</b>가 덱을 채울 카드를 보여 주고, 한 번 탭하면 추가합니다.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>태그 듀얼</em><h3>상점에서 교환</h3>
+<p class="pn0_2_43-lead">상점의 덱 편집에서 <b>교환</b> 버튼이 작동합니다. 교환이 열려 있는 동안 쇼핑은 기다립니다. 내가 참가했던 방이 <b>가득 찼다</b>고 나오지 않습니다.</p></div>
+<div class="pn0_2_43-big"><em>드래프트</em><h3>덱과 유물 보기</h3>
+<p class="pn0_2_43-lead">카드를 고르는 동안과 상대를 기다리는 동안 <b>덱을 볼 수</b> 있습니다. 대기실에 <b>두 플레이어의 이름과 유물</b>이 표시되고, 드래프트 덱 편집에서도 내 유물이 보입니다.</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>변경 사항</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span><b>상점 투어</b>가 손 모양으로 각 부분을 가리키고 나머지를 어둡게 합니다.</span></li>
+<li><span>♾️</span><span>라이프 포인트는 <b>10,000,000</b>에서 멈추고 <b>∞</b>로 표시됩니다.</span></li>
+<li><span>❓</span><span>융합 힌트에 아직 찾지 못한 융합 유물도 <b>???</b> 실루엣으로 표시됩니다.</span></li>
+<li><span>🔭</span><span><b>덱 망원경</b>는 몬스터, 마법, 함정, 엑스트라 덱 순으로 보여 줍니다.</span></li>
+<li><span>📝</span><span><b>해피 레이디</b>, <b>의식 몬스터</b>, <b>식인 곤충</b> 등에 룰 메모 추가.</span></li>
+<li><span>🎨</span><span><b>듀얼 테마</b> 색조를 옅게 해 움직이는 배경이 보이도록 했습니다.</span></li>
+<li><span>🐉</span><span><b>해피의 애완 드래곤</b>이 마이의 팩에서 훨씬 자주 나옵니다.</span></li>
+<li><span>🏆</span><span>보상 화면에 <b>엑조디아</b>나 <b>종언의 카운트 다운</b> 승리의 최소 금액이 표시됩니다.</span></li>
+<li><span>🔗</span><span>기기 연결 코드는 <b>24시간</b> 유효합니다.</span></li>
+<li><span>🧠</span><span>CPU: 같은 카드는 <b>한 턴에 3번까지</b>만 쓰고, 화목의 사자, 고통의 선택, 얕은 무덤, 재융합, 퓨전 웨폰을 더 잘 씁니다.</span></li>
+<li><span>👴</span><span>세로 모드에서 솔로몬이 조금 더 수다스러워졌습니다.</span></li>
+</ul></div>
+<div><h2>수정 사항</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>Linux 앱: 더 이상 <b>Starting campaign runtime</b>에서 멈추지 않습니다.</span></li>
+<li><span>🪟</span><span>Windows 앱: <b>방화벽이 온라인 플레이를 막을</b> 때 명확한 메시지를 보여 줍니다.</span></li>
+<li><span>⚔️</span><span><b>세 번째 문</b>가 있어도 <b>묘지기의 마법</b> 아래에서 다시 공격할 수 있습니다.</span></li>
+<li><span>🌀</span><span><b>차원의 균열</b>가 세트된 카드도 제외합니다.</span></li>
+<li><span>✅</span><span>긴 카드 목록이 더 이상 <b>✓ / ✕</b> 버튼을 가리지 않아 <b>전방위 제외</b>를 건너뛸 수 있습니다.</span></li>
+<li><span>👀</span><span>상대의 <b>고통의 선택</b>에서 고를 카드가 보입니다.</span></li>
+<li><span>🚫</span><span>막힌 존이 다음 듀얼까지 이어지지 않습니다.</span></li>
+<li><span>⛓️</span><span><b>체인: 가끔</b>에서도 <b>드롭 오프</b>를 물어봅니다.</span></li>
+<li><span>💊</span><span>CPU가 <b>시모치의 부작용</b>가 있을 때 회복하지 않습니다.</span></li>
+<li><span>🧬</span><span><b>DNA 재작성</b>: 패의 카드에 새 종족의 보너스가 표시됩니다.</span></li>
+<li><span>🎲</span><span>유물 없는 드래프트 듀얼에서 첫 주사위 결과가 반복되지 않습니다.</span></li>
+<li><span>⏯️</span><span>마지막 듀얼에서 멈춘 런이 다시 이어집니다.</span></li>
+</ul></div>
+</section></div>

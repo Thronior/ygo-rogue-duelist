@@ -222,8 +222,7 @@ class TagCampaign:
 
    self.sync()
 
-  self.trade=self.new_trade()
-
+  # A trade vote made before the purchase stays: trading can't run during a purchase, and new copies only join the end.
   event=dict(id=uuid.uuid4().hex,kind='buy',items=carts,results=results)
 
   self.shopping.update(carts=[[],[]],locks=[None,None],cart_rev=self.shopping['cart_rev']+1,event=event)
@@ -421,9 +420,9 @@ class TagCampaign:
 
  def trade_command(self,seat,action,value):
 
-  legacy_trade=self.phase=='shop' and self.trade['status'] in ('select','received') and action!='trade-vote'
-
-  if not legacy_trade and (self.phase!='draft' or self.shared.get('round',0)<1):raise ValueError('Trading is available in the deck editor after both players finish shopping.')
+  # Trading opens in the shop's deck editor too (user, 2026-11-23), from the first shop on. While a trade runs, shopping
+  # waits (apply refuses every other action), so a purchase never renumbers a collection mid-trade.
+  if self.phase not in ('shop','draft') or self.shared.get('round',0)<1:raise ValueError('Trading is available in the deck editor after your first duel.')
 
   t=self.trade
 
@@ -718,7 +717,7 @@ class TagCampaign:
 
    if not ar.has(run,'deck_spyglass') or int(value) not in run['routes']:raise ValueError('Deck Spyglass is required.')
 
-   i=int(value);main=game.opponent_deck(run['round'],random.Random(i+run['round']*101),i,run.get('tutorial_variants',{}).get(str(i),0));return main+([] if run['round']==0 else content.opponent_record(run['round'],i)['extra'])
+   i=int(value);main=game.opponent_deck(run['round'],random.Random(i+run['round']*101),i,run.get('tutorial_variants',{}).get(str(i),0));import deck_view;return deck_view.ordered(main+([] if run['round']==0 else content.opponent_record(run['round'],i)['extra']),game.BY_ID)
 
   if action.startswith('trade-'):return self.trade_command(seat,action,value)
 

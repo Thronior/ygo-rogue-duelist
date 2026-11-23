@@ -1,5 +1,6 @@
 // Offline-only: exports the code-drawn duel backgrounds to low-resolution looping H.264 clips.
 // node export_duel_scenes.cjs <playwright> <ffmpeg> [scene] [--still]
+// A scene may set its own `crf` (soft scenes compress harder with no visible loss).
 const {chromium}=require(process.argv[2]||'playwright');
 const {spawn}=require('child_process'),{once}=require('events');
 const fs=require('fs'),path=require('path');
@@ -17,12 +18,12 @@ const options=['-an','-c:v','libx264','-profile:v','main','-level:v','3.1','-pix
   const named=process.argv.slice(4).find(x=>!x.startsWith('--'));
   const scenes=await page.evaluate(()=>Object.keys(duelScenes)),selected=named?[named]:scenes;
   for(const scene of selected){
-   const seconds=await page.evaluate(async id=>{document.body.innerHTML=`<div class="bgx ${id}">${duelScenes[id].html()}</div>`;await document.fonts.ready;await Promise.all([...document.querySelectorAll('.bgx *')].map(el=>{const m=getComputedStyle(el).backgroundImage.match(/url\("(.+)"\)/s);if(!m)return;const i=new Image();i.src=m[1];return i.decode().catch(()=>{})}));const animations=document.getAnimations();animations.forEach(a=>a.pause());
-    window.seek=t=>{for(const a of animations)a.currentTime=t*1000;return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))};return duelScenes[id].seconds},scene);
+   const [seconds,crf]=await page.evaluate(async id=>{document.body.innerHTML=`<div class="bgx ${id}">${duelScenes[id].html()}</div>`;await document.fonts.ready;await Promise.all([...document.querySelectorAll('.bgx *')].map(el=>{const m=getComputedStyle(el).backgroundImage.match(/url\("(.+)"\)/s);if(!m)return;const i=new Image();i.src=m[1];return i.decode().catch(()=>{})}));const animations=document.getAnimations();animations.forEach(a=>a.pause());
+    window.seek=t=>{for(const a of animations)a.currentTime=t*1000;return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))};return [duelScenes[id].seconds,duelScenes[id].crf]},scene);
    const name='duel-'+scene,final=path.join(out,name+'.mp4');
    await page.evaluate(()=>seek(0));fs.writeFileSync(path.join(out,name+'.jpg'),await page.screenshot({type:'jpeg',quality:86}));
    if(stillOnly){console.log('STILL',name);continue}
-   const encoder=spawn(ff,['-hide_banner','-loglevel','error','-y','-f','image2pipe','-framerate',String(fps),'-i','pipe:0',...options,final],{stdio:['pipe','inherit','inherit']});
+   const encoder=spawn(ff,['-hide_banner','-loglevel','error','-y','-f','image2pipe','-framerate',String(fps),'-i','pipe:0',...options.map((o,i)=>crf&&options[i-1]==='-crf'?String(crf):o),final],{stdio:['pipe','inherit','inherit']});
    const ended=once(encoder,'close');encoder.stdin.on('error',()=>{});
    const frames=seconds*fps;
    for(let i=0;i<frames;i++){

@@ -125,7 +125,9 @@ local function can(c,e,l,p) return c:IsMonster() and c:GetLevel()==l and c:IsCan
  elif key=='reckless_spear':out.append(stat('EFFECT_DIRECT_ATTACK',1));atk(-700)
  elif key=='nocturnal_guard':defense(600,'Duel.GetTurnPlayer()==1');atk(-300,'Duel.GetTurnPlayer()==0')
  elif key=='narrow_gate':
-  out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x18181818) Duel.RegisterEffect(e,0) end''')
+  # The first and last Main Monster Zone and Spell & Trap Zone of both players (sequences 0 and 4: bits 0/4, 8/12, and
+  # 16+ for the opponent); the user, 2026-11-23, in place of the fourth and fifth (0x18181818). Field Zones stay open.
+  out.append('''if not RogueNarrowGate then RogueNarrowGate=true local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_DISABLE_FIELD) e:SetValue(0x11111111) Duel.RegisterEffect(e,0) end''')
  elif key=='trapbound_idol':
   out.append(stat('EFFECT_INDESTRUCTABLE_BATTLE',1,'c:IsType(TYPE_TRAPMONSTER)'))
   # Paid as the card activates, so a Spell you cannot afford cannot be activated.
@@ -202,8 +204,9 @@ give(EFFECT_SET_BASE_ATTACK,math.floor(math.max(0,c:GetAttack())/2)) give(EFFECT
   out.append(phase('STANDBY','local g=Duel.GetMatchingGroup(Card.IsAbleToRemove,0,LOCATION_DECK,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_REMOVE) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] Duel.Remove(s,POS_FACEUP,REASON_EFFECT) end Duel.ShuffleDeck(0)',
    'Duel.IsExistingMatchingCard(Card.IsAbleToRemove,0,LOCATION_DECK,0,1,nil)'))
  elif key=='dimensional_rift':
-  # Macro Cosmos's rule for both players, from the start of the Duel.
-  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_TO_GRAVE_REDIRECT) e:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE) e:SetTargetRange(0xff,0xff) e:SetValue(LOCATION_REMOVED) Duel.RegisterEffect(e,0) end')
+  # Macro Cosmos's rule for both players, from the start of the Duel, with its flags: without SET_AVAILABLE a Set card
+  # destroyed face-down still went to the GY (flag c81f6011, 2026-11-23).
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_TO_GRAVE_REDIRECT) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_IGNORE_RANGE+EFFECT_FLAG_IGNORE_IMMUNE) e:SetTargetRange(0xff,0xff) e:SetValue(LOCATION_REMOVED) Duel.RegisterEffect(e,0) end')
  elif key=='spell_provider':
   # Only one card can hold a Spell Counter: it gets the counter without a prompt (itch.io, user 2026-11-22).
   holder='function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end'

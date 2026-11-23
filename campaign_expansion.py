@@ -568,7 +568,9 @@ def install(g):
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
    notes['Challenge level penalty']=['−25%','']
-  if card_win and total<card_win[1]:tally[card_win[0]]=card_win[1]-total;total=card_win[1]
+  # The win's floor shows beside its line, so a penalty that it makes up is explained (Discord 2026-11-23: an Exodia win
+  # at LVL 3+ looked like the penalty vanished).
+  if card_win and total<card_win[1]:tally[card_win[0]]=card_win[1]-total;total=card_win[1];notes[card_win[0]]=[f'≥{card_win[1]}','']
   bonus=custom_cards.coins(events)
   if bonus:tally['Ancient Treasure']=bonus;total+=bonus
   bonus=variant_relics.coins(run,events)

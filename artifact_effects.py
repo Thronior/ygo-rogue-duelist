@@ -1,4 +1,10 @@
 """Core-backed rules for the expanded regular artifact pool."""
+# Sphinx relics (2026-11-23): the "Sphinx" set code, and the cards outside it whose text mentions a Sphinx: "Pyramid of Light"
+# and "Exxod, Master of The Guard" (every card in the game with "sphinx" in its name or text is one of these).
+SET_SPHINX='0x5c'
+PYRAMID_OF_LIGHT=53569894
+SPHINX_MENTIONS='53569894,55737443'
+SPHINX_MONSTER_MENTIONS='55737443'
 def effect(kind,amount,attribute=''):
  from variant_relics import effect as variant_effect
  result=variant_effect(kind)
@@ -154,15 +160,38 @@ end'''
   end)
   fc:RegisterEffect(e)'''+finish+'''
 end'''
+ # Sphinx relics (user, 2026-11-23). Pyramid of Lightning: a new "Pyramid of Light" from outside the Duel (not the Deck's,
+ # as Final Hour's Final Countdown) goes face-up into the Spell & Trap Zone. Chimera Sphinx shares it (relic_fusions.py).
+ if kind=='starting_pyramid':return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() if Duel.GetLocationCount(0,LOCATION_SZONE)>0 then local tc=Duel.CreateToken(0,{PYRAMID_OF_LIGHT}) --[[relic-hint]] Duel.MoveToField(tc,0,0,LOCATION_SZONE,POS_FACEUP,true) end end) Duel.RegisterEffect(e,0) end'''
+ # Bond of Egypt: a Normal or Tribute Summon of a "Sphinx" monster (set code 0x5c) adds 1 "Sphinx" card, or a card whose text
+ # mentions one (SPHINX_MENTIONS), from the Deck. Tribute Sets are not Summons and do not count.
+ if kind=='sphinx_search':return f'''do local function search(c) return (c:IsSetCard({SET_SPHINX}) or c:IsCode({SPHINX_MENTIONS})) and c:IsAbleToHand() end
+local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS)
+e:SetCondition(function(e,tp,eg) return eg:IsExists(function(c) return c:IsControler(0) and c:IsFaceup() and c:IsSetCard({SET_SPHINX}) end,1,nil) and Duel.IsExistingMatchingCard(search,0,LOCATION_DECK,0,1,nil) end)
+e:SetOperation(function(e) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATOHAND) local g=Duel.SelectMatchingCard(0,search,0,LOCATION_DECK,0,1,1,nil)
+ if #g>0 then Duel.SendtoHand(g,nil,REASON_EFFECT) Duel.ConfirmCards(1,g) end end)
+Duel.RegisterEffect(e,0) end'''
+ # Shadow of Anubis: "Sphinx" monsters in the hand are Level 4 (so they Normal Summon without Tributes) while you control a
+ # face-up "Andro Sphinx" or "Sphinx Teleia"; amount 1 drops that condition (Chimera Sphinx).
+ if kind=='sphinx_hand_level':
+  condition='' if amount else ''' e:SetCondition(function() return Duel.IsExistingMatchingCard(function(c) return c:IsFaceup() and c:IsCode(15013468,51402177) end,0,LOCATION_MZONE,0,1,nil) end)'''
+  return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_LEVEL) e:SetTargetRange(LOCATION_HAND,0)
+e:SetTarget(function(e,c) return c:IsMonster() and c:IsSetCard({SET_SPHINX}) end){condition} e:SetValue(4) Duel.RegisterEffect(e,0) end'''
  # Toon Premiere: a Toon World from the Deck goes face-up into the Spell & Trap Zone, so no 1000 LP is paid (no activation).
  if kind=='starting_toon_world':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local tc=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,15259703) if tc and Duel.GetLocationCount(0,LOCATION_SZONE)>0 then --[[relic-hint]] Duel.MoveToField(tc,0,0,LOCATION_SZONE,POS_FACEUP,true) end end) Duel.RegisterEffect(e,0) end'''
+ # Sealed Fate: Destiny Board (94212438) and Spirit Message "I"/"N"/"A"/"L" in our Spell & Trap Zone, face-up or Set.
+ if kind=='destiny_untargetable':return '''do local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET) t:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+t:SetTargetRange(LOCATION_SZONE,0) t:SetTarget(function(e,c) return c:IsCode(94212438,31893528,67287533,94772232,30170981) end) t:SetValue(1) Duel.RegisterEffect(t,0) end'''
  if kind=='starting_field_spell':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_low_level':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsSetCard(0x41) and c:IsLevelAbove(1) and c:IsLevelBelow(4) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
+ # Restless Dead: your opponent's Standby Phase since 2026-11-23 (user; Discord, Ace39: on your own it worked against
+ # Call of the Mummy and other Zombie plays), so a field cleared on your turn is guarded before their attack.
  if kind=='standby_zombie_revive':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1)
-e:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
+e:SetCondition(function() return Duel.GetTurnPlayer()==1 and Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
 e:SetOperation(function(e) local g=Duel.GetMatchingGroup(function(c) return c:IsRace(RACE_ZOMBIE) and c:IsCanBeSpecialSummoned(e,0,0,false,false,POS_FACEUP_DEFENSE) end,0,LOCATION_GRAVE,0,nil) if #g>0 then Duel.SpecialSummon(g:RandomSelect(0,1),0,0,0,false,false,POS_FACEUP_DEFENSE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_union':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsMonster() and c:IsType(TYPE_UNION) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
@@ -288,12 +317,26 @@ end'''
   e:SetTargetRange(LOCATION_ALL,LOCATION_ALL)
   e:SetTarget(function(e,c) return not c:IsType(TYPE_TOKEN) end)
   e:SetValue(function(e,c,r)
-   if state.probing>0 then return (state.count+1)%3==0 and LOCATION_REMOVED or 0 end
+   -- A player-level check (IsPlayerCanDiscardDeckAsCost, Gravekeeper's Servant's attack cost) asks with no card: answer
+   -- it like a probe. Indexing state.pending with nil threw, the check failed and no attack could be declared (flag b1e7ee57).
+   if state.probing>0 or not c then return (state.count+1)%3==0 and LOCATION_REMOVED or 0 end
    local ordinal=state.pending[c]
    if not ordinal then state.count=state.count+1 ordinal=state.count state.pending[c]=ordinal end
    return ordinal%3==0 and LOCATION_REMOVED or 0
   end)
   Duel.RegisterEffect(e,0)
+  -- The core refuses "send the top card(s) of your Deck to the GY" costs while any GY redirect covers the Deck (Macro
+  -- Cosmos's lock). This relic banishes only every third card, so that one check leaves the Deck out of its range:
+  -- with Gravekeeper's Servant out, no attack could be declared (flag b1e7ee57).
+  local discard=Duel.IsPlayerCanDiscardDeckAsCost
+  if discard then Duel.IsPlayerCanDiscardDeckAsCost=function(...)
+   local range=LOCATION_ALL&~LOCATION_DECK
+   e:SetTargetRange(range,range)
+   local result=table.pack(pcall(discard,...))
+   e:SetTargetRange(LOCATION_ALL,LOCATION_ALL)
+   if not result[1] then error(result[2]) end
+   return table.unpack(result,2,result.n)
+  end end
   local moved=Effect.GlobalEffect() moved:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) moved:SetCode(EVENT_MOVE)
   moved:SetOperation(function(e,tp,eg) for c in eg:Iter() do state.pending[c]=nil end end)
   Duel.RegisterEffect(moved,0)

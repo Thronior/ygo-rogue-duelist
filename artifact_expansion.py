@@ -21,6 +21,9 @@ def install(artifact):
  artifact('terraforming_relic','Terraforming',90,'Add a random Field Spell from your Deck to your starting hand.','Terraforming','starting_field_spell',0,'draw')
  # Toon Premiere (user, 2026-11-23, from a Discord suggestion for Pegasus' Toons): Toon World without its 1000 LP.
  artifact('toon_premiere','Toon Premiere',90,'At the start of each Duel, place 1 "Toon World" from your Deck face-up in your Spell & Trap Zone.','Comic Hand','starting_toon_world',0,'draw')
+ # Sealed Fate (user, 2026-11-23, after Twist and Lexi on Discord asked for Destiny Board support): no card can target the
+ # board or its messages; destroying them without a target (Heavy Storm, Harpie's Feather Duster) still works.
+ artifact('sealed_fate','Sealed Fate',80,'"Destiny Board" and "Spirit Message" cards you control cannot be targeted by card effects.','Destiny Board','destiny_untargetable',0,'defense')
  artifact('restless_stone','Restless Stone',120,'Once per turn, a Rock monster you control can change its battle position the turn it was Summoned or Set.','Stone Statue of the Aztecs','rock_reposition',0,'other')
  artifact('token_regiment','Token Regiment',90,'Tokens you control gain 750 ATK.',73915052,'token_atk',750,'offense')
  artifact('token_resonance','Token Resonance',100,'Tokens you control gain double the ATK and DEF from any card or relic.',73915053,'token_double',0,'offense')
@@ -54,10 +57,15 @@ def install(artifact):
  artifact('level_up_relic','LEVEL UP',90,'Add 1 "Level Up!" to your starting hand.','Level Up!','starting_level_up',0,'draw')
  artifact('overcharge','Overcharge',95,'Thunder monsters you control gain 200 ATK for each other face-up Thunder monster you control.','Battery Charger','overcharge',200,'offense')
  artifact('kindred_bond','Kindred Bond',95,'Monsters you control gain 100 ATK/DEF for each other face-up monster you control with the same Type.','Mystical Shine Ball','kindred_bond',100,'offense')
- artifact('restless_dead','Restless Dead',100,'Once per turn, at the start of your Standby Phase, if you control no monsters, Special Summon 1 random Zombie monster from your GY in Defense Position.','Call of the Mummy','standby_zombie_revive',0,'summoning')
+ artifact('restless_dead','Restless Dead',100,"Once per turn, at the start of your opponent's Standby Phase, if you control no monsters, Special Summon 1 random Zombie monster from your GY in Defense Position.",'Call of the Mummy','standby_zombie_revive',0,'summoning')
  artifact('union_hangar','Union Hangar',90,'Add a random Union monster from your Deck to your starting hand.','Formation Union','starting_union',0,'draw')
  # User request 2026-11-09; with Union Dock and Union Hangar it fuses into Union Buster (relic_fusions.py).
  artifact('unionize','Unionize',80,'Monsters you control gain 300 ATK for each Union monster equipped to them.','Union Attack','union_equip_atk',300,'offense')
  artifact('ten_thousand_hands','Ten-thousand Hands',90,'Add a random Ritual Monster or Ritual Spell from your Deck to your starting hand.','Manju of the Ten Thousand Hands','starting_ritual',0,'draw')
  artifact('bounty_list','Bounty List',100,'Each Duel, receive a random bounty objective in the deck editor. Complete it to earn a random 50–120 coins.','WANTED: Seeker of Sinful Spoils','bounty_list',0,'economy')
  artifact('loyalty','Loyalty',100,'Your opponent cannot take control of monsters you control.','Blindly Loyal Goblin','loyalty',0,'defense')
+ # Sphinx relics (user, 2026-11-23, for Anubis' Pyramid of Light Sphinxes); with all three they fuse into Chimera Sphinx.
+ # Pyramid of Lightning's Pyramid comes from outside the Duel, as Final Hour's Final Countdown does (artifact_effects.py).
+ artifact('pyramid_of_lightning','Pyramid of Lightning',60,'At the start of each Duel, place 1 "Pyramid of Light" face-up in your Spell & Trap Zone.','Pyramid of Light','starting_pyramid',0,'draw')
+ artifact('bond_of_egypt','Bond of Egypt',80,'If you Normal or Tribute Summon a "Sphinx" monster: Add 1 "Sphinx" card, or 1 card that mentions "Sphinx" in its text, from your Deck to your hand.','Sphinx Teleia','sphinx_search',0,'draw')
+ artifact('shadow_of_anubis','Shadow of Anubis',90,'While you control "Andro Sphinx" or "Sphinx Teleia", "Sphinx" monsters in your hand become Level 4.','Judgment of Anubis','sphinx_hand_level',0,'summoning')

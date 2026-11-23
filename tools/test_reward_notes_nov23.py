@@ -22,6 +22,10 @@ base_total=total-tally['Glass Shard']-tally['Challenge level penalty']
 assert tally['Glass Shard']==base_total*8 and tally['Challenge level penalty']==base_total*9*3//4-base_total*9,(tally,total)
 tally,total,notes=pay(['cursed_glass_treasury'])
 assert notes=={'Glass Treasury':['+25%','']},notes
+# An Exodia win tops the payout up to its floor after the LVL 3+ penalty; the floor shows beside the line (Discord 2026-11-23).
+run=copy.deepcopy(r);run.update(artifacts=[],challenge_level=3);tally,total=g.rewards(run,[],reason=0x10);notes=run['last_reward_notes']
+assert total>=150 and ('Exodia win' not in tally or notes.get('Exodia win')==['≥150','']),(tally,notes)
+if 'Exodia win' in tally:print('Exodia floor note',notes['Exodia win'])
 # The card draws the note beside its line.
 js="import {victoryRewardsMarkup} from './android/web/experience-ui.js';const h=victoryRewardsMarkup({'Victory':30,'Glass Shard':1704,'Challenge level penalty':-480},[],[],{'Glass Shard':['×9','Magic Mirror'],'Challenge level penalty':['−25%','']});if(!h.includes('×9')||!h.includes('Magic Mirror')||!h.includes('−25%'))throw Error(h);console.log('ok')"
 node=ROOT/'runtime/ai/node.exe'

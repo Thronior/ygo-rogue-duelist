@@ -61,13 +61,7 @@ def auto_deck(run):
     # Every signature card stays in the deck; they fill the first pool slots (the Deck Assembler variant has none).
     chosen, counts = list(range(len(run['guaranteed']))), Counter(limit_identity(c) for c in run['guaranteed'])
     options = list(range(len(chosen),len(run['pool'])))
-    # A playable draft needs enough low-level monsters, then useful spells/traps.
-    def score(i):
-        c=BY_ID[run['pool'][i]]
-        if is_extra(c['id']): return -10000
-        if c['data']['type'] & 1:
-            return 3000 + max(c['atk'], c['defense']) if normal_starter(c['id']) else c['atk']-2500
-        return 2500
+    score=lambda i:auto_score(run,i)
     for i in sorted(options, key=score, reverse=True):
         cid=run['pool'][i]
         limit=__import__('approved_relics').copy_limit(run)
@@ -75,6 +69,31 @@ def auto_deck(run):
             chosen.append(i); counts[limit_identity(cid)]+=1
         if sum(not is_extra(run['pool'][j]) for j in chosen)>=__import__('approved_relics').minimum(run): break
     run['selected']=sorted(chosen)
+
+# A playable draft needs enough low-level monsters, then useful spells/traps.
+def auto_score(run,i):
+    c=BY_ID[run['pool'][i]]
+    if is_extra(c['id']): return -10000
+    if c['data']['type'] & 1:
+        return 3000 + max(c['atk'], c['defense']) if normal_starter(c['id']) else c['atk']-2500
+    return 2500
+
+# Auto-fill (user, 2026-11-23): the pool indices that bring the Main Deck up to its minimum, best first by auto_deck's
+# score, keeping every card already chosen and the copy limit. The deck editor's arrow previews them, then adds them.
+def fill_picks(run):
+    from content import fixed_deck, copies_deck
+    from approved_relics import copy_limit, minimum
+    if fixed_deck(run) or copies_deck(run): return []
+    limit=copy_limit(run);chosen=set(run['selected'])
+    counts=Counter(limit_identity(run['pool'][i]) for i in chosen)
+    need=minimum(run)-sum(not is_extra(run['pool'][i]) for i in chosen)
+    picks=[]
+    for i in sorted((i for i in range(len(run['pool'])) if i not in chosen), key=lambda i:auto_score(run,i), reverse=True):
+        if need<=0: break
+        cid=run['pool'][i]
+        if is_extra(cid) or limit is not None and counts[limit_identity(cid)]>=limit: continue
+        picks.append(i);counts[limit_identity(cid)]+=1;need-=1
+    return picks
 
 def rewards(run, events):
     from duel_rewards import score

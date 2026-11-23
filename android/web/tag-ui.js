@@ -84,9 +84,9 @@ export class TagUI {
  // Card records by id: deck and trade views look cards up inside filters and sorts.
  cardById(id){if(this.cardIndex?.source!==this.content.cards)this.cardIndex={source:this.content.cards,byId:new Map(this.content.cards.map(c=>[c.id,c]))};return this.cardIndex.byId.get(id)}
 
- constructor({sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null,randomCards=null,onRunMark=()=>{}}){
+ constructor({spinOff=()=>false,sound=()=>{},tickSound=()=>{},stopTick=()=>{},root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards=()=>{},onDuel,onExit,onBack=async()=>{},onView=()=>{},onStatus=()=>{},sleeve=()=>null,randomCards=null,onRunMark=()=>{}}){
 
-  Object.assign(this,{sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve,randomCards,onRunMark});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
+  Object.assign(this,{spinOff,sound,tickSound,stopTick,root,content,profile,backend,image,inspect,inspectPack,dialog,showRewards,showScorecard,openPacks,onGoldenCards,onDuel,onExit,onBack,onView,onStatus,sleeve,randomCards,onRunMark});this.desktop=!!new URLSearchParams(location.search).get('desktop');this.screen='select';this.joinCode='';this.character=profile.unlocked[0]??0;this.level=rememberedLevel(profile,this.character);this.tab='deck';this.deckFilter='All';this.deckSort=savedDeckSort(TAG_DECK_SORTS);this.deckStatus=savedDeckStatus();this.packQueue=Promise.resolve();this.selection=new Set();this.status='';this.working=false;this.alive=true;
 
   this.click=e=>{const el=e.target.closest('[data-tag]');if(!el||!this.alive)return;e.stopImmediatePropagation();if(this.dragged)return;if(el.dataset.tag==='character')this.sound('flip',.25);else if(el.dataset.tag==='start')this.sound('activate',.4);this.action(el.dataset.tag,el).catch(error=>this.error(error))};
 
@@ -268,12 +268,14 @@ export class TagUI {
 
   const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>${bountyBanner(r)}`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main ${deckKindsMarkup(r.selected.map(i=>Number(lookup(r.pool[i])?.data.type)).filter(t=>!(t&64)))} · ${extraDeckMarkup(r.selected.length-main)} · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${bountyBanner(r)}${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
-  const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',`class="tag-trade-vote" ${waiting||this.working?'disabled':''}`):'';
+  // The shop's deck editor trades too (user, 2026-11-23; AngelSad on Discord looked for it there on 2026-11-22).
+  const tradeVote=this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',`class="tag-trade-vote" ${waiting||this.working?'disabled':''}`):'';
+  const tradeTool=(inShop?button('Back to shop','shop-back','class="tag-back-shop"'):'')+tradeVote;
 
   this.root.innerHTML=this.header(body+ready,tools+tradeTool+(this.tab==='deck'?button(relicEyeIcon,'relics','class="navigation-icon-button" aria-label="Relics" title="Relics"'):''),'tag-offline-draft'+(boss&&this.tab!=='deck'?' boss':''));if(this.tab!=='deck')mountRunProgress(this.root.querySelector('.tag-page'),r,{content:this.content});
 
   // Both bosses spin together; after a reroll only the new boss spins.
-  if(boss&&this.tab!=='deck'&&!inShop){const key=JSON.stringify([r.round,r.routes]);if(this.bossRevealKey!==key){const seen=this.bossSeen?.round===r.round?this.bossSeen.routes:[],fresh=r.routes.filter(i=>!seen.includes(i));this.bossRevealKey=key;this.bossSeen={round:r.round,routes:[...r.routes]};playEncounterReveal({content:this.content,run:r,voice:bossNameVoice,opponents:fresh.length?fresh:r.routes,slot:true,sound:this.sound,tickSound:this.tickSound,stopTick:this.stopTick,active:()=>this.alive&&this.view?.phase==='draft'}).catch(e=>this.error(e))}}
+  if(boss&&this.tab!=='deck'&&!inShop){const key=JSON.stringify([r.round,r.routes]);if(this.bossRevealKey!==key){const seen=this.bossSeen?.round===r.round?this.bossSeen.routes:[],fresh=r.routes.filter(i=>!seen.includes(i));this.bossRevealKey=key;this.bossSeen={round:r.round,routes:[...r.routes]};playEncounterReveal({content:this.content,run:r,voice:bossNameVoice,opponents:fresh.length?fresh:r.routes,slot:true,...(this.spinOff()?{reduced:true}:{}),sound:this.sound,tickSound:this.tickSound,stopTick:this.stopTick,active:()=>this.alive&&this.view?.phase==='draft'}).catch(e=>this.error(e))}}
 
   if(this.tab==='deck')deckReadyFeedback(this.root,main,deckMinimum(r,this.content.characters[r.character]),this);
 
@@ -408,7 +410,7 @@ export class TagUI {
  async flushShopDeck(){const d=this.shopDeck;if(!d||d.sent||this.view?.phase!=='shop'||d.code!==this.session?.code)return;d.sent=true;try{await this.session.request('deck',[...d.selected])}catch(error){d.sent=false;throw error}}
  editDeck(selected){
   const v=this.view;v.run.selected=selected;
-  if(v.phase==='shop')this.shopDeck={code:this.session.code,round:v.run.round,selected:[...selected],sent:false};else this.saveDraft();
+  if(v.phase==='shop'){this.shopDeck={code:this.session.code,round:v.run.round,selected:[...selected],sent:false};if(v.trade?.votes?.[v.seat])this.flushShopDeck().catch(error=>this.error(error))}else this.saveDraft();
  }
  // A purchase or reroll runs when the second player locks in, so both screens play it from the view.
  async playShopEvent(event,previous){
@@ -442,7 +444,7 @@ export class TagUI {
 
   const sent=t.sent[v.seat],received=t.status==='received';
 
-  if(received){this.tab='deck';if(v.phase==='shop')this.shop();else this.renderContent(true);const tradeButton=this.root.querySelector('[data-tag="trade-vote"]');if(tradeButton){tradeButton.textContent=t.ack[v.seat]?'Waiting for teammate':'Cards received';tradeButton.dataset.tag='trade-receipt';}if(this.receivedTradeId!==t.id){this.receivedTradeId=t.id;this.dialog('Cards received',`<div class="cardgrid">${t.received.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"><span>${esc(this.cardById(id)?.name||id)}</span></button>`).join('')||'<p>No cards received.</p>'}</div>${button('Back to deck','trade-ack',`class="primary" ${waiting?'disabled':''}`)}`);document.querySelector('#modal')?.addEventListener('close',()=>this.acknowledgeTrade().catch(e=>this.error(e)),{once:true})}return}
+  if(received){this.tab='deck';this.renderContent(true);const tradeButton=this.root.querySelector('[data-tag="trade-vote"]');if(tradeButton){tradeButton.textContent=t.ack[v.seat]?'Waiting for teammate':'Cards received';tradeButton.dataset.tag='trade-receipt';}if(this.receivedTradeId!==t.id){this.receivedTradeId=t.id;this.dialog('Cards received',`<div class="cardgrid">${t.received.map(id=>`<button class="cardbtn" data-tag="inspect" data-id="${id}"><img src="${this.image(id)}"><span>${esc(this.cardById(id)?.name||id)}</span></button>`).join('')||'<p>No cards received.</p>'}</div>${button('Back to deck','trade-ack',`class="primary" ${waiting?'disabled':''}`)}`);document.querySelector('#modal')?.addEventListener('close',()=>this.acknowledgeTrade().catch(e=>this.error(e)),{once:true})}return}
 
 
 
@@ -502,7 +504,7 @@ export class TagUI {
 
   if(action==='trade-vote'||action==='trade-send'){
 
-   this.working=true;try{const t=this.view.trade;const value={id:t.id};if(action==='trade-vote')value.ready=!t.votes[this.view.seat];if(action==='trade-send')value.cards=[...this.tradeSelection];await this.session.request(action,value)}finally{this.working=false;this.render()}return;
+   this.working=true;try{const t=this.view.trade;const value={id:t.id};if(action==='trade-vote'){value.ready=!t.votes[this.view.seat];if(value.ready)await this.flushShopDeck()}if(action==='trade-send')value.cards=[...this.tradeSelection];await this.session.request(action,value)}finally{this.working=false;this.render()}return;
 
   }
 
@@ -568,6 +570,8 @@ export class TagUI {
   if(action==='start'){this.working=true;try{await this.session.request('start')}finally{this.working=false;this.render()}return}
 
   if(['host','join-room','rejoin'].includes(action)){
+   // Enter in the code box, or a second tap, used to send another join while the first was still waiting.
+   if(this.working)return;
 
    const code=action==='rejoin'?el.code:this.joinCode.trim().toUpperCase();if(action==='join-room'&&!/^[A-Z2-9]{5}$/.test(code))throw Error('Enter the five-character room code.');
 
@@ -739,6 +743,8 @@ export class TagUI {
 
   const before=this.view?.phase,lastShop=before==='shop'?this.view.shopping:null;
   if(view.phase==='shop'){
+   // A trade renumbers the collection, so a shop deck edit the host hadn't confirmed when the trade began is dropped.
+   if(view.trade&&view.trade.status!=='idle')this.shopDeck=null;
    const d=this.shopDeck;
    if(d&&(d.code!==this.session.code||d.round!==view.run.round||d.selected.some(i=>i>=view.run.pool.length)))this.shopDeck=null;
    else if(d){if(d.sent&&JSON.stringify(d.selected)===JSON.stringify(view.run.selected))this.shopDeck=null;else view.run.selected=[...d.selected]}

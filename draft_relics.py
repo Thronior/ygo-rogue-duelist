@@ -85,4 +85,6 @@ def duel_setup(value):
   run=_base(value['characters'][side])
   run.update(artifacts=artifacts,mirror_copy=mirror,pool=cards,selected=list(range(len(cards))))
   scripts.append(passives.multiplayer_script(run,side) if artifacts else '')
- return {'passives':'\n'.join(s for s in scripts if s),'draw':draws[0],'enemyDraw':draws[1]}
+ # Every Draft duel gets the mixed seed (engine.js expandedSeed), relics or not (2026-11-23): without the marker the
+ # core is seeded [seed,17,71,31] and its first dice rolls and coin tosses came out the same in every duel.
+ return {'passives':'\n'.join(['-- SHADOW_RUN_RNG 2']+[s for s in scripts if s]),'draw':draws[0],'enemyDraw':draws[1]}

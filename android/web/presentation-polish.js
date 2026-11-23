@@ -1,6 +1,8 @@
 import {counterTick,stopCounterAudio} from './counter-audio.js';
 import {coinLabel} from './coin-label.js';
 import {lpDanger,lpGhost,statPop,defeatVoice} from './juice.js';
+// The LP count shows ∞ once a player reaches the 10,000,000 LP cap (lp-cap.js, 2026-11-23).
+import {lpText} from './lp-cap.js';
 // Finite, shared animation scheduler; detached nodes never retain a frame loop.
 const jobs=new Map(), duels=new WeakMap();
 let frame=0,shopKey,shopValue;
@@ -40,7 +42,7 @@ export function polishDuel(root,owner,s,lookup){
   const number=el.querySelector('strong');
   let meter=el.querySelector('.life-meter');if(!meter){meter=document.createElement('span');meter.className='life-meter';meter.setAttribute('aria-hidden','true');el.prepend(meter);el.classList.add('has-life-meter')}
   const from=Math.max(0,state.value/state.max),to=Math.max(0,target/state.max);
-  count(el,state,target,v=>{const text=String(Math.round(v));if(number.textContent!==text)number.textContent=text},620,healed?'lp-heal':'lp-damage');
+  count(el,state,target,v=>{const text=lpText(Math.round(v));if(number.textContent!==text)number.textContent=text},620,healed?'lp-heal':'lp-damage');
   // Keep the bar on the compositor: no inherited CSS variable updates per frame.
   if(fresh||changed||!meter.dataset.target){
    meter.getAnimations().forEach(a=>a.cancel());meter.style.transform=`scaleX(${to})`;meter.dataset.target=String(target);

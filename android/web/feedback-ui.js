@@ -76,7 +76,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
 
 
 
- else if(k==='variant_chitin_carapace'&&c.race==='Insect')d+=400;
+ else if(k==='variant_chitin_carapace'&&c.race==='Insect')d+=800;
 
  else if(k==='variant_village_banner'&&l===4){a+=200;d+=200;}
 
@@ -116,6 +116,8 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_harpie_nest'&&inSet(0x64)||k==='fused_amazoness_village'&&inSet(0x4)||k==='fused_zaloog_hideout'&&(inSet(0x1a)||card.id===76922029))a+=800;
  else if(k==='fused_necrovalley_throne'&&inSet(0x2e)){a+=800;d+=800;}
  else if(k==='fused_level_up_chain'&&inSet(0x41)||k==='fused_gadget_gadget'&&inSet(0x51))a+=500;
+ // Toon Kingdom: Toon monsters +500 ATK (Discord, Prunk44, 2026-11-23: the preview left it out).
+ else if(k==='fused_toon_kingdom'&&(t&0x400000))a+=500;
 
  }
 

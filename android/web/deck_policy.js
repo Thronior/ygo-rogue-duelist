@@ -156,7 +156,9 @@ export function deckPolicy(x){
   return {used,score:atk(f)-fieldCost+(name(f)==='Gatling Dragon'&&enemy.length>=2?1800:0)};
  }
  // Reaper on the Nightmare earns its place with direct attacks past their monsters and a random discard, not its ATK (2026-11-06).
- const fusionChoices=(graveOK=false)=>q(p,L.EXTRA).map(c=>({c,plan:fusionPlan(c,graveOK&&race(c)==='Machine')})).filter(a=>a.plan&&a.plan.score>=0&&(atk(a.c)>threat||name(a.c)==='Gatling Dragon'&&enemy.length>=2||name(a.c)==='Reaper on the Nightmare'&&enemy.length>0&&effectsEnabled(p)));
+ // A Fusion Weapon in hand adds 1500 to a Level 6 or lower Fusion (Johnny Steps deck review, 2026-11-23; smart_policy weaponBoost).
+ const weaponBoost=f=>(data(f).type&0x40)&&lvl(f)<=6&&hand.some(h=>name(h)==='Fusion Weapon')?1500:0;
+ const fusionChoices=(graveOK=false)=>q(p,L.EXTRA).map(c=>({c,plan:fusionPlan(c,graveOK&&race(c)==='Machine')})).filter(a=>a.plan&&a.plan.score>=0&&(atk(a.c)+weaponBoost(a.c)>threat||name(a.c)==='Gatling Dragon'&&enemy.length>=2||name(a.c)==='Reaper on the Nightmare'&&enemy.length>0&&effectsEnabled(p)));
  function activation(c,chain){const n=name(c),d=data(c),spent=c.location===L.GRAVE||c.location===L.REMOVED;
   if(n==='Blind Destruction')return blindDestructionValue();
   if(n==='Needle Wall')return needleWallValue();
@@ -225,6 +227,12 @@ export function deckPolicy(x){
   }
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
   if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpFrom(source,x)))?100:-1;
+  // Cocoon of Evolution - S (Moth LV line, 2026-11-23): Tribute a "Moth" monster for an Insect from the hand, ignoring its
+  // Summoning conditions. Only when the hand's best Insect is a real step up from the weakest Moth it would replace.
+  if(n==='Cocoon of Evolution - S'){
+   const moths=own.filter(x=>x.location===L.MZONE&&monster(x)&&/\bMoth\b/i.test(name(x))),insects=hand.filter(x=>monster(x)&&race(x)==='Insect');
+   return moths.length&&insects.length&&Math.max(...insects.map(x=>atk(x)))-Math.min(...moths.map(x=>atk(x)))>=800?95:-1;
+  }
   if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
   // Ancient Lamp (Lamp deck review, 2026-11-22). Its battle trigger (their attack on it while Set) is always worth it:
   // their attacker fights one of their own monsters. Its Main Phase effect Special Summons La Jinn from the hand for
@@ -736,6 +744,12 @@ export function deckPolicy(x){
    if(!ownCard||!monster(c))return -100000;
    if(c.location===L.MZONE){const ups=[...hand,...q(p,L.DECK)].filter(x=>monster(x)&&levelUpFrom(c,x));return ups.length?50000+Math.max(...ups.map(x=>atk(x)))-atk(c):-100000}
    return [L.HAND,L.DECK].includes(c.location)?50000+(levelUpTarget(c)?10000:0)+projectedAttack(c):-100000;
+  }
+  // Cocoon of Evolution - S: Tribute the weakest Moth, then Summon the strongest Insect in the hand.
+  if(n==='Cocoon of Evolution - S'){
+   if(!ownCard||!monster(c))return -100000;
+   if(c.location===L.MZONE)return /\bMoth\b/i.test(name(c))?50000-atk(c):-100000;
+   return c.location===L.HAND&&race(c)==='Insect'?50000+projectedAttack(c):-100000;
   }
   if(n==='Kaibaman')return ownCard&&c.location===L.HAND&&name(c)==='Blue-Eyes White Dragon'?50000+projectedAttack(c):-100000;
   if(n==='Riryoku'){

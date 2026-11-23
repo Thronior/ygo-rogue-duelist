@@ -46,7 +46,25 @@ assert len(s.players[0]['pool'])==len(before[0])+1 and len(s.players[1]['pool'])
 command(0,'trade-ack',{'id':tid});command(1,'trade-ack',{'id':tid})
 assert s.trade['requests']==[[],[]] and s.trade['id']!=tid,'a new trade starts with no requests'
 
+# The shop's deck editor trades too (user, 2026-11-23), after the first duel; while a trade runs the shop waits, and a
+# vote made before a purchase stays.
+s.phase='shop';tid=s.trade['id']
+command(0,'trade-vote',{'id':tid,'ready':True})
+s.trade['votes']=[True,False];s.buy_carts()
+assert s.trade['id']==tid and s.trade['votes']==[True,False],'a purchase keeps the trade vote'
+command(1,'trade-vote',{'id':tid,'ready':True})
+assert s.trade['status']=='select','both votes start the trade in the shop'
+refused(0,'shop-cart',[],'Finish the card trade')
+command(0,'trade-send',{'id':tid,'cards':[0]});command(1,'trade-send',{'id':tid,'cards':[]})
+command(0,'trade-ack',{'id':tid});command(1,'trade-ack',{'id':tid})
+assert s.trade['status']=='idle' and s.phase=='shop','back in the shop after the trade'
+def round_(n):
+ s.shared['round']=n
+ for run in s.players:run['round']=n
+round_(0);refused(0,'trade-vote',{'id':s.trade['id'],'ready':True},'after your first duel')
+round_(1);s.phase='draft'
+
 # A checkpoint saved before requests existed still loads its trade.
 del s.trade['requests'];s.trade['status']='select'
 assert s.trade_view(0)['requested']==[]
-print('PASS Tag trade requests: teammate collection and deck, requests both ways, validation, nothing moves by itself')
+print('PASS Tag trade requests: teammate collection and deck, requests both ways, validation, nothing moves by itself, trading from the shop')

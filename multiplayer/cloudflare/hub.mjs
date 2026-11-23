@@ -36,6 +36,12 @@ export class TagHub extends Hub {
   // background tab pings about once a minute, so the 75-second silence rule used to close its socket here). Only a
   // socket that closed, or stayed silent for PRESENCE_SILENCE, counts as gone, and the room counts as empty only once
   // nobody has been connected for EMPTY_FOR: the first empty answer starts the count and any connect clears it.
+  // The registry asks whether a seat is held before giving a lobby seat to a new joiner. As for presence, a quiet
+  // background tab still holds its seat; only a closed socket, or one silent for PRESENCE_SILENCE, counts as gone.
+  if(new URL(request.url).pathname==='/seat'){
+   const seat=Number((await request.json().catch(()=>({}))).seat);if(seat!==0&&seat!==1)return reply(400,{error:'Invalid seat.'});
+   this.stale(seat,Date.now(),PRESENCE_SILENCE);return reply(200,{online:this.online(seat)});
+  }
   if(new URL(request.url).pathname==='/presence'){
    const now=Date.now();this.stale(0,now,PRESENCE_SILENCE);this.stale(1,now,PRESENCE_SILENCE);
    if(this.online(0)||this.online(1)){await this.ctx.storage.delete('emptySince');return reply(200,{occupied:true})}

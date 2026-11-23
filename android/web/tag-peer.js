@@ -15,7 +15,16 @@ export class TagPeer {
   const result=await response.json();if(!response.ok){const error=Error(result.error||'Room service unavailable.');error.status=response.status;throw error}return result;
  }
  async host(){return this.open(await this.request('create'))}
- async join(code){if(!/^[A-Z2-9]{5}$/.test(code.toUpperCase()))throw Error('Enter the five-character room code.');const room=code.toUpperCase();return this.open(await this.request('join',{code:room,resumeToken:localStorage.getItem(this.endpoint+':tag:'+room)||undefined}))}
+ // A saved seat token the room no longer knows (its lobby seat went to someone else) is dropped, and the join is tried
+ // once more as a new player.
+ async join(code){
+  if(!/^[A-Z2-9]{5}$/.test(code.toUpperCase()))throw Error('Enter the five-character room code.');const room=code.toUpperCase(),key=this.endpoint+':tag:'+room,saved=localStorage.getItem(key);
+  if(saved)try{return await this.open(await this.request('join',{code:room,resumeToken:saved}))}catch(error){if(error.status!==400||!/cannot resume/i.test(error.message))throw error;localStorage.removeItem(key)}
+  // The join id stays until a join is answered, so a retry after a lost answer gets the same seat back.
+  const idKey=this.endpoint+':tag-join:'+room,joinId=localStorage.getItem(idKey)||crypto.randomUUID();localStorage.setItem(idKey,joinId);
+  let session;try{session=await this.request('join',{code:room,joinId})}catch(error){if(error.status&&error.status<500)localStorage.removeItem(idKey);throw error}
+  localStorage.removeItem(idKey);return this.open(session);
+ }
  async open(session){
   this.closed=false;Object.assign(this,session);localStorage.setItem(this.endpoint+':tag:'+this.code,this.token);await globalThis.flushDesktopStorage?.();
   this.onState(session.resumed?'reconnecting':'waiting',this.code);this.connectHub();return {code:this.code,seat:this.seat};
@@ -151,6 +160,7 @@ export class TagPeer {
  // A temporary disconnect keeps the seat token. Only Leave releases the room.
  suspend(){this.closed=true;this.linked=false;clearInterval(this.ticker);clearTimeout(this.ackTimer);this.ackTimer=null;clearTimeout(this.directTimer);this.directTimer=null;globalThis.removeEventListener?.('online',this.retryDirect);this.hub?.stop();this.hub=null;this.closeDirect()}
  // A room the host already closed answers 'leave' with an error; the seat is released either way (Discord, Nov 15:
- // the guest's Exit used to throw here and leave them stuck in the room).
- async close(){this.suspend();if(this.token){try{await this.request('leave')}catch{}localStorage.removeItem(this.endpoint+':tag:'+this.code);this.token=null;await globalThis.flushDesktopStorage?.()}}
+ // the guest's Exit used to throw here and leave them stuck in the room). A 'leave' that never reached the room keeps
+ // the token, so joining again resumes the seat instead of finding it taken (bug report, 2026-11-23).
+ async close(){this.suspend();if(this.token){let reached=true;try{await this.request('leave')}catch(error){reached=!!error.status}if(reached)localStorage.removeItem(this.endpoint+':tag:'+this.code);this.token=null;await globalThis.flushDesktopStorage?.()}}
 }

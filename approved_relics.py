@@ -106,7 +106,7 @@ CURSED=[
 (35,'duelists_wager',"Duelist's Wager",'Increase battle damage either player takes by 50% (rounded down).','Gamble'),
 (37,'reckless_spear','Reckless Spear','Monsters you control can attack directly. They lose 700 ATK.','Fairy Meteor Crush'),
 (38,'nocturnal_guard','Nocturnal Guard','During your opponent\'s turn, monsters you control gain 600 DEF. During your turn, monsters you control lose 300 ATK.','Castle Walls'),
-(40,'narrow_gate','Narrow Gate','Neither player can use the fourth or fifth Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
+(40,'narrow_gate','Narrow Gate','Neither player can use the leftmost or rightmost Main Monster Zone or Spell & Trap Zone. Field Zones are unaffected.','Ground Collapse'),
 (42,'trapbound_idol','Trapbound Idol','Your Trap Monsters cannot be destroyed by battle. You pay 300 LP to activate each Spell Card.','Embodiment of Apophis'),
 (44,'iron_silence','Iron Silence',"Monsters you control gain 600 ATK/DEF, but their effects are negated. Negate all your monsters' activated effects everywhere.",'Skill Drain'),
 (47,'blind_fortune','Blind Fortune','Earn 20 additional coins after each victory. You always go second.','Time Wizard'),

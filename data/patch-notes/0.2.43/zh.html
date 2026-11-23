@@ -1,0 +1,114 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_43,.patch-notes-sheet.pn0_2_43 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_43{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_43 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_43 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_43 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_43 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_43 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big .pn0_2_43-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big>*{position:relative}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-big p.pn0_2_43-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way img,.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-relics .pn0_2_43-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-packs .pn0_2_43-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-mark.pn0_2_43-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-way .pn0_2_43-art.pn0_2_43-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_43 .pn0_2_43-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_43"><div class="pn0_2_43-kick">YGO Rogue Duelist</div><h1>更新 0.2.43</h1>
+
+<section class="pn0_2_43-cols" style="margin-top:28px">
+<div class="pn0_2_43-big"><em>对手</em><h3>强尼·斯特普</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><img class="pn0_2_43-sprite" src="assets/opponents/johnny-steps.png"><p><b>新的 Tier 1 对手</b>Kyky 的<b>融合与装备</b>卡组：音乐家帝王、下达裁决的女帝、融合武器和再融合。</p></div></div></div>
+<div class="pn0_2_43-big"><em>新卡</em><h3>飞蛾 LV 系列</h3>
+<div class="pn0_2_43-ways" style="grid-template-columns:1fr"><div class="pn0_2_43-way"><div class="pn0_2_43-art pn0_2_43-crop" style="background-image:url('assets/cards/190000056.jpg')"></div><p><b>飞蛾 LV1、LV2、LV6、LV8</b>和<b>进化之茧-S</b>：每个准备阶段升级的飞蛾。原版飞蛾所在的每个卡包都加入了它们。</p></div></div></div>
+</section>
+
+<section class="pn0_2_43-big"><em>遗物</em><h3>新遗物</h3>
+<div class="pn0_2_43-ways">
+<div class="pn0_2_43-way"><img src="assets/relics/53569894.jpg"><p><b>狮身人面像遗物</b><b>雷光金字塔</b>、<b>埃及之绊</b>和<b>阿努比斯之影</b>，以及融合遗物<b>奇美拉斯芬克斯</b>。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/87756343.jpg"><p><b>昆虫族遗物</b><b>飞蛾幼群</b>会在你的昆虫族身后留下飞蛾衍生物，另有融合遗物<b>昆虫虫群</b>。<b>甲壳护甲</b>现在提升 800 守备力。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/94212438.jpg"><p><b>命运封印</b>你的<b>通灵盘</b>和<b>死亡讯息</b>卡不会成为卡的效果的对象。</p></div>
+<div class="pn0_2_43-way"><img src="assets/relics/Restless%20Dead.png"><p><b>遗物调整</b><b>不眠的亡者</b>现在在对手的准备阶段生效。<b>窄门</b>现在封锁两侧外侧的区域。</p></div>
+</div></section>
+
+<section class="pn0_2_43-big"><em>操作</em><h3>拖动出牌更流畅</h3>
+<p class="pn0_2_43-lead">把<b>陷阱</b>拖到场上即可盖放。只有一种出法的卡会直接打出。选择期间卡片会<b>停在目标区域</b>，你还可以<b>在手牌中拖动卡片调整顺序</b>。任何手牌都能拿起来随意拖动。</p></section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>美术</em><h3>新的角色立绘</h3>
+<p class="pn0_2_43-lead"><b>38 张角色立绘</b>替换为新的，所有<b>角色卡包</b>也随之重做。</p></div>
+<div class="pn0_2_43-big"><em>主菜单</em><h3>完成度</h3>
+<p class="pn0_2_43-lead">标题画面会显示根据成就计算的<b>游戏完成度</b>。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>设置</em><h3>新设置</h3>
+<p class="pn0_2_43-lead"><b>旋转/老虎机特效</b>：可关闭旋转的转轮。决斗者的<b>日版原名</b>（卡名不变）。<b>唯一选项自动选择</b>，默认开启。<b>自动放置</b>现在默认开启。</p></div>
+<div class="pn0_2_43-big"><em>卡组编辑</em><h3>自动补齐</h3>
+<p class="pn0_2_43-lead">卡不够？卡数旁边的<b>灰色箭头</b>会显示能补齐卡组的卡，点一下即可加入。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div class="pn0_2_43-big"><em>双人决斗</em><h3>在商店交换</h3>
+<p class="pn0_2_43-lead">商店的卡组编辑中现在可以使用<b>交换</b>按钮。交换进行时购物会等待。你自己加入过的房间不会再显示<b>已满</b>。</p></div>
+<div class="pn0_2_43-big"><em>轮抽</em><h3>查看卡组与遗物</h3>
+<p class="pn0_2_43-lead">选卡时和等待对手时都可以<b>查看卡组</b>。等候室会显示<b>双方玩家的名字和遗物</b>，轮抽的卡组编辑中也会显示你的遗物。</p></div>
+</section>
+
+<section class="pn0_2_43-cols">
+<div><h2>改动</h2><ul class="pn0_2_43-small">
+<li><span>👉</span><span><b>商店导览</b>会用手指出每个部分，并调暗其余区域。</span></li>
+<li><span>♾️</span><span>基本分最高为 <b>10,000,000</b>，并显示为 <b>∞</b>。</span></li>
+<li><span>❓</span><span>融合提示也会以 <b>???</b> 剪影列出尚未发现的融合遗物。</span></li>
+<li><span>🔭</span><span><b>卡组望远镜</b>按怪兽、魔法、陷阱、额外卡组的顺序列出。</span></li>
+<li><span>📝</span><span>为<b>鹰身女郎</b>、<b>仪式怪兽</b>、<b>食人虫</b>等加入裁定说明。</span></li>
+<li><span>🎨</span><span><b>决斗外观</b>的色调更淡，能看到动态背景。</span></li>
+<li><span>🐉</span><span><b>鹰身女妖的宠物龙</b>在舞的卡包中更常见了。</span></li>
+<li><span>🏆</span><span>结算会显示用<b>艾克佐迪亚</b>或<b>终焉的倒计时</b>获胜时的最低奖励。</span></li>
+<li><span>🔗</span><span>设备关联码的有效期为 <b>24 小时</b>。</span></li>
+<li><span>🧠</span><span>CPU：同一张卡<b>每回合最多使用 3 次</b>，并更好地使用和睦的使者、苦涩的选择、过浅的墓穴、再融合和融合武器。</span></li>
+<li><span>👴</span><span>竖屏模式下双六爷爷话多了一点。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_43-small">
+<li><span>🐧</span><span>Linux 应用：不再卡在 <b>Starting campaign runtime</b>。</span></li>
+<li><span>🪟</span><span>Windows 应用：<b>防火墙阻止联机游戏</b>时会给出明确提示。</span></li>
+<li><span>⚔️</span><span>持有<b>第三之门</b>时，在<b>守墓的使魔</b>下也能再次攻击。</span></li>
+<li><span>🌀</span><span><b>次元裂缝</b>也会除外盖放的卡。</span></li>
+<li><span>✅</span><span>长卡牌列表不再遮住 <b>✓ / ✕</b> 按钮，<b>全方位除外</b>可以跳过了。</span></li>
+<li><span>👀</span><span>对手的<b>苦涩的选择</b>会显示你要从中选择的卡。</span></li>
+<li><span>🚫</span><span>被封锁的区域不会再延续到下一场决斗。</span></li>
+<li><span>⛓️</span><span><b>连锁：有时</b>下也会询问<b>打落</b>。</span></li>
+<li><span>💊</span><span>CPU 不会再在<b>药物的副作用</b>面前回复。</span></li>
+<li><span>🧬</span><span><b>DNA改写</b>：手牌会显示新种族的加成。</span></li>
+<li><span>🎲</span><span>无遗物的轮抽决斗不再重复最初的骰子结果。</span></li>
+<li><span>⏯️</span><span>卡在最后一场决斗的流程可以继续了。</span></li>
+</ul></div>
+</section></div>

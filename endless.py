@@ -7,7 +7,7 @@ from deck_files import read
 import content
 CHAMPION=read('world-champion-2004',json.loads((ROOT/'data/champion.json').read_text(encoding='utf8')))
 LOOP=json.loads((ROOT/'data/tuning.json').read_text(encoding='utf8')).get('loops',{'attack':100,'defense':100,'lp':2000})
-OBELISK_ID=next((i for i,row in content.TIER_EXCLUSIVE_OPPONENTS.items() if row.get('name')=='Obelisk the Tormenter'),None)
+OBELISK_ID=next((i for i,row in content.TIER_EXCLUSIVE_OPPONENTS.items() if row.get('name')=='Obelisk the Tormentor'),None)
 def encore_record(run):
  if run.get('encore_opponent')==OBELISK_ID and OBELISK_ID is not None:
   return content.opponent_record(0,OBELISK_ID,loop=max(1,int(run.get('loop',0))))

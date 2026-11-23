@@ -95,6 +95,11 @@ SPECIFIC_CARDS={
  'black_chaos_rite':(('Dark Magician','Dark Magician of Chaos'),2),
  'all_for_one_terrorking':(('Terrorking Archfiend',),1),
  'toon_premiere':(('Toon World',),1),
+ # Pyramid of Lightning and Shadow of Anubis do nothing without Andro Sphinx or Sphinx Teleia; Bond of Egypt needs any Sphinx.
+ 'pyramid_of_lightning':(('Andro Sphinx','Sphinx Teleia'),1),
+ 'shadow_of_anubis':(('Andro Sphinx','Sphinx Teleia'),1),
+ 'bond_of_egypt':(('Andro Sphinx','Sphinx Teleia','Guardian Sphinx','Criosphinx','Hieracosphinx'),1),
+ 'sealed_fate':(('Destiny Board',),1),
 }
 NOT_OWNED=.3
 def owns_named_cards(key,run):
@@ -302,6 +307,9 @@ def _dark_magician(c):
 def _eyes(*names):return lambda c:any(n in c['name'] or f'"{n}' in (c.get('desc') or '') for n in names)
 CARD_THEMES={'magicians_bond':_dark_magician,'master_and_apprentice':_dark_magician,'black_chaos_rite':_dark_magician,
  'blue_eyes_radiance':_eyes('Blue-Eyes'),'twin_eyes':_eyes('Blue-Eyes','Red-Eyes'),'dragon_blood_fusion':_eyes('Blue-Eyes','Red-Eyes')}
+# Sphinx relics (2026-11-23): "Sphinx" monsters (set code 0x5c) and the cards that mention them, Pyramid of Light and Exxod.
+def _sphinx(c):return _setcode(c,0x5c) or c['name'] in ('Pyramid of Light','Exxod, Master of The Guard')
+CARD_THEMES.update({key:_sphinx for key in ('pyramid_of_lightning','bond_of_egypt','shadow_of_anubis')})
 def member_test(key,run):
  """The card test for an archetype relic, True if Name Changer already covers it, None for every other relic."""
  from content import ART_INFO

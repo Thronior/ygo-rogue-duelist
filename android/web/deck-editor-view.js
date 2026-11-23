@@ -23,7 +23,13 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  // Card marks (card-marks.js) reorder the cards but keep the page count (deck-paging.js), so they key only the order.
  const base=JSON.stringify([ed.deckFilter,ed.deckSort,ed.deckStatus,searches[searchKey]||null,pool.length,!!ed.deckSplit]),key=base+'|'+cardMarkVersion(run);
  ed.deckPageKey=base;
- if(ed.deckOrder&&ed.deckOrderKey===key)return ed.deckOrder.filter(i=>i<pool.length);
+ // The pool's contents and the relics (ATK/DEF sorts read relic-adjusted stats) are part of the cache too: Draft rebuilds
+ // its pool at the same size, and a new relic moves cards, which left just-added cards unsorted at the bottom (Nori,
+ // 2026-11-21). One pass over the ids (hosts rebuild the array each render, so identity can't be used); still far cheaper
+ // than filtering and sorting again.
+ let h=pool.length|0;for(const id of pool)h=Math.imul(h^(Number(id)|0),16777619);
+ const contents=h+'|'+(run?.artifacts||[]).join(',')+'|'+(run?.curses||[]).join(',');
+ if(ed.deckOrder&&ed.deckOrderKey===key&&ed.deckOrderContents===contents)return ed.deckOrder.filter(i=>i<pool.length);
  let order=pool.map((_,i)=>i).filter(i=>matchesSearch(lookup(pool[i]),searchKey));
  const inDeck=new Set(selected);
  // The split shows both groups side by side, so In/Out only filter the single grid.
@@ -42,7 +48,7 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  // Deck first keeps the chosen sort inside each group.
  if(ed.deckStatus==='First')order=[...order.filter(i=>inDeck.has(i)),...order.filter(i=>!inDeck.has(i))];
  else if(ed.deckStatus==='Marked')order=yesMarksFirst(order,run,i=>pool[i]);
- ed.deckOrderKey=key;ed.deckOrder=order;return order;
+ ed.deckOrderKey=key;ed.deckOrder=order;ed.deckOrderContents=contents;return order;
 }
 
 // Type tabs, search, Deck status, Sort and Deselect. `action(label, name, attrs)` makes a button for the host UI.

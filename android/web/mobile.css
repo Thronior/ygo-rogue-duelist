@@ -911,6 +911,12 @@ dialog:has(.coin-bonuses)::backdrop{background:#020910d9;backdrop-filter:blur(3p
 .duel .level-change img{position:static;inset:auto}
 
 .deck-count-arrow:disabled{opacity:1;cursor:not-allowed}
+/* Below the minimum the arrow looks disabled but opens the auto-fill preview (user, 2026-11-23). */
+.deck-count-arrow.needs-fill>span,.deck-count-arrow.needs-fill:hover>span{background:#7c858ccc;color:#202a30}
+.deck-count-arrow.needs-fill>span::before{display:none;animation:none}
+.deck-fill-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin:10px 0 14px;max-height:52vh;overflow:auto}
+.deck-fill-cards button{padding:0;border:0;background:none;cursor:pointer}.deck-fill-cards img{width:100%;display:block;border-radius:4px;box-shadow:0 2px 6px #000}
+.deck-fill-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .deck-count-arrow:disabled>span,.deck-count-arrow:disabled:hover>span{background:#7c858ccc;color:#202a30}
 .deck-count-arrow:disabled>span::before{display:none;animation:none}
 .draft-next.deck-count-arrow{padding:0;min-height:0}
@@ -958,7 +964,10 @@ body:has(.tag-room-code){--screen-top:max(18px,calc(env(safe-area-inset-top,0px)
 #behaviour-description{display:block;width:100%;max-width:100%;min-height:110px;margin:10px 0;padding:10px;background:#071b25;color:#eef9f4;border:1px solid #628994;border-radius:6px;font:inherit;resize:vertical}
 
 /* Size choices to their content; keep the confirmation directly beneath. */
-.duel .duel-main .selection-dialog{bottom:auto;max-height:calc(100% - 50px)}
+/* The default window starts 12% down, so it may only grow to the rest: a long Deck list (Omni Banishment) pushed the
+   ✓ / ✕ row off the bottom and the pick could not be skipped (flag 3e70dec7). Portrait and short landscape start at the top. */
+.duel .duel-main .selection-dialog{bottom:auto;max-height:calc(88% - 8px)}
+@media(orientation:portrait),(orientation:landscape) and (max-height:500px){.duel .duel-main .selection-dialog{max-height:calc(100% - 50px)}}
 .duel .selection-dialog>.prompt{flex:0 1 auto;overflow:auto}
 .duel .selection-dialog>.selection-actions{background:none;border:0;box-shadow:none;padding:0}
 .duel .selection-dialog .choices{flex:none}
@@ -2074,7 +2083,23 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .active-modifier-copy p{margin:0;line-height:1.35}
 
 
-.title-version{position:absolute;left:max(10px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:30;font-size:10px;line-height:1;color:#b4c5cd;opacity:.78;pointer-events:none}
+.title-meta{position:absolute;left:max(10px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;pointer-events:none}
+.title-version{font-size:10px;line-height:1;color:#b4c5cd;opacity:.78}
+.title-completion{display:flex;align-items:center;gap:6px;font-size:10px;line-height:1;color:#b4c5cd}
+.title-completion::before{content:"·";opacity:.6}
+.title-completion b{color:var(--completion-text,#ffe9b0);font-weight:700}
+.title-completion-bar{width:64px;height:5px;border-radius:3px;background:#ffffff26;overflow:hidden}.title-completion-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--completion-a,#f2d27c),var(--completion-b,#c0953b));box-shadow:var(--completion-glow,none)}
+/* The completion bar takes the current Duel Look's accent (user, 2026-11-23). */
+:root[data-duel-theme="duel-disk"]{--completion-a:#ffd976;--completion-b:#c9622e;--completion-text:#ffe08a}
+:root[data-duel-theme="shadow-realm"]{--completion-a:#d2a8ff;--completion-b:#7a3fd1;--completion-text:#e3c9ff;--completion-glow:0 0 6px #a56bffaa}
+:root[data-duel-theme="clean-tournament"]{--completion-a:#ffffff;--completion-b:#d6455a;--completion-text:#ffffff}
+:root[data-duel-theme="millennium-stone"]{--completion-a:#ffe9b0;--completion-b:#a68a56;--completion-text:#f2d27c}
+:root[data-duel-theme="kaiba-hologram"]{--completion-a:#d9f6ff;--completion-b:#2fd0ff;--completion-text:#9be9ff;--completion-glow:0 0 6px #2fd0ffbb}
+:root[data-duel-theme="pixel-art"]{--completion-text:#ffe45c}
+:root[data-duel-theme="pixel-art"] .title-completion-bar{border-radius:0;height:6px;background:#00000080;box-shadow:0 0 0 1px #ffffff55}
+:root[data-duel-theme="pixel-art"] .title-completion-bar i{background:repeating-linear-gradient(90deg,#ff4f8b 0 4px,#ffe45c 4px 8px)}
+/* Portrait: the version and completion sit centred at the bottom, with room between them and the footer line. */
+@media(orientation:portrait){#app>.title{padding-bottom:40px}.title-meta{left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom,0px))}}
 
 .title .smooth-menu .menu-card[data-menu-duplicate]{visibility:visible!important}
 .title .smooth-menu .menu-card[data-distance="2"]{visibility:visible!important}
@@ -2767,7 +2792,7 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
 :root[data-duel-theme="shadow-realm"] .duel .zone .power{background:#0d0618e6!important;color:#e6d4ff!important}
 :root[data-duel-theme="shadow-realm"] .duel .inspection{background:#0d0618f2!important;border-right:1px solid #7a3fd1!important}
 :root[data-duel-theme="shadow-realm"] .duel .inspection h3{color:#d9bfff!important}
-:root[data-duel-theme="shadow-realm"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#14082cc4;pointer-events:none}
+:root[data-duel-theme="shadow-realm"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#14082c73;pointer-events:none}
 :root[data-duel-theme="clean-tournament"] .duel{background:#0e1419!important}
 :root[data-duel-theme="clean-tournament"] .duel .lpbar{background:transparent!important;gap:10px!important;padding:4px 8px!important;height:auto!important}
 :root[data-duel-theme="clean-tournament"] .duel .life,:root[data-duel-theme="clean-tournament"] .duel .life.enemy{background:#18212a!important;border-radius:8px!important;box-shadow:none!important;border:0!important}
@@ -2783,7 +2808,7 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
 :root[data-duel-theme="clean-tournament"] .duel .inspection h3{color:#fff!important}
 :root[data-duel-theme="clean-tournament"] .duel .field-wrap{perspective:none!important}
 :root[data-duel-theme="clean-tournament"] .duel .mat{transform:none!important}
-:root[data-duel-theme="clean-tournament"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0e1419d9;pointer-events:none}
+:root[data-duel-theme="clean-tournament"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0e14198c;pointer-events:none}
 :root[data-duel-theme="millennium-stone"] .duel{background:#1a140c!important}
 :root[data-duel-theme="millennium-stone"] .duel .lpbar{background:linear-gradient(#5c4f3c,#3a3024)!important;border-bottom:3px solid #d9b45c!important;box-shadow:inset 0 1px 0 #8a7a60,0 2px 6px #000}
 :root[data-duel-theme="millennium-stone"] .duel .life,:root[data-duel-theme="millennium-stone"] .duel .life.enemy{background:linear-gradient(#4a3f30,#2c241a)!important;border-radius:0!important}
@@ -2797,7 +2822,7 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
 :root[data-duel-theme="millennium-stone"] .duel .zone .power{background:#231b11e6!important;color:#ffe9b0!important;font-family:Georgia,serif}
 :root[data-duel-theme="millennium-stone"] .duel .inspection{background:linear-gradient(#2c241af2,#1a140cf2)!important;border-right:3px solid #a68a56!important}
 :root[data-duel-theme="millennium-stone"] .duel .inspection h3{color:#ffe9b0!important;font-family:Georgia,serif}
-:root[data-duel-theme="millennium-stone"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#2a1c0cb8;pointer-events:none}
+:root[data-duel-theme="millennium-stone"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#2a1c0c6b;pointer-events:none}
 :root[data-duel-theme="kaiba-hologram"] .duel{background:#030c16!important}
 :root[data-duel-theme="kaiba-hologram"] .duel .lpbar{background:#04121ecc!important;border-bottom:1px solid #2fd0ff!important;box-shadow:0 1px 8px #2fd0ff55}
 :root[data-duel-theme="kaiba-hologram"] .duel .life,:root[data-duel-theme="kaiba-hologram"] .duel .life.enemy{background:#061a2bcc!important;border-radius:0!important}
@@ -2811,7 +2836,7 @@ body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{
 :root[data-duel-theme="kaiba-hologram"] .duel .zone .power{background:#04121ee6!important;color:#d9f6ff!important;font-family:Consolas,monospace}
 :root[data-duel-theme="kaiba-hologram"] .duel .inspection{background:#04121ef2!important;border-right:1px solid #2fd0ff!important}
 :root[data-duel-theme="kaiba-hologram"] .duel .inspection h3{color:#d9f6ff!important}
-:root[data-duel-theme="kaiba-hologram"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#021222c9;pointer-events:none}
+:root[data-duel-theme="kaiba-hologram"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#02122273;pointer-events:none}
 /* The floating Chain button is in the top layer, so the clear backdrop would no longer cover it. */
 body:has(#modal.reward-text-stage) .floating-chain-control{display:none!important}
 
@@ -3270,7 +3295,7 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 :root[data-duel-theme] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):disabled{opacity:.8;filter:saturate(.3)}
 /* Duel Disk buttons are light, so fading or darkening them loses contrast: disabled ones go flat grey with grey text instead. */
 :root[data-duel-theme="duel-disk"] :is(button:not([class]),button[class=""],button.primary,button.active,button.navigation-icon-button,button.deck-deselect,button.effect-search-clear,button.start-run,.shop-buy,.shop-reroll-counter,.shop-reroll-landscape,.shop-edit-deck,.boss-reroll-shop,.sell-owned-relic):not(.cardbtn):not(:has(>img)):not(.phases *):not(.hand *):disabled{opacity:1;filter:none;background:#c9cfd4!important;color:#4b565f!important;box-shadow:none!important}
-.deck-count-arrow:disabled>span,.deck-count-arrow:disabled:hover>span{background:#8d969cdd;color:#0f1519}
+.deck-count-arrow:disabled>span,.deck-count-arrow:disabled:hover>span,.deck-count-arrow.needs-fill>span,.deck-count-arrow.needs-fill:hover>span{background:#8d969cdd;color:#0f1519}
 .character-select-page .portrait[data-completed-level="0"],.level-badge[data-challenge-level="0"]{background:linear-gradient(135deg,#2a8560,#104a36)}
 .character-select-page .portrait[data-completed-level="1"],.level-badge[data-challenge-level="1"]{background:linear-gradient(135deg,#2a78bb,#173c89)}
 .character-select-page .portrait[data-completed-level="2"],.level-badge[data-challenge-level="2"]{background:linear-gradient(135deg,#8a55bd,#4b2379)}
@@ -3472,7 +3497,7 @@ dialog:has(.lesson-done){overflow:hidden}
 :root[data-duel-theme="pixel-art"] .duel .zone .power{background:var(--pix-ink)!important;color:var(--pix-text)!important;text-shadow:1px 1px 0 #000}
 :root[data-duel-theme="pixel-art"] .duel .inspection{background:#141830f2!important;border-right:4px solid var(--pix-ink)!important;box-shadow:4px 0 0 0 #0007}
 :root[data-duel-theme="pixel-art"] .duel .inspection h3{color:var(--pix-gold)!important}
-:root[data-duel-theme="pixel-art"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0a0c1c9e;pointer-events:none}
+:root[data-duel-theme="pixel-art"]:has(.duel) .bg-stage::after{content:"";position:absolute;inset:0;background:#0a0c1c5c;pointer-events:none}
 /* Pixel Art readability (user, 2026-11-19). Deck editor cards (solo, Tag, Draft: .draft-card-scroll) are not pixelated:
    the shared img[src] swap rules from pixel-art.js are undone here, and pixel-art.js never measures these pictures. */
 :root[data-duel-theme="pixel-art"] .draft-card-scroll img:not([src*="/pixel/"]){content:normal!important;image-rendering:auto!important}
@@ -3533,12 +3558,10 @@ dialog:has(.lesson-done){overflow:hidden}
 .draft-pick-head .draft-min{margin-left:auto;white-space:nowrap}
 .draft-pick-head .draft-relic-set{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
 @media (max-aspect-ratio:5/4){
- .draft-pick-head .draft-standing{order:3;flex-basis:100%;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"mn sc on" "mi . oi";gap:2px 8px}
- .draft-pick-head .draft-standing>:nth-child(1){grid-area:mi}
- .draft-pick-head .draft-standing>:nth-child(2){grid-area:mn;text-align:right}
- .draft-pick-head .draft-standing>:nth-child(3){grid-area:sc}
- .draft-pick-head .draft-standing>:nth-child(4){grid-area:on}
- .draft-pick-head .draft-standing>:nth-child(5){grid-area:oi;justify-content:flex-end}
+ .draft-pick-head .draft-standing{order:3;flex-basis:100%;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:2px 8px}
+ .draft-pick-head .draft-side,.draft-pick-head .draft-side.mine{flex-direction:column;align-items:stretch}
+ .draft-pick-head .draft-side.mine b{text-align:right}
+ .draft-pick-head .draft-side.mine .draft-relic-set{justify-content:flex-end}
  .draft-pick-head .draft-owned-relic{width:28px;height:28px;min-width:28px}
  .draft-pick-head .draft-owned-relic img{width:22px;height:22px}
 }
@@ -3561,6 +3584,15 @@ dialog:has(.lesson-done){overflow:hidden}
 .draft-goal::before{content:'·';margin-right:8px}
 .draft-relic-set{display:flex;flex-wrap:wrap;gap:3px}
 .draft-relic-set:empty{display:none}
+/* Each player's name and relics framed together, yours gold and your opponent's red (draft-ui.js standing, 2026-11-23). */
+.draft-side{display:flex;align-items:center;gap:3px 6px;min-width:0;padding:3px 8px;border-radius:10px;border:1px solid #e0707088;background:#e0707018}
+.draft-side.mine{flex-direction:row-reverse;border-color:#e5c58a99;background:#e5c58a1c}
+.draft-side b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.draft-standing .draft-side .draft-relic-set{justify-content:center}
+.draft-pick-head .draft-side .draft-relic-set{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
+.draft-pick-head .draft-side b{flex:none;max-width:11em}
+.draft-view-deck{flex:none;white-space:nowrap}
+.draft-editor-relics{margin-top:4px}
 .draft-owned-relic{flex:none;width:34px;height:34px;min-width:34px;min-height:0;padding:2px!important}
 .draft-owned-relic img{width:28px;height:28px;object-fit:contain}
 .draft-decided{display:flex;flex-direction:column;gap:10px;max-width:980px;margin:0 auto}
@@ -4148,6 +4180,9 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 .fusion-hint small{display:block;color:#9fb6bd;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
 .fusion-hint b{display:block;color:#efca79}
 .fusion-hint em{display:block;font-style:normal;color:#bfe6c8;font-size:12px}
+/* An undiscovered fusion: its icon as a black silhouette with a faint gold rim (user 2026-11-23). */
+.fusion-hint.fusion-unknown img{filter:brightness(0) drop-shadow(0 0 1.5px #efca79cc);box-shadow:none;object-fit:contain}
+.fusion-hint.fusion-unknown b{letter-spacing:.12em}
 .mouse-details .fusion-hint{justify-content:flex-start;margin:8px 0 0}
 .cursed-options .fusion-hint small{color:#c9b3bd}
 /* Deck editor Monster/Spell/Trap counts with card-frame icons (deck-counts.js, user 2026-11-22). */
@@ -4173,16 +4208,44 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 .duel .zone.locked-zone{position:relative}
 .duel .zone.locked-zone::after{content:"";position:absolute;inset:8%;pointer-events:none;opacity:.85;background:linear-gradient(to top right,transparent calc(50% - 1.5px),#e05a5a calc(50% - 1.5px),#e05a5a calc(50% + 1.5px),transparent calc(50% + 1.5px)),linear-gradient(to bottom right,transparent calc(50% - 1.5px),#e05a5a calc(50% - 1.5px),#e05a5a calc(50% + 1.5px),transparent calc(50% + 1.5px))}
 /* Drag to play hand cards (hand-drag.js, user 2026-11-22): the attack drag's card copy, an outline on the zone under it. */
-.duel .hand [data-hand]{touch-action:pan-x}
-.duel .hand [data-hand].hand-drag-source img{opacity:.3}
-.duel .zone.hand-drag-over{outline:3px solid #ffe27a;outline-offset:2px}
-.duel.hand-dragging .zone[data-zone^="0,"]{outline:1px dashed #ffe27a66;outline-offset:1px}
+/* The hand never scrolls (its cards shrink to fit), so touch gives every move to the drag (fidget drags, 2026-11-23). */
+.duel .hand [data-hand]{touch-action:none}
+/* Reworked 2026-11-23 (user: "better feedback in hand and on the field ... really make it feel smooth"). The picked-up
+   card's slot stays as a dashed ghost; along the hand the other cards slide apart (a transform transition, only while a
+   drag is on) to show where it goes. The copy's picture lifts, shrinks to a zone's size over a legal zone, dims over the
+   field when it can't be played, and fades while it waits on its zone for tributes. Only legal zones light up; the
+   hovered one tints, and the one a card waits on glows. Transforms, opacity and outlines only. */
+.duel .hand [data-hand].hand-drag-source{outline:2px dashed #ffe27a88;outline-offset:-3px;border-radius:5px}
+.duel .hand [data-hand].hand-drag-source img{opacity:.22}
+.duel .hand.hand-reordering>[data-hand]{transition:transform .16s cubic-bezier(.2,.8,.3,1),scale 160ms ease-out}
+.duel .zone.hand-drag-legal{outline:2px dashed #ffe27acc;outline-offset:1px}
+.duel .zone.hand-drag-over{outline:3px solid #ffe27a;outline-offset:2px;background-color:#ffe27a24}
+.duel .zone.hand-drag-dest{outline:3px solid #ffe27a;outline-offset:2px;animation:lesson-glow 1s steps(2,jump-none) infinite}
+.attack-drag-card.hand-drag-card,.attack-drag-card.hand-drag-card.on-target{box-shadow:none}
+.hand-drag-card img{transform:scale(1);transition:transform .14s cubic-bezier(.2,.8,.3,1),opacity .12s;box-shadow:0 10px 22px #000b}
+.hand-drag-card.lifted img{transform:scale(1.1)}
+.hand-drag-card.over-zone img{transform:scale(var(--zone-scale,1))}
+.hand-drag-card.on-target img{box-shadow:0 0 0 2px #ffe27a,0 10px 22px #000b}
+.hand-drag-card.no-play img{opacity:.7}
+.hand-drag-card.waiting{opacity:.45}
+.hand-drag-card.waiting img{box-shadow:none}
+/* A rearranged hand is shown with CSS order, so 8+ cards overlap by the shown first card, not the DOM's first. */
+.duel .hand.hand-ordered:has(>button:nth-child(8))>button{margin-left:calc(-1 * var(--hand-overlap,0%))}
+.duel .hand.hand-ordered:has(>button:nth-child(8))>button.hand-first{margin-left:0}
+@media(prefers-reduced-motion:reduce){.hand-drag-card img,.duel .hand.hand-reordering>[data-hand]{transition:none}.duel .zone.hand-drag-dest{animation:none}}
 /* Watch CPU duel "My decks" tab and the deck editor's deck name dialog (Discord, Nori, 2026-11-22). */
 .cpu-own-empty{grid-column:1/-1;text-align:center;padding:20px}.cpu-own-deck small{font-size:9px;line-height:10px;flex-shrink:0}.cpu-own-custom img{object-position:center 22%}.cpu-own-pilot small{margin-right:4px}
 .cde-name form{display:grid;gap:12px;min-width:min(80vw,340px)}.cde-name h2{margin:0;font-size:18px}.cde-name input{padding:9px;font-size:16px;border-radius:5px;border:1px solid #6d93a0;background:#071b24;color:#eef9f4}.cde-name form>div{display:flex;justify-content:flex-end;gap:8px}
 /* First-visit shop tour (shop-tour.js, 2026-11-23): its "?" button stays narrow beside Coin scorecard and Relics. */
 .shop-reference-buttons .shop-tour-button{flex:0 0 auto;min-width:30px;font-weight:bold;font-size:13px}
 .shop-tour-target{outline:3px solid #ffd76a!important;outline-offset:2px;animation:lesson-glow 1s steps(2,jump-none) infinite}
-@media(prefers-reduced-motion:reduce){.shop-tour-target{animation:none}}
+/* The shop dims around the part a tip is about (one static box-shadow, drawn when the step changes) and a pointing hand
+   bobs beside it, turned to point at the part from whichever side has room (user, 2026-11-23). Neither takes taps. */
+.shop-tour-spot{position:fixed;z-index:998;pointer-events:none;border-radius:8px;box-shadow:0 0 0 200vmax #0009}
+.shop-tour-hand{position:fixed;z-index:999;width:52px;height:60px;pointer-events:none}
+.shop-tour-hand svg{display:block;width:100%;height:100%;will-change:transform;animation:shop-tour-point .7s ease-in-out infinite alternate}
+.shop-tour-spot[hidden],.shop-tour-hand[hidden]{display:none}
+@keyframes shop-tour-point{from{transform:translateY(5px)}to{transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.shop-tour-target,.shop-tour-hand svg{animation:none}}
 /* Payout card: the multiplier beside Glass Shard, Glass Treasury and the Challenge level penalty (2026-11-23). */
 .reward-note{font-size:.8em;color:#bcd6dc;font-weight:normal;white-space:nowrap}

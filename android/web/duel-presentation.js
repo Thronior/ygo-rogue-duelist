@@ -8,8 +8,9 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // Sometimes mask does not expose consistently across platforms. The core
  // still supplies only currently legal choices, so honoring these cards here
  // does not create an illegal activation window. Numinous Healer is only legal right after its owner takes
- // damage, so the player is offered it every time (user request 2026-11-03).
- const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Spell Shield Type-8','Michizure','Numinous Healer']);
+ // damage, so the player is offered it every time (user request 2026-11-03). Drop Off is only legal right after the
+ // opponent's normal draw (Discord, 2026-11-23: it never asked on Chain sometimes).
+ const sometimesExceptions=new Set(['Pinch Hopper','Hannibal Necromancer','Dark Scorpion - Cliff','Hydrogeddon','Spell Shield Type-8','Michizure','Numinous Healer','Drop Off']);
  if(mode==='sometimes'&&(m?.selects||[]).some(choice=>sometimesExceptions.has(context.card?.(choice.code)?.name)))return true;
  // Kunai with Chain answers an attack, a summon or an activation; its text matches the timing words below in
  // every window, so it waits for those events (Discord 2026-10-29: "Chain sometimes" asked too often).

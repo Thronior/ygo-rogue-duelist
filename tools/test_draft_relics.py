@@ -17,7 +17,8 @@ for k in keys:
 assert draft_relics.weight('the_creator')<draft_relics.weight('returning_tide')<draft_relics.weight('final_hour')<draft_relics.weight('cursed_blood_crown')<draft_relics.weight('blade')==1.0
 deck={'main':[content_id for content_id in []],'extra':[]}
 def setup(a,b,seed=7):return draft_relics.duel_setup({'relics':[a,b],'characters':[0,2],'decks':[{'main':[],'extra':[]}]*2,'seed':seed})
-assert setup([],[])=={'passives':'','draw':5,'enemyDraw':5}
+# No relics still gets the mixed-seed marker (2026-11-23).
+assert setup([],[])=={'passives':'-- SHADOW_RUN_RNG 2','draw':5,'enemyDraw':5}
 assert setup(['rulebook'],[])['draw']==1
 mirror=setup(['magic_mirror','mage','blade'],[],3);assert mirror==setup(['magic_mirror','mage','blade'],[],3),'mirror copy must not differ between clients'
 cases=[[k] for k in keys]

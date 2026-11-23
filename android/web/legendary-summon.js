@@ -53,7 +53,10 @@ export const legendarySummons={
  91512835:{"name": "Insect Queen", "color": "#adf368"},
  49064413:{"name": "The Masked Beast", "color": "#8b68f3"},
  39674352:{"name": "Gogiga Gagagigo", "color": "#f38b68"},
- 55737443:{"name": "Exxod, Master of The Guard", "color": "#d9a441"}
+ 55737443:{"name": "Exxod, Master of The Guard", "color": "#d9a441"},
+ // Every Fusion Monster with 3000 or more ATK has one (user, 2026-11-23); these two were the ones missing.
+ 6150044:{"name": "Arcana Knight Joker", "color": "#e8c46a"},
+ 190000051:{"name": "Gate Guardian-F", "color": "#6feda7"}
 };
 // Each monster's name is spoken as its art fades in. Long names and their echo may outlast the window.
 const VOICE_AT=500;

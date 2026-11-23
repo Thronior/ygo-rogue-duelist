@@ -8,17 +8,18 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const countBadge=count=>count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';
 // Shadow relics show their benefit and drawback apart, as on the shadow relic choice.
 const relicKind=(content,id)=>/^cursed_/.test(id)||content.artifactInfo?.[id]?.parts?.length===2?'cursed':content.fusionMaterials?.[id]?'fused':'';
-// Fusion hints (yunluo596-droid, itch.io; user 2026-11-22): a piece of a fusion the player has already discovered names the
-// fused relic, with its icon and how many of its pieces this run owns. Undiscovered fusions stay secret. The app sets the
-// state getter: {found: profile.fused_relics, owned: the run's relics, or null outside a run}.
+// Fusion hints (yunluo596-droid, itch.io; user 2026-11-22): a relic names every fused relic it is a piece of, with its icon
+// and how many of its pieces this run owns. Undiscovered fusions (user 2026-11-23) show too, as a silhouette named "???",
+// so the player knows a fusion exists and how close they are, but not what it is. The app sets the state getter:
+// {found: profile.fused_relics, owned: the run's relics, or null outside a run}.
 let fusionState=()=>null;
 export function setFusionState(get){fusionState=get}
 export function fusionHint(content,id){
- const state=fusionState()||{},found=state.found||[],owned=state.owned;if(!found.length)return '';
- return found.map(f=>{const m=content.fusionMaterials?.[f];if(!m?.pieces?.includes(id))return '';
-  const need=m.needed||m.pieces.length,have=owned?Math.min(need,m.pieces.filter(p=>owned.includes(p)).length):0,art=content.artifactInfo?.[f]?.art;
+ const state=fusionState()||{},found=state.found||[],owned=state.owned;
+ return Object.entries(content.fusionMaterials||{}).map(([f,m])=>{if(!m?.pieces?.includes(id))return '';
+  const known=found.includes(f),need=m.needed||m.pieces.length,have=owned?Math.min(need,m.pieces.filter(p=>owned.includes(p)).length):0,art=content.artifactInfo?.[f]?.art;
   const line=!owned?'':owned.includes(f)?'<em>Fused this run</em>':`<em>${`You own {0} of {1}`.replace('{0}',have).replace('{1}',need)}</em>`;
-  return `<div class="fusion-hint">${art?`<img src="${relicImage(art)}" alt="" decoding="async">`:''}<span><small>Fusion Material for</small><b>${esc(content.artifacts[f]?.[0]||f)}</b>${line}</span></div>`}).join('');
+  return `<div class="fusion-hint${known?'':' fusion-unknown'}">${art?`<img src="${relicImage(art)}" alt="" decoding="async">`:''}<span><small>Fusion Material for</small>${known?`<b>${esc(content.artifacts[f]?.[0]||f)}</b>`:'<b data-no-i18n>???</b>'}${line}</span></div>`}).join('');
 }
 // status: a short line under the name. price: markup for a price. extra: more markup under the text. action: a button.
 export function relicCard(content,id,{count=1,status='',price='',extra='',action='',negated=false}={}){
