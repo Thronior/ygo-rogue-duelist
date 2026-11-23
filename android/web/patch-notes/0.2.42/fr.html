@@ -1,0 +1,129 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_42,.patch-notes-sheet.pn0_2_42 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_42{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_42 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_42 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_42 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_42 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_42 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big .pn0_2_42-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big>*{position:relative}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big p.pn0_2_42-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way img,.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-relics .pn0_2_42-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-packs .pn0_2_42-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark.pn0_2_42-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark.pn0_2_42-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;margin-top:26px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:14px;padding:20px;display:flex;gap:20px;align-items:flex-start}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp .pn0_2_42-art{width:170px;height:170px;border-radius:10px;border:2px solid #b5824a;flex:none;background-color:#0b1a22;background-repeat:no-repeat;background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp img{width:170px;height:170px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;flex:none;background:#0b1a22}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp .pn0_2_42-txt{min-width:0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp h3{font:400 44px/1 Bebas;letter-spacing:2px;margin:0 0 6px;color:#fff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rtag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:5px 9px;border-radius:10px;vertical-align:middle;margin-left:10px;letter-spacing:1px;position:relative;top:-6px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-new{background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-re{background:#2a1406;border:1px solid #ffb24a;color:#ffd38a}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-fix{background:#2a1416;border:1px solid #d0675e;color:#ffb0a8}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-qol{background:#0f2440;border:1px solid #6fa8ff;color:#b7d3ff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-shadow{background:#1c1030;border:1px solid #a77bff;color:#d6c2ff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-eff{font-size:17px;line-height:1.38;background:#07171acc;border-left:3px solid #b5824a;border-radius:6px;padding:9px 12px;margin:6px 0 10px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-eff ins{text-decoration:none;background:#3b5a1f88;color:#e8ffc6;border-radius:3px;padding:0 2px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-old{font-size:15px;color:#a9b9bd;margin:0 0 8px;line-height:1.35}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-old s{color:#c98a84}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-what{font-size:17px;line-height:1.35;margin:0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-what b:first-child{color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-note{font-size:17px;color:#a9c4c4;margin:22px 0 0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art.pn0_2_42-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_42"><div class="pn0_2_42-kick">YGO Rogue Duelist</div><h1>Mise à jour 0.2.42</h1>
+
+<section class="pn0_2_42-cols" style="margin-top:28px">
+<div class="pn0_2_42-big"><em>Nouvelle plateforme</em><h3>Appli Linux <span class="pn0_2_42-tag">EXPÉRIMENTAL</span></h3>
+<p class="pn0_2_42-lead">Une <b>appli de bureau Linux</b>, comme celle pour Windows : un petit lanceur qui télécharge le jeu une fois, puis <b>seulement les mises à jour</b>, et se met à jour tout seul. Elle est dans <b>Télécharger l’appli</b>.</p></div>
+<div class="pn0_2_42-big"><em>Commandes</em><h3>Glisser pour jouer</h3>
+<p class="pn0_2_42-lead">Fais glisser une carte <b>de ta main vers ton terrain</b> pour l’Invoquer, la Poser ou l’activer. Elle va dans la zone où tu la lâches. Toucher fonctionne toujours comme avant.</p></div>
+</section>
+
+<section class="pn0_2_42-big"><em>Adversaires</em><h3>Nouveaux duellistes</h3>
+<div class="pn0_2_42-ways">
+<div class="pn0_2_42-way"><img class="pn0_2_42-sprite" src="assets/opponents/bobasa.png"><p><b>Bobasa</b>Un nouvel adversaire du <b>Palier 1</b> avec le deck Lampes et Jarres de Kyky : La Jinn le Génie Mystique de la Lampe, Lampe ancienne et une Jarre Dés très imprévisible.</p></div>
+<div class="pn0_2_42-way"><img class="pn0_2_42-sprite" src="assets/opponents/gozaburo-kaiba.png"><p><b>Gozaburo Kaiba</b>Un nouvel adversaire du <b>Palier 1</b> avec le deck <b>Éxodia Necross</b> de Nori : il remplit son Cimetière de pièces d’Exodia pour renforcer Necross.</p></div>
+</div></section>
+
+<section class="pn0_2_42-big"><em>Pegasus</em><h3>Soutien Toon</h3>
+<div class="pn0_2_42-ways">
+<div class="pn0_2_42-way"><div class="pn0_2_42-art pn0_2_42-crop" style="background-image:url('assets/cards/21296502.jpg')"></div><p><b>Nouvelles cartes Toon</b><b>Magicien Sombre Toon</b>, <b>Mallette Toon</b>, <b>Masque Toon</b> et <b>Main Comique</b> rejoignent les boosters de Pegasus.</p></div>
+<div class="pn0_2_42-way"><img src="assets/relics/33453260.jpg"><p><b>Deux nouvelles reliques Toon</b><b>Première Toon</b> et la relique fusionnée <b>Royaume Toon</b>. Les deux sont dans <b>Changements de reliques</b>.</p></div>
+</div></section>
+
+
+
+<section class="pn0_2_42-big"><em>CPU</em><h3>Un CPU plus malin</h3>
+<p class="pn0_2_42-lead">Appris de <b>vos replays</b> : il échange des monstres à ATK égale, joue correctement <b>Soldat Susa</b> et <b>Prêtre d'Asura</b>, ne Sacrifie plus des monstres qui pouvaient encore attaquer, et joue les combos du deck <b>World Championship</b>.</p></section>
+
+<section class="pn0_2_42-cols">
+<div class="pn0_2_42-big"><em>Reliques fusionnées</em><h3>Indices de fusion</h3>
+<p class="pn0_2_42-lead">Une fois une relique fusionnée découverte, ses pièces indiquent partout <b>à quelle fusion elles appartiennent</b> et combien tu en possèdes.</p></div>
+<div class="pn0_2_42-big"><em>Animations</em><h3>Toutes les animations pour tous</h3>
+<p class="pn0_2_42-lead">Le réglage d’animations de ton ordinateur ou téléphone ne réduit plus les animations du jeu. Seul le réglage du jeu <b>Réduire les animations</b> le fait.</p></div>
+</section>
+
+<section class="pn0_2_42-cols">
+<div class="pn0_2_42-big"><em>Boutique</em><h3>Visite de la boutique</h3>
+<p class="pn0_2_42-lead">Ta première visite à la boutique lance une <b>courte visite guidée</b> de son fonctionnement. Touche <b>?</b> dans la boutique pour la revoir.</p></div>
+<div class="pn0_2_42-big"><em>Regarder un duel CPU</em><h3>Mes Decks</h3>
+<p class="pn0_2_42-lead">Un nouvel onglet <b>Mes Decks</b> permet au CPU de jouer <b>tes propres decks enregistrés</b>. Les decks personnalisés ont maintenant un <b>nom</b> modifiable.</p></div>
+</section>
+
+<section class="pn0_2_42-cols">
+<div><h2>Changements</h2><ul class="pn0_2_42-small">
+<li><span>🚫</span><span>Les zones verrouillées sont <b>barrées</b>, quoi qui les verrouille.</span></li>
+<li><span>📊</span><span>L’éditeur de deck affiche le nombre de <b>Monstres, Magies, Pièges et cartes du Extra Deck</b>.</span></li>
+<li><span>⭐</span><span><b>★ Toutes</b> marque ou efface d’un coup toutes les cartes de ta recherche actuelle.</span></li>
+<li><span>📦</span><span>Nouveaux réglages : <b>Passer l'ouverture des boosters</b> et <b>Scènes d'Invocation</b>.</span></li>
+<li><span>📱</span><span>Android : bloque l’écran en <b>portrait ou paysage</b> (Orientation de l'écran).</span></li>
+<li><span>🌈</span><span>Les cartes aléatoires affichent <b>??? ALÉATOIRE ???</b> quand tu les inspectes.</span></li>
+<li><span>🪙</span><span>Le barème des pièces explique les bonus cachés que tu as trouvés.</span></li>
+<li><span>⚙️</span><span>Descriptions des réglages plus courtes, et <b>Échelle de l'interface</b> descend maintenant jusqu’à 50 %.</span></li>
+<li><span>💰</span><span>Le gain affiche ses multiplicateurs, comme <b>Éclat de Verre ×3</b> ou <b>Pénalité de niveau de défi −25 %</b>.</span></li>
+<li><span>🎩</span><span>Le CPU choisit un <b>chapeau au hasard</b> contre Chapeaux Magiques.</span></li>
+<li><span>🧠</span><span>CPU : <b>Limiter Removal</b> attend la Battle Phase, <b>Tornade de Poussière</b> ignore les cartes de blocage vides, <b>Esprit Noir du Silence</b> choisit ton monstre le plus faible.</span></li>
+<li><span>🎲</span><span>Randomiseur : 200 cartes relues et <b>une quarantaine de formulations</b> corrigées.</span></li>
+<li><span>👴</span><span>Certains secrets sont maintenant un peu plus cléments.</span></li>
+</ul></div>
+<div><h2>Correctifs</h2><ul class="pn0_2_42-small">
+<li><span>🎚️</span><span>Le curseur Échelle de l'interface redescend sous 100 % et démarre au bon endroit.</span></li>
+<li><span>📍</span><span>Menus, infobulles et cartes glissées sont bien placés à <b>toute Échelle de l'interface</b>.</span></li>
+<li><span>👥</span><span>Tag : la fenêtre de <b>choix du Type</b> (Réécriture ADN) de ton partenaire se ferme toute seule, et les cartes des <b>Booster aléatoire</b> gratuits peuvent être inspectées.</span></li>
+<li><span>⛓️</span><span><b>Sélection de l'Arche</b> et les autres Pièges qui annulent une Invocation demandent avec <b>Chaîner parfois</b>.</span></li>
+<li><span>🖼️</span><span>Les images des cartes ne disparaissent plus dans la fenêtre de carte (illustrations traduites).</span></li>
+<li><span>🔤</span><span>Les textes aléatoires ne sont plus à moitié traduits, et deux textes aléatoires correspondent maintenant à ce que fait la carte.</span></li>
+</ul></div>
+</section>
+<section><h2>Changements de reliques</h2><div class="pn0_2_42-rel"><div class="pn0_2_42-rp"><img src="assets/relics/Tribute%20Free.png"><div class="pn0_2_42-txt"><h3>Sans Sacrifice<span class="pn0_2_42-rtag pn0_2_42-t-re">RETRAVAILLÉE</span></h3><div class="pn0_2_42-eff">Les monstres de min. Niveau 7 que vous Invoquez par Sacrifice requièrent <ins>1 Sacrifice de moins</ins>.</div><p class="pn0_2_42-old">Avant : <s>Les monstres de min. Niveau 7 que vous Invoquez par Sacrifice ne requièrent que 1 Sacrifice.</s></p><p class="pn0_2_42-what"><b>Ce qui change :</b> Les monstres de Niveau 7 et 8 ne demandent toujours qu’1 Sacrifice, et les <b>Dieux Égyptiens</b> (et autres monstres à 3 Sacrifices) n’en demandent plus que <b>2</b> au lieu de 3.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/4929256.jpg"><div class="pn0_2_42-txt"><h3>Pacte du Titan<span class="pn0_2_42-rtag pn0_2_42-t-re">RETRAVAILLÉE</span></h3><div class="pn0_2_42-eff">Les monstres de min. Niveau 5 que vous contrôlez gagnent 1200 ATK. Les monstres de min. Niveau 7 que vous Invoquez par Sacrifice requièrent <ins>1 Sacrifice de moins</ins>.</div><p class="pn0_2_42-old">Avant : <s>Les monstres de min. Niveau 7 que vous Invoquez par Sacrifice ne requièrent que 1 Sacrifice.</s></p><p class="pn0_2_42-what"><b>Ce qui change :</b> Comme Sans Sacrifice : les <b>Dieux Égyptiens</b> ne demandent plus que <b>2</b> Sacrifices.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/79852326.jpg"><div class="pn0_2_42-txt"><h3>Pièges Vivants<span class="pn0_2_42-rtag pn0_2_42-t-re">RETRAVAILLÉE</span></h3><div class="pn0_2_42-eff"><ins>Au début du Duel, ajoutez à votre main 1 carte Monstre Piège aléatoire depuis votre Deck.</ins> Les Monstres Piège que vous contrôlez gagnent 600 ATK/DEF et <ins>ne peuvent pas être détruits par des effets de Magie/Piège de votre adversaire</ins>. La première fois de chaque Duel que vous Invoquez Spécialement un Monstre Piège, vous pouvez Poser un Monstre Piège différent directement depuis votre Deck.</div><p class="pn0_2_42-old">Avant : <s>Les Monstres Piège que vous contrôlez gagnent 600 ATK/DEF et ne peuvent pas être détruits au combat. La première fois de chaque Duel que vous Invoquez Spécialement un Monstre Piège, vous pouvez Poser un Monstre Piège différent directement depuis votre Deck.</s></p><p class="pn0_2_42-what"><b>Ce qui change :</b> Tu commences avec un <b>Monstre Piège en main</b>, et la protection passe du combat aux <b>Magies et Pièges</b> de ton adversaire.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/48229808.jpg"><div class="pn0_2_42-txt"><h3>Chaîne de Niveau<span class="pn0_2_42-rtag pn0_2_42-t-fix">CORRECTIF</span></h3><div class="pn0_2_42-eff">Commence chaque Duel avec un monstre LV aléatoire de Niveau 1–4 de ton Deck et un exemplaire de « Montée de Niveau ! » dans ta main. Tes monstres LV gagnent 500 ATK et ne sont pas affectés par les effets de monstre <ins>de ton adversaire</ins>.</div><p class="pn0_2_42-old">Avant : <s>...ne sont pas affectés par les effets de monstre.</s></p><p class="pn0_2_42-what"><b>Ce qui change :</b> Elle bloquait aussi les <b>effets de tes propres monstres LV</b> (Magicien Silencieux ne recevait aucun compteur). Désormais, seuls les effets de monstre de ton adversaire sont bloqués.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/33453260.jpg"><div class="pn0_2_42-txt"><h3>Première Toon<span class="pn0_2_42-rtag pn0_2_42-t-new">NOUVEAU</span></h3><div class="pn0_2_42-eff">Au début de chaque Duel, placez face recto 1 « Monde des Toons » depuis votre Deck dans votre Zone Magie &amp; Piège.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Une nouvelle relique pour le nouveau <b>soutien Toon</b> des boosters de Pegasus. Sans payer de LP.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/21296502.jpg"><div class="pn0_2_42-txt"><h3>Royaume Toon<span class="pn0_2_42-rtag pn0_2_42-t-new">NOUVEAU</span></h3><div class="pn0_2_42-eff">Au début de chaque Duel, placez face recto 1 « Monde des Toons » depuis votre Deck dans votre Zone Magie &amp; Piège. Le « Monde des Toons » que vous contrôlez ne peut pas être détruit par des effets de carte. Les monstres Toon que vous contrôlez gagnent 500 ATK et peuvent attaquer durant le tour où ils sont Invoqués.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Une nouvelle <b>relique fusionnée</b>. À toi de découvrir ce qui fusionne en elle.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/7802006.jpg"><div class="pn0_2_42-txt"><h3>Fournisseur de Magie<span class="pn0_2_42-rtag pn0_2_42-t-qol">CONFORT</span></h3><div class="pn0_2_42-eff">Une fois par tour, durant votre Standby Phase, vous pouvez placer 1 Compteur Magie sur une carte que vous contrôlez qui peut recevoir un Compteur Magie.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Quand <b>une seule carte</b> peut recevoir le compteur, il y va tout seul. S’il y en a plusieurs, tu choisis toujours.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/94256039.jpg"><div class="pn0_2_42-txt"><h3>Moteur de Compteurs Magie<span class="pn0_2_42-rtag pn0_2_42-t-qol">CONFORT</span></h3><div class="pn0_2_42-eff">Durant votre Standby Phase, placez jusqu'à 2 Compteurs Magie sur des cartes que vous contrôlez qui peuvent en recevoir. Les monstres que vous contrôlez gagnent 200 ATK pour chaque Compteur Magie sur votre Terrain.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Comme Fournisseur de Magie : plus de question quand <b>une seule carte</b> peut recevoir les compteurs.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/50277973.jpg"><div class="pn0_2_42-txt"><h3>ADN Instable<span class="pn0_2_42-rtag pn0_2_42-t-qol">CONFORT</span></h3><div class="pn0_2_42-eff">Au début de chaque Duel, sélectionnez un Type et un Attribut. Tous les monstres des deux joueurs, où qu'ils soient, deviennent du Type et de l'Attribut sélectionnés. Les monstres que vous contrôlez gagnent 100 ATK pour chaque monstre face recto sur le Terrain avec le Type et l'Attribut sélectionnés.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Le choix s’ouvre avec le <b>Type et l’Attribut du dernier Duel</b> déjà sélectionnés.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/40633297.jpg"><div class="pn0_2_42-txt"><h3>Remède Inversé<span class="pn0_2_42-rtag pn0_2_42-t-shadow">RELIQUE DES OMBRES</span></h3><div class="pn0_2_42-eff">Chaque fois qu'un joueur devrait recevoir des dommages d'effet ou payer des LP, il gagne autant de LP à la place. Chaque fois qu'un joueur devrait gagner des LP durant un Duel, il reçoit autant de dommages à la place.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Proposée <b>moins souvent</b>. Son texte ne change pas.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/67629977.jpg"><div class="pn0_2_42-txt"><h3>Étoiles Alignées<span class="pn0_2_42-rtag pn0_2_42-t-fix">CORRECTIF</span></h3><div class="pn0_2_42-eff">Une fois par tour, durant votre End Phase, si vous avez au moins 1 monstre dans votre Cimetière et que tous les monstres dans votre Cimetière et sur votre Terrain ont le même Niveau : Invoquez Spécialement 1 monstre de ce Niveau depuis votre main.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> En <b>Duels Draft</b>, elle invoquait depuis et vers le mauvais côté pour le second joueur. Elle et 13 autres reliques fonctionnent désormais pour <b>leur propriétaire</b>, et les reliques « les deux joueurs » touchent bien les deux.</p></div></div><div class="pn0_2_42-rp"><div class="pn0_2_42-art" style="background-image:url('assets/cards/24094653.jpg')"></div><div class="pn0_2_42-txt"><h3>Reliques fusionnées d'archétype<span class="pn0_2_42-rtag pn0_2_42-t-re">RETRAVAILLÉE</span></h3><div class="pn0_2_42-eff">Les reliques fusionnées qui ont remplacé une <b>relique d'archétype</b> gardent son bonus de boutique : <ins>les cartes de cet archétype apparaissent bien plus souvent en boutique</ins>.</div><p class="pn0_2_42-what"><b>Ce qui change :</b> Avant, il était perdu : une relique fusionnée pouvait donc te laisser moins de cartes de ton deck à acheter.</p></div></div></div><p class="pn0_2_42-note">Le texte vert est nouveau. Les reliques fusionnées que tu as découvertes indiquent maintenant à quelle fusion appartient chaque pièce.</p></section></div>

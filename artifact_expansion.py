@@ -19,6 +19,8 @@ def install(artifact):
  artifact('weighted_coins','Weighted Coins',100,'When acquired, choose heads or tails. Your coins are twice as likely to land on the chosen face.','Second Coin Toss','weighted_coins',0,'other')
  artifact('weighted_dice','Weighted Dice',100,'When acquired, choose a number from 1 to 6. Your dice are three times as likely to land on the chosen number.','Dice Re-Roll','weighted_dice',0,'other')
  artifact('terraforming_relic','Terraforming',90,'Add a random Field Spell from your Deck to your starting hand.','Terraforming','starting_field_spell',0,'draw')
+ # Toon Premiere (user, 2026-11-23, from a Discord suggestion for Pegasus' Toons): Toon World without its 1000 LP.
+ artifact('toon_premiere','Toon Premiere',90,'At the start of each Duel, place 1 "Toon World" from your Deck face-up in your Spell & Trap Zone.','Comic Hand','starting_toon_world',0,'draw')
  artifact('restless_stone','Restless Stone',120,'Once per turn, a Rock monster you control can change its battle position the turn it was Summoned or Set.','Stone Statue of the Aztecs','rock_reposition',0,'other')
  artifact('token_regiment','Token Regiment',90,'Tokens you control gain 750 ATK.',73915052,'token_atk',750,'offense')
  artifact('token_resonance','Token Resonance',100,'Tokens you control gain double the ATK and DEF from any card or relic.',73915053,'token_double',0,'offense')
@@ -46,7 +48,7 @@ def install(artifact):
  artifact('demonic_pact','Demonic Pact',90,"Recover half the LP cost whenever you pay it for an Archfiend card. If Pandemonium prevents an Archfiend monster’s Standby Phase cost, recover half of the prevented amount.","Archfiend's Oath",'archfiend_cost',0,'healing')
  artifact('all_for_one_terrorking','All for One Terrorking',100,'Terrorking Archfiend gains 500 ATK for each other Archfiend on the field.','Checkmate','terrorking_atk',500,'offense','35975813')
  artifact('ojama_gang','Ojama Gang',60,'Ojama monsters gain 1,000 ATK for each face-up Ojama on the field.','Ojama Delta Hurricane!!','archetype_atk',1000,'offense','0xf')
- artifact('tribute_free','Tribute Free',110,'Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Ante','tribute_free',0,'other')
+ artifact('tribute_free','Tribute Free',110,'Level 7 or higher monsters you Tribute Summon require 1 less Tribute.','Ante','tribute_free',0,'other')
  artifact('fusion_time','Fusion Time',120,'Fusion Summon Fusion Monsters from your Extra Deck using materials from your field, without Polymerization.','Metamorphosis','fusion_time',0,'summoning')
  artifact('level_one','Level One',90,'Add a random Level 1–4 LV monster from your Deck to your starting hand.','Ultimate Insect LV1','starting_low_level',0,'draw')
  artifact('level_up_relic','LEVEL UP',90,'Add 1 "Level Up!" to your starting hand.','Level Up!','starting_level_up',0,'draw')

@@ -121,6 +121,13 @@ end'''
   e:SetValue(function(e,c) return 1 end) Duel.RegisterEffect(e,0)
  end
  install(EFFECT_DECREASE_TRIBUTE) install(EFFECT_DECREASE_TRIBUTE_SET)
+ -- The Egyptian and Wicked Gods and Victory Dragon bring their own 3-Tribute procedure, which the engine's Tribute
+ -- decrease never reaches (Discord 2026-11-22). Give each one you own a second, 2-Tribute procedure to choose from.
+ local three={[10000000]=true,[10000010]=true,[10000020]=true,[21208154]=true,[57793869]=true,[62180201]=true,[44910027]=true}
+ local function give(c) if not three[c:GetOriginalCode()] or c:GetFlagEffect(10000001)>0 then return end c:RegisterFlagEffect(10000001,0,0,1) aux.AddNormalSummonProcedure(c,true,false,2,2) end
+ local function on(code,f) local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(code) e:SetOperation(f) Duel.RegisterEffect(e,0) end
+ on(EVENT_STARTUP,function() for c in Duel.GetMatchingGroup(Card.IsMonster,0,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE|LOCATION_REMOVED,0,nil):Iter() do give(c) end end)
+ on(EVENT_TO_HAND,function(e,tp,eg) for c in eg:Filter(Card.IsControler,nil,0):Iter() do give(c) end end)
 end'''
  if kind=='fusion_time':
   # each_card: a Tag partner's Extra Deck is only reachable on their turn.
@@ -147,6 +154,9 @@ end'''
   end)
   fc:RegisterEffect(e)'''+finish+'''
 end'''
+ # Toon Premiere: a Toon World from the Deck goes face-up into the Spell & Trap Zone, so no 1000 LP is paid (no activation).
+ if kind=='starting_toon_world':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local tc=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,15259703) if tc and Duel.GetLocationCount(0,LOCATION_SZONE)>0 then --[[relic-hint]] Duel.MoveToField(tc,0,0,LOCATION_SZONE,POS_FACEUP,true) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_field_spell':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsSpell() and c:IsType(TYPE_FIELD) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end'''
  if kind=='starting_low_level':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)

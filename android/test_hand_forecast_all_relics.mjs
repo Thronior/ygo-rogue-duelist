@@ -29,7 +29,7 @@ for key,v in ART_INFO.items():
  f,kind=v.get('filter',''),v['effect']
  if f in sets:test=lambda c,f=f:any((x&0xfff)==sets[f] for x in c['data'].get('setcodes',[]))
  elif kind=='terrorking_atk':test=lambda c:c['name']=='Terrorking Archfiend'
- elif f=='LV':test=lambda c:any((x&0xfff)==0x41 for x in c['data'].get('setcodes',[]))
+ elif f=='LV' or kind=='fused_level_up_chain':test=lambda c:any((x&0xfff)==0x41 for x in c['data'].get('setcodes',[]))
  elif f=='normal' or kind in ('normal','approved_commoners_chain'):test=lambda c:c['data']['type']&0x10
  elif kind=='overcharge':test=lambda c:c['race']=='Thunder'
  elif kind in ('small','approved_ashen_nursery'):test=lambda c:c['level']<=3

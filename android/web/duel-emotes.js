@@ -1,3 +1,4 @@
+import {pageRect,pageWidth,pageHeight} from './ui-zoom.js';
 import {bufferedEffects} from './audio-balance.js';
 export const EMOTES=['❤️','😜','🍆'];
 export const validEmote=emoji=>EMOTES.includes(emoji);
@@ -8,11 +9,11 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(Math.max(min,max),value));
 export function positionDuelEmotes(){
  for(const {el,own,ally} of bubbles.values()){
   const anchor=portrait(own||ally);if(!anchor){el.hidden=true;continue}el.hidden=false;
-  const r=anchor.getBoundingClientRect(),size=el.offsetWidth||80,friendly=own||ally;
-  el.style.left=clamp(friendly?r.right+size/2+8:r.left-size/2-8,size/2+4,innerWidth-size/2-4)+'px';
-  el.style.top=clamp(r.top+r.height/2,size/2+4,innerHeight-size/2-4)+'px';
+  const r=pageRect(anchor),size=el.offsetWidth||80,friendly=own||ally;
+  el.style.left=clamp(friendly?r.right+size/2+8:r.left-size/2-8,size/2+4,pageWidth()-size/2-4)+'px';
+  el.style.top=clamp(r.top+r.height/2,size/2+4,pageHeight()-size/2-4)+'px';
  }
- if(picker){const anchor=portrait(true);if(!anchor){closeEmotePicker();return}const r=anchor.getBoundingClientRect(),box=picker.getBoundingClientRect();picker.style.left=clamp(r.left,4,innerWidth-box.width-4)+'px';picker.style.top=clamp(r.top-box.height-6,4,innerHeight-box.height-4)+'px';}
+ if(picker){const anchor=portrait(true);if(!anchor){closeEmotePicker();return}const r=pageRect(anchor),box=pageRect(picker);picker.style.left=clamp(r.left,4,pageWidth()-box.width-4)+'px';picker.style.top=clamp(r.top-box.height-6,4,pageHeight()-box.height-4)+'px';}
 }
 export function showDuelEmote(emoji,own=true,{ally=false}={}){
  if(!validEmote(emoji)||document.hidden||!document.querySelector('.field-wrap'))return;

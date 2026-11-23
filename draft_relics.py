@@ -69,13 +69,17 @@ def offers():
 def duel_setup(value):
  """value: relics, characters and decks ({main, extra}) per engine player (0 goes first), and the duel seed.
  Returns the passives script and both opening-hand sizes."""
- scripts=[];draws=[]
+ scripts=[];draws=[];sides=[]
  for side in (0,1):
   artifacts=[a for a in value['relics'][side] if a in content.ART_INFO]
   others=[a for a in artifacts if a not in ('magic_mirror','blank_relic')]
   mirror=random.Random(f"{value['seed']}:{side}").choice(others) if 'magic_mirror' in artifacts and others else None
   info=[content.ART_INFO[a] for a in artifacts if a!='magic_mirror']+([content.ART_INFO[mirror]] if mirror else [])
-  opening=1 if any(a['effect']=='rulebook' for a in info) else 5+sum(a['amount'] for a in info if a['effect']=='opening')
+  sides.append((artifacts,mirror,info))
+ # Broke Man's Rulebook: "Both players open with 1 card", whichever human owns it, as in the campaign (Nori, Discord 2026-11-21).
+ rulebook=any(a['effect']=='rulebook' for _,_,info in sides for a in info)
+ for side,(artifacts,mirror,info) in enumerate(sides):
+  opening=1 if rulebook else 5+sum(a['amount'] for a in info if a['effect']=='opening')
   draws.append(ar.opening({'artifacts':artifacts,'mirror_copy':mirror},opening))
   deck=value['decks'][side];cards=list(deck.get('main',[]))+list(deck.get('extra',[]))
   run=_base(value['characters'][side])

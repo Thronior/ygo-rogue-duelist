@@ -26,7 +26,8 @@ def generate():
                 w,h=im.size
                 art=im.crop((round(w*.12),round(h*.192),round(w*.88),round(h*.70))).convert('RGB')
                 art.thumbnail((512,512),Image.Resampling.LANCZOS);save_if_changed(art,dest,quality=94)
-    for slot,cid in [(7,campaign.BY_NAME['Relinquished']['id']),(31,40659562),(32,32012841),(33,62121)]:
+    # 39: Exodia Necross for Gozaburo Kaiba (user, 2026-11-23).
+    for slot,cid in [(7,campaign.BY_NAME['Relinquished']['id']),(31,40659562),(32,32012841),(33,62121),(39,12600382)]:
         with Image.open(ROOT/'assets/cards'/f'{cid}.jpg') as im:
             w,h=im.size
             save_if_changed(im.crop((round(w*.12),round(h*.192),round(w*.88),round(h*.70))).convert('RGB'),ROOT/'assets/character-backgrounds'/f'{slot}.jpg',quality=94)

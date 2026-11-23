@@ -33,6 +33,39 @@ def install(artifact):
 # campaign_expansion.shop_relic_eligible); after that FAMILY_BASE plus FAMILY_PER_CARD for every matching Deck card (a Yes
 # mark on an owned card outside the Deck counts as relic_affinity.MARK_YES_COPIES cards), up to FAMILY_CAP.
 FAMILY_BASE,FAMILY_PER_CARD,FAMILY_CAP=.25,1.0,10.0
+# Fused relics that took in a bonus-stock relic (Eriko and Lexi, Discord 2026-11-22; user's call): no extra slot, but their
+# pool's cards weigh FUSED_STOCK_BOOST times more in general stock, multiplied on top of the deck weighting
+# (relic_affinity.card_multipliers), the product capped at FUSED_STOCK_CAP.
+FUSED_STOCK={'harpie_nest':'harpie_feather','zaloog_hideout':'scorpion_emblem','amazoness_village':'amazoness_standard',
+ 'necrovalley_throne':'necrovalley_tablet','fusion_gate':'fusion_chamber','union_buster':'union_dock',
+ 'guardians_armory':'guardian_arsenal','terrorking_magnus':'archfiend_contract','toon_kingdom':'toon_world'}
+FUSED_STOCK_BOOST,FUSED_STOCK_CAP=4.0,30.0
+def is_archfiend(c):return 'archfiend' in c['name'].lower() or _setcode(c,0x45)
+def fused_stock_test(run):
+ """The card test for the run's fused bonus-stock relics, or None when it owns none."""
+ owned=set(run.get('artifacts',[]))|{run.get('mirror_copy')}
+ pieces=[FUSED_STOCK[k] for k in FUSED_STOCK if k in owned]
+ if not pieces:return None
+ import campaign as g
+ pool=[(g.BY_ID[cid]) for cid in set(run.get('pool',[])) if cid in g.BY_ID] if 'fusion_chamber' in pieces else []
+ def test(c):
+  for piece in pieces:
+   if piece=='archfiend_contract':
+    if is_archfiend(c):return True
+   elif piece=='toon_world':
+    # Toon Kingdom keeps Toon World's stock: cards with "Toon" in their name, and Comic Hand (2026-11-23).
+    if 'toon' in c['name'].lower() or c['name']=='Comic Hand':return True
+   elif matches(piece,c) and (piece!='fusion_chamber' or fusion_offerable(c,pool)):return True
+  return False
+ return test
+def fused_stock_boost(boost,cards,run):
+ """boost ({card id: deck multiplier}) with the fused bonus-stock relics' x4 applied, capped at x30 in all."""
+ test=fused_stock_test(run)
+ if not test:return boost
+ out=dict(boost)
+ for c in cards:
+  if test(c):out[c['id']]=min(FUSED_STOCK_CAP,out.get(c['id'],1.0)*FUSED_STOCK_BOOST)
+ return out
 def family_weight(matches):return min(FAMILY_CAP,FAMILY_BASE+FAMILY_PER_CARD*max(0,matches))
 def weight(key,run):
  """A relic's base weight before rarity and the shop modifiers: 1, or the family weight for its matching Deck cards."""
@@ -47,7 +80,9 @@ def weight(key,run):
 # - Plain relics (Merchant Urn, Demonic Sword...) count 1.
 # - Shop only: a relic offered and not bought counts SKIPPED for the next SKIP_VISITS stocks, and in the first
 #   EARLY_SHOPS shops a relic costing more than the player's coins plus EARLY_SLACK counts PRICEY.
-RARITY={'traps_no_more':.25,'spells_no_more':.25,'cursed_reversed_remedy':.6,
+# Bad Reaction to Simochi (cursed_reversed_remedy): x.5 and in no theme since 2026-11-23 (user; Discord called it broken
+# with burn and LP costs). Its weight no longer follows the Deck: the burn/LP-cost theme chance used to push it to those decks.
+RARITY={'traps_no_more':.25,'spells_no_more':.25,'cursed_reversed_remedy':.5,
         'almighty':.1,'the_creator':.1,'dimensional_rift':.1,'dark_lotus':.1}
 BOOST_CAP=10.0
 # Relics that name specific cards and do nothing without them (user, 2026-11-18): x NOT_OWNED in every offer while the
@@ -59,6 +94,7 @@ SPECIFIC_CARDS={
  'blue_eyes_radiance':(('Blue-Eyes White Dragon','Blue-Eyes Shining Dragon'),2),
  'black_chaos_rite':(('Dark Magician','Dark Magician of Chaos'),2),
  'all_for_one_terrorking':(('Terrorking Archfiend',),1),
+ 'toon_premiere':(('Toon World',),1),
 }
 NOT_OWNED=.3
 def owns_named_cards(key,run):
@@ -271,7 +307,7 @@ def member_test(key,run):
  from content import ART_INFO
  info=ART_INFO.get(key,{});effect=info.get('effect')
  if key in NEW_IDS:test=lambda c:matches(key,c)
- elif effect=='like_toon':test=lambda c:'toon' in c['name'].lower()
+ elif effect=='like_toon':test=lambda c:'toon' in c['name'].lower() or c['name']=='Comic Hand'
  elif effect=='like_exodia':test=lambda c:c['name'] in EXODIA
  elif effect in ('like_archfiend','archfiend_cost'):test=lambda c:'archfiend' in c['name'].lower() or _setcode(c,0x45)
  elif effect in ('starting_low_level','starting_level_up'):test=lambda c:matches('evolution_tablet',c)

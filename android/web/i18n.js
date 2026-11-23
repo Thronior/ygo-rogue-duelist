@@ -32,8 +32,17 @@ function exact(s){
  if(cardMaps){const c=cardMaps.get(s);if(c!==undefined)return c}
  return undefined;
 }
+// Randomized cards' effect texts stay whole and English until they are translated as a whole (Discord 2026-11-22,
+// German: "…declares an attack: Eig. opponent shuffles…": the "Name: text" fallback and the "Your {0}" pattern
+// translated one word of an English effect). random-cards.js registers each text and each of its lines.
+const keptEnglish=new Set();
+export function keepEnglish(text){
+ const s=String(text??'');if(!s)return;
+ keptEnglish.add(norm(s));for(const line of s.split(/\r?\n/))if(LETTER.test(line))keptEnglish.add(norm(line));
+}
 // Translates one text run; returns undefined when nothing applies.
 function lookup(s){
+ if(keptEnglish.has(s))return exact(s);   // a whole translation is fine (a real card's own text), a partial one never
  if(memo.has(s))return memo.get(s);
  let out=exact(s);
  if(out===undefined){

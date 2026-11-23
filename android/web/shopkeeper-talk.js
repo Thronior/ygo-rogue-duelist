@@ -1,3 +1,4 @@
+import {pageRect,pageWidth} from './ui-zoom.js';
 // The shopkeeper talks: one line at a time in a pixel-art speech bubble above his head, for 4 seconds.
 // A new line replaces the old one. Lines wait while a dialog (receipt, purchases, pack opening) covers the
 // shop, so they are seen. Landscape only: mobile.css hides the bubble in portrait, where he is hidden too,
@@ -60,11 +61,11 @@ function flush(){
 export function place(){
  if(!bubble)return;
  const keeper=keeperOf();if(!keeper){hush();return}
- const box=keeper.getBoundingClientRect();if(!box.width||!box.height){bubble.hidden=true;return}
+ const box=pageRect(keeper);if(!box.width||!box.height){bubble.hidden=true;return}
  bubble.hidden=false;
  const ratio=561/592,drawnW=Math.min(box.width,box.height*ratio),drawnH=drawnW/ratio,left=box.left+(box.width-drawnW)/2,top=box.bottom-drawnH;
  const tipX=left+drawnW*.61,tipY=top+drawnH*.04,width=bubble.offsetWidth,height=bubble.offsetHeight,tail=12;
- const x=Math.max(8,Math.min(innerWidth-8-width,tipX-width/2)),y=Math.max(6,tipY-height-tail);
+ const x=Math.max(8,Math.min(pageWidth()-8-width,tipX-width/2)),y=Math.max(6,tipY-height-tail);
  bubble.style.left=Math.round(x)+'px';bubble.style.top=Math.round(y)+'px';
  bubble.style.setProperty('--tail-x',Math.round(Math.max(14,Math.min(width-14,tipX-x)))+'px');
 }

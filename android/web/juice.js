@@ -8,11 +8,13 @@ import {shake,wallMs as wall} from './duel-motion.js';
 import {assetURL} from './startup-assets.js';
 import {effectOn} from './effect-options.js';
 import {rewardWeight,rewardTextSpot,rewardTier} from './reward-text-layout.js';
+import {pageRect,pageWidth,pageHeight} from './ui-zoom.js';
 
 const html=document.documentElement;
 const prefs=()=>{const compat=html.classList.contains('compatibility-mode');return {reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,lite:compat||html.classList.contains('performance-mode'),compat}};
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const center=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,r}};
+// Style pixels: UI Scale zooms the page, so every measured rect goes through pageRect (ui-zoom.js).
+const center=el=>{const r=pageRect(el);return {x:r.left+r.width/2,y:r.top+r.height/2,r}};
 function temp(tag,cls,parent=document.body){const el=document.createElement(tag);el.className=cls;el.setAttribute('aria-hidden','true');parent.append(el);return el}
 function play(el,frames,options){const a=el.animate(frames,options);a.finished.catch(()=>{}).finally(()=>el.remove());return a}
 const later=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -136,7 +138,7 @@ export function hit(player,amount,before){
  const killed=Number.isFinite(before)&&before-amount<=0;
  if(killed&&effectOn('portrait'))portraitKO(player);
  if(!reduced&&!lite&&effectOn('impact')){
-  const {x,y}=life?center(life):{x:innerWidth/2,y:innerHeight/2};
+  const {x,y}=life?center(life):{x:pageWidth()/2,y:pageHeight()/2};
   if(tier>=3){const flash=temp('div','fx-hit-flash');flash.style.setProperty('--y',player?'15%':'85%');play(flash,[{opacity:[0,0,.16,.26,.4][tier-1]},{opacity:0}],{duration:wall(140+tier*60),easing:'ease-out'})}
   if(tier>=4){const ring=temp('div','fx-shockwave');Object.assign(ring.style,{left:x+'px',top:y+'px'});play(ring,[{opacity:.95,scale:.03},{opacity:0,scale:tier===5?1.35:.9}],{duration:wall(520),easing:'cubic-bezier(.1,.6,.3,1)'})}
  }
@@ -172,7 +174,7 @@ function finisher(overkill){
  const show=play(banner,reduced?[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.8},{opacity:0}]:[{opacity:0,scale:2.4},{opacity:1,scale:.94,offset:.12},{opacity:1,scale:1,offset:.2},{opacity:1,scale:1.03+level*.01,offset:.82},{opacity:0,scale:1.1}],{duration:wall(1500+level*120),easing:'ease-out'});
  if(!reduced&&!lite&&level>=3)banner.querySelectorAll('.word b').forEach((b,k)=>b.animate([{opacity:0,translate:'0 -40%',scale:1.8},{opacity:1,translate:'0 0',scale:1}],{duration:wall(220),delay:wall(60+k*45),easing:'cubic-bezier(.3,1.6,.5,1)',fill:'backwards'}));
  if(!reduced&&!lite&&level>=4){const flash=temp('div','fx-hit-flash');flash.style.setProperty('--y','50%');play(flash,[{opacity:.25+level*.05},{opacity:0}],{duration:wall(500)})}
- if(!reduced&&!lite&&level>=5){const r=banner.getBoundingClientRect();for(let i=0;i<level-4;i++){const ring=temp('div','fx-shockwave fx-finish-ring lv'+level);Object.assign(ring.style,{left:r.left+r.width/2+'px',top:r.top+r.height*.4+'px'});play(ring,[{opacity:.9,scale:.045},{opacity:0,scale:(7+i*2)*.15}],{duration:wall(700+i*140),delay:wall(120+i*160),easing:'cubic-bezier(.1,.6,.3,1)',fill:'backwards'})}}
+ if(!reduced&&!lite&&level>=5){const r=pageRect(banner);for(let i=0;i<level-4;i++){const ring=temp('div','fx-shockwave fx-finish-ring lv'+level);Object.assign(ring.style,{left:r.left+r.width/2+'px',top:r.top+r.height*.4+'px'});play(ring,[{opacity:.9,scale:.045},{opacity:0,scale:(7+i*2)*.15}],{duration:wall(700+i*140),delay:wall(120+i*160),easing:'cubic-bezier(.1,.6,.3,1)',fill:'backwards'})}}
  // A 120 ms freeze-frame, then a final shake that grows with the word.
  const duel=document.querySelector('.duel');if(!reduced&&!lite&&duel)later(120).then(()=>shake(duel,{strength:Math.min(18,12+level),duration:wall(480+level*30)}));
  later(wall(90)+VOICE_DELAY).then(()=>sound('kill-'+word.toLowerCase()));
@@ -184,7 +186,7 @@ function perfect(reduced,lite){
  const duration=wall(1900);later(wall(250)).then(()=>sound('perfect'));later(wall(380)+VOICE_DELAY).then(()=>sound('kill-perfect'));
  if(reduced)return play(banner,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.8},{opacity:0}],{duration}).finished.catch(()=>{}).then(()=>{finishing=null});
  const show=play(banner,[{opacity:0,scale:1.12},{opacity:1,scale:1,offset:.1},{opacity:1,scale:1,offset:.85},{opacity:0,scale:1}],{duration,easing:'ease-out'});
- const word=banner.querySelector('.word').getBoundingClientRect(),line=temp('div','fx-cut');line.style.top=word.top+word.height*.5-1+'px';
+ const word=pageRect(banner.querySelector('.word')),line=temp('div','fx-cut');line.style.top=word.top+word.height*.5-1+'px';
  play(line,[{scale:'0 1',opacity:1},{scale:'0 1',opacity:1,offset:.12},{scale:'1 1',opacity:1,offset:.24},{scale:'1 1',opacity:1,offset:.5},{scale:'1 .1',opacity:0}],{duration:wall(1100),easing:'cubic-bezier(.7,0,.3,1)'});
  for(const [cls,dx,dy] of [['top',-16,-3],['bottom',16,3]])banner.querySelector('.slice.'+cls).animate([{translate:'0 0'},{translate:'0 0',offset:.22},{translate:`${dx}px ${dy}px`,offset:.4},{translate:`${dx*1.2}px ${dy*1.2}px`}],{duration,easing:'ease-out',fill:'forwards'});
  if(!lite){const flash=temp('div','fx-hit-flash fx-white');play(flash,[{opacity:0},{opacity:0,offset:.2},{opacity:.4,offset:.26},{opacity:0}],{duration:wall(1000)})}
@@ -251,7 +253,7 @@ export function rewardText(box,rewards,onPop=()=>{}){
  const layer=temp('div','reward-text-layer'),timers=[],top=rows.at(-1)[1],step=clamp(3600/rows.length,130,420);
  box.classList.add('reward-text-stage');
  stopText=()=>{timers.forEach(clearTimeout);layer.remove();box.classList.remove('reward-text-stage')};
- const width=innerWidth,height=innerHeight,frame=box.getBoundingClientRect(),tight=frame.width*frame.height/(width*height)>.4,largest=clamp(Math.min(width,height)*(tight?.065:.1),22,64);let taken=[];
+ const width=pageWidth(),height=pageHeight(),frame=pageRect(box),tight=frame.width*frame.height/(width*height)>.4,largest=clamp(Math.min(width,height)*(tight?.065:.1),22,64);let taken=[];
  rows.forEach(([label,value],i)=>{timers.push(setTimeout(()=>{
   const tier=rewardTier(value),weight=rewardWeight(value,top,tier),el=temp('div','reward-text '+tier,layer),duration=wall((1300+3200*weight)*(tight?.7:1)),now=performance.now();
   el.textContent=`+${value.toLocaleString('en-US')} ${label}`;el.style.zIndex=Math.round(weight*10);
@@ -294,7 +296,7 @@ export function coinTally(tally,amount){
  }
 }
 function coinsInside(box,from,n,cascade){
- const b=box.getBoundingClientRect(),f=from.getBoundingClientRect(),cx=f.left-b.left+f.width/2,cy=f.top-b.top+f.height/2,src=assetURL('assets/ui/coins.png');
+ const b=pageRect(box),f=pageRect(from),cx=f.left-b.left+f.width/2,cy=f.top-b.top+f.height/2,src=assetURL('assets/ui/coins.png');
  for(let i=0;i<n;i++){
   const c=temp('img','fx-in-coin',box);c.src=src;c.alt='';
   const x=cascade?b.width*(.08+.84*Math.random()):cx,y=cascade?-24:cy;Object.assign(c.style,{left:x-11+'px',top:y-11+'px'});
@@ -341,7 +343,7 @@ export function reroll(root,previous){
  arts.forEach((art,i)=>{
   const img=art.querySelector(':scope>img'),final=img?.getAttribute('src');if(!final)return;
   if(lite){img.animate([{opacity:0,translate:'0 -8px'},{opacity:1,translate:'0 0'}],{duration:wall(220),delay:wall(i*25),fill:'backwards'});return}
-  const box=img.getBoundingClientRect(),height=box.height;if(!height)return;
+  const box=pageRect(img),height=box.height;if(!height)return;
   const pool=[...(pools[kindOf(final)]||[])].filter(s=>s!==final),spins=4+Math.floor(i/3);
   // A random order each spin (2026-11-05); the final art never passes by before it lands.
   const srcs=[previous[i]||final,...Array.from({length:spins-1},()=>pool.length?pool[Math.floor(Math.random()*pool.length)]:final),final];

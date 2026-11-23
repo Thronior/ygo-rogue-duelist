@@ -4,6 +4,7 @@
 // The data lives in settings.json (storage.character_settings). Since 2026-11-21 (magna98) each character also keeps its own
 // favourite packs (row.packs), which replaced the one device-wide settings.favoritePacks list.
 import {MARKS} from './card-marks.js';
+import {markAllMarkup} from './mark-all.js';
 import {cardMatchesQuery} from './i18n.js';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -87,5 +88,5 @@ export function editorMarkup(index,{query='',filter='all',source='all'}={},sourc
  const opt=(v,label)=>`<option value="${v}" ${filter===v?'selected':''}>${label}</option>`;
  const pack=p=>`<option value="${esc(p.id)}" ${source===p.id?'selected':''}>${esc(p.name)}</option>`;
  const from=`<select data-char-marks-source aria-label="Cards from"><option value="all" ${source==='all'?'selected':''}>Entire collection</option>${sources.start.length?`<optgroup label="Starting packs">${sources.start.map(pack).join('')}</optgroup>`:''}${sources.rest.length?`<optgroup label="Packs">${sources.rest.map(pack).join('')}</optgroup>`:''}</select>`;
- return `<div class="char-marks-editor" data-char-index="${index}"><p class="muted">Tap a card to cycle ☆ → ★ → ✕.</p><div class="char-marks-tools">${from}<input type="search" data-char-marks-search value="${esc(query)}" placeholder="Search cards" aria-label="Search cards"><select data-char-marks-filter aria-label="Show">${opt('all','All cards')}${opt('marked','Marked')}${opt('yes','★ only')}${opt('no','✕ only')}</select></div><div class="char-marks-body"></div><div class="char-marks-back"><button type="button" data-do="char-marks-back" data-char-index="${index}">Back</button></div></div>`;
+ return `<div class="char-marks-editor" data-char-index="${index}"><p class="muted">Tap a card to cycle ☆ → ★ → ✕.</p><div class="char-marks-tools">${from}<input type="search" data-char-marks-search value="${esc(query)}" placeholder="Search cards" aria-label="Search cards"><select data-char-marks-filter aria-label="Show">${opt('all','All cards')}${opt('marked','Marked')}${opt('yes','★ only')}${opt('no','✕ only')}</select>${markAllMarkup()}</div><div class="char-marks-body"></div><div class="char-marks-back"><button type="button" data-do="char-marks-back" data-char-index="${index}">Back</button></div></div>`;
 }

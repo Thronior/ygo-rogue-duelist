@@ -56,7 +56,12 @@ SETUP_ONLY={'wave_motion_counter','breaker_place_counter','hannibal_counter_setu
  'manticore_grave_flag',   # "If this card is sent to the GY, remember it until the End Phase" (Nov 20)
  # a timing that needs another effect of its card: "When this card is Special Summoned from your hand by its own
  # effect" was dealt to cards with no such effect (Discord Nov 21, Minomushi Warrior)
- 'gilasaurus_procedure_summoned'}
+ 'gilasaurus_procedure_summoned',
+ # pieces about this card as a Trap Monster stay with the effect that makes it one: "While this card is a monster,
+ # ..." was dealt to a Continuous Trap that never becomes a monster (Discord Nov 22, "Enervating Mist")
+ 'tiki_soul_protect','zoma_burn',
+ # "When this card is destroyed by a card effect while equipped" needs its card's own equip effect (Nov 23 review)
+ 'blast_with_chain_destroyed'}
 READS_COST=re.compile(r'for this effect|for the cost|that many|the (?:discarded|Tributed|banished|sent|paid)\b|as many',re.I)
 DCATS=('conds','costs','acts','limits','others')
 # Archetypes (user, Nov 19): a piece that names an archetype ("Archfiend monster", "'Gravekeeper's' monster", or an
@@ -180,6 +185,10 @@ def build_deck(cards,named):
     # its timing was left out: an action that needs a timing goes too (it errored on another one)
     timed_out=[p for p in kept['acts'] if timed(p)];kept['acts']=[p for p in kept['acts'] if not timed(p)]
     excluded['pieces naming a real card or turned off']+=len(timed_out)
+   # an effect that is only a drawback ("Skip your next 2 Draw Phases", "your opponent gains 200 LP") is never dealt on
+   # its own: its card keeps the layout and the deal fills it (review of 200 cards, Nov 23)
+   if kept['acts'] and all(R._drawback_only(p) for p in kept['acts']):
+    excluded['effects that are only a drawback (layout kept)']+=1;kept['acts']=[]
    if not kept['acts']:
     # nothing of it can be used (its blocks name cards in their text or are faulty): its card keeps the layout, the
     # deal fills it with other pieces, so the card's frame still counts

@@ -226,6 +226,13 @@ export function deckPolicy(x){
   if(n==='Ninjitsu Art of Transformation')return transformations()&&free>=0?100:-1;
   if(n==='Level Up!')return lvSources.some(source=>[...hand,...q(p,L.DECK)].some(x=>monster(x)&&levelUpFrom(source,x)))?100:-1;
   if(n==='Kaibaman')return name(c)==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon')?100:-1;
+  // Ancient Lamp (Lamp deck review, 2026-11-22). Its battle trigger (their attack on it while Set) is always worth it:
+  // their attacker fights one of their own monsters. Its Main Phase effect Special Summons La Jinn from the hand for
+  // free and is not once per turn; with no rule the generic guess refused it every time (7 of 7 offers).
+  if(n==='Ancient Lamp'&&e.cpuReviewRules?.lamp!==false){
+   if(chain)return e.player!==p&&enemy.length>1?100:-1;
+   return free>0&&hand.some(x=>name(x)==='La Jinn the Mystical Genie of the Lamp')?100:-1;
+  }
   if(n==='A Hero Emerges'){
    // The opponent picks a random hand card: only worth it when the likely summon blocks or holds.
    const attacker=e.attackCard&&(enemy.find(x=>same(x,e.attackCard))||e.attackCard);

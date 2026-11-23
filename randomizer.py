@@ -2196,14 +2196,15 @@ SELF_FROM_HAND=re.compile(r'(?i)discard this card|this card from your hand|revea
 # before it in the same effect): a step dealt without the step it refers to ("Gain LP equal to the Tributed monster's
 # ATK", "When that monster is destroyed, destroy the Token"), a timing after which this card is gone with an action that
 # needs it on the field ("If this card is sent from the field to the GY: ... equip it to this card").
-ORPHANS=[(r'the Tributed monster',r'Tribut'),(r'monsters? Tributed for this card',r'Tribut'),(r'\bthat draw\b',r'\bdraw'),(r"\bthat player\b",r'player'),(r'\bremember it\b',r'(?!)'),
+ORPHANS=[(r'for each (?:Spell/Trap|card|monster) sent\b',r'\bsend\b'),(r'for each (?:Spell/Trap|card|monster) discarded\b',r'\bdiscard'),
+ (r'for each (?:Spell/Trap|card|monster) banished\b',r'\bbanish'),(r'the Tributed monster',r'Tribut'),(r'monsters? Tributed for this card',r'Tribut'),(r'\bthat draw\b',r'\bdraw'),(r"\bthat player\b",r'player'),(r'\bremember it\b',r'(?!)'),
  (r'the attacking monster',r'attack'),(r'the destroyed monster',r'destroy'),(r'the [Bb]attle [Dd]amage',r'[Bb]attle|attack|inflicts? damage'),
  (r'\b(?:that|those) (?:monsters?|cards?|target|Spells?/Traps?|Spells|Traps)\b(?! (?:is|are) activated)',r'monster|card|target|Spell|Trap|Summon|activat'),
  (r'\bthe targeted\b',r'\btarget'),(r'\bthat many\b',r'\d|number|discard|send|banish|destroy|draw|Tribute'),
  (r'the Summoned monster',r'Summon'),(r'\bthe same number\b',r'number|draw|discard|send|banish|destroy|Tribute'),
  (r'\bthe Token\b',r'Token'),(r'\bthe equipped monster\b',r'[Ee]quip'),(r'\bthat (?:Spell|Trap|effect)\b',r'activat|Spell|Trap|effect')]
-GONE_EVENT=re.compile(r'(?i)this card is (?:destroyed|sent|banished|Tributed|returned)|this card leaves the field|this face-up card leaves')
-ON_FIELD_ACT=re.compile(r'(?i)equip [^;.]*\bto this card|(?:^|[;:,.] |then |effect; |[Yy]ou can )(?:this card (?:gains|loses|cannot|can attack|is unaffected|is treated)|change this card|this card\'s (?:ATK|DEF))')
+GONE_EVENT=re.compile(r'(?i)this (?:face-up )?card(?: you control)? is (?:destroyed|sent|banished|Tributed|returned)|this card leaves the field|this face-up card leaves')
+ON_FIELD_ACT=re.compile(r'(?i)switch control of [^;.]*\bthis card|equip[^;.]*\bto this card|(?:^|[;:,.] |then |effect; |[Yy]ou can )(?:this card (?:gains|loses|cannot|can attack|is unaffected|is treated)|change this card|this card\'s (?:ATK|DEF))')
 def _text_problem(parts,slot):
  """A dealt effect whose text would not make sense to a player (see ORPHANS), as a reason, or None."""
  if slot in ('m_fusion','m_ritual') and _event(parts) in ('flip','flip_summoned','flip_summon'):return 'a Fusion or Ritual Monster is never Flip Summoned'
@@ -2221,17 +2222,25 @@ def _text_problem(parts,slot):
  body=t.split(':',1)[1] if ':' in t else t
  if ev and GONE_EVENT.search(et) and not any(SUMMONS_SELF.search(_act_text(p,{'slot':slot,'name':'X'})) for p in parts['acts']):
   if ON_FIELD_ACT.search(body):return 'this card has left the field, but the effect needs it there'
+ # "When this card is Normal Summoned, if this card has destroyed 1 or more monsters by battle" can never hold (Nov 23)
+ if ev and re.search(r'(?i)this card is (?:Normal |Flip |Special |Tribute )?Summoned',et) and any(p['k']=='kills' for p in parts.get('conds',[])):
+  return 'a monster just Summoned has destroyed nothing by battle'
+ # "If this card is sent from the field to the GY: Make this card unable to attack ...; ..." (Nov 23): a cost on this
+ # card on the field after it left
+ if ev and GONE_EVENT.search(et) and any(p['k'] in FIELD_SELF_COSTS for p in parts.get('costs',[])):
+  return 'this card has left the field, but its cost needs it there'
  # "You can send this card to the GY; change this card to face-up Defense Position" (Nov 21): the cost took this card
  # off the field (or out of the hand), so an action on this card on the field cannot happen
  if any(p['k'] in SELF_GONE_COSTS for p in parts.get('costs',[])):
   after=body.split(';',1)[1] if ';' in body else ''
-  if ON_FIELD_ACT.search(after) or re.search(r'(?i)this face-up card|this card (?:gains|loses|cannot|can attack)',after):return 'the cost removed this card, but the effect needs it on the field'
+  if ON_FIELD_ACT.search(after) or re.search(r'(?i)this face-up card|this card (?:gains|loses|cannot|can attack)|\b(?:destroy|return|banish|shuffle|Tribute|send) this card\b(?! from (?:your |the )?(?:GY|hand))|switch control of [^.;]*this card',after):return 'the cost removed this card, but the effect needs it on the field'
  # "FLIP: ... Special Summon this banished card" (Nov 20): the timing has this card on the field
  if ev and (ev.startswith('flip') or FIELD_EVENT.search(et)) and AWAY_ACT.search(body):return 'this card is on the field, but the effect needs it in the GY or banished'
  return None
 FIELD_EVENT=re.compile(r'(?i)this card is (?:Normal |Flip |Special |Tribute )?Summoned|this card (?:attacks|battles|inflicts|destroys|is attacked)|flipped face-up|this face-up')
-AWAY_ACT=re.compile(r'(?i)this banished card|this card from (?:your GY|banishment)|banish this card from your GY|this card in your GY')
+AWAY_ACT=re.compile(r'(?i)this banished card|this card from (?:your GY|the GY|banishment)|banish this card from your GY|this card in your GY')
 SELF_COUNTER_COST={'remove_self_spell_counter'}
+FIELD_SELF_COSTS={'chaos_no_attack','tribute_self','send_self_mzone','tribute_labyrinth_pair'}
 SELF_GONE_COSTS={'tribute_self','send_self_mzone','tribute_labyrinth_pair','discard_self_hand','send_self_hand_cost','banish_self'}
 PLACES_COUNTER=re.compile(r'(?i)(?:place|put)s? [^.;]{0,40}Spell Counters? on (?:this card|it\b)|Spell Counters? on this card')
 
@@ -2706,6 +2715,14 @@ def _fmt_extra(p):
  return dict(summoned_ref='the Summoned monster' if str(p.get('filter','1 ')).startswith('1 ') else 'the Summoned monster(s)',deck_dest='on top of your Deck' if p.get('to')=='decktop' else 'into your Deck',kind=_CARD_TYPES.get(p.get('kind'),p.get('kind') or 'Spell/Trap'),type_activated=type_activated,mon_race=rname(p.get('race'),RACES),mon_attr=rname(p.get('attr'),ATTRIBUTES),dice=_or(dice),dice_s='s' if len(dice)>1 else '',names_or=_or([f'"{x}"' for x in p.get('names') or ([p['name']] if isinstance(p.get('name'),str) and p.get('name') else [])]),
   races_or=_or(races),card_type_name=_CARD_TYPES.get(ct,str(ct or 'Spell/Trap')),payoff_text=payoff)
 
+def _type_filter(p):
+ """A piece with a Type or Attribute but no filter text ("Tribute 1 monster" that needed an Insect, Nov 23)."""
+ race=p.get('race');attr=p.get('attr')
+ race=next((k for k,b in RACES.items() if b==race),'') if isinstance(race,int) else (race or '')
+ attr=next((k for k,b in ATTRIBUTES.items() if b==attr),'') if isinstance(attr,int) else (attr or '')
+ words=' '.join(x for x in (attr,race) if x)
+ return (words+' ' if words else '')+('monsters' if (p.get('n') or 1)>1 else 'monster')
+
 def _stat_effect_text(p):
  """What a targeted stat change does: "it gains 500 ATK", "it loses 500 DEF" (mode sub, or a negative gain), "its DEF
  becomes 0", "its original ATK becomes half its original ATK". A mode without words read "changes its stats" (Discord
@@ -2730,7 +2747,7 @@ def _fmt(text,p,card):
  else:
   hand_condition=(f"you have at least {p.get('n')} cards in your hand" if hand_mode=='min' else ('you have no cards in your hand' if p.get('n')==0 else f"you have {p.get('n')} or fewer cards in your hand"))
  return text.format(**_fmt_extra(p),n=n,def_n=p.get('def_n',n),s='' if n==1 else 's',race=p.get('race',''),attr=p.get('attr',''),how=how,level=p.get('level',2),l=p.get('l'),d=p.get('d'),
-  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter','monster'),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck','deck_hand_gy':'hand, Deck, or GY'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','defense':' in Defense Position','faceup':'','facedown':' in face-down Defense Position','any':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect=_stat_effect_text(p)
+  six=(n or 0)*12,nth=_ordinal(n),name=p.get('name',''),names=names,side={'opp':'monsters your opponent controls','you':'monsters you control','all':'monsters on the field'}.get(p.get('side'),'monsters your opponent controls'),deck_owner={'opp':"your opponent's",'you':'your'}.get(p.get('side'),"your opponent's"),summon_side={'opp':'your opponent','any':'either player'}.get(p.get('side'),'your opponent'),methods=methods,stats=stats,change_verb={'minus':'decrease','plus':'increase'}.get(p.get('sign'),'change'),attr_change_verb={'minus':'lose','plus':'gain'}.get(p.get('sign'),'change'),skip_phrase=({'battle':'skip your opponent\'s next Battle Phase','standby':'skip your next Standby Phase'}.get(p.get('phase'),'skip the next phase')),hand_condition_text=hand_condition,damage_turn_text=({'battle':'you take no battle damage this turn','all':'you take no damage from your opponent\'s cards this turn'}.get(p.get('kind'),'you take no damage this turn')),attacker_recover_text=('negate that attack, and if you do, gain LP equal to the attacking monster\'s ATK' if p.get('negate') else 'gain LP equal to the attacking monster\'s ATK'),extreme={'high':'highest','low':'lowest'}.get(p.get('extreme'),'highest'),stat=p.get('stat','ATK'),constraint=p.get('constraint',''),filter=p.get('filter') or _type_filter(p),verb=p.get('verb') or {'destroy':'destroy','hand':'return','grave':'send','banish':'banish','deck':'shuffle','decktop':'place','facedown':'turn face-down','defense':'change to Defense Position','attack':'change to Attack Position'}.get(p.get('to'),'destroy'),zone={'deck':'Deck','hand':'hand','gy':'GY','banished':'banished cards','deck_gy':'Deck or GY','deck_hand':'hand or Deck','deck_hand_gy':'hand, Deck, or GY'}.get(p.get('zone'),'Deck'),position={'attack':' in face-up Attack Position','defense':' in Defense Position','faceup':'','facedown':' in face-down Defense Position','any':''}.get(p.get('position'),p.get('position','')),board=p.get('board_name',''),payoff=p.get('payoff_name',''),effect=_stat_effect_text(p)
   ).replace('the top 1 card ','the top card ').replace('During your next Standby Phase after this','During your next Standby Phase')
 
 # What a lost coin toss or a wrong call does.
@@ -2907,6 +2924,18 @@ def _tidy(text):
   text=re.sub(rf'\b([Tt]urn|[Cc]hange) {re.escape(rest)} (all [^.;:]+?)(?=[.;:]|, then|$)',rf'\1 \2 {rest}',text)
  text=re.sub(r'( from (?:your|the) [\w ,]{2,30}?(?:Deck|GY|hand|field))\1\b',r'\1',text)   # "from your hand, Deck, or GY from your hand, Deck, or GY"
  text=re.sub(r'\b([Ss])end this monster from your field to the GY\b',r'\1end this card to the GY',text)
+ text=re.sub(r'\b(each|the|a|an|your|of|to|and|or|for|this|that|it) \1\b',r'\1',text)   # "for each each of" (Nov 23)
+ text=re.sub(r"\bfor each card in (your opponent's|your) banished cards\b",r"for each of \1 banished cards",text)
+ text=re.sub(r"\b[Yy]our ([A-Z][^.;:]*? monsters) you control\b",r"\1 you control",text)   # "Your Beast monsters you control"
+ text=re.sub(r'\b(increase|decrease)(s?) (\d+) (ATK|DEF)\b',lambda m:('gain' if m.group(1)=='increase' else 'lose')+m.group(2)+f' {m.group(3)} {m.group(4)}',text)
+ if _ARCH_RX:text=_ARCH_RX.sub(lambda m:f'"{m.group(1)}" {m.group(2)}',text)
+ # a target in the GY is added to the hand, not "returned" ("Target 1 monster in your GY; ..., then return it to the hand")
+ text=re.sub(r"(\b[Tt]arget [^;.]*\bin (?:your|either|your opponent's) GY\b[^;.]*;[^.]*?\b)return it to (?:the|your) hand\b",r'\1add it to your hand',text)
+ # second round of the 200-card review (Nov 23)
+ text=re.sub(r'(Summons) ((?:face-up )?monster\(s\)) your opponent Summons\b',r'\1 \2',text)   # filter said the timing again
+ text=re.sub(r'(\(but you can Set\)), then ([Tt]arget)',lambda m:m.group(1)+'. '+m.group(2).capitalize(),text)
+ text=re.sub(r'\b([Ss]huffle (?:it|them))(?=[.;])',r'\1 into the Deck',text)   # "shuffle them." with nowhere to go
+ text=re.sub(r'(?:^|(?<=\. ))While it is the Battle Phase, (.+?) during the Battle Phase\.',lambda m:m.group(1)[:1].upper()+m.group(1)[1:]+' during the Battle Phase.',text)
  text=_refer_back(text)
  text=re.sub(r'(monster\(s\)[^.]*?\b(?:banish|destroy|return|send|shuffle|equip)) it\b',r'\1 them',text)   # "destroy that monster(s), and if you do, banish them"
  return re.sub(r' {2,}',' ',_merge_sentences(text))
@@ -2914,7 +2943,14 @@ def _tidy(text):
 # Back-references (user, Nov 21: "use wording like 'that card' or 'it' instead of repeating the same thing"). A
 # timing that already names the monster ("when this card attacks a face-down Defense Position monster:") is followed
 # by "that monster", not the whole description again. Only where the two mean the same card.
-_ATTACKED=re.compile(r'\bthe (?:face-(?:up|down) )?(?:(?:Defense|Attack) Position )?monster this card is attacking\b')
+# archetype names in effect text are quoted like on real cards: '"Archfiend" monster', '"Ninja" monster' (Nov 23)
+def _arch_rx():
+ try:names=[a['name'] for a in json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']]
+ except Exception:return None
+ names=[n for n in names if n not in RACES and n not in ('Toon','LV','Exodia','Forbidden One') and len(n)>2]
+ return re.compile(r'(?<!["\w])('+'|'.join(re.escape(n) for n in sorted(names,key=len,reverse=True))+r') (monsters?|cards?|Spells?|Traps?)\b') if names else None
+_ARCH_RX=_arch_rx()
+_ATTACKED=re.compile(r'\bthe (?:face-(?:up|down) )?(?:(?:Defense|Attack) Position )?monster this card is (?:attacking|battling)\b')
 _SUMMONED=re.compile(r'\bthe (?:Flip |Normal |Special |Tribute )?Summoned ([^;,.:]*?)monster(\(s\))?(?!s)')
 _QUAL=r'\d+ or (?:more|less) (?:ATK|DEF)|Level \d+ or (?:higher|lower)'
 _SAME_TIME=('during your End Phase','during the End Phase','during your Standby Phase','at the end of the Damage Step','during the Damage Step')
@@ -2924,6 +2960,10 @@ def _refer_back(text):
   lead,sep,body=sent.partition(': ')
   if not sep or ';' in lead:out.append(sent);continue
   if re.search(r'\battacks\b',lead):body=_ATTACKED.sub('that monster',body)
+  # "When a non-Zombie monster attacks this card: ... the non-Zombie monster that attacked this card cannot attack"
+  if re.search(r'attack(?:s|ed) this',lead):
+   body=re.sub(r'\b([Tt])he (?:[\w-]+ )*?monster that attacked this card\b',lambda m:('T' if m.group(1)=='T' else 't')+'hat monster',body)
+  if 'Summon' in lead:body=re.sub(r'\b(?:face-up )?monsters your opponent Summoned\b','those monsters',body)
   if 'Summon' in lead:
    body=_SUMMONED.sub(lambda m:'that monster'+(m.group(2) or '') if all(w in lead for w in m.group(1).split()) else m.group(0),body)
   # "that monster(s) with 1500 or more ATK" / "if it has 500 or less ATK" after a timing that said so
@@ -2942,8 +2982,29 @@ def _refer_back(text):
 # equipped monster loses 1000 ATK and gains 300 DEF."; "All Spellcaster monsters gain 200 DEF. ... All Spellcaster
 # monsters gain 200 ATK." reads "All Spellcaster monsters gain 200 ATK and DEF."
 _STAT_LINE=re.compile(r'^(The equipped monster|This card|All [^.]+? monsters|[^.]+? monsters you control) (gains?|loses?) (\d+) (ATK|DEF)\.$')
+_EQ_CLAUSE=re.compile(r'(gains|loses) (\d+) (ATK and DEF|ATK|DEF)')
+_EQ_LINE=re.compile(r'^The equipped monster ((?:gains|loses) \d+ (?:ATK and DEF|ATK|DEF)(?: and (?:gains|loses) \d+ (?:ATK and DEF|ATK|DEF))*)\.$')
+def _net_equipped(sents):
+ """"The equipped monster loses 200 DEF and gains 300 DEF" reads "gains 100 DEF"; "gains 300 DEF and gains 1500 DEF"
+ reads "gains 1800 DEF" (review of 200 cards, Nov 23). Consecutive sentences about the equipped monster's ATK/DEF."""
+ out=[];i=0
+ while i<len(sents):
+  if not _EQ_LINE.match(sents[i]):out.append(sents[i]);i+=1;continue
+  tot={'ATK':0,'DEF':0};j=i
+  while j<len(sents) and _EQ_LINE.match(sents[j]):
+   for verb,n,stat in _EQ_CLAUSE.findall(sents[j]):
+    for s in ('ATK','DEF') if stat=='ATK and DEF' else (stat,):tot[s]+=int(n)*(1 if verb=='gains' else -1)
+   j+=1
+  a,d=tot['ATK'],tot['DEF']
+  word=lambda v,s:f"{'gains' if v>0 else 'loses'} {abs(v)} {s}"
+  if a and a==d:out.append(f'The equipped monster {word(a,"ATK and DEF")}.')
+  elif a and d and (a>0)==(d>0):out.append(f"The equipped monster {'gains' if a>0 else 'loses'} {abs(a)} ATK and {abs(d)} DEF.")
+  elif a or d:out.append('The equipped monster '+' and '.join(word(v,s) for v,s in ((a,'ATK'),(d,'DEF')) if v)+'.')
+  i=j
+ return out
+
 def _merge_sentences(text):
- sents=re.split(r'(?<=\.) (?=[A-Z])',text);out=[]
+ sents=_net_equipped(re.split(r'(?<=\.) (?=[A-Z])',text));out=[]
  for s in sents:
   m=_STAT_LINE.match(s)
   if m:
@@ -3378,7 +3439,11 @@ DEAL_MODE=bool(DECK)
 # used" when forced onto any card; dealt, they keep the kind of effect and card they came from).
 DEAL_OFF={'dna_transplant','emperor_holiday','spellbinding_circle','wall_of_revealing_light','xing_zhen_hu','infernal_flame_destroy_st',
  'mysterious_guard','no_spells_traps_activation_turn','minor_goblin_official','tribute_summoned','chaosrider_boost',
- 'last_will','legacy_hunter_return_random'}   # these two crashed the engine when dealt (Nov 19)
+ 'last_will','legacy_hunter_return_random',   # these two crashed the engine when dealt (Nov 19)
+ # review of 200 dealt cards (Nov 23): they only work on their own real card. "...Special Summoned by the effect of a
+ # lower Ultimate Insect LV monster", "(Super Roboyarou)... its paired Fusion Monster", "not equipped with a Union
+ # Monster by this effect" on cards that can never be any of those
+ 'ultimate_insect_lv','super_robo_pair','union_rider_unencumbered'}
 TURN_LOCK=re.compile(r"(?i)opponent's turn|opponent's (standby|main|battle|end)|battle phase|damage step|damage calculation|standby phase|end phase|either player's turn")
 MAIN_ONLY={'s_normal','s_equip','s_field','s_ritual'}
 LUA_RULES=set((DECK or {}).get('lua_rules',()))
@@ -3512,6 +3577,11 @@ def _deal_ok(parts,slot,kind):
   if why:DEAL_WHY['text: '+why.split(':')[0]]+=1;return False
  return not bad
 
+# effects that are only a drawback when they stand alone (review of 200 cards, Nov 23); not SELF_HARM above, which
+# picks coin-toss penalties
+DRAWBACK_ONLY={'give_self','mask_remnants_shuffle','draw_until_seven','skip_next_two_draw_phases','destroy_self_battle','recover_opp','damage_self','shuffle_own_deck'}
+def _drawback_only(p):
+ return p['k'] in DRAWBACK_ONLY or (p['k']=='skip_phase' and p.get('phase')=='standby')   # "skip your next Standby Phase"
 DEAL_WHY=Counter();DEAL_FAILED=Counter()   # why dealt effects were tried again, and the ones never dealt (diagnostics)
 def _deal_effect(d,slot,sk,card_id,no_self_ss=False,used_sigs=()):
  kind,n=sk['kind'],sk['n'];budget=STRUCTURE.get(slot,{}).get('budget')
@@ -3584,6 +3654,11 @@ def _deal_effect(d,slot,sk,card_id,no_self_ss=False,used_sigs=()):
    clean['limits'].append({'k':'opt'})
   sig=[json.dumps(q,sort_keys=True) for c in CATEGORIES for q in clean[c]]
   if len(sig)!=len(set(sig)) or json.dumps(clean['acts'],sort_keys=True) in used_sigs:undo();DEAL_WHY['same piece twice']+=1;continue
+  # only a drawback ("Skip your next 2 Draw Phases", "pay 500 LP; your opponent gains 200 LP", Nov 23)
+  if clean['acts'] and all(_drawback_only(p) for p in clean['acts']):undo();DEAL_WHY['only a drawback']+=1;continue
+  # a card that cannot be Special Summoned (a rule or a Spirit) never meets "If this card is Special Summoned" (Nov 23)
+  if no_self_ss and ev_k and re.search(r'(?i)this card is (?:[\w-]+ )?Special Summoned|this card is Special Summoned',CONDS.get(ev_k,{}).get('text','')):
+   undo();DEAL_WHY['Special Summoned timing on a card that cannot be']+=1;continue
   if not _deal_ok(clean,slot,kind):undo();DEAL_WHY['rules']+=1;continue
   # as strong as the real effect in this place may be, or the slot's real 90th percentile (3% may break it)
   if budget is not None and power_score(clean,slot)>max(budget,sk.get('p',0)*1.1) and d.rng.random()>=CRAZY:undo();DEAL_WHY['too strong']+=1;continue
@@ -3679,6 +3754,14 @@ def _rule_text(e,card):
    if meta.get('tclause') and not re.search(r'(?i)\btarget',t):
     t='Activate this card by '+re.sub(r'^target\b','targeting',_fmt(meta['tclause'],p,card).strip())+'; '+(t if t.split(' ')[0] in _CAPITAL_WORDS else t[:1].lower()+t[1:])
    out.append(t[:1].upper()+t[1:].rstrip('.')+'.')
+ # its timing is part of the text: "During your Standby Phase, if this card is in your GY, gain 200 LP" read only "If
+ # this card is in your GY, gain 200 LP" (review of 200 cards, Nov 23)
+ ev=next((p for p in e.get('conds',[]) if CONDS.get(p['k'],{}).get('kind')=='event'),None)
+ if ev and out and ev['k']!='flip':
+  when=_fmt(CONDS[ev['k']].get('text',''),ev,card).strip().rstrip(':,.')
+  if when and when.lower() not in out[-1].lower():
+   i=len(out)-1;first=out[i]
+   out[i]=when[:1].upper()+when[1:]+(', ' if re.match(r'(?i)if |while ',first) else ': ')+(first[:1].lower()+first[1:] if re.match(r'(?i)if |while ',first) else first)
  return ' '.join(out)
 
 def _deal_text(card):
@@ -3691,12 +3774,34 @@ def _deal_text(card):
   except Exception:t=''
   if t:lines.append(t)
  text=_tidy(' '.join(x for x in lines if x))
+ slot=card['slot']
+ if slot[0] in 'st':text=re.sub(r'\b([Tt])ribute 1 other monster\b',r'\1ribute 1 monster',text)   # a Spell or Trap has no "other" monster
+ # one "Equip only to": a second one another piece brings is dropped (Nov 23, "Equip only to a Warrior monster. ...
+ # Equip only to a non-Machine monster."); a second that excludes the first makes the effect invalid (_deal_ok)
+ eqs=re.findall(r'Equip only to ([^.;]+)[.;]',text)
+ for extra in eqs[1:]:text=re.sub(r'(?<=[.;] )Equip only to '+re.escape(extra)+r'[.;] ?','',text,count=1)
+ if slot=='s_equip' and text and 'Equip only to' not in text:text='Equip only to a face-up monster. '+text
+ # "Cannot be Normal Summoned/Set." comes first, as on real cards (Nov 23)
+ m=re.search(r' (Cannot be Normal Summoned/Set\.)',text)
+ if m:text=m.group(1)+' '+(text[:m.start()]+text[m.end():]).strip()
  # a sentence two effects both bring ("Equip only to ...", "You can only activate 1 ... per turn") is written once
  seen=set();out=[]
  for sentence in re.split(r'(?<=\.) (?=[A-Z"])',text):
   if sentence in seen:continue
   seen.add(sentence);out.append(sentence)
  return ' '.join(out)
+
+OWN_ATTRIBUTE={'thunder_nyan_self_destroy':'LIGHT'}
+TRAP_MONSTER_ACTS={'trap_monster_effect','trap_monster_normal','swamp_mirrorer','tiki_curse'}
+def _level_needed(effects):
+ need=1
+ for e in effects:
+  # the timing piece, or a whole real effect that says it ("When this card is Tribute Summoned, its ATK becomes ...")
+  texts=[CONDS.get(p['k'],{}).get('text','') for p in e.get('conds',[])]+[{**ACTS,**AURAS}.get(p['k'],{}).get('text','') for p in e.get('acts',[])]
+  if any(re.search(r'Normal Summoned/Set with \d Tribute',t) for t in texts):continue   # its own Tribute rule
+  for t in texts:
+   if re.search(r'(?i)this card is Tribute Summoned',t):need=max(need,7 if re.search(r'Tributing 3',t) else 5)
+ return need
 
 def _deal_card(d,rng,next_id,used,kind=None,frame=None,sub=None,log=None):
  sh=d.shell(kind,frame,sub)
@@ -3713,6 +3818,14 @@ def _deal_card(d,rng,next_id,used,kind=None,frame=None,sub=None,log=None):
  # A free "you can Special Summon this card from your hand" gets a condition from the bag (user, Nov 19: always or
  # almost always some condition), unless it already has a timing, a condition or a cost.
  effects=[_hand_summon_requirement(d,e,slot,log,card['id']) for e in effects]
+ # a Trap that Special Summons itself, with no timing and no limit, was chained onto itself again and again by the CPU
+ # (engine stall, Nov 23, "Stronghold the Moving Fortress"): once per turn, like dealt effects that repeat
+ for e in effects:
+  if e['kind']=='activated' and any(p['k'] in TRAP_MONSTER_ACTS for p in e.get('acts',[])) and not _event({c:e.get(c,[]) for c in CATEGORIES}) \
+     and not any(LIMITS.get(p['k'],{}).get('once') for p in e.get('limits',[])):
+   e['limits']=list(e.get('limits',[]))+[{'k':'opt'}]
+ dropped=[e for e in effects if e.get('acts') and all(_drawback_only(p) for p in e['acts'])]
+ if dropped:effects=[e for e in effects if e not in dropped];log.append('dropped an effect that is only a drawback')
  # "Cannot be Special Summoned" (a summoning rule or a Spirit) and "Special Summon this card" cannot share a card
  no_ss=any(p['k'] in ('cannot_ss','spirit_return') for e in effects for c in CATEGORIES for p in e.get(c,[])) or 'spirit' in sh['t']
  for sk in sh['sk']:
@@ -3748,7 +3861,22 @@ def _deal_card(d,rng,next_id,used,kind=None,frame=None,sub=None,log=None):
   if fr=='effect' and not effects and 'union' not in sh['t']:fr='normal';slot=card['slot']='m_none';log.append('no effect could be dealt: Normal Monster')
   st=(d.st.get(sh['f']) or [None]).pop() if d.st.get(sh['f']) else None
   level,atk,dfn=st or sh.get('st') or [4,1500,1200]
+  # "If this card is Tribute Summoned" needs Level 5 or more, "by Tributing 3 monsters" 7 or more (a Level 3 had it,
+  # Nov 23): swap with a dealt stat line of that frame that fits, so the Level counts stay exact
+  need=_level_needed(effects)
+  pool=d.st.get(sh['f']) or []
+  if st and level<need:
+   i=next((i for i,x in enumerate(pool) if x[0]>=need),None)
+   if i is not None:pool[i],st=st,pool[i];level,atk,dfn=st;log.append(f'Level {level} for its Tribute Summon timing')
+   else:effects=[e for e in effects if _level_needed([e])<=level];log.append('dropped a Tribute Summon timing its Level cannot meet')
   ra=d.ra.pop() if d.ra else (sh.get('ra') or ['Warrior','EARTH'])
+  # "Destroy this face-up card if you control a face-up non-LIGHT monster" on an EARTH monster destroyed itself (Nov 23)
+  own=next((OWN_ATTRIBUTE[p['k']] for e in effects for p in e.get('acts',[]) if p['k'] in OWN_ATTRIBUTE),None)
+  if own and ra[1]!=own:
+   i=next((i for i,x in enumerate(d.ra) if x[1]==own),None)
+   if i is not None:d.ra[i],ra=ra,d.ra[i]
+   else:ra=[ra[0],own]
+   log.append(f'{own} for its own effect')
   race=ra[0] if ra[0] in RACES else pick(rng,RACE_WEIGHTS);attr=ra[1] if ra[1] in ATTRIBUTES else pick(rng,ATTR_WEIGHTS)
   art=_one_unused(rng,MONSTERS_BY_RACE[race],used,MONSTERS);name=_one_unused(rng,MONSTERS,used,MONSTERS)
   card.update(kind='monster',frame=fr,level=level,race=race,attribute=attr,atk=atk,defense=dfn,name=name['name'],name_from=name['id'],
@@ -3852,6 +3980,13 @@ SPECIFY_TEXT={
  'ryu_senshi':'Must be Fusion Summoned. You can pay 1000 LP to negate the activation of a Trap Card. Negate Spell effects that target this card, and destroy that Spell Card',
  'fiend_skull_dragon':'Must be Fusion Summoned. Negate the effects of Flip monsters. Negate Trap effects that target this card. Summoner of Illusions cannot destroy this card during the End Phase',
  'dark_paladin':'Must be Fusion Summoned. When a Spell Card is activated, you can discard 1 card; negate the activation, and if you do, destroy it. This card gains 500 ATK for each Dragon monster on the field and in either GY',
+ # its Lua destroys at the end of the Battle Phase; the text left that out and read impossible (Discord Nov 22,
+ # "During Main Phase 1, destroy all monsters that were involved in damage calculation this turn")
+ 'after_the_struggle':'Activate only during Main Phase 1. At the end of the Battle Phase this turn, destroy all monsters that were involved in damage calculation this turn',
+ # review of 200 dealt cards (Nov 23)
+ 'destroy_battle_target_selector':'When this card battles a {filter} monster, destroy that monster after the Damage Step.',
+ 'sword_hunter':'At the end of the Battle Phase, equip all monsters destroyed by battle with this card this turn from the GYs to this card; it gains 200 ATK for each monster equipped by this effect',
+ 'chaos_no_attack':'make this card unable to attack for the rest of this turn',
  'big_shield_change_attack':'change this card to face-up Attack Position if it was face-down when attacked',
  'opp_attack_target_named':'While you control a face-up {names_or}, your opponent can only target it for attacks',
  # Manticore of Darkness's marker (it lets its End Phase effect know the card was sent this turn) says nothing a player

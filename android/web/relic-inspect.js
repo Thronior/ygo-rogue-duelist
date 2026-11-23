@@ -8,10 +8,22 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const countBadge=count=>count>1?`<span class="relic-count" aria-label="${count} copies">×${count}</span>`:'';
 // Shadow relics show their benefit and drawback apart, as on the shadow relic choice.
 const relicKind=(content,id)=>/^cursed_/.test(id)||content.artifactInfo?.[id]?.parts?.length===2?'cursed':content.fusionMaterials?.[id]?'fused':'';
+// Fusion hints (yunluo596-droid, itch.io; user 2026-11-22): a piece of a fusion the player has already discovered names the
+// fused relic, with its icon and how many of its pieces this run owns. Undiscovered fusions stay secret. The app sets the
+// state getter: {found: profile.fused_relics, owned: the run's relics, or null outside a run}.
+let fusionState=()=>null;
+export function setFusionState(get){fusionState=get}
+export function fusionHint(content,id){
+ const state=fusionState()||{},found=state.found||[],owned=state.owned;if(!found.length)return '';
+ return found.map(f=>{const m=content.fusionMaterials?.[f];if(!m?.pieces?.includes(id))return '';
+  const need=m.needed||m.pieces.length,have=owned?Math.min(need,m.pieces.filter(p=>owned.includes(p)).length):0,art=content.artifactInfo?.[f]?.art;
+  const line=!owned?'':owned.includes(f)?'<em>Fused this run</em>':`<em>${`You own {0} of {1}`.replace('{0}',have).replace('{1}',need)}</em>`;
+  return `<div class="fusion-hint">${art?`<img src="${relicImage(art)}" alt="" decoding="async">`:''}<span><small>Fusion Material for</small><b>${esc(content.artifacts[f]?.[0]||f)}</b>${line}</span></div>`}).join('');
+}
 // status: a short line under the name. price: markup for a price. extra: more markup under the text. action: a button.
 export function relicCard(content,id,{count=1,status='',price='',extra='',action='',negated=false}={}){
  const [name,,text='']=content.artifacts[id]||[id],info=content.artifactInfo?.[id]||{},kind=relicKind(content,id);
- return `<article class="relic-card ${kind}${negated?' negated':''}" data-relic-card="${esc(id)}"><div class="relic-card-art">${relicArtwork(relicImage(info.art))}${countBadge(count)}</div><h3>${esc(name)}</h3>${status?`<b class="relic-card-status">${status}</b>`:''}${price?`<span class="relic-card-price">${price}</span>`:''}<div class="relic-card-text">${kind==='cursed'?cursedMarkup(id,text,info.parts):`<p>${esc(text)}</p>`}</div>${extra}${action}</article>`;
+ return `<article class="relic-card ${kind}${negated?' negated':''}" data-relic-card="${esc(id)}"><div class="relic-card-art">${relicArtwork(relicImage(info.art))}${countBadge(count)}</div><h3>${esc(name)}</h3>${status?`<b class="relic-card-status">${status}</b>`:''}${price?`<span class="relic-card-price">${price}</span>`:''}<div class="relic-card-text">${kind==='cursed'?cursedMarkup(id,text,info.parts):`<p>${esc(text)}</p>`}</div>${extra}${fusionHint(content,id)}${action}</article>`;
 }
 // Challenge Level 6 curses stay for the whole run, so the Relics window lists them after the relics between duels
 // (user request, 2026-11-11), marked as curses so they are not taken for bought relics. In a duel the Curses window

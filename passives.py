@@ -288,6 +288,31 @@ def mirrored_script(run):
  return '\n'.join(duel_rules(multiplayer_script(view,1))) if view['artifacts'] else ''
 
 
+def _flip_literal_players(src,slots):
+ """Duel.<name>(...) calls whose argument in a listed slot is a literal 0 or 1 get 1-n there. Arguments are split at the
+ call's own commas, so inline function(...) filters with their own commas and parentheses stay whole."""
+ import re
+ out=[];pos=0
+ for m in re.finditer(r'\bDuel\.('+'|'.join(sorted(slots,key=len,reverse=True))+r')\(',src):
+  if m.start()<pos:continue
+  i=m.end();depth=0;start=i;spans=[]
+  while i<len(src):
+   ch=src[i]
+   if ch in '([{':depth+=1
+   elif ch in ')]}':
+    if depth==0:spans.append((start,i));break
+    depth-=1
+   elif ch==',' and depth==0:spans.append((start,i));start=i+1
+   i+=1
+  else:continue
+  piece=src[pos:m.end()];cur=m.end()
+  for k,(a,b) in enumerate(spans,1):
+   arg=src[a:b]
+   if k in slots[m[1]] and arg.strip() in ('0','1'):arg=arg.replace(arg.strip(),str(1-int(arg.strip())))
+   piece+=src[cur:a]+arg;cur=b
+  out.append(piece);pos=cur
+ out.append(src[pos:]);return ''.join(out)
+
 def multiplayer_script(run, side):
  """Apply the same relic rules to either human, with independent once-only effects."""
  if side not in (0,1):raise ValueError('Invalid player.')
@@ -303,8 +328,18 @@ def multiplayer_script(run, side):
  source=re.sub(r'(\b(?:ep|rp)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
  # Immunity checks such as Normal Barrier and Commoner's Crown read the owner of the other effect.
  source=re.sub(r'(:GetOwnerPlayer\(\)\s*(?:==|~=)\s*)([01])',lambda m:m[1]+str(1-int(m[2])),source)
- positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'SelectMatchingCard':2,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1,'AnnounceCoin':1,'AnnounceNumber':1,'ShuffleDeck':1}
+ # Card:IsCanBeSpecialSummoned(e,sumtype,sumplayer,...) checks for the summoning player (Restless Dead, The Creator).
+ source=re.sub(r'(IsCanBeSpecialSummoned\(e,\s*[\w|]+,\s*)([01])\b',lambda m:m[1]+str(1-int(m[2])),source)
+ # SelectMatchingCard(sel_player,filter,player,...) and SpecialSummon(targets,sumtype,sumplayer,target_player,...): who chooses and whose cards both flip (Nori, Discord 2026-11-21: the
+ # other human chose Mulligan's Offer's cards and the owner drew; Restless Dead, The Creator and Token Defender summoned to
+ # the other field). SelectMatchingCard used to flip the filter's slot, which is never 0 or 1.
+ positions={'RegisterEffect':2,'GetLP':1,'SetLP':1,'GetFieldGroupCount':1,'GetFieldCard':1,'GetMatchingGroup':2,'GetMatchingGroupCount':2,'IsExistingMatchingCard':2,'CreateToken':1,'SendtoHand':2,'DiscardHand':1,'Draw':1,'Recover':1,'Damage':1,'SkipPhase':1,'Hint':2,'DiscardDeck':1,'AnnounceCoin':1,'AnnounceNumber':1,'ShuffleDeck':1}
+ # These three flip only literal 0/1 in the script text, never at run time: relics such as Stars Aligned pass a player
+ # they work out themselves (tp, Duel.GetTurnPlayer()), which is already seat 1's, and a run-time flip sent it back
+ # (behaviour flag 18fd8685, 2026-11-22: the CPU's Stars Aligned summoned to the player's field; 14 relics affected).
+ source=_flip_literal_players(source,{'SelectMatchingCard':(1,3),'SpecialSummon':(3,4),'SpecialSummonStep':(3,4)})
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():
-  wrappers.append(f'Duel.{name}=function(...) local a=table.pack(...) if a[{index}]==0 or a[{index}]==1 then a[{index}]=1-a[{index}] end return originalDuel.{name}(table.unpack(a,1,a.n)) end')
+  flips=' '.join(f'if a[{i}]==0 or a[{i}]==1 then a[{i}]=1-a[{i}] end' for i in (index if isinstance(index,tuple) else (index,)))
+  wrappers.append(f'Duel.{name}=function(...) local a=table.pack(...) {flips} return originalDuel.{name}(table.unpack(a,1,a.n)) end')
  return '\n'.join(wrappers+[source,'end'])

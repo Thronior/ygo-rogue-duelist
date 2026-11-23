@@ -1,0 +1,129 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_42,.patch-notes-sheet.pn0_2_42 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_42{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_42 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_42 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_42 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_42 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_42 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big .pn0_2_42-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big>*{position:relative}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-big p.pn0_2_42-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way img,.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-relics .pn0_2_42-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-packs .pn0_2_42-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark.pn0_2_42-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-mark.pn0_2_42-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;margin-top:26px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:14px;padding:20px;display:flex;gap:20px;align-items:flex-start}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp .pn0_2_42-art{width:170px;height:170px;border-radius:10px;border:2px solid #b5824a;flex:none;background-color:#0b1a22;background-repeat:no-repeat;background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp img{width:170px;height:170px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;flex:none;background:#0b1a22}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp .pn0_2_42-txt{min-width:0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rp h3{font:400 44px/1 Bebas;letter-spacing:2px;margin:0 0 6px;color:#fff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-rtag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:5px 9px;border-radius:10px;vertical-align:middle;margin-left:10px;letter-spacing:1px;position:relative;top:-6px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-new{background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-re{background:#2a1406;border:1px solid #ffb24a;color:#ffd38a}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-fix{background:#2a1416;border:1px solid #d0675e;color:#ffb0a8}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-qol{background:#0f2440;border:1px solid #6fa8ff;color:#b7d3ff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-t-shadow{background:#1c1030;border:1px solid #a77bff;color:#d6c2ff}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-eff{font-size:17px;line-height:1.38;background:#07171acc;border-left:3px solid #b5824a;border-radius:6px;padding:9px 12px;margin:6px 0 10px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-eff ins{text-decoration:none;background:#3b5a1f88;color:#e8ffc6;border-radius:3px;padding:0 2px}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-old{font-size:15px;color:#a9b9bd;margin:0 0 8px;line-height:1.35}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-old s{color:#c98a84}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-what{font-size:17px;line-height:1.35;margin:0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-what b:first-child{color:#8fd8d2}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-note{font-size:17px;color:#a9c4c4;margin:22px 0 0}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-way .pn0_2_42-art.pn0_2_42-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_42 .pn0_2_42-tag{display:inline-block;font:700 14px/1 Arial,sans-serif;padding:4px 8px;border-radius:10px;background:#123b2c;border:1px solid #5fd3a0;color:#9ff0c8;vertical-align:middle;margin-left:8px}</style><div class="patch-notes-sheet pn0_2_42"><div class="pn0_2_42-kick">YGO Rogue Duelist</div><h1>Update 0.2.42</h1>
+
+<section class="pn0_2_42-cols" style="margin-top:28px">
+<div class="pn0_2_42-big"><em>Neue Plattform</em><h3>Linux-App <span class="pn0_2_42-tag">EXPERIMENTELL</span></h3>
+<p class="pn0_2_42-lead">Eine <b>Linux-Desktop-App</b> wie die für Windows: ein kleiner Launcher, der das Spiel einmal herunterlädt, danach <b>nur noch die Updates</b>, und sich selbst aktualisiert. Du findest sie unter <b>App herunterladen</b>.</p></div>
+<div class="pn0_2_42-big"><em>Steuerung</em><h3>Zum Spielen ziehen</h3>
+<p class="pn0_2_42-lead">Ziehe eine Karte <b>von deiner Hand nach oben auf dein Feld</b>, um sie zu beschwören, zu setzen oder zu aktivieren. Sie landet in der Zone, auf die du sie fallen lässt. Tippen funktioniert weiterhin wie bisher.</p></div>
+</section>
+
+<section class="pn0_2_42-big"><em>Gegner</em><h3>Neue Duellanten</h3>
+<div class="pn0_2_42-ways">
+<div class="pn0_2_42-way"><img class="pn0_2_42-sprite" src="assets/opponents/bobasa.png"><p><b>Bobasa</b>Ein neuer Gegner in <b>Tier 1</b> mit Kykys Lampen- und Krug-Deck: Mystischer Jinn der Lampe, Antike Lampe und ein sehr unberechenbarer Würfelkrug.</p></div>
+<div class="pn0_2_42-way"><img class="pn0_2_42-sprite" src="assets/opponents/gozaburo-kaiba.png"><p><b>Gozaburo Kaiba</b>Ein neuer Gegner in <b>Tier 1</b> mit Noris <b>Exodia Necross</b>-Deck: Er füllt seinen Friedhof mit Exodia-Teilen, um Necross zu stärken.</p></div>
+</div></section>
+
+<section class="pn0_2_42-big"><em>Pegasus</em><h3>Toon-Support</h3>
+<div class="pn0_2_42-ways">
+<div class="pn0_2_42-way"><div class="pn0_2_42-art pn0_2_42-crop" style="background-image:url('assets/cards/21296502.jpg')"></div><p><b>Neue Toon-Karten</b><b>Toon-Dunkler Magier</b>, <b>Toon-Aktenkoffer</b>, <b>Toon-Maske</b> und <b>Comic-Hand</b> kommen in Pegasus’ Packs.</p></div>
+<div class="pn0_2_42-way"><img src="assets/relics/33453260.jpg"><p><b>Zwei neue Toon-Relikte</b><b>Toon-Premiere</b> und das fusionierte Relikt <b>Toon-Königreich</b>. Beide stehen unter <b>Relikt-Änderungen</b>.</p></div>
+</div></section>
+
+
+
+<section class="pn0_2_42-big"><em>CPU</em><h3>Klügere CPU</h3>
+<p class="pn0_2_42-lead">Gelernt aus <b>euren Replays</b>: Sie tauscht Monster mit gleicher ATK, spielt <b>Susa, der Soldat</b> und <b>Asura-Priester</b> richtig, opfert keine Monster mehr als Tribut, die noch angreifen könnten, und spielt die Combos des <b>World-Championship</b>-Decks.</p></section>
+
+<section class="pn0_2_42-cols">
+<div class="pn0_2_42-big"><em>Fusionierte Relikte</em><h3>Fusionshinweise</h3>
+<p class="pn0_2_42-lead">Sobald du ein fusioniertes Relikt entdeckt hast, zeigen seine Teile überall, <b>zu welcher Fusion sie gehören</b> und wie viele du besitzt.</p></div>
+<div class="pn0_2_42-big"><em>Animationen</em><h3>Volle Animationen für alle</h3>
+<p class="pn0_2_42-lead">Die Animationseinstellung deines Computers oder Handys schwächt die Animationen des Spiels nicht mehr ab. Das macht nur noch die Spieleinstellung <b>Bewegung reduzieren</b>.</p></div>
+</section>
+
+<section class="pn0_2_42-cols">
+<div class="pn0_2_42-big"><em>Shop</em><h3>Shop-Tour</h3>
+<p class="pn0_2_42-lead">Dein erster Besuch im Shop startet eine <b>kurze geführte Tour</b>, wie er funktioniert. Tippe im Shop auf <b>?</b>, um sie erneut zu sehen.</p></div>
+<div class="pn0_2_42-big"><em>CPU-Duell ansehen</em><h3>Meine Decks</h3>
+<p class="pn0_2_42-lead">Ein neuer Tab <b>Meine Decks</b> lässt die CPU <b>deine eigenen gespeicherten Decks</b> spielen. Eigene Decks haben jetzt einen <b>Namen</b>, den du ändern kannst.</p></div>
+</section>
+
+<section class="pn0_2_42-cols">
+<div><h2>Änderungen</h2><ul class="pn0_2_42-small">
+<li><span>🚫</span><span>Gesperrte Zonen sind <b>durchgestrichen</b>, egal was sie sperrt.</span></li>
+<li><span>📊</span><span>Der Deck-Editor zeigt die Anzahl deiner <b>Monster, Zauber, Fallen und Extra-Deck-Karten</b>.</span></li>
+<li><span>⭐</span><span><b>★ Alle</b> markiert oder leert alle Karten deiner aktuellen Suche auf einmal.</span></li>
+<li><span>📦</span><span>Neue Einstellungen: <b>Pack-Animationen überspringen</b> und <b>Beschwörungs-Einblendungen</b>.</span></li>
+<li><span>📱</span><span>Android: Fixiere den Bildschirm im <b>Hoch- oder Querformat</b> (Bildschirmausrichtung).</span></li>
+<li><span>🌈</span><span>Zufällige Karten zeigen beim Ansehen <b>??? ZUFÄLLIG ???</b>.</span></li>
+<li><span>🪙</span><span>Die Münz-Übersicht erklärt die versteckten Boni, die du gefunden hast.</span></li>
+<li><span>⚙️</span><span>Kürzere Beschreibungen in den Einstellungen, und <b>UI-Größe</b> geht jetzt bis 50 % hinunter.</span></li>
+<li><span>💰</span><span>Die Auszahlung zeigt ihre Multiplikatoren, etwa <b>Glasscherbe ×3</b> oder <b>Abzug durch Schwierigkeitsgrad −25 %</b>.</span></li>
+<li><span>🎩</span><span>Die CPU wählt gegen Magische Hüte einen <b>zufälligen Hut</b>.</span></li>
+<li><span>🧠</span><span>CPU: <b>Begrenzer-Entferner</b> wartet auf die Battle Phase, <b>Staubtornado</b> ignoriert leere Sperrkarten, <b>Dunkler Geist der Stille</b> wählt dein schwächstes Monster.</span></li>
+<li><span>🎲</span><span>Randomizer: 200 Karten geprüft und <b>rund 40 Arten von Formulierungen</b> korrigiert.</span></li>
+<li><span>👴</span><span>Manche Geheimnisse sind jetzt etwas gnädiger.</span></li>
+</ul></div>
+<div><h2>Fehlerbehebungen</h2><ul class="pn0_2_42-small">
+<li><span>🎚️</span><span>Der Regler für UI-Größe geht wieder unter 100 % und startet an der richtigen Stelle.</span></li>
+<li><span>📍</span><span>Menüs, Tooltips und gezogene Karten sitzen bei <b>jeder UI-Größe</b> richtig.</span></li>
+<li><span>👥</span><span>Tag: Das Fenster zur <b>Typ-Wahl</b> (DNA-Umschreibung) schließt sich bei deinem Partner von selbst, und Karten aus kostenlosen <b>Zufallsboosters</b> lassen sich ansehen.</span></li>
+<li><span>⛓️</span><span><b>Die Auswahl</b> und andere Fallen, die Beschwörungen annullieren, fragen bei <b>Manchmal anketten</b> nach.</span></li>
+<li><span>🖼️</span><span>Kartenbilder verschwinden nicht mehr im Kartenfenster (übersetzte Kartenbilder).</span></li>
+<li><span>🔤</span><span>Zufällige Texte werden nicht mehr halb übersetzt, und zwei zufällige Texte passen jetzt zu dem, was die Karte tut.</span></li>
+</ul></div>
+</section>
+<section><h2>Relikt-Änderungen</h2><div class="pn0_2_42-rel"><div class="pn0_2_42-rp"><img src="assets/relics/Tribute%20Free.png"><div class="pn0_2_42-txt"><h3>Tributfrei<span class="pn0_2_42-rtag pn0_2_42-t-re">ÜBERARBEITET</span></h3><div class="pn0_2_42-eff">Monster der Stufe 7 oder höher, die du als Tributbeschwörung beschwörst, benötigen <ins>1 Tribut weniger</ins>.</div><p class="pn0_2_42-old">Vorher: <s>Monster der Stufe 7 oder höher, die du als Tributbeschwörung beschwörst, benötigen nur 1 Tribut.</s></p><p class="pn0_2_42-what"><b>Was ist neu:</b> Monster der Stufe 7 und 8 brauchen weiterhin nur 1 Tribut, und die <b>Ägyptischen Götter</b> (und andere Monster mit 3 Tributen) brauchen jetzt <b>2</b> statt 3.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/4929256.jpg"><div class="pn0_2_42-txt"><h3>Bund des Titanen<span class="pn0_2_42-rtag pn0_2_42-t-re">ÜBERARBEITET</span></h3><div class="pn0_2_42-eff">Alle Monster der Stufe 5 oder höher, die du kontrollierst, erhalten 1200 ATK. Monster der Stufe 7 oder höher, die du als Tributbeschwörung beschwörst, benötigen <ins>1 Tribut weniger</ins>.</div><p class="pn0_2_42-old">Vorher: <s>Monster der Stufe 7 oder höher, die du als Tributbeschwörung beschwörst, benötigen nur 1 Tribut.</s></p><p class="pn0_2_42-what"><b>Was ist neu:</b> Wie bei Tributfrei: die <b>Ägyptischen Götter</b> brauchen jetzt nur <b>2</b> Tribute.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/79852326.jpg"><div class="pn0_2_42-txt"><h3>Lebende Fallen<span class="pn0_2_42-rtag pn0_2_42-t-re">ÜBERARBEITET</span></h3><div class="pn0_2_42-eff"><ins>Zu Beginn des Duells füge deiner Hand 1 zufällige Fallenmonster-Karte von deinem Deck hinzu.</ins> Fallenmonster, die du kontrollierst, erhalten 600 ATK/DEF und <ins>können nicht durch Zauber-/Falleneffekte deines Gegners zerstört werden</ins>. Wenn du zum ersten Mal in jedem Duell ein Fallenmonster als Spezialbeschwörung beschwörst, kannst du ein anderes Fallenmonster direkt von deinem Deck setzen.</div><p class="pn0_2_42-old">Vorher: <s>Fallenmonster, die du kontrollierst, erhalten 600 ATK/DEF und können nicht durch Kampf zerstört werden. Wenn du zum ersten Mal in jedem Duell ein Fallenmonster als Spezialbeschwörung beschwörst, kannst du ein anderes Fallenmonster direkt von deinem Deck setzen.</s></p><p class="pn0_2_42-what"><b>Was ist neu:</b> Du startest mit einem <b>Fallenmonster auf der Hand</b>, und der Schutz gilt jetzt nicht mehr im Kampf, sondern gegen <b>Zauber und Fallen</b> deines Gegners.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/48229808.jpg"><div class="pn0_2_42-txt"><h3>Aufstiegskette<span class="pn0_2_42-rtag pn0_2_42-t-fix">FIX</span></h3><div class="pn0_2_42-eff">Beginne jedes Duell mit einem zufälligen LV-Monster der Stufe 1–4 aus deinem Deck und einer Kopie von „Aufgestiegen!“ auf deiner Hand. Deine LV-Monster erhalten 500 ATK und werden von den Monstereffekten <ins>deines Gegners</ins> nicht betroffen.</div><p class="pn0_2_42-old">Vorher: <s>...werden von Monstereffekten nicht betroffen.</s></p><p class="pn0_2_42-what"><b>Was ist neu:</b> Es blockierte auch die <b>eigenen Effekte deiner LV-Monster</b> (Schweigender Magier bekam keine Zählmarken). Jetzt werden nur die Monstereffekte deines Gegners blockiert.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/33453260.jpg"><div class="pn0_2_42-txt"><h3>Toon-Premiere<span class="pn0_2_42-rtag pn0_2_42-t-new">NEU</span></h3><div class="pn0_2_42-eff">Lege zu Beginn jedes Duells 1 „Toon-Welt“ offen von deinem Deck in deine Zauber- &amp; Fallenzone.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Ein neues Relikt für den neuen <b>Toon-Support</b> in Pegasus’ Packs. Ohne LP-Kosten.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/21296502.jpg"><div class="pn0_2_42-txt"><h3>Toon-Königreich<span class="pn0_2_42-rtag pn0_2_42-t-new">NEU</span></h3><div class="pn0_2_42-eff">Lege zu Beginn jedes Duells 1 „Toon-Welt“ offen von deinem Deck in deine Zauber- &amp; Fallenzone. „Toon-Welt“, die du kontrollierst, kann nicht durch Karteneffekte zerstört werden. Toon-Monster, die du kontrollierst, erhalten 500 ATK und können in dem Spielzug angreifen, in dem sie beschworen werden.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Ein neues <b>fusioniertes Relikt</b>. Finde selbst heraus, was dazu fusioniert.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/7802006.jpg"><div class="pn0_2_42-txt"><h3>Zaubermarken-Spender<span class="pn0_2_42-rtag pn0_2_42-t-qol">KOMFORT</span></h3><div class="pn0_2_42-eff">Einmal pro Spielzug, während deiner Standby Phase, kannst du 1 Zaubermarke auf eine Karte legen, die du kontrollierst und die eine Zaubermarke erhalten kann.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Wenn <b>nur eine Karte</b> die Zählmarke nehmen kann, landet sie automatisch dort. Bei mehreren wählst du weiterhin selbst.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/94256039.jpg"><div class="pn0_2_42-txt"><h3>Zauberzählmarken-Motor<span class="pn0_2_42-rtag pn0_2_42-t-qol">KOMFORT</span></h3><div class="pn0_2_42-eff">Lege während deiner Standby Phase bis zu 2 Zauberzählmarken auf Karten, die du kontrollierst und die sie erhalten können. Monster, die du kontrollierst, erhalten 200 ATK für jede Zauberzählmarke auf deiner Spielfeldseite.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Wie bei Zaubermarken-Spender: keine Frage, wenn <b>nur eine Karte</b> die Zählmarken nehmen kann.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/50277973.jpg"><div class="pn0_2_42-txt"><h3>Instabile DNA<span class="pn0_2_42-rtag pn0_2_42-t-qol">KOMFORT</span></h3><div class="pn0_2_42-eff">Wähle zu Beginn jedes Duells einen Typ und eine Eigenschaft. Alle Monster beider Spieler werden überall zum gewählten Typ und zur gewählten Eigenschaft. Monster, die du kontrollierst, erhalten 100 ATK für jedes offene Monster auf dem Spielfeld mit dem gewählten Typ und der gewählten Eigenschaft.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Die Auswahl öffnet sich mit dem <b>Typ und Attribut des letzten Duells</b> bereits ausgewählt.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/40633297.jpg"><div class="pn0_2_42-txt"><h3>Umgekehrte Arznei<span class="pn0_2_42-rtag pn0_2_42-t-shadow">SCHATTENRELIKT</span></h3><div class="pn0_2_42-eff">Jedes Mal, wenn ein Spieler Effektschaden erhalten oder LP zahlen würde, erhält er stattdessen LP in dieser Höhe. Jedes Mal, wenn ein Spieler während eines Duells LP erhalten würde, erhält er stattdessen Schaden in dieser Höhe.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Wird <b>seltener</b> angeboten. Der Text bleibt gleich.</p></div></div><div class="pn0_2_42-rp"><img src="assets/relics/67629977.jpg"><div class="pn0_2_42-txt"><h3>Sternenkonstellation<span class="pn0_2_42-rtag pn0_2_42-t-fix">FIX</span></h3><div class="pn0_2_42-eff">Einmal pro Spielzug, während deiner End Phase, falls du mindestens 1 Monster in deinem Friedhof hast und alle Monster in deinem Friedhof und auf deiner Spielfeldseite dieselbe Stufe haben: Beschwöre 1 Monster dieser Stufe von deiner Hand als Spezialbeschwörung.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> In <b>Draft-Duellen</b> beschwor es für den zweiten Spieler von der falschen Seite auf die falsche Seite. Es und 13 andere Relikte wirken jetzt für <b>ihren Besitzer</b>, und Relikte für „beide Spieler“ treffen beide.</p></div></div><div class="pn0_2_42-rp"><div class="pn0_2_42-art" style="background-image:url('assets/cards/24094653.jpg')"></div><div class="pn0_2_42-txt"><h3>Fusionierte Archetyp-Relikte<span class="pn0_2_42-rtag pn0_2_42-t-re">ÜBERARBEITET</span></h3><div class="pn0_2_42-eff">Fusionierte Relikte, die an die Stelle eines <b>Archetyp-Relikts</b> getreten sind, behalten dessen Shop-Bonus: <ins>Karten dieses Archetyps erscheinen viel öfter im Shop</ins>.</div><p class="pn0_2_42-what"><b>Was ist neu:</b> Früher ging er verloren, sodass ein fusioniertes Relikt dir weniger Karten deines Decks zum Kaufen lassen konnte.</p></div></div></div><p class="pn0_2_42-note">Grüner Text ist neu. Entdeckte fusionierte Relikte zeigen jetzt bei jedem Teil, zu welcher Fusion es gehört.</p></section></div>

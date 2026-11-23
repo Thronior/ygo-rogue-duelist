@@ -2,7 +2,7 @@ import json,subprocess,urllib.request,urllib.error,hashlib
 from pathlib import Path
 import argparse
 root=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser(description="Publish verified APK, delta, Windows installer and web update assets to GitHub.")
+parser=argparse.ArgumentParser(description="Publish verified APK, delta, Windows installer, Linux launcher and web update assets to GitHub.")
 parser.add_argument('--notes',required=True,type=Path)
 parser.add_argument('--target-commitish',default='main',help='Remote branch or commit to tag (defaults to main).')
 parser.add_argument('--replace-assets',action='store_true',help='Replace release assets whose names already exist but whose digests differ.')
@@ -21,6 +21,9 @@ assert manifest['version']==version, 'Build version does not match source VERSIO
 import windows_release
 uploads={name:root/'releases'/name for name in [*manifest['files'],'release-manifest.json','YGO-Rogue-Android.apk.sha256']}
 uploads.update(windows_release.assets(version))
+# The Linux app (user, 2026-11-22): launcher archive and linux-launcher.json; it updates from the same web ZIP and deltas.
+import linux_release
+uploads.update(linux_release.assets(version))
 
 c=subprocess.run(['git','credential','fill'],input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,check=True,cwd=root)
 a=dict(x.split('=',1) for x in c.stdout.splitlines() if '=' in x);headers={'Authorization':'Bearer '+a['password'],'Accept':'application/vnd.github+json','User-Agent':'YGO-release'}

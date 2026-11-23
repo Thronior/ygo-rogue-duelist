@@ -13,7 +13,7 @@ export const SCORECARD_GROUPS=[
 const COIN='<img src="assets/ui/coins.png" alt="" aria-hidden="true">';
 
 // found: the hidden coin feats (content.secretCoinRules) this player has earned at least once (profile.secret_coin_feats).
-// Hidden feats a player has not found are never shown or counted.
+// Hidden feats a player has not found are never shown or counted. A found one shows its exact condition (r.hint, 2026-11-22).
 export function coinScorecardMarkup(rules,last,found){
  last=last||{};rules=rules||[];found=found||[];
  const got=r=>Object.hasOwn(last,r.label);
@@ -44,7 +44,7 @@ export function coinScorecardMarkup(rules,last,found){
  }).join('');
  const featList=feats.length?`<section class="sc-group g-feats"><h3>Feats</h3><ul class="sc-feats">${feats.map(r=>`<li class="sc-feat${got(r)?' got':''}"><b>+${r.coins}</b><span>${safe(r.label)}</span>${r.victoryOnly?'<em>At victory</em>':''}</li>`).join('')}</ul></section>`:'';
 
- const hidden=found.length?`<section class="sc-group g-feats g-secret"><h3>Hidden feats</h3><ul class="sc-feats">${found.map(r=>`<li class="sc-feat secret${got(r)?' got':''}"><b>+${r.coins}</b><span>${safe(r.label)}</span><em>Found</em></li>`).join('')}</ul></section>`:'';
+ const hidden=found.length?`<section class="sc-group g-feats g-secret"><h3>Hidden feats</h3><ul class="sc-feats">${found.map(r=>`<li class="sc-feat secret${got(r)?' got':''}"><b>+${r.coins}</b><span>${safe(r.label)}${r.hint?`<small class="sc-hint">${safe(r.hint)}</small>`:''}</span><em>Found</em></li>`).join('')}</ul></section>`:'';
  const tabs=[['all','All'],...SCORECARD_GROUPS.map(([id,title])=>[id,title]),...(feats.length?[['feats','Feats']]:[])];
  // CSS-only filter: each radio shows its group, so the dialog needs no handler of its own.
  const milestones=`<div class="sc-milestones">${tabs.map(([id],i)=>`<input type="radio" name="sc-tab" id="sc-tab-${id}" ${i?'':'checked'}>`).join('')}<div class="sc-tabs" role="group" aria-label="Show milestones">${tabs.map(([id,title])=>`<label for="sc-tab-${id}">${title}</label>`).join('')}</div><div class="sc-groups">${groups}${featList}${hidden}</div></div>`;

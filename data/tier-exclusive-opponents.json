@@ -966,6 +966,56 @@
       "source": "User-provided Fairy decklist (CPU deck review 2026-11-21), placed by the user as Guardian Angel Joan Tier 3, 2026-11-21",
       "fixed": true,
       "reward_pack": "WC4-24"
+    },
+    {
+      "character": 101,
+      "name": "Bobasa",
+      "tier": 1,
+      "deck": "opponent-101-tier-1",
+      "tier_decks": {
+        "1": "opponent-101-tier-1"
+      },
+      "sprite": "opponents/bobasa.png",
+      "background": "character-backgrounds/31.jpg",
+      "theme": "A Lamp deck whose genies pour out of its lamps, backed by Jars that flip into surprises.",
+      "reward_themes": [
+        "Fiend",
+        "Spellcaster",
+        "normal",
+        "jar",
+        "flip",
+        "fusion"
+      ],
+      "source": "User-provided Lamp/Jar decklist (CPU deck review 2026-11-22), placed by the user as Bobasa Tier 1, 2026-11-22",
+      "fixed": true,
+      "reward_pack": "WC4-24"
+    },
+    {
+      "character": 102,
+      "name": "Gozaburo Kaiba",
+      "tier": 1,
+      "deck": "opponent-102-tier-1",
+      "tier_decks": {
+        "1": "opponent-102-tier-1"
+      },
+      "sprite": "opponents/gozaburo-kaiba.png",
+      "background": "character-backgrounds/39.jpg",
+      "theme": "An Exodia Necross deck that buries all five Forbidden One pieces to call up a Necross that grows stronger every turn.",
+      "reward_themes": [
+        "exodia",
+        "Spellcaster",
+        "DARK",
+        "graveyard",
+        "discard",
+        "stall"
+      ],
+      "source": "Player decklist (Nori, Discord #Gozaburo Kaiba T1, 2026-11-23; CPU deck review 2026-11-23), placed by the user as Gozaburo Kaiba Tier 1, 2026-11-23",
+      "fixed": true,
+      "reward_pack": "WC4-23",
+      "limit_exceptions": {
+        "Painful Choice": 3,
+        "Witch of the Black Forest": 3
+      }
     }
   ]
 }

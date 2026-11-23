@@ -7,6 +7,7 @@ import {validateDraftDeck,randomAllowance,isRandomId} from './collector-rules.js
 import {replayVersion} from './replay-version.js';
 import {relicImage,relicArtwork} from './ui-art.js';
 import {relicCard} from './relic-inspect.js';
+import {deckKindsMarkup,extraDeckMarkup} from './deck-counts.js';
 import {deckOrder,deckToolbar,deckCardsArea,deckCardButton,wireDeckToolbar,resetDeckFilters,updateDeckSplit} from './deck-editor-view.js';
 import {savedDeckSort,savedDeckStatus} from './deck-sort-preference.js';
 import {deckReadyFeedback} from './selection-feedback.js';
@@ -127,7 +128,7 @@ export class DraftUI extends CollectorUI {
   const order=deckOrder(this,{pool,selected:picked,lookup,run,info,searchKey:DECK_SEARCH}),inDeck=new Set(picked);
   const cardMarkup=i=>deckCardButton({id:pool[i],index:i,card:lookup(pool[i]),run,info,image:this.image,selected:inDeck.has(i),attrs:'data-collector="toggle"'});
   const scroller=this.root.querySelector('.draft-online-scroll'),keep=scroller?saveDeckScroll(scroller):null;
-  this.root.innerHTML=`<div class="page draft-deck-page"><header><h2>Draft Duels</h2><div class="tools">${button('Back','back')}</div></header><div class="scroll draft-scroll draft-online-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${min}+ minimum main · ${extra} Extra Deck · Maximum three copies.</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-collector="ready-draft" ${ok&&this.paired()?'':'disabled'} aria-label="${main}/${min}+ main deck cards — Ready for Duel"><span><span class="tag-next-label"><strong>${main}/${min}+</strong></span></span></button></div>${deckToolbar(this,{searchKey:DECK_SEARCH,sorts:DRAFT_DECK_SORTS,idPrefix:'draft-online',action:(label,name,attrs)=>button(label,name,attrs)})}${deckCardsArea(this,order,picked,cardMarkup,{run:{...run,card_mods:undefined},attr:'data-index',extra:'data-collector="toggle"'})}</div></div>`;
+  this.root.innerHTML=`<div class="page draft-deck-page"><header><h2>Draft Duels</h2><div class="tools">${button('Back','back')}</div></header><div class="scroll draft-scroll draft-online-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${min}+ minimum main ${deckKindsMarkup(picked.map(i=>Number(lookup(pool[i])?.data.type)).filter(t=>!(t&64)))} · ${extraDeckMarkup(extra)} · Maximum three copies.</p><p class="draft-inspect-help">Tap to select · Hold to inspect</p></div><button class="tag-choose-opponent draft-next deck-count-arrow" data-collector="ready-draft" ${ok&&this.paired()?'':'disabled'} aria-label="${main}/${min}+ main deck cards — Ready for Duel"><span><span class="tag-next-label"><strong>${main}/${min}+</strong></span></span></button></div>${deckToolbar(this,{searchKey:DECK_SEARCH,sorts:DRAFT_DECK_SORTS,idPrefix:'draft-online',action:(label,name,attrs)=>button(label,name,attrs)})}${deckCardsArea(this,order,picked,cardMarkup,{run:{...run,card_mods:undefined},attr:'data-index',extra:'data-collector="toggle"'})}</div></div>`;
   if(keep)restoreDeckScroll(this.root.querySelector('.draft-online-scroll'),keep);
   wireDeckToolbar(this.root,this,{searchKey:DECK_SEARCH,cards:()=>pool.map(lookup),idPrefix:'draft-online',render:()=>this.renderEditor()});
   deckReadyFeedback(this.root,main,min,this);this.checkDeckSplit();

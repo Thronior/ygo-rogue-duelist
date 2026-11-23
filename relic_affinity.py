@@ -83,7 +83,7 @@ RULES={
  'cursed_fusion_fever':(('fusion',),NARROW),
  'trap_weaver':(('trap_monster',),NARROW),'cursed_trapbound_idol':(('trap_monster',),NARROW),
  'good_spirits':(('spirit',),NARROW),'union_hangar':(('union',),NARROW),'jar_of_echoes':(('flip',),NARROW),
- 'armory_crest':(('equip',),NARROW),'field_amplifier':(('field',),NARROW),'terraforming_relic':(('field',),NARROW),
+ 'armory_crest':(('equip',),NARROW),'field_amplifier':(('field',),NARROW),'terraforming_relic':(('field',),NARROW),'toon_premiere':(('toon',),NARROW),
  'arcane_resonance':(('continuous',),COMMON),'counterweight':(('spell_counter',),NARROW),
  'burn_proficiency':(('burn',),NARROW),'static_coil':(('burn',),NARROW),'healing_echo':(('heal',),NARROW),
  'this_life_mine':(('lp_cost',),NARROW),'exile_standard':(('banish',),NARROW),
@@ -110,7 +110,7 @@ RULES={
  'cursed_crowded_crypt':(('graveyard',),COMMON),'cursed_golden_grave':(('graveyard',),COMMON),
  # Attribute Surgery shares its Attribute's theme with the matching Orb (an all-EARTH Deck: Earth Orb or EARTH Surgery).
  **{f'attribute_{a.lower()}':((f'attr:{a}',),BROAD) for a in ('LIGHT','DARK','FIRE','WATER','WIND','EARTH')},
- 'armory_aid':(('equip',),NARROW),'spiritual_retribution':(('spirit',),NARROW),'cursed_vampiric_contact':(('heal',),NARROW),'cursed_reversed_remedy':(('lp_cost','burn'),NARROW),
+ 'armory_aid':(('equip',),NARROW),'spiritual_retribution':(('spirit',),NARROW),'cursed_vampiric_contact':(('heal',),NARROW),
  # 2026-11-15 Discord relics (the Dark Magician, Blue-Eyes and Red-Eyes ones weigh as archetypes: archetype_relics.CARD_THEMES).
  'dragon_lords_decree':(('level:7+dragon',),NARROW),'titans_charge':(('level:7+',),NARROW),'cursed_poison_of_the_old_man':(('coin',),NARROW),'cursed_graceful_skull_dice':(('dice',),NARROW),
 }
@@ -155,6 +155,7 @@ def card_tags(c):
  if c['name'] in GUARDIAN_NAMES:tags.add('guardian')
  if c['name'] in ('Sanga of the Thunder','Kazejin','Suijin'):tags.add('gate_trio')
  if c['name'] in CHAOS_NAMES:tags.add('chaos')
+ if kind&0x400000 or c['name']=='Toon World':tags.add('toon')
  # Walls: monsters built to defend (DEF 1500+ and above their ATK).
  if kind&1 and int(c.get('defense') or 0)>=1500 and int(c.get('defense') or 0)>int(c.get('atk') or 0):tags.add('wall')
  if not kind&0x10 and re.search(r'\bGraveyard\b|\bGY\b',desc):tags.add('graveyard')

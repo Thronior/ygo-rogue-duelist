@@ -1,3 +1,4 @@
+import {pageRect,pageWidth,pageHeight} from './ui-zoom.js';
 // Delegated pointer events keep touch taps/dragging and existing click handlers unchanged.
 // showTip can turn the tooltip off while the hovered card still grows.
 export function installMouseDetails(root,describe,showTip=()=>true){
@@ -15,10 +16,11 @@ export function installMouseDetails(root,describe,showTip=()=>true){
    if(!showTip(el))return;
    tip=document.createElement('aside');tip.className='mouse-details';tip.setAttribute('role','tooltip');tip.innerHTML=info;
    document.body.append(tip);
-   const r=el.getBoundingClientRect(),t=tip.getBoundingClientRect(),gap=12;
-   let x=r.right+gap;if(x+t.width>innerWidth-8)x=r.left-t.width-gap;
-   tip.style.left=Math.max(8,Math.min(x,innerWidth-t.width-8))+'px';
-   tip.style.top=Math.max(8,Math.min(r.top,innerHeight-t.height-8))+'px';
+   // In style pixels: UI Scale zooms the page (ui-zoom.js).
+   const r=pageRect(el),t=pageRect(tip),gap=12,vw=pageWidth(),vh=pageHeight();
+   let x=r.right+gap;if(x+t.width>vw-8)x=r.left-t.width-gap;
+   tip.style.left=Math.max(8,Math.min(x,vw-t.width-8))+'px';
+   tip.style.top=Math.max(8,Math.min(r.top,vh-t.height-8))+'px';
   },160);
  });
  root.addEventListener('pointerout',e=>{if(active&&active.contains(e.target)&&!active.contains(e.relatedTarget))clear();});

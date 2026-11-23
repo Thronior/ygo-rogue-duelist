@@ -10,7 +10,8 @@ const body=(src,name)=>{const start=src.indexOf(`function ${name}(`);assert(star
 // Solo: a tap only toggles classes on the cards already shown, so neither scroll nor order changes.
 const mobile=source('mobile.js');
 for(const name of ['tapDraft','runDeckTaps','flushDraftTap','updateDraft']){
- const fn=body(mobile,name);
+ // The count line above the cards (with its Monster/Spell/Trap/Extra icons, 2026-11-22) may be rewritten; the cards may not.
+ const fn=body(mobile,name).replace("document.querySelector('.draft-count').innerHTML",'');
  assert.doesNotMatch(fn,/renderDraft\(|innerHTML|scrollTop/,`${name} must not redraw the deck editor`);
 }
 // Taps queue (test_deck_editor_nov20.mjs) and the queue updates the cards when it empties.

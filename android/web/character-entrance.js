@@ -1,3 +1,4 @@
+import {pageZoom,pageWidth,pageHeight} from './ui-zoom.js';
 // One finite entrance at a time; cancellation never leaves an input blocker behind.
 let active,finishHidden;
 export function cancelCharacterEntrance(){active?.()}
@@ -5,7 +6,8 @@ export function captureCharacterEntrance(source){return source?.isConnected?{por
 export async function characterEntrance(source,enter){
  cancelCharacterEntrance();
  if(!(source?.portrait||source?.isConnected)||document.hidden){enter();return}
- const rect=source.rect||source.getBoundingClientRect(),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ // Style pixels: UI Scale zooms the page, so the measured rect and the window are divided by its zoom (ui-zoom.js).
+ const z=pageZoom(),measured=source.rect||source.getBoundingClientRect(),rect={x:measured.x/z,y:measured.y/z,width:measured.width/z,height:measured.height/z},innerWidth=pageWidth(),innerHeight=pageHeight(),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const overlay=document.createElement('div'),portrait=source.portrait||source.cloneNode();
  overlay.className='character-entrance';overlay.setAttribute('aria-hidden','true');
  portrait.removeAttribute('loading');overlay.append(portrait);

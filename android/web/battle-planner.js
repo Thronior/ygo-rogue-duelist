@@ -3,10 +3,12 @@
 export function planBattle(e,p,L,prompt,smart){
  if(e.battleProtected?.[1-p])return null;
  const own=e.query(p,L.MZONE).filter(Boolean),enemy=e.query(1-p,L.MZONE).filter(Boolean);
- // A monster that attacks twice (Hayabusa Knight) takes two places in the search.
- const attackers=(prompt.attacks||[]).map((c,index)=>({c:own.find(a=>a.sequence===c.sequence)||c,index,direct:c.can_direct})).filter(a=>smart.attackAllowed(a.c,!enemy.length)).flatMap(a=>(smart.swings?.(a.c)??1)-(a.c.attack_count||0)>1?[a,{...a}]:[a]);
- if(attackers.length<2)return null;
- let visited=0;const maxNodes=14000,memo=new Map();
+ // A monster that attacks twice (Hayabusa Knight) takes two places in the search. Asura Priest is searched both ways:
+ // one place per opposing monster and never direct (it sweeps the field), or one ordinary attack (replay review
+ // 2026-11-22: b01f5cc711c6@11, Asura Priest cleared three blockers and Zaborg hit directly where the CPU sent Zaborg).
+ const base=(prompt.attacks||[]).map((c,index)=>({c:own.find(a=>a.sequence===c.sequence)||c,index,direct:c.can_direct})).filter(a=>smart.attackAllowed(a.c,!enemy.length));
+ const expand=sweep=>base.flatMap(a=>smart.attacksAll?.(a.c)&&(sweep||a.c.attack_count>0)?enemy.map(()=>({...a,direct:false,monsterOnly:true})):(smart.swings?.(a.c)??1)-(a.c.attack_count||0)>1?[a,{...a}]:[a]);
+ let visited=0,memo=new Map();const maxNodes=14000;
  const defense=t=>{
   if(t.position&1)return t.attack;
   if(!(t.position&5))return smart.hiddenDefense(t);
@@ -25,9 +27,11 @@ export function planBattle(e,p,L,prompt,smart){
   const key=left.map(a=>a.index).join(',')+'|'+targets.map(t=>t.sequence).join(',')+'|'+damage;if(memo.has(key))return memo.get(key);
   let best={score:damage,line:[],margin:Infinity};
   for(const a of left){const rest=left.filter(x=>x!==a),power=Math.max(0,a.c.attack||0);
-   for(const t of targets.length?(a.direct?[null,...targets]:targets):[null]){
-    if(t&&power<=defense(t))continue;
-    const dealt=smart.battleDamage(t?((t.position&1)?power-defense(t):smart.pierce(a.c)?Math.max(0,power-defense(t)):0):power);
+   for(const t of targets.length?(a.direct?[null,...targets]:targets):a.monsterOnly?[]:[null]){
+    // Equal ATK against a face-up Attack Position monster destroys both: a trade that still clears it (flag 2026-11-22).
+    if(t&&power<=defense(t)&&!(power>0&&power===defense(t)&&(t.position&1)))continue;
+    // Susa Soldier deals half the battle damage, so it is the one to send into a blocker (replay 154fab82cece@7).
+    const dealt=Math.floor(smart.battleDamage(t?((t.position&1)?power-defense(t):smart.pierce(a.c)?Math.max(0,power-defense(t)):0):power)*(smart.halfDamage?.(a.c)?.5:1));
     if(smart.attackScore(a.c,t,{dmg:dealt})<=-99999)continue;
     // Avoid assuming battle immunity or floating monsters vanish for a future direct attack.
     const text=t&&(t.position&5)?e.cards.get(t.code)?.desc||'':'';
@@ -42,5 +46,10 @@ export function planBattle(e,p,L,prompt,smart){
   }
   memo.set(key,best);return best;
  }
- const result=walk(attackers,enemy,0);return result.line[0]?{...result.line[0],lethal:result.score>=1000000}:null;
+ let result=null;
+ for(const sweep of base.some(a=>smart.attacksAll?.(a.c)&&!(a.c.attack_count>0))&&enemy.length>1?[false,true]:[false]){
+  const attackers=expand(sweep);if(attackers.length<2)continue;visited=0;memo=new Map();
+  const r=walk(attackers,enemy,0);if(r.line[0]&&(!result||r.score>result.score))result=r;
+ }
+ return result?{...result.line[0],lethal:result.score>=1000000}:null;
 }

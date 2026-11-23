@@ -15313,6 +15313,30 @@
  },
  {
   "group": "relic",
+  "en": "Toon Premiere",
+  "kind": "exact",
+  "ctx": "relic name (toon_premiere)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, place 1 \"Toon World\" from your Deck face-up in your Spell & Trap Zone.",
+  "kind": "exact",
+  "ctx": "relic effect (toon_premiere)"
+ },
+ {
+  "group": "relic",
+  "en": "Toon Kingdom",
+  "kind": "exact",
+  "ctx": "relic name (toon_kingdom)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, place 1 \"Toon World\" from your Deck face-up in your Spell & Trap Zone. \"Toon World\" you control cannot be destroyed by card effects. Toon monsters you control gain 500 ATK and can attack the turn they are Summoned.",
+  "kind": "exact",
+  "ctx": "relic effect (toon_kingdom)"
+ },
+ {
+  "group": "relic",
   "en": "Restless Stone",
   "kind": "exact",
   "ctx": "relic name (restless_stone)"
@@ -15589,7 +15613,7 @@
  },
  {
   "group": "relic",
-  "en": "Level 7 or higher monsters you Tribute Summon require only 1 Tribute.",
+  "en": "Level 7 or higher monsters you Tribute Summon require 1 less Tribute.",
   "kind": "exact",
   "ctx": "relic effect (tribute_free)"
  },
@@ -15913,7 +15937,7 @@
  },
  {
   "group": "relic",
-  "en": "Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.",
+  "en": "Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require 1 less Tribute.",
   "kind": "exact",
   "ctx": "relic effect (titans_covenant)"
  },
@@ -26170,5 +26194,17 @@
   "en": "Dragon monsters you control gain 800 ATK/DEF. Your opponent cannot activate Trap Cards during your Battle Phase. At the start of the Duel: Special Summon 1 \"Blue-Eyes\" monster from your Deck in Attack Position, then add 1 card that mentions \"Blue-Eyes White Dragon\" from your Deck to your hand. Once per turn, when a \"Blue-Eyes\" monster you control is destroyed: You can Special Summon 1 LIGHT Dragon monster from your hand, Deck or Extra Deck, ignoring its Summoning conditions.",
   "kind": "exact",
   "ctx": "text added 2026-11-21 (My Pride and Soul)"
+ },
+ {
+  "group": "ui",
+  "en": "A Lamp deck whose genies pour out of its lamps, backed by Jars that flip into surprises.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-22"
+ },
+ {
+  "group": "ui",
+  "en": "An Exodia Necross deck that buries all five Forbidden One pieces to call up a Necross that grows stronger every turn.",
+  "kind": "exact",
+  "ctx": "opponent theme added 2026-11-23"
  }
 ]

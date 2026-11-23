@@ -2,6 +2,7 @@ import {freeJarUse,revealPrice} from './jar-relics.js';
 import {rewardIcon} from './reward-icons.js';
 import {coinLabel} from './coin-label.js';
 import {isFavouritePack} from './pack-favourites.js';
+import {pageRect} from './ui-zoom.js';
 // Favourite packs show a star on the opponent's guaranteed pack (Discord, Nov 15: players opened each pack to check).
 export const favouriteMark=id=>isFavouritePack(id)?' <span class="pack-fav-mark" title="Favourite pack" aria-label="Favourite pack">★</span>':'';
 export const escapeEncounter=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -72,7 +73,7 @@ export async function playEncounterReveal({content,opponents,run=null,voice=()=>
 }
 
 export async function playPortraitReveal({before,update,after,active=()=>true}){
- if(!before){await update();return}const flash=document.createElement('div');flash.className='portrait-reveal-flash';const animations=[];const position=el=>{const r=el.getBoundingClientRect();Object.assign(flash.style,{position:'fixed',inset:'auto',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',zIndex:'1001'})};
+ if(!before){await update();return}const flash=document.createElement('div');flash.className='portrait-reveal-flash';const animations=[];const position=el=>{const r=pageRect(el);Object.assign(flash.style,{position:'fixed',inset:'auto',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',zIndex:'1001'})};
  try{
   position(before);document.body.append(flash);let a=flash.animate([{opacity:0},{opacity:1}],{duration:100,fill:'both'});animations.push(a);await a.finished.catch(()=>{});
   if(!active())return;await update();const target=after();if(!target||!active())return;

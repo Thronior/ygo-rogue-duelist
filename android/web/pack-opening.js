@@ -12,7 +12,8 @@ export function ownedBefore(pool,packs){
 }
 // Presentation only: every card is already awarded and saved before this opens.
 // `owned` (a Set of card ids held before these packs, or null) marks NEW cards in the Open all summary.
-export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()=>{},done=()=>{},owned=null}){
+// skip (Settings → Gameplay "Skip Pack Animations", itch.io request; user 2026-11-22): straight to the Open all summary.
+export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()=>{},done=()=>{},owned=null,skip=false}){
  active?.();if(!packs.length){done();return}
  let cardsById=cardIndexes.get(content.cards);if(!cardsById){cardsById=new Map(content.cards.map(c=>[c.id,c]));cardIndexes.set(content.cards,cardsById)}
  packs=packs.map(p=>{const order=new Map();(p.cards||[]).forEach((id,i)=>{if(!order.has(id))order.set(id,i)});return {...p,cards:[...(p.cards||[])].sort((a,b)=>Number(ULTRA_RARE.has(a))-Number(ULTRA_RARE.has(b))||order.get(a)-order.get(b))};});
@@ -51,5 +52,5 @@ export function openPacks({packs,content,image,inspect,sound=()=>{},stopSound=()
  function show(){clear();stopSound();opening=false;revealed=0;jackpot=false;dialog.classList.remove('opening','all-revealed');const p=info();dialog.innerHTML=`<header><div><small>BOOSTER ${index+1} / ${packs.length}</small><h2>${esc(p?.name||'Your cards')}</h2></div><button class="pack-close">Close</button></header><div class="pack-stage"><div class="pack-aura" aria-hidden="true"></div><div class="pack-sparks" aria-hidden="true">${Array.from({length:16},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><button class="pack-open" aria-label="Open pack"><span class="pack-tear-art"><img class="pack-tear-body" src="${p?'assets/packs/'+p.id+'.jpg':'assets/card-back.jpg'}" alt="${esc(p?.name||'Cards')}"><img class="pack-tear-top" src="${p?'assets/packs/'+p.id+'.jpg':'assets/card-back.jpg'}" alt="" aria-hidden="true"><i class="pack-tear-seam" aria-hidden="true"></i></span><strong>OPEN PACK</strong></button>${packs.length-index>1?`<button class="pack-open-all">Open all (${packs.length-index})</button>`:''}</div><footer><span class="pack-progress">Your cards are already in your collection</span><button class="pack-skip" hidden>Reveal all</button><button class="pack-next primary" hidden>${index+1<packs.length?'Next pack':'Continue'}</button></footer>`}
  dialog.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();if(b.dataset.inspect){inspect(Number(b.dataset.inspect));return}if(b.classList.contains('pack-close'))finish();else if(b.classList.contains('pack-open'))open();else if(b.classList.contains('pack-open-all'))openAll();else if(b.classList.contains('pack-skip'))revealAll();else if(b.classList.contains('pack-next')){index++;index<packs.length?show():finish()}});
  dialog.addEventListener('contextmenu',e=>{const card=e.target.closest('[data-reveal],.pack-summary-card');if(!card)return;e.preventDefault();e.stopPropagation();if(e.button===2&&e.pointerType!=='touch'&&card.dataset.inspect)inspect(Number(card.dataset.inspect))});
- dialog.addEventListener('cancel',e=>{e.preventDefault();finish()});show();dialog.showModal();return finish;
+ dialog.addEventListener('cancel',e=>{e.preventDefault();finish()});show();dialog.showModal();if(skip)openAll();return finish;
 }

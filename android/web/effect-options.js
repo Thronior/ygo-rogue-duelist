@@ -1,20 +1,21 @@
 // Visual effects each player can switch off in Settings → Effects. Stored as settings.effectsOff, so everything is
 // on by default. An effect that is off does no work at all; none of them changes duel pacing or rules.
 export const VISUAL_EFFECTS=[
- ['flames','Monster Flames','Flames behind monsters with 2000 or more ATK.'],
- ['shake','Screen Shake','The board shaking on heavy hits, big summons and long chains.'],
- ['impact','Hit & Heal Effects','Flashes, shockwaves, healing sparkles and larger damage numbers.'],
- ['finisher','Finishing Blow Banners','OVERKILL, PERFECT and the other banners. The voice line still plays.'],
- ['lp','Low LP Warning','The field turning red as LP drops, and the heartbeat under 1000 LP.'],
- ['portrait','Portrait Reactions','Portraits flinching, bobbing and tipping over.'],
- ['chain','Chain Effects','Growing chain badges and the field darkening on long chains.'],
- ['summon','Heavy Summon Effects','Dust rings and flashes when high-Level monsters land.'],
- ['stat','Stat Change Pop-ups','The "+500 ATK" text over a monster when its ATK changes.'],
- ['warnings','Hand & Deck Warnings','The hand shaking over the limit and the deck glowing when low.'],
- ['particles','Floating Particles','Slow particles drifting over the duel background.'],
- ['coins','Coin & Shop Effects','Coin bursts, reward celebrations and the shop reroll reels.'],
- ['coinText','Coin Reward Pop-ups','The "+15 Tribute Summon" texts for each way you earned coins in a duel. Coin spins and bursts stay.'],
- ['vibration','Vibration','A short pulse on big hits and chain prompts.']
+ ['flames','Monster Flames','Behind monsters with 2000 or more ATK.'],
+ ['shake','Screen Shake','On heavy hits and big summons.'],
+ ['impact','Hit & Heal Effects','Flashes, sparkles and big damage numbers.'],
+ ['finisher','Finishing Blow Banners','OVERKILL, PERFECT and the others.'],
+ ['lp','Low LP Warning','Red field and heartbeat at low LP.'],
+ ['portrait','Portrait Reactions',''],
+ ['chain','Chain Effects','Chain badges and a darker field.'],
+ ['summon','Heavy Summon Effects','When high-Level monsters land.'],
+ ['cutins','Summon Cut-ins','Fusion Summons and legendary monsters.'],
+ ['stat','Stat Change Pop-ups','The "+500 ATK" texts.'],
+ ['warnings','Hand & Deck Warnings','Full hand and low Deck.'],
+ ['particles','Floating Particles',''],
+ ['coins','Coin & Shop Effects','Coin bursts and shop reels.'],
+ ['coinText','Coin Reward Pop-ups','The "+15 Tribute Summon" texts.'],
+ ['vibration','Vibration','On big hits and chain prompts.']
 ];
 let off=new Set();
 export const effectOn=key=>!off.has(key);

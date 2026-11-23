@@ -5,6 +5,8 @@
 // tapping keeps working exactly as before. Nothing runs until a press lands on a zone marked .can-attack; while
 // dragging, the only per-frame work is one transform on the arrow, and every rect is read once when the drag starts.
 
+import {pageZoom} from './ui-zoom.js';
+
 export const DRAG_START_PX=12;
 
 const inside=(r,x,y)=>x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
@@ -57,23 +59,24 @@ export function installAttackDrag(api){
   const targets=dragTargets({zones,extras,canDirect:at.canDirect,L:api.L});
   if(!targets.length)return cancel();
   const r=p.el.getBoundingClientRect(),arrow=doc.createElement('div');arrow.className='attack-drag-arrow';arrow.setAttribute('aria-hidden','true');arrow.innerHTML='<i></i>';
-  Object.assign(arrow.style,{left:r.left+r.width/2+'px',top:r.top+r.height/2+'px'});doc.body.append(arrow);
+  // Hit tests stay in window pixels (rects and the pointer); only style values are divided by the UI Scale zoom (ui-zoom.js).
+  const z=pageZoom();Object.assign(arrow.style,{left:(r.left+r.width/2)/z+'px',top:(r.top+r.height/2)/z+'px'});doc.body.append(arrow);
   // The card itself follows the finger (user, 2026-11-21), held where it was grabbed. A copy of its picture, sized once.
   const img=p.el.querySelector?.('img'),ir=img?img.getBoundingClientRect():r,card=doc.createElement('div');card.className='attack-drag-card';card.setAttribute('aria-hidden','true');
-  Object.assign(card.style,{left:ir.left+'px',top:ir.top+'px',width:ir.width+'px',height:ir.height+'px'});
+  Object.assign(card.style,{left:ir.left/z+'px',top:ir.top/z+'px',width:ir.width/z+'px',height:ir.height/z+'px'});
   if(img){const copy=doc.createElement('img');copy.src=img.currentSrc||img.src;copy.alt='';copy.draggable=false;card.append(copy)}
   doc.body.append(card);
   p.el.classList.add('attack-drag-source');
   for(const t of targets)t.el?.classList.add(t.kind==='monster'?'attack-drag-target':'attack-drag-direct');
-  drag={...p,choice:at.choice,targets,arrow,card,x0:r.left+r.width/2,y0:r.top+r.height/2,over:null,raf:0,x:e.clientX,y:e.clientY};
+  drag={...p,choice:at.choice,targets,arrow,card,x0:r.left+r.width/2,y0:r.top+r.height/2,z,over:null,raf:0,x:e.clientX,y:e.clientY};
   api.onStart?.();
   move(e);
  }
  function paint(){
-  if(!drag)return;drag.raf=0;const dx=drag.x-drag.x0,dy=drag.y-drag.y0;
+  if(!drag)return;drag.raf=0;const z=drag.z,dx=(drag.x-drag.x0)/z,dy=(drag.y-drag.y0)/z;
   // Transforms only: the trail stretches, the card moves with the finger, and nothing is laid out again.
   const d=Math.hypot(dx,dy);drag.arrow.style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;drag.arrow.firstChild.style.transform=`scaleX(${d})`;
-  drag.card.style.transform=`translate3d(${drag.x-drag.sx}px,${drag.y-drag.sy}px,0) scale(1.08)`;
+  drag.card.style.transform=`translate3d(${(drag.x-drag.sx)/z}px,${(drag.y-drag.sy)/z}px,0) scale(1.08)`;
  }
  function move(e){
   drag.x=e.clientX;drag.y=e.clientY;

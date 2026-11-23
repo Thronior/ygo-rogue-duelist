@@ -1,6 +1,7 @@
 // Prompts for relics that ask for a choice when acquired: Relic Picker, Card Picker, Name Changer and the weighted relics.
 // The run holds the pending choice (choice_relics.py); these only draw it. Lists stay short so typing stays smooth.
 import {safe} from './experience-ui.js';
+import {fusionHint} from './relic-inspect.js';
 // Randomized cards (Random Pack) are not real cards: the Card Picker never offers them (Discord, 2026-11-17).
 import {isRandomId} from './collector-rules.js';
 
@@ -16,7 +17,7 @@ export function weightPickMarkup(key,btn){
 }
 
 export function relicOfferMarkup(content,offer,{relicImage,relicArtwork,btn}){
- return `<div class="relic-offer"><p>Choose 1 relic to keep for this run.</p><div class="relic-offer-options">${offer.options.map(key=>{const [name,price,text]=content.artifacts[key];return `<article><h3>${safe(name)}</h3>${relicArtwork(relicImage(content.artifactInfo[key].art))}<p>${safe(text)}</p><small>Shop price ${price}</small>${btn('Choose relic','relic-pick',`data-relic="${safe(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'relic-pick-reroll',offer.rerolls_left?'':'disabled')}</footer></div>`;
+ return `<div class="relic-offer"><p>Choose 1 relic to keep for this run.</p><div class="relic-offer-options">${offer.options.map(key=>{const [name,price,text]=content.artifacts[key];return `<article><h3>${safe(name)}</h3>${relicArtwork(relicImage(content.artifactInfo[key].art))}<p>${safe(text)}</p>${fusionHint(content,key)}<small>Shop price ${price}</small>${btn('Choose relic','relic-pick',`data-relic="${safe(key)}"`,'primary')}</article>`}).join('')}</div><footer>${btn('Reroll · Rerolls: '+offer.rerolls_left,'relic-pick-reroll',offer.rerolls_left?'':'disabled')}</footer></div>`;
 }
 
 const TYPES=[['all','All'],['monster','Monsters'],['spell','Spells'],['trap','Traps']];

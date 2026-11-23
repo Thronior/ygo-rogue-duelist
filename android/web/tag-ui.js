@@ -38,7 +38,7 @@ import {savedDeckSort,savedDeckStatus,rememberDeckSort,DEFAULT_DECK_SORT,DEFAULT
 import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,saveDeckScroll,restoreDeckScroll,deckSplitColumns,splitStyle} from './card-search.js';
 
 import {relicImage,relicArtwork} from './ui-art.js';
-import {relicCard,relicLedger,permanentCurseEntries} from './relic-inspect.js';
+import {relicCard,relicLedger,permanentCurseEntries,fusionHint} from './relic-inspect.js';
 
 import {TagSession} from './tag-session.js';
 import * as juice from './juice.js';
@@ -52,6 +52,7 @@ import {mountRunProgress} from './run-progress.js';
 import {mountRunCard,copyRunCard,saveRunCard,runCardName} from './run-card.js';
 import {assetURL} from './startup-assets.js';
 import {fitButtonLabels} from './label-fit.js';
+import {deckKindsMarkup,extraDeckMarkup} from './deck-counts.js';
 import {ownedBefore} from './pack-opening.js';
 import {explainOnlineError} from './online-status.js';
 
@@ -140,7 +141,7 @@ export class TagUI {
 
   const v=this.view,offer=v.run.cursed_offer,disabled=this.working||v.seat!==0||v.paused?'disabled':'';
 
-  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a shadow relic':offer.picked.length>1?'Choose a third shadow relic':'Choose a second shadow relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p><p class="cursed-standing">${Number(v.run.lp||0).toLocaleString()} LP · ${Number(v.run.gold||0).toLocaleString()} coins</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
+  this.root.innerHTML=`<section class="cursed-reward"><header><small>BOSS DEFEATED</small><h1>${!offer.picked?'Choose a shadow relic':offer.picked.length>1?'Choose a third shadow relic':'Choose a second shadow relic'}</h1><p>${v.seat!==0?'Your teammate is choosing your shared relic.':offer.picked?'Champion Trophy: choose 1 more, or skip it.':'Choose 1 relic for your shared pool.'}</p><p class="cursed-standing">${Number(v.run.lp||0).toLocaleString()} LP · ${Number(v.run.gold||0).toLocaleString()} coins</p></header><div class="cursed-options">${offer.options.map(key=>{const [name,,text]=this.content.artifacts[key];return `<article><h2>${esc(name)}</h2>${relicArtwork(relicImage(this.content.artifactInfo[key].art))}${cursedMarkup(key,text,this.content.artifactInfo[key]?.parts)}${fusionHint(this.content,key)}${button('Choose relic','cursed-choose',`data-relic="${key}" ${disabled}`)}</article>`}).join('')}</div><footer>${button('Reroll · Rerolls: '+offer.rerolls_left,'cursed-reroll',disabled||!offer.rerolls_left?'disabled':'')}${offer.picked?button(offer.picked.length>1?'Skip third relic':'Skip second relic','cursed-skip',disabled):''}</footer></section>`;
   // Which battle this is (Discord, Septarium, 2026-11-21): the same VICTORIES strip as the opponent and shop screens.
   mountRunProgress(this.root.querySelector('.cursed-reward'),v.run,{content:this.content});
 
@@ -265,7 +266,7 @@ export class TagUI {
   const pickLine=mine!==null&&theirs!==null?'Both players are locked in':mine!==null?`Locked in · waiting for ${partnerName}`:theirs!==null?`${partnerName} is locked in on ${known(theirs)?esc(this.content.characters[theirs]?.name||'an opponent'):'an opponent'} · pick another`:boss?'Both bosses are on both screens · each player locks in one':'Choose your next opponent';
   const coinsLine=boss?`<span class="tag-boss-coins"> · Team coins ${coinLabel(r.gold)}</span>`:'';
 
-  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>${bountyBanner(r)}`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main · ${r.selected.length-main} Extra Deck · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${bountyBanner(r)}${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
+  const body=this.tab==='deck'&&fixed?`<section class="tag-hidden-deck"><img src="assets/card-back.jpg" alt="Hidden deck"><h2>${c.copycat?"Copy of opponent's deck":'Chosen reward deck'}</h2></section>${bountyBanner(r)}`:this.tab==='deck'?`<div class="scroll draft-scroll tag-deck-scroll"><div class="draft-summary"><div><p class="draft-count">${main} / ${deckMinimum(r,this.content.characters[r.character])}+ minimum main ${deckKindsMarkup(r.selected.map(i=>Number(lookup(r.pool[i])?.data.type)).filter(t=>!(t&64)))} · ${extraDeckMarkup(r.selected.length-main)} · ${r.artifacts.includes('broken_limiter')?'No copy limit (Broken Limiter).':'Maximum three copies.'}</p><p class="draft-inspect-help">${locked?'Locked in · tapping a card unlocks your pick':'Tap to select · Hold to inspect'}</p></div></div>${bountyBanner(r)}${deckToolbar(this,{searchKey:'tag-deck',sorts:TAG_DECK_SORTS,idPrefix:'tag',action:(label,name,attrs)=>button(label,name,attrs)})}${cards}</div>`:`${boss?bossBanner(r)+wallet:''}<div class="tag-draft-controls" role="status" aria-live="polite">${pickLine}${coinsLine}</div><div class="routes tag-routes">${opponents}</div>`;
 
   const tradeTool=inShop?button('Back to shop','shop-back','class="tag-back-shop"'):this.tab==='deck'&&r.round>0&&v.trade?.available!==false?button(v.trade?.status==='received'?'Cards received':`Trade ${v.trade?.votes.filter(Boolean).length||0}/2${v.trade?.votes[v.seat]?' ✓':''}`,v.trade?.status==='received'?'trade-receipt':'trade-vote',`class="tag-trade-vote" ${waiting||this.working?'disabled':''}`):'';
 

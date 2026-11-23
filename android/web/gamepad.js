@@ -12,6 +12,7 @@ const MENU_EVERY=260,DEAD=.5,REPEAT_DELAY=320,REPEAT_EVERY=110,HOLD_MS=560;
 
 // "Xbox Wireless Controller" matched the Sony test and showed PlayStation glyphs (found 2026-11-15).
 const sony=id=>SONY.test(id)&&!/xbox|045e/i.test(id);
+import {pageZoom} from './ui-zoom.js';
 export function padKind(id=''){return sony(id)?(/0ce6|0df2|dualsense/i.test(id)?'dualsense':'dualshock'):'xinput'}
 
 // Reads one pad into the standard layout: 16 booleans plus the left and right sticks.
@@ -92,7 +93,8 @@ export function installGamepad({screen=()=>'',phaseButton=()=>null,options=()=>f
   // A transformed dialog becomes the fixed cursor's containing block; measure where translate(0,0) lands.
   let h={left:0,top:0};if(c.parentElement!==document.body){c.style.transition='opacity 120ms';c.style.transform='none';h=c.getBoundingClientRect()}else c.style.transition=''
   if(r.width)lastRect=r;
-  c.style.transform=`translate(${Math.round(r.left-h.left-3)}px,${Math.round(r.top-h.top-3)}px)`;c.style.width=Math.round(r.width+6)+'px';c.style.height=Math.round(r.height+6)+'px';
+  // Window pixels to style pixels: UI Scale zooms the page (ui-zoom.js).
+  const z=pageZoom();c.style.transform=`translate(${Math.round((r.left-h.left)/z-3)}px,${Math.round((r.top-h.top)/z-3)}px)`;c.style.width=Math.round(r.width/z+6)+'px';c.style.height=Math.round(r.height/z+6)+'px';
   // Some targets (roster portraits) take only the small pointer, set further inside, instead of the ring.
   const kind=cursorClass(focus)||'';if(kind!==cursorKind){if(cursorKind)c.classList.remove(cursorKind);if(kind)c.classList.add(kind);cursorKind=kind}
   c.classList.add('on');

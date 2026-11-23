@@ -2,6 +2,7 @@
 // and the duel engine, and get their picture drawn the first time it is needed (behind the hat animation, hatLoading),
 // then kept for the rest of the session so nothing is drawn twice. Until then a card shows its art donor's scan.
 import {drawRandomizedCard,donorsFor} from './randomized-card-art.js';
+import {keepEnglish} from './i18n.js';
 
 export const RANDOM_PACK={id:'RANDOM-PACK',name:'Random Pack',region:'EN',code:'RANDOM',common:[],rare:[],size:9,rarities:{},rare_display:[],randomized:true};
 export const RANDOM_PACK_TEXT='Nine randomized cards: new names, art, stats and effects, made for you when you open it. Randomized cards last for this run only.';
@@ -50,7 +51,7 @@ function installRandomCards(list){
  content.cards=content.cards.filter(c=>!isRunCard(c.id)||fresh.has(c.id));
  const known=new Set(content.cards.map(c=>c.id));
  for(const x of list){
-  const id=x.card.id;entries.set(id,x);cardsById.set(id,x.card);
+  const id=x.card.id;entries.set(id,x);cardsById.set(id,x.card);keepEnglish(x.card.desc);   // never partly translated
   if(!known.has(id))content.cards.push(x.card);
   if(!drawn.has(id))cardImages.set(id,`assets/cards/${x.card.randomized.art_from}.jpg`);
  }
@@ -65,7 +66,7 @@ export function addDraftRandomCards(list){
   const id=x.card.id,old=entries.get(id);
   if(old&&old.script===x.script&&old.card.name===x.card.name)continue;
   if(drawn.has(id))URL.revokeObjectURL(cardImages.get(id));drawn.delete(id);pending.delete(id);
-  entries.set(id,x);cardsById.set(id,x.card);
+  entries.set(id,x);cardsById.set(id,x.card);keepEnglish(x.card.desc);
   if(known.has(id))content.cards[known.get(id)]=x.card;else content.cards.push(x.card);
   cardImages.set(id,`assets/cards/${x.card.randomized.art_from}.jpg`);
  }

@@ -34,7 +34,7 @@ FUSED=[
  ('masterwork_blade','Masterwork Blade','Monsters you control gain 800 ATK.','Legendary Sword',('cursed_cracked_sword','blade','sword')),
  ('endless_archive','Divine Archive','Draw 1 additional card for your normal draw during your Draw Phase. Your hand size limit is 8.','Graceful Charity',('cursed_starving_library','deep_pockets','inkwell')),
  ('giant_killers_cradle',"Giant-Killer's Cradle",'Level 3 or lower monsters you control gain 1,000 ATK and cannot be destroyed by battle with Level 5 or higher monsters.','Little-Winguard',('cursed_ashen_nursery','small','protect_the_weak')),
- ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require only 1 Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
+ ('titans_covenant',"Titan's Covenant",'Level 5 or higher monsters you control gain 1,200 ATK. Level 7 or higher monsters you Tribute Summon require 1 less Tribute.','Mobius the Frost Monarch',('cursed_giants_oath','tribute','tribute_free')),
  ('commoners_crown',"Commoner's Crown","Normal Monsters you control gain 1,000 ATK/DEF and cannot be destroyed by your opponent's card effects.",'La Jinn the Mystical Genie of the Lamp',('cursed_commoners_chain','normal','epitaph')),
  ('undying_legion','Undying Legion','Zombie monsters you control gain 1,200 ATK. Once per turn, at the start of your Standby Phase, if you have a free Monster Zone, Special Summon 1 random Zombie monster from your GY in Attack Position. Once per turn, if a Zombie monster you control is destroyed by battle, Special Summon it from your GY at the end of the Battle Phase. All LP you gain are halved.','Book of Life',('cursed_zombies_bargain','bone','restless_dead')),
  ('grand_ritual_altar','Grand Ritual Altar','Monsters you control gain 200 ATK for each time you Ritual Summon a monster during this run, across all Duels. Each time you Ritual Summon, draw 1 card.',"Shinato's Ark",('cursed_ritual_scar','ritual_incense','ritual_vestment')),
@@ -45,10 +45,10 @@ FUSED=[
  # The user's design (Discord review, 2026-11-13); the Gadget Soldier art is mine.
  ('gadget_gadget','Gadget Gadget','"Gadget" monsters you control gain 500 ATK. Each time you Normal Summon a "Gadget" monster, Special Summon 2 "Gadget" monsters with different names from your Deck, then add 1 "Stronghold the Moving Fortress" from your Deck to your hand.','Gadget Soldier',('gadget_call','gadget_stronghold')),
  ('spell_counter_engine','Spell Counter Engine','During your Standby Phase, place up to 2 Spell Counters on cards you control that can hold them. Monsters you control gain 200 ATK for each Spell Counter on your field.','Tower of Babel',('spell_provider','counterweight','arcane_resonance')),
- ('level_up_chain','Level Up Chain','Start each Duel with a random Level 1–4 LV monster from your Deck and a copy of "Level Up!" in your hand. Your LV monsters gain 500 ATK and are unaffected by monster effects.','Horus the Black Flame Dragon LV8',('level_one','level_up_relic','swordsman_oath')),
+ ('level_up_chain','Level Up Chain','Start each Duel with a random Level 1–4 LV monster from your Deck and a copy of "Level Up!" in your hand. Your LV monsters gain 500 ATK and are unaffected by your opponent\'s monster effects.','Horus the Black Flame Dragon LV8',('level_one','level_up_relic','swordsman_oath')),
  ('terrorking_magnus','Terrorking Magnus','Whenever you pay LP for an Archfiend card, recover twice the amount paid. Each Archfiend monster you control gains 400 ATK for each Archfiend monster you control, including itself.','Archfiend Soldier',('archfiend_contract','demonic_pact','all_for_one_terrorking')),
  ('spirit_sanctuary','Spirit Sanctuary','Spirit monsters you control gain 500 ATK and may stay on the field during the End Phase. You can Tribute Summon Spirit monsters by banishing monsters from your GY in place of Tributes. Whenever a monster returns from the field to your hand, gain 500 LP.','Spring of Rebirth',('good_spirits','spiritual_retribution')),
- ('living_traps','Living Traps','Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by battle. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.','Zoma the Spirit',('cursed_trapbound_idol','trap_weaver')),
+ ('living_traps','Living Traps',"At the start of the Duel, add 1 random Trap Monster card from your Deck to your hand. Trap Monsters you control gain 600 ATK/DEF and cannot be destroyed by your opponent's Spell/Trap effects. The first time each Duel you Special Summon a Trap Monster, you may Set a different Trap Monster directly from your Deck.",'Zoma the Spirit',('cursed_trapbound_idol','trap_weaver')),
  ('scorched_hourglass','Scorched Hourglass','At the start of your Standby Phase, inflict 500 damage to your opponent. Whenever you inflict effect damage to your opponent from another source, inflict 500 additional damage. This bonus applies once per originating damage event. Damage caused by this relic cannot trigger the bonus.','Dark Room of Nightmare',('cursed_scorched_clock','flame','static_coil')),
  ('guardians_armory',"Guardian’s Armory","Start each Duel with a random Guardian monster and its corresponding Equip Spell in your hand. Equipped monsters you control gain 500 ATK. A Guardian monster you control cannot be targeted or destroyed by your opponent's card effects while its corresponding Equip Spell is face-up on the field.",'Gravity Axe - Grarl',('guardian_arsenal','armory_aid','armory_crest')),
  # The user's design, 2026-11-18: Jin Trio and Gate Calling. The text spells the effects out because no relic text names its pieces.
@@ -58,6 +58,8 @@ FUSED=[
  # The user's design, 2026-11-21: the four Blue-Eyes relics (Dragon Crest, Blue-Eyes Radiance, Twin Eyes, Dragon's Claws).
  # Burst Stream of Destruction art is mine (Blue-Eyes White Dragon, Ultimate and Shining are the pieces' and Dragon Blood Fusion's).
  ('my_pride_and_soul','My Pride and Soul','Dragon monsters you control gain 800 ATK/DEF. Your opponent cannot activate Trap Cards during your Battle Phase. At the start of the Duel: Special Summon 1 "Blue-Eyes" monster from your Deck in Attack Position, then add 1 card that mentions "Blue-Eyes White Dragon" from your Deck to your hand. Once per turn, when a "Blue-Eyes" monster you control is destroyed: You can Special Summon 1 LIGHT Dragon monster from your hand, Deck or Extra Deck, ignoring its Summoning conditions.','Burst Stream of Destruction',('dragon','blue_eyes_radiance','twin_eyes','dragon_triumph')),
+ # The user's pick, 2026-11-23 (Discord suggestion for Pegasus' Toons): Toon World with Toon Premiere. Toon Dark Magician art is mine.
+ ('toon_kingdom','Toon Kingdom','At the start of each Duel, place 1 "Toon World" from your Deck face-up in your Spell & Trap Zone. "Toon World" you control cannot be destroyed by card effects. Toon monsters you control gain 500 ATK and can attack the turn they are Summoned.','Toon Dark Magician',('toon_world','toon_premiere')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -242,6 +244,19 @@ e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetV
  # Hand limits are rewritten by passives.py from approved_relic_effects.relic_hand_limit (8 and 4 are the markers).
  if key=='endless_archive':return player_rule('EFFECT_DRAW_COUNT',2)+'\n'+player_rule('EFFECT_HAND_LIMIT',8)
  if key=='giant_killers_cradle':return stat('EFFECT_UPDATE_ATTACK',1000,'c:IsLevelBelow(3)')+'\n'+stat('EFFECT_INDESTRUCTABLE_BATTLE','function(e,c) return c:IsLevelAbove(5) end','c:IsLevelBelow(3)')
+ if key=='toon_kingdom':
+  from artifact_effects import effect as base
+  keep='''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetTargetRange(LOCATION_SZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() and c:IsCode(15259703) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
+  # Toons lock themselves with an EFFECT_CANNOT_ATTACK of their own when Summoned (until the End Phase): mark ours as
+  # they are Summoned, and lift that self-imposed lock at the start of the Battle Phase (user, 2026-11-23).
+  fresh='''do local function toon(c) return c:IsFaceup() and c:IsType(TYPE_TOON) and c:IsControler(0) end
+ for _,code in ipairs({EVENT_SUMMON_SUCCESS,EVENT_SPSUMMON_SUCCESS,EVENT_FLIP_SUMMON_SUCCESS}) do local s=Effect.GlobalEffect() s:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) s:SetCode(code)
+  s:SetOperation(function(e,tp,eg) for c in eg:Filter(toon,nil):Iter() do c:RegisterFlagEffect(15259704,RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END,0,1) end end) Duel.RegisterEffect(s,0) end
+ local function free() for c in Duel.GetMatchingGroup(function(c) return toon(c) and c:GetFlagEffect(15259704)>0 end,0,LOCATION_MZONE,0,nil):Iter() do
+  for _,ce in ipairs({c:GetCardEffect(EFFECT_CANNOT_ATTACK)}) do if ce:GetOwner()==c then ce:Reset() end end end end
+ local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PHASE_START|PHASE_BATTLE_START) b:SetCondition(function() return Duel.GetTurnPlayer()==0 end) b:SetOperation(free) Duel.RegisterEffect(b,0)
+end'''
+  return '\n'.join((base('starting_toon_world',0,''),keep,stat('EFFECT_UPDATE_ATTACK',500,'c:IsType(TYPE_TOON)'),fresh))
  if key=='titans_covenant':
   from artifact_effects import effect as base
   return stat('EFFECT_UPDATE_ATTACK',1200,'c:IsLevelAbove(5)')+'\n'+base('tribute_free',0,'')
@@ -275,12 +290,14 @@ h:SetOperation(function(e,tp,eg,ep,ev) Duel.SetLP(0,Duel.GetLP(0)-math.floor(ev/
 local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET) t:SetProperty(EFFECT_FLAG_SET_AVAILABLE) t:SetTargetRange(LOCATION_MZONE,0) t:SetValue(spelltrap) Duel.RegisterEffect(t,0)
 local d=t:Clone() d:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) Duel.RegisterEffect(d,0) end'''
  if key=='spell_counter_engine':
+  # One card that can hold a counter: it gets it without a prompt (itch.io, user 2026-11-22).
   counters='function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end'
   return stat('EFFECT_UPDATE_ATTACK','function() return 200*Duel.GetCounter(0,1,0,COUNTER_SPELL) end')+'\n'+phase('STANDBY',f'''for i=1,2 do
  local g=Duel.GetMatchingGroup({counters},0,LOCATION_ONFIELD,0,nil)
  if #g==0 then break end
- --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP)
- local c=g:Select(0,0,1,nil):GetFirst()
+ local c=g:GetFirst()
+ if #g>1 then --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP)
+  c=g:Select(0,0,1,nil):GetFirst() end
  if not c or not c:AddCounter(COUNTER_SPELL,1) then break end
 end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
  if key=='level_up_chain':
@@ -290,7 +307,11 @@ end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
     'local c=g:GetFirst() or Duel.CreateToken(0,25290459) Duel.SendtoHand(c,0,REASON_RULE)')
   return '\n'.join([base('starting_low_level',0),opening,
     stat('EFFECT_UPDATE_ATTACK',500,lv),
-    stat('EFFECT_IMMUNE_EFFECT','function(e,te) return te:IsActiveType(TYPE_MONSTER) end',lv)])
+    # The opponent's monster effects only (user, 2026-11-22). Immune to every monster effect, Silent Magician LV4 never
+    # took a Spell Counter from its own effect (Discord, Nameless).
+    # The effect's controller against the protected monster's, so it holds in any seat and for tokens whose effects the
+    # core credits to the player who created them.
+    stat('EFFECT_IMMUNE_EFFECT','function(e,te,c) return te:IsActiveType(TYPE_MONSTER) and te:GetHandlerPlayer()~=c:GetControler() end',lv)])
  if key=='terrorking_magnus':
   archfiend='function(c) return c:IsFaceup() and c:IsSetCard(SET_ARCHFIEND) end'
   return stat('EFFECT_UPDATE_ATTACK',f'function() return 400*Duel.GetMatchingGroupCount({archfiend},0,LOCATION_MZONE,0,nil) end',
@@ -308,7 +329,13 @@ end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
   trap_monster='c:IsType(TYPE_TRAPMONSTER) or c:IsOriginalCodeRule('+traps+')'
   summoned=f'function(c) return c:IsControler(0) and ({trap_monster}) end'
   eligible=f'function(c,g) return c:IsCode({traps}) and c:IsSSetable() and not g:IsExists(Card.IsCode,1,nil,c:GetCode()) end'
-  return '\n'.join([both(600,trap_monster),stat('EFFECT_INDESTRUCTABLE_BATTLE',1,trap_monster),
+  # Dragunfire's Discord request (user, 2026-11-22): a random Trap Monster card from the Deck at the start of the Duel,
+  # and protection from the opponent's Spells/Traps in place of battle protection.
+  opening=('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP) '
+   f'e:SetOperation(function(e) e:Reset() local g=Duel.GetMatchingGroup(function(c) return c:IsCode({traps}) and c:IsAbleToHand() end,0,LOCATION_DECK,0,nil) '
+   'if #g>0 then Duel.SendtoHand(g:RandomSelect(0,1),0,REASON_RULE) end end) Duel.RegisterEffect(e,0) end')
+  shielded=stat('EFFECT_INDESTRUCTABLE_EFFECT','function(e,re,rp) return rp==1 and re:IsActiveType(TYPE_SPELL|TYPE_TRAP) end',trap_monster)
+  return '\n'.join([opening,both(600,trap_monster),shielded,
     'do local used=false '+event('EVENT_SPSUMMON_SUCCESS',f'''used=true
 local g=Duel.GetMatchingGroup({eligible},0,LOCATION_DECK,0,nil,eg)
 if #g==0 then return end

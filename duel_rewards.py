@@ -66,6 +66,25 @@ SECRET_COINS={'forbidden_slap':30,'little_finish':10,'one_turn_kill':50,'godlike
  'last_draw':100,'no_monsters':40,'wipeout':20,'god_tribute':10,'triple_threat':20,'three_gods':80,'lady_luck':15}
 for _metric,_coins in SECRET_COINS.items():RULES.append((_metric,1,SECRET[_metric],_coins))
 SECRET_LABELS=set(SECRET.values())
+# The exact condition of each hidden feat, shown under it in the shop Coin scorecard once the player has found it (bebop and
+# jerichoholic, Discord 2026-11-21; user 2026-11-22). Never listed anywhere for a feat that is not found.
+SECRET_HINTS={
+ 'stolen_finish':'Win the Duel with an attack by a monster your opponent owns.',
+ 'forbidden_slap':'Win the Duel with an attack by "Right Arm of the Forbidden One" or "Left Arm of the Forbidden One".',
+ 'little_finish':'Win the Duel with an attack by a monster with 500 or less ATK.',
+ 'one_turn_kill':"Win the Duel by reducing your opponent's LP from full to 0 in a single turn.",
+ 'godlike':"Win the Duel with a final hit that deals 7,000 or more damage beyond your opponent's remaining LP.",
+ 'last_stand':'Win the Duel with 100 LP or less.',
+ 'brink':'Win the Duel with 4,000 or more LP after falling to 1,000 LP or less.',
+ 'outnumbered':'Win the Duel while your opponent controls more monsters than you.',
+ 'last_draw':'Win the Duel with no cards left in your Deck.',
+ 'no_monsters':'Win the Duel without Summoning or Setting a monster.',
+ 'wipeout':"Destroy 4 or more of your opponent's cards with a single card effect.",
+ 'god_tribute':'Tribute Summon a monster by Tributing 3 monsters.',
+ 'triple_threat':'Control 3 face-up monsters with the same name.',
+ 'three_gods':'Control 3 different Divine-Beast monsters at the same time.',
+ 'lady_luck':'Get heads on 3 coin tosses in a row.',
+}
 EXODIA_ARMS={'Right Arm of the Forbidden One','Left Arm of the Forbidden One'}
 
 def secret_metrics(m,e,by_id,run):

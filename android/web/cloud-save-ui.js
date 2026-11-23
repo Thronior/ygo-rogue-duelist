@@ -8,7 +8,7 @@ export function cloudSettingsMarkup({enabled,code,updatedAt,error},btn,esc){
  const last=updatedAt?`Last backup: ${esc(new Date(updatedAt).toLocaleString())}`:'Your progress is backed up after your next duel while online.';
  const on=enabled&&code?`<p>Cloud save is on. Your code: <strong class="cloud-code-inline">${esc(code)}</strong></p><p class="muted">${last}${error?' The last upload failed and will be retried.':''}</p><div class="settings-actions">${btn('Show my code','cloud-code-show')}</div>`
   :'';
- const desc=enabled&&code?'On: backed up after each duel while online.':'Back up your progress after each duel and get a code that brings it back on any device.';
+ const desc=enabled&&code?'On: backed up after each duel while online.':'Backs up after each duel; a code restores it on any device.';
  return `<label class="set-row"><span class="set-text"><b>Cloud Save</b><small>${desc}</small></span><input type="checkbox" class="switch" id="cloud-saves-enabled" ${enabled?'checked':''}></label>${on}<div class="settings-actions">${btn('Restore from code','cloud-restore-open')}</div><details><summary>How cloud save works</summary>${PRIVACY}</details>`;
 }
 

@@ -1,4 +1,5 @@
 import {effectOn} from './effect-options.js';
+import {pageRect} from './ui-zoom.js';
 // Duel motion effects. Helpers own their overlay nodes and remove them when finished.
 // Only transform and opacity animate, so the Android WebView stays on the compositor.
 // Callers decide what blocks the duel: helpers never wait on game state.
@@ -23,10 +24,11 @@ function overlay(rect,className,html=''){
 // Animate a temporary node, then remove it.
 function transient(el,frames,options){const a=el.animate(frames,options);a.finished.catch(()=>{}).finally(()=>el.remove());return a}
 const settled=animations=>Promise.all(animations.filter(Boolean).map(a=>a.finished.catch(()=>{}))).then(()=>{});
-const visible=el=>{if(!el?.isConnected)return null;const r=el.getBoundingClientRect();return r.width&&r.height?r:null};
+// Style pixels for the fixed overlays: UI Scale zooms the page (ui-zoom.js).
+const visible=el=>{if(!el?.isConnected)return null;const r=pageRect(el);return r.width&&r.height?r:null};
 // Hand rows are wide containers; their cards give the landing size.
 function cardBox(el){
- const r=el.getBoundingClientRect(),card=el.matches('.hand,.enemy-hand')?el.querySelector('button,img,.card-back')?.getBoundingClientRect():null;
+ const r=pageRect(el),cardEl=el.matches('.hand,.enemy-hand')?el.querySelector('button,img,.card-back'):null,card=cardEl&&pageRect(cardEl);
  const box=card?.width?card:r,height=Math.min(box.height,box.width/.685);
  return height>20&&height<260?{width:height*.685,height}:{width:44,height:64};
 }
@@ -38,7 +40,7 @@ const point=(r)=>({x:r.left+r.width/2,y:r.top+r.height/2});
 // Defense Position (zones show those at 90° and 0.85). simple: a straight, untilted
 // flight (reduced motion, compatibility mode). The caller removes the returned node.
 export function cardFlight(from,to,{src,duration,hold=0,turn=0,endScale=1,reduced=false,simple=false}){
- const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),start=cardBox(from),end=cardBox(to),p=point(a),q=point(b);
+ const a=pageRect(from),b=pageRect(to),start=cardBox(from),end=cardBox(to),p=point(a),q=point(b);
  const el=document.createElement('img');el.className='moving-card';el.src=src;el.alt='';
  Object.assign(el.style,{left:p.x-start.width/2+'px',top:p.y-start.height/2+'px',width:start.width+'px',height:start.height+'px'});
  document.body.append(el);

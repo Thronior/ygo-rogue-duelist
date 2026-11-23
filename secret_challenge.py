@@ -30,3 +30,17 @@ def relicless(game,current):
  run['route_rewards']={'0':shop_rewards.reward_from_deck(endless.CHAMPION['main'],game.BY_ID,random)}
  game.save(run)
  return run
+
+
+def return_after_win(game,won):
+ """Beating the shopkeeper's secret duel hands back the run as it was in the shop before it, relics included
+ (user, 2026-11-23). A loss still ends the run. Only the run this challenge was copied from is restored."""
+ path=storage.ROOT/'before-relicless-secret-run.json'
+ previous=storage.read(path)
+ if not (won.get('secret_challenge')=='relicless' and won.get('encore_won')):return won
+ if not isinstance(previous,dict) or previous.get('stage')!='shop' or previous.get('started_at')!=won.get('started_at'):return won
+ previous['_save_slot']=won.get('_save_slot',previous.get('_save_slot'))
+ game.save(previous)
+ # Spent: the same snapshot can't be handed back twice.
+ storage.write(path,{})
+ return previous

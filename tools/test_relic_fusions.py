@@ -37,7 +37,11 @@ with tempfile.TemporaryDirectory(prefix='fusions-',dir=ROOT/'temp') as tmp:
 
  # No relic text names its pieces, so the recipes stay secret.
  names={ARTIFACTS[p][0] for pieces in rf.RECIPES.values() for p in pieces}
- for key in rf.KEYS:assert not any(n in ARTIFACTS[key][2] for n in names),(key,ARTIFACTS[key][2])
+ # A piece that shares a real card's name may appear as that card in quotes (Toon Kingdom names the card "Toon World",
+ # 2026-11-23): only the unquoted name would point at the relic.
+ cards={c['name'] for c in g.CARDS}
+ bare=lambda n,text:n in (text.replace(f'"{n}"','') if n in cards else text)
+ for key in rf.KEYS:assert not any(bare(n,ARTIFACTS[key][2]) for n in names),(key,ARTIFACTS[key][2])
 
  # A fused relic sells for half of its pieces' combined price.
  assert ARTIFACTS['chaos_orb'][1]==ARTIFACTS['light'][1]+ARTIFACTS['dark'][1]

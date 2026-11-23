@@ -25,7 +25,7 @@ export function resetLocalizedCards(){
  const next=currentLanguage();
  if(next===lang&&generation)return;
  generation++;lang=next;
- for(const url of urls.values())URL.revokeObjectURL(url);
+ for(const [id,url] of urls)release(url,id);
  urls.clear();failed.clear();urgent.clear();later.clear();cache=null;
  cacheReady=globalThis.caches?caches.keys().then(async names=>{
   for(const name of names)if(name.startsWith(CACHE_PREFIX)&&name!==CACHE_PREFIX+lang)await caches.delete(name).catch(()=>{});
@@ -100,7 +100,7 @@ async function make(id){
   if(cache){await cache.put(key,new Response(blob,{headers:{'Content-Type':'image/jpeg'}})).catch(()=>{});if(++puts%50===0)trim(cache)}
  }
  if(started!==generation)return;
- const url=URL.createObjectURL(blob);urls.set(id,url);forget();
+ const url=URL.createObjectURL(blob);urls.set(id,url);forget(id);
  // Pictures already on screen change over now; later renders get the new URL from localizedImage.
  for(const img of document.querySelectorAll(`img[src="assets/cards/${id}.jpg"]`))img.src=url;
 }
@@ -111,11 +111,25 @@ async function trim(store){
  for(const request of keys.slice(0,Math.max(0,keys.length-MAX_CACHED)))await store.delete(request).catch(()=>{});
 }
 // Blob URLs beyond MAX_URLS are released unless a picture on screen still uses them (the cache keeps the bytes).
-function forget(){
+// `keep` is the card just drawn, whose URL is not on screen yet. Releasing it broke the card's pictures (Discord,
+// magna98, 2026-11-22: no art in the card window, Italian): the split deck editor shows 300+ localized cards at once,
+// so every older URL was on screen and the loop reached the new one, revoked it, and then put the dead URL on screen;
+// asking again drew and revoked it again. With that many on screen the cap is exceeded instead. One pass over
+// document.images, not a selector per URL.
+function forget(keep){
  if(urls.size<=MAX_URLS)return;
+ const shown=new Set();for(const img of document.images)shown.add(img.getAttribute('src'));
  for(const [id,url] of urls){
   if(urls.size<=MAX_URLS)break;
-  if(document.querySelector(`img[src="${url}"]`))continue;
-  urls.delete(id);URL.revokeObjectURL(url);
+  if(id===keep||shown.has(url))continue;
+  urls.delete(id);release(url,id);
  }
 }
+// A released URL that still reaches a picture (a window drawn before a language change, say) shows the scan instead
+// of a broken image. Only image errors run this.
+const released=new Map();
+function release(url,id){URL.revokeObjectURL(url);if(released.size>2000)released.clear();released.set(url,id)}
+globalThis.document?.addEventListener('error',e=>{
+ const img=e.target,id=img?.tagName==='IMG'&&released.get(img.getAttribute('src'));
+ if(id)img.src=urls.get(id)||`assets/cards/${id}.jpg`;
+},true);

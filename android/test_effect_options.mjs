@@ -9,7 +9,7 @@ for(const [key] of VISUAL_EFFECTS)assert.equal(effectOn(key),true,key+' is on by
 applyEffectOptions(['flames','shake']);assert.equal(effectOn('flames'),false);assert.equal(effectOn('lp'),true);assert.ok(classes.has('no-fx-flames'));
 applyEffectOptions([]);assert.ok(!classes.has('no-fx-flames'));applyEffectOptions(undefined);assert.equal(effectOn('flames'),true);
 // Every option is used by the code that draws it, so no toggle does nothing.
-const code=['juice.js','duel-motion.js','mobile.css'].map(f=>text('android/web/'+f)).join('\n');
+const code=['juice.js','duel-motion.js','mobile.css','mobile.js'].map(f=>text('android/web/'+f)).join('\n');
 for(const [key] of VISUAL_EFFECTS)assert.ok(code.includes(`effectOn('${key}')`)||code.includes('.no-fx-'+key),key+' is wired up');
 // Every voice goes through the Voice Lines level, not Sound Effects.
 const mobile=text('android/web/mobile.js');

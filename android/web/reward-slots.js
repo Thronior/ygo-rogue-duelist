@@ -2,6 +2,7 @@ import {rewardAudio} from './reward-slot-audio.js';
 import {deckRewardRarities} from './reward-rarity.js';
 import {coinLabel} from './coin-label.js';
 import {relicEyeIcon} from './relic-eye-icon.js';
+import {pageRect} from './ui-zoom.js';
 // Line icon in the deck editor's style (2026-11-05, replaces the old cut-out deck image).
 const DECK_ICON='<svg class="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="2.5" width="12" height="16" rx="1.8"/><path d="M5 6v13.5A2 2 0 0 0 7 21.5h9"/><path d="m11.5 9.5 2.5-2.5 2.5 2.5-2.5 2.5Z"/></svg>';
 // Presentation never chooses a reward. Every final card comes from the backend.
@@ -26,7 +27,8 @@ export function mountRewardSlots(root,{getRun,reroll,image,name,tick,land,volume
  }
  const reelFrames=distance=>Array.from({length:41},(_,n)=>{const t=n/40;return {offset:t,transform:`translateX(${-distance*(1-(1-t)**3)}px)`}});
  function resizeReels(){root.querySelectorAll('.reward-reel-strip').forEach(strip=>{const distance=reelPosition(strip);if(strip.classList.contains('settled'))strip.style.transform=`translateX(${-distance}px)`;else strip.getAnimations()[0]?.effect?.setKeyframes(reelFrames(distance))})}
- function layout(){const {width:w,height:h}=grid.getBoundingClientRect();if(w<=0||h<=0||!slots.length)return;let best=0,columns=1;for(let c=1;c<=slots.length;c++){const rows=Math.ceil(slots.length/c),cw=(w-8*(c-1))/c,ch=(h-8*(rows-1))/rows,scale=Math.min(cw/120,ch/(portraitPrize?160:220));if(c>1&&cw<76)continue;if(scale>best){best=scale;columns=c}}grid.classList.toggle('compact-cards',(h-8*(Math.ceil(slots.length/columns)-1))/Math.ceil(slots.length/columns)<110);grid.style.gridTemplateColumns=`repeat(${columns},minmax(0,1fr))`;grid.style.gridTemplateRows=`repeat(${Math.ceil(slots.length/columns)},minmax(0,1fr))`;if(portraitPrize)grid.style.setProperty('--deck-slot-size',Math.max(1,Math.floor(Math.min((w-8*(columns-1))/columns,(h-8*(Math.ceil(slots.length/columns)-1))/Math.ceil(slots.length/columns)-(onView?72:40))))+'px');grid.style.setProperty('--reward-font',Math.max(8,Math.min(14,14*best))+'px');resizeReels();}
+ // Style pixels: UI Scale zooms the page (ui-zoom.js).
+ function layout(){const {width:w,height:h}=pageRect(grid);if(w<=0||h<=0||!slots.length)return;let best=0,columns=1;for(let c=1;c<=slots.length;c++){const rows=Math.ceil(slots.length/c),cw=(w-8*(c-1))/c,ch=(h-8*(rows-1))/rows,scale=Math.min(cw/120,ch/(portraitPrize?160:220));if(c>1&&cw<76)continue;if(scale>best){best=scale;columns=c}}grid.classList.toggle('compact-cards',(h-8*(Math.ceil(slots.length/columns)-1))/Math.ceil(slots.length/columns)<110);grid.style.gridTemplateColumns=`repeat(${columns},minmax(0,1fr))`;grid.style.gridTemplateRows=`repeat(${Math.ceil(slots.length/columns)},minmax(0,1fr))`;if(portraitPrize)grid.style.setProperty('--deck-slot-size',Math.max(1,Math.floor(Math.min((w-8*(columns-1))/columns,(h-8*(Math.ceil(slots.length/columns)-1))/Math.ceil(slots.length/columns)-(onView?72:40))))+'px');grid.style.setProperty('--reward-font',Math.max(8,Math.min(14,14*best))+'px');resizeReels();}
  const resize=new ResizeObserver(layout);resize.observe(grid);
  let ultraLights=null,ultraTimer=null,lastLight=-Infinity;
  function screenShine(){

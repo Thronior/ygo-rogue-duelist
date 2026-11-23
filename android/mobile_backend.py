@@ -148,11 +148,13 @@ def dispatch(raw):
  elif action=='mark':
   # Card marks for this run (minotalen thread, 2026-11-16): Yes 1, No -1, Maybe removes it. relic_affinity.deck_cards
   # weighs a Yes as 2 more copies in the Deck and a No as none.
-  cid,mark=int(value[0]),int(value[1])
-  if cid not in g.BY_ID or mark not in (-1,0,1):raise ValueError('Unknown card')
-  marks=dict(run.get('card_marks') or {});key=str(cid)
-  if mark:marks[key]=mark
-  else:marks.pop(key,None)
+  # value[0] is one card id, or a list of them ("★ All" in the deck editor, user 2026-11-22).
+  ids=[int(x) for x in value[0]] if isinstance(value[0],(list,tuple)) else [int(value[0])];mark=int(value[1])
+  if mark not in (-1,0,1) or any(cid not in g.BY_ID for cid in ids):raise ValueError('Unknown card')
+  marks=dict(run.get('card_marks') or {})
+  for cid in ids:
+   if mark:marks[str(cid)]=mark
+   else:marks.pop(str(cid),None)
   run['card_marks']=marks
  elif action=='toggle':
   if content.copies_deck(run):raise ValueError('Copycat uses the borrowed deck plus one Copycat.')
@@ -194,6 +196,9 @@ def dispatch(raw):
  elif action=='finish':
   result=dict(protocol=1,id=run['duel']['id'],winner=value['winner'],lp=value['lp'],reason=value.get('reason',0),events=value.get('events',[]))
   g.finish_duel(run,result);run.pop('mobile_duel',None)
+  if run.get('secret_challenge')=='relicless':
+   import secret_challenge
+   run=secret_challenge.return_after_win(g,run)
  elif action=='active-curses':
   import challenge_levels
   result=challenge_levels.active_modifiers(run or {})

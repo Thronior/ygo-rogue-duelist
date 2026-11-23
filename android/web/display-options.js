@@ -1,22 +1,35 @@
 import {setPixelArt} from './pixel-art.js';
 // Settings → Display. Must load before any module that asks about reduced motion.
-// Reduce Motion acts like the device setting, so the existing motion checks in code and CSS need no second path.
+// Reduce Motion stands in for the device setting, so the existing motion checks in code and CSS need no second path.
+// Only the game's own Reduce Motion setting counts (user, 2026-11-21): many players had a Windows or phone animation
+// toggle off without knowing, and got calm animations they couldn't turn back on from the game.
 const REDUCED=/prefers-reduced-motion:\s*reduce/,deviceMatchMedia=window.matchMedia.bind(window),original=new WeakMap();
 let reduceMotion=false;
 window.matchMedia=query=>{
  const device=deviceMatchMedia(query);if(!REDUCED.test(query))return device;
- return {media:device.media,get matches(){return reduceMotion||device.matches},addEventListener:(...args)=>device.addEventListener(...args),removeEventListener:(...args)=>device.removeEventListener(...args)};
+ return {media:device.media,get matches(){return reduceMotion},addEventListener:()=>{},removeEventListener:()=>{},addListener:()=>{},removeListener:()=>{}};
 };
+// Every @media (prefers-reduced-motion: reduce) block in the game's stylesheets: always on with the setting, never
+// without it, whatever the device says.
 function applyReducedCSS(){
  for(const sheet of document.styleSheets){
   let rules=[];try{rules=sheet.cssRules}catch{continue}
   for(const rule of rules){
    if(!(rule instanceof CSSMediaRule))continue;
    const text=original.get(rule)??rule.media.mediaText;if(!REDUCED.test(text))continue;
-   original.set(rule,text);rule.media.mediaText=reduceMotion?'all':text;
+   original.set(rule,text);rule.media.mediaText=reduceMotion?'all':'not all';
   }
  }
 }
+applyReducedCSS();
+// Stylesheets added later (a <link> that loads after boot, or a module's own <style>) get the same treatment.
+new MutationObserver(records=>{
+ for(const r of records)for(const node of r.addedNodes){
+  if(node.nodeName==='STYLE')applyReducedCSS();
+  else if(node.nodeName==='LINK'&&node.rel==='stylesheet')node.addEventListener('load',applyReducedCSS,{once:true});
+ }
+}).observe(document.head,{childList:true});
+addEventListener('load',applyReducedCSS,{once:true});
 // Settings → Text Size (2026-11-09) scales every font-size in the game's stylesheets, not a short list. The first
 // time it leaves 100% each rule's own size becomes calc(size * --text-scale), so moving the slider only changes the
 // variable; back at 100% the original values return, so the default look is untouched. The stylesheets are walked
@@ -55,7 +68,7 @@ function scaleText(on){
 // scale leaves 100% (and a probe shows the browser does that), every vh/vw/dvh/vmin... in the stylesheets becomes
 // calc(value / --ui-scale), the same one-time walk as Text Size. Auto keeps 100% up to a 2600-pixel-wide window and
 // grows with wider ones (a 4K screen at 100% Windows scaling gets 200%).
-export const UI_SCALE_MIN=75,UI_SCALE_MAX=200;
+export const UI_SCALE_MIN=50,UI_SCALE_MAX=200;
 export const autoUiScale=()=>innerWidth<=2600||innerHeight<=1300?100:Math.min(UI_SCALE_MAX,Math.max(100,Math.floor(Math.min(innerWidth/1920,innerHeight/1080)*20)*5));
 export const uiScaleValue=value=>Number(value)>=UI_SCALE_MIN?Math.min(UI_SCALE_MAX,Math.round(Number(value)/5)*5):0;
 const VIEWPORT=/(-?\d*\.?\d+)(dvh|svh|lvh|vh|dvw|svw|lvw|vw|vmin|vmax)\b/g,VIEWPORT_TEST=/\d(dvh|svh|lvh|vh|dvw|svw|lvw|vw|vmin|vmax)\b/;
@@ -103,7 +116,7 @@ export const DECK_COLUMNS_MIN=3,DECK_COLUMNS_MAX=20;
 export const DUEL_THEMES=[['','Default'],['duel-disk','Duel Disk'],['shadow-realm','Shadow Realm'],['clean-tournament','Clean Tournament'],['millennium-stone','Millennium Stone'],['kaiba-hologram','Kaiba Hologram'],['pixel-art','Pixel Art']];
 export function applyDisplayOptions({reduceMotion:reduce=false,textSize=100,uiScale=0,deckColumns=0,deckSplit=false,duelTheme='',fpsCap=120}={}){
  globalThis.frameCap?.set(fpsCap);
- if(reduce!==reduceMotion){reduceMotion=reduce;applyReducedCSS()}
+ reduceMotion=!!reduce;applyReducedCSS();
  const html=document.documentElement;
  html.classList.toggle('text-scaled',textSize!==100);html.style.setProperty('--text-scale',textSize/100);scaleText(textSize!==100);
  applyUiScale(uiScale);

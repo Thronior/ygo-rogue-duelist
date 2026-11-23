@@ -552,15 +552,22 @@ def install(g):
   if card_win:tally.pop('Slow duel',None);tally.pop('Victory minimum',None)
   total=sum(tally.values())
   if total>400:tally['Payout cap']=400-total;total=400
+  # How the multiplying lines were worked out, shown beside them on the payout card (Discord 2026-11-23: "+1704" from a
+  # mirrored Glass Shard looked wrong without its x9). label: [multiplier text, relic that added to it].
+  notes=run['last_reward_notes']={}
   if owns(run,'glass_shard'):
    # Tripled since 2026-11-16 (balance picks); a Magic Mirror copy multiplies again.
    factor=int(ART_INFO['glass_shard'].get('parameters',{}).get('coins',3))
-   multiplier=factor*factor if 'glass_shard' in run['artifacts'] and run.get('mirror_copy')=='glass_shard' else factor
+   mirrored='glass_shard' in run['artifacts'] and run.get('mirror_copy')=='glass_shard'
+   multiplier=factor*factor if mirrored else factor
    tally['Glass Shard']=total*(multiplier-1);total*=multiplier
+   notes['Glass Shard']=[f'×{multiplier}','Magic Mirror' if mirrored else '']
   if ar.has(run,'cursed_glass_treasury'):
    bonus=int(total*((1.25**ar.copies(run,'cursed_glass_treasury'))-1));tally['Glass Treasury']=bonus;total+=bonus
+   notes['Glass Treasury']=[f'+{round((1.25**ar.copies(run,"cursed_glass_treasury")-1)*100)}%','']
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
+   notes['Challenge level penalty']=['−25%','']
   if card_win and total<card_win[1]:tally[card_win[0]]=card_win[1]-total;total=card_win[1]
   bonus=custom_cards.coins(events)
   if bonus:tally['Ancient Treasure']=bonus;total+=bonus
@@ -624,7 +631,7 @@ def install(g):
   import character_progression
   character_progression.duel(g,run,result,won,boss)
   run['ritual_scar_count']=run.get('ritual_scar_count',0)+sum(e.get('kind')=='ritual_scar' for e in result.get('events',[]))
-  run['last_rewards']={};run['last_gold']=0
+  run['last_rewards']={};run['last_gold']=0;run['last_reward_notes']={}
   run['last_boss_heal']=0
   if 'bounty_list' in run.get('artifacts',[]):ensure_bounty(run,rng)
   active_bounty=dict(run.get('bounty_objective') or {}) if 'bounty_list' in run.get('artifacts',[]) else None
@@ -763,7 +770,7 @@ def install(g):
   # Toon World now grants a separate guaranteed slot instead of weighting general stock.
   def stock_sample(cards,count,affinity=None,focus=''):
    # General stock uses the run's deck weighting (relic_affinity.card_multipliers, 2026-11-13); featured stock keeps its theme.
-   boost=relic_affinity.card_multipliers(cards,run) if affinity else {}
+   boost=archetype_relics.fused_stock_boost(relic_affinity.card_multipliers(cards,run),cards,run) if affinity else {}
    return sorted(cards,key=lambda c:rng.random()**(1/((4 if c['id'] in like else 1)*card_rarity.weight(c['id'])*boost.get(c['id'],1.0)*shop_rewards.focus_weight(c,focus))),reverse=True)[:count]
   themed=[c for c in eligible if c['id'] not in custom_cards.IDS]
   pool=preferred or themed
@@ -797,7 +804,7 @@ def install(g):
   rest.append(removal)
   singles=top+rest
   # Bonus stock is additional to the ten normal singles and refreshes on rerolls.
-  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))] if 'archfiend_contract' in _arts else []),('toon_world',[c for c in eligible if 'toon' in c['name'].lower()] if 'toon_world' in _arts else []),('legendary_shackles',shackles_stock(run,eligible+[removal]))]:
+  for relic,bonus in [('archfiend_contract',[c for c in eligible if 'archfiend' in c['name'].lower() or any(int(code)&0xfff==0x45 for code in c.get('data',{}).get('setcodes',[]))] if 'archfiend_contract' in _arts else []),('toon_world',[c for c in eligible if 'toon' in c['name'].lower() or c['name']=='Comic Hand'] if 'toon_world' in _arts else []),('legendary_shackles',shackles_stock(run,eligible+[removal]))]:
    if relic in _arts and bonus:singles.append(rng.choice(bonus))
   owned=[g.BY_ID[cid] for cid in set(run.get('pool',[])) if cid in g.BY_ID]
   for relic in sorted(archetype_relics.NEW_IDS & _arts):

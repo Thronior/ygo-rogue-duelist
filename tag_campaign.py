@@ -867,6 +867,8 @@ class TagCampaign:
    from feedback_update import choose_type
 
    if self.phase!='shop':raise ValueError('Choose a Type in the shop.')
+   # One Type for the team: a partner answering after the other already chose keeps that Type (Discord 2026-11-22).
+   if 'dna_rewrite' in run.get('artifacts',[]) and self.shared.get('monster_type') and run.get('monster_type')==self.shared['monster_type']:return
 
    choose_type(run,value);self.shared['monster_type']=run['monster_type'];self.sync();run.pop('golden_shop_waiting',None);self.try_leave()
 
@@ -1050,7 +1052,7 @@ class TagCampaign:
 
     decks[seat]=deepcopy(originals[1-seat]);decks[seat]['main'].append(game.BY_NAME['Copycat']['id']);self.rng.shuffle(decks[seat]['main']);run['duel_modifications']=[]
 
-  scripts=[];draws=[]
+  scripts=[];draws=[];seen=[]
 
   for seat,run in enumerate(runs):
 
@@ -1064,12 +1066,14 @@ class TagCampaign:
 
    opening=1 if any(a['effect']=='rulebook' for a in info) else 5+sum(a['amount'] for a in info if a['effect']=='opening')
 
-   draws.append(ar.opening({'artifacts':artifacts,'mirror_copy':mirror},opening))
+   draws.append(ar.opening({'artifacts':artifacts,'mirror_copy':mirror},opening));seen.append((artifacts,mirror,any(a['effect']=='rulebook' for a in info)))
 
    run.update(artifacts=artifacts,curses=[],loop=0,first_player=0,mirror_copy=mirror,challenge_level=0)
 
    scripts.append(passives.multiplayer_script(run,seat))
 
+  # Broke Man's Rulebook: both players open with 1 card, whichever human owns it (2026-11-22, as in the campaign).
+  if any(r for _,_,r in seen):draws=[ar.opening({'artifacts':a,'mirror_copy':m},1) for a,m,_ in seen]
   self.duel={'mode':'pvp','teams':[[decks[0]],[decks[1]]],'lp':8000,'enemyLP':8000,'draw':draws[0],'enemyDraw':draws[1],'seed':self.rng.randrange(1,2**31),'passives':'\n'.join(scripts),'names':[[content.CHARACTERS[r['character']]['name']] for r in runs],'responses':[]}
 
   self.finale['status']='playing';self.phase='duel';self.ready=[False,False]
@@ -1150,7 +1154,7 @@ class TagCampaign:
 
   defeated=sorted(set(x for r in self.players for x in r.get('defeated_opponents',[])))
 
-  for run in self.players:run['defeated_opponents']=defeated[:];run['last_rewards']=deepcopy(host['last_rewards']);run['last_gold']=host['last_gold']
+  for run in self.players:run['defeated_opponents']=defeated[:];run['last_rewards']=deepcopy(host['last_rewards']);run['last_reward_notes']=deepcopy(host.get('last_reward_notes') or {});run['last_gold']=host['last_gold']
 
   self.sync();self.phase=host['stage'];self.shop_seat=0;self.shopping=self.new_shopping();self.ready=[False,False];self.duel=None;self.revision+=1
 

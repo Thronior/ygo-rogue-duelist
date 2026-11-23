@@ -48,7 +48,8 @@ SUMMON={'Monster Reborn','Premature Burial','Call of the Haunted','The Shallow G
 WARRIOR_SUPPORT={'Reinforcement of the Army','Command Knight','The A. Forces','Marauding Captain','Freed the Matchless General','Goblin Attack Force','D.D. Assailant','Exiled Force','Buster Blader','Karate Man','Hayabusa Knight','Rocket Warrior','Kojikocy'}
 OJAMA_SUPPORT={'Heart of the Underdog','Human-Wave Tactics','The Law of the Normal','Triangle Power','Stumbling','Final Attack Orders','Non-Spellcasting Area','Cost Down','Giant Rat','Mother Grizzly','Flying Kamakiri #1','Shining Angel','Mystic Tomato','UFO Turtle','Pyramid Turtle'}
 DM_SUPPORT={'Dark Magic Curtain','Dark Magic Attack','Thousand Knives','Diffusion Wave-Motion','Magical Dimension','Apprentice Magician','Old Vindictive Magician','Skilled White Magician',"Magician's Valkyria",'Chaos Command Magician','Magical Marionette','Mage Power','Axe of Despair','Book of Secret Arts'}
-TOON_SUPPORT={'Toon Table of Contents','Jinzo','Royal Decree','Trap Jammer','Seven Tools of the Bandit','Magic Jammer','Solemn Judgment','Mystical Space Typhoon','Dust Tornado','Heavy Storm','Giant Trunade'}
+# Toon Briefcase, Toon Mask and Comic Hand: later Toon support added to Pegasus' pack (user, 2026-11-23).
+TOON_SUPPORT={'Toon Table of Contents','Toon Briefcase','Toon Mask','Comic Hand','Jinzo','Royal Decree','Trap Jammer','Seven Tools of the Bandit','Magic Jammer','Solemn Judgment','Mystical Space Typhoon','Dust Tornado','Heavy Storm','Giant Trunade'}
 GRAVE_SUPPORT={'Necrovalley','Royal Tribute','Rite of Spirit','Soul Release','Disappear','Kycoo the Ghost Destroyer','D.D. Warrior Lady','D.D. Assailant','Soul Absorption','A Cat of Ill Omen'}
 DICE={'Second Coin Toss','Dice Re-Roll','Dice Jar','Skull Dice','Graceful Dice'}
 MAGICIAN_SUPPORT={"Magician's Circle",'Magical Dimension','Pitch-Black Power Stone','Royal Magical Library','Mage Power'}
@@ -300,7 +301,7 @@ CATEGORY_RELICS={
  'darkmagician':('mage','counterweight','magicians_bond','master_and_apprentice','black_chaos_rite'),'darkscorpion':('scorpion_emblem','dark_scorpion_squad'),
  'exodia':('legendary_shackles','deep_pockets','eye'),'gravekeeper':('necrovalley_tablet','gravekeepers_union'),
  'guardian':('guardian_arsenal','armory_crest','guardians_call'),'harpie':('harpie_feather','harpies_of_a_feather','wing'),
- 'toon':('toon_world','this_life_mine'),'union':('union_dock','union_hangar'),
+ 'toon':('toon_world','toon_premiere','this_life_mine'),'union':('union_dock','union_hangar'),
  'fusion':('fusion_chamber','fusion_insignia','fusion_time','machine_foundry','soul_fusion','dragon_blood_fusion'),
  'ritual':('ritual_dagger','ritual_vestment','ritual_incense','ten_thousand_hands','corpse_ritual'),
  'spirit':('good_spirits','deep_pockets','spiritual_retribution'),'flip':('jar_of_echoes','buckler','disturbed_sleep'),

@@ -78,6 +78,18 @@ console.log('PASS Scorched Hourglass on both sides, two burns per turn with Dark
 }
 console.log('PASS Spell Counter Engine places two counters and buffs both monsters');
 
+for (const key of ['spell_counter_engine','spell_provider']) {
+  // Only one card can hold a Spell Counter: it gets one without a prompt (itch.io, user 2026-11-22).
+  const breaker=id('Breaker the Magical Warrior');let asked=0;
+  const e=await duel({keys:[key],script:setup(move('Breaker the Magical Warrior')),driver(e,m){
+    if(m.player===0&&m.type===M.SELECT_CARD&&m.selects?.some(c=>c.code===breaker))asked++;
+  }});
+  assert.equal(asked,0,key+' asked with only one possible card');
+  assert.equal(query(e,0,L.MZONE,breaker)[0].counters?.[1]??query(e,0,L.MZONE,breaker)[0].counters?.[0x1],1,key+' placed the counter');
+  e.destroy();
+}
+console.log('PASS Spell Provider and Spell Counter Engine place the only possible counter without asking');
+
 {
   const lv=id('Armed Dragon LV3'), up=id('Level Up!');
   const deck=fill('Waboku'); deck[20]=lv;
@@ -100,6 +112,19 @@ console.log('PASS Spell Counter Engine places two counters and buffs both monste
   e.destroy();
 }
 console.log('PASS Level Up Chain opening hand, ATK, and monster-effect immunity');
+
+// Its own monster effects still work under Level Up Chain (Discord, Nameless, 2026-11-22): Silent Magician LV4 takes a
+// Spell Counter when the opponent draws and gains 500 ATK for it. Only the opponent's monster effects are blocked.
+{
+  const sm=id('Silent Magician LV4');
+  const e=await duel({keys:['level_up_chain'],turns:2,
+    script:setup(`Duel.MoveToField(Duel.CreateToken(0,${sm}),0,0,LOCATION_MZONE,POS_FACEUP_ATTACK,true)`)});
+  const mag=query(e,0,L.MZONE,sm)[0];
+  assert.equal(mag?.counters?.length?mag.counters.reduce((n,c)=>n+(c.count??c[1]??0),0):(mag?.attack-1500)/500,1,JSON.stringify(mag?.counters));
+  assert.equal(mag.attack,1000+500+500,'1000 + 500 (relic) + 500 (one Spell Counter)');
+  e.destroy();
+}
+console.log('PASS Level Up Chain leaves an LV monster\'s own effect working');
 
 {
   const king=id('Terrorking Archfiend'), soldier=id('Archfiend Soldier');
@@ -136,7 +161,8 @@ console.log('PASS Spirit Sanctuary repeated Tribute Summons, ATK, and return-to-
 
 {
   const apophis=id('Embodiment of Apophis'), zoma=id('Zoma the Spirit');
-  const deck=fill('Waboku'); deck[20]=zoma;
+  // Two Zomas: the start of the Duel adds one to the hand (2026-11-22), the summon Sets the other.
+  const deck=fill('Waboku'); deck[20]=zoma; deck[21]=zoma;
   const e=await duel({keys:['living_traps'],decks:[deck,fill('Waboku')],script:setup(
     `local c=Duel.CreateToken(0,${apophis})
     Duel.MoveToField(c,0,0,LOCATION_SZONE,POS_FACEUP,true)
@@ -150,9 +176,32 @@ console.log('PASS Spirit Sanctuary repeated Tribute Summons, ATK, and return-to-
   assert.equal(query(e,0,L.SZONE,zoma).length,1,JSON.stringify({monsters:query(e,0,L.MZONE).map(c=>[c.code,c.attack]), spells:query(e,0,L.SZONE).map(c=>c.code), deck:query(e,0,L.DECK).length}));
   assert.equal(query(e,0,L.MZONE,apophis)[0].attack,2200);
   assert.equal(query(e,0,L.MZONE,apophis)[0].defense,2400);
+  // Both Zomas left the Deck: one went to the hand at the start of the Duel (it may be discarded at the End Phase).
+  assert.equal([L.HAND,L.MZONE,L.SZONE,L.GRAVE].reduce((n,z)=>n+query(e,0,z,zoma).length,0),2,'the start of the Duel adds 1 Trap Monster card to the hand');
   e.destroy();
 }
-console.log('PASS Living Traps sets a different Trap Monster from the Deck');
+console.log('PASS Living Traps opens with a Trap Monster card and sets a different one from the Deck');
+
+{
+  // The opponent's Spells cannot destroy a Trap Monster (2026-11-22); without the relic, Raigeki does.
+  const apophis=id('Embodiment of Apophis'), raigeki=id('Raigeki');
+  const summon=`local c=Duel.CreateToken(0,${apophis})
+    Duel.MoveToField(c,0,0,LOCATION_SZONE,POS_FACEUP,true)
+    c:AddMonsterAttribute(TYPE_NORMAL|TYPE_TRAP)
+    Duel.SpecialSummonStep(c,0,0,0,true,false,POS_FACEUP_ATTACK)
+    c:AddMonsterAttributeComplete()
+    Duel.SpecialSummonComplete()`;
+  for(const keys of [['living_traps'],[]]){
+    let cast=false;
+    const e=await duel({keys,turns:2,decks:[fill('Waboku'),fill('Raigeki')],script:setup(summon),driver(e,m){
+      if(m.player===1&&m.type===M.SELECT_IDLECMD&&!cast){const r=activate(m,raigeki);if(r){cast=true;return r}}
+    }});
+    assert(cast,'Raigeki was activated');
+    assert.equal(query(e,0,L.MZONE,apophis).length,keys.length?1:0,keys.join()||'no relic');
+    e.destroy();
+  }
+}
+console.log('PASS Living Traps protects Trap Monsters from the opponent’s Spells');
 
 {
   const pairs=[

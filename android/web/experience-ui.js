@@ -29,9 +29,12 @@ export const curseInfoMarkup=(content,key,level,count=1)=>`${count>1?`<p class="
 export function curseIcons(content,keys,tag=false){return `<div class="opponent-curses" aria-label="Boss curses">${curseStacks(keys).map(({key,count})=>{const name=content.curses[key]?.[0]||key;return `<button class="curse-icon curse-${safe(key)}" ${tag?'data-tag':'data-do'}="curse-info" data-curse="${safe(key)}"${count>1?` data-count="${count}"`:''} aria-label="${safe(name)}" title="${safe(name)}"><img src="${curseIconFile(key)}" alt="">${curseCountBadge(count)}</button>`}).join('')}</div>`;}
 
 // secretLabels: hidden coin feats (content.secretCoinRules), shown first with their own mark when earned.
-export function victoryRewardsMarkup(rewards,bonusLabels,secretLabels){
+// notes: run.last_reward_notes, {label: [multiplier, relic]} for the multiplying lines (Glass Shard ×9 with Magic Mirror,
+// Challenge level penalty −25%), so the total can be followed (Discord, 2026-11-23).
+export function victoryRewardsMarkup(rewards,bonusLabels,secretLabels,notes={}){
  const labels=new Set(bonusLabels||[]),secret=new Set(secretLabels||[]),earned=Object.entries(rewards||{}).filter(([,value])=>value),bonuses=earned.filter(([label])=>labels.has(label));
- const row=([label,value])=>`<p class="row"><span>${safe(label)}</span><b>${value>0?'+':''}${value}</b></p>`;
+ const note=label=>{const [factor,relic]=notes?.[label]||[];return factor?` <small class="reward-note"><span>${safe(factor)}</span>${relic?` <span>${safe(relic)}</span>`:''}</small>`:''};
+ const row=([label,value])=>`<p class="row"><span><span>${safe(label)}</span>${note(label)}</span><b>${value>0?'+':''}${value}</b></p>`;
  const hidden=earned.filter(([label])=>secret.has(label)).map(([label,value])=>`<p class="row secret-feat"><span><small>Hidden feat!</small>${safe(label)}</span><b>+${value}</b></p>`).join('');
  const ordinary=earned.filter(([label])=>!labels.has(label)&&!secret.has(label)).map(row).join('');
  return hidden+ordinary+(bonuses.length?`<details class="battle-bonuses" open><summary><span>Battle bonuses</span><b>+${bonuses.reduce((sum,[,value])=>sum+value,0)}</b></summary><div class="battle-bonus-list" tabindex="0" role="region" aria-label="Earned battle bonuses">${bonuses.map(row).join('')}</div></details>`:'');

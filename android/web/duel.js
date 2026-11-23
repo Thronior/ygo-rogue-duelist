@@ -5,7 +5,7 @@ import {dnaSurgeryRace} from './dna-surgery-policy.js';
 import {effectMessageCue,effectChoiceCue} from './effect-feedback.js';
 import {planBattle} from './battle-planner.js';
 import {FieldKnowledge} from './field-knowledge.js';
-import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount,swapParity} from './smart_policy.js';
+import {smartContext,exodiaPieces,egyptianGods,preferredSelectionCount,swapParity,diceJarOdds} from './smart_policy.js';
 import {DuelEngine,M,R,I,B,L,P} from './engine.js';
 import {observeSleeveMessage,sleeveMetricsEvent} from './sleeve-metrics.js';
 export {M,R,I,B,L,P};
@@ -17,13 +17,17 @@ export class MobileDuel extends DuelEngine {
  unknownDefense(c){return this.tributeSets?.has(this.fieldKnowledge.key(c))?2000:1000}
  knownFieldCard(viewer,c){return this.fieldKnowledge?.known(viewer,c)||c?.rememberedCode||0}
  wasReborn(c){return this.rebornMonsters.get(this.fieldKnowledge.key(c))===c.code}
+ returnsAtEnd(c){return !!c&&this.scientistMonsters?.get(this.fieldKnowledge.key(c))===c.code}
  trackReborn(m){
-  const key=c=>this.fieldKnowledge.key(c),memory=this.rebornMonsters;
+  const key=c=>this.fieldKnowledge.key(c);
   if(m.type===M.CHAIN_SOLVING){const link=this.activeChain?.find(c=>c.link===m.chain_size);this.resolvingChain=link&&!link.inactive?link.code:0;if(link&&!link.inactive)this.effect={code:link.code,player:link.player};}
   if([M.CHAIN_SOLVED,M.CHAIN_END].includes(m.type))this.resolvingChain=0;
+  // Magical Scientist's Fusions go back to the Extra Deck at the End Phase, so they are free to give away with
+  // Creature Swap or to Tribute: tracked the same way as Monster Reborn's monsters (World Championship deck, 2026-11-22).
+  for(const [memory,source] of [[this.rebornMonsters,83764718],[this.scientistMonsters??=new Map(),34206604]]){
   if([M.SUMMONING,M.SPSUMMONING,M.FLIPSUMMONING].includes(m.type)){
    memory.delete(key(m));
-   if(m.type===M.SPSUMMONING&&this.resolvingChain===83764718)memory.set(key(m),m.code);
+   if(m.type===M.SPSUMMONING&&this.resolvingChain===source)memory.set(key(m),m.code);
   }
   if(m.type===M.MOVE){
    const code=memory.get(key(m.from));memory.delete(key(m.from));memory.delete(key(m.to));
@@ -31,6 +35,7 @@ export class MobileDuel extends DuelEngine {
   }
   if(m.type===M.SWAP){const a=key(m.card1),b=key(m.card2),ca=memory.get(a),cb=memory.get(b);memory.delete(a);memory.delete(b);if(ca)memory.set(b,ca);if(cb)memory.set(a,cb);}
   if(m.type===M.SHUFFLE_SET_CARD)for(const c of m.cards||[]){memory.delete(key(c.from));memory.delete(key(c.to));}
+  }
  }
  start(...args){this.finalCountdowns=[];this.normalSummonTurn=null;this.ordealKnown=[[],[]];this.misprintedHandStats=[new Map(),new Map()];this.misprintedHands=[new Set(),new Set()];this.cancelledAttacks=new Map();this.tributeSets=new Set();this.releasedForSet=[0,0];this.piercingTurn={};this.piercingCards=new Map();this.feedbackStats=new Map();this.orDealGuesses=0;this.reasoningSeed=Number(args[5])>>>0;this.questionGuesses=0;this.summoningPlayer=null;this.expertTarget=null;this.attackLocks=new Map();this.cardTargets=new Map();this.limiterDoom=new Set();this.cardTurnCounts=new Map();this.declaredRaces=new Map();this.rebornMonsters=new Map();this.resolvingChain=0;this.fieldKnowledge=new FieldKnowledge();this.exodiaPlan=[false,false];this.fieldToGraveTurn=[0,0];this.aiModifiers=JSON.parse(String(args[8]||'').match(/^-- SHADOW_RUN_AI (.+)$/m)?.[1]||'{}');this.fusionSupport={};this.fusionMaterialCandidates=[];this.fusionMaterialCandidateKeys=new Set();this.pendingSummons=[];this.events=[];this.visuals=[];this.selectionHint=null;this.peak={peak_attack:0,peak_defense:0,peak_field:0,turns:0};this.sleeveMetrics=null;this.effect=null;this.materialSubject=null;this.attacker=null;this.chainDepth=0;this.battleOpen=false;this.chainedSinceAttack=false;this.activeChain=[];this.effectTargets=[];this.battleProtected=[false,false];this.attackCard=null;this.attackTarget=null;this.inDamageStep=false;this.lastSummoned=[];this.revealedHands=[{},{}];this.resolutionSource=0;return super.start(...args)}
  // Ordeal of a Traveler shows its controller's random hand card to the attacker, and the hand is shuffled after.
@@ -91,6 +96,15 @@ export class MobileDuel extends DuelEngine {
   this.trackPromptRelic(m);
   if([M.NEW_TURN,M.NEW_PHASE].includes(m.type))this.cancelledAttacks?.clear();
   if(m.type===M.NEW_TURN)this.releasedForSet=[0,0];
+  // Locked zones (Dragunfire, Discord 2026-11-21; user 2026-11-22: cross out every locked zone, whatever locks it). The
+  // core reports zones disabled by effects (FIELD_DISABLED, bits for engine player 0 then 1 at +16); a Trap Monster keeps
+  // the Spell & Trap Zone it came from, which no message reports, so its move is remembered until it leaves that zone.
+  if(m.type===M.FIELD_DISABLED)this.disabledField=Number(m.field_mask)>>>0;
+  if(m.type===M.MOVE&&m.from&&m.to){
+   const zones=this.trapMonsterZones??=[new Map(),new Map()],f=m.from,t=m.to;
+   if(f.location===L.MZONE)zones[f.controller]?.delete(f.sequence);
+   if(f.location===L.SZONE&&t.location===L.MZONE&&f.controller===t.controller&&f.sequence<5&&(this.cards.get(Number(m.code))?.data?.type&4))zones[t.controller]?.set(t.sequence,f.sequence);
+  }
   if(m.type===M.MOVE){
    const reason=m.reason??(m.wire?.length>=29?new DataView(Uint8Array.from(m.wire).buffer).getUint32(25,true):0);
    const old=this.fieldKnowledge.key(m.from),next=this.fieldKnowledge.key(m.to),was=this.tributeSets.has(old);
@@ -244,6 +258,8 @@ export class MobileDuel extends DuelEngine {
   if(m.type===M.SET&&m.controller===0)add('set',{card:m.code});
  }
  snapshot(){const s=super.snapshot();s.effectTargets=(this.effectTargets||[]).map(t=>({...t}));
+  // players[p].locked: that player's locked zones as bits, Monster Zones 0-4 and Spell & Trap Zones 8-13 (mobile.js zone()).
+  s.players.forEach((side,p)=>{let bits=((this.disabledField||0)>>>(16*p))&0xffff;for(const z of this.trapMonsterZones?.[p]?.values()||[])bits|=1<<(8+z);side.locked=bits});
   const currentStats=new Map(),changes=[],changedCards=[];
   for(const side of s.players)for(const c of side.monsters)if(c&&(c.position&5)){
    const key=`${c.controller}:${c.location}:${c.sequence}:${c.code}`,old=this.feedbackStats?.get(key);currentStats.set(key,{attack:c.attack,defense:c.defense,level:c.level});
@@ -327,7 +343,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    return r;
   }finally{this.decisionQueries=previous;}
  }
- keptInHand(c,p){return !!c&&this.name(c.code)==='Kuriboh'&&![...this.query(p,L.HAND),...this.query(p,L.SZONE)].some(x=>x&&this.name(x.code)==='Multiply')}
+ // Dice Jar flips when attacked: not Set or summoned while its roll is likelier to finish us than them. Set at 2800 LP
+ // against 7200 beside a monster, it was attacked and dealt us 6000 (Lamp deck review, 2026-11-22). An empty field takes
+ // the attacks directly instead, so there it still comes out when only a 6 can finish us, or their attackers would.
+ keptInHand(c,p){if(!c)return false;const n=this.name(c.code);if(n==='Dice Jar'&&this.cpuReviewRules?.diceJar!==false){const odds=diceJarOdds(this.lp[p],this.lp[1-p]);if(odds.death<=odds.kill)return false;if(this.query(p,L.MZONE).some(Boolean))return true;const attack=this.query(1-p,L.MZONE).reduce((s,x)=>s+(x&&(x.position&1)?Math.max(0,x.attack??0):0),0);return odds.death>1/6&&attack<this.lp[p]}return n==='Kuriboh'&&![...this.query(p,L.HAND),...this.query(p,L.SZONE)].some(x=>x&&this.name(x.code)==='Multiply')}
  destroyedOnNormalSummon(c){return !!c&&/If this (?:card|monster) is Normal Summoned, destroy this card/i.test(this.cards.get(c.code)?.desc||'')}
  chooseDecision(m){
   if(m.type===M.SELECT_PLACE){
@@ -433,6 +452,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    const godSummon=godForGod?-1:m.summons.findIndex(c=>egyptianGods.has(this.name(c.code)));
    if(godSummon>=0)return idle(I.SELECT_SUMMON,godSummon);
    const activate=m.activates.map((c,index)=>({c,index,name:this.name(c.code),text:desc(c)})).filter(x=>safeCost(x.c));
+   // Exodia Necross: Set Contract with Exodia before Card Destruction discards the hand (user, 2026-11-23).
+   const contractSet=smart.necrossSetFirst(m.spell_sets);if(contractSet>=0)return idle(I.SELECT_SPELL_SET,contractSet);
    const planned=activate.map(x=>({...x,score:smart.activation(x.c,false)})).filter(x=>x.score!==null&&x.score>=80).sort(rank);
    // Draw first, and lay a Field Spell before the summons it boosts or triggers on.
    const fieldFirst=activate.find(x=>(stat(x.c).type&0x80000)&&x.c.location===L.HAND&&!this.query(p,L.SZONE)[5]&&(smart.activation(x.c,false)??-1)>=0);
@@ -513,6 +534,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // Disturbed Sleep flips Set monsters face-up Attack Position at the End Phase: Set the one with the better ATK.
    const setStat=c=>smart.sleepFlips?smart.projectedAttack(c):smart.projectedDefense(c);
    if(!holdHand&&m.monster_sets.some(c=>!exodiaPieces.has(c.code)&&smart.saferPosition(c)!==true&&worthwhile(c,true))){const index=m.monster_sets.map((c,i)=>({c,i})).filter(x=>!exodiaPieces.has(x.c.code)&&smart.saferPosition(x.c)!==true&&worthwhile(x.c,true)).sort((a,b)=>((smart.preferSet(b.c)?1:0)-(smart.preferSet(a.c)?1:0))||((setStat(b.c)+(stat(b.c).type&0x200000?600:0))-(setStat(a.c)+(stat(a.c).type&0x200000?600:0))))[0].i;const candidate=m.monster_sets[index];if(this.cpuReviewRules?.reflectBounder!==false&&this.name(candidate.code)==='Reflect Bounder'&&smart.effectsEnabled(p)&&!smart.attackBlocked(candidate,p,true)&&smart.incomingDamage(candidate,true)<this.lp[p]){const summonIndex=m.summons.findIndex(c=>c.code===candidate.code&&c.sequence===candidate.sequence);if(summonIndex>=0)return idle(I.SELECT_SUMMON,summonIndex)}return idle(I.SELECT_MONSTER_SET,index)}
+   // Exodia Necross: nothing else to Set, so a piece is Set as a blocker; destroyed, it lands in the Graveyard (2026-11-23).
+   const pieceSet=holdHand?-1:smart.necrossPieceSet(m.monster_sets);if(pieceSet>=0)return idle(I.SELECT_MONSTER_SET,pieceSet);
    // Light of Intervention (or Shield Breaker) leaves no Set: a weak Attack Position blocker still beats an empty field
    // when it cuts the damage coming next turn (flag e7aef02f91, 2026-11-08: nothing summoned for 7 turns).
    if(!m.monster_sets.length&&m.summons.length&&enemy.length){
@@ -536,7 +559,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
   // Royal Decree before the attacks when it clears the set cards in front of a lethal battle.
   if(m.type===M.SELECT_BATTLECMD&&p===1){const decree=(m.chains||[]).findIndex(c=>this.name(c.code)==='Royal Decree'&&smart.activation(c,true)>=100);if(decree>=0)return {type:R.SELECT_BATTLECMD,action:B.SELECT_CHAIN,index:decree};}
   // Every CPU follows the bounded battle search when it finds lethal; expert opponents always follow it.
-  if(m.type===M.SELECT_BATTLECMD){const expert=!!this.aiModifiers?.expertOpponent,lethalReach=m.attacks.length>1&&smart.battleDamage(own.reduce((n,c)=>n+Math.max(0,atk(c)),0))>=this.lp[1-p];if(p===1&&(expert||lethalReach)&&!theyPickTargets){const plan=planBattle(this,p,L,m,smart);if(plan&&(expert||plan.lethal)&&!this.attackWasCancelled(p,m.attacks[plan.index])){this.expertTarget={...plan,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:plan.index}}}if((m.to_m2||m.to_ep)&&this.battleProtected?.[1-p]&&!enemy.some(t=>!visible(t)))return {type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null};const boosts=(m.chains||[]).map((c,index)=>({index,score:smart.activation(c,true)})).filter(x=>x.score!==null&&x.score>=0).sort((a,b)=>b.score-a.score);if(boosts.length)return {type:R.SELECT_BATTLECMD,action:B.SELECT_CHAIN,index:boosts[0].index};if(!theyPickTargets){const ready=m.attacks.map(c=>own.find(x=>x.sequence===c.sequence)).filter(Boolean),line=smart.battleLine(ready),index=line?m.attacks.findIndex(c=>c.sequence===line.card.sequence):-1;if(index>=0&&!this.attackWasCancelled(p,m.attacks[index])){this.expertTarget={attacker:line.card.sequence,target:line.target.sequence,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index}}}let best=null;const oppDeck=this.query(1-p,L.DECK).length;for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||this.query(p,L.MZONE)[c.sequence],power=smart.combatPower(a||c),an=a||c,nm=this.name(an.code);const direct=!this.battleProtected?.[1-p]&&(c.can_direct||!enemy.length);if(!smart.attackAllowed(an,direct))continue;const noPoke=(nm==='Goblin Attack Force'||nm==='Panther Warrior');let score=direct?smart.battleDamage(power)+(smart.battleDamage(power)>=this.lp[1-p]?100000000:0):-Infinity;let bt=null,bd=0,cands=[];if(direct)bd=smart.battleDamage(power);for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v=strength(t);if(!(power>v))continue;const atkPos=visible(t)&&(t.position&1);const over=atkPos?power-v:0;const edef=visible(t)?(t.defense??this.data[t.code]?.defense??0):v;const dmg=smart.battleDamage(atkPos?over:((!atkPos&&smart.pierce(an))?Math.max(0,power-edef):0));if(dmg<=0&&noPoke)continue;const cand=2000+v+over+(visible(t)&&dmg>0&&dmg>=this.lp[1-p]?100000000:0);cands.push({cand,t,dmg});if(cand>score){score=cand;bt=t;bd=dmg;}}if(theyPickTargets&&!direct){const open=enemy.filter(t=>!(this.battleProtected?.[1-p]&&visible(t)));if(cands.length<open.length||cands.some(x=>smart.attackScore(an,x.t,{dmg:x.dmg,deckOut:oppDeck<=2})<=-99999))continue;const worst=cands.reduce((w,x)=>x.cand<w.cand?x:w);score=worst.cand;bt=worst.t;bd=worst.dmg;}let fb=false;if(score===-Infinity&&(nm==='Goblin Attack Force'||nm==='Panther Warrior')){for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v2=strength(t);if(power>v2){const cand=2000+v2;if(cand>score){score=cand;bt=t;bd=0;fb=true;}}}}if(score>-Infinity){let adj=smart.attackScore(an,bt,{dmg:bd,deckOut:oppDeck<=2});if(adj<=-99999){cands.sort((a,b)=>b.cand-a.cand);let fixed=false;for(const q of cands){if(q.t===bt)continue;const a2=smart.attackScore(an,q.t,{dmg:q.dmg,deckOut:oppDeck<=2});if(a2<=-99999)continue;bt=q.t;bd=q.dmg;score=q.cand;adj=a2;fixed=true;break;}if(!fixed)continue;}score+=adj;const _pw=power,_bw=best?best.power:0;
+  if(m.type===M.SELECT_BATTLECMD){const expert=!!this.aiModifiers?.expertOpponent,lethalReach=m.attacks.length>1&&smart.battleDamage(own.reduce((n,c)=>n+Math.max(0,atk(c))*(smart.attacksAll(c)?Math.max(1,enemy.length):smart.swings(c)),0))>=this.lp[1-p];if(p===1&&(expert||lethalReach)&&!theyPickTargets){const plan=planBattle(this,p,L,m,smart);if(plan&&(expert||plan.lethal)&&!this.attackWasCancelled(p,m.attacks[plan.index])){this.expertTarget={...plan,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:plan.index}}}if((m.to_m2||m.to_ep)&&this.battleProtected?.[1-p]&&!enemy.some(t=>!visible(t)))return {type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null};const boosts=(m.chains||[]).map((c,index)=>({index,score:smart.activation(c,true)})).filter(x=>x.score!==null&&x.score>=0).sort((a,b)=>b.score-a.score);if(boosts.length)return {type:R.SELECT_BATTLECMD,action:B.SELECT_CHAIN,index:boosts[0].index};if(!theyPickTargets){const ready=m.attacks.map(c=>own.find(x=>x.sequence===c.sequence)).filter(Boolean),line=smart.battleLine(ready),index=line?m.attacks.findIndex(c=>c.sequence===line.card.sequence):-1;if(index>=0&&!this.attackWasCancelled(p,m.attacks[index])){this.expertTarget={attacker:line.card.sequence,target:line.target.sequence,turn:this.turn};return {type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index}}}let best=null;const oppDeck=this.query(1-p,L.DECK).length;for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||this.query(p,L.MZONE)[c.sequence],power=smart.combatPower(a||c),an=a||c,nm=this.name(an.code);const direct=!this.battleProtected?.[1-p]&&(c.can_direct||!enemy.length);if(!smart.attackAllowed(an,direct))continue;const noPoke=(nm==='Goblin Attack Force'||nm==='Panther Warrior');let score=direct?smart.battleDamage(power)+(smart.battleDamage(power)>=this.lp[1-p]?100000000:0):-Infinity;let bt=null,bd=0,cands=[];if(direct)bd=smart.battleDamage(power);for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v=strength(t);if(!(power>v))continue;const atkPos=visible(t)&&(t.position&1);const over=atkPos?power-v:0;const edef=visible(t)?(t.defense??this.data[t.code]?.defense??0):v;const dmg=smart.battleDamage(atkPos?over:((!atkPos&&smart.pierce(an))?Math.max(0,power-edef):0));if(dmg<=0&&noPoke)continue;const cand=2000+v+over+(visible(t)&&dmg>0&&dmg>=this.lp[1-p]?100000000:0);cands.push({cand,t,dmg});if(cand>score){score=cand;bt=t;bd=dmg;}}if(theyPickTargets&&!direct){const open=enemy.filter(t=>!(this.battleProtected?.[1-p]&&visible(t)));if(cands.length<open.length||cands.some(x=>smart.attackScore(an,x.t,{dmg:x.dmg,deckOut:oppDeck<=2})<=-99999))continue;const worst=cands.reduce((w,x)=>x.cand<w.cand?x:w);score=worst.cand;bt=worst.t;bd=worst.dmg;}let fb=false;if(score===-Infinity&&(nm==='Goblin Attack Force'||nm==='Panther Warrior')){for(const t of enemy){if(this.battleProtected?.[1-p]&&visible(t))continue;const v2=strength(t);if(power>v2){const cand=2000+v2;if(cand>score){score=cand;bt=t;bd=0;fb=true;}}}}if(score>-Infinity){let adj=smart.attackScore(an,bt,{dmg:bd,deckOut:oppDeck<=2});if(adj<=-99999){cands.sort((a,b)=>b.cand-a.cand);let fixed=false;for(const q of cands){if(q.t===bt)continue;const a2=smart.attackScore(an,q.t,{dmg:q.dmg,deckOut:oppDeck<=2});if(a2<=-99999)continue;bt=q.t;bd=q.dmg;score=q.cand;adj=a2;fixed=true;break;}if(!fixed)continue;}score+=adj;const _pw=power,_bw=best?best.power:0;
     if(!best||score>best.score||(score===best.score&&((_pw>=1400)?(_bw<1400||_pw<_bw):(_bw<1400&&_pw>_bw))))best={score,i,power:_pw};}}
    // Only trade after exhausting every existing winning/direct attack option.
    if(!best&&!theyPickTargets){for(let i=0;i<m.attacks.length;i++){const c=m.attacks[i];if((m.to_m2||m.to_ep)&&this.attackWasCancelled(p,c))continue;const a=own.find(x=>x.sequence===c.sequence)||c,power=atk(a);if(!smart.attackAllowed(a,false))continue;if(enemy.some(t=>tradeTarget(power,t,a))&&(!best||power>best.power))best={i,power};}}
@@ -548,7 +571,7 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    return best?{type:R.SELECT_BATTLECMD,action:B.SELECT_BATTLE,index:best.i}:{type:R.SELECT_BATTLECMD,action:m.to_m2?B.TO_M2:B.TO_EP,index:null}}
   if(m.type===M.SELECT_SUM){
    // Keep engine legality checks, but try expendable materials before valuable bodies.
-   const order=m.selects.map((c,i)=>({c,i})).sort((a,b)=>smart.expendable(live(a.c)||a.c)-smart.expendable(live(b.c)||b.c));
+   const cost=c=>smart.expendable(c)+smart.attackReadyValue(c),order=m.selects.map((c,i)=>({c,i})).sort((a,b)=>cost(live(a.c)||a.c)-cost(live(b.c)||b.c));
    const sorted={...m,selects:order.map(x=>x.c)};
    const indices=this.sumSelection(sorted,c=>c.controller===p&&c.location===L.MZONE&&this.name(c.code)==='Relinquished');
    return {type:R.SELECT_SUM,indicies:indices.map(i=>order[i].i)};
@@ -570,7 +593,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     for(const x of candidates){const c=x.c,field=c.location===L.MZONE?this.query(c.controller,L.MZONE)[c.sequence]:null;
      // This outranks card-specific target heuristics and works without effect text
      // (e.g. hand-size discard), for discard and send-to-GY selections alike.
-     if(c.controller===p&&c.location===L.HAND&&exodiaPieces.has(c.code)){x.score=-Infinity;continue;}
+     // An Exodia Necross deck discards its pieces first instead (smart_policy handLoss; Gozaburo deck, 2026-11-23).
+     if(c.controller===p&&c.location===L.HAND&&exodiaPieces.has(c.code)&&!smart.necrossPlan){x.score=-Infinity;continue;}
       if(fxN==='Good Goblin Housekeeping'&&c.controller===p&&c.location===L.HAND){x.score=-smart.handLoss(c);continue;}
 
      // A safe, visible lethal attack outranks removal and a previously planned target.
@@ -597,7 +621,17 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     else if((hostileEquip||/destroy|banish|return.*hand|take control/.test(text))&&[L.MZONE,L.SZONE].includes(c.location))x.score=(c.controller!==p?10000:-10000)+(field&&visible(field)?atk(field):800);
     else x.score=atk(c)+(c.controller===p?200:0);
    }
-   candidates.sort(rank);if(targetAttack&&m.can_cancel&&this.attacker.canStop!==false&&candidates.every(x=>x.score===-Infinity))return {type:R.SELECT_CARD,indicies:null};let n=0,indicies=[];
+   candidates.sort(rank);if(targetAttack&&m.can_cancel&&this.attacker.canStop!==false&&candidates.every(x=>x.score===-Infinity))return {type:R.SELECT_CARD,indicies:null};
+   // Face-down monsters it cannot tell apart (Magical Hats; user, 2026-11-23, after idkjustputagoodname on Discord): when the
+   // chosen attack target is a face-down card the CPU has not seen, it attacks a random one of the face-down cards that
+   // look the same to it (same public DEF guess), so the decoys' real stats never steer it. Seeded like its other guesses.
+   if(targetAttack&&candidates.length>1&&candidates[0].score!==-Infinity){
+    const unseen=x=>{const f=this.query(x.c.controller,L.MZONE)[x.c.sequence];return f&&!visible(f)&&!this.knownFieldCard(p,f)?f:null};
+    const top=unseen(candidates[0]);
+    if(top){const look=smart.hiddenDefense(top),twins=candidates.filter(x=>{const f=unseen(x);return f&&smart.hiddenDefense(f)===look});
+     if(twins.length>1){const hash=(this.reasoningSeed^Math.imul(this.turn,2654435761)^Math.imul(this.hiddenAttackGuesses=(this.hiddenAttackGuesses||0)+1,2246822519))>>>0,pick=twins[hash%twins.length];
+      pick.score=candidates[0].score;candidates.splice(candidates.indexOf(pick),1);candidates.unshift(pick)}}
+   }let n=0,indicies=[];
    const held=new Set(this.query(p,L.HAND).filter(Boolean).map(c=>c.code));
    const recoverPieces=fxN==='Backup Soldier'?new Set(m.selects.filter(c=>c.controller===p&&c.location===L.GRAVE&&exodiaPieces.has(c.code)&&!held.has(c.code)).map(c=>c.code)).size:0;
     const need=fxN==='The Cheerful Coffin'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.score>600).length)):fxN==='Penguin Soldier'?Math.max(m.min,Math.min(m.max,candidates.filter(x=>x.c.controller!==p&&x.c.location===L.MZONE&&x.score>0).length)):recoverPieces?Math.max(m.min,Math.min(m.max,recoverPieces)):fxN==='Soul Charge'&&m.selects.every(c=>c.controller===p&&c.location===L.GRAVE)?Math.max(m.min,Math.min(m.max,5-own.length,Math.max(0,Math.floor((this.lp[p]-2000)/1000)))):fxN==='Megarock Dragon'?preferredSelectionCount(m.min,m.max,candidates.map(x=>x.score),true):m.type===M.SELECT_CARD&&m.max>m.min?preferredSelectionCount(m.min,m.max,candidates.map(x=>x.score)):m.min;

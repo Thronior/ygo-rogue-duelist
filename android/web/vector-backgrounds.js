@@ -1,6 +1,7 @@
 // All procedural artwork is exported offline under tools/background-export.
 // This runtime only owns a static backdrop and one native video player.
 import {backgroundSpec,preloadBackground,setActiveBackground} from './background-assets.js';
+import {pageRect} from './ui-zoom.js';
 let root=null,stage=null,host=null,scene=null,observer=null,video=null,spec=null,simpleMode=false,loadGeneration=0;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 // Check only when a window/scene changes, never on every animation frame.
@@ -53,7 +54,8 @@ function resizeVideo(){
 // A duel clip is square and drawn around its centre, so it sits on the board wherever the layout puts it, and
 // is sized to still reach every edge of the screen. Measured only when the layout changes.
 export function centreOnBoard(player,area,board){
- const bounds=area?.getBoundingClientRect(),box=board?.getBoundingClientRect();if(!player||!bounds?.width||!box?.width)return;
+ // Style pixels: UI Scale zooms the page (ui-zoom.js).
+ const bounds=area&&pageRect(area),box=board&&pageRect(board);if(!player||!bounds?.width||!box?.width)return;
  const x=box.left+box.width/2-bounds.left,y=box.top+box.height/2-bounds.top,size=2*Math.max(x,bounds.width-x,y,bounds.height-y);
  Object.assign(player.style,{left:x-size/2+'px',top:y-size/2+'px',width:size+'px',height:size+'px'});
 }

@@ -33,6 +33,11 @@ export function swapParity(mods,side){
  if((mods?.challengeLevel??0)<2||side===0)for(const k of mods?.activeCurses||[])if(k==='mirror_stats')n++;
  return n%2===1;
 }
+// Dice Jar's FLIP (Lamp deck review, 2026-11-22): both players roll until the rolls differ; the lower roller takes the
+// higher roll x 500, or 6000 on a 6. Of the 30 unequal pairs, a side takes 1000/1500/2000/2500/6000 in 1/2/3/4/5 of
+// them. kill: chance it finishes the opponent; death: chance it finishes us.
+const DICE_JAR_HITS=[[1000,1],[1500,2],[2000,3],[2500,4],[6000,5]];
+export function diceJarOdds(ownLp,theirLp){const chance=lp=>DICE_JAR_HITS.reduce((s,[d,n])=>s+(d>=lp?n:0),0)/30;return {kill:chance(theirLp),death:chance(ownLp)};}
 export function smartContext(e,p,L,prompt=null){
  const replayRule=key=>e.cpuTrialRules?e.cpuTrialRules.includes(key):acceptedReplayRules.has(key);
  const queryCache=new Map(),safetyCache=new Map();
@@ -61,8 +66,17 @@ export function smartContext(e,p,L,prompt=null){
  const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
  const rescueCatReady=()=>{const beasts=q(p,L.DECK).filter(c=>(data(c).type&1)&&race(c)==='Beast'&&lvl(c)<=3);if(5-own.length<2||beasts.length<2||e.turn<=1)return false;const missing=['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));if(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>beasts.some(x=>name(x)===part)))return true;/* Their Beasts are destroyed at the End Phase: on an opening turn with no Battle Phase (the CPU starts) they hit nothing (flag 7e51fc19, 2026-11-20). */return !openingTurn&&!enemy.length&&beasts.map(atk).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)>=1000};
  const heldPieces=new Set(hand.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
- e.exodiaPlan??=[false,false];if(heldPieces.size)e.exodiaPlan[p]=true;
- const exodiaPlan=e.exodiaPlan[p],missingPiece=c=>exodiaPieces.has(c.code)&&!heldPieces.has(c.code);
+ // An Exodia Necross deck wants the five pieces in the Graveyard, not the hand (Gozaburo deck, user 2026-11-23: "Whenever
+ // there's a Discard Cost to Pay use Exodia Pieces ABOVE ALL ELSE"). With Exodia Necross or Contract with Exodia left in the
+ // hand, Graveyard or Deck the pieces become discard fodder and Necross and Contract are kept; four pieces already in
+ // the hand go back to the classic win. Only a deck with Exodia Necross in it (user, 2026-11-23): every card of the
+ // deck is in one of these zones, so this is the decklist; Contract with Exodia alone changes nothing.
+ const NECROSS=12600382,CONTRACT=33244944,necrossCard=c=>c.code===NECROSS||c.code===CONTRACT;
+ const necrossDeck=side=>[L.HAND,L.DECK,L.GRAVE,L.MZONE,L.REMOVED].some(loc=>q(side,loc).some(c=>c?.code===NECROSS));
+ const necross=heldPieces.size<4&&necrossDeck(p);
+ const keptPieces=necross?new Set():exodiaPieces,piecesInGrave=new Set(grave.filter(c=>exodiaPieces.has(c.code)).map(c=>c.code));
+ e.exodiaPlan??=[false,false];if(heldPieces.size&&!necross)e.exodiaPlan[p]=true;
+ const exodiaPlan=e.exodiaPlan[p]&&!necross,missingPiece=c=>exodiaPieces.has(c.code)&&!heldPieces.has(c.code);
  const handSearch=new Set(['Sangan','Witch of the Black Forest','Emissary of the Afterlife','Different Dimension Capsule']);
  const handRecovery=new Set(['Backup Soldier','Dark Factory of Mass Production','Monster Reincarnation','Dark Eruption','Return of the Doomed']);
  const revival=new Set(['Monster Reborn','Premature Burial','Call of the Haunted','The Shallow Grave','Soul Charge']);
@@ -118,6 +132,11 @@ export function smartContext(e,p,L,prompt=null){
   return 0;
  }
  function handLoss(c){
+  // Necross: a piece not yet in the Graveyard is discarded before anything else; Necross and Contract never are.
+  if(necross&&exodiaPieces.has(c.code))return piecesInGrave.has(c.code)?-15000:-20000;
+  if(necross&&necrossCard(c))return 50000;
+  // The only Foolish Burial or Painful Choice in hand is kept while a piece is still in the Deck (Raigeki Break paid with one).
+  if(necross&&(name(c)==='Foolish Burial'||name(c)==='Painful Choice')&&hand.filter(x=>x.code===c.code).length===1&&q(p,L.DECK).some(x=>exodiaPieces.has(x.code)))return 6000;
   if(exodiaPieces.has(c.code))return 100000;
   // Ultra Evolution Pill with no Dinosaur in hand to summon is close to a dead card (deck trace, 2026-11-06).
   const dinoBit=x=>{try{return (BigInt(x.race??data(x).race??0)&0x10000n)!==0n}catch{return false}};
@@ -144,7 +163,9 @@ export function smartContext(e,p,L,prompt=null){
   // Juragedo Special Summons itself from the hand in a Battle Step: discard it last (user, 2026-11-06).
   const juragedoHand=n==='Juragedo'&&effectsEnabled(p)?1500:0;
   const comboRetention=(n==='Spirit Reaper'?2200:n==='Revival Jam'?1200:n==='Monster Reincarnation'&&grave.some(x=>(data(x).type&1)&&!exodiaPieces.has(x.code))?1800:0)+reservedOjama+destinyLetter+juragedoHand;
-  const legacy=monsterCost+(type&6?1600:0)+(n==='Raigeki'?5000:0)+comboRetention;
+  // Pot of Greed is two free cards while Spells can still be played: Graceful Charity threw away the copy it had just
+  // drawn beside Mirage of Nightmare and a Torrential Tribute (World Championship deck trace, 2026-11-22).
+  const legacy=monsterCost+(type&6?1600:0)+(n==='Raigeki'?5000:0)+(n==='Pot of Greed'&&!spellNegated?3000:0)+comboRetention;
   // Change established rankings only for a verified recovery plan.
   const benefit=['Night Assailant','Sinister Serpent'].includes(name(c))?discardBenefit(c):0;
   return legacy-benefit;
@@ -568,20 +589,53 @@ export function smartContext(e,p,L,prompt=null){
  // Lethal battle plan (2026-10-28 replay review): each blocker is taken by the weakest attacker that beats
  // it, and the rest attack directly. extra: ATK of monsters we can still add this turn; removed: blockers
  // taken away first. Returns the damage, or 0 when a blocker cannot be cleared in battle.
+ // An attacker that beats a blocker, or ties a face-up Attack Position one: equal ATK destroys both, which still clears
+ // the way (behaviour flag 2026-11-22: a Battle Ox into an equal Battle Ox would have opened lethal).
+ function clears(v,t){return v>power(t)||v>0&&v===power(t)&&face(t)&&!!(t.position&1);}
  function planDamage(extra=[],removed=[],spent=[]){
   const window=e.phase===4?prompt?.to_bp!==false:(e.phase===8||e.phase===16)&&!e.attackCard&&!e.inDamageStep;
   if(e.player!==p||!window||battleLocked)return 0;
   const blockers=enemy.filter(c=>!removed.some(x=>same(x,c))).sort((a,b)=>power(b)-power(a));
-  const strikers=[...activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&(c.attack_count||0)<swings(c)&&!spent.some(x=>same(x,c))).flatMap(c=>Array(swings(c)-(c.attack_count||0)).fill(atk(c))),...extra].sort((a,b)=>a-b);
+  // v: ATK, f: share of battle damage it deals (Susa Soldier halves it), d: can it still attack directly afterwards.
+  // Asura Priest either attacks every monster once each (never directly after that) or makes one ordinary attack,
+  // which can go direct once the others cleared the way: both are tried (replay review 2026-11-22).
+  const ready=activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&!spent.some(x=>same(x,c)));
+  const sweep=ready.some(c=>attacksAll(c)&&!c.attack_count)&&blockers.length>1;
+  return Math.max(battleSum(ready,blockers,extra,false),sweep?battleSum(ready,blockers,extra,true):0);
+ }
+ function battleSum(ready,blockers,extra,sweep){
+  const strikers=[...ready.flatMap(c=>{const one={v:atk(c),f:halfDamage(c)?.5:1,d:true};
+   // Once it has attacked, Asura Priest can only go on through the monsters left.
+   if(attacksAll(c)&&(sweep||c.attack_count))return blockers.map(()=>({...one,d:false}));
+   if(attacksAll(c))return [one];
+   return Array(Math.max(0,swings(c)-(c.attack_count||0))).fill(0).map(()=>({...one}));}),...extra.map(v=>({v,f:1,d:true}))].sort((a,b)=>a.v-b.v);
+  const direct=x=>x.d?x.v*x.f:0;
   let damage=0;
   for(const t of blockers){
    if(face(t)&&(resilient(t)||['Newdoria','Reflect Bounder'].includes(name(t))))return 0;
-   const i=strikers.findIndex(v=>v>power(t));if(i<0)return 0;
-   if(face(t)&&(t.position&1))damage+=battleDamage(strikers[i]-power(t));
+   // The attacker that clears it at the least cost to the direct attacks: the weakest, or one whose damage is halved
+   // or that cannot attack directly anyway (players sent Susa Soldier and Asura Priest into the blockers).
+   let i=-1;for(let j=0;j<strikers.length;j++)if(clears(strikers[j].v,t)&&(i<0||direct(strikers[j])<direct(strikers[i])))i=j;
+   if(i<0)return 0;
+   if(face(t)&&(t.position&1))damage+=Math.floor(battleDamage(strikers[i].v-power(t))*strikers[i].f);
    strikers.splice(i,1);
   }
-  return damage+strikers.reduce((v,x)=>v+battleDamage(x),0);
+  return damage+strikers.reduce((v,x)=>v+(x.d?Math.floor(battleDamage(x.v)*x.f):0),0);
  }
+ // Susa Soldier: "The Battle Damage this card inflicts to your opponent's Life Points is halved."
+ // A face-up Attack Position monster that can still attack in this Main Phase 1 is worth its attack too: players paid
+ // Tributes and Ritual materials with walls, Set cards and spare hand monsters instead (replay review 2026-11-22: in 194
+ // of 606 differing Tribute choices the CPU paid an attack-ready monster and the player did not, e.g. Skilled White
+ // Magician released while Big Shield Gardna stayed, or Sonic Bird off the field for Black Illusion Ritual).
+ function attackReadyValue(c){
+  if(!c||c.location!==L.MZONE||c.controller!==p||e.player!==p||e.phase!==4||battleLocked)return 0;
+  if(!face(c)||!(c.position&1)||c.attack_count||c.attack_disabled||!attackAllowed(c,!enemy.length)||attackBlocked(c,p))return 0;
+  const v=Math.max(0,atk(c));
+  return enemy.length&&!enemy.some(t=>clears(v,t))?0:Math.min(v,2000);
+ }
+ function halfDamage(c){return !!c&&!c.is_disabled&&effectsEnabled(c.controller??p)&&/Battle Damage this card inflicts to your opponent's Life Points is halved/i.test(e.cards.get(c.code)?.desc||'');}
+ // Asura Priest: "can attack all monsters your opponent controls once each".
+ function attacksAll(c){return !!c&&!c.is_disabled&&effectsEnabled(c.controller??p)&&/can attack all monsters your opponent controls once each/i.test(e.cards.get(c.code)?.desc||'');}
  const planLethal=(extra=[],removed=[])=>planDamage(extra,removed)>=e.lp[1-p];
  // Attacks a monster makes each Battle Phase. Players won with Hayabusa Knight swinging twice where the CPU counted
  // one attack and summoned something else (replay review 2026-11-18: d0a3dc3f7b74@11, 35b2a28ae2fb@5).
@@ -627,9 +681,10 @@ export function smartContext(e,p,L,prompt=null){
  function resourceCost(c){
   const n=name(c);let cost=0;
   if(['Raigeki Break','Tribute to the Doomed','Dark Core'].includes(n)){
-   const discards=hand.filter(x=>!same(x,c)&&!(/Forbidden One|Exodia/.test(name(x))));
+   const discards=hand.filter(x=>!same(x,c)&&(necross?!necrossCard(x):!(/Forbidden One|Exodia/.test(name(x)))));
    if(!discards.length)return Infinity;
-   cost+=700+Math.min(...discards.map(x=>expendable(x)))*.25;
+   // Necross: a piece paid as the discard is a cost we want (Gozaburo deck, 2026-11-23).
+   cost+=necross&&discards.some(x=>exodiaPieces.has(x.code))?200:700+Math.min(...discards.map(x=>expendable(x)))*.25;
   }
   if(n==='Offerings to the Doomed')cost+=1200;
   if(n==='Exiled Force')cost+=700;
@@ -645,7 +700,8 @@ export function smartContext(e,p,L,prompt=null){
  const backRemoval=new Set(['Heavy Storm',"Harpie's Feather Duster",'Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap']);
  // Destroying Toon World destroys its controller's Toon monsters too (all-decks review, 2026-11-19: Heavy Storm was held
  // against Toon World, Mirror Wall and Mirror Force while Blue-Eyes Toon Dragon beat us).
- function backValue(c){c=[...back,...theirBack].find(x=>same(x,c))||c;if(known(c)&&name(c)==='Toon World')return 1500+q(c.controller??1-p,L.MZONE).filter(x=>face(x)&&/Toon/.test(name(x))).reduce((v,x)=>v+targetValue(x),0);return known(c)?(lockValue(c)|| (LOCK.includes(name(c))?1500:0) ? Math.max(lockValue(c),1500):engineThreats.has(name(c))?3200:(data(c).type&(0x20000|0x80000|0x40000))?1500:400):900;}
+ function backValue(c){c=[...back,...theirBack].find(x=>same(x,c))||c;// A lock card whose monster has left holds nothing, it only takes up a zone (behaviour flag becd514f, 2026-11-22).
+  if(known(c)&&face(c)&&['Spellbinding Circle','Shadow Spell','Nightmare Wheel','Fiendish Chain'].includes(name(c))&&![...(e.attackLocks||new Map()).values()].some(v=>same(v,c)))return 100;if(known(c)&&name(c)==='Toon World')return 1500+q(c.controller??1-p,L.MZONE).filter(x=>face(x)&&/Toon/.test(name(x))).reduce((v,x)=>v+targetValue(x),0);return known(c)?(lockValue(c)|| (LOCK.includes(name(c))?1500:0) ? Math.max(lockValue(c),1500):engineThreats.has(name(c))?3200:(data(c).type&(0x20000|0x80000|0x40000))?1500:400):900;}
  // Snipe Hunter's legal, worthwhile targets: the opponent's cards it can destroy, never our own.
  function snipeTargets(source){
   // Skip a visible monster one of our remaining attackers already destroys in battle: save the discard.
@@ -659,7 +715,7 @@ export function smartContext(e,p,L,prompt=null){
  // extra: ATK of a Snipe Hunter still in the hand (cpu-combos snipeLine), so the line and the activation agree.
  function snipeNet(source,extra=[]){
   // Juragedo is only discarded when it is all we hold and the target is a real threat (user, 2026-11-06).
-  const spare=hand.filter(x=>!exodiaPieces.has(x.code)&&!same(x,source)),discard=spare.some(x=>name(x)!=='Juragedo')?spare.filter(x=>name(x)!=='Juragedo'):spare;
+  const spare=hand.filter(x=>!keptPieces.has(x.code)&&!same(x,source)),discard=spare.some(x=>name(x)!=='Juragedo')?spare.filter(x=>name(x)!=='Juragedo'):spare;
   const targets=snipeTargets(source);
   if(!discard.length||!targets.length)return null;
   const base=planDamage(extra),value=t=>snipeValue(t)+(t.location===L.MZONE?Math.max(0,planDamage(extra,[t])-base):0);
@@ -825,7 +881,7 @@ export function smartContext(e,p,L,prompt=null){
   if(cheaper)return -1;
   return 95+Math.min(20,(target.value-threshold)/200);
  }
- const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon,battleProof});
+ const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces:keptPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon,battleProof});
  const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady,removalAffects});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
@@ -1131,14 +1187,15 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Stealth Bird')return chain?85:remainingAttackers().some(a=>same(a,c))&&(!enemy.length||enemy.some(t=>face(t)&&atk(c)>power(t)))?-1:85;
   if(replayRule('persistent_defense')&&n==='Ordeal of a Traveler')return chain&&e.player!==p&&e.phase===8&&!e.inDamageStep&&e.attackCard?.controller===1-p&&hand.length&&!back.some(x=>face(x)&&name(x)===n)?82:-1;
     if(replayRule('swap_value')&&n==='Creature Swap'){
-   const cheap=own.filter(x=>!resilient(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0))[0];
+   // A Magical Scientist Fusion goes back to our Extra Deck at the End Phase: handing it over costs nothing (2026-11-22).
+   const cheap=own.find(x=>e.returnsAtEnd?.(x))||own.filter(x=>!resilient(x)).sort((a,b)=>Math.max(atk(a),a.defense??0)-Math.max(atk(b),b.defense??0))[0];
    if(e.cpuReviewRules?.swapForecast!==false){
     const obtained=Math.min(...enemy.map(x=>known(x)?controlledAttack(x):900));
     // A face-up Spirit handed over goes back to our hand at this End Phase: it costs nothing
     // (the spirit-swap combo summons one for exactly this). The targeting rule hands it over first.
     const spiritGift=own.find(x=>face(x)&&(data(x).type&0x200)&&effectsEnabled(p)&&!x.is_disabled&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine'));
     if(spiritGift&&e.player===p&&e.phase<512)return enemy.length&&obtained>500?88:-1;
-    const given=cheap?controlledAttack(cheap,1-p):Infinity;
+    const given=cheap?e.returnsAtEnd?.(cheap)?0:controlledAttack(cheap,1-p):Infinity;
     return cheap&&enemy.length&&obtained>given+500?88:-1;
    }
    const floor=Math.min(...enemy.map(x=>known(x)?Math.max(controlledAttack(x),x.defense??0):900));
@@ -1216,8 +1273,8 @@ export function smartContext(e,p,L,prompt=null){
   // Save Waboku for the Battle Phase, including its start/end steps.
   if(n==='Waboku'&&![8,16,32,64,128].includes(e.phase))return -1;
   // Protect the five actual win-condition pieces, including send-to-GY costs.
-  if(hand.some(x=>exodiaPieces.has(x.code))){
-   const available=hand.filter(x=>!same(x,c)&&!exodiaPieces.has(x.code)).length;
+  if(hand.some(x=>keptPieces.has(x.code))){
+   const available=hand.filter(x=>!same(x,c)&&!keptPieces.has(x.code)).length;
    if(['Card Destruction','Morphing Jar','Fiber Jar'].includes(n))return -1;
    const fixed={'Graceful Charity':2,'Hand Destruction':2,'Dark World Dealings':1,'Magical Stone Excavation':2,'Spell Reproduction':2};
    const match=t.match(/discard (\d+|a|an|one|two|three)\b/i);
@@ -1256,7 +1313,9 @@ export function smartContext(e,p,L,prompt=null){
    if(lethal)return 160;
    return clearValue>=cost+1800?110:-1;
   }
-  if(n==='Limiter Removal'){const machines=remainingAttackers().filter(x=>race(x)==='Machine');const lethal=!enemy.length&&machines.reduce((v,x)=>v+atk(x)*2,0)>=e.lp[1-p];const breakthrough=enemy.some(t=>known(t)&&!resilient(t)&&machines.some(a=>atk(a)<=power(t)&&atk(a)*2>power(t)));if(!lethal&&!breakthrough)return -1;}
+  // From the Battle Phase only: in the Draw or Main Phase it doubled Machines that then became Fusion Material (behaviour
+  // flag a6da310a, 2026-11-22: two Limiter Removals wasted on X-Head Cannon before XY-Dragon Cannon).
+  if(n==='Limiter Removal'){if(e.phase<8)return -1;const machines=remainingAttackers().filter(x=>race(x)==='Machine');const lethal=!enemy.length&&machines.reduce((v,x)=>v+atk(x)*2,0)>=e.lp[1-p];const breakthrough=enemy.some(t=>known(t)&&!resilient(t)&&machines.some(a=>atk(a)<=power(t)&&atk(a)*2>power(t)));if(!lethal&&!breakthrough)return -1;}
   const canBattle=e.player===p&&e.turn>1&&e.phase<256&&prompt?.to_bp!==false&&!battleLocked;
   if(n==='Stop Defense'&&!canBattle)return -1;
   // Their face-up lock (Swords of Revealing Light, Messenger of Peace) goes back to the hand too: count the attackers it
@@ -1746,6 +1805,17 @@ export function smartContext(e,p,L,prompt=null){
    const value=p3*sweep+p2*discard-p1*ownLoss-p0*500*hand.length;
    return value>150?70:-1;
   }
+  // Necross: Card Destruction once the hand is nothing but pieces; Painful Choice with two or more pieces left in the
+  // Deck (the opponent hands back one, the rest go to the Graveyard); Foolish Burial for a single piece; Contract the
+  // moment it can be activated. Painful Choice and Foolish Burial had no rule and were never played in 400 duels.
+  // Contract with Exodia is Set first (necrossSetFirst, user 2026-11-23: "make it set contract before using card
+  // destruction"), so the Contract is never discarded; Card Destruction waits until only pieces are left in hand.
+  if(necross&&n==='Card Destruction'){const rest=hand.filter(x=>!same(x,c));return rest.length&&rest.every(x=>exodiaPieces.has(x.code))?130:-1;}
+  if(necross&&(n==='Painful Choice'||n==='Foolish Burial')&&!chain){
+   const left=new Set(q(p,L.DECK).filter(x=>exodiaPieces.has(x.code)).map(x=>x.code)).size;
+   return n==='Painful Choice'?(left>=2&&myDeck>=5?132:-1):left?128:-1;
+  }
+  if(necross&&n==='Contract with Exodia')return own.length<5?150:-1;
   if(n==='Card Destruction'||n==='Morphing Jar')return hand.length<3&&optionalDrawSafe(Math.max(1,hand.length))?60:-1;
   if(n==='Delinquent Duo')return e.lp[p]>2000&&q(1-p,L.HAND).length>=2?92:-1;
   if(n==='Confiscation'||n==='The Forceful Sentry')return e.lp[p]>(n==='Confiscation'?2000:0)&&q(1-p,L.HAND).length?92:-1;
@@ -1804,6 +1874,14 @@ export function smartContext(e,p,L,prompt=null){
   if(d.type&0x80&&spell)return ritualReady(c)?95:-1;
   if(n==='Toon World')return e.lp[p]>2000&&hand.some(x=>data(x).type&0x400000)?90:-1;
   if(n==='Elegant Egotist')return has(own,'Harpie Lady')&&own.length<5?95:-1;
+  // Mirage of Nightmare refills the hand to 4 in their Standby Phase; our Mystical Space Typhoon then destroys it in
+  // answer to the discard in our Standby Phase (mirageEscapeValue). With no rule it was never activated: 834 offers in
+  // 100 duels (World Championship deck trace, 2026-11-22). Only with that escape, a near-empty hand and a free zone left for it.
+  if(n==='Mirage of Nightmare'){
+   const fromHand=c.location===L.HAND;
+   if(chain||e.player!==p||!fromHand&&face(c)||back.filter(x=>x.sequence<5).length+(fromHand?1:0)>=(e.aiModifiers?.spellTrapZones??5))return -1;
+   return hand.length-(fromHand?1:0)<=2&&[...hand,...back].some(x=>name(x)==='Mystical Space Typhoon'&&!same(x,c))?82:-1;
+  }
   if(n==='Scapegoat')return chain&&e.player!==p&&(own.length<=1&&danger||e.phase===512&&own.length<=1&&has(hand,'Metamorphosis')&&q(p,L.EXTRA).some(x=>lvl(x)===1))?90:-1;
   if(n==='Limiter Removal')return chain&&e.player===p&&own.some(x=>e.cards.get(x.code)?.race==='Machine')?95:-1;
   if(n==="Nightmare's Steelcage"&&back.some(x=>face(x)&&!same(x,c)&&["Nightmare's Steelcage",'Swords of Revealing Light'].includes(name(x))))return -1;
@@ -2157,7 +2235,7 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Dark-Piercing Light'){const fd=enemy.filter(x=>!face(x)).length;return fd>=2?95:(fd>=1?80:-1);}
   if(n==='Call of Darkness'){const loss=own.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0),gain=enemy.filter(x=>e.wasReborn?.(x)).reduce((v,x)=>v+targetValue(x),0);return gain>loss?96:-1;}
   if(n==='Creature Swap'){
-   const gift=x=>(data(x).type&0x200)?0:expendable(x);
+   const gift=x=>(data(x).type&0x200)||e.returnsAtEnd?.(x)?0:expendable(x);
    const give=Math.min(Infinity,...own.map(gift));
    // The opponent chooses what to give us: evaluate their weakest eligible body.
    const take=Math.min(Infinity,...enemy.map(x=>face(x)?atk(x):0));
@@ -2425,6 +2503,8 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_tyrants_throne':v=field.length===1?1200:0;break;
     case 'fused_immortal_dark_magic':v=race(c)==='Spellcaster'?600:0;break;
     case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
+    // Level Up Chain: LV monsters +500 ATK (Discord, Nameless, 2026-11-22: Horus LV4's forecast left it out).
+    case 'fused_level_up_chain':v=setMatch(c,0x41)?500:0;break;
     // Every monster becomes the chosen Type and Attribute, so each face-up monster on both fields counts (itself included).
     case 'fused_unstable_dna':v=100*(field.filter(face).length+q(1-side,L.MZONE).filter(face).length);break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
@@ -2477,8 +2557,56 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
    !/cannot be targeted by (?:card|monster) effects|unaffected by (?:other )?monster effects/i.test(e.cards.get(c.code)?.desc||'')&&
    (effectThreat(c)>=1000||resilient(c)||power(c)>=1800&&power(c)>=Math.max(0,...own.filter(x=>face(x)&&!attackBlocked(x,p)).map(atk))));
  }
+ // The monsters a Level 5-6 Fusion from Magical Scientist would run over: their monsters our ready attackers cannot
+ // beat, each attacker paired with one monster. Only TER was ever chosen, so the Scientist sat on the field in 59 of
+ // 100 duels with 2000-2100 ATK Fusions in the Extra Deck (World Championship deck trace, 2026-11-22).
+ function scientistBeaterTargets(f){
+  // 1000 LP a Fusion: only from 4000 LP, and only for a face-up monster worth it. Two Fusions spent on Mystic Tomato and a
+  // third on a Set Sinister Serpent at 2700 LP lost won duels (same-seed A/B, 2026-11-22).
+  if(!(data(f).type&0x40)||lvl(f)>6||name(f)==='Thousand-Eyes Restrict'||e.lp[p]<4000||e.player!==p||e.phase!==4||openingTurn||prompt?.to_bp===false||battleLocked||own.length>=5)return [];
+  const body={...f,controller:p,location:L.HAND},hit=projectedAttack(body);
+  if(attackBlocked(body,p,true))return [];
+  const ready=remainingAttackers().map(atk).sort((a,b)=>a-b),left=[];
+  for(const t of [...enemy].sort((a,b)=>targetValue(b)-targetValue(a))){
+   if(!face(t)||t.is_immune||resilient(t,body)||battleFloaters.has(name(t))&&!t.is_disabled||Math.max(0,atk(t))<1700&&effectThreat(t)<1000)continue;
+   const i=ready.findIndex(a=>a>power(t));if(i>=0){ready.splice(i,1);continue}
+   if(hit>power(t))left.push(t);
+  }
+  return left;
+ }
+ // Scientist into Creature Swap: a Fusion handed over goes back to our Extra Deck at the End Phase, so we keep their
+ // monster for 1000 LP. They pick what they give, so every monster they have must be worth taking (2026-11-22).
+ function scientistSwapReady(){
+  if(spellNegated||!has(hand,'Creature Swap')||e.player!==p||e.phase!==4||!enemy.length||own.some(x=>e.returnsAtEnd?.(x)))return false;
+  return Math.min(...enemy.map(x=>face(x)&&!x.is_immune?atk(x):0))>=1200;
+ }
+ // Necross: the Contract with Exodia to Set before Card Destruction, when the rest of the hand is pieces and a zone stays
+ // free for Card Destruction itself. Returns an index into `sets` (the prompt's spell_sets), or -1.
+ // Necross: a piece Set as a blocker shields the LP and reaches the Graveyard when it is destroyed. Only when nothing
+ // else is Set this turn; the piece missing from the Graveyard with the most DEF (Exodia the Forbidden One first).
+ // Four pieces and Necross sat in a hand on an empty field for four turns, 6800 to 1200 LP (deck trace, 2026-11-23).
+ function necrossPieceSet(sets){
+  // Limiting it to an empty-ish field facing an attacker that destroys it lost wins (428 vs 439 of 1100, 2026-11-23).
+  if(!necross||e.player!==p||own.length>=5)return -1;
+  const options=(sets||[]).map((c,i)=>({c,i})).filter(x=>exodiaPieces.has(x.c.code)&&!piecesInGrave.has(x.c.code));
+  return options.sort((a,b)=>def(b.c)-def(a.c))[0]?.i??-1;
+ }
+ function necrossSetFirst(sets){
+  if(!necross||spellNegated||e.player!==p||!hand.some(x=>name(x)==='Card Destruction'))return -1;
+  const rest=hand.filter(x=>name(x)!=='Card Destruction'&&x.code!==CONTRACT);
+  if(!rest.length||!rest.every(x=>exodiaPieces.has(x.code))||back.filter(x=>x.sequence<5).length+2>(e.aiModifiers?.spellTrapZones??5))return -1;
+  return (sets||[]).findIndex(x=>x.code===CONTRACT);
+ }
  function scientistFusionScore(c){
-  if(name(c)!=='Thousand-Eyes Restrict'||lvl(c)>6||!(data(c).type&0x40)||!effectsEnabled(p)||back.filter(x=>x.sequence<5).length>=5)return -1000000;
+  if(!(data(c).type&0x40)||lvl(c)>6||!effectsEnabled(p))return -1000000;
+  if(name(c)!=='Thousand-Eyes Restrict'){
+   // Run over the best monster left, the strongest Fusion first, Ryu Senshi on a tie when a Set card could be a Normal Trap.
+   const hits=scientistBeaterTargets(c);
+   if(hits.length)return 5000+Math.max(...hits.map(targetValue))+projectedAttack({...c,controller:p,location:L.HAND})/10+(name(c)==='Ryu Senshi'&&e.lp[p]>3000&&theirBack.some(x=>!face(x))?20:0);
+   // For Creature Swap the weakest Fusion: it is theirs for the rest of our turn.
+   return scientistSwapReady()?3000-Math.max(0,atk(c)):-1000000;
+  }
+  if(back.filter(x=>x.sequence<5).length>=5)return -1000000;
   if([...back,...theirBack].some(x=>enabled(x)&&name(x)==='Skill Drain')||own.some(x=>enabled(x)&&name(x)==='Thousand-Eyes Restrict'))return -1000000;
   const targets=scientistRemovalTargets();return targets.length?10000+Math.max(...targets.map(targetValue)):-1000000;
  }
@@ -2524,15 +2652,17 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
  function attackOutlook({flip=null,gone=[],extra=[]}={}){
   const blockers=enemy.filter(t=>!gone.some(x=>same(x,t))).map(t=>same(t,flip)?{...t,position:t.position&1?4:1}:t).sort((a,b)=>power(b)-power(a));
   const strikers=[...remainingAttackers().filter(a=>!gone.some(x=>same(x,a))&&attackAllowed(a,!blockers.length)).map(atk),...extra].sort((a,b)=>a-b);
-  let damage=0,kills=0,clear=true;
+  let damage=0,kills=0,trades=0,clear=true;
   for(const t of blockers){
-   const i=strikers.findIndex(v=>v>power(t));
+   const i=strikers.findIndex(v=>clears(v,t));
    if(i<0||resilient(t)||face(t)&&battleHazards.has(name(t))){clear=false;continue;}
    if(t.position&1)damage+=battleDamage(strikers[i]-power(t));
+   // An equal-ATK trade clears the way but costs our attacker too (Enemy Controller test 3c2684350b).
+   if(strikers[i]===power(t))trades++;
    kills++;strikers.splice(i,1);
   }
   if(clear)damage+=strikers.reduce((v,x)=>v+battleDamage(x),0);
-  return {damage,value:damage+kills*1000};
+  return {damage,value:damage+kills*1000-trades*1000};
  }
  // Enemy Controller on our turn, or null. The position change must win, open a battle we could not win, or add real
  // damage. The Tribute mode (1 is the position change, 2 the Tribute) must win or gain far more than the Tribute, and
@@ -2734,6 +2864,8 @@ if(!effectsEnabled(p))return 0;
   if(n==="Gravekeeper's Spy")return own.length<5&&q(p,L.DECK).some(x=>setMatch(x,0x2e)&&(data(x).type&1)&&(data(x).attack??0)<=1500);
   if(n==='Morphing Jar'&&hand.some(c=>exodiaPieces.has(c.code)))return false;
   if(n==='Morphing Jar #2')return morphingJar2Useful(field);
+  // Dice Jar: a Flip Summon is a coin flip in LP; only when it is likelier to finish them than us (2026-11-22).
+  if(n==='Dice Jar'&&e.cpuReviewRules?.diceJar!==false){const odds=diceJarOdds(e.lp[p],e.lp[1-p]);return odds.kill>odds.death;}
   if(n==='Rafflesia Seduction')return e.player===p&&enemy.some(face);
   if(n==='Blast Sphere'||n==='Kiseitai')return false;
   if(n==='Slate Warrior')return enemy.some(x=>power(x)<1900);
@@ -2996,11 +3128,12 @@ if(!effectsEnabled(p))return 0;
  // Kept as a stub so the battle code's callers stay the same.
  function suicideScore(){return 0;}
  function tributeAdj(c){const n=name(c);if(replayRule('wipe_tribute')&&e.name(e.materialSubject)==='Dark Dust Spirit'&&face(c))return 100000;
-  if(borrowedMonster(c))return 1000000;
+  // A Magical Scientist Fusion leaves at the End Phase anyway, like a borrowed monster (2026-11-22).
+  if(borrowedMonster(c)||e.returnsAtEnd?.(c))return 1000000;
   const subject=e.materialSubject&&{code:e.materialSubject,controller:p,location:L.HAND};
   if(subject&&projectedAttack(subject)<atk(c)&&!(attackBlocked(c,p)&&!attackBlocked(subject,p,true)))return -100000000;
   if(subject&&effectsEnabled(p)&&face(c)&&BATTLEGUARD_PARTNER[e.name(e.materialSubject)]===n)return -100000000;
-if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(c))-atk(c));
+if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(c))-atk(c))-attackReadyValue(c);
   if(n==='Zolga')s-=firePrincess?1000:500;
   if(n==='Darklord Marie'||n==='Magician of Black Chaos')s+=5000;
   if(chaosPair&&grave.length<=6&&(hasAttribute(c,'LIGHT')||hasAttribute(c,'DARK'))){const light=hasAttribute(c,'LIGHT');if((light&&gyLight.length<2)||(!light&&gyDark.length<2))s+=3000;}
@@ -3011,6 +3144,17 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   // Only a monster Soul Exchange affects: both copies went on a Silent Magician LV8 (unaffected by Spells), so the
   // Tribute Summon it was for never came (Fairy deck trace, 2026-11-21).
   if(fxN==='Soul Exchange'){if(cand.controller===p)return -100000;const live=enemy.find(x=>same(x,cand))||cand;return (removalAffects(source,live,fxN,{destroy:false,targeting:true})?30000:0)+targetValue(cand);}
+  // Ancient Lamp (Lamp deck review, 2026-11-22): their attacker fights the monster we pick instead, and every outcome
+  // is theirs to lose. Pick the fight that costs them most: the attacker dies against a stronger Attack Position
+  // monster, or it destroys their most valuable one; the battle damage goes to them either way.
+  if(fxN==='Ancient Lamp'&&e.cpuReviewRules?.lamp!==false){
+   if(cand.controller===p)return -100000;
+   const a=enemy.find(x=>same(x,e.attackCard))||e.attackCard,t=enemy.find(x=>same(x,cand))||cand;
+   if(!a)return targetValue(t);
+   const hit=Math.max(0,atk(a)),guard=power(t),up=!!(t.position&1);
+   const tDies=(hit>guard||up&&hit===guard&&hit>0)&&!battleProof(t,a),aDies=up&&(guard>hit||guard===hit&&hit>0)&&!battleProof(a,t);
+   return 20000+(tDies?targetValue(t):0)+(aDies?targetValue(a):0)+(up?Math.abs(hit-guard):Math.max(0,guard-hit));
+  }
   // Freed the Brave Wanderer (2026-11-21): banish the cheapest LIGHT monsters from the GY, never our field, and
   // destroy their strongest monster, never ours (the target may be on either field).
   if(fxN==='Freed the Brave Wanderer')return cand.location===L.GRAVE?5000-expendable(cand):cand.controller!==p?20000+targetValue(cand):-100000-targetValue(cand);
@@ -3188,6 +3332,22 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   const piece=exodiaPieces.has(cand.code),toHand=handSearch.has(fxN)||handRecovery.has(fxN)||e.selectionHint===506;
   if((piece||!specialOk(cand))&&(revival.has(fxN)||e.selectionHint===509))return -Infinity;
   if(cand.location===L.GRAVE&&!reviveKeeps(fxN,cand))return -Infinity;
+  if(necross&&cand.controller===p&&cand.location===L.DECK&&e.effect?.player===p){
+   // Painful Choice and Foolish Burial send the pieces; Painful Choice fills up with a missing Necross or Contract.
+   if(fxN==='Painful Choice'||fxN==='Foolish Burial'){if(piece)return 1000000;if(fxN==='Painful Choice'&&necrossCard(cand)&&!hand.some(x=>x.code===cand.code))return cand.code===NECROSS?500000:400000;}
+   // A searcher fetches Exodia Necross first, then a piece to discard.
+   if(toHand&&cand.code===NECROSS&&!hand.some(x=>x.code===NECROSS))return 2000000;
+  }
+  // Magician of Faith takes back what still moves pieces: Painful Choice (two or more left in the Deck), then Foolish
+  // Burial; Contract with Exodia once only the Contract is missing. It took Graceful Charity first.
+  if(necross&&fxN==='Magician of Faith'&&cand.controller===p&&cand.location===L.GRAVE){
+   const left=new Set(q(p,L.DECK).filter(x=>exodiaPieces.has(x.code)).map(x=>x.code)).size;
+   if(cand.code===CONTRACT&&piecesInGrave.size===5&&hand.some(x=>x.code===NECROSS)&&![...hand,...back].some(x=>x.code===CONTRACT))return 3000000;
+   if(name(cand)==='Painful Choice'&&left>=2)return 2000000;
+   if(name(cand)==='Foolish Burial'&&left>=1)return 1900000;
+  }
+  // Their Painful Choice: hand them an Exodia piece, which keeps it out of their Graveyard.
+  if(fxN==='Painful Choice'&&e.effect?.player===1-p&&cand.controller===1-p&&necrossDeck(1-p))return piece?1000000:-targetValue(cand);
   if(cand.controller===p&&piece&&toHand&&cand.location!==L.HAND)return missingPiece(cand)?1000000:900000;
   if(exodiaPlan&&cand.controller===p){
    if(piece&&[L.DECK,L.GRAVE,L.REMOVED].includes(cand.location))return -1000000;
@@ -3255,7 +3415,9 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(fxN==='Obelisk the Tormentor')return cand.controller===p&&cand.location===L.MZONE&&nm!==fxN?100000-expendable(cand)-targetValue(cand)*.01:-1000000;
   if(/Nimble Momonga/.test(fxN||''))return nm==='Nimble Momonga'&&optionalMillSafe()?100000:-100000;
   if(/Bubonic Vermin/.test(fxN||''))return cand.controller===p&&cand.location===L.DECK&&nm==='Bubonic Vermin'&&optionalMillSafe()?100000:-100000;
-  if(/Creature Swap/.test(fxN||'')){if(cand.controller===p)return nm==='The Bistro Butcher'?100000:(data(cand).type&0x200)?50000:-expendable(cand);return 10000+atk(cand);}
+  // Dark Spirit of the Silent: the redirected attacker should be their weakest monster (behaviour flag d3e32da5).
+  if(fxN==='Dark Spirit of the Silent'&&cand.location===L.MZONE)return cand.controller===p?-1000000000:50000-atk(cand);
+  if(/Creature Swap/.test(fxN||'')){if(cand.controller===p)return nm==='The Bistro Butcher'?100000:(data(cand).type&0x200)||e.returnsAtEnd?.(cand)?50000:-expendable(cand);return 10000+atk(cand);}
   if(info.maha&&cand.controller===p&&cand.location===L.MZONE)return nm==='Maha Vailo'?30000:10000+atk(cand);
   // A summoning procedure's own Tribute (Toon Summoned Skull, Toon Dark Magician Girl, Blue-Eyes Toon Dragon) comes as a plain
   // card selection with the Release hint and no effect. It fell to the highest-ATK default and Tributed a 1900 ATK Toon Gemini Elf
@@ -3265,5 +3427,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {swings,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
+  return {necrossPlan:necross,necrossSetFirst,necrossPieceSet,swings,halfDamage,attacksAll,attackReadyValue,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
 }

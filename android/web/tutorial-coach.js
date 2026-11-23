@@ -1,6 +1,7 @@
 // The tutorial's on-screen coach (2026-11-11): one bubble with the current instruction and a glow on the thing to tap.
 // tutorial-duel.js holds the script and the text; this file only draws. Cheap by design: the bubble is one fixed
 // element updated when the duel screen redraws, and the glow is a two-step CSS animation (two repaints a second).
+import {pageRect,pageHeight} from './ui-zoom.js';
 import {CARD,INTRO,TOUR,NUDGE,FREE_PLAY} from './tutorial-duel.js';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -35,13 +36,13 @@ export class LessonCoach{
   const mat=document.querySelector('.duel .mat'),lp=document.querySelector('.duel .lpbar'),box=document.querySelector('.duel>.inspection'),s=this.el.style;
   if(!mat||!lp||!box)return;
   if(matchMedia('(orientation:portrait)').matches){
-   const r=box.getBoundingClientRect();
-   Object.assign(s,{left:'8px',right:'8px',width:'auto',top:'auto',bottom:Math.max(0,innerHeight-r.bottom+6)+'px'});
+   const r=pageRect(box);
+   Object.assign(s,{left:'8px',right:'8px',width:'auto',top:'auto',bottom:Math.max(0,pageHeight()-r.bottom+6)+'px'});
   }else{
-   const r=mat.getBoundingClientRect(),width=Math.min(440,r.width*.74);
+   const r=pageRect(mat),width=Math.min(440,r.width*.74);
    // An explanation of the opponent's own cards sits over the player's back row instead, so their hand and field stay in view.
    const low=this.waiting?.info.dock==='low';
-   Object.assign(s,{left:Math.round(r.left+r.width/2-width/2)+'px',right:'auto',width:Math.round(width)+'px',top:low?'auto':Math.round(lp.getBoundingClientRect().bottom+4)+'px',bottom:low?Math.max(0,Math.round(innerHeight-r.bottom))+'px':'auto'});
+   Object.assign(s,{left:Math.round(r.left+r.width/2-width/2)+'px',right:'auto',width:Math.round(width)+'px',top:low?'auto':Math.round(pageRect(lp).bottom+4)+'px',bottom:low?Math.max(0,Math.round(pageHeight()-r.bottom))+'px':'auto'});
   }
  }
  // A card the player must read and dismiss. Resolves on Next.

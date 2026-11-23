@@ -131,7 +131,8 @@ async function provider(artifacts){
  const out={asked,counters:spellCounters(cards(e,0,L.MZONE,LIBRARY)[0])};e.destroy();return out;
 }
 const withProvider=await provider(['spell_provider']);console.log('Spell Provider',withProvider);
-same(withProvider,{asked:true,counters:1},'a Spell Counter is placed on Royal Magical Library');
+// Only one card can hold the counter, so it is placed without asking (itch.io feedback, 2026-11-22).
+same(withProvider,{asked:false,counters:1},'a Spell Counter is placed on Royal Magical Library');
 same((await provider([])).counters,0,'without the relic no counter');
 
 // Fairy Box (user, 2026-11-12): the CPU (seat 1) pays 500 LP each Standby Phase while it is behind, and stops paying

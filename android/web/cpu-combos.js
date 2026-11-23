@@ -35,6 +35,16 @@ export function comboPlanner(x){
   const start=up('Kaibaman')?useStep('Kaibaman'):reveal('Kaibaman');
   return start?[{id:'kaibaman',start,payoff:[dragon],normal:start.kind==='summon',lost:up('Kaibaman')?[up('Kaibaman')]:[]}]:[];
  }
+ // A face-up Ancient Lamp Special Summons La Jinn from the hand, as often as the zones allow (no once per turn), and
+ // keeps the Normal Summon free. Only a Lamp already face-up (its redirect flips it): Normal Summoning or flipping it for
+ // this gave up its Set redirect and left a 900 ATK Lamp in Attack Position, 25 vs 28 wins of 100 (Lamp deck A/B, 2026-11-22).
+ function ancientLampLine(){
+  if(e.cpuReviewRules?.lamp===false)return [];
+  const lamp=up('Ancient Lamp'),jinns=hand.filter(c=>name(c)==='La Jinn the Mystical Genie of the Lamp'&&specialOk(c));
+  if(!lamp||!jinns.length||free<1)return [];
+  const start=useStep('Ancient Lamp');if(!start)return [];
+  return [{id:'ancient-lamp',start,payoff:jinns.slice(0,free),normal:false,lost:[]}];
+ }
  function fluteLine(){
   if(!spellsOk||!has(hand,'The Flute of Summoning Dragon'))return [];
   const lord=up('Lord of D.'),room=lord?free:free-1,dragons=bestOf(hand.filter(c=>monster(c)&&race(c)==='Dragon'&&name(c)!=='Lord of D.'&&specialOk(c)&&atk(c)>=1200)).slice(0,Math.min(2,room));
@@ -289,6 +299,34 @@ export function comboPlanner(x){
   const start=spirits.length?summonStep(name(spirits[0])):null;
   return start?[{id:'spirit-swap',start,payoff:[prize],normal:true,lost:[]}]:[];
  }
+ // Magical Scientist into Creature Swap: the Fusion handed over goes back to our Extra Deck at the End Phase, so their
+ // monster stays ours for 1000 LP and the Swap. They choose what they give, so their weakest monster is the prize
+ // (World Championship deck, 2026-11-22). smart_policy's scientistFusionScore then calls the weakest Fusion.
+ function scientistSwapLine(){
+  if(!spellsOk||!has(hand,'Creature Swap')||!enemy.length||e.lp[p]<=2500||own.some(c=>e.returnsAtEnd?.(c)))return [];
+  const prize=[...enemy].sort((a,b)=>(face(a)?atk(a):0)-(face(b)?atk(b):0))[0];
+  if(!face(prize)||prize.is_immune||atk(prize)<1200)return [];
+  const start=up('Magical Scientist')?useStep('Magical Scientist'):free>=2&&reveal('Magical Scientist');
+  return start?[{id:'scientist-swap',start,payoff:[prize],normal:start.kind==='summon',lost:[]}]:[];
+ }
+ // Revive a body to Tribute for the monster in hand that beats their board: Jinzo over a 1900 Skilled Dark Magician
+ // with Tribe-Infecting Virus in the Graveyard. Monster Reborn was refused and the field stayed empty (World Championship
+ // deck trace, 2026-11-22). Only when nothing in the Graveyards could do it alone.
+ const REVIVALS=['Monster Reborn','Premature Burial','Call of the Haunted'];
+ function reviveTributeLine(){
+  if(!spellsOk||free<1||!normalLeft())return [];
+  const wall=Math.max(0,...enemy.filter(t=>face(t)&&(t.position&1)).map(atk));
+  const lines=[];
+  for(const n of REVIVALS){
+   const start=useStep(n);if(!start||n==='Premature Burial'&&e.lp[p]<=800)continue;
+   const pool=[...q(p,L.GRAVE),...(n==='Monster Reborn'?q(1-p,L.GRAVE):[])].filter(c=>monster(c)&&!(data(c).type&0x4000)&&specialOk(c));
+   if(!pool.length)continue;
+   const best=Math.max(...pool.map(power));if(best>wall)continue;
+   const target=bestOf(hand.filter(c=>normalSummonable(c)&&tributes(c)===own.length+1&&power(c)>wall&&power(c)>=best+500))[0];
+   if(target)lines.push({id:'revive-tribute',start,payoff:[target],normal:true,tribute:true,lost:[]});
+  }
+  return lines.slice(0,1);
+ }
  // Lava Golem takes two of their monsters and burns its new owner, with a lock to stop it swinging back.
  function lavaGolemLine(){
   const start=specialStep('Lava Golem');if(!start||enemy.length<2)return [];
@@ -339,15 +377,15 @@ export function comboPlanner(x){
  function lines(){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
-  const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine];
-  const monsters=effectsEnabled(p)?[kaibamanLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine,...(main?[snipeLine]:[])]:[contactLine];
+  const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine,reviveTributeLine];
+  const monsters=effectsEnabled(p)?[kaibamanLine,ancientLampLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine,...(main?[snipeLine,scientistSwapLine]:[])]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
   for(const line of cached){line.kept??=[];line.lost??=[];line.strikers??=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}
   return cached;
  }
  // Lethal first, then the line ending on the biggest board. These lines are justified by what they do,
  // not by the size of the monster they leave behind.
- const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget','ritual-search','snipe']);
+ const selfJustified=new Set(['fire-princess','lava-golem','metamorphosis','spirit-swap','contact','fusion','arcana-setup','burst','gadget','ritual-search','snipe','scientist-swap']);
  function choose(useful){
   const direct=Math.max(0,...list('summons').filter(c=>tributes(c)===0).map(power));
   const candidates=lines().map(line=>({...line,lethal:(line.burn||0)>=e.lp[1-p]||line.strikers.length>0&&planDamage(line.strikers,line.removed||[],line.lost)>=e.lp[1-p]})).filter(line=>{

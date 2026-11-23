@@ -205,8 +205,9 @@ give(EFFECT_SET_BASE_ATTACK,math.floor(math.max(0,c:GetAttack())/2)) give(EFFECT
   # Macro Cosmos's rule for both players, from the start of the Duel.
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_TO_GRAVE_REDIRECT) e:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE) e:SetTargetRange(0xff,0xff) e:SetValue(LOCATION_REMOVED) Duel.RegisterEffect(e,0) end')
  elif key=='spell_provider':
+  # Only one card can hold a Spell Counter: it gets the counter without a prompt (itch.io, user 2026-11-22).
   holder='function(c) return c:IsFaceup() and c:IsCanAddCounter(COUNTER_SPELL,1) end'
-  out.append(phase('STANDBY',f'local g=Duel.GetMatchingGroup({holder},0,LOCATION_ONFIELD,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP) local s=g:Select(0,0,1,nil) if #s>0 then --[[relic-hint]] s:GetFirst():AddCounter(COUNTER_SPELL,1) end',
+  out.append(phase('STANDBY',f'local g=Duel.GetMatchingGroup({holder},0,LOCATION_ONFIELD,0,nil) local s=g if #g>1 then --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP) s=g:Select(0,0,1,nil) end if #s>0 then --[[relic-hint]] s:GetFirst():AddCounter(COUNTER_SPELL,1) end',
    f'Duel.IsExistingMatchingCard({holder},0,LOCATION_ONFIELD,0,1,nil)'))
  elif key=='cursed_restock':pass # Shop only: campaign_expansion.reroll_price and buy.
  elif key=='disturbed_sleep':
@@ -489,7 +490,7 @@ local function gate(e,tp) return function(x) return x:IsCode({GATE_GUARDIAN}) an
 # "Dark Magician": its quoted name is in their text. "Blue-Eyes" or "Red-Eyes" monsters: the name includes it.
 # tools/test_relics_nov15.py checks these lists against the card list.
 DARK_MAGICIAN,DARK_MAGICIAN_OF_CHAOS,BEWD,SHINING=46986414,40737112,89631139,53347303
-DARK_MAGICIANS=(46986414,38033121,50725996,40737112,73752131,90960358)
+DARK_MAGICIANS=(46986414,38033121,50725996,40737112,73752131,90960358,21296502)  # 21296502 Toon Dark Magician (2026-11-23)
 # The "Dark Magician" archetype (Dark Magician Girl's 0x30a2 included): Name Changer's pick adds it to your other monsters,
 # and Master and Apprentice and Magician's Bond ignored those (user on Discord, 2026-11-19).
 DARK_MAGICIAN_SET='0x10a2'

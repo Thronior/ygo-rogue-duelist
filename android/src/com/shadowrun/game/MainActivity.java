@@ -196,6 +196,15 @@ public final class MainActivity extends Activity {
             });
         }
 
+        /** Settings Display "Screen Orientation" (TheGamer3000, itch.io; user 2026-11-22, app only): auto follows the phone
+            as before (the manifest's fullUser); portrait and landscape still turn 180° when the phone's own rotation allows. */
+        @JavascriptInterface public void setOrientation(String mode) {
+            final int orientation="portrait".equals(mode)?android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                :"landscape".equals(mode)?android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                :android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
+            runOnUiThread(() -> { if(getRequestedOrientation()!=orientation)setRequestedOrientation(orientation); });
+        }
+
         /** Main menu close button (Discord, 2026-11-16): saves are already written, so the app just closes. */
         @JavascriptInterface public void quit() {
             runOnUiThread(MainActivity.this::finishAndRemoveTask);

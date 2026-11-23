@@ -45,6 +45,10 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
  // while they have a monster that could attack.
  if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;
+ // Summon negation (The Selection, Horn of Heaven: "negate the Summon", no "when" in the text) is legal only in the
+ // window while a monster is being summoned, which the core sends with no timing bits, so nothing below caught it and
+ // Chain sometimes passed it silently (Discord, Lexi, 2026-11-22: The Selection never asked against Summoned Skull).
+ if(mode==='sometimes'&&selects.some(choice=>/negate the (?:normal |special |flip |tribute )?summon/i.test(context.card?.(choice.code)?.desc||'')))return true;
  // The core uses 0x7f for optional trigger-effect selection, including effects
  // after a Special Summon resolves. These are decisions, not empty timing windows.
  if(m?.spe_count===0x7f&&m.selects?.length)return true;

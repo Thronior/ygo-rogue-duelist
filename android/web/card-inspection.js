@@ -9,7 +9,10 @@ export function cardFacts(c){
  const subs=monster?monsterSubtypes(t):[];
  let rows=row('Card type',label,'type-'+kind,subs.length?`<span class="card-subtype">${subs.join(' · ')}</span> · ${esc(label.replace(/ Monster$/,''))}`:null);
  if(monster){rows+=row('Attribute',c.attribute,'attribute-'+attributeIcon)+row('Level',c.level).replace('<div>', '<div><img class="genre-icon" src="assets/icons/level-star.png" alt="">')+row('Monster Type',c.race).replace('<div>', '<div>'+typeIcon(c))+row('ATK',c.atk<0?'?':c.atk)+row('DEF',c.defense<0?'?':c.defense);}
- return `<h3 class="inspect-card-name">${esc(c.name)}</h3><div class="inspect-facts">${rows}</div>${genreIcons(c)}`;
+ // Randomized cards (CrimsonLance, Discord 2026-11-21: read as plain rares) get a big rainbow title in the inspect window
+ // and the desktop hover (user, 2026-11-22). A static gradient, no animation.
+ const random=c.randomized?'<p class="randomized-title">??? RANDOMIZED ???</p>':'';
+ return `${random}<h3 class="inspect-card-name">${esc(c.name)}</h3><div class="inspect-facts">${rows}</div>${genreIcons(c)}`;
 }
 
 // Monster subtypes shown in gold before the base type, e.g. "Spirit · Effect".

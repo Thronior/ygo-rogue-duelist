@@ -1,3 +1,4 @@
+import {pageRect,pageWidth,pageHeight} from './ui-zoom.js';
 import {explainOnlineError} from './online-status.js';
 import {isRandomCard} from './random-cards.js';
 import {playUISound} from './ui-sounds.js';
@@ -171,7 +172,7 @@ export class CollectorUI {
   if(!el){el=document.createElement('div');el.id=id;el.setAttribute('role','timer');document.body.append(el)}
   const ms=(r.turnLeft?.[seat]??180000)-(actor===seat&&!paused?Math.max(0,now-r.clockAt):0),sec=Math.max(0,Math.ceil(ms/1000)),text=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
   el.className='duel-portrait-timer'+(actor===seat?' active':'')+(paused?' paused':'');el.textContent=text;el.setAttribute('aria-label',`${index===0?'Your':'Opponent'} timer: ${text}${paused?' (paused)':''}`);
-  const box=portrait.getBoundingClientRect(),width=Math.max(38,box.width);el.style.width=width+'px';el.style.left=Math.max(2,Math.min(innerWidth-width-2,box.left+(box.width-width)/2))+'px';el.style.top=Math.min(innerHeight-22,box.bottom+3)+'px';
+  const box=pageRect(portrait),width=Math.max(38,box.width);el.style.width=width+'px';el.style.left=Math.max(2,Math.min(pageWidth()-width-2,box.left+(box.width-width)/2))+'px';el.style.top=Math.min(pageHeight()-22,box.bottom+3)+'px';
  }
  }
  async updateDuel(r){if(!this.alive||r?.phase!=='duel'||r!==this.room)return;if(!r.hub){if(!this.oldMatchNotice){this.oldMatchNotice=true;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector','<p>This match started on an older version of the game, so it cannot continue here. Reopen it on the version it started on, or surrender it from there.</p>');}return;}const key=r.code+':'+r.game,engineSeat=this.seat^r.first;let fresh=false;

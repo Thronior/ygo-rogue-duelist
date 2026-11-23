@@ -36,3 +36,12 @@ assert.equal(count(marked,'<li class="got"'),2,'two tiers are gold');
 assert.equal(count(marked,'sc-feat got'),1,'the signature feat is gold');
 assert.equal(count(marked,'type="radio"'),SCORECARD_GROUPS.length+2,'All, one tab per group, and Feats');
 console.log(`PASS coin scorecard: ${rules.length} rules each shown once, pace ladder ${ladder.join('/')}, last-duel marking`);
+
+// Found hidden feats show their exact condition; unfound ones never appear (2026-11-22).
+{
+ const found=[{id:'last_draw',label:'The last draw',coins:100,hint:'Win the Duel with no cards left in your Deck.'}];
+ const shown=coinScorecardMarkup(rules,{},found);
+ assert.match(shown,/The last draw[\s\S]*class="sc-hint">Win the Duel with no cards left in your Deck\./);
+ assert.doesNotMatch(coinScorecardMarkup(rules,{},[]),/sc-hint|Hidden feats/);
+ console.log('PASS found hidden feats show their condition');
+}
