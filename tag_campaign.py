@@ -236,7 +236,7 @@ class TagCampaign:
 
   with self.scope(0):price=game.reroll_shop(run,self.rng)
 
-  for key in ('gold','shop','shop_rerolls','jar_shop_used','relic_locks','relic_skips'):self.shared[key]=deepcopy(run.get(key))
+  for key in ('gold','shop','shop_rerolls','jar_shop_used','relic_locks','relic_skips','relic_banishes'):self.shared[key]=deepcopy(run.get(key))
 
   self.sync()
 
@@ -614,7 +614,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('mark','marks','relic-lock','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-request','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('mark','marks','relic-lock','relic-banish','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-request','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -860,6 +860,20 @@ class TagCampaign:
    else:locks.append(key)
    self.shared['relic_locks']=locks;self.sync()
    return {'locked':key in locks}
+  # Relic banish (user, 2026-11-24): either player can banish a relic in the shared shop for 10 team coins. The host's run
+  # rolls the replacement, as it rolls the stock, and keeps the banish list, so neither player sees that relic again. The
+  # slot is a new relic now, so it leaves both carts and a waiting "buy" choice is cleared, like any cart change.
+  if action=='relic-banish':
+   # value = {index, id}: the relic the player saw, so a stale screen never banishes a different relic. The shop checks its
+   # own state, so this is an independent command like relic-lock.
+   self.require_shop(run)
+   host=self.players[0];index=int(value['index']) if isinstance(value,dict) else -1
+   if not 0<=index<len(self.shared['shop']) or self.shared['shop'][index].get('id')!=value.get('id'):raise ValueError('The shop changed. Choose the relic again.')
+   with self.scope(0):result=game.banish_relic(host,index,self.rng)
+   for key in ('gold','shop','relic_locks','relic_banishes'):self.shared[key]=deepcopy(host.get(key))
+   self.shopping['carts']=[[i for i in cart if i!=index] for cart in self.shopping['carts']]
+   self.shopping['locks']=[None if lock=='buy' else lock for lock in self.shopping['locks']];self.shopping['cart_rev']+=1
+   self.sync();return result
 
   if action=='choose-monster-type':
 
@@ -973,7 +987,13 @@ class TagCampaign:
 
   from collections import Counter
 
-  combined=deepcopy(self.players[0]);combined['curses']=list((Counter(self.players[0]['curses'])|Counter(self.players[1]['curses'])).elements())
+  # Both seats carry the same persistent curses (LVL 6); each seat adds its own boss's curses. Two bosses with the same
+  # curse stack (Discord 2026-11-24: two Brittle Guards applied once), the shared ones count once. Non-stacking curses
+  # (dedupe_curses) still apply once.
+  from feedback_update import dedupe_curses
+  level=self.players[0].get('challenge_level',0);base=Counter(self.shared.get('persistent_curses',[]) if level>=6 else [])
+  merged=list(base.elements())+[c for seat in (0,1) for c in (Counter(self.players[seat]['curses'])-base).elements()]
+  combined=deepcopy(self.players[0]);combined["curses"]=dedupe_curses(merged,level)
 
   self.shared['curses']=combined['curses']
 
@@ -1010,7 +1030,7 @@ class TagCampaign:
   self.sync()
   host=self.players[0]
   with self.scope(0):game.restock(host,self.rng)
-  for key in ('shop','shop_rerolls','relic_locks','relic_skips'):self.shared[key]=deepcopy(host.get(key))
+  for key in ('shop','shop_rerolls','relic_locks','relic_skips','relic_banishes'):self.shared[key]=deepcopy(host.get(key))
   self.sync();self.routes()
   self.phase='shop';self.shop_seat=0;self.shopping=self.new_shopping();self.ready=[False,False];self.duel=None
   self.finale={'votes':[False,False],'status':'available','winner':None};self.loop_votes=[False,False]
@@ -1149,7 +1169,7 @@ class TagCampaign:
 
   # One team reward and healing, not a duplicate payout per connected player.
 
-  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts','shop_rerolls','relic_locks','relic_skips'):self.shared[key]=deepcopy(host.get(key))
+  for key in ('gold','lp','artifacts','shop','round','curses','cursed_offer','cursed_artifacts','shop_rerolls','relic_locks','relic_skips','relic_banishes'):self.shared[key]=deepcopy(host.get(key))
 
   defeated=sorted(set(x for r in self.players for x in r.get('defeated_opponents',[])))
 

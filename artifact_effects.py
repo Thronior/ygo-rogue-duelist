@@ -15,7 +15,9 @@ def effect(kind,amount,attribute=''):
  from relic_fusions import effect as fused_effect
  result=fused_effect(kind)
  if result is not None:return result
- if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetTargetRange(LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end'''
+ # Face-down monsters too (Discord 2026-11-24: a Tag opponent's Change of Heart took a face-down monster; field effects skip
+ # Set cards without EFFECT_FLAG_SET_AVAILABLE). Player 0 is the whole team in Tag, so both partners' monsters are covered.
+ if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end'''
  if kind=='this_life_mine':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
 e:SetCondition(function(e,tp,eg,ep,ev) return not used and ep==0 and ev>0 end)
@@ -181,6 +183,9 @@ e:SetTarget(function(e,c) return c:IsMonster() and c:IsSetCard({SET_SPHINX}) end
  # Toon Premiere: a Toon World from the Deck goes face-up into the Spell & Trap Zone, so no 1000 LP is paid (no activation).
  if kind=='starting_toon_world':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
 e:SetOperation(function(e) e:Reset() local tc=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,15259703) if tc and Duel.GetLocationCount(0,LOCATION_SZONE)>0 then --[[relic-hint]] Duel.MoveToField(tc,0,0,LOCATION_SZONE,POS_FACEUP,true) end end) Duel.RegisterEffect(e,0) end'''
+ # Final Message (fused Destiny Hourglass + Sealed Fate, user 2026-11-24): Destiny Board from the Deck at the start of the Duel.
+ if kind=='starting_destiny_board':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local tc=Duel.GetFirstMatchingCard(Card.IsCode,0,LOCATION_DECK,0,nil,94212438) if tc and Duel.GetLocationCount(0,LOCATION_SZONE)>0 then --[[relic-hint]] Duel.MoveToField(tc,0,0,LOCATION_SZONE,POS_FACEUP,true) end end) Duel.RegisterEffect(e,0) end'''
  # Sealed Fate: Destiny Board (94212438) and Spirit Message "I"/"N"/"A"/"L" in our Spell & Trap Zone, face-up or Set.
  if kind=='destiny_untargetable':return '''do local t=Effect.GlobalEffect() t:SetType(EFFECT_TYPE_FIELD) t:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET) t:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
 t:SetTargetRange(LOCATION_SZONE,0) t:SetTarget(function(e,c) return c:IsCode(94212438,31893528,67287533,94772232,30170981) end) t:SetValue(1) Duel.RegisterEffect(t,0) end'''

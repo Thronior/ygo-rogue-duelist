@@ -12,19 +12,62 @@ const SLOT=600000,slotOf=at=>Math.floor(at/SLOT),slotKey=slot=>'rcpt:'+String(sl
 // instead of per upload. An instance restarting inside a window loses that window's not-yet-written increments
 // (an undercount, never a double count).
 const FLUSH=30000,FLUSH_AT=200;
+// CPU Stats (user, 2026-11-24): each finished solo duel against a CPU, as "opponent:tier:character:w|l" from the
+// player's side (w = the player won), in the batch's own "cpu" field. No player, run or device identity. Tiers: 0 the
+// opening duel's starter deck, 1-3 the run tiers, 4 a later loop (Tier 4 decks and Ultimate Collector decks).
+// Stored as one row per tier ('cpu:t0'..'cpu:t4', keys "opponent:character:w|l"), so a flush writes only the tiers it touched.
+const CPU=/^(\d{1,3}):([0-4]):(\d{1,3}):([wl])$/,MAX_CPU=16,MAX_CPU_KEYS=12000,cpuRow=tier=>'cpu:t'+tier,CPU_TIERS=[0,1,2,3,4];
 function totals(value){const t=value||{since:new Date().toISOString()};return {...t,...Object.fromEntries(fields.map(k=>[k,t[k]??(k==='firstTimePlayers'?t.devices||0:0)]))};}
-export default {fetch(request,env){if(request.method==='OPTIONS')return new Response(null,{status:204,headers});if(!['/v1/stats','/v2/stats'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);return env.STATS.get(env.STATS.idFromName('global-v1')).fetch(request)}};
+// Official builds only, a per-address limit and a daily ceiling (user, 2026-11-24). The STATS namespace, class and
+// global-v1 object are unchanged (AGENTS.md aggregate migration rule). See ../shared/official-build.mjs.
+import {officialBuild,rateLimited,UNOFFICIAL,TOO_MANY} from '../shared/official-build.mjs';
+import {overCap} from '../cloudflare/meter.mjs';
+export {RequestMeter} from '../cloudflare/meter.mjs';
+// The 10K player survey: its own Durable Object and routes (survey.mjs).
+import {adminAllowed} from './survey.mjs';
+import cpuSeed from './cpu-seed.mjs';
+export {SurveyAnswers} from './survey.mjs';
+const RATE_LIMIT=60;
+export default {async fetch(request,env,ctx){
+ if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
+ const path=new URL(request.url).pathname,survey=path==='/v1/survey'||path==='/v1/survey.csv';
+ if(!survey&&!['/v1/stats','/v2/stats','/v2/cpu-stats'].includes(path))return reply({error:'Not found'},404);
+ // The CSV export is for the maintainer's tool only (tools/export_survey.mjs), so it skips the build check.
+ if(path==='/v1/survey.csv'){if(!adminAllowed(request,env))return reply({error:'Unauthorized'},401);return env.SURVEY.get(env.SURVEY.idFromName('survey-v1')).fetch(request)}
+ if(overCap(env,ctx))return reply({error:"The online servers have reached today's usage limit.",serverLimit:true},503);
+ if(rateLimited(request,RATE_LIMIT))return reply(TOO_MANY.body,TOO_MANY.status);
+ if(!await officialBuild(request,env))return reply(UNOFFICIAL.body,UNOFFICIAL.status);
+ if(survey)return env.SURVEY.get(env.SURVEY.idFromName('survey-v1')).fetch(request);
+ return env.STATS.get(env.STATS.idFromName('global-v1')).fetch(request);
+}};
 export class GlobalStats{
- constructor(ctx){this.ctx=ctx;this.tail=Promise.resolve();this.rates=new Map();this.pending=null;
+ constructor(ctx,env,seed=cpuSeed){this.ctx=ctx;this.tail=Promise.resolve();this.rates=new Map();this.pending=null;
   this.ready=ctx.blockConcurrencyWhile(()=>ctx.storage.transaction(async storage=>{
-   if(await storage.get('migration:aggregate-v2'))return;
-   const previous=await storage.get('total'),total=totals(previous);
-   await storage.put({'migration:aggregate-v2':{capturedAt:new Date().toISOString(),previous:previous||null,baseline:total},total});
+   const rows={};
+   if(!await storage.get('migration:aggregate-v2')){
+    const previous=await storage.get('total'),total=totals(previous);
+    Object.assign(rows,{'migration:aggregate-v2':{capturedAt:new Date().toISOString(),previous:previous||null,baseline:total},total});
+   }
+   // CPU Stats seed (user, 2026-11-24): duels from player-submitted replays before the tab existed (cpu-seed.mjs, made by
+   // tools/cpu_stats_seed.mjs), added exactly once: the marker is written in the same transaction, so a restart or a
+   // later deploy never adds it again. It only adds to the CPU rows; the totals and the aggregate baseline are untouched.
+   if(seed?.cpu&&!await storage.get('migration:cpu-seed-v1')){
+    let added=0;
+    for(const tier of CPU_TIERS){const counts=seed.cpu['t'+tier];if(!counts)continue;
+     const tally=await storage.get(cpuRow(tier))||{since:seed.from||new Date().toISOString(),counts:{}};
+     if(seed.from&&seed.from<tally.since)tally.since=seed.from;
+     for(const [k,n] of Object.entries(counts)){if(!/^\d{1,3}:\d{1,3}:[wl]$/.test(k)||!Number.isSafeInteger(n)||n<1)continue;if(!(k in tally.counts)&&Object.keys(tally.counts).length>=MAX_CPU_KEYS)continue;tally.counts[k]=(tally.counts[k]||0)+n;added+=n}
+     rows[cpuRow(tier)]=tally;}
+    rows['migration:cpu-seed-v1']={addedAt:new Date().toISOString(),from:seed.from||null,to:seed.to||null,duels:added};
+   }
+   if(Object.keys(rows).length)await storage.put(rows);
   }));
  }
  async fetch(request){
   const work=async()=>{
    await this.ready;
+   const url=new URL(request.url);
+   if(url.pathname==='/v2/cpu-stats')return request.method==='GET'?this.cpuStats(url.searchParams.get('opponent'),url.searchParams.get('character')):reply({error:'Method not allowed'},405);
    if(request.method==='GET'){const t=totals(await this.ctx.storage.get('total')),r=await this.ctx.storage.get('results'),q=this.pending,counts={...(r?.counts||{})};
     // Totals include uploads still waiting in memory, so the numbers are live.
     if(q){for(const k of fields)t[k]+=q.counts[k];for(const [k,n] of Object.entries(q.results))counts[k]=(counts[k]||0)+n}
@@ -38,7 +81,7 @@ export class GlobalStats{
    const reader=request.body?.getReader();if(!reader)return reply({error:'Missing body'},400);let size=0,raw='';const decoder=new TextDecoder();
    for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>4096){await reader.cancel();return reply({error:'Too large'},413)}raw+=decoder.decode(value,{stream:true})}raw+=decoder.decode();
    const data=JSON.parse(raw);
-   if(!data||Object.keys(data).some(k=>!['batchId','expiresAt','counts','results'].includes(k))||! /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(data.batchId||''))throw Error('Invalid batch');
+   if(!data||Object.keys(data).some(k=>!['batchId','expiresAt','counts','results','cpu'].includes(k))||! /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(data.batchId||''))throw Error('Invalid batch');
    if(!Number.isSafeInteger(data.expiresAt)||data.expiresAt<=now||data.expiresAt>now+lifetime+60000)throw Error('Expired batch');
    if(!data.counts||typeof data.counts!=='object'||Array.isArray(data.counts)||Object.keys(data.counts).some(k=>!fields.includes(k)))throw Error('Invalid counts');
    const counts=Object.fromEntries(fields.map(k=>[k,data.counts[k]??0]));
@@ -46,15 +89,18 @@ export class GlobalStats{
    // Character Stats: finished runs as "character:challenge level:w|l" increments. No run or device identity.
    const results=data.results??{};
    if(!results||typeof results!=='object'||Array.isArray(results)||Object.keys(results).length>32||Object.entries(results).some(([k,n])=>!RESULT.test(k)||!Number.isSafeInteger(n)||n<1||n>1000))throw Error('Invalid results');
-   if(!fields.some(k=>counts[k])&&!Object.keys(results).length)return reply({accepted:true});
+   const cpu=data.cpu??{};
+   if(!cpu||typeof cpu!=='object'||Array.isArray(cpu)||Object.keys(cpu).length>MAX_CPU||Object.entries(cpu).some(([k,n])=>!CPU.test(k)||!Number.isSafeInteger(n)||n<1||n>1000))throw Error('Invalid CPU results');
+   if(!fields.some(k=>counts[k])&&!Object.keys(results).length&&!Object.keys(cpu).length)return reply({accepted:true});
    const key='batch:'+data.batchId,slot=slotKey(slotOf(data.expiresAt)),id=data.batchId.replace(/-/g,'');
    // A retry is recognised from memory, from a written receipt slot, or from an older per-batch receipt.
    if(this.pending?.ids.has(id))return reply({accepted:true});
    const receipts=await this.ctx.storage.get(slot)||[];
    if(receipts.includes(id)||await this.ctx.storage.get(key)!==undefined)return reply({accepted:true});
-   const fresh=!this.pending,q=this.pending??={counts:Object.fromEntries(fields.map(k=>[k,0])),results:{},slots:new Map(),ids:new Set(),since:now};
+   const fresh=!this.pending,q=this.pending??={counts:Object.fromEntries(fields.map(k=>[k,0])),results:{},cpu:{},slots:new Map(),ids:new Set(),since:now};
    for(const k of fields){q.counts[k]+=counts[k];if(!Number.isSafeInteger(q.counts[k]))throw Error('Counter overflow');}
    for(const [k,n] of Object.entries(results))q.results[k]=(q.results[k]||0)+n;
+   for(const [k,n] of Object.entries(cpu))q.cpu[k]=(q.cpu[k]||0)+n;
    // A receipt is only the random batch id in its expiry slot, never a per-device identity or activity history.
    q.ids.add(id);if(!q.slots.has(slot))q.slots.set(slot,[]);q.slots.get(slot).push(id);
    if(q.ids.size>=FLUSH_AT)await this.flush();
@@ -72,10 +118,25 @@ export class GlobalStats{
    const rows={total};
    // Tracking starts with the first recorded result; that date is shown as "since".
    if(Object.keys(q.results).length){const tally=await storage.get('results')||{since:new Date(q.since).toISOString(),counts:{}};for(const [k,n] of Object.entries(q.results)){if(!(k in tally.counts)&&Object.keys(tally.counts).length>=MAX_RESULT_KEYS)continue;tally.counts[k]=(tally.counts[k]||0)+n;if(!Number.isSafeInteger(tally.counts[k]))throw Error('Counter overflow');}rows.results=tally;}
+   // CPU results: only the tier rows this window touched are read and written.
+   const byTier=new Map();for(const [k,n] of Object.entries(q.cpu||{})){const [,opponent,tier,character,outcome]=CPU.exec(k);if(!byTier.has(tier))byTier.set(tier,[]);byTier.get(tier).push([opponent+':'+character+':'+outcome,n])}
+   for(const [tier,list] of byTier){const row=cpuRow(tier),tally=await storage.get(row)||{since:new Date(q.since).toISOString(),counts:{}};for(const [k,n] of list){if(!(k in tally.counts)&&Object.keys(tally.counts).length>=MAX_CPU_KEYS)continue;tally.counts[k]=(tally.counts[k]||0)+n;if(!Number.isSafeInteger(tally.counts[k]))throw Error('Counter overflow');}rows[row]=tally;}
    for(const [slot,ids] of q.slots){const receipts=await storage.get(slot)||[];for(const id of ids)if(!receipts.includes(id))receipts.push(id);rows[slot]=receipts;}
    await storage.put(rows);
   });
   if(this.pending===q)this.pending=null;
+ }
+ // GET /v2/cpu-stats: [player wins, player losses] per opponent in each tier ("tiers":{"1":{"12":[w,l]}}), or with
+ // ?opponent=N that opponent's record per player character ("tiers":{"1":{"5":[w,l]}}), or with ?character=N that
+ // player character's record per opponent ("tiers":{"1":{"12":[w,l]}}, for Character Stats). Waiting uploads are included.
+ async cpuStats(param,characterParam=null){
+  const id=v=>v===null?null:/^\d{1,3}$/.test(v)?Number(v):NaN,opponent=id(param),character=id(characterParam);
+  if(Number.isNaN(opponent)||Number.isNaN(character)||opponent!==null&&character!==null)return reply({error:'Invalid opponent'},400);
+  const rows=await Promise.all(CPU_TIERS.map(t=>this.ctx.storage.get(cpuRow(t)))),q=this.pending,tiers={};let since=null;
+  const add=(tier,key,n)=>{const [o,c,outcome]=key.split(':');if(opponent!==null&&Number(o)!==opponent||character!==null&&Number(c)!==character)return;const group=tiers[tier]||={},id=opponent===null?o:c,cell=group[id]||=[0,0];cell[outcome==='w'?0:1]+=Number(n)||0};
+  CPU_TIERS.forEach((t,i)=>{const row=rows[i];if(!row)return;if(!since||row.since<since)since=row.since;for(const [k,n] of Object.entries(row.counts||{}))add(t,k,n)});
+  if(q)for(const [k,n] of Object.entries(q.cpu||{})){const [,o,t,c,outcome]=CPU.exec(k);add(Number(t),o+':'+c+':'+outcome,n);const at=new Date(q.since).toISOString();if(!since||at<since)since=at}
+  return reply({since,...(opponent===null?{}:{opponent}),...(character===null?{}:{character}),tiers});
  }
  async alarm(){
   await this.ready;

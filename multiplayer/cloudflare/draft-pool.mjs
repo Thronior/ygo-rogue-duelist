@@ -42,7 +42,12 @@ export function draftPool(character,random=secureRandom,loop=false,variant=0){
  if(c.engine_deck||(c.copycat&&!c.variant))throw Error('This loadout is not available in Draft Duels.');
  const eligible=catalog.packs.filter(p=>!p.shop_only&&!p.draft_only&&!p.id.startsWith('DRAFT-')&&new Set([...p.common,...(p.rare||[])].map(id=>byId.get(id)?.name).filter(Boolean)).size>=9);
  const usual=c.starting_packs||Array.from({length:4},()=>c.pack==='RANDOM'||c.copycat||c.engine_deck?pick(eligible,random).id:c.pack);
- const ids=loop?[...usual]:[...usual,...usual],minimum=loop?minDeckFor(0):40;
+ // The draft loop opening also deals three different duelists' packs (Discord 2026-11-23, Deds/Dragunfire: too few packs
+ // to start with), one booster each, on top of the loadout's own.
+ // A randomized loadout (all Random Packs) gets three more Random Packs instead.
+ const extra=[],left=loop?[...DRAFT_PACKS]:[];if(loop&&usual.every(id=>id===RANDOM_PACK))extra.push(RANDOM_PACK,RANDOM_PACK,RANDOM_PACK);
+ while(extra.length<3&&left.length)extra.push(left.splice(Math.floor(random()*left.length),1)[0]);
+ const ids=loop?[...usual,...extra]:[...usual,...usual],minimum=loop?minDeckFor(0):40;
  for(let attempt=0;attempt<500;attempt++){
   // A Random Pack booster is a seed here; its nine cards count towards the minimum (they are all different).
   const seeds=[],packs=ids.map(id=>id===RANDOM_PACK?(seeds.push(randomSeed(random)),[]):openBooster(id,random)),pool=[...c.signatures,...packs.flat()];

@@ -15,7 +15,10 @@
     "LEGACY_BACKUPS": "block",
     // Daily ceiling on Worker requests (meter.mjs), back on for Workers Paid (user, 2026-11-16). Past it, online calls
     // get 503 until 00:00 UTC, so a flood cannot run up the bill. 0 or missing turns it off.
-    "DAILY_REQUEST_CAP": "1000000"
+    "DAILY_REQUEST_CAP": "1000000",
+    // Only official releases (signed build IDs) may use this Worker: multiplayer/shared/official-build.mjs. Self-hosters: remove BUILD_PUBLIC_KEY (or set your own), see SELF-HOSTING.md. UNSIGNED_UNTIL (ISO time) lets older unsigned releases in while players update; set it at release.
+    "BUILD_PUBLIC_KEY": "c-59GAosQ5eN_O1ad3ZyC0jSrQYkzhxvWB4SQVrooso",
+    "UNSIGNED_UNTIL": "2026-12-01T23:00:00Z"
   },
   "durable_objects": {
     "bindings": [

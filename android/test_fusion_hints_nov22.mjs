@@ -18,4 +18,10 @@ setFusionState(()=>({found:[fused],owned:[fused]}));
 assert.match(fusionHint(content,piece),/Fused this run/);
 setFusionState(()=>({found:[fused],owned:null}));
 assert.doesNotMatch(fusionHint(content,piece),/<em>/,'outside a run: no count');
+// Unstable DNA needs DNA Rewrite + Kindred Bond + 1 Surgery (Discord 2026-11-24): Kindred Bond + 2 Surgeries is 2 of 3.
+{const surgeries=content.fusionMaterials.unstable_dna.pieces.filter(p=>!['dna_rewrite','kindred_bond'].includes(p));
+setFusionState(()=>({found:[],owned:['kindred_bond',...surgeries.slice(0,2)]}));
+assert.match(fusionHint(content,'kindred_bond'),/You own 2 of 3/,'required pieces count');
+setFusionState(()=>({found:[],owned:['kindred_bond','dna_rewrite',...surgeries.slice(0,2)]}));
+assert.match(fusionHint(content,'kindred_bond'),/You own 3 of 3/,'both required + a Surgery');}
 console.log('PASS fusion hints on piece relics: discovered by name, undiscovered as a ??? silhouette');

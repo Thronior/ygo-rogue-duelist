@@ -1,9 +1,12 @@
 import variant_relics
 import challenge_levels
+import easy_mode
 """Nine-duel progression and persistent profile integration."""
 import random,uuid,json,time
 import shop_rewards,card_rarity,archetype_relics,relic_affinity
 from collections import Counter
+# Coins to banish a relic from the shop for the rest of the run (user, 2026-11-24).
+BANISH_PRICE=10
 import storage
 from content import *
 import passives,unlocks,encounters,endless
@@ -268,6 +271,7 @@ def install(g):
   count=min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
   from feedback_update import draw_curses
   if run.get('challenge_level',0)>=6:count=1
+  if easy_mode.active(run):count=0
   draw_routes=bool(boss or (rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6))
   distinct_opening=bool(rd==0 and not run.get('loop') and run.get('challenge_level',0)>=6)
   choices=[]
@@ -284,7 +288,9 @@ def install(g):
   else:boss_preview.ensure_curses(run,rng,boss_curse_block)
   run['reward_rules']=5
   run['revealed_opponents']=[]
- def new_run(index,rng=random,level=0,variant=0):
+ def new_run(index,rng=random,level=0,variant=0,easy=False):
+  # Easy mode plays by Level 0 rules with its own changes (easy_mode.py); the Challenge Level choice does not apply.
+  if easy:level=0
   level=challenge_levels.validate(index,level)
   reload_tuning()
   if index not in PLAYABLE_IDS or index not in storage.profile()['unlocked']:raise ValueError('This duelist is locked.')
@@ -315,6 +321,7 @@ def install(g):
    random_cards.start_pool(r,rng)
    r['packs']=[random_cards.open_pack(r,rng) for _ in pack_ids];r['pool']=sum(r['packs'],[]);r['selected']=[];r['guaranteed']=[]
   r['challenge_level']=level
+  if easy:easy_mode.start(r,[] if char.get('copycat') or char.get('engine_deck') else [g.BY_NAME[n]['id'] for n in easy_mode.REMOVAL],lambda run,cid:sum(g.limit_identity(run['pool'][i])==g.limit_identity(cid) for i in run['selected'])<3)
   if level>=4:r['lp']=4000
   relic='none' if level==-1 else char['starting_relic']
   cursed=cursed_relics.approved()
@@ -411,7 +418,7 @@ def install(g):
   from feedback_update import draw_curses, dedupe_curses, require_type_choice
   require_type_choice(run)
   persistent=run.get('challenge_level',0)>=6
-  boss=number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))
+  boss=(number%BOSS_EVERY==0 or (persistent and number==1 and not run.get('loop'))) and not easy_mode.active(run)
   if boss:
    count=1 if persistent else min(3,number//BOSS_EVERY)+3*run.get('loop',0)
    selected=run.get('route_curses',{}).get(str(run['opponent']))
@@ -490,9 +497,14 @@ def install(g):
   rng.shuffle(enemy)
   run['new_cards_from']=len(run['pool'])
   request['enemy_deck']=enemy[:]+enemy_extra[:]
+  # CPU Stats (user, 2026-11-24): the tier of the deck this CPU plays, for the anonymous per-opponent win/loss counts
+  # (global-stats.js recordCpuResult): 0 the opening starter deck, 1-3 the run tiers, 4 any later loop. Left out for
+  # duels that don't count: Tag, easy runs, the shopkeeper's secret, Fallen Collectors and the loop challenge.
+  if not (fallen or run.get('encore_active') or run.get('secret_challenge') or easy_mode.active(run) or run.get('history_mode')=='tag'):
+   request['cpu_tier']=4 if run.get('loop') else 0 if deck_round(run)==0 else min(3,deck_round(run)//3+1)
   from feedback_update import opponent_relic
   run['opponent_relic']=opponent_relic(dict(run,opponent_cards=request['enemy_deck']))
-  enemy_name=('BOSS: '+char['name']+' - '+' + '.join(CURSES[c][0] for c in run['curses'])) if number%BOSS_EVERY==0 else char['name']
+  enemy_name=('BOSS: '+char['name']+(' - '+' + '.join(CURSES[c][0] for c in run['curses']) if run['curses'] else '')) if number%BOSS_EVERY==0 else char['name']
   if fallen:enemy_name='Fallen '+fallen['name']
   if run.get('encore_active'):enemy_name=endless.encore_record(run)['name']
   # The shopkeeper's secret duel (user, 2026-11-18).
@@ -568,6 +580,9 @@ def install(g):
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
    notes['Challenge level penalty']=['−25%','']
+  if easy_mode.active(run):
+   bonus=easy_mode.coin_bonus(total);tally[easy_mode.BONUS_LINE]=bonus;total+=bonus
+   notes[easy_mode.BONUS_LINE]=[f'+{easy_mode.COIN_BONUS}%','']
   # The win's floor shows beside its line, so a penalty that it makes up is explained (Discord 2026-11-23: an Exodia win
   # at LVL 3+ looked like the penalty vanished).
   if card_win and total<card_win[1]:tally[card_win[0]]=card_win[1]-total;total=card_win[1];notes[card_win[0]]=[f'≥{card_win[1]}','']
@@ -578,6 +593,8 @@ def install(g):
   return {k:v for k,v in tally.items() if v},total
  def update_profile(run,won=False):
   import achievement_model,character_variants
+  # Easy runs never touch the profile: no achievement progress, unlocks, levels, sleeves or records (easy_mode.py).
+  if easy_mode.active(run):return
   p=storage.profile();previous={x['id'] for x in achievement_model.entries(p) if x['done']}
   had_variant=character_variants.unlocked(p,run['character'])
   p['max_gold']=max(p['max_gold'],run['gold']);p['max_bought']=max(p['max_bought'],run.get('purchased',0));p['max_artifacts']=max(p['max_artifacts'],len(run['artifacts']))
@@ -595,7 +612,7 @@ def install(g):
    p['highest_challenge_level']=max(challenge_levels.highest(p,i) for i in PLAYABLE_IDS)
    p['wins']+=1;p['won_as']=list(set(p['won_as']+[run['character']]));run['profile_complete']=True
   # The end screen celebrates the run that unlocked the second variant (Challenge LVL 2, or a full LVL -1 run).
-  if not had_variant and str(run['character']) in character_variants.VARIANTS and run['stage']=='complete' and (character_variants.unlocked(p,run['character']) or (run.get('challenge_level')==-1 and run.get('round',0)>=9)):run['variant_unlocked']=True
+  if not had_variant and str(run['character']) in character_variants.VARIANTS and run['stage']=='complete' and (character_variants.unlocked(p,run['character']) or (run.get('challenge_level')==-1 and not run.get('secret_challenge') and run.get('round',0)>=9)):run['variant_unlocked']=True
   import character_progression
   character_progression.observe(p,run)
   unlocked=set(p['unlocked'])|{0,1}
@@ -659,7 +676,8 @@ def install(g):
    run['shop_reward']=run.get('route_rewards',{}).get(str(run['opponent']),shop_rewards.reward_for(run['opponent']));run['bias']=run['shop_reward']['key'];run['round']+=0 if run.get('encore_active') else 1
    if boss:run['last_deck_minimum_increase']=max(0,ar.minimum(run)-minimum_before)
    cap=(4000 if run.get('challenge_level',0)>=4 else 8000)+2000*ar.copies(run,'ankh');overflow=0
-   if boss and ar.can_heal(run,between=True):
+   # Easy mode heals the boss's 2,000 LP after every won duel.
+   if (boss or easy_mode.active(run)) and ar.can_heal(run,between=True):
     healed=max(0,min(int(2000*ar.heal_scale(run)),cap-run['lp']));run['lp']+=healed;run['last_boss_heal']=healed;overflow=2000-healed
    heal=(amount(run,'victory_heal')+amount(run,'shop_heal')+(coins_before_rewards//10)*amount(run,'coin_heal')) if ar.can_heal(run,between=True) else 0
    # Ring of Defense: the LP the player's own cards took during this Duel (approved_relics.self_lp_lost).
@@ -723,7 +741,7 @@ def install(g):
    key={'summon':'monsters_summoned','activate':'cards_activated','attack':'attacks_declared','damage':'damage_dealt','damage_taken':'damage_taken'}.get(event.get('kind'))
    if key:stats[key]=stats.get(key,0)+(event.get('amount',0) if key in ('damage_dealt','damage_taken') else 1)
   run['personal_bests']=[]
-  if won:
+  if won and not easy_mode.active(run):
    # A first win only sets the records: there is nothing to beat yet.
    p=storage.profile();hit=max([e.get('amount',0) for e in result.get('events',[]) if e.get('kind')=='damage'],default=0)
    for key,label,value in (('best_payout','New best payout!',run['last_gold']),('best_hit','New biggest hit!',hit)):
@@ -811,6 +829,7 @@ def install(g):
   owned=[g.BY_ID[cid] for cid in set(run.get('pool',[])) if cid in g.BY_ID]
   for relic in sorted(archetype_relics.NEW_IDS & _arts):
    bonus=[c for c in eligible+[removal] if archetype_relics.matches(relic,c) and (relic!='fusion_chamber' or archetype_relics.fusion_offerable(c,owned))]
+   if relic=='destiny_hourglass':bonus=destiny_stock(run,bonus)
    if bonus:singles.append(rng.choice(bonus))
   items=[dict(kind='single',id=c['id'],price=15+(10 if c['level']>=5 else 0),sold=False) for c in singles]
   # Copycat's Randomizer (user, 2026-11-15): every single is one of the run's randomized cards, sold with the cards
@@ -871,10 +890,9 @@ def install(g):
    # A run with no purse yet (bare test or legacy runs) keeps the old behaviour and is offered the deck.
    if 'gold' not in run and not payment.in_lp(run) or payment.can_pay(run,deck_price+max(0,int(spend or 0))):
     items.append(dict(kind='deck',id=choice['id'],name=choice['name'],art=choice['art'],cards=choice['cards'][:],price=pre['price'],sold=False))
-  cursed=cursed_relics.approved()
   import choice_relics
   # How rare a relic is lives in archetype_relics.RARITY (was a coin flip here before 2026-11-13).
-  available=[a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve')]
+  available=shop_relic_pool(run)
   # The chosen category favours its relics after a duel; rerolls use normal weights.
   favored=frozenset() if general_stock else shop_rewards.category_relics(bias)
   count=min(3+amount(run,'extra_artifact')+2*ar.copies(run,'cursed_rusted_compass')+3*ar.copies(run,'grand_bazaar'),len(available))
@@ -896,6 +914,32 @@ def install(g):
   run.pop('restock_bought',None)
   relic_fusions.greed_free_relic(run,rng)
   challenge_levels.suppress(run)
+ def shop_relic_pool(run):
+  """Relics the shop may offer: eligible, not owned (Golden Sleeve stacks) and not banished this run."""
+  cursed=cursed_relics.approved();banished=set(run.get('relic_banishes') or [])
+  return [a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and a not in banished]
+ def banish_relic(run,index,rng=random):
+  """Banish a relic in stock (Discord suggestion, user 2026-11-24): pay BANISH_PRICE coins and the shop never offers it again
+  this run. Its slot restocks at once with another relic, rolled like a random relic slot; the slot empties when none is left."""
+  cursed_relics.require_choice(run)
+  if run.get('stage')!='shop':raise ValueError('Shop is closed.')
+  shop=run.get('shop',[]);index=int(index)
+  if not 0<=index<len(shop) or shop[index].get('kind')!='artifact' or shop[index].get('sold'):raise ValueError('Only relics in stock can be banished.')
+  import payment
+  key=shop[index]['id']
+  payment.pay(run,BANISH_PRICE,'a banish')
+  if not payment.in_lp(run):stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+BANISH_PRICE
+  banished=list(run.get('relic_banishes') or []);run['relic_banishes']=banished
+  if key not in banished:banished.append(key)
+  if key in (run.get('relic_locks') or []):run['relic_locks'].remove(key)
+  stocked={x['id'] for x in shop if x.get('kind')=='artifact'}
+  options=[a for a in shop_relic_pool(run) if a not in stocked]
+  modifier=max(0,1-amount(run,'discount')/100)
+  prices={a:ar.price(run,'artifact',max(1,round(ARTIFACTS[a][1]*modifier))) for a in options}
+  pick=archetype_relics.shop_sample(options,1,run,rng,frozenset(),1,prices) if options else []
+  if pick:shop[index]=dict(kind='artifact',id=pick[0],price=prices[pick[0]],sold=False)
+  else:shop[index]=dict(shop[index],sold=True,banished=True)
+  return {'banished':key,'replacement':pick[0] if pick else None}
  def reroll_price(run):
   if ar.free_use(run,'dice_jar','shop') or ar.restock_free_left(run)>0:return 0
   count=max(0,int(run.get('shop_rerolls',0) or 0))
@@ -950,6 +994,12 @@ def install(g):
   held={g.BY_ID[cid]['name'] for cid in run.get('pool',[]) if cid in g.BY_ID}
   missing=[g.BY_NAME[n] for n in sorted(archetype_relics.EXODIA-held)]
   return missing or [c for c in cards if shop_rewards.matches(c,'exodia') and c['name'] not in archetype_relics.EXODIA]
+ def destiny_stock(run,cards):
+  # Destiny Hourglass (user, 2026-11-24): the Destiny Board and Spirit Message pieces the card pool does not hold yet; with
+  # all five, its whole pool (Final Countdown too).
+  held={g.BY_ID[cid]['name'] for cid in run.get('pool',[]) if cid in g.BY_ID}
+  missing=[g.BY_NAME[n] for n in sorted(archetype_relics.DESTINY_PIECES-held) if n in g.BY_NAME and unlocks.card_allowed(g.BY_NAME[n])]
+  return missing or cards
  def acquire_relic(run,key,rng=random):
   """Add a relic and run its on-acquire effects; returns any cards it grants."""
   import choice_relics
@@ -963,6 +1013,7 @@ def install(g):
   # Not for decks the player does not build from the card pool, or a randomized run's own cards.
   if key in archetype_relics.STARTER_CARD and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck') or random_cards.has_pool(run)):
    cards=[c for c in g.CARDS if unlocks.card_allowed(c) and archetype_relics.matches(key,c)]
+   if key=='destiny_hourglass':cards=destiny_stock(run,cards)
    if cards:obtained.append(rng.choices(cards,weights=[card_rarity.weight(c['id']) for c in cards],k=1)[0]['id'])
   if key=='stamp':run['stamped_singles']=0
   if key=='ankh' and ar.can_heal(run,between=True):run['lp']=run['lp']+2000
@@ -1060,7 +1111,7 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','banish_relic','shop_relic_pool','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
  g.bounty_complete=bounty_complete
  g.ensure_bounty=ensure_bounty

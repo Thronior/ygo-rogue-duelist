@@ -13,6 +13,12 @@ const code=['juice.js','duel-motion.js','mobile.css','mobile.js'].map(f=>text('a
 for(const [key] of VISUAL_EFFECTS)assert.ok(code.includes(`effectOn('${key}')`)||code.includes('.no-fx-'+key),key+' is wired up');
 // Every voice goes through the Voice Lines level, not Sound Effects.
 const mobile=text('android/web/mobile.js');
+// The in-duel "+N coins" pop-ups follow Coin Reward Pop-ups and Coin & Shop Effects (player report 2026-11-24: they
+// still played with both off, because coinText was only checked for the payout window's texts).
+{const made=mobile.indexOf("el.className='float-coins'");assert.ok(made>0,'the in-duel coin pop-up exists');
+ const loop=mobile.lastIndexOf('for(const [label,coins] of Object.entries(earned))',made);assert.ok(loop>0&&made-loop<600,'found its loop');
+ assert.match(mobile.slice(loop-200,made),/const popups=effectOn\('coins'\)&&effectOn\('coinText'\)/,'reads both options');
+ assert.match(mobile.slice(loop,made),/if\(silent\|\|!popups\)continue;/,'skips the pop-up when either is off');}
 assert.match(mobile,/setEmoteVolumeReader\(\(\)=>state\?\.settings\?\.voice/);assert.match(mobile,/spoken\?state\?\.settings\?\.voice:state\?\.settings\?\.sound/);assert.match(text('android/web/juice.js'),/gain:loop\?\.55:voice\?1\.4:1,voice\}/);
 // Saved settings: new channels follow the old Sound Effects value, then stand alone; junk is dropped.
 const python=fs.existsSync(root+'python/python.exe')?root+'python/python.exe':'python';

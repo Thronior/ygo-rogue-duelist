@@ -5,6 +5,7 @@
 // first one added to the game (v0.2.36). Fragments are already in the player's language, so i18n.js skips them.
 import {currentLanguage} from './i18n.js';
 import {replayVersion} from './replay-version.js';
+import {surveyBanner,maybeShowSurvey,queueSurvey} from './survey.js';
 const SEEN_KEY='ygo-patch-notes-seen';
 // The sheets are laid out 1400 px wide, like the image; the window zooms them to fit.
 const SHEET_WIDTH=1400;
@@ -31,7 +32,8 @@ function fit(box){
 async function show(dialog,entries,title,onClosed=null){
  const parts=await Promise.all(entries.map(sheet));
  const body=parts.filter(Boolean).join('');
- dialog(title,body?`<div class="patch-notes" data-no-i18n>${body}</div>`:'<p class="muted patch-notes">No patch notes yet. They start with the next update.</p>');
+ // The 10K survey card (survey.js) sits above the sheets until it is sent.
+ dialog(title,surveyBanner()+(body?`<div class="patch-notes" data-no-i18n>${body}</div>`:'<p class="muted patch-notes">No patch notes yet. They start with the next update.</p>'));
  const box=document.querySelector('#modal .patch-notes, dialog[open] .patch-notes');if(!box)return;
  box.closest('dialog')?.classList.add('patch-notes-modal');
  fit(box);const ro=new ResizeObserver(()=>fit(box));ro.observe(box);
@@ -50,9 +52,13 @@ export async function openPatchNotes(dialog){
 let showing=false;
 export async function maybeShowNewPatchNotes(dialog,canShow){
  let seen=null;try{seen=localStorage.getItem(SEEN_KEY)}catch{}
- if(seen===replayVersion||showing)return;
+ if(showing)return;
+ // The 10K survey opens once too: on its own when the notes were seen, else once they are closed (survey.js waits for
+ // the window to close, so the notes never push it away).
+ if(seen===replayVersion){maybeShowSurvey(canShow);return}
  const {versions}=await loadIndex(),entry=versions.find(v=>v.version===replayVersion);
- if(!entry||showing||!canShow())return;
- showing=true;
- await show(dialog,[entry],`What's new in v${replayVersion}`,()=>{try{localStorage.setItem(SEEN_KEY,replayVersion)}catch{}});
+ if(!entry){maybeShowSurvey(canShow);return}
+ if(showing||!canShow())return;
+ showing=true;queueSurvey(canShow);
+ await show(dialog,[entry],`What's new in v${replayVersion}`,()=>{try{localStorage.setItem(SEEN_KEY,replayVersion)}catch{}showing=false});
 }

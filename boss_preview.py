@@ -16,6 +16,8 @@ def boss_round(rd):return rd-rd%BOSS_EVERY+BOSS_EVERY-1
 def active(run):return run.get('history_mode')!='tag' and not run.get('encore_active') and not run.get('secret_challenge')
 
 def curse_count(run,rd):
+ # Easy mode (2026-11-24): bosses have no curses.
+ if run.get('easy') and run.get('history_mode')!='tag':return 0
  return 1 if run.get('challenge_level',0)>=6 else min(3,(rd+1)//BOSS_EVERY)+3*run.get('loop',0)
 
 def planned(run):

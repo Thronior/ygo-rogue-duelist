@@ -68,6 +68,18 @@ def character_settings(raw):
   if packs:entry['packs']=packs
   if marks or entry['keepRunMarks'] or packs:out[str(index)]=entry
  return out
+# Rebound keyboard hotkeys (Settings > Hotkeys, user 2026-11-24): {action id: [key, key]}, only the actions the player
+# changed. android/web/hotkeys.js owns the action list and drops unknown ids and reserved keys itself; this keeps the
+# shape and the size bounded. '' is an empty slot.
+def hotkeys_setting(raw):
+ import re
+ out={}
+ if not isinstance(raw,dict):return out
+ for action,keys in list(raw.items())[:64]:
+  if not isinstance(action,str) or not re.fullmatch(r'[a-z0-9.-]{1,32}',action) or not isinstance(keys,list):continue
+  row=[k if isinstance(k,str) and (k=='' or re.fullmatch(r'[^\s\x00-\x1f\x7f]{1,24}',k)) else '' for k in keys[:2]]
+  out[action]=row+['']*(2-len(row))
+ return out
 def saved_marks(character):
  return dict(settings().get('characterSettings',{}).get(str(character),{}).get('marks') or {})
 # Auto-Placement is on until the player turns it off (user, 2026-11-23): saved settings carry autoPlacement=False for
@@ -84,7 +96,7 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),skipPackAnimations=bool(p.get('skipPackAnimations',False)),autoPickSingle=bool(p.get('autoPickSingle',True)),spinEffects=bool(p.get('spinEffects',True)),orientation=p.get('orientation') if p.get('orientation') in ('portrait','landscape') else 'auto',autoPlacement=bool(p.get('autoPlacement',False)) if p.get('autoPlacementSet') else True,autoPlacementSet=bool(p.get('autoPlacementSet',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),japaneseNames=bool(p.get('japaneseNames',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=50 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),sleeve=sleeve_setting(p.get('sleeve')),sleeveUnlockedFirst=bool(p.get('sleeveUnlockedFirst',False)),characterSettings=character_settings(p.get('characterSettings')))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),skipPackAnimations=bool(p.get('skipPackAnimations',False)),autoPickSingle=bool(p.get('autoPickSingle',True)),spinEffects=bool(p.get('spinEffects',True)),orientation=p.get('orientation') if p.get('orientation') in ('portrait','landscape') else 'auto',autoPlacement=bool(p.get('autoPlacement',False)) if p.get('autoPlacementSet') else True,autoPlacementSet=bool(p.get('autoPlacementSet',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),japaneseNames=bool(p.get('japaneseNames',False)),deckSplit=bool(p.get('deckSplit',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=50 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),cpuDelay=bounded('cpuDelay',0,0,1000),sleeve=sleeve_setting(p.get('sleeve')),sleeveUnlockedFirst=bool(p.get('sleeveUnlockedFirst',False)),characterSettings=character_settings(p.get('characterSettings')),hotkeys=hotkeys_setting(p.get('hotkeys')))
 
 
 def sleeve_setting(value):
@@ -152,7 +164,7 @@ def run_slots():
   run=read(run_path(slot))
   if isinstance(run,dict) and run.get('stage')=='gameover':archive_run(run);clear_run(slot);run=None
   occupied=run_path(slot).exists() or run_path(slot).with_suffix('.bak').exists()
-  summary={k:run.get(k) for k in ('character','round','loop','stage','lp','challenge_level','last_played_at')} if isinstance(run,dict) else None
+  summary={k:run.get(k) for k in ('character','round','loop','stage','lp','challenge_level','easy','last_played_at')} if isinstance(run,dict) else None
   slots.append(dict(slot=slot,run=summary,occupied=occupied and run is not None))
  return slots
 
@@ -161,10 +173,13 @@ def archive_run(run):
  """Compact terminal summary, saved before a lost slot is cleared. Upsert per loop."""
  # Randomized cards (ids 191,000,000-200,999,999) live only in their run save, so history keeps real cards only (Nov 17).
  if not isinstance(run,dict) or run.get('stage') not in ('complete','gameover'):return
+ # Beating Angry Grandpa hands the run back (secret_challenge.return_after_win); it is not a finished run (Discord, 2026-11-24).
+ if returned_secret(run):return
  stable=run.get('history_id') or hashlib.sha256(encoded([run.get('started_at'),run.get('character'),run.get('_save_slot'),run.get('packs',[])])).hexdigest()[:24]
  run['history_id']=stable;key=stable+':'+str(run.get('loop',0))
  row={k:run.get(k) for k in ('character','challenge_level','round','loop','lp','gold','started_at','finished_at','stats','loss','artifacts','encore_won','unlocks_earned','content_unlocks_earned')}
  row.update(id=key,cursed_artifacts=run.get('cursed_artifacts'),secret_challenge=run.get('secret_challenge'),deck=[cid for cid in (run['pool'][i] for i in run.get('selected',[]) if 0<=i<len(run.get('pool',[]))) if not 191_000_000<=cid<201_000_000],mode=run.get('history_mode','solo'),partner=run.get('history_partner'),result='complete' if run.get('round',0)>=9 or run.get('stage')=='complete' else 'lost',timeline=[x for x in run.get('timeline',[]) if x.get('loop',1)==run.get('loop',0)+1])
+ if run.get('easy'):row['easy']=True
  p=profile();rows=p.setdefault('run_history',[])
  old=next((i for i,x in enumerate(rows) if x.get('id')==key),None)
  if old is not None:
@@ -173,12 +188,19 @@ def archive_run(run):
  else:rows.append(row)
  write(ROOT/'profile.json',p)
 
+def returned_secret(row):
+ """A won shopkeeper's secret duel: a copy of a run in progress, not a run of its own."""
+ return row.get('secret_challenge')=='relicless' and (row.get('stage')=='complete' or row.get('result')=='complete')
+
 def run_history():
  # Recover summaries from any terminal legacy saves still present on this device.
  for slot in (1,2,3):
   run=read(run_path(slot))
   if isinstance(run,dict) and run.get('stage') in ('complete','gameover'):archive_run(run)
- return sorted(profile().get('run_history',[]),key=lambda row:row.get('finished_at') or row.get('started_at') or 0,reverse=True)
+ p=profile();rows=p.get('run_history',[])
+ # Rows saved by a won secret duel before Nov 24 showed it as a completed LVL -1 run with the copied run's duels.
+ if any(isinstance(row,dict) and returned_secret(row) for row in rows):p['run_history']=rows=[row for row in rows if not (isinstance(row,dict) and returned_secret(row))];write(ROOT/'profile.json',p)
+ return sorted(rows,key=lambda row:row.get('finished_at') or row.get('started_at') or 0,reverse=True)
 
 
 def merge_desktop_profile(raw, metrics=()):
@@ -236,7 +258,8 @@ _registration_migrated=None
 _collection_aliases={int(k):v for k,v in json.loads((Path(__file__).parent/'data/card-aliases.json').read_text(encoding='utf8')).items()}
 def register_collection(value):
  """Register owned cards only, never shop offers, opponents, or preview decks."""
- if not isinstance(value,dict):return
+ # Easy runs unlock nothing, so their cards stay out of the collection too (easy_mode.py).
+ if not isinstance(value,dict) or value.get('easy'):return
  ids=set()
  def collect(row):
   if not isinstance(row,dict):return

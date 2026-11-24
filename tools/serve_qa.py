@@ -4,6 +4,8 @@ from pathlib import Path
 import os
 ROOT=Path(__file__).resolve().parents[1]
 os.chdir(ROOT/'android/web')
+# The local survey demo's answers (survey_csv.py); outside the repository.
+SURVEY_CSV=Path(os.environ.get('SURVEY_CSV','D:/Codex Exports/Demos/2026-11-24-player-survey/survey-answers.csv'))
 class QA(SimpleHTTPRequestHandler):
  def do_GET(self):
   if self.path.split('?')[0]=='/mobile.js':
@@ -21,8 +23,18 @@ if 'gy' in __import__('js').location.search:r['artifacts']=r['artifacts']+['corp
    anchor="screen='title';render();await notices();"
    assert anchor in text,'mobile.js startup changed; update the QA fixture'
    text=text.replace(anchor,fixture,1)
+   # 10K survey demo: answers go to this server's CSV recorder (do_POST); ?survey-reset shows the popup again.
+   text="globalThis.YGO_SURVEY_ENDPOINT='/qa/survey';if(new URLSearchParams(location.search).has('survey-reset'))for(const k of ['ygo-survey-10k-seen','ygo-survey-10k-draft','ygo-survey-10k-outbox','ygo-survey-10k-done'])localStorage.removeItem(k);"+text
    data=text.encode();self.send_response(200);self.send_header('Content-Type','text/javascript; charset=utf-8');self.end_headers();self.wfile.write(data)
+  elif self.path.split('?')[0]=='/qa/survey.csv' and SURVEY_CSV.exists():
+   data=SURVEY_CSV.read_bytes();self.send_response(200);self.send_header('Content-Type','text/csv; charset=utf-8');self.send_header('Content-Disposition','attachment; filename="survey-answers.csv"');self.end_headers();self.wfile.write(data)
   else:super().do_GET()
+ def do_POST(self):
+  if self.path.split('?')[0]!='/qa/survey':self.send_error(404);return
+  import json,sys;sys.path.insert(0,str(ROOT/'tools'));import survey_csv
+  try:fresh=survey_csv.append(SURVEY_CSV,json.loads(self.rfile.read(min(int(self.headers.get('Content-Length') or 0),8192))));status=200 if fresh else 409
+  except ValueError as e:status=400;print('survey answer refused:',e,flush=True)
+  self.send_response(status);self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(b'{}')
 QA.extensions_map.update({'.js':'text/javascript','.mjs':'text/javascript','.wasm':'application/wasm'})
 def serve(handler,default):
  """Serve on $PORT, else the default port, moving to the next free one so parallel sessions don't collide."""

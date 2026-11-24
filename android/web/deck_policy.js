@@ -735,7 +735,8 @@ export function deckPolicy(x){
   if(n==='Juragedo')return raBoostScore(c)>=0?30000+raBoostScore(c):-100000;
   if(n==='Human-Wave Tactics')return ownCard&&c.location===L.DECK&&lowNormal(c)?30000+atk(c):-100000;
   if(n==='Enchanting Fitting Room')return ownCard&&lowNormal(c)?30000+atk(c):-100000;
-  if(n==='Terraforming')return ownCard&&c.location===L.DECK&&name(c)==='Pandemonium'?50000:-100000;
+  // Any Field Spell from the Deck, Pandemonium first (T4 review, 2026-11-24: Terraforming was never used outside Archfiends).
+  if(n==='Terraforming')return ownCard&&c.location===L.DECK&&(data(c).type&0x80000)?(name(c)==='Pandemonium'?50000:30000):-100000;
   if(n==='Pandemonium')return ownCard&&c.location===L.DECK&&monster(c)&&name(c).includes('Archfiend')?30000+atk(c):-100000;
   if(n==='Frontline Base')return ownCard&&c.location===L.HAND&&(data(c).type&1024)&&lvl(c)<=4?50000+projectedAttack(c):-100000;
   if(n==='Ninjitsu Art of Transformation')return ownCard&&[L.HAND,L.DECK].includes(c.location)&&monster(c)&&['Beast','Winged Beast','Insect'].includes(race(c))?30000+projectedAttack(c):-100000;

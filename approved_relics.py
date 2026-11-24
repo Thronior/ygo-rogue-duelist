@@ -216,6 +216,23 @@ def minimum(run):
  thinning=0 if run.get('secret_challenge') else copies(run,'deck_thinning')
  return max(20,progress+10*copies(run,'cursed_collectors_burden')-10*thinning)
 
+def trim_to_copy_limit(run):
+ """Drop deck copies over copy_limit, keeping the first of each card (Discord 2026-11-24: copies already in the Deck stayed
+ there after Singleton Pact). Owned cards stay in the pool. Returns how many copies left the Deck."""
+ import campaign
+ from collections import Counter
+ limit=copy_limit(run)
+ if limit is None:return 0
+ counts=Counter();kept=[]
+ for i in sorted(set(run.get('selected',[]))):
+  if i>=len(run.get('pool',[])):continue
+  key=campaign.limit_identity(run['pool'][i])
+  if counts[key]<limit:kept.append(i);counts[key]+=1
+ removed=len(run.get('selected',[]))-len(kept);run['selected']=kept
+ # Below the minimum after that: top up with auto-fill's picks (one copy each), so the next duel can still start.
+ if removed:run['selected']=sorted(run['selected']+campaign.fill_picks(run))
+ return removed
+
 def copy_limit(run):
  """Copies of one card a deck may hold; None means no limit (Broken Limiter)."""
  if 'broken_limiter' in run.get('artifacts',[]):return None

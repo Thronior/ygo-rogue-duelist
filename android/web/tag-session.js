@@ -4,6 +4,7 @@ import {validEmote,showDuelEmote,clearDuelEmotes} from './duel-emotes.js';
 import {storeReplay,saveRecording,captureBehaviour,uploadBehaviour,sendUnsentFlags} from './replays.js';
 import {TagPeer} from './tag-peer.js';
 import {TagDuel} from './tag-duel.js';
+import {M} from './duel.js';
 import {replayVersion} from './replay-version.js';
 import {isDuelAdmin,isRunAdmin,showAdminText} from './room-admin.js';
 const encode=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
@@ -314,7 +315,8 @@ export class TagSession {
   this.aiTimer=setTimeout(()=>paced.then(()=>{if(ticket===this.aiTicket)return this.enqueue(async()=>{
    if(ticket!==this.aiTicket||this.engine!==owner||owner.pending?.player!==1)return;
    const before={turn:owner.turn,phase:owner.phase},response=owner.auto();owner.respond(response);await this.commit({seat:null,response:encode(response)},before);
-  })}),this.engine.inDamageStep?40:120);
+  // The host's CPU Action Delay setting (mobile.js) slows the CPU's actions, not its chain-window passes.
+  })}),(this.engine.inDamageStep?40:120)+(this.engine.pending?.type===M.SELECT_CHAIN?0:(globalThis.shadowCpuDelay?.()||0)));
  }
  // Room tool actions (room-admin.js, tools/room-admin) arrive from the hub on both devices. Each shows text and emotes
  // itself; the host alone changes the duel (one shared log entry, so the guest applies it at the same step) or the run

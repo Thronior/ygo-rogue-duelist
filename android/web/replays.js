@@ -2,7 +2,9 @@ import {replayVersion} from './replay-version.js';
 // Uploads only ever start from a player's tap, so a used-up daily allowance stops the current upload, not later ones.
 import {quotaExhausted} from './quota-pause.js';
 // Local, lossless duel journals. Uploads are initiated by players in Settings or Flag behaviour.
-export const REPLAY_ENDPOINT='https://ygo-rogue-replays.hadow--un--esktop.workers.dev/v1/replays';
+// The address comes from multiplayer-config.json, through the generated official-build.js (SELF-HOSTING.md).
+import {servers} from './servers.js';
+export const REPLAY_ENDPOINT=servers.replays+'/v1/replays';
 export const stringify=value=>JSON.stringify(value,(_,v)=>typeof v==='bigint'?{$bigint:String(v)}:v);
 export const parse=text=>JSON.parse(text,(_,v)=>v&&typeof v==='object'&&Object.keys(v).length===1&&'$bigint'in v?BigInt(v.$bigint):v);
 const clone=value=>parse(stringify(value));

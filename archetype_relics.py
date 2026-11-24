@@ -22,12 +22,16 @@ METALMORPH_CARDS={'Metalmorph','Zoa','Metalzoa','Red-Eyes Black Dragon','Red-Eye
 FAMILY=NEW_IDS|{'toon_world','legendary_shackles','archfiend_contract'}
 # Rarely bought archetype relics (2026-11-16 balance picks): 60 coins, and buying one adds 1 random card from its pool
 # to the card pool (campaign_expansion.acquire_relic). A starting relic does not add one.
+# Destiny Hourglass (user, 2026-11-24, after CITYDRIVER on Discord): like Legendary Shackles, the pieces the card pool is
+# missing come first, in the shop and when acquired (campaign_expansion.destiny_stock).
+DESTINY_PIECES={'Destiny Board','Spirit Message "I"','Spirit Message "N"','Spirit Message "A"','Spirit Message "L"'}
 STARTER_CARD={'ninja_scroll','destiny_hourglass','guardian_arsenal','scorpion_emblem'}
 PRICES={'fusion_chamber':80,'ritual_dagger':80}|{key:60 for key in STARTER_CARD}
 def install(artifact):
  for key,name,label,art in DEFINITIONS:
   text=f'Every shop and reroll offers one additional random card from this pool: {label}.'
   if key in STARTER_CARD:text+=' When acquired, add 1 random card from this pool to your card pool.'
+  if key=='destiny_hourglass':text+=' "Destiny Board" and "Spirit Message" cards your card pool is missing come first.'
   artifact(key,name,PRICES.get(key,85),text,art,'archetype_stock',1,'economy')
 # Family relics (user, 2026-11-18): never offered before the card pool holds one of their cards (has_member, in
 # campaign_expansion.shop_relic_eligible); after that FAMILY_BASE plus FAMILY_PER_CARD for every matching Deck card (a Yes
@@ -38,7 +42,7 @@ FAMILY_BASE,FAMILY_PER_CARD,FAMILY_CAP=.25,1.0,10.0
 # (relic_affinity.card_multipliers), the product capped at FUSED_STOCK_CAP.
 FUSED_STOCK={'harpie_nest':'harpie_feather','zaloog_hideout':'scorpion_emblem','amazoness_village':'amazoness_standard',
  'necrovalley_throne':'necrovalley_tablet','fusion_gate':'fusion_chamber','union_buster':'union_dock',
- 'guardians_armory':'guardian_arsenal','terrorking_magnus':'archfiend_contract','toon_kingdom':'toon_world'}
+ 'guardians_armory':'guardian_arsenal','terrorking_magnus':'archfiend_contract','toon_kingdom':'toon_world','final_message':'destiny_hourglass'}
 FUSED_STOCK_BOOST,FUSED_STOCK_CAP=4.0,30.0
 def is_archfiend(c):return 'archfiend' in c['name'].lower() or _setcode(c,0x45)
 def fused_stock_test(run):
@@ -282,7 +286,7 @@ def matches(key,c):
  if key=='union_dock':return bool(typ&0x400) or n in {'X-Head Cannon','XY-Dragon Cannon','XZ-Tank Cannon','YZ-Tank Dragon','XYZ-Dragon Cannon','Formation Union','Combination Attack','Union Rider','Frontline Base'}
  if key=='ocean_relic':return n=='Umi' or '"Umi"' in t or n=='Ocean Dragon Lord - Neo-Daedalus'
  if key=='evolution_tablet':return (bool(typ&1) and bool(re.search(r' LV[0-9]+$',n))) or n in {'Level Up!','The Graveyard in the Fourth Dimension',"Horus' Servant"}
- if key=='destiny_hourglass':return n in {'Destiny Board','Spirit Message "I"','Spirit Message "N"','Spirit Message "A"','Spirit Message "L"','Final Countdown'}
+ if key=='destiny_hourglass':return n in DESTINY_PIECES|{'Final Countdown'}
  return False
 
 # Fusion Chamber (2026-11-16 balance picks): a Fusion Monster is offered only while the card pool holds one of its Fusion

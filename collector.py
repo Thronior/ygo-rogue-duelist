@@ -17,6 +17,10 @@ def save(data):storage.write(storage.ROOT/'collector.json',data)
 
 def dispatch(action,value):
  data=load();value=value or {}
+ # Card marks (★/✕, card-marks.js) in Ultimate Collector (CITYDRIVER, user 2026-11-24): each duelist keeps the marks of
+ # the run it came from. Duelists imported before that start from their character's saved marks (Character settings).
+ for d in data['duelists']:
+  if d.get('status')=='alive' and not isinstance(d.get('card_marks'),dict):d['card_marks']=storage.saved_marks(d.get('character'))
  if action=='list':return data
  if action=='import':
   slot=int(value['source']);source=storage.read(storage.run_path(slot))
@@ -32,7 +36,8 @@ def dispatch(action,value):
   occupied={d['slot'] for d in data['duelists'] if d['status']=='alive'}
   target=int(value['slot'])
   if target not in range(1,10) or target in occupied:raise ValueError('Choose an empty Collector slot.')
-  duelist=dict(id=uuid.uuid4().hex,token=uuid.uuid4().hex+uuid.uuid4().hex,slot=target,name=name,character=source['character'],pool=source_pool,status='alive',wins=0,history=[],deck={'main':[],'side':[],'extra':[]},created=int(time.time()*1000))
+  marks={str(k):v for k,v in (source.get('card_marks') or {}).items() if v in (1,-1)}
+  duelist=dict(id=uuid.uuid4().hex,token=uuid.uuid4().hex+uuid.uuid4().hex,slot=target,name=name,character=source['character'],pool=source_pool,status='alive',wins=0,history=[],deck={'main':[],'side':[],'extra':[]},created=int(time.time()*1000),card_marks=marks)
   data['duelists'].append(duelist);data['pending_move']={'slot':slot,'run':source};save(data)
   storage.clear_run(slot);data.pop('pending_move');save(data)
   return data
@@ -42,6 +47,17 @@ def dispatch(action,value):
   if duelist.get('status')!='deleted':raise ValueError('Confirm deletion with the server first.')
   data['duelists']=[d for d in data['duelists'] if d['id']!=duelist['id']]
   save(data);storage.write((storage.ROOT/'collector.json').with_suffix('.bak'),data);return data
+ if action=='mark':
+  # value: {id, card: one card id or a list, mark: 1 (★), -1 (✕) or 0 (none)}. Local only; the server never sees marks.
+  if duelist['status']!='alive':raise ValueError('This duelist has been eliminated.')
+  ids=value.get('card');ids=ids if isinstance(ids,list) else [ids];mark=value.get('mark')
+  if mark not in (-1,0,1) or not ids or len(ids)>30000 or any(not isinstance(i,int) or isinstance(i,bool) for i in ids):raise ValueError('Unknown card')
+  marks=dict(duelist.get('card_marks') or {})
+  for cid in ids:
+   if mark:marks[str(cid)]=mark
+   else:marks.pop(str(cid),None)
+  if len(marks)>30000:raise ValueError('Too many marked cards.')
+  duelist['card_marks']=marks;save(data);return data
  if action=='draft':
   if duelist['status']!='alive':raise ValueError('This duelist has been eliminated.')
   deck=value.get('deck',{})

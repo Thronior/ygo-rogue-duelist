@@ -27,6 +27,9 @@ FUSED=[
  ('attribute_mutation','Attribute Mutation','All your monsters are treated as having every Attribute.','DNA Transplant',tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
  # Eriko's design (Discord 2026-11-21, built as written at the user's choice): DNA Rewrite + Kindred Bond + any 1 Surgery relic.
  ('unstable_dna','Unstable DNA',"At the start of each Duel, select one Type and one Attribute. All of both players' monsters everywhere become the selected Type and Attribute. Monsters you control gain 100 ATK for every face-up monster on the field with the selected Type and Attribute.",'Swamp Mirrorer',('dna_rewrite','kindred_bond')+tuple('attribute_'+a for a in ('light','dark','fire','water','wind','earth'))),
+ # The user's design (2026-11-24): the first fusion of two fused relics. It fuses once both are made (ORDER keeps it after
+ # them), and while it is owned they count as owned, so their pieces are not offered again (have()).
+ ('genetic_override','Genetic Override',"All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.",'DNA Surgery',('attribute_mutation','unstable_dna')),
  # Cursed fusions (2026-11-04): one shadow relic and its regular partners. A relic may belong to several sets;
  # the set completed first uses it up, and the shop keeps offering it while another set still needs it.
  ('bottomless_purse','Bottomless Purse','Earn 80 additional coins after each victory, and 80 more after each boss victory.','Gold Sarcophagus',('cursed_loaded_purse','champion_trophy','urn')),
@@ -62,8 +65,12 @@ FUSED=[
  ('toon_kingdom','Toon Kingdom','At the start of each Duel, place 1 "Toon World" from your Deck face-up in your Spell & Trap Zone. "Toon World" you control cannot be destroyed by card effects. Toon monsters you control gain 500 ATK and can attack the turn they are Summoned.','Toon Dark Magician',('toon_world','toon_premiere')),
  # The user's design (2026-11-23): all three Sphinx relics. Its Summon replaces Bond of Egypt's search.
  ('chimera_sphinx','Chimera Sphinx','At the start of each Duel, place 1 "Pyramid of Light" face-up in your Spell & Trap Zone. "Pyramid of Light" you control cannot be destroyed by card effects. If you Normal or Tribute Summon a "Sphinx" monster: Special Summon 1 "Sphinx" monster, or 1 monster that mentions "Sphinx" in its text, from your Deck, ignoring its Summoning conditions. "Sphinx" monsters in your hand become Level 4.','Theinen the Great Sphinx',('pyramid_of_lightning','bond_of_egypt','shadow_of_anubis')),
+ # The user's design (2026-11-24, after CITYDRIVER on Discord): both Destiny Board relics.
+ ('final_message','Final Message','At the start of each Duel, place 1 "Destiny Board" from your Deck face-up in your Spell & Trap Zone. "Destiny Board" and "Spirit Message" cards you control cannot be targeted or destroyed by card effects.','Spirit Message "L"',('destiny_hourglass','sealed_fate')),
  # The user's design (2026-11-23): the three Insect relics. Perfectly Ultimate Great Moth art is mine.
  ('insect_swarm','Insect Swarm','Insect monsters you control gain 800 ATK/DEF. Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 "Moth Token" whose ATK/DEF are equal to the combined ATK/DEF of all face-up Insect monsters you control.','Perfectly Ultimate Great Moth',('hive','chitin_carapace','moth_brood')),
+ # The user's design (2026-11-24, Discord thread "Plant support"): the three Plant relics. Tytannial art is mine.
+ ('eternal_garden','Eternal Garden','Plant monsters you control gain 800 ATK. Each time a face-up Plant monster you control is destroyed: Gain LP equal to the ATK it had on the field, then Special Summon 1 "Dandelion Token" (Plant/EARTH/Level 3/ATK 1000/DEF 1000).','Tytannial, Princess of Camellias',('photosynthesis','spring_growth','pollinator')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -80,9 +87,14 @@ INCLUDES={'jar_of_greed':('dice_jar','cyber_jar','morphing_jar_2'),'grand_bazaar
 SHARED_EFFECT={'gold_sarcophagus':('discount',50),'sacred_phoenix':('phoenix',1000)}
 SHEEP_TOKEN=73915052
 MOTH_TOKEN=190000057  # data/custom-tokens.json (Insect Swarm)
+DANDELION_TOKEN=190000058  # data/custom-tokens.json (Eternal Garden)
 
 NEW_KEYS=frozenset({'spell_counter_engine','level_up_chain','terrorking_magnus','spirit_sanctuary',
-                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna','chimera_sphinx','insect_swarm'})
+                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna','genetic_override','chimera_sphinx','insect_swarm','final_message','eternal_garden'})
+
+def have(artifacts,key):
+ """Owned, or used up in a fused relic the run owns (Genetic Override holds Attribute Mutation and Unstable DNA)."""
+ return key in artifacts or any(key in pieces and have(artifacts,fused) for fused,pieces in RECIPES.items())
 
 def install(artifact, new=False):
  from content import ARTIFACTS,ART_INFO
@@ -103,7 +115,7 @@ def absorbed(run,key):
  """A piece whose every set this run already fused: it is not offered again."""
  owned=run.get('artifacts',[]);sets=[fused for fused,pieces in RECIPES.items() if key in pieces]
  # A set with fixed pieces (Unstable DNA) only keeps its optional pieces wanted once all its fixed pieces are owned.
- closed=lambda fused:fused in owned or (fused in REQUIRED and key not in REQUIRED[fused] and not all(p in owned for p in REQUIRED[fused]))
+ closed=lambda fused:have(owned,fused) or (fused in REQUIRED and key not in REQUIRED[fused] and not all(p in owned for p in REQUIRED[fused]))
  return bool(sets) and all(closed(fused) for fused in sets)
 
 def fuse(run):
@@ -114,9 +126,9 @@ def fuse(run):
   owned=[p for p in pieces if p in artifacts]
   if key in REQUIRED:
    need=REQUIRED[key]
-   if key in artifacts or not all(p in artifacts for p in need):continue
+   if have(artifacts,key) or not all(p in artifacts for p in need):continue
    owned=list(need)+[p for p in owned if p not in need][:NEEDED[key]-len(need)]
-  if key in artifacts:
+  if have(artifacts,key):
    if key not in NEEDED:continue
    # A Surgery that arrives after its set fused (Blank Relic) joins the fused relic quietly.
    for p in owned:artifacts.remove(p)
@@ -135,7 +147,7 @@ def fuse(run):
  if made:run.setdefault('fusion_events',[]).extend(made);run['sleeve_relic_fusions']=int(run.get('sleeve_relic_fusions',0) or 0)+len(made)
  # The relic window shows a fused relic's pieces only once the profile knows it; that used to wait for the end of the
  # next Duel (update_profile), so a new fusion read "???" until then (Discord, 2026-11-16). Solo runs record it now.
- if made and run.get('history_mode')!='tag':
+ if made and run.get('history_mode')!='tag' and not run.get('easy'):  # Easy runs discover nothing (easy_mode, 2026-11-24)
   try:
    import storage
    prof=storage.profile();known=set(prof.get('fused_relics',[]));new={m['relic'] for m in made}-known
@@ -239,6 +251,24 @@ Duel.RegisterEffect(dice,0) end'''
  local atk=Effect.GlobalEffect() atk:SetType(EFFECT_TYPE_FIELD) atk:SetCode(EFFECT_UPDATE_ATTACK) atk:SetTargetRange(LOCATION_MZONE,0)
  atk:SetTarget(function(e,c) return c:IsFaceup() end)
  atk:SetValue(function(e,c) return 100*Duel.GetMatchingGroupCount(chosen,0,LOCATION_MZONE,LOCATION_MZONE,nil) end) Duel.RegisterEffect(atk,0) end"""
+ if key=='genetic_override':
+  # Yours gain every Type and Attribute wherever they are; the opponent's become the pick, asked like Unstable DNA's at the
+  # first Draw Phase. The ATK counts every monster in both Monster Zones, face-down ones too (the user's text).
+  return f"""do local mine=LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE
+ for _,row in ipairs({{{{EFFECT_ADD_RACE,RACE_ALL}},{{EFFECT_ADD_ATTRIBUTE,ATTRIBUTE_ALL}}}}) do
+  local x=Effect.GlobalEffect() x:SetType(EFFECT_TYPE_FIELD) x:SetCode(row[1]) x:SetTargetRange(mine,0)
+  x:SetTarget(function(e,c) return c:IsMonster() end) x:SetValue(row[2]) Duel.RegisterEffect(x,0) end
+ local asked=false
+ local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_DRAW)
+ e:SetCondition(function() return not asked end)
+ e:SetOperation(function(e) asked=true e:Reset()
+  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_RACE) local race=Duel.AnnounceRace(0,1,{unstable_races()})
+  --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_ATTRIBUTE) local attr=Duel.AnnounceAttribute(0,1,ATTRIBUTE_ALL&~ATTRIBUTE_DIVINE)
+  for _,row in ipairs({{{{EFFECT_CHANGE_RACE,race}},{{EFFECT_CHANGE_ATTRIBUTE,attr}}}}) do
+   local x=Effect.GlobalEffect() x:SetType(EFFECT_TYPE_FIELD) x:SetCode(row[1]) x:SetTargetRange(0,LOCATION_ALL)
+   x:SetTarget(function(e,c) return c:IsMonster() end) x:SetValue(row[2]) Duel.RegisterEffect(x,0) end end)
+ Duel.RegisterEffect(e,0) end
+"""+stat('EFFECT_UPDATE_ATTACK','function() return 300*Duel.GetFieldGroupCount(0,LOCATION_MZONE,LOCATION_MZONE) end')
  if key=='attribute_mutation':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_ATTRIBUTE)
 e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(ATTRIBUTE_ALL) Duel.RegisterEffect(e,0) end'''
  if key in ('bottomless_purse','grand_bazaar'):return '' # shop and coin rules only (campaign_expansion, approved_relics.price)
@@ -262,6 +292,10 @@ e:SetTarget(function(e,c) return c:IsDefensePos() end) e:SetCountLimit(1) e:SetV
  local b=Effect.GlobalEffect() b:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) b:SetCode(EVENT_PHASE_START|PHASE_BATTLE_START) b:SetCondition(function() return Duel.GetTurnPlayer()==0 end) b:SetOperation(free) Duel.RegisterEffect(b,0)
 end'''
   return '\n'.join((base('starting_toon_world',0,''),keep,stat('EFFECT_UPDATE_ATTACK',500,'c:IsType(TYPE_TOON)'),fresh))
+ if key=='final_message':
+  from artifact_effects import effect as base
+  keep='''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_SZONE,0) e:SetTarget(function(e,c) return c:IsCode(94212438,31893528,67287533,94772232,30170981) end) e:SetValue(1) Duel.RegisterEffect(e,0) end'''
+  return chr(10).join((base('starting_destiny_board',0,''),base('destiny_untargetable',0,''),keep))
  if key=='chimera_sphinx':
   # Pyramid of Lightning's Pyramid, kept from every card effect (yours too; bouncing or banishing it still works); Shadow of
   # Anubis' Level 4 without its condition; and on a Normal or Tribute Summon of a "Sphinx", 1 Sphinx monster (or Exxod) from
@@ -331,6 +365,17 @@ end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
   end
  end
  Duel.SpecialSummonComplete()''',f'Duel.IsExistingMatchingCard({insect},0,LOCATION_MZONE,0,1,nil)')
+ if key=='eternal_garden':
+  # Per destroyed face-up Plant (tokens too): LP equal to its ATK on the field (the +800 included), then a Dandelion Token
+  # while a Monster Zone is free. The token is a Plant, so it heals and replaces itself when destroyed (the user's design).
+  fallen='function(c) return c:IsPreviousControler(0) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsPreviousPosition(POS_FACEUP) and (c:GetPreviousRaceOnField()&RACE_PLANT)~=0 end'
+  return stat('EFFECT_UPDATE_ATTACK',800,'c:IsRace(RACE_PLANT)')+'\n'+event('EVENT_DESTROYED',f'''for c in eg:Filter({fallen},nil):Iter() do
+  local atk=math.max(c:GetPreviousAttackOnField(),0)
+  if atk>0 then Duel.Recover(0,atk,REASON_EFFECT) end
+  if Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsPlayerCanSpecialSummonMonster(0,{DANDELION_TOKEN},0,TYPES_TOKEN,1000,1000,3,RACE_PLANT,ATTRIBUTE_EARTH) then
+   Duel.SpecialSummon(Duel.CreateToken(0,{DANDELION_TOKEN}),0,0,0,false,false,POS_FACEUP)
+  end
+ end''',f'eg:IsExists({fallen},1,nil)')
  if key=='level_up_chain':
   from artifact_effects import effect as base
   lv='c:IsSetCard(SET_LV)'

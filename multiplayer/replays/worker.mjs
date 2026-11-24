@@ -55,9 +55,21 @@ export function exportReplays(env,after,ctx){
  ctx?.waitUntil?.(pump);
  return new Response(readable,{headers:{...cors,'Content-Type':'application/octet-stream','X-Replay-Format':'ygr-frames-1'}});
 }
+// Official builds only, a per-address limit and a daily ceiling (user, 2026-11-24: no stranger may run up the bill).
+// The maintainer's export proves itself with REPLAY_ADMIN_TOKEN. See ../shared/official-build.mjs and ../cloudflare/meter.mjs.
+import {officialBuild,rateLimited,UNOFFICIAL,TOO_MANY} from '../shared/official-build.mjs';
+import {overCap} from '../cloudflare/meter.mjs';
+export {RequestMeter} from '../cloudflare/meter.mjs';
+const RATE_LIMIT=60;
 export default {async fetch(req,env,ctx){
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  const url=new URL(req.url);if(url.pathname==='/health')return reply({ok:true});
+ const admin=!!env.REPLAY_ADMIN_TOKEN&&req.headers.get('Authorization')==='Bearer '+env.REPLAY_ADMIN_TOKEN;
+ if(!admin){
+  if(overCap(env,ctx))return reply({error:"The online servers have reached today's usage limit.",serverLimit:true},503);
+  if(rateLimited(req,RATE_LIMIT))return reply(TOO_MANY.body,TOO_MANY.status);
+  if(!await officialBuild(req,env))return reply(UNOFFICIAL.body,UNOFFICIAL.status);
+ }
  if(req.method==='POST'&&url.pathname==='/v1/replays/batch')return uploadBatch(req,env);
  if(req.method==='POST'&&url.pathname==='/v1/replays'){
   if(Number(req.headers.get('content-length'))>=MAX_REPLAY_BYTES)return reply({error:'Replay too large'},413);

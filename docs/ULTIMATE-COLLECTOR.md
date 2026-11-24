@@ -9,7 +9,8 @@ Supported clients: shared Android/web interface only.
 - Match loser is eliminated; winner gains a rank up to God and five copies chosen from the defeated starting Main/Side/Fusion decks. Prize receipt is idempotent.
 - Only surviving winners appear in the public top 10. Histories include individual game outcomes and earned cards.
 - Each participant has a cumulative five-minute disconnect budget per match. Gaps below 15 seconds are free; longer gaps count in full. Reconnecting never refills it. Connected opponents see a countdown after 20 seconds.
-- Decision clocks are 180 seconds per participant per turn, charged to the player currently asked to act. They pause when a disconnect is detected. Timer expiry forfeits the match.
+- Decision clocks are 180 seconds per participant per turn, charged to the player currently asked to act. They pause when a disconnect is detected. Each play (Summon, Set, activation, chain activation) adds 15 seconds, never above 180 seconds remaining and at most 180 seconds per turn. Timer expiry loses that duel only; the match continues (since 2026-11-24, `hub.mjs` reports `timeout`). The timer turns red in its last 60 seconds.
+- Pauses: each player may ask twice per match (five asks, one minute between declined asks); the opponent must accept within 30 seconds. A pause freezes the turn clock and the disconnect allowance for up to 3 minutes and ends early when the asker resumes or makes a play. Draft Duels keep the old clock and have no pauses.
 - Both clients reconstruct the same engine from the durable action journal and agree on the game outcome. Invalid local selections are checked before submission; the server enforces seat ownership, stale-action checks, decks, timers and awards.
 
 ## Validation

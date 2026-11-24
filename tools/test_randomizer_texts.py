@@ -54,6 +54,17 @@ BAD = [
     (re.compile(r'During the end of the Battle Phase|battles a monster with [A-Z]|\bYou can this card\b'), 'clumsy block wording'),
     (re.compile(r'Summons [^:]*your opponent Summons\b|\b[Ss]huffle (?:it|them)[.;]|While it is the Battle Phase,[^.]*during the Battle Phase'), 'clumsy dealt wording'),
     (re.compile(r'\(Super Roboyarou\)|paired Fusion Monster|lower Ultimate Insect LV monster|Union Monster by this effect'), 'a real card\'s own piece on another card'),
+    # review of 500 dealt cards (Nov 24)
+    (re.compile(r'the matching (?:card )?type|tribute-count|[Ss]et up this card'), 'vague or internal block wording'),
+    (re.compile(r'\b(?:Gain \d+ LP\. Gain|Inflict \d+ damage to your opponent\. Inflict) \d+'), 'two amounts that should be one'),
+    (re.compile(r'(When|If) this card ([^:,]{6,60}): \1 this card \2'), 'a timing written twice'),
+    (re.compile(r"(?<![\w\"])'[A-Z][\w ]*'s'"), "an archetype in single quotes"),
+    (re.compile(r'\b(?:you control|controls) (?:face-up )?[A-Z][\w-]* monster\b'), 'missing "a" before a monster'),
+    (re.compile(r'\bYou cannot [^.;]*, then [Tt]arget'), 'a restriction joined to a target'),
+    (re.compile(r"your opponent (?:Normal|Flip)[\w, ]* Summons[^:]*, if it is your turn"), 'opponent Normal Summon during your turn'),
+    # whimsy (Nov 24): a twist that took the timing an action speaks about, a rule said twice
+    (re.compile(r'(?:^|\. )(?:Once per turn: )?You can [^.:]*\bthis card is (?:attacking|battling)'), 'speaks about an attack with no attack timing'),
+    (re.compile(r'Cannot be Special Summoned\.[^\n]*cannot be Special Summoned'), '"cannot be Special Summoned" twice'),
 ]
 SETUP_ALONE = re.compile(r'^Place 1 counter on this card during each of your Standby Phases\.$')
 problems = []
@@ -118,6 +129,11 @@ for card in cards:
         verb = {'sent': r'\b[Ss]end', 'discarded': r'\b[Dd]iscard', 'banished': r'\b[Bb]anish'}[m.group(1)]
         if not re.search(verb, text[:m.start()].split('. ')[-1]):
             problems.append((card['id'], game['name'], kind, 'counts a cost the effect does not have: ' + m.group(0)))
+    if kind.startswith('Fusion') and re.search(r'(?:If|When) this card is (?:sent|discarded) from your (?:hand|Deck)|this card is discarded', text):
+        problems.append((card['id'], game['name'], kind, 'a Fusion Monster with a hand or Deck timing'))
+    if 'Monster' in kind and re.search(r'Normal Summon(?:ed)?(?:/Set)?(?: this card)? (?:with \d Tribute|without Tributing|by Tributing)', text) \
+       and (game.get('level') or 0) < 5:
+        problems.append((card['id'], game['name'], kind, f'a Tribute rule on a Level {game.get("level")} monster'))
     if 'Monster' in kind and re.search(r'this card is Tribute Summoned', text) and not re.search(r'Normal Summoned/Set with \d Tribute', text):
         need = 7 if 'Tributing 3' in text else 5
         if (game.get('level') or 0) < need:
@@ -141,6 +157,21 @@ for card in cards:
         data = game['data']
         if not (data['attack'] or data['defense']) or not data['level']:
             problems.append((card['id'], game['name'], kind, 'Trap Monster without stats in its card data'))
+
+# A Draft booster's cards only name cards of that booster: a batch it skipped must not be named (500-card review,
+# Nov 24: "Special Summon 1 'X' from your hand" named a card that never existed in the game)
+import random_cards
+for booster_seed in range(60):
+    first = random_cards.DRAFT_FIRST + booster_seed * random_cards.DRAFT_BLOCK
+    booster = random_cards.draft_booster(1000 + booster_seed, first)
+    own = {c['id'] for c in booster}
+    for card in booster:
+        for e in card.get('effects') or []:
+            for cat in R.CATEGORIES:
+                for p in e.get(cat, []):
+                    for code in list(p.get('codes') or []) + ([p['code']] if isinstance(p.get('code'), int) else []):
+                        if code >= R.FIRST_ID and code not in own:
+                            problems.append((card['id'], card['name'], 'draft booster', f'names card {code}, not in its booster'))
 
 for p in problems[:40]:
     print('FAIL', *p)

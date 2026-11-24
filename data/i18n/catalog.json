@@ -26374,5 +26374,95 @@
   "en": "Insect monsters you control gain 800 ATK/DEF. Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 \"Moth Token\" whose ATK/DEF are equal to the combined ATK/DEF of all face-up Insect monsters you control.",
   "kind": "exact",
   "ctx": "relic effect (insect_swarm)"
+ },
+ {
+  "group": "relic",
+  "en": "Every shop and reroll offers one additional random card from this pool: Destiny Board, Spirit Messages, or Final Countdown. When acquired, add 1 random card from this pool to your card pool. \"Destiny Board\" and \"Spirit Message\" cards your card pool is missing come first.",
+  "kind": "exact",
+  "ctx": "relic effect (destiny_hourglass)"
+ },
+ {
+  "group": "relic",
+  "en": "Final Message",
+  "kind": "exact",
+  "ctx": "relic name (final_message)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, place 1 \"Destiny Board\" from your Deck face-up in your Spell & Trap Zone. \"Destiny Board\" and \"Spirit Message\" cards you control cannot be targeted or destroyed by card effects.",
+  "kind": "exact",
+  "ctx": "relic effect (final_message)"
+ },
+ {
+  "group": "relic",
+  "en": "Photosynthesis",
+  "kind": "exact",
+  "ctx": "relic name (photosynthesis)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase: Gain 300 LP for each face-up Plant monster you control.",
+  "kind": "exact",
+  "ctx": "relic effect (photosynthesis)"
+ },
+ {
+  "group": "relic",
+  "en": "Spring Growth",
+  "kind": "exact",
+  "ctx": "relic name (spring_growth)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase: Each face-up Plant monster you control gains 200 ATK.",
+  "kind": "exact",
+  "ctx": "relic effect (spring_growth)"
+ },
+ {
+  "group": "relic",
+  "en": "Pollinator",
+  "kind": "exact",
+  "ctx": "relic name (pollinator)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your End Phase, if you control a face-up Plant monster: Special Summon 1 \"Moth Token\" (Insect/EARTH/Level 1/ATK 300/DEF 300) in Defense Position.",
+  "kind": "exact",
+  "ctx": "relic effect (pollinator)"
+ },
+ {
+  "group": "relic",
+  "en": "Eternal Garden",
+  "kind": "exact",
+  "ctx": "relic name (eternal_garden)"
+ },
+ {
+  "group": "relic",
+  "en": "Plant monsters you control gain 800 ATK. Each time a face-up Plant monster you control is destroyed: Gain LP equal to the ATK it had on the field, then Special Summon 1 \"Dandelion Token\" (Plant/EARTH/Level 3/ATK 1000/DEF 1000).",
+  "kind": "exact",
+  "ctx": "relic effect (eternal_garden)"
+ },
+ {
+  "group": "character",
+  "en": "Overgrown Garden",
+  "kind": "exact",
+  "ctx": "variant title of Weevil Underwood"
+ },
+ {
+  "group": "ui",
+  "en": "Genetic Override",
+  "kind": "exact",
+  "ctx": "relic_fusions.py"
+ },
+ {
+  "group": "ui",
+  "en": "All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.",
+  "kind": "exact",
+  "ctx": "relic_fusions.py"
+ },
+ {
+  "group": "ui",
+  "en": "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.",
+  "kind": "exact",
+  "ctx": "android/web/mobile.js persist"
  }
 ]

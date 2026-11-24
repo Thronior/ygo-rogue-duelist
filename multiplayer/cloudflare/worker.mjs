@@ -9,6 +9,9 @@ export {RequestMeter} from './meter.mjs';
 import {overCap} from './meter.mjs';
 import {Registry} from './registry.mjs';
 import {adminRoute} from './admin.mjs';
+import {officialBuild,rateLimited,UNOFFICIAL,TOO_MANY} from '../shared/official-build.mjs';
+// Per address per minute (rateLimited): Tag/Draft play stays far below it; a flood is cut off.
+const RATE_LIMIT=300;
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
 const limited=()=>reply(503,{error:"The online servers have reached today's usage limit.",serverLimit:true});
@@ -27,6 +30,13 @@ export default {async fetch(request,env,ctx){
  try{
   const path=new URL(request.url).pathname;
   if(request.method!=='OPTIONS'&&path!=='/health'&&overCap(env,ctx))return limited();
+  // Only official releases (signed build ID) past this point; the admin tool has its own token. See official-build.mjs.
+  // Maintainer tools prove themselves with their own token (the room tool on /v3/admin, backup list/export).
+  const auth=request.headers.get('Authorization')||'',admin=[env.ADMIN_TOKEN,env.BACKUP_ADMIN_TOKEN].some(t=>t&&auth==='Bearer '+t);
+  if(request.method!=='OPTIONS'&&path!=='/health'&&path!=='/v3/admin'&&!admin){
+   if(rateLimited(request,RATE_LIMIT))return reply(TOO_MANY.status,TOO_MANY.body);
+   if(!await officialBuild(request,env))return reply(UNOFFICIAL.status,UNOFFICIAL.body);
+  }
   if(path==='/status'){await env.ROOMS.get(env.ROOMS.idFromName('rooms-v1')).fetch(new Request('https://rooms/status-ping',{method:'GET'}));return reply(200,{online:true})}
   return await route(request,env);
  }catch(error){return serverTrouble(error)}

@@ -37,5 +37,9 @@ assert.equal(exposed.taken,2250);assert.equal(exposed.seen,true,'1500 x 1.5 = 22
 const halved=await offered({curses:['exposed'],artifacts:['cursed_defense_proficiency']});
 console.log('Exposed + Defense Proficiency:',JSON.stringify(halved));
 assert.equal(halved.seen,false,'halved again (1125) does not offer it');checks++;
+// Hollow Chalice (shadow relic, id cursed_hollow_chalice): you take 50% more damage (behaviour flag 061a3450, 2026-11-24).
+const chalice=await offered({curses:[],artifacts:['cursed_hollow_chalice']});
+console.log('Hollow Chalice:',JSON.stringify(chalice));
+assert.equal(chalice.seen,true,'1500 x 1.5 from Hollow Chalice offers Nutrient Z');checks++;
 console.log(`PASS Nutrient Z counts battle damage changes from relics and curses (${checks} checks)`);
 process.exit(0);

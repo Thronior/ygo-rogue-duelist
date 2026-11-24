@@ -1271,9 +1271,12 @@ R.Cost.send_st_cost_max5={check=function(e,tp)
 		Duel.SendtoGrave(g,REASON_COST)
 		e:SetLabel(#g)
 	end}
-R.Cost.discard_self_hand={check=function(e) return e:GetHandler():IsDiscardable() end,
+--Costs paid with this card from the hand: hand=true makes its effect activate from the hand (activated() range).
+--Before Nov 24 the effect stayed on the field and sent itself from there (Discord, Goldlibra: "You can send this card
+--from your hand to the GY; Special Summon ..." was not offered from the hand).
+R.Cost.discard_self_hand={hand=true,check=function(e) local c=e:GetHandler() return c:IsLocation(LOCATION_HAND) and c:IsDiscardable() end,
 	pay=function(e) Duel.SendtoGrave(e:GetHandler(),REASON_COST+REASON_DISCARD) end}
-R.Cost.send_self_hand_cost={check=function(e) return e:GetHandler():IsAbleToGraveAsCost() end,
+R.Cost.send_self_hand_cost={hand=true,check=function(e) local c=e:GetHandler() return c:IsLocation(LOCATION_HAND) and c:IsAbleToGraveAsCost() end,
 	pay=function(e) Duel.SendtoGrave(e:GetHandler(),REASON_COST) end}
 R.Cost.ninjitsu_transform_tribute={check=function(e,tp)
 	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
@@ -4269,18 +4272,20 @@ R.Act.opp_choose_spell_deck_gy={cat=CATEGORY_TOGRAVE,
 		local g=Duel.SelectMatchingCard(opponent,filter,opponent,LOCATION_DECK,0,1,1,nil)
 		if #g>0 then Duel.SendtoGrave(g,REASON_EFFECT) end
 	end}
-R.Act.pixie_knight_spell_topdeck={cat=CATEGORY_TODECK,target=true,loc1=LOCATION_GRAVE,loc2=0,
-	filter=function(c) return c:IsSpell() and c:IsAbleToDeck() end,
+-- "Your opponent chooses 1 Spell in your GY to place on top of your Deck": chosen as it resolves, no target (Nov 24;
+-- the text read "You can target 1 Spell Card in your GY chosen by your opponent")
+R.Act.pixie_knight_spell_topdeck={cat=CATEGORY_TODECK,
 	check=function(e,tp) return Duel.IsExistingMatchingCard(function(c) return c:IsSpell() and c:IsAbleToDeck() end,tp,LOCATION_GRAVE,0,1,nil) end,
-	prep=function(e,tp)
+	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_GRAVE) end,
+	op=function(e,tp)
 		local filter=function(c) return c:IsSpell() and c:IsAbleToDeck() end
+		if not Duel.IsExistingMatchingCard(aux.NecroValleyFilter(filter),tp,LOCATION_GRAVE,0,1,nil) then return end
 		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_TODECK)
-		local g=Duel.SelectTarget(1-tp,filter,tp,LOCATION_GRAVE,0,1,1,nil)
-		Duel.SetOperationInfo(0,CATEGORY_TODECK,g,#g,0,0)
-	end,
-	op=function(e)
-		local tc=Duel.GetFirstTarget()
-		if tc and tc:IsRelateToEffect(e) then Duel.SendtoDeck(tc,nil,SEQ_DECKTOP,REASON_EFFECT) end
+		local g=Duel.SelectMatchingCard(1-tp,aux.NecroValleyFilter(filter),tp,LOCATION_GRAVE,0,1,1,nil)
+		if #g>0 then
+			Duel.HintSelection(g)
+			Duel.SendtoDeck(g,nil,SEQ_DECKTOP,REASON_EFFECT)
+		end
 	end}
 R.Act.otohime_change_position={cat=CATEGORY_POSITION,target=true,damage_step=true,loc1=0,loc2=LOCATION_MZONE,
 	filter=function(c) return c:IsFaceup() and c:IsCanChangePosition() end,
@@ -13832,6 +13837,8 @@ local function activated(c,id,rand)
 		if R.Act[p.k].hand then range=LOCATION_HAND|LOCATION_DECK end
 		if R.Act[p.k].grave then range=LOCATION_GRAVE end
 	end
+	--a cost paid with this card from the hand ("You can discard this card; ...") is used from the hand
+	for _,p in ipairs(rand.costs) do if R.Cost[p.k] and R.Cost[p.k].hand then range=LOCATION_HAND end end
 	local e=Effect.CreateEffect(c)
 	e:SetDescription(aux.Stringid(id,0))
 	local cat=0
@@ -19327,7 +19334,17 @@ R.Rule.trap_of_darkness={reg=function(c)
 	effect:SetCondition(function(_,tp) return Duel.GetLP(tp)<=3000 end)
 	effect:SetCost(Cost.PayLP(1000))
 	effect:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	local filter=function(tc) return tc:IsNormalTrap() and tc~=c and tc:IsAbleToRemove() and tc:CheckActivateEffect(false,true,false)~=nil end
+	--never a card with this same effect (the real card says "except Trap of Darkness"): two copies checked each other's
+	--targets forever and froze the duel (Nov 24, a Set copy with another discarded to the GY)
+	R.CopyTrapCodes=R.CopyTrapCodes or {}
+	R.CopyTrapCodes[c:GetOriginalCode()]=true
+	local filter=function(tc)
+		if not tc:IsNormalTrap() or tc==c or R.CopyTrapCodes[tc:GetOriginalCode()] or not tc:IsAbleToRemove() or R.CopyTrapChecking then return false end
+		R.CopyTrapChecking=true
+		local ok=tc:CheckActivateEffect(false,true,false)~=nil
+		R.CopyTrapChecking=false
+		return ok
+	end
 	effect:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk)
 		if chk==0 then return Duel.IsExistingTarget(filter,tp,LOCATION_GRAVE,0,1,nil) end
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)

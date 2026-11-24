@@ -40,7 +40,9 @@ stopped.schedule();await new Promise(r=>setTimeout(r,60));assert.equal(polls,1);
 const draft=fs.readFileSync('android/web/draft-ui.js','utf8');
 assert.match(draft,/fetch\(`\$\{this\.endpoint\}\/v2\/draft\/\$\{op\}`,\{method:'POST',headers:\{'Content-Type':'text\/plain'\}/);
 let statsPost,statsNow=1e12;const statsStore=new Map();const statsEnv=vm.createContext({crypto,location:{hostname:'game.example'},localStorage:{getItem:k=>statsStore.get(k)??null,setItem:(k,v)=>statsStore.set(k,v)},Date:{now:()=>statsNow},document:{hidden:false,addEventListener(){}},setInterval(){},AbortSignal,AbortController,setTimeout,clearTimeout,fetch:async(url,init)=>{statsPost=init;return {ok:true}}});
-vm.runInContext(fs.readFileSync('android/web/global-stats.js','utf8').replaceAll('export ',''),statsEnv);
+// global-stats.js imports its address from servers.js (multiplayer-config.json via the generated official-build.js).
+const serversLine=fs.readFileSync('android/web/official-build.js','utf8').match(/export const servers=(.+);/)[1];
+vm.runInContext('const servers='+serversLine+';\n'+fs.readFileSync('android/web/global-stats.js','utf8').replace(/^import .*\r?\n/gm,'').replaceAll('export ',''),statsEnv);
 vm.runInContext('recordStat("runs","r1")',statsEnv);statsNow+=1800001;await vm.runInContext('syncStats()',statsEnv);  // uploads every 30 min (2026-11-14)
 assert.equal(statsPost?.headers['Content-Type'],'text/plain');assert.equal(JSON.parse(statsPost.body).counts.runs,1);
 

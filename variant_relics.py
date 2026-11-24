@@ -3,6 +3,10 @@ ROWS=[
  ('chitin_carapace','Chitin Carapace',85,'Insect monsters you control gain 800 DEF.','Cocoon of Evolution','Insect'),
  # Moth Brood (user, 2026-11-23): uses the Moth Token of the Moth LV line, copying the strongest Insect automatically.
  ('moth_brood','Moth Brood',90,'Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 "Moth Token" with the same Level and Type as the face-up Insect monster you control with the highest ATK, and half its ATK/DEF.','Larvae Moth','Insect'),
+ # Plant relics (user, 2026-11-24, Discord thread "Plant support"): Luka's healing, Eriko's growing Plants and insect tokens.
+ ('photosynthesis','Photosynthesis',85,'Once per turn, during your Standby Phase: Gain 300 LP for each face-up Plant monster you control.','The World Tree','Plant'),
+ ('spring_growth','Spring Growth',90,'Once per turn, during your Standby Phase: Each face-up Plant monster you control gains 200 ATK.','Gigantic Cephalotus','Plant'),
+ ('pollinator','Pollinator',85,'Once per turn, during your End Phase, if you control a face-up Plant monster: Special Summon 1 "Moth Token" (Insect/EARTH/Level 1/ATK 300/DEF 300) in Defense Position.','Anti-Aircraft Flower','Plant'),
  ('machine_foundry','Fusion Dividend',90,'Earn 30 coins each time you Fusion Summon. Coins are collected after the duel.','Fusion Sage',''),
  ('swordsman_oath','Level Bonus',85,'Your LV monsters gain 400 ATK.','Silent Swordsman LV5','LV'),
  ('static_coil','Damage Echo',90,'Each time you deal effect damage to your opponent, inflict 200 additional effect damage. This cannot trigger itself.','Wave-Motion Cannon',''),
@@ -42,6 +46,31 @@ def effect(kind):
   end
  end
  Duel.SpecialSummonComplete()''',f'Duel.IsExistingMatchingCard({insect},0,LOCATION_MZONE,0,1,nil)')
+ plant='function(c) return c:IsFaceup() and c:IsRace(RACE_PLANT) end'
+ has_plant=f'Duel.IsExistingMatchingCard({plant},0,LOCATION_MZONE,0,1,nil)'
+ if key=='photosynthesis':
+  from approved_relic_effects import phase
+  return phase('STANDBY',f'Duel.Recover(0,300*Duel.GetMatchingGroupCount({plant},0,LOCATION_MZONE,0,nil),REASON_EFFECT)',has_plant)
+ if key=='spring_growth':
+  # Each gain stays while that monster stays face-up on the field (RESETS_STANDARD), so a Plant grows every turn.
+  from approved_relic_effects import phase
+  return phase('STANDBY',f'''for c in Duel.GetMatchingGroup({plant},0,LOCATION_MZONE,0,nil):Iter() do
+  local e1=Effect.CreateEffect(c) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(EFFECT_UPDATE_ATTACK) e1:SetValue(200)
+  e1:SetReset(RESET_EVENT|RESETS_STANDARD) c:RegisterEffect(e1)
+ end''',has_plant)
+ if key=='pollinator':
+  # Reuses the Moth LV line's Moth Token (data/custom-tokens.json) as a Level 1 300/300 Insect.
+  from approved_relic_effects import phase
+  return phase('END',f'''if Duel.GetLocationCount(0,LOCATION_MZONE)<=0 then return end
+ if not Duel.IsPlayerCanSpecialSummonMonster(0,{MOTH_TOKEN},0,TYPES_TOKEN,300,300,1,RACE_INSECT,ATTRIBUTE_EARTH,POS_FACEUP_DEFENSE) then return end
+ local token=Duel.CreateToken(0,{MOTH_TOKEN})
+ if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP_DEFENSE) then
+  for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,300}},{{EFFECT_SET_BASE_DEFENSE,300}},{{EFFECT_CHANGE_LEVEL,1}}}}) do
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
+  end
+ end
+ Duel.SpecialSummonComplete()''',has_plant)
  if key=='machine_foundry':return event('EVENT_SPSUMMON_SUCCESS','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_FUSION) end,nil) if n>0 then --[[relic-hint]] end for i=1,n do Duel.Hint(HINT_MESSAGE,0,900000003) end')
  if key=='swordsman_oath':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(SET_LV)')
  if key=='static_coil':

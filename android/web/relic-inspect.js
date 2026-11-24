@@ -17,7 +17,10 @@ export function setFusionState(get){fusionState=get}
 export function fusionHint(content,id){
  const state=fusionState()||{},found=state.found||[],owned=state.owned;
  return Object.entries(content.fusionMaterials||{}).map(([f,m])=>{if(!m?.pieces?.includes(id))return '';
-  const known=found.includes(f),need=m.needed||m.pieces.length,have=owned?Math.min(need,m.pieces.filter(p=>owned.includes(p)).length):0,art=content.artifactInfo?.[f]?.art;
+  // A set with required pieces (Unstable DNA: DNA Rewrite + Kindred Bond + 1 Surgery) counts its other pieces only up
+  // to the slots the required ones leave (Discord 2026-11-24: Kindred Bond + 2 Surgeries read "3 of 3" and never fused).
+  const known=found.includes(f),need=m.needed||m.pieces.length,req=m.required||[],art=content.artifactInfo?.[f]?.art;
+  const have=owned?req.filter(p=>owned.includes(p)).length+Math.min(need-req.length,m.pieces.filter(p=>!req.includes(p)&&owned.includes(p)).length):0;
   const line=!owned?'':owned.includes(f)?'<em>Fused this run</em>':`<em>${`You own {0} of {1}`.replace('{0}',have).replace('{1}',need)}</em>`;
   return `<div class="fusion-hint${known?'':' fusion-unknown'}">${art?`<img src="${relicImage(art)}" alt="" decoding="async">`:''}<span><small>Fusion Material for</small>${known?`<b>${esc(content.artifacts[f]?.[0]||f)}</b>`:'<b data-no-i18n>???</b>'}${line}</span></div>`}).join('');
 }

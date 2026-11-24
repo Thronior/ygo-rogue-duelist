@@ -1,3 +1,4 @@
+import {matches,capturing} from './hotkeys.js';
 // Previous / Next in the card window, and the card's art full screen (user, 2026-11-14).
 // The window steps through the list the card was opened from, in the order the player sees it. The list is read
 // from the page: the tiles of that list in document order, so the deck editors' filters, search, sort and stacked
@@ -24,8 +25,8 @@ let cfg=null,source=null,pending=null,swipe=null;
 
 export function tileFrom(target){
  if(!target?.closest)return null;
- const shop=target.closest('[data-shop-item]');if(shop)return shop.closest('.relic-lock')?null:shop;
- if(target.closest('.relic-lock,.stack-minus,.purchase-check,.related-cards-panel'))return null;
+ const shop=target.closest('[data-shop-item]');if(shop)return target.closest('.relic-lock,.relic-banish,.relic-banish-confirm')?null:shop;
+ if(target.closest('.relic-lock,.relic-banish,.relic-banish-confirm,.stack-minus,.purchase-check,.related-cards-panel'))return null;
  for(const [sel] of CARD_TILES){const el=target.closest(sel);if(el)return el}
  return null;
 }
@@ -131,9 +132,11 @@ export function installCardNav(options){
  });
  modal.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches?.('.inspect>img.card-art-zoom')){e.preventDefault();openArt()}});
  document.addEventListener('keydown',e=>{
-  if(e.defaultPrevented||!modal.open||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;
+  // Keys from the keymap (Settings > Hotkeys); arrows by default.
+  const prev=matches('card.prev',e),next=!prev&&matches('card.next',e);
+  if(e.defaultPrevented||!modal.open||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||capturing()||!(prev||next))return;
   if(typing(e.target)||!bar())return;
-  e.preventDefault();stepCardNav(e.key==='ArrowLeft'?-1:1);
+  e.preventDefault();stepCardNav(prev?-1:1);
  });
  modal.addEventListener('touchstart',e=>{
   swipe=null;if(e.touches.length!==1||!bar()||typing(e.target)||scrollsSideways(e.target,modal))return;

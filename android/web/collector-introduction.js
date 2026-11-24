@@ -7,7 +7,9 @@ export const collectorIntroduction = Object.freeze({
   ['Play a match', 'Host or join a best-of-three match under Master Rule 2. A coin toss decides who starts the first duel; the previous loser chooses who starts later duels. Between duels, swap cards with your Side Deck while keeping your starting Main Deck size.'],
   ['Win cards and rise in rank', 'The winner chooses five cards from the opponent’s starting Main, Side and Fusion Decks and advances one rank: Bronze → Silver → Gold → Legend → God. God is the highest rank. Duelist History records your matches and prizes.'],
   ['Defeat is permanent', 'Losing the match permanently deletes this imported duelist. Your other saves are unaffected. Only surviving duelists can appear on the Ultimate Collectors top-10 leaderboard.'],
-  ['Reconnect within five minutes', 'If you disconnect, reopen Ultimate Collector to reconnect automatically. Each match has a shared five-minute disconnect allowance that does not refill when you reconnect. Disconnects under 15 seconds are free. Exhausting the allowance sends your duelist to the Shadow Realm. Each turn has a 180-second decision timer that pauses during disconnects.']
+  ['Reconnect within five minutes', 'If you disconnect, reopen Ultimate Collector to reconnect automatically. Each match has a shared five-minute disconnect allowance that does not refill when you reconnect. Disconnects under 15 seconds are free. Exhausting the allowance sends your duelist to the Shadow Realm. Each turn has a 180-second decision timer that pauses during disconnects.'],
+  // CITYDRIVER's feedback (user, 2026-11-24; rooms Worker hub.mjs).
+  ['Turn timer and pauses', 'The turn timer turns red in its last minute. Every Summon, Set or activation gives you 15 seconds back, up to 3 minutes. Running out of time loses that duel, not the whole match. Twice per match you can ask for a pause of up to 3 minutes from Options; your opponent has to accept it.']
  ]
 });
 export function collectorIntroductionMarkup() {

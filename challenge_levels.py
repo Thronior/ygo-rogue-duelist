@@ -34,6 +34,8 @@ def active_modifiers(run):
  from content import CURSES
  if run.get('challenge_level')==-1:return [dict(kind='level',name='LVL -1',description='Disable all relics or curses')]
  rows=[]
+ import easy_mode
+ if easy_mode.active(run):rows.append(easy_mode.modifier_row())
  keys=run.get('curses') or ([run['boss_curse']] if run.get('boss_curse') else [])
  for key in dict.fromkeys(keys):
   if key in CURSES:
@@ -53,6 +55,9 @@ def active_modifiers(run):
 
 def suppress(run):
  """Enforce the relicless difficulty at campaign boundaries, including old saves."""
+ # Easy mode (2026-11-24): no boss curses, enforced at the same boundaries (easy_mode.py).
+ import easy_mode
+ easy_mode.suppress(run)
  if run.get('challenge_level')!=-1:return run
  run.update(artifacts=[],cursed_artifacts=[],curses=[],boss_curse=None,route_curses={},mirror_copy=None,starting_relic='none')
  run.pop('cursed_offer',None)

@@ -18,7 +18,7 @@ const play=async(call,room,winner)=>{await call(0,'result',{number:room.events.l
 const draftRound=async(call,reg,room,size)=>{for(let i=0;i<2;i++){await call(i,'deck',{deck:deckOf(reg.data.players['p'+i].pool,size)});await call(i,'ready');}};
 
 test('draft loop opening: four starting boosters once, buildable to 20 for every duelist',()=>{
- for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,c.starting_packs?.length||4,c.name);assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
+ for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,(c.starting_packs?.length||4)+3,c.name);assert.equal(new Set(result.packIds.slice(-3)).size,3,'three different duelist packs');assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
  assert.deepEqual([0,1,2,3,9].map(minDeckFor),[20,30,40,40,40]);
 });
 
@@ -29,7 +29,7 @@ test('Draft Screen offers three different relics and three different duelist pac
 
 test('loop: loser drafts first, picks are exclusive, boosters join the pool, minimum grows 20 → 30 → 40',async()=>{
  const reg=await registry(),call=caller(reg),room=await start(reg,call);
- assert(room.loop);assert.equal(room.phase,'drafting');assert.equal(room.minDeck,20);assert.equal(reg.data.players.p0.packs.length,4);
+ assert(room.loop);assert.equal(room.phase,'drafting');assert.equal(room.minDeck,20);assert.equal(reg.data.players.p0.packs.length,7);
  assert.match((await call(0,'deck',{deck:deckOf(reg.data.players.p0.pool,19)},400)).error,/20–60/);
  await draftRound(call,reg,room,20);assert.equal(room.phase,'duel');assert.equal(room.game,1);
  await play(call,room,0);
@@ -41,7 +41,7 @@ test('loop: loser drafts first, picks are exclusive, boosters join the pool, min
  assert.match((await call(0,'pick',{relic:1,pack:2},400)).error,/still available/);
  await call(0,'pick',{relic:2,pack:0});
  assert.equal(room.phase,'drafting');assert.equal(room.minDeck,30);assert.deepEqual(room.relics,[[offer.relics[2]],[offer.relics[0]]]);
- const p1=reg.data.players.p1;assert.equal(p1.pool.length,before+18);assert.deepEqual(p1.packIds,[offer.packs[2],offer.packs[2]]);assert.deepEqual(p1.pool.slice(-18),p1.packs.flat());
+ const p1=reg.data.players.p1;assert.equal(p1.pool.length,before+27);assert.deepEqual(p1.packIds,[offer.packs[2],offer.packs[2],offer.packs[2]]);assert.deepEqual(p1.pool.slice(-27),p1.packs.flat());
  assert.match((await call(1,'deck',{deck:deckOf(p1.pool,29)},400)).error,/30–60/);
  await draftRound(call,reg,room,30);assert.equal(room.phase,'duel');assert.equal(room.game,2);assert.equal(room.first,1,'the loser of duel 1 goes first');assert.equal(room.events.length,0);
  // A draw: whoever picked second last time picks first.
@@ -110,8 +110,8 @@ test('No relics room: packs only, a pick needs only a pack, both still get two b
  assert.match((await call(0,'pick',{pack:1,...v3},400)).error,/still available/);
  await call(0,'pick',{pack:0,relic:2,...v3});
  assert.equal(room.phase,'drafting');assert.deepEqual(room.relics,[[],[]]);
- for(let i=0;i<2;i++){const x=reg.data.players['p'+i];assert.equal(x.pool.length,before[i]+18);assert.equal(x.packs.length,2);}
- assert.deepEqual(reg.data.players.p1.packIds,[offer.packs[1],offer.packs[1]]);
+ for(let i=0;i<2;i++){const x=reg.data.players['p'+i];assert.equal(x.pool.length,before[i]+27);assert.equal(x.packs.length,3);}
+ assert.deepEqual(reg.data.players.p1.packIds,[offer.packs[1],offer.packs[1],offer.packs[1]]);
 });
 
 test('No relics rooms refuse older loop clients; a draft:2 host cannot make one',async()=>{

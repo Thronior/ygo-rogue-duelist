@@ -21,7 +21,7 @@
  "9:0": ["restless_dead", "dark", "normal", "epitaph", "tribute"],
  "9:1": ["bone", "dark", "normal", "epitaph", "exile_standard"],
  "10:0": ["chitin_carapace", "earth", "evolution_tablet", "tribute", "token_resonance"],
- "10:1": ["level_up_relic", "evolution_tablet", "chitin_carapace", "hive", "earth"],
+ "10:1": ["photosynthesis", "spring_growth", "hive", "earth", "chitin_carapace"],
  "11:0": ["horn", "ember", "burn_proficiency", "static_coil", "divine_might"],
  "11:1": ["ember", "burn_proficiency", "static_coil", "flame", "horn"],
  "12:0": ["blade", "earth", "epitaph", "normal_barrier", "tenacity_of_the_weak"],

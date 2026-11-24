@@ -286,7 +286,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
  respond(r){const m=this.pending;
   if(m?.type===M.SELECT_IDLECMD){const lists={[I.SELECT_SPELL_SET]:m.spell_sets,[I.SELECT_ACTIVATE]:m.activates,[I.SELECT_SUMMON]:m.summons,[I.SELECT_SPECIAL_SUMMON]:m.special_summons,[I.SELECT_MONSTER_SET]:m.monster_sets};this.placementCode=lists[r.action]?.[r.index]?.code||0;
    // The Normal Summons still open when a card was activated, for target prompts that need them (Brain Control, flag c9299a1c2a).
-   this.lastIdle=r.action===I.SELECT_SUMMON||r.action===I.SELECT_MONSTER_SET?null:{player:m.player,turn:this.turn,summons:m.summons};}
+   // Its position changes and Battle Phase too, for Equip Spell targets (flag 49546946).
+   this.lastIdle=r.action===I.SELECT_SUMMON||r.action===I.SELECT_MONSTER_SET?null:{player:m.player,turn:this.turn,summons:m.summons,pos_changes:m.pos_changes,to_bp:m.to_bp};}
   else if(m?.type===M.SELECT_CHAIN)this.placementCode=m.selects?.[r.index]?.code||0;
 
   if(m&&!(m.type===M.SELECT_OPTION&&this.name(this.effect?.code)==='Ordeal of a Traveler')){const feedback=effectChoiceCue(this,m,r,M);if(feedback){this.visuals.push(feedback);this.logs.unshift((m.player===0?'You · ':'Opponent · ')+feedback.text);}}
@@ -333,6 +334,16 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
     const keep=m.summons.map((_,i)=>i).filter(i=>!this.destroyedOnNormalSummon(m.summons[i]));
     r=this.chooseDecision({...m,summons:keep.map(i=>m.summons[i])});
     if(r?.action===I.SELECT_SUMMON)r={...r,index:keep[r.index]};
+   }
+   // A face-up King Tiger Wanghu destroys a summoned monster with 1400 or less ATK: Set it, or play something else
+   // (Discord 2026-11-24: Sinister Serpent was Normal Summoned into it). Every summon path ends here, combos included.
+   if(m?.type===M.SELECT_IDLECMD&&(r?.action===I.SELECT_SUMMON||r?.action===I.SELECT_SPECIAL_SUMMON)&&[0,1].some(s=>this.query(s,L.MZONE).some(c=>c&&(c.position&5)&&this.name(c.code)==='King Tiger Wanghu'))){
+    const smart=smartContext(this,m.player,L,m),doomed=c=>smart.wanghuDestroys(c);
+    if(doomed((r.action===I.SELECT_SUMMON?m.summons:m.special_summons)[r.index])){
+     const summons=m.summons.filter(c=>!doomed(c)),special_summons=m.special_summons.filter(c=>!doomed(c));
+     const next=this.chooseDecision({...m,summons,special_summons});
+     r=next?.action===I.SELECT_SUMMON?{...next,index:m.summons.indexOf(summons[next.index])}:next?.action===I.SELECT_SPECIAL_SUMMON?{...next,index:m.special_summons.indexOf(special_summons[next.index])}:next;
+    }
    }
    // Their face-up Ordeal of a Traveler with one or two unseen cards in hand: send the weakest planned direct attack
    // first, so its reveal tells the stronger attacks what to call (user, 2026-11-10).
@@ -560,7 +571,10 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    // monster attacks after them (flag 6baa89ce, 2026-11-23: Mechanicalchaser went to Defense although Fusilier Dragon
    // cleared the only stronger monster, losing 1850 direct damage).
    const clearedFirst=f=>{if(!m.to_bp||smart.attackBlocked(f,p))return false;const threats=enemy.filter(x=>(x.position&1)&&atk(x)>atk(f));const helpers=this.query(p,L.MZONE).filter(h=>h&&h!==f&&visible(h)&&(h.position&1)&&!(h.attack_count>0)&&!smart.attackBlocked(h,p)).map(atk).sort((a,b)=>b-a);return threats.length>0&&threats.length<=helpers.length&&threats.map(strength).sort((a,b)=>b-a).every((s,i)=>helpers[i]>s)};
-   const defend=boardLethal||attackPlan?-1:m.pos_changes.findIndex(c=>{const f=this.query(p,L.MZONE)[c.sequence];return f&&(f.position&1)&&smart.saferPosition(f)!==true&&!clearedFirst(f)&&((this.name(f.code)==='Spirit Reaper'&&!smart.reaperDirectReady(f))||(smart.attackBlocked(f,p)&&def(f)>atk(f))||enemy.some(x=>(x.position&1)&&atk(x)>atk(f)))&&(this.name(f.code)==='Spirit Reaper'?!smart.reaperBattleReady(f):!(m.to_bp&&!smart.attackBlocked(f,p)&&enemy.some(x=>atk(f)>strength(x))));});
+   // Defense saves nothing when every visible attacker that beats its ATK also beats its DEF and pierces: it only adds
+   // the piercing damage (flag e287cd5e: Nin-Ken Dog 1800/1000 went to Defense before a piercing 2300 Luster Dragon).
+   const piercedAnyway=f=>{const beats=enemy.filter(x=>visible(x)&&(x.position&1)&&atk(x)>atk(f));return beats.length>0&&beats.every(x=>atk(x)>def(f)&&smart.pierce(x,1-p,true))};
+   const defend=boardLethal||attackPlan?-1:m.pos_changes.findIndex(c=>{const f=this.query(p,L.MZONE)[c.sequence];return f&&(f.position&1)&&smart.saferPosition(f)!==true&&!clearedFirst(f)&&!piercedAnyway(f)&&((this.name(f.code)==='Spirit Reaper'&&!smart.reaperDirectReady(f))||(smart.attackBlocked(f,p)&&def(f)>atk(f))||enemy.some(x=>(x.position&1)&&atk(x)>atk(f)))&&(this.name(f.code)==='Spirit Reaper'?!smart.reaperBattleReady(f):!(m.to_bp&&!smart.attackBlocked(f,p)&&enemy.some(x=>atk(f)>strength(x))));});
    if(defend>=0)return idle(I.SELECT_POS_CHANGE,defend);
    return idle(m.to_bp?I.TO_BP:I.TO_EP);
   }
@@ -668,6 +682,8 @@ for(const side of s.players)for(const c of [...side.monsters,...side.spells])if(
    if(index>=0){this.effect={code:m.selects[index].code,player:p};return {type:R.SELECT_CHAIN,index}}
    return {type:R.SELECT_CHAIN,index:m.forced?0:null};
   }
+  // Wall of Revealing Light (T4 review, 2026-11-24): pay what stops their strongest monster, not the first amount.
+  if(m.type===M.ANNOUNCE_NUMBER&&this.name(this.effect?.code)==='Wall of Revealing Light'&&m.options?.length)return {type:R.ANNOUNCE_NUMBER,value:smart.wallPayment(m.options)};
   if(m.type===M.ANNOUNCE_NUMBER&&this.name(this.effect?.code)==='Reasoning'&&this.cpuReviewRules?.reasoning!==false){
    // Reproducible guess from public state, never the opponent's hidden deck.
    let hash=(this.reasoningSeed^Math.imul(this.turn,2654435761)^Math.imul(this.query(p,L.DECK).length,2246822519)^Math.imul(this.query(1-p,L.GRAVE).length,3266489917))>>>0;

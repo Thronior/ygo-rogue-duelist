@@ -261,8 +261,8 @@ export function smartContext(e,p,L,prompt=null){
  // Surgery relics: the first replaces the attribute of the owner's monsters in these locations,
  // each further relic adds one (passives.py builds the matching core effect).
  const SURGERY_LOCATIONS=[L.HAND,L.DECK,L.GRAVE,L.MZONE];
- // Attribute Mutation (a fused relic) gives every Attribute.
- const surgeryAttributes=side=>relics(side).includes('attribute_mutation')?Object.values(attributeBits):[...new Set(relics(side).filter(key=>/^attribute_(light|dark|fire|water|wind|earth)$/.test(key)).map(key=>key.slice(10).toUpperCase()))];
+ // Attribute Mutation and Genetic Override (fused relics) give every Attribute.
+ const surgeryAttributes=side=>relics(side).some(key=>key==='attribute_mutation'||key==='genetic_override')?Object.values(attributeBits):[...new Set(relics(side).filter(key=>/^attribute_(light|dark|fire|water|wind|earth)$/.test(key)).map(key=>key.slice(10).toUpperCase()))];
  const attributeSet=c=>{
   const result=new Set(),base=e.cards.get(c.code)?.attribute;
   const add=value=>{if(typeof value==='number'){for(const [bit,label] of Object.entries(attributeBits))if(value&Number(bit))result.add(label);}else if(value)result.add(String(value).toUpperCase());};
@@ -330,10 +330,11 @@ export function smartContext(e,p,L,prompt=null){
   if(!defenders.length||e.battleProtected?.[1-p])return 0;
   return Math.max(0,...remainingAttackers().filter(a=>pierce(a)&&equipUseful(c,a)).map(a=>Math.max(0,...defenders.map(t=>Math.min(bonus,Math.max(0,atk(a)+bonus-power(t)))))));
  }
- const removalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Thousand Knives','Exiled Force','Widespread Ruin','Michizure']);
+ // Shield Crush (T4 review, 2026-11-24): destroys a Defense Position monster; it had no rule and was never used (0 of 2504).
+ const removalNames=new Set(['Shield Crush','Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Thousand Knives','Exiled Force','Widespread Ruin','Michizure']);
  const isRemoval=n=>removalNames.has(n);
- const destructionNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Offerings to the Doomed','Man-Eater Bug','Newdoria','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Widespread Ruin','Thousand Knives','Exiled Force','Raigeki','Dark Hole','Torrential Tribute','Mirror Force','Burst Stream of Destruction','Lightning Vortex','Michizure']);
- const targetedRemovalNames=new Set(['Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Thousand Knives','Exiled Force','Spellbinding Circle','Nightmare Wheel','Mask of the Accursed','Michizure']);
+ const destructionNames=new Set(['Shield Crush','Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Fissure','Smashing Ground','Offerings to the Doomed','Man-Eater Bug','Newdoria','Bottomless Trap Hole','Trap Hole','Two-Pronged Attack','Widespread Ruin','Thousand Knives','Exiled Force','Raigeki','Dark Hole','Torrential Tribute','Mirror Force','Burst Stream of Destruction','Lightning Vortex','Michizure']);
+ const targetedRemovalNames=new Set(['Shield Crush','Ring of Destruction','Raigeki Break','Tribute to the Doomed','Sakuretsu Armor','Nobleman of Crossout','Offerings to the Doomed','Man-Eater Bug','Hane-Hane',"Gravekeeper's Guard",'Penguin Soldier','Newdoria','Dark Core','Compulsory Evacuation Device','Thousand Knives','Exiled Force','Spellbinding Circle','Nightmare Wheel','Mask of the Accursed','Michizure']);
  function reservedForRemoval(c){return (e.activeChain||[]).some(link=>{
   if(link.player!==p||link.inactive)return false;
   const n=e.name(link.code);
@@ -401,6 +402,9 @@ export function smartContext(e,p,L,prompt=null){
    if(targeting&&/cannot be targeted by (?:card|spell|trap|monster)(?: card)? effects/i.test(text))return false;
    // Battle-only protection (Marshmallon, Spirit Reaper, Celtic Guard) does not stop destruction effects.
    if(destroy&&/(?:cannot|can't) be destroyed by (?:battle (?:or|and) (?:by )?)?(?:card effects?|monster effects?|spell effects?|trap effects?|(?:your opponent's|your opponent’s) (?:card )?effects?)/i.test(text))return false;
+   // Randomized card texts (flag ebcd3888): "cannot be destroyed by non-targeting Spell/Trap effects", "battle or Spell/Trap effects".
+   const spellTrapSafe=destroy&&(effectKind==='spell'||effectKind==='trap')&&/cannot be destroyed by (?:battle or )?(non-targeting )?(spell\/trap|spell|trap) effects/i.exec(text);
+   if(spellTrapSafe&&!(spellTrapSafe[1]&&targeting)&&['spell/trap',effectKind].includes(spellTrapSafe[2].toLowerCase()))return false;
    // Ultimate Armory (relic): a monster carrying 3 or more Equip Spells cannot be destroyed by card effects.
    if(destroy&&target.location===L.MZONE&&relic(targetController,'ultimate_armory')&&equippedCount(target,0x40000)>=3)return false;
    return true;
@@ -483,6 +487,9 @@ export function smartContext(e,p,L,prompt=null){
    // being consumed as Tribute while its useful flip is still available.
    if(paid.some(x=>name(x)==='Cyber Jar'&&!face(x)&&flipUseful('Cyber Jar',x)&&prompt?.pos_changes?.some(y=>same(x,y))))return false;
    if(setting&&paid.some(x=>face(x)&&(x.position&1)&&attackAllowed(x,false))&&enemyAtk<newDef&&newDef<paid.reduce((sum,x)=>sum+atk(x),0))return false;
+   // Main Phase 1: a Tribute that can still attack (directly, or over something) attacks first; the Set can wait for Main
+   // Phase 2 (flag fa29c337 follow-up: a revived 2100 Archfiend General became a Set Archfiend of Gilfer before an empty field).
+   if(setting&&!free&&e.phase===4&&prompt?.to_bp&&!battleLocked&&paid.some(x=>!borrowedMonster(x)&&face(x)&&(x.position&1)&&!(x.attack_count>0)&&attackAllowed(x,!enemy.length)&&!attackBlocked(x,p)&&(!enemy.length||enemy.some(t=>atk(x)>power(t)))))return false;
    if(setting)return free||newDef>=enemyAtk&&!wall&&newDef>Math.max(0,...paid.map(x=>Math.max(atk(x),x.defense??0)))+200;
    if(wall&&newAtk<=threat&&!released)return false;
    if(e.phase===4&&prompt?.to_bp&&paid.some(x=>face(x)&&(x.position&1)&&attackAllowed(x,!enemy.length)&&(!enemy.length||enemy.some(t=>atk(x)>power(t))))&&newAtk<=paid.reduce((n,x)=>n+atk(x),0))return false;
@@ -533,6 +540,12 @@ export function smartContext(e,p,L,prompt=null){
  function effectThreat(c){
   if(!known(c)||c.is_disabled||((data(c).type&1)&&!effectsEnabled(c.controller??p)))return 0;
   if(engineThreats.has(name(c)))return 2300;
+  // Patrician of Darkness sends every attack at the monster its controller picks: beside other monsters it walls our
+  // attackers, so it is worth removing, more so when that opens our attacks this turn (Discord 2026-11-24).
+  if(name(c)==='Patrician of Darkness'&&c.location===L.MZONE){
+   if(q(c.controller??1-p,L.MZONE).length<2)return 0;
+   return 400+(c.controller!==p?Math.min(2000,Math.max(0,planDamage([],[c])-planDamage())):0);
+  }
   const text=e.cards.get(c.code)?.desc||'';
   return (data(c).type&0x20)&&/draw |Special Summon|destroy|inflict|negate/i.test(text)?700:0;
  }
@@ -573,9 +586,11 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player!==p||e.phase!==4||prompt?.to_bp===false||battleLocked||!face(c)||(battleHazards.has(name(c))||resilient(c))||effectThreat(c)>=2000)return false;
   // Unknown back row makes a battle plan uncertain; do not assume it is safe.
   if(theirBack.some(x=>!face(x)))return false;
-  return activeAttackers(p).some(a=>attackAllowed(a,false)&&!a.attack_disabled&&!(a.attack_count>0)&&atk(a)>power(c))||
+  // Under their Patrician of Darkness they pick the target: only an attacker that beats each of their monsters gets there.
+  const wall=theyPick(enemy)?Math.max(...enemy.map(power)):power(c);
+  return activeAttackers(p).some(a=>attackAllowed(a,false)&&!a.attack_disabled&&!(a.attack_count>0)&&atk(a)>wall)||
    // A monster we can still Normal Summon, with the ATK equips in hand, wins that battle too (deck trace, 2026-11-06).
-   (prompt?.summons||[]).some(m=>effectiveLevel(m,true)<=4&&attackAllowed(m,false)&&projectedAttack(m)>power(c));
+   (prompt?.summons||[]).some(m=>effectiveLevel(m,true)<=4&&attackAllowed(m,false)&&projectedAttack(m)>wall);
  }
  // The most battle damage the opponent can still deal this turn: each of our blockers is taken by their weakest
  // attacker that beats it, the rest attack directly; a blocker nobody beats stops all direct attacks. extra: the
@@ -610,8 +625,25 @@ export function smartContext(e,p,L,prompt=null){
   // Asura Priest either attacks every monster once each (never directly after that) or makes one ordinary attack,
   // which can go direct once the others cleared the way: both are tried (replay review 2026-11-22).
   const ready=activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&!spent.some(x=>same(x,c)));
+  if(blockers.length&&theyPick(blockers))return patricianSum(ready,blockers,extra);
   const sweep=ready.some(c=>attacksAll(c)&&!c.attack_count)&&blockers.length>1;
   return Math.max(battleSum(ready,blockers,extra,false),sweep?battleSum(ready,blockers,extra,true):0);
+ }
+ // Patrician of Darkness (Discord 2026-11-24): its controller picks the target of each attack. Strongest attacks go
+ // first; one that does not clear every monster left is sent at one it does not clear, and one that does takes the
+ // monster that costs them the least damage. Direct attacks only once their field is empty.
+ function theyPick(side){return side.some(c=>enabled(c)&&name(c)==='Patrician of Darkness');}
+ function patricianSum(ready,blockers,extra){
+  const strikers=[...ready.flatMap(c=>Array(Math.max(0,swings(c)-(c.attack_count||0))).fill({v:atk(c),f:halfDamage(c)?.5:1})),...extra.map(v=>({v,f:1}))].sort((a,b)=>b.v-a.v);
+  const left=[...blockers];let damage=0;
+  for(const x of strikers){
+   if(!left.length){damage+=Math.floor(battleDamage(x.v)*x.f);continue}
+   if(left.some(t=>!clears(x.v,t)||face(t)&&(resilient(t)||['Newdoria','Reflect Bounder'].includes(name(t)))))continue;
+   let pick=0,least=Infinity;
+   left.forEach((t,i)=>{const d=face(t)&&(t.position&1)?Math.floor(battleDamage(x.v-power(t))*x.f):0;if(d<least){least=d;pick=i}});
+   damage+=least;left.splice(pick,1);
+  }
+  return damage;
  }
  function battleSum(ready,blockers,extra,sweep){
   const strikers=[...ready.flatMap(c=>{const one={v:atk(c),f:halfDamage(c)?.5:1,d:true};
@@ -660,6 +692,7 @@ export function smartContext(e,p,L,prompt=null){
   // Post-errata Ring (2026-11-04): only an opponent's face-up monster whose ATK is at most their LP, and we take the damage too.
   if(n==='Ring of Destruction')list=list.filter(c=>atk(c)<=e.lp[1-p]&&atk(c)<e.lp[p]);
   if(n==='Sakuretsu Armor')list=list.filter(c=>same(c,e.attackCard));
+  if(n==='Shield Crush')list=list.filter(c=>c.position&0xc);
   if(n==='Mirror Force')list=list.filter(c=>c.position&1);
   if(n==='Widespread Ruin')list=list.filter(c=>c.position&1);
   if(n==='Trap Hole'||n==='Bottomless Trap Hole'){
@@ -808,7 +841,9 @@ export function smartContext(e,p,L,prompt=null){
   }
   // MST is a cheap one-for-one answer: an unknown set card is worth clearing.
   // Keep the stricter threshold for discard removal and other expensive answers.
-  const threshold=n==='Mystical Space Typhoon'||n==='Dust Tornado'&&e.cpuReviewRules?.dustTornado!==false?850:1400;
+  // Breaker's counter is free too: it was Normal Summoned for a Set card, then kept its counter (900 < 1400) and
+  // stood in Attack Position for nothing (flag 17613ea1, 2026-11-24).
+  const threshold=n==='Mystical Space Typhoon'||n==='Breaker the Magical Warrior'||n==='Dust Tornado'&&e.cpuReviewRules?.dustTornado!==false?850:1400;
   if(best<threshold+cost)return -1;
   const offered=[...(prompt?.activates||[]),...(prompt?.chains||[]),...(prompt?.selects||[])];
   if(n==='Raigeki Break'&&offered.some(x=>['Mystical Space Typhoon','Dust Tornado','De-Spell','Remove Trap'].includes(name(x))&&backScore(x)>0))return -1;
@@ -861,7 +896,24 @@ export function smartContext(e,p,L,prompt=null){
    // 83c83eaa240c@5 Raigeki on Summoned Skull, then Master Kyonshee hit for 1750; the CPU Set a monster instead).
    // Same bar as a single destroy against a lone monster; a monster we already beat in battle stays below it.
    if(e.player===p&&e.phase===4&&prompt?.to_bp&&!(e.activeChain||[]).length&&enemy.length===1&&valued.length===1&&!ownLoss&&['Raigeki','Dark Hole'].includes(n)&&valued[0].value>=1200+cost&&planDamage(freeSummon(),targets)>=1000)return 104;
-   if((useful<2&&!(danger&&net>=2600))||net<2300+lastAnswer+cost)return -1;
+   // Total ATK counts, not only the number of monsters (Discord 2026-11-24, user's call): Mirror Force was held against
+   // a lone 6000 ATK attacker although the wipe opened our lethal, then spent next turn on 2 monsters. In their attack, a
+   // big attacker, a hit that costs us a monster or much of our LP, or a wipe that leaves them open to our lethal is
+   // worth it; a weak lone attacker, or one that our defender destroys in battle anyway, still is not.
+   let pressure=false;
+   const attacker=e.player!==p&&e.attackCard&&targets.find(x=>same(x,e.attackCard));
+   const defender=attacker&&e.attackTarget&&own.find(x=>same(x,e.attackTarget)),hit=attacker?combatPower(attacker,defender):0;
+   if(attacker&&!(defender&&face(defender)&&(defender.position&1)&&atk(defender)>hit)){
+    const lost=!!defender&&!resilient(defender,attacker)&&(defender.position&1?hit>=atk(defender):hit>def(defender));
+    const taken=e.battleProtected?.[p]?0:battleDamage(defender?(defender.position&1?Math.max(0,hit-atk(defender)):pierce(attacker,1-p)?Math.max(0,hit-def(defender)):0):hit,1-p);
+    const stake=taken+(lost?targetValue(defender):0);
+    const strongest=Math.max(0,...targets.map(x=>face(x)?atk(x):0));
+    const ours=['Dark Hole','Torrential Tribute'].includes(n)?[]:own.filter(x=>face(x)&&atk(x)>0&&!attackBlocked(x,p,true)).flatMap(x=>Array(swings(x)).fill(atk(x)));
+    const left=enemy.filter(x=>!targets.some(t=>same(t,x))).sort((a,b)=>power(b)-power(a));
+    const opensLethal=ours.length>0&&battleSum([],left,ours,false)>=e.lp[1-p]&&battleSum([],[...enemy].sort((a,b)=>power(b)-power(a)),ours,false)<e.lp[1-p];
+    pressure=strongest>=3000||stake>=Math.max(2000,e.lp[p]*.35)||incomingBattleDamage()>=e.lp[p]*.6||opensLethal;
+   }
+   if(useful<2&&!(danger&&net>=2600)&&!pressure||net<(pressure?1400:2300+lastAnswer)+cost)return -1;
    return 105+Math.min(15,net/1000);
   }
   const target=valued[0];
@@ -970,7 +1022,7 @@ export function smartContext(e,p,L,prompt=null){
 
  // Only expose a defender when a visible, favourable attack is available.
  function attackOpportunity(c,bonus=0){
-  if(e.player!==p||openingTurn||e.phase!==4||prompt?.to_bp!==true||battleLocked||c.attack_count>0)return false;
+  if(e.player!==p||openingTurn||e.phase!==4||idleNow()?.to_bp!==true||battleLocked||c.attack_count>0)return false;
   const a={...c,position:1},strength=atk(c)+bonus;
   if(!attackAllowed(a,!enemy.length)||strength<=0)return false;
   if(!enemy.length)return battleDamage(strength)>0;
@@ -997,7 +1049,7 @@ export function smartContext(e,p,L,prompt=null){
   const text=e.cards.get(source.code)?.desc||'',atkOnly=/gains? \d+ ATK/i.test(text)&&!/DEF/.test(text);
   const defending=target.location===L.MZONE&&face(target)&&!(target.position&1);
   if(!(defenseReducingEquips.has(name(source))||atkOnly&&defending)||target.position&1)return true;
-  return (prompt?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
+  return (idleNow()?.pos_changes||[]).some(x=>same(x,target))&&attackOpportunity(target,400);
  }
  // Gearfried the Iron Knight (or any monster that destroys Equip Cards put on it) breaks equip steals and boosts.
  function equipBreaker(c){return enabled(c)&&(name(c)==='Gearfried the Iron Knight'||/equips? an Equip Card[\s\S]{0,40}to this card[\s\S]{0,40}destroy that Equip/i.test(e.cards.get(c.code)?.desc||''));}
@@ -1015,6 +1067,9 @@ export function smartContext(e,p,L,prompt=null){
  }
  // Normal Summons still open this turn: the idle prompt's list, or the one recorded when the current card was activated.
  function openSummons(){return prompt?.summons??(e.lastIdle?.player===p&&e.lastIdle.turn===e.turn?e.lastIdle.summons:[])}
+ // The idle prompt, or the one recorded when the current card was activated: an Equip Spell's target prompt still knows
+ // which monsters may switch to Attack and whether a Battle Phase follows (flag 49546946: Black Pendant went on their monster).
+ function idleNow(){return prompt&&'pos_changes' in prompt?prompt:(e.lastIdle?.player===p&&e.lastIdle.turn===e.turn?e.lastIdle:null)}
  function temporaryControlValue(c,spellName){
   if(!controlTarget(c,spellName))return -1;
   if(spellName==='Brain Control'&&e.lp[p]<=1800)return -1;
@@ -1194,6 +1249,130 @@ export function smartContext(e,p,L,prompt=null){
   const attacker=e.player!==p&&legal.find(x=>same(x,e.attackCard));
   if(attacker&&legal[0]&&targetValue(legal[0])>targetValue(attacker)+500&&own.some(x=>same(x,e.attackTarget)&&face(x)&&normalMonster(x)))return legal[0];
   return attacker||legal[0]||null;}
+ // T4 and Ultimate Collector deck review (2026-11-24). Each card below had no rule and was never (or almost never)
+ // activated across 6050 duels of the 55 Tier 4 pool decks: a null score passes every chain window and the generic
+ // guess refuses any text that says "destroy". undefined = no rule here.
+ // cpuReviewRules.t4Review[seat]=false turns these off for one seat (card_trace --opp-off t4Review measures a deck alone).
+ const t4Review=e.cpuReviewRules?.t4Review?.[p]!==false;
+ const ownTurn=e.player===p,theirTurn=e.player!==p,lastLink=()=>(e.activeChain||[]).at(-1);
+ const faceValue=list=>list.filter(face).reduce((s,x)=>s+targetValue(x),0);
+ // Wall of Revealing Light's amount (index into the offered amounts): the least that stops their strongest face-up
+ // monster, keeping 1000 LP; the core offered 1000 by default, which stopped nothing at T4.
+ function wallPayment(options){
+  const amounts=[...options].map(Number),top=Math.max(0,...enemy.filter(face).map(atk)),afford=amounts.map((v,i)=>({v,i})).filter(x=>e.lp[p]-x.v>=1000);
+  if(!afford.length)return 0;
+  return (afford.find(x=>x.v>=top)||afford.at(-1)).i;
+ }
+ function tier4ReviewRule(c,n,chain){
+  // Skill Drain (Warrior Skill Drain, Goat 777 machines, Nickeldon: 0 of 2822): pay 1000 when their face-up effect
+  // monsters are worth more to them than ours are to us.
+  if(n==='Skill Drain'){
+   if([...back,...theirBack].some(x=>face(x)&&name(x)===n)||e.lp[p]<=2000)return -1;
+   const fx=x=>face(x)&&!x.is_disabled&&(data(x).type&0x20)?Math.max(effectThreat(x),400):0;
+   const theirs=enemy.reduce((s,x)=>s+fx(x),0),ours=own.reduce((s,x)=>s+fx(x),0);
+   return theirs>=700&&theirs>ours+300?(chain?88:80):-1;
+  }
+  // Wall of Revealing Light (0 of 1972): on their turn before battle, when their face-up attackers outclass ours. The
+  // amount is wallPayment's (duel.js ANNOUNCE_NUMBER): enough to stop their strongest one, keeping 1000 LP.
+  if(n==='Wall of Revealing Light'){
+   if(back.some(x=>face(x)&&name(x)===n)||!theirTurn||e.phase>=8&&e.attackCard)return -1;
+   const foes=enemy.filter(x=>face(x)&&(x.position&1)&&!attackBlocked(x,1-p)).map(atk);if(!foes.length)return -1;
+   const need=Math.ceil(Math.max(...foes)/1000)*1000;
+   return e.lp[p]-need>=1000&&Math.max(...foes)>Math.max(0,...own.filter(face).map(power))?85:-1;
+  }
+  // Anti-Spell Fragrance (Trap Control: 0 of 1241): it slows the opponent's Spells; flip it on their turn while we
+  // hold at most one Spell ourselves.
+  if(n==='Anti-Spell Fragrance')return !theirTurn||[...back,...theirBack].some(x=>face(x)&&name(x)===n)||hand.filter(x=>data(x).type&2).length>1?-1:70;
+  // Shield Crush, Chaos Sorcerer: removal. Shield Crush goes through removalScore (removalNames); Chaos Sorcerer
+  // (6 decks, 0 of 766) banishes their best face-up monster, unless its own attack would take that one anyway.
+  if(n==='Chaos Sorcerer'&&c.location===L.MZONE){
+   const self=own.find(x=>same(x,c))||c;
+   const prey=enemy.filter(x=>face(x)&&!reservedForRemoval(x)&&removalAffects(c,x,n,{destroy:false,targeting:true})).sort((a,b)=>targetValue(b)-targetValue(a))[0];
+   if(!prey)return -1;
+   const swing=remainingAttackers().some(a=>same(a,self)),beats=prey.position&1?atk(self)>atk(prey):atk(self)>def(prey);
+   // Spending its attack on a Sheep Token or a 1400 body is a loss; after battle (Main Phase 2) the banish is free.
+   if(!swing)return 95;
+   return targetValue(prey)<1500||enemy.length===1&&beats&&!resilient(prey,self)&&targetValue(prey)<2500?-1:95;
+  }
+  // Gear Golem (0 of 703): 800 LP for a direct attack, worth it with an ATK boost (7 Completed, Limiter Removal) or for game.
+  if(n==='Gear Golem the Moving Fortress'&&c.location===L.MZONE){
+   const self=own.find(x=>same(x,c))||c;
+   if(!ownTurn||!face(self)||!(self.position&1)||self.attack_disabled||self.attack_count||attackBlocked(self,p)||!enemy.length||e.lp[p]<=1800)return -1;
+   const hit=battleDamage(atk(self),p);
+   return hit>=e.lp[1-p]?110:hit>=1300?75:-1;
+  }
+  // Rivalry of Warlords (0 of 438): each player keeps one Type of face-up monster. Worth it when they lose more.
+  if(n==='Rivalry of Warlords'){
+   if([...back,...theirBack].some(x=>face(x)&&name(x)===n))return -1;
+   const loss=list=>{const by=new Map();for(const x of list.filter(face))by.set(race(x),(by.get(race(x))||0)+targetValue(x));const v=[...by.values()];return v.reduce((s,x)=>s+x,0)-Math.max(0,...v);};
+   return loss(enemy)>=loss(own)+1000?85:-1;
+  }
+  // Needle Ceiling (0 of 775): destroys every face-up monster once 4 are on the field.
+  if(n==='Needle Ceiling')return faceValue(enemy)>=Math.max(2000,faceValue(own)+1500)?(chain?90:80):-1;
+  // Bottomless Shifting Sand (2 of 874): destroys the highest-ATK face-up monsters at the end of their turn. Flip it
+  // during their turn when those are theirs alone.
+  if(n==='Bottomless Shifting Sand'){
+   if(!theirTurn||e.phase<8||e.phase>=512||back.some(x=>face(x)&&name(x)===n))return -1;
+   const top=Math.max(0,...[...own,...enemy].filter(face).map(atk));
+   return top>=1500&&!own.some(x=>face(x)&&atk(x)===top)?85:-1;
+  }
+  if(n==='Marshmallon Glasses')return own.some(x=>name(x)==='Marshmallon')&&!back.some(x=>face(x)&&name(x)===n)&&enemy.length?75:-1;
+  // Thunder of Ruler (their Standby Phase): skip their Battle Phase when it would hurt us.
+  if(n==='Thunder of Ruler')return chain&&theirTurn&&e.phase===2&&(danger||enemy.some(x=>known(x)&&power(x)>Math.max(0,...own.map(power))))?90:-1;
+  // Magic Drain (0 of 290): a Counter Trap like Magic Jammer, against an opponent's Spell Card.
+  if(n==='Magic Drain'){const link=lastLink();return chain&&link&&!link.inactive&&link.player===1-p&&(e.data[link.code]?.type&2)&&e.lp[p]>1000?95:-1;}
+  // Horn of Heaven: Tribute 1 of ours to negate their Summon, only for a monster worth that card and the Horn (a 330-duel
+  // check: negating every Summon cost Sussyboy 6 wins).
+  if(n==='Horn of Heaven'){
+   if(!chain||e.chainDepth||e.summoningPlayer!==1-p)return -1;
+   const fodder=Math.min(Infinity,...own.map(expendable)),summoned=enemy.find(x=>(e.lastSummoned||[]).some(y=>same(x,y)));
+   return Number.isFinite(fodder)&&fodder<=1200&&(summoned?targetValue(summoned):1500)>=Math.max(2000,fodder+1200)?90:-1;
+  }
+  // Chain Destruction: thins their copies of a summoned monster with 2000 or less ATK; never ours.
+  if(n==='Chain Destruction')return chain&&(e.lastSummoned||[]).some(x=>x.controller===1-p&&enemy.some(y=>same(x,y)&&face(y)&&atk(y)<=2000))?75:-1;
+  // My Body as a Shield: 1500 LP to negate removal that would destroy our monsters worth more.
+  if(n==='My Body as a Shield'){
+   const link=lastLink();if(!chain||!link||link.inactive||link.player!==1-p||e.lp[p]<=2500)return -1;
+   const text=e.cards.get(link.code)?.desc||'';if(!/destroy/i.test(text))return -1;
+   const hit=/destroy all/i.test(text)?faceValue(own)+own.filter(x=>!face(x)).length*800:(link.targets||[]).filter(t=>t.controller===p&&t.location===L.MZONE).reduce((s,t)=>s+targetValue(t),0);
+   return hit>=2000?100:-1;
+  }
+  // Cloning: a Clone Token of the monster they Normal Summoned.
+  if(n==='Cloning')return chain&&own.length<5&&(e.lastSummoned||[]).some(x=>x.controller===1-p&&enemy.some(y=>same(x,y)&&face(y)&&atk(y)>=1500))?85:-1;
+  if(n==='Nutrient Z')return chain&&healingAllowed(p)?100:-1;
+  // Exarion Universe: -400 ATK for piercing, only when it still beats the defender.
+  if(n==='Exarion Universe'){
+   const self=own.find(x=>same(x,c)),t=enemy.find(x=>same(x,e.attackTarget));
+   return self&&t&&same(self,e.attackCard)&&!(t.position&1)&&atk(self)-400>power(t)?80:-1;
+  }
+  // Injection Fairy Lily: 2000 LP for +3000 ATK in a battle it would otherwise not win.
+  if(n==='Injection Fairy Lily'){
+   const self=own.find(x=>same(x,c)),foe=self&&enemy.find(x=>same(x,same(self,e.attackCard)?e.attackTarget:e.attackCard));
+   if(!self||!foe||e.lp[p]<=3000)return -1;
+   const guard=foe.position&1?atk(foe):def(foe);
+   return atk(self)<=guard&&atk(self)+3000>guard?95:-1;
+  }
+  // Order to Smash: Tribute a Level 2 or lower Normal Monster of ours to destroy up to 2 of their Spells/Traps.
+  if(n==='Order to Smash'){
+   const fodder=own.filter(x=>face(x)&&normalMonster(x)&&lvl(x)<=2).sort((a,b)=>expendable(a)-expendable(b))[0],rows=theirBack.filter(x=>x.location===L.SZONE).length;
+   return fodder&&rows&&(rows>=2||expendable(fodder)<800)?80:-1;
+  }
+  // Summoner Monk: discard a Spell for a Level 4 monster from the Deck.
+  if(n==='Summoner Monk'&&c.location===L.MZONE)return ownTurn&&own.length<5&&hand.some(x=>(data(x).type&2)&&handLoss(x)<1200)&&q(p,L.DECK).some(x=>(data(x).type&1)&&lvl(x)===4)?75:-1;
+  // Begone, Knave!: bounces any monster that deals battle damage; worth it when their attackers are the bigger ones.
+  if(n==='Begone, Knave!')return theirTurn&&!back.some(x=>face(x)&&name(x)===n)&&Math.max(0,...enemy.filter(face).map(atk))>Math.max(0,...own.filter(face).map(atk))?70:-1;
+  // Different Dimension Capsule: a tutor that arrives two turns later; on our turn with a thin hand.
+  if(n==='Different Dimension Capsule')return ownTurn&&e.phase===4&&hand.length<=3?60:-1;
+  // A Feint Plan (0 of 5244): on their Battle Phase, before an attack, when every monster we have is Set.
+  if(n==='A Feint Plan')return chain&&theirTurn&&e.phase===8&&!e.attackCard&&own.length&&own.every(x=>!face(x))&&enemy.some(x=>face(x)&&(x.position&1)&&!attackBlocked(x,1-p))?80:-1;
+  // Dragon's Gunfire (0 of 689): legal only with a Dragon of ours; 800 damage (the first option) or a 800 DEF kill.
+  if(n==="Dragon's Gunfire")return 80;
+  // Trap Dustshoot (0 of 95): legal only while they hold 4 or more cards.
+  if(n==='Trap Dustshoot')return 75;
+  // Terraforming: a Field Spell from the Deck when we have none (deck_policy keeps its Pandemonium rule).
+  if(n==='Terraforming')return q(p,L.DECK).some(x=>data(x).type&0x80000)&&!back.some(x=>face(x)&&(data(x).type&0x80000)&&x.controller===p)&&!hand.some(x=>data(x).type&0x80000)?80:-1;
+  return undefined;
+ }
  function activationValue(c,chain=false){const n=name(c),d=data(c),spell=!!(d.type&2),t=e.cards.get(c.code)?.desc||'';
   if(c.code===190000050)return coinSpellValue(e,p,L);
   // Tower of Babel itself (a Continuous Trap): flip it at the first chance, since only Spells activated while it is
@@ -1255,6 +1434,7 @@ export function smartContext(e,p,L,prompt=null){
    const floats=face(foe)&&enabled(foe)&&/destroyed|sent (?:from the field )?to the (?:GY|Graveyard)/i.test(e.cards.get(foe.code)?.desc||'');
    return ddDies||!foeDies&&targetValue(foe)>=targetValue(live)-300||foeDies&&floats?90:-1;
   }
+  const t4Rule=t4Review?tier4ReviewRule(c,n,chain):undefined;if(t4Rule!==undefined)return t4Rule;
   if(replayRule('summon_resources')){
    if(n==='Reasoning')return own.length<5&&q(p,L.DECK).some(x=>(data(x).type&1)&&!(data(x).type&0xc0)&&summonScore(x)>=0)?85:-1;
    if(n==='Reinforcement of the Army')return q(p,L.DECK).some(x=>race(x)==='Warrior'&&effectiveLevel(x,true)<=4)?90:-1;
@@ -1402,6 +1582,10 @@ export function smartContext(e,p,L,prompt=null){
    // One copy: a second only burns the Deck faster and takes a Trap's zone (the generic duplicate check comes later).
    if(back.some(x=>face(x)&&name(x)===n&&!same(x,c)))return -1;
    const library=q(p,L.DECK),normals=library.filter(x=>(data(x).type&0x4011)===0x11).length;
+   // Exodia's four limbs are Normal Monsters: each one drawn draws again, the dig the deck is built on. GOAT Exodia held it in
+   // 2214 of 2215 offers, its 4 limbs short of a fifth of the Deck (T4 review, 2026-11-24).
+   const limbs=library.filter(x=>exodiaPieces.has(x.code)&&(data(x).type&0x4011)===0x11).length;
+   if(t4Review&&e.player===p&&limbs>=2&&myDeck>8&&back.filter(x=>x.sequence<5).length<=3)return 75;
    return e.player===p&&normals>=3&&normals*5>=library.length&&myDeck>8&&back.filter(x=>x.sequence<5).length<=2?60:-1;
   }
   // Dust Barrier: our face-up Normal Monsters ignore their Spells until our second Standby Phase; never used with no rule
@@ -1867,7 +2051,7 @@ export function smartContext(e,p,L,prompt=null){
    // Re-Fusion pays 800 LP like Premature Burial and only brings back a Fusion Monster from our GY.
    const paid=n==='Premature Burial'||n==='Re-Fusion';
    const choices=n==='Monster Reborn'?[...grave,...q(1-p,L.GRAVE)]:n==='Re-Fusion'?grave.filter(x=>data(x).type&0x40):grave;
-   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&reviveKeeps(n,x));const best=Math.max(0,...elig.map(atk));
+   const elig=choices.filter(x=>(data(x).type&1)&&!exodiaPieces.has(x.code)&&reviveKeeps(n,x)&&!diesWithout(x));const best=Math.max(0,...elig.map(atk));
    // Facing lethal on the opponent's turn: any monster that stops it is worth reviving, however weak (2026-10-29).
    if(n!=='The Shallow Grave'&&e.player!==p&&own.length<5&&(!paid||e.lp[p]>800)&&incomingBattleDamage()>=e.lp[p]&&elig.some(x=>incomingBattleDamage(atk(x))<e.lp[p]))return 115;
    // One more attacker can be lethal even when it is weaker than their strongest monster.
@@ -2216,7 +2400,9 @@ export function smartContext(e,p,L,prompt=null){
   if(n==='Mask of Brutality')return own.some(f=>face(f)&&(lethalAfter(atk(f)+1000-e.lp[1-p])||(atk(f)<=threat&&atk(f)+1000>threat)))?77:(own.some(face)?50:-1);
   if(n==='Forest')return forestNet>0?65:-1;
   // --- LP engine (Fire Princess values each gain +500 burn) ---
-  const simpleBurn={'Ookazi':800,'Hinotama':500,'Sparks':200,'Tremendous Fire':1000};
+  // Goblin Thief (T4 review, 2026-11-24: 86 of 1191 with no rule): 500 damage and 500 LP, a plain burn card.
+  const simpleBurn={'Goblin Thief':500,'Ookazi':800,'Hinotama':500,'Sparks':200,'Tremendous Fire':1000};
+  if(n==='Goblin Thief'&&!t4Review)return null;
   if(n in simpleBurn)return n==='Tremendous Fire'&&e.lp[p]<=500?-1:enemy.some(x=>enabled(x)&&['Des Wombat','Prime Material Dragon'].includes(name(x)))?-1:130;
   const simpleHeal={'Dian Keto the Cure Master':1000,"Goblin's Secret Remedy":600,'Soul of the Pure':800,'Mooyan Curry':200,'Red Medicine':500,'Blue Medicine':400};
   if(n in simpleHeal){
@@ -2531,6 +2717,8 @@ export function smartContext(e,p,L,prompt=null){
     case 'fused_toon_kingdom':v=is(0x400000)?500:0;break;
     // Every monster becomes the chosen Type and Attribute, so each face-up monster on both fields counts (itself included).
     case 'fused_unstable_dna':v=100*(field.filter(face).length+q(1-side,L.MZONE).filter(face).length);break;
+    // Genetic Override: 300 for each monster in both Monster Zones, face-down ones too.
+    case 'fused_genetic_override':v=300*(field.length+q(1-side,L.MZONE).length);break;
     case 'fused_mass_grave':v=Math.min(1500,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'variant_village_banner':v=level===4?200:0;break;
     case 'variant_counterweight':v=100*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
@@ -2559,7 +2747,7 @@ export function smartContext(e,p,L,prompt=null){
   const n=name(c);
   return effectsEnabled(p)&&ojamaParts.includes(n)&&!own.some(x=>name(x)===n)&&own.length<5&&hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&ojamaParts.filter(part=>part!==n).every(part=>own.some(x=>name(x)===part));
  }
-function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))return false;if(n==='Rescue Cat'&&effectsEnabled(p)&&rescueCatReady())return false;if(n==='Fire Princess'&&firePrincessSafe())return false;
+function preferSet(c){const n=name(c);if(wanghuDestroys(c))return true;if(sleepFlips&&!(data(c).type&0x200000))return false;if(n==='Rescue Cat'&&effectsEnabled(p)&&rescueCatReady())return false;if(n==='Fire Princess'&&firePrincessSafe())return false;
   // Slate Warrior's 1900 ATK is worth attacking with now: summon it when it can attack this turn, instead of
   // Setting it for a flip it may never get (player report, 2026-11-04). Against an empty field it is Set unless
   // it can attack directly this turn (Main Phase 1, Battle Phase ahead, direct attacks allowed).
@@ -2739,7 +2927,15 @@ function preferSet(c){const n=name(c);if(sleepFlips&&!(data(c).type&0x200000))re
   return strongest>projectedAttack(c)&&!(prompt?.summons||[]).some(x=>projectedAttack(x)>=strongest);
  }
   function summonUtility(c){if(replayRule('efficient_sacrifice')&&name(c)==='Dark Dust Spirit')return summonScore(c)>0;if(exodiaPieces.has(c.code))return false;const n=name(c);if(egyptianGods.has(n))return true;/* Ishizu's free Special Summon: always take it (user, 2026-11-04). */if(n==='Soul of Purity and Light')return true;/* Gigantes and The Rock Spirit come from the hand for a Graveyard EARTH monster: a free blocker on an empty field against their attackers; only attackers were Special Summoned, so Gigantes stayed in hand under a 2700 + 1900 attack (deck trace, 2026-11-17). */if((n==='Gigantes'||n==='The Rock Spirit')&&c.location===L.HAND&&!own.length&&enemy.some(x=>face(x)&&(x.position&1)&&atk(x)>0))return true;if(deck.contactFusionUseful(c))return true;if(!effectsEnabled(p))return false;if(ojamaComboSummon(c))return true;if(swordsWomanShield(c))return true;/* Toon Mermaid comes from the hand for free beside Toon World and attacks directly from next turn while they have no Toon. With only 1400 ATK it never passed the attacker check and sat in hand on empty fields, a Toon Summoned Skull and a Blue-Eyes Toon Dragon waiting for a Tribute beside it (deck trace, 2026-11-17). */if(n==='Toon Mermaid'&&c.location===L.HAND&&toonWorld&&own.length<5&&!attackBlocked(c,p,true)&&!enemy.some(x=>face(x)&&(data(x).type&0x400000)))return true;if(ritualSearcherUseful(n))return true;if(exodiaPlan&&handSearch.has(n)&&q(p,L.DECK).some(missingPiece))return true;if(monarchHasTarget(n))return true;return (n==='Rescue Cat'&&rescueCatReady())||(n==='Magical Scientist'&&scientistUseful())||(n==='Kaibaman'&&hand.some(x=>name(x)==='Blue-Eyes White Dragon'))||(n==='The Agent of Force - Mars'&&projectedAttack(c)>=1400)||(n==='Command Knight'&&[...own,...hand].some(x=>!same(x,c)&&race(x)==='Warrior'))||(n==='Mokey Mokey'&&has([...hand,...back],'Mokey Mokey Smackdown'))||(n==='Viser Des'&&enemy.length&&e.lp[p]>Math.max(0,...enemy.filter(x=>face(x)&&(x.position&1)).map(x=>atk(x)-projectedAttack(c))))||(n==='Relinquished'&&enemy.some(face))||(n==='Cyber-Stein'&&e.lp[p]>6000&&q(p,L.EXTRA).some(t=>atk(t)>=3000))||(n==='The Winged Dragon of Ra'&&summonScore(c)>=0)||(n==='Megarock Dragon'&&projectedAttack(c)>=1400&&own.length<5)||n==='Breaker the Magical Warrior'&&theirBack.length>0||n==='Tribe-Infecting Virus'&&virusSweep(c)||n==='Orca Mega-Fortress of Darkness'&&orcaReady(c)||n==='Dark Jeroid'&&enemy.some(x=>face(x)&&atk(x)>0&&((!openingTurn&&prompt?.to_bp!==false&&!battleLocked&&(x.position&1)&&atk(x)-800<Math.max(projectedAttack(c),...own.filter(a=>face(a)&&(a.position&1)&&!attackBlocked(a,p)).map(atk)))||own.some(a=>face(a)&&atk(x)>power(a)&&atk(x)-800<=power(a))))||n==='Exiled Force'&&enemy.some(x=>targetValue(x)>=2400)||['Fire Princess','Bowganian'].includes(n)||(n==='Cure Mermaid'&&firePrincess)||(n==='Inaba White Rabbit'&&e.turn>1&&prompt?.to_bp===true&&!battleLocked&&!attackBlocked(c,p,true));}
-  function summonScore(c){if(exodiaPieces.has(c.code))return -1;
+  // King Tiger Wanghu destroys each monster with 1400 or less ATK that is Normal or Special Summoned, ours too (Discord
+  // 2026-11-24: Sinister Serpent was Normal Summoned into their Wanghu and destroyed). Such a monster is Set instead,
+  // unless its own summon or leaving the field still pays (Sangan, Witch of the Black Forest).
+  function wanghuDestroys(c){
+   if(!c||c.location===L.MZONE||!(data(c).type&1)||![...own,...enemy].some(x=>enabled(x)&&name(x)==='King Tiger Wanghu'))return false;
+   if(projectedAttack(c,{equips:false})>1400)return false;
+   return !/sent from the field to the (?:GY|Graveyard)|(?:When|If) this card is (?:Normal |Special )?Summoned/i.test(e.cards.get(c.code)?.desc||'');
+  }
+  function summonScore(c){if(exodiaPieces.has(c.code))return -1;if(wanghuDestroys(c))return -1;
 
   if(replayRule('restricted_attackers')){
    if(name(c)==='Cave Dragon'&&!own.some(x=>face(x)&&race(x)==='Dragon'))return -1;
@@ -2778,7 +2974,11 @@ if(!effectsEnabled(p))return 0;
   if(n==='The Legendary Fisherman'&&umiActive)return 40;
   if(n==='Pumpking the King of Ghosts'&&has(back,'Castle of Dark Illusions'))return 30;
   return 0;}
- function specialOk(c){if(exodiaPieces.has(c.code))return false;const n=name(c);if(!deck.specialOk(c))return false;
+ // 'If "Pandemonium" is not on the field, destroy this card' (Archfiend General): without that card it dies on arrival
+ // (flag fa29c337: Premature Burial revived it before Pandemonium and lost both).
+ function diesWithout(c){const need=/If "([^"]+)" is not on the field, destroy this card/i.exec(e.cards.get(c.code)?.desc||'');return !!need&&effectsEnabled(p)&&![...back,...theirBack].some(x=>face(x)&&name(x)===need[1]);}
+ function specialOk(c){if(exodiaPieces.has(c.code))return false;const n=name(c);if(!deck.specialOk(c))return false;if(wanghuDestroys(c))return false;
+  if(diesWithout(c))return false;
   if(n==='Mystical Beast of Serket'&&effectsEnabled(p)&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return false;
   if(n==='Lava Golem'){if(enemy.length<2)return false;const answer=own.some(x=>face(x)&&atk(x)>=3000)||hand.some(x=>['Fissure','Smashing Ground','Tribute to the Doomed','Raigeki Break','Raigeki','Dark Hole','Change of Heart','Snatch Steal'].includes(name(x)));if(e.lp[1-p]<=3000||answer)return true;return false;}
   if(n==='Thousand-Eyes Restrict'&&own.length>=2&&ownPower>enemyPower+1500)return false;
@@ -3182,6 +3382,8 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   // Freed the Brave Wanderer (2026-11-21): banish the cheapest LIGHT monsters from the GY, never our field, and
   // destroy their strongest monster, never ours (the target may be on either field).
   if(fxN==='Freed the Brave Wanderer')return cand.location===L.GRAVE?5000-expendable(cand):cand.controller!==p?20000+targetValue(cand):-100000-targetValue(cand);
+  // T4 review (2026-11-24): Chaos Sorcerer banishes and Shield Crush destroys any monster on the field: theirs, never ours.
+  if(fxN==='Chaos Sorcerer'||fxN==='Shield Crush'){if(cand.controller===p)return -1000000000;const live=enemy.find(x=>same(x,cand))||cand;return reservedForRemoval(live)?-100000000:20000+targetValue(live);}
   if(fxN==='Cyber Raider')return cand.controller!==p?1000:nm==='Amplifier'?-100000:-1000;
   if(fxN==='Metamorphosis'){
    if(cand.location===L.EXTRA)return 30000+(nm==='Thousand-Eyes Restrict'?Math.max(0,...enemy.filter(face).map(atk)):projectedAttack(cand));
@@ -3332,8 +3534,10 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
 
   if(fxN==='Cestus of Dagla')return deck.targetScore(fxN,cand,info);
   const equipSource=e.effect&&{code:e.effect.code};
-  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;if(doomed(cand)||equipBreaker(cand))return -1000000000;
-   if(cand.controller!==p||!equipUseful(equipSource,cand))return -1000000000;
+  if(equipSource&&friendlyEquip(equipSource)&&cand.location===L.MZONE&&e.selectionHint!==500){cand=own.find(x=>same(x,cand))||cand;
+   // Never give their monster our bonus: a wasted Equip on our own monster is still the lesser loss (flag 49546946).
+   if(cand.controller!==p)return -1000000000;
+   if(doomed(cand)||equipBreaker(cand)||!equipUseful(equipSource,cand))return -900000000;
    const fixed={'Axe of Despair':1000,'Malevolent Nuzzler':700,'Black Pendant':500,'Horn of the Unicorn':700,'Sword of Deep-Seated':500,'Shine Palace':700,'Sword of Dark Destruction':400};
    const bonus=fixed[fxN]??(fxN==='United We Stand'?800*own.filter(face).length:fxN==='Mage Power'?500*back.length:500);
    const gain=bonus+(nm==='Maha Vailo'&&enabled(cand)?500:0);
@@ -3452,5 +3656,5 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   return null;}
   function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {necrossPlan:necross,necrossSetFirst,necrossPieceSet,swings,halfDamage,attacksAll,attackReadyValue,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
+  return {wanghuDestroys,wallPayment,necrossPlan:necross,necrossSetFirst,necrossPieceSet,swings,halfDamage,attacksAll,attackReadyValue,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
 }

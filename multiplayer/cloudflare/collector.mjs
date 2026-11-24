@@ -88,7 +88,8 @@ export class CollectorRegistry {
  const expired=room.disconnectLeft.map(t=>t<=0);
  if(expired.every(Boolean))this.expireBoth(room,now);
  else if(expired.some(Boolean))this.finish(room,expired[0]?0:1,'Disconnect allowance exhausted');
- else if(room.phase==='duel'&&room.turnLeft?.some(t=>t<=0))this.finish(room,room.turnLeft[0]<=0?0:1,'Turn timer expired');
+ // A Collector timeout loses that duel only (user, 2026-11-24); Draft keeps the forfeit.
+ else if(room.phase==='duel'&&room.turnLeft?.some(t=>t<=0)){const seat=room.turnLeft[0]<=0?0:1;if(this.draftMode)this.finish(room,seat,'Turn timer expired');else this.finishDuel(room,1-seat,'Turn timer expired');}
  }
  expireBoth(room,now=Date.now()){room.phase='complete';room.winner=null;room.reason='Both disconnect allowances expired';for(const id of room.players){const p=this.data.players[id],seat=room.players.indexOf(id);p.defeatedDeck=structuredClone(room.decks?.[seat]||room.startDecks?.[seat]||p.deck);p.defeatedAt=now;p.defeatReason=room.reason;p.status='eliminated';p.pool=[];p.deck={main:[],side:[],extra:[]};p.history.push({room:room.code,at:now,won:false,reason:room.reason,cards:[]});}}
  expire(){for(const room of Object.values(this.data.rooms))this.tick(room);}
@@ -111,6 +112,8 @@ export class CollectorRegistry {
  const v=await request.json(),room=this.data.rooms[v.code];if(!room?.hub||room.phase==='complete')return this.reply({ok:true});
  if(v.type==='game'){if(room.phase==='duel'&&v.game===room.game){room.turn=v.turns;this.finishDuel(room,v.winner);}}
  else if(v.type==='forfeit')this.finish(room,v.seat,v.reason);
+ // A Collector player out of turn time loses that duel; the match goes on (hub.mjs enforce, 2026-11-24).
+ else if(v.type==='timeout'&&[0,1].includes(v.seat)){if(this.draftMode)this.finish(room,v.seat,'Turn timer expired');else if(room.phase==='duel'&&v.game===room.game){room.turn=v.turns;this.finishDuel(room,1-v.seat,'Turn timer expired');}}
  else if(v.type==='both')this.expireBoth(room);
  await this.persist();this.notifyHub(room);return this.reply({ok:true});
  }
@@ -190,9 +193,10 @@ export class DraftRegistry extends CollectorRegistry {
    room.picks[seat]={relic:v.relic,pack:v.pack};}
    if(room.picks.every(Boolean)){
     for(let s=0;s<2;s++){const x=this.data.players[room.players[s]],id=room.offer.packs[room.picks[s].pack];
-     // A Random Pack is two seeds; the clients build the cards (empty booster lists here).
-     if(id===RANDOM_PACK){x.randomBoosters=[...(x.randomBoosters||[]),randomSeed(),randomSeed()];x.packs=[[],[]];x.packIds=[id,id];}
-     else{const boosters=[openBooster(id),openBooster(id)];x.packs=boosters;x.packIds=[id,id];x.pool.push(...boosters.flat());}if(!room.noRelics)room.relics[s].push(room.offer.relics[room.picks[s].relic]);}
+     // Three boosters of the picked pack (Discord 2026-11-23: two per Draft Screen was too few; was 2). A Random Pack is
+     // three seeds; the clients build the cards (empty booster lists here).
+     if(id===RANDOM_PACK){x.randomBoosters=[...(x.randomBoosters||[]),randomSeed(),randomSeed(),randomSeed()];x.packs=[[],[],[]];x.packIds=[id,id,id];}
+     else{const boosters=[openBooster(id),openBooster(id),openBooster(id)];x.packs=boosters;x.packIds=[id,id,id];x.pool.push(...boosters.flat());}if(!room.noRelics)room.relics[s].push(room.offer.relics[room.picks[s].relic]);}
     Object.assign(room,{phase:'drafting',minDeck:minDeckFor(room.round),ready:[false,false]});
    }
    return;

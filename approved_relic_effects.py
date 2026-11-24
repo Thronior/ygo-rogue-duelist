@@ -634,9 +634,11 @@ def battle_damage_scale(run,scale=1):
  """How much the battle damage each player takes is scaled after damage calculation, by battle_rules, Hollow Chalice
  and the Exposed and Mercy curses: (you take, your opponent takes). Nutrient Z checks the damage before those changes,
  so its condition multiplies by this (Prunk44, Discord 2026-11-09)."""
+ # Hollow Chalice's id is cursed_hollow_chalice (a shadow relic); 'hollow_chalice' never matched, so Nutrient Z missed its
+ # x1.5 (behaviour flag 061a3450, 2026-11-24: 1400 damage became 2100 and Nutrient Z was never offered).
  from approved_relics import copies
  shield=.5**copies(run,'cursed_defense_proficiency')
- taken=1.5**copies(run,'cursed_duelists_wager')*shield*1.5**copies(run,'hollow_chalice')
+ taken=1.5**copies(run,'cursed_duelists_wager')*shield*1.5**copies(run,'cursed_hollow_chalice')
  dealt=1.5**(copies(run,'cursed_duelists_wager')+copies(run,'battle_proficiency'))*shield
  curses=run.get('curses',[])
  taken*=(2 if scale>=2 else 1.5)**curses.count('exposed')

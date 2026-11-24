@@ -5,6 +5,8 @@ A single-player roguelike deckbuilder built on Yu-Gi-Oh! duels: pick a duelist, 
 - **Webapp:** [itch.io](https://thronior.itch.io/ygo-rogue). It also runs in desktop browsers.
 - **Android:** install `YGO-Rogue-Android.apk` from the latest [GitHub release](https://github.com/Thronior/ygo-rogue-duelist/releases) on Android 10 or newer. See [android/README.md](android/README.md) for controls and save behavior.
 
+Making your own version? Online play needs its own servers: see [SELF-HOSTING.md](SELF-HOSTING.md).
+
 The game is an unofficial fan project. Yu-Gi-Oh! cards, characters, artwork and music belong to their respective owners. See [assets/CREDITS.md](assets/CREDITS.md).
 
 > The native Windows desktop edition is retired and its source has been removed. The webapp and Android app are the only supported versions. Saves from the old desktop app can be imported in the webapp's Settings.

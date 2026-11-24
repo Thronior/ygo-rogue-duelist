@@ -1,0 +1,126 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_44,.patch-notes-sheet.pn0_2_44 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_44{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_44 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_44 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_44 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_44 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_44 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big .pn0_2_44-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big>*{position:relative}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big p.pn0_2_44-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way img,.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-relics .pn0_2_44-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-packs .pn0_2_44-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark.pn0_2_44-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark.pn0_2_44-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art.pn0_2_44-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon{width:110px;height:110px;border-radius:8px;border:2px solid #b5824a;flex:none;display:grid;place-items:center;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon.pn0_2_44-x span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#3a0b0bee;border:2px solid #ff6b6b;color:#ff8a8a;font:700 24px/1 Arial,sans-serif}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon.pn0_2_44-once img{width:70px;height:70px;border-radius:6px;object-fit:cover;filter:grayscale(1) brightness(.75);border:2px solid #9fb4ba}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-sleeverow{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-sleeverow img{width:76px;height:109px;object-fit:cover;border-radius:6px;border:2px solid #b5824a}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice{display:flex;gap:10px;margin-top:12px;align-items:stretch}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice span{border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;font:400 22px Bebas;letter-spacing:2px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice .pn0_2_44-easy{flex:1;color:#9fb4ba;background:#0b1a22;font-size:18px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice .pn0_2_44-normal{flex:2;color:#f3d78e;background:#2a1d0a;font-size:26px}</style><div class="patch-notes-sheet pn0_2_44"><div class="pn0_2_44-kick">YGO Rogue Duelist</div><h1>Update 0.2.44</h1>
+
+<section class="pn0_2_44-cols" style="margin-top:28px">
+<div class="pn0_2_44-big"><em>New cards</em><h3>Plant support</h3>
+<div class="pn0_2_44-ways" style="grid-template-columns:1fr"><div class="pn0_2_44-way"><div class="pn0_2_44-art pn0_2_44-crop" style="background-image:url('assets/cards/48686504.jpg')"></div><p><b>10 Plant cards</b><b>Lonefire Blossom</b>, <b>Gigaplant</b>, <b>Tytannial</b>, <b>The World Tree</b> and more join <b>Savage Wilds</b>. Weevil's new loadout <b>Overgrown Garden</b> replaces Insect Evolution.</p></div></div></div>
+<div class="pn0_2_44-big"><em>Difficulty</em><h3>Easy mode</h3>
+<p class="pn0_2_44-lead">Starting a run asks for a difficulty. <b>Easy</b>: no boss curses, <b>heal 2,000 LP</b> after each win, extra removal cards at the start, and shadow relics can be skipped. Easy runs don't count for achievements or unlocks.</p>
+<div class="pn0_2_44-choice"><span class="pn0_2_44-easy">Easy</span><span class="pn0_2_44-normal">Normal</span></div></div>
+</section>
+
+<section class="pn0_2_44-big"><em>Relics</em><h3>New relics and relic tools</h3>
+<div class="pn0_2_44-ways">
+<div class="pn0_2_44-way"><img src="assets/relics/5973663.jpg"><p><b>Plant relics</b><b>Photosynthesis</b> heals for your Plants, <b>Spring Growth</b> grows them each turn, and <b>Pollinator</b> brings Moth Tokens.</p></div>
+<div class="pn0_2_44-way"><img src="assets/relics/95308449.jpg"><p><b>Destiny Hourglass</b>Now offers the <b>Destiny Board</b> pieces you're still missing first.</p></div>
+<div class="pn0_2_44-way"><div class="pn0_2_44-icon pn0_2_44-x"><span>✕</span></div><p><b>Banish relics</b>Tap the <b>✕</b> on a relic in the shop to banish it for <b>10 coins</b>. It won't show up again this run. Works in Tag too.</p></div>
+<div class="pn0_2_44-way"><div class="pn0_2_44-icon pn0_2_44-once"><img src="assets/relics/Phoenix%20Feather.png"></div><p><b>Once per Duel</b>When one of these relics triggers, its art <b>shows big</b>, and its icon in the relics bar <b>greys out</b> for the rest of the Duel.</p></div>
+</div>
+<p class="pn0_2_44-lead" style="margin-top:14px">Plus <b>3 new fused relics</b> to discover.</p></section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>Ultimate Collector</em><h3>Clock and pauses</h3>
+<p class="pn0_2_44-lead">Each play adds <b>15 seconds</b> to your clock. Running out loses <b>that duel</b>, not the match. The timer turns <b>red</b> under a minute. Ask for a <b>pause</b> (2 per match). See your own deck on the prize screen, and mark cards with <b>★ / ✕</b>.</p></div>
+<div class="pn0_2_44-big"><em>Draft</em><h3>More packs</h3>
+<p class="pn0_2_44-lead">Each pick now opens <b>3 packs</b>, and every loop starts with <b>3 packs from 3 different sets</b>.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>Stats</em><h3>CPU Stats</h3>
+<p class="pn0_2_44-lead">A new tab with every CPU's <b>wins and losses against players</b>, split by tier. Tap a CPU to see its record against each duelist. Anonymous: no player is tracked.</p></div>
+<div class="pn0_2_44-big"><em>Settings</em><h3>Hotkeys and CPU speed</h3>
+<p class="pn0_2_44-lead"><b>Settings › Hotkeys</b>: every shortcut can be rebound. <b>CPU Action Delay</b>: slow the CPU down, from 0 to 1,000 ms per action.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>Deck building</em><h3>Find cards faster</h3>
+<p class="pn0_2_44-lead">Search updates <b>as you type</b>. The split deck view has an <b>Extra Deck</b> pane. <b>Collection › Packs</b> can filter by Draw, Equip Spells and monster Types.</p></div>
+<div class="pn0_2_44-big"><em>Card sleeves</em><h3>New god sleeves</h3>
+<div class="pn0_2_44-sleeverow"><img src="assets/sleeves/cards/slifer-the-sky-dragon.jpg"><img src="assets/sleeves/cards/obelisk-the-tormentor.jpg"><img src="assets/sleeves/cards/the-winged-dragon-of-ra.jpg"><img src="assets/sleeves/yami-yugi.jpg"><img src="assets/sleeves/seto-kaiba.jpg"><img src="assets/sleeves/yami-marik.jpg"></div></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>Character packs</em><h3>Joey's pack</h3>
+<div class="pn0_2_44-ways" style="grid-template-columns:1fr"><div class="pn0_2_44-way"><div class="pn0_2_44-art" style="background-image:url('assets/cards/64335804.jpg')"></div><p><b>New cards</b><b>Silent Swordsman LV3, LV5, LV7</b>, <b>Red-Eyes Black Metal Dragon</b> and <b>Metalmorph</b>. <b>Gearfried the Iron Knight</b> is easier to find.</p></div></div></div>
+<div class="pn0_2_44-big"><em>10,000 players!</em><h3>Player survey</h3>
+<p class="pn0_2_44-lead">Thank you! A short survey pops up once: your favourite duelists, opponents and relics, and what you'd like to see next. You can find it again under the <b>bell</b>.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div><h2>Changes</h2><ul class="pn0_2_44-small">
+<li><span>🎲</span><span>A <b>dice button</b> on the character select picks a random duelist.</span></li>
+<li><span>🏆</span><span>The title screen shows <b>achievements done / total</b>, with the percent in the bar.</span></li>
+<li><span>🧠</span><span>CPU: plays <b>about 30 more cards</b> in Tier 4 and Collector decks, weighs board wipes by total ATK, and handles <b>King Tiger Wanghu</b>, <b>Patrician of Darkness</b> and <b>Breaker</b> better.</span></li>
+<li><span>🔀</span><span>Randomized cards are <b>more varied</b>, with fewer straight copies of real effects.</span></li>
+<li><span>🔍</span><span><b>Fusion</b> and <b>Equip</b> filters find every Fusion Monster and Equip Spell.</span></li>
+<li><span>🪦</span><span>Your <b>Graveyard</b> opens like the Deck: the first tap shows Inspect.</span></li>
+<li><span>⚙️</span><span>The Settings <b>✕</b> takes you back where you came from. <b>Esc</b> closes any window.</span></li>
+<li><span>❓</span><span>Fusion hints count the pieces a fused relic <b>needs</b>.</span></li>
+<li><span>🐧</span><span>Linux app: missing sound codecs no longer stop the game, and a notice names the packages to install.</span></li>
+</ul></div>
+<div><h2>Fixes</h2><ul class="pn0_2_44-small">
+<li><span>🧪</span><span><b>Nutrient Z</b> counts <b>Hollow Chalice</b>'s extra damage.</span></li>
+<li><span>1️⃣</span><span><b>Singleton Pact</b> removes extra copies from your Deck when you get it.</span></li>
+<li><span>🛡️</span><span><b>Loyalty</b> also protects face-down monsters, for both Tag players.</span></li>
+<li><span>👥</span><span>Tag: boss curses no longer <b>stack</b>.</span></li>
+<li><span>⛓️</span><span><b>Attack and Receive</b> asks on <b>Chain: Sometimes</b>.</span></li>
+<li><span>🪙</span><span>Turning off <b>Coin Reward Pop-ups</b> also hides the +coins pop-ups in duels.</span></li>
+<li><span>💾</span><span>Deck editor: taps no longer stop working, and the game <b>says so</b> if it can't save on your device.</span></li>
+<li><span>🧊</span><span>A duel no longer <b>freezes</b> when an animation stalls.</span></li>
+<li><span>✋</span><span>Randomized cards: costs paid from the hand work, and clearer wording.</span></li>
+<li><span>🚩</span><span>Behaviour flags: <b>Black Pendant</b>, piercing damage, <b>Last Will</b> and <b>Archfiend General</b>.</span></li>
+<li><span>🐧</span><span>Linux app: sounds no longer cut off early.</span></li>
+<li><span>👴</span><span>The <b>Annoy Grandpa Solomon</b> sleeve is given to everyone who did.</span></li>
+</ul></div>
+</section></div>

@@ -3,7 +3,7 @@
 // wide-screen Deck + Collection split. The editor object holds its state in deckFilter, deckSort, deckStatus,
 // deckSplit, deckOrder and deckOrderKey; Sort and Deck status are remembered per device (deck-sort-preference.js).
 import {frameLevelName,deckCardMarkup,deckStats,attributeOrder} from './feedback-ui.js';
-import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,splitStyle,deckSplitColumns} from './card-search.js';
+import {searches,matchesSearch,openSearch,clearSearch,DECK_STATUS_OPTIONS,deselectIcon,deckSearchButtons,splitDeckMarkup,splitStyle,deckSplitColumns,isExtraDeckCard,splitCounts} from './card-search.js';
 import {DEFAULT_DECK_SORT,DEFAULT_DECK_STATUS,rememberDeckSort} from './deck-sort-preference.js';
 import {stacksOn,groupStacks,stackButton} from './deck-stacks.js';
 import {pagedGrid} from './deck-paging.js';
@@ -23,6 +23,8 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  // Card marks (card-marks.js) reorder the cards but keep the page count (deck-paging.js), so they key only the order.
  const base=JSON.stringify([ed.deckFilter,ed.deckSort,ed.deckStatus,searches[searchKey]||null,pool.length,!!ed.deckSplit]),key=base+'|'+cardMarkVersion(run);
  ed.deckPageKey=base;
+ // The split's Extra Deck pane (deckCardsArea) reads the pool through this.
+ ed.deckIsExtra=i=>isExtraDeckCard(lookup(pool[i]));
  // The pool's contents and the relics (ATK/DEF sorts read relic-adjusted stats) are part of the cache too: Draft rebuilds
  // its pool at the same size, and a new relic moves cards, which left just-added cards unsorted at the bottom (Nori,
  // 2026-11-21). One pass over the ids (hosts rebuild the array each render, so identity can't be used); still far cheaper
@@ -61,9 +63,9 @@ export function deckToolbar(ed,{searchKey,sorts,action,idPrefix}){
 export function deckCardsArea(ed,order,selected,cardMarkup,stack=null){
  // Big collections draw in pages (deck-paging.js); the page count holds while the order does.
  const inDeck=new Set(selected),on=stack&&stacksOn(),page={id:'shared-editor',key:`${ed.deckPageKey??ed.deckOrderKey}|${!!on}`};
- if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;const counts={'deck-pane':deckSide.length,'collection-pane':rest.length};
+ if(ed.deckSplit){let deckSide=order.filter(i=>inDeck.has(i)),rest=order.filter(i=>!inDeck.has(i)),markup=cardMarkup;const isExtra=ed.deckIsExtra||null,counts=isExtra?splitCounts(deckSide,rest,isExtra):{'deck-pane':deckSide.length,'collection-pane':rest.length};
   if(on){const a=groupStacks(deckSide,stack.run,selected,stack.limit),b=groupStacks(rest,stack.run,selected,stack.limit);deckSide=a.order;rest=b.order;markup=i=>stackButton(cardMarkup(i),a.stack(i)||b.stack(i),{...stack,pane:inDeck.has(i)?'deck':'collection'})}
-  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra',page,counts)}</div>`}
+  return `<div class="draft-card-scroll deck-split" ${splitStyle(ed.deckSplit)}>${splitDeckMarkup(deckSide,rest,markup,ed.deckFilter==='Extra',page,counts,isExtra)}</div>`}
  let cards;if(on){const s=groupStacks(order,stack.run,selected,stack.limit);cards=pagedGrid(page.id,page.key,s.order,i=>stackButton(cardMarkup(i),s.stack(i),stack))}else cards=pagedGrid(page.id,page.key,order,cardMarkup);
  return `<div class="draft-card-scroll"><div class="cardgrid">${cards||(ed.deckFilter==='Extra'?'<p class="muted">No Extra Deck cards yet. Fusion Monsters you get will appear here.</p>':'')}</div></div>`;
 }

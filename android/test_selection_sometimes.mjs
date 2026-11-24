@@ -16,4 +16,6 @@ same(chainWindowAllowed(summoning([id('The Selection')]),'never',[],ctx),false,'
 same(chainWindowAllowed(summoning([id('Waboku')]),'sometimes',[],ctx),false,'other cards keep the Sometimes policy: Waboku waits');
 // Drop Off is only offered right after the opponent's normal draw, so Sometimes always asks for it (Discord, 2026-11-23).
 same(chainWindowAllowed({type:M.SELECT_CHAIN,player:0,forced:false,spe_count:1,hint_timing:0,hint_timing_other:0,selects:[{code:id('Drop Off'),location:L.SZONE}]},'sometimes',[],{turnPlayer:1,phase:1,card:code=>byId.get(code)}),true,"Sometimes offers Drop Off on the opponent's draw");
+// Attack and Receive is only legal right after you take damage, so Sometimes always asks (Discord, 2026-11-24: Hinotama).
+same(chainWindowAllowed({type:M.SELECT_CHAIN,player:0,forced:false,spe_count:1,hint_timing:0,hint_timing_other:0,selects:[{code:id('Attack and Receive'),location:L.SZONE}]},'sometimes',[],{turnPlayer:1,phase:4,card:code=>byId.get(code)}),true,'Sometimes offers Attack and Receive after effect damage');
 console.log(`PASS Chain Sometimes asks for summon-negating Traps (${checks} checks)`);

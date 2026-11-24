@@ -261,29 +261,30 @@
       "background": "character-backgrounds/variant-9.jpg"
     },
     "10": {
-      "name": "Insect Evolution",
-      "starting_relic": "level_one",
+      "name": "Overgrown Garden",
+      "starting_relic": "pollinator",
       "supporting_packs": [
-        "EN-SOD",
-        "JP-DL4"
+        "CUSTOM-SAVAGE-WILDS",
+        "JP-EE2"
       ],
       "cards": [
-        "Ultimate Insect LV1",
-        "Ultimate Insect LV3",
-        "Ultimate Insect LV5"
+        "Lonefire Blossom",
+        "Gigaplant",
+        "Botanical Lion"
       ],
       "pack_additions": [
-        "Ultimate Insect LV1",
-        "Ultimate Insect LV3",
-        "Ultimate Insect LV5",
-        "Level Up!",
-        "The Graveyard in the Fourth Dimension",
-        "Howling Insect",
-        "Pinch Hopper",
-        "Petit Moth",
-        "Cocoon of Evolution"
+        "Lonefire Blossom",
+        "Gigaplant",
+        "Botanical Lion",
+        "Dandylion",
+        "Gigantic Cephalotus",
+        "Rose Witch",
+        "Botanical Girl",
+        "Plant Food Chain",
+        "Fairy King Truesdale",
+        "Anti-Aircraft Flower"
       ],
-      "background_card": "Ultimate Insect LV1",
+      "background_card": "Lonefire Blossom",
       "background": "character-backgrounds/variant-10.jpg"
     },
     "11": {

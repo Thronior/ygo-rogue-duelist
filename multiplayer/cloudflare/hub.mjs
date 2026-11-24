@@ -80,6 +80,23 @@ export class TagHub extends Hub {
 // presence, and reports results to the registry, which still owns players, decks and match state. The clock starts
 // only after a grace period, so slow links do not pay for transit, and a short drop costs nothing.
 export const TURN_TIME=180000,DISCONNECT_ALLOWANCE=300000,HANDOFF_GRACE=2000,DROP_GRACE=20000;
+// Ultimate Collector clock (CITYDRIVER, user 2026-11-24). Each play (a Summon, Set or activation) gives that player's
+// clock PLAY_BONUS back. The clock never shows more than TURN_TIME, and one turn earns at most MAX_TURN_BONUS, so a
+// long combo turn gets up to twice the usual thinking time and no more. Running out of time loses that duel only.
+// A player may ask for PAUSES per match; the opponent must accept within PAUSE_ASK. A pause freezes the turn clock
+// and the disconnect allowance for up to PAUSE_TIME and ends early when its asker resumes or makes a play. Asking is
+// capped by PAUSE_ASKS and PAUSE_RETRY so declined asks cannot be spammed. Draft rooms keep the old clock.
+export const PLAY_BONUS=15000,MAX_TURN_BONUS=180000,PAUSES=2,PAUSE_TIME=180000,PAUSE_ASK=30000,PAUSE_ASKS=5,PAUSE_RETRY=60000;
+// Wire responses (engine.js, vendor ocgcore types): idle Summon / Special Summon / Set monster / Set Spell-Trap /
+// activate (type 1, actions 0, 1, 3, 4, 5), a Battle Phase activation (type 0, action 0) and a chain activation
+// (type 8 with a card index; a pass has none).
+export function isPlay(r){
+ if(!r||typeof r!=='object')return false;
+ if(r.type===1)return [0,1,3,4,5].includes(r.action);
+ if(r.type===0)return r.action===0;
+ if(r.type===8)return Number.isInteger(r.index)&&r.index>=0;
+ return false;
+}
 // Rows written (2026-11-11): the free tier allows 100,000 a day across every Worker, and a put, a delete and a
 // setAlarm each cost one. A duel's newest responses ride inside the meta row (`open`), so a response costs one row;
 // every EVENT_CHUNK responses they move into one chunk row, and a new game deletes a few chunks, not every event.
@@ -117,8 +134,10 @@ export class MatchHub extends Hub {
    return;
   }
   this.settle(now);m.players=s.players;m.phase=s.phase;
+  // A pause ends with its duel; the pauses left last the whole match.
+  if(m.pause){m.pause.until=null;m.pause.by=null;m.pause.from=null;m.pause.ask=null}
   if(s.phase==='duel'&&s.game!==m.game){
-   await this.clearEvents(m.game);m.game=s.game;m.count=0;m.open=[];m.openFrom=0;m.openBytes=0;m.actor=s.actor;m.turn=1;m.turnLeft=[TURN_TIME,TURN_TIME];m.clockAt=now+HANDOFF_GRACE;m.votes={};m.clockVotes={};m.reported=false;
+   await this.clearEvents(m.game);m.game=s.game;m.count=0;m.open=[];m.openFrom=0;m.openBytes=0;m.actor=s.actor;m.turn=1;m.turnLeft=[TURN_TIME,TURN_TIME];m.bonusLeft=[MAX_TURN_BONUS,MAX_TURN_BONUS];m.clockAt=now+HANDOFF_GRACE;m.votes={};m.clockVotes={};m.reported=false;
   }else m.game=s.game;
   // A player who never reached the hub is offline, or nothing would ever charge them.
   for(let seat=0;seat<m.players;seat++)if(!this.online(seat)&&m.offlineAt[seat]===null)m.offlineAt[seat]=now;
@@ -139,12 +158,19 @@ export class MatchHub extends Hub {
  save(extra={}){return this.ctx.storage.put({meta:this.meta,...extra})}
  broadcast(data){const text=JSON.stringify(data);for(const seat of [0,1])for(const ws of this.sockets(seat))try{ws.send(text)}catch{}}
  clock(){const m=this.meta;return {actor:m.actor,turn:m.turn,turnLeft:m.turnLeft,clockAt:m.clockAt,now:Date.now()}}
- presenceData(){const m=this.meta;return {online:[this.online(0),this.online(1)],offlineAt:m.offlineAt,chargedAt:m.chargedAt,disconnectLeft:m.disconnectLeft,grace:DROP_GRACE,...this.clock()}}
+ // `pause` is new (2026-11-24) and only in Collector rooms; older clients ignore it, newer ones show the Pause option only
+ // when it is there.
+ presenceData(){const m=this.meta;return {online:[this.online(0),this.online(1)],offlineAt:m.offlineAt,chargedAt:m.chargedAt,disconnectLeft:m.disconnectLeft,grace:DROP_GRACE,...this.clock(),...(m.kind==='collector'?{pause:this.pauseView()}:{})}}
+ pauseState(){const m=this.meta;return m.pause??={until:null,by:null,from:null,ask:null,left:[PAUSES,PAUSES],asks:[PAUSE_ASKS,PAUSE_ASKS],retryAt:[0,0]}}
+ pauseView(){const p=this.pauseState();return {until:p.until,by:p.by,from:p.from,ask:p.ask,left:p.left,asks:p.asks,retryAt:p.retryAt,time:PAUSE_TIME}}
+ // The earliest moment the turn clock may run again: a hand-off grace, or the end of an accepted pause.
+ clockFrom(at){const until=this.meta.pause?.until;return until&&until>at?until:at}
  presence(){this.broadcast({t:'presence',...this.presenceData()})}
  // Charge everything owed up to now, then advance the marks so the same time is never charged twice.
+ // Time inside an accepted pause is marked as charged without costing allowance.
  settle(now=Date.now()){
-  const m=this.meta;if(!m||m.players<2)return;
-  for(let seat=0;seat<2;seat++){const since=m.offlineAt[seat];if(since===null)continue;const from=Math.max(since+DROP_GRACE,m.chargedAt[seat]??0);if(now>from){m.disconnectLeft[seat]-=now-from;m.chargedAt[seat]=now}}
+  const m=this.meta;if(!m||m.players<2)return;const free=Math.min(now,m.pause?.until||0);
+  for(let seat=0;seat<2;seat++){const since=m.offlineAt[seat];if(since===null)continue;let from=Math.max(since+DROP_GRACE,m.chargedAt[seat]??0);if(free>from){m.chargedAt[seat]=free;from=free}if(now>from){m.disconnectLeft[seat]-=now-from;m.chargedAt[seat]=now}}
   const waiting=m.offlineAt.some(t=>t!==null);
   if(m.phase==='duel'&&m.actor!==null&&!waiting&&now>m.clockAt)m.turnLeft[m.actor]-=now-m.clockAt;
   m.clockAt=Math.max(m.clockAt,now);
@@ -154,7 +180,8 @@ export class MatchHub extends Hub {
   const out=m.disconnectLeft.map(t=>t<=0);let report=null;
   if(out[0]&&out[1])report={type:'both'};
   else if(out[0]||out[1])report={type:'forfeit',seat:out[0]?0:1,reason:'Disconnect allowance exhausted'};
-  else if(m.phase==='duel'&&m.turnLeft.some(t=>t<=0))report={type:'forfeit',seat:m.turnLeft[0]<=0?0:1,reason:'Turn timer expired'};
+  // Collector: the duel is lost, the match goes on (registry hubReport 'timeout'). Draft keeps the forfeit.
+  else if(m.phase==='duel'&&m.turnLeft.some(t=>t<=0))report={type:m.kind==='collector'?'timeout':'forfeit',seat:m.turnLeft[0]<=0?0:1,reason:'Turn timer expired'};
   if(report)await this.report(report);
  }
  async report(data){
@@ -166,7 +193,7 @@ export class MatchHub extends Hub {
  // that moved later is re-armed when the older alarm fires.
  deadline(now=Date.now()){
   const m=this.meta;if(!m||m.players<2||m.reported)return null;const times=[];
-  for(let seat=0;seat<2;seat++)if(m.offlineAt[seat]!==null)times.push(Math.max(now,m.offlineAt[seat]+DROP_GRACE)+Math.max(0,m.disconnectLeft[seat]));
+  for(let seat=0;seat<2;seat++)if(m.offlineAt[seat]!==null)times.push(Math.max(now,m.offlineAt[seat]+DROP_GRACE,m.pause?.until||0)+Math.max(0,m.disconnectLeft[seat]));
   if(m.phase==='duel'&&m.actor!==null&&m.offlineAt.every(t=>t===null))times.push(m.clockAt+Math.max(0,m.turnLeft[m.actor]));
   return times.length?Math.min(...times)+50:null;
  }
@@ -175,6 +202,24 @@ export class MatchHub extends Hub {
   if(!this.meta)return;const m=this.meta;m.alarmAt=null;let gone=false;
   for(const seat of [0,1])if(this.stale(seat)){gone=true;await this.drop(seat)}
   this.settle();await this.enforce();if(!this.meta)return;await this.arm();if(gone)this.presence();
+ }
+ // Pause requests (Collector only): {ask:true} from either player, {answer:true|false} from the other one, and
+ // {resume:true} from the asker. Each change costs one row and is told to both seats with the clock.
+ async pauseMessage(seat,v){
+  const m=this.meta,now=Date.now();if(m.kind!=='collector'||m.players<2)return;const p=this.pauseState(),paused=p.until!==null&&p.until>now,asking=p.ask&&p.ask.until>now;
+  if(v.ask===true){
+   if(paused||asking||p.left[seat]<=0||p.asks[seat]<=0||now<(p.retryAt[seat]||0))return;
+   p.ask={seat,until:now+PAUSE_ASK};p.asks[seat]--;
+  }else if(typeof v.answer==='boolean'){
+   if(!asking||p.ask.seat===seat)return;
+   if(v.answer){this.settle(now);p.by=p.ask.seat;p.from=now;p.until=now+PAUSE_TIME;p.left[p.by]--;m.clockAt=Math.max(m.clockAt,p.until)}
+   else p.retryAt[p.ask.seat]=now+PAUSE_RETRY;
+   p.ask=null;
+  }else if(v.resume===true){
+   if(!paused||p.by!==seat)return;
+   this.settle(now);p.until=now;m.clockAt=now+HANDOFF_GRACE;
+  }else return;
+  await this.save();await this.arm();this.presence();
  }
  async drop(seat){const m=this.meta;if(!m||m.offlineAt[seat]!==null)return;this.settle();m.offlineAt[seat]=Date.now();await this.save();await this.arm();this.presence()}
  async webSocketClose(ws){const attachment=ws.deserializeAttachment();try{ws.close(1000,'Connection closed')}catch{}if(attachment?.replaced||!this.meta||this.online(attachment.seat))return;await this.drop(attachment.seat)}
@@ -189,7 +234,8 @@ export class MatchHub extends Hub {
   if(v.game!==m.game||m.phase!=='duel')return ws.send(JSON.stringify({t:'room',phase:m.phase,game:m.game}));
   if(v.t==='r')return this.response(ws,seat,v);
   if(v.t==='rs')return this.responses(ws,seat,v);
-  if(v.t==='clock'){if(v.number!==m.count||!Number.isInteger(v.turn)||v.turn<1||![0,1,null].includes(v.actor))return;this.settle();m.clockVotes[seat]={number:v.number,turn:v.turn,actor:v.actor};const a=m.clockVotes[0],b=m.clockVotes[1];if(a&&b&&a.number===b.number&&a.turn===b.turn&&a.actor===b.actor){if(m.turn!==a.turn){m.turn=a.turn;m.turnLeft=[TURN_TIME,TURN_TIME]}m.actor=a.actor;m.clockAt=Date.now()+HANDOFF_GRACE;await this.save();await this.arm();this.broadcast({t:'presence',...this.presenceData()})}else await this.save();return}
+  if(v.t==='pause')return this.pauseMessage(seat,v);
+  if(v.t==='clock'){if(v.number!==m.count||!Number.isInteger(v.turn)||v.turn<1||![0,1,null].includes(v.actor))return;this.settle();m.clockVotes[seat]={number:v.number,turn:v.turn,actor:v.actor};const a=m.clockVotes[0],b=m.clockVotes[1];if(a&&b&&a.number===b.number&&a.turn===b.turn&&a.actor===b.actor){if(m.turn!==a.turn){m.turn=a.turn;m.turnLeft=[TURN_TIME,TURN_TIME];m.bonusLeft=[MAX_TURN_BONUS,MAX_TURN_BONUS]}m.actor=a.actor;m.clockAt=this.clockFrom(Date.now()+HANDOFF_GRACE);await this.save();await this.arm();this.broadcast({t:'presence',...this.presenceData()})}else await this.save();return}
   if(v.t==='result'){if(![0,1,2].includes(v.winner)||v.n!==m.count)return;m.votes[seat]=v.winner;if(Object.keys(m.votes).length<2){await this.save();return}const agreed=m.votes[0]===m.votes[1];if(!agreed){m.votes={};await this.save();this.broadcast({t:'desync'});return}await this.report({type:'game',winner:v.winner});return}
  }
  async hello(ws,v){
@@ -236,8 +282,14 @@ export class MatchHub extends Hub {
  // Applies one accepted answer in memory; the caller stores it (and any closed chunk) with one save.
  record(seat,v,chunks){
   const m=this.meta,now=Date.now();this.settle(now);
-  if(v.turn!==m.turn){m.turn=v.turn;m.turnLeft=[TURN_TIME,TURN_TIME]}
-  m.clockAt=now+(v.nextActor!==m.actor?HANDOFF_GRACE:0);m.actor=v.nextActor;m.clockVotes={};
+  if(v.turn!==m.turn){m.turn=v.turn;m.turnLeft=[TURN_TIME,TURN_TIME];m.bonusLeft=[MAX_TURN_BONUS,MAX_TURN_BONUS]}
+  if(m.kind==='collector'&&isPlay(v.response)&&m.turnLeft[seat]>0){
+   m.bonusLeft??=[MAX_TURN_BONUS,MAX_TURN_BONUS];const gain=Math.max(0,Math.min(PLAY_BONUS,m.bonusLeft[seat],TURN_TIME-m.turnLeft[seat]));
+   m.turnLeft[seat]+=gain;m.bonusLeft[seat]-=gain;
+   // The asker making a play is back, so their pause ends.
+   const p=m.pause;if(p?.until&&p.until>now&&p.by===seat){p.until=now}
+  }
+  m.clockAt=this.clockFrom(now+(v.nextActor!==m.actor?HANDOFF_GRACE:0));m.actor=v.nextActor;m.clockVotes={};
   const event={seat,response:v.response,...(typeof v.h==='number'?{h:v.h}:{})},n=m.count++;
   m.open.push(event);m.openBytes+=JSON.stringify(event).length;
   if(m.open.length>=EVENT_CHUNK||m.openBytes>=CHUNK_BYTES){chunks[chunkKey(m.game,m.openFrom)]=m.open;m.open=[];m.openFrom=m.count;m.openBytes=0}

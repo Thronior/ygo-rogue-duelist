@@ -14,6 +14,12 @@ subprocess.run([sys.executable,'-B',str(root/'tools/patch_notes.py'),'check'],cw
 for sheet in (root/'android/web/patch-notes').rglob('*.html'):
  shipped=root/'releases'/('web-'+version)/sheet.relative_to(root/'android/web')
  assert shipped.exists() and shipped.read_bytes()==sheet.read_bytes(),f'{shipped} differs from the checked patch notes: rebuild the release'
+# The official servers only serve signed builds (multiplayer/shared/official-build.mjs, 2026-11-24): an unsigned or stale
+# build would be locked out of online play, so it is never published. The web release must carry the same signature.
+node=root/'runtime/ai/node.exe'
+subprocess.run([str(node) if node.exists() else 'node',str(root/'tools/sign_build.mjs'),'--verify'],cwd=root,check=True)
+shipped_build=root/'releases'/('web-'+version)/'official-build.js'
+assert shipped_build.exists() and shipped_build.read_bytes()==(root/'android/web/official-build.js').read_bytes(),f'{shipped_build} is missing or differs from the signed build: rebuild the release'
 from finalize_releases import finalize
 manifest=finalize()
 assert manifest['version']==version, 'Build version does not match source VERSION'

@@ -34,7 +34,7 @@ def sync():
  system_strings.update({k:v for k,v in json.loads((ROOT/'data/randomizer/prompt-strings.json').read_text(encoding='utf8')).items() if not k.startswith('_')})
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
  shared=['debug_codes.py','feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','draft_relics.py','secret_challenge.py','deck_view.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py'])
+ shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py','easy_mode.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  # data/cards.json is not read by the game: campaign_expansion loads the pool from data/era-cards.json.
@@ -125,7 +125,8 @@ def sync():
  (WEB/'engine-data.json').write_text(json.dumps(engine_data,ensure_ascii=False),encoding='utf8')
  (WEB/'scripts.json').write_text(json.dumps(scripts,ensure_ascii=False),encoding='utf8')
  # Card assets include all pool cards, every token and the menu's decorative cards.
- ids={c['id'] for c in game.CARDS}|{c['id'] for c in json.loads((ROOT/'data/tokens.json').read_text())}
+ # Custom tokens a relic summons (Dandelion Token, 2026-11-24) have no summoning card, so data/tokens.json lacks them.
+ ids={c['id'] for c in game.CARDS}|{c['id'] for c in json.loads((ROOT/'data/tokens.json').read_text())}|{t['id'] for t in custom_cards.TOKENS}
  excluded_packs=set(json.loads((ROOT/'data/content-era.json').read_text(encoding='utf8')).get('excluded_pack_ids',[]))
  selected_music=set(json.loads((ROOT/'assets/music/soundtrack.json').read_text(encoding='utf8'))['tracks'])
  for source in (ROOT/'assets').rglob('*'):
@@ -172,7 +173,28 @@ def sync():
  (WEB/'startup-assets.json').write_text(json.dumps(dict(audio=audio,images=images)),encoding='utf8')
  digest=hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()
  (WEB/'build.json').write_text(json.dumps(dict(version=(ROOT/'VERSION').read_text().strip(),built=time.strftime('%Y-%m-%d %H:%M'),campaignHash=digest,webEngine='ocgcore-wasm 0.1.2',androidEngine='ocgcore-wasm 0.1.2',cards=len(game.CARDS),tokens=len(ids)-len(game.CARDS))))
+ servers_and_signature()
  print('Synchronized campaign,',len(ids),'card/token images and desktop UI assets.',flush=True)
+
+def servers_and_signature():
+ """The online servers come from one file, android/web/multiplayer-config.json (SELF-HOSTING.md, 2026-11-24): the page's
+ content security policy is written from it, then tools/sign_build.mjs signs this build's ID for the official servers
+ (an empty signature without the maintainer's key, which only the official servers refuse)."""
+ import re
+ from urllib.parse import urlsplit
+ config=json.loads((WEB/'multiplayer-config.json').read_text(encoding='utf8'))
+ origins=[]
+ for key in ('signalingUrl','replaysUrl','statsUrl'):
+  url=urlsplit(str(config.get(key) or ''))
+  if url.scheme!='https' or not url.netloc:raise RuntimeError(f'multiplayer-config.json: {key} must be an https:// address')
+  origins.append(f'https://{url.netloc}')
+  if key=='signalingUrl':origins.append(f'wss://{url.netloc}')
+ index=WEB/'index.html';html=index.read_text(encoding='utf8')
+ updated,count=re.subn(r"(connect-src 'self' blob:)[^;\"]*?( https://api\.github\.com)",lambda m:m.group(1)+' '+' '.join(dict.fromkeys(origins))+m.group(2),html)
+ if count!=1:raise RuntimeError('index.html: connect-src not found')
+ if updated!=html:index.write_text(updated,encoding='utf8')
+ node=ROOT/'runtime/ai/node.exe'
+ subprocess.run([str(node) if node.exists() else 'node',str(ROOT/'tools/sign_build.mjs')],check=True,cwd=ROOT)
 
 def build():
  BUILD.mkdir(exist_ok=True);jdk=next((DEP/'jdk').glob('jdk-*'));sdk=DEP/'sdk';bt=sdk/'android-15';platform=sdk/'android-35/android.jar'

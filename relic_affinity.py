@@ -64,7 +64,7 @@ RULES={
  'wing':(_races('Winged Beast'),BROAD),'gear':(_races('Machine'),BROAD),'shell':(_races('Aqua','Fish','Sea Serpent'),BROAD),
  'fossil':(_races('Dinosaur','Reptile'),BROAD),'hive':(_races('Insect','Plant'),BROAD),'bone':(_races('Zombie'),BROAD),
  'halo':(_races('Fairy'),BROAD),'fang':(_races('Beast','Beast-Warrior'),BROAD),'horn':(_races('Fiend'),BROAD),
- 'storm_core':(_races('Pyro','Thunder'),BROAD),'chitin_carapace':(_races('Insect'),BROAD),'moth_brood':(_races('Insect'),BROAD),'dragon_triumph':(_races('Dragon'),BROAD),
+ 'storm_core':(_races('Pyro','Thunder'),BROAD),'chitin_carapace':(_races('Insect'),BROAD),'moth_brood':(_races('Insect'),BROAD),'photosynthesis':(_races('Plant'),BROAD),'spring_growth':(_races('Plant'),BROAD),'pollinator':(_races('Plant'),BROAD),'dragon_triumph':(_races('Dragon'),BROAD),
  'stone':(_races('Rock'),BROAD),'restless_stone':(_races('Rock'),COMMON),
  'overcharge':(_races('Thunder'),COMMON),'restless_dead':(_races('Zombie'),COMMON),'divine_might':(_races('Divine-Beast'),NARROW),
  'ember':(('attr:FIRE',),BROAD),'tide':(('attr:WATER',),BROAD),'gale':(('attr:WIND',),BROAD),'earth':(('attr:EARTH',),BROAD),

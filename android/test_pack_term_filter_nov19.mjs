@@ -13,7 +13,7 @@ globalThis.document={documentElement:{lang:''},body:{nodeType:1,closest:()=>null
 globalThis.fetch=async p=>{const m=/i18n\/([a-z]{2})\.json/.exec(String(p));return {ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(web,`i18n/${m[1]}.json`),'utf8'))}};
 const url=f=>pathToFileURL(path.join(web,f)).href;
 const i18n=await import(url('i18n.js'));
-const {packSummaryParts,packTermMatcher}=await import(url('pack-summary.js'));
+const {packSummaryParts,packTermMatcher,supportedTypes}=await import(url('pack-summary.js'));
 const {packSummary}=await import(url('experience-ui.js'));
 const {packSummaryHtml,translateWith}=await import(url('card-links.js'));
 const {allCardsPackDescription}=await import(url('pack-inspection.js'));
@@ -33,7 +33,8 @@ for(const p of content.packs){
  for(const {kind,value} of found){
   const hits=cards.filter(packTermMatcher(content,kind,value));
   assert.ok(hits.length>0,`${p.id}: ${kind} ${value} finds cards in the pack`);
-  if(kind==='race')assert.ok(hits.every(c=>c.race===value&&c.data.type&1));
+  // A Type link shows the Type's monsters plus its support cards (user, 2026-11-24; test_deck_filters_nov24.mjs).
+  if(kind==='race')assert.ok(hits.every(c=>c.race===value&&c.data.type&1||supportedTypes(c).has(value)));
   linked++;
  }
  checked++;
@@ -44,7 +45,7 @@ assert.ok(checked>50,'most packs have a summary');
 const spell=content.packs.find(p=>packSummaryParts(content,p.id)?.types.includes('Spellcaster')&&!allCardsPackDescription(p));
 assert.ok(spell,'some pack names Spellcaster');
 const all=packCards(spell),casters=all.filter(packTermMatcher(content,'race','Spellcaster'));
-assert.equal(casters.length,all.filter(c=>c.data.type&1&&c.race==='Spellcaster').length);
+assert.equal(casters.length,all.filter(c=>c.data.type&1&&c.race==='Spellcaster'||supportedTypes(c).has('Spellcaster')).length);
 assert.ok(casters.length<all.length,'the filter shrinks the list');
 
 // Archetypes follow the summary's rule plus setcode membership (data/archetypes.json), e.g. Archfiend support.

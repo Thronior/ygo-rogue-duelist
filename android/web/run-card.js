@@ -388,17 +388,18 @@ export function runCardData(r,{content,character,card,cardImage,relicImage,asset
  if(won){
   if(variant==='flawless')d.eyebrow=d.tag?'FLAWLESS TAG RUN · NO DAMAGE TAKEN':'FLAWLESS RUN · NO DAMAGE TAKEN';
   else if(d.tag)d.eyebrow='TAG RUN';
-  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`:level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
+  else if(r.easy)d.eyebrow='EASY MODE';
+  d.title=r.secret_challenge?'SECRET CHALLENGE CLEARED':r.encore_won?`${finalChallengeName(r)} DEFEATED`:r.easy?'EASY RUN CLEARED':level<0?'RELICLESS RUN CLEARED':`CHALLENGE LEVEL ${level} CLEARED`;
   // Card artwork is already cached by the startup preload, so the deck uses the same images as the rest of the game.
   const ids=(r.selected||[]).map(i=>r.pool?.[i]).filter(id=>card(id)),extra=id=>card(id).data.type&64;
   d.deck={main:deckOrder(ids.filter(id=>!extra(id)),card).map(cardImage),extra:deckOrder(ids.filter(extra),card).map(cardImage)};
-  d.label=`${d.tag?`${d.name} and ${d.tag.name} won the Tag run`:`${d.name} won the run`} at Challenge Level ${level} with ${d.victories} of ${runLength} victories: ${d.title.toLowerCase()}.`
+  d.label=`${d.tag?`${d.name} and ${d.tag.name} won the Tag run`:`${d.name} won the run`} ${r.easy?'in Easy mode':`at Challenge Level ${level}`} with ${d.victories} of ${runLength} victories: ${d.title.toLowerCase()}.`
  }else{
-  d.eyebrow=`${d.tag?'TAG RUN':'RUN'} LOST · DUEL ${lostDuel} OF ${runLength}`;d.title='THE SHADOWS CLAIM THIS RUN';d.subtitle=`${d.tag?'Tag · ':''}Challenge LVL ${level}`;
+  d.eyebrow=`${d.tag?'TAG RUN':'RUN'} LOST · DUEL ${lostDuel} OF ${runLength}`;d.title='THE SHADOWS CLAIM THIS RUN';d.subtitle=r.easy?'Easy mode':`${d.tag?'Tag · ':''}Challenge LVL ${level}`;
   const killer=r.loss?.card?card(r.loss.card):null,text=String(r.loss?.text||'Your life points reached 0').replace(/\s+—\s+[\d,]+ damage$/,''),at=killer?text.lastIndexOf(killer.name):-1;
   // The lead stops before the card name, without the quote mark of 'Defeated by the effect of "Exodia…"'.
   d.outcome={lead:at>0?text.slice(0,at).replace(/["“]\s*$/,'').trim():text,cardName:at>0?killer.name:'',amount:r.loss?.damage>0?count(r.loss.damage):'',detail:lost?`Duel ${lost.duel} · ${names(lost.opponent)}`:`Duel ${lostDuel}`,card:killer?cardImage(killer.id):''};
-  d.label=`${d.tag?`${d.name} and ${d.tag.name} lost the Tag run`:`${d.name} lost`} on duel ${lostDuel} of ${runLength} at Challenge Level ${level}. ${r.loss?.text||''}`.trim()
+  d.label=`${d.tag?`${d.name} and ${d.tag.name} lost the Tag run`:`${d.name} lost`} on duel ${lostDuel} of ${runLength} ${r.easy?'in Easy mode':`at Challenge Level ${level}`}. ${r.loss?.text||''}`.trim()
  }
  return d
 }

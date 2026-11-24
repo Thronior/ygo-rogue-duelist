@@ -1,1 +1,56 @@
-{"name":"ygo-rogue-stats","main":"worker.mjs","compatibility_date":"2026-09-25","workers_dev":true,"observability":{"enabled":false},"durable_objects":{"bindings":[{"name":"STATS","class_name":"GlobalStats"}]},"migrations":[{"tag":"v1","new_sqlite_classes":["GlobalStats"]}]}
+// Only official releases (signed build IDs) may use this Worker: multiplayer/shared/official-build.mjs. Self-hosters: remove
+// BUILD_PUBLIC_KEY (or set your own), see SELF-HOSTING.md. UNSIGNED_UNTIL (ISO time) lets older unsigned releases in while
+// players update; set it at release. DAILY_REQUEST_CAP: requests a day before this Worker refuses calls until 00:00 UTC.
+// 10K survey (survey.mjs): SURVEY_CLOSED "true" ends it; the CSV export needs the secret SURVEY_ADMIN_TOKEN
+// (npx wrangler secret put SURVEY_ADMIN_TOKEN, 16+ characters).
+{
+ "name": "ygo-rogue-stats",
+ "main": "worker.mjs",
+ "compatibility_date": "2026-09-25",
+ "workers_dev": true,
+ "vars": {
+  "BUILD_PUBLIC_KEY": "c-59GAosQ5eN_O1ad3ZyC0jSrQYkzhxvWB4SQVrooso",
+  "UNSIGNED_UNTIL": "2026-12-01T23:00:00Z",
+  "DAILY_REQUEST_CAP": "300000",
+  "SURVEY_CLOSED": ""
+ },
+ "observability": {
+  "enabled": false
+ },
+ "durable_objects": {
+  "bindings": [
+   {
+    "name": "STATS",
+    "class_name": "GlobalStats"
+   },
+   {
+    "name": "METER",
+    "class_name": "RequestMeter"
+   },
+   {
+    "name": "SURVEY",
+    "class_name": "SurveyAnswers"
+   }
+  ]
+ },
+ "migrations": [
+  {
+   "tag": "v1",
+   "new_sqlite_classes": [
+    "GlobalStats"
+   ]
+  },
+  {
+   "tag": "v2",
+   "new_sqlite_classes": [
+    "RequestMeter"
+   ]
+  },
+  {
+   "tag": "v3",
+   "new_sqlite_classes": [
+    "SurveyAnswers"
+   ]
+  }
+ ]
+}

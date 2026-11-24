@@ -1,0 +1,43 @@
+"""Tag relic banish (user, 2026-11-24): either player banishes a relic in the shared shop for 10 team coins; the slot restocks
+for both, the relic is gone from both players' shops for the run, carts drop the slot and a stale screen is refused."""
+import sys,uuid,tempfile,json
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
+import storage,content,campaign as game
+(ROOT/'temp').mkdir(exist_ok=True)
+with tempfile.TemporaryDirectory(prefix='tag-relic-banish-',dir=ROOT/'temp') as tmp:
+ storage.ROOT=Path(tmp);game.SAVE=Path(tmp)/'run.json'
+ from tag_campaign import TagCampaign
+ p=storage.profile();p['unlocked']=list(range(len(content.CHARACTERS)))
+ s=TagCampaign([0,1],[p,p],seed=21)
+ for r in s.players:game.auto_deck(r)
+ s.phase='shop';s.shared['gold']=500
+ for r in s.players:r.update(opponent=2,stage='shop')
+ with s.scope(0):game.restock(s.players[0],s.rng)
+ s.shared['shop']=s.players[0]['shop'];s.sync()
+ def cmd(seat,action,value=None,revision=None):return s.command(seat,{'id':uuid.uuid4().hex,'revision':s.revision if revision is None else revision,'action':action,'value':value})
+ relics=lambda seat:[x['id'] for x in s.view(seat)['run']['shop'] if x['kind']=='artifact']
+ index=next(i for i,x in enumerate(s.shared['shop']) if x['kind']=='artifact');key=s.shared['shop'][index]['id']
+ # The guest has the relic in their cart and the host locked it.
+ cmd(1,'shop-cart',{'items':[index]});cmd(0,'relic-lock',index)
+ old=s.revision
+ cmd(0,'shop-cart',{'items':[]})  # the teammate acts in between: banish is independent of the revision
+ result=cmd(1,'relic-banish',{'index':index,'id':key},revision=old)['result']
+ assert result['banished']==key and s.shared['gold']==490,(result,s.shared['gold'])
+ assert key not in relics(0) and key not in relics(1) and relics(0)==relics(1)
+ assert s.shared['shop'][index]['id']==result['replacement'] and s.view(0)['run']['relic_banishes']==[key]==s.view(1)['run']['relic_banishes']
+ assert s.shared['relic_locks']==[] and s.shopping['carts']==[[],[]]
+ # A screen that still shows the old relic in that slot is refused.
+ try:cmd(0,'relic-banish',{'index':index,'id':key});raise SystemExit('stale banish went through')
+ except ValueError:pass
+ # Rerolls (the host's run rolls them) never bring it back, and a reconnect keeps the list.
+ for _ in range(8):
+  s.shared['gold']=99999;s.sync()
+  cmd(0,'shop-lock',{'intent':'reroll'});cmd(1,'shop-lock',{'intent':'reroll'})
+  assert key not in relics(0),relics(0)
+ r=TagCampaign.restore(json.loads(json.dumps(s.checkpoint())));assert r.shared['relic_banishes']==[key]
+ # Cards cannot be banished.
+ card=next(i for i,x in enumerate(s.shared['shop']) if x['kind']!='artifact')
+ try:cmd(0,'relic-banish',{'index':card,'id':s.shared['shop'][card]['id']});raise SystemExit('a card was banished')
+ except ValueError:pass
+ print('PASS Tag relic banish: team coins, shared restock, gone for both through rerolls, carts and lock cleared, stale screens refused, saved')

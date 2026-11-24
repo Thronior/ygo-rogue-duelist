@@ -45,7 +45,7 @@ import * as juice from './juice.js';
 import * as keeperTalk from './shopkeeper-talk.js';
 import {ownedBadge} from './shop-badges.js';
 import {isFavouritePack,favouritesFirst,packStar,favouritesInStock} from './pack-favourites.js';
-import {relicLockButton,relicLockClass} from './relic-lock.js';
+import {relicLockButton,relicLockClass,relicBanishButton} from './relic-lock.js';
 import {cardMark,nextMark,markTile,paintMarks} from './card-marks.js';
 import {searchMarks} from './card-search.js';
 import {mountRunProgress} from './run-progress.js';
@@ -370,7 +370,7 @@ export class TagUI {
 
    const art=x.kind==='single'?this.image(x.id):x.kind==='artifact'?relicImage(this.content.artifactInfo[x.id].art):x.kind==='deck'?`assets/decks/${x.art}.jpg`:`assets/packs/${x.id}.jpg`;
 
-   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${theirs?'teammate-pick':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}${x.kind==='pack'&&isFavouritePack(x.id)?' favourite-pack':''}${x.kind==='deck'?' shop-deck':''}${relicLockClass(r,x)}">${x.kind==='pack'?packStar(x.id,name,'shop-pack-fav'):''}<div class="product-art" data-shop-item="${i}">${relicLockButton(r,x,i,'data-tag="relic-lock"')}${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}${theirs?`<span class="tag-cart-badge" title="${partnerName} picked this">${partnerArt}</span>`:''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="${theirs?partnerName+' picked '+esc(name):'Select '+esc(name)}" data-tag="select" data-index="${i}" ${!canAct||x.sold||theirs||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
+   return `<div class="shop-product ${x.sold?'sold':''} ${!x.sold&&x.price>r.gold?'fx-cant-afford':''} ${this.selection.has(i)?'chosen':''} ${theirs?'teammate-pick':''} ${isShopUltra(x,this.content.cards)?'shop-ultra':''}${x.kind==='pack'&&isFavouritePack(x.id)?' favourite-pack':''}${x.kind==='deck'?' shop-deck':''}${relicLockClass(r,x)}${this.banishArmed?.index===i&&this.banishArmed.id===x.id&&x.kind==='artifact'&&!x.sold?' banish-armed':''}">${x.kind==='pack'?packStar(x.id,name,'shop-pack-fav'):''}<div class="product-art" data-shop-item="${i}">${relicLockButton(r,x,i,'data-tag="relic-lock"')}${relicBanishButton(x,i,this.banishArmed?.index===i&&this.banishArmed.id===x.id,`<span>10</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`,r.gold>=10,'data-tag')}${x.kind==='artifact'?relicArtwork(art,`data-tag="item" data-index="${i}"`):`<img data-tag="item" data-index="${i}" src="${art}" alt="${esc(name)}">`}<span class="price-badge">${x.sold?'SOLD':`<span>${x.price}</span><img class="price-coin" src="assets/ui/coins.png" alt="gold">`}</span>${x.kind==='single'&&owned.get(x.id)?ownedBadge(owned.get(x.id),copyLimit):''}${theirs?`<span class="tag-cart-badge" title="${partnerName} picked this">${partnerArt}</span>`:''}<button class="purchase-check" role="checkbox" aria-checked="${this.selection.has(i)}" aria-label="${theirs?partnerName+' picked '+esc(name):'Select '+esc(name)}" data-tag="select" data-index="${i}" ${!canAct||x.sold||theirs||fixed&&x.kind!=='artifact'?'disabled':''}><span class="purchase-tick" aria-hidden="true"></span></button></div>${x.kind==='artifact'?`<small>${esc(name)}</small>`:''}</div>`;
 
   };
 
@@ -473,6 +473,10 @@ export class TagUI {
   if(action==='copy-run-card'||action==='save-run-card'){const card=this.runCard,status=card?.box.querySelector('.run-card-status');if(!card)return;(action==='save-run-card'?saveRunCard:copyRunCard)(card.box.querySelector('.run-card-canvas'),runCardName(card.run,this.content)).then(m=>{if(status)status.textContent=m}).catch(e=>{if(status)status.textContent=e.message||'Could not copy the image.'});return}
 
   if(action==='poke'){keeperTalk.say('poke');return}
+  // Relic banish (2026-11-24): the cross arms it on this screen only; the confirm sends {index,id} so a shop the teammate
+  // just changed never banishes a different relic.
+  if(action==='relic-banish-arm'){const i=Number(el.dataset.index),x=this.view?.run?.shop?.[i];this.banishArmed=this.banishArmed?.index===i||!x?null:{index:i,id:x.id};this.render();return}
+  if(action==='relic-banish'){const v=this.view,i=Number(el.dataset.index),x=v?.run?.shop?.[i];this.banishArmed=null;if(v?.paused||!this.session?.connected||v?.phase!=='shop'||this.relicLocking||!x){this.render();return}this.relicLocking=true;try{await this.session.request('relic-banish',{index:i,id:x.id})}catch(error){this.error(error)}finally{this.relicLocking=false;this.render()}return}
   if(action==='relic-lock'){const v=this.view;if(v?.paused||!this.session?.connected||v?.phase!=='shop'||this.relicLocking)return;this.relicLocking=true;try{await this.session.request('relic-lock',Number(el.dataset.index))}catch(error){this.error(error)}finally{this.relicLocking=false}return}
   if(action==='curse-info'){this.dialog(this.content.curses[el.dataset.curse]?.[0]||'Curse',curseInfoMarkup(this.content,el.dataset.curse,this.view?.run?.challenge_level,+el.dataset.count||1));return}
 

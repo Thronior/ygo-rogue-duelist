@@ -28,8 +28,14 @@ function sandbox({native}={}){
 // A failed native write is an error, and the next persist tries again rather than assuming it was saved.
 {
  let ok=false,writes=0;const ctx=sandbox({native:{store:()=>{writes++;return ok}}});
- await assert.rejects(()=>ctx.persist(),/Could not save game to device storage/);
+ await assert.rejects(()=>ctx.persist(),/Could not save the game on this device/);
  ok=true;await ctx.persist();assert.equal(writes,2,'retried after the failure');
+}
+// Web: a full browser storage (QuotaExceededError) gets the same message, and the next persist tries again.
+{
+ let full=true;const ctx=sandbox();ctx.localStorage.setItem=(k,v)=>{if(full)throw Error('QuotaExceededError');ctx.local.set(k,v)};
+ await assert.rejects(()=>ctx.persist(),/Could not save the game on this device/);
+ full=false;await ctx.persist();assert.equal(ctx.local.size,1,'retried after the quota error');
 }
 // An asynchronous store is awaited, and its rejection propagates.
 {

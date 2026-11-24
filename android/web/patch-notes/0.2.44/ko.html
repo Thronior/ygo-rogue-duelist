@@ -1,0 +1,127 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_44,.patch-notes-sheet.pn0_2_44 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_44{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_44 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_44 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_44 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_44 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_44 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big .pn0_2_44-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big>*{position:relative}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-big p.pn0_2_44-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way img,.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-relics .pn0_2_44-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-packs .pn0_2_44-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark.pn0_2_44-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-mark.pn0_2_44-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_44{word-break:keep-all}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-sprite{object-fit:contain}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-way .pn0_2_44-art.pn0_2_44-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon{width:110px;height:110px;border-radius:8px;border:2px solid #b5824a;flex:none;display:grid;place-items:center;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon.pn0_2_44-x span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#3a0b0bee;border:2px solid #ff6b6b;color:#ff8a8a;font:700 24px/1 Arial,sans-serif}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-icon.pn0_2_44-once img{width:70px;height:70px;border-radius:6px;object-fit:cover;filter:grayscale(1) brightness(.75);border:2px solid #9fb4ba}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-sleeverow{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-sleeverow img{width:76px;height:109px;object-fit:cover;border-radius:6px;border:2px solid #b5824a}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice{display:flex;gap:10px;margin-top:12px;align-items:stretch}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice span{border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;font:400 22px Bebas;letter-spacing:2px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice .pn0_2_44-easy{flex:1;color:#9fb4ba;background:#0b1a22;font-size:18px}
+.patch-notes-sheet.pn0_2_44 .pn0_2_44-choice .pn0_2_44-normal{flex:2;color:#f3d78e;background:#2a1d0a;font-size:26px}</style><div class="patch-notes-sheet pn0_2_44"><div class="pn0_2_44-kick">YGO Rogue Duelist</div><h1>업데이트 0.2.44</h1>
+
+<section class="pn0_2_44-cols" style="margin-top:28px">
+<div class="pn0_2_44-big"><em>새 카드</em><h3>식물족 서포트</h3>
+<div class="pn0_2_44-ways" style="grid-template-columns:1fr"><div class="pn0_2_44-way"><div class="pn0_2_44-art pn0_2_44-crop" style="background-image:url('assets/cards/48686504.jpg')"></div><p><b>식물족 카드 10장</b><b>론 파이어 블로섬</b>, <b>기가플랜트</b>, <b>춘희 티타니얼</b>, <b>세계수</b> 등이 <b>야생의 땅</b>에 추가됩니다. 사마준의 새 변형 <b>우거진 정원</b>이 곤충 진화을 대체합니다.</p></div></div></div>
+<div class="pn0_2_44-big"><em>난이도</em><h3>쉬움 모드</h3>
+<p class="pn0_2_44-lead">런을 시작할 때 난이도를 고릅니다. <b>쉬움</b>: 보스 저주 없음, 승리할 때마다 <b>LP 2,000 회복</b>, 시작 시 제거 카드 추가, 그림자 유물은 건너뛸 수 있습니다. 쉬움 모드 런은 업적이나 해금에 포함되지 않습니다.</p>
+<div class="pn0_2_44-choice"><span class="pn0_2_44-easy">쉬움</span><span class="pn0_2_44-normal">일반</span></div></div>
+</section>
+
+<section class="pn0_2_44-big"><em>유물</em><h3>새 유물과 유물 도구</h3>
+<div class="pn0_2_44-ways">
+<div class="pn0_2_44-way"><img src="assets/relics/5973663.jpg"><p><b>식물족 유물</b><b>광합성</b>은 식물족만큼 회복하고, <b>봄의 성장</b>은 매 턴 식물족을 키우며, <b>폴리네이터</b>는 모스 토큰을 불러옵니다.</p></div>
+<div class="pn0_2_44-way"><img src="assets/relics/95308449.jpg"><p><b>운명의 모래시계</b>아직 없는 <b>위저 보드</b> 조각을 먼저 제시합니다.</p></div>
+<div class="pn0_2_44-way"><div class="pn0_2_44-icon pn0_2_44-x"><span>✕</span></div><p><b>유물 제외</b>상점에서 유물의 <b>✕</b>를 탭하면 <b>10코인</b>으로 제외합니다. 이번 런에는 다시 나오지 않습니다. 태그에서도 됩니다.</p></div>
+<div class="pn0_2_44-way"><div class="pn0_2_44-icon pn0_2_44-once"><img src="assets/relics/Phoenix%20Feather.png"></div><p><b>듀얼 중에 1번</b>이 유물들이 발동하면 일러스트가 <b>크게 표시</b>되고, 유물 바의 아이콘은 듀얼이 끝날 때까지 <b>회색</b>이 됩니다.</p></div>
+</div>
+<p class="pn0_2_44-lead" style="margin-top:14px">찾아낼 <b>새 합성 유물 3개</b>도 있습니다.</p></section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>얼티밋 컬렉터</em><h3>턴 제한 시간과 일시 정지</h3>
+<p class="pn0_2_44-lead">플레이할 때마다 제한 시간이 <b>15초</b> 늘어납니다. 시간이 다 되면 매치가 아니라 <b>그 듀얼</b>만 집니다. 1분 미만이면 타이머가 <b>빨갛게</b> 됩니다. <b>일시 정지</b>를 요청할 수 있습니다(매치당 2회). 보상 화면에서 내 덱을 보고, 카드에 <b>★ / ✕</b> 표시를 할 수 있습니다.</p></div>
+<div class="pn0_2_44-big"><em>드래프트</em><h3>더 많은 팩</h3>
+<p class="pn0_2_44-lead">이제 픽마다 <b>팩 3개</b>를 열고, 매 루프는 <b>서로 다른 세트 3개의 팩 3개</b>로 시작합니다.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>통계</em><h3>CPU 통계</h3>
+<p class="pn0_2_44-lead">각 CPU의 <b>플레이어 상대 승패</b>를 Tier별로 보여 주는 새 탭. CPU를 탭하면 듀얼리스트별 전적을 볼 수 있습니다. 익명: 어떤 플레이어도 추적하지 않습니다.</p></div>
+<div class="pn0_2_44-big"><em>설정</em><h3>단축키와 CPU 속도</h3>
+<p class="pn0_2_44-lead"><b>설정 › 단축키</b>: 모든 단축키를 다시 지정할 수 있습니다. <b>CPU 행동 지연</b>: CPU를 행동마다 0~1,000ms 느리게 합니다.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>덱 구축</em><h3>카드를 더 빠르게 찾기</h3>
+<p class="pn0_2_44-lead">검색이 <b>입력하는 대로</b> 갱신됩니다. 분할 덱 화면에 <b>엑스트라 덱</b> 칸이 생겼습니다. <b>컬렉션 › 팩</b>에서 드로우, 장착 마법, 몬스터 종족으로 필터할 수 있습니다.</p></div>
+<div class="pn0_2_44-big"><em>카드 슬리브</em><h3>새 신 카드 슬리브</h3>
+<div class="pn0_2_44-sleeverow"><img src="assets/sleeves/cards/slifer-the-sky-dragon.jpg"><img src="assets/sleeves/cards/obelisk-the-tormentor.jpg"><img src="assets/sleeves/cards/the-winged-dragon-of-ra.jpg"><img src="assets/sleeves/yami-yugi.jpg"><img src="assets/sleeves/seto-kaiba.jpg"><img src="assets/sleeves/yami-marik.jpg"></div></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div class="pn0_2_44-big"><em>캐릭터 팩</em><h3>조이의 팩</h3>
+<div class="pn0_2_44-ways" style="grid-template-columns:1fr"><div class="pn0_2_44-way"><div class="pn0_2_44-art" style="background-image:url('assets/cards/64335804.jpg')"></div><p><b>새 카드</b><b>사일런트 스워드맨 LV3, LV5, LV7</b>, <b>메탈 붉은 눈의 흑룡</b>, <b>메탈화 마법반사장갑</b>. <b>철의 기사 기어프리드</b>를 더 쉽게 찾을 수 있습니다.</p></div></div></div>
+<div class="pn0_2_44-big"><em>플레이어 1만 명!</em><h3>플레이어 설문</h3>
+<p class="pn0_2_44-lead">감사합니다! 짧은 설문이 한 번 나타납니다: 좋아하는 듀얼리스트, 상대, 유물, 그리고 앞으로 보고 싶은 것. <b>종 아이콘</b>에서 다시 찾을 수 있습니다.</p></div>
+</section>
+
+<section class="pn0_2_44-cols">
+<div><h2>변경 사항</h2><ul class="pn0_2_44-small">
+<li><span>🎲</span><span>캐릭터 선택의 <b>주사위 버튼</b>이 무작위 듀얼리스트를 고릅니다.</span></li>
+<li><span>🏆</span><span>타이틀 화면에 <b>달성한 업적 / 전체</b>가 표시되고, 퍼센트는 바 안에 나옵니다.</span></li>
+<li><span>🧠</span><span>CPU: Tier 4와 컬렉터 덱에서 <b>약 30장의 카드</b>를 더 쓰고, 전체 제거를 총 공격력으로 판단하며, <b>왕호 왕후</b>, <b>노블 드 느와르</b>, <b>마도전사 브레이커</b>를 더 잘 다룹니다.</span></li>
+<li><span>🔀</span><span>랜더마이저 카드가 <b>더 다양해지고</b>, 실제 효과를 그대로 베낀 것이 줄었습니다.</span></li>
+<li><span>🔍</span><span><b>융합</b>과 <b>장착</b> 필터가 모든 융합 몬스터와 장착 마법을 찾습니다.</span></li>
+<li><span>🪦</span><span><b>묘지</b>도 덱처럼 열려, 첫 탭에 자세히 보기가 표시됩니다.</span></li>
+<li><span>⚙️</span><span>설정의 <b>✕</b>를 누르면 원래 화면으로 돌아갑니다. <b>Esc</b>로 어떤 창이든 닫을 수 있습니다.</span></li>
+<li><span>❓</span><span>융합 힌트가 합성 유물에 <b>필요한</b> 조각 수를 셉니다.</span></li>
+<li><span>🐧</span><span>Linux 앱: 사운드 코덱이 없어도 게임이 멈추지 않고, 설치할 패키지를 알려 줍니다.</span></li>
+</ul></div>
+<div><h2>수정 사항</h2><ul class="pn0_2_44-small">
+<li><span>🧪</span><span><b>체력 증강제 슈퍼 Z</b>가 <b>텅 빈 성배</b>의 추가 데미지도 계산합니다.</span></li>
+<li><span>1️⃣</span><span><b>싱글턴 서약</b>을 얻으면 덱에서 여분의 사본을 제거합니다.</span></li>
+<li><span>🛡️</span><span><b>충성</b>이 뒷면 표시 몬스터도 지킵니다(태그의 두 플레이어 모두).</span></li>
+<li><span>👥</span><span>태그: 보스 저주가 더 이상 <b>중첩</b>되지 않습니다.</span></li>
+<li><span>⛓️</span><span><b>체인: 가끔</b>에서도 <b>백병전</b>을 물어봅니다.</span></li>
+<li><span>🪙</span><span><b>코인 보상 팝업</b>을 끄면 듀얼 중 +코인 팝업도 숨겨집니다.</span></li>
+<li><span>💾</span><span>덱 편집: 탭이 더 이상 먹통이 되지 않고, 기기에 저장할 수 없으면 <b>알려 줍니다</b>.</span></li>
+<li><span>🧊</span><span>애니메이션이 멈춰도 듀얼이 <b>멈추지</b> 않습니다.</span></li>
+<li><span>✋</span><span>랜더마이저 카드: 패에서 지불하는 코스트가 작동하고, 문구가 더 명확해졌습니다.</span></li>
+<li><span>🚩</span><span>행동 신고: <b>검은 펜던트</b>, 관통 데미지, <b>유언장</b>, <b>제너럴 데몬</b>.</span></li>
+<li><span>🐧</span><span>Linux 앱: 소리가 더 이상 일찍 끊기지 않습니다.</span></li>
+<li><span>👴</span><span><b>Solomon 할아버지를 귀찮게 한다</b> 슬리브가 달성한 모든 플레이어에게 지급됩니다.</span></li>
+</ul></div>
+</section></div>

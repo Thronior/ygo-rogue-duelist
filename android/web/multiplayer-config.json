@@ -1,3 +1,6 @@
 {
-  "signalingUrl": "https://shadow-run-rooms.hadow--un--esktop.workers.dev"
+  "_comment": "The online servers this build uses (SELF-HOSTING.md). After changing them, rebuild: tools/build_android.py writes the page security policy and the build signature from this file.",
+  "signalingUrl": "https://shadow-run-rooms.hadow--un--esktop.workers.dev",
+  "replaysUrl": "https://ygo-rogue-replays.hadow--un--esktop.workers.dev",
+  "statsUrl": "https://ygo-rogue-stats.hadow--un--esktop.workers.dev"
 }

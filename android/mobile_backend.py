@@ -120,17 +120,20 @@ def dispatch(raw):
   value=value if isinstance(value,dict) else {'character':int(value)}
   slot=int(value.get('slot',storage.active_slot()));storage.run_path(slot)
   if storage.read(storage.run_path(slot)) and not value.get('replace'):raise ValueError('Confirm before replacing this saved run.')
-  candidate=g.new_run(int(value['character']),level=int(value.get('level',0)),variant=int(value.get('variant',0)));candidate['_save_slot']=slot
+  # Easy mode (easy_mode.py): value['easy'] from the difficulty prompt before the save slot (mobile.js newRun).
+  easy=bool(value.get('easy'))
+  candidate=g.new_run(int(value['character']),level=int(value.get('level',0)),variant=int(value.get('variant',0)),easy=easy);candidate['_save_slot']=slot
   # The character's saved card marks (Character settings) start every new run.
   if storage.saved_marks(candidate['character']):candidate['card_marks']=storage.saved_marks(candidate['character'])
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
-  profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
+  # An easy run keeps the duelist's remembered Challenge Level.
+  if not candidate.get('easy'):profile=storage.profile();profile.setdefault('character_last_levels',{})[str(candidate['character'])]=candidate.get('challenge_level',0);storage.write(storage.ROOT/'profile.json',profile)
  elif action=='restart-run':
   # Hidden PC restart (user, 2026-11-15: hold R for 3 seconds): same duelist, variant and level in the same slot,
   # only until the first duel of the run has ended.
   if not restartable(run):raise ValueError('The run can only be restarted before the end of its first duel.')
   slot=storage.active_slot()
-  candidate=g.new_run(int(run['character']),level=int(run.get('challenge_level',0)),variant=int(run.get('variant',0)));candidate['_save_slot']=slot
+  candidate=g.new_run(int(run['character']),level=int(run.get('challenge_level',0)),variant=int(run.get('variant',0)),easy=bool(run.get('easy')));candidate['_save_slot']=slot
   # The character's saved card marks (Character settings) start every new run.
   if storage.saved_marks(candidate['character']):candidate['card_marks']=storage.saved_marks(candidate['character'])
   g.save(candidate);storage.record_run_start(candidate);storage.select_slot(slot);run=candidate
@@ -245,6 +248,7 @@ def dispatch(raw):
   g.update_profile(run)
  elif action=='shop-reroll':result=g.reroll_shop(run)
  elif action=='relic-lock':result=g.lock_relic(run,int(value))
+ elif action=='relic-banish':result=g.banish_relic(run,int(value))
  elif action=='sell-relic':result=g.sell_relic(run,str(value))
  elif action=='buy-many':result=g.buy_many(run,value)
  elif action=='buy':result=g.buy(run,int(value))

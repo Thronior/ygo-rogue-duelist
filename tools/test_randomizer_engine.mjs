@@ -114,7 +114,13 @@ const recent = [];
 const groups = [];
 for (let i = 0; i < cards.length; i += GROUP) groups.push(cards.slice(i, i + GROUP));
 let duels = 0, finished = 0, capped = 0;
+// RANDOMIZER_START_GROUP=<n> RANDOMIZER_RNG=<state>: start at group n with the deck-building state a full run had there
+// (printed with RANDOMIZER_PROGRESS), so one hang can be replayed in seconds (Nov 24)
+const startGroup = Number(process.env.RANDOMIZER_START_GROUP || 0);
+if (process.env.RANDOMIZER_RNG) rng = Number(process.env.RANDOMIZER_RNG);
 for (const group of groups) {
+  if (groups.indexOf(group) < startGroup) continue;
+  if (process.env.RANDOMIZER_PROGRESS) process.stderr.write(`group ${groups.indexOf(group)} rng ${rng}\n`);
   currentGroup = group;
   for (let d = 0; d < DUELS; d++) {
     const a = deckFor(group), b = deckFor(group), seed = 1000 + d * 7919;
@@ -129,6 +135,12 @@ for (const group of groups) {
       while (!state.finished && steps < 6000 && state.turn <= 40) {
         const before = engine.errors.length;
         let response = choose();
+        // RANDOMIZER_TRACE_GROUP=<n>: every answer of that group on stderr before it is sent, so a hang inside the
+        // engine shows the move that caused it (Nov 24)
+        if (process.env.RANDOMIZER_TRACE_GROUP === String(groups.indexOf(group))) {
+          const m = engine.pending, counts = [0, 1].map(p => [0x01, 0x02, 0x10, 0x20].map(l => engine.query(p, l)?.filter(Boolean).length ?? '?').join('/'));
+          process.stderr.write(`trace duel ${d} step ${steps} turn ${state.turn} ask ${m?.type} hint ${m?.desc ?? m?.hint ?? ''} code ${m?.code ?? ''} deck/hand/gy/banished ${counts.join(' vs ')} last ${recent.at(-1)} answer ${JSON.stringify(response).slice(0, 160)} pending ${JSON.stringify(m, (k, v) => typeof v === 'bigint' ? String(v) : v)?.slice(0, 600)}\n`);
+        }
         try { state = engine.respond(response); }
         catch (error) { failures.push({kind: 'rejected', seed, card: lastRand, error: String(error.message || error)}); state = engine.respond(engine.auto()); }
         // A randomized Trap that Special Summoned itself must have the stats its text gives (it came out 0/0, Discord Nov 20).
@@ -148,7 +160,8 @@ for (const group of groups) {
       if (state.finished) finished++; else capped++;
       if (steps >= 6000) failures.push({kind: 'stall', seed, turn: state.turn, cards: group.map(c => c.card.id), recent: [...recent]});
     } catch (error) {
-      failures.push({kind: 'crash', seed, card: lastRand, cards: group.map(c => c.card.id), recent: [...recent], error: String(error.stack || error).slice(0, 400)});
+      failures.push({kind: 'crash', seed, card: lastRand, cards: group.map(c => c.card.id), recent: [...recent], error: String(error.stack || error).slice(0, 400),
+        pending: JSON.stringify(engine.pending, (k, v) => typeof v === 'bigint' ? String(v) : v)?.slice(0, 1500)});
     } finally { try { engine.destroy(); } catch {} }
   }
 }

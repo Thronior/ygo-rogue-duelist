@@ -17,10 +17,11 @@ for missing in ('dna_rewrite','kindred_bond'):
  assert not made,made
 # 2 spare Surgeries + the 3rd: Unstable DNA takes one, Attribute Mutation needs 3 of the rest.
 made,arts=fused(['dna_rewrite','kindred_bond']+SURGERY[:4])
-assert [m['relic'] for m in made]==['unstable_dna','attribute_mutation'],made
+# Both fused relics then fuse into Genetic Override (user, 2026-11-24).
+assert [m['relic'] for m in made]==['unstable_dna','attribute_mutation','genetic_override'] and arts==['genetic_override'],made
 # Attribute Mutation already fused: a new Surgery still completes Unstable DNA instead of joining Attribute Mutation.
 made,arts=fused(['attribute_mutation','dna_rewrite','kindred_bond','attribute_water'])
-assert [m['relic'] for m in made]==['unstable_dna'] and 'attribute_water' not in arts,arts
+assert [m['relic'] for m in made]==['unstable_dna','genetic_override'] and 'attribute_water' not in arts,arts
 # Once fused, a later Surgery is not absorbed by Unstable DNA.
 made,arts=fused(['unstable_dna','attribute_wind'])
 assert not made and 'attribute_wind' in arts,arts

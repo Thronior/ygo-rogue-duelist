@@ -9,6 +9,8 @@ const WALL=id('Wall of Revealing Light'),OX=id('Battle Ox');
 async function pay(lp,want){
  const e=await new MobileDuel([...meta.cards,...meta.tokenCards]).init([data,scripts]);
  e.start(Array(40).fill(WALL),Array(40).fill(OX),lp,8000,5,0,[],[],'');
+ // The CPU now activates Wall on its own (T4 review, 2026-11-24): keep it off for seat 0 so this test drives every prompt.
+ e.cpuReviewRules={t4Review:{0:false}};
  const prompts=[];let set=false,before=null,done=false;
  for(let i=0;i<400&&!e.finished;i++){
   const m=e.pending;if(!m)break;

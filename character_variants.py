@@ -18,7 +18,7 @@ def unlocked(profile,index):
  # Testing Code "alteregos" (debug): every alternate variant is unlocked.
  if profile.get('variants_unlocked'):return True
  if int(profile.get('character_levels',{}).get(str(index),-1))>=DATA['unlock_level']:return True
- return any(row.get('character')==int(index) and row.get('challenge_level')==-1 and row.get('result')=='complete' and (row.get('round') or 0)>=9 for row in profile.get('run_history',[]))
+ return any(row.get('character')==int(index) and row.get('challenge_level')==-1 and not row.get('secret_challenge') and row.get('result')=='complete' and (row.get('round') or 0)>=9 for row in profile.get('run_history',[]))
 def loadout(characters,index,variant,profile):
  if variant not in (0,1):raise ValueError('Unknown character variant.')
  c=characters[index]

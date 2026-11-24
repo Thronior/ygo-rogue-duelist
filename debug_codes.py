@@ -63,6 +63,8 @@ def give_relic(run, wanted):
     run.setdefault('artifacts', []).append(key)
     if key in ar.CURSED_IDS:
         run.setdefault('cursed_artifacts', []).append(key)
+    if key == 'cursed_singleton_pact':
+        ar.trim_to_copy_limit(run)
     relic_fusions.fuse(run)
     ar.reconcile_turn_order(run)
     return dict(relic=content.ARTIFACTS[key][0], key=key)

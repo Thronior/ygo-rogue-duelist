@@ -57,7 +57,7 @@ events=[{'kind':'fusion_dividend'},{'kind':'fusion_dividend'}]
 assert variant_relics.coins(r,events)==60
 assert variant_relics.coins({'artifacts':[]},events)==0
 assert g.rewards(r,events)[0]['Fusion Dividend']==60
-assert c.CHARACTERS[10]['alternate']['starting_relic']=='level_one'
+assert c.CHARACTERS[10]['alternate']['starting_relic']=='pollinator'  # Overgrown Garden replaced Insect Evolution (2026-11-24)
 assert c.CHARACTERS[13]['alternate']['starting_relic']=='evolution_tablet'
 print('PASS Fusion Dividend payout and updated character assignments')
 

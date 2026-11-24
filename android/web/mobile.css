@@ -2088,7 +2088,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 .title-completion{display:flex;align-items:center;gap:6px;font-size:10px;line-height:1;color:#b4c5cd}
 .title-completion::before{content:"·";opacity:.6}
 .title-completion b{color:var(--completion-text,#ffe9b0);font-weight:700}
-.title-completion-bar{width:64px;height:5px;border-radius:3px;background:#ffffff26;overflow:hidden}.title-completion-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--completion-a,#f2d27c),var(--completion-b,#c0953b));box-shadow:var(--completion-glow,none)}
+.title-completion-bar{position:relative;width:64px;height:12px;border-radius:6px;background:#ffffff26;overflow:hidden}.title-completion-bar em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.02em;color:#fff;text-shadow:0 0 2px #000,0 1px 1px #000c}.title-completion-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--completion-a,#f2d27c),var(--completion-b,#c0953b));box-shadow:var(--completion-glow,none)}
 /* The completion bar takes the current Duel Look's accent (user, 2026-11-23). */
 :root[data-duel-theme="duel-disk"]{--completion-a:#ffd976;--completion-b:#c9622e;--completion-text:#ffe08a}
 :root[data-duel-theme="shadow-realm"]{--completion-a:#d2a8ff;--completion-b:#7a3fd1;--completion-text:#e3c9ff;--completion-glow:0 0 6px #a56bffaa}
@@ -2096,7 +2096,7 @@ button.navigation-icon-button>.navigation-icon{display:block;width:25px;height:2
 :root[data-duel-theme="millennium-stone"]{--completion-a:#ffe9b0;--completion-b:#a68a56;--completion-text:#f2d27c}
 :root[data-duel-theme="kaiba-hologram"]{--completion-a:#d9f6ff;--completion-b:#2fd0ff;--completion-text:#9be9ff;--completion-glow:0 0 6px #2fd0ffbb}
 :root[data-duel-theme="pixel-art"]{--completion-text:#ffe45c}
-:root[data-duel-theme="pixel-art"] .title-completion-bar{border-radius:0;height:6px;background:#00000080;box-shadow:0 0 0 1px #ffffff55}
+:root[data-duel-theme="pixel-art"] .title-completion-bar{border-radius:0;height:12px;background:#00000080;box-shadow:0 0 0 1px #ffffff55}
 :root[data-duel-theme="pixel-art"] .title-completion-bar i{background:repeating-linear-gradient(90deg,#ff4f8b 0 4px,#ffe45c 4px 8px)}
 /* Portrait: the version and completion sit centred at the bottom, with room between them and the footer line. */
 @media(orientation:portrait){#app>.title{padding-bottom:40px}.title-meta{left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom,0px))}}
@@ -3257,6 +3257,23 @@ html:not([lang^="en"]) .reward-start-label{white-space:normal;font-size:12cqw;li
 .shop-product.relic-locked .product-art{outline:2px solid #e2b553;outline-offset:-2px;border-radius:6px}
 .shop-compact .relic-lock{width:20px;height:20px;left:1px;top:1px}.shop-compact .relic-lock svg{width:13px;height:13px}
 .shop-compact .shop-product.has-relic-lock .price-badge{left:23px}
+/* Relic banish (2026-11-24): a cross on the top right of a relic's art; the first tap shows a confirm button over the art. */
+.relic-banish{position:absolute;z-index:4;right:3px;top:3px;display:grid;place-items:center;width:26px;height:26px;min-height:0;padding:0;margin:0;border:1px solid #ffffff4d;border-radius:6px;background:#061418cc;color:#e9a49a;box-shadow:0 2px 6px #0009;cursor:pointer;transition:transform .15s,background-color .15s}
+.relic-banish svg{width:14px;height:14px}
+.relic-banish.armed{background:#e2604f;border-color:#ffc2b8;color:#2a0805}
+@media(hover:hover) and (pointer:fine){.relic-banish:hover{transform:scale(1.08);background:#5a1d17;color:#ffd8d0}.relic-banish.armed:hover{background:#ef7a69;color:#2a0805}}
+.shop-product.banish-armed .product-art{outline:2px solid #e2604f;outline-offset:-2px;border-radius:6px}
+.shop-product.banish-armed .product-art .relic-art,.shop-product.banish-armed .product-art img:not(.price-coin){filter:grayscale(.6) brightness(.55)}
+.relic-banish-confirm{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;min-height:0;width:max-content;max-width:92%;padding:6px 12px;margin:0;border:1px solid #ffc2b8;border-radius:6px;background:#e2604f;color:#2a0805;box-shadow:0 3px 10px #000b;cursor:pointer;font:inherit;line-height:1.1}
+.relic-banish-confirm b{font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+.relic-banish-price{display:inline-flex;align-items:center;gap:3px;font-weight:bold;font-size:12px}
+.shop .product-art .relic-banish-price img{position:static;width:13px;height:13px;min-height:0;margin:0;object-fit:contain;cursor:pointer}
+.relic-banish-confirm.fx-cant-afford{background:#6b3b35;color:#ffb3a8;border-color:#a0584f}
+@media(hover:hover) and (pointer:fine){.relic-banish-confirm:hover{background:#ef7a69}}
+.shop-product.relic-restocked .product-art{animation:relic-restock .45s ease-out}
+@keyframes relic-restock{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.shop-compact .relic-banish{width:20px;height:20px;right:1px;top:1px}.shop-compact .relic-banish svg{width:11px;height:11px}
+.shop-compact .relic-banish-confirm{padding:4px 8px}.shop-compact .relic-banish-confirm b{font-size:11px}.shop-compact .relic-banish-price{font-size:10px}.shop-compact .shop .product-art .relic-banish-price img,.shop-compact .product-art .relic-banish-price img{width:10px;height:10px}
 .shop-product.favourite-pack,.collection-pack.favourite-pack>.cardbtn{border-color:#e8c778;box-shadow:0 0 0 1px #e8c77888,0 0 12px #e8c77833}
 .collection-pack{position:relative;display:grid;min-width:0}.collection-pack>.cardbtn{width:100%;height:100%}
 .fav-instock{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:1px 8px;border:1px solid #ffe2a366;border-radius:999px;background:#ffe2a31a;color:#ffe2a3;font-size:.8em;font-weight:700;white-space:nowrap;vertical-align:middle;letter-spacing:0;text-transform:none}
@@ -4249,3 +4266,95 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 @media(prefers-reduced-motion:reduce){.shop-tour-target,.shop-tour-hand svg{animation:none}}
 /* Payout card: the multiplier beside Glass Shard, Glass Treasury and the Challenge level penalty (2026-11-23). */
 .reward-note{font-size:.8em;color:#bcd6dc;font-weight:normal;white-space:nowrap}
+/* The Linux sound help (soundNotice): package names, one distribution per line. */
+.sound-help{white-space:pre-wrap;user-select:text;font:12px/1.5 ui-monospace,Consolas,monospace;background:#0006;border:1px solid #628994;border-radius:6px;padding:8px 10px;margin:8px 0 0}
+/* Settings > Hotkeys (2026-11-24): two key buttons and a reset per action; the key being rebound pulses gold. */
+.settings-pane .hotkey-group h3{margin:0 0 2px;font:600 16px Georgia,serif;color:#ffe2a3}
+.settings-v2 .hotkey-row{cursor:default;padding:9px 0}
+.hotkey-row .set-text{flex:1 1 auto}
+.hotkey-keys{display:flex;align-items:center;gap:6px;flex:none}
+.settings-pane .hotkey-key{min-width:74px;min-height:34px;padding:0 10px;border-radius:7px;border:1px solid #537984;border-bottom-width:3px;background:#0c222d;color:#f2f6f3;font:600 13px ui-monospace,Consolas,monospace;justify-content:center}
+.settings-pane .hotkey-key:hover:not(:disabled){border-color:#c2a66a;background:#173a46}
+.settings-pane .hotkey-key.empty{color:#6d8d97}
+.hotkey-key [data-no-i18n]{font-size:15px;line-height:1}
+.settings-pane .hotkey-key:disabled{opacity:.6;cursor:default}
+.settings-pane .hotkey-key.listening{border-color:#e8c778;color:#ffe2a3;background:#2b4b57;animation:hotkey-listen 1s steps(20) infinite alternate}
+@keyframes hotkey-listen{to{box-shadow:0 0 0 3px #e8c77855}}
+@media(prefers-reduced-motion:reduce){.settings-pane .hotkey-key.listening{animation:none;box-shadow:0 0 0 3px #e8c77855}}
+.settings-pane .hotkey-reset{min-width:34px;min-height:34px;width:34px;padding:0;border-radius:7px;display:grid;place-items:center}
+.hotkey-reset svg{width:17px;height:17px}
+.settings-pane .hotkey-reset:disabled{opacity:.35}
+.hotkey-clash .set-text b,.hotkey-clash-note{color:#ffb4a8!important}
+.settings-pane .hotkey-actions{grid-template-columns:auto;justify-content:start}
+@media(max-width:560px){.settings-v2 .hotkey-row{flex-wrap:wrap}.hotkey-keys{margin-left:auto}}
+/* Split deck editor: the Extra Deck in its own pane under the Deck (Nori, user 2026-11-24; card-search.js splitDeckMarkup). */
+.deck-split-side{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.deck-split-side>.deck-pane{flex:1 1 0;min-height:110px}
+.deck-split-side>.deck-extra-pane{flex:0 1 auto;max-height:44%}
+.deck-split .deck-extra-pane .cardgrid{grid-template-columns:repeat(var(--split-deck,8),minmax(0,1fr))!important}
+/* Collection › Packs "Cards" filter: matching cards in each pack (pack-summary.js packFilterCount). */
+.pack-match-count{position:absolute;z-index:3;top:4px;left:4px;min-width:24px;padding:2px 6px;border:1px solid #8fd3e8;border-radius:10px;background:#062a36e6;color:#e9fbff;font-size:12px;font-weight:700;line-height:1.25;text-align:center;box-shadow:0 2px 6px #0009;pointer-events:none}
+/* Ultimate Collector clock (CITYDRIVER, user 2026-11-24; collector-clock.js): red and larger from a minute left, a
+   gentle opacity pulse while it runs; the pause bar under the reconnect notice; your deck on the prize screen. */
+.duel-portrait-timer.low{background:#5a0a0ef2;border-color:#ff5a5a;color:#fff;font-weight:800;font-size:clamp(12px,2vmin,17px);line-height:19px}
+.duel-portrait-timer.low.active:not(.paused){animation:collector-low-time 1s steps(2,jump-none) infinite}
+@keyframes collector-low-time{50%{opacity:.6}}
+@media(prefers-reduced-motion:reduce){.duel-portrait-timer.low.active{animation:none}}
+.collector-pause{position:fixed;top:calc(max(8px,env(safe-area-inset-top)) + 48px);left:50%;transform:translateX(-50%);max-width:min(560px,92vw);z-index:9001;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:1px solid #8dc4cf;border-radius:10px;background:#0b2430f2;color:#e5f0f4;font-size:clamp(12px,1.9vw,16px);text-align:center;box-shadow:0 4px 14px #0008}
+.collector-pause.asked{border-color:#f2d783}
+.collector-pause .collector-pause-clock{font-variant-numeric:tabular-nums;color:#ffe394}
+.collector-pause button{min-height:34px;padding:4px 14px}
+.collector-timeout-notice{margin:6px 0;padding:6px 10px;border:1px solid #ff8a7a;border-radius:8px;background:#3a0f0fcc;color:#ffd9d2}
+.collector-own-toggle{margin:4px 0 8px}
+.collector-own-deck{margin:0 0 14px;padding:8px 10px;border:1px solid #688e9c;border-radius:10px;background:#071b27b3}
+.collector-own-deck h3{margin:6px 0;font-size:15px}.collector-own-deck h3 span{opacity:.75}
+.collector-prizes .collector-own-grid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))!important;gap:5px}
+.collector-own-grid .cardbtn{position:relative;padding:2px;font-size:10px}
+.collector-own-grid .cardbtn>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.collector-own-grid .cardbtn>.collector-own-count{position:absolute;top:3px;right:3px;left:auto;width:auto;padding:0 5px;border-radius:8px;background:#000c;color:#ffe394;font-size:12px;line-height:18px}
+/* Card marks in the Collector deck editor sit under the limit icon. */
+.collector-deck-editor .cardbtn .collector-limit-icon~.card-mark{top:36px}
+/* 10K player survey (survey.js): one grid at a time; a tap only restyles two tiles (no shadows or filters animate). */
+dialog.survey-modal{width:min(820px,96vw)}
+.survey{display:flex;flex-direction:column;gap:10px}
+.survey h3{margin:0;color:var(--gold);font-size:18px}
+.survey p{margin:0;line-height:1.5}
+.survey-intro p{font-size:16px}
+.survey-count{color:#b4c5cd;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.survey-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:min(56dvh,max(150px,calc(88dvh - 275px)));overflow:auto;padding:2px;contain:content}
+.survey-grid.wide{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.survey-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px;background:#0a1a20;border:2px solid #4d6b74;border-radius:9px;min-height:0}
+.survey-tile img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:#06121a}
+.survey-tile.face img{object-fit:contain;object-position:top}
+.survey-grid.wide .survey-tile img{aspect-ratio:1.3}
+.survey-tile span{font-size:11px;line-height:1.2;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.survey-tile.picked{border-color:#fbd171;background:#3a3016}
+.survey-tile[hidden]{display:none}
+.survey-search,.survey-country,.survey-wish{width:100%;padding:9px;border-radius:6px;border:1px solid #537e8b;background:#07171a;color:inherit}
+.survey-wish{resize:vertical;min-height:120px;font:inherit}
+.survey-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.survey-spacer{flex:1}
+.survey-banner{display:flex;gap:14px;align-items:center;justify-content:space-between;margin:0 0 14px;padding:12px 14px;border:2px solid #f2cf83;border-radius:10px;background:linear-gradient(120deg,#3a2b12,#14303a)}
+.survey-banner h3{margin:0 0 4px;color:var(--gold)}
+.survey-banner p{margin:0;font-size:13px}
+@media(max-width:520px){.survey-grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}.survey-banner{flex-direction:column;align-items:stretch}}
+/* Difficulty before the save slot (user 2026-11-24): Normal is the main choice; Easy is small and quiet, on the left. */
+.difficulty-choice{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px;align-items:center}
+.difficulty-choice button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;white-space:normal;min-width:0}
+.difficulty-normal{padding:16px 18px;min-height:150px;justify-content:center}
+.difficulty-normal b{font-size:1.45em}
+.difficulty-normal small{font-size:.85em;opacity:.9}
+.difficulty-easy{padding:8px 10px;background:transparent;border:1px solid rgba(255,255,255,.16);box-shadow:none;opacity:.72;font-size:.82em}
+.difficulty-easy:hover,.difficulty-easy:focus-visible{opacity:1}
+.difficulty-easy b{font-size:1.05em;font-weight:600}
+.difficulty-easy small{font-size:.86em;line-height:1.3}
+.difficulty-easy .difficulty-warn{color:#d9b86a}
+/* A once-per-Duel relic that already acted this Duel (user 2026-11-24). */
+.active-relic-strip button.used>.relic-artwork{filter:grayscale(1) brightness(.55)}
+.active-relic-strip button.used{opacity:.75}
+html.compatibility-mode .active-relic-strip button.used>.relic-artwork{filter:none;opacity:.45}
+/* CPU Stats (2026-11-24): opponents by tier, then one CPU's record against each duelist. */
+.cpu-stats-table th[scope=row] img{width:32px;height:32px;object-fit:cover;object-position:top;border-radius:6px}
+.cpu-stats-name{display:flex;align-items:center;gap:8px;padding:2px 4px;font-weight:700}
+.cpu-stats-head{display:flex;align-items:center;gap:12px;margin:4px 0 6px}.cpu-stats-head img{width:56px;height:56px;object-fit:cover;object-position:top;border-radius:8px}.cpu-stats-head h2{margin:0}
+.cpu-tier-tabs{margin:10px 0 2px}

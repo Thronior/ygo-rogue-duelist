@@ -106,6 +106,10 @@ def evaluate(profile, run=None):
     earned |= {a[7:] for a in profile.get('synced_achievements', []) if str(a).startswith('sleeve:') and a[7:] in known}
     stats = profile.get('sleeve_stats', {})
     marks = set(profile.get('sleeve_marks', []))
+    # The "Annoy Grandpa" mark is set when the shopkeeper's secret starts (v0.2.35+). Players who found him before
+    # that, or whose mark was lost, still have LVL -1 unlocked or his duel in their history (bug report, 2026-11-24).
+    if profile.get('relicless_unlocked') or any(isinstance(row, dict) and row.get('secret_challenge') == 'relicless' for row in profile.get('run_history', [])):
+        marks.add('solomon')
     complete = bool(run) and run.get('stage') == 'complete' and not run.get('secret_challenge')
     run_flags = {
         'no_traps': complete and not run.get('sleeve_trap_activated'),

@@ -47,7 +47,11 @@ export function balancedVolume(audio,slider,emphasis=1){
   if(!voice){
    const source=ctx.createMediaElementSource(audio),gain=ctx.createGain();voice={source,gain,connected:false};voices.set(audio,voice);
    const connect=()=>{if(!voice.connected){source.connect(gain);gain.connect(master);voice.connected=true;}resume();};
-   const disconnect=()=>{if((audio.paused||audio.ended)&&voice.connected){source.disconnect();gain.disconnect();voice.connected=false;}};
+   // Disconnect a moment after it stops, not at once: WebKitGTK (the Linux app) fires "ended" when GStreamer has handed
+   // over the last data, while a few hundred ms are still buffered on the Web Audio side, so every sound lost its end
+   // ("the sounds kind of cut off early", 2026-11-24). A finished element only outputs silence meanwhile; one that
+   // starts again stays connected.
+   const disconnect=()=>setTimeout(()=>{if((audio.paused||audio.ended)&&voice.connected){source.disconnect();gain.disconnect();voice.connected=false;}},600);
    audio.addEventListener('play',connect);audio.addEventListener('pause',disconnect);audio.addEventListener('ended',disconnect);audio.addEventListener('error',disconnect);if(!audio.paused&&!audio.ended)connect();
   }
   audio.volume=1;voice.gain.gain.value=volume;resume();
@@ -57,11 +61,28 @@ export function balancedVolume(audio,slider,emphasis=1){
 // Decoded effects avoid interrupted HTMLAudio play requests during rapid reel ticks.
 const effectBuffers=new Map();
 function originalPathsKey(path){const base=new URL('./',location.href).pathname;return path.startsWith(base)?path.slice(base.length):path.replace(/^\//,'');}
+// A file this browser cannot decode stays failed: the Linux app's WebKitGTK decodes through GStreamer, and without its
+// "good" plugins (WAV, MP3) every sound fails the same way. Retrying would download and decode it again on every play.
+// Network failures are not remembered, so they retry.
+const undecodable=new Set();
 function loadEffect(path,ctx){
- if(!effectBuffers.has(path))effectBuffers.set(path,fetch(assetURL(path)).then(r=>{if(!r.ok)throw Error('Audio '+r.status);return r.arrayBuffer()}).then(b=>ctx.decodeAudioData(b)).catch(e=>{effectBuffers.delete(path);throw e}));
+ if(!effectBuffers.has(path)){
+  const pending=fetch(assetURL(path)).then(r=>{if(!r.ok)throw Error('Audio '+r.status);return r.arrayBuffer()})
+   .then(b=>ctx.decodeAudioData(b).catch(e=>{undecodable.add(path);throw e}))
+   .catch(e=>{if(!undecodable.has(path))effectBuffers.delete(path);throw e});
+  pending.catch(()=>{});effectBuffers.set(path,pending);
+ }
  return effectBuffers.get(path);
 }
-export async function preloadSoundEffects(paths){const ctx=graph();if(!ctx)return;let next=0;await Promise.all(Array.from({length:2},async()=>{while(next<paths.length)await loadEffect(paths[next++],ctx);}));}
+// Boot step 6 (2026-11-24): a sound that cannot load never stops the game from starting (a Linux player's WebKitGTK
+// could not decode any, and the start failed with "Decoding failed"); the game runs without those sounds.
+// Returns how many could not be decoded and how many could not be downloaded.
+export async function preloadSoundEffects(paths){
+ const ctx=graph(),result={undecodable:0,failed:0,first:''};if(!ctx)return result;let next=0;
+ await Promise.all(Array.from({length:2},async()=>{while(next<paths.length){const path=paths[next++];
+  try{await loadEffect(path,ctx)}catch(error){if(undecodable.has(path))result.undecodable++;else result.failed++;result.first||=String(error?.message||error);}}}));
+ return result;
+}
 export function bufferedEffects(paths,volume){
  const ctx=graph(),active=new Map(),versions=new Map();let disposed=false;
  const load=path=>loadEffect(path,ctx);

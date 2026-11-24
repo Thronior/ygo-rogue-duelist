@@ -106,7 +106,7 @@ def _make_bundles(run,count_cards,rng):
    value=next(counter);batch_ids.append(value);return value
   batch=randomizer.make_card(random.Random(rng.random()),next_id,used)
   last=max(batch_ids)+1
-  if made+len(batch)>count_cards:continue
+  if made+len(batch)>count_cards:randomizer.forget(batch,used);continue   # no card may name these (Nov 24)
   _register(batch);bundles.append([c['id'] for c in batch]);made+=len(batch)
  store['next']=last
  _save_cards(run)
@@ -170,7 +170,7 @@ def draft_booster(seed,first):
   if len(out)>=PACK_SIZE:break
   try:batch=randomizer.make_card(random.Random(rng.random()),lambda:next(counter),used)
   except StopIteration:break
-  if len(out)+len(batch)>PACK_SIZE:continue
+  if len(out)+len(batch)>PACK_SIZE:randomizer.forget(batch,used);continue   # no card may name these (Nov 24)
   out+=batch
  for card in out:card.setdefault('strings',randomizer._strings(card))
  return out

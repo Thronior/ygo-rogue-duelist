@@ -6,8 +6,8 @@ export function effectiveAttributes(c,run,index){
  if(!(c.data.type&1))return [];
  // Surgery relics: the first replaces the attribute, each further relic adds one.
  const surgery=new Set();
- // Attribute Mutation (a fused relic): every Attribute.
- if((run.artifacts||[]).includes('attribute_mutation'))return Object.values(attributes);
+ // Attribute Mutation and Genetic Override (fused relics): every Attribute.
+ if((run.artifacts||[]).some(a=>a==='attribute_mutation'||a==='genetic_override'))return Object.values(attributes);
  for(const raw of run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw;if(/^attribute_(light|dark|fire|water|wind|earth)$/.test(id||''))surgery.add(id.slice(10).toUpperCase());}
  if(surgery.size)return [...surgery];
  const base=attributes[run.card_mods?.[index]?.[3]]||c.attribute;

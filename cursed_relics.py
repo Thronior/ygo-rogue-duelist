@@ -44,6 +44,8 @@ def choose(run,key,rng=random):
  if not offer.get('picked'):offer['extra_picks']=max(ar.copies(run,'champion_trophy'),int(ar.has(run,'champion_trophy')))
  else:offer['extra_picks']-=1
  run['artifacts'].append(key);run.setdefault('cursed_artifacts',[]).append(key)
+ # Singleton Pact takes effect at once: extra copies leave the Deck (they stay owned).
+ if key=='cursed_singleton_pact':ar.trim_to_copy_limit(run)
  import relic_fusions
  relic_fusions.fuse(run)
  ar.reconcile_turn_order(run)
@@ -58,9 +60,10 @@ def finish(run,rng=random):
  campaign.restock(run,rng)
 
 def skip(run,rng=random):
- """Champion Trophy extra picks are optional; the first pick never is."""
+ """Champion Trophy extra picks are optional; the first pick never is, except in Easy mode (easy_mode.py)."""
  offer=run.get('cursed_offer')
- if not offer or not offer.get('picked'):raise ValueError('Choose a shadow relic before continuing to the shop.')
+ import easy_mode
+ if not offer or not (offer.get('picked') or easy_mode.active(run)):raise ValueError('Choose a shadow relic before continuing to the shop.')
  finish(run,rng)
 
 def require_choice(run):

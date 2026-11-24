@@ -152,12 +152,18 @@ export function stderrTail(limit=12){
 // Only the lines that say why Python stopped; the sys.path dump before them is the same on every device.
 const pythonCause=lines=>lines.filter(line=>/error|exception|lookup|fatal|traceback|memory/i.test(line)).slice(-4);
 
-export function details({version,error,zip,stderr=[],nav=globalThis.navigator,native=false,retried=false}){
+// desktop: ShadowDesktop.platform in the desktop apps, which also provide ShadowNative (a Linux report used to say
+// "Android app", 2026-11-24). stage: the boot step that failed, so an error after Python started is not read as Python's.
+export function details({version,error,zip,stderr=[],nav=globalThis.navigator,native=false,retried=false,desktop=null,stage=null}){
  const ua=String(nav?.userAgent||''),chrome=/(?:Chrome|Chromium)\/([\d.]+)/.exec(ua)?.[1],android=/Android ([\d.]+)/.exec(ua)?.[1];
+ // Every UA says Mozilla, AppleWebKit and "like Gecko" for old compatibility; WebKitGTK (the Linux app) copies Safari's
+ // tokens with a fixed Version/60.5, so it is named by the app's own token, not by those.
+ const browser=chrome?`Chrome ${chrome}`:/YGORogueDuelistLinux\//.test(ua)||desktop==='linux'?'WebKitGTK (Linux app)':/Firefox\/([\d.]+)/.test(ua)?`Firefox ${/Firefox\/([\d.]+)/.exec(ua)[1]}`:/Version\/([\d.]+).*Safari\//.test(ua)?`Safari ${/Version\/([\d.]+)/.exec(ua)[1]}`:'unknown';
  const zipLine=!zip?'not checked':zip.ok?`${zip.size} bytes · ZIP ok · ${zip.entries} files`:`${zip.problem||'failed'}${zip.size!=null?` · ${zip.size} bytes`:''}`;
  return [
-  `Game v${version} · ${native?'Android app':'Web'}`,
-  `Browser: ${chrome?`Chrome ${chrome}`:'unknown'}${/; wv\)/.test(ua)?' (WebView)':''}${android?` · Android ${android}`:''}`,
+  `Game v${version} · ${desktop==='linux'?'Linux app':desktop?'Windows app':native?'Android app':'Web'}`,
+  ...(stage?[`Failed at: ${{python:'starting Python',campaign:'restoring the campaign',sounds:'preparing sound effects'}[stage]||stage}`]:[]),
+  `Browser: ${browser}${/; wv\)/.test(ua)?' (WebView)':''}${android?` · Android ${android}`:''}`,
   `Device memory: ${nav?.deviceMemory?nav.deviceMemory+' GB':'unknown'}`,
   `Language: ${nav?.language||'unknown'}`,
   `Stdlib zip: ${zipLine}${zip?.retry?' · re-downloaded':''}`,
