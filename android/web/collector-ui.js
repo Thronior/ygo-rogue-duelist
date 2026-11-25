@@ -1,5 +1,5 @@
 import {pageRect,pageWidth,pageHeight} from './ui-zoom.js';
-import {explainOnlineError} from './online-status.js';
+import {explainOnlineError,campaignMessage} from './online-status.js';
 import {isRandomCard} from './random-cards.js';
 import {playUISound} from './ui-sounds.js';
 import {play3DToss} from './toss-3d.js';
@@ -26,15 +26,17 @@ import {cardMark,nextMark,markTile,paintMarks} from './card-marks.js';
 import {searchMarks} from './card-search.js';
 // With the room hub open, polls only guard against a missed nudge.
 // Same sorts as Draft Duels; the saved Sort and Deck status are shared with solo and Tag (deck-sort-preference.js).
-const COLLECTOR_DECK_SORTS=['Newest','Default','Name','Attribute','ATK','DEF','Level'],COLLECTOR_SEARCH='collector-deck';
+const COLLECTOR_DECK_SORTS=['Newest','Default','Name','Type','Attribute','ATK','DEF','Level','Oldest'],COLLECTOR_SEARCH='collector-deck';
 const SAFETY_POLL=120000,OFFLINE_POLL=30000,PARTNER_CHECK=20000,PROBE_AFTER=4000,MOVE_BUNDLE_MS=200;
 const wire=value=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?{__bigint:String(v)}:v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(text,action,extra='')=>`<button data-collector="${action}" ${extra}>${text}</button>`;
+// Same sentence as collector.py BETWEEN_DUELS (Discord, 2026-11-25: importing a run mid-duel showed a traceback).
+const BETWEEN_DUELS='You can only import a run between duels, not during a duel. Finish the duel first, then import the run.';
 const collectorLimitIcon=limit=>limit<3?`<i class="collector-limit-icon limit-${limit}" title="${limit===1?'Limited':'Semi-limited'}: maximum ${limit} across all decks" aria-label="${limit===1?'Limited':'Semi-limited'}, maximum ${limit} copies">${limit}</i>`:'';
 export class CollectorUI {
  constructor(options){Object.assign(this,{validateDeck},options);this.mode='roster';this.isCollector=true;this.alive=true;this.queue=Promise.resolve();const ui=this;this.session={connected:false,code:'',request:(a,v)=>this.enqueue(()=>this.request(a,v)),get duelReady(){return !!ui.game}};this.click=e=>{const el=e.target.closest('[data-collector],[data-collector-slot]');if(!el||e.target.closest('[data-card-mark]'))return;e.stopImmediatePropagation();if(this.held){this.held=false;return;}this.enqueue(()=>this.action(el.dataset.collector||(el.dataset.do==='collector-select'?'select':'import'),el));};document.addEventListener('click',this.click,true);this.down=e=>{const card=e.target.closest('[data-collector=toggle][data-id],[data-collector=prize]');if(!card||e.button!==0)return;this.origin=[e.clientX,e.clientY];this.held=false;this.hold=setTimeout(()=>{this.held=true;this.inspect(+card.dataset.id)},450);};this.cancelHold=()=>clearTimeout(this.hold);this.move=e=>{if(this.origin&&Math.hypot(e.clientX-this.origin[0],e.clientY-this.origin[1])>10)this.cancelHold();};document.addEventListener('pointerdown',this.down);document.addEventListener('pointermove',this.move);document.addEventListener('pointerup',this.cancelHold);document.addEventListener('pointercancel',this.cancelHold);}
- enqueue(fn){const next=this.queue.then(()=>this.alive?fn():undefined);this.queue=next.catch(async e=>{if(!this.alive)return;const text=await explainOnlineError(e);if(!this.alive)return;this.status=text;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector',`<p>${esc(text)}</p>`)});return this.queue;}
+ enqueue(fn){const next=this.queue.then(()=>this.alive?fn():undefined);this.queue=next.catch(async e=>{if(!this.alive)return;const text=campaignMessage(e)??await explainOnlineError(e);if(!this.alive)return;this.status=text;this.dialog(this.isDraft?'Draft Duels':'Ultimate Collector',`<p>${esc(text)}</p>`)});return this.queue;}
  init(){const pending=this.queue.then(()=>this.initialize());this.queue=pending.catch(()=>{});return pending;}
  async initialize(){
  const configPromise=fetch('./multiplayer-config.json').then(r=>r.json());
@@ -157,7 +159,7 @@ export class CollectorUI {
  clearInterval(this.countdown);if(!this.alive)return;const draw=()=>{
   const r=this.room,last=r?.seen?.[1-this.seat],now=Date.now()+(this.serverOffset||0);
   if(r?.phase==='duel'&&r.actor===1-this.seat&&Date.now()-(this.checkedAt||0)>=PARTNER_CHECK){this.checkedAt=Date.now();this.hubSend({t:'check'});}
-  const pause=this.hubInfo?.code===r?.code?this.hubInfo.pause:null,paused=pauseInfo(pause,now,this.seat)?.paused;
+  const pause=r&&this.hubInfo&&this.hubInfo.code===r.code?this.hubInfo.pause:null,paused=pauseInfo(pause,now,this.seat)?.paused;
   const visible=this.alive&&this.session.connected&&r?.players.length===2&&r.phase!=='complete'&&Number.isFinite(last)&&now-last>20000&&!paused;
   let el=document.getElementById('collector-reconnect-timer');
   if(!visible){el?.remove();return;}
@@ -223,7 +225,7 @@ export class CollectorUI {
  }else if(action==='surrender'){await this.accept(await this.api('surrender',{game:this.room.game,turn:this.game?.turn}));}this.schedule();}
  render(){if(!this.alive||this.mode==='duel')return;document.querySelectorAll('.duel-portrait-timer').forEach(el=>el.remove());clearDuelEmotes();if((this.mode==='editor'||this.mode==='siding')&&this.draft){this.renderDeckEditor();return;}const oldScroll=this.root.querySelector('.collector-content')?.scrollTop||0,oldCards=this.root.querySelector('.cardgrid')?.scrollTop||0,keepScroll=this.lastRenderedMode===this.mode;this.lastRenderedMode=this.mode;const d=this.duelist,r=this.room;let body='';
  if(this.mode==='roster'){body=(collectorLanding(this.data.duelists)==='introduction'?collectorIntroductionMarkup():'')+collectorRosterMarkup(this.data.duelists,this.content.characters);}
- else if(this.mode==='import'){body='<h2>Choose a saved run</h2><p>This permanently moves the selected save out of single player.</p><div class="save-slot-grid">'+this.getSlots().map(s=>{const r=s.run,c=r?this.content.characters[r.character]:null,inDuel=r?.stage==='duel',eligible=r&&c&&!c.copycat&&!inDuel;return `<button class="save-slot" data-collector="select-import" data-source="${s.slot}" ${eligible?'':'disabled'}><span class="slot-number">Slot ${s.slot}${c?' · '+esc(c.name):''}</span><span class="slot-portrait">${c?`<img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}">`:''}</span><span class="slot-detail">${r?`Loop ${(r.loop||0)+1} · Duel ${Math.min(9,(r.round||0)+1)}/9<br>${Number(r.lp||0).toLocaleString()} LP<br><small>Last played: ${esc(lastPlayed(r.last_played_at))}</small>`:'Empty'}</span><b class="slot-action">${inDuel?'finish your duel to import this collector':eligible?'Select this run':r?'Copycat cannot be imported':'Empty'}</b></button>`}).join('')+'</div>';}
+ else if(this.mode==='import'){body='<h2>Choose a saved run</h2><p>This permanently moves the selected save out of single player.</p><div class="save-slot-grid">'+this.getSlots().map(s=>{const r=s.run,c=r?this.content.characters[r.character]:null,inDuel=r?.stage==='duel',eligible=r&&c&&!c.copycat&&!inDuel;return `<button class="save-slot" data-collector="select-import" data-source="${s.slot}" ${eligible?'':'disabled'}><span class="slot-number">Slot ${s.slot}${c?' · '+esc(c.name):''}</span><span class="slot-portrait">${c?`<img src="assets/${esc(c.sprite)}" alt="${esc(c.name)}">`:''}</span><span class="slot-detail">${r?`Loop ${(r.loop||0)+1} · Duel ${Math.min(9,(r.round||0)+1)}/9<br>${Number(r.lp||0).toLocaleString()} LP<br><small>Last played: ${esc(lastPlayed(r.last_played_at))}</small>`:'Empty'}</span><b class="slot-action">${inDuel?'In a duel: import it between duels':eligible?'Select this run':r?'Copycat cannot be imported':'Empty'}</b></button>`}).join('')+'</div>';}
  else if(this.mode==='import-name'){const s=this.getSlots().find(s=>s.slot===this.importSource),c=this.content.characters[s.run.character];body=`<section class="tag-join-screen"><h2>Name your duelist</h2><p>Slot ${s.slot} · ${esc(c.name)}</p><label for="collector-name">Duelist name</label><input id="collector-name" maxlength="32" autocomplete="off"><p>This permanently moves this save out of single player.</p>${(s.run.pool||[]).some(isRandomCard)?'<p class="collector-random-note">Randomized cards are banned in Ultimate Collector: they stay behind.</p>':''}<div>${button('Back','import-back')}${button('Import','move',`data-source="${s.slot}"`)}</div></section>`;}
  else if(this.mode==='shadow'){body=this.resultMarkup(false);}
  else if(this.mode==='home'){const legal=this.validateDeck(d.draftDeck||d.deck,d.pool,this.content.cards).length===0;body=`<h2>${esc(d.name)} · ${rankFor(d.wins)}</h2><div class="collector-home">${button('Edit deck','edit')}${button('Duelist history','history',legal?'':'disabled')}${button('Host','host',legal?'':'disabled')}${button('Join','join',legal?'':'disabled')}</div>`+(legal?'':'<p>Build a legal Main Deck to unlock the other options.</p>');}
@@ -304,9 +306,10 @@ export class CollectorUI {
  if(action==='select'){this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===+x.collectorSlot);if(!this.duelist)return;await this.connectionReady;const pending=this.registrations?.get(this.duelist.id);let result;try{result=pending?await pending:await this.api('register',{duelist:this.duelist});}catch{result=await this.api('register',{duelist:this.duelist});}this.registrations?.delete(this.duelist.id);if(!this.alive)return;await this.accept(result);this.schedule();return;}
  if(action==='home'){this.mode='home';}
  if(action==='import-back'){this.mode='import';}
- if(action==='select-import'){const s=this.getSlots().find(s=>s.slot===+x.source);if(s?.run?.stage==='duel'){this.dialog('Ultimate Collector','<p>finish your duel to import this collector</p>');return;}if(!s?.run||this.content.characters[s.run.character]?.copycat)return;this.importSource=+x.source;this.mode='import-name';}
+ if(action==='select-import'){const s=this.getSlots().find(s=>s.slot===+x.source);if(s?.run?.stage==='duel'){this.dialog('Ultimate Collector',`<p>${BETWEEN_DUELS}</p>`);return;}if(!s?.run||this.content.characters[s.run.character]?.copycat)return;this.importSource=+x.source;this.mode='import-name';}
  if(action==='import'){this.importSlot=+x.collectorSlot;this.mode='import';}
- if(action==='move'){await this.connectionReady;const name=document.getElementById('collector-name').value;this.data=await this.backend('collector-import',{source:+x.source,slot:this.importSlot,name});this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===this.importSlot);await this.accept(await this.api('register',{duelist:this.duelist}));return;}
+ // A second tap queued behind a finished import would ask to move the now-empty slot again.
+ if(action==='move'){if(this.mode!=='import-name')return;await this.connectionReady;const name=document.getElementById('collector-name').value;this.data=await this.backend('collector-import',{source:+x.source,slot:this.importSlot,name});this.duelist=this.data.duelists.find(d=>d.status==='alive'&&d.slot===this.importSlot);await this.accept(await this.api('register',{duelist:this.duelist}));return;}
  if(action==='edit'){this.draft=structuredClone(this.duelist.draftDeck||this.duelist.deck);this.zones=null;this.section='deck';this.deckOrderKey=null;resetDeckFilters(this,COLLECTOR_SEARCH,false);this.mode='editor';}
  if(action==='section'){this.section=x.section;this.deckOrderKey=null;if(this.mode!=='siding')this.mode='editor';}
  if(action==='deck-filter')this.deckFilter=x.filter;

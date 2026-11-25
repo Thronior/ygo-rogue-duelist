@@ -1,6 +1,6 @@
 // Music files measured at -22 LUFS; SFX retain their measured corrections.
 export const audioGains={
-  "assets/sfx/pack-rare.mp3": 0.231739,
+  "assets/sfx/pack-rare.mp3": 0.35974,
   "assets/sfx/purchase.mp3": 1.023293,
   "assets/sfx/card-reveal.wav": 1.2218,
   "assets/sfx/pack-rustle.wav": 0.732825,

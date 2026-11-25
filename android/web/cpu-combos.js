@@ -6,7 +6,7 @@ import {ritualLevelsReady} from './cpu-card-plans.js';
 const HARPIES=new Set(['Harpie Lady','Harpie Lady 1','Cyber Harpie Lady']);
 const HEALS=new Set(['Dian Keto the Cure Master','Poison of the Old Man','Gift of The Mystical Elf','Numinous Healer','Soul of the Pure','Mooyan Curry',"Goblin's Secret Remedy",'Red Medicine','Blue Medicine']);
 const LOCKS=new Set(['Gravity Bind','Level Limit - Area B','Messenger of Peace','Swords of Revealing Light',"Nightmare's Steelcage"]);
-const LIGHT=0x10,WATER=0x2;
+const LIGHT=0x10,WATER=0x2,DARK=0x20;
 export function comboPlanner(x){
  const {lethalCost=()=>false,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk,exodiaPieces,specialOk,projectedAttack,planDamage,contactMaterials,contactUseful,fusionPlan,matchesRitual,ritualMaterialReady,removalAffects=()=>true}=x;
  const has=(a,n)=>a.some(c=>name(c)===n),monster=c=>!!(data(c).type&1);
@@ -177,6 +177,21 @@ export function comboPlanner(x){
  function saturnLine(){
   const start=[...back].some(c=>face(c)&&name(c)==='The Sanctuary in the Sky')&&useStep('The Agent of Judgment - Saturn');
   return start?[{id:'saturn',start,payoff:[],normal:false,lost:[],burn:Math.max(0,e.lp[p]-e.lp[1-p]),onlyLethal:true}]:[];
+ }
+ // Wave-Motion Cannon: 1000 per Standby Phase of ours since it was activated (the core's turn counter), sent the first
+ // time that is lethal. Its 180 activation score lost to any non-lethal line, which duel.js plays before activations
+ // (replay e680709eeb72@108: 2000 charged against 1000 LP, the CPU Special Summoned Lava Golem instead; survey 2026-11-25).
+ function waveMotionLine(){
+  if(!spellsOk)return [];
+  const lines=[];
+  list('activates').forEach((c,index)=>{
+   if(name(c)!=='Wave-Motion Cannon'||c.location!==L.SZONE||lethalCost(c))return;
+   const live=back.find(y=>same(y,c));if(!live||!face(live)||live.is_disabled)return;
+   const raw=1000*(e.cardTurnCounts?.get(`${live.controller??p}:${live.location}:${live.sequence}`)||0);
+   const burn=x.burnDamage?x.burnDamage(raw):raw;
+   if(raw>0&&burn>=e.lp[1-p])lines.push({id:'wave-motion',start:{kind:'activate',index,code:name(c)},payoff:[],normal:false,lost:[],burn,onlyLethal:true});
+  });
+  return lines.slice(0,1);
  }
  // Every monster can be fed to Cannon Soldier or Catapult Turtle. Null unless that finishes the duel.
  function burnPlan(){
@@ -351,35 +366,79 @@ export function comboPlanner(x){
   return expected>=plain+600?[{id:'snipe',start,payoff:[],kept:[hunter],normal:true,lost:[],removed:[target],strikers}]:[];
  }
  // Attacks that are worth making because of what they do, not the damage. A monster that could win a fight fights normally.
- const TRADES=new Set(['Hyper Hammerhead','D.D. Warrior']);
+ // Monsters whose own effect removes the monster they battle, so a fight they cannot win can still pay. when 'start':
+ // gone at the start of the Damage Step, nothing hits back; 'after': after damage calculation, so its ATK or DEF hits
+ // back first (and an attacker in Attack Position may die). self: the attacker leaves with it. hits: which targets.
+ const faceDef=t=>face(t)&&!(t.position&1),setDef=t=>!face(t)&&!(t.position&1);
+ const BATTLE_REMOVAL={
+  'Hyper Hammerhead':{when:'after',kind:'bounce'},
+  'D.D. Warrior':{when:'after',kind:'banish',self:true},
+  'D.D. Warrior Lady':{when:'after',kind:'banish',self:true},
+  'Ryu Kokki':{when:'after',kind:'destroy',hits:t=>face(t)&&['Warrior','Spellcaster'].includes(race(t))},
+  'Getsu Fuhma':{when:'after',kind:'destroy',hits:t=>face(t)&&['Fiend','Zombie'].includes(race(t))},
+  'Karakuri Spider':{when:'after',kind:'destroy',hits:t=>face(t)&&!!(data(t).attribute&DARK)},
+  'Ninja Grandmaster Sasuke':{when:'start',kind:'destroy',hits:faceDef},
+  'Disc Fighter':{when:'start',kind:'destroy',hits:t=>faceDef(t)&&(t.defense??data(t).defense??0)>=2000},
+  'Mystic Swordsman LV2':{when:'start',kind:'destroy',hits:setDef},
+  'Mystic Swordsman LV4':{when:'start',kind:'destroy',hits:setDef},
+  'Mystic Swordsman LV6':{when:'start',kind:'destroy',hits:setDef},
+  'Sasuke Samurai':{when:'start',kind:'destroy',hits:setDef},
+  'Paladin of White Dragon':{when:'start',kind:'destroy',hits:setDef},
+ };
+ // A bounced monster that its owner can just Normal Summon again is worth less than one that cost a Tribute, a Fusion
+ // (back to the Extra Deck) or a Ritual; a Token is gone for good.
+ const bounceWorth=t=>{const type=data(t).type;if(!face(t)||type&0x40c0||type&0x4000||!normalSummonable(t))return 1;return lvl(t)<=4?.4:lvl(t)<=6?.7:1};
+ // One trade attack, judged as a whole (Discord 2026-11-25: Hyper Hammerhead kept running into higher-DEF monsters at low
+ // LP and the reflected damage lost the duel; the earlier rule only capped the damage at a third of our LP). It is taken
+ // when it wins the duel this turn, or when what it removes is worth more than the LP it costs (dearer the lower our LP
+ // gets) plus the attacker's ATK if it dies, the LP cost stays under a third of our LP, and their visible board does not then
+ // kill us next turn when it would not have before. Returns the gain, or null.
+ let threatNow=null;
+ function tradeGain(c,t,how){
+  if(how.hits?!how.hits(t):!face(t))return null;
+  if(x.attackLocked?.(t)||x.attackBackfires(c,t)||!removalAffects(c,t,name(c),{destroy:how.kind==='destroy',targeting:false}))return null;
+  const mirror=theirBack.some(y=>face(y)&&!y.is_disabled&&name(y)==='Mirror Wall');
+  const strike=Math.floor((x.combatPower?.(c,t)??atk(c))/(mirror?2:1)),wall=guard(t);
+  const bounder=how.when==='after'&&name(t)==='Reflect Bounder'&&!!(t.position&1)&&!t.is_disabled?strike:0;
+  const hit=how.when==='start'?0:(x.battleDamage?.(Math.max(0,wall-strike),1-p)??Math.max(0,wall-strike))+bounder;
+  if(hit>=e.lp[p])return null;
+  const dies=!!how.self||how.when==='after'&&!!(t.position&1)&&wall>=strike&&!x.battleProof?.(c,t,p);
+  // Lethal through the cleared board, with this attacker spent.
+  if(planDamage([],[t],[c])>=e.lp[1-p])return 1000000+targetValue(t);
+  if(hit*3>=e.lp[p])return null;
+  const worth=bounceWorth(t),after=e.lp[p]-hit;
+  const gain=targetValue(t)*(how.kind==='bounce'?worth:1)-hit*Math.max(.5,4000/after)-(dies?Math.max(0,atk(c)):0);
+  if(gain<200)return null;
+  if(hit>0&&x.incomingDamage){
+   threatNow??=x.incomingDamage(null,false);
+   const gone=[...(how.kind!=='bounce'||worth===1?[t]:[]),...(dies?[c]:[])],next=x.incomingDamage(null,false,gone);
+   if(next>=after&&after-next<=e.lp[p]-threatNow)return null;
+  }
+  return gain;
+ }
+ const guard=t=>t.position&1?atk(t):(t.defense??data(t).defense??0);
  function battleLine(ready){
   if(e.battleProtected?.[1-p]||!effectsEnabled(p))return null;
-  const shown=t=>face(t)&&(t.position&1),guard=t=>t.position&1?atk(t):(t.defense??data(t).defense??0);
+  const shown=t=>face(t)&&(t.position&1);
   const rocket=ready.find(c=>name(c)==='Rocket Warrior');
   if(rocket){
    const best=Math.max(0,...ready.filter(c=>!same(c,rocket)).map(atk));
    const weakened=enemy.filter(t=>shown(t)&&atk(t)>=best&&atk(t)-500<best).sort((a,b)=>targetValue(b)-targetValue(a))[0];
    if(weakened)return {card:rocket,target:weakened};
   }
-  for(const c of ready.filter(y=>TRADES.has(name(y))&&!enemy.some(t=>face(t)&&atk(y)>guard(t)))){
-   const bounce=name(c)==='Hyper Hammerhead';
-   const target=enemy.filter(t=>{
-    if(!face(t)||x.resilient(t)||x.attackBackfires(c,t))return false;
-    // A Defense Position monster bounces too, but its DEF hits back: never for a third of our LP or more (Discord
-    // 2026-11-25: Hyper Hammerhead ran into higher-DEF monsters and the CPU lost to the reflected damage).
-    if(!(t.position&1))return bounce&&guard(t)-atk(c)<e.lp[p]/3;
-    const loss=atk(t)-atk(c);
-    return loss>=0&&loss<e.lp[p]/3&&atk(t)>=2000&&(!bounce||lvl(t)>=5||!!(data(t).type&0xc0));
-   }).sort((a,b)=>targetValue(b)-targetValue(a))[0];
-   if(target)return {card:c,target};
+  let pick=null;
+  for(const c of ready){
+   const how=BATTLE_REMOVAL[name(c)];
+   if(!how||c.is_disabled||enemy.some(t=>face(t)&&atk(c)>guard(t)))continue;
+   for(const t of enemy){const gain=tradeGain(c,t,how);if(gain!==null&&(!pick||gain>pick.gain))pick={card:c,target:t,gain}}
   }
-  return null;
+  return pick&&{card:pick.card,target:pick.target};
  }
  let cached=null;
  function lines(){
   if(cached)return cached;cached=[];
   if(!prompt||!Array.isArray(prompt.summons)||e.player!==p||!(e.phase===4||e.phase===256))return cached;
-  const main=e.phase===4,spells=[metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine,reviveTributeLine];
+  const main=e.phase===4,spells=[waveMotionLine,metamorphosisLine,fluteLine,levelUpLine,egotistLine,arcanaLine,fusionLine,dimensionLine,burstLine,mirrorLine,mummyLine,oceanLine,soulExchangeLine,reviveTributeLine];
   const monsters=effectsEnabled(p)?[kaibamanLine,ancientLampLine,contactLine,fodderLine,captainLine,kaiserLine,firePrincessLine,lavaGolemLine,gadgetLine,valkyrionLine,saturnLine,burnLine,legionLine,ritualSearchLine,...(main?[snipeLine,scientistSwapLine]:[])]:[contactLine];
   for(const build of [...spells,...monsters,...(main?[spiritSwapLine]:[])])cached.push(...build());
   for(const line of cached){line.kept??=[];line.lost??=[];line.strikers??=[...line.payoff.map(power),...line.kept.map(power)].filter(v=>v>0);line.gain=line.strikers.reduce((a,b)=>a+b,0)-line.lost.reduce((a,c)=>a+Math.max(0,atk(c)),0)+(line.bonus||0)+(line.burn||0)}

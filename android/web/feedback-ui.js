@@ -118,6 +118,10 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_level_up_chain'&&inSet(0x41)||k==='fused_gadget_gadget'&&inSet(0x51))a+=500;
  // Toon Kingdom: Toon monsters +500 ATK (Discord, Prunk44, 2026-11-23: the preview left it out).
  else if(k==='fused_toon_kingdom'&&(t&0x400000))a+=500;
+ // Insect Swarm +800 ATK/DEF to Insects, Eternal Garden +800 ATK to Plants (Discord, Kingstersam and CITYDRIVER,
+ // 2026-11-25: neither showed outside the field, so a fused Insect Swarm looked weaker than Chitin Carapace's +800 DEF).
+ else if(k==='fused_insect_swarm'&&c.race==='Insect'){a+=800;d+=800;}
+ else if(k==='fused_eternal_garden'&&c.race==='Plant')a+=800;
 
  }
 

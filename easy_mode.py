@@ -8,8 +8,9 @@ An easy run plays by Challenge Level 0 rules (the level choice does not apply) w
 5. Four removal cards join the starting deck (new_run): REMOVAL below.
 6. No achievement progress or unlocks: update_profile, personal bests, the card collection and the global run results
    leave easy runs out. Run history keeps them, marked Easy.
-Tag, Draft and Ultimate Collector runs never get it: Tag starts its runs without the flag, and active() also refuses
-a Tag run that somehow carries it."""
+Tag runs can be easy too (user, 2026-11-25): "Easy" in the host's Challenge Level list (tag-ui.js) starts both seats'
+runs with the flag (tag_campaign.TagCampaign easy=True), and the shared duel code above applies the same rules to the
+team. Draft and Ultimate Collector runs never get it."""
 
 REMOVAL = ('Mystical Space Typhoon', 'Dust Tornado', 'Fissure', 'Raigeki Break')
 HEAL = 2000
@@ -21,7 +22,7 @@ DESCRIPTION = ('No boss curses. Heal 2,000 LP after every duel (up to 8,000 LP).
 
 
 def active(run):
-    return bool(run) and bool(run.get('easy')) and run.get('history_mode') != 'tag'
+    return bool(run) and bool(run.get('easy'))
 
 
 def start(run, card_ids=(), fits=lambda run, cid: True):

@@ -63,13 +63,17 @@ cursed_relics.choose(run, key, rng)
 cursed_relics.skip(run, rng)
 assert not cursed_relics.pending(run) and run['cursed_artifacts'] == [key] and run['shop']
 
-# A reroll left over for the second pick draws the same number of relics as are shown.
+# A reroll left over for the second pick draws a full fresh set of 3, like a first pick (user, 2026-11-25; it drew only 2).
 run = boss_run(['champion_trophy'])
-cursed_relics.choose(run, run['cursed_offer']['options'][0], rng)
+first = run['cursed_offer']['options'][0]
+cursed_relics.choose(run, first, rng)
 before = list(run['cursed_offer']['options'])
+assert len(before) == 2
 cursed_relics.reroll(run, rng)
 after = run['cursed_offer']['options']
-assert len(after) == 2 and not set(after) & set(before) and run['cursed_offer']['picked']
+assert len(after) == 3 and len(set(after)) == 3 and not set(after) & set(before) and first not in after and run['cursed_offer']['picked']
+cursed_relics.choose(run, after[1], rng)
+assert not cursed_relics.pending(run) and run['cursed_artifacts'] == [first, after[1]] and run['shop']
 
 # The trophy fused away by the first pick (Bottomless Purse) still grants this boss fight's second pick.
 run = boss_run(['champion_trophy', 'urn'])

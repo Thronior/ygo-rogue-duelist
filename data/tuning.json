@@ -863,7 +863,7 @@
     "exile_standard": {
       "name": "Exile Standard",
       "price": 100,
-      "description": "Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.",
+      "description": "Monsters you control gain 50 ATK for each banished monster belonging to either player.",
       "art": "Soul Release",
       "effect": "banished_atk",
       "amount": 50,

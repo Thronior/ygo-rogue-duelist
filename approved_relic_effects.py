@@ -30,8 +30,15 @@ ATTACK_ONLY_SUMMONS='do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIEL
 BERSERK_LABEL=0x42455253
 BERSERK_ATTACK=f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_EXTRA_ATTACK) e:SetLabel({BERSERK_LABEL}) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() end) e:SetValue(function(e,c) local n=0 for _,x in ipairs({{c:GetCardEffect(EFFECT_EXTRA_ATTACK)}}) do if x~=e and x:GetLabel()~={BERSERK_LABEL} then local v=x:GetValue() if type(v)=='function' then v=v(x,c) end if type(v)=='number' and v>n then n=v end end end return n+1 end) Duel.RegisterEffect(e,0) end'''
 
+# Infinite Cards (Discord, 2026-11-25): "There is no limit to the hand size of each player." Every relic, shadow relic and
+# curse hand limit is written here, and none applies while a face-up Infinite Cards whose effect is not negated is on
+# either field, whichever hand limit the core happens to read. The hand warning in mobile.js (handSizeLimit) matches it.
+INFINITE_CARDS=94163677
+NO_INFINITE_CARDS=f'function() return not Duel.IsExistingMatchingCard(function(c) return c:IsFaceup() and c:IsCode({INFINITE_CARDS}) and not c:IsDisabled() end,0,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end'
+
 def player_rule(code,value):
- return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
+ condition=f' e:SetCondition({NO_INFINITE_CARDS})' if code=='EFFECT_HAND_LIMIT' else ''
+ return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD){condition} e:SetCode({code}) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue({value}) Duel.RegisterEffect(e,0) end'''
 
 STRONGHOLD=13955608 # Stronghold the Moving Fortress
 
@@ -171,7 +178,12 @@ Duel.RegisterEffect(e,0) end''')
   # Exactly Double Summon's effect, permanent and with no activation: 2 Normal Summons or Sets per turn, in any mix,
   # with no "which summon" prompt (user, 2026-11-11). Double Summon itself is not in the game, so they never clash.
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SET_SUMMON_COUNT_LIMIT) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0) e:SetValue(2) Duel.RegisterEffect(e,0) end')
-  out.append(stat('EFFECT_CANNOT_ATTACK',1,'c:IsStatus(STATUS_SUMMON_TURN) and c:IsSummonType(SUMMON_TYPE_NORMAL)'))
+  # Only a real Normal Summon locks the monster for that turn. The core gives a Set monster STATUS_SUMMON_TURN and
+  # SUMMON_TYPE_NORMAL too, so the old status check also locked a monster Set this turn and then turned face-up by an
+  # effect (Book of Taiyou, an attack), which the text does not cover (player report, 2026-11-25). Flip Summons and
+  # Sets never lock; Tribute and Gemini Summons are Normal Summons and do.
+  out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_SUMMON_SUCCESS) e:SetOperation(function(e,tp,eg) for c in eg:Iter() do if c:IsControler(0) then c:RegisterFlagEffect(0x7f34b1,RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END,0,1) end end end) Duel.RegisterEffect(e,0) end')
+  out.append(stat('EFFECT_CANNOT_ATTACK',1,'c:GetFlagEffect(0x7f34b1)>0'))
  elif key=='iron_silence':
   both(600)
   out.extend([stat('EFFECT_DISABLE',1),stat('EFFECT_DISABLE_EFFECT',1),event('EVENT_CHAIN_SOLVING','Duel.NegateEffect(ev)','re and re:IsActiveType(TYPE_MONSTER) and rp==0')])
@@ -421,6 +433,12 @@ if not RogueAlmighty then for c in Duel.GetMatchingGroup(Card.IsFaceup,0,LOCATIO
   # field otherwise (effect::is_target). Ignition effects of face-up Spells are not card activations and keep their speed.
   out.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_BECOME_QUICK) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_HAND|LOCATION_SZONE,0) e:SetTarget(function(e,c) return c:IsSpell() end) Duel.RegisterEffect(e,0) end')
   out.append(player_rule('EFFECT_CANNOT_ACTIVATE','function(e,re,tp) return re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsActiveType(TYPE_SPELL) and re:GetHandler():IsLocation(LOCATION_HAND) end'))
+ elif key=='scorching_strikes':
+  # 10K survey shadow relic (user, 2026-11-25). Registered after battle_rules, so Battle Proficiency and Duelist's Wager
+  # scale the battle damage first; then it is halved and dealt at the end of the Damage Step as effect damage, where
+  # Burn Proficiency, Damage Echo and Scorched Hourglass apply. Damage already prevented (0) stays 0.
+  out.append('do local pending=0 '+event('EVENT_PRE_BATTLE_DAMAGE','pending=pending+math.floor(Duel.GetBattleDamage(1)/2) Duel.ChangeBattleDamage(1,0)','ep==1 and Duel.GetBattleDamage(1)>0')
+   +' '+event('EVENT_DAMAGE_STEP_END','local d=pending pending=0 Duel.Damage(1,d,REASON_EFFECT)','pending>0')+' end')
  elif key=='poison_of_the_old_man':
   # A real coin toss, so coin relics and cards that change or redo tosses apply. "Lose" LP is not damage. Recover and SetLP
   # are called through locals so the relic is shown once, before the toss.
@@ -498,7 +516,7 @@ DARK_MAGICIANS=(46986414,38033121,50725996,40737112,73752131,90960358,21296502) 
 # and Master and Apprentice and Magician's Bond ignored those (user on Discord, 2026-11-19).
 DARK_MAGICIAN_SET='0x10a2'
 DARK_MAGICIAN_MENTIONS=(13722870,2314238,99789342,38033121,98502113,92377303,69542930,87210505,67227834,68334074,13604200,73752131,63391643,90960358)
-EYES=(53347303,53183600,23995346,89631139,74677422,64335804,96561011)
+EYES=(53347303,53183600,23995346,89631139,74677422,64335804,96561011,67300516)  # 67300516 Red-Eyes Wyvern (survey card, 2026-11-25)
 
 def immortal_dark_magic():
  """Immortal Dark Magic (relic_fusions.py, user's text 2026-11-19): the four Dark Magician relics fused.

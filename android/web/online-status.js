@@ -24,6 +24,14 @@ export async function internetWorks({request=fetch,now=Date.now()}={}){
  const ok=await request('https://api.github.com/',{method:'HEAD',mode:'no-cors',cache:'no-store',signal:AbortSignal.timeout(6000)}).then(()=>true,()=>false);
  probe={at:now,ok};return ok;
 }
+// A refusal from the campaign Python (collector.py and the rest) is a plain sentence after "ValueError: "; the whole
+// traceback reached a player importing a run into Ultimate Collector mid-duel (Discord, 2026-11-25). Returns null for
+// anything else, which is then explained as an online failure.
+export function campaignMessage(error){
+ const text=String(error?.message||error||''),found=[...text.matchAll(/(?:ValueError|AssertionError): ([^\n]+)/g)];
+ if(found.length)return found.at(-1)[1].trim();
+ return /Traceback \(most recent call last\)/.test(text)?'That action could not be completed. Please try again.':null;
+}
 // The text to show for an online failure; returns the original message when the servers are fine.
 export async function explainOnlineError(error){
  const text=String(error?.message||error||'');

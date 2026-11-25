@@ -31,7 +31,8 @@ def reroll(run,rng=random):
  offer=run.get('cursed_offer')
  if not offer or offer['rerolls_left']<=0:raise ValueError('No shadow-relic reroll remains.')
  eligible=[k for k in approved() if k in ARTIFACTS and ar.eligible(run,k) and k not in run.get('artifacts',[]) and k not in offer['options']]
- count=min(len(offer['options']),3) if offer.get('picked') else 3
+ # A full fresh set of 3, also on a Champion Trophy second pick that shows only the 2 relics left over (user, 2026-11-25).
+ count=3
  if len(eligible)<count:raise ValueError('There are not enough different shadow relics to reroll.')
  offer['options']=archetype_relics.sample(eligible,count,run,rng);offer['rerolls_left']-=1
 

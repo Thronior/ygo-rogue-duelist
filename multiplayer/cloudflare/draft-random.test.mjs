@@ -58,3 +58,34 @@ test('Copycat standard and both Dueling Engine loadouts are refused (2026-11-17)
  assert.match((await call(0,'register',{duelist:{id:'p0',name:'X',character:37,variant:1},draft:3},400)).error,/not available/,'draft:3 clients cannot play the Randomizer, so Copycat is refused');
  await call(0,'register',{duelist:{id:'p0',name:'Hat',character:37,variant:1}});
 });
+
+test('two Randomizer players: every Draft Screen offers only Random Packs (2026-11-25)',async()=>{
+ const reg=await registry(),call=caller(reg);
+ await call(0,'register',{duelist:{id:'p0',name:'Hat',character:37,variant:1}});
+ await call(1,'register',{duelist:{id:'p1',name:'Hat2',character:37,variant:1}});
+ const host=await call(0,'host');await call(1,'join',{code:host.room.code});
+ await call(0,'open-ready');await call(1,'open-ready');const room=reg.data.rooms[host.room.code];
+ for(const seat of [0,1]){await call(seat,'deck',{deck:{main:[...block(seat,0),...block(seat,1),...block(seat,2)].slice(0,20),side:[],extra:[]}});await call(seat,'ready');}
+ assert.equal(room.phase,'duel');
+ for(let i=0;i<2;i++)await call(i,'result',{number:room.events.length,winner:0});
+ assert.equal(room.phase,'picking');assert.deepEqual(room.offer.packs,[RANDOM_PACK,RANDOM_PACK,RANDOM_PACK]);assert.equal(room.offer.relics.length,3);
+ await call(1,'pick',{relic:0,pack:0});
+ assert.match((await call(0,'pick',{relic:1,pack:0},400)).error,/still available/,'the slots stay separate');
+ await call(0,'pick',{relic:1,pack:2});
+ assert.equal(room.phase,'drafting');for(const id of ['p0','p1'])assert.equal(reg.data.players[id].randomBoosters.length,10,id);
+ // one Randomizer player against another loadout keeps the usual rotation
+ for(let i=0;i<300;i++){const o=draftOffer(Math.random,{randomPack:true,allRandom:false});assert.equal(new Set(o.packs).size,3);}
+ assert.equal(new Set(draftOffer(Math.random,{randomPack:false,allRandom:true}).packs).size,3,'not without Random Pack clients');
+});
+
+test('a Randomizer player against another loadout gets the usual Draft Screen',async()=>{
+ const reg=await registry(),call=caller(reg);
+ await call(0,'register',{duelist:{id:'p0',name:'Hat',character:37,variant:1}});
+ await call(1,'register',{duelist:{id:'p1',name:'Plain',character:2}});
+ const host=await call(0,'host');await call(1,'join',{code:host.room.code});
+ await call(0,'open-ready');await call(1,'open-ready');const room=reg.data.rooms[host.room.code];
+ await call(0,'deck',{deck:{main:[...block(0,0),...block(0,1),...block(0,2)].slice(0,20),side:[],extra:[]}});await call(0,'ready');
+ await call(1,'deck',{deck:{main:deckOf(reg.data.players.p1.pool,20),side:[],extra:[]}});await call(1,'ready');
+ for(let i=0;i<2;i++)await call(i,'result',{number:room.events.length,winner:0});
+ assert.equal(room.phase,'picking');assert.equal(new Set(room.offer.packs).size,3);
+});

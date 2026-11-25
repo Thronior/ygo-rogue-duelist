@@ -924,7 +924,7 @@ dialog:has(.coin-bonuses)::backdrop{background:#020910d9;backdrop-filter:blur(3p
  .tag-trade .trade-cards{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;padding:8px}
  .tag-trade .trade-heading{padding:4px 10px}.tag-trade .trade-heading h1{font-size:19px}.tag-trade .trade-heading p{font-size:12px}
  .tag-trade .draft-tabs{display:flex;flex-wrap:wrap;gap:4px;flex:none}
- .tag-trade .trade-send{min-width:100px!important;font-size:15px!important}
+ .tag-trade .trade-send,.tag-trade .trade-cancel{min-width:100px!important;font-size:15px!important}
  .tag-trade .tag-lock-in{flex:none;flex-wrap:wrap;gap:6px}
 }
 @media(orientation:landscape){
@@ -4229,6 +4229,17 @@ html.performance-mode .shop-product.shop-deck::before,html.compatibility-mode .s
 .fusion-hint.fusion-unknown b{letter-spacing:.12em}
 .mouse-details .fusion-hint{justify-content:flex-start;margin:8px 0 0}
 .cursed-options .fusion-hint small{color:#c9b3bd}
+/* Portrait shadow relic offers (survey, 2026-11-25): the fusion line goes in the text column under the drawback, with the
+   artwork reaching down beside it, instead of its own row squeezed into the 68px artwork column under the button. */
+@media(orientation:portrait){
+ .cursed-options article>.fusion-hint{grid-column:2;margin:0;padding-top:4px;max-width:none;justify-content:flex-start;gap:7px;font-size:12px;line-height:1.25}
+ .cursed-options article>.fusion-hint img{width:28px;height:28px}
+ .cursed-options article>.fusion-hint small{display:inline;font-size:10px}
+ .cursed-options article>.fusion-hint b{display:inline;margin-left:5px}
+ .cursed-options article>.fusion-hint em{font-size:11px}
+ .cursed-options article:has(>.fusion-hint)>.relic-artwork{grid-row:2/span 3}
+ .cursed-options article>button{grid-row:auto}
+}
 /* Deck editor Monster/Spell/Trap counts with card-frame icons (deck-counts.js, user 2026-11-22). */
 .deck-kinds{display:inline-flex;gap:9px;margin:0 2px;vertical-align:-2px}
 .deck-kind{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
@@ -4385,3 +4396,108 @@ html.compatibility-mode .active-relic-strip button.used>.relic-artwork{filter:no
 .cpu-stats-name{display:flex;align-items:center;gap:8px;padding:2px 4px;font-weight:700}
 .cpu-stats-head{display:flex;align-items:center;gap:12px;margin:4px 0 6px}.cpu-stats-head img{width:56px;height:56px;object-fit:cover;object-position:top;border-radius:8px}.cpu-stats-head h2{margin:0}
 .cpu-tier-tabs{margin:10px 0 2px}
+/* Sandbox duels (sandbox-setup.js): the relic row in each seat's panel and the relic picker. Static styles only. */
+.sandbox-relics{flex-shrink:0;text-align:center;padding-top:4px}
+.sandbox-relics h3{font-size:11px;text-transform:uppercase;color:#dbbb75;margin:2px}
+.sandbox-relic-button{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;padding:4px 6px}
+.sandbox-relic-icons{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px;min-height:26px}
+.sandbox-relic-icon{width:26px;height:26px;border-radius:4px;overflow:hidden;background:#0b1a20;border:1px solid #52727c}
+.sandbox-relic-icon .relic-artwork{object-fit:cover}
+.sandbox-relic-icons em{font-style:normal;color:#9fb4ba;font-size:11px}
+.sandbox-relic-icons b{font-size:11px;color:#f2dc89}
+.sandbox-relic-button small{font-size:10px;color:#b4c5cd}
+dialog.sandbox-relic-picker{width:min(760px,96vw)}
+.sandbox-relic-tools{display:flex;gap:6px;align-items:center}
+.sandbox-relic-tools input{flex:1;min-width:0;padding:6px 8px}
+.sandbox-relic-tools [aria-pressed="true"]{border-color:#efca79;color:#f2dc89}
+.sandbox-relic-count{margin:6px 0;font-size:12px;color:#b4c5cd}
+.sandbox-relic-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;max-height:62dvh;overflow:auto;overscroll-behavior:contain;contain:content}
+.sandbox-relic{display:flex;gap:8px;align-items:flex-start;text-align:left;padding:6px;background:#18343f;border:1px solid #2f4f59}
+.sandbox-relic[hidden]{display:none}
+.sandbox-relic[aria-pressed="true"]{background:#3a3418;border-color:#efca79;box-shadow:inset 0 0 0 1px #efca79}
+.sandbox-relic .relic-artwork{width:40px;height:40px;flex-shrink:0;object-fit:cover;border-radius:4px}
+.sandbox-relic span{display:grid;gap:2px;min-width:0}
+.sandbox-relic strong{font-size:12px}
+.sandbox-relic small{font-size:10.5px;color:#b4c5cd;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sandbox-done{display:grid;gap:8px}
+@media(orientation:portrait){.sandbox-relic-list{grid-template-columns:1fr;max-height:64dvh}}
+@media(max-height:550px){.sandbox-relic-list{max-height:54dvh}.sandbox-relic-icon{width:22px;height:22px}}
+/* CPU Stats layout C (2026-11-25): opponent list beside the picked opponent's record. Sandbox's .cpu-tier-tabs rule
+   (flex:1, 11px) is for its deck picker, not these tabs. */
+.cpu-stats .cpu-tier-tabs{display:flex;flex-wrap:wrap;gap:6px}.cpu-stats .cpu-tier-tabs button{flex:0 1 auto;padding:7px 12px;font-size:13px}
+.cpu-split{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:12px;align-items:start;margin-top:10px}
+.cpu-list{background:#0b1c25e6;border:1px solid #3f6672;border-radius:9px;overflow:hidden}
+.cpu-list-tools{padding:8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #ffffff12}.cpu-list-tools .stats-search{margin:0;max-width:none}
+.cpu-sorts{display:flex;flex-wrap:wrap;gap:6px}.cpu-sorts button{border-radius:16px;padding:4px 11px;font-size:12px;min-height:0}
+.cpu-item{display:flex;align-items:center;gap:10px;width:100%;padding:6px 10px;margin:0;border:0;border-top:1px solid #ffffff0d;border-radius:0;background:none;text-align:left;min-height:0}
+.cpu-item:first-child{border-top:0}.cpu-item:hover,.cpu-item:focus-visible{background:#173a4699}
+.cpu-item.on{background:#946539aa;box-shadow:inset 3px 0 #efca79}
+.cpu-item img{width:36px;height:36px;flex:none;object-fit:cover;object-position:top;border-radius:50%;background:#1d3d47;border:1px solid #628994}
+.cpu-item b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cpu-item small{color:#b4c5cd;white-space:nowrap}
+.cpu-pill{font-weight:700;font-size:12px;padding:2px 8px;border-radius:10px;background:#061018;border:1px solid;min-width:46px;text-align:center;font-variant-numeric:tabular-nums}
+.cpu-detail{position:sticky;top:0;background:#122934e8;border:1px solid #628994;border-radius:9px;padding:12px 16px;min-width:0}
+.cpu-detail:empty{display:none}.cpu-detail .cpu-back{display:none;margin-bottom:10px}
+.cpu-detail-body{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px}
+.cpu-hero{text-align:center}.cpu-hero-pic{height:190px;border-radius:12px;background:linear-gradient(#416b73,#071d28);overflow:hidden;border:2px solid #96a2a5}
+.cpu-hero-pic img{width:100%;height:100%;object-fit:cover;object-position:top}
+.cpu-hero h2{margin:8px 0 2px;font-family:Impact,'Arial Black',sans-serif;font-size:21px;font-weight:400;text-transform:uppercase;line-height:1.1}
+.cpu-hero strong{display:block;font-size:34px;line-height:1.1}.cpu-hero>small{display:block;color:#b4c5cd}
+.cpu-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.cpu-facts div{background:#0b1c25;border-radius:7px;padding:6px 2px}
+.cpu-facts b{display:block;font-size:16px;font-variant-numeric:tabular-nums}.cpu-facts span{font-size:10px;color:#b4c5cd}
+.cpu-vs h3{margin:0 0 8px;font-size:13px;color:#e5bd76;text-transform:uppercase;letter-spacing:1px}
+.cpu-vs-row{display:grid;grid-template-columns:minmax(0,160px) minmax(40px,1fr) 44px auto;align-items:center;gap:8px;margin-bottom:7px;font-variant-numeric:tabular-nums}
+.cpu-vs-who{display:flex;align-items:center;gap:7px;min-width:0}.cpu-vs-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cpu-vs-who img{width:26px;height:26px;flex:none;border-radius:50%;object-fit:cover;object-position:top;background:#1d3d47}
+.cpu-vs-track{height:12px;background:#ffffff14;border-radius:6px;overflow:hidden}.cpu-vs-track i{display:block;height:100%;border-radius:6px}
+.cpu-vs-row b{text-align:right}.cpu-vs-row small{color:#b4c5cd;text-align:right;white-space:nowrap}
+@media (max-width:759px){.cpu-split{grid-template-columns:minmax(0,1fr)}.cpu-split.cpu-open .cpu-list,.cpu-split:not(.cpu-open) .cpu-detail{display:none}
+ .cpu-detail{position:static}.cpu-detail .cpu-back{display:inline-flex}.cpu-detail-body{grid-template-columns:minmax(0,1fr)}.cpu-hero-pic{height:150px;max-width:150px;margin:auto}}
+/* Character Stats layout F (2026-11-25): shares the CPU Stats list + detail; adds the Challenge Level chart. */
+.char-levels{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;align-items:end;height:140px;padding:0 2px;border-bottom:1px solid #ffffff22}
+.char-level{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;min-width:0}.char-level b{font-size:12px;font-variant-numeric:tabular-nums}.char-level i{width:100%;border-radius:5px 5px 0 0}
+.char-level-labels{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;text-align:center;font-size:11px;color:#b4c5cd;margin:4px 0 14px}.char-level-labels>span{display:flex;flex-direction:column;min-width:0}.char-level-labels small{font-size:10px;color:#8aa6ae;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.char-all-cpu{margin-top:6px;font-size:12px;padding:5px 12px}
+@media (max-width:759px){.char-levels{gap:4px;height:110px}.char-level-labels{gap:4px;font-size:10px}.char-level b{font-size:10px}}
+.char-level-note{margin:-4px 0 6px;font-size:11px;color:#8aa6ae}
+/* Phones: name, % and count on one line, the bar full width under them (names were cut off beside a tiny bar). */
+@media (max-width:759px){.cpu-vs-row{grid-template-columns:minmax(0,1fr) auto auto;row-gap:4px;margin-bottom:10px}.cpu-vs-track{grid-column:1/-1;grid-row:2}}
+
+/* Deck editor UI pass and "+ New Deck" (user, 2026-11-25). */
+.cde-deck-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+.cde-breakdown{display:inline-flex;gap:6px;font-size:12px;font-weight:400}
+.cde-type{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:#102c38;border:1px solid #2f5866;color:#d9e8ec}
+.cde-type b{color:#fff;font-variant-numeric:tabular-nums}
+.cde-type:before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+.cde-m:before{background:#c8873e}.cde-s:before{background:#2f9e8f}.cde-t:before{background:#b3477f}
+.cde-deck-grid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}
+.cde-copies{position:absolute;right:4px;bottom:4px;z-index:2;min-width:24px;padding:1px 6px;border-radius:999px;background:#081b24e6;border:1px solid #e3b15f;color:#ffe3a0;font-size:12px;line-height:18px;text-align:center;pointer-events:none;font-variant-numeric:tabular-nums}
+.cde-empty{grid-column:1/-1;padding:18px 8px;text-align:center;color:#afc8d1;border:1px dashed #3f6674;border-radius:8px}
+.cde .cde-test{font-weight:700}
+.cde footer details{flex:1;min-width:0}
+.cde-checks-ok>summary{color:#9fe0b0}.cde-checks-bad>summary{color:#ffb39a}
+.cpu-new-deck{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:12px;min-height:64px;padding:12px 18px;border-radius:10px;border:2px solid #e3b15f;background:linear-gradient(#3a2a10,#22180a);color:#ffe3a0;font-size:22px;font-weight:700;letter-spacing:.5px;box-shadow:0 0 0 1px #00000066 inset}
+.cpu-new-deck b{font-size:30px;line-height:1}
+.cpu-new-deck:hover,.cpu-new-deck:focus-visible{border-color:#ffd98a;background:linear-gradient(#4a3614,#2a1d0b)}
+@media(max-width:600px){.cpu-new-deck{min-height:52px;font-size:18px}.cde-deck-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.cde-breakdown{font-size:11px}}
+.cde .cde-save{font-weight:700;min-width:104px}
+/* Custom decks tab in the deck editor's picker: each deck shows the first card added to it (user, 2026-11-25). */
+.cde-custom-grid{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}
+.cde-custom-grid>button{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:6px;min-height:0;text-align:center}
+.cde-custom-deck img,.cde-custom-deck i{width:100%;aspect-ratio:1;object-fit:cover;object-position:50% 36%;border-radius:6px;display:block}
+.cde-custom-deck i{display:grid;place-items:center;background:#102c38;border:1px dashed #3f6674;color:#7fa3b0;font:700 30px/1 Arial,sans-serif;font-style:normal}
+.cde-custom-deck span{font-weight:700;overflow-wrap:anywhere}.cde-custom-deck small{color:#afc8d1;font-size:11px}
+.cde-custom-deck[aria-pressed="true"]{outline:2px solid #e3b15f;outline-offset:-2px}
+.cde-custom-new{justify-content:center;border:2px dashed #e3b15f!important;color:#ffe3a0;background:#22180a;font-weight:700;font-size:16px}
+.cde-custom-new b{font-size:34px;line-height:1}
+.cpu-setup .roster.cpu-own-roster{grid-template-rows:auto repeat(var(--roster-rows),minmax(0,1fr))}
+.cde-custom-deck .cde-custom-art{background-color:#102c38;background-repeat:no-repeat;background-size:131% auto;background-position:50% 38.4%;border:1px solid #3f6674}
+@media(max-width:600px){.cde-select{flex-wrap:wrap;row-gap:6px}.cde-select>.cde-selected-deck{flex:1 1 100%}.cde-select>button:not(.cde-selected-deck){flex:1 1 0;min-width:0;padding-inline:6px}.cde .cde-save{min-width:0}}
+@media(max-width:600px){.cde-select>button{white-space:nowrap}}
+@media(max-width:600px){.cpu-setup .roster.cpu-own-roster{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto;grid-auto-rows:110px}.cpu-own-roster .cpu-own-deck{height:auto;min-height:0}.cpu-own-roster .cpu-own-deck>span,.cpu-own-roster .cpu-own-deck>small{display:block!important;font-size:11px;line-height:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+/* Free Duels / Watch CPU duel: portraits only on the Characters tab; the name shows on hover and in the seat panel.
+   Ultimate Collector players and My decks keep their names (user, 2026-11-25). */
+.cpu-setup .roster.cpu-roster-regular .portrait>span{display:none}
+/* Bigger portraits in a scrolling list instead of squeezing every duelist into the screen height (user, 2026-11-25). */
+.cpu-setup .roster:not(.cpu-own-roster){grid-template-columns:repeat(auto-fill,minmax(118px,1fr));grid-template-rows:none;grid-auto-rows:auto;align-content:start;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding-right:4px}
+.cpu-setup .roster:not(.cpu-own-roster) .portrait{width:100%;justify-self:stretch;align-self:start;aspect-ratio:1/1;height:auto;min-height:118px;max-height:none}
+@media(max-width:600px){.cpu-setup .roster:not(.cpu-own-roster){grid-template-columns:repeat(4,minmax(0,1fr))}.cpu-setup .roster:not(.cpu-own-roster) .portrait{min-height:72px}}

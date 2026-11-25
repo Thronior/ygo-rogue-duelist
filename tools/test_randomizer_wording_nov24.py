@@ -80,7 +80,7 @@ def scan(cards):
             # is once per turn ("You can discard this card, then target 1 monster in your GY; add it to your hand")
             if re.search(r'You can (?:discard this card|send this card from your hand to the GY)', s) \
                and re.search(r'\b(?:in|from) (?:your |either |both |the )?(?:hand, Deck, or |Deck or |hand or )?GYs?\b', s) \
-               and re.search(r'\badd\b|\bto (?:the|your) hand\b|Special Summon', s) and 'once per turn' not in line.lower():   # "Once per turn: You can ..." counts too (Nov 24)
+               and re.search(r'\badd\b|\bto (?:the|your) hand\b|Special Summon\b', s.split('You can', 1)[-1]) and 'once per turn' not in line.lower():   # "Once per turn: You can ..." counts too (Nov 24); the timing's "Special Summons" is no action (Nov 25)
                 bad.append((c, 'a hand cost that can take itself back forever', s))
             # a coin that decides nothing
             if re.search(r'\btoss(?:es)? (?:a coin|\d coins|a coin \d times)\b', s) and not re.search(r'Heads|Tails|call it', line):

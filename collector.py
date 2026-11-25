@@ -15,6 +15,11 @@ def load():
 
 def save(data):storage.write(storage.ROOT/'collector.json',data)
 
+# Import refusals (also checked against the run in memory by android/mobile_backend.py).
+BETWEEN_DUELS='You can only import a run between duels, not during a duel. Finish the duel first, then import the run.'
+EMPTY_SLOT='This save slot has no run to import. Choose another saved run.'
+RUN_OVER='This run has ended and cannot be imported. Choose a run that is still going.'
+
 def dispatch(action,value):
  data=load();value=value or {}
  # Card marks (★/✕, card-marks.js) in Ultimate Collector (CITYDRIVER, user 2026-11-24): each duelist keeps the marks of
@@ -24,8 +29,11 @@ def dispatch(action,value):
  if action=='list':return data
  if action=='import':
   slot=int(value['source']);source=storage.read(storage.run_path(slot))
-  if not source or source.get('stage')=='gameover':raise ValueError('Choose an existing living single-player save.')
-  if source.get('stage')=='duel':raise ValueError('finish your duel to import this collector')
+  # Plain sentences, shown as they are (collector-ui.js): a raw traceback reached a player importing a run mid-duel
+  # (Discord, 2026-11-25). A run is saved with stage 'duel' (and its moves in mobile_duel) until the duel ends.
+  if not source:raise ValueError(EMPTY_SLOT)
+  if source.get('stage')=='gameover':raise ValueError(RUN_OVER)
+  if source.get('stage')=='duel' or source.get('mobile_duel'):raise ValueError(BETWEEN_DUELS)
   if content.CHARACTERS[source['character']].get('copycat'):raise ValueError('Copycat saves cannot enter Ultimate Collector.')
   # Randomized cards are banned in Ultimate Collector (user, 2026-11-16): they only exist in the run that made them.
   # A Randomizer run (all of its cards randomized) cannot enter; any other run leaves its randomized cards behind.

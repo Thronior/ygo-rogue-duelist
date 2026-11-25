@@ -137,7 +137,10 @@ CURSED=[
 (68,'mulligans_offer',"Mulligan's Offer","Once per Duel, at the start of your first Standby Phase: you can return any number of cards from your hand to the Deck, shuffle it, then draw that many cards. You cannot add cards from your Deck to your hand except by drawing them.",'Reload'),
 (69,'graceful_skull_dice','Graceful & Skull Dice',"The first time you roll a die each turn: gain LP equal to the result x100. Your face-up monsters lose ATK equal to the result x100 until the end of this turn.",'Graceful Dice'),
 # The user's shadow relic (2026-11-19), text as the user wrote it in card templating. Art: The Sanctuary in the Sky.
-(70,'spell_sanctuary','Spell Sanctuary',"You can activate Spell Cards during your opponent's turn. You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set.",'The Sanctuary in the Sky')]
+(70,'spell_sanctuary','Spell Sanctuary',"You can activate Spell Cards during your opponent's turn. You cannot activate Spell Cards unless they are Set first. You cannot activate a Set Spell Card the turn it was Set.",'The Sanctuary in the Sky'),
+# 10K survey (row 209, "a relic that makes battle damage effect damage") as the user changed it (2026-11-25): a shadow
+# relic that halves the damage. Name and art are mine.
+(71,'scorching_strikes','Scorching Strikes','Battle damage your opponent would take is inflicted as effect damage instead. Halve that damage (rounded down).','Tremendous Fire')]
 CURSED_IDS=tuple('cursed_'+r[1] for r in CURSED)
 # How the shadow relic screen splits a relic into its upside and drawback, where the rules text alone does not
 # split cleanly. Other relics split at ", but" or after their first sentence (experience-ui.js cursedParts).

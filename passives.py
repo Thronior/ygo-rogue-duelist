@@ -313,6 +313,33 @@ def _flip_literal_players(src,slots):
   out.append(piece);pos=cur
  out.append(src[pos:]);return ''.join(out)
 
+def _keep_computed_players(src,slots):
+ """Duel.<name>(...) calls whose argument in a listed slot is a worked-out player (tp, c:GetControler(), a local copy)
+ become 1-(that) in the text, so the run-time wrapper's flip turns it back to the same player. Literal 0/1 and nil are
+ left for the wrapper to flip as before. (Relic audit 2026-11-25: Fusion Time read the opponent's monsters, Parasite
+ Infestation's Paracide hurt its owner and Spirit Sanctuary checked the wrong Graveyard on the second Draft seat.)"""
+ import re
+ out=[];pos=0
+ for m in re.finditer(r'\bDuel\.('+'|'.join(sorted(slots,key=len,reverse=True))+r')\(',src):
+  if m.start()<pos:continue
+  i=m.end();depth=0;start=i;spans=[]
+  while i<len(src):
+   ch=src[i]
+   if ch in '([{':depth+=1
+   elif ch in ')]}':
+    if depth==0:spans.append((start,i));break
+    depth-=1
+   elif ch==',' and depth==0:spans.append((start,i));start=i+1
+   i+=1
+  else:continue
+  piece=src[pos:m.end()];cur=m.end()
+  for k,(a,b) in enumerate(spans,1):
+   arg=src[a:b]
+   if k in slots[m[1]] and arg.strip() not in ('0','1','nil',''):arg=f'1-({arg.strip()})'
+   piece+=src[cur:a]+arg;cur=b
+  out.append(piece);pos=cur
+ out.append(src[pos:]);return ''.join(out)
+
 def multiplayer_script(run, side):
  """Apply the same relic rules to either human, with independent once-only effects."""
  if side not in (0,1):raise ValueError('Invalid player.')
@@ -339,7 +366,15 @@ def multiplayer_script(run, side):
  # (behaviour flag 18fd8685, 2026-11-22: the CPU's Stars Aligned summoned to the player's field; 14 relics affected).
  # MoveToField(card,move_player,target_player,...), GetFirstMatchingCard(filter,player,...) and IsPlayerCanSpecialSummonMonster
  # too (Discord 2026-11-25: Pyramid of Lightning and Toon Premiere worked in Draft only for the player going first).
- source=_flip_literal_players(source,{'SelectMatchingCard':(1,3),'SpecialSummon':(3,4),'SpecialSummonStep':(3,4),'MoveToField':(2,3),'GetFirstMatchingCard':(2,),'IsPlayerCanSpecialSummonMonster':(1,)})
+ # Announce*, Equip and SendtoDeck's deck owner too (relic audit 2026-11-25: Unstable DNA and Genetic Override asked the
+ # other player for the Type and Attribute, Parasite Infestation shuffled Paracide into its owner's Deck, Union Buster
+ # equipped for the wrong player). Every slot here is a player argument and none of them is in the run-time table below.
+ source=_flip_literal_players(source,{'SelectMatchingCard':(1,3),'SpecialSummon':(3,4),'SpecialSummonStep':(3,4),'MoveToField':(2,3),'GetFirstMatchingCard':(2,),'IsPlayerCanSpecialSummonMonster':(1,),
+  'AnnounceRace':(1,),'AnnounceAttribute':(1,),'AnnounceCard':(1,),'AnnounceType':(1,),'AnnounceLevel':(1,),'Equip':(1,),'SendtoDeck':(2,),'SendtoExtraP':(2,),'GetControl':(2,),
+  'SelectOption':(1,),'SelectEffectYesNo':(1,),'SelectPosition':(1,),'SelectTarget':(1,3),'SelectReleaseGroup':(1,),'CheckReleaseGroup':(1,),'GetReleaseGroup':(1,),
+  'GetFieldGroup':(1,),'GetDecktopGroup':(1,),'ConfirmDecktop':(1,),'SortDecktop':(1,2),'PayLPCost':(1,),'CheckLPCost':(1,),'IsPlayerCanDraw':(1,),'IsPlayerAffectedByEffect':(1,),
+  'IsPlayerCanSummon':(1,),'IsPlayerCanSpecialSummon':(1,),'GetMZoneCount':(1,),'GetLocationCountFromEx':(1,),'SSet':(1,),'ShuffleHand':(1,),'TossDice':(1,)})
+ source=_keep_computed_players(source,{name:(index if isinstance(index,tuple) else (index,)) for name,index in positions.items()})
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():
   flips=' '.join(f'if a[{i}]==0 or a[{i}]==1 then a[{i}]=1-a[{i}] end' for i in (index if isinstance(index,tuple) else (index,)))

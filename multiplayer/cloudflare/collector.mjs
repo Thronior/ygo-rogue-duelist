@@ -1,4 +1,4 @@
-import {draftPool,draftOffer,openBooster,minDeckFor,RANDOM_PACK,randomSeed,DRAFT_RELICS} from './draft-pool.mjs';
+import {draftPool,draftOffer,openBooster,minDeckFor,RANDOM_PACK,randomSeed,DRAFT_RELICS,randomizedLoadout} from './draft-pool.mjs';
 import {validateDeck,validateDraftDeck,deckCards,rankFor,randomAllowance} from '../../android/web/collector-rules.js';
 import cards from './collector-cards.json' with {type:'json'};
 import {isDuelAdmin,isShowAdmin} from '../../android/web/room-admin.js';
@@ -174,7 +174,7 @@ export class DraftRegistry extends CollectorRegistry {
  deckErrors(deck,p,room){const seat=room?room.players.indexOf(p.id):-1;return validateDraftDeck(deck,p.pool,cards,room?.loop?room.minDeck:40,seat>=0?randomAllowance(seat,(p.randomBoosters||[]).length):null)}
  hubState(room){const base=super.hubState(room);return base&&room.loop?base+JSON.stringify([room.round,room.picks,room.continueVotes,room.target]):base}
  // The loser of the last duel picks first; after a draw, whoever picked second last time.
- startPicking(room,winner){const first=winner===2?(room.pickOrder?room.pickOrder[1]:room.first):1-winner;Object.assign(room,{phase:'picking',round:(room.round||0)+1,offer:draftOffer(undefined,{relics:!room.noRelics,randomPack:!!room.randomPack}),pickOrder:[first,1-first],picks:[null,null],ready:[false,false],nextFirst:winner===2?room.first:1-winner,votes:{}});}
+ startPicking(room,winner){const first=winner===2?(room.pickOrder?room.pickOrder[1]:room.first):1-winner;Object.assign(room,{phase:'picking',round:(room.round||0)+1,offer:draftOffer(undefined,{relics:!room.noRelics,randomPack:!!room.randomPack,allRandom:room.players.every(id=>{const x=this.data.players[id];return !!x&&randomizedLoadout(x.character,x.variant)})}),pickOrder:[first,1-first],picks:[null,null],ready:[false,false],nextFirst:winner===2?room.first:1-winner,votes:{}});}
  finishDuel(room,winner,reason){
   if(!room.loop)return super.finishDuel(room,winner,reason);if(room.phase!=='duel')return;
   room.games??=[];room.games.push({game:room.game,winner,turns:room.turn,at:Date.now(),...(reason?{reason}:{})});if(winner!==2)room.score[winner]++;

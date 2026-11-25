@@ -4,6 +4,12 @@ export function flipPerspective(value){
  if(!value||typeof value!=='object')return value;
  return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='wire').map(([key,v])=>[key,['player','controller','owner','triggering_controller','reason_player'].includes(key)&&(v===0||v===1)?1-v:flipPerspective(v)]));
 }
+// The duel log is written from engine seat 0's side. PvP (Draft, Ultimate Collector, the Tag final 1v1) sent no log at all,
+// so an Ordeal of a Traveler call never showed there (TRUANT, Discord 2026-11-25). Its lines name only public things
+// (activations, face-up summons, declarations and calls, LP; the core hides face-down codes), so both humans get it, and
+// seat 1 reads it with "You" and "Opponent" swapped. Only the first matching form is swapped, so no line flips back.
+const LOG_SIDES=[[/^(Turn \d+ · )Your turn$/,'$1Opponent’s turn'],[/^(Turn \d+ · )Opponent’s turn$/,'$1Your turn'],[/^You take /,'Opponent takes '],[/^Opponent takes /,'You take '],[/^You pay /,'Opponent pays '],[/^Opponent pays /,'You pay '],[/^You recover /,'Opponent recovers '],[/^Opponent recovers /,'You recover '],[/^You (\w+) Summon /,'Opponent $1 Summons '],[/^Opponent (\w+) Summons /,'You $1 Summon '],[/^You · /,'Opponent · '],[/^Opponent · /,'You · '],[/^You guessed /,'Opponent guessed '],[/^Opponent guessed /,'You guessed ']];
+export function seatLogs(logs,seat){return (logs||[]).map(line=>{if(seat!==1)return line;const side=LOG_SIDES.find(([pattern])=>pattern.test(line));return side?line.replace(side[0],side[1]):line})}
 // Uses EDOPro's real extra-duelist slots, never merges partners' decks.
 export class TagDuel extends MobileDuel {
  startTag({teams,lp,enemyLP,draw=5,enemyDraw=5,seed,passives='',names,mode='tag',rules=null}){
@@ -65,7 +71,7 @@ export class TagDuel extends MobileDuel {
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
   if(this.respondingSeat!==seat)state.pending=null;
   const reveals={};for(const [key,code] of Object.entries(this.revealedHands?.[seat]||{})){const [side,seq]=key.split(':');reveals[(Number(side)^seat)+':'+seq]=code}
-  state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:[],revealedHands:[reveals,{}],aiModifiers:null};
+  state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:seatLogs(this.logs,seat),revealedHands:[reveals,{}],aiModifiers:null};
   if(seat===1){state=flipPerspective(state);state.players.reverse();state.lp.reverse();state.tag.names.reverse();}
   if(state.pending)delete state.pending.wire;
   state.tag.waitingForOpponent=!!this.pending&&this.respondingSeat===opponent&&!this.finished;state.tag.pvp=true;state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.activeSeats=[0,0];

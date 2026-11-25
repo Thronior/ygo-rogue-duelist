@@ -35,6 +35,10 @@ def dispatch(raw):
  if action=='draft-duel-setup':
   import draft_relics
   return partial(draft_relics.duel_setup(value))
+ # Sandbox duels (sandbox.py): relic scripts only. Nothing is read from or written to the run or profile.
+ if action in ('sandbox-setup','sandbox-relics'):
+  import sandbox
+  return partial(sandbox.duel_setup(value) if action=='sandbox-setup' else sandbox.relics())
  if action=='choose-monster-type':
   from feedback_update import choose_type
   choose_type(run,value);g.save(run);return json.dumps(state(),ensure_ascii=False)
@@ -58,6 +62,8 @@ def dispatch(raw):
   return json.dumps(dict(**state(),result=result,persist=action!='device-sync-read'),ensure_ascii=False)
  if action.startswith('collector-'):
   import collector
+  # The run in memory is the latest: one in a duel stays put until that duel ends (Discord, 2026-11-25).
+  if action=='collector-import' and run and int(run.get('_save_slot',storage.active_slot()))==int((value or {}).get('source',0)) and (run.get('stage')=='duel' or run.get('mobile_duel')):raise ValueError(collector.BETWEEN_DUELS)
   result=collector.dispatch(action[10:],value)
   if action=='collector-import' and run and int(run.get('_save_slot',storage.active_slot()))==int(value['source']):run=None
   return json.dumps(dict(**state(),result=result),ensure_ascii=False)
@@ -73,7 +79,7 @@ def dispatch(raw):
    preview=deepcopy(value);g.auto_deck(preview);result=preview['selected']
   elif action=='tag-profile':storage.write(storage.ROOT/'profile.json',value)
   elif action=='tag-create':
-   tag_session=TagCampaign(value['characters'],value['profiles'],value.get('level',0),lobby=value.get('lobby',False),variants=value.get('variants',(0,0)));tag_session.room_code=value['code'];checkpoint();result=tag_session.view(0)
+   tag_session=TagCampaign(value['characters'],value['profiles'],value.get('level',0),lobby=value.get('lobby',False),variants=value.get('variants',(0,0)),easy=bool(value.get('easy')));tag_session.room_code=value['code'];checkpoint();result=tag_session.view(0)
   elif action=='tag-restore':
    data=storage.read(storage.ROOT/'tag-host.json')
    code=value['code'] if isinstance(value,dict) else value

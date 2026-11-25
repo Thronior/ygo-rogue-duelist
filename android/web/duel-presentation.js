@@ -4,6 +4,11 @@ import {wheelMarkup} from './time-wizard-wheel.js';
 export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  if(m?.forced||mode==='always')return true;
  if(mode==='never')return false;
+ // The core uses 0x7f for optional trigger-effect selection, including effects
+ // after a Special Summon resolves. These are decisions, not empty timing windows: a trigger not taken now is gone.
+ // So they ask before any card's own Sometimes rule below (Discord 2026-11-25, Butterfly Dagger - Elma on Chain
+ // sometimes: Blast with Chain's "if destroyed while equipped" trigger fell under its battle-only rule and was passed).
+ if(m?.spe_count===0x7f&&m.selects?.length)return true;
  // These effects have important optional timing windows which the core's
  // Sometimes mask does not expose consistently across platforms. The core
  // still supplies only currently legal choices, so honoring these cards here
@@ -53,9 +58,6 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
  // window while a monster is being summoned, which the core sends with no timing bits, so nothing below caught it and
  // Chain sometimes passed it silently (Discord, Lexi, 2026-11-22: The Selection never asked against Summoned Skull).
  if(mode==='sometimes'&&selects.some(choice=>/negate the (?:normal |special |flip |tribute )?summon/i.test(context.card?.(choice.code)?.desc||'')))return true;
- // The core uses 0x7f for optional trigger-effect selection, including effects
- // after a Special Summon resolves. These are decisions, not empty timing windows.
- if(m?.spe_count===0x7f&&m.selects?.length)return true;
  // The core supplies only legal activations, including the final response window
  // before a phase closes. Continuous Traps retain the existing Sometimes policy:
  // their text often describes a later effect, not a restriction on setting up the Trap.

@@ -16,7 +16,7 @@ from pathlib import Path
 
 import json, random, re, uuid
 
-import campaign as game, storage, content, passives, challenge_levels, shop_rewards, encounters
+import campaign as game, storage, content, passives, challenge_levels, shop_rewards, encounters, easy_mode
 
 import cursed_relics,approved_relics as ar
 
@@ -24,7 +24,7 @@ import cursed_relics,approved_relics as ar
 
 class TagCampaign:
 
- def __init__(self, characters, profiles, level=0, seed=None, lobby=False, variants=(0,0)):
+ def __init__(self, characters, profiles, level=0, seed=None, lobby=False, variants=(0,0), easy=False):
 
   if len(characters)!=2 or len(profiles)!=2:raise ValueError('Two players are required.')
 
@@ -32,13 +32,15 @@ class TagCampaign:
 
   self.finale={'votes':[False,False],'status':'available','winner':None};self.loop_votes=[False,False];self.room_code=None;self.rng=random.Random(seed);self.profiles=deepcopy(profiles);self.players=[];self.revision=0;self.receipts={};self.ready=[False,False];self.phase='lobby' if lobby else 'draft';self.shop_seat=0;self.duel=None;self.paused=False
 
+  # Easy (easy_mode.py) plays by Level 0 rules, so it needs no unlocked level.
+  if easy:level=0
   if not (level==-1 and profiles[0].get('relicless_unlocked') or 0<=level<=challenge_levels.unlocked(profiles[0],characters[0])):raise ValueError('The host has not unlocked this level.')
 
   for seat,character in enumerate(characters):
 
    # Copycat's Randomizer is solo only: randomized cards are made on one device and not shared (random_cards.py).
    variant=0 if content.CHARACTERS[character].get('alternate',{}).get('randomized') else variants[seat]
-   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variant)
+   with self.scope(seat):run=game.new_run(character,self.rng,level if seat==0 else 0,variant,easy=bool(easy))
 
    run['history_mode']='tag';run['history_partner']=characters[1-seat];run['tag_seat']=seat
 
@@ -310,7 +312,7 @@ class TagCampaign:
 
     deck=game.opponent_deck(run['round'],random.Random(opponent+run['round']*101),opponent,variant)
 
-    if run.get('challenge_level')!=-1 and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=6):
+    if run.get('challenge_level')!=-1 and not easy_mode.active(run) and ((run['round']+1)%3==0 or run['round']==0 and run.get('challenge_level',0)>=6):
 
      from feedback_update import draw_curses, ritual_curse_block
 
@@ -460,6 +462,12 @@ class TagCampaign:
    wanted=value.get('cards');size=len(self.players[1-seat]['pool'])
    if not isinstance(wanted,list) or any(type(i)!=int or not 0<=i<size for i in wanted) or len(set(wanted))!=len(wanted):raise ValueError("Choose valid, distinct copies from your teammate's collection.")
    self.trade_requests()[seat]=wanted[:]
+   return
+  # Either player can back out before the cards change hands: the window only had Send, so a trade opened by mistake
+  # could not be left (Chinese-channel players on Discord, 2026-11-25). Nothing has moved yet, so both go back to the editor.
+  if action=='trade-cancel':
+   if t['status']!='select':raise ValueError('This trade has changed. Please try again.')
+   self.trade=self.new_trade()
    return
   if action=='trade-ack':
 
@@ -614,7 +622,7 @@ class TagCampaign:
 
   # Each player's own victory rewards and opponent reveals don't depend on the teammate's; both screens are open at once.
   # The shop and the boss screen are shared too: carts, shop locks, boss rerolls and relic sales check their own state.
-  independent=request.get('action') in ('mark','marks','relic-lock','relic-banish','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-request','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
+  independent=request.get('action') in ('mark','marks','relic-lock','relic-banish','deck','auto','choose','ready','unready','golden-card','choose-monster-type','finale-vote','finale-skip','loop-vote','finale-mode','trade-vote','trade-send','trade-request','trade-cancel','trade-ack','reward-reroll','reward-accept','reveal-opponent','peek-deck','shop-cart','shop-lock','boss-reroll','sell-relic')
 
   if type(revision)!=int or revision>self.revision or (revision!=self.revision and not independent):raise ValueError('State changed. Refresh before trying again.')
 
@@ -860,9 +868,10 @@ class TagCampaign:
    else:locks.append(key)
    self.shared['relic_locks']=locks;self.sync()
    return {'locked':key in locks}
-  # Relic banish (user, 2026-11-24): either player can banish a relic in the shared shop for 10 team coins. The host's run
-  # rolls the replacement, as it rolls the stock, and keeps the banish list, so neither player sees that relic again. The
-  # slot is a new relic now, so it leaves both carts and a waiting "buy" choice is cleared, like any cart change.
+  # Relic banish (user, 2026-11-24): either player can banish a relic in the shared shop for team coins. The host's run keeps
+  # the banish list, so neither player sees that relic again. Price (2026-11-25): 20, +10 per banish by either player this
+  # run, at most 60 (one shared count, like the shared shop and coins). The slot is not rerolled; it becomes sold out, so it
+  # leaves both carts and a waiting "buy" choice is cleared, like any cart change.
   if action=='relic-banish':
    # value = {index, id}: the relic the player saw, so a stale screen never banishes a different relic. The shop checks its
    # own state, so this is an independent command like relic-lock.

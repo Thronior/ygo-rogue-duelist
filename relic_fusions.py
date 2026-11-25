@@ -71,6 +71,12 @@ FUSED=[
  ('insect_swarm','Insect Swarm','Insect monsters you control gain 800 ATK/DEF. Once per turn, during your Standby Phase, if you control a face-up Insect monster: Special Summon 1 "Moth Token" whose ATK/DEF are equal to the combined ATK/DEF of all face-up Insect monsters you control.','Perfectly Ultimate Great Moth',('hive','chitin_carapace','moth_brood')),
  # The user's design (2026-11-24, Discord thread "Plant support"): the three Plant relics. Tytannial art is mine.
  ('eternal_garden','Eternal Garden','Plant monsters you control gain 800 ATK. Each time a face-up Plant monster you control is destroyed: Gain LP equal to the ATK it had on the field, then Special Summon 1 "Dandelion Token" (Plant/EARTH/Level 3/ATK 1000/DEF 1000).','Tytannial, Princess of Camellias',('photosynthesis','spring_growth','pollinator')),
+ # Ra support (user, 2026-11-25): Desert Sunlight + Seal of the Sun + Divine Might. The seal lasts for good and covers every
+ # Divine-Beast you control; Divine Might's 1,000 ATK becomes 1,500. Winged Dragon of Ra art.
+ ('sun_gods_ascension',"Sun God's Ascension",'Divine-Beast monsters you control gain 1,500 ATK and cannot be destroyed by card effects. Once per turn, during your Standby Phase, if you control a face-up Divine-Beast monster: Gain 1,000 LP for each face-up Divine-Beast monster you control.','The Winged Dragon of Ra',('desert_sunlight','seal_of_the_sun','divine_might')),
+ # The user's pick (2026-11-25): Sun's Judgment + This Life Is Mine, for any deck that pays LP. Half of each payment is dealt
+ # to the opponent; the first payment each Duel comes back in full, later ones half (user). Solar Ray art is mine.
+ ('solar_covenant','Solar Covenant','Each time you pay LP for an effect, inflict damage to your opponent equal to half the LP you paid (rounded down), then gain LP equal to half the LP you paid (rounded down). The first time you pay LP each Duel, gain LP equal to all the LP you paid instead.','Solar Ray',('sun_judgment','this_life_mine')),
 ]
 RECIPES={key:pieces for key,_,_,_,pieces in FUSED}
 KEYS=frozenset(RECIPES)
@@ -90,7 +96,8 @@ MOTH_TOKEN=190000057  # data/custom-tokens.json (Insect Swarm)
 DANDELION_TOKEN=190000058  # data/custom-tokens.json (Eternal Garden)
 
 NEW_KEYS=frozenset({'spell_counter_engine','level_up_chain','terrorking_magnus','spirit_sanctuary',
-                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna','genetic_override','chimera_sphinx','insect_swarm','final_message','eternal_garden'})
+                    'living_traps','scorched_hourglass','guardians_armory','unstable_dna','genetic_override','chimera_sphinx','insect_swarm','final_message','eternal_garden',
+                    'sun_gods_ascension','solar_covenant'})
 
 def have(artifacts,key):
  """Owned, or used up in a fused relic the run owns (Genetic Override holds Attribute Mutation and Unstable DNA)."""
@@ -367,6 +374,17 @@ end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
   end
  end
  Duel.SpecialSummonComplete()''',f'Duel.IsExistingMatchingCard({insect},0,LOCATION_MZONE,0,1,nil)')
+ if key=='sun_gods_ascension':
+  from artifact_effects import effect as base
+  return chr(10).join((stat('EFFECT_UPDATE_ATTACK',1500,'c:IsRace(RACE_DIVINE)'),stat('EFFECT_INDESTRUCTABLE_EFFECT',1,'c:IsRace(RACE_DIVINE)'),
+                       base('desert_sunlight',1000,'')))
+ if key=='solar_covenant':return '''do local first=true local e=Effect.GlobalEffect()
+e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
+e:SetCondition(function(e,tp,eg,ep,ev) return ep==0 and ev>0 end)
+e:SetOperation(function(e,tp,eg,ep,ev) if ev>=2 then Duel.Damage(1,ev//2,REASON_EFFECT) end
+ local back=first and ev or ev//2 first=false
+ if back>0 then Duel.Recover(0,back,REASON_EFFECT) end end)
+Duel.RegisterEffect(e,0) end'''
  if key=='eternal_garden':
   # Per destroyed face-up Plant (tokens too): LP equal to its ATK on the field (the +800 included), then a Dandelion Token
   # while a Monster Zone is free. The token is a Plant, so it heals and replaces itself when destroyed (the user's design).

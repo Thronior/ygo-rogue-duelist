@@ -37,5 +37,9 @@ try{
  const mobile=fs.readFileSync(new URL('./web/mobile.js',import.meta.url),'utf8');
  assert(mobile.includes("cpuDuel=!lesson&&state?.run?.duel")&&mobile.includes("recordCpuResult(cpuDuel,cpuCharacter,statsRequest.value.winner===0)"));
  assert(mobile.includes("['cpu','CPU Stats']"),'Stats has the CPU Stats tab');assert(mobile.includes('data-do="character-stats-cpu"')&&mobile.includes('cachedCpuStats(null,character)'),'Character Stats rows open the CPU records of that character');
+ // Layout C (2026-11-25): a sortable opponent list beside the picked opponent's record, updated in place.
+ assert(mobile.includes("CPU_LIST_SORTS=[['played','Most played'],['tough','Toughest'],['easy','Easiest'],['name','A–Z']]")&&mobile.includes("if(a==='cpu-stats-sort')")&&mobile.includes('openCpuOpponent(cpuStatsOpponent)'),'CPU Stats list sorts and opens opponents in place');
+ // Character Stats layout F (2026-11-25): the same list + detail, with the level chart, toughest CPUs and All CPU records.
+ assert(mobile.includes("CHARACTER_LIST_SORTS=[['played','Most played'],['best','Best win rate'],['worst','Lowest win rate'],['name','A–Z']]")&&mobile.includes("if(a==='character-stats-pick')")&&mobile.includes('cachedCpuStats(null,id)')&&mobile.includes('class="char-all-cpu" data-do="character-stats-cpu"'),'Character Stats list, detail and CPU records link');
  console.log('PASS CPU stats client: one anonymous key per finished CPU duel, counted once, sent in the stats batch (16 a batch, rest waits), respects the stats setting, on-demand reads');
 }finally{Date.now=realNow}

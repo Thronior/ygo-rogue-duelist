@@ -38,7 +38,7 @@ assert run['easy'] is True and run['challenge_level'] == 0, 'easy runs are Level
 assert run['pool'][-4:] == REMOVAL and set(range(len(run['pool']) - 4, len(run['pool']))) <= set(run['selected']), 'the removal is in the deck from the start'
 normal = fresh(False)
 assert not normal.get('easy') and sum(c in REMOVAL for c in normal['pool']) == sum(c in REMOVAL for c in run['pool']) - 4
-assert not easy_mode.active(dict(run, history_mode='tag')), 'Tag never plays easy'
+assert easy_mode.active(dict(run, history_mode='tag')), 'Tag runs can be easy too (user, 2026-11-25; tools/test_tag_easy_nov25.py)'
 storage.write(storage.ROOT / 'profile.json', dict(unlocked=[0, 1, 37]))
 copycat = fresh(True, character=37)
 storage.write(storage.ROOT / 'profile.json', {})

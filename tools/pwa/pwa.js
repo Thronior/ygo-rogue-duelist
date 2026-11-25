@@ -126,7 +126,11 @@ panel.querySelector('#web-export').onclick=async()=>{try{
 }catch(e){report(storageError(e));}};
 panel.querySelector('#web-import').onclick=()=>panel.querySelector('#web-file').click();
 panel.querySelector('#web-file').onchange=async event=>{try{
- const file=event.target.files[0];if(!file)return;if(file.size>20*1024*1024)throw Error('Backup is too large.');
+ const file=event.target.files[0];if(!file)return;
+ // A running game imports with Settings › Devices & App's own code (mobile.js importSaveFile), which also writes the
+ // desktop apps' saves; this copy is only for a game that failed to start (survey, 2026-11-25).
+ if(typeof window.ygoImportSaveFile==='function'&&!bootFailed()){panel.close();await window.ygoImportSaveFile(file);return;}
+ if(file.size>20*1024*1024)throw Error('Backup is too large.');
  const text=validateSave(await file.text());
  if(!confirm('Replace all three run slots and progress with this backup? The game will reload.'))return;
  await webStorage.store(text);location.reload();

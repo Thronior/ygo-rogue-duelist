@@ -64,7 +64,7 @@ export function smartContext(e,p,L,prompt=null){
  const healTurnedToDamage=side=>q(1-side,L.SZONE).some(c=>(c.position&5)&&!c.is_disabled&&name(c)==='Bad Reaction to Simochi')||q(1-side,L.MZONE).some(c=>(c.position&5)&&!c.is_disabled&&name(c)==='Nurse Reficule the Fallen One');
  const healingAllowed=side=>!relic(side,'cursed_zombies_bargain')&&!remedy&&!healTurnedToDamage(side);
  const effectsEnabled=side=>!relic(side,'cursed_iron_silence');
- const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
+ const battleDamage=(raw,attacker=p)=>{const defender=1-attacker;let factor=1;for(const side of [0,1])for(const key of relics(side)){if(key==='cursed_duelists_wager')factor*=1.5;if(key==='cursed_hollow_chalice'&&side===defender)factor*=1.5;if(key==='battle_proficiency'&&side===attacker)factor*=1.5;if(key==='cursed_defense_proficiency')factor*=.5;/* Scorching Strikes deals half of it, as effect damage (2026-11-25). */if(key==='cursed_scorching_strikes'&&side===attacker)factor*=.5;}return Math.floor(Math.max(0,raw)*factor)};
  const own=q(p,L.MZONE),enemy=q(1-p,L.MZONE),hand=q(p,L.HAND),grave=q(p,L.GRAVE),back=q(p,L.SZONE),theirBack=q(1-p,L.SZONE);
  const deckSize=side=>e.deckCount?e.deckCount(side):q(side,L.DECK).length,myDeck=deckSize(p),oppDeck=deckSize(1-p);
  const rescueCatReady=()=>{const beasts=q(p,L.DECK).filter(c=>(data(c).type&1)&&race(c)==='Beast'&&lvl(c)<=3);if(5-own.length<2||beasts.length<2||e.turn<=1)return false;const missing=['Ojama Green','Ojama Yellow','Ojama Black'].filter(part=>!own.some(x=>face(x)&&name(x)===part));if(hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&missing.length<=2&&missing.every(part=>beasts.some(x=>name(x)===part)))return true;/* Their Beasts are destroyed at the End Phase: on an opening turn with no Battle Phase (the CPU starts) they hit nothing (flag 7e51fc19, 2026-11-20). */return !openingTurn&&!enemy.length&&beasts.map(atk).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)>=1000};
@@ -747,7 +747,19 @@ export function smartContext(e,p,L,prompt=null){
  const backRemoval=new Set(['Heavy Storm',"Harpie's Feather Duster",'Mystical Space Typhoon','Dust Tornado','Breaker the Magical Warrior','De-Spell','Remove Trap']);
  // Destroying Toon World destroys its controller's Toon monsters too (all-decks review, 2026-11-19: Heavy Storm was held
  // against Toon World, Mirror Wall and Mirror Force while Blue-Eyes Toon Dragon beat us).
+ // Equip Spells that take their monster with them when they leave the field (Big Bang Shot banishes it, Amplifier destroys
+ // its Jinzo). Destroyed in answer to their activation they only miss a buff; once on their monster, they take it along.
+ // Discord 2026-11-25: Mystical Space Typhoon was chained to Big Bang Shot instead of waiting for it to be equipped.
+ const equipTakesHolder=new Set(['Big Bang Shot','Amplifier']);
+ function holderEquipValue(c){
+  const link=(e.activeChain||[]).find(l=>!l.inactive&&l.player===c.controller&&l.code===c.code&&l.location===L.SZONE&&l.sequence===c.sequence);
+  // Still resolving: worth little unless it is aimed at our monster (then it is a trap for that monster).
+  if(link)return (link.targets||[]).some(t=>t.controller===p&&t.location===L.MZONE)?null:100;
+  const holder=c.equipCard||c.equip_card,live=holder&&q(holder.controller??1-p,L.MZONE).find(x=>same(x,holder));
+  return live?live.controller===p?0:1500+targetValue(live):null;
+ }
  function backValue(c){c=[...back,...theirBack].find(x=>same(x,c))||c;// A lock card whose monster has left holds nothing, it only takes up a zone (behaviour flag becd514f, 2026-11-22).
+  if(known(c)&&face(c)&&!c.is_disabled&&equipTakesHolder.has(name(c))){const v=holderEquipValue(c);if(v!==null)return v;}
   if(known(c)&&face(c)&&['Spellbinding Circle','Shadow Spell','Nightmare Wheel','Fiendish Chain'].includes(name(c))&&![...(e.attackLocks||new Map()).values()].some(v=>same(v,c)))return 100;if(known(c)&&name(c)==='Toon World')return 1500+q(c.controller??1-p,L.MZONE).filter(x=>face(x)&&/Toon/.test(name(x))).reduce((v,x)=>v+targetValue(x),0);return known(c)?(lockValue(c)|| (LOCK.includes(name(c))?1500:0) ? Math.max(lockValue(c),1500):engineThreats.has(name(c))?3200:(data(c).type&(0x20000|0x80000|0x40000))?1500:400):900;}
  // Snipe Hunter's legal, worthwhile targets: the opponent's cards it can destroy, never our own.
  function snipeTargets(source){
@@ -948,7 +960,7 @@ export function smartContext(e,p,L,prompt=null){
   return 95+Math.min(20,(target.value-threshold)/200);
  }
  const deck=deckPolicy({e,p,L,q,name,data,atk,face,own,enemy,hand,grave,back,theirBack,lvl,race,attr,hasAttribute,same,threat,ownPower,enemyPower,danger,targetValue,backValue,attackBlocked,effectsEnabled,removalAffects,exodiaPieces:keptPieces,projectedAttack,battleDamage,prompt,planLethal,freeSummon,battleProof});
- const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady,removalAffects});
+ const combos=comboPlanner({lethalCost,e,p,L,q,name,data,atk,face,own,enemy,hand,back,theirBack,lvl,race,same,prompt,targetValue,effectsEnabled,spellsOk:!spellNegated,exodiaPieces,specialOk,projectedAttack,planDamage,snipeNet,contactMaterials:deck.contactMaterials,contactUseful:deck.contactFusionUseful,fusionPlan:deck.fusionPlan,resilient,attackBackfires,matchesRitual,ritualMaterialReady,removalAffects,battleDamage,battleProof,combatPower,attackLocked,incomingDamage,burnDamage});
  // Spend Waboku for a threatened monster, meaningful damage, or survival.
  // Count the declared attack plus other attackers that have not attacked yet.
  // Amazoness Spellcaster: the pair (our attack-ready Amazoness, their face-up monster) whose original ATK swap lets our
@@ -1803,6 +1815,16 @@ export function smartContext(e,p,L,prompt=null){
    const attack=atk(attacker),current=atk(defender);
    return current<=attack&&current+500>attack?125:current<attack&&current+500===attack?100:-1;
   }
+  // A battle float (Flying Kamakiri #1, Giant Rat, Mother Grizzly...) lands in face-up Attack Position during their Battle
+  // Phase: decline when one of their ready attackers runs over the best recruit for lethal and our field holds without
+  // it (behaviour flag 3c08eea2, 2026-11-25). Deck cards use base ATK, since atk() reads 0 for an unseen card.
+  if(chain&&e.player!==p&&e.phase===8&&c.location!==L.MZONE&&/destroyed by battle/i.test(t)&&/Special Summon[^.]*from your Deck[^.]*face-up Attack Position/i.test(t)){
+   const ready=enemy.filter(x=>face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,1-p));
+   const field=own.filter(x=>!same(x,c));
+   const worst=extra=>{const targets=[...field,...extra];return Math.max(0,...ready.map(a=>targets.length?Math.max(0,...targets.map(d=>attackDamageToUs(a,d))):attackDamageToUs(a,null)));};
+   const cap=Number(t.match(/(\d+) or less ATK/i)?.[1]??99999),base=x=>data(x).attack??0,pool=q(p,L.DECK).filter(x=>(data(x).type&1)&&base(x)<=cap).sort((a,b)=>base(b)-base(a)),recruit=pool[0]&&{...pool[0],position:1};
+   if(recruit&&ready.length&&worst([recruit])>=e.lp[p]&&worst([])<e.lp[p])return -1;
+  }
   const recent=deck.activation(c,chain);if(recent!==null)return recent;
   if(n==='Monster Reincarnation'){
    if(chain||e.player!==p||c.location!==L.HAND)return -1;
@@ -2208,7 +2230,14 @@ export function smartContext(e,p,L,prompt=null){
    else if(/destroy|banish|return to the hand|send .* to the Graveyard/i.test(text))value+=own.filter(face).reduce((sum,x)=>sum+targetValue(x),0)*.65;
    return value>handLoss(spellCosts[0])+500?105+Math.min(20,value/500):-1;
   }
-  if(n==='Seven Tools of the Bandit')return chain&&e.effect?.player===1-p&&e.lp[p]>1500?100:-1;
+  if(n==='Seven Tools of the Bandit'){
+   if(!chain||e.effect?.player!==1-p||e.lp[p]<=1500)return -1;
+   // A Continuous Trap that our own lower chain link already removes loses its effect when that link resolves, so negating
+   // it wastes the card and 1000 LP (Dust Tornado on Nightmare Wheel, behaviour flag cc774753, 2026-11-25).
+   const trap=(e.activeChain||[]).filter(x=>!x.inactive).at(-1);
+   if(trap&&trap.player===1-p&&(data(trap).type&0x20000)&&reservedForRemoval({controller:trap.controller,location:trap.location,sequence:trap.sequence}))return -1;
+   return 100;
+  }
   if(n==='Dark Balter the Terrible'||n==='Ryu Senshi')return chain&&e.effect?.player!==p&&e.lp[p]>1000?92:-1;
   // Post-errata Ring: an opponent's face-up monster with ATK at most their LP, during their turn; it wins at exactly their LP.
   if(n==='Ring of Destruction')return enemy.some(x=>face(x)&&atk(x)<=e.lp[1-p]&&atk(x)<e.lp[p])?100:-1;
@@ -2656,7 +2685,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'approved_anime_rule_3':v=q(side,L.SZONE).some(x=>x.sequence===5&&face(x))?0:-1000;break;
     case 'approved_grave_lantern':v=Math.min(800,100*(q(side,L.GRAVE).filter(x=>data(x).type&1).length+tributesToGrave(c)));break;
     case 'approved_jesters_coin':v=side===0?300*(e.jesterCall||0):0;break;
-    case 'variant_chitin_carapace':v=race(c)==='Insect'?800:0;break;
+    case 'variant_chitin_carapace':case 'fused_insect_swarm':v=race(c)==='Insect'?800:0;break;
     case 'fused_necrovalley_throne':v=setMatch(c,0x2e)?800:0;break;
     case 'fused_gaia_plate':v=1500;break;case 'fused_commoners_crown':v=is(0x10)?1000:0;break;
     case 'fused_my_pride_and_soul':v=race(c)==='Dragon'?800:0;break;
@@ -2691,7 +2720,7 @@ export function smartContext(e,p,L,prompt=null){
     case 'eclipse':v=['LIGHT','DARK'].every(at=>monsters(L.GRAVE).some(x=>hasAttribute(x,at)))?a:0;break;
     case 'dial':v=e.player===side?a:0;break;case 'underdog':v=e.lp[side]<e.lp[1-side]&&field.length<q(1-side,L.MZONE).filter(x=>!same(x,c)).length?a:0;break;
     case 'backrow_atk':v=[0,1].flatMap(s=>q(s,L.SZONE)).filter(face).length*a;break;
-    case 'banished_atk':v=[0,1].flatMap(s=>q(s,L.REMOVED)).filter(x=>face(x)&&(data(x).type&1)).length*a;break;
+    case 'banished_atk':v=[0,1].flatMap(s=>q(s,L.REMOVED)).filter(x=>data(x).type&1).length*a;break;
     case 'approved_blood_crown':v=500;break;case 'approved_brittle_armor':v=-300;break;case 'approved_cracked_sword':v=300;break;
     case 'approved_zombies_bargain':v=800;break;case 'approved_warriors_vow':v=200;break;case 'approved_iron_silence':v=600;break;
     case 'approved_ritual_vestment':v=is(0x80)?300:0;break;case 'approved_fusion_insignia':v=is(0x40)?300:0;break;
@@ -2725,6 +2754,12 @@ export function smartContext(e,p,L,prompt=null){
     // Level Up Chain: LV monsters +500 ATK (Discord, Nameless, 2026-11-22: Horus LV4's forecast left it out).
     case 'fused_level_up_chain':v=setMatch(c,0x41)?500:0;break;
     case 'fused_toon_kingdom':v=is(0x400000)?500:0;break;
+    // Missing from the hand forecast until 2026-11-25 (Discord, Kingstersam and CITYDRIVER: Insect Swarm's +800).
+    case 'fused_insect_swarm':v=race(c)==='Insect'?800:0;break;case 'fused_eternal_garden':v=race(c)==='Plant'?800:0;break;
+    case 'fused_spirit_sanctuary':v=is(0x200)?500:0;break;case 'fused_gadget_gadget':v=setMatch(c,0x51)?500:0;break;
+    // Each face-up Archfiend you control (this one included once it is summoned) adds 400 to every Archfiend.
+    case 'fused_terrorking_magnus':v=setMatch(c,0x45)?400*field.filter(x=>face(x)&&setMatch(x,0x45)).length:0;break;
+    case 'fused_spell_counter_engine':v=200*[...q(side,L.MZONE),...q(side,L.SZONE)].reduce((n,x)=>n+(Number(x.counters?.[1]??x.counters?.['1'])||0),0);break;
     // Every monster becomes the chosen Type and Attribute, so each face-up monster on both fields counts (itself included).
     case 'fused_unstable_dna':v=100*(field.filter(face).length+q(1-side,L.MZONE).filter(face).length);break;
     // Genetic Override: 300 for each monster in both Monster Zones, face-down ones too.
@@ -3156,8 +3191,9 @@ if(!effectsEnabled(p))return 0;
 
  // Compare whole-board damage, including follow-up direct attacks after a defender falls.
  // Only publicly visible opposing monsters enter the forecast; never inspect hidden cards.
- // With c null, the damage through the board as it stands, without a new monster.
- function incomingDamage(c,attackPosition){
+ // With c null, the damage through the board as it stands, without a new monster. gone: monsters of either side that a
+ // play this turn takes off the field first (a trade attack's target and attacker, cpu-combos battleLine).
+ function incomingDamage(c,attackPosition,gone=[]){
   const returns=x=>!!(data(x).type&0x200)&&effectsEnabled(p)&&!back.some(b=>enabled(b)&&name(b)==='Spiritual Energy Settle Machine')&&!(relic(p,'good_spirits')&&face(x)&&spiritStays(x));
   // Under Disturbed Sleep our Set monsters are in Attack Position by the opponent's turn; at an idle prompt a monster
   // from the hand in Defense Position means a Set.
@@ -3166,11 +3202,11 @@ if(!effectsEnabled(p))return 0;
   // A monster that cannot be attacked (The Legendary Fisherman under Umi) blocks nothing: with only those left, every
   // attack is direct. Two Fishermen under A Legendary Ocean were counted as walls and took 5600 direct (behaviour flag
   // 2026-11-19).
-  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))&&!attackLocked(x,true)).map(flipped).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
+  const defenders=own.filter(x=>!(c&&same(x,c))&&!(face(x)&&returns(x))&&!attackLocked(x,true)&&!gone.some(g=>same(g,x))).map(flipped).concat(!c||attackPosition&&returns(c)?[]:[{...c,controller:p,position:attackPosition?1:4,
    attack:c.location===L.MZONE?atk(c):projectedAttack(c),defense:projectedDefense(c)}].filter(x=>!attackLocked(x,true)));
   // Shield Bash attacks with DEF from Defense Position; Berserker's Pact gives each monster a second attack (capped to keep the search small).
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
-  const attackers=enemy.filter(x=>face(x)&&swing(x)>0&&!attackBlocked(x,1-p,true)).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:swing(x)}));
+  const attackers=enemy.filter(x=>face(x)&&swing(x)>0&&!attackBlocked(x,1-p,true)&&!gone.some(g=>same(g,x))).map(x=>({...x,forecastPierce:pierce(x,1-p,true),forecastExarion:enabled(x)&&name(x)==='Exarion Universe',forecastAttack:swing(x)}));
   if(relic(1-p,'cursed_berserkers_pact'))attackers.push(...attackers.slice(0,Math.max(0,6-attackers.length)).map(x=>({...x})));
   const memo=new Map();
   function visit(am,dm){const key=am+':'+dm;if(memo.has(key))return memo.get(key);let best=0;

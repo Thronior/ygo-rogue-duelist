@@ -2210,7 +2210,7 @@ ORPHANS=[(r'for each (?:Spell/Trap|card|monster) sent\b',r'\bsend\b'),(r'for eac
  (r'\bthe Token\b',r'Token'),(r'\bthe equipped monster\b',r'[Ee]quip'),(r'\bthat (?:Spell|Trap|effect)\b',r'activat|Spell|Trap|effect'),
  (r'\bthat Equip Card\b',r'Equip Card')]
 GONE_EVENT=re.compile(r'(?i)this (?:face-up )?card(?: you control)? is (?:destroyed|sent|banished|Tributed|returned|discarded)|this card leaves the field|this face-up card leaves')
-ON_FIELD_ACT=re.compile(r'(?i)switch control of [^;.]*\bthis card|equip[^;.]*\bto this card|(?:^|[;:,.] |then |effect; |[Yy]ou can )(?:this card (?:gains|loses|cannot|can attack|is unaffected|is treated)|change this card|this card\'s (?:ATK|DEF))')
+ON_FIELD_ACT=re.compile(r'(?i)switch control of [^;.]*\bthis card|equip[^;.]*\bto this card|(?:^|[;:,.] |then |effect; |[Yy]ou can )(?:this card (?:permanently )?(?:gains|loses|cannot|can attack|is unaffected|is treated)|change this card|this card\'s (?:ATK|DEF))')
 def _text_problem(parts,slot):
  """A dealt effect whose text would not make sense to a player (see ORPHANS), as a reason, or None."""
  if slot in ('m_fusion','m_ritual') and _event(parts) in ('flip','flip_summoned','flip_summon'):return 'a Fusion or Ritual Monster is never Flip Summoned'
@@ -2265,9 +2265,52 @@ def _text_problem(parts,slot):
  # off the field (or out of the hand), so an action on this card on the field cannot happen
  if any(p['k'] in SELF_GONE_COSTS for p in parts.get('costs',[])):
   after=(body.split(';',1)[1] if ';' in body else '').strip()
-  if ON_FIELD_ACT.search(after) or re.search(r'(?i)this face-up card|this card (?:gains|loses|cannot|can attack)|\b(?:destroy|return|banish|shuffle|Tribute|send) this card\b(?! from (?:your |the )?(?:GY|hand))|switch control of [^.;]*this card',after):return 'the cost removed this card, but the effect needs it on the field'
+  if ON_FIELD_ACT.search(after) or re.search(r'(?i)this face-up card|this card (?:permanently )?(?:gains|loses|cannot|can attack)|\b(?:destroy|return|banish|shuffle|Tribute|send) this card\b(?! from (?:your |the )?(?:GY|hand))|switch control of [^.;]*this card',after):return 'the cost removed this card, but the effect needs it on the field'
  # "FLIP: ... Special Summon this banished card" (Nov 20): the timing has this card on the field
  if ev and (ev.startswith('flip') or FIELD_EVENT.search(et)) and AWAY_ACT.search(body):return 'this card is on the field, but the effect needs it in the GY or banished'
+ return _self_defeating(parts,slot,body,et)
+
+# Effects that defeat themselves (Discord Nov 25: "When this card changes from Attack Position to Defense Position: You
+# can pay 2000 LP; gain 1000 LP"; "You can Tribute this card; Special Summon this card from your GY", which can never be
+# activated: the cost needs this card on the field, the action in the GY).
+FIELD_STATE=re.compile(r'(?i)\bthis card is (?:face-up|face-down|in (?:face-up |face-down )?(?:Attack|Defense) Position|on the field)\b|'
+ r'\bthis (?:face-up |face-down )?(?:Attack|Defense) Position card\b|\bthis face-up card\b|\bthis card (?:changes|is changed) (?:from|to)\b|\bbattle position of this card\b|'
+ r'\bthis card (?:attacks|attacked|battles|battled|is attacked|was attacked|inflicts|inflicted|destroys|has destroyed)\b|'
+ r'\bthis (?:face-up )?card is (?:(?:Normal|Flip|Special|Tribute|Fusion|Ritual),? (?:or )?)*Summoned\b|\bthis card is flipped face-up\b')
+# this card itself leaves the field (the timing then finds it in the GY): not "this card battled a monster that was not
+# destroyed"
+GONE_SELF=re.compile(r'(?i)\bthis (?:face-up |face-down |Set )?(?:(?:Attack|Defense) Position )?(?:card|monster)(?: you control)? (?:is|was|would be) (?:destroyed|sent|banished|Tributed|returned|discarded)|\bthis (?:face-up )?card leaves')
+SELF_MOVING_COST=re.compile(r'(?i)\b(?:Tribute|discard|banish|send|return|shuffle|destroy|reveal) this (?:card|monster)\b')
+FLAT_LP_GAIN=re.compile(r'(?i)\b(?:you )?gain (\d+) LP\b(?! (?:for each|times|x\b|equal|per\b))')
+SELF_STAT=re.compile(r'(?i)\bthis card (?:permanently )?(gains|loses) (\d+) (ATK and DEF|ATK|DEF)\b')
+def _self_defeating(parts,slot,body,et):
+ """The reason an effect defeats itself, or None."""
+ # the cost is before the semicolon; with no cost, a semicolon only joins actions ("Special Summon this banished card;
+ # it gains 200 ATK")
+ head,after=(body.split(';',1) if ';' in body and parts.get('costs') else ('',body))
+ # an LP cost at least as big as the flat LP the same effect gains ("Pay 1000 LP; gain 1000 LP"); "gain 300 LP for each
+ # monster" can still be worth it
+ paid=sum(int(x) for x in re.findall(r'(?i)\bpay (\d+) LP\b',body))
+ gains=[int(x) for x in FLAT_LP_GAIN.findall(body)]
+ if paid and gains and sum(gains)<=paid:return 'pays as much LP as it gains, or more'
+ # this card gains and loses the same stat in one effect ("this card permanently loses 500 ATK, then this card
+ # permanently gains 500 ATK")
+ moves={}
+ for verb,_,stat in SELF_STAT.findall(body):
+  for s in ('ATK','DEF'):
+   if s in stat:moves.setdefault(s,set()).add(verb.lower())
+ if any(len(v)>1 for v in moves.values()):return 'this card gains and loses the same stat'
+ if AWAY_ACT.search(after):
+  # a timing or condition with this card on the field, and an action on it in the GY or banished ("during your Standby
+  # Phase, while this card is face-up in Defense Position: You can Special Summon this card from your GY")
+  states=[_piece_text('conds',p,slot) for p in parts.get('conds',[]) if CONDS.get(p['k'],{}).get('kind')!='event']
+  # ("If this face-up card is destroyed: Special Summon this card from your GY" has left the field: fine)
+  gone=GONE_SELF.search(et or '')
+  if (FIELD_STATE.search(et or '') and not gone) or any(FIELD_STATE.search(t) for t in states):return 'this card is on the field, but the effect needs it in the GY or banished'
+  # a cost that moves this card, then an action on it in the GY or banished: the effect is used from the GY, where the
+  # cost cannot be paid (and a card moved by its own cost is no longer the card the effect acts on)
+  if SELF_MOVING_COST.search(head) or any(p['k'] in SELF_GONE_COSTS|FIELD_SELF_COSTS for p in parts.get('costs',[])):
+   return 'the cost moves this card, but the effect needs it in the GY or banished'
  return None
 FIELD_EVENT=re.compile(r'(?i)this card is (?:Normal |Flip |Special |Tribute )?Summoned|this card (?:attacks|battles|inflicts|destroys|is attacked)|flipped face-up|this face-up')
 SUMMONED_REF=re.compile(r'(?i)\b(?:that|the|those) (?:face-up )?Summoned monsters?\b|\bSummoned monster\(s\)')
@@ -2960,6 +3003,8 @@ def effect_text(card):
  return _tidy(' '.join(lines))
 
 def _tidy(text):
+ # "Special Summon 1 Level 4 monster; it cannot attack this turn from your Deck" (Nov 25): the place goes with the monster
+ text=re.sub(r'(; it cannot attack this turn)((?: from (?:your|the) [\w ,]{0,30}?(?:Deck|GY|hand))(?: in (?:face-up )?(?:Attack|Defense) Position)?)(?=[.;,]|$)',r'\2\1',text)
  text=re.sub(r'\b(\d+) \1 ',r'\1 ',text)                 # "target 1 1 monster" -> "target 1 monster"
  text=re.sub(r'\b(all|All|the|The) (all|the) ',r'\1 ',text)  # "return all all Set cards" -> "return all Set cards"
  text=re.sub(r'\bSummons monster\b','Summons a monster',text)       # a summon timing with no filter
@@ -3736,7 +3781,8 @@ def _deal_ok(parts,slot,kind):
 # effects that are only a drawback when they stand alone (review of 200 cards, Nov 23); not SELF_HARM above, which
 # picks coin-toss penalties
 DRAWBACK_ONLY={'give_self','mask_remnants_shuffle','draw_until_seven','skip_next_two_draw_phases','destroy_self_battle','recover_opp','damage_self','shuffle_own_deck',
- 'discard_up_to','discard_hand','dark_designator_search'}   # 500-card review (Nov 24): discarding your own cards, giving the opponent a card
+ 'discard_up_to','discard_hand','dark_designator_search',   # 500-card review (Nov 24): discarding your own cards, giving the opponent a card
+ 'lose_atk_permanent','lose_200_atk'}   # Nov 25: "You can Tribute 1 other monster; this card permanently loses 200 ATK"
 def _drawback_only(p):
  if p['k'] in DRAWBACK_ONLY or (p['k']=='skip_phase' and p.get('phase')=='standby'):return True   # "skip your next Standby Phase"
  # your own monster destroyed or banished, or a card from your hand shuffled away, for nothing (Nov 24)
@@ -3887,6 +3933,12 @@ def _whimsy(d,slot,kind,clean,card_id,used_sigs,budget,sk,act_ok,with_):
    q=_clean_piece(q);q.pop('link',None)
    new[{'act':'acts','cost':'costs','cond':'conds'}[twist]].append(q)
   WHIMSY_STATS['tried '+twist]+=1
+  # the twist can bring the pair _deal_effect makes once per turn by name: a cost that puts this card in the GY and an
+  # action that takes a card back from the GY ("You can discard this card from your hand; ..., then add up to 3 ...
+  # from your GY to your hand", Nov 25)
+  if kind=='activated' and slot not in ONE_SHOT and any(COSTS.get(p['k'],{}).get('leaves') for p in new['costs']) \
+     and any(_gy_back(p,slot) for p in new['acts']) and not any(LIMITS.get(p['k'],{}).get('once') for p in new['limits']):
+   new['limits'].append({'k':'hopt'})
   sig=[json.dumps(p,sort_keys=True) for c in CATEGORIES for p in new[c]]
   ok=len(sig)==len(set(sig)) and json.dumps(new['acts'],sort_keys=True) not in used_sigs and _deal_ok(new,slot,kind) \
      and (budget is None or power_score(new,slot)<=max(budget,sk.get('p',0)*1.1)*1.15)
@@ -4064,6 +4116,18 @@ def _deal_card(d,rng,next_id,used,kind=None,frame=None,sub=None,log=None):
  for sk in sh['sk']:
   e=_deal_effect(d,slot,sk,card['id'],no_ss,{json.dumps(x['acts'],sort_keys=True) for x in effects})   # no effect twice
   if e:effects.append(_hand_summon_requirement(d,e,slot,log,card['id']))
+ # "Cannot be Special Summoned." dealt in one effect beside another that Special Summons this card (Nov 25, "Terra the
+ # Terrible": "Cannot be Special Summoned. ... Special Summon this card from your GY"): the restriction goes
+ def ss_self(e,rx):
+  for p in e.get('acts',[]):
+   try:t=_act_text(p,{'slot':slot,'name':'X'})
+   except Exception:t={**ACTS,**AURAS}.get(p['k'],{}).get('text') or ''
+   if rx.search(t):return True
+  return False
+ for lim,rx in (('cannot_ss',SUMMONS_SELF),('cannot_ss_gy',re.compile(r'(?i)Special Summon this card from (?:your |the )?GY'))):
+  if any(ss_self(e,rx) for e in effects) and any(p['k']==lim for e in effects for p in e.get('limits',[])):
+   for e in effects:e['limits']=[p for p in e.get('limits',[]) if p['k']!=lim]
+   effects=[e for e in effects if any(e.get(c) for c in CATEGORIES)];log.append(f'dropped {lim}: another effect Special Summons this card')
  # A Destiny Board letter ("This card can only be placed on the field by its board effect") dealt on its own could
  # never be played: a board names any dealt card (Nov 20)
  effects=[e for e in effects if not any(p['k']=='real_set_piece' for p in e.get('acts',[]))]

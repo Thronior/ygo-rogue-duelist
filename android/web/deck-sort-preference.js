@@ -10,7 +10,7 @@ function read(){
  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{saved={}}
  return saved;
 }
-// `allowed` is the caller's sort list: Tag offers fewer sorts than solo.
+// `allowed` is the caller's sort list (Tag, Draft and Collector offer the same sorts as solo since 2026-11-25).
 export const savedDeckSort=allowed=>allowed.includes(read().sort)?read().sort:DEFAULT_DECK_SORT;
 export const savedDeckStatus=()=>STATUSES.includes(read().status)?read().status:DEFAULT_DECK_STATUS;
 // Pass only what changed ({sort} or {status}), so a Tag status change keeps a solo-only sort such as Type.

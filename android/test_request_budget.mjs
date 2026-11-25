@@ -24,7 +24,7 @@ const collectorSource=fs.readFileSync('android/web/collector-ui.js','utf8').repl
 // collector-ui.js imports replayVersion, so the import-stripped harness must provide it.
 const replayVersion=fs.readFileSync('android/web/replay-version.js','utf8').match(/"(.+?)"/)[1];
 // collector-ui.js also imports explainOnlineError (online-status.js, 2026-11-13); the harness explains errors as they are.
-let sent;const env={replayVersion,explainOnlineError:async e=>e?.message||String(e),structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
+let sent;const env={replayVersion,explainOnlineError:async e=>e?.message||String(e),campaignMessage:()=>null,structuredClone,AbortSignal,JSON,setTimeout,clearTimeout,fetch:async(url,init)=>{sent={url,init};return {ok:true,json:async()=>({ok:true})}}};
 vm.createContext(env);vm.runInContext(collectorSource+'\nglobalThis.C=CollectorUI',env);
 const ui=Object.create(env.C.prototype);ui.seat=1;
 ui.hub={isOpen:true};assert.equal(ui.pollDelay(),120000);ui.hub=null;assert.equal(ui.pollDelay(),30000);

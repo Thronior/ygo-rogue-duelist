@@ -23,13 +23,43 @@ e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
 e:SetCondition(function(e,tp,eg,ep,ev) return not used and ep==0 and ev>0 end)
 e:SetOperation(function(e,tp,eg,ep,ev) if used then return end used=true Duel.Recover(0,ev,REASON_EFFECT) end)
 Duel.RegisterEffect(e,0) end'''
+ # Ra support (user, 2026-11-25). Sun's Judgment: every LP payment of yours, by any card (Ra's, Toon World's, Archfiends').
+ if kind=='sun_judgment':return '''do local e=Effect.GlobalEffect()
+e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
+e:SetCondition(function(e,tp,eg,ep,ev) return ep==0 and ev>=2 end)
+e:SetOperation(function(e,tp,eg,ep,ev) Duel.Damage(1,ev//2,REASON_EFFECT) end)
+Duel.RegisterEffect(e,0) end'''
+ if kind=='desert_sunlight':
+  from approved_relic_effects import phase
+  divine='function(c) return c:IsFaceup() and c:IsRace(RACE_DIVINE) end'
+  return phase('STANDBY',f'Duel.Recover(0,{amount}*Duel.GetMatchingGroupCount({divine},0,LOCATION_MZONE,0,nil),REASON_EFFECT)',
+               f'Duel.IsExistingMatchingCard({divine},0,LOCATION_MZONE,0,1,nil)')
+ # Seal of the Sun: each Divine-Beast Summoned to your field (Normal, Tribute, Flip or Special) holds until your next Standby
+ # Phase ends, so it survives the opponent's turn. Summoned during your own Standby Phase, it lasts to the next one.
+ if kind=='seal_of_the_sun':return '''do local function seal(e,tp,eg)
+ for c in eg:Filter(function(c) return c:IsControler(0) and c:IsRace(RACE_DIVINE) end,nil):Iter() do
+  local own=Duel.GetTurnPlayer()==0 and Duel.GetCurrentPhase()==PHASE_STANDBY
+  local e1=Effect.CreateEffect(c) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE|EFFECT_FLAG_CANNOT_DISABLE)
+  e1:SetRange(LOCATION_MZONE) e1:SetCode(EFFECT_INDESTRUCTABLE_EFFECT) e1:SetValue(1)
+  e1:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_STANDBY|RESET_SELF_TURN,own and 2 or 1) c:RegisterEffect(e1)
+ end end
+ for _,code in ipairs({EVENT_SUMMON_SUCCESS,EVENT_SPSUMMON_SUCCESS,EVENT_FLIP_SUMMON_SUCCESS}) do
+  local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(code) e:SetOperation(seal) Duel.RegisterEffect(e,0)
+ end end'''
  # A Spell or Trap Card's activation is negated as an activation: negating only the effect still let Snatch Steal equip
- # and take the monster (Discord, 2026-11-25).
+ # and take the monster (Discord, 2026-11-25). Since 2026-11-25 (user) it also destroys the card that activated it, so a
+ # monster effect or a card that stays on the field is dealt with too ("negate that effect, and if you do, destroy that card").
  if kind=='boss_monster':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_CHAINING)
 e:SetCondition(function(e,tp,eg,ep,ev,re) if used or ep~=1 or not re or not re:IsHasProperty(EFFECT_FLAG_CARD_TARGET) then return false end
  local g=Duel.GetChainInfo(ev,CHAININFO_TARGET_CARDS) return g and g:IsExists(function(c) return c:IsControler(0) and c:IsMonster() and c:IsLevelAbove(7) end,1,nil) end)
-e:SetOperation(function(e,tp,eg,ep,ev,re) if not used then used=true if re:IsHasType(EFFECT_TYPE_ACTIVATE) then Duel.NegateActivation(ev) else Duel.NegateEffect(ev) end end end)
+e:SetOperation(function(e,tp,eg,ep,ev,re) if used then return end used=true
+ local rc=re:GetHandler() local loc=Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_LOCATION) local activation=re:IsHasType(EFFECT_TYPE_ACTIVATE)
+ -- NegateEffect returns nothing in this core, so whether it can work is checked first.
+ local negatable=activation and Duel.IsChainNegatable(ev) or not activation and Duel.IsChainDisablable(ev)
+ local negated if activation then negated=Duel.NegateActivation(ev) else negated=Duel.NegateEffect(ev) end
+ -- The card is destroyed while it is still where it activated (field or hand).
+ if negatable and negated~=false and rc and (rc:IsRelateToEffect(re) or loc and loc&(LOCATION_ONFIELD|LOCATION_HAND)~=0 and rc:IsLocation(loc)) then Duel.Destroy(rc,REASON_EFFECT) end end)
 Duel.RegisterEffect(e,0) end'''
  if kind=='swap_base_ad':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD)
 e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE) Duel.RegisterEffect(e,0) end'''
@@ -217,7 +247,8 @@ e:SetOperation(function(e) e:Reset() if Duel.IsExistingMatchingCard(Card.IsCode,
   return '\n'.join(f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode({code}) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsFaceup() end) e:SetValue({bonus}) Duel.RegisterEffect(e,0) end''' for code in ('EFFECT_UPDATE_ATTACK','EFFECT_UPDATE_DEFENSE'))
  if kind in ('backrow_atk','banished_atk'):
   location='LOCATION_ONFIELD' if kind=='backrow_atk' else 'LOCATION_REMOVED'
-  check='c:IsFaceup() and c:IsSpellTrap()' if kind=='backrow_atk' else 'c:IsFaceup() and c:IsMonster()'
+  # Exile Standard counts every banished monster, face-up or face-down (user, 2026-11-25).
+  check='c:IsFaceup() and c:IsSpellTrap()' if kind=='backrow_atk' else 'c:IsMonster()'
   return f'''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_UPDATE_ATTACK) e:SetTargetRange(LOCATION_MZONE,0) e:SetValue(function() return {amount}*Duel.GetMatchingGroupCount(function(c) return {check} end,0,{location},{location},nil) end) Duel.RegisterEffect(e,0) end'''
  if kind=='hand_level':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_STANDBY) e:SetCountLimit(1)
 e:SetCondition(function() return Duel.GetTurnPlayer()==0 end)

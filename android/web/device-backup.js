@@ -138,7 +138,9 @@ export function recoveryFromFile(value){
  return {format:'ygo-device-recovery-v1',keepExtras:true,backup:{schema:1,files:value,extras:{}}};
 }
 export async function restoreRecovery(value,{loadSave,storeSave,storage=localStorage}){
- const {files,extras}=validateRecovery(value),before=await loadSave(),previous=Object.fromEntries(EXTRAS.map(k=>[k,storage.getItem(k)]));
+ // The current save is read only to put it back if the import fails: an unreadable one must not block the import
+ // (v0.2.44 web: an empty save made this throw "This backup is empty.", so Settings › Devices & App imports failed).
+ const {files,extras}=validateRecovery(value),before=await Promise.resolve().then(loadSave).catch(()=>null),previous=Object.fromEntries(EXTRAS.map(k=>[k,storage.getItem(k)]));
  try{if(!value.keepExtras)for(const key of EXTRAS){if(key in extras)storage.setItem(key,extras[key]);else storage.removeItem(key)}await storeSave(JSON.stringify(files));}
- catch(error){for(const [key,text] of Object.entries(previous)){try{if(text===null)storage.removeItem(key);else storage.setItem(key,text)}catch{}}try{await storeSave(before)}catch{}throw error}
+ catch(error){for(const [key,text] of Object.entries(previous)){try{if(text===null)storage.removeItem(key);else storage.setItem(key,text)}catch{}}if(before!==null)try{await storeSave(before)}catch{}throw error}
 }

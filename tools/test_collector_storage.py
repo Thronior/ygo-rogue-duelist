@@ -15,10 +15,18 @@ try:
   storage.write(storage.run_path(1),active)
   before=collector.load()
   try:collector.dispatch('import',{'source':1,'slot':1,'name':'Blocked'})
-  except ValueError as e:assert str(e)=='finish your duel to import this collector'
+  except ValueError as e:assert str(e)==collector.BETWEEN_DUELS and 'between duels' in str(e)
   else:raise AssertionError('Unfinished duel imported')
   assert storage.read(storage.run_path(1))==active
   assert collector.load()==before
+  # Plain sentences for every refusal (Discord, 2026-11-25: a traceback reached the player): an empty slot, a run over.
+  for slot,saved,message in [(3,None,collector.EMPTY_SLOT),(3,{'character':0,'pool':[1],'stage':'gameover'},collector.RUN_OVER),
+                             (3,{'character':0,'pool':[1],'stage':'shop','mobile_duel':{'responses':[]}},collector.BETWEEN_DUELS)]:
+   storage.write(storage.run_path(slot),saved)
+   try:collector.dispatch('import',{'source':slot,'slot':2,'name':'Refused'})
+   except ValueError as e:assert str(e)==message,(str(e),message)
+   else:raise AssertionError(f'imported {saved}')
+  storage.clear_run(3)
   run={'character':0,'pool':[1,2,3],'stage':'shop'}
   storage.write(storage.run_path(1),run)
   data=collector.dispatch('import',{'source':1,'slot':9,'name':'Test'})

@@ -34,7 +34,7 @@ def sync():
  system_strings.update({k:v for k,v in json.loads((ROOT/'data/randomizer/prompt-strings.json').read_text(encoding='utf8')).items() if not k.startswith('_')})
  (WEB/'system-strings.js').write_text('export const systemStrings='+json.dumps(system_strings,ensure_ascii=False)+';\n',encoding='utf8')
  shared=['debug_codes.py','feedback_update.py','campaign_catalog.py','character_variants.py','variant_relics.py','archetype_relics.py','pack_odds.py','fallen_collectors.py','collector.py','approved_relics.py','relic_fusions.py','approved_relic_effects.py','choice_relics.py','payment.py','cursed_relics.py','artifact_effects.py','artifact_text.py','artifact_expansion.py','tag_campaign.py','draft_relics.py','secret_challenge.py','deck_view.py','character_progression.py','challenge_levels.py','loss_reason.py','campaign.py','campaign_expansion.py','content.py','storage.py','shop_rewards.py','unlocks.py','passives.py','duel_rewards.py','achievement_model.py','encounters.py','endless.py','deck_files.py']
- shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py','easy_mode.py'])
+ shared.extend(['randomizer.py','random_cards.py','reward_slots.py','boss_selection.py','boss_preview.py','progress_sync.py','golden_cards.py','relic_affinity.py','card_rarity.py','custom_cards.py','pack_merges.py','sleeve_progress.py','easy_mode.py','sandbox.py'])
  files={name:(ROOT/name).read_text(encoding='utf8') for name in shared}
  files['mobile_backend.py']=(A/'mobile_backend.py').read_text(encoding='utf8')
  # data/cards.json is not read by the game: campaign_expansion loads the pool from data/era-cards.json.
@@ -59,6 +59,9 @@ def sync():
  meta['secretCoinRules']=[dict(id=metric,label=label,coins=coins,hint=SECRET_HINTS[metric]) for metric,_,label,coins in RULES if metric in SECRET]
  import relic_fusions
  meta['fusedRelics']=sorted(relic_fusions.KEYS)
+ # Sandbox relic list (sandbox.py), worked out here: it builds a script per relic, seconds of Pyodide on a phone.
+ import sandbox
+ meta['sandboxRelics']=sandbox.relics()
  # Shown only once the player has fused that relic (user, 2026-11-05); undiscovered ones show "???".
  meta['fusionMaterials']={k:{'pieces':list(p),'needed':relic_fusions.NEEDED.get(k,len(p)),**({'required':list(relic_fusions.REQUIRED[k])} if k in relic_fusions.REQUIRED else {})} for k,p in sorted(relic_fusions.RECIPES.items())}
  meta['archetypes']=json.loads((ROOT/'data/archetypes.json').read_text(encoding='utf8'))['archetypes']

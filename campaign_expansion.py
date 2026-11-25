@@ -5,8 +5,10 @@ import easy_mode
 import random,uuid,json,time
 import shop_rewards,card_rarity,archetype_relics,relic_affinity
 from collections import Counter
-# Coins to banish a relic from the shop for the rest of the run (user, 2026-11-24).
-BANISH_PRICE=10
+# Coins to banish a relic from the shop for the rest of the run (user, 2026-11-24). Since 2026-11-25 the first banish costs 20
+# and each banish this run adds 10, up to 60 (Tag: the team's shared banish list, like its shared shop and coins).
+BANISH_PRICE=20;BANISH_STEP=10;BANISH_MAX=60
+def banish_price(run):return min(BANISH_MAX,BANISH_PRICE+BANISH_STEP*len(run.get('relic_banishes') or []))
 import storage
 from content import *
 import passives,unlocks,encounters,endless
@@ -860,13 +862,22 @@ def install(g):
   if (not general_stock or ar.has(run,'morphing_jar_2')) and len(pack_ids)>2 and personal in PACK_BY_ID and not (len(tied_ids)>1 and personal in tied_ids) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):pack_ids[2]=personal
   # Tag (ATM on Discord, user 2026-11-21): the teammate's character pack takes the first extra slot, so every Tag shop
   # offers both players' character packs; it is skipped when it is already on the shelf.
-  team=run.get('shop_pack_characters') or []
-  if run.get('history_mode')=='tag' and len(team)==2 and len(pack_ids)>3 and pack_ids[2]==personal and not (general_stock and not ar.has(run,'morphing_jar_2')):
+  # This round's player may have no character pack (Ryou Bakura's 'RANDOM', user 2026-11-25: the partner's pack vanished from
+  # the first shop); the partner's pack still takes its slot then. Both players on the same character (user, 2026-11-25):
+  # that pack is offered twice, one copy for each player.
+  team=run.get('shop_pack_characters') or [];twin=None
+  personal_slot=pack_ids[2]==personal if len(pack_ids)>2 else False
+  if not personal_slot and personal not in PACK_BY_ID and (not general_stock or ar.has(run,'morphing_jar_2')) and not (copies_deck(run) or CHARACTERS[run['character']].get('engine_deck')):personal_slot=True
+  if run.get('history_mode')=='tag' and len(team)==2 and len(pack_ids)>3 and personal_slot and not (general_stock and not ar.has(run,'morphing_jar_2')):
    other=CHARACTERS[team[1]].get('pack') if 0<=team[1]<len(CHARACTERS) else None
-   if other in PACK_BY_ID and other not in pack_ids[:3]:pack_ids[3]=other
-  # The slots after the character pack (Booster Shelf, Tag's extra packs) never repeat a pack already on the shelf.
+   same=0<=team[0]<len(CHARACTERS) and CHARACTERS[team[0]].get('pack')==other and pack_ids[2]==other
+   if other in PACK_BY_ID and (same or other not in pack_ids[:3]):
+    pack_ids[3]=other
+    if same:twin=3
+  # The slots after the character pack (Booster Shelf, Tag's extra packs) never repeat a pack already on the shelf, except
+  # the same-character twin above.
   for n in range(3,len(pack_ids)):
-   if pack_ids[n] in pack_ids[:n]:
+   if n!=twin and pack_ids[n] in pack_ids[:n]:
     spare=[p for p in pack_pool if p not in pack_ids]
     if spare:pack_ids[n]=rng.choice(spare)
   if randomized_shop:pack_ids=[random_cards.RANDOM_PACK]*len(pack_ids)
@@ -919,27 +930,21 @@ def install(g):
   cursed=cursed_relics.approved();banished=set(run.get('relic_banishes') or [])
   return [a for a in ARTIFACTS if shop_relic_eligible(run,a) and a not in RETIRED_ARTIFACTS and a not in cursed and (a not in run['artifacts'] or a=='golden_sleeve') and a not in banished]
  def banish_relic(run,index,rng=random):
-  """Banish a relic in stock (Discord suggestion, user 2026-11-24): pay BANISH_PRICE coins and the shop never offers it again
-  this run. Its slot restocks at once with another relic, rolled like a random relic slot; the slot empties when none is left."""
+  """Banish a relic in stock (Discord suggestion, user 2026-11-24): pay banish_price coins and the shop never offers it again
+  this run. Since 2026-11-25 (user) the slot is not rerolled: it stays empty (sold out) until the next reroll or shop."""
   cursed_relics.require_choice(run)
   if run.get('stage')!='shop':raise ValueError('Shop is closed.')
   shop=run.get('shop',[]);index=int(index)
   if not 0<=index<len(shop) or shop[index].get('kind')!='artifact' or shop[index].get('sold'):raise ValueError('Only relics in stock can be banished.')
   import payment
-  key=shop[index]['id']
-  payment.pay(run,BANISH_PRICE,'a banish')
-  if not payment.in_lp(run):stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+BANISH_PRICE
+  key=shop[index]['id'];price=banish_price(run)
+  payment.pay(run,price,'a banish')
+  if not payment.in_lp(run):stats=run.setdefault('stats',{});stats['coins_spent']=stats.get('coins_spent',0)+price
   banished=list(run.get('relic_banishes') or []);run['relic_banishes']=banished
   if key not in banished:banished.append(key)
   if key in (run.get('relic_locks') or []):run['relic_locks'].remove(key)
-  stocked={x['id'] for x in shop if x.get('kind')=='artifact'}
-  options=[a for a in shop_relic_pool(run) if a not in stocked]
-  modifier=max(0,1-amount(run,'discount')/100)
-  prices={a:ar.price(run,'artifact',max(1,round(ARTIFACTS[a][1]*modifier))) for a in options}
-  pick=archetype_relics.shop_sample(options,1,run,rng,frozenset(),1,prices) if options else []
-  if pick:shop[index]=dict(kind='artifact',id=pick[0],price=prices[pick[0]],sold=False)
-  else:shop[index]=dict(shop[index],sold=True,banished=True)
-  return {'banished':key,'replacement':pick[0] if pick else None}
+  shop[index]=dict(shop[index],sold=True,banished=True)
+  return {'banished':key,'replacement':None,'price':price}
  def reroll_price(run):
   if ar.free_use(run,'dice_jar','shop') or ar.restock_free_left(run)>0:return 0
   count=max(0,int(run.get('shop_rerolls',0) or 0))
@@ -1113,6 +1118,7 @@ def install(g):
   return _out
  for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','banish_relic','shop_relic_pool','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
+ g.banish_price=banish_price
  g.bounty_complete=bounty_complete
  g.ensure_bounty=ensure_bounty
  g.bounty_objectives=BOUNTY_OBJECTIVES

@@ -4084,7 +4084,8 @@ R.Act.lock_positions_turn={cat=0,op=function(e,tp)
 		lock:SetReset(RESET_PHASE|PHASE_END)
 		Duel.RegisterEffect(lock,tp)
 	end}
-R.Act.ss_self_banished_dino_boost={cat=CATEGORY_SPECIAL_SUMMON+CATEGORY_ATKCHANGE,
+--used while this card is banished (Nov 25: dealt with no timing, it was an ignition effect on the field that never worked)
+R.Act.ss_self_banished_dino_boost={cat=CATEGORY_SPECIAL_SUMMON+CATEGORY_ATKCHANGE,banished=true,
 	check=function(e,tp)
 		local c=e:GetHandler()
 		return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
@@ -13836,6 +13837,7 @@ local function activated(c,id,rand)
 	for _,p in ipairs(rand.acts) do
 		if R.Act[p.k].hand then range=LOCATION_HAND|LOCATION_DECK end
 		if R.Act[p.k].grave then range=LOCATION_GRAVE end
+		if R.Act[p.k].banished then range=LOCATION_REMOVED end
 	end
 	--a cost paid with this card from the hand ("You can discard this card; ...") is used from the hand
 	for _,p in ipairs(rand.costs) do if R.Cost[p.k] and R.Cost[p.k].hand then range=LOCATION_HAND end end
@@ -18549,7 +18551,8 @@ R.Act.sinister_serpent_recycle={cat=CATEGORY_TOHAND+CATEGORY_REMOVE,grave=true,
 		Duel.RegisterEffect(delayed,tp)
 	end}
 R.Act.ss_self_gy={cat=CATEGORY_SPECIAL_SUMMON,grave=true,
-	check=function(e,tp) return e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP) end,
+	--a free Main Monster Zone too, or the activation does nothing (Nov 25)
+	check=function(e,tp) return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP) end,
 	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,tp,LOCATION_GRAVE) end,
 	op=function(e,tp)
 		local c=e:GetHandler()
@@ -18558,7 +18561,8 @@ R.Act.ss_self_gy={cat=CATEGORY_SPECIAL_SUMMON,grave=true,
 		end
 	end}
 R.Act.ss_self_gy_swap_base={cat=CATEGORY_SPECIAL_SUMMON,grave=true,
-	check=function(e,tp) return e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP) end,
+	--a free Main Monster Zone too, or the activation does nothing (Nov 25)
+	check=function(e,tp) return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP) end,
 	prep=function(e,tp) Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,tp,LOCATION_GRAVE) end,
 	op=function(e,tp)
 		local c=e:GetHandler()

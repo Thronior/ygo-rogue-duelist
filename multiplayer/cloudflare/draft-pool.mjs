@@ -36,6 +36,8 @@ export function loadout(character,variant=0){
  if(variant!==1||!c.alternate)return c;
  return {...c,...c.alternate,id:c.id,name:c.name,signatures:c.alternate.signatures||[],pack:c.alternate.pack||c.pack,variant:1};
 }
+// A loadout whose every starting pack is a Random Pack (Copycat's Randomizer).
+export const randomizedLoadout=(character,variant=0)=>{try{const c=loadout(character,variant===1?1:0);return !!c.starting_packs?.length&&c.starting_packs.every(id=>id===RANDOM_PACK)}catch{return false}};
 export function draftPool(character,random=secureRandom,loop=false,variant=0){
  const c=loadout(character,variant===1?1:0);
  // Not in Draft Duels (user, 2026-11-17): Copycat's standard loadout and both Dueling Engine loadouts.
@@ -58,7 +60,9 @@ export function draftPool(character,random=secureRandom,loop=false,variant=0){
 // Three different relics (drawn by rarity weight, without replacement) and three different character packs for one
 // Draft Screen. A "No relics" room (room.noRelics) offers the packs alone.
 // randomPack: rooms of clients that can build Random Packs (draft protocol 4) add it to the pack rotation.
-export function draftOffer(random=secureRandom,{relics=true,randomPack=false}={}){
+// allRandom (user, 2026-11-25): both players play a randomized loadout (Copycat's Randomizer), so all three packs are
+// Random Packs. Picks are by index, so the two players still take different slots.
+export function draftOffer(random=secureRandom,{relics=true,randomPack=false,allRandom=false}={}){
  const sample=(xs,n,weight=()=>1)=>{const left=[...xs],out=[];while(out.length<n&&left.length){let value=random()*left.reduce((s,x)=>s+weight(x),0),i=0;for(;i<left.length-1;i++){value-=weight(left[i]);if(value<0)break;}out.push(left.splice(i,1)[0]);}return out;};
- return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:sample(randomPack?[...DRAFT_PACKS,RANDOM_PACK]:DRAFT_PACKS,3)};
+ return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:randomPack&&allRandom?[RANDOM_PACK,RANDOM_PACK,RANDOM_PACK]:sample(randomPack?[...DRAFT_PACKS,RANDOM_PACK]:DRAFT_PACKS,3)};
 }

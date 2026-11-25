@@ -40,6 +40,9 @@ export function deckOrder(ed,{pool,selected,lookup,run,info,searchKey}){
  const name=i=>lookup(pool[i])?.name||'';
  if(ed.deckSort==='Default')order.sort((a,b)=>frameLevelName(lookup(pool[a]),lookup(pool[b]))||a-b);
  else if(ed.deckSort==='Name')order.sort((a,b)=>name(a).localeCompare(name(b)));
+ // As solo's Type sort (mobile.js draftSortedFresh): Monsters, Spells, Traps, then by Type (Spell/Trap: their kind) and name.
+ // Tag had no Type sort (bug report, 2026-11-25).
+ else if(ed.deckSort==='Type'){const cat=c=>c?.data.type&1?0:c?.data.type&2?1:c?.data.type&4?2:3,sub=c=>String(c?.race||'');order.sort((a,b)=>{const x=lookup(pool[a]),y=lookup(pool[b]);return cat(x)-cat(y)||sub(x).localeCompare(sub(y))||name(a).toLowerCase().localeCompare(name(b).toLowerCase())||a-b})}
  else if(ed.deckSort==='Attribute')attributeOrder(order,pool,lookup,run);
  else if(ed.deckSort==='ATK'){const attacks=new Map(order.map(i=>[i,lookup(pool[i]).data.type&1?deckStats(lookup(pool[i]),run,i,info)[0]:0]));order.sort((a,b)=>attacks.get(b)-attacks.get(a)||name(a).localeCompare(name(b))||a-b)}
  else if(ed.deckSort==='DEF')order.sort((a,b)=>(lookup(pool[b])?.defense||0)-(lookup(pool[a])?.defense||0));

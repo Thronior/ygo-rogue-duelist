@@ -38,8 +38,8 @@ export function mismatchMessage(partnerBuild,ownBuild=replayVersion){
 // Both clients run the duel from one shared response log. Only the seat the engine is waiting for can extend it, so
 // a player's own answer applies at once and travels behind them. The host keeps the journal and answers for the CPU.
 export class TagSession {
- constructor({endpoint,sleeve=null,character,variant=0,profile,level=0,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null,randomCards=null}){
-  this.sleeve=sleeve;this.partnerSleeve=null;Object.assign(this,{character,variant,profile,level,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory,randomCards});
+ constructor({endpoint,sleeve=null,character,variant=0,profile,level=0,easy=false,content,backend,onView=()=>{},onDuel=()=>{},onStatus=()=>{},onPacks=()=>{},onAbandoned=()=>{},duelFactory=null,randomCards=null}){
+  this.sleeve=sleeve;this.partnerSleeve=null;Object.assign(this,{character,variant,profile,level,easy,content,backend,onView,onDuel,onStatus,onPacks,onAbandoned,duelFactory,randomCards});
   this.packEvents=new Set();this.pending=new Map();this.queue=Promise.resolve();this.connected=false;this.active=false;this.aiTimer=null;this.log=[];this.presented=Promise.resolve();this.greeted=false;this.resyncs=0;
   this.contentHash=contentHash(content);
   this.peer=new TagPeer(endpoint,{onState:(s,detail)=>this.status(s,detail),onMessage:m=>this.enqueue(()=>this.receive(decode(m)))});
@@ -109,10 +109,10 @@ export class TagSession {
    try{
    if(this.seat===0){
     // Lobby seats are replaceable. Never reuse the departed guest's loadout.
-    if(this.active&&this.view?.phase==='lobby')await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,lobby:true});
+    if(this.active&&this.view?.phase==='lobby')await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,easy:!!this.easy,lobby:true});
     if(!this.active){
      const restored=this.peer.resumed?await this.backend('tag-restore',{code:this.code,optional:!this.peer.started}):null;
-     if(!restored)await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,lobby:true});
+     if(!restored)await this.backend('tag-create',{code:this.code,characters:[this.character,message.character],variants:[this.variant,message.variant||0],profiles:[this.profile,message.profile],level:this.level,easy:!!this.easy,lobby:true});
      if(!this.peer.started){await this.peer.request('started');this.peer.started=true}
      this.active=true;
     }

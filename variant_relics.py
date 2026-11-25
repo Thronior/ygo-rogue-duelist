@@ -7,6 +7,10 @@ ROWS=[
  ('photosynthesis','Photosynthesis',85,'Once per turn, during your Standby Phase: Gain 300 LP for each face-up Plant monster you control.','The World Tree','Plant'),
  ('spring_growth','Spring Growth',90,'Once per turn, during your Standby Phase: Each face-up Plant monster you control gains 200 ATK.','Gigantic Cephalotus','Plant'),
  ('pollinator','Pollinator',85,'Once per turn, during your End Phase, if you control a face-up Plant monster: Special Summon 1 "Moth Token" (Insect/EARTH/Level 1/ATK 300/DEF 300) in Defense Position.','Anti-Aircraft Flower','Plant'),
+ # 10K survey relics the user picked (2026-11-25): a Sanctuary in the Sky burn for Fairy decks (survey row 226) and
+ # Weevil's anime Parasite Paracide infestation (survey row 393). Names and art are mine; none were given.
+ ('sanctuary_hymn','Sanctuary Hymn',90,'While "The Sanctuary in the Sky" is face-up on the field, each time you gain LP by the effect of a Fairy monster, inflict damage to your opponent equal to the LP you gained.','Dancing Fairy','Fairy'),
+ ('parasite_infestation','Parasite Infestation',80,'At the start of each Duel, shuffle 1 "Parasite Paracide" from outside the Duel into your opponent\'s Deck face-up.','Parasite Paracide','Insect'),
  ('machine_foundry','Fusion Dividend',90,'Earn 30 coins each time you Fusion Summon. Coins are collected after the duel.','Fusion Sage',''),
  ('swordsman_oath','Level Bonus',85,'Your LV monsters gain 400 ATK.','Silent Swordsman LV5','LV'),
  ('static_coil','Damage Echo',90,'Each time you deal effect damage to your opponent, inflict 200 additional effect damage. This cannot trigger itself.','Wave-Motion Cannon',''),
@@ -22,6 +26,8 @@ ROWS=[
 ]
 METALMORPH=68540058
 MOTH_TOKEN=190000057  # data/custom-tokens.json
+SANCTUARY=56433456  # The Sanctuary in the Sky
+PARACIDE=27911549  # Parasite Paracide (27911550 in data/cards.json is its alternate art)
 def install(artifact):
  for key,name,price,text,art,filter in ROWS:artifact(key,name,price,text,art,'variant_'+key,0,'offense',filter)
 
@@ -71,6 +77,26 @@ def effect(kind):
   end
  end
  Duel.SpecialSummonComplete()''',has_plant)
+ if key=='sanctuary_hymn':
+  # LP gained by a Fairy monster's effect (Dancing Fairy, Spirit of the Breeze, Hysteric Fairy...) while either player's
+  # Sanctuary is face-up. Healing Echo's extra 200 comes from a relic, not a Fairy, so it adds no damage.
+  fairy='re~=nil and re:GetHandler()~=nil and re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsRace(RACE_FAIRY)'
+  return event('EVENT_RECOVER','Duel.Damage(1,ev,REASON_EFFECT)',f'ep==0 and ev>0 and {fairy} and Duel.IsEnvironment({SANCTUARY})')
+ if key=='parasite_infestation':
+  # As Parasite Paracide's own FLIP effect does it (c27911549.lua): the card goes face-up into the opponent's Deck and gets
+  # the forced trigger for when they draw it (Special Summon to their field in Defense Position, 1000 damage to them,
+  # their monsters become Insect). EVENT_STARTUP runs after the opening hands, so it is never in one.
+  return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local tc=Duel.CreateToken(0,PARACIDE) Duel.SendtoDeck(tc,1,SEQ_DECKSHUFFLE,REASON_RULE)
+ if not tc:IsLocation(LOCATION_DECK) then return end
+ --[[relic-hint]] Duel.ShuffleDeck(1) tc:ReverseInDeck()
+ local e1=Effect.CreateEffect(tc) e1:SetDescription(aux.Stringid(PARACIDE,1)) e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+ e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F) e1:SetCode(EVENT_DRAW)
+ e1:SetTarget(function(e,tp,eg,ep,ev,re,r,rp,chk) if chk==0 then return e:GetHandler():IsRelateToEffect(e) end Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0) end)
+ e1:SetOperation(function(e,tp) local c=e:GetHandler() if not c:IsRelateToEffect(e) then return end
+  if Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP_DEFENSE)>0 then Duel.Damage(tp,1000,REASON_EFFECT)
+   local e2=Effect.CreateEffect(c) e2:SetType(EFFECT_TYPE_FIELD) e2:SetCode(EFFECT_CHANGE_RACE) e2:SetRange(LOCATION_MZONE) e2:SetTargetRange(LOCATION_MZONE,0) e2:SetValue(RACE_INSECT) e2:SetReset(RESET_EVENT|RESETS_STANDARD) c:RegisterEffect(e2) end end)
+ e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOHAND) tc:RegisterEffect(e1) end) Duel.RegisterEffect(e,0) end'''.replace('PARACIDE',str(PARACIDE))
  if key=='machine_foundry':return event('EVENT_SPSUMMON_SUCCESS','local n=eg:FilterCount(function(c) return c:IsControler(0) and c:IsSummonType(SUMMON_TYPE_FUSION) end,nil) if n>0 then --[[relic-hint]] end for i=1,n do Duel.Hint(HINT_MESSAGE,0,900000003) end')
  if key=='swordsman_oath':return stat('EFFECT_UPDATE_ATTACK',400,'c:IsSetCard(SET_LV)')
  if key=='static_coil':

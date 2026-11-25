@@ -33,6 +33,11 @@ for key,v in ART_INFO.items():
  elif f=='normal' or kind in ('normal','approved_commoners_chain'):test=lambda c:c['data']['type']&0x10
  elif kind=='overcharge':test=lambda c:c['race']=='Thunder'
  elif kind in ('small','approved_ashen_nursery'):test=lambda c:c['level']<=3
+ # Fused relics name their monsters in the text, not in a filter (Discord, 2026-11-25: Insect Swarm tested on Vorse Raider).
+ elif kind=='fused_insect_swarm':test=lambda c:c['race']=='Insect'
+ elif kind=='fused_eternal_garden':test=lambda c:c['race']=='Plant'
+ elif kind=='fused_spirit_sanctuary':test=lambda c:c['data']['type']&0x200
+ elif kind in ('fused_gadget_gadget','fused_terrorking_magnus'):test=lambda c,s={'fused_gadget_gadget':0x51,'fused_terrorking_magnus':0x45}[kind]:any((x&0xfff)==s for x in c['data'].get('setcodes',[]))
  elif f and f.upper()==f:test=lambda c,f=f:c['attribute']==f
  elif f:test=lambda c,f=races.get(f,f):c['race']==f or (f in ('Warrior','Beast') and c['race']=='Beast-Warrior')
  else:test=lambda c:c['name']=='Vorse Raider'

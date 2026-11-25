@@ -15175,7 +15175,7 @@
  },
  {
   "group": "relic",
-  "en": "Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.",
+  "en": "Monsters you control gain 50 ATK for each banished monster belonging to either player.",
   "kind": "exact",
   "ctx": "relic effect (exile_standard)"
  },
@@ -15235,7 +15235,7 @@
  },
  {
   "group": "relic",
-  "en": "Once per Duel, negate the first opponent's effect that targets a Level 7 or higher monster you control.",
+  "en": "Once per Duel, when your opponent activates a card or effect that targets a Level 7 or higher monster you control: Negate that effect, and if you do, destroy that card.",
   "kind": "exact",
   "ctx": "relic effect (boss_monster)"
  },
@@ -26464,5 +26464,179 @@
   "en": "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.",
   "kind": "exact",
   "ctx": "android/web/mobile.js persist"
+ },
+ {
+  "group": "relic",
+  "en": "Sun's Judgment",
+  "kind": "exact",
+  "ctx": "relic name (sun_judgment)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you pay LP for an effect, inflict damage to your opponent equal to half the LP you paid (rounded down).",
+  "kind": "exact",
+  "ctx": "relic effect (sun_judgment)"
+ },
+ {
+  "group": "relic",
+  "en": "Desert Sunlight",
+  "kind": "exact",
+  "ctx": "relic name (desert_sunlight)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per turn, during your Standby Phase, if you control a face-up Divine-Beast monster: Gain 1,000 LP for each face-up Divine-Beast monster you control.",
+  "kind": "exact",
+  "ctx": "relic effect (desert_sunlight)"
+ },
+ {
+  "group": "relic",
+  "en": "Seal of the Sun",
+  "kind": "exact",
+  "ctx": "relic name (seal_of_the_sun)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time a Divine-Beast monster is Summoned to your field, it cannot be destroyed by card effects until the end of your next Standby Phase.",
+  "kind": "exact",
+  "ctx": "relic effect (seal_of_the_sun)"
+ },
+ {
+  "group": "ui",
+  "en": "Most played",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Toughest",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Easiest",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "A–Z",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Against each duelist",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} duels",
+  "kind": "pattern",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "relic",
+  "en": "Sun God's Ascension",
+  "kind": "exact",
+  "ctx": "relic name (sun_gods_ascension)"
+ },
+ {
+  "group": "relic",
+  "en": "Divine-Beast monsters you control gain 1,500 ATK and cannot be destroyed by card effects. Once per turn, during your Standby Phase, if you control a face-up Divine-Beast monster: Gain 1,000 LP for each face-up Divine-Beast monster you control.",
+  "kind": "exact",
+  "ctx": "relic effect (sun_gods_ascension)"
+ },
+ {
+  "group": "relic",
+  "en": "Solar Covenant",
+  "kind": "exact",
+  "ctx": "relic name (solar_covenant)"
+ },
+ {
+  "group": "ui",
+  "en": "Best win rate",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Lowest win rate",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Run win rate",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "By Challenge Level",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "Toughest CPUs",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "All CPU records",
+  "kind": "exact",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "ui",
+  "en": "{0} runs",
+  "kind": "pattern",
+  "ctx": "mobile.js"
+ },
+ {
+  "group": "relic",
+  "en": "Sanctuary Hymn",
+  "kind": "exact",
+  "ctx": "relic name (sanctuary_hymn)"
+ },
+ {
+  "group": "relic",
+  "en": "While \"The Sanctuary in the Sky\" is face-up on the field, each time you gain LP by the effect of a Fairy monster, inflict damage to your opponent equal to the LP you gained.",
+  "kind": "exact",
+  "ctx": "relic effect (sanctuary_hymn)"
+ },
+ {
+  "group": "relic",
+  "en": "Parasite Infestation",
+  "kind": "exact",
+  "ctx": "relic name (parasite_infestation)"
+ },
+ {
+  "group": "relic",
+  "en": "At the start of each Duel, shuffle 1 \"Parasite Paracide\" from outside the Duel into your opponent's Deck face-up.",
+  "kind": "exact",
+  "ctx": "relic effect (parasite_infestation)"
+ },
+ {
+  "group": "relic",
+  "en": "Scorching Strikes",
+  "kind": "exact",
+  "ctx": "shadow relic name (cursed_scorching_strikes)"
+ },
+ {
+  "group": "relic",
+  "en": "Battle damage your opponent would take is inflicted as effect damage instead. Halve that damage (rounded down).",
+  "kind": "exact",
+  "ctx": "shadow relic effect (cursed_scorching_strikes)"
+ },
+ {
+  "group": "relic",
+  "en": "Each time you pay LP for an effect, inflict damage to your opponent equal to half the LP you paid (rounded down), then gain LP equal to half the LP you paid (rounded down). The first time you pay LP each Duel, gain LP equal to all the LP you paid instead.",
+  "kind": "exact",
+  "ctx": "relic effect (solar_covenant)"
  }
 ]

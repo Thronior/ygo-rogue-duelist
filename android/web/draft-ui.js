@@ -15,7 +15,7 @@ import {saveDeckScroll,restoreDeckScroll} from './card-search.js';
 import {RANDOM_PACK} from './random-cards.js';
 import {alternateUnlocked} from './difficulty-preference.js';
 // The deck editor works like solo and Tag (Discord 2026-11-13): same sorts, Deck status, split view and ATK/DEF.
-const DRAFT_DECK_SORTS=['Newest','Default','Name','Attribute','ATK','DEF','Level'],DECK_SEARCH='online-draft-deck';
+const DRAFT_DECK_SORTS=['Newest','Default','Name','Type','Attribute','ATK','DEF','Level','Oldest'],DECK_SEARCH='online-draft-deck';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,attrs='')=>`<button data-collector="${action}" ${attrs}>${label}</button>`;
 // Draft loop (rooms Worker DraftRegistry, 2026-11-13): duel → Draft Screen → boosters → deck editor → next duel.

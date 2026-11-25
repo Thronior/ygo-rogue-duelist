@@ -5,7 +5,7 @@ Object.assign(globalThis,{window:globalThis,Audio:class{},addEventListener(){},i
  document:{hidden:false,addEventListener(){},removeEventListener(){}},location:{search:''},
  localStorage:{getItem(){return null},setItem(){},removeItem(){}}});
 const {TagUI}=await import('./web/tag-ui.js');
-const {relicBanishButton}=await import('./web/relic-lock.js');
+const {relicBanishButton,relicBanishPrice}=await import('./web/relic-lock.js');
 const render=TagUI.prototype.render;TagUI.prototype.render=()=>{};
 const root={style:{setProperty(){}},addEventListener(){}};
 const ui=new TagUI({root,content:{},profile:{unlocked:[0]},image:id=>`${id}.jpg`,inspect(){},inspectPack(){},dialog(){}});
@@ -26,4 +26,7 @@ assert.ok(!relicBanishButton(shop[1],1,true,'10',true,'data-tag').includes('data
 assert.equal(relicBanishButton(shop[2],2,false,'10',true,'data-tag'),'','packs have no cross');
 assert.equal(relicBanishButton({...shop[0],sold:true},0,false,'10',true,'data-tag'),'','sold relics have no cross');
 assert.match(relicBanishButton(shop[1],1,true,'10',false,'data-tag'),/relic-banish-confirm fx-cant-afford/);
-console.log('PASS Tag relic banish button: arms locally, one shared request with index and id, shop only, same markup as solo');
+// Price (2026-11-25): 20, +10 per relic on the run's (Tag: the team's) banish list, at most 60, as campaign_expansion.banish_price.
+assert.deepEqual([0,1,2,3,4,5,9].map(n=>relicBanishPrice({relic_banishes:Array(n).fill('x')})),[20,30,40,50,60,60,60]);
+assert.equal(relicBanishPrice({}),20);
+console.log('PASS Tag relic banish button: arms locally, one shared request with index and id, shop only, same markup as solo, price 20 +10 up to 60');

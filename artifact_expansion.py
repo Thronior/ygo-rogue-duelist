@@ -7,12 +7,12 @@ def install(artifact):
  artifact('arcane_resonance','Arcane Resonance',130,'Monsters you control gain 100 ATK for each face-up Spell/Trap on the field.','Mage Power','backrow_atk',100,'offense')
  artifact('waning_star','Waning Star',95,'Once per turn, at the start of your Standby Phase, reduce the Level of 1 random Level 2 or higher monster in your hand by 1 until the end of this turn.','Cost Down','hand_level',1,'draw')
  artifact('third_gate','The Third Gate',100,'Count non-Token cards from either player that would be sent to the GY. Banish every third card instead. The count resets at the start of each Duel.','Banisher of the Light','third_banish',3,'offense')
- artifact('exile_standard','Exile Standard',100,'Monsters you control gain 50 ATK for each face-up banished monster belonging to either player.','Soul Release','banished_atk',50,'offense')
+ artifact('exile_standard','Exile Standard',100,'Monsters you control gain 50 ATK for each banished monster belonging to either player.','Soul Release','banished_atk',50,'offense')
  artifact('field_amplifier','Field Amplifier',120,'Double ATK/DEF increases applied by the effects of face-up Field Spells you control. ATK/DEF decreases are unchanged.','Terraforming','field_double',1,'offense')
  artifact('returning_tide','Returning Tide',300,'Once per turn, at the start of your Standby Phase, return 1 Spell/Trap on the field to the hand.','Giant Trunade','standby_bounce',1,'defense')
  artifact('final_hour','Final Hour',150,'When acquired, add 1 "Final Countdown" to your card pool. At the start of each Duel, add 1 "Final Countdown" to your hand.','Final Countdown','countdown',1,'draw')
  artifact('this_life_mine','This Life Is Mine',90,'The first time you pay LP to activate a card each Duel, recover the same amount.','Snatch Steal','this_life_mine',0,'healing')
- artifact('boss_monster','Boss Monster',100,"Once per Duel, negate the first opponent's effect that targets a Level 7 or higher monster you control.",'Tri-Horned Dragon','boss_monster',0,'defense')
+ artifact('boss_monster','Boss Monster',100,"Once per Duel, when your opponent activates a card or effect that targets a Level 7 or higher monster you control: Negate that effect, and if you do, destroy that card.",'Tri-Horned Dragon','boss_monster',0,'defense')
  artifact('sword_and_shield','Sword and Shield',90,'Swap the original ATK and DEF of all monsters.','Shield & Sword','swap_base_ad',0,'offense')
  artifact('broken_limiter','Broken Limiter',110,'There is no three-copy limit for cards in your Deck.','Limiter Removal','broken_limiter',0,'other')
  artifact('lets_go_gambling',"Let's Go Gambling",85,'Once per turn, retry a coin toss or dice roll.','Roulette Barrel','retry_toss',0,'other')
@@ -68,4 +68,9 @@ def install(artifact):
  # Pyramid of Lightning's Pyramid comes from outside the Duel, as Final Hour's Final Countdown does (artifact_effects.py).
  artifact('pyramid_of_lightning','Pyramid of Lightning',60,'At the start of each Duel, place 1 "Pyramid of Light" face-up in your Spell & Trap Zone.','Pyramid of Light','starting_pyramid',0,'draw')
  artifact('bond_of_egypt','Bond of Egypt',80,'If you Normal or Tribute Summon a "Sphinx" monster: Add 1 "Sphinx" card, or 1 card that mentions "Sphinx" in its text, from your Deck to your hand.','Sphinx Teleia','sphinx_search',0,'draw')
+ # Ra support (user, 2026-11-25, after Thronior's "one standard relic and one fused relic" for The Winged Dragon of Ra).
+ # Sun's Judgment counts every LP payment, not only Ra's, so other LP-cost decks can use it (user).
+ artifact('sun_judgment',"Sun's Judgment",100,'Each time you pay LP for an effect, inflict damage to your opponent equal to half the LP you paid (rounded down).','Solar Flare Dragon','sun_judgment',0,'offense')
+ artifact('desert_sunlight','Desert Sunlight',90,'Once per turn, during your Standby Phase, if you control a face-up Divine-Beast monster: Gain 1,000 LP for each face-up Divine-Beast monster you control.','Desert Sunlight','desert_sunlight',1000,'healing','Divine-Beast')
+ artifact('seal_of_the_sun','Seal of the Sun',90,'Each time a Divine-Beast monster is Summoned to your field, it cannot be destroyed by card effects until the end of your next Standby Phase.','Divine Wrath','seal_of_the_sun',0,'defense','Divine-Beast')
  artifact('shadow_of_anubis','Shadow of Anubis',90,'While you control "Andro Sphinx" or "Sphinx Teleia", "Sphinx" monsters in your hand become Level 4.','Judgment of Anubis','sphinx_hand_level',0,'summoning')

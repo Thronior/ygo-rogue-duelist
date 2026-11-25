@@ -1,0 +1,115 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_46,.patch-notes-sheet.pn0_2_46 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_46{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_46 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_46 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_46 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_46 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_46 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_46 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_46 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big .pn0_2_46-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big>*{position:relative}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-big p.pn0_2_46-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way img,.patch-notes-sheet.pn0_2_46 .pn0_2_46-way .pn0_2_46-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way .pn0_2_46-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way .pn0_2_46-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-relics .pn0_2_46-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-packs .pn0_2_46-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-mark.pn0_2_46-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-mark.pn0_2_46-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-way .pn0_2_46-art.pn0_2_46-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-cardrow{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-cardrow img{width:86px;height:125px;object-fit:cover;border-radius:6px;border:2px solid #b5824a}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-choice{display:flex;gap:10px;margin-top:12px;align-items:stretch}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-choice span{border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;font:400 22px Bebas;letter-spacing:2px;padding:6px 0}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-choice .pn0_2_46-easy{flex:1;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_46 .pn0_2_46-choice .pn0_2_46-lvl{flex:1;color:#9fb4ba;background:#0b1a22;font-size:18px}</style><div class="patch-notes-sheet pn0_2_46"><div class="pn0_2_46-kick">YGO Rogue Duelist</div><h1>Update 0.2.46</h1>
+
+<section class="pn0_2_46-cols" style="margin-top:28px">
+<div class="pn0_2_46-big"><em>Neuer Modus</em><h3>Freie Duelle</h3>
+<p class="pn0_2_46-lead">Wähle <b>ein beliebiges Deck</b>, deins oder das eines CPUs, gegen <b>jedes CPU-Deck</b> aus jeder Stufe und gib <b>beiden Seiten Relikte</b>. Baue eigene Decks mit <b style="white-space:nowrap">+&nbsp;Neues Deck</b>. Neustart oder Revanche jederzeit. Nichts wird gespeichert. Wird freigeschaltet, sobald du <b>einen Run gewonnen</b> hast.</p>
+<div class="pn0_2_46-seats"><span>Du</span><i>VS</i><span>Jeder CPU</span></div></div>
+<div class="pn0_2_46-big"><em>Tag-Duelle</em><h3>Leichter Modus und mehr</h3>
+<p class="pn0_2_46-lead">Der Host kann in der Liste der Schwierigkeitsgrade <b>Leicht</b> wählen. Tausche haben einen <b>Abbrechen</b>-Knopf. Zwei Spieler mit <b>demselben Duellanten</b> bekommen beide dessen Booster, und <b>Katalog des Duellanten</b> lässt den Booster deines Partners unberührt.</p>
+<div class="pn0_2_46-choice"><span class="pn0_2_46-easy">Leicht</span><span class="pn0_2_46-lvl">LVL 1</span><span class="pn0_2_46-lvl">LVL 2</span><span class="pn0_2_46-lvl">LVL 3</span></div></div>
+</section>
+
+<section class="pn0_2_46-big"><em>Relikte</em><h3>Neue Relikte</h3>
+<div class="pn0_2_46-ways">
+<div class="pn0_2_46-way"><img src="assets/relics/45985838.jpg"><p><b>Ra-Support</b><b>Urteil der Sonne</b> fügt die Hälfte jeder LP-Zahlung als Schaden zu. <b>Sonnenlicht der Wüste</b> heilt für deine Göttlichen Ungeheuer, und <b>Siegel der Sonne</b> schützt sie, wenn sie beschworen werden.</p></div>
+<div class="pn0_2_46-way"><img src="assets/relics/90925163.jpg"><p><b>Hymne der Zuflucht</b>Solange <b>Die Zuflucht im Himmel</b> offen liegt, erleidet dein Gegner jedes Mal, wenn dich deine Fee heilt, denselben Schaden.</p></div>
+<div class="pn0_2_46-way"><img src="assets/relics/27911549.jpg"><p><b>Parasitenbefall</b>Jedes Duell beginnt mit einem offenen <b>Parasiten-Parazid</b>, das in das Deck deines Gegners gemischt wird.</p></div>
+<div class="pn0_2_46-way"><img src="assets/relics/46918794.jpg"><p><b>Sengende Schläge</b>Neues Schattenrelikt: Dein Kampfschaden wird <b>halbiert</b> und als <b>Effektschaden</b> zugefügt, damit zählen ihn Brand-Relikte.</p></div>
+</div>
+<p class="pn0_2_46-lead" style="margin-top:14px">Dazu <b>2 neue verschmolzene Relikte</b> zum Entdecken. Die Relikt-Ideen stammen aus euren Umfrageantworten.</p></section>
+
+<section class="pn0_2_46-big"><em>Neue Karten</em><h3>Aus eurer Umfrage</h3>
+<div class="pn0_2_46-ways">
+<div class="pn0_2_46-way"><div class="pn0_2_46-art pn0_2_46-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>Das Siegel von Orichalcos</b>In <b>Dartz’ Booster</b> und <b>Albtraumlegion</b>.</p></div>
+<div class="pn0_2_46-way"><div class="pn0_2_46-art pn0_2_46-crop" style="background-image:url('assets/cards/73125233.jpg')"></div><p><b>Raiza der Sturmmonarch und Caius der Schattenmonarch</b>Die letzten beiden Monarchen, in den Boostern der <b>Paradox-Brüder</b> und von <b>Yami Marik</b>, in <b>Zorn des Himmels</b> und <b>Albtraumlegion</b>.</p></div>
+<div class="pn0_2_46-way"><div class="pn0_2_46-art pn0_2_46-crop" style="background-image:url('assets/cards/67300516.jpg')"></div><p><b>Rotäugiger Lindwurm</b>In <b>Joeys Booster</b> und <b>Zorn des Himmels</b>.</p></div>
+<div class="pn0_2_46-way"><div class="pn0_2_46-art pn0_2_46-crop" style="background-image:url('assets/cards/66788016.jpg')"></div><p><b>Joeys Booster</b>Jetzt mit Entfernern: <b>Spalt</b>, <b>Fallgrube</b>, <b>Staubtornado</b>, <b>Sakuretsu-Rüstung</b>, <b>Mystischer Raum-Taifun</b> und <b>Spiegelkraft</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_46-cols">
+<div class="pn0_2_46-big"><em>Statistiken</em><h3>Neue Statistik-Bildschirme</h3>
+<p class="pn0_2_46-lead"><b>CPU-Statistiken</b> und <b>Charakterstatistiken</b> sind jetzt eine Liste zum <b>Suchen und Sortieren</b> (meistgespielt, am stärksten, beste Siegquote …) neben der Seite des Gewählten: Siegquote pro <b>Schwierigkeitsgrad</b>, stärkste CPUs und alle Bilanzen.</p></div>
+<div class="pn0_2_46-big"><em>Relikt-Shop</em><h3>Verbannen und Belohnungen</h3>
+<p class="pn0_2_46-lead">Ein Relikt zu verbannen kostet <b>20 Münzen</b>, danach jedes Mal <b>10 mehr</b> (bis 60), und sein Platz bleibt leer. Die zweite Wahl der <b>Champion-Trophäe</b> zeigt <b>3 neue Relikte</b>.</p></div>
+</section>
+
+<section class="pn0_2_46-cols">
+<div><h2>Änderungen</h2><ul class="pn0_2_46-small">
+<li><span>🃏</span><span><b>Draft-Duelle</b>: Im <b>Copycat-Spiegelmatch</b> ist jeder wählbare Booster ein <b>Zufallsbooster</b>.</span></li>
+<li><span>🛠️</span><span><b>Deck-Editor</b> (Freie Duelle und CPU-Duell ansehen): ein Knopf <b>Deck speichern</b>, Kopien stapeln sich als <b>×2 / ×3</b>, Zähler für Monster / Zauber / Fallen und ein Reiter <b>Eigene Decks</b> mit der ersten Karte jedes Decks.</span></li>
+<li><span>🖼️</span><span>Freie Duelle und CPU-Duell ansehen: <b>größere Porträts</b> in einer scrollbaren Liste.</span></li>
+<li><span>🧠</span><span>CPU: greift mit Monstern an, die ihr Kampfziel zerstören, wenn sich der Tausch lohnt, wartet, bis <b>Urknallkanone</b> ausgerüstet ist, feuert <b>Wellenbewegungskanone</b>, sobald es tödlich ist, und greift keine stärkeren Monster mehr grundlos an.</span></li>
+<li><span>🗂️</span><span>Der <b>Geteilter Deck-Editor</b> ist auf Bildschirmen mit Platz für 10+ Karten pro Reihe standardmäßig an.</span></li>
+<li><span>🔍</span><span>Tag, Draft und der Sammler-Editor sortieren nach <b>Typ</b> und <b>Älteste</b>, wie im Solo.</span></li>
+<li><span>🌈</span><span>Zufallskarten bekommen einen leichten <b>Regenbogenschimmer</b> und würfeln keine Effekte mehr aus, die sich selbst aufheben.</span></li>
+<li><span>✨</span><span>Neuer Sound beim <b>Ultra Rare-Zug</b>, der sanft ausklingt.</span></li>
+<li><span>🐛</span><span><b>Insektenschwarm</b> und andere Werte-Relikte zeigen ihren Bonus auf Karten in Hand und Deck an.</span></li>
+<li><span>💥</span><span><b>Bossmonster</b> annulliert jetzt <b>und zerstört</b>. <b>Exil-Standarte</b> zählt jedes verbannte Monster.</span></li>
+<li><span>⛓️</span><span><b>Elma, Schmetterlingsdolch</b> fragt bei <b>Manchmal anketten</b> nach.</span></li>
+<li><span>🌊</span><span><b>Umi</b> und <b>Amphibischer Bugroth MK-3</b> sind nicht mehr in Bandit Keiths Booster.</span></li>
+<li><span>🖼️</span><span>Neue Porträts für <b>Roland</b>, die <b>Harpyien-Schwestern</b> und <b>Thestalos</b>.</span></li>
+<li><span>💾</span><span><b>Spielstand importieren</b> gibt es auch unter Einstellungen › Geräte & App.</span></li>
+</ul></div>
+<div><h2>Fehlerbehebungen</h2><ul class="pn0_2_46-small">
+<li><span>🏆</span><span><b>Ultimativer Sammler</b> zeigt keinen Fehler mehr, wenn er ohne laufendes Match geöffnet wird.</span></li>
+<li><span>♾️</span><span><b>Unbegrenzte Karten</b> hebt auch Handlimits von Relikten und Flüchen auf.</span></li>
+<li><span>🥁</span><span><b>Einberufungstrommel</b> hält nur normal beschworene Monster auf, keine flippbeschworenen.</span></li>
+<li><span>🔧</span><span>Der CPU verschwendet <b>Sieben Werkzeuge des Banditen</b> nicht mehr auf eine Falle, die er ohnehin zerstört.</span></li>
+<li><span>🦗</span><span>Der CPU beschwört kein Monster mehr durch <b>Fliegender Kamakiri #1</b> oder ähnliche Karten, wenn dir das den tödlichen Angriff ermöglicht.</span></li>
+<li><span>📜</span><span>Einträge im Duell-Log von PvP-Duellen, etwa zu <b>Belastungsprobe eines Reisenden</b>, sind jetzt vollständig.</span></li>
+<li><span>🚪</span><span>Tag: <b>Beenden</b> nach einem verlorenen Run verlässt sofort.</span></li>
+<li><span>📥</span><span>Der Import im Ultimativer Sammler erklärt, dass Runs <b>zwischen Duellen</b> importiert werden.</span></li>
+<li><span>📱</span><span>Hochformat: Die Schattenrelikt-Wahl zeigt ihre Fusionszeile richtig an.</span></li>
+</ul></div>
+</section></div>

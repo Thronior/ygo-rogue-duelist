@@ -288,15 +288,15 @@ def matches(card,key):
 CATEGORY_RELIC_BOOST=5
 CATEGORY_RELICS={
  'Aqua':('shell','ocean_relic','tide'),'Beast':('fang','kindred_bond'),'Beast-Warrior':('blade','fang'),
- 'Dinosaur':('fossil','earth'),'Dragon':('dragon','dragon_triumph','dragon_lords_decree','twin_eyes','dragon_blood_fusion','blue_eyes_radiance'),'Fairy':('halo','light'),
- 'Fiend':('horn','dark'),'Fish':('shell','ocean_relic','tide'),'Insect':('hive','chitin_carapace','moth_brood'),
+ 'Dinosaur':('fossil','earth'),'Dragon':('dragon','dragon_triumph','dragon_lords_decree','twin_eyes','dragon_blood_fusion','blue_eyes_radiance'),'Fairy':('halo','light','sanctuary_hymn'),
+ 'Fiend':('horn','dark'),'Fish':('shell','ocean_relic','tide'),'Insect':('hive','chitin_carapace','moth_brood','parasite_infestation'),
  'Machine':('gear','union_dock','union_hangar'),'Plant':('hive','earth','photosynthesis','spring_growth','pollinator'),'Pyro':('storm_core','ember'),
  'Reptile':('fossil','kindred_bond'),'Rock':('stone','restless_stone'),'Sea Serpent':('shell','ocean_relic','tide'),
  'Spellcaster':('mage','counterweight'),'Thunder':('storm_core','overcharge'),'Warrior':('blade','armory_crest'),
  'Winged Beast':('wing','gale'),'Zombie':('bone','restless_dead'),
  'DARK':('dark','attribute_dark','eclipse'),'LIGHT':('light','attribute_light','eclipse'),
  'EARTH':('earth','attribute_earth'),'FIRE':('ember','attribute_fire'),'WATER':('tide','attribute_water','ocean_relic'),
- 'WIND':('gale','attribute_wind'),'DIVINE':('divine_might','tribute_free','boss_monster'),
+ 'WIND':('gale','attribute_wind'),'DIVINE':('divine_might','tribute_free','boss_monster','sun_judgment','desert_sunlight','seal_of_the_sun'),
  'amazoness':('amazoness_standard','amazoness_hunters'),'archfiend':('archfiend_contract','demonic_pact','all_for_one_terrorking'),
  'darkmagician':('mage','counterweight','magicians_bond','master_and_apprentice','black_chaos_rite'),'darkscorpion':('scorpion_emblem','dark_scorpion_squad'),
  'exodia':('legendary_shackles','deep_pockets','eye'),'gravekeeper':('necrovalley_tablet','gravekeepers_union'),

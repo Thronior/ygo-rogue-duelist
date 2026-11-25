@@ -104,7 +104,11 @@ export function drawRandomizedCard(canvas, card, images, fonts = {name: 'Spectra
   {
     const lw = W * 0.014, rainbow = ctx.createLinearGradient(ax0 * W, ay0 * H, ax1 * W, ay1 * H);
     ['#ff3b3b', '#ff9f1c', '#ffe03a', '#4ade50', '#2ec4f0', '#5b6cff', '#c04bff'].forEach((c, i, a) => rainbow.addColorStop(i / (a.length - 1), c));
-    ctx.save(); ctx.strokeStyle = rainbow; ctx.lineWidth = lw;
+    // And a 20% rainbow wash over the art itself (user, 2026-11-25). Drawn once into the picture, so the hand, field,
+    // card window, deck editor, collection and shop all show it at no cost per frame.
+    ctx.save(); ctx.globalAlpha = 0.2; ctx.fillStyle = rainbow;
+    ctx.fillRect(ax0 * W, ay0 * H, (ax1 - ax0) * W, (ay1 - ay0) * H);
+    ctx.globalAlpha = 1; ctx.strokeStyle = rainbow; ctx.lineWidth = lw;
     ctx.strokeRect(ax0 * W + lw / 2, ay0 * H + lw / 2, (ax1 - ax0) * W - lw, (ay1 - ay0) * H - lw);
     ctx.restore();
   }

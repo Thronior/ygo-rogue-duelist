@@ -64,9 +64,9 @@ RULES={
  'wing':(_races('Winged Beast'),BROAD),'gear':(_races('Machine'),BROAD),'shell':(_races('Aqua','Fish','Sea Serpent'),BROAD),
  'fossil':(_races('Dinosaur','Reptile'),BROAD),'hive':(_races('Insect','Plant'),BROAD),'bone':(_races('Zombie'),BROAD),
  'halo':(_races('Fairy'),BROAD),'fang':(_races('Beast','Beast-Warrior'),BROAD),'horn':(_races('Fiend'),BROAD),
- 'storm_core':(_races('Pyro','Thunder'),BROAD),'chitin_carapace':(_races('Insect'),BROAD),'moth_brood':(_races('Insect'),BROAD),'photosynthesis':(_races('Plant'),BROAD),'spring_growth':(_races('Plant'),BROAD),'pollinator':(_races('Plant'),BROAD),'dragon_triumph':(_races('Dragon'),BROAD),
+ 'storm_core':(_races('Pyro','Thunder'),BROAD),'chitin_carapace':(_races('Insect'),BROAD),'moth_brood':(_races('Insect'),BROAD),'photosynthesis':(_races('Plant'),BROAD),'sanctuary_hymn':(_races('Fairy'),COMMON),'parasite_infestation':(_races('Insect'),COMMON),'spring_growth':(_races('Plant'),BROAD),'pollinator':(_races('Plant'),BROAD),'dragon_triumph':(_races('Dragon'),BROAD),
  'stone':(_races('Rock'),BROAD),'restless_stone':(_races('Rock'),COMMON),
- 'overcharge':(_races('Thunder'),COMMON),'restless_dead':(_races('Zombie'),COMMON),'divine_might':(_races('Divine-Beast'),NARROW),
+ 'overcharge':(_races('Thunder'),COMMON),'restless_dead':(_races('Zombie'),COMMON),'divine_might':(_races('Divine-Beast'),NARROW),'desert_sunlight':(_races('Divine-Beast'),NARROW),'seal_of_the_sun':(_races('Divine-Beast'),NARROW),
  'ember':(('attr:FIRE',),BROAD),'tide':(('attr:WATER',),BROAD),'gale':(('attr:WIND',),BROAD),'earth':(('attr:EARTH',),BROAD),
  'light':(('attr:LIGHT',),BROAD),'dark':(('attr:DARK',),BROAD),
  # Eclipse Locket follows the Chaos monsters that banish a LIGHT and a DARK, not the Attributes almost every Deck has
@@ -86,7 +86,7 @@ RULES={
  'armory_crest':(('equip',),NARROW),'field_amplifier':(('field',),NARROW),'terraforming_relic':(('field',),NARROW),'toon_premiere':(('toon',),NARROW),'sealed_fate':(('destiny',),NARROW),
  'arcane_resonance':(('continuous',),COMMON),'counterweight':(('spell_counter',),NARROW),
  'burn_proficiency':(('burn',),NARROW),'static_coil':(('burn',),NARROW),'healing_echo':(('heal',),NARROW),
- 'this_life_mine':(('lp_cost',),NARROW),'exile_standard':(('banish',),NARROW),
+ 'this_life_mine':(('lp_cost',),NARROW),'sun_judgment':(('lp_cost',),NARROW),'exile_standard':(('banish',),NARROW),
  'token_regiment':(('token',),NARROW),'token_resonance':(('token',),NARROW),'token_martyrs':(('token',),NARROW),'token_defender':(('token',),NARROW),
  'tenacity_of_the_weak':(('normal:small',),NARROW),'normal_barrier':(('normal',),COMMON),
  'lets_go_gambling':(('coin','dice'),NARROW),'weighted_coins':(('coin',),NARROW),'weighted_dice':(('dice',),NARROW),
@@ -102,7 +102,7 @@ RULES={
  'dark_lotus':(('level:7+',),COMMON),'ultimate_armory':(('equip',),NARROW),
  # Deck-style relics that had no weight (user, 2026-11-14: only where the relic suits a kind of deck; coin, shop and plain
  # stat relics stay unweighted).
- 'cursed_scorched_clock':(('burn',),NARROW),'cursed_ominous_clock':(('burn',),NARROW),'no_pain_no_gain':(('lp_cost',),NARROW),
+ 'cursed_scorched_clock':(('burn',),NARROW),'cursed_scorching_strikes':(('burn',),NARROW),'cursed_ominous_clock':(('burn',),NARROW),'no_pain_no_gain':(('lp_cost',),NARROW),
  'solo':(('level:7+',),COMMON),'cursed_solitary_tyrant':(('level:7+',),COMMON),
  'stars_aligned':(('level:4',),COMMON),'cursed_conscription_drum':(('level:low',),COMMON),
  'cursed_brittle_armor':(('wall',),COMMON),'cursed_nocturnal_guard':(('wall',),COMMON),'cursed_shield_bash':(('wall',),COMMON),
