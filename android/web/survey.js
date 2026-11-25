@@ -97,6 +97,8 @@ function footer({back=true,skip=true,next='Next',nextOn=true}={}){
  return `<div class="survey-actions">${back?'<button data-survey="back">Back</button>':'<span></span>'}<span class="survey-spacer"></span>${skip?'<button data-survey="skip">Skip</button>':''}<button class="primary" data-survey="next" ${nextOn?'':'disabled'}>${next}</button></div>`;
 }
 const counter=n=>`<p class="survey-count">Question ${n} of 9</p>`;
+// The first question asks "Where are you from?", not "Which country": the list has regions such as Hong Kong and
+// Taiwan, and the wording should take no stance on any of them (Discord, 2026-11-25; user). Answers are unchanged.
 function render(){
  const s=state.step;let title='10K player survey',body='';
  if(s===0){
@@ -104,7 +106,7 @@ function render(){
   body=`<div class="survey survey-intro"><p>To celebrate 10K total players, I'm running a player survey to find out what your favourite and least favourite characters, opponents and relics are, and what I can still implement to make the game better.</p><div class="survey-actions"><span class="survey-spacer"></span><button data-do="close">No thank you</button><button class="primary" data-survey="begin">Take survey now</button></div></div>`;
  }else if(s===1){
   const lang=currentLanguage(),names=regionNames(lang),list=COUNTRIES.map(code=>({code,name:names?.of(code)||code})).sort((a,b)=>a.name.localeCompare(b.name,lang));
-  body=`<div class="survey"><p class="survey-count">Before we start</p><h3>Which country are you from?</h3><p class="muted">Optional. You can skip this, like every question.</p><select class="survey-country" data-no-i18n aria-label="Country"><option value="">—</option>${list.map(x=>`<option value="${x.code}" ${x.code===state.country?'selected':''}>${esc(x.name)}</option>`).join('')}</select>${footer({back:false,nextOn:!!state.country})}</div>`;
+  body=`<div class="survey"><p class="survey-count">Before we start</p><h3>Where are you from?</h3><p class="muted">Optional. You can skip this, like every question.</p><select class="survey-country" data-no-i18n aria-label="Where are you from?"><option value="">—</option>${list.map(x=>`<option value="${x.code}" ${x.code===state.country?'selected':''}>${esc(x.name)}</option>`).join('')}</select>${footer({back:false,nextOn:!!state.country})}</div>`;
  }else if(s<=LAST_GRID){
   const q=questions()[s-2],picked=state.answers[q.id]?.key;
   body=`<div class="survey">${counter(s-1)}<h3>${esc(q.q)}</h3>${q.search?'<input class="survey-search" type="search" placeholder="Search" aria-label="Search">':''}<div class="survey-grid ${q.wide?'wide':''}">${q.items.map(x=>`<button class="survey-tile ${x.face?'face':''} ${x.key===picked?'picked':''}" data-survey="pick" data-key="${esc(x.key)}" aria-pressed="${x.key===picked}"><img loading="lazy" decoding="async" src="${esc(x.src)}" alt=""><span>${esc(x.name)}</span></button>`).join('')}</div>${footer({nextOn:!!picked})}</div>`;

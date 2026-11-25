@@ -45,8 +45,10 @@ export function chainWindowAllowed(m,mode,activeChain=[],context={}){
   if(timing&Timing.ATTACK&&!(timing&Timing.DAMAGE_STEP)&&selects.every(statTrap))return false;
  }
  // Threatening Roar stops attacks, so it needs a window before the Battle Phase: the end of the opponent's Main Phase 1,
- // while they have a monster that could attack.
- if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>context.card?.(choice.code)?.name==='Threatening Roar'))return true;
+ // while they have a monster that could attack. Shadow Spell ("cannot attack") too: at the attack declaration it is too
+ // late, the declared attack still happens (user, 2026-11-25, after a Tag flag where it was).
+ const preAttack=new Set(['Threatening Roar','Shadow Spell']);
+ if(mode==='sometimes'&&context.turnPlayer!==undefined&&context.turnPlayer!==m?.player&&context.phase===4&&context.attackers!==0&&((Number(m?.hint_timing||0)|Number(m?.hint_timing_other||0))&Timing.MAIN_END)&&selects.some(choice=>preAttack.has(context.card?.(choice.code)?.name)))return true;
  // Summon negation (The Selection, Horn of Heaven: "negate the Summon", no "when" in the text) is legal only in the
  // window while a monster is being summoned, which the core sends with no timing bits, so nothing below caught it and
  // Chain sometimes passed it silently (Discord, Lexi, 2026-11-22: The Selection never asked against Summoned Skull).

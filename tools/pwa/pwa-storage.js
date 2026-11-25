@@ -41,9 +41,36 @@ export function validateSave(text){
  if(!Object.keys(files).length)throw Error('This backup is empty.');
  return text;
 }
+// Newest time recorded anywhere in a save (run last_played_at, history started_at/finished_at), in seconds; 0 if none.
+export function saveTime(text){
+ let newest=0;const visit=(value,key)=>{
+  if(Array.isArray(value)){for(const item of value)visit(item,key);return}
+  if(value&&typeof value==='object'){for(const [k,v] of Object.entries(value))visit(v,k);return}
+  if(!/(_at|At)$/.test(key||''))return;
+  let t=typeof value==='number'?value:typeof value==='string'?Date.parse(value)/1000:NaN;if(t>1e11)t/=1000;
+  if(Number.isFinite(t)&&t>newest)newest=t;
+ };
+ try{for(const file of Object.values(JSON.parse(text)))visit(JSON.parse(file))}catch{return 0}
+ return newest;
+}
+function legacySave(){try{const text=localStorage.getItem(KEY);if(!text)return null;validateSave(text);return text}catch{return null}}
+function dropLegacy(){try{localStorage.removeItem(KEY)}catch{}}
 export const webStorage={
- async load(){const saved=await transaction('readonly',s=>s.get(KEY));if(saved!==undefined)return saved;
-  const legacy=localStorage.getItem(KEY);if(legacy){validateSave(legacy);await this.store(legacy);return legacy;}return '{}';},
+ async load(){
+  const saved=await transaction('readonly',s=>s.get(KEY)),legacy=legacySave();
+  // v0.2.44 web builds wrote every save to localStorage while still reading this database first, so progress looked
+  // lost after a reload (Discord, 2026-11-25). Whichever copy was played last wins; the other is kept in the database
+  // under its own key, and the localStorage copy is cleared so this runs once.
+  if(saved!==undefined&&legacy&&legacy!==saved){
+   const adopt=saveTime(legacy)>saveTime(saved);
+   await transaction('readwrite',s=>s.put(adopt?saved:legacy,KEY+'-replaced-0.2.44'));
+   if(adopt)await this.store(legacy);
+   dropLegacy();return adopt?legacy:saved;
+  }
+  if(saved!==undefined){if(legacy)dropLegacy();return saved}
+  // An empty '{}' in localStorage (v0.2.44 on a fresh device) counts as no save, so restoring from a code works.
+  if(legacy){await this.store(legacy);dropLegacy();return legacy}
+  return '{}';},
  async store(text){
   const write=()=>transaction('readwrite',s=>s.put(text,KEY));
   try{await write();return true;}

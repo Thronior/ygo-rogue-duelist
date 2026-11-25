@@ -252,6 +252,9 @@ export function smartContext(e,p,L,prompt=null){
    if(['Raigeki','Dark Hole'].includes(n))value=enemy.reduce((sum,c)=>sum+targetValue(c),0)-(n==='Dark Hole'?own.reduce((sum,c)=>sum+coffinMonsterLoss(c),0):0);
    if(['Fissure','Smashing Ground','Mystical Space Typhoon','Nobleman of Crossout'].includes(n))value=(link.targets||[]).length?Math.max(0,...link.targets.filter(c=>c.controller!==p).map(targetValue)):enemy.length?Math.max(...enemy.map(targetValue)):0;
    if(['Monster Reborn','Premature Burial'].includes(n))value=Math.max(0,...(link.targets||[]).map(c=>Math.max(atk(c),data(c).defense||0)));
+   // A Ritual Spell also carries the Ritual Monster it brings out: Contract with the Abyss for The Masked Beast was let go
+   // to keep a dead Hamburger Recipe (flag fad7a32f, 2026-11-25).
+   if(data(link).type&0x80)value=Math.max(value,1600+Math.max(0,...hand.filter(c=>(data(c).type&0x81)===0x81).map(c=>data(c).attack||0)));
    return value>Math.min(...spells.map(handLoss))?pay:decline;
   }
   return null;
@@ -382,6 +385,7 @@ export function smartContext(e,p,L,prompt=null){
    const sourceController=sourceCard?.controller??p,targetController=target.controller??1-p;
    const opponentSource=sourceController!==targetController,text=e.cards.get(target.code)?.desc||'';
    if(targeting&&/neither player can target this card|cannot be targeted/i.test(text))return false;
+   if(targeting&&(sourceType&2)&&spellWarded(target))return false;
    const effectKind=sourceType&2?'spell':sourceType&4?'trap':sourceType&1?'monster':null;
    // "Unaffected by your opponent's Spell effects" (Silent Swordsman LV5) still yields to their monster effects: read as
    // immune to everything, it made a flipped Man-Eater Bug destroy itself (deck trace, 2026-11-07). Unknown sources stay immune.
@@ -1054,7 +1058,7 @@ export function smartContext(e,p,L,prompt=null){
  // Gearfried the Iron Knight (or any monster that destroys Equip Cards put on it) breaks equip steals and boosts.
  function equipBreaker(c){return enabled(c)&&(name(c)==='Gearfried the Iron Knight'||/equips? an Equip Card[\s\S]{0,40}to this card[\s\S]{0,40}destroy that Equip/i.test(e.cards.get(c.code)?.desc||''));}
  function controlTarget(c,spellName=null){
-  if(c.is_immune)return false;
+  if(c.is_immune||spellWarded(c))return false;
   // Change of Heart also takes a Set monster: it stops blocking and can be flipped to attack. Players use it on a
   // lone Set monster to open lethal (replay review 2026-11-10: 13 lethal turns the CPU missed from the same position).
   if(!face(c))return spellName==='Change of Heart'&&!(known(c)&&name(c)==='Spirit Reaper');
@@ -1530,19 +1534,22 @@ export function smartContext(e,p,L,prompt=null){
    return canBattle?85:e.phase===0x100?70:-1;
   }
   // Ready for Intercepting is Book of Moon for Warrior and Spellcaster monsters (deck trace, 2026-11-08).
+  // Only a monster that can still attack this turn uses the flipped target: a just-Set monster cannot (flag 98ae2db9,
+  // 2026-11-25: Book of Moon on the player's monster right after the CPU Set its only monster).
+  const moonAttackers=()=>activeAttackers(p).filter(a=>!a.attack_disabled&&!(a.attack_count>0)&&attackAllowed(a,false));
   if(n==='Ready for Intercepting'){
    const fits=x=>['Warrior','Spellcaster'].includes(race(x));
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard));
    if(e.player!==p)return attacker&&fits(attacker)&&face(attacker)&&(attacker.position&1)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:own.some(x=>fits(x)&&resetValue(x)>=65)&&e.phase===0x200?70:-1;
-   return canBattle&&enemy.some(x=>fits(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>fits(x)&&resetValue(x)>=65)?70:-1;
+   return canBattle&&enemy.some(x=>fits(x)&&face(x)&&(x.position&1)&&moonAttackers().some(a=>atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>fits(x)&&resetValue(x)>=65)?70:-1;
   }
   if(n==='Book of Moon'){
    if(moonRescue())return 115;
    if(e.player!==p&&(e.battleProtected?.[p]||(e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&attackStops.has(e.name(link.code)))))return -1;
    const attacker=enemy.find(x=>same(x,e.attackCard));
    if(e.player!==p)return attacker&&face(attacker)&&(attacker.position&1)&&!moonPending(attacker)&&attackAllowed(attacker,!own.length)&&!reservedForRemoval(attacker)?95:-1;
-   return canBattle&&enemy.some(x=>!moonPending(x)&&face(x)&&(x.position&1)&&own.some(a=>attackAllowed(a,false)&&atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>!moonPending(x)&&resetValue(x)>=65)?70:-1;
+   return canBattle&&enemy.some(x=>!moonPending(x)&&face(x)&&(x.position&1)&&moonAttackers().some(a=>atk(a)>(x.defense??0)&&atk(a)<=atk(x)))?85:own.some(x=>!moonPending(x)&&resetValue(x)>=65)?70:-1;
   }
   // Order to Charge (Quick-Play): Tribute our face-up Normal Monster, destroy one of their monsters. With no rule it was
   // Set 53 times in 50 duels and never used (deck trace, 2026-11-17). In answer to removal aimed at the Normal Monster;
@@ -2661,6 +2668,9 @@ export function smartContext(e,p,L,prompt=null){
   },0);
  }
  // Equipped cards of a printed type (0x400 Union, 0x1 any monster) attached to a monster on the field.
+ // Rod of Silence - Kay'est negates and destroys every other Spell effect that targets the monster it equips (flag e52ead1d,
+ // 2026-11-25: Brain Control paid 800 LP on that monster and was negated).
+ function spellWarded(c){return c?.location===L.MZONE&&[0,1].some(s=>q(s,L.SZONE).some(x=>x&&face(x)&&!x.is_disabled&&name(x)==="Rod of Silence - Kay'est"&&same(x.equipCard||x.equip_card,c)))}
  function equippedCount(c,type){return c.location===L.MZONE?[0,1].flatMap(s=>q(s,L.SZONE)).filter(x=>x&&same(x.equipCard||x.equip_card,c)&&(data(x).type&type)).length:0}
  function relicAttack(c,side,only=null){
   const field=q(side,L.MZONE).filter(x=>!same(x,c));field.push({...c,controller:side,...(c.location===L.MZONE?{}:{position:1})});
@@ -2963,6 +2973,9 @@ if(!effectsEnabled(p))return 0;
   if(attackBlocked(c,p,true)&&!['Jinzo','Breaker the Magical Warrior','Exiled Force','Fire Princess','Bowganian'].includes(n))return -1;
   if(['Darklord Marie','Nuvia the Wicked'].includes(n))return -1;
   if(n==='Mystical Beast of Serket'&&!back.some(x=>face(x)&&name(x)==='Temple of the Kings'))return -1;
+  // Archfiend General destroys itself at once with no Pandemonium on the field (flag d8c581cf, 2026-11-25: Normal Summoned
+  // after the player destroyed Pandemonium). Pandemonium from the hand goes first; then this scores again.
+  if(diesWithout(c))return -1;
   if(n==='Cyber Raider'&&raiderHurtsOwn())return -1;
   if(n==='Frontier Wiseman'&&wisemanHurtsOwn())return -1;
   if(n==='The Masked Beast'&&ownPower>enemyPower+2000)return -1;
@@ -3038,8 +3051,10 @@ if(!effectsEnabled(p))return 0;
   return Object.values(net).some(v=>v>=2);
  }
  // Tribe-Infecting Virus: the declared Type also hits your own face-up monsters, this one included.
+ // Score each Type bit on its own: a monster with every Type (a relic-changed token) once scored as one multi-bit
+ // "Type" that the core refused to accept, so the CPU announced it forever (flags 193a843a, 7c1c03de, 86cdd987, 2026-11-25).
  function virusRace(available){
-  const allowed=BigInt(available),score=new Map(),add=(c,value)=>{if(!face(c))return;const type=BigInt(c.race||data(c).race||0);if(type&allowed)score.set(type,(score.get(type)||0)+value)};
+  const allowed=BigInt(available),score=new Map(),add=(c,value)=>{if(!face(c))return;const types=BigInt(c.race||data(c).race||0)&allowed;for(let type=1n;type<=types;type<<=1n)if(type&types)score.set(type,(score.get(type)||0)+value)};
   for(const c of enemy)add(c,1);for(const c of own)add(c,-1);
   const best=[...score].sort((a,b)=>b[1]-a[1])[0];if(best?.[1]>0)return best[0];
   for(let type=1n;type<=allowed;type<<=1n)if(type&allowed&&!score.has(type))return type;

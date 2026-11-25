@@ -365,7 +365,9 @@ export function comboPlanner(x){
    const bounce=name(c)==='Hyper Hammerhead';
    const target=enemy.filter(t=>{
     if(!face(t)||x.resilient(t)||x.attackBackfires(c,t))return false;
-    if(!(t.position&1))return bounce;
+    // A Defense Position monster bounces too, but its DEF hits back: never for a third of our LP or more (Discord
+    // 2026-11-25: Hyper Hammerhead ran into higher-DEF monsters and the CPU lost to the reflected damage).
+    if(!(t.position&1))return bounce&&guard(t)-atk(c)<e.lp[p]/3;
     const loss=atk(t)-atk(c);
     return loss>=0&&loss<e.lp[p]/3&&atk(t)>=2000&&(!bounce||lvl(t)>=5||!!(data(t).type&0xc0));
    }).sort((a,b)=>targetValue(b)-targetValue(a))[0];

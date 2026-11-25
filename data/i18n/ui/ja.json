@@ -5060,5 +5060,18 @@
  "No CPU duels for this duelist yet.": "このデュエリストのCPU戦はまだありません。",
  "Genetic Override": "遺伝子支配",
  "All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.": "自分のモンスターは全ての種族・属性を持つものとして扱う。自分フィールドのモンスターの攻撃力は、フィールドのモンスターの数×300アップする。各デュエルの開始時に、種族と属性を1つずつ選択する。全ての場所の相手のモンスターは選択した種族・属性になる。",
- "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "この端末にゲームを保存できませんでした。閉じると最新の変更は失われます。ストレージの空き容量を増やしてから、もう一度お試しください。"
+ "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "この端末にゲームを保存できませんでした。閉じると最新の変更は失われます。ストレージの空き容量を増やしてから、もう一度お試しください。",
+ "Audio": "オーディオ",
+ "Images": "画像",
+ "Soundtrack": "サウンドトラック",
+ "Boss duels": "ボスデュエル",
+ "Legendary summons": "伝説の召喚",
+ "Finishers": "フィニッシュ",
+ "Defeat taunts": "敗北時の挑発",
+ "Duelist sleeves": "デュエリストスリーブ",
+ "Card sleeves": "カードスリーブ",
+ "Music is at 0% in Settings.": "設定で音楽が0%になっています。",
+ "Voice Lines are at 0% in Settings.": "設定でボイスが0%になっています。",
+ "Gallery sections": "ギャラリーの項目",
+ "Where are you from?": "どこから遊んでいますか？"
 }

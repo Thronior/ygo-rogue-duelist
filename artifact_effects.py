@@ -23,11 +23,13 @@ e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
 e:SetCondition(function(e,tp,eg,ep,ev) return not used and ep==0 and ev>0 end)
 e:SetOperation(function(e,tp,eg,ep,ev) if used then return end used=true Duel.Recover(0,ev,REASON_EFFECT) end)
 Duel.RegisterEffect(e,0) end'''
+ # A Spell or Trap Card's activation is negated as an activation: negating only the effect still let Snatch Steal equip
+ # and take the monster (Discord, 2026-11-25).
  if kind=='boss_monster':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_CHAINING)
 e:SetCondition(function(e,tp,eg,ep,ev,re) if used or ep~=1 or not re or not re:IsHasProperty(EFFECT_FLAG_CARD_TARGET) then return false end
  local g=Duel.GetChainInfo(ev,CHAININFO_TARGET_CARDS) return g and g:IsExists(function(c) return c:IsControler(0) and c:IsMonster() and c:IsLevelAbove(7) end,1,nil) end)
-e:SetOperation(function(e,tp,eg,ep,ev) if not used then used=true Duel.NegateEffect(ev) end end)
+e:SetOperation(function(e,tp,eg,ep,ev,re) if not used then used=true if re:IsHasType(EFFECT_TYPE_ACTIVATE) then Duel.NegateActivation(ev) else Duel.NegateEffect(ev) end end end)
 Duel.RegisterEffect(e,0) end'''
  if kind=='swap_base_ad':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_SWAP_BASE_AD)
 e:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE) Duel.RegisterEffect(e,0) end'''

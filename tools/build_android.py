@@ -72,6 +72,11 @@ def sync():
  # Duel-loss taunts (android/web/juice.js defeatVoice), one picked at random with the original you-lose.wav.
  lose=ROOT/'assets/sfx/lose'
  meta['loseVoices']=sorted(p.name for p in lose.iterdir() if p.suffix in ('.mp3','.wav')) if lose.exists() else []
+ # Gallery > Audio (user, 2026-11-25) lists the shipped files only: the soundtrack's selected tracks and the
+ # Legendary summon lines (renderGallery in android/web/mobile.js).
+ soundtrack=json.loads((ROOT/'assets/music/soundtrack.json').read_text(encoding='utf8'))['tracks']
+ meta['soundtrack']=[dict(id=k,title=v.get('title',k),game=v.get('game','')) for k,v in soundtrack.items() if (ROOT/'assets/music'/f'{k}.m4a').exists()]
+ meta['summonVoices']=sorted(int(p.stem[7:]) for p in (ROOT/'assets/sfx').glob('summon-*.mp3') if p.stem[7:].isdigit())
  meta['cpuDecks']={str(i):[content.opponent_record(t*3,i) for t in range(3)]+[content.opponent_record(0,i,loop=1)] for i in content.GAME_DECKS}
  from campaign_catalog import watch_catalog
  meta.update(watch_catalog())

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10K Survey Results</title>
+<!-- Filled in by tools/survey_report.py. Self-contained: no network requests. -->
+<style>
+:root{color-scheme:light;--bg:#f3f2ee;--surface:#fcfcfb;--line:#e4e2dc;--grid:#ecebe6;--text:#0b0b0b;--text2:#52514e;--muted:#7a7873;
+ --fav:#2a78d6;--least:#eb6834;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--accent:#b8860b;--chip:#efeee9;--shadow:0 1px 2px rgba(0,0,0,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#2c2c2a;--grid:#242422;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;
+ --fav:#3987e5;--least:#d95926;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--accent:#e2b04a;--chip:#252523;--shadow:none}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#2c2c2a;--grid:#242422;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;
+ --fav:#3987e5;--least:#d95926;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--accent:#e2b04a;--chip:#252523;--shadow:none}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:30px;margin:0 0 4px;letter-spacing:-.01em}h2{font-size:19px;margin:0 0 2px}h3{font-size:15px;margin:0 0 10px}
+.sub{color:var(--text2);margin:0 0 14px}.muted{color:var(--muted)}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.theme{background:var(--surface);color:var(--text2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.tile,.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.tile{padding:14px 16px}.tile b{display:block;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}.tile span{color:var(--text2);font-size:13px}
+.card{padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}.grid2>.card{margin:0}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px}.grid3>.card{margin:0}
+/* Loved vs disliked: dislikes grow left, favourites right, from a shared centre line. */
+.dv-legend{display:flex;gap:16px;font-size:13px;color:var(--text2);margin:6px 0 10px}.key{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.dv{display:grid;grid-template-columns:minmax(150px,210px) 1fr 1fr 48px;align-items:center;row-gap:2px}
+.dv .who{display:flex;align-items:center;gap:8px;min-width:0;font-size:13.5px}.dv .who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.face{width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:top;background:var(--chip);flex:none}
+.half{height:28px;display:flex;align-items:center;position:relative}
+.half.l{justify-content:flex-end;border-right:1px solid var(--text2)}
+.bar{height:16px;min-width:0}.half.l .bar{background:var(--least);border-radius:4px 0 0 4px}.half.r .bar{background:var(--fav);border-radius:0 4px 4px 0}
+.half .n{font-size:12px;color:var(--text2);padding:0 6px;font-variant-numeric:tabular-nums}
+.net{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text2)}
+.dv .row{display:contents}.dv .row:hover>*{background:var(--grid)}
+.more{background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;padding:8px 0 0}
+/* Podiums */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;margin:6px 0 14px;text-align:center}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.step img{width:100%;max-width:92px;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--chip)}
+.step.first img{max-width:112px}.step .nm{font-size:12.5px;line-height:1.25;max-width:100%;overflow-wrap:anywhere}
+.plinth{width:100%;border-radius:6px 6px 0 0;background:var(--chip);color:var(--text2);font-weight:700;padding:6px 0;font-variant-numeric:tabular-nums}
+.step.first .plinth{padding:14px 0;color:var(--text)}.step.second .plinth{padding:10px 0}
+.hbar{display:grid;grid-template-columns:minmax(110px,58%) 1fr;align-items:center;gap:8px;font-size:13px;padding:2px 0}
+.hbar .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.track{display:flex;align-items:center;gap:6px}.track i{display:block;height:12px;background:var(--fav);border-radius:0 4px 4px 0}.track em{font-style:normal;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums}
+/* Online modes: one 100% bar with direct labels. */
+.stack{display:flex;gap:2px;height:44px;border-radius:6px;overflow:hidden;margin:10px 0}
+.stack div{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.modes{display:flex;gap:14px;flex-wrap:wrap}.mode{display:flex;align-items:center;gap:10px;flex:1 1 150px}
+.mode img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}.mode b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+/* Days */
+.cols{display:flex;align-items:flex-end;gap:3px;height:140px;border-bottom:1px solid var(--text2);padding-top:8px}
+.cols div{flex:1;background:var(--fav);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
+/* Wishes */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.chip{background:var(--chip);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:3px 10px;cursor:pointer;font:inherit;font-size:13px}
+.chip small{color:var(--muted);margin-left:4px}.chip[aria-pressed="true"]{border-color:var(--fav);box-shadow:inset 0 0 0 1px var(--fav)}
+.search{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+.wishes{list-style:none;margin:10px 0 0;padding:0;max-height:620px;overflow:auto}
+.wishes li{padding:10px 2px;border-bottom:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}.wishes li small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:inherit;border-radius:3px}
+#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.18);display:none;z-index:9;max-width:260px}
+details summary{cursor:pointer;color:var(--text2);font-size:13px;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-style:italic}
+@media (max-width:620px){.dv{grid-template-columns:minmax(90px,120px) 1fr 1fr 40px}.dv .face{display:none}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>10K Player Survey</h1><p class="sub" id="meta"></p></div><button class="theme" id="theme" type="button">Switch theme</button></header>
+<section class="tiles" id="tiles"></section>
+<section class="card"><h2>Characters: loved vs. disliked</h2><p class="sub">Favourite picks grow right, least-favourite picks grow left. Sorted by net score (favourites minus dislikes).</p><div id="chars"></div></section>
+<section class="card"><h2>Opponents: loved vs. disliked</h2><p class="sub">Who players enjoy facing, and who they dread.</p><div id="opps"></div></section>
+<h2 style="margin:22px 0 10px">Favourite relics</h2>
+<section class="grid3" id="relics"></section>
+<section class="grid2" style="margin-bottom:16px">
+ <div class="card"><h2>Favourite online mode</h2><p class="sub" id="modes-sub"></p><div id="modes"></div></div>
+ <div class="card"><h2>Answers per day</h2><p class="sub" id="days-sub"></p><div id="days"></div></div>
+</section>
+<section class="card"><h2>Where players are from</h2><p class="sub" id="places-sub"></p><div id="places"></div></section>
+<section class="card"><h2>What players want added</h2><p class="sub" id="wish-sub"></p><div class="chips" id="words"></div><input class="search" id="wish-search" type="search" placeholder="Search the wishes…" aria-label="Search the wishes"><ul class="wishes" id="wishes"></ul></section>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+const D=/*DATA*/null;
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=(n,t)=>t?Math.round(n*1000/t)/10+'%':'0%',img=n=>D.images[n]||'';
+// Theme toggle: wins over the system setting both ways.
+$('#theme').onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('survey-theme',r.dataset.theme)}catch{}};
+try{const t=localStorage.getItem('survey-theme');if(t)document.documentElement.dataset.theme=t}catch{}
+// One shared tooltip for every mark with data-tip.
+const tip=$('#tip');
+document.addEventListener('pointermove',e=>{const el=e.target.closest?.('[data-tip]');if(!el){tip.style.display='none';return}tip.innerHTML=el.dataset.tip;tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;tip.style.left=Math.min(innerWidth-w-8,e.clientX+14)+'px';tip.style.top=Math.max(8,e.clientY-h-10)+'px'});
+document.addEventListener('pointerleave',()=>tip.style.display='none');
+
+$('#meta').textContent=`${D.total.toLocaleString()} answers · last one ${D.last||'—'} UTC · built ${D.generated}`;
+const q=D.questions,count=(k,n)=>Object.fromEntries(q[k].counts)[n]||0;
+const wishCount=D.wishes.length,places=D.countries.length;
+$('#tiles').innerHTML=[[D.total,'players answered'],[places,'places represented'],[wishCount,`wrote a wish (${pct(wishCount,D.total)})`],[q.fav_character.counts[0]?.[0]||'—','most loved character',true]]
+ .map(([v,l,word])=>`<div class="tile"><b style="${word?'font-size:22px':''}">${esc(typeof v==='number'?v.toLocaleString():v)}</b><span>${esc(l)}</span></div>`).join('');
+
+// Diverging rows: every name picked in either question, sorted by net score.
+function diverging(el,favKey,leastKey,limit=12){
+ const names=[...new Set([...q[favKey].counts,...q[leastKey].counts].map(x=>x[0]))];
+ const rows=names.map(n=>({n,f:count(favKey,n),l:count(leastKey,n)})).sort((a,b)=>(b.f-b.l)-(a.f-a.l)||b.f-a.f);
+ const max=Math.max(1,...rows.map(r=>Math.max(r.f,r.l))),tf=D.answered[favKey],tl=D.answered[leastKey];
+ if(!rows.length){el.innerHTML='<p class="empty">No answers yet.</p>';return}
+ const row=r=>`<div class="row"><div class="who">${img(r.n)?`<img class="face" src="${img(r.n)}" alt="">`:'<span class="face"></span>'}<span title="${esc(r.n)}">${esc(r.n)}</span></div>`+
+  `<div class="half l" data-tip="<b>${esc(r.n)}</b><br>Least favourite: ${r.l} (${pct(r.l,tl)})">${r.l?`<span class="n">${r.l}</span>`:''}<div class="bar" style="width:${r.l/max*85}%"></div></div>`+
+  `<div class="half r" data-tip="<b>${esc(r.n)}</b><br>Favourite: ${r.f} (${pct(r.f,tf)})"><div class="bar" style="width:${r.f/max*85}%"></div>${r.f?`<span class="n">${r.f}</span>`:''}</div>`+
+  `<div class="net" title="net score">${r.f-r.l>0?'+':''}${r.f-r.l}</div></div>`;
+ const draw=all=>{const shown=all||rows.length<=limit*2?rows:[...rows.slice(0,limit),...rows.slice(-limit)];
+  el.innerHTML=`<div class="dv-legend"><span><i class="key" style="background:var(--least)"></i>Least favourite (${tl})</span><span><i class="key" style="background:var(--fav)"></i>Favourite (${tf})</span></div><div class="dv">${shown.map(row).join('')}</div>`+
+  (rows.length>limit*2?`<button class="more" type="button">${all?'Show top and bottom only':`Show all ${rows.length}`}</button>`:'')+table(rows.map(r=>[r.n,r.f,r.l,r.f-r.l]),['Name','Favourite','Least','Net']);
+  el.querySelector('.more')?.addEventListener('click',()=>draw(!all))};
+ draw(false);
+}
+function table(rows,head){return `<details><summary>Table view</summary><table><tr>${head.map((h,i)=>`<th class="${i?'num':''}">${esc(h)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></details>`}
+diverging($('#chars'),'fav_character','least_character');
+diverging($('#opps'),'fav_opponent','least_opponent');
+
+// Relic podiums with the top 10 below.
+$('#relics').innerHTML=[['fav_relic','Normal relics'],['fav_shadow_relic','Shadow relics'],['fav_fused_relic','Fused relics']].map(([k,label])=>{
+ const c=q[k].counts,t=D.answered[k];if(!c.length)return `<div class="card"><h3>${label}</h3><p class="empty">No answers yet.</p></div>`;
+ const place=(i,cls)=>c[i]?`<div class="step ${cls}" data-tip="<b>${esc(c[i][0])}</b><br>${c[i][1]} votes (${pct(c[i][1],t)})">${img(c[i][0])?`<img src="${img(c[i][0])}" alt="">`:''}<span class="nm">${esc(c[i][0])}</span><div class="plinth">${pct(c[i][1],t)}</div></div>`:'<div></div>';
+ const max=c[0][1];
+ return `<div class="card"><h3>${label} <span class="muted" style="font-weight:400">· ${t} votes</span></h3><div class="podium">${place(1,'second')}${place(0,'first')}${place(2,'third')}</div>`+
+  c.slice(3,10).map(([n,v],i)=>`<div class="hbar" data-tip="<b>${esc(n)}</b><br>${v} votes (${pct(v,t)})"><span class="t">${i+4}. ${esc(n)}</span><span class="track"><i style="width:${v/max*80}%"></i><em>${v}</em></span></div>`).join('')+
+  table(c.map(([n,v])=>[n,v,pct(v,t)]),['Relic','Votes','Share'])+`</div>`}).join('');
+
+// Online modes: fixed slot per mode so colour follows the mode.
+{const order=['Tag Duels','Draft Duels','Ultimate Collector'],slot={'Tag Duels':'--s1','Draft Duels':'--s2','Ultimate Collector':'--s3'},t=D.answered.fav_online_mode;
+ $('#modes-sub').textContent=`${t} votes`;
+ if(!t)$('#modes').innerHTML='<p class="empty">No answers yet.</p>';
+ else $('#modes').innerHTML=`<div class="stack">${order.map(m=>{const v=count('fav_online_mode',m);return v?`<div style="flex:${v};background:var(${slot[m]})" data-tip="<b>${m}</b><br>${v} votes (${pct(v,t)})">${pct(v,t)}</div>`:''}).join('')}</div>`+
+  `<div class="modes">${order.map(m=>{const v=count('fav_online_mode',m);return `<div class="mode">${img(m)?`<img src="${img(m)}" alt="">`:''}<div><span><i class="key" style="background:var(${slot[m]})"></i>${m}</span><b>${pct(v,t)}</b><span class="muted">${v} votes</span></div></div>`}).join('')}</div>`}
+
+// Answers per day.
+{const d=D.days,max=Math.max(1,...d.map(x=>x[1]));$('#days-sub').textContent=d.length?`${d.length} day${d.length>1?'s':''} · busiest ${d.reduce((a,b)=>b[1]>a[1]?b:a)[0]}`:'';
+ $('#days').innerHTML=d.length?`<div class="cols">${d.map(([day,n])=>`<div style="height:${n/max*100}%" data-tip="<b>${day}</b><br>${n} answers"></div>`).join('')}</div><div class="axis"><span>${d[0][0]}</span><span>${d.at(-1)[0]}</span></div>`:'<p class="empty">No answers yet.</p>'}
+
+// Places: top 20 bars, then the rest in the table.
+{const c=D.countries,t=c.reduce((a,b)=>a+b[1],0),max=Math.max(1,...c.map(x=>x[1]));
+ $('#places-sub').textContent=`${places} places · ${D.skippedCountry} skipped the question`;
+ $('#places').innerHTML=c.length?`<div class="grid2" style="gap:0 24px">${c.slice(0,20).map(([n,v],i)=>`<div class="hbar" data-tip="<b>${esc(n)}</b><br>${v} players (${pct(v,t)})"><span class="t">${i+1}. ${esc(n)}</span><span class="track"><i style="width:${v/max*78}%"></i><em>${v}</em></span></div>`).join('')}</div>`+table(c.map(([n,v])=>[n,v,pct(v,t)]),['Place','Players','Share']):'<p class="empty">No answers yet.</p>'}
+
+// Wishes: popular words as filters, plus free search.
+{let word='';const list=$('#wishes'),search=$('#wish-search');
+ $('#wish-sub').textContent=`${wishCount} wishes, newest first. Tap a word to filter.`;
+ $('#words').innerHTML=D.words.map(([w,n])=>`<button class="chip" type="button" data-word="${esc(w)}" aria-pressed="false">${esc(w)}<small>${n}</small></button>`).join('');
+ const draw=()=>{const term=(word||search.value).trim().toLowerCase(),re=term?new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'):null;
+  const shown=D.wishes.filter(w=>!term||w.text.toLowerCase().includes(term));
+  list.innerHTML=shown.length?shown.map(w=>`<li>${re?esc(w.text).replace(re,m=>`<mark>${m}</mark>`):esc(w.text)}<small>${esc(w.at)} UTC${w.from?' · '+esc(w.from):''}</small></li>`).join(''):'<li class="empty">No wishes match.</li>'};
+ $('#words').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;word=word===b.dataset.word?'':b.dataset.word;search.value='';for(const c of $('#words').children)c.setAttribute('aria-pressed',String(c.dataset.word===word));draw()});
+ search.addEventListener('input',()=>{word='';for(const c of $('#words').children)c.setAttribute('aria-pressed','false');draw()});
+ draw()}
+</script>
+</body>
+</html>

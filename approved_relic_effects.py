@@ -191,7 +191,7 @@ Duel.RegisterEffect(e,0) end''')
   machine='function(c) return c:IsFaceup() and c:IsRace(RACE_MACHINE) end'
   out.append(phase('END',f'''local p=Duel.GetTurnPlayer() local g=Duel.GetMatchingGroup({machine},0,LOCATION_MZONE,0,nil) --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_TARGET) local c=g:Select(0,0,1,nil):GetFirst() if not c then return end
 local t=Duel.CreateToken(0,86871615) local reset=RESET_EVENT|(RESETS_STANDARD&~RESET_TOFIELD)
-local function give(code,value) local x=Effect.CreateEffect(t) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(code) x:SetValue(value) x:SetReset(reset) t:RegisterEffect(x,true) end
+local function give(code,value) local x=Effect.CreateEffect(t) x:SetType(EFFECT_TYPE_SINGLE) x:SetProperty(EFFECT_FLAG_CANNOT_DISABLE) x:SetCode(code) x:SetValue(value) x:SetReset(reset) t:RegisterEffect(x,true) end
 give(EFFECT_SET_BASE_ATTACK,math.floor(math.max(0,c:GetAttack())/2)) give(EFFECT_SET_BASE_DEFENSE,math.floor(math.max(0,c:GetDefense())/2)) give(EFFECT_CHANGE_RACE,RACE_MACHINE) give(EFFECT_CHANGE_ATTRIBUTE,c:GetAttribute()) if c:GetLevel()>0 then give(EFFECT_CHANGE_LEVEL,c:GetLevel()) end
 --[[relic-hint]] Duel.SpecialSummonStep(t,0,p,p,false,false,POS_FACEUP_ATTACK) Duel.SpecialSummonComplete()''',
    f'Duel.GetLocationCount(0,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard({machine},0,LOCATION_MZONE,0,1,nil)'))

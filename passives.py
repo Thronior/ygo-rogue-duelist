@@ -337,7 +337,9 @@ def multiplayer_script(run, side):
  # These three flip only literal 0/1 in the script text, never at run time: relics such as Stars Aligned pass a player
  # they work out themselves (tp, Duel.GetTurnPlayer()), which is already seat 1's, and a run-time flip sent it back
  # (behaviour flag 18fd8685, 2026-11-22: the CPU's Stars Aligned summoned to the player's field; 14 relics affected).
- source=_flip_literal_players(source,{'SelectMatchingCard':(1,3),'SpecialSummon':(3,4),'SpecialSummonStep':(3,4)})
+ # MoveToField(card,move_player,target_player,...), GetFirstMatchingCard(filter,player,...) and IsPlayerCanSpecialSummonMonster
+ # too (Discord 2026-11-25: Pyramid of Lightning and Toon Premiere worked in Draft only for the player going first).
+ source=_flip_literal_players(source,{'SelectMatchingCard':(1,3),'SpecialSummon':(3,4),'SpecialSummonStep':(3,4),'MoveToField':(2,3),'GetFirstMatchingCard':(2,),'IsPlayerCanSpecialSummonMonster':(1,)})
  wrappers=['do local originalDuel=Duel local Duel=setmetatable({}, {__index=originalDuel})']
  for name,index in positions.items():
   flips=' '.join(f'if a[{i}]==0 or a[{i}]==1 then a[{i}]=1-a[{i}] end' for i in (index if isinstance(index,tuple) else (index,)))

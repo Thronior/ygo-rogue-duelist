@@ -41,7 +41,7 @@ def effect(kind):
  local token=Duel.CreateToken(0,{MOTH_TOKEN})
  if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP) then
   for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,atk}},{{EFFECT_SET_BASE_DEFENSE,def}},{{EFFECT_CHANGE_LEVEL,lv}},{{EFFECT_CHANGE_RACE,race}}}}) do
-   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE) e1:SetCode(set[1]) e1:SetValue(set[2])
    e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
   end
  end
@@ -66,7 +66,7 @@ def effect(kind):
  local token=Duel.CreateToken(0,{MOTH_TOKEN})
  if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP_DEFENSE) then
   for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,300}},{{EFFECT_SET_BASE_DEFENSE,300}},{{EFFECT_CHANGE_LEVEL,1}}}}) do
-   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE) e1:SetCode(set[1]) e1:SetValue(set[2])
    e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
   end
  end

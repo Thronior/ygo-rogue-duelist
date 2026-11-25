@@ -38,8 +38,13 @@ def build(root,out,templates,bundle_artwork=False):
  for name in ['pwa-storage.js','pwa.js','pwa.css']:shutil.copy2(templates/name,out/name)
  mobile=out/'mobile.js';text=mobile.read_text(encoding='utf8')
  text="import {webStorage} from './pwa-storage.js';\n"+text
+ # Every save and load must go through webStorage (IndexedDB). v0.2.44 shipped a persist() reworded to
+ # "else try{localStorage.setItem(...)}catch{...}", which the old single pattern missed, so web saves went to
+ # localStorage while loads read IndexedDB (progress lost on reload, Discord 2026-11-25). Fail the build instead.
+ old="else try{localStorage.setItem('shadow-run-mobile',data)}catch{throw Error(SAVE_FAILED)}";assert text.count(old)==1;text=text.replace(old,'else await webStorage.saveGame(data);')
  old="else localStorage.setItem('shadow-run-mobile',data)";assert old in text;text=text.replace(old,'else await webStorage.saveGame(data)')
  old="localStorage.getItem('shadow-run-mobile')||'{}'";assert old in text;text=text.replace(old,'await webStorage.load()')
+ assert "'shadow-run-mobile'" not in text,'mobile.js still reads or writes the web save outside webStorage'
  text=text.replace('Updating the app keeps your save.','Web updates keep your saves. Export a backup before clearing browser data.')
  old="${btn('How to Play','tutorial')}";assert old in text
  text=text.replace(old,"<button id=\"web-app-options\">Install, offline play &amp; save backups</button>"+old)

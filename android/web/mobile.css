@@ -248,7 +248,34 @@ img.price-lp{width:1.15em;height:1.15em;object-fit:contain;vertical-align:middle
 
 .meerkat-overlay{background:transparent;position:fixed;inset:0;z-index:10000;overflow:hidden;pointer-events:auto}
 .meerkat-overlay img{position:absolute;bottom:0;width:50vw;height:100vh;object-fit:cover;transform:translateY(105%)}
-.gallery-view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:24px;padding:12px}.gallery-view img{max-height:70vh;max-width:60%;object-fit:contain}
+/* Gallery (2026-11-25): Audio and Images tabs. */
+.gallery-page{flex:1;min-height:0;display:flex;flex-direction:column;width:min(1100px,100%);margin:0 auto;box-sizing:border-box}
+.gallery-tabs{display:flex;gap:6px;padding:12px 15px 0;flex:none}
+.gallery-tabs button{min-height:42px;padding:0 22px;border-radius:8px;border:1px solid transparent;background:#0c222bcc;color:#cfe0e6;font-size:15px}
+.gallery-tabs button:hover{background:#173a46}
+.gallery-tabs button.active{background:linear-gradient(#2b4b57,#173a46);border-color:#c2a66a99;color:#ffe2a3;box-shadow:inset 0 -3px 0 #e8c778}
+.gallery-pane{min-height:0;overscroll-behavior:contain}
+.gallery-section+.gallery-section{margin-top:22px}
+.gallery-section h3{margin:0 0 10px;color:#ffe2a3;font-size:18px}
+.gallery-section h4{margin:16px 0 8px;color:#cfe0e6;font-size:14px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.gallery-note{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#3a2a10cc;border:1px solid #c2a66a66;color:#ffe2a3;font-size:14px}
+.gallery-tracks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.gallery-voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.gallery-track,.gallery-voice{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 12px;border-radius:8px;border:1px solid #2b4b57;background:#0c222bdd;color:#e6f1f4;text-align:left;justify-content:flex-start}
+.gallery-voice{min-height:42px;font-size:14px}
+.gallery-track:hover,.gallery-voice:hover{background:#173a46}
+.gallery-track[aria-pressed="true"],.gallery-voice[aria-pressed="true"]{border-color:#e8c778;background:linear-gradient(90deg,#2b4b57,#173a46);color:#ffe2a3}
+.gallery-track-text{display:flex;flex-direction:column;min-width:0}.gallery-track-text b,.gallery-track-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gallery-track-text small{color:#9fb6bd;font-size:12px}
+.gallery-voice>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* A play triangle; a pause sign while that line or track is playing. */
+.gallery-play{flex:none;width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent currentColor}
+[aria-pressed="true"]>.gallery-play{width:4px;height:14px;border-width:0 4px;border-color:currentColor;box-sizing:content-box;background:transparent}
+.gallery-sleeves{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.gallery-sleeve{margin:0;display:flex;flex-direction:column;gap:5px;min-width:0}
+.gallery-sleeve-art{aspect-ratio:214/307;overflow:hidden;border-radius:6px;background:#04101899;box-shadow:0 3px 10px #0008}
+.gallery-sleeve-art img{display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.06)}
+.gallery-sleeve figcaption{font-size:12px;color:#cfe0e6;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .duel-reference-pair{display:flex;gap:3px;width:100%}.duel-reference-pair button{flex:1;min-width:0;padding:3px;font-size:10px}.duel-reference-pair .ui-icon{display:none}
 /* Shared tag campaign controls; the duel renderer stays platform-specific. */

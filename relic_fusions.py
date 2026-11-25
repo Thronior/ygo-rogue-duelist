@@ -224,6 +224,8 @@ dice:SetCondition(function(e,tp,eg,ep,ev) return ep==0 end)
 dice:SetOperation(function(e,tp,eg,ep,ev) --[[relic-ask]] local n=Duel.AnnounceNumber(0,1,2,3,4,5,6) local r={}
  for i=1,ev&0xffff do r[i]=n end for i=1,ev>>16 do r[#r+1]=Duel.GetRandomNumber(1,6) end Duel.SetDiceResult(table.unpack(r)) end)
 Duel.RegisterEffect(dice,0) end'''
+ # The copied stats are the relic's, not the token's own effects: Iron Silence negated them (flag f6bdd8f9, 2026-11-25),
+ # so they cannot be disabled (the Moth and Machine Duplication tokens too).
  if key=='scapegoat_pasture':
   mine='function(c) return c:IsFaceup() and c:IsType(TYPE_TOKEN) end'
   return phase('STANDBY',f'Duel.SpecialSummon(Duel.CreateToken(0,{SHEEP_TOKEN}),0,0,0,false,false,POS_FACEUP_DEFENSE)','true').replace('Duel.GetTurnPlayer()==0 and (true)','Duel.GetTurnPlayer()==1 and Duel.GetLocationCount(0,LOCATION_MZONE)>0')+'\n'+phase('STANDBY',f'''--[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_FACEUP) local tc=Duel.SelectMatchingCard(0,Card.IsFaceup,0,LOCATION_MZONE,LOCATION_MZONE,1,1,nil):GetFirst()
@@ -231,7 +233,7 @@ Duel.RegisterEffect(dice,0) end'''
  local race,level,attribute,code,atk,def=tc:GetRace(),tc:GetLevel(),tc:GetAttribute(),tc:GetCode(),tc:GetBaseAttack(),tc:GetBaseDefense()
  for token in Duel.GetMatchingGroup({mine},0,LOCATION_MZONE,0,nil):Iter() do
   for _,row in ipairs({{{{EFFECT_CHANGE_RACE,race}},{{EFFECT_CHANGE_LEVEL,level}},{{EFFECT_CHANGE_ATTRIBUTE,attribute}},{{EFFECT_CHANGE_CODE,code}},{{EFFECT_SET_BASE_ATTACK,atk}},{{EFFECT_SET_BASE_DEFENSE,def}}}}) do
-   local x=Effect.CreateEffect(token) x:SetType(EFFECT_TYPE_SINGLE) x:SetCode(row[1]) x:SetValue(row[2]) x:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) token:RegisterEffect(x)
+   local x=Effect.CreateEffect(token) x:SetType(EFFECT_TYPE_SINGLE) x:SetProperty(EFFECT_FLAG_CANNOT_DISABLE) x:SetCode(row[1]) x:SetValue(row[2]) x:SetReset(RESET_EVENT|RESETS_STANDARD|RESET_PHASE|PHASE_END) token:RegisterEffect(x)
   end
  end''',f'Duel.IsExistingMatchingCard({mine},0,LOCATION_MZONE,0,1,nil)')
  if key=='unstable_dna':
@@ -360,7 +362,7 @@ end''',f'Duel.IsExistingMatchingCard({counters},0,LOCATION_ONFIELD,0,1,nil)')
  local token=Duel.CreateToken(0,{MOTH_TOKEN})
  if Duel.SpecialSummonStep(token,0,0,0,false,false,POS_FACEUP) then
   for _,set in ipairs({{{{EFFECT_SET_BASE_ATTACK,atk}},{{EFFECT_SET_BASE_DEFENSE,def}}}}) do
-   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetCode(set[1]) e1:SetValue(set[2])
+   local e1=Effect.CreateEffect(token) e1:SetType(EFFECT_TYPE_SINGLE) e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE) e1:SetCode(set[1]) e1:SetValue(set[2])
    e1:SetReset(RESET_EVENT|RESETS_STANDARD&~RESET_TOFIELD) token:RegisterEffect(e1)
   end
  end

@@ -5062,5 +5062,18 @@
  "No CPU duels for this duelist yet.": "该决斗者尚无与CPU的决斗。",
  "Genetic Override": "基因支配",
  "All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.": "自己的怪兽当作持有所有种族和属性使用。自己场上的怪兽的攻击力上升场上的怪兽数量×300。每场决斗开始时，选择1个种族和1个属性。对方所有位置的怪兽都变成所选的种族和属性。",
- "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "无法在此设备上保存游戏，关闭后最近的更改将会丢失。请释放一些存储空间后重试。"
+ "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "无法在此设备上保存游戏，关闭后最近的更改将会丢失。请释放一些存储空间后重试。",
+ "Audio": "音频",
+ "Images": "图片",
+ "Soundtrack": "原声音乐",
+ "Boss duels": "首领决斗",
+ "Legendary summons": "传说召唤",
+ "Finishers": "终结",
+ "Defeat taunts": "失败嘲讽",
+ "Duelist sleeves": "决斗者卡套",
+ "Card sleeves": "卡牌卡套",
+ "Music is at 0% in Settings.": "设置中的音乐为0%。",
+ "Voice Lines are at 0% in Settings.": "设置中的语音为0%。",
+ "Gallery sections": "画廊分区",
+ "Where are you from?": "你来自哪里？"
 }

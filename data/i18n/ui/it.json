@@ -5005,5 +5005,18 @@
  "No CPU duels for this duelist yet.": "Ancora nessun duello contro la CPU con questo duellante.",
  "Genetic Override": "Dominio Genetico",
  "All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.": "Tutti i tuoi mostri vengono considerati come aventi ogni Tipo e ogni Attributo. I mostri che controlli guadagnano 300 ATK per ogni mostro sul Terreno. All'inizio di ogni Duello, seleziona 1 Tipo e 1 Attributo. Tutti i mostri del tuo avversario, ovunque si trovino, diventano del Tipo e dell'Attributo selezionati.",
- "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "Impossibile salvare la partita su questo dispositivo, quindi le ultime modifiche andranno perse alla chiusura. Libera un po' di spazio di archiviazione e riprova."
+ "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "Impossibile salvare la partita su questo dispositivo, quindi le ultime modifiche andranno perse alla chiusura. Libera un po' di spazio di archiviazione e riprova.",
+ "Audio": "Audio",
+ "Images": "Immagini",
+ "Soundtrack": "Colonna sonora",
+ "Boss duels": "Duelli contro il Boss",
+ "Legendary summons": "Evocazioni leggendarie",
+ "Finishers": "Colpi di grazia",
+ "Defeat taunts": "Prese in giro della sconfitta",
+ "Duelist sleeves": "Bustine dei duellanti",
+ "Card sleeves": "Bustine delle carte",
+ "Music is at 0% in Settings.": "La musica è allo 0% nelle Impostazioni.",
+ "Voice Lines are at 0% in Settings.": "Le battute vocali sono allo 0% nelle Impostazioni.",
+ "Gallery sections": "Sezioni della galleria",
+ "Where are you from?": "Da dove vieni?"
 }

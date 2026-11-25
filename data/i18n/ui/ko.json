@@ -5062,5 +5062,18 @@
  "No CPU duels for this duelist yet.": "이 듀얼리스트의 CPU 듀얼이 아직 없습니다.",
  "Genetic Override": "유전자 지배",
  "All your monsters are treated as having every Type and Attribute. Monsters you control gain 300 ATK for each monster on the field. At the start of each Duel, select 1 Type and 1 Attribute. All of your opponent's monsters everywhere become the selected Type and Attribute.": "자신의 몬스터는 모든 종족 / 속성을 가진 것으로 취급한다. 자신이 컨트롤하는 몬스터의 공격력은, 필드의 몬스터의 수 × 300 올린다. 각 듀얼 개시시에, 종족과 속성을 1개씩 선택한다. 모든 장소에 있는 상대의 몬스터는 선택한 종족 / 속성이 된다.",
- "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "이 기기에 게임을 저장하지 못했습니다. 닫으면 최근 변경 사항이 사라집니다. 저장 공간을 확보한 뒤 다시 시도하세요."
+ "Could not save the game on this device, so your latest changes will be lost when you close it. Free up some storage space, then try again.": "이 기기에 게임을 저장하지 못했습니다. 닫으면 최근 변경 사항이 사라집니다. 저장 공간을 확보한 뒤 다시 시도하세요.",
+ "Audio": "오디오",
+ "Images": "이미지",
+ "Soundtrack": "사운드트랙",
+ "Boss duels": "보스 듀얼",
+ "Legendary summons": "전설의 소환",
+ "Finishers": "피니시",
+ "Defeat taunts": "패배 도발",
+ "Duelist sleeves": "듀얼리스트 슬리브",
+ "Card sleeves": "카드 슬리브",
+ "Music is at 0% in Settings.": "설정에서 음악이 0%입니다.",
+ "Voice Lines are at 0% in Settings.": "설정에서 음성이 0%입니다.",
+ "Gallery sections": "갤러리 항목",
+ "Where are you from?": "어디에서 오셨나요?"
 }

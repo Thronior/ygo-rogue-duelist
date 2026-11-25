@@ -368,7 +368,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const v
 
 let musicContext='',previousTrack={};
 
-function screenMusic(){if(screen==='duel'||screen==='cpu'){if(screen==='cpu')return 'duel';if(engine&&summonMusic.has(engine))return summonMusic.get(engine);if(state.run?.encore_active&&!snapshot?.tag||snapshot?.tag?.pvp)return 'champion';const run=snapshot?.tag?tagUI?.view?.run:state.run;if(((run?.round||0)+1)%3===0){const opponent=snapshot?.tag?activeTagCharacters(content,tagUI.view,snapshot.tag)[1]:content.characters[run?.opponent];return bossTheme(opponent?.name)}return 'duel'}if(screen==='ending')return state.run?.stage==='complete'?'victory':'defeat';if(screen==='characters')return 'characters';if(screen==='routes')return (state.run.round+1)%3===0?'boss':'draft';if(screen==='draft')return 'draft';if(screen==='shop')return state.run?.cursed_offer?'boss':'shop';if(screen==='settings')return musicContext||'title';if(screen==='tag'&&tagUI?.view?.phase==='draft'&&tagUI.tab!=='deck'&&(tagUI.view.run.round+1)%3===0)return 'boss';if(screen==='tag')return tagUI?.view?.phase==='shop'?'shop':tagUI?.view?.phase==='complete'?'victory':tagUI?.view?.phase==='gameover'?'defeat':tagUI?.view?.phase==='draft'?'draft':'characters';return 'title'}
+function screenMusic(){if(screen==='gallery'&&galleryTrack)return galleryTrack;if(screen==='duel'||screen==='cpu'){if(screen==='cpu')return 'duel';if(engine&&summonMusic.has(engine))return summonMusic.get(engine);if(state.run?.encore_active&&!snapshot?.tag||snapshot?.tag?.pvp)return 'champion';const run=snapshot?.tag?tagUI?.view?.run:state.run;if(((run?.round||0)+1)%3===0){const opponent=snapshot?.tag?activeTagCharacters(content,tagUI.view,snapshot.tag)[1]:content.characters[run?.opponent];return bossTheme(opponent?.name)}return 'duel'}if(screen==='ending')return state.run?.stage==='complete'?'victory':'defeat';if(screen==='characters')return 'characters';if(screen==='routes')return (state.run.round+1)%3===0?'boss':'draft';if(screen==='draft')return 'draft';if(screen==='shop')return state.run?.cursed_offer?'boss':'shop';if(screen==='settings')return musicContext||'title';if(screen==='tag'&&tagUI?.view?.phase==='draft'&&tagUI.tab!=='deck'&&(tagUI.view.run.round+1)%3===0)return 'boss';if(screen==='tag')return tagUI?.view?.phase==='shop'?'shop':tagUI?.view?.phase==='complete'?'victory':tagUI?.view?.phase==='gameover'?'defeat':tagUI?.view?.phase==='draft'?'draft':'characters';return 'title'}
 
 let rewardMusic=false;
 
@@ -786,7 +786,7 @@ let titleMotion=null;
 
 function render(){if(screen!=='shop')closeShopTour();if(screen!=='shop'&&(shopkeeperSmall||shopkeeperShrinking)){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}syncBackgroundAnimations();if(screen!=='duel'){clearDuelDOM(app);resetHandDrag()}if(screen!=='ending')clearShadowVictory();titleMotion?.destroy();titleMotion=null;if(screen==='tag'){tagUI?.render();return}removeActions();if(screen!=='duel')clearTimeout(aiTimer);({title:renderTitle,characters:renderCharacters,draft:renderDraft,routes:renderRoutes,shop:renderShop,achievements:renderAchievements,relics:renderRelics,settings:renderSettings,cosmetics:renderCosmetics,tutorial:renderTutorial,collection:renderCollection,stats:renderStats,gallery:renderGallery,ending:renderEnding,duel:renderDuel})[screen]();track(screenMusic())}
 
-function go(name){if(name==='routes'&&state.run?.reward_slots?.pending){if(rewardDeckReturn)go(state.run.stage==='shop'?'shop':'ending');return;}if(rewardDeckReturn&&!['draft','shop','ending'].includes(name))rewardDeckReturn=false;if(name!=='duel'){clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;heldAlwaysChain=false;heldChainPrompt=null;}cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop')keeperTalk.hush();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;if(name!==screen)previousScreen=screen;screen=name;syncBackgroundAnimations();render();if(name==='shop')settleViewport();if(['draft','shop'].includes(name)&&(state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type||pendingRelicChoice(state.run))&&!modal.open)void offerGoldenCards();if(pendingRewards){if(rewardDeckReturn){rewardDeckReturn=false;if(modal.querySelector('.reward-screen')){modal.showModal();rewardPresentation?.refresh()}else showRewardSlots()}else showVictoryReceipt()}}
+function go(name){if(name!=='gallery'&&screen==='gallery')leaveGallery();if(name==='routes'&&state.run?.reward_slots?.pending){if(rewardDeckReturn)go(state.run.stage==='shop'?'shop':'ending');return;}if(rewardDeckReturn&&!['draft','shop','ending'].includes(name))rewardDeckReturn=false;if(name!=='duel'){clearTimeout(heldChainTimer);heldChainTimer=0;heldChainPointer=null;heldAlwaysChain=false;heldChainPrompt=null;}cancelCharacterEntrance();if(name!=='ending')clearShadowVictory();clearDuelEmotes();flushDraftTap();if(name!=='shop')keeperTalk.hush();if(name!=='shop'||screen!=='shop'){cancelShopkeeperShrink();shopkeeperSmall=false;resetShopkeeperRightClicks()}const pendingRewards=['shop','ending'].includes(name)&&state.run?.reward_slots?.pending;if(pendingRewards)rewardMusic=true;if(name!==screen)previousScreen=screen;screen=name;syncBackgroundAnimations();render();if(name==='shop')settleViewport();if(['draft','shop'].includes(name)&&(state.run?.artifacts.includes('dna_rewrite')&&!state.run.monster_type||pendingRelicChoice(state.run))&&!modal.open)void offerGoldenCards();if(pendingRewards){if(rewardDeckReturn){rewardDeckReturn=false;if(modal.querySelector('.reward-screen')){modal.showModal();rewardPresentation?.refresh()}else showRewardSlots()}else showVictoryReceipt()}}
 
 let menu=baseMenu,menuPage='main',menuPageEntry=null;
 
@@ -835,7 +835,39 @@ addEventListener('resize',()=>{if(screen==='title')fitMenuTitles()},{passive:tru
 
 let copycatTaps=0,deviceSecretTaps=0,secretPlaying=false;
 
-function renderGallery(){if(!state.profile.gallery_unlocked){go('title');return}shell('Gallery',`<div class="gallery-view"><img src="assets/Meerkat.png" alt="Meerkat"><h2>Under construction</h2></div>`)}
+// Gallery (user, 2026-11-25): an Audio tab with the soundtrack and every voice line, and an Images tab with every sleeve,
+// shown zoomed in a little. It only points at files the game already ships: content.soundtrack and content.summonVoices
+// come from tools/build_android.py, the rest from the lists the duels use. A track plays on the menu music player
+// (screenMusic returns it while the Gallery is open); voice lines play one at a time at the Voice volume.
+let galleryTab='audio',galleryTrack=null,galleryVoice=null,galleryVoicePath='';
+function galleryVoices(){
+ const boss=(content.bossVoices||[]).map(f=>{const i=/^boss-(\d+)\./.exec(f)?.[1];return {path:'assets/sfx/boss/'+f,label:i!=null?content.characters[+i]?.name||f:'Ultimate Collector',order:i!=null?+i:1e9}}).sort((a,b)=>a.order-b.order);
+ const summons=(content.summonVoices||[]).map(code=>({path:`assets/sfx/summon-${code}.mp3`,label:cardsById.get(code)?.name||String(code)})).sort((a,b)=>a.label.localeCompare(b.label));
+ const finishers=['PERFECT',...juice.KILL_WORDS].map(w=>({path:`assets/sfx/kill-${w.toLowerCase()}.wav`,label:w}));
+ const defeat=['assets/sfx/you-lose.wav',...(content.loseVoices||[]).map(f=>'assets/sfx/lose/'+f)].map((path,i)=>({path,label:'#'+(i+1)}));
+ return [['Boss duels',boss],['Legendary summons',summons],['Finishers',finishers],['Defeat taunts',defeat],['Shopkeeper',[{path:'assets/sfx/shopkeeper-laugh.mp3',label:'Shopkeeper'}]]];
+}
+function galleryAudioPane(){
+ const off=[!state.settings.music&&'Music is at 0% in Settings.',!state.settings.voice&&'Voice Lines are at 0% in Settings.'].filter(Boolean);
+ const tracks=(content.soundtrack||[]).map(t=>`<button type="button" class="gallery-track" data-do="gallery-music" data-track="${esc(t.id)}" aria-pressed="${t.id===galleryTrack}"><span class="gallery-play" aria-hidden="true"></span><span class="gallery-track-text"><b>${esc(t.title)}</b><small>${esc(t.game)}</small></span></button>`).join('');
+ const voices=galleryVoices().filter(([,list])=>list.length).map(([title,list])=>`<h4>${esc(title)}</h4><div class="gallery-voices">${list.map(v=>`<button type="button" class="gallery-voice" data-do="gallery-voice" data-path="${esc(v.path)}" aria-pressed="${v.path===galleryVoicePath}"><span class="gallery-play" aria-hidden="true"></span><span>${esc(v.label)}</span></button>`).join('')}</div>`).join('');
+ return `${off.map(t=>`<p class="gallery-note">${esc(t)}</p>`).join('')}<section class="gallery-section"><h3>Soundtrack</h3><div class="gallery-tracks">${tracks}</div></section><section class="gallery-section"><h3>Voice Lines</h3>${voices}</section>`;
+}
+function galleryImagesPane(){
+ const tile=key=>`<figure class="gallery-sleeve"><div class="gallery-sleeve-art"><img src="${sleeveImage(content,key)}" alt="" loading="lazy" decoding="async"></div><figcaption>${esc(sleeveName(content,key))}</figcaption></figure>`;
+ return `<section class="gallery-section"><h3>Duelist sleeves</h3><div class="gallery-sleeves">${(content.playable||[]).map(tile).join('')}</div></section><section class="gallery-section"><h3>Card sleeves</h3><div class="gallery-sleeves">${(content.cardSleeves||[]).map(s=>tile(s.id)).join('')}</div></section>`;
+}
+function renderGallery(){if(!state.profile.gallery_unlocked){go('title');return}const tabs=[['audio','Audio'],['images','Images']];shell('Gallery',`<div class="gallery-page"><nav class="gallery-tabs" role="tablist" aria-label="Gallery sections">${tabs.map(([k,label])=>`<button type="button" role="tab" data-do="gallery-tab" data-tab="${k}" aria-selected="${k===galleryTab}" class="${k===galleryTab?'active':''}">${esc(label)}</button>`).join('')}</nav><div class="scroll gallery-pane" role="tabpanel">${galleryTab==='images'?galleryImagesPane():galleryAudioPane()}</div></div>`,'','gallery-screen')}
+function syncGalleryPlaying(){if(screen!=='gallery')return;for(const b of app.querySelectorAll('[data-do="gallery-music"]'))b.setAttribute('aria-pressed',String(b.dataset.track===galleryTrack));for(const b of app.querySelectorAll('[data-do="gallery-voice"]'))b.setAttribute('aria-pressed',String(b.dataset.path===galleryVoicePath))}
+function stopGalleryVoice(){galleryVoice?.pause();galleryVoicePath='';syncGalleryPlaying()}
+function playGalleryVoice(path){
+ if(path===galleryVoicePath){stopGalleryVoice();return}
+ if(!galleryVoice){galleryVoice=new Audio();galleryVoice.addEventListener('ended',()=>{galleryVoicePath='';syncGalleryPlaying()})}
+ galleryVoice.pause();galleryVoicePath=path;galleryVoice.src=assetURL(path);galleryVoice.load();balancedVolume(galleryVoice,(state.settings.voice||0)/100,1.4);galleryVoice.play().catch(()=>{});syncGalleryPlaying();
+}
+// Leaving the Gallery hands the music back to the screen and stops a voice line.
+function leaveGallery(){galleryTrack=null;if(galleryVoicePath)stopGalleryVoice()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&galleryVoicePath)stopGalleryVoice()});
 
 let shopVisitKey='',shopkeeperTaps=0,shopkeeperRightClicks=0,shopkeeperRightClickTimer=0,shopkeeperShrinking=false,shopkeeperSmall=false,shopkeeperShrinkAnimation=null;
 
@@ -2729,7 +2761,7 @@ if(a==='defeated-collector-deck'){showDefeatedCollector(+el.dataset.index);retur
 
  if(a==='sell-relic'){const fromShopRelics=screen==='shop'&&!!el.closest('.relic-ledger,.relic-card');if(!fromShopRelics)return;const result=await command('sell-relic',el.dataset.relic);shopSelection.clear();renderShop();dialog('Run relics',relicLedgerMarkup());toast(`Sold ${content.artifacts[result.relic]?.[0]||'relic'} for ${result.coins} coins.`);return}
 
- if(a==='shop-reroll'){busy=true;try{const previous=juice.shopArt(app);await command('shop-reroll');shopSelection.clear();renderShop();if(!juice.reroll(app,previous))playRerollSound();keeperTalk.say('reroll')}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}
+ if(a==='shop-reroll'){busy=true;try{const previous=juice.shopArt(app);await command('shop-reroll');shopSelection.clear();renderShop();if(!juice.reroll(app,previous))playRerollSound();keeperTalk.say('reroll')}finally{busy=false}return}if(a==='shopkeeper-secret')return shopkeeperSecret();if(a==='copycat-secret'){return copycatSecret()}if(a==='gallery'){go('gallery');return}if(a==='gallery-tab'){galleryTab=el.dataset.tab==='images'?'images':'audio';renderGallery();return}if(a==='gallery-music'){galleryTrack=galleryTrack===el.dataset.track?null:el.dataset.track;track(screenMusic());syncGalleryPlaying();return}if(a==='gallery-voice'){playGalleryVoice(el.dataset.path);return}
 
  if(a==='choose-variant'){selectedVariants[selected]=+el.dataset.variant;renderCharacters();return}if(a==='levels'){levelMenu();return}if(a==='choose-level'){await command('remember-level',{character:selected,level:+el.dataset.level});selectedLevels[selected]=rememberedLevel(state.profile,selected);modal.close();renderCharacters();return}
 

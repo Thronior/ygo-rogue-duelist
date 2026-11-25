@@ -30,6 +30,11 @@ assert.equal(roar(Timing.MAIN_END,{attackers:0}),false,'nothing can attack');
 assert.equal(roar(Timing.MAIN_END,{turnPlayer:0}),false,'your own turn');
 assert.equal(roar(Timing.MAIN_END,{phase:256}),false,'Main Phase 2 has no attacks left');
 assert.equal(roar(Timing.STANDBY_PHASE||0,{phase:2}),false,'no window in other phases');
+// Shadow Spell gets the same window, so it can stop an attack before it is declared (user, 2026-11-25).
+const shadowCard=()=>({name:'Shadow Spell',data:{type:0x20004},desc:'Activate this card by targeting 1 face-up monster your opponent controls; it loses 700 ATK, also it cannot attack or change its battle position.'});
+assert.equal(roar(Timing.MAIN_END,{card:shadowCard}),true,'Shadow Spell asks as the opponent ends Main Phase 1');
+assert.equal(roar(Timing.MAIN_END,{card:shadowCard,attackers:0}),false,'Shadow Spell waits while nothing can attack');
+assert.equal(roar(Timing.MAIN_END,{card:shadowCard,turnPlayer:0}),false,'not on your own turn');
 console.log('PASS forced chain windows pick the sole mandatory trigger; set-card activations stay optional');
 // Relic triggers (user, 2026-11-17): a run effect (code 0, location 0) always activates first, forced or not.
 {const relic={code:0,controller:2,location:0,sequence:0,position:0,description:'0'},unity={code:14731897,controller:0,location:2,sequence:2,position:10,description:'0'};
