@@ -26,7 +26,7 @@ for(let i=1;i<inc.length;i++)assert.ok(M.power(inc[i].id)>=M.power(inc[i-1].id),
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
-assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.4,'simple items grow slowly (15% steeper for income items)');
+assert.ok(ratio('calls1')<1.5&&ratio('fee_summon')<1.6,'simple items grow slowly (15% steeper for income items, 12% ramp for all)');
 assert.ok(ratio('speed')>ratio('calls1')&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot faster');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
 assert.equal(M.itemCost('speed',4),50,'the 5th Duel Speed level costs 50');assert.ok(M.itemCost('speed',0)<=10,'the first is cheap');

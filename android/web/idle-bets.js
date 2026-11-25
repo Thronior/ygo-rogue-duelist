@@ -161,9 +161,13 @@ export class DuelBets{
   const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),document.hidden?1000:watching?100:250);
  }
  // Auto Bet: one waiting board per interval, in board order (normal boards, then bracket duels between rounds).
- autoBet(dt){const every=M.autoInterval(this.state);if(!every)return;this.autoAt=Math.min(every,(this.autoAt||0)+dt);if(this.autoAt<every)return;
-  for(const b of this.boards)if(b.phase==='bet'&&b.next&&M.canAfford(this.state,M.boardStake(b.level))){this.autoAt=0;b.bet(M.autoPick(this.state,b.next.seats.map(x=>this.seatOf(x))),true);return}
-  for(const br of this.brackets)for(const d of br.openBets()){this.autoAt=0;br.betDuel(d.slot-1,M.autoPick(this.state,d.pair.map(i=>br.roster[i])));return}}
+ // Auto Bet: a board bets once its betting screen has been up for the Auto Bet delay (5 s, shorter each level).
+ // Bracket duels: one bet per delay, counted only while a duel is open for bets.
+ autoBet(dt){const wait=M.autoInterval(this.state);if(!wait)return;
+  for(const b of this.boards)if(b.phase==='bet'&&b.next&&this.clock-(b.betSince??this.clock)>=wait&&M.canAfford(this.state,M.boardStake(b.level)))b.bet(M.autoPick(this.state,b.next.seats.map(x=>this.seatOf(x))),true);
+  let open=null;for(const br of this.brackets){const d=br.openBets()[0];if(d){open=[br,d];break}}
+  if(!open){this.autoAt=0;return}this.autoAt=(this.autoAt||0)+dt;if(this.autoAt<wait)return;
+  this.autoAt=0;const [br,d]=open;br.betDuel(d.slot-1,M.autoPick(this.state,d.pair.map(i=>br.roster[i])))}
  // ---- input ----
  action(a,el){
   if(a==='exit')return this.exit();
