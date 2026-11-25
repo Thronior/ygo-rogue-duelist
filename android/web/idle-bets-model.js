@@ -124,7 +124,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(id==='purse')return [`Each level: +50% to what a correct bracket champion bet pays.`,`Now: +${50*l}% · next level: +${50*(l+1)}%.`]
  if(/^feat_/.test(id)){const g=id.slice(5),rules=RULES.filter(r=>FEAT_GROUP[r.metric]===g),by=new Map();for(const r of rules){const k=r.label.replace(/:.*$/,'')+(r.victoryOnly?' (winner)':'');(by.get(k)||by.set(k,[]).get(k)).push(`${r.threshold}+ ${r.coins}`)}
   return [`The main game's duel coin rules, for both CPUs. Each level pays ${fmt(FEAT_SCALE*power(id)*100)}% of their coins, times the board's level.`,...[...by].map(([k,v])=>`${k}: ${v.join(' · ')}`),`Now: ×${l} · next level: ×${l+1}.`]}
- if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`Each level: +${fmt(v)} coins whenever ${n} wins a duel, on any board.`,BOARD_LEVEL,`Now: ${c(v*l)} · next level: ${c(v*(l+1))}.`]}
+ if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`Each level: +${fmt(v)} coins whenever ${n} wins a duel, on any board.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,BOARD_LEVEL,`Now: ${c(v*l)} · next level: ${c(v*(l+1))}.`]}
  if(id==='autochamp')return ['A bracket waits for your champion bet before it starts. This places it for you as soon as a bracket opens for betting (when you can pay the stake).','It picks at random, or the highest-tier CPU when you own Scouting Report.','Bought once.']
  if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: a league of 9 more CPUs on 9 more boards (36 duels, everyone meets everyone once), with higher stakes than the last.`,`Brackets open: ${s.brackets} of ${BRACKET_MAX}.`]
  return [it.text(l)]}
@@ -132,9 +132,12 @@ export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // Character items: one per CPU character, registered from the catalog at start (before a save is read).
 // Price by the character's strongest deck tier (rank 0 Opening … 4 Endless/World Championship); as with every income
 // item, a dearer one earns more per win (power).
-export function registerCharacters(list){for(const c of list){const id='char_'+c.id;if(ITEM[id])continue;
- const it=I(id,1,c.name+' Wins',0,4*3**c.rank,1.2,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name,charId:c.id});
- ITEMS.push(it);ITEM[id]=it}}
+// Ultimate Collector characters all share one item (char_uc), priced for how many of them there are.
+export const CHAR_ITEM={};
+export function registerCharacters(list){const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
+ for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,1.2,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name}))}
+ if(uc.length){for(const c of uc)CHAR_ITEM[c.id]='char_uc';const rank=Math.max(...uc.map(c=>c.rank));
+  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),1.2,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
 export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
  return Math.ceil(it.base*it.growth**level+level)}
 export const itemLevel=lvl;
@@ -200,7 +203,7 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=l
  if(kind==='exodia'||kind==='destiny'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add(kind==='exodia'?'EXODIA JACKPOT':'DESTINY JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
- if(result.winner<2&&result.winnerId!=null){const id='char_'+result.winnerId,l=lvl(s,id);if(l)add((ITEM[id]?.charName||'Character')+' wins',2*l*power(id)*scale)}
+ if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*l*power(id)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lvl(s,'flawless')*power('flawless')*scale);
  if(result.turns>10)add('Long game',(result.turns-10)*lvl(s,'longgame')*power('longgame')*scale);
  if(result.winner<2&&result.turns<=5)add('Blitz',10*lvl(s,'blitz')*power('blitz')*scale);

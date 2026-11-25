@@ -31,7 +31,7 @@ export class DuelBets{
   this.cardInfo=code=>{const c=this.cards.get(code);return c?{type:Number(c.data?.type)||0,level:Number(c.level)||0,race:c.race,attribute:c.attribute}:null};
   this.signatures=id=>new Set((this.chars[id]?.cards||[]).map(n=>byName.get(n)).filter(Boolean));
   {const best=new Map();for(const d of this.pool)best.set(d.id,Math.max(best.get(d.id)??0,M.tierRank(d.label)));
-   M.registerCharacters([...best].map(([id,rank])=>({id,rank,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
+   M.registerCharacters([...best].map(([id,rank])=>({id,rank,uc:!!this.chars[id]?.ultimate_collector,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
   this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
   this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])]});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
