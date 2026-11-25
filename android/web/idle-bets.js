@@ -100,10 +100,10 @@ export class DuelBets{
   this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
   const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
   const head='';this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
-   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
+   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span>${maxed&&it.keep?`<button class="db-buy db-toggle ${M.isOn(s,it.id)?'on':''}" data-db="toggle-item" data-id="${it.id}">${M.isOn(s,it.id)?'ON':'OFF'}</button>`:`<button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button>`}</div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
   this.paintAfford();
  }
- paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}
+ paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy:not(.db-toggle)')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}
   // A dot on each tab that has something you can buy right now.
   const ok=new Set(M.visibleItems(this.state).filter(i=>{const l=M.itemLevel(this.state,i.id);return l<i.max&&M.canAfford(this.state,M.itemCost(i.id,l))}).map(i=>M.categoryOf(i.id)));
   for(const t of this.el.tabs?.querySelectorAll('button')||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
@@ -169,6 +169,7 @@ export class DuelBets{
   if(a==='exit')return this.exit();
   if(a==='settings')return this.settings();
   if(a==='deck-stats')return this.deckStats();
+  if(a==='toggle-item'){const id=el.dataset.id,off=this.state.settings.off;if(off[id])delete off[id];else off[id]=true;this.dirty=true;this.renderShop();return}
   if(a==='shop-tab'){this.shopTab=el.dataset.cat;this.hideTip();this.renderShop();this.el.shop.scrollTop=0;return}
   if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
@@ -450,7 +451,7 @@ class Bracket{
  // ---- running ----
  tick(gdt,dt){
   if(this.phase==='bet'){
-   if(!this.bet&&!this.skipBet){if(M.itemLevel(this.game.state,'autochamp')&&this.autoChampion())return;if((this.tileAt=(this.tileAt||0)+dt)>480){this.tileAt=0;this.paintAll()}return}
+   if(!this.bet&&!this.skipBet){if(M.isOn(this.game.state,'autochamp')&&this.autoChampion())return;if((this.tileAt=(this.tileAt||0)+dt)>480){this.tileAt=0;this.paintAll()}return}
    this.left-=dt;if(this.left<=0){this.phase='live';this.paintAll()}return}
   if(this.phase==='final'){this.left-=dt;if(this.left<=0)this.fresh();else if((this.tileAt=(this.tileAt||0)+dt)>480){this.tileAt=0;this.paintTile();this.paintHead()}return}
   let busy=false;
@@ -476,7 +477,7 @@ class Bracket{
  betDuel(i,seat){const d=this.slots[i];if(!this.bettable(d))return;const stake=M.boardStake(this.level(d.slot));if(!M.spend(this.game.state,stake))return;d.pick=seat;d.stake=stake;if(d.replay)d.replay.pick=seat;this.game.state.stats.bets++;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.paintDuel(d)}
  // Auto Champion Bet: random, or the highest-tier CPU with Scouting Report (ties at random).
  autoChampion(){const s=this.game.state;if(!M.canAfford(s,M.championStake(s,this.index)))return false;let pick=Math.floor(Math.random()*this.roster.length);
-  if(M.itemLevel(s,'scout')){const best=Math.max(...this.roster.map(d=>M.tierRank(d.label))),top=this.roster.map((d,i)=>i).filter(i=>M.tierRank(this.roster[i].label)===best);pick=top[Math.floor(Math.random()*top.length)]}
+  if(M.isOn(s,'scout')){const best=Math.max(...this.roster.map(d=>M.tierRank(d.label))),top=this.roster.map((d,i)=>i).filter(i=>M.tierRank(this.roster[i].label)===best);pick=top[Math.floor(Math.random()*top.length)]}
   return this.betChampion(pick)}
  betChampion(i){if(this.phase!=='bet'||this.bet)return false;const stake=M.championStake(this.game.state,this.index);if(!M.spend(this.game.state,stake))return false;this.bet={pick:i,stake};this.left=Math.min(this.left,1500);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.table?.update();this.paintAll();return true}
  settleModel(d){const m=d.model,sample=m.sample,s=this.game.state,level=this.level(d.slot);

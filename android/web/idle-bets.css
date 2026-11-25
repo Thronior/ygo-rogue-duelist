@@ -378,3 +378,5 @@
 .db-shop-tabs{flex-direction:column;flex-wrap:nowrap}
 .db-tabrow{display:flex}
 .db-tabrow+.db-tabrow{border-top:1px solid #2a4a56}
+.db-buy.db-toggle{background:#183f50;border-color:#537e8b;color:#86a1a8!important}
+.db-buy.db-toggle.on{background:#2f6b45;border-color:#7fd69a;color:#e8ffef!important}

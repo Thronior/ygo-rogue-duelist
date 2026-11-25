@@ -41,7 +41,7 @@ export const ITEMS=[
  // Automation: Auto Bet backs a duelist on one waiting board every few seconds (faster per level);
  // Scouting Report makes it back the higher-tier CPU (a coin flip when both are the same tier).
  I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:12,text:l=>l?`Bets on a waiting board every ${autoSeconds(l)}s · next level ${autoSeconds(l+1)}s.`:`Every ${autoSeconds(1)}s, bets on a random duelist on a waiting board.`,maxText:`Bets on a waiting board every ${autoSeconds(12)}s.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
- I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
+ I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
  // +0.1× per purchase (user, 2026-11-25), up to 8×; still the steepest-growing price in the opening shop.
  I('speed',1,'Duel Speed',16589042,10,1.8,'drastic',{max:70,text:l=>`Duels play at ${speedAt(l)}× now · next level ${speedAt(l+1)}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
  I('open2',1,'The Big Leagues',37313786,20,1,'opener',{max:1,text:()=>'Opens board 2. Bets cost 10 and pay 100.',show:s=>lvl(s,'calls1')>=2||s.earned>=20}),
@@ -87,7 +87,7 @@ export const ITEMS=[
  I('feat_destroy',3,'Destruction Feats',12580477,4,1.25,'simple',{text:()=>'Duel feats for destroying and banishing.',show:s=>s.boards>=3}),
  I('feat_survive',4,'Survival Feats',11714098,4,1.25,'simple',{text:()=>'Duel feats for healing, drawing and a full field.',show:s=>s.boards>=4}),
  I('feat_victory',5,'Victory Feats',28566710,4,1.25,'simple',{text:()=>'Duel feats for how the duel was won.',show:s=>s.boards>=5}),
- I('autochamp',9,'Auto Champion Bet',72989439,2000,1,'opener',{max:1,text:()=>'Places the champion bet for you when a bracket opens for betting.',show:s=>s.brackets>=1}),
+ I('autochamp',9,'Auto Champion Bet',72989439,2000,1,'opener',{max:1,keep:true,text:()=>'Places the champion bet for you when a bracket opens for betting.',show:s=>s.brackets>=1}),
  I('bracket',9,'New Bracket',12580477,1,1,'opener',{max:BRACKET_MAX-1,text:l=>`Opens the ${bracketName(l+2)}: nine more boards at higher stakes.`,maxText:'All nine brackets are open.',show:s=>s.brackets>=1}),
 ];
 // Shop pictures are relic cutouts (assets/relics/<name>.png), one per item.
@@ -143,7 +143,7 @@ export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return br
 export const itemLevel=lvl;
 
 // ---- state ----
-export function newState(){return {v:1,coins:0,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false},brackets_saved:[],deckStats:{}}}
+export function newState(){return {v:1,coins:0,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{}}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -152,14 +152,16 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  if(s.boards<BOARD_MAX)s.brackets=0;else s.brackets=Math.max(1,s.brackets);
  for(const k of ['bets','correct','exodia','destiny','champions'])s.stats[k]=Math.max(0,Math.floor(num(raw.stats?.[k])));
  for(const [k,v] of Object.entries(raw.stats?.slots||{}))if(/^\d$/.test(k))s.stats.slots[k]=Math.max(0,Math.floor(num(v)));
- if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;
+ if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
  if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
 export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;return amount}
-export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&!(it.kind==='opener'&&lvl(s,it.id)>=it.max));
+// Bought one-time items leave the shop, except automation ones (keep), which stay with an ON/OFF switch.
+export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
+export const isOn=(s,id)=>lvl(s,id)>0&&!s.settings?.off?.[id];
 // Buying returns what changed so the screen can react ('board', 'bracket' or null).
 export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.max||!it.show(s))return null;const cost=itemCost(id,level);if(!spend(s,cost))return null;
  s.items[id]=level+1;
@@ -169,11 +171,11 @@ export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.ma
 
 // ---- what things pay ----
 export const speedOf=s=>speedAt(lvl(s,'speed'));
-export const autoInterval=s=>lvl(s,'autobet')?autoSeconds(lvl(s,'autobet'))*1000:0;
+export const autoInterval=s=>isOn(s,'autobet')?autoSeconds(lvl(s,'autobet'))*1000:0;
 const TIER_RANK={'Opening Duel':0,'Tier 1':1,'Tier 2':2,'Tier 3':3,Endless:4,'World Championship':4};
 export const tierRank=label=>TIER_RANK[label]??2;
 // The seat Auto Bet backs: random, or with Scouting Report the higher tier (random on a tie).
-export function autoPick(s,seats,random=Math.random){if(lvl(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
+export function autoPick(s,seats,random=Math.random){if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
 export const correctPayout=(s,slot,level)=>(boardPayout(level)+lvl(s,'calls'+slot)*callUnit(slot)*levelScale(level)/levelScale(slot))*multiplier(s);

@@ -66,6 +66,9 @@ auto.items.scout=1;assert.equal(M.autoPick(auto,seatsT),1,'Scouting Report backs
 assert.equal(M.autoPick(auto,[{label:'Tier 3'},{label:'Tier 2'}]),0);
 const tie=new Set();for(let i=0;i<40;i++)tie.add(M.autoPick(auto,[{label:'Tier 2'},{label:'Tier 2'}],M.rng(i)));assert.equal(tie.size,2,'equal tiers: random');
 assert.ok(M.itemCost('scout',0)>M.itemCost('autobet',0)*5,'Scouting Report costs more');
+auto.settings.off={scout:true};assert.equal(new Set([0,1,2,3,4,5,6,7].map(i=>M.autoPick(auto,seatsT,M.rng(i)))).size,2,'Scouting Report switched OFF: back to random');
+auto.settings.off={autobet:true};assert.equal(M.autoInterval(auto),0,'Auto Bet switched OFF');
+auto.settings.off={};assert.ok(M.visibleItems(auto).some(i=>i.id==='scout'),'bought automation stays in the shop');
 
 // ---- event income: per action, times board level and High Roller ----
 s=M.newState();s.items={fee_summon:2,fee_attack:1,fee_direct:2,fee_destroy:1,fee_trap:1,fee_damage:1};
