@@ -1,9 +1,9 @@
 {
-  "exclusiveAfter": "2026-11-25T12:55:00Z",
+  "exclusiveAfter": "2026-11-25T21:22:53Z",
   "scope": "YGO Rogue Duelist Discord messages, Flag behaviour reports and replay submission timestamps",
   "policy": "Review submissions strictly after this successful release cutoff. Refresh after every published update; older reports may reproduce approved fixes.",
-  "previous": "2026-11-24T22:00:00Z",
-  "release": "0.2.45",
-  "ucRosterUpdatedAt": "2026-11-25T14:29:54.083579+00:00",
-  "note": "v0.2.45 hotfix published 2026-11-25 ~15:00 UTC. Set to the start of the last Discord/flag review (12:55 UTC), not publish time, so reports sent while the hotfix was being built still get reviewed."
+  "previous": "2026-11-25T12:55:00Z",
+  "release": "0.2.46",
+  "ucRosterUpdatedAt": "2026-11-25T23:05:22.078485+00:00",
+  "note": "v0.2.46 published 2026-11-26 ~00:30 UTC. Set to two hours before the user's request (user: 'put the new cutoff to 2 hours ago')."
 }
