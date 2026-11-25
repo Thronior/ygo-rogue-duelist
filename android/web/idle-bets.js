@@ -178,7 +178,7 @@ class Replay{
 
 // A scaled-down duel field: card art in every zone, piles, hands and LP, with each CPU's portrait filling its
 // half of the board behind it. Built once; afterwards only image sources, classes and text change.
-const CARD_BACK='assets/card-back.jpg';
+const CARD_BACK='assets/card-back.jpg',PHASES=[[1,'DP'],[2,'SP'],[4,'MP1'],[8,'BP'],[256,'MP2'],[512,'EP']];
 const cardSrc=code=>assetURL('assets/cards-thumb/'+code+'.jpg'),cardFull=code=>assetURL('assets/cards/'+code+'.jpg');
 class BoardView{
  constructor(game,parent,{title,stakes,slot=1}){this.game=game;this.root=document.createElement('div');this.root.className='db-board';this.root.dataset.slot=slot;
@@ -188,12 +188,12 @@ class BoardView{
   for(let i=0;i<5;i++){cells.push(zone('st p1 s'+i,2,6-i),zone('mz p1 m'+i,3,6-i),zone('mz p0 m'+i,5,2+i),zone('st p0 s'+i,6,2+i))}
   cells.push(zone('pile deck p1',2,1),zone('pile extra p1',2,7),zone('pile grave p1',3,1),zone('st field p1',3,7),zone('st field p0',5,1),zone('pile grave p0',5,7),zone('pile extra p0',6,1),zone('pile deck p0',6,7));
   const info=p=>`<div class="db-who p${p}" style="grid-area:${p?1:7}/1/${p?2:8}/5"><span class="db-name"></span><span class="db-chip"></span><span class="db-lp"><i></i><b>8000</b></span></div><div class="db-hand p${p}" style="grid-area:${p?1:7}/5/${p?2:8}/8"></div>`;
-  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-ticker"></span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
+  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-phases"><b class="db-turn"></b>${PHASES.map(([n,t])=>`<i data-ph="${n}">${t}</i>`).join('')}</span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
   parent.append(this.root);
   const q=s=>this.root.querySelector(s),zones=(p,cls)=>[0,1,2,3,4].map(i=>q(`.z.${cls}.p${p}.${cls==='mz'?'m':'s'}${i}`));
   this.sides=[0,1].map(p=>({who:q('.db-who.p'+p),name:q(`.db-who.p${p} .db-name`),chip:q(`.db-who.p${p} .db-chip`),lp:q(`.db-who.p${p} .db-lp b`),bar:q(`.db-who.p${p} .db-lp i`),hand:q('.db-hand.p'+p),
    mz:zones(p,'mz'),st:zones(p,'st'),field:q('.z.field.p'+p),deck:q('.z.deck.p'+p),extra:q('.z.extra.p'+p),grave:q('.z.grave.p'+p),art:q('.db-art.a'+p),last:null,handN:-1}));
-  this.ticker=q('.db-ticker');this.overlay=q('.db-overlay');this.field=q('.db-field');
+  this.phases=[...this.root.querySelectorAll('.db-phases i')];this.turnEl=q('.db-turn');this.overlay=q('.db-overlay');this.field=q('.db-field');
  }
  setStakes(text){this.root.querySelector('.db-stakes').textContent=text}
  // Card art: the small thumbnail, else the full card (error listener in DuelBets), else the bare zone.
@@ -203,35 +203,42 @@ class BoardView{
   if(z.lastChild.textContent!==label)z.lastChild.textContent=label}
  seats(seats,pick=null){seats.forEach((s,p)=>{const v=this.sides[p],src=assetURL('assets/'+s.sprite);if(v.art.getAttribute('src')!==src)v.art.src=src;v.name.textContent=s.name;v.chip.innerHTML=this.game.tierChip(s.label);v.who.classList.toggle('picked',pick===p)})}
  clear(){for(const v of this.sides){v.last=null;v.handN=-1;v.hand.innerHTML='';v.lp.textContent='8000';v.bar.style.width='100%';v.who.classList.remove('won','lost');
-   for(const z of [...v.mz,...v.st,v.field,v.grave,v.deck,v.extra]){z.classList.remove('up','set','def');z.title='';this.card(z,0)}}this.ticker.textContent='';this.field.classList.remove('playing')}
+   for(const z of [...v.mz,...v.st,v.field,v.grave,v.deck,v.extra]){z.classList.remove('up','set','def');this.card(z,0)}}this.turnN=0;this.turnEl.textContent='';this.phase(0);this.field.classList.remove('playing')}
  frame(board,events,replay){
   this.field.classList.add('playing');
   if(board)board.forEach((row,p)=>this.row(p,row));
   const anim=this.game.state.settings.fx!=='off'&&motion()===2;
-  let line='';
   for(const e of events){const p=e[1],v=this.sides[p];
-   if(e[0]==='t'){line=`${replay.seats[p].name}'s turn`}
-   else if(e[0]==='s'||e[0]==='f'){if(!/attack/.test(line))line=`${e[0]==='f'?'Fusion: ':''}${this.game.cardName(e[2])}`;if(anim&&v.mz[e[3]])v.mz[e[3]].animate([{scale:1.6,opacity:.3},{scale:1,opacity:1}],{duration:280,easing:'ease-out'})}
-   else if(e[0]==='a'){const a=v.mz[e[2]],code=v.last?.[4+e[2]]?.[0];line=`${code?this.game.cardName(code):'Monster'} attacks${e[3]<0?' directly!':''}`;if(anim&&a)a.animate([{translate:'0 0'},{translate:`0 ${p?40:-40}%`},{translate:'0 0'}],{duration:300,easing:'ease-in-out'});const t=e[3]>=0?this.sides[1-p].mz[e[3]]:null;if(anim&&t)t.animate([{opacity:1},{opacity:.25},{opacity:1}],{duration:320,delay:120})}
-   else if(e[0]==='c'){if(!line)line=this.game.cardName(e[2])}
-   else if(e[0]==='l'&&anim)v.lp.animate([{scale:1.4,color:e[2]<0?'#ff6a6a':'#7dff9a'},{scale:1}],{duration:380})
+   if(e[0]==='t'){this.turnN=(this.turnN||0)+1;this.turnEl.textContent='T'+this.turnN;this.turnEl.classList.toggle('p1',p===1)}
+   else if(e[0]==='p')this.phase(p)
+   else if(e[0]==='s'||e[0]==='f'){if(anim&&v.mz[e[3]])v.mz[e[3]].animate([{scale:1.6,opacity:.3},{scale:1,opacity:1}],{duration:280,easing:'ease-out'})}
+   else if(e[0]==='a'){const a=v.mz[e[2]];if(anim&&a)a.animate([{translate:'0 0'},{translate:`0 ${p?40:-40}%`},{translate:'0 0'}],{duration:300,easing:'ease-in-out'});const t=e[3]>=0?this.sides[1-p].mz[e[3]]:null;if(anim&&t)t.animate([{opacity:1},{opacity:.25},{opacity:1}],{duration:320,delay:120})}
+   else if(e[0]==='l'){this.damage(p,e[2]);if(anim)v.lp.animate([{scale:1.4,color:e[2]<0?'#ff6a6a':'#7dff9a'},{scale:1}],{duration:380})}
   }
-  if(line)this.ticker.textContent=line;
  }
  row(p,row){const v=this.sides[p],last=v.last;v.last=row;const same=(a,b)=>a===b||JSON.stringify(a)===JSON.stringify(b);
   if(!last||last[0]!==row[0]){v.lp.textContent=Math.max(0,row[0]);v.bar.style.width=Math.max(0,Math.min(100,row[0]/80))+'%'}
   if(v.handN!==row[1]){v.handN=row[1];v.hand.innerHTML='<i></i>'.repeat(Math.min(row[1],8))+(row[1]?`<b>${row[1]}</b>`:'')}
   for(let i=0;i<5;i++){const m=row[4+i],z=v.mz[i];if(last&&same(m,last[4+i]))continue;
-   if(!m){z.classList.remove('up','set','def');z.title='';this.card(z,0);continue}
+   if(!m){z.classList.remove('up','set','def');this.card(z,0);continue}
    const [code,atk,def,pos]=m,down=!(pos&5),defence=!!(pos&12);z.classList.toggle('set',down);z.classList.toggle('up',!down);z.classList.toggle('def',defence);
-   this.card(z,code,{back:down,label:down?'':defence?String(def):String(atk)});z.title=down?'Set monster':this.game.cardName(code)}
-  const st=(z,c)=>{if(!c){z.classList.remove('up','set');this.card(z,0);z.title='';return}const [code,up]=c;z.classList.toggle('set',!up);z.classList.toggle('up',!!up);this.card(z,code,{back:!up});z.title=up?this.game.cardName(code):'Set card'};
+   this.card(z,code,{back:down,label:down?'':defence?String(def):String(atk)})}
+  const st=(z,c)=>{if(!c){z.classList.remove('up','set');this.card(z,0);return}const [code,up]=c;z.classList.toggle('set',!up);z.classList.toggle('up',!!up);this.card(z,code,{back:!up})};
   for(let i=0;i<5;i++)if(!last||!same(row[9+i],last[9+i]))st(v.st[i],row[9+i]);
   if(!last||!same(row[14],last[14]))st(v.field,row[14]);
   if(!last||last[2]!==row[2])this.card(v.deck,0,{back:!!row[2],label:String(row[2])});
   if(!last||last[16]!==row[16])this.card(v.extra,0,{back:!!row[16],label:row[16]?String(row[16]):''});
-  if(!last||last[3]!==row[3]||last[15]!==row[15]||last[17]!==row[17]){this.card(v.grave,row[15]||0,{label:row[3]?String(row[3]):''});v.grave.title=`Graveyard ${row[3]}${row[17]?` · banished ${row[17]}`:''}`}
+  if(!last||last[3]!==row[3]||last[15]!==row[15]||last[17]!==row[17]){this.card(v.grave,row[15]||0,{label:row[3]?String(row[3]):''})}
  }
+ // The lit phase: Battle Phase covers its steps (8-128).
+ phase(n){const key=n>=8&&n<256?8:n;for(const i of this.phases)i.classList.toggle('on',Number(i.dataset.ph)===key)}
+ // Damage numbers: rise from the hit player's half of the field (top player = upper half) and fade.
+ damage(p,amount){if(!amount||this.game.state.settings.fx==='off')return;if((this.dmgN||0)>=4)return;
+  const el=document.createElement('b'),big=Math.abs(amount)>=2000;el.className='db-dmg'+(amount>0?' heal':'')+(big?' big':'');el.textContent=(amount>0?'+':'−')+Math.abs(amount);
+  el.style.left=(30+Math.random()*40)+'%';el.style.top=(p?24:62)+'%';this.field.append(el);this.dmgN=(this.dmgN||0)+1;
+  const done=()=>{el.remove();this.dmgN--};
+  if(motion()===0){setTimeout(done,700);return}
+  el.animate([{opacity:0,scale:.5,translate:'-50% 0'},{opacity:1,scale:big?1.25:1.1,translate:'-50% -20%',offset:.15},{opacity:1,scale:1,translate:'-50% -60%',offset:.7},{opacity:0,scale:1,translate:'-50% -110%'}],{duration:big?1300:1000,easing:'ease-out'}).finished.catch(()=>{}).finally(done)}
  ending(winner){this.sides.forEach((v,p)=>{v.who.classList.toggle('won',winner===p);v.who.classList.toggle('lost',winner!==p&&winner<2)})}
  // The betting view: each CPU's portrait fills its half of the board; tap a half to back that CPU.
  betView(seats,attrs,afford,place){this.clear();this.seats(seats);

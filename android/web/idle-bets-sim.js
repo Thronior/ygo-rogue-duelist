@@ -8,9 +8,9 @@
 //   monster = 0 | [code, atk, def, pos]  spell = 0 | [code (0 while set), faceUp]  (s5 = field zone)
 // Events: ['t',p] turn · ['s',p,code,seq] summon · ['f',p,code,seq] fusion summon · ['a',p,seq,targetSeq]
 //   attack (targetSeq -1 = direct) · ['l',p,amount] LP change · ['x',p,code] destroyed · ['c',p,code,kind]
-//   activation (kind 1 monster, 2 spell, 4 trap)
+//   activation (kind 1 monster, 2 spell, 4 trap) · ['p',phase] new phase (1 DP, 2 SP, 4 MP1, 8-128 BP, 256 MP2, 512 EP)
 import {shuffleCPUDeck as shuffle} from './cpu-deck-model.js';
-export const TIMELINE_VERSION=2;
+export const TIMELINE_VERSION=3;
 const NEUTRAL_PASSIVES='-- SHADOW_RUN_RNG 2\nif Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end';
 const MZONE=4,SZONE=8,GRAVE=0x10;
 
@@ -23,6 +23,7 @@ function cardKind(engine,code){const t=Number(engine.data?.[Number(code)]?.type)
 function events(engine,visuals){const out=[];
  for(const v of visuals){
   if(v.kind==='turn')out.push(['t',v.player]);
+  else if(v.kind==='phase')out.push(['p',v.phase]);
   else if(v.kind==='summon'&&v.card)out.push(['s',v.card.controller,Number(v.code),v.card.sequence]);
   else if(v.kind==='fusion-summon'&&v.card)out.push(['f',v.card.controller,Number(v.code),v.card.sequence]);
   else if(v.kind==='attack'&&v.card)out.push(['a',v.card.controller,v.card.sequence,v.target?v.target.sequence:-1]);

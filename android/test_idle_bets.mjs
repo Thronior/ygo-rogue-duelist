@@ -81,6 +81,7 @@ assert.equal(M.duelPayout(s,{winner:1,reason:21,turns:9,winnerLp:500,winnerTier:
 // ---- pacing: frames take time, turns and attacks longer ----
 const tl={v:1,seats:[{id:1,tier:0},{id:2,tier:1}],winner:0,reason:1,turns:3,frames:[[[]],[[['t',0]]],[[['a',0,1,-1],['l',1,-1500]],[[1,1,1,1],[6500,5,30,0]]]]};
 const sch=M.schedule(tl);assert.equal(sch.at[0],0);assert.ok(sch.at[2]-sch.at[1]>sch.at[1]-sch.at[0],'a turn frame holds longer than an empty one');
+assert.equal(M.frameDelay([[['p',4]]]),120,'a phase-only frame passes quickly');
 assert.equal(M.finalLp(tl,1),6500);assert.deepEqual(M.damageDealt(tl),[1500,0]);
 assert.equal(M.resultOf(tl,[{label:'Tier 1'},{label:'Tier 2'}]).winnerTier,'Tier 1');
 
@@ -115,9 +116,10 @@ if(fs.existsSync(path.join(web,'content.json'))){
  const meta=read('content.json'),decks=meta.cpuWatchDecks,ids=Object.keys(decks).filter(id=>decks[id]?.[0]?.main?.length);
  const engine=await new MobileDuel([...meta.cards,...(meta.tokenCards||[])]).init([read('engine-data.json'),read('scripts.json')]);
  const t=recordDuel(engine,[decks[ids[0]][0],decks[ids[1]][0]],[{id:+ids[0],tier:0},{id:+ids[1],tier:0}],12345);
- assert.equal(t.v,2);assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
+ assert.equal(t.v,3);assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
  assert.ok(t.frames[0][1]&&t.frames[0][1].length===2&&t.frames[0][1][0].length===18,'the first frame carries both boards');
  assert.ok(t.frames.some(f=>f[0].some(e=>e[0]==='t')),'turns are recorded');
+ assert.ok(t.frames.some(f=>f[0].some(e=>e[0]==='p'&&e[1]===8)),'phases are recorded (a Battle Phase)');
  assert.ok(['lp','exodia','destiny','deckout','special'].includes(winKind(t)));
  const again=recordDuel(engine,[decks[ids[0]][0],decks[ids[1]][0]],[{id:+ids[0],tier:0},{id:+ids[1],tier:0}],12345);
  assert.equal(JSON.stringify(again),JSON.stringify(t),'the same seed records the same duel');
