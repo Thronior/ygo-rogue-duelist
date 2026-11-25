@@ -428,7 +428,7 @@ class Standings{
 // Its 9 boards never wait for each other: as soon as a duel ends (and its result has shown), that board takes the
 // next unplayed pairing, so a CPU may be in several duels at once. When all 36 are played, most wins is champion.
 // It waits at the start for your champion bet (or Auto Champion Bet, or "Start without a bet").
-const SLOT_HOLD=1200;
+const SLOT_HOLD=1200,pairKey=p=>p[0]+'-'+p[1];
 class Bracket{
  constructor(game,index,saved){Object.assign(this,{game,index});this.slots=Array(9).fill(null);this.views=null;
   const roster=saved?.roster?.map(k=>game.deck(k)).filter(Boolean),n=M.ROSTER_SIZE,arr=x=>Array.isArray(x)&&x.length===n?x.map(Number):Array(n).fill(0);
@@ -440,7 +440,7 @@ class Bracket{
   else this.fresh()}
  allPairs(){const out=[];for(let r=0;r<M.BRACKET_ROUNDS;r++)out.push(...M.roundPairs(r,Math.random));return out}
  fresh(){this.roster=M.pickRoster(this.game.pool,Math.random);const n=M.ROSTER_SIZE;this.wins=Array(n).fill(0);this.losses=Array(n).fill(0);this.dmg=Array(n).fill(0);this.results={};
-  this.bet=null;this.skipBet=false;this.queue=this.allPairs();this.phase='bet';this.left=BET_WINDOW;this.champion=null;
+  this.bet=null;this.skipBet=false;this.ready=new Map();this.asking=new Set();this.queue=this.allPairs();this.phase='bet';this.left=BET_WINDOW;this.champion=null;
   for(let i=0;i<9;i++)this.slots[i]=null;this.table?.build();this.buildTile();this.paintAll()}
  // Duels still playing go back to the front of the queue: they replay from the start next time.
  saved(){const live=this.slots.filter(d=>d&&!d.done).map(d=>d.pair);return {roster:this.roster.map(d=>d.key),wins:[...this.wins],losses:[...this.losses],dmg:[...this.dmg],results:{...this.results},bet:this.bet,queue:[...live,...this.queue],started:this.phase==='live'}}
@@ -464,8 +464,14 @@ class Bracket{
   if((this.tileAt=(this.tileAt||0)+dt)>480){this.tileAt=0;if(this.game.openBracket===this){this.paintHead();for(const d of this.slots)if(d&&!d.done)this.paintChips(d)}else this.paintTile()}
  }
  startSlot(i){const pair=this.queue.shift(),d={pair,slot:i+1,pick:null,stake:0,replay:null,model:null,done:false,winner:null,hold:SLOT_HOLD,view:this.views?.[i]||null};
-  if(this.game.openBracket===this)this.request(d);else this.modelFor(d);
-  this.paintDuel(d);this.table?.update(null,null,false);return d}
+  const ready=this.ready?.get(pairKey(pair));
+  if(ready){this.ready.delete(pairKey(pair));d.replay=new Replay(this.game,ready,{level:this.level(d.slot),slot:d.slot,pick:null})}
+  else{this.modelFor(d);if(this.game.openBracket===this)this.request(d)}
+  this.paintDuel(d);this.table?.update(null,null,false);this.prefetch();return d}
+ // While the bracket is open, the next pairings in the queue are recorded ahead so new duels start at once.
+ prefetch(){if(this.game.openBracket!==this||this.phase==='final')return;this.ready??=new Map();this.asking??=new Set();
+  for(const pair of this.queue.slice(0,12)){const k=pairKey(pair);if(this.ready.has(k)||this.asking.has(k))continue;this.asking.add(k);
+   this.game.supply.record(pair.map(i=>this.roster[i]),false,()=>!this.dead&&this.game.openBracket===this&&this.queue.some(p=>pairKey(p)===k)).then(tl=>{this.asking.delete(k);if(!this.dead&&this.queue.some(p=>pairKey(p)===k))this.ready.set(k,tl)}).catch(()=>this.asking.delete(k))}}
  // Nobody is watching: settle it from the decks' records, over the length of a real recorded duel.
  async modelFor(d){const sample=await this.game.supply.sample();if(d.done||d.replay||this.dead)return;const [a,b]=d.pair.map(i=>this.roster[i]),stats=this.game.supply.stats,winner=M.modelWinner(a,b,stats,Math.random);
   d.model={t:0,dur:sample?M.schedule(sample).total:30000,winner,reason:M.modelWinKind(winner?b:a,stats,Math.random),sample}}
@@ -528,7 +534,7 @@ class Bracket{
  show(stage){this.hideViews();stage.innerHTML=`<div class="db-bk-head"><button data-db="close-bracket">‹ Brackets</button><button class="db-burger" data-db="toggle-standings" aria-label="Standings" aria-expanded="${!!this.game.sideOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><span class="db-bk-info"></span></div><div class="db-bk-open ${this.game.sideOpen?'side-open':''}"><aside class="db-bk-side"><div class="db-bk-table"></div></aside><div class="db-grid n9"></div></div>`;
   const grid=stage.querySelector('.db-grid');this.head=stage.querySelector('.db-bk-info');this.table=new Standings(this,stage.querySelector('.db-bk-table'),false);
   this.views=Array.from({length:9},(_,i)=>new BoardView(this.game,grid,{title:`Board ${i+1}`,stakes:'',slot:i+1}));
-  this.slots.forEach((d,i)=>{if(d){d.view=this.views[i];if(!d.done)this.request(d)}});this.paintAll()}
+  this.slots.forEach((d,i)=>{if(d){d.view=this.views[i];if(!d.done)this.request(d)}});this.prefetch();this.paintAll()}
  hideViews(){for(const v of this.views||[])v.remove();this.views=null;for(const d of this.slots)if(d)d.view=null}
  hide(){this.hideViews();this.head=null;this.table=null}
  paintAll(){if(this.game.openBracket!==this){this.paintTile();return}this.views?.forEach((v,i)=>this.paintDuel(this.slots[i],v));this.paintHead()}
@@ -542,7 +548,7 @@ class Bracket{
   if(!d){v.clear();v.setStakesHTML('');v.show(this.phase==='bet'?'':`<div class="db-wait">${this.phase==='final'?'Bracket over':'Waiting…'}</div>`);return}
   if(d.done)return;const seats=d.pair.map(i=>this.game.seatOf(this.roster[i]));this.paintChips(d);
   if(d.replay){v.show('');v.seats(d.replay.seats,d.pick);const b=d.replay.lastBoard(d.replay.i-1);if(b)v.frame(b,[],d.replay);return}
-  v.clear();v.seats(seats,d.pick);v.show('<div class="db-wait"><span class="db-spinner"></span>Catching up…</div>')}
+  v.clear();v.seats(seats,d.pick);v.show('<span class="db-pending"><span class="db-spinner"></span></span>')}
  refund(){const s=this.game.state;for(const d of this.slots)if(d&&d.stake&&!d.done){if(!s.settings.infinite)s.coins+=d.stake;d.stake=0;d.pick=null}}
  destroy(){this.dead=true;this.hideViews()}
 }
