@@ -375,3 +375,6 @@
 .db-modal:has(.db-stats){max-width:min(820px,96vw);width:min(820px,96vw)}
 .db-icon img.face{position:static;width:100%;height:100%;object-fit:cover;object-position:50% 12%;border-radius:4px}
 .db-icon:has(.face){overflow:hidden;background:#0006}
+.db-shop-tabs{flex-direction:column;flex-wrap:nowrap}
+.db-tabrow{display:flex}
+.db-tabrow+.db-tabrow{border-top:1px solid #2a4a56}

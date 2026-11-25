@@ -96,7 +96,8 @@ export class DuelBets{
   // Category tabs; the open tab lists its items from the dearest to the cheapest first-purchase price.
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
   const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
-  this.el.tabs.innerHTML=cats.map(c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`).join('');
+  const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
+  this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
   const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
   const head='';this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
    return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
@@ -105,7 +106,7 @@ export class DuelBets{
  paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}
   // A dot on each tab that has something you can buy right now.
   const ok=new Set(M.visibleItems(this.state).filter(i=>{const l=M.itemLevel(this.state,i.id);return l<i.max&&M.canAfford(this.state,M.itemCost(i.id,l))}).map(i=>M.categoryOf(i.id)));
-  for(const t of this.el.tabs?.children||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
+  for(const t of this.el.tabs?.querySelectorAll('button')||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
  refreshShop(){const ids=M.visibleItems(this.state).map(i=>i.id).join();if(ids!==this.shopIds)this.renderShop();else this.paintAfford()}
  // ---- money ----
  gain(amount,{from=null,size='small',label=''}={}){if(!(amount>0))return;M.earn(this.state,amount);this.dirty=true;this.fx(amount,from,size,label);this.paintTotal();this.refreshShop()}
@@ -208,14 +209,18 @@ export class DuelBets{
    const inf=e.target.closest('[data-infinite]');if(inf){s.infinite=inf.checked;this.dirty=true;this.paintTotal(true);this.refreshShop()}
    if(e.target.closest('[data-reset]')){if(!e.target.dataset.armed){e.target.dataset.armed='1';e.target.textContent='Tap again to erase all Duel Bets progress';return}d.close();this.reset()}
   })}
- // CPU deck stats: every recorded duel's result per deck, best to worst. Ranked by a smoothed win rate
- // ((wins+1)/(duels+2)) so a 1–0 deck doesn't outrank a 40–10 one; decks with no duels yet come last.
- deckStats(){const stats=this.supply.stats||{};
-  const rows=this.pool.map(d=>{const st=stats[d.id+':'+d.tier]||{g:0,w:0,ex:0,de:0},s=this.seatOf(d);return {...s,g:st.g,w:st.w,l:st.g-st.w,ex:st.ex||0,de:st.de||0,score:st.g?(st.w+1)/(st.g+2):-1}})
+ // CPU deck stats: every finished duel on your boards and brackets, per deck, best to worst. Ranked by a smoothed
+ // win rate ((wins+1)/(duels+2)) so a 1–0 deck doesn't outrank a 40–10 one; decks with no duels yet come last.
+ // Built fresh each time it opens and every 10 seconds while it stays open.
+ deckStatsHTML(){const stats=this.state.deckStats||{};
+  const rows=this.pool.map(d=>{const [g,w,ex,de]=stats[d.id+':'+d.tier]||[0,0,0,0],s=this.seatOf(d);return {...s,g,w,l:g-w,ex,de,score:g?(w+1)/(g+2):-1}})
    .sort((a,b)=>b.score-a.score||b.g-a.g||a.name.localeCompare(b.name));
   const played=rows.filter(r=>r.g).length,duels=rows.reduce((n,r)=>n+r.g,0)/2;
-  this.modal('CPU deck stats',`<p class="db-stats-note">${Math.round(duels).toLocaleString()} recorded duels · ${played} of ${rows.length} decks have played. Best to worst.</p><table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th><th>Destiny</th></tr></thead><tbody>${
-   rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td><td>${r.de||''}</td></tr>`).join('')}</tbody></table>`)}
+  return `<p class="db-stats-note">${Math.round(duels).toLocaleString()} duels played · ${played} of ${rows.length} decks have played · best to worst · updates every 10 s</p><table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th><th>Destiny</th></tr></thead><tbody>${
+   rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td><td>${r.de||''}</td></tr>`).join('')}</tbody></table>`}
+ deckStats(){const d=this.modal('CPU deck stats',`<div class="db-stats-wrap">${this.deckStatsHTML()}</div>`),body=d.querySelector('.db-modal-body');
+  const timer=setInterval(()=>{if(!d.open||!this.el){clearInterval(timer);return}const top=body.scrollTop;d.querySelector('.db-stats-wrap').innerHTML=this.deckStatsHTML();body.scrollTop=top},10000);
+  d.addEventListener('close',()=>clearInterval(timer))}
  reset(){for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;const inf=this.state.settings.infinite;this.state=M.newState();this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout()}
  championPicker(b){if(b.phase!=='bet'||b.bet)return;const stake=M.championStake(this.state,b.index),pay=M.championPayout(this.state,b.index);
   this.modal(`${M.bracketName(b.index)} · Who takes it?`,`<p>Bet ${M.fmt(stake)} · the CPU with the most wins after ${M.BRACKET_ROUNDS} rounds pays ${M.fmt(pay)}.</p><div class="db-roster">${b.roster.map((d,i)=>{const s=this.seatOf(d);return `<button data-pick="${i}" ${M.canAfford(this.state,stake)?'':'disabled'}><img loading="lazy" alt="" src="${assetURL('assets/'+s.sprite)}"><span>${esc(s.name)}</span>${this.tierChip(s.label)}</button>`}).join('')}</div>`,(e,d)=>{const p=e.target.closest('[data-pick]');if(!p)return;if(b.betChampion(Number(p.dataset.pick)))d.close()})}
@@ -378,7 +383,7 @@ class Board{
  finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=g.withFeats(M.duelPayout(s,r,this.level,this.slot,pick),this.replay.tl,this.level),kind=r.reason;
   this.stake=0;this.phase='result';this.hold=RESULT_HOLD;
   if(pick===r.winner){s.stats.correct++;s.stats.slots[this.slot]=(s.stats.slots[this.slot]||0)+1}
-  if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;
+  if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;M.recordDeckResult(s,this.replay.tl.seats,r.winner,kind);
   this.view?.ending(r.winner);this.view?.outcome(r.winner,pick);g.finisher(this.replay.tl,r);
   const winnerName=r.winner<2?this.replay.seats[r.winner].name:'Nobody';
   this.view?.show(`<div class="db-result ${pick===r.winner?'good':pick==null?'':'bad'}"><b>${esc(winnerName)} wins</b></div>`);
@@ -485,7 +490,7 @@ class Bracket{
   const dmg=replay?M.damageDealt(replay.tl):damage;if(dmg){this.dmg[d.pair[0]]+=dmg[0]||0;this.dmg[d.pair[1]]+=dmg[1]||0}
   this.table?.update(r.winner<2?d.pair[r.winner]:null,r.winner<2?d.pair[1-r.winner]:null);if(!this.game.openBracket)this.paintTile();
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
-  if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;
+  if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;M.recordDeckResult(s,d.pair.map(i=>this.roster[i]),r.winner,r.reason);
   const pay=this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot));d.stake=0;
   this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.setStakes('');d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}

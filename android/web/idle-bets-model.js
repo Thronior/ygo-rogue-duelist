@@ -100,6 +100,8 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  feat_summon:'Ten-thousand Hands',feat_battle:'Warrior Blade',feat_activate:'Arcane Resonance',feat_set:'Trapbound Idol',feat_destroy:'Demonic Sword',feat_survive:'Phoenix Feather',feat_victory:'Champion\'s Burden'};
 // Shop sections, in order. Every item belongs to one.
 export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|destiny|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+// The shop's two tab rows (user: Characters on the second line).
+export const TAB_ROWS=[['Payouts','Card Fees','Duel Feats','CPU Tiers'],['Characters','Jackpots & Finishes','Automation','Expansion']];
 export const categoryOf=id=>CATEGORIES.find(([,re])=>re.test(id))?.[0]||'Other';
 for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice(5))-1]:ART[it.id];
 // Exact tooltip text: what one level does, what you have now, what the next level gives.
@@ -138,7 +140,7 @@ export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return br
 export const itemLevel=lvl;
 
 // ---- state ----
-export function newState(){return {v:1,coins:0,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false},brackets_saved:[]}}
+export function newState(){return {v:1,coins:0,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false},brackets_saved:[],deckStats:{}}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -148,6 +150,7 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  for(const k of ['bets','correct','exodia','destiny','champions'])s.stats[k]=Math.max(0,Math.floor(num(raw.stats?.[k])));
  for(const [k,v] of Object.entries(raw.stats?.slots||{}))if(/^\d$/.test(k))s.stats.slots[k]=Math.max(0,Math.floor(num(v)));
  if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;
+ if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
@@ -242,6 +245,10 @@ export function duelMetrics(tl,info,signatures=[new Set(),new Set()],labels=['',
 export function featPayout(s,metrics,winner,level){let coins=0,hits=0;
  for(const r of RULES){const L=lvl(s,'feat_'+FEAT_GROUP[r.metric]);if(!L)continue;for(const p of [0,1]){if(r.victoryOnly&&p!==winner)continue;if((metrics[p]?.[r.metric]||0)>=r.threshold){coins+=r.coins*L*power('feat_'+FEAT_GROUP[r.metric]);hits++}}}
  return {total:coins*FEAT_SCALE*levelScale(level)*multiplier(s),hits}}
+
+// Every finished duel the player's boards and brackets play, per deck ("id:tier" -> [duels, wins, Exodia wins, Destiny wins]).
+export function recordDeckResult(s,seats,winner,reason){seats.forEach((d,p)=>{if(!d)return;const k=d.id+':'+d.tier,v=s.deckStats[k]??=[0,0,0,0];v[0]++;if(winner===p){v[1]++;if(EXODIA_WINS.includes(reason))v[2]++;if(reason===21)v[3]++}})}
+const EXODIA_WINS=[16,20,31,33];
 
 // ---- replay pacing ----
 // How long each recorded frame stays on screen at 1× speed.

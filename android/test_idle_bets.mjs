@@ -122,6 +122,11 @@ assert.equal(M.duelPayout(cs,{winnerId:900,winner:0,reason:1,turns:9,winnerLp:30
 assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved character levels load; unknown ones are dropped');
 assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
 
+// ---- deck stats: every finished duel counts for both decks ----
+const ds=M.newState();M.recordDeckResult(ds,[{id:5,tier:0},{id:6,tier:2}],0,16);M.recordDeckResult(ds,[{id:6,tier:2},{id:5,tier:0}],0,1);
+assert.deepEqual(ds.deckStats['5:0'],[2,1,1,0]);assert.deepEqual(ds.deckStats['6:2'],[2,1,0,0]);
+assert.deepEqual(M.sanitize({deckStats:{'5:0':[2,1,1,0],'bad':[1],'7:1':[1,2]}}).deckStats,{'5:0':[2,1,1,0]},'saved deck stats are cleaned');
+
 // ---- pacing: frames take time, turns and attacks longer ----
 const tl={v:1,seats:[{id:1,tier:0},{id:2,tier:1}],winner:0,reason:1,turns:3,frames:[[[]],[[['t',0]]],[[['a',0,1,-1],['l',1,-1500]],[[1,1,1,1],[6500,5,30,0]]]]};
 const sch=M.schedule(tl);assert.equal(sch.at[0],0);assert.ok(sch.at[2]-sch.at[1]>sch.at[1]-sch.at[0],'a turn frame holds longer than an empty one');
