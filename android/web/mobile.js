@@ -291,7 +291,7 @@ const duelCancel=(label,action,extra='')=>duelDecision(label,action,extra,true);
 
 const cardButton=(id,extra='',active=false,mis=false)=>`<button class="cardbtn ${active?'selected':''}" data-preview="${id}" ${extra}>${mis?'<b class="misprint">MISPRINT</b>':''}<img draggable="false" loading="lazy" src="${image(id)}" alt="${esc(card(id)?.name||'Card')}"><span>${esc(card(id)?.name||'Card')}</span></button>`;
 
-const baseMenu=[['Online',14731897,'spell','Tag Duels · Draft Duels · Ultimate Collector','online'],['Continue',30834988,'trap','Return to your saved journey.','continue'],['New Run',71625222,'effect','Choose a duelist. Draft a new beginning.','characters'],['Cosmetics',38033121,'effect','Duel Looks and card sleeves.','cosmetics'],['Settings',23171610,'spell','Adjust audio, visuals, gameplay, and data-sharing settings.','settings'],['Watch CPU duel',28566710,'trap','Observe and test two opponent AIs.','cpu'],['Duel Bets',37313786,'spell','Bet on CPU duels. Grow your winnings.','duel-bets'],['Collection',75500286,'spell','Every card, booster and relic.','collection'],['Stats',67048711,'spell','Your device, worldwide and character records.','stats'],['Achievements',32012841,'normal','Your feats and lifetime progress.','achievements'],['Tutorial',91595718,'spell','Learn the field, shops and controls.','tutorial']];
+const baseMenu=[['Online',14731897,'spell','Tag Duels · Draft Duels · Ultimate Collector','online'],['Continue',30834988,'trap','Return to your saved journey.','continue'],['New Run',71625222,'effect','Choose a duelist. Draft a new beginning.','characters'],['Cosmetics',38033121,'effect','Duel Looks and card sleeves.','cosmetics'],['Settings',23171610,'spell','Adjust audio, visuals, gameplay, and data-sharing settings.','settings'],['Watch CPU duel',28566710,'trap','Observe and test two opponent AIs.','cpu'],['Shadow Betting',83241722,'spell','Bet on CPU duels. Grow your winnings.','duel-bets'],['Collection',75500286,'spell','Every card, booster and relic.','collection'],['Stats',67048711,'spell','Your device, worldwide and character records.','stats'],['Achievements',32012841,'normal','Your feats and lifetime progress.','achievements'],['Tutorial',91595718,'spell','Learn the field, shops and controls.','tutorial']];
 const onlineMenu=[['Tag Duels',81332143,'spell','Team up across Android and web.','tag'],['Draft Duels',3549275,'effect','Draft relics and boosters between duels. Challenge a friend.','draft-pvp'],COLLECTOR_MENU_CARD,['Main Menu',71625222,'trap','Return to the main menu.','main-menu']];
 
 
@@ -3254,7 +3254,7 @@ async function openCPU(){
 
 
 
-// Duel Bets minigame (idle-bets.js). Self-contained; this opener and the hooks marked "Duel Bets" are all it needs.
+// Shadow Betting minigame (idle-bets.js; "Duel Bets" in code). Self-contained; this opener and the hooks marked "Duel Bets" are all it needs.
 let duelBets=null;
 async function openDuelBets(){
  screen='duel-bets';clearTimeout(aiTimer);track('draft');

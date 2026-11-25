@@ -1,10 +1,10 @@
-# Duel Bets (incremental minigame) — branch notes
+# Shadow Betting (incremental minigame, "Duel Bets" in code) — branch notes
 
 Branch `claude/incremental-minigame-228fdc`, based on v0.2.45. **Not merged.** Merge into `main` only when the user says the minigame is finished.
 
 ## What it is
 
-The main menu has a new **Duel Bets** card. You bet on which of two random CPUs (any character, any tier) wins a duel, earn money, and buy upgrades from a scrollable shop on the right. Money is separate: it buys only Duel Bets upgrades.
+The main menu has a new **Shadow Betting** card (Dice Re-Roll art). You bet on which of two random CPUs (any character, any tier) wins a duel, earn money, and buy upgrades from a scrollable shop on the right. Money is separate: it buys only Duel Bets upgrades.
 
 - **Board 1** has free bets and pays 1 coin per correct call. The opening shop has payout (Lucky Calls), CPU type (Tier 1 Upsets), action (Summon Fees) and Duel Speed items.
 - **The Big Leagues** (100 coins) opens board 2: bet 10, win 100. Each new board brings a pricier set of items and a very expensive item that opens the next board.
@@ -40,13 +40,15 @@ Own files (all new):
 **Files touched outside the minigame (the merge surface):**
 
 - `android/web/mobile.js` — seven small hooks, all named "Duel Bets"/`duelBets`:
-  1. a `['Duel Bets',37313786,'spell',…,'duel-bets']` entry in `baseMenu`
+  1. a `['Shadow Betting',83241722,'spell',…,'duel-bets']` entry in `baseMenu`
   2. `if(a==='duel-bets'){await openDuelBets();return}` in the action handler, next to `a==='cpu'`
   3. `openDuelBets()` plus `let duelBets`, placed after `openCPU()`; it lazy-imports `idle-bets.js`
   4. Android back: `else if(duelBets){duelBets.back()}`
   5. Gamepad/keyboard back (`screenBack`): `if(screen==='duel-bets'&&duelBets){…}`
   6. `startStats(()=>!cpuViewer&&!duelBets&&…)` so Duel Bets time isn't counted as a run
   7. Music: `screenMusic()` returns `'draft'` while `screen==='duel-bets'`, and `openDuelBets()` calls `track('draft')`, so Duel Bets plays the draft music
+
+- `tools/generate_art_crops.py` — `83241722` (Dice Re-Roll) added to its `MENU` list, and `assets/menu/83241722.jpg` — the menu card art it generates.
 
 Nothing else outside these files changed. The saved data is a new localStorage key, `ygo-duel-bets-v1`, plus the IndexedDB database above. `saves/` and `storage.py` are untouched.
 

@@ -1,4 +1,4 @@
-// Duel Bets: an incremental minigame. Bet on which CPU wins a duel, earn money, buy upgrades and more
+// Shadow Betting ("Duel Bets" in code): an incremental minigame. Bet on which CPU wins a duel, earn money, buy upgrades and more
 // boards; nine boards become a bracket, up to nine brackets. Every duel is recorded ahead of time by a worker
 // (idle-bets-library.js) and replayed here with a deliberately bare board: coloured slots, ATK numbers and
 // LP bars, updated in place. One timer drives everything, 10×/s while boards are on screen, 4×/s otherwise,
@@ -205,10 +205,10 @@ export class DuelBets{
   d.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
  settings(){const s=this.state.settings,st=this.state.stats;
   const row=(name,value,label)=>`<label class="db-set"><input type="radio" name="fx" value="${value}" ${s.fx===value?'checked':''}> ${label}</label>`;
-  this.modal('Settings',`<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Destiny Board wins seen: ${st.destiny} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Duel Bets</button>`,(e,d)=>{
+  this.modal('Settings',`<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Destiny Board wins seen: ${st.destiny} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Shadow Betting</button>`,(e,d)=>{
    const r=e.target.closest('input[name="fx"]');if(r){s.fx=r.value;this.dirty=true}
    const inf=e.target.closest('[data-infinite]');if(inf){s.infinite=inf.checked;this.dirty=true;this.paintTotal(true);this.refreshShop()}
-   if(e.target.closest('[data-reset]')){if(!e.target.dataset.armed){e.target.dataset.armed='1';e.target.textContent='Tap again to erase all Duel Bets progress';return}d.close();this.reset()}
+   if(e.target.closest('[data-reset]')){if(!e.target.dataset.armed){e.target.dataset.armed='1';e.target.textContent='Tap again to erase all Shadow Betting progress';return}d.close();this.reset()}
   })}
  // CPU deck stats: every finished duel on your boards and brackets, per deck, best to worst. Ranked by a smoothed
  // win rate ((wins+1)/(duels+2)) so a 1–0 deck doesn't outrank a 40–10 one; decks with no duels yet come last.
