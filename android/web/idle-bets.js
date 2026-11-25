@@ -286,8 +286,8 @@ class BoardView{
  poof(z){if(!this.lvl())return;const img=z.firstChild;if(!img.getAttribute('src')||img.style.visibility==='hidden')return;const c=img.cloneNode();c.className='db-poof';z.append(c);
   this.play(c,[{opacity:1,scale:1,rotate:'0deg'},{opacity:.8,scale:1.25,rotate:'-6deg',offset:.3},{opacity:0,scale:.2,rotate:'25deg'}],{duration:460,easing:'ease-in'});
   if(this.lvl()>1)for(let i=0;i<5;i++){const k=this.temp('db-shard',z);const a=Math.random()*Math.PI*2,d=60+Math.random()*60;this.play(k,[{opacity:1,translate:'0 0',scale:1},{opacity:0,translate:`${Math.cos(a)*d}% ${Math.sin(a)*d}%`,scale:.3}],{duration:420+Math.random()*200,easing:'ease-out'})}}
- // A duel starts: the backed CPU's half lights up and DUEL! slams down.
- duelStart(pick){const v=this.sides[pick];if(v&&this.lvl())v.art.animate([{opacity:1,scale:1.06},{opacity:.32,scale:1}],{duration:900,easing:'ease-out'});this.stamp('DUEL!','duel');this.flash(pick??null,'#ffd76a66',600)}
+ // A duel starts: DUEL! slams down (no glow or portrait fade: user, 2026-11-25).
+ duelStart(){this.stamp('DUEL!','duel')}
  // The duel is over: the winner's half flares, the loser's fades; your call is stamped on top.
  outcome(winner,pick){if(winner<2){this.flash(winner,'#ffe27a88',900);const v=this.sides[winner];if(this.lvl())v.art.animate([{opacity:.32},{opacity:.9,offset:.25},{opacity:.6}],{duration:1400,fill:'forwards'})}
   if(pick==null)return;if(winner===pick){this.stamp('CORRECT!','good',50,42);this.shake(3)}else this.stamp('MISS','bad',50,42)}

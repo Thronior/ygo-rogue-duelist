@@ -66,7 +66,7 @@
 .db-stakes{color:var(--db-accent)}
 .db-field{position:relative;flex:1;min-height:0;container-type:size;overflow:hidden}
 /* Portraits fill each half: the bottom player (seat 0) on the left, the top player on the right. */
-.db-art{position:absolute;top:0;bottom:0;width:50%;height:100%;object-fit:cover;object-position:50% 15%;pointer-events:none;opacity:.32;transition:opacity .3s}
+.db-art{position:absolute;top:0;bottom:0;width:50%;height:100%;object-fit:cover;object-position:50% 15%;pointer-events:none;opacity:.32}
 .db-art.a0{left:0;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent)}
 .db-art.a1{right:0;-webkit-mask-image:linear-gradient(270deg,#000 55%,transparent);mask-image:linear-gradient(270deg,#000 55%,transparent)}
 .db-board.betting .db-art{opacity:1;-webkit-mask-image:none;mask-image:none}
@@ -176,7 +176,7 @@
 .db-result{box-shadow:0 0 22px #000c}
 .db-result.good{box-shadow:0 0 22px #5ee08a88}
 .db-board:has(.db-pick.s0:hover:not(:disabled)) .db-art.a0,.db-board:has(.db-pick.s1:hover:not(:disabled)) .db-art.a1{scale:1.05}
-.db-art{transition:opacity .3s,scale .25s}
+.db-art{transition:scale .25s}
 .db-pick:active:not(:disabled){background:linear-gradient(color-mix(in srgb,var(--db-accent) 35%,transparent),#000c)}
 .db-buy:not(.poor):not(:disabled):active{scale:.92}
 .db-buy{transition:scale .08s}
