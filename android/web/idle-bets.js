@@ -142,7 +142,7 @@ export class DuelBets{
   const pop=document.createElement('div');pop.className='db-pop '+size;pop.textContent=(label?label+' ':'')+'+'+M.fmt(amount);pop.style.left=x+'px';pop.style.top=y+'px';layer.append(pop);this.fxCount=(this.fxCount||0)+1;
   const life=size==='small'?900:size==='medium'?1400:2600;
   pop.animate(size==='small'?[{opacity:0,translate:'-50% 0'},{opacity:1,translate:'-50% -10px',offset:.2},{opacity:0,translate:'-50% -34px'}]:[{opacity:0,scale:.5,translate:'-50% -50%'},{opacity:1,scale:1.15,translate:'-50% -50%',offset:.15},{opacity:1,scale:1,translate:'-50% -60%',offset:.75},{opacity:0,scale:1,translate:'-50% -90%'}],{duration:life,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>{pop.remove();this.fxCount--});
-  if(size==='small'||fxOn==='light'&&size==='medium')return;
+  if(size==='small'||fxOn==='light'&&size==='medium'||this.state.brackets&&size==='medium')return;// bracket mode: no small coin icons
   const total=this.el.total.getBoundingClientRect(),tx=total.left-box.left+total.width/2,ty=total.top-box.top+total.height/2,n=Math.min(m===1?5:size==='medium'?8:12,size==='medium'?8:12);
   for(let i=0;i<n;i++){const c=document.createElement('img');c.className='db-coin';c.alt='';c.src=assetURL('assets/ui/coins.png');c.style.left=x+'px';c.style.top=y+'px';layer.append(c);
    const sx=(Math.random()-.5)*(size==='medium'?80:220),sy=-30-Math.random()*(size==='medium'?40:120);

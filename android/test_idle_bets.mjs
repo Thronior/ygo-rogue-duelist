@@ -15,6 +15,9 @@ assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_atta
 assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
 for(const it of M.ITEMS)assert.ok(M.tooltip(M.newState(),it.id).join(' ').length>20,'every item has a tooltip: '+it.id);
 assert.ok(M.tooltip({...M.newState(),items:{fee_summon:3}},'fee_summon').some(x=>x.includes('+0.3')),'the tooltip shows the current total');
+// The dearer an income item's first purchase, the more one level earns.
+const inc=M.ITEMS.filter(i=>/^(fee_|tier[123]$|endless|feat_)/.test(i.id)).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
+for(let i=1;i<inc.length;i++)assert.ok(M.power(inc[i].id)>=M.power(inc[i-1].id),`${inc[i].id} earns at least as much per level as the cheaper ${inc[i-1].id}`);
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
@@ -67,7 +70,7 @@ assert.ok(M.itemCost('scout',0)>M.itemCost('autobet',0)*5,'Scouting Report costs
 // ---- event income: per action, times board level and High Roller ----
 s=M.newState();s.items={fee_summon:2,fee_attack:1,fee_direct:2,fee_destroy:1,fee_trap:1,fee_damage:1};
 const ev=[['s',0,123,0,0],['a',0,0,-1],['x',1,55,1,4],['x',1,66,0,8],['c',1,44095762,4],['l',1,-2000]];
-const base=2*.1+.1+2*.5+.2+.2+.2*2;// the Spell/Trap destroyed (zone 8) pays no Wreckage Fee
+const P=M.power,base=2*.1*P('fee_summon')+.1*P('fee_attack')+2*.5*P('fee_direct')+.2*P('fee_destroy')+.2*P('fee_trap')+.2*2*P('fee_damage');// the Spell/Trap destroyed (zone 8) pays no Wreckage Fee
 assert.ok(Math.abs(M.eventIncome(s,ev,1)-base)<1e-9);
 assert.ok(Math.abs(M.eventIncome(s,ev,3)-base*100)<1e-9,'board level 3 pays ×100');
 s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High Roller ×2 per level');
@@ -75,12 +78,12 @@ s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High
 // ---- what a finished duel pays ----
 s=M.newState();s.items={calls1:1,tier1:2,exodia:1};
 let pay=M.duelPayout(s,{winner:0,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
-assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.equal(pay.total,2+6);
+assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.ok(Math.abs(pay.total-(2+6*M.power('tier1')))<1e-9);
 pay=M.duelPayout(s,{winner:1,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
 assert.deepEqual(pay.parts.map(p=>p[0]),['Tier 1 upset'],'a wrong call still collects the passive bonuses');
 pay=M.duelPayout(s,{winner:0,reason:16,turns:9,winnerLp:8000,winnerTier:'Tier 3'},2,2,0);
 const jackpot=pay.parts.find(p=>p[0]==='EXODIA JACKPOT');assert.ok(jackpot&&jackpot[2],'Exodia pays a big jackpot');
-assert.equal(jackpot[1],100*10*2,'50×2 (one upgrade) × board level 2, doubled for backing the winner');
+assert.ok(Math.abs(jackpot[1]-100*M.power('exodia')*10*2)<1e-6,'50×2 (one upgrade) × its price power × board level 2, doubled for backing the winner');
 assert.equal(M.duelPayout(s,{winner:1,reason:21,turns:9,winnerLp:500,winnerTier:'Tier 2'},1,1,null).parts[0][0],'DESTINY JACKPOT');
 
 // ---- shop sections: every item has one ----
