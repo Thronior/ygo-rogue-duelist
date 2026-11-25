@@ -129,10 +129,6 @@ export class DuelBets{
  crowded(){return (this.openBracket?9:this.boards.length)>=7}
  boardSound(path,gain=1){if(this.state.settings.fx==='off')return;const many=(this.openBracket?9:this.boards.length)>4,now=performance.now();this.lastSfx??={};
   if(now-(this.lastSfx[path]||0)<(many?400:150))return;this.lastSfx[path]=now;this.sound(path,gain*(many?.6:1))}
- // A big final blow gets the duel's own finisher voice, like the main game (only with a few boards on screen).
- finisher(tl,r){if(r.reason!==1||(this.openBracket?9:this.boards.length)>4||this.state.settings.fx==='off')return;let hit=0;
-  for(let i=tl.frames.length-1;i>=0&&!hit;i--)for(const e of tl.frames[i][0])if(e[0]==='l'&&e[2]<0){hit=-e[2];break}
-  const word=hit>=8000?'godlike':hit>=6000?'annihilation':hit>=4500?'devastating':hit>=3000?'overkill':'';if(word)this.sound('assets/sfx/kill-'+word+'.wav',1.2)}
  fx(amount,from,size,label){
   const fxOn=this.state.settings.fx,m=motion(),now=performance.now();
   // Coin sounds are as loud as the coin is big, compared with what was earned over the last ~2 seconds.
@@ -400,7 +396,7 @@ class Board{
   this.stake=0;this.phase='result';this.hold=RESULT_HOLD;
   if(pick===r.winner){s.stats.correct++;s.stats.slots[this.slot]=(s.stats.slots[this.slot]||0)+1}
   if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;M.recordDeckResult(s,this.replay.tl.seats,r.winner,kind);
-  this.view?.ending(r.winner);this.view?.outcome(r.winner,pick);g.finisher(this.replay.tl,r);
+  this.view?.ending(r.winner);this.view?.outcome(r.winner,pick);
   const winnerName=r.winner<2?this.replay.seats[r.winner].name:'Nobody';
   this.view?.show(`<div class="db-result ${pick===r.winner?'good':pick==null?'':'bad'}"><b>${esc(winnerName)} wins</b></div>`);
   g.payParts(pay,this.view?.root);g.dirty=true}
@@ -514,7 +510,7 @@ class Bracket{
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
   if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;M.recordDeckResult(s,d.pair.map(i=>this.roster[i]),r.winner,r.reason);
   const pay=M.withTierBonus(s,r,this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot)),fees);d.stake=0;
-  this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
+  this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.setStakes('');d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}
   this.game.dirty=true}
  finish(){const order=M.standings(this.wins,this.dmg),champ=order[0],s=this.game.state;
