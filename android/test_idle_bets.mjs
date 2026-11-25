@@ -112,6 +112,16 @@ fst.items.feat_summon=2;const fp=M.featPayout(fst,fm,0,1);assert.ok(fp.total>0&&
 fst.items.feat_victory=1;assert.ok(M.featPayout(fst,fm,1,1).total<M.featPayout(fst,fm,0,1).total+1e-9,'victory-only rules pay only for the winner');
 assert.ok(M.tooltip(fst,'feat_summon').some(x=>/Monsters summoned/.test(x)),'the tooltip lists the conditions');
 
+// ---- Characters: one item per CPU character, paying when that character wins ----
+M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'}]);
+assert.equal(M.categoryOf('char_900'),'Characters');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
+assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');
+const cs=M.newState();cs.items.char_901=2;const cp=M.duelPayout(cs,{winnerId:901,winner:0,reason:1,turns:9,winnerLp:3000,winnerTier:'Endless'},1,1,null);
+assert.ok(cp.parts.some(p=>p[0]==='Test Strong wins'&&Math.abs(p[1]-2*2*M.power('char_901'))<1e-9));
+assert.equal(M.duelPayout(cs,{winnerId:900,winner:0,reason:1,turns:9,winnerLp:3000,winnerTier:'Tier 1'},1,1,null).parts.length,0,'no item, no bonus');
+assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved character levels load; unknown ones are dropped');
+assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
+
 // ---- pacing: frames take time, turns and attacks longer ----
 const tl={v:1,seats:[{id:1,tier:0},{id:2,tier:1}],winner:0,reason:1,turns:3,frames:[[[]],[[['t',0]]],[[['a',0,1,-1],['l',1,-1500]],[[1,1,1,1],[6500,5,30,0]]]]};
 const sch=M.schedule(tl);assert.equal(sch.at[0],0);assert.ok(sch.at[2]-sch.at[1]>sch.at[1]-sch.at[0],'a turn frame holds longer than an empty one');

@@ -99,7 +99,7 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler',
  feat_summon:'Ten-thousand Hands',feat_battle:'Warrior Blade',feat_activate:'Arcane Resonance',feat_set:'Trapbound Idol',feat_destroy:'Demonic Sword',feat_survive:'Phoenix Feather',feat_victory:'Champion\'s Burden'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Jackpots & Finishes',/^(exodia|destiny|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|destiny|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 export const categoryOf=id=>CATEGORIES.find(([,re])=>re.test(id))?.[0]||'Other';
 for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice(5))-1]:ART[it.id];
 // Exact tooltip text: what one level does, what you have now, what the next level gives.
@@ -122,10 +122,17 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(id==='purse')return [`Each level: +50% to what a correct bracket champion bet pays.`,`Now: +${50*l}% · next level: +${50*(l+1)}%.`]
  if(/^feat_/.test(id)){const g=id.slice(5),rules=RULES.filter(r=>FEAT_GROUP[r.metric]===g),by=new Map();for(const r of rules){const k=r.label.replace(/:.*$/,'')+(r.victoryOnly?' (winner)':'');(by.get(k)||by.set(k,[]).get(k)).push(`${r.threshold}+ ${r.coins}`)}
   return [`The main game's duel coin rules, for both CPUs. Each level pays ${fmt(FEAT_SCALE*power(id)*100)}% of their coins, times the board's level.`,...[...by].map(([k,v])=>`${k}: ${v.join(' · ')}`),`Now: ×${l} · next level: ×${l+1}.`]}
+ if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`Each level: +${fmt(v)} coins whenever ${n} wins a duel, on any board.`,BOARD_LEVEL,`Now: ${c(v*l)} · next level: ${c(v*(l+1))}.`]}
  if(id==='autochamp')return ['A bracket waits for your champion bet before it starts. This places it for you as soon as a bracket opens for betting (when you can pay the stake).','It picks at random, or the highest-tier CPU when you own Scouting Report.','Bought once.']
  if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: a league of 9 more CPUs on 9 more boards (36 duels, everyone meets everyone once), with higher stakes than the last.`,`Brackets open: ${s.brackets} of ${BRACKET_MAX}.`]
  return [it.text(l)]}
 export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+// Character items: one per CPU character, registered from the catalog at start (before a save is read).
+// Price by the character's strongest deck tier (rank 0 Opening … 4 Endless/World Championship); as with every income
+// item, a dearer one earns more per win (power).
+export function registerCharacters(list){for(const c of list){const id='char_'+c.id;if(ITEM[id])continue;
+ const it=I(id,1,c.name+' Wins',0,4*3**c.rank,1.2,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name,charId:c.id});
+ ITEMS.push(it);ITEM[id]=it}}
 export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
  return Math.ceil(it.base*it.growth**level+level)}
 export const itemLevel=lvl;
@@ -190,6 +197,7 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=l
  if(kind==='exodia'||kind==='destiny'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add(kind==='exodia'?'EXODIA JACKPOT':'DESTINY JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
+ if(result.winner<2&&result.winnerId!=null){const id='char_'+result.winnerId,l=lvl(s,id);if(l)add((ITEM[id]?.charName||'Character')+' wins',2*l*power(id)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lvl(s,'flawless')*power('flawless')*scale);
  if(result.turns>10)add('Long game',(result.turns-10)*lvl(s,'longgame')*power('longgame')*scale);
  if(result.winner<2&&result.turns<=5)add('Blitz',10*lvl(s,'blitz')*power('blitz')*scale);
@@ -241,7 +249,7 @@ export function featPayout(s,metrics,winner,level){let coins=0,hits=0;
 export function frameDelay(frame){if(!frame[1]&&frame[0].length&&frame[0].every(e=>e[0]==='p'))return 120;let ms=260;for(const e of frame[0]){ms+=e[0]==='t'?520:e[0]==='a'?360:e[0]==='f'?420:e[0]==='x'?200:e[0]==='c'?220:e[0]==='s'?160:e[0]==='l'?140:0}return Math.min(ms,1400)}
 export function schedule(tl){let t=0;const at=tl.frames.map(f=>{const start=t;t+=frameDelay(f);return start});return {at,total:t+900}}
 export const finalLp=(tl,p)=>{for(let i=tl.frames.length-1;i>=0;i--){const b=tl.frames[i][1];if(b&&b[p])return b[p][0]}return 8000};
-export const resultOf=(tl,decks)=>({winner:tl.winner,reason:tl.reason,turns:tl.turns,winnerLp:tl.winner<2?finalLp(tl,tl.winner):0,winnerTier:tl.winner<2?decks?.[tl.winner]?.label||'':''});
+export const resultOf=(tl,decks)=>({winnerId:tl.winner<2?tl.seats[tl.winner]?.id:null,winner:tl.winner,reason:tl.reason,turns:tl.turns,winnerLp:tl.winner<2?finalLp(tl,tl.winner):0,winnerTier:tl.winner<2?decks?.[tl.winner]?.label||'':''});
 export function damageDealt(tl){const d=[0,0];for(const f of tl.frames)for(const e of f[0])if(e[0]==='l'&&e[2]<0)d[1-e[1]]+=-e[2];return d}
 
 // ---- brackets: a round-robin league of the same 9 CPUs on 9 boards; most wins takes it ----

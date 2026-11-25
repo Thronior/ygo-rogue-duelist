@@ -373,3 +373,5 @@
 .db-stats tr.none{opacity:.45}
 .db-stats tbody tr:hover{background:#ffffff0a}
 .db-modal:has(.db-stats){max-width:min(820px,96vw);width:min(820px,96vw)}
+.db-icon img.face{position:static;width:100%;height:100%;object-fit:cover;object-position:50% 12%;border-radius:4px}
+.db-icon:has(.face){overflow:hidden;background:#0006}

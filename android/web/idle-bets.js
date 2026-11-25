@@ -30,6 +30,8 @@ export class DuelBets{
   M.setCoinRules(content.battleCoinRules);const byName=new Map([...this.cards.values()].map(c=>[c.name,c.id]));
   this.cardInfo=code=>{const c=this.cards.get(code);return c?{type:Number(c.data?.type)||0,level:Number(c.level)||0,race:c.race,attribute:c.attribute}:null};
   this.signatures=id=>new Set((this.chars[id]?.cards||[]).map(n=>byName.get(n)).filter(Boolean));
+  {const best=new Map();for(const d of this.pool)best.set(d.id,Math.max(best.get(d.id)??0,M.tierRank(d.label)));
+   M.registerCharacters([...best].map(([id,rank])=>({id,rank,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
   this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
   this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])]});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
@@ -97,7 +99,7 @@ export class DuelBets{
   this.el.tabs.innerHTML=cats.map(c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`).join('');
   const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
   const head='';this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
-   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
+   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
   this.paintAfford();
  }
  paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}
@@ -475,7 +477,7 @@ class Bracket{
  settleModel(d){const m=d.model,sample=m.sample,s=this.game.state,level=this.level(d.slot);
   // Fees from a comparable recorded duel stand in for this one's events.
   let fees=0;if(sample)for(const f of sample.frames)fees+=M.eventIncome(s,f[0],level);
-  const r={winner:m.winner,reason:m.reason,turns:sample?.turns||10,winnerLp:sample&&sample.winner<2?M.finalLp(sample,sample.winner):4000,winnerTier:this.roster[d.pair[m.winner]].label};
+  const r={winnerId:this.roster[d.pair[m.winner]]?.id,winner:m.winner,reason:m.reason,turns:sample?.turns||10,winnerLp:sample&&sample.winner<2?M.finalLp(sample,sample.winner):4000,winnerTier:this.roster[d.pair[m.winner]].label};
   if(fees>0)this.game.gain(fees,{from:this.cellFor(d),size:'small'});const dmg=[0,0];if(r.winner<2){dmg[r.winner]=8000;dmg[1-r.winner]=8000-r.winnerLp}this.settle(d,r,null,dmg)}
  settle(d,r,replay,damage){d.done=true;d.winner=r.winner;const s=this.game.state;
   if(r.winner<2){this.wins[d.pair[r.winner]]++;this.losses[d.pair[1-r.winner]]++}
