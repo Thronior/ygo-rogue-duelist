@@ -14,7 +14,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const html=document.documentElement;
 const motion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?0:html.classList.contains('performance-mode')||html.classList.contains('compatibility-mode')?1:2;
 const ICON_OK=new Set();
-const BET_WINDOW=1500,FINAL_HOLD=6000,RESULT_HOLD=1800;
+const AUTO_START=10000,BET_WINDOW=1500,FINAL_HOLD=6000,RESULT_HOLD=1800;
 let cssLoaded=false;
 function loadCSS(){if(cssLoaded)return;cssLoaded=true;const l=document.createElement('link');l.rel='stylesheet';l.href='idle-bets.css';document.head.append(l)}
 
@@ -237,14 +237,14 @@ export class DuelBets{
 
 // One replayed duel. el = the board's DOM (null while nobody is looking).
 class Replay{
- constructor(game,tl,{level,slot,pick=null,start=0}){Object.assign(this,{game,tl,level,slot,pick});this.sched=M.schedule(tl);this.t=start;this.i=0;this.pending=0;this.seats=tl.seats.map(s=>game.seatOf(s));
+ constructor(game,tl,{level,slot,pick=null,start=0}){Object.assign(this,{game,tl,level,slot,pick});this.sched=M.schedule(tl);this.t=start;this.i=0;this.pending=0;this.earned=0;this.seats=tl.seats.map(s=>game.seatOf(s));
   // Joining part-way (a bracket opened mid-round): what already happened pays at once.
-  if(start>0){let lump=0;while(this.i<tl.frames.length&&this.sched.at[this.i]<=start){lump+=M.eventIncome(game.state,tl.frames[this.i][0],level);this.i++}if(lump>0)game.gain(lump,{size:'small'})}}
+  if(start>0){let lump=0;while(this.i<tl.frames.length&&this.sched.at[this.i]<=start){lump+=M.eventIncome(game.state,tl.frames[this.i][0],level);this.i++}this.earned+=lump;if(lump>0)game.gain(lump,{size:'small'})}}
  get done(){return this.t>=this.sched.total}
  lastBoard(upto){for(let i=upto;i>=0;i--)if(this.tl.frames[i]?.[1])return this.tl.frames[i][1];return null}
  tick(dt,view,anchor=null){
   this.t+=dt;const s=this.game.state;let shown=null,events=[];
-  while(this.i<this.tl.frames.length&&this.sched.at[this.i]<=this.t){const f=this.tl.frames[this.i++];events.push(...f[0]);if(f[1])shown=f[1];this.pending+=M.eventIncome(s,f[0],this.level)}
+  while(this.i<this.tl.frames.length&&this.sched.at[this.i]<=this.t){const f=this.tl.frames[this.i++];events.push(...f[0]);if(f[1])shown=f[1];{const v=M.eventIncome(s,f[0],this.level);this.pending+=v;this.earned+=v}}
   if(view&&(shown||events.length))view.frame(shown,events,this);
   if(this.pending>0&&(this.game.clock-(this.paidAt||0)>350||this.done)){this.paidAt=this.game.clock;const v=this.pending;this.pending=0;this.game.gain(v,{from:view?.root||anchor,size:'small'})}
  }
@@ -363,25 +363,29 @@ class BoardView{
 // A board before brackets: wait for a duel, take a bet, play it, pay, repeat.
 class Board{
  constructor(game,slot){Object.assign(this,{game,slot});this.level=slot;this.phase='load';this.replay=null;this.next=null;this.fetch()}
- stakeText(){const s=M.boardStake(this.level),p=M.correctPayout(this.game.state,this.slot,this.level);return s?`Bet ${M.fmt(s)} · win ${M.fmt(p)}`:`Free bet · win ${M.fmt(p)}`}
+ stakeText(){const s=M.boardStake(this.level),p=M.correctPayout(this.game.state,this.slot,this.level);return `Bet ${M.fmt(s)} · win ${M.fmt(p)}`}
  attach(grid){this.view=new BoardView(this.game,grid,{title:`Board ${this.slot} · ${M.LEAGUES[this.slot-1]}`,stakes:this.stakeText(),slot:this.slot});this.paint()}
  detach(){this.view?.remove();this.view=null}
- fetch(){this.phase='load';this.game.supply.take().then(tl=>{if(this.dead)return;this.next=tl;this.phase='bet';this.paint()}).catch(()=>{if(!this.dead)setTimeout(()=>this.fetch(),3000)})}
+ fetch(){this.phase='load';this.game.supply.take().then(tl=>{if(this.dead)return;this.next=tl;this.phase='bet';this.betSince=this.game.clock;this.paint()}).catch(()=>{if(!this.dead)setTimeout(()=>this.fetch(),3000)})}
  paint(){const v=this.view;if(!v)return;v.setStakes(this.stakeText());
   if(this.phase==='load'){v.clear();v.show('<div class="db-wait"><span class="db-spinner"></span>Shuffling decks…</div>');return}
   if(this.phase==='bet'){const seats=this.next.seats.map(s=>this.game.seatOf(s)),stake=M.boardStake(this.level),afford=M.canAfford(this.game.state,stake);
-   v.betView(seats,p=>`data-db="pick" data-slot="${this.slot}" data-seat="${p}"`,afford,afford?'Place your bets':'Need '+M.fmt(stake)+' to bet');return}
+   v.betView(seats,p=>`data-db="pick" data-slot="${this.slot}" data-seat="${p}"`,afford,(afford?'Place your bets':'Need '+M.fmt(stake)+' to bet')+` · ${this.secondsLeft()}`);return}
   if(this.phase==='play'){v.show('');v.seats(this.replay.seats,this.replay.pick);const b=this.replay.lastBoard(this.replay.i-1);if(b)v.frame(b,[],this.replay);return}
  }
- bet(seat,auto=false){if(this.phase!=='bet')return;const stake=M.boardStake(this.level);if(!M.spend(this.game.state,stake)){this.paint();return}
-  const st=this.game.state.stats;st.bets++;this.stake=stake;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
+ // No bet within 10 seconds: the duel starts anyway, without a bet (its fees still pay).
+ secondsLeft(){return Math.max(0,Math.ceil((AUTO_START-(this.game.clock-(this.betSince??this.game.clock)))/1000))}
+ bet(seat,auto=false){if(this.phase!=='bet')return;const stake=seat==null?0:M.boardStake(this.level);if(seat!=null&&!M.spend(this.game.state,stake)){this.paint();return}
+  const st=this.game.state.stats;if(seat!=null)st.bets++;this.stake=stake;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
   this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.view?.duelStart(seat);this.game.boardSound(auto?'assets/sfx/deck-select.wav':'assets/sfx/shop-select.wav',auto?.35:.7)}
  tick(dt){
-  if(this.phase==='bet'&&this.view&&!this.view.overlay.querySelector('.db-pick:not([disabled])')&&M.canAfford(this.game.state,M.boardStake(this.level)))this.paint();
+  if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){this.bet(null,true);return}
+   const place=this.view?.overlay.querySelector('.db-place'),left=this.secondsLeft();if(place&&!place.textContent.endsWith(' '+left))this.paint();
+   if(this.view&&!this.view.overlay.querySelector('.db-pick:not([disabled])')&&M.canAfford(this.game.state,M.boardStake(this.level)))this.paint()}
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
   else if(this.phase==='result'){this.hold-=dt/M.speedOf(this.game.state);if(this.hold<=0){this.game.supply.release(this.replay?.tl);this.replay=null;this.fetch();this.paint()}}
  }
- finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=g.withFeats(M.duelPayout(s,r,this.level,this.slot,pick),this.replay.tl,this.level),kind=r.reason;
+ finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=M.withTierBonus(s,r,g.withFeats(M.duelPayout(s,r,this.level,this.slot,pick),this.replay.tl,this.level),this.replay.earned),kind=r.reason;
   this.stake=0;this.phase='result';this.hold=RESULT_HOLD;
   if(pick===r.winner){s.stats.correct++;s.stats.slots[this.slot]=(s.stats.slots[this.slot]||0)+1}
   if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;M.recordDeckResult(s,this.replay.tl.seats,r.winner,kind);
@@ -490,15 +494,15 @@ class Bracket{
   // Fees from a comparable recorded duel stand in for this one's events.
   let fees=0;if(sample)for(const f of sample.frames)fees+=M.eventIncome(s,f[0],level);
   const r={winnerId:this.roster[d.pair[m.winner]]?.id,winner:m.winner,reason:m.reason,turns:sample?.turns||10,winnerLp:sample&&sample.winner<2?M.finalLp(sample,sample.winner):4000,winnerTier:this.roster[d.pair[m.winner]].label};
-  if(fees>0)this.game.gain(fees,{from:this.cellFor(d),size:'small'});const dmg=[0,0];if(r.winner<2){dmg[r.winner]=8000;dmg[1-r.winner]=8000-r.winnerLp}this.settle(d,r,null,dmg)}
- settle(d,r,replay,damage){d.done=true;d.winner=r.winner;const s=this.game.state;
+  if(fees>0)this.game.gain(fees,{from:this.cellFor(d),size:'small'});const dmg=[0,0];if(r.winner<2){dmg[r.winner]=8000;dmg[1-r.winner]=8000-r.winnerLp}this.settle(d,r,null,dmg,fees)}
+ settle(d,r,replay,damage,fees=replay?.earned||0){d.done=true;d.winner=r.winner;const s=this.game.state;
   if(r.winner<2){this.wins[d.pair[r.winner]]++;this.losses[d.pair[1-r.winner]]++}
   this.results[Math.min(...d.pair)+'-'+Math.max(...d.pair)]=r.winner<2?d.pair[r.winner]:-1;
   const dmg=replay?M.damageDealt(replay.tl):damage;if(dmg){this.dmg[d.pair[0]]+=dmg[0]||0;this.dmg[d.pair[1]]+=dmg[1]||0}
   this.table?.update(r.winner<2?d.pair[r.winner]:null,r.winner<2?d.pair[1-r.winner]:null);if(!this.game.openBracket)this.paintTile();
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
   if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;M.recordDeckResult(s,d.pair.map(i=>this.roster[i]),r.winner,r.reason);
-  const pay=this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot));d.stake=0;
+  const pay=M.withTierBonus(s,r,this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot)),fees);d.stake=0;
   this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.setStakes('');d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}
   this.game.dirty=true}
