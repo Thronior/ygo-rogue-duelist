@@ -171,8 +171,7 @@
 .db-ring{position:absolute;inset:-6%;border:2px solid #fff;border-radius:inherit;pointer-events:none;will-change:transform,opacity}
 .db-poof{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;z-index:2;will-change:transform,opacity}
 .db-shard{position:absolute;left:45%;top:45%;width:12%;height:12%;background:#ffb070;border-radius:2px;box-shadow:0 0 4px #ff7a30;pointer-events:none;z-index:2;will-change:transform,opacity}
-.db-screenflash{position:absolute;inset:0;background:radial-gradient(circle,#fff6c8cc,#ffcf5a55 45%,transparent 75%);pointer-events:none;will-change:opacity}
-.db-splash{position:absolute;left:50%;top:44%;width:min(30vw,240px);translate:-50% -50%;border-radius:10px;box-shadow:0 0 40px 10px #ffcf5a,0 10px 30px #000;pointer-events:none;will-change:transform,opacity}
+.db-splash{position:absolute;left:50%;top:44%;width:min(26vw,200px);translate:-50% -50%;border-radius:8px;border:3px solid #ffcf5a;pointer-events:none;will-change:transform,opacity}
 .db-result{box-shadow:0 0 22px #000c}
 .db-result.good{box-shadow:0 0 22px #5ee08a88}
 .db-board:has(.db-pick.s0:hover:not(:disabled)) .db-art.a0,.db-board:has(.db-pick.s1:hover:not(:disabled)) .db-art.a1{scale:1.05}
@@ -261,3 +260,20 @@
 .db-burger svg{width:20px;height:20px}
 .db-burger[aria-expanded="true"]{border-color:var(--db-accent)!important;color:var(--db-accent)}
 .db-board.betting .db-gauge,.db-board.betting .db-danger{display:none}
+
+/* Champion bet prompt: big, in the middle of the bracket; the bracket waits for it. */
+.db-bracket,.db-bk-open{position:relative}
+.db-champ-host{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:5}
+.db-champ-host:empty{display:none}
+.db-champ-host:not(:empty){background:color-mix(in srgb,var(--db-bg) 55%,transparent)}
+.db-champ-prompt{display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:auto}
+.db-champ-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 26px;border-radius:calc(var(--db-radius) + 4px);background:var(--db-accent);color:#111;cursor:pointer;box-shadow:0 0 24px color-mix(in srgb,var(--db-accent) 60%,transparent),0 6px 18px #000a;text-align:center}
+.db-champ-btn:hover{scale:1.04}.db-champ-btn:active{scale:.97}
+.db-champ-btn small{font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.db-champ-btn b{font-size:clamp(18px,3vw,30px);font-weight:900;line-height:1.05}
+.db-champ-btn em{font-style:normal;font-size:11px;opacity:.8}
+.db-bk-open .db-champ-btn{padding:18px 40px}.db-bk-open .db-champ-btn b{font-size:clamp(24px,4vw,40px)}
+.db-champ-skip{font-size:11px;color:var(--db-dim);text-decoration:underline;cursor:pointer;background:#000a;padding:2px 8px;border-radius:4px}
+.db-stakes .db-chip-bet{margin-left:3px;padding:0 6px;border-radius:3px;border:1px solid var(--db-accent);background:#000a;color:var(--db-accent);font-size:10px;font-weight:700;cursor:pointer;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.db-stakes .db-chip-bet:hover:not(:disabled){background:var(--db-accent);color:#111}
+.db-stakes .db-chip-bet:disabled{opacity:.4;cursor:default}
