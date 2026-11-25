@@ -16,13 +16,16 @@ assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_atta
 assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
 for(const it of M.ITEMS)assert.ok(M.tooltip(M.newState(),it.id).join(' ').length>20,'every item has a tooltip: '+it.id);
 assert.ok(M.tooltip({...M.newState(),items:{fee_summon:3}},'fee_summon').some(x=>x.includes('+0.3')),'the tooltip shows the current total');
+// Rewards grow ~15% per level and the prices climb faster to match.
+assert.deepEqual([0,1,2].map(l=>Math.round(M.levelValue(l)*100)/100),[0,1,2.15]);assert.ok(M.levelValue(10)>19&&M.levelValue(10)<21);
+assert.ok(M.itemCost('fee_summon',10)/M.itemCost('fee_summon',9)>1.3,'income items get dearer faster');
 // The dearer an income item's first purchase, the more one level earns.
 const inc=M.ITEMS.filter(i=>/^(fee_|tier[123]$|endless|feat_)/.test(i.id)).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
 for(let i=1;i<inc.length;i++)assert.ok(M.power(inc[i].id)>=M.power(inc[i-1].id),`${inc[i].id} earns at least as much per level as the cheaper ${inc[i-1].id}`);
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
-assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.3,'simple items grow slowly');
+assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.4,'simple items grow slowly (15% steeper for income items)');
 assert.ok(ratio('speed')>ratio('calls1')&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot faster');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
 assert.equal(M.itemCost('speed',4),50,'the 5th Duel Speed level costs 50');assert.ok(M.itemCost('speed',0)<=10,'the first is cheap');
@@ -77,7 +80,7 @@ auto.settings.off={};assert.ok(M.visibleItems(auto).some(i=>i.id==='scout'),'bou
 // ---- event income: per action, times board level and High Roller ----
 s=M.newState();s.items={fee_summon:2,fee_attack:1,fee_direct:2,fee_destroy:1,fee_trap:1,fee_damage:1};
 const ev=[['s',0,123,0,0],['a',0,0,-1],['x',1,55,1,4],['x',1,66,0,8],['c',1,44095762,4],['l',1,-2000]];
-const P=M.power,base=2*.1*P('fee_summon')+.1*P('fee_attack')+2*.5*P('fee_direct')+.2*P('fee_destroy')+.2*P('fee_trap')+.2*2*P('fee_damage');// the Spell/Trap destroyed (zone 8) pays no Wreckage Fee
+const P=M.power,V=M.levelValue,base=V(2)*.1*P('fee_summon')+.1*P('fee_attack')+V(2)*.5*P('fee_direct')+.2*P('fee_destroy')+.2*P('fee_trap')+.2*2*P('fee_damage');// the Spell/Trap destroyed (zone 8) pays no Wreckage Fee
 assert.ok(Math.abs(M.eventIncome(s,ev,1)-base)<1e-9);
 assert.ok(Math.abs(M.eventIncome(s,ev,3)-base*100)<1e-9,'board level 3 pays ×100');
 s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High Roller ×2 per level');
@@ -85,7 +88,7 @@ s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High
 // ---- what a finished duel pays ----
 s=M.newState();s.items={calls1:1,tier1:2,exodia:1};
 let pay=M.duelPayout(s,{winner:0,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
-assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.ok(Math.abs(pay.total-(1+2+6*M.power('tier1')))<1e-9,'one Lucky Calls level: 1 + 2');
+assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.ok(Math.abs(pay.total-(1+2+3*M.levelValue(2)*M.power('tier1')))<1e-9,'one Lucky Calls level: 1 + 2');
 pay=M.duelPayout(s,{winner:1,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
 assert.deepEqual(pay.parts.map(p=>p[0]),['Tier 1 upset'],'a wrong call still collects the passive bonuses');
 pay=M.duelPayout(s,{winner:0,reason:16,turns:9,winnerLp:8000,winnerTier:'Tier 3'},2,2,0);
@@ -127,7 +130,7 @@ for(let i=0;i<3;i++)M.recordDeckResult(hid,[{id:900,tier:0},{id:901,tier:4}],0,1
 assert.equal(M.sanitize(JSON.parse(JSON.stringify(hid))).charWins[900],3,'rebuilt from deck stats on load');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
 assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');
 const cs=M.newState();cs.items.char_901=2;const cp=M.duelPayout(cs,{winnerId:901,winner:0,reason:1,turns:9,winnerLp:3000,winnerTier:'Endless'},1,1,null);
-assert.ok(cp.parts.some(p=>p[0]==='Test Strong wins'&&Math.abs(p[1]-2*2*M.power('char_901'))<1e-9));
+assert.ok(cp.parts.some(p=>p[0]==='Test Strong wins'&&Math.abs(p[1]-2*M.levelValue(2)*M.power('char_901'))<1e-9));
 assert.equal(M.duelPayout(cs,{winnerId:900,winner:0,reason:1,turns:9,winnerLp:3000,winnerTier:'Tier 1'},1,1,null).parts.length,0,'no item, no bonus');
 assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved character levels load; unknown ones are dropped');
 assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
