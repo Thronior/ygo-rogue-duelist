@@ -143,10 +143,12 @@ export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return br
 export const itemLevel=lvl;
 
 // ---- state ----
-export function newState(){return {v:1,coins:0,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{}}}
+// A new game (and a reset) starts with 5 coins.
+export const START_COINS=5;
+export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{}}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
- s.coins=Math.max(0,num(raw.coins));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
+ s.coins=Math.max(0,num(raw.coins,START_COINS));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
  for(const it of ITEMS){const v=Math.floor(num(raw.items?.[it.id]));if(v>0)s.items[it.id]=Math.min(v,it.max)}
  s.boards=Math.min(BOARD_MAX,Math.max(1,Math.floor(num(raw.boards,1))));s.brackets=Math.min(BRACKET_MAX,Math.max(0,Math.floor(num(raw.brackets))));
  if(s.boards<BOARD_MAX)s.brackets=0;else s.brackets=Math.max(1,s.brackets);

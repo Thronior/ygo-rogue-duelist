@@ -8,6 +8,7 @@ import * as M from './web/idle-bets-model.js';
 
 // ---- a new game: board 1 only, a free bet that pays 1 ----
 let s=M.newState();
+assert.equal(s.coins,5,'a new game starts with 5 coins');assert.equal(M.sanitize(null).coins,5);
 assert.equal(s.boards,1);assert.equal(s.brackets,0);
 assert.equal(M.boardStake(1),0);assert.equal(M.boardPayout(1),1);
 assert.equal(M.correctPayout(s,1,1),1);
@@ -159,7 +160,7 @@ const clean=M.sanitize({coins:'12',items:{speed:99,bogus:3,calls1:-2},boards:20,
 assert.equal(clean.coins,12);assert.equal(clean.items.speed,70);assert.ok(!('bogus' in clean.items)&&!('calls1' in clean.items));
 assert.equal(clean.boards,9);assert.equal(clean.brackets,4);assert.equal(clean.settings.fx,'full');assert.equal(clean.settings.infinite,M.DEV_TOOLS);
 assert.equal(M.sanitize({boards:3,brackets:5}).brackets,0,'no brackets before nine boards');
-assert.equal(M.sanitize(null).coins,0);
+
 
 // ---- numbers ----
 assert.equal(M.fmt(12.34),'12.3');assert.equal(M.fmt(1234),'1,234');assert.equal(M.fmt(1.5e6),'1.5M');assert.equal(M.fmt(2e15),'2Qa');assert.equal(M.fmt(Infinity),'∞');
