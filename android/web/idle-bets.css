@@ -86,7 +86,7 @@
 .db-who{display:flex;align-items:center;gap:4px;font-size:max(9px,calc(var(--ch) * .2));min-width:0;white-space:nowrap;align-self:center;z-index:1}
 .db-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;min-width:0;text-shadow:0 1px 2px #000}
 .db-who.picked .db-name{color:var(--db-accent)}
-.db-who.picked .db-name::before{content:"★ "}
+.db-who.picked .db-name{text-decoration:underline;text-decoration-color:var(--db-accent);text-underline-offset:2px}
 .db-who.won .db-name{color:#8dffad}.db-who.lost{opacity:.55}
 .db-tier{font-style:normal;font-size:max(8px,calc(var(--ch) * .15));font-weight:900;padding:1px 4px;border-radius:3px;background:#ffffff33;letter-spacing:.03em}
 .db-tier.tier1{background:#3c8f5a}.db-tier.tier2{background:#2f6fb8}.db-tier.tier3{background:#8b3fbf}.db-tier.endless{background:#b8432f}
@@ -226,8 +226,8 @@
 .db-st-row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .db-st-row .w{color:#8dffad}.db-st-row .l{color:#ff9a9a}.db-st-row small{color:var(--db-dim)}
 .db-st-row.top .rk{color:var(--db-accent)}
-.db-st-row.mine{box-shadow:inset 3px 0 0 var(--db-accent)}.db-st-row.mine .nm::before{content:"★ ";color:var(--db-accent)}
-.db-st-row.champ{background:color-mix(in srgb,var(--db-accent) 30%,transparent)!important}.db-st-row.champ .nm::after{content:" 🏆"}
+.db-st-row.mine{box-shadow:inset 3px 0 0 var(--db-accent)}
+.db-st-row.champ{background:color-mix(in srgb,var(--db-accent) 30%,transparent)!important}.db-st-row.champ .nm::after{content:" — winner";color:var(--db-accent);font-size:.85em}
 .db-bk-open{flex:1;min-height:0;display:flex;gap:6px}
 .db-bk-side{flex:none;width:clamp(220px,24vw,300px);background:var(--db-panel);border:2px solid var(--db-line);border-radius:var(--db-radius);padding:4px;display:flex;min-height:0}
 .db-bk-side .db-bk-table{overflow-y:auto}
@@ -286,3 +286,78 @@
 .db-shop-tabs button.on{background:var(--db-accent);border-color:var(--db-accent);color:#111}
 .db-shop-tabs button i{display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#5ee08a;box-shadow:0 0 4px #5ee08a}
 .db-shop-tabs button.can:not(.on) i{display:block}
+
+/* ---- The game's own look (mobile.css): Bebas display type, Spectral card-name type, bronze primary buttons,
+   teal panels with small radii, no neon glows. Theme colours (Duel Look) still come through --db-* ---- */
+.duel-bets{--db-display:"YGO Display",Impact,"Arial Black",sans-serif;--db-cardname:"YGO Card Name",Georgia,serif;--db-radius:5px}
+:root[data-duel-theme="pixel-art"] .duel-bets{--db-display:"YGO Pixel",monospace;--db-cardname:"YGO Pixel",monospace;--db-radius:0}
+:root[data-duel-theme="clean-tournament"] .duel-bets{--db-display:Arial,sans-serif;--db-cardname:Arial,sans-serif}
+.db-top{background:#061018d9;border-bottom:1px solid #668290;min-height:54px;padding:6px 14px}
+.db-money small{font-family:var(--db-display);font-size:14px;letter-spacing:.12em;color:var(--db-dim)}
+.db-total{font-family:var(--db-display);font-size:34px;font-weight:400;letter-spacing:.03em;line-height:.95}
+.db-sub{font-size:12px}
+.db-round{border-radius:5px;background:#183f50;border:1px solid #537e8b;width:40px;height:40px}
+.db-round:hover{border-color:#f2cf83}
+/* shop */
+.db-shop{background:#0b1d26f0;border-left:1px solid #668290}
+.db-shop-tabs{gap:0;padding:0;border-bottom:1px solid #668290;background:#061018d9}
+.db-shop-tabs button{flex:1 1 auto;border:0;border-right:1px solid #2a4a56;border-radius:0;background:transparent;padding:7px 8px 5px;font-family:var(--db-display);font-size:15px;font-weight:400;letter-spacing:.05em;color:#9fb9c0}
+.db-shop-tabs button.on{background:#183f50;color:#f2cf83;box-shadow:inset 0 -3px 0 #f2cf83}
+.db-shop-tabs button i{top:4px;right:4px;width:6px;height:6px;box-shadow:none}
+.db-shop-list{gap:0;padding:0}
+.db-item{border:0;border-bottom:1px solid #1e3a45;border-radius:0;background:transparent;padding:6px 8px;min-height:56px}
+.db-item:hover{background:#ffffff08}
+.db-item.drastic,.db-item.opener{border-color:#1e3a45;background:transparent}
+.db-item.opener .db-item-text b{color:#f2cf83}
+.db-item-text b{font-family:var(--db-cardname);font-weight:600;font-size:14px;letter-spacing:.01em}
+.db-count{font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#9fb9c0}
+.db-buy{min-width:70px;border-radius:5px;background:#946539;border:1px solid #f2cf83;color:#fff4d7!important;font-family:var(--db-display);font-size:17px;font-weight:400;letter-spacing:.04em;padding:5px 8px 3px}
+.db-buy.poor,.db-buy:disabled{background:#183f50;border-color:#537e8b;color:#86a1a8!important}
+.db-icon{width:44px;height:44px}
+.db-tip{background:#102732f7;border:2px solid #b8b5a0;border-radius:8px;box-shadow:0 6px 18px #000a}
+.db-tip b{font-family:var(--db-cardname);font-weight:600;color:#f2cf83}
+/* boards */
+.db-board{border-width:1px;border-radius:5px}
+.db-head{background:#061018d9}
+.db-league{font-family:var(--db-display);font-size:14px;font-weight:400;letter-spacing:.06em}
+.db-stakes{font-weight:700}
+.db-place{font-family:var(--db-display);font-weight:400;font-size:clamp(14px,6cqh,22px);letter-spacing:.05em;background:#946539;border:1px solid #f2cf83;color:#fff4d7;border-radius:5px}
+.db-vs{font-family:var(--db-display);font-weight:400;color:#f2cf83;text-shadow:0 2px 0 #000,0 0 2px #000}
+.db-pick b{font-family:var(--db-cardname);font-weight:600}
+.db-result{border-radius:5px;background:#102732f2;border:2px solid #b8b5a0;box-shadow:none}
+.db-result b{font-family:var(--db-display);font-weight:400;letter-spacing:.05em;font-size:clamp(16px,9cqh,28px)}
+.db-result.good{border-color:#7fd69a;box-shadow:none}.db-result.bad{border-color:#b85a5a}
+.db-wait{border-radius:5px;background:#102732e6;border:1px solid #537e8b}
+.db-gauge b{border-radius:3px;background:#061018e6;border-color:#537e8b;font-family:var(--db-display);font-weight:400;font-size:17px;letter-spacing:.04em;line-height:17px;padding:2px 6px 0}
+.db-gauge i{border-radius:3px;border-color:#537e8b;box-shadow:none}
+.db-phases i{border-radius:2px}
+.db-tier{border-radius:2px}
+/* stamps, banners, pops: game type, outlined, no glow */
+.db-stamp{font-family:var(--db-display);font-weight:400;letter-spacing:.08em;border-width:3px;border-radius:4px;background:#061018e0}
+.db-banner{font-family:var(--db-display);font-weight:400;letter-spacing:.06em;color:#f2cf83;background:#102732f2;border:2px solid #b8b5a0;border-radius:6px;text-shadow:0 2px 0 #000}
+.db-pop{font-family:var(--db-display);font-weight:400;letter-spacing:.04em;font-size:15px;color:#f2cf83;text-shadow:0 2px 0 #000,0 0 3px #000}
+.db-pop.medium{font-size:24px}
+.db-pop.big,.db-pop.jackpot{font-size:30px;color:#fff4d7;text-shadow:0 2px 0 #000,0 0 3px #000}
+.db-dmg{font-family:var(--db-display);font-weight:400;text-shadow:0 2px 0 #000,0 0 3px #000}
+/* brackets */
+.db-bracket{border-width:1px;border-radius:5px;background:#0b1d26f0}
+.db-bk-title{font-family:var(--db-display);font-size:20px;font-weight:400;letter-spacing:.05em;color:#f2cf83}
+.db-bk-status{font-size:11px}
+.db-bk-bar{height:4px;border-radius:0}
+.db-xt .c.live{box-shadow:inset 0 0 0 2px hsl(var(--hue,200) 85% 62%)}
+.db-xt .hd.mine{box-shadow:none;border:2px solid #f2cf83}
+.db-champ-host:not(:empty){background:#06101899}
+.db-champ-btn{border-radius:6px;background:#946539;border:2px solid #f2cf83;color:#fff4d7;box-shadow:0 6px 18px #000a}
+.db-champ-btn small{font-family:var(--db-display);font-weight:400;font-size:16px;letter-spacing:.1em;text-transform:none}
+.db-champ-btn b{font-family:var(--db-display);font-weight:400;letter-spacing:.04em}
+.db-champ-btn em{color:#f7e3b5;opacity:1}
+.db-champ-skip{border-radius:3px}
+.db-bk-head button,.db-burger{border-radius:5px;background:#183f50;border:1px solid #537e8b}
+.db-bk-head .db-bk-info b{font-family:var(--db-display);font-weight:400;font-size:18px;letter-spacing:.05em;color:#f2cf83}
+.db-bk-side{border-width:1px;border-radius:5px;background:#0b1d26f0}
+.db-st-head{font-family:var(--db-display);font-size:13px;letter-spacing:.06em}
+.db-st-row.mine{box-shadow:inset 3px 0 0 #f2cf83}
+.db-chip-bet{border-radius:3px!important}
+.db-modal{border-radius:8px;border:2px solid #b8b5a0;background:#102732f7}
+.db-modal h2{font-family:var(--db-display);font-weight:400;font-size:24px;letter-spacing:.05em;color:#f2cf83}
+.db-modal h3{font-family:var(--db-display);font-weight:400;font-size:17px;letter-spacing:.06em}

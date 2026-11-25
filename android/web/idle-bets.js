@@ -134,7 +134,9 @@ export class DuelBets{
   if(fxOn==='off'||m===0||!this.el)return;
   // Pop from where the money came from; a source that is not on screen (another bracket) pops beside the total.
   const shown=from&&from.isConnected&&from.getClientRects().length,layer=this.el.fx,box=layer.getBoundingClientRect(),src=(shown?from:this.el.total).getBoundingClientRect();if(!shown&&size==='small')return;
-  const x=src.left-box.left+src.width/2,y=src.top-box.top+src.height*(size==='small'?.5:.45);
+  // Each new pop from the same place takes the next lane up, plus a little jitter, so pops never stack exactly.
+  this.lanes??=new WeakMap();const key=shown?from:this.el.total,lane=((this.lanes.get(key)||0)+1)%5;this.lanes.set(key,lane);
+  const x=src.left-box.left+src.width*(.5+(Math.random()-.5)*(size==='small'?.5:.3)),y=src.top-box.top+src.height*(size==='small'?.55:.48)-lane*(size==='small'?13:24)+(Math.random()-.5)*8;
   // Small: a floating "+0.3". Medium: "+100" and coins flying to the total. Big: a banner and a coin shower.
   if(this.fxCount>40&&size==='small')return;
   const pop=document.createElement('div');pop.className='db-pop '+size;pop.textContent=(label?label+' ':'')+'+'+M.fmt(amount);pop.style.left=x+'px';pop.style.top=y+'px';layer.append(pop);this.fxCount=(this.fxCount||0)+1;
@@ -191,7 +193,9 @@ export class DuelBets{
  // Where a jackpot shows: the board it came from, or the bracket tile holding its crosstable cell; null when off screen.
  spot(from){const el=from?.closest?.('.db-board,.db-bracket')||from;if(!el?.isConnected||!el.getClientRects().length)return null;const box=this.el.fx.getBoundingClientRect(),r=el.getBoundingClientRect();return {x:r.left-box.left+r.width/2,y:r.top-box.top+r.height/2,w:r.width,h:r.height}}
  place(el,at){el.style.left=at.x+'px';el.style.top=at.y+'px';el.style.maxWidth=Math.max(120,at.w-8)+'px';el.style.setProperty('--fit',Math.max(.45,Math.min(1,at.w/520)))}
- banner(text,from){if(!this.el)return;let at=null;if(from!==undefined){at=this.spot(from);if(!at)return}const b=document.createElement('div');b.className='db-banner'+(at?' local':'');b.textContent=text;if(at)this.place(b,at);this.el.fx.append(b);b.animate([{opacity:0,scale:.6},{opacity:1,scale:1.05,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1}],{duration:2200,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>b.remove())}
+ banner(text,from){if(!this.el)return;let at=null;if(from!==undefined){at=this.spot(from);if(!at)return}const b=document.createElement('div');b.className='db-banner'+(at?' local':'');b.textContent=text;if(at)this.place(b,at);
+  // Banners showing at the same time stack instead of covering each other.
+  const live=[...this.el.fx.querySelectorAll('.db-banner')].length;if(live)b.style.marginTop=(live*(at?34:60))+'px';this.el.fx.append(b);b.animate([{opacity:0,scale:.6},{opacity:1,scale:1.05,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1}],{duration:2200,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>b.remove())}
  modal(title,body,onClick){const d=document.createElement('dialog');d.className='db-modal';d.innerHTML=`<header><h2>${esc(title)}</h2><button data-close aria-label="Close">✕</button></header><div class="db-modal-body">${body}</div>`;this.root.querySelector('.duel-bets').append(d);
   d.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
  settings(){const s=this.state.settings,st=this.state.stats;
@@ -480,8 +484,8 @@ class Bracket{
   this.game.banner(this.game.seatOf(this.roster[champ]).name+' wins the '+M.bracketName(this.index)+'!');
   this.champion=champ;this.phase='final';this.left=FINAL_HOLD;this.table?.crown(champ);this.paintAll();this.game.save()}
  // ---- drawing ----
- tileStatus(){return this.phase==='bet'?(this.bet||this.skipBet?'Starting…':'Waiting for your champion bet'):this.phase==='final'?`🏆 ${this.game.seatOf(this.roster[this.champion]).name}`:`${this.played()} / ${this.total()} duels`}
- betHTML(){const g=this.game;return this.bet?`★ Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)}`:''}
+ tileStatus(){return this.phase==='bet'?(this.bet||this.skipBet?'Starting…':'Waiting for your champion bet'):this.phase==='final'?`Winner: ${this.game.seatOf(this.roster[this.champion]).name}`:`${this.played()} / ${this.total()} duels`}
+ betHTML(){const g=this.game;return this.bet?`Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)}`:''}
  // While the bracket waits for its champion bet, a big prompt sits in its middle (the tile and the open view).
  promptHTML(){if(this.phase!=='bet'||this.bet||this.skipBet)return '';const s=this.game.state,stake=M.championStake(s,this.index),ok=M.canAfford(s,stake);
   return `<span class="db-champ-prompt"><span class="db-champ-btn" data-db="champion" data-b="${this.index}"><small>Bet on the champion</small><b>${M.fmt(stake)}</b><em>pays ${M.fmt(M.championPayout(s,this.index))}</em></span>${ok?'':`<span class="db-champ-skip" data-db="skip-champion" data-b="${this.index}">Start without a bet</span>`}</span>`}
@@ -511,11 +515,11 @@ class Bracket{
  hideViews(){for(const v of this.views||[])v.remove();this.views=null;for(const d of this.slots)if(d)d.view=null}
  hide(){this.hideViews();this.head=null;this.table=null}
  paintAll(){if(this.game.openBracket!==this){this.paintTile();return}this.views?.forEach((v,i)=>this.paintDuel(this.slots[i],v));this.paintHead()}
- paintHead(){if(!this.head)return;const html=`<b>${esc(M.bracketName(this.index))}</b> · ${esc(this.tileStatus())}${this.bet?` · ★ Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`;if(this.head.dataset.html!==html){this.head.dataset.html=html;this.head.innerHTML=html}this.paintPrompt(this.head.closest('.db-stage')?.querySelector('.db-bk-open'))}
+ paintHead(){if(!this.head)return;const html=`<b>${esc(M.bracketName(this.index))}</b> · ${esc(this.tileStatus())}${this.bet?` · Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`;if(this.head.dataset.html!==html){this.head.dataset.html=html;this.head.innerHTML=html}this.paintPrompt(this.head.closest('.db-stage')?.querySelector('.db-bk-open'))}
  // The board header: two bet buttons while betting is open, your pick after, the stakes otherwise.
  paintChips(d){const v=d?.view;if(!v)return;const level=this.level(d.slot),g=this.game,names=d.pair.map(i=>g.seatOf(this.roster[i]).name);
   const html=this.bettable(d)?`<button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="0" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[0])}</button><button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="1" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[1])}</button>`
-   :d.pick!=null?`★ ${esc(names[d.pick])} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`:esc(`Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`);
+   :d.pick!=null?`Backing ${esc(names[d.pick])} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`:esc(`Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`);
   v.setStakesHTML(html)}
  paintDuel(d,v=d?.view){if(!v)return;
   if(!d){v.clear();v.setStakesHTML('');v.show(this.phase==='bet'?'':`<div class="db-wait">${this.phase==='final'?'Bracket over':'Waiting…'}</div>`);return}
