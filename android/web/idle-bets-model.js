@@ -33,7 +33,8 @@ const EXP_ITEM=/^(fee_|feat_|char_|tier[123]$|endless$|calls[2-9]$|flawless$|lon
 export const growsExp=id=>EXP_ITEM.test(id);
 export function speedAt(l){return Math.round((1+.1*l)*10)/10}
 // Auto Bet's interval in seconds at a level: 5s, 20% faster per level, never under 0.5s.
-export function autoSeconds(l){return Math.max(.5,Math.round(5*.8**(l-1)*10)/10)}
+// Auto Bet's wait on a betting screen: 10 s at level 1 (as long as the no-bet timer), 15% shorter each level, down to 0.5 s.
+export function autoSeconds(l){return Math.max(.5,Math.round(10*.85**(l-1)*10)/10)}
 const setBase=k=>k<=1?5:100*50**(k-1)/20;
 const I=(id,set,name,icon,factor,growth,kind,extra={})=>({id,set,name,icon,base:setBase(set)*factor,growth,kind,max:Infinity,...extra});
 const lvl=(s,id)=>s.items?.[id]||0;
@@ -48,7 +49,7 @@ export const ITEMS=[
  I('fee_trap',1,'Trap Fees',44095762,.8,1.15,'simple',{text:()=>'+0.2 for every Trap activated (× board level).',show:()=>true}),
  // Automation: Auto Bet backs a duelist on one waiting board every few seconds (faster per level);
  // Scouting Report makes it back the higher-tier CPU (a coin flip when both are the same tier).
- I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:12,text:l=>l?`Bets after ${autoSeconds(l)}s on the betting screen · next level ${autoSeconds(l+1)}s.`:`Bets on a random duelist once a board's betting screen has been up ${autoSeconds(1)}s.`,maxText:`Bets after ${autoSeconds(12)}s on the betting screen.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
+ I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:20,text:l=>l?`Bets after ${autoSeconds(l)}s on the betting screen · next level ${autoSeconds(l+1)}s.`:`Bets on a random duelist once a board's betting screen has been up ${autoSeconds(1)}s.`,maxText:`Bets after ${autoSeconds(20)}s on the betting screen.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
  I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
  // +0.1× per purchase (user, 2026-11-25), up to 8×; still the steepest-growing price in the opening shop.
  I('speed',1,'Duel Speed',16589042,10,1.8,'drastic',{max:70,text:l=>`Duels play at ${speedAt(l)}× now · next level ${speedAt(l+1)}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
@@ -128,7 +129,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(id==='exodia'||id==='destiny'){const name=id==='exodia'?'An Exodia win':'A Destiny Board win';return [`${name} on any board pays a jackpot, doubled when you backed the winner. Each level doubles it.`,BOARD_LEVEL,`Now: ${fmt(jackpotBase(id,s))} · next level: ${fmt(jackpotBase(id,{items:{[id]:l+1}}))}.`]}
  if(id==='longgame'){const v=power(id);return [`Each level: +${fmt(v)} coins for every turn a duel lasts past turn 10, on any board.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} per extra turn · next level: ${c(v*levelValue(l+1))}.`]}
  if(id==='speed')return [`Each level: every duel plays 0.1× faster, up to 8×.`,`Now: ${speedAt(l)}×${l<it.max?` · next level: ${speedAt(l+1)}×`:''}.`]
- if(id==='autobet')return [`Bets for you: once a board's betting screen has been up this long, it backs a duelist there (bracket duels: one bet per wait while a duel is open for bets). It only bets when you can pay the stake.`,`Each level makes the wait 20% shorter, down to 0.5 s.`,l?`Now: waits ${autoSeconds(l)} s${l<it.max?` · next level: ${autoSeconds(l+1)} s`:''}.`:`First level: waits ${autoSeconds(1)} s.`]
+ if(id==='autobet')return [`Bets for you: once a board's betting screen has been up this long, it backs a duelist there (bracket duels: one bet per wait while a duel is open for bets). It only bets when you can pay the stake.`,`It starts at the full 10 s; each level makes the wait 15% shorter, down to 0.5 s.`,l?`Now: waits ${autoSeconds(l)} s${l<it.max?` · next level: ${autoSeconds(l+1)} s`:''}.`:`First level: waits ${autoSeconds(1)} s.`]
  if(id==='scout')return ['Auto Bet backs the CPU with the higher tier (Opening < Tier 1 < Tier 2 < Tier 3 < Endless). When both are the same tier it picks at random.','Bought once.']
  if(id==='highroller')return [`Each level doubles everything you earn: bets, fees, bonuses, jackpots and champions.`,`Now: ×${2**l} · next level: ×${2**(l+1)}.`]
  if(id==='purse')return [`Each level: +50% to what a correct bracket champion bet pays.`,`Now: +${50*l}% · next level: +${50*(l+1)}%.`]

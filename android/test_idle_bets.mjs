@@ -65,9 +65,9 @@ assert.equal(M.slotLevel(9,9),25);assert.ok(M.boardPayout(M.slotLevel(9,9))>M.bo
 
 // ---- automation: Auto Bet gets faster per level; Scouting Report backs the higher tier ----
 let auto=M.newState();assert.equal(M.autoInterval(auto),0,'no Auto Bet, no automatic bets');
-auto.items.autobet=1;assert.equal(M.autoInterval(auto),5000,'level 1: every 5 seconds');
-auto.items.autobet=4;assert.ok(M.autoInterval(auto)<5000&&M.autoInterval(auto)>=500);
-auto.items.autobet=12;assert.equal(M.autoInterval(auto),500,'never faster than every half second');
+auto.items.autobet=1;assert.equal(M.autoInterval(auto),10000,'level 1: waits the full 10 seconds');
+auto.items.autobet=2;assert.equal(M.autoInterval(auto),8500,'15% shorter per level');auto.items.autobet=4;assert.ok(M.autoInterval(auto)<8500&&M.autoInterval(auto)>=500);
+auto.items.autobet=20;assert.equal(M.autoInterval(auto),500,'never faster than every half second');
 const seatsT=[{label:'Tier 1'},{label:'Endless'}],seen=new Set();for(let i=0;i<40;i++)seen.add(M.autoPick(auto,seatsT,M.rng(i)));
 assert.equal(seen.size,2,'without Scouting Report the pick is random');
 auto.items.scout=1;assert.equal(M.autoPick(auto,seatsT),1,'Scouting Report backs the higher tier');

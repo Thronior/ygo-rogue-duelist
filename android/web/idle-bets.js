@@ -383,7 +383,8 @@ class Board{
   const st=this.game.state.stats;if(seat!=null)st.bets++;this.stake=stake;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
   this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.view?.duelStart(seat);this.game.boardSound(auto?'assets/sfx/deck-select.wav':'assets/sfx/shop-select.wav',auto?.35:.7)}
  tick(dt){
-  if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){this.bet(null,true);return}
+  if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){const g=this.game,s=g.state,ab=M.autoInterval(s)&&this.next&&M.canAfford(s,M.boardStake(this.level));
+    this.bet(ab?M.autoPick(s,this.next.seats.map(x=>g.seatOf(x))):null,true);return}// time's up: Auto Bet (if owned) still gets its pick in
    const place=this.view?.overlay.querySelector('.db-place'),left=this.secondsLeft();if(place&&!place.textContent.endsWith(' '+left))this.paint();
    if(this.view&&!this.view.overlay.querySelector('.db-pick:not([disabled])')&&M.canAfford(this.game.state,M.boardStake(this.level)))this.paint()}
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
