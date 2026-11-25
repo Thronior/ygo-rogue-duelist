@@ -384,3 +384,4 @@
 .db-buy.db-toggle.on{background:#2f6b45;border-color:#7fd69a;color:#e8ffef!important}
 .db-overlay:has(.db-pending){background:none;place-items:start end;padding:22px 6px 0 0;pointer-events:none}
 .db-pending{display:block;padding:3px;border-radius:50%;background:#061018cc}
+.db-pop.db-cost{font-size:20px;color:#ff8a7a;text-shadow:0 2px 0 #000,0 0 3px #000}

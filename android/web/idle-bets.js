@@ -109,6 +109,12 @@ export class DuelBets{
   for(const t of this.el.tabs?.querySelectorAll('button')||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
  refreshShop(){const ids=M.visibleItems(this.state).map(i=>i.id).join();if(ids!==this.shopIds)this.renderShop();else this.paintAfford()}
  // ---- money ----
+ // What a bet cost: a red "−1" that drops from where the bet was placed (beside the total when that is off screen).
+ spendFx(amount,from){if(!(amount>0)||!this.el||this.state.settings.fx==='off')return;
+  const shown=from&&from.isConnected&&from.getClientRects().length,layer=this.el.fx,box=layer.getBoundingClientRect(),src=(shown?from:this.el.total).getBoundingClientRect();
+  const pop=document.createElement('div');pop.className='db-pop db-cost';pop.textContent='−'+M.fmt(amount);
+  pop.style.left=src.left-box.left+src.width/2+'px';pop.style.top=src.top-box.top+(shown?src.height*.22:src.height)+'px';layer.append(pop);
+  pop.animate([{opacity:0,translate:'-50% -6px'},{opacity:1,translate:'-50% 0',offset:.15},{opacity:1,translate:'-50% 8px',offset:.7},{opacity:0,translate:'-50% 22px'}],{duration:1300,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>pop.remove())}
  gain(amount,{from=null,size='small',label=''}={}){if(!(amount>0))return;M.earn(this.state,amount);this.dirty=true;this.fx(amount,from,size,label);this.paintTotal();this.refreshShop()}
  paintTotal(now=false){
   if(this.state.settings.infinite){this.el.total.textContent='∞';return}
@@ -380,7 +386,7 @@ class Board{
  // No bet within 10 seconds: the duel starts anyway, without a bet (its fees still pay).
  secondsLeft(){return Math.max(0,Math.ceil((AUTO_START-(this.game.clock-(this.betSince??this.game.clock)))/1000))}
  bet(seat,auto=false){if(this.phase!=='bet')return;const stake=seat==null?0:M.boardStake(this.level);if(seat!=null&&!M.spend(this.game.state,stake)){this.paint();return}
-  const st=this.game.state.stats;if(seat!=null)st.bets++;this.stake=stake;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
+  const st=this.game.state.stats;if(seat!=null)st.bets++;this.stake=stake;this.game.spendFx(stake,this.view?.root);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
   this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.view?.duelStart(seat);this.game.boardSound(auto?'assets/sfx/deck-select.wav':'assets/sfx/shop-select.wav',auto?.35:.7)}
  tick(dt){
   if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){const g=this.game,s=g.state,ab=M.autoInterval(s)&&this.next&&M.canAfford(s,M.boardStake(this.level));
@@ -489,12 +495,12 @@ class Bracket{
  // Single-duel bets: open for the first quarter of each duel (the board's header shows the two buttons).
  bettable(d){return !!d&&this.phase==='live'&&!d.done&&d.pick==null&&(d.replay||d.model)&&this.progress(d)<.25}
  openBets(){return this.slots.filter(d=>this.bettable(d)&&M.canAfford(this.game.state,M.boardStake(this.level(d.slot))))}
- betDuel(i,seat){const d=this.slots[i];if(!this.bettable(d))return;const stake=M.boardStake(this.level(d.slot));if(!M.spend(this.game.state,stake))return;d.pick=seat;d.stake=stake;if(d.replay)d.replay.pick=seat;this.game.state.stats.bets++;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.paintDuel(d)}
+ betDuel(i,seat){const d=this.slots[i];if(!this.bettable(d))return;const stake=M.boardStake(this.level(d.slot));if(!M.spend(this.game.state,stake))return;d.pick=seat;d.stake=stake;if(d.replay)d.replay.pick=seat;this.game.state.stats.bets++;this.game.spendFx(stake,d.view?.root||this.cellFor(d));this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.paintDuel(d)}
  // Auto Champion Bet: random, or the highest-tier CPU with Scouting Report (ties at random).
  autoChampion(){const s=this.game.state;if(!M.canAfford(s,M.championStake(s,this.index)))return false;let pick=Math.floor(Math.random()*this.roster.length);
   if(M.isOn(s,'scout')){const best=Math.max(...this.roster.map(d=>M.tierRank(d.label))),top=this.roster.map((d,i)=>i).filter(i=>M.tierRank(this.roster[i].label)===best);pick=top[Math.floor(Math.random()*top.length)]}
   return this.betChampion(pick)}
- betChampion(i){if(this.phase!=='bet'||this.bet)return false;const stake=M.championStake(this.game.state,this.index);if(!M.spend(this.game.state,stake))return false;this.bet={pick:i,stake};this.left=Math.min(this.left,1500);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.table?.update();this.paintAll();return true}
+ betChampion(i){if(this.phase!=='bet'||this.bet)return false;const stake=M.championStake(this.game.state,this.index);if(!M.spend(this.game.state,stake))return false;this.bet={pick:i,stake};this.game.spendFx(stake,this.game.openBracket===this?this.game.el.stage:null);this.left=Math.min(this.left,1500);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.table?.update();this.paintAll();return true}
  settleModel(d){const m=d.model,sample=m.sample,s=this.game.state,level=this.level(d.slot);
   // Fees from a comparable recorded duel stand in for this one's events.
   let fees=0;if(sample)for(const f of sample.frames)fees+=M.eventIncome(s,f[0],level);
