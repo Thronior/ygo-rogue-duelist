@@ -157,7 +157,8 @@
 .db-modal header button{background:none;border:0;font-size:18px;cursor:pointer;color:var(--db-text)}
 .db-modal-body{padding:4px 14px 14px;overflow:auto;max-height:calc(88vh - 50px)}
 .db-set-row{display:flex;gap:14px}.db-set{display:flex;align-items:center;gap:6px;cursor:pointer}
-.db-danger{padding:8px 12px;border-radius:var(--db-radius);background:#8a2232;border:0;color:#fff;cursor:pointer}
+/* The reset button (its own class: .db-danger is the boards' low-LP glow). */
+.db-reset{padding:8px 12px;border-radius:var(--db-radius);background:#8a2232;border:1px solid #d87a7a;color:#fff;cursor:pointer}
 .db-roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
 .db-roster button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;background:#0005;border:2px solid var(--db-line);border-radius:var(--db-radius);cursor:pointer}
 .db-roster button:hover:not(:disabled){border-color:var(--db-accent)}
