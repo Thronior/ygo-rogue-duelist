@@ -82,7 +82,7 @@ export class DuelBets{
  visibleDemand(){return this.state.brackets?(this.openBracket?2:1):Math.max(1,this.boards.length)}
  renderBrackets(){
   this.el.stage.innerHTML=`<div class="db-brackets n${this.brackets.length}">${this.brackets.map(b=>`<button class="db-bracket" data-db="open-bracket" data-b="${b.index}"></button>`).join('')}</div>`;
-  for(const b of this.brackets)b.tile=this.el.stage.querySelector(`[data-b="${b.index}"]`),b.paintTile();
+  for(const b of this.brackets){b.tile=this.el.stage.querySelector(`[data-b="${b.index}"]`);b.buildTile()}
  }
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- shop ----
@@ -118,7 +118,8 @@ export class DuelBets{
   else if(size==='medium')this.sound('assets/sfx/count-coins.wav',.9);
   else{this.sound(size==='jackpot'?'assets/sfx/pack-rare.mp3':'assets/sfx/perfect-chime.wav',1.1);setTimeout(()=>this.sound('assets/sfx/reward-ding.wav',1),220)}
   if(fxOn==='off'||m===0||!this.el)return;
-  const layer=this.el.fx,box=layer.getBoundingClientRect(),src=(from&&from.isConnected?from:this.el.stage).getBoundingClientRect();
+  // Pop from where the money came from; a source that is not on screen (another bracket) pops beside the total.
+  const shown=from&&from.isConnected&&from.getClientRects().length,layer=this.el.fx,box=layer.getBoundingClientRect(),src=(shown?from:this.el.total).getBoundingClientRect();if(!shown&&size==='small')return;
   const x=src.left-box.left+src.width/2,y=src.top-box.top+src.height*(size==='small'?.5:.45);
   // Small: a floating "+0.3". Medium: "+100" and coins flying to the total. Big: a banner and a coin shower.
   if(this.fxCount>40&&size==='small')return;
@@ -150,10 +151,12 @@ export class DuelBets{
   if(a==='settings')return this.settings();
   if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
-   if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?'Bracket mode!':'Bracket '+this.state.brackets+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
+   if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?M.bracketName(1)+'!':M.bracketName(this.state.brackets)+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
    this.save();return}
   if(a==='pick'){const board=this.boards[Number(el.dataset.slot)-1];return board?.bet(Number(el.dataset.seat))}
   if(a==='open-bracket'){const b=this.brackets[Number(el.dataset.b)-1];if(b){this.openBracket=b;this.layout()}return}
+  // The standings panel in an open bracket hides behind a burger button (remembered while the screen is open).
+  if(a==='toggle-standings'){this.sideOpen=!this.sideOpen;el.setAttribute('aria-expanded',this.sideOpen);this.el.stage.querySelector('.db-bk-open')?.classList.toggle('side-open',this.sideOpen);if(this.sideOpen)this.openBracket?.table?.update(null,null,false);return}
   if(a==='close-bracket'){const b=this.openBracket;this.openBracket=null;b?.hide();this.layout();return}
   if(a==='bracket-pick'){const b=this.brackets[Number(el.dataset.b)-1];return b?.betDuel(Number(el.dataset.duel),Number(el.dataset.seat))}
   if(a==='champion'){const b=this.brackets[Number(el.dataset.b)-1];return b&&this.championPicker(b)}
@@ -181,7 +184,7 @@ export class DuelBets{
   })}
  reset(){for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;const inf=this.state.settings.infinite;this.state=M.newState();this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout()}
  championPicker(b){if(b.phase!=='bet'||b.bet)return;const stake=M.championStake(this.state,b.index),pay=M.championPayout(this.state,b.index);
-  this.modal(`Bracket ${b.index} · Who takes it?`,`<p>Bet ${M.fmt(stake)} · the CPU with the most wins after ${M.BRACKET_ROUNDS} rounds pays ${M.fmt(pay)}.</p><div class="db-roster">${b.roster.map((d,i)=>{const s=this.seatOf(d);return `<button data-pick="${i}" ${M.canAfford(this.state,stake)?'':'disabled'}><img loading="lazy" alt="" src="${assetURL('assets/'+s.sprite)}"><span>${esc(s.name)}</span>${this.tierChip(s.label)}</button>`}).join('')}</div>`,(e,d)=>{const p=e.target.closest('[data-pick]');if(!p)return;if(b.betChampion(Number(p.dataset.pick)))d.close()})}
+  this.modal(`${M.bracketName(b.index)} · Who takes it?`,`<p>Bet ${M.fmt(stake)} · the CPU with the most wins after ${M.BRACKET_ROUNDS} rounds pays ${M.fmt(pay)}.</p><div class="db-roster">${b.roster.map((d,i)=>{const s=this.seatOf(d);return `<button data-pick="${i}" ${M.canAfford(this.state,stake)?'':'disabled'}><img loading="lazy" alt="" src="${assetURL('assets/'+s.sprite)}"><span>${esc(s.name)}</span>${this.tierChip(s.label)}</button>`}).join('')}</div>`,(e,d)=>{const p=e.target.closest('[data-pick]');if(!p)return;if(b.betChampion(Number(p.dataset.pick)))d.close()})}
  exit(){this.save();this.destroy();this.onExit?.()}
  back(){const d=this.root.querySelector('.db-modal[open]');if(d){d.close();return}if(this.openBracket){this.action('close-bracket');return}this.exit()}
  destroy(){
@@ -199,17 +202,19 @@ class Replay{
   if(start>0){let lump=0;while(this.i<tl.frames.length&&this.sched.at[this.i]<=start){lump+=M.eventIncome(game.state,tl.frames[this.i][0],level);this.i++}if(lump>0)game.gain(lump,{size:'small'})}}
  get done(){return this.t>=this.sched.total}
  lastBoard(upto){for(let i=upto;i>=0;i--)if(this.tl.frames[i]?.[1])return this.tl.frames[i][1];return null}
- tick(dt,view){
+ tick(dt,view,anchor=null){
   this.t+=dt;const s=this.game.state;let shown=null,events=[];
   while(this.i<this.tl.frames.length&&this.sched.at[this.i]<=this.t){const f=this.tl.frames[this.i++];events.push(...f[0]);if(f[1])shown=f[1];this.pending+=M.eventIncome(s,f[0],this.level)}
   if(view&&(shown||events.length))view.frame(shown,events,this);
-  if(this.pending>0&&(this.game.clock-(this.paidAt||0)>350||this.done)){this.paidAt=this.game.clock;const v=this.pending;this.pending=0;this.game.gain(v,{from:view?.root||null,size:'small'})}
+  if(this.pending>0&&(this.game.clock-(this.paidAt||0)>350||this.done)){this.paidAt=this.game.clock;const v=this.pending;this.pending=0;this.game.gain(v,{from:view?.root||anchor,size:'small'})}
  }
  result(){return M.resultOf(this.tl,this.seats)}
 }
 
 // A scaled-down duel field: card art in every zone, piles, hands and LP, with each CPU's portrait filling its
 // half of the board behind it. Built once; afterwards only image sources, classes and text change.
+// Board colours (idle-bets.css .db-board[data-slot]): a live duel's crosstable cells use its board's colour.
+const SLOT_HUES=[200,280,140,20,330,50,175,240,0];
 const CARD_BACK='assets/card-back.jpg',PHASES=[[1,'DP'],[2,'SP'],[4,'MP1'],[8,'BP'],[256,'MP2'],[512,'EP']];
 const cardSrc=code=>assetURL('assets/cards-thumb/'+code+'.jpg'),cardFull=code=>assetURL('assets/cards/'+code+'.jpg');
 class BoardView{
@@ -356,37 +361,55 @@ DuelBets.prototype.payParts=function(pay,from){
  pay.parts.forEach(([label,value,big],i)=>setTimeout(()=>{if(!this.el)return;const jackpot=/JACKPOT|Alternate|Deck-out/.test(label);this.gain(value,{from,size:jackpot?'jackpot':big?'medium':'small',label:big||jackpot?label:''});if(jackpot){this.jackpot(label);this.banner(label+'!')}},i*260));
 };
 
-// A bracket: 18 random CPUs from every tier play 3 rounds on 9 boards; most wins is the champion.
+// The bracket's standings: all 9 CPUs ranked by wins (damage dealt breaks ties). After each duel the rows glide
+// to their new places (FLIP: measure, reorder, animate the difference) and the winner/loser rows flash.
+class Standings{
+ constructor(bracket,el,compact){Object.assign(this,{bracket,el,compact});this.build()}
+ build(){const b=this.bracket,g=b.game;this.rows=b.roster.map((d,i)=>{const s=g.seatOf(d),r=document.createElement('div');r.className='db-st-row';r.dataset.i=i;
+   r.innerHTML=`<span class="rk"></span><img alt="" src="${assetURL('assets/'+s.sprite)}"><span class="nm">${esc(s.name)}</span>${g.tierChip(s.label)}<b class="w"></b><b class="l"></b>${this.compact?'':'<small class="dm"></small>'}`;return r});
+  this.el.innerHTML=`<div class="db-st-head"><span>#</span><span></span><span>CPU</span><span></span><b>W</b><b>L</b>${this.compact?'':'<small>DMG</small>'}</div>`;this.el.append(...this.rows);this.update(null,null,false)}
+ update(win=null,lose=null,animate=true){const b=this.bracket,order=M.standings(b.wins,b.dmg),m=animate&&motion()&&b.game.state.settings.fx!=='off';
+  const before=m?new Map(this.rows.map(r=>[r,r.offsetTop])):null;
+  order.forEach((i,k)=>{const r=this.rows[i];r.querySelector('.rk').textContent=k+1;r.querySelector('.w').textContent=b.wins[i];r.querySelector('.l').textContent=b.losses[i];const dm=r.querySelector('.dm');if(dm)dm.textContent=M.fmt(b.dmg[i]);
+   r.classList.toggle('mine',b.bet?.pick===i);r.classList.toggle('live',b.phase==='round'&&(b.duels||[]).some(d=>!d.done&&d.pair.includes(i)));r.classList.toggle('top',k===0&&b.wins[i]>0);this.el.append(r)});
+  if(!m)return;
+  for(const r of this.rows){const dy=before.get(r)-r.offsetTop;if(dy)r.animate([{translate:`0 ${dy}px`},{translate:'0 0'}],{duration:1200,easing:'cubic-bezier(.45,0,.2,1)'})}
+  if(win!=null)this.rows[win].animate([{backgroundColor:'#3ddc7a88'},{backgroundColor:'transparent'}],{duration:1500,easing:'ease-out'});
+  if(lose!=null)this.rows[lose].animate([{backgroundColor:'#ff505070'},{backgroundColor:'transparent'}],{duration:1500,easing:'ease-out'})}
+ crown(i){this.update();const r=this.rows[i];r.classList.add('champ');if(motion())r.animate([{scale:1},{scale:1.06},{scale:1}],{duration:700,iterations:2})}
+}
+
+// A bracket: a league of the same 9 random CPUs (every tier) on 9 boards for 4 rounds (36 duels); most wins is the champion.
 class Bracket{
  constructor(game,index,saved){Object.assign(this,{game,index});this.random=Math.random;
   const roster=saved?.roster?.map(k=>game.deck(k)).filter(Boolean);
-  if(roster?.length===M.ROSTER_SIZE){this.roster=roster;this.round=Math.min(M.BRACKET_ROUNDS-1,saved.round|0);this.wins=saved.wins?.length===M.ROSTER_SIZE?saved.wins:Array(M.ROSTER_SIZE).fill(0);this.dmg=saved.dmg?.length===M.ROSTER_SIZE?saved.dmg:Array(M.ROSTER_SIZE).fill(0);this.bet=saved.bet??null}else this.fresh();
+  if(roster?.length===M.ROSTER_SIZE){this.roster=roster;this.round=Math.min(M.BRACKET_ROUNDS-1,saved.round|0);this.wins=saved.wins?.length===M.ROSTER_SIZE?saved.wins:Array(M.ROSTER_SIZE).fill(0);this.losses=saved.losses?.length===M.ROSTER_SIZE?saved.losses:Array(M.ROSTER_SIZE).fill(0);this.results=saved.results&&typeof saved.results==='object'?{...saved.results}:{};this.dmg=saved.dmg?.length===M.ROSTER_SIZE?saved.dmg:Array(M.ROSTER_SIZE).fill(0);this.bet=saved.bet??null}else this.fresh();
   this.startPhase(this.round===0?'bet':'break')}
- fresh(){this.roster=M.pickRoster(this.game.pool,Math.random);this.round=0;this.wins=Array(M.ROSTER_SIZE).fill(0);this.dmg=Array(M.ROSTER_SIZE).fill(0);this.bet=null}
+ fresh(){this.roster=M.pickRoster(this.game.pool,Math.random);this.round=0;this.wins=Array(M.ROSTER_SIZE).fill(0);this.losses=Array(M.ROSTER_SIZE).fill(0);this.dmg=Array(M.ROSTER_SIZE).fill(0);this.results={};this.bet=null;this.table?.build();this.buildTile()}
  // Mid-round, the round restarts on the next visit, so its results so far are not kept.
- saved(){const base=this.phase==='round'&&this.roundStart?this.roundStart:this;return {roster:this.roster.map(d=>d.key),round:Math.min(this.round,M.BRACKET_ROUNDS-1),wins:[...base.wins],dmg:[...base.dmg],bet:this.bet}}
+ saved(){const base=this.phase==='round'&&this.roundStart?this.roundStart:this;return {roster:this.roster.map(d=>d.key),round:Math.min(this.round,M.BRACKET_ROUNDS-1),wins:[...base.wins],losses:[...base.losses],dmg:[...base.dmg],results:{...base.results},bet:this.bet}}
  level(slot){return M.slotLevel(slot,this.index)}
  startPhase(phase){this.phase=phase;this.left=phase==='bet'?BET_WINDOW:phase==='break'?ROUND_BREAK:FINAL_HOLD;
-  if(phase==='bet'||phase==='break'){this.pairs=M.pairRound(M.ROSTER_SIZE,Math.random);const views=this.duels?.map(d=>d.view);this.duels=this.pairs.map((pair,i)=>({pair,slot:i+1,pick:null,stake:0,replay:null,model:null,done:false,winner:null,view:views?.[i]||null}));if(this.game.openBracket===this)this.requestAll()}
+  if(phase==='bet'||phase==='break'){this.pairs=M.roundPairs(this.round,Math.random);const views=this.duels?.map(d=>d.view);this.duels=this.pairs.map((pair,i)=>({pair,slot:i+1,pick:null,stake:0,replay:null,model:null,done:false,winner:null,view:views?.[i]||null}));if(this.game.openBracket===this)this.requestAll()}
   this.game.dirty=true;this.paintAll()}
  requestAll(){for(const d of this.duels)this.request(d)}
  request(d){if(d.replay||d.asked||d.done)return;d.asked=true;const duels=this.duels;this.game.supply.record(d.pair.map(i=>this.roster[i]),true,()=>!d.done&&!this.dead&&this.duels===duels).then(tl=>{d.asked=false;if(d.done||this.dead)return;
    if(this.phase==='round'){const start=d.model?Math.min(.95,d.model.t/d.model.dur):0;const sched=M.schedule(tl);d.replay=new Replay(this.game,tl,{level:this.level(d.slot),slot:d.slot,pick:d.pick,start:start*sched.total});d.model=null}else d.tl=tl;
    this.paintDuel(d)}).catch(()=>{d.asked=false})}
- async startRound(){this.phase='round';this.roundStart={wins:[...this.wins],dmg:[...this.dmg]};
+ async startRound(){this.phase='round';this.roundStart={wins:[...this.wins],losses:[...this.losses],dmg:[...this.dmg],results:{...this.results}};
   for(const d of this.duels){if(d.tl){d.replay=new Replay(this.game,d.tl,{level:this.level(d.slot),slot:d.slot,pick:d.pick});d.tl=null;continue}
    // Nobody is watching: settle it from the decks' records, over the length of a real recorded duel.
    const sample=await this.game.supply.sample(),[a,b]=d.pair.map(i=>this.roster[i]),stats=this.game.supply.stats;
    const winner=M.modelWinner(a,b,stats,Math.random);d.model={t:0,dur:sample?M.schedule(sample).total:30000,winner,reason:M.modelWinKind(winner?b:a,stats,Math.random),sample};
    if(this.game.openBracket===this)this.request(d)}
-  this.paintAll()}
+  this.table?.update(null,null,false);this.paintAll()}
  betDuel(i,seat){const d=this.duels[i];if(!d||d.pick!=null||this.phase==='round'||this.phase==='final')return;const stake=M.boardStake(this.level(d.slot));if(!M.spend(this.game.state,stake))return;d.pick=seat;d.stake=stake;this.game.state.stats.bets++;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.paintDuel(d)}
- betChampion(i){if(this.phase!=='bet'||this.bet)return false;const stake=M.championStake(this.game.state,this.index);if(!M.spend(this.game.state,stake))return false;this.bet={pick:i,stake};this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.paintAll();return true}
+ betChampion(i){if(this.phase!=='bet'||this.bet)return false;const stake=M.championStake(this.game.state,this.index);if(!M.spend(this.game.state,stake))return false;this.bet={pick:i,stake};this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();this.table?.update();this.paintAll();return true}
  tick(gdt,dt){
   if(this.phase!=='round'){this.left-=dt;if(this.left<=0){if(this.phase==='final'){this.fresh();this.startPhase('bet')}else this.startRound()}else if((this.tileAt=(this.tileAt||0)+dt)>480){this.tileAt=0;if(this.game.openBracket===this)this.paintHead();else if(this.tile&&!this.game.openBracket)this.paintTile()}return}
   let all=true;
   for(const d of this.duels){if(d.done)continue;all=false;
-   if(d.replay){d.replay.tick(gdt,d.view||null);if(d.replay.done)this.settle(d,d.replay.result(),d.replay)}
+   if(d.replay){d.replay.tick(gdt,d.view||null,d.view?null:this.cellFor(d));if(d.replay.done)this.settle(d,d.replay.result(),d.replay)}
    else if(d.model){d.model.t+=gdt;if(d.model.t>=d.model.dur)this.settleModel(d)}}
   if(all)this.endRound();else if(this.tile&&!this.game.openBracket&&(this.tileAt=(this.tileAt||0)+dt)>500){this.tileAt=0;this.paintTile()}
  }
@@ -394,36 +417,53 @@ class Bracket{
   // Fees from a comparable recorded duel stand in for this one's events.
   let fees=0;if(sample)for(const f of sample.frames)fees+=M.eventIncome(s,f[0],level);
   const r={winner:m.winner,reason:m.reason,turns:sample?.turns||10,winnerLp:sample&&sample.winner<2?M.finalLp(sample,sample.winner):4000,winnerTier:this.roster[d.pair[m.winner]].label};
-  if(fees>0)this.game.gain(fees,{from:this.tile,size:'small'});const dmg=[0,0];if(r.winner<2){dmg[r.winner]=8000;dmg[1-r.winner]=8000-r.winnerLp}this.settle(d,r,null,dmg)}
+  if(fees>0)this.game.gain(fees,{from:this.cellFor(d),size:'small'});const dmg=[0,0];if(r.winner<2){dmg[r.winner]=8000;dmg[1-r.winner]=8000-r.winnerLp}this.settle(d,r,null,dmg)}
  settle(d,r,replay,damage){d.done=true;d.winner=r.winner;const s=this.game.state;
-  if(r.winner<2){this.wins[d.pair[r.winner]]++}
+  if(r.winner<2){this.wins[d.pair[r.winner]]++;this.losses[d.pair[1-r.winner]]++}
+  this.results[Math.min(...d.pair)+'-'+Math.max(...d.pair)]=r.winner<2?d.pair[r.winner]:-1;
   const dmg=replay?M.damageDealt(replay.tl):damage;if(dmg){this.dmg[d.pair[0]]+=dmg[0]||0;this.dmg[d.pair[1]]+=dmg[1]||0}
+  this.table?.update(r.winner<2?d.pair[r.winner]:null,r.winner<2?d.pair[1-r.winner]:null);if(!this.game.openBracket)this.paintTile();
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
   if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;
   const pay=M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick);d.stake=0;
-  this.game.payParts(pay,d.view?.root||(this.game.openBracket?null:this.tile));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
+  this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}
   this.game.dirty=true}
  endRound(){this.round++;
   if(this.round>=M.BRACKET_ROUNDS){const order=M.standings(this.wins,this.dmg),champ=order[0],s=this.game.state;
-   if(this.bet){if(this.bet.pick===champ){s.stats.champions++;const v=M.championPayout(s,this.index);setTimeout(()=>{if(!this.game.el)return;this.game.gain(v,{from:this.tile,size:'big',label:'CHAMPION'});this.game.banner(this.game.seatOf(this.roster[champ]).name+' takes Bracket '+this.index+'!')},300)}this.bet=null}
-   this.champion=champ;this.round=M.BRACKET_ROUNDS;this.startPhase('final');this.game.save()}
+   if(this.bet){if(this.bet.pick===champ){s.stats.champions++;const v=M.championPayout(s,this.index);setTimeout(()=>{if(!this.game.el)return;this.game.gain(v,{from:this.game.openBracket===this?this.game.el.stage:this.tile,size:'big',label:'CHAMPION'});this.game.banner(this.game.seatOf(this.roster[champ]).name+' wins the '+M.bracketName(this.index)+'!')},300)}this.bet=null}
+   this.champion=champ;this.round=M.BRACKET_ROUNDS;this.table?.crown(champ);this.startPhase('final');this.game.save()}
   else{this.startPhase('break');this.game.save()}}
  // ---- drawing ----
- tileHTML(){const order=M.standings(this.wins,this.dmg).slice(0,3),g=this.game;
-  const status=this.phase==='bet'?`Betting · ${Math.ceil(this.left/1000)}s`:this.phase==='break'?`Round ${this.round+1} in ${Math.ceil(this.left/1000)}s`:this.phase==='final'?'Champion crowned':`Round ${this.round+1}/${M.BRACKET_ROUNDS}`;
-  const progress=this.phase==='round'?this.duels.filter(d=>d.done).length/9:0;
-  const champ=this.phase==='final'?g.seatOf(this.roster[this.champion]).name:'';
-  return `<span class="db-bk-title">Bracket ${this.index}</span><span class="db-bk-status">${esc(status)}</span><span class="db-bk-bar"><i style="width:${Math.round(progress*100)}%"></i></span>${champ?`<b class="db-bk-champ">🏆 ${esc(champ)}</b>`:`<ol>${order.map(i=>`<li>${esc(g.seatOf(this.roster[i]).name)} <b>${this.wins[i]}</b></li>`).join('')}</ol>`}<span class="db-bk-bet">${this.bet?'Your pick: '+esc(g.seatOf(this.roster[this.bet.pick]).name):this.phase==='bet'?`<span class="db-bk-betbtn" data-db="champion" data-b="${this.index}">Bet on champion · ${M.fmt(M.championStake(g.state,this.index))}</span>`:''}</span>`}
- paintTile(){if(this.tile?.isConnected)this.tile.innerHTML=this.tileHTML()}
- show(stage){this.hideViews();stage.innerHTML=`<div class="db-bk-head"><button data-db="close-bracket">‹ Brackets</button><span class="db-bk-info"></span>${''}</div><div class="db-grid n9"></div>`;
-  const grid=stage.querySelector('.db-grid');this.head=stage.querySelector('.db-bk-info');
+ tileStatus(){return this.phase==='bet'?`Betting · ${Math.ceil(this.left/1000)}s`:this.phase==='break'?`Round ${this.round+1} of ${M.BRACKET_ROUNDS} in ${Math.ceil(this.left/1000)}s`:this.phase==='final'?`🏆 ${this.game.seatOf(this.roster[this.champion]).name}`:`Round ${this.round+1} of ${M.BRACKET_ROUNDS}`}
+ betHTML(){const g=this.game;return this.bet?`★ Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)}`:this.phase==='bet'?`<span class="db-bk-betbtn" data-db="champion" data-b="${this.index}">Bet on champion · ${M.fmt(M.championStake(g.state,this.index))}</span>`:''}
+ // The tile is built once (the table animates in place); only its header text and bar are repainted.
+ // The tile is a round-robin crosstable: the 9 CPUs down the side and across the top (18 portraits); each cell is
+ // one matchup — W/L for the row CPU once played, both portraits side by side while that duel is live.
+ buildTile(){if(!this.tile)return;const n=M.ROSTER_SIZE,g=this.game,face=i=>`<img alt="" src="${assetURL('assets/'+g.seatOf(this.roster[i]).sprite)}">`;let cells='<i class="corner"></i>';
+  for(let j=0;j<n;j++)cells+=`<i class="hd col" data-c="${j}">${face(j)}</i>`;
+  for(let i=0;i<n;i++){cells+=`<i class="hd row" data-r="${i}">${face(i)}</i>`;for(let j=0;j<n;j++)cells+=i===j?'<i class="x"></i>':`<i class="c" data-a="${i}" data-b="${j}"><s></s></i>`}
+  this.tile.innerHTML=`<span class="db-bk-top"><span class="db-bk-title">${esc(M.bracketName(this.index))}</span><span class="db-bk-status"></span></span><span class="db-bk-bar"><i></i></span><span class="db-bk-cross"><span class="db-xt">${cells}</span></span><span class="db-bk-bet"></span>`;
+  this.cells=new Map([...this.tile.querySelectorAll('.db-xt .c')].map(c=>[c.dataset.a+'-'+c.dataset.b,c]));this.heads=[...this.tile.querySelectorAll('.db-xt .hd')];this.paintTile()}
+ // The crosstable cell of a duel (row = first seat), or the tile while the cells aren't built.
+ cellFor(d){return this.cells?.get(d.pair[0]+'-'+d.pair[1])||this.tile||null}
+ paintFields(){if(!this.cells)return;const live=new Map();
+  if(this.phase==='round')for(const d of this.duels||[])if(!d.done)live.set(Math.min(...d.pair)+'-'+Math.max(...d.pair),d);
+  for(const [key,c] of this.cells){const a=+c.dataset.a,b=+c.dataset.b,pk=Math.min(a,b)+'-'+Math.max(a,b),res=this.results[pk],d=live.get(pk);
+   const cls=d?'c live':res==null?'c':res===a?'c win':res===b?'c loss':'c draw';if(d)c.style.setProperty('--hue',SLOT_HUES[d.slot-1]);if(c.className!==cls){c.className=cls;
+    c.style.backgroundImage=d?`url("${assetURL('assets/'+this.game.seatOf(this.roster[a]).sprite)}"),url("${assetURL('assets/'+this.game.seatOf(this.roster[b]).sprite)}")`:''}
+   if(d){const prog=d.replay?Math.min(1,d.replay.t/d.replay.sched.total):d.model?Math.min(1,d.model.t/d.model.dur):0;c.firstChild.style.transform=`scaleX(${prog})`}}
+  const mine=this.bet?.pick;for(const h of this.heads){const i=+(h.dataset.r??h.dataset.c);h.classList.toggle('mine',mine===i)}}
+ paintTile(){const t=this.tile;if(!t?.isConnected)return;t.querySelector('.db-bk-status').textContent=this.tileStatus();t.querySelector('.db-bk-bar i').style.width=Math.round((this.phase==='round'?this.duels.filter(d=>d.done).length/9:this.phase==='final'?1:0)*100)+'%';
+  const bet=this.betHTML();const el=t.querySelector('.db-bk-bet');if(el.dataset.html!==bet){el.dataset.html=bet;el.innerHTML=bet}this.paintFields()}
+ show(stage){this.hideViews();stage.innerHTML=`<div class="db-bk-head"><button data-db="close-bracket">‹ Brackets</button><button class="db-burger" data-db="toggle-standings" aria-label="Standings" aria-expanded="${!!this.game.sideOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><span class="db-bk-info"></span></div><div class="db-bk-open ${this.game.sideOpen?'side-open':''}"><aside class="db-bk-side"><div class="db-bk-table"></div></aside><div class="db-grid n9"></div></div>`;
+  const grid=stage.querySelector('.db-grid');this.head=stage.querySelector('.db-bk-info');this.table=new Standings(this,stage.querySelector('.db-bk-table'),false);
   for(const d of this.duels){d.view=new BoardView(this.game,grid,{title:`Board ${d.slot}`,stakes:'',slot:d.slot});}
   this.requestAll();this.paintAll()}
  hideViews(){for(const d of this.duels||[]){d.view?.remove();d.view=null}}
- hide(){this.hideViews();this.head=null}
+ hide(){this.hideViews();this.head=null;this.table=null}
  paintAll(){if(this.game.openBracket!==this){this.paintTile();return}for(const d of this.duels)this.paintDuel(d);this.paintHead()}
- paintHead(){if(!this.head)return;const order=M.standings(this.wins,this.dmg).slice(0,3);this.head.innerHTML=`<b>Bracket ${this.index}</b> · ${this.phase==='round'?`Round ${this.round+1}/${M.BRACKET_ROUNDS}`:this.phase==='final'?'Final standings':`Round ${this.round+1} starts soon`} · Leaders: ${order.map(i=>`${esc(this.game.seatOf(this.roster[i]).name)} (${this.wins[i]})`).join(', ')}${this.phase==='bet'&&!this.bet?` <button data-db="champion" data-b="${this.index}">Bet on champion</button>`:this.bet?` · Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`}
+ paintHead(){if(!this.head)return;const html=`<b>${esc(M.bracketName(this.index))}</b> · ${esc(this.tileStatus())}${this.phase==='bet'&&!this.bet?` <button data-db="champion" data-b="${this.index}">Bet on champion · ${M.fmt(M.championStake(this.game.state,this.index))}</button>`:this.bet?` · ★ Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`;if(this.head.dataset.html!==html){this.head.dataset.html=html;this.head.innerHTML=html}}
  paintDuel(d){const v=d.view;if(!v)return;const level=this.level(d.slot),seats=d.pair.map(i=>this.game.seatOf(this.roster[i]));v.setStakes(`Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(this.game.state,d.slot,level))}`);
   if(this.phase==='bet'||this.phase==='break'){v.clear();v.seats(seats,d.pick);
    if(d.pick!=null)v.show(`<div class="db-wait">Your bet: ${esc(seats[d.pick].name)}</div>`);else v.betView(seats,p=>`data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="${p}"`,M.canAfford(this.game.state,M.boardStake(level)),'Place your bets');return}

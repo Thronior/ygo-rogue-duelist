@@ -90,13 +90,15 @@ assert.equal(M.frameDelay([[['p',4]]]),120,'a phase-only frame passes quickly');
 assert.equal(M.finalLp(tl,1),6500);assert.deepEqual(M.damageDealt(tl),[1500,0]);
 assert.equal(M.resultOf(tl,[{label:'Tier 1'},{label:'Tier 2'}]).winnerTier,'Tier 1');
 
-// ---- brackets: 18 different characters, 9 pairs, most wins first ----
+// ---- brackets: a league of 9 CPUs, round robin over 4 rounds, most wins first ----
 const pool=Array.from({length:60},(_,i)=>({id:i%30,tier:Math.floor(i/30),label:'Tier '+(1+Math.floor(i/30)),key:(i%30)+':'+Math.floor(i/30)}));
 const random=M.rng(7),roster=M.pickRoster(pool,random);
-assert.equal(roster.length,18);assert.equal(new Set(roster.map(d=>d.id)).size,18,'no character twice in a bracket');
-const pairs=M.pairRound(18,random);assert.equal(pairs.length,9);assert.equal(new Set(pairs.flat()).size,18);
+assert.equal(roster.length,9);assert.equal(new Set(roster.map(d=>d.id)).size,9,'no character twice in a bracket');
+const met=new Set();for(let r=0;r<M.BRACKET_ROUNDS;r++){const pairs=M.roundPairs(r,random);assert.equal(pairs.length,9,'9 duels a round');
+ const count=Array(9).fill(0);for(const [a,b] of pairs){assert.notEqual(a,b);count[a]++;count[b]++;met.add(Math.min(a,b)+'-'+Math.max(a,b))}assert.ok(count.every(c=>c===2),'everyone plays twice a round')}
+assert.equal(met.size,36,'after 4 rounds every pair of the 9 has met exactly once');
 assert.deepEqual(M.standings([1,3,3,0],[0,500,900,0]).slice(0,3),[2,1,0],'ties break on damage dealt');
-assert.ok(M.championPayout(M.newState(),1)>M.championStake(M.newState(),1)*20);
+assert.equal(M.championPayout(M.newState(),1),M.championStake(M.newState(),1)*10,'one of 9: pays 10x');
 const strong={id:1,tier:3,label:'Endless'},weak={id:2,tier:0,label:'Opening Duel'};let w=0;const rr=M.rng(3);
 for(let i=0;i<2000;i++)w+=M.modelWinner(strong,weak,{},rr)===0;assert.ok(w>1400,'unwatched duels favour the stronger deck');
 assert.ok(M.strength(weak,{'2:0':{g:40,w:36}})>M.strength(weak,{}),'recorded results move a deck\'s strength');

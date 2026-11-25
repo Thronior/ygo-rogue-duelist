@@ -3,11 +3,14 @@
 import {winKind} from './idle-bets-sim.js';
 
 export const SAVE_KEY='ygo-duel-bets-v1';
-export const BOARD_MAX=9,BRACKET_MAX=9,BRACKET_ROUNDS=3,ROSTER_SIZE=18;
+export const BOARD_MAX=9,BRACKET_MAX=9,BRACKET_ROUNDS=4,ROSTER_SIZE=9;
 // Test switch for this branch: the settings window offers "Infinite money". Turn off before merging.
 export const DEV_TOOLS=true;
 
 // The league each board slot plays in. Slot 2 is "The Big Leagues" by request.
+// Brackets climb in prestige (and stakes) from the first to the ninth.
+export const BRACKET_NAMES=['Card Shop Cup','City Qualifier','Underground Circuit','Invitational Open','Masters Series','Grand Prix',"Pharaoh's Tournament",'Shadow Games','Millennium Cup'];
+export const bracketName=b=>BRACKET_NAMES[b-1]||'Bracket '+b;
 export const LEAGUES=['Free Table','The Big Leagues','Pro Circuit','Regional Finals','National Finals','Continental Cup','Battle City','Duelist Kingdom','World Championship'];
 // A board's level sets its stakes: board k before brackets, slot k + 2 per extra bracket after.
 export const slotLevel=(slot,bracket=0)=>slot+(bracket>1?2*(bracket-1):0);
@@ -76,7 +79,7 @@ export const ITEMS=[
  I('open9',8,'Board 9: '+LEAGUES[8],32012841,20,1,'opener',{max:1,text:()=>`Opens board 9. Nine boards become your first bracket.`,show:s=>s.boards>=8&&lvl(s,'calls8')>=1}),
  calls(9),
  I('purse',9,"Champion's Purse",72989439,2,1.25,'simple',{text:()=>'+50% to bracket champion payouts.',show:s=>s.brackets>=1}),
- I('bracket',9,'New Bracket',12580477,1,1,'opener',{max:BRACKET_MAX-1,text:l=>`Opens bracket ${l+2}: nine more boards at higher stakes.`,maxText:'All nine brackets are open.',show:s=>s.brackets>=1}),
+ I('bracket',9,'New Bracket',12580477,1,1,'opener',{max:BRACKET_MAX-1,text:l=>`Opens the ${bracketName(l+2)}: nine more boards at higher stakes.`,maxText:'All nine brackets are open.',show:s=>s.brackets>=1}),
 ];
 // Shop pictures are relic cutouts (assets/relics/<name>.png), one per item.
 const CALL_ART=["Let's Go Gambling",'Weighted Coins','Divine Gambler',"Duelist's Wager",'Golden Scale','Golden Receipt','Merchant Sigil',"Collector's Stamp",'Champion Trophy'];
@@ -104,7 +107,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(id==='scout')return ['Auto Bet backs the CPU with the higher tier (Opening < Tier 1 < Tier 2 < Tier 3 < Endless). When both are the same tier it picks at random.','Bought once.']
  if(id==='highroller')return [`Each level doubles everything you earn: bets, fees, bonuses, jackpots and champions.`,`Now: ×${2**l} · next level: ×${2**(l+1)}.`]
  if(id==='purse')return [`Each level: +50% to what a correct bracket champion bet pays.`,`Now: +${50*l}% · next level: +${50*(l+1)}%.`]
- if(id==='bracket')return [`Opens another bracket: 18 more CPUs on 9 more boards, with higher stakes than the last.`,`Brackets open: ${s.brackets} of ${BRACKET_MAX}.`]
+ if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: a league of 9 more CPUs on 9 more boards (36 duels, everyone meets everyone once), with higher stakes than the last.`,`Brackets open: ${s.brackets} of ${BRACKET_MAX}.`]
  return [it.text(l)]}
 export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
@@ -181,14 +184,18 @@ export const finalLp=(tl,p)=>{for(let i=tl.frames.length-1;i>=0;i--){const b=tl.
 export const resultOf=(tl,decks)=>({winner:tl.winner,reason:tl.reason,turns:tl.turns,winnerLp:tl.winner<2?finalLp(tl,tl.winner):0,winnerTier:tl.winner<2?decks?.[tl.winner]?.label||'':''});
 export function damageDealt(tl){const d=[0,0];for(const f of tl.frames)for(const e of f[0])if(e[0]==='l'&&e[2]<0)d[1-e[1]]+=-e[2];return d}
 
-// ---- brackets: 18 CPUs, 9 boards, 3 rounds; most wins takes it ----
+// ---- brackets: a round-robin league of the same 9 CPUs on 9 boards; most wins takes it ----
+// Round r pairs every CPU i with CPU i+r+1 (mod 9): 9 duels, everyone plays twice per round, and after 4 rounds
+// (36 duels) every pair has met exactly once. Then the next 9 CPUs are drawn.
 export function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6d2b79f5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 // pool: [{id,tier,label}] every CPU deck of every tier. Characters don't repeat inside one roster.
 export function pickRoster(pool,random,size=ROSTER_SIZE){const out=[],seen=new Set();let guard=0;while(out.length<size&&guard++<size*50){const d=pool[Math.floor(random()*pool.length)];if(seen.has(d.id)&&guard<size*40)continue;seen.add(d.id);out.push(d)}return out}
-export function pairRound(n,random){const idx=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}const pairs=[];for(let i=0;i+1<n;i+=2)pairs.push([idx[i],idx[i+1]]);return pairs}
+export function roundPairs(round,random=Math.random,n=ROSTER_SIZE){const pairs=[];for(let i=0;i<n;i++){const j=(i+round+1)%n;pairs.push(random()<.5?[i,j]:[j,i])}
+ for(let i=pairs.length-1;i>0;i--){const k=Math.floor(random()*(i+1));[pairs[i],pairs[k]]=[pairs[k],pairs[i]]}return pairs}
 export function standings(wins,damage){return wins.map((w,i)=>i).sort((a,b)=>wins[b]-wins[a]||damage[b]-damage[a]||a-b)}
 export const championStake=(s,bracket)=>boardStake(slotLevel(9,bracket))*10;
-export const championPayout=(s,bracket)=>championStake(s,bracket)*25*(1+.5*lvl(s,'purse'))*multiplier(s);
+// One of 9 contenders: a correct champion bet pays 10× its stake (before Champion's Purse and High Roller).
+export const championPayout=(s,bracket)=>championStake(s,bracket)*10*(1+.5*lvl(s,'purse'))*multiplier(s);
 // Unwatched bracket duels are settled from each deck's recorded results (idle-bets-library.js keeps them).
 const TIER_BASE={'Opening Duel':.6,'Tier 1':1,'Tier 2':1.4,'Tier 3':1.9,Endless:2.4,'World Championship':2.4};
 export function strength(deck,stats){const st=stats?.[deck.id+':'+deck.tier]||{g:0,w:0};return (TIER_BASE[deck.label]??1.5)*((st.w+3)/(st.g+6))/.5}

@@ -8,7 +8,8 @@ The main menu has a new **Duel Bets** card. You bet on which of two random CPUs 
 
 - **Board 1** has free bets and pays 1 coin per correct call. The opening shop has payout (Lucky Calls), CPU type (Tier 1 Upsets), action (Summon Fees) and Duel Speed items.
 - **The Big Leagues** (100 coins) opens board 2: bet 10, win 100. Each new board brings a pricier set of items and a very expensive item that opens the next board.
-- At **9 boards** the boards become **Bracket 1**: 18 random CPUs play 3 rounds on 9 boards, and the most wins (damage dealt breaks ties) is champion. You can bet on the champion before round 1 and on single duels between rounds. **New Bracket** opens more, up to 9 brackets (81 duels).
+- At **9 boards** the boards become a **bracket**: a round-robin league of the same 9 random CPUs on 9 boards. Every CPU plays twice per round, and after 4 rounds (36 duels) everyone has met everyone once. The most wins is champion, with damage dealt breaking ties. Champion bets pay 10× and are placed before round 1; single duels can be bet on between rounds. Brackets are named, rising in prestige and stakes (Card Shop Cup → Millennium Cup), up to 9 (81 boards).
+- Bracket tiles show a 9×9 crosstable: 18 portraits on the two axes, W/L per matchup, and live duels as both portraits in their board's colour. An open bracket shows its 9 boards, plus a live standings table behind a burger button.
 - **Automation:** Auto Bet backs a random duelist on one waiting board every 5 s, 20% faster per level, down to 0.5 s. Scouting Report (bought once) makes it back the higher-tier CPU, at random when the tiers are equal.
 - **Duel Speed** adds +0.1× per purchase, up to 8×.
 - **Exodia** and **Destiny Board** wins pay jackpots, with upgrades for each. Other jackpots are deck-out and other alternate wins.
