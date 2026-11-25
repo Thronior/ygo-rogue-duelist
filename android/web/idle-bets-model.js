@@ -21,6 +21,9 @@ export const bracketOpenerCost=b=>boardOpenerCost(9)*1000**(b-1);
 // 'opener' is bought once. set = the board you must own before the item can appear; show = the milestone
 // that reveals it. icon = a card id (assets/cards-thumb, falling back to assets/cards).
 // A set is priced from the next opener: about 1/20 of what opens the following board.
+export function speedAt(l){return Math.round((1+.1*l)*10)/10}
+// Auto Bet's interval in seconds at a level: 5s, 20% faster per level, never under 0.5s.
+export function autoSeconds(l){return Math.max(.5,Math.round(5*.8**(l-1)*10)/10)}
 const setBase=k=>k<=1?5:100*50**(k-1)/20;
 const I=(id,set,name,icon,factor,growth,kind,extra={})=>({id,set,name,icon,base:setBase(set)*factor,growth,kind,max:Infinity,...extra});
 const lvl=(s,id)=>s.items?.[id]||0;
@@ -35,7 +38,12 @@ export const ITEMS=[
  I('endless',1,'Endless Wins',10000020,.8,1.2,'simple',{text:()=>'+0.5 whenever an Endless deck wins a duel (× board level).',show:()=>true}),
  I('fee_summon',1,'Summon Fees',70781052,3,1.15,'simple',{text:()=>'+0.1 for every summon (× board level).',show:()=>true}),
  I('fee_attack',1,'Battle Fees',5053103,3,1.15,'simple',{text:()=>'+0.1 for every attack (× board level).',show:s=>lvl(s,'fee_summon')>=1}),
- I('speed',1,'Duel Speed',16589042,10,30,'drastic',{max:7,text:l=>`Duels play at ${l+1}× now · next level ${l+2}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
+ // Automation: Auto Bet backs a duelist on one waiting board every few seconds (faster per level);
+ // Scouting Report makes it back the higher-tier CPU (a coin flip when both are the same tier).
+ I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:12,text:l=>l?`Bets on a waiting board every ${autoSeconds(l)}s · next level ${autoSeconds(l+1)}s.`:`Every ${autoSeconds(1)}s, bets on a random duelist on a waiting board.`,maxText:`Bets on a waiting board every ${autoSeconds(12)}s.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
+ I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
+ // +0.1× per purchase (user, 2026-11-25), up to 8×; still the steepest-growing price in the opening shop.
+ I('speed',1,'Duel Speed',16589042,10,1.8,'drastic',{max:70,text:l=>`Duels play at ${speedAt(l)}× now · next level ${speedAt(l+1)}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
  I('open2',1,'The Big Leagues',37313786,20,1,'opener',{max:1,text:()=>'Opens board 2. Bets cost 10 and pay 100.',show:s=>lvl(s,'calls1')>=2||s.earned>=20}),
  calls(2),
  I('fee_destroy',2,'Wreckage Fees',12580477,1.6,1.15,'simple',{text:()=>'+0.2 for every monster destroyed (× board level).',show:s=>s.boards>=2}),
@@ -99,7 +107,12 @@ export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.ma
  return {kind:'item',cost}}
 
 // ---- what things pay ----
-export const speedOf=s=>1+lvl(s,'speed');
+export const speedOf=s=>speedAt(lvl(s,'speed'));
+export const autoInterval=s=>lvl(s,'autobet')?autoSeconds(lvl(s,'autobet'))*1000:0;
+const TIER_RANK={'Opening Duel':0,'Tier 1':1,'Tier 2':2,'Tier 3':3,Endless:4,'World Championship':4};
+export const tierRank=label=>TIER_RANK[label]??2;
+// The seat Auto Bet backs: random, or with Scouting Report the higher tier (random on a tie).
+export function autoPick(s,seats,random=Math.random){if(lvl(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
 export const correctPayout=(s,slot,level)=>(boardPayout(level)+lvl(s,'calls'+slot)*callUnit(slot)*levelScale(level)/levelScale(slot))*multiplier(s);

@@ -9,12 +9,14 @@ The main menu has a new **Duel Bets** card. You bet on which of two random CPUs 
 - **Board 1** has free bets and pays 1 coin per correct call. The opening shop has payout (Lucky Calls), CPU type (Tier 1 Upsets), action (Summon Fees) and Duel Speed items.
 - **The Big Leagues** (100 coins) opens board 2: bet 10, win 100. Each new board brings a pricier set of items and a very expensive item that opens the next board.
 - At **9 boards** the boards become **Bracket 1**: 18 random CPUs play 3 rounds on 9 boards, and the most wins (damage dealt breaks ties) is champion. You can bet on the champion before round 1 and on single duels between rounds. **New Bracket** opens more, up to 9 brackets (81 duels).
+- **Automation:** Auto Bet backs a random duelist on one waiting board every 5 s, 20% faster per level, down to 0.5 s. Scouting Report (bought once) makes it back the higher-tier CPU, at random when the tiers are equal.
+- **Duel Speed** adds +0.1× per purchase, up to 8×.
 - **Exodia** and **Destiny Board** wins pay jackpots, with upgrades for each. Other jackpots are deck-out and other alternate wins.
 - Prices: items that lift every board (Duel Speed, High Roller, the jackpots) grow ×3–×40 per purchase. Per-event and per-board items grow ×1.15–×1.25.
 
 ## How duels are produced
 
-A Web Worker plays each whole duel in the real core ahead of time and posts a compact timeline (about 85 frames, about 16 KB). The board replays that timeline slowly. Timelines are kept in IndexedDB (`ygo-duel-bets`, up to 300), so a phone that can't record as fast as the boards play reuses older duels, never one already on another board. Per-deck results feed the stats that settle bracket duels nobody is watching. Opening a bracket records its duels for real and joins them at the matching point.
+A Web Worker plays each whole duel (no turn limit) in the real core ahead of time and posts a compact timeline (about 85 frames, about 16 KB). The board replays that timeline slowly. Timelines are kept in IndexedDB (`ygo-duel-bets`, up to 300), so a phone that can't record as fast as the boards play reuses older duels, never one already on another board. Per-deck results feed the stats that settle bracket duels nobody is watching. Opening a bracket records its duels for real and joins them at the matching point.
 
 Each board is a scaled-down duel field: card thumbnails (`assets/cards-thumb`, full art as fallback) in every zone, set cards as backs, ATK/DEF labels, Deck/GY/Extra piles, hands as card backs and LP bars, updated in place. Each CPU's portrait fills its half of the board (full while you bet, dimmed during the duel), and each board slot has its own background colour. One timer runs 10×/s while boards are on screen and 4×/s otherwise, and it stops while the page is hidden or the screen is closed. Measured with 9 boards open: about 0.13 ms per tick, no long tasks.
 

@@ -34,7 +34,9 @@ function events(engine,visuals){const out=[];
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 
 // decks: [{main,extra}, {main,extra}] · seats: [{id,tier},{id,tier}] (kept for the board's labels).
-export function recordDuel(engine,decks,seats,seed,{maxTurns=40,maxDecisions=4000}={}){
+// No turn limit: duels run until someone wins (deck-out ends the longest ones). maxDecisions only stops a
+// duel the core would loop forever (none seen), which then counts as a draw.
+export function recordDuel(engine,decks,seats,seed,{maxDecisions=100000}={}){
  seed>>>=0;
  let state=engine.start(shuffle(decks[0].main,seed,0),shuffle(decks[1].main,seed,1),8000,8000,5,seed,decks[0].extra||[],decks[1].extra||[],NEUTRAL_PASSIVES);
  const frames=[];let last=null,decisions=0;
@@ -46,7 +48,7 @@ export function recordDuel(engine,decks,seats,seed,{maxTurns=40,maxDecisions=400
  };
  try{
   capture();
-  while(!state.finished&&decisions<maxDecisions&&state.turn<=maxTurns){state=engine.respond(engine.auto());decisions++;capture()}
+  while(!state.finished&&decisions<maxDecisions){state=engine.respond(engine.auto());decisions++;capture()}
   const fin=state.finished,winner=fin&&(fin.player===0||fin.player===1)?fin.player:2;
   return {v:TIMELINE_VERSION,seed,seats,winner,reason:fin?Number(fin.reason)||0:3,turns:state.turn,frames};
  }finally{try{engine.destroy()}catch{}}

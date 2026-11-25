@@ -17,7 +17,7 @@ assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.i
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
 assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.3,'simple items grow slowly');
-assert.ok(ratio('speed')>=20&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot');
+assert.ok(ratio('speed')>ratio('calls1')&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot faster');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
 assert.equal(M.itemCost('calls1',0),1,'the first upgrade costs 1');
 
@@ -36,8 +36,8 @@ assert.ok(M.visibleItems(s).some(i=>i.id==='calls2'),'board 2 brings its own, pr
 assert.ok(M.itemCost('calls2',0)>M.itemCost('calls1',0)*10);
 s.coins=0;assert.equal(M.buy(s,'calls2'),null,'no money, no sale');
 
-// ---- speed caps at 8× ----
-s.settings.infinite=true;for(let i=0;i<20;i++)M.buy(s,'speed');
+// ---- speed: +0.1× per purchase, capped at 8× ----
+s.settings.infinite=true;M.buy(s,'speed');assert.equal(M.speedOf(s),1.1);for(let i=0;i<100;i++)M.buy(s,'speed');
 assert.equal(M.speedOf(s),8);assert.equal(s.coins,0,'infinite money never spends');
 
 // ---- infinite money reaches every board, then brackets, up to 9 ----
@@ -46,6 +46,18 @@ assert.equal(s.brackets,1,'nine boards become the first bracket');
 for(let b=2;b<=9;b++)assert.equal(M.buy(s,'bracket').kind,'bracket');
 assert.equal(s.brackets,9);assert.equal(M.buy(s,'bracket'),null,'nine brackets is the maximum');
 assert.equal(M.slotLevel(9,9),25);assert.ok(M.boardPayout(M.slotLevel(9,9))>M.boardPayout(9));
+
+// ---- automation: Auto Bet gets faster per level; Scouting Report backs the higher tier ----
+let auto=M.newState();assert.equal(M.autoInterval(auto),0,'no Auto Bet, no automatic bets');
+auto.items.autobet=1;assert.equal(M.autoInterval(auto),5000,'level 1: every 5 seconds');
+auto.items.autobet=4;assert.ok(M.autoInterval(auto)<5000&&M.autoInterval(auto)>=500);
+auto.items.autobet=12;assert.equal(M.autoInterval(auto),500,'never faster than every half second');
+const seatsT=[{label:'Tier 1'},{label:'Endless'}],seen=new Set();for(let i=0;i<40;i++)seen.add(M.autoPick(auto,seatsT,M.rng(i)));
+assert.equal(seen.size,2,'without Scouting Report the pick is random');
+auto.items.scout=1;assert.equal(M.autoPick(auto,seatsT),1,'Scouting Report backs the higher tier');
+assert.equal(M.autoPick(auto,[{label:'Tier 3'},{label:'Tier 2'}]),0);
+const tie=new Set();for(let i=0;i<40;i++)tie.add(M.autoPick(auto,[{label:'Tier 2'},{label:'Tier 2'}],M.rng(i)));assert.equal(tie.size,2,'equal tiers: random');
+assert.ok(M.itemCost('scout',0)>M.itemCost('autobet',0)*5,'Scouting Report costs more');
 
 // ---- event income: per action, times board level and High Roller ----
 s=M.newState();s.items={fee_summon:2,fee_attack:1,fee_direct:2,fee_destroy:1,fee_trap:1,fee_damage:1};
@@ -85,7 +97,7 @@ assert.ok(M.strength(weak,{'2:0':{g:40,w:36}})>M.strength(weak,{}),'recorded res
 
 // ---- saves: junk is cleaned, levels clamp, infinite money only with the test switch ----
 const clean=M.sanitize({coins:'12',items:{speed:99,bogus:3,calls1:-2},boards:20,brackets:4,settings:{fx:'nope',infinite:true}});
-assert.equal(clean.coins,12);assert.equal(clean.items.speed,7);assert.ok(!('bogus' in clean.items)&&!('calls1' in clean.items));
+assert.equal(clean.coins,12);assert.equal(clean.items.speed,70);assert.ok(!('bogus' in clean.items)&&!('calls1' in clean.items));
 assert.equal(clean.boards,9);assert.equal(clean.brackets,4);assert.equal(clean.settings.fx,'full');assert.equal(clean.settings.infinite,M.DEV_TOOLS);
 assert.equal(M.sanitize({boards:3,brackets:5}).brackets,0,'no brackets before nine boards');
 assert.equal(M.sanitize(null).coins,0);

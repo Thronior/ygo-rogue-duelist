@@ -116,8 +116,13 @@ export class DuelBets{
  loop(){
   if(!this.el)return;const now=performance.now(),dt=document.hidden?0:Math.min(250,now-this.last);this.last=now;
   if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}
+  if(dt>0)this.autoBet(dt);
   const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),document.hidden?1000:watching?100:250);
  }
+ // Auto Bet: one waiting board per interval, in board order (normal boards, then bracket duels between rounds).
+ autoBet(dt){const every=M.autoInterval(this.state);if(!every)return;this.autoAt=Math.min(every,(this.autoAt||0)+dt);if(this.autoAt<every)return;
+  for(const b of this.boards)if(b.phase==='bet'&&b.next&&M.canAfford(this.state,M.boardStake(b.level))){this.autoAt=0;b.bet(M.autoPick(this.state,b.next.seats.map(x=>this.seatOf(x))),true);return}
+  for(const br of this.brackets)if(br.phase==='bet'||br.phase==='break')for(const d of br.duels||[])if(d.pick==null&&M.canAfford(this.state,M.boardStake(br.level(d.slot)))){this.autoAt=0;br.betDuel(d.slot-1,M.autoPick(this.state,d.pair.map(i=>br.roster[i])));return}}
  // ---- input ----
  action(a,el){
   if(a==='exit')return this.exit();
@@ -248,9 +253,9 @@ class Board{
    v.betView(seats,p=>`data-db="pick" data-slot="${this.slot}" data-seat="${p}"`,afford,afford?'Place your bets':'Need '+M.fmt(stake)+' to bet');return}
   if(this.phase==='play'){v.show('');v.seats(this.replay.seats,this.replay.pick);const b=this.replay.lastBoard(this.replay.i-1);if(b)v.frame(b,[],this.replay);return}
  }
- bet(seat){if(this.phase!=='bet')return;const stake=M.boardStake(this.level);if(!M.spend(this.game.state,stake)){this.paint();return}
+ bet(seat,auto=false){if(this.phase!=='bet')return;const stake=M.boardStake(this.level);if(!M.spend(this.game.state,stake)){this.paint();return}
   const st=this.game.state.stats;st.bets++;this.stake=stake;this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
-  this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.game.sound('assets/sfx/shop-select.wav',.6)}
+  this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();if(!auto)this.game.sound('assets/sfx/shop-select.wav',.6)}
  tick(dt){
   if(this.phase==='bet'&&this.view&&!this.view.overlay.querySelector('.db-pick:not([disabled])')&&M.canAfford(this.game.state,M.boardStake(this.level)))this.paint();
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
