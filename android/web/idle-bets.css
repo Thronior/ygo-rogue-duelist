@@ -334,7 +334,8 @@
 .db-phases i{border-radius:2px}
 .db-tier{border-radius:2px}
 /* stamps, banners, pops: game type, outlined, no glow */
-.db-stamp{font-family:var(--db-display);font-weight:400;letter-spacing:.08em;border-width:3px;border-radius:4px;background:#061018e0}
+/* Stamps are just outlined words: no box behind them (it read as a dark fade over the board). */
+.db-stamp{font-family:var(--db-display);font-weight:400;letter-spacing:.08em;border:0;background:none;padding:0;text-shadow:0 0 2px #000,0 2px 0 #000,2px 0 0 #000,-2px 0 0 #000,0 -2px 0 #000}
 .db-banner{font-family:var(--db-display);font-weight:400;letter-spacing:.06em;color:#f2cf83;background:#102732f2;border:2px solid #b8b5a0;border-radius:6px;text-shadow:0 2px 0 #000}
 .db-pop{font-family:var(--db-display);font-weight:400;letter-spacing:.04em;font-size:15px;color:#f2cf83;text-shadow:0 2px 0 #000,0 0 3px #000}
 .db-pop.medium{font-size:24px}
