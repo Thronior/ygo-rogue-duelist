@@ -173,7 +173,10 @@ export class DuelBets{
    c.animate([{opacity:0,translate:'0 0',scale:.6},{opacity:1,translate:`${(x1-x0)/2}px ${Math.min(0,(y1-y0)/2)-40-Math.random()*30}px`,scale:1,offset:.45},{opacity:.9,translate:`${x1-x0}px ${y1-y0}px`,scale:.5}],{duration:520,delay:i*40,easing:'ease-in-out',fill:'backwards'}).finished.catch(()=>{}).finally(()=>c.remove())}}
  // A board or bracket that just opened sweeps in with a gold glow.
  arrive(sel){const el=this.el?.stage.querySelector(sel);if(!el||!motion()||this.state.settings.fx==='off')return;el.animate([{opacity:0,scale:.7,boxShadow:'0 0 0 0 var(--db-accent)'},{opacity:1,scale:1.04,boxShadow:'0 0 30px 6px var(--db-accent)',offset:.55},{opacity:1,scale:1,boxShadow:'0 0 0 0 transparent'}],{duration:900,easing:'ease-out'})}
- banner(text){if(!this.el)return;const b=document.createElement('div');b.className='db-banner';b.textContent=text;this.el.fx.append(b);b.animate([{opacity:0,scale:.6},{opacity:1,scale:1.05,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1}],{duration:2200,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>b.remove())}
+ // Where a jackpot shows: the board it came from, or the bracket tile holding its crosstable cell; null when off screen.
+ spot(from){const el=from?.closest?.('.db-board,.db-bracket')||from;if(!el?.isConnected||!el.getClientRects().length)return null;const box=this.el.fx.getBoundingClientRect(),r=el.getBoundingClientRect();return {x:r.left-box.left+r.width/2,y:r.top-box.top+r.height/2,w:r.width,h:r.height}}
+ place(el,at){el.style.left=at.x+'px';el.style.top=at.y+'px';el.style.maxWidth=Math.max(120,at.w-8)+'px';el.style.setProperty('--fit',Math.max(.45,Math.min(1,at.w/520)))}
+ banner(text,from){if(!this.el)return;let at=null;if(from!==undefined){at=this.spot(from);if(!at)return}const b=document.createElement('div');b.className='db-banner'+(at?' local':'');b.textContent=text;if(at)this.place(b,at);this.el.fx.append(b);b.animate([{opacity:0,scale:.6},{opacity:1,scale:1.05,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1}],{duration:2200,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>b.remove())}
  modal(title,body,onClick){const d=document.createElement('dialog');d.className='db-modal';d.innerHTML=`<header><h2>${esc(title)}</h2><button data-close aria-label="Close">✕</button></header><div class="db-modal-body">${body}</div>`;this.root.querySelector('.duel-bets').append(d);
   d.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
  settings(){const s=this.state.settings,st=this.state.stats;
@@ -353,13 +356,13 @@ class Board{
  destroy(){this.dead=true;this.game.supply.release(this.replay?.tl);this.game.supply.release(this.next);this.detach()}
 }
 // Exodia / Destiny Board / other jackpots: the whole screen flashes and shakes and the card bursts in.
-DuelBets.prototype.jackpot=function(label){if(!this.el||this.state.settings.fx==='off'||!motion())return;const art=/EXODIA/.test(label)?33396948:/DESTINY/.test(label)?94212438:null;
+DuelBets.prototype.jackpot=function(label,from){if(!this.el||this.state.settings.fx==='off'||!motion())return;const art=/EXODIA/.test(label)?33396948:/DESTINY/.test(label)?94212438:null,at=this.spot(from);if(!at)return;
  // Kept light on purpose: one image scaling in and out, no full-screen flash or shake.
- if(art){const img=document.createElement('img');img.className='db-splash';img.alt='';img.src=assetURL('assets/cards/'+art+'.jpg');this.el.fx.append(img);
+ if(art){const img=document.createElement('img');img.className='db-splash';img.alt='';img.src=assetURL('assets/cards/'+art+'.jpg');img.style.left=at.x+'px';img.style.top=at.y+'px';img.style.width=Math.min(200,at.h*.55*.69,at.w*.4)+'px';this.el.fx.append(img);
   img.animate([{opacity:0,scale:.6},{opacity:1,scale:1,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1.08}],{duration:1800,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>img.remove())}};
 DuelBets.prototype.payParts=function(pay,from){
  // Each part of a payout pops on its own: jackpots get the big treatment.
- pay.parts.forEach(([label,value,big],i)=>setTimeout(()=>{if(!this.el)return;const jackpot=/JACKPOT|Alternate|Deck-out/.test(label);this.gain(value,{from,size:jackpot?'jackpot':big?'medium':'small',label:big||jackpot?label:''});if(jackpot){this.jackpot(label);this.banner(label+'!')}},i*260));
+ pay.parts.forEach(([label,value,big],i)=>setTimeout(()=>{if(!this.el)return;const jackpot=/JACKPOT|Alternate|Deck-out/.test(label);this.gain(value,{from,size:jackpot?'jackpot':big?'medium':'small',label:big&&!jackpot?label:''});if(jackpot){this.jackpot(label,from);this.banner(label+'!',from||null)}},i*260));
 };
 
 // The bracket's standings: all 9 CPUs ranked by wins (damage dealt breaks ties). After each duel the rows glide

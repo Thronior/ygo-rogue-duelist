@@ -145,7 +145,7 @@
 .db-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}
 .db-pop{position:absolute;white-space:nowrap;font-weight:900;color:var(--db-accent);text-shadow:0 1px 2px #000,0 0 6px #0008;font-size:12px;will-change:transform,opacity}
 .db-pop.medium{font-size:22px}
-.db-pop.big,.db-pop.jackpot{font-size:34px;color:#fff3a8;text-shadow:0 2px 4px #000,0 0 18px #ffb84d}
+.db-pop.big,.db-pop.jackpot{font-size:28px;color:#fff3a8;text-shadow:0 2px 4px #000,0 0 18px #ffb84d}
 .db-coin{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;will-change:transform,opacity}
 .db-banner{position:absolute;left:50%;top:38%;translate:-50% -50%;padding:14px 28px;font-size:clamp(22px,4vw,44px);font-weight:900;letter-spacing:.04em;color:#fff3a8;background:color-mix(in srgb,var(--db-bg) 80%,transparent);border:3px solid var(--db-accent);border-radius:var(--db-radius);text-shadow:0 2px 4px #000;white-space:nowrap}
 
@@ -277,3 +277,5 @@
 .db-stakes .db-chip-bet{margin-left:3px;padding:0 6px;border-radius:3px;border:1px solid var(--db-accent);background:#000a;color:var(--db-accent);font-size:10px;font-weight:700;cursor:pointer;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
 .db-stakes .db-chip-bet:hover:not(:disabled){background:var(--db-accent);color:#111}
 .db-stakes .db-chip-bet:disabled{opacity:.4;cursor:default}
+.db-banner.local{translate:-50% -50%;font-size:calc(clamp(22px,4vw,44px) * var(--fit,1));padding:calc(10px * var(--fit,1)) calc(20px * var(--fit,1));white-space:normal;text-align:center;line-height:1.05}
+.db-splash{translate:-50% -60%}
