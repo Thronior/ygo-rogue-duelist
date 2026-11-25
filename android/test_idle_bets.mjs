@@ -34,7 +34,9 @@ assert.equal(M.buy(s,'open2'),null,'hidden until a milestone, and unaffordable')
 assert.ok(!M.visibleItems(s).some(i=>i.id==='tier1'),'tier bonuses come later');
 s.coins=1000;M.buy(s,'calls1');M.buy(s,'calls1');
 assert.equal(M.itemLevel(s,'calls1'),2);assert.equal(s.coins,1000-M.itemCost('calls1',0)-M.itemCost('calls1',1));
-assert.equal(M.correctPayout(s,1,1),3,'two Lucky Calls: 1 + 2');
+assert.equal(M.correctPayout(s,1,1),6,'two Lucky Calls: 1 + 2 + 3');
+assert.deepEqual([1,2,3,4,5,6].map(M.luckyStep),[2,3,5,8,13,21],'each Lucky Calls level adds more: 2, 3, 5, 8, 13, 21');
+assert.deepEqual([0,1,2,3,4,5].map(l=>M.callsBonus(1,l)),[0,2,5,10,18,31]);
 assert.ok(M.visibleItems(s).some(i=>i.id==='open2'));
 let before=s.coins,r=M.buy(s,'open2');
 assert.equal(r.kind,'board');assert.equal(s.boards,2);assert.equal(s.coins,before-100);
@@ -82,7 +84,7 @@ s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High
 // ---- what a finished duel pays ----
 s=M.newState();s.items={calls1:1,tier1:2,exodia:1};
 let pay=M.duelPayout(s,{winner:0,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
-assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.ok(Math.abs(pay.total-(2+6*M.power('tier1')))<1e-9);
+assert.deepEqual(pay.parts.map(p=>p[0]),['Correct call','Tier 1 upset']);assert.ok(Math.abs(pay.total-(1+2+6*M.power('tier1')))<1e-9,'one Lucky Calls level: 1 + 2');
 pay=M.duelPayout(s,{winner:1,reason:1,turns:8,winnerLp:3000,winnerTier:'Tier 1'},1,1,0);
 assert.deepEqual(pay.parts.map(p=>p[0]),['Tier 1 upset'],'a wrong call still collects the passive bonuses');
 pay=M.duelPayout(s,{winner:0,reason:16,turns:9,winnerLp:8000,winnerTier:'Tier 3'},2,2,0);

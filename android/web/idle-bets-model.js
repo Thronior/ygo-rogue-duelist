@@ -112,6 +112,7 @@ const WIN={tier1:[3,'a Tier 1 deck wins a duel'],tier2:[2,'a Tier 2 deck wins a 
  flawless:[5,'the winner still has 8,000 LP or more'],blitz:[10,'a duel ends by turn 5'],deckout:[50,'a duel ends by deck-out'],special:[200,'a duel ends by an alternate win (not Exodia or Destiny Board)']};
 const BOARD_LEVEL='Times the board\'s level: Board 1 ×1, Board 2 ×10, Board 3 ×100, and so on.';
 export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
+ if(id==='calls1')return [`Each level adds more than the last: +2, +3, +5, +8, +13… coins for every correct call on Board 1 (Board 1 of every bracket too, scaled to its stakes).`,`Now: ${c(callsBonus(1,l))} per correct call (total ${fmt(correctPayout(s,1,1))} with High Roller).`,`Next level: ${c(callsBonus(1,l+1))} (+${fmt(luckyStep(l+1))}).`]
  if(/^calls\d$/.test(id)){const k=Number(id.slice(5)),u=callUnit(k);return [`Each level: +${fmt(u)} coins for every correct call on Board ${k} (Board ${k} of every bracket too, scaled to its stakes).`,`Now: ${c(u*l)} per correct call (total ${fmt(correctPayout(s,k,k))} with High Roller).`,`Next level: ${c(u*(l+1))}.`]}
  if(FEE[id]){const [v0,w]=FEE[id],v=v0*power(id);return [`Each level: +${fmt(v)} coins for ${w}, on any board.`,BOARD_LEVEL,`Now: ${c(v*l)} · next level: ${c(v*(l+1))}.`]}
  if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`Each level: +${fmt(v)} coins whenever ${w}, on any board.`,BOARD_LEVEL,`Now: ${c(v*l)} · next level: ${c(v*(l+1))}.`]}
@@ -184,7 +185,11 @@ export const tierRank=label=>TIER_RANK[label]??2;
 export function autoPick(s,seats,random=Math.random){if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
-export const correctPayout=(s,slot,level)=>(boardPayout(level)+lvl(s,'calls'+slot)*callUnit(slot)*levelScale(level)/levelScale(slot))*multiplier(s);
+// Lucky Calls (board 1) grows like Fibonacci: each level adds more than the last (+2, +3, +5, +8, +13…).
+// Other boards' Calls items add a flat step per level.
+export function luckyStep(k){let a=2,b=3;for(let i=1;i<k;i++)[a,b]=[b,a+b];return a}
+export function callsBonus(slot,l){if(slot!==1)return l*callUnit(slot);let t=0;for(let k=1;k<=l;k++)t+=luckyStep(k);return t}
+export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,lvl(s,'calls'+slot))*levelScale(level)/levelScale(slot))*multiplier(s);
 // The dearer an income item's first purchase, the more each level earns: (first price / 15)^0.75, never under 1.
 // 15 is the opening shop's Summon Fees. Sub-linear so late items are strong without running away.
 const POWER_REF=15,powerCache=new Map();
