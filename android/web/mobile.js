@@ -368,7 +368,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const v
 
 let musicContext='',previousTrack={};
 
-function screenMusic(){if(screen==='gallery'&&galleryTrack)return galleryTrack;if(screen==='duel'||screen==='cpu'){if(screen==='cpu')return 'duel';if(engine&&summonMusic.has(engine))return summonMusic.get(engine);if(state.run?.encore_active&&!snapshot?.tag||snapshot?.tag?.pvp)return 'champion';const run=snapshot?.tag?tagUI?.view?.run:state.run;if(((run?.round||0)+1)%3===0){const opponent=snapshot?.tag?activeTagCharacters(content,tagUI.view,snapshot.tag)[1]:content.characters[run?.opponent];return bossTheme(opponent?.name)}return 'duel'}if(screen==='ending')return state.run?.stage==='complete'?'victory':'defeat';if(screen==='characters')return 'characters';if(screen==='routes')return (state.run.round+1)%3===0?'boss':'draft';if(screen==='draft')return 'draft';if(screen==='shop')return state.run?.cursed_offer?'boss':'shop';if(screen==='settings')return musicContext||'title';if(screen==='tag'&&tagUI?.view?.phase==='draft'&&tagUI.tab!=='deck'&&(tagUI.view.run.round+1)%3===0)return 'boss';if(screen==='tag')return tagUI?.view?.phase==='shop'?'shop':tagUI?.view?.phase==='complete'?'victory':tagUI?.view?.phase==='gameover'?'defeat':tagUI?.view?.phase==='draft'?'draft':'characters';return 'title'}
+function screenMusic(){if(screen==='gallery'&&galleryTrack)return galleryTrack;if(screen==='duel-bets')return 'shop';// Duel Bets plays the shop music.
+if(screen==='duel'||screen==='cpu'){if(screen==='cpu')return 'duel';if(engine&&summonMusic.has(engine))return summonMusic.get(engine);if(state.run?.encore_active&&!snapshot?.tag||snapshot?.tag?.pvp)return 'champion';const run=snapshot?.tag?tagUI?.view?.run:state.run;if(((run?.round||0)+1)%3===0){const opponent=snapshot?.tag?activeTagCharacters(content,tagUI.view,snapshot.tag)[1]:content.characters[run?.opponent];return bossTheme(opponent?.name)}return 'duel'}if(screen==='ending')return state.run?.stage==='complete'?'victory':'defeat';if(screen==='characters')return 'characters';if(screen==='routes')return (state.run.round+1)%3===0?'boss':'draft';if(screen==='draft')return 'draft';if(screen==='shop')return state.run?.cursed_offer?'boss':'shop';if(screen==='settings')return musicContext||'title';if(screen==='tag'&&tagUI?.view?.phase==='draft'&&tagUI.tab!=='deck'&&(tagUI.view.run.round+1)%3===0)return 'boss';if(screen==='tag')return tagUI?.view?.phase==='shop'?'shop':tagUI?.view?.phase==='complete'?'victory':tagUI?.view?.phase==='gameover'?'defeat':tagUI?.view?.phase==='draft'?'draft':'characters';return 'title'}
 
 let rewardMusic=false;
 
@@ -3256,7 +3257,7 @@ async function openCPU(){
 // Duel Bets minigame (idle-bets.js). Self-contained; this opener and the hooks marked "Duel Bets" are all it needs.
 let duelBets=null;
 async function openDuelBets(){
- screen='duel-bets';clearTimeout(aiTimer);
+ screen='duel-bets';clearTimeout(aiTimer);track('shop');
  const hasBundledCPUDecks=Object.keys(content.cpuWatchDecks||{}).length>0&&Object.keys(content.cpuWatchOpponents||{}).length>0;const catalog=hasBundledCPUDecks?{cpuWatchDecks:content.cpuWatchDecks,cpuWatchOpponents:content.cpuWatchOpponents}:await command('cpu-catalog');if(screen!=='duel-bets')return;
  const {DuelBets}=await import('./idle-bets.js');if(screen!=='duel-bets')return;
  duelBets=new DuelBets({root:app,content,catalog,volume:()=>(state.settings.sound||0)/100,onExit:()=>{duelBets=null;go('title')}});

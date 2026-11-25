@@ -11,8 +11,10 @@ let s=M.newState();
 assert.equal(s.boards,1);assert.equal(s.brackets,0);
 assert.equal(M.boardStake(1),0);assert.equal(M.boardPayout(1),1);
 assert.equal(M.correctPayout(s,1,1),1);
-assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','tier1','tier2','tier3','endless','fee_summon','speed'],'the opening shop: payout, CPU tier, action and speed items');
+assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_attack','fee_spell','fee_trap','speed'],'the opening shop: payout, monster/Spell/Trap fees and speed');
 assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
+for(const it of M.ITEMS)assert.ok(M.tooltip(M.newState(),it.id).join(' ').length>20,'every item has a tooltip: '+it.id);
+assert.ok(M.tooltip({...M.newState(),items:{fee_summon:3}},'fee_summon').some(x=>x.includes('+0.3')),'the tooltip shows the current total');
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
@@ -25,6 +27,7 @@ assert.equal(M.itemCost('calls1',0),1,'the first upgrade costs 1');
 // ---- buying: money goes down, can't overspend, the Big Leagues opens board 2 ----
 s.coins=99;
 assert.equal(M.buy(s,'open2'),null,'hidden until a milestone, and unaffordable');
+assert.ok(!M.visibleItems(s).some(i=>i.id==='tier1'),'tier bonuses come later');
 s.coins=1000;M.buy(s,'calls1');M.buy(s,'calls1');
 assert.equal(M.itemLevel(s,'calls1'),2);assert.equal(s.coins,1000-M.itemCost('calls1',0)-M.itemCost('calls1',1));
 assert.equal(M.correctPayout(s,1,1),3,'two Lucky Calls: 1 + 2');
@@ -34,6 +37,7 @@ assert.equal(r.kind,'board');assert.equal(s.boards,2);assert.equal(s.coins,befor
 assert.ok(!M.visibleItems(s).some(i=>i.id==='open2'),'a bought opener leaves the shop');
 assert.equal(M.boardStake(2),10);assert.equal(M.boardPayout(2),100,'board 2: bet 10, win 100');
 assert.ok(M.visibleItems(s).some(i=>i.id==='calls2'),'board 2 brings its own, pricier set');
+assert.ok(['tier1','tier2','tier3','endless'].every(id=>M.visibleItems(s).some(i=>i.id===id)),'tier bonuses appear with Board 2');
 assert.ok(M.itemCost('calls2',0)>M.itemCost('calls1',0)*10);
 s.coins=0;assert.equal(M.buy(s,'calls2'),null,'no money, no sale');
 

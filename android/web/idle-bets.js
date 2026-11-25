@@ -33,6 +33,8 @@ export class DuelBets{
   this.onError=e=>{const img=e.target;if(img?.tagName!=='IMG')return;if(img.dataset.full&&img.src!==img.dataset.full){img.src=img.dataset.full;delete img.dataset.full}else img.style.visibility='hidden'};root.addEventListener('error',this.onError,true);
   this.onVisible=()=>{if(document.hidden)this.save();this.last=performance.now()};
   root.addEventListener('click',this.onClick);document.addEventListener('visibilitychange',this.onVisible);
+  // Reloading or closing the app mid-duel refunds the stakes still in play, like Save & Exit.
+  this.onHide=()=>{for(const b of this.boards)b.refund();for(const b of this.brackets)b.refund();this.save()};addEventListener('pagehide',this.onHide);
   if(M.DEV_TOOLS)globalThis.duelBetsDebug=this;
   this.render();this.supply.start();this.layout();this.last=performance.now();this.loop();
   this.saveTimer=setInterval(()=>{if(this.dirty)this.save()},5000);
@@ -50,7 +52,19 @@ export class DuelBets{
   this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button><button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
   this.el={total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
   this.paintTotal(true);this.renderShop();
+  // Shop tooltips: hover an item (mouse) or tap its picture (touch) for exactly what it does.
+  this.el.tip=document.createElement('div');this.el.tip.className='db-tip';this.root.querySelector('.duel-bets').append(this.el.tip);
+  this.el.shop.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const row=e.target.closest('.db-item');if(row)this.showTip(row)});
+  this.el.shop.addEventListener('pointerleave',()=>this.hideTip());
+  this.el.shop.addEventListener('scroll',()=>this.hideTip(),{passive:true});
+  this.el.shop.addEventListener('click',e=>{const icon=e.target.closest('.db-icon');if(!icon)return;const row=icon.closest('.db-item');if(this.tipFor===row.dataset.item)this.hideTip();else{this.showTip(row);clearTimeout(this.tipTimer);this.tipTimer=setTimeout(()=>this.hideTip(),4000)}});
  }
+ showTip(row){const id=row.dataset.item,it=M.ITEM[id];if(!it)return;this.tipFor=id;const tip=this.el.tip;
+  tip.innerHTML=`<b>${esc(it.name)}</b>${M.tooltip(this.state,id).map(t=>`<p>${esc(t)}</p>`).join('')}`;tip.classList.add('on');
+  const r=row.getBoundingClientRect(),box=this.root.querySelector('.duel-bets').getBoundingClientRect(),portrait=matchMedia('(orientation:portrait)').matches;
+  if(portrait){tip.style.left='8px';tip.style.right='8px';tip.style.top='';tip.style.bottom=(box.bottom-r.top+6)+'px'}
+  else{tip.style.right=(box.right-r.left+8)+'px';tip.style.left='';tip.style.bottom='';tip.style.top=Math.max(8,Math.min(r.top-box.top,box.height-tip.offsetHeight-8))+'px'}}
+ hideTip(){this.tipFor=null;this.el?.tip.classList.remove('on')}
  // Boards before brackets; the bracket grid after; one bracket's boards when one is opened.
  layout(){
   for(const b of this.boards)b.detach();
@@ -135,7 +149,7 @@ export class DuelBets{
   if(a==='exit')return this.exit();
   if(a==='settings')return this.settings();
   if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
-   this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);
+   this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
    if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?'Bracket mode!':'Bracket '+this.state.brackets+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
    this.save();return}
   if(a==='pick'){const board=this.boards[Number(el.dataset.slot)-1];return board?.bet(Number(el.dataset.seat))}
@@ -174,7 +188,7 @@ export class DuelBets{
   // Stakes on duels still playing come back: nothing is decided while the screen is closed.
   for(const b of this.boards)b.refund();for(const b of this.brackets)b.refund();this.save();
   clearTimeout(this.timer);clearInterval(this.saveTimer);for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.supply.close();
-  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);for(const v of this.voices||[])v.pause();this.el=null;
+  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);removeEventListener('pagehide',this.onHide);for(const v of this.voices||[])v.pause();this.el=null;
  }
 }
 
@@ -205,11 +219,11 @@ class BoardView{
   const cells=[];
   for(let i=0;i<5;i++){cells.push(zone('st p1 s'+i,2,6-i),zone('mz p1 m'+i,3,6-i),zone('mz p0 m'+i,5,2+i),zone('st p0 s'+i,6,2+i))}
   cells.push(zone('pile deck p1',2,1),zone('pile extra p1',2,7),zone('pile grave p1',3,1),zone('st field p1',3,7),zone('st field p0',5,1),zone('pile grave p0',5,7),zone('pile extra p0',6,1),zone('pile deck p0',6,7));
-  const info=p=>`<div class="db-who p${p}" style="grid-area:${p?1:7}/1/${p?2:8}/5"><span class="db-name"></span><span class="db-chip"></span><span class="db-lp"><i></i><b>8000</b></span></div><div class="db-hand p${p}" style="grid-area:${p?1:7}/5/${p?2:8}/8"></div>`;
-  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><i class="db-danger p0"></i><i class="db-danger p1"></i><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-phases"><b class="db-turn"></b>${PHASES.map(([n,t])=>`<i data-ph="${n}">${t}</i>`).join('')}</span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
+  const info=p=>`<div class="db-who p${p}" style="grid-area:${p?1:7}/1/${p?2:8}/5"><span class="db-name"></span><span class="db-chip"></span></div><div class="db-hand p${p}" style="grid-area:${p?1:7}/5/${p?2:8}/8"></div>`;
+  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><i class="db-danger p0"></i><i class="db-danger p1"></i><div class="db-gauge p0"><b>8000</b><i><s></s></i></div><div class="db-gauge p1"><b>8000</b><i><s></s></i></div><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-phases"><b class="db-turn"></b>${PHASES.map(([n,t])=>`<i data-ph="${n}">${t}</i>`).join('')}</span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
   parent.append(this.root);
   const q=s=>this.root.querySelector(s),zones=(p,cls)=>[0,1,2,3,4].map(i=>q(`.z.${cls}.p${p}.${cls==='mz'?'m':'s'}${i}`));
-  this.sides=[0,1].map(p=>({who:q('.db-who.p'+p),name:q(`.db-who.p${p} .db-name`),chip:q(`.db-who.p${p} .db-chip`),lp:q(`.db-who.p${p} .db-lp b`),bar:q(`.db-who.p${p} .db-lp i`),hand:q('.db-hand.p'+p),
+  this.sides=[0,1].map(p=>({who:q('.db-who.p'+p),name:q(`.db-who.p${p} .db-name`),chip:q(`.db-who.p${p} .db-chip`),lp:q(`.db-gauge.p${p} b`),bar:q(`.db-gauge.p${p} s`),gauge:q('.db-gauge.p'+p),hand:q('.db-hand.p'+p),
    mz:zones(p,'mz'),st:zones(p,'st'),field:q('.z.field.p'+p),deck:q('.z.deck.p'+p),extra:q('.z.extra.p'+p),grave:q('.z.grave.p'+p),art:q('.db-art.a'+p),danger:q('.db-danger.p'+p),last:null,handN:-1}));
   this.mat=q('.db-mat');this.phases=[...this.root.querySelectorAll('.db-phases i')];this.turnEl=q('.db-turn');this.overlay=q('.db-overlay');this.field=q('.db-field');
  }
@@ -218,9 +232,10 @@ class BoardView{
  card(z,code,{back=false,label=''}={}){const img=z.firstChild,key=back?'back':String(code||'');
   if(z.dataset.code!==key){z.dataset.code=key;
    if(!key){img.removeAttribute('src');img.style.visibility='hidden'}else{img.style.visibility='';if(back){delete img.dataset.full;img.src=assetURL(CARD_BACK)}else{img.dataset.full=cardFull(code);img.src=cardSrc(code)}}}
-  if(z.lastChild.textContent!==label)z.lastChild.textContent=label}
+  // The number is the zone's own <b>: effects (rings, bursts) get appended after it, so never use lastChild.
+  const num=z.children[1];if(num.textContent!==label)num.textContent=label}
  seats(seats,pick=null){seats.forEach((s,p)=>{const v=this.sides[p],src=assetURL('assets/'+s.sprite);if(v.art.getAttribute('src')!==src)v.art.src=src;v.name.textContent=s.name;v.chip.innerHTML=this.game.tierChip(s.label);v.who.classList.toggle('picked',pick===p)})}
- clear(){for(const v of this.sides){v.last=null;v.handN=-1;v.hand.innerHTML='';v.lp.textContent='8000';v.bar.style.width='100%';v.who.classList.remove('won','lost','low');v.danger.style.opacity=0;v.danger.classList.remove('critical');
+ clear(){for(const v of this.sides){v.last=null;v.handN=-1;v.hand.innerHTML='';v.lp.textContent='8000';v.bar.style.transform='';v.who.classList.remove('won','lost','low');v.gauge.classList.remove('low');v.danger.style.opacity=0;v.danger.classList.remove('critical');
    for(const z of [...v.mz,...v.st,v.field,v.grave,v.deck,v.extra]){z.classList.remove('up','set','def');this.card(z,0)}}this.turnN=0;this.turnEl.textContent='';this.phase(0);this.field.classList.remove('playing')}
  frame(board,events,replay){
   this.field.classList.add('playing');
@@ -242,7 +257,7 @@ class BoardView{
   }
  }
  row(p,row){const v=this.sides[p],last=v.last;v.last=row;const same=(a,b)=>a===b||JSON.stringify(a)===JSON.stringify(b);
-  if(!last||last[0]!==row[0]){v.lp.textContent=Math.max(0,row[0]);v.bar.style.width=Math.max(0,Math.min(100,row[0]/80))+'%';this.danger(p,row[0])}
+  if(!last||last[0]!==row[0]){v.lp.textContent=Math.max(0,row[0]);v.bar.style.transform=`scaleY(${Math.max(0,Math.min(1,row[0]/8000))})`;this.danger(p,row[0])}
   if(v.handN!==row[1]){v.handN=row[1];v.hand.innerHTML='<i></i>'.repeat(Math.min(row[1],8))+(row[1]?`<b>${row[1]}</b>`:'')}
   for(let i=0;i<5;i++){const m=row[4+i],z=v.mz[i];if(last&&same(m,last[4+i]))continue;
    if(!m){if(last?.[4+i])this.poof(z);z.classList.remove('up','set','def');this.card(z,0);continue}
@@ -264,7 +279,7 @@ class BoardView{
  stamp(text,cls,x=50,y=50){if(!this.lvl())return;const el=this.temp('db-stamp '+cls,this.field,'b');el.textContent=text;el.style.left=x+'%';el.style.top=y+'%';
   this.play(el,[{opacity:0,scale:2.6},{opacity:1,scale:.94,offset:.16},{opacity:1,scale:1,offset:.22},{opacity:1,scale:1,offset:.78},{opacity:0,scale:1.08}],{duration:1400,easing:'ease-out'})}
  // A coloured flash over one player's half (0 = bottom, 1 = top) or the whole board (null).
- flash(p,color,ms=420){if(!this.lvl())return;const el=this.temp('db-flash');if(p!=null){el.style.top=p?'0':'50%';el.style.bottom=p?'50%':'0'}el.style.background=`radial-gradient(ellipse at 50% ${p===1?'25%':p===0?'75%':'50%'},${color},transparent 72%)`;
+ flash(p,color,ms=420){if(!this.lvl())return;const el=this.temp('db-flash');if(p!=null){el.style.left=p?'50%':'0';el.style.right=p?'0':'50%'}el.style.background=`radial-gradient(ellipse at ${p===1?'100%':p===0?'0%':'50%'} 50%,${color},transparent 72%)`;
   this.play(el,[{opacity:1},{opacity:0}],{duration:ms,easing:'ease-out'})}
  ring(z,color){if(this.lvl()<2||!z)return;const r=this.temp('db-ring',z);r.style.borderColor=color;this.play(r,[{opacity:1,scale:.5},{opacity:0,scale:2.1}],{duration:520,easing:'ease-out'})}
  // A destroyed monster bursts out of its zone instead of just vanishing.
@@ -280,13 +295,13 @@ class BoardView{
  hurt(p,hit){if(!this.lvl())return;const px=Math.min(14,4+hit/500),v=this.sides[p];
   v.art.animate([{translate:'0 0'},{translate:`${-px}px ${px*.3}px`},{translate:`${px}px ${-px*.3}px`},{translate:`${-px*.7}px 0`},{translate:`${px*.5}px ${px*.2}px`},{translate:`${-px*.25}px 0`},{translate:'0 0'}],{duration:420,easing:'ease-out',composite:'add'})}
  // That player's half turns redder as their LP falls (none at 8000+, strongest at 0); under 1000 it pulses.
- danger(p,lp){const v=this.sides[p],k=Math.max(0,Math.min(1,1-lp/8000));v.danger.style.opacity=this.game.state.settings.fx==='off'?0:(k**1.6*.85).toFixed(3);v.danger.classList.toggle('critical',lp>0&&lp<1000&&this.lvl()>0);v.who.classList.toggle('low',lp<2000)}
+ danger(p,lp){const v=this.sides[p],k=Math.max(0,Math.min(1,1-lp/8000));v.danger.style.opacity=this.game.state.settings.fx==='off'?0:(k**1.6*.85).toFixed(3);v.danger.classList.toggle('critical',lp>0&&lp<1000&&this.lvl()>0);v.who.classList.toggle('low',lp<2000);v.gauge.classList.toggle('low',lp<2000)}
  // The lit phase: Battle Phase covers its steps (8-128).
  phase(n){const key=n>=8&&n<256?8:n;for(const i of this.phases)i.classList.toggle('on',Number(i.dataset.ph)===key)}
  // Damage numbers: rise from the hit player's half of the field (top player = upper half) and fade.
  damage(p,amount){if(!amount||this.game.state.settings.fx==='off')return;if((this.dmgN||0)>=4)return;
   const el=document.createElement('b'),big=Math.abs(amount)>=2000;el.className='db-dmg'+(amount>0?' heal':'')+(big?' big':'');el.textContent=(amount>0?'+':'−')+Math.abs(amount);
-  el.style.left=(30+Math.random()*40)+'%';el.style.top=(p?24:62)+'%';this.field.append(el);this.dmgN=(this.dmgN||0)+1;
+  el.style.left=(p?72+Math.random()*12:16+Math.random()*12)+'%';el.style.top=(38+Math.random()*14)+'%';this.field.append(el);this.dmgN=(this.dmgN||0)+1;
   const done=()=>{el.remove();this.dmgN--};
   if(motion()===0){setTimeout(done,700);return}
   el.animate([{opacity:0,scale:.5,translate:'-50% 0'},{opacity:1,scale:big?1.25:1.1,translate:'-50% -20%',offset:.15},{opacity:1,scale:1,translate:'-50% -60%',offset:.7},{opacity:0,scale:1,translate:'-50% -110%'}],{duration:big?1300:1000,easing:'ease-out'}).finished.catch(()=>{}).finally(done)}

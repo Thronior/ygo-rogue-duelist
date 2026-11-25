@@ -35,13 +35,14 @@ Own files (all new):
 
 **Files touched outside the minigame (the merge surface):**
 
-- `android/web/mobile.js` — six small hooks, all named "Duel Bets"/`duelBets`:
+- `android/web/mobile.js` — seven small hooks, all named "Duel Bets"/`duelBets`:
   1. a `['Duel Bets',37313786,'spell',…,'duel-bets']` entry in `baseMenu`
   2. `if(a==='duel-bets'){await openDuelBets();return}` in the action handler, next to `a==='cpu'`
   3. `openDuelBets()` plus `let duelBets`, placed after `openCPU()`; it lazy-imports `idle-bets.js`
   4. Android back: `else if(duelBets){duelBets.back()}`
   5. Gamepad/keyboard back (`screenBack`): `if(screen==='duel-bets'&&duelBets){…}`
   6. `startStats(()=>!cpuViewer&&!duelBets&&…)` so Duel Bets time isn't counted as a run
+  7. Music: `screenMusic()` returns `'shop'` while `screen==='duel-bets'`, and `openDuelBets()` calls `track('shop')`, so Duel Bets plays the shop music
 
 Nothing else outside these files changed. The saved data is a new localStorage key, `ygo-duel-bets-v1`, plus the IndexedDB database above. `saves/` and `storage.py` are untouched.
 
