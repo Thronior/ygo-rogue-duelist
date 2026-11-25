@@ -5,7 +5,8 @@ import {loadDuelResources} from './engine.js';
 export const LIBRARY_CAP=300;
 const sig=tl=>tl.seed+':'+tl.seats.map(s=>s.id+'.'+s.tier).join(':');
 const DB='ygo-duel-bets',STORE='timelines',META='meta';
-function open(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const db=r.result;db.createObjectStore(STORE,{keyPath:'key',autoIncrement:true});db.createObjectStore(META)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+// Version 2: timelines carry the top Graveyard card and Extra/banished counts; older ones are dropped.
+function open(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{const db=r.result;for(const n of [...db.objectStoreNames])db.deleteObjectStore(n);db.createObjectStore(STORE,{keyPath:'key',autoIncrement:true});db.createObjectStore(META)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 const done=req=>new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
 
 export class DuelSupply{

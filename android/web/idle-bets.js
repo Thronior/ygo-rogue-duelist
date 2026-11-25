@@ -29,7 +29,7 @@ export class DuelBets{
   this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])]});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
   // Card thumbnails are missing for some icons: fall back to the full card art (no inline handlers under the CSP).
-  this.onError=e=>{const img=e.target;if(img?.dataset?.full&&img.src!==img.dataset.full){img.src=img.dataset.full;delete img.dataset.full}};root.addEventListener('error',this.onError,true);
+  this.onError=e=>{const img=e.target;if(img?.tagName!=='IMG')return;if(img.dataset.full&&img.src!==img.dataset.full){img.src=img.dataset.full;delete img.dataset.full}else img.style.visibility='hidden'};root.addEventListener('error',this.onError,true);
   this.onVisible=()=>{if(document.hidden)this.save();this.last=performance.now()};
   root.addEventListener('click',this.onClick);document.addEventListener('visibilitychange',this.onVisible);
   if(M.DEV_TOOLS)globalThis.duelBetsDebug=this;
@@ -46,7 +46,7 @@ export class DuelBets{
  tierChip(label){const t=M.tierKey(label),short={'Opening Duel':'Opening','World Championship':'WC'}[label]||label.replace('Tier ','T');return `<i class="db-tier ${t||'other'}" title="${esc(label)}">${esc(short)}</i>`}
  // ---- screen ----
  render(){
-  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></button><button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
+  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6a7.7 7.7 0 0 1 1.9 1.1l2.5-.9 1.7 2.9-2 1.7a7.8 7.8 0 0 1 0 2.2l2 1.7-1.7 2.9-2.5-.9a7.7 7.7 0 0 1-1.9 1.1l-.5 2.6h-3.4l-.5-2.6a7.7 7.7 0 0 1-1.9-1.1l-2.5.9-1.7-2.9 2-1.7a7.8 7.8 0 0 1 0-2.2l-2-1.7 1.7-2.9 2.5.9a7.7 7.7 0 0 1 1.9-1.1zM12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z"/></svg></button><button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
   this.el={total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
   this.paintTotal(true);this.renderShop();
  }
@@ -170,42 +170,67 @@ class Replay{
  result(){return M.resultOf(this.tl,this.seats)}
 }
 
-// The bare board. Built once, then only text, classes and widths change.
+// A scaled-down duel field: card art in every zone, piles, hands and LP, with each CPU's portrait filling its
+// half of the board behind it. Built once; afterwards only image sources, classes and text change.
+const CARD_BACK='assets/card-back.jpg';
+const cardSrc=code=>assetURL('assets/cards-thumb/'+code+'.jpg'),cardFull=code=>assetURL('assets/cards/'+code+'.jpg');
 class BoardView{
- constructor(game,parent,{title,stakes}){this.game=game;this.root=document.createElement('div');this.root.className='db-board';
-  const side=p=>`<div class="db-side p${p}"><div class="db-who"><img alt="" class="db-face"><span class="db-name"></span><span class="db-chip"></span><span class="db-lp"><i></i><b>8000</b></span><small class="db-counts"></small></div><div class="db-row db-st">${'<i></i>'.repeat(5)}</div><div class="db-row db-mz">${'<i><b></b></i>'.repeat(5)}</div></div>`;
-  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field">${side(1)}<div class="db-mid"><span class="db-ticker"></span></div>${side(0)}</div><div class="db-overlay"></div>`;
+ constructor(game,parent,{title,stakes,slot=1}){this.game=game;this.root=document.createElement('div');this.root.className='db-board';this.root.dataset.slot=slot;
+  // Rows: 1 top hand/info · 2-3 top player's Spell/Trap and monsters · 4 middle · 5-6 bottom player's · 7 bottom hand.
+  const zone=(cls,row,col)=>`<i class="z ${cls}" style="grid-area:${row}/${col}"><img alt="" draggable="false"><b></b></i>`;
+  const cells=[];
+  for(let i=0;i<5;i++){cells.push(zone('st p1 s'+i,2,6-i),zone('mz p1 m'+i,3,6-i),zone('mz p0 m'+i,5,2+i),zone('st p0 s'+i,6,2+i))}
+  cells.push(zone('pile deck p1',2,1),zone('pile extra p1',2,7),zone('pile grave p1',3,1),zone('st field p1',3,7),zone('st field p0',5,1),zone('pile grave p0',5,7),zone('pile extra p0',6,1),zone('pile deck p0',6,7));
+  const info=p=>`<div class="db-who p${p}" style="grid-area:${p?1:7}/1/${p?2:8}/5"><span class="db-name"></span><span class="db-chip"></span><span class="db-lp"><i></i><b>8000</b></span></div><div class="db-hand p${p}" style="grid-area:${p?1:7}/5/${p?2:8}/8"></div>`;
+  this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-ticker"></span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
   parent.append(this.root);
-  this.sides=[0,1].map(p=>{const el=this.root.querySelector('.db-side.p'+p);return {el,face:el.querySelector('.db-face'),name:el.querySelector('.db-name'),chip:el.querySelector('.db-chip'),lp:el.querySelector('.db-lp b'),bar:el.querySelector('.db-lp i'),counts:el.querySelector('.db-counts'),st:[...el.querySelectorAll('.db-st i')],mz:[...el.querySelectorAll('.db-mz i')],last:null}});
-  this.ticker=this.root.querySelector('.db-ticker');this.overlay=this.root.querySelector('.db-overlay');
+  const q=s=>this.root.querySelector(s),zones=(p,cls)=>[0,1,2,3,4].map(i=>q(`.z.${cls}.p${p}.${cls==='mz'?'m':'s'}${i}`));
+  this.sides=[0,1].map(p=>({who:q('.db-who.p'+p),name:q(`.db-who.p${p} .db-name`),chip:q(`.db-who.p${p} .db-chip`),lp:q(`.db-who.p${p} .db-lp b`),bar:q(`.db-who.p${p} .db-lp i`),hand:q('.db-hand.p'+p),
+   mz:zones(p,'mz'),st:zones(p,'st'),field:q('.z.field.p'+p),deck:q('.z.deck.p'+p),extra:q('.z.extra.p'+p),grave:q('.z.grave.p'+p),art:q('.db-art.a'+p),last:null,handN:-1}));
+  this.ticker=q('.db-ticker');this.overlay=q('.db-overlay');this.field=q('.db-field');
  }
  setStakes(text){this.root.querySelector('.db-stakes').textContent=text}
- seats(seats,pick=null){seats.forEach((s,p)=>{const v=this.sides[p];v.face.src=assetURL('assets/'+s.sprite);v.name.textContent=s.name;v.chip.innerHTML=this.game.tierChip(s.label);v.el.classList.toggle('picked',pick===p)});}
- clear(){for(const v of this.sides){v.last=null;v.lp.textContent='8000';v.bar.style.width='100%';v.counts.textContent='';v.el.classList.remove('won','lost');for(const z of [...v.st,...v.mz]){z.className='';z.title='';if(z.firstChild)z.firstChild.textContent=''}}this.ticker.textContent=''}
+ // Card art: the small thumbnail, else the full card (error listener in DuelBets), else the bare zone.
+ card(z,code,{back=false,label=''}={}){const img=z.firstChild,key=back?'back':String(code||'');
+  if(z.dataset.code!==key){z.dataset.code=key;
+   if(!key){img.removeAttribute('src');img.style.visibility='hidden'}else{img.style.visibility='';if(back){delete img.dataset.full;img.src=assetURL(CARD_BACK)}else{img.dataset.full=cardFull(code);img.src=cardSrc(code)}}}
+  if(z.lastChild.textContent!==label)z.lastChild.textContent=label}
+ seats(seats,pick=null){seats.forEach((s,p)=>{const v=this.sides[p],src=assetURL('assets/'+s.sprite);if(v.art.getAttribute('src')!==src)v.art.src=src;v.name.textContent=s.name;v.chip.innerHTML=this.game.tierChip(s.label);v.who.classList.toggle('picked',pick===p)})}
+ clear(){for(const v of this.sides){v.last=null;v.handN=-1;v.hand.innerHTML='';v.lp.textContent='8000';v.bar.style.width='100%';v.who.classList.remove('won','lost');
+   for(const z of [...v.mz,...v.st,v.field,v.grave,v.deck,v.extra]){z.classList.remove('up','set','def');z.title='';this.card(z,0)}}this.ticker.textContent='';this.field.classList.remove('playing')}
  frame(board,events,replay){
+  this.field.classList.add('playing');
   if(board)board.forEach((row,p)=>this.row(p,row));
   const anim=this.game.state.settings.fx!=='off'&&motion()===2;
   let line='';
   for(const e of events){const p=e[1],v=this.sides[p];
    if(e[0]==='t'){line=`${replay.seats[p].name}'s turn`}
-   else if(e[0]==='s'||e[0]==='f'){if(!/attack/.test(line))line=`${e[0]==='f'?'Fusion: ':''}${this.game.cardName(e[2])}`;if(anim&&v.mz[e[3]])v.mz[e[3]].animate([{scale:1.5,opacity:.4},{scale:1,opacity:1}],{duration:260,easing:'ease-out'})}
-   else if(e[0]==='a'){const a=v.mz[e[2]],code=v.last?.[4+e[2]]?.[0];line=`${code?this.game.cardName(code):'Monster'} attacks${e[3]<0?' directly!':''}`;if(anim&&a)a.animate([{translate:'0 0'},{translate:`0 ${p?10:-10}px`},{translate:'0 0'}],{duration:260});const t=e[3]>=0?this.sides[1-p].mz[e[3]]:null;if(anim&&t)t.animate([{opacity:1},{opacity:.25},{opacity:1}],{duration:300})}
+   else if(e[0]==='s'||e[0]==='f'){if(!/attack/.test(line))line=`${e[0]==='f'?'Fusion: ':''}${this.game.cardName(e[2])}`;if(anim&&v.mz[e[3]])v.mz[e[3]].animate([{scale:1.6,opacity:.3},{scale:1,opacity:1}],{duration:280,easing:'ease-out'})}
+   else if(e[0]==='a'){const a=v.mz[e[2]],code=v.last?.[4+e[2]]?.[0];line=`${code?this.game.cardName(code):'Monster'} attacks${e[3]<0?' directly!':''}`;if(anim&&a)a.animate([{translate:'0 0'},{translate:`0 ${p?40:-40}%`},{translate:'0 0'}],{duration:300,easing:'ease-in-out'});const t=e[3]>=0?this.sides[1-p].mz[e[3]]:null;if(anim&&t)t.animate([{opacity:1},{opacity:.25},{opacity:1}],{duration:320,delay:120})}
    else if(e[0]==='c'){if(!line)line=this.game.cardName(e[2])}
    else if(e[0]==='l'&&anim)v.lp.animate([{scale:1.4,color:e[2]<0?'#ff6a6a':'#7dff9a'},{scale:1}],{duration:380})
   }
   if(line)this.ticker.textContent=line;
  }
- row(p,row){const v=this.sides[p],last=v.last;v.last=row;
+ row(p,row){const v=this.sides[p],last=v.last;v.last=row;const same=(a,b)=>a===b||JSON.stringify(a)===JSON.stringify(b);
   if(!last||last[0]!==row[0]){v.lp.textContent=Math.max(0,row[0]);v.bar.style.width=Math.max(0,Math.min(100,row[0]/80))+'%'}
-  if(!last||last[1]!==row[1]||last[2]!==row[2])v.counts.textContent=`✋${row[1]} 🂠${row[2]}`;
-  for(let i=0;i<5;i++){const m=row[4+i],o=last?.[4+i],z=v.mz[i];if(last&&JSON.stringify(m)===JSON.stringify(o))continue;
-   if(!m){z.className='';z.title='';z.firstChild.textContent='';continue}
-   const [code,atk,def,pos]=m,faceDown=!(pos&5),def_=!!(pos&12);z.className=(faceDown?'set':'up')+(def_?' def':'');z.title=faceDown?'Set monster':this.game.cardName(code);z.firstChild.textContent=faceDown?'':def_?def:atk}
-  for(let i=0;i<5;i++){const c=row[9+i],o=last?.[9+i],z=v.st[i];if(last&&JSON.stringify(c)===JSON.stringify(o))continue;
-   if(!c){z.className='';z.title='';continue}const [code,up]=c;const t=up?Number(this.game.cards.get(code)?.data?.type)||0:0;z.className=up?(t&4?'trap':'spell'):'set';z.title=up?this.game.cardName(code):'Set card'}
+  if(v.handN!==row[1]){v.handN=row[1];v.hand.innerHTML='<i></i>'.repeat(Math.min(row[1],8))+(row[1]?`<b>${row[1]}</b>`:'')}
+  for(let i=0;i<5;i++){const m=row[4+i],z=v.mz[i];if(last&&same(m,last[4+i]))continue;
+   if(!m){z.classList.remove('up','set','def');z.title='';this.card(z,0);continue}
+   const [code,atk,def,pos]=m,down=!(pos&5),defence=!!(pos&12);z.classList.toggle('set',down);z.classList.toggle('up',!down);z.classList.toggle('def',defence);
+   this.card(z,code,{back:down,label:down?'':defence?String(def):String(atk)});z.title=down?'Set monster':this.game.cardName(code)}
+  const st=(z,c)=>{if(!c){z.classList.remove('up','set');this.card(z,0);z.title='';return}const [code,up]=c;z.classList.toggle('set',!up);z.classList.toggle('up',!!up);this.card(z,code,{back:!up});z.title=up?this.game.cardName(code):'Set card'};
+  for(let i=0;i<5;i++)if(!last||!same(row[9+i],last[9+i]))st(v.st[i],row[9+i]);
+  if(!last||!same(row[14],last[14]))st(v.field,row[14]);
+  if(!last||last[2]!==row[2])this.card(v.deck,0,{back:!!row[2],label:String(row[2])});
+  if(!last||last[16]!==row[16])this.card(v.extra,0,{back:!!row[16],label:row[16]?String(row[16]):''});
+  if(!last||last[3]!==row[3]||last[15]!==row[15]||last[17]!==row[17]){this.card(v.grave,row[15]||0,{label:row[3]?String(row[3]):''});v.grave.title=`Graveyard ${row[3]}${row[17]?` · banished ${row[17]}`:''}`}
  }
- ending(winner,payout){this.sides.forEach((v,p)=>{v.el.classList.toggle('won',winner===p);v.el.classList.toggle('lost',winner!==p&&winner<2)})}
- show(html){this.overlay.innerHTML=html;this.overlay.classList.toggle('on',!!html)}
+ ending(winner){this.sides.forEach((v,p)=>{v.who.classList.toggle('won',winner===p);v.who.classList.toggle('lost',winner!==p&&winner<2)})}
+ // The betting view: each CPU's portrait fills its half of the board; tap a half to back that CPU.
+ betView(seats,attrs,afford,place){this.clear();this.seats(seats);
+  this.show(`<div class="db-bet">${seats.map((s,p)=>`<button class="db-pick s${p}" ${attrs(p)} ${afford?'':'disabled'}><span><b>${esc(s.name)}</b>${this.game.tierChip(s.label)}</span></button>`).join('')}<span class="db-vs">VS</span><div class="db-place">${esc(place)}</div></div>`)}
+ show(html){this.overlay.innerHTML=html;this.overlay.classList.toggle('on',!!html);this.root.classList.toggle('betting',!!this.overlay.querySelector('.db-bet'))}
  remove(){this.root.remove()}
 }
 
@@ -213,13 +238,13 @@ class BoardView{
 class Board{
  constructor(game,slot){Object.assign(this,{game,slot});this.level=slot;this.phase='load';this.replay=null;this.next=null;this.fetch()}
  stakeText(){const s=M.boardStake(this.level),p=M.correctPayout(this.game.state,this.slot,this.level);return s?`Bet ${M.fmt(s)} · win ${M.fmt(p)}`:`Free bet · win ${M.fmt(p)}`}
- attach(grid){this.view=new BoardView(this.game,grid,{title:`Board ${this.slot} · ${M.LEAGUES[this.slot-1]}`,stakes:this.stakeText()});this.paint()}
+ attach(grid){this.view=new BoardView(this.game,grid,{title:`Board ${this.slot} · ${M.LEAGUES[this.slot-1]}`,stakes:this.stakeText(),slot:this.slot});this.paint()}
  detach(){this.view?.remove();this.view=null}
  fetch(){this.phase='load';this.game.supply.take().then(tl=>{if(this.dead)return;this.next=tl;this.phase='bet';this.paint()}).catch(()=>{if(!this.dead)setTimeout(()=>this.fetch(),3000)})}
  paint(){const v=this.view;if(!v)return;v.setStakes(this.stakeText());
   if(this.phase==='load'){v.clear();v.show('<div class="db-wait"><span class="db-spinner"></span>Shuffling decks…</div>');return}
-  if(this.phase==='bet'){const seats=this.next.seats.map(s=>this.game.seatOf(s)),stake=M.boardStake(this.level),afford=M.canAfford(this.game.state,stake);v.clear();v.seats(seats);
-   v.show(`<div class="db-bet">${seats.map((s,p)=>`<button class="db-pick" data-db="pick" data-slot="${this.slot}" data-seat="${p}" ${afford?'':'disabled'}><img alt="" src="${assetURL('assets/'+s.sprite)}"><b>${esc(s.name)}</b>${this.game.tierChip(s.label)}</button>`).join('<span class="db-vs">VS</span>')}<div class="db-place">${afford?'Place your bets':'Need '+M.fmt(stake)+' to bet'}</div></div>`);return}
+  if(this.phase==='bet'){const seats=this.next.seats.map(s=>this.game.seatOf(s)),stake=M.boardStake(this.level),afford=M.canAfford(this.game.state,stake);
+   v.betView(seats,p=>`data-db="pick" data-slot="${this.slot}" data-seat="${p}"`,afford,afford?'Place your bets':'Need '+M.fmt(stake)+' to bet');return}
   if(this.phase==='play'){v.show('');v.seats(this.replay.seats,this.replay.pick);const b=this.replay.lastBoard(this.replay.i-1);if(b)v.frame(b,[],this.replay);return}
  }
  bet(seat){if(this.phase!=='bet')return;const stake=M.boardStake(this.level);if(!M.spend(this.game.state,stake)){this.paint();return}
@@ -308,7 +333,7 @@ class Bracket{
  paintTile(){if(this.tile?.isConnected)this.tile.innerHTML=this.tileHTML()}
  show(stage){this.hideViews();stage.innerHTML=`<div class="db-bk-head"><button data-db="close-bracket">‹ Brackets</button><span class="db-bk-info"></span>${''}</div><div class="db-grid n9"></div>`;
   const grid=stage.querySelector('.db-grid');this.head=stage.querySelector('.db-bk-info');
-  for(const d of this.duels){d.view=new BoardView(this.game,grid,{title:`Board ${d.slot}`,stakes:''});}
+  for(const d of this.duels){d.view=new BoardView(this.game,grid,{title:`Board ${d.slot}`,stakes:'',slot:d.slot});}
   this.requestAll();this.paintAll()}
  hideViews(){for(const d of this.duels||[]){d.view?.remove();d.view=null}}
  hide(){this.hideViews();this.head=null}
@@ -316,7 +341,7 @@ class Bracket{
  paintHead(){if(!this.head)return;const order=M.standings(this.wins,this.dmg).slice(0,3);this.head.innerHTML=`<b>Bracket ${this.index}</b> · ${this.phase==='round'?`Round ${this.round+1}/${M.BRACKET_ROUNDS}`:this.phase==='final'?'Final standings':`Round ${this.round+1} starts soon`} · Leaders: ${order.map(i=>`${esc(this.game.seatOf(this.roster[i]).name)} (${this.wins[i]})`).join(', ')}${this.phase==='bet'&&!this.bet?` <button data-db="champion" data-b="${this.index}">Bet on champion</button>`:this.bet?` · Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`}
  paintDuel(d){const v=d.view;if(!v)return;const level=this.level(d.slot),seats=d.pair.map(i=>this.game.seatOf(this.roster[i]));v.setStakes(`Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(this.game.state,d.slot,level))}`);
   if(this.phase==='bet'||this.phase==='break'){v.clear();v.seats(seats,d.pick);
-   v.show(d.pick!=null?`<div class="db-wait">Your bet: ${esc(seats[d.pick].name)}</div>`:`<div class="db-bet">${seats.map((s,p)=>`<button class="db-pick" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="${p}" ${M.canAfford(this.game.state,M.boardStake(level))?'':'disabled'}><img alt="" src="${assetURL('assets/'+s.sprite)}"><b>${esc(s.name)}</b>${this.game.tierChip(s.label)}</button>`).join('<span class="db-vs">VS</span>')}<div class="db-place">Place your bets</div></div>`);return}
+   if(d.pick!=null)v.show(`<div class="db-wait">Your bet: ${esc(seats[d.pick].name)}</div>`);else v.betView(seats,p=>`data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="${p}"`,M.canAfford(this.game.state,M.boardStake(level)),'Place your bets');return}
   if(this.phase==='final'){v.show(`<div class="db-wait">Round over</div>`);return}
   if(d.done)return;
   if(d.replay){v.show('');v.seats(d.replay.seats,d.pick);const b=d.replay.lastBoard(d.replay.i-1);if(b)v.frame(b,[],d.replay);return}

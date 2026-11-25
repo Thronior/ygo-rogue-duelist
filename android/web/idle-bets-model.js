@@ -24,29 +24,31 @@ export const bracketOpenerCost=b=>boardOpenerCost(9)*1000**(b-1);
 const setBase=k=>k<=1?5:100*50**(k-1)/20;
 const I=(id,set,name,icon,factor,growth,kind,extra={})=>({id,set,name,icon,base:setBase(set)*factor,growth,kind,max:Infinity,...extra});
 const lvl=(s,id)=>s.items?.[id]||0;
-const calls=k=>I('calls'+k,k,k===1?'Lucky Calls':LEAGUES[k-1]+' Calls',74137509,1,1.25,'simple',{text:()=>`+${k===1?1:fmt(boardPayout(k)*.25)} per correct call on board ${k}.`,show:s=>k===1||s.boards>=k});
+// Lucky Calls is the very first purchase: it costs 1.
+const calls=k=>I('calls'+k,k,k===1?'Lucky Calls':LEAGUES[k-1]+' Calls',74137509,k===1?.2:1,1.25,'simple',{text:()=>`+${k===1?1:fmt(boardPayout(k)*.25)} per correct call on board ${k}.`,show:s=>k===1||s.boards>=k});
 export const ITEMS=[
  calls(1),
+ // One item per tier from the start; the stronger the tier, the smaller the bonus.
  I('tier1',1,'Tier 1 Upsets',40640057,2,1.2,'simple',{text:()=>'+3 whenever a Tier 1 deck wins a duel (× board level).',show:()=>true}),
+ I('tier2',1,'Tier 2 Wins',91152256,1.6,1.2,'simple',{text:()=>'+2 whenever a Tier 2 deck wins a duel (× board level).',show:()=>true}),
+ I('tier3',1,'Tier 3 Wins',89631139,1.2,1.2,'simple',{text:()=>'+1 whenever a Tier 3 deck wins a duel (× board level).',show:()=>true}),
+ I('endless',1,'Endless Wins',10000020,.8,1.2,'simple',{text:()=>'+0.5 whenever an Endless deck wins a duel (× board level).',show:()=>true}),
  I('fee_summon',1,'Summon Fees',70781052,3,1.15,'simple',{text:()=>'+0.1 for every summon (× board level).',show:()=>true}),
  I('fee_attack',1,'Battle Fees',5053103,3,1.15,'simple',{text:()=>'+0.1 for every attack (× board level).',show:s=>lvl(s,'fee_summon')>=1}),
  I('speed',1,'Duel Speed',16589042,10,30,'drastic',{max:7,text:l=>`Duels play at ${l+1}× now · next level ${l+2}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
  I('open2',1,'The Big Leagues',37313786,20,1,'opener',{max:1,text:()=>'Opens board 2. Bets cost 10 and pay 100.',show:s=>lvl(s,'calls1')>=2||s.earned>=20}),
  calls(2),
- I('tier2',2,'Tier 2 Wins',91152256,2,1.2,'simple',{text:()=>'+2 whenever a Tier 2 deck wins a duel (× board level).',show:s=>s.boards>=2}),
  I('fee_destroy',2,'Wreckage Fees',12580477,1.6,1.15,'simple',{text:()=>'+0.2 for every monster destroyed (× board level).',show:s=>s.boards>=2}),
  I('fee_direct',2,'Direct Hit Fees',46986414,2.4,1.15,'simple',{text:()=>'+0.5 for every direct attack (× board level).',show:s=>lvl(s,'fee_destroy')>=1}),
  I('exodia',2,'Exodia Jackpot',33396948,8,4,'drastic',{max:20,text:l=>`Exodia wins pay ${fmt(jackpotBase('exodia',{items:{exodia:l+1}}))}× board level (now ${fmt(jackpotBase('exodia',{items:{exodia:l}}))}).`,show:s=>s.boards>=2}),
  I('destiny',2,'Destiny Jackpot',94212438,8,4,'drastic',{max:20,text:l=>`Destiny Board wins pay ${fmt(jackpotBase('destiny',{items:{destiny:l+1}}))}× board level (now ${fmt(jackpotBase('destiny',{items:{destiny:l}}))}).`,show:s=>s.boards>=2}),
  I('open3',2,'Board 3: '+LEAGUES[2],32807846,20,1,'opener',{max:1,text:()=>`Opens board 3. Bets cost ${fmt(boardStake(3))} and pay ${fmt(boardPayout(3))}.`,show:s=>s.boards>=2&&lvl(s,'calls2')>=1}),
  calls(3),
- I('tier3',3,'Tier 3 Wins',89631139,2,1.2,'simple',{text:()=>'+1 whenever a Tier 3 deck wins a duel (× board level).',show:s=>s.boards>=3}),
  I('fee_spell',3,'Spell Fees',55144522,1.5,1.15,'simple',{text:()=>'+0.1 for every Spell activated (× board level).',show:s=>s.boards>=3}),
  I('fee_trap',3,'Trap Fees',44095762,1.5,1.15,'simple',{text:()=>'+0.2 for every Trap activated (× board level).',show:s=>lvl(s,'fee_spell')>=1}),
  I('highroller',3,'High Roller',3549275,15,40,'drastic',{max:12,text:l=>`Everything pays ×${2**(l+1)} (now ×${2**l}).`,show:s=>s.boards>=3}),
  I('open4',3,'Board 4: '+LEAGUES[3],4031928,20,1,'opener',{max:1,text:()=>`Opens board 4. Bets cost ${fmt(boardStake(4))} and pay ${fmt(boardPayout(4))}.`,show:s=>s.boards>=3&&lvl(s,'calls3')>=1}),
  calls(4),
- I('endless',4,'Endless Wins',10000020,2,1.2,'simple',{text:()=>'+1 whenever an Endless deck wins a duel (× board level).',show:s=>s.boards>=4}),
  I('fee_fusion',4,'Fusion Fees',24094653,2,1.15,'simple',{text:()=>'+1 for every Fusion Summon (× board level).',show:s=>s.boards>=4}),
  I('fee_damage',4,'Damage Fees',19523799,2,1.15,'simple',{text:()=>'+0.2 for every 1,000 damage dealt (× board level).',show:s=>lvl(s,'fee_fusion')>=1}),
  I('open5',4,'Board 5: '+LEAGUES[4],72302403,20,1,'opener',{max:1,text:()=>`Opens board 5. Bets cost ${fmt(boardStake(5))} and pay ${fmt(boardPayout(5))}.`,show:s=>s.boards>=4&&lvl(s,'calls4')>=1}),
@@ -118,7 +120,7 @@ export const tierKey=label=>/^Tier 1/.test(label)?'tier1':/^Tier 2/.test(label)?
 export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=levelScale(level)*multiplier(s),add=(label,v,big=false)=>{if(v>0)parts.push([label,v,big])};
  if(pick!=null&&result.winner===pick)add('Correct call',correctPayout(s,slot,level),true);
  const tier=tierKey(result.winnerTier||'');
- if(result.winner<2&&tier)add({tier1:'Tier 1 upset',tier2:'Tier 2 win',tier3:'Tier 3 win',endless:'Endless win'}[tier],{tier1:3,tier2:2,tier3:1,endless:1}[tier]*lvl(s,tier)*scale);
+ if(result.winner<2&&tier)add({tier1:'Tier 1 upset',tier2:'Tier 2 win',tier3:'Tier 3 win',endless:'Endless win'}[tier],{tier1:3,tier2:2,tier3:1,endless:.5}[tier]*lvl(s,tier)*scale);
  const kind=winKind(result);
  if(kind==='exodia'||kind==='destiny'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add(kind==='exodia'?'EXODIA JACKPOT':'DESTINY JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);

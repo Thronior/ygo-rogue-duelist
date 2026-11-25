@@ -4,19 +4,20 @@
 //
 // Timeline: {v, seed, seats:[{id,tier}], winner (0|1, 2 = draw), reason, turns, frames}
 // Each frame is [events, board?]. board (only when it changed) is two player rows:
-//   [lp, hand, deck, grave, m0..m4, s0..s5]  monster = 0 | [code, atk, def, pos]  spell = 0 | [code, faceUp]
+//   [lp, hand, deck, grave, m0..m4, s0..s5, graveTop, extra, banished]
+//   monster = 0 | [code, atk, def, pos]  spell = 0 | [code (0 while set), faceUp]  (s5 = field zone)
 // Events: ['t',p] turn · ['s',p,code,seq] summon · ['f',p,code,seq] fusion summon · ['a',p,seq,targetSeq]
 //   attack (targetSeq -1 = direct) · ['l',p,amount] LP change · ['x',p,code] destroyed · ['c',p,code,kind]
 //   activation (kind 1 monster, 2 spell, 4 trap)
 import {shuffleCPUDeck as shuffle} from './cpu-deck-model.js';
-export const TIMELINE_VERSION=1;
+export const TIMELINE_VERSION=2;
 const NEUTRAL_PASSIVES='-- SHADOW_RUN_RNG 2\nif Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end';
 const MZONE=4,SZONE=8,GRAVE=0x10;
 
 const monster=c=>c?[c.code,c.attack|0,c.defense|0,c.position|0]:0;
 const spell=c=>c?[(c.position&5)?c.code:0,(c.position&5)?1:0]:0;
 const count=x=>Array.isArray(x)?x.filter(Boolean).length:(x|0);
-export function boardRow(p,s){const pl=s.players[p];return [s.lp[p],count(pl.hand),count(pl.deck),count(pl.grave),...[0,1,2,3,4].map(i=>monster(pl.monsters[i])),...[0,1,2,3,4,5].map(i=>spell(pl.spells[i]))]}
+export function boardRow(p,s){const pl=s.players[p],grave=Array.isArray(pl.grave)?pl.grave.filter(Boolean):[];return [s.lp[p],count(pl.hand),count(pl.deck),grave.length,...[0,1,2,3,4].map(i=>monster(pl.monsters[i])),...[0,1,2,3,4,5].map(i=>spell(pl.spells[i])),grave.at(-1)?.code||0,count(pl.extra),count(pl.banished)]}
 
 function cardKind(engine,code){const t=Number(engine.data?.[Number(code)]?.type)||0;return t&4?4:t&2?2:1}
 function events(engine,visuals){const out=[];

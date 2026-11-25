@@ -16,7 +16,7 @@ The main menu has a new **Duel Bets** card. You bet on which of two random CPUs 
 
 A Web Worker plays each whole duel in the real core ahead of time and posts a compact timeline (about 85 frames, about 16 KB). The board replays that timeline slowly. Timelines are kept in IndexedDB (`ygo-duel-bets`, up to 300), so a phone that can't record as fast as the boards play reuses older duels, never one already on another board. Per-deck results feed the stats that settle bracket duels nobody is watching. Opening a bracket records its duels for real and joins them at the matching point.
 
-Rendering is deliberately bare: coloured slots, ATK numbers and LP bars, updated in place. One timer runs 10×/s while boards are on screen and 4×/s otherwise, and it stops while the page is hidden or the screen is closed. Measured with 9 boards open: about 0.13 ms per tick, no long tasks.
+Each board is a scaled-down duel field: card thumbnails (`assets/cards-thumb`, full art as fallback) in every zone, set cards as backs, ATK/DEF labels, Deck/GY/Extra piles, hands as card backs and LP bars, updated in place. Each CPU's portrait fills its half of the board (full while you bet, dimmed during the duel), and each board slot has its own background colour. One timer runs 10×/s while boards are on screen and 4×/s otherwise, and it stops while the page is hidden or the screen is closed. Measured with 9 boards open: about 0.13 ms per tick, no long tasks.
 
 ## Files
 

@@ -11,13 +11,15 @@ let s=M.newState();
 assert.equal(s.boards,1);assert.equal(s.brackets,0);
 assert.equal(M.boardStake(1),0);assert.equal(M.boardPayout(1),1);
 assert.equal(M.correctPayout(s,1,1),1);
-assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','tier1','fee_summon','speed'],'the opening shop: payout, CPU type, action and speed items');
+assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','tier1','tier2','tier3','endless','fee_summon','speed'],'the opening shop: payout, CPU tier, action and speed items');
+assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
 assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.3,'simple items grow slowly');
 assert.ok(ratio('speed')>=20&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
+assert.equal(M.itemCost('calls1',0),1,'the first upgrade costs 1');
 
 // ---- buying: money goes down, can't overspend, the Big Leagues opens board 2 ----
 s.coins=99;
@@ -101,8 +103,8 @@ if(fs.existsSync(path.join(web,'content.json'))){
  const meta=read('content.json'),decks=meta.cpuWatchDecks,ids=Object.keys(decks).filter(id=>decks[id]?.[0]?.main?.length);
  const engine=await new MobileDuel([...meta.cards,...(meta.tokenCards||[])]).init([read('engine-data.json'),read('scripts.json')]);
  const t=recordDuel(engine,[decks[ids[0]][0],decks[ids[1]][0]],[{id:+ids[0],tier:0},{id:+ids[1],tier:0}],12345);
- assert.equal(t.v,1);assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
- assert.ok(t.frames[0][1]&&t.frames[0][1].length===2&&t.frames[0][1][0].length===15,'the first frame carries both boards');
+ assert.equal(t.v,2);assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
+ assert.ok(t.frames[0][1]&&t.frames[0][1].length===2&&t.frames[0][1][0].length===18,'the first frame carries both boards');
  assert.ok(t.frames.some(f=>f[0].some(e=>e[0]==='t')),'turns are recorded');
  assert.ok(['lp','exodia','destiny','deckout','special'].includes(winKind(t)));
  const again=recordDuel(engine,[decks[ids[0]][0],decks[ids[1]][0]],[{id:+ids[0],tier:0},{id:+ids[1],tier:0}],12345);
