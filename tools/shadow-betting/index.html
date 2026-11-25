@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>Shadow Betting</title>
+<link rel="icon" href="assets/menu/83241722.jpg">
+<style>
+@font-face{font-family:"YGO Display";src:url(assets/fonts/BebasNeue-Regular.ttf);font-display:swap}
+@font-face{font-family:"YGO Card Name";src:url(assets/fonts/SpectralSC-SemiBold.ttf);font-weight:600;font-display:swap}
+@font-face{font-family:"YGO Card Text";src:url(assets/fonts/Spectral-Medium.ttf);font-weight:500;font-display:swap}
+html,body{margin:0;height:100%;background:#0b0d12;color:#f3ead6;font-family:Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#app{position:fixed;inset:0}
+.sb-loading{position:absolute;inset:0;display:grid;place-content:center;gap:10px;text-align:center;font-family:"YGO Display",Impact,sans-serif;font-size:28px;letter-spacing:.05em;color:#f2cf83}
+.sb-loading small{font-family:Arial,sans-serif;font-size:14px;letter-spacing:0;color:#c9bda3}
+.db-vol{display:flex;align-items:center;gap:8px}.db-vol input{width:140px}
+</style>
+</head>
+<body>
+<div id="app"><div class="sb-loading">Shadow Betting<small>Loading…</small></div></div>
+<script type="module" src="shadow-betting.js"></script>
+</body>
+</html>
