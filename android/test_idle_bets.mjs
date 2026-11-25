@@ -19,6 +19,7 @@ const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
 assert.ok(ratio('calls1')<1.4&&ratio('fee_summon')<1.3,'simple items grow slowly');
 assert.ok(ratio('speed')>ratio('calls1')&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=30,'board-wide items grow a lot faster');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
+for(const it of M.ITEMS.filter(i=>i.max>1))for(let l=0;l<Math.min(it.max-1,12);l++)assert.ok(M.itemCost(it.id,l+1)>M.itemCost(it.id,l),`${it.id} gets dearer every purchase (level ${l})`);
 assert.equal(M.itemCost('calls1',0),1,'the first upgrade costs 1');
 
 // ---- buying: money goes down, can't overspend, the Big Leagues opens board 2 ----

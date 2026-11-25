@@ -24,7 +24,13 @@
 
 /* body: boards left, shop right (bottom on portrait) */
 .db-body{flex:1;min-height:0;display:flex}
-.db-stage{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:8px;gap:6px}
+.db-stage{--db-table:url(assets/backgrounds/duel-aurora.jpg);flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:8px;gap:6px;
+ background:linear-gradient(#04101699,#040c12cc),var(--db-table) center/cover no-repeat,var(--db-bg)}
+/* The table behind the boards: a still from the duel backgrounds, matched to the Duel Look. */
+:root[data-duel-theme="shadow-realm"] .db-stage{--db-table:url(assets/backgrounds/duel-glyphs.jpg)}
+:root[data-duel-theme="millennium-stone"] .db-stage{--db-table:url(assets/backgrounds/duel-rays.jpg)}
+:root[data-duel-theme="kaiba-hologram"] .db-stage{--db-table:url(assets/backgrounds/duel-stars.jpg)}
+:root[data-duel-theme="duel-disk"] .db-stage{--db-table:url(assets/backgrounds/duel-embers.jpg)}
 .db-shop{flex:none;width:clamp(250px,30vw,380px);background:var(--db-panel);border-left:2px solid var(--db-line);min-height:0;display:flex}
 .db-shop-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:6px;display:flex;flex-direction:column;gap:5px}
 @media (orientation:portrait){.db-body{flex-direction:column}.db-shop{width:auto;height:38%;border-left:0;border-top:2px solid var(--db-line)}}
@@ -82,10 +88,12 @@
 .db-who.picked .db-name{color:var(--db-accent)}
 .db-who.picked .db-name::before{content:"★ "}
 .db-who.won .db-name{color:#8dffad}.db-who.lost{opacity:.55}
-.db-lp{position:relative;flex:1;min-width:34px;max-width:120px;height:max(11px,calc(var(--ch) * .24));background:#000a;border-radius:3px;overflow:hidden}
-.db-lp i{position:absolute;inset:0 auto 0 0;width:100%;background:var(--db-p0);opacity:.6;transition:width .35s ease-out}
-.p1 .db-lp i{background:var(--db-p1)}
-.db-lp b{position:relative;display:block;text-align:center;font-size:max(8px,calc(var(--ch) * .19));line-height:max(11px,calc(var(--ch) * .24));font-variant-numeric:tabular-nums}
+.db-lp{position:relative;flex:1;min-width:60px;max-width:210px;height:max(17px,calc(var(--ch) * .36));background:#000c;border:1px solid #ffffff38;border-radius:4px;overflow:hidden;box-shadow:0 2px 6px #000a}
+.db-lp i{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(#6fc0ff,var(--db-p0));opacity:.85;transition:width .45s ease-out}
+.p1 .db-lp i{background:linear-gradient(#ff9aa6,var(--db-p1))}
+.db-who.low .db-lp i{background:linear-gradient(#ff6a5a,#b3131a)}
+.db-lp b{position:relative;display:block;text-align:center;font-size:max(13px,calc(var(--ch) * .3));font-weight:900;line-height:max(17px,calc(var(--ch) * .36));color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.db-who.low .db-lp b{color:#ffe0e0}
 .db-tier{font-style:normal;font-size:max(8px,calc(var(--ch) * .15));font-weight:900;padding:1px 4px;border-radius:3px;background:#ffffff33;letter-spacing:.03em}
 .db-tier.tier1{background:#3c8f5a}.db-tier.tier2{background:#2f6fb8}.db-tier.tier3{background:#8b3fbf}.db-tier.endless{background:#b8432f}
 /* Hands: card backs, overlapped. */
@@ -161,3 +169,30 @@
 .db-roster button:hover:not(:disabled){border-color:var(--db-accent)}
 .db-roster img{width:64px;height:64px;object-fit:cover;object-position:50% 20%;border-radius:var(--db-radius)}
 .db-roster span{font-size:12px;text-align:center}
+
+/* Impact effects (idle-bets.js BoardView.lvl): one-shot, transform/opacity only. */
+.db-stamp{position:absolute;z-index:4;translate:-50% -50%;rotate:-8deg;pointer-events:none;font-style:normal;font-weight:900;letter-spacing:.06em;white-space:nowrap;font-size:max(16px,16cqh);padding:.05em .35em;border:max(2px,.6cqh) solid currentColor;border-radius:.18em;text-shadow:0 2px 6px #000;background:#000a;will-change:transform,opacity}
+.db-stamp.duel{color:#ffd76a}.db-stamp.good{color:#7dffa0;font-size:max(18px,18cqh)}.db-stamp.bad{color:#c7c7c7;font-size:max(14px,13cqh)}
+.db-flash{position:absolute;inset:0;z-index:1;pointer-events:none;will-change:opacity}
+.db-ring{position:absolute;inset:-6%;border:2px solid #fff;border-radius:inherit;pointer-events:none;will-change:transform,opacity}
+.db-poof{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;z-index:2;will-change:transform,opacity}
+.db-shard{position:absolute;left:45%;top:45%;width:12%;height:12%;background:#ffb070;border-radius:2px;box-shadow:0 0 4px #ff7a30;pointer-events:none;z-index:2;will-change:transform,opacity}
+.db-screenflash{position:absolute;inset:0;background:radial-gradient(circle,#fff6c8cc,#ffcf5a55 45%,transparent 75%);pointer-events:none;will-change:opacity}
+.db-splash{position:absolute;left:50%;top:44%;width:min(30vw,240px);translate:-50% -50%;border-radius:10px;box-shadow:0 0 40px 10px #ffcf5a,0 10px 30px #000;pointer-events:none;will-change:transform,opacity}
+.db-result{box-shadow:0 0 22px #000c}
+.db-result.good{box-shadow:0 0 22px #5ee08a88}
+.db-board:has(.db-pick.s0:hover:not(:disabled)) .db-art.a0,.db-board:has(.db-pick.s1:hover:not(:disabled)) .db-art.a1{scale:1.05}
+.db-art{transition:opacity .3s,scale .25s}
+.db-pick:active:not(:disabled){background:linear-gradient(color-mix(in srgb,var(--db-accent) 35%,transparent),#000c)}
+.db-buy:not(.poor):not(:disabled):active{scale:.92}
+.db-buy{transition:scale .08s}
+.db-item-text{justify-content:center}
+.db-item{min-height:50px}
+
+/* LP danger: a red glow over that player's half, stronger as LP falls; under 1000 LP it pulses. */
+.db-danger{position:absolute;left:0;right:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s ease-out;will-change:opacity}
+.db-danger.p1{top:0;bottom:50%;background:radial-gradient(ellipse at 50% 0%,#ff1a1acc,#c0000066 45%,transparent 80%)}
+.db-danger.p0{top:50%;bottom:0;background:radial-gradient(ellipse at 50% 100%,#ff1a1acc,#c0000066 45%,transparent 80%)}
+.db-danger.critical::after{content:"";position:absolute;inset:0;background:inherit;opacity:0;animation:db-pulse .9s ease-in-out infinite alternate;will-change:opacity}
+@keyframes db-pulse{to{opacity:.9}}
+:root.performance-mode .db-danger.critical::after{animation:none}

@@ -87,7 +87,8 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner'};
 for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice(5))-1]:ART[it.id];
 export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
-export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));return Math.ceil(it.base*it.growth**level)}
+export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
+ return Math.ceil(it.base*it.growth**level+level)}
 export const itemLevel=lvl;
 
 // ---- state ----
