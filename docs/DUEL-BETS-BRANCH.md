@@ -12,6 +12,9 @@ The main menu has a new **Duel Bets** card. You bet on which of two random CPUs 
 - Bracket tiles show a 9×9 crosstable: 18 portraits on the two axes, W/L per matchup, and live duels as both portraits in their board's colour. An open bracket shows its 9 boards, plus a live standings table behind a burger button.
 - **Automation:** Auto Bet backs a random duelist on one waiting board every 5 s, 20% faster per level, down to 0.5 s. Scouting Report (bought once) makes it back the higher-tier CPU, at random when the tiers are equal.
 - **Duel Speed** adds +0.1× per purchase, up to 8×.
+- **Duel Feats:** the main game's public battle coin rules (`content.battleCoinRules`; the hidden coin feats are not used) are counted for both CPUs from each recorded duel and grouped into seven Feat items: Summon, Battle, Activation, Set, Destruction, Survival and Victory. Each level pays 5% of the rule's coins, times the board's level. "Boss victory" means beating an Endless or World Championship deck.
+- **Shop:** category tabs; each tab lists items from the most expensive to the cheapest first-purchase price; hover tooltips give exact effects.
+- **Replays:** minigame duels are never saved as game replays (the recorder clears the engine's `replayRecord`).
 - **Exodia** and **Destiny Board** wins pay jackpots, with upgrades for each. Other jackpots are deck-out and other alternate wins.
 - Prices: items that lift every board (Duel Speed, High Roller, the jackpots) grow ×3–×40 per purchase. Per-event and per-board items grow ×1.15–×1.25.
 

@@ -11,7 +11,7 @@ let s=M.newState();
 assert.equal(s.boards,1);assert.equal(s.brackets,0);
 assert.equal(M.boardStake(1),0);assert.equal(M.boardPayout(1),1);
 assert.equal(M.correctPayout(s,1,1),1);
-assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_attack','fee_spell','fee_trap','speed'],'the opening shop: payout, monster/Spell/Trap fees and speed');
+assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_attack','fee_spell','fee_trap','speed','feat_summon','feat_battle'],'the opening shop: payout, monster/Spell/Trap fees, speed and the first feats');
 assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
 for(const it of M.ITEMS)assert.ok(M.tooltip(M.newState(),it.id).join(' ').length>20,'every item has a tooltip: '+it.id);
 assert.ok(M.tooltip({...M.newState(),items:{fee_summon:3}},'fee_summon').some(x=>x.includes('+0.3')),'the tooltip shows the current total');
@@ -66,8 +66,8 @@ assert.ok(M.itemCost('scout',0)>M.itemCost('autobet',0)*5,'Scouting Report costs
 
 // ---- event income: per action, times board level and High Roller ----
 s=M.newState();s.items={fee_summon:2,fee_attack:1,fee_direct:2,fee_destroy:1,fee_trap:1,fee_damage:1};
-const ev=[['s',0,123,0],['a',0,0,-1],['x',1,55],['c',1,44095762,4],['l',1,-2000]];
-const base=2*.1+.1+2*.5+.2+.2+.2*2;
+const ev=[['s',0,123,0,0],['a',0,0,-1],['x',1,55,1,4],['x',1,66,0,8],['c',1,44095762,4],['l',1,-2000]];
+const base=2*.1+.1+2*.5+.2+.2+.2*2;// the Spell/Trap destroyed (zone 8) pays no Wreckage Fee
 assert.ok(Math.abs(M.eventIncome(s,ev,1)-base)<1e-9);
 assert.ok(Math.abs(M.eventIncome(s,ev,3)-base*100)<1e-9,'board level 3 pays ×100');
 s.items.highroller=2;assert.ok(Math.abs(M.eventIncome(s,ev,1)-base*4)<1e-9,'High Roller ×2 per level');
@@ -82,6 +82,32 @@ pay=M.duelPayout(s,{winner:0,reason:16,turns:9,winnerLp:8000,winnerTier:'Tier 3'
 const jackpot=pay.parts.find(p=>p[0]==='EXODIA JACKPOT');assert.ok(jackpot&&jackpot[2],'Exodia pays a big jackpot');
 assert.equal(jackpot[1],100*10*2,'50×2 (one upgrade) × board level 2, doubled for backing the winner');
 assert.equal(M.duelPayout(s,{winner:1,reason:21,turns:9,winnerLp:500,winnerTier:'Tier 2'},1,1,null).parts[0][0],'DESTINY JACKPOT');
+
+// ---- shop sections: every item has one ----
+for(const it of M.ITEMS)assert.notEqual(M.categoryOf(it.id),'Other','category for '+it.id);
+assert.equal(M.categoryOf('feat_summon'),'Duel Feats');assert.equal(M.categoryOf('open3'),'Expansion');
+
+// ---- Duel Feats: the main game's coin rules counted from a recorded duel ----
+M.setCoinRules([{label:'Monsters summoned: 1+',coins:1,metric:'summons',threshold:1},{label:'Monsters summoned: 3+',coins:2,metric:'summons',threshold:3},
+ {label:'Special Summons: 1+',coins:3,metric:'special_summons',threshold:1},{label:'Cards set: 1+',coins:1,metric:'sets',threshold:1},
+ {label:'Enemy cards destroyed by battle: 1+',coins:1,metric:'battle_destroy',threshold:1},{label:'Cards banished: 1+',coins:5,metric:'banish',threshold:1},
+ {label:'Largest damage hit: 2000+',coins:3,metric:'big_hit',threshold:2000},{label:'Exact lethal damage',coins:30,metric:'exact_lethal',threshold:1},
+ {label:'Effect damage dealt: 500+',coins:5,metric:'effect_damage',threshold:500},{label:'Win without taking damage',coins:8,metric:'untouched',threshold:1,victoryOnly:true},
+ {label:'Level 8+ monsters summoned: 1+',coins:12,metric:'level_eight',threshold:1},{label:'Play your signature card',coins:10,metric:'signature_played',threshold:1}]);
+const info=c=>({1:{type:0x21,level:8,race:'Dragon',attribute:'LIGHT'},2:{type:0x11,level:4,race:'Warrior',attribute:'EARTH'}}[c]||null);
+const ftl={winner:0,reason:1,turns:5,seats:[{id:1,tier:0},{id:2,tier:0}],frames:[
+ [[['t',0],['s',0,1,0,0],['n',0,0],['p',8],['a',0,0,-1],['p',64],['l',1,-3000]],[[8000,4,30,0,[1,3000,2500,1],0,0,0,0,0,0,0,0,0,0,0,0,0],[5000,5,30,0]]],
+ [[['t',1],['s',1,2,0,1],['c',1,999,2],['l',0,0],['x',1,2,1,4],['b',0]]],
+ [[['t',0],['p',4],['l',1,-5000]]]]};
+const fm=M.duelMetrics(ftl,info,[new Set([1]),new Set()],['Tier 1','Endless']);
+assert.equal(fm[0].summons,1);assert.equal(fm[0].tribute_summons,1,'a Level 8 Normal Summon counts as a Tribute Summon');assert.equal(fm[1].special_summons,1);
+assert.equal(fm[0].sets,1);assert.equal(fm[0].spell_trap_sets,1);assert.equal(fm[0].battle_destroy,1,'the destroying player gets the credit');
+assert.equal(fm[0].big_hit,5000);assert.equal(fm[0].effect_damage,5000,'damage outside an attack is effect damage');assert.equal(fm[0].exact_lethal,1,'5000 into 5000 LP');
+assert.equal(fm[0].untouched,1);assert.equal(fm[0].signature_played,1);assert.equal(fm[0].level_eight,1);assert.equal(fm[0].peak_attack,3000);assert.equal(fm[0].boss_victory,1,'beat an Endless deck');
+let fst=M.newState();assert.equal(M.featPayout(fst,fm,0,1).total,0,'no feat items, no feat coins');
+fst.items.feat_summon=2;const fp=M.featPayout(fst,fm,0,1);assert.ok(fp.total>0&&fp.hits>=3);
+fst.items.feat_victory=1;assert.ok(M.featPayout(fst,fm,1,1).total<M.featPayout(fst,fm,0,1).total+1e-9,'victory-only rules pay only for the winner');
+assert.ok(M.tooltip(fst,'feat_summon').some(x=>/Monsters summoned/.test(x)),'the tooltip lists the conditions');
 
 // ---- pacing: frames take time, turns and attacks longer ----
 const tl={v:1,seats:[{id:1,tier:0},{id:2,tier:1}],winner:0,reason:1,turns:3,frames:[[[]],[[['t',0]]],[[['a',0,1,-1],['l',1,-1500]],[[1,1,1,1],[6500,5,30,0]]]]};
@@ -123,7 +149,8 @@ if(fs.existsSync(path.join(web,'content.json'))){
  const meta=read('content.json'),decks=meta.cpuWatchDecks,ids=Object.keys(decks).filter(id=>decks[id]?.[0]?.main?.length);
  const engine=await new MobileDuel([...meta.cards,...(meta.tokenCards||[])]).init([read('engine-data.json'),read('scripts.json')]);
  const t=recordDuel(engine,[decks[ids[0]][0],decks[ids[1]][0]],[{id:+ids[0],tier:0},{id:+ids[1],tier:0}],12345);
- assert.equal(t.v,3);assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
+ assert.equal(t.v,4);
+ assert.equal(engine.replayRecord,null,'minigame duels are never kept as game replays');assert.ok([0,1,2].includes(t.winner));assert.ok(t.frames.length>5,'a duel has frames');
  assert.ok(t.frames[0][1]&&t.frames[0][1].length===2&&t.frames[0][1][0].length===18,'the first frame carries both boards');
  assert.ok(t.frames.some(f=>f[0].some(e=>e[0]==='t')),'turns are recorded');
  assert.ok(t.frames.some(f=>f[0].some(e=>e[0]==='p'&&e[1]===8)),'phases are recorded (a Battle Phase)');

@@ -26,6 +26,10 @@ export class DuelBets{
   this.pool=[];this.deckList={};
   for(const [id,records] of Object.entries(decks))records.forEach((r,t)=>{if(!r?.main?.length||!this.chars[id])return;const key=id+':'+t;this.pool.push({id:Number(id),tier:t,label:r.label||'Tier '+(t+1),key});this.deckList[key]={main:r.main,extra:r.extra||[]}});
   this.cards=new Map();for(const c of [...(content.cards||[]),...(content.tokenCards||[])])this.cards.set(c.id,c);
+  // Duel Feats use the main game's public battle coin rules.
+  M.setCoinRules(content.battleCoinRules);const byName=new Map([...this.cards.values()].map(c=>[c.name,c.id]));
+  this.cardInfo=code=>{const c=this.cards.get(code);return c?{type:Number(c.data?.type)||0,level:Number(c.level)||0,race:c.race,attribute:c.attribute}:null};
+  this.signatures=id=>new Set((this.chars[id]?.cards||[]).map(n=>byName.get(n)).filter(Boolean));
   this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
   this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])]});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
@@ -49,8 +53,8 @@ export class DuelBets{
  tierChip(label){const t=M.tierKey(label),short={'Opening Duel':'Opening','World Championship':'WC'}[label]||label.replace('Tier ','T');return `<i class="db-tier ${t||'other'}" title="${esc(label)}">${esc(short)}</i>`}
  // ---- screen ----
  render(){
-  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button><button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
-  this.el={total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
+  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button><button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
+  this.el={tabs:this.root.querySelector('.db-shop-tabs'),total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
   this.paintTotal(true);this.renderShop();
   // Shop tooltips: hover an item (mouse) or tap its picture (touch) for exactly what it does.
   this.el.tip=document.createElement('div');this.el.tip.className='db-tip';this.root.querySelector('.duel-bets').append(this.el.tip);
@@ -87,12 +91,19 @@ export class DuelBets{
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- shop ----
  renderShop(){
-  const s=this.state,items=M.visibleItems(s);this.shopIds=items.map(i=>i.id).join();
-  this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
-   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
+  // Category tabs; the open tab lists its items from the dearest to the cheapest first-purchase price.
+  const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
+  const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
+  this.el.tabs.innerHTML=cats.map(c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`).join('');
+  const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
+  const head='';this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
+   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span><button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button></div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
   this.paintAfford();
  }
- paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}}
+ paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.itemCost(id,level)))}
+  // A dot on each tab that has something you can buy right now.
+  const ok=new Set(M.visibleItems(this.state).filter(i=>{const l=M.itemLevel(this.state,i.id);return l<i.max&&M.canAfford(this.state,M.itemCost(i.id,l))}).map(i=>M.categoryOf(i.id)));
+  for(const t of this.el.tabs?.children||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
  refreshShop(){const ids=M.visibleItems(this.state).map(i=>i.id).join();if(ids!==this.shopIds)this.renderShop();else this.paintAfford()}
  // ---- money ----
  gain(amount,{from=null,size='small',label=''}={}){if(!(amount>0))return;M.earn(this.state,amount);this.dirty=true;this.fx(amount,from,size,label);this.paintTotal();this.refreshShop()}
@@ -106,6 +117,7 @@ export class DuelBets{
  // ---- effects ----
  sound(path,gain=1){const v=this.volume?.()||0;if(!v||document.hidden)return;this.voices??=Array.from({length:5},()=>new Audio());const a=this.voices[this.voiceAt=((this.voiceAt||0)+1)%this.voices.length];a.pause();a.src=assetURL(path);balancedVolume(a,v,gain);a.play().catch(()=>{})}
  // Board sounds: each one at most every 150 ms, quieter and rarer when many boards share the screen.
+ crowded(){return (this.openBracket?9:this.boards.length)>=7}
  boardSound(path,gain=1){if(this.state.settings.fx==='off')return;const many=(this.openBracket?9:this.boards.length)>4,now=performance.now();this.lastSfx??={};
   if(now-(this.lastSfx[path]||0)<(many?400:150))return;this.lastSfx[path]=now;this.sound(path,gain*(many?.6:1))}
  // A big final blow gets the duel's own finisher voice, like the main game (only with a few boards on screen).
@@ -114,8 +126,10 @@ export class DuelBets{
   const word=hit>=8000?'godlike':hit>=6000?'annihilation':hit>=4500?'devastating':hit>=3000?'overkill':'';if(word)this.sound('assets/sfx/kill-'+word+'.wav',1.2)}
  fx(amount,from,size,label){
   const fxOn=this.state.settings.fx,m=motion(),now=performance.now();
-  if(size==='small'){if(now-(this.lastTick||0)>180){this.lastTick=now;if(fxOn!=='off')this.sound('sound/coin-pickup'+['','-2','-3'][Math.floor(Math.random()*3)]+'.wav',.35)}}
-  else if(size==='medium')this.sound('assets/sfx/count-coins.wav',.9);
+  // Coin sounds are as loud as the coin is big, compared with what was earned over the last ~2 seconds.
+  this.recentCoins=(this.recentCoins||[]).filter(x=>now-x[0]<2000);this.recentCoins.push([now,amount]);const avg=this.recentCoins.reduce((a,x)=>a+x[1],0)/this.recentCoins.length,loud=Math.max(.15,Math.min(1,Math.sqrt(amount/avg)/1.3));
+  if(size==='small'){if(now-(this.lastTick||0)>180){this.lastTick=now;if(fxOn!=='off')this.sound('sound/coin-pickup'+['','-2','-3'][Math.floor(Math.random()*3)]+'.wav',.4*loud)}}
+  else if(size==='medium')this.sound('assets/sfx/count-coins.wav',.95*Math.max(.35,loud));
   else{this.sound(size==='jackpot'?'assets/sfx/pack-rare.mp3':'assets/sfx/perfect-chime.wav',1.1);setTimeout(()=>this.sound('assets/sfx/reward-ding.wav',1),220)}
   if(fxOn==='off'||m===0||!this.el)return;
   // Pop from where the money came from; a source that is not on screen (another bracket) pops beside the total.
@@ -149,6 +163,7 @@ export class DuelBets{
  action(a,el){
   if(a==='exit')return this.exit();
   if(a==='settings')return this.settings();
+  if(a==='shop-tab'){this.shopTab=el.dataset.cat;this.hideTip();this.renderShop();this.el.shop.scrollTop=0;return}
   if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
    if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?M.bracketName(1)+'!':M.bracketName(this.state.brackets)+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
@@ -250,7 +265,7 @@ class BoardView{
  frame(board,events,replay){
   this.field.classList.add('playing');
   if(board)board.forEach((row,p)=>this.row(p,row));
-  const anim=this.game.state.settings.fx!=='off'&&motion()===2;
+  const anim=this.lvl()===2;
   for(const e of events){const p=e[1],v=this.sides[p];
    if(e[0]==='t'){this.turnN=(this.turnN||0)+1;this.turnEl.textContent='T'+this.turnN;this.turnEl.classList.toggle('p1',p===1)}
    else if(e[0]==='p')this.phase(p)
@@ -281,7 +296,8 @@ class BoardView{
   if(!last||last[3]!==row[3]||last[15]!==row[15]||last[17]!==row[17]){this.card(v.grave,row[15]||0,{label:row[3]?String(row[3]):''})}
  }
  // ---- impact: 0 none (Off / reduced motion) · 1 light (no shakes or particles) · 2 full ----
- lvl(){const fx=this.game.state.settings.fx,m=motion();return fx==='off'||m===0?0:fx==='light'||m===1?1:2}
+ // 7+ duels on screen at once: every board drops to the light level (no shakes, rings, bursts, slams or lunges).
+ lvl(){const fx=this.game.state.settings.fx,m=motion();return fx==='off'||m===0?0:fx==='light'||m===1||this.game.crowded()?1:2}
  play(el,frames,opt){return el.animate(frames,opt).finished.catch(()=>{}).finally(()=>el.remove())}
  temp(cls,parent=this.field,tag='i'){const el=document.createElement(tag);el.className=cls;parent.append(el);return el}
  shake(px){if(this.lvl()<2||!px)return;this.mat.animate([{translate:'0 0'},{translate:`${px}px ${-px*.6}px`},{translate:`${-px}px ${px*.5}px`},{translate:`${px*.5}px ${-px*.3}px`},{translate:'0 0'}],{duration:280,easing:'ease-out'})}
@@ -302,14 +318,14 @@ class BoardView{
  outcome(winner,pick){if(winner<2&&this.lvl())this.sides[winner].art.animate([{opacity:.32},{opacity:.7}],{duration:500,fill:'forwards'});
   if(pick==null)return;if(winner===pick){this.stamp('CORRECT!','good',50,42);this.shake(3)}else this.stamp('MISS','bad',50,42)}
  // The hit CPU's portrait shakes on any hit over 1000 damage, harder for bigger hits.
- hurt(p,hit){if(!this.lvl())return;const px=Math.min(14,4+hit/500),v=this.sides[p];
+ hurt(p,hit){if(this.lvl()<2)return;const px=Math.min(14,4+hit/500),v=this.sides[p];
   v.art.animate([{translate:'0 0'},{translate:`${-px}px ${px*.3}px`},{translate:`${px}px ${-px*.3}px`},{translate:`${-px*.7}px 0`},{translate:`${px*.5}px ${px*.2}px`},{translate:`${-px*.25}px 0`},{translate:'0 0'}],{duration:420,easing:'ease-out',composite:'add'})}
  // That player's half turns redder as their LP falls (none at 8000+, strongest at 0); under 1000 it pulses.
  danger(p,lp){const v=this.sides[p],k=Math.max(0,Math.min(1,1-lp/8000));v.danger.style.opacity=this.game.state.settings.fx==='off'?0:(k**1.6*.85).toFixed(3);v.danger.classList.toggle('critical',lp>0&&lp<1000&&this.lvl()>0);v.who.classList.toggle('low',lp<2000);v.gauge.classList.toggle('low',lp<2000)}
  // The lit phase: Battle Phase covers its steps (8-128).
  phase(n){const key=n>=8&&n<256?8:n;for(const i of this.phases)i.classList.toggle('on',Number(i.dataset.ph)===key)}
  // Damage numbers: rise from the hit player's half of the field (top player = upper half) and fade.
- damage(p,amount){if(!amount||this.game.state.settings.fx==='off')return;if((this.dmgN||0)>=4)return;
+ damage(p,amount){if(!amount||this.game.state.settings.fx==='off')return;if((this.dmgN||0)>=(this.game.crowded()?2:4))return;
   const el=document.createElement('b'),big=Math.abs(amount)>=2000;el.className='db-dmg'+(amount>0?' heal':'')+(big?' big':'');el.textContent=(amount>0?'+':'−')+Math.abs(amount);
   el.style.left=(p?72+Math.random()*12:16+Math.random()*12)+'%';el.style.top=(38+Math.random()*14)+'%';this.field.append(el);this.dmgN=(this.dmgN||0)+1;
   const done=()=>{el.remove();this.dmgN--};
@@ -344,7 +360,7 @@ class Board{
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
   else if(this.phase==='result'){this.hold-=dt/M.speedOf(this.game.state);if(this.hold<=0){this.game.supply.release(this.replay?.tl);this.replay=null;this.fetch();this.paint()}}
  }
- finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=M.duelPayout(s,r,this.level,this.slot,pick),kind=r.reason;
+ finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=g.withFeats(M.duelPayout(s,r,this.level,this.slot,pick),this.replay.tl,this.level),kind=r.reason;
   this.stake=0;this.phase='result';this.hold=RESULT_HOLD;
   if(pick===r.winner){s.stats.correct++;s.stats.slots[this.slot]=(s.stats.slots[this.slot]||0)+1}
   if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;
@@ -360,6 +376,10 @@ DuelBets.prototype.jackpot=function(label,from){if(!this.el||this.state.settings
  // Kept light on purpose: one image scaling in and out, no full-screen flash or shake.
  if(art){const img=document.createElement('img');img.className='db-splash';img.alt='';img.src=assetURL('assets/cards/'+art+'.jpg');img.style.left=at.x+'px';img.style.top=at.y+'px';img.style.width=Math.min(200,at.h*.55*.69,at.w*.4)+'px';this.el.fx.append(img);
   img.animate([{opacity:0,scale:.6},{opacity:1,scale:1,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1.08}],{duration:1800,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>img.remove())}};
+// Duel Feats for a recorded duel: added to its payout as one part.
+DuelBets.prototype.withFeats=function(pay,tl,level){if(!tl||!M.ITEMS.some(i=>/^feat_/.test(i.id)&&M.itemLevel(this.state,i.id)))return pay;
+ const seats=tl.seats.map(x=>this.seatOf(x)),metrics=M.duelMetrics(tl,this.cardInfo,tl.seats.map(x=>this.signatures(x.id)),seats.map(x=>x.label)),f=M.featPayout(this.state,metrics,tl.winner,level);
+ if(f.total>0){pay.parts.push([`Duel feats ×${f.hits}`,f.total,true]);pay.total+=f.total}return pay};
 DuelBets.prototype.payParts=function(pay,from){
  // Each part of a payout pops on its own: jackpots get the big treatment.
  pay.parts.forEach(([label,value,big],i)=>setTimeout(()=>{if(!this.el)return;const jackpot=/JACKPOT|Alternate|Deck-out/.test(label);this.gain(value,{from,size:jackpot?'jackpot':big?'medium':'small',label:big&&!jackpot?label:''});if(jackpot){this.jackpot(label,from);this.banner(label+'!',from||null)}},i*260));
@@ -451,7 +471,7 @@ class Bracket{
   this.table?.update(r.winner<2?d.pair[r.winner]:null,r.winner<2?d.pair[1-r.winner]:null);if(!this.game.openBracket)this.paintTile();
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
   if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;
-  const pay=M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick);d.stake=0;
+  const pay=this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot));d.stake=0;
   this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);if(d.view&&replay)this.game.finisher(replay.tl,r);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.setStakes('');d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}
   this.game.dirty=true}
