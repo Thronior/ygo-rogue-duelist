@@ -211,7 +211,7 @@ export class DuelBets{
   d.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
  settings(){const s=this.state.settings,st=this.state.stats;
   const row=(name,value,label)=>`<label class="db-set"><input type="radio" name="fx" value="${value}" ${s.fx===value?'checked':''}> ${label}</label>`;
-  this.modal('Settings',`<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Destiny Board wins seen: ${st.destiny} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Shadow Betting</button>`,(e,d)=>{
+  this.modal('Settings',`<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Shadow Betting</button>`,(e,d)=>{
    const r=e.target.closest('input[name="fx"]');if(r){s.fx=r.value;this.dirty=true}
    const inf=e.target.closest('[data-infinite]');if(inf){s.infinite=inf.checked;this.dirty=true;this.paintTotal(true);this.refreshShop()}
    if(e.target.closest('[data-reset]')){if(!e.target.dataset.armed){e.target.dataset.armed='1';e.target.textContent='Tap again to erase all Shadow Betting progress';return}d.close();this.reset()}
@@ -223,8 +223,8 @@ export class DuelBets{
   const rows=this.pool.map(d=>{const [g,w,ex,de]=stats[d.id+':'+d.tier]||[0,0,0,0],s=this.seatOf(d);return {...s,g,w,l:g-w,ex,de,score:g?(w+1)/(g+2):-1}})
    .sort((a,b)=>b.score-a.score||b.g-a.g||a.name.localeCompare(b.name));
   const played=rows.filter(r=>r.g).length,duels=rows.reduce((n,r)=>n+r.g,0)/2;
-  return `<p class="db-stats-note">${Math.round(duels).toLocaleString()} duels played · ${played} of ${rows.length} decks have played · best to worst · updates every 10 s</p><table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th><th>Destiny</th></tr></thead><tbody>${
-   rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td><td>${r.de||''}</td></tr>`).join('')}</tbody></table>`}
+  return `<p class="db-stats-note">${Math.round(duels).toLocaleString()} duels played · ${played} of ${rows.length} decks have played · best to worst · updates every 10 s</p><table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th></tr></thead><tbody>${
+   rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td></tr>`).join('')}</tbody></table>`}
  deckStats(){const d=this.modal('CPU deck stats',`<div class="db-stats-wrap">${this.deckStatsHTML()}</div>`),body=d.querySelector('.db-modal-body');
   const timer=setInterval(()=>{if(!d.open||!this.el){clearInterval(timer);return}const top=body.scrollTop;d.querySelector('.db-stats-wrap').innerHTML=this.deckStatsHTML();body.scrollTop=top},10000);
   d.addEventListener('close',()=>clearInterval(timer))}
@@ -403,8 +403,8 @@ class Board{
  refund(){if(this.phase==='play'&&this.stake){if(!this.game.state.settings.infinite)this.game.state.coins+=this.stake;this.stake=0}}
  destroy(){this.dead=true;this.game.supply.release(this.replay?.tl);this.game.supply.release(this.next);this.detach()}
 }
-// Exodia / Destiny Board / other jackpots: the whole screen flashes and shakes and the card bursts in.
-DuelBets.prototype.jackpot=function(label,from){if(!this.el||this.state.settings.fx==='off'||!motion())return;const art=/EXODIA/.test(label)?33396948:/DESTINY/.test(label)?94212438:null,at=this.spot(from);if(!at)return;
+// Exodia / other jackpots: the whole screen flashes and shakes and the card bursts in.
+DuelBets.prototype.jackpot=function(label,from){if(!this.el||this.state.settings.fx==='off'||!motion())return;const art=/EXODIA/.test(label)?33396948:null,at=this.spot(from);if(!at)return;
  // Kept light on purpose: one image scaling in and out, no full-screen flash or shake.
  if(art){const img=document.createElement('img');img.className='db-splash';img.alt='';img.src=assetURL('assets/cards/'+art+'.jpg');img.style.left=at.x+'px';img.style.top=at.y+'px';img.style.width=Math.min(200,at.h*.55*.69,at.w*.4)+'px';this.el.fx.append(img);
   img.animate([{opacity:0,scale:.6},{opacity:1,scale:1,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1.08}],{duration:1800,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>img.remove())}};

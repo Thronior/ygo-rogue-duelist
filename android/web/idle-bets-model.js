@@ -63,7 +63,6 @@ export const ITEMS=[
  I('fee_destroy',2,'Wreckage Fees',12580477,1.6,1.15,'simple',{text:()=>'+0.2 for every monster destroyed (× board level).',show:s=>s.boards>=2}),
  I('fee_direct',2,'Direct Hit Fees',46986414,2.4,1.15,'simple',{text:()=>'+0.5 for every direct attack (× board level).',show:s=>lvl(s,'fee_destroy')>=1}),
  I('exodia',2,'Exodia Jackpot',33396948,8,4,'drastic',{max:20,text:l=>`Exodia wins pay ${fmt(jackpotBase('exodia',{items:{exodia:l+1}}))}× board level (now ${fmt(jackpotBase('exodia',{items:{exodia:l}}))}).`,show:s=>s.boards>=2}),
- I('destiny',2,'Destiny Jackpot',94212438,8,4,'drastic',{max:20,text:l=>`Destiny Board wins pay ${fmt(jackpotBase('destiny',{items:{destiny:l+1}}))}× board level (now ${fmt(jackpotBase('destiny',{items:{destiny:l}}))}).`,show:s=>s.boards>=2}),
  I('open3',2,'Board 3: '+LEAGUES[2],32807846,20,1,'opener',{max:1,text:()=>`Opens board 3. Bets cost ${fmt(boardStake(3))} and pay ${fmt(boardPayout(3))}.`,show:s=>s.boards>=2&&lvl(s,'calls2')>=1}),
  calls(3),
  I('highroller',3,'High Roller',3549275,15,40,'drastic',{max:12,text:l=>`Everything pays ×${2**(l+1)} (now ×${2**l}).`,show:s=>s.boards>=3}),
@@ -77,7 +76,7 @@ export const ITEMS=[
  I('fee_heal',5,"Healer's Tithe",11714098,2,1.15,'simple',{text:()=>'+0.5 for every 1,000 LP gained (× board level).',show:s=>s.boards>=5}),
  I('open6',5,'Board 6: '+LEAGUES[5],83764718,20,1,'opener',{max:1,text:()=>`Opens board 6. Bets cost ${fmt(boardStake(6))} and pay ${fmt(boardPayout(6))}.`,show:s=>s.boards>=5&&lvl(s,'calls5')>=1}),
  calls(6),
- I('special',6,'Alternate Win Jackpot',28566710,3,3,'drastic',{max:20,text:()=>'+200 whenever a duel ends by a special win other than Exodia or Destiny Board (× board level).',show:s=>s.boards>=6}),
+ I('special',6,'Alternate Win Jackpot',28566710,3,3,'drastic',{max:20,text:()=>'+200 whenever a duel ends by a special win other than Exodia (× board level).',show:s=>s.boards>=6}),
  I('flawless',6,'Flawless Bonus',5318639,2,1.2,'simple',{text:()=>'+5 whenever the winner still has 8,000 LP or more (× board level).',show:s=>s.boards>=6}),
  I('open7',6,'Board 7: '+LEAGUES[6],50045299,20,1,'opener',{max:1,text:()=>`Opens board 7. Bets cost ${fmt(boardStake(7))} and pay ${fmt(boardPayout(7))}.`,show:s=>s.boards>=6&&lvl(s,'calls6')>=1}),
  calls(7),
@@ -103,12 +102,12 @@ export const ITEMS=[
 const CALL_ART=["Let's Go Gambling",'Weighted Coins','Divine Gambler',"Duelist's Wager",'Golden Scale','Golden Receipt','Merchant Sigil',"Collector's Stamp",'Champion Trophy'];
 const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion',endless:'Eternal Flame',fee_summon:'Tribute Power',fee_attack:'Battle Proficiency',
  autobet:'Weighted Dice',scout:'Mind Reader',speed:'Sun and Moon Dial',open2:'Grand Bazaar',fee_destroy:'Cracked Sword',fee_direct:'Lancer Spear',exodia:'Legendary Shackles',
- destiny:'Final Hour',open3:'Treasure Map',fee_spell:'Magician Staff',fee_trap:'Trap Weaver',highroller:'Bottomless Purse',open4:'Booster Box',fee_fusion:'Fusion Chamber',
+ open3:'Treasure Map',fee_spell:'Magician Staff',fee_trap:'Trap Weaver',highroller:'Bottomless Purse',open4:'Booster Box',fee_fusion:'Fusion Chamber',
  fee_damage:'Burn Proficiency',open5:'Golden Receipt',deckout:'Starving Library',fee_heal:'Healing Spring',open6:'Merchant Sigil',special:'Premature Triumph',flawless:'Life Shield',
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler',
  feat_summon:'Ten-thousand Hands',feat_battle:'Warrior Blade',feat_activate:'Arcane Resonance',feat_set:'Trapbound Idol',feat_destroy:'Demonic Sword',feat_survive:'Phoenix Feather',feat_victory:'Champion\'s Burden'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|destiny|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 // The shop's two tab rows (user: Characters on the second line).
 export const TAB_ROWS=[['Payouts','Card Fees','Duel Feats','CPU Tiers'],['Characters','Jackpots & Finishes','Automation','Expansion']];
 export const categoryOf=id=>CATEGORIES.find(([,re])=>re.test(id))?.[0]||'Other';
@@ -118,7 +117,7 @@ for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice
 const FEE={fee_summon:[.1,'every summon'],fee_attack:[.1,'every attack'],fee_spell:[.1,'every Spell Card activated'],fee_trap:[.2,'every Trap Card activated'],
  fee_destroy:[.2,'every monster destroyed'],fee_direct:[.5,'every direct attack'],fee_fusion:[1,'every Fusion Summon (on top of Summon Fees)'],fee_damage:[.2,'every 1,000 damage dealt'],fee_heal:[.5,'every 1,000 LP gained']};
 const TIER_WHO={tier1:'a Tier 1 deck',tier2:'a Tier 2 deck',tier3:'a Tier 3 deck',endless:'an Endless deck'};
-const WIN={ flawless:[5,'the winner still has 8,000 LP or more'],blitz:[10,'a duel ends by turn 5'],deckout:[50,'a duel ends by deck-out'],special:[200,'a duel ends by an alternate win (not Exodia or Destiny Board)']};
+const WIN={ flawless:[5,'the winner still has 8,000 LP or more'],blitz:[10,'a duel ends by turn 5'],deckout:[50,'a duel ends by deck-out'],special:[200,'a duel ends by an alternate win (not Exodia)']};
 const BOARD_LEVEL='Times the board\'s level: Board 1 ×1, Board 2 ×10, Board 3 ×100, and so on.';
 export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(id==='calls1')return [`Each level adds more than the last: +2, +3, +5, +8, +13… coins for every correct call on Board 1 (Board 1 of every bracket too, scaled to its stakes).`,`Now: ${c(callsBonus(1,l))} per correct call (total ${fmt(correctPayout(s,1,1))} with High Roller).`,`Next level: ${c(callsBonus(1,l+1))} (+${fmt(luckyStep(l+1))}).`]
@@ -126,7 +125,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
  if(FEE[id]){const [v0,w]=FEE[id],v=v0*power(id);return [`First level: +${fmt(v)} coins for ${w}, on any board; each level after is worth 15% more.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} · next level: ${c(v*levelValue(l+1))}.`]}
  if(TIER_PCT[id]){const p=TIER_PCT[id];return [`Each level: +${p}% on everything a duel pays (fees, the correct call, jackpots, bonuses and feats) when ${TIER_WHO[id]} wins it, on any board.`,`Now: +${p*l}% · next level: +${p*(l+1)}%.`]}
  if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`First level: +${fmt(v)} coins whenever ${w}, on any board; each level after is worth 15% more.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} · next level: ${c(v*levelValue(l+1))}.`]}
- if(id==='exodia'||id==='destiny'){const name=id==='exodia'?'An Exodia win':'A Destiny Board win';return [`${name} on any board pays a jackpot, doubled when you backed the winner. Each level doubles it.`,BOARD_LEVEL,`Now: ${fmt(jackpotBase(id,s))} · next level: ${fmt(jackpotBase(id,{items:{[id]:l+1}}))}.`]}
+ if(id==='exodia'){const name='An Exodia win';return [`${name} on any board pays a jackpot, doubled when you backed the winner. Each level doubles it.`,BOARD_LEVEL,`Now: ${fmt(jackpotBase(id,s))} · next level: ${fmt(jackpotBase(id,{items:{[id]:l+1}}))}.`]}
  if(id==='longgame'){const v=power(id);return [`Each level: +${fmt(v)} coins for every turn a duel lasts past turn 10, on any board.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} per extra turn · next level: ${c(v*levelValue(l+1))}.`]}
  if(id==='speed')return [`Each level: every duel plays 0.1× faster, up to 8×.`,`Now: ${speedAt(l)}×${l<it.max?` · next level: ${speedAt(l+1)}×`:''}.`]
  if(id==='autobet')return [`Bets for you: once a board's betting screen has been up this long, it backs a duelist there (bracket duels: one bet per wait while a duel is open for bets). It only bets when you can pay the stake.`,`It starts at the full 10 s; each level makes the wait 15% shorter, down to 0.5 s.`,l?`Now: waits ${autoSeconds(l)} s${l<it.max?` · next level: ${autoSeconds(l+1)} s`:''}.`:`First level: waits ${autoSeconds(1)} s.`]
@@ -208,7 +207,7 @@ export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,l
 // 15 is the opening shop's Summon Fees. Sub-linear so late items are strong without running away.
 const POWER_REF=15,powerCache=new Map();
 export function power(id){if(!powerCache.has(id))powerCache.set(id,Math.max(1,(itemCost(id,0)/POWER_REF)**.75));return powerCache.get(id)}
-export function jackpotBase(kind,s){const l=lvl(s,kind);return (kind==='exodia'||kind==='destiny'?50*2**l:kind==='deckout'?50*levelValue(l):kind==='special'?200*levelValue(l):0)*power(kind)}
+export function jackpotBase(kind,s){const l=lvl(s,kind);return (kind==='exodia'?50*2**l:kind==='deckout'?50*levelValue(l):kind==='special'?200*levelValue(l):0)*power(kind)}
 // Income from one replayed frame's events on a board of this level.
 export function eventIncome(s,events,level){let total=0;const scale=levelScale(level)*multiplier(s),f=(id,v)=>{const l=lvl(s,id);return l?levelValue(l)*v*power(id):0};
  for(const e of events){
@@ -225,7 +224,7 @@ export const tierKey=label=>/^Tier 1/.test(label)?'tier1':/^Tier 2/.test(label)?
 export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=levelScale(level)*multiplier(s),add=(label,v,big=false)=>{if(v>0)parts.push([label,v,big])};
  if(pick!=null&&result.winner===pick)add('Correct call',correctPayout(s,slot,level),true);
  const kind=winKind(result);
- if(kind==='exodia'||kind==='destiny'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add(kind==='exodia'?'EXODIA JACKPOT':'DESTINY JACKPOT',v,true)}
+ if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
  if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*scale)}

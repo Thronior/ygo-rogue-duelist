@@ -100,7 +100,7 @@ pay=M.withTierBonus(s,{winner:1,winnerTier:'Tier 1'},pay,4);assert.deepEqual(pay
 pay=M.duelPayout(s,{winner:0,reason:16,turns:9,winnerLp:8000,winnerTier:'Tier 3'},2,2,0);
 const jackpot=pay.parts.find(p=>p[0]==='EXODIA JACKPOT');assert.ok(jackpot&&jackpot[2],'Exodia pays a big jackpot');
 assert.ok(Math.abs(jackpot[1]-100*M.power('exodia')*10*2)<1e-6,'50×2 (one upgrade) × its price power × board level 2, doubled for backing the winner');
-assert.equal(M.duelPayout(s,{winner:1,reason:21,turns:9,winnerLp:500,winnerTier:'Tier 2'},1,1,null).parts[0][0],'DESTINY JACKPOT');
+assert.ok(!M.ITEM.destiny,'no Destiny jackpot (no CPU deck runs Destiny Board)');assert.equal(M.duelPayout(s,{winner:1,reason:21,turns:9,winnerLp:500,winnerTier:'Tier 2'},1,1,null).parts.length,0);
 
 // ---- shop sections: every item has one ----
 for(const it of M.ITEMS)assert.notEqual(M.categoryOf(it.id),'Other','category for '+it.id);
