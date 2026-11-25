@@ -31,8 +31,11 @@
 .db-item{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:7px;padding:4px;border:1px solid var(--db-line);border-radius:var(--db-radius);background:#0003}
 .db-item.drastic{border-color:color-mix(in srgb,var(--db-accent) 55%,var(--db-line))}
 .db-item.opener{background:color-mix(in srgb,var(--db-accent) 14%,#0004)}
-.db-icon{width:42px;height:42px;border-radius:var(--db-radius);overflow:hidden;background:#0006}
-.db-icon img{width:100%;height:100%;object-fit:cover;object-position:50% 28%}
+.db-icon{position:relative;width:42px;height:42px;border-radius:var(--db-radius);overflow:hidden;background:#0006}
+/* Only the artwork box of the card (a square 76% of the card's width, 12% in and 18% down), not the frame. */
+.db-icon img.relic{position:static;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
+.db-icon:has(.relic){background:none;overflow:visible}
+.db-icon img:not(.relic){position:absolute;max-width:none;width:131.6%;height:auto;aspect-ratio:421/614;left:-15.9%;top:-34.7%}
 .db-item-text{min-width:0;display:flex;flex-direction:column;gap:1px}
 .db-item-text b{font-size:13px;line-height:1.1}
 .db-item-text small{font-size:11px;color:var(--db-dim);line-height:1.2}
