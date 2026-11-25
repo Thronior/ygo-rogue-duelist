@@ -133,11 +133,13 @@ export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // Price by the character's strongest deck tier (rank 0 Opening … 4 Endless/World Championship); as with every income
 // item, a dearer one earns more per win (power).
 // Ultimate Collector characters all share one item (char_uc), priced for how many of them there are.
+// A character's item appears once you have seen that character win CHAR_UNLOCK duels (any Collector, for char_uc).
+export const CHAR_UNLOCK=3;
 export const CHAR_ITEM={};
 export function registerCharacters(list){const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
- for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,1.2,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name}))}
+ for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,1.2,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:s=>(s.charWins?.[c.id]||0)>=CHAR_UNLOCK,portrait:c.sprite,charName:c.name}))}
  if(uc.length){for(const c of uc)CHAR_ITEM[c.id]='char_uc';const rank=Math.max(...uc.map(c=>c.rank));
-  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),1.2,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
+  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),1.2,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:s=>(s.charWins?.uc||0)>=CHAR_UNLOCK,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
 export function itemCost(id,level){const it=ITEM[id];if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
  return Math.ceil(it.base*it.growth**level+level)}
 export const itemLevel=lvl;
@@ -156,6 +158,8 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  for(const [k,v] of Object.entries(raw.stats?.slots||{}))if(/^\d$/.test(k))s.stats.slots[k]=Math.max(0,Math.floor(num(v)));
  if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
  if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
+ // Character wins come from the deck stats (older saves had no separate count).
+ s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
@@ -254,8 +258,9 @@ export function featPayout(s,metrics,winner,level){let coins=0,hits=0;
  return {total:coins*FEAT_SCALE*levelScale(level)*multiplier(s),hits}}
 
 // Every finished duel the player's boards and brackets play, per deck ("id:tier" -> [duels, wins, Exodia wins, Destiny wins]).
-export function recordDeckResult(s,seats,winner,reason){seats.forEach((d,p)=>{if(!d)return;const k=d.id+':'+d.tier,v=s.deckStats[k]??=[0,0,0,0];v[0]++;if(winner===p){v[1]++;if(EXODIA_WINS.includes(reason))v[2]++;if(reason===21)v[3]++}})}
+export function recordDeckResult(s,seats,winner,reason){seats.forEach((d,p)=>{if(!d)return;const k=d.id+':'+d.tier,v=s.deckStats[k]??=[0,0,0,0];v[0]++;if(winner===p){v[1]++;addCharWin(s,d.id,1);if(EXODIA_WINS.includes(reason))v[2]++;if(reason===21)v[3]++}})}
 const EXODIA_WINS=[16,20,31,33];
+function addCharWin(s,id,n){s.charWins??={};s.charWins[id]=(s.charWins[id]||0)+n;if(CHAR_ITEM[id]==='char_uc')s.charWins.uc=(s.charWins.uc||0)+n}
 
 // ---- replay pacing ----
 // How long each recorded frame stays on screen at 1× speed.

@@ -118,7 +118,10 @@ assert.ok(M.tooltip(fst,'feat_summon').some(x=>/Monsters summoned/.test(x)),'the
 
 // ---- Characters: one item per CPU character, paying when that character wins ----
 M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'}]);
-assert.equal(M.categoryOf('char_900'),'Characters');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
+assert.equal(M.categoryOf('char_900'),'Characters');
+const hid=M.newState();assert.ok(!M.visibleItems(hid).some(i=>i.id==='char_900'),'characters are not available from the start');
+for(let i=0;i<3;i++)M.recordDeckResult(hid,[{id:900,tier:0},{id:901,tier:4}],0,1);assert.ok(M.visibleItems(hid).some(i=>i.id==='char_900')&&!M.visibleItems(hid).some(i=>i.id==='char_901'),'a character appears after 3 wins');
+assert.equal(M.sanitize(JSON.parse(JSON.stringify(hid))).charWins[900],3,'rebuilt from deck stats on load');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
 assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');
 const cs=M.newState();cs.items.char_901=2;const cp=M.duelPayout(cs,{winnerId:901,winner:0,reason:1,turns:9,winnerLp:3000,winnerTier:'Endless'},1,1,null);
 assert.ok(cp.parts.some(p=>p[0]==='Test Strong wins'&&Math.abs(p[1]-2*2*M.power('char_901'))<1e-9));
@@ -127,6 +130,7 @@ assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved
 assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
 M.registerCharacters([{id:910,name:'Collector A',rank:4,sprite:'a.png',uc:true},{id:911,name:'Collector B',rank:3,sprite:'b.png',uc:true}]);
 assert.ok(M.ITEM.char_uc&&!M.ITEM.char_910&&!M.ITEM.char_911,'Ultimate Collectors share one item');
+const ucs=M.newState();M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:911,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);assert.ok(M.visibleItems(ucs).some(i=>i.id==='char_uc'),'3 Collector wins in total unlock it');
 const us=M.newState();us.items.char_uc=1;assert.ok(M.duelPayout(us,{winnerId:911,winner:1,reason:1,turns:9,winnerLp:100,winnerTier:'Endless'},1,1,null).parts.some(p=>p[0]==='Ultimate Collector wins'),'any Collector win pays it');
 assert.ok(M.itemCost('char_uc',0)>M.itemCost('char_901',0),'it costs more than one character of the same rank');
 
