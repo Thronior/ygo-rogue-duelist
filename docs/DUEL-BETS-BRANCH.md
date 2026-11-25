@@ -74,3 +74,14 @@ Nothing else outside these files changed. The saved data is a new localStorage k
 
 - The worktree's `android/web/assets`, `sound` and `textures` are directory junctions to the main checkout. `content.json`, `campaign-files.json`, `build.json` and `system-strings.js` are copies. All of these are ignored by Git. Remove a junction with `cmd /c rmdir`, **never** a recursive delete, which would follow it into the main checkout.
 - `.claude/launch.json` defines the `duel-bets` preview server on port 4241.
+
+## Standalone site
+
+https://shadow-betting.ygo-rogue.pages.dev — only the minigame (no main menu, no campaign runtime, no Infinite money), its own save. It is a branch deployment (`shadow-betting`) of the web game's Pages project, so production (`main`, ygo-rogue.pages.dev) is untouched. It does not update by itself: after changes, rebuild and redeploy.
+
+```
+python/python.exe -B tools/build_shadow_betting.py --output <new empty dir> --cache "<main checkout>/temp/build/packaged-assets"
+cd multiplayer/cloudflare
+runtime/ai/node.exe node_modules/wrangler/bin/wrangler.js pages deploy <dir> --project-name ygo-rogue --branch shadow-betting
+```
+(Wrangler needs Node 22+: use the project's `runtime/ai/node.exe`, not the Node 14 on PATH.)
