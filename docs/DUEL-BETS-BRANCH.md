@@ -42,7 +42,7 @@ Own files (all new):
   4. Android back: `else if(duelBets){duelBets.back()}`
   5. Gamepad/keyboard back (`screenBack`): `if(screen==='duel-bets'&&duelBets){…}`
   6. `startStats(()=>!cpuViewer&&!duelBets&&…)` so Duel Bets time isn't counted as a run
-  7. Music: `screenMusic()` returns `'champion'` while `screen==='duel-bets'`, and `openDuelBets()` calls `track('champion')`, so Duel Bets plays the champion theme
+  7. Music: `screenMusic()` returns `'draft'` while `screen==='duel-bets'`, and `openDuelBets()` calls `track('draft')`, so Duel Bets plays the draft music
 
 Nothing else outside these files changed. The saved data is a new localStorage key, `ygo-duel-bets-v1`, plus the IndexedDB database above. `saves/` and `storage.py` are untouched.
 
