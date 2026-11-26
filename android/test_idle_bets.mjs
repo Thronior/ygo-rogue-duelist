@@ -115,7 +115,9 @@ for(const it of M.ITEMS)assert.notEqual(M.categoryOf(it.id),'Other','category fo
 assert.equal(M.categoryOf('fee_trap'),'Card Fees');assert.equal(M.categoryOf('open3'),'Expansion');
 
 // ---- Characters: one item per CPU character, paying when that character wins ----
-M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'}]);
+M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'},{id:902,name:'Test T1',rank:1,sprite:'z.png',labels:['Tier 1']},{id:903,name:'Test T2',rank:2,sprite:'w.png',labels:['Tier 1','Tier 2']},{id:904,name:'Test Endless',rank:4,sprite:'v.png',labels:['Tier 1','Tier 2','Tier 3','Endless']}]);
+assert.ok(M.ITEM.char_902.boost>1.6&&M.ITEM.char_903.boost>1.3&&M.ITEM.char_903.boost<M.ITEM.char_902.boost,'rare winners earn more per win: T1-only most, T1-T2 less');
+assert.equal(M.ITEM.char_904.boost,1,'a character with decks up to Endless gets no boost');
 assert.equal(M.categoryOf('char_900'),'Characters');
 const hid=M.newState();assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'characters are not available from the start');
 hid.earned=M.CHAR_REVEAL-1;assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'the first character needs CHAR_REVEAL earned');

@@ -133,7 +133,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v),max=
  if(id==='scout')return ['Auto Bet backs the higher-tier CPU (random when the tiers are equal).']
  if(id==='highroller')return ['Doubles everything you earn.',...rows('×'+2**l,'×'+2**(l+1))]
  if(id==='purse')return ['+50% on correct champion bets, per level.',...rows(`+${50*l}%`,`+${50*(l+1)}%`)]
- if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`+${fmt(v)} whenever ${n} wins a duel. 15% more each level.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
+ if(/^char_/.test(id)){const b=ITEM[id].boost||1,v=2*power(id)*b,n=ITEM[id].charName;return [`+${fmt(v)} whenever ${n} wins a duel${b>1.01?` (×${b.toFixed(1)}: wins less often)`:''}. 15% more each level.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
  if(id==='autochamp')return ['Places your champion bet as soon as a bracket opens (picks like Auto Bet).']
  if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: 9 more CPUs on 9 more boards, at higher stakes.`,`${s.brackets} of ${BRACKET_MAX} brackets open.`]
  return [it.text(l)]}
@@ -146,10 +146,15 @@ export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // strong, dear characters first (user, 2026-11-26).
 export const CHAR_UNLOCK=3;
 export const CHAR_ITEM={};
+// Character payouts make up for how rarely a character wins (user, 2026-11-26): ×(50% ÷ the character's average win
+// chance over its own decks), never under ×1, at most ×3. Win chance by deck tier, measured over 400 recorded duels
+// between random decks of every tier (android/idle_bets_record_library.mjs, 2026-11-26).
+export const TIER_WIN={'Opening Duel':.1,'Tier 1':.29,'Tier 2':.44,'Tier 3':.62,Endless:.65,'World Championship':.67};
+export const winBoost=labels=>{const r=labels?.length?labels.reduce((a,l)=>a+(TIER_WIN[l]??.5),0)/labels.length:.5;return Math.min(3,Math.max(1,.5/r))};
 export function registerCharacters(list){charOrder=null;const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
- for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,ITEM_GROWTH,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name}))}
+ for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,ITEM_GROWTH,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name,boost:winBoost(c.labels)}))}
  if(uc.length){for(const c of uc)CHAR_ITEM[c.id]='char_uc';const rank=Math.max(...uc.map(c=>c.rank));
-  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),ITEM_GROWTH,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
+  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),ITEM_GROWTH,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length,boost:winBoost(uc.flatMap(c=>c.labels||[]))}))}}
 export function itemCost(id,level){const it=ITEM[id];
  // Duel Speed: the first five levels are cheap (the 5th costs 50), then its ×1.8 climb continues from there.
  if(id==='speed')return Math.ceil(50*it.growth**(level-4));if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
@@ -240,7 +245,7 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=i
  if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
- if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*scale)}
+ if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*(ITEM[id]?.boost||1)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lv(s,'flawless')*power('flawless')*scale);
  if(result.turns>10)add('Long game',(result.turns-10)*lv(s,'longgame')*power('longgame')*scale);
  if(result.winner<2&&result.turns<=5)add('Blitz',10*lv(s,'blitz')*power('blitz')*scale);

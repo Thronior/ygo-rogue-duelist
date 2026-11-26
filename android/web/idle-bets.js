@@ -29,7 +29,8 @@ export class DuelBets{
   for(const [id,records] of Object.entries(decks))records.forEach((r,t)=>{if(!r?.main?.length||!this.chars[id])return;const key=id+':'+t;this.pool.push({id:Number(id),tier:t,label:r.label||'Tier '+(t+1),key});this.deckList[key]={main:r.main,extra:r.extra||[]}});
   this.cards=new Map();for(const c of [...(content.cards||[]),...(content.tokenCards||[])])this.cards.set(c.id,c);
   {const best=new Map();for(const d of this.pool)best.set(d.id,Math.max(best.get(d.id)??0,M.tierRank(d.label)));
-   M.registerCharacters([...best].map(([id,rank])=>({id,rank,uc:!!this.chars[id]?.ultimate_collector,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
+   const labels=new Map();for(const d of this.pool){if(!labels.has(d.id))labels.set(d.id,[]);labels.get(d.id).push(d.label)}
+   M.registerCharacters([...best].map(([id,rank])=>({id,rank,labels:labels.get(id)||[],uc:!!this.chars[id]?.ultimate_collector,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
   this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
   this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])]});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
