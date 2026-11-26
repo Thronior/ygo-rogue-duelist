@@ -472,3 +472,6 @@
    phones): the guide bubble passes taps through except its Skip button, and every effect ignores pointers. */
 .db-guide-bubble{pointer-events:none}.db-guide-bubble button{pointer-events:auto}
 .db-fx,.db-fx *,.db-stamp,.db-flash,.db-ring,.db-poof,.db-shard,.db-dmg,.db-atk,.db-act,.db-toss,.db-art,.db-danger,.db-vs,.db-place{pointer-events:none}
+/* Can't pay the stake: the waiting board goes grey (its "Need … to bet" bar stays readable) */
+.db-board.poor .db-field,.db-board.poor .db-pick,.db-board.poor .db-vs{filter:grayscale(1) brightness(.55)}
+.db-board.poor .db-place{background:#4a4a4a;border-color:#888;color:#ddd}

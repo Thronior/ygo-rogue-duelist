@@ -413,9 +413,10 @@ class BoardView{
   el.animate([{opacity:0,scale:.5,translate:'-50% 0'},{opacity:1,scale:big?1.25:1.1,translate:'-50% -20%',offset:.15},{opacity:1,scale:1,translate:'-50% -60%',offset:.7},{opacity:0,scale:1,translate:'-50% -110%'}],{duration:big?1300:1000,easing:'ease-out'}).finished.catch(()=>{}).finally(done)}
  ending(winner){this.sides.forEach((v,p)=>{v.who.classList.toggle('won',winner===p);v.who.classList.toggle('lost',winner!==p&&winner<2)})}
  // The betting view: each CPU's portrait fills its half of the board; tap a half to back that CPU.
- betView(seats,attrs,afford,place){this.clear();this.seats(seats);
+ // A board you cannot afford to bet on is greyed out while it waits (user, 2026-11-26).
+ betView(seats,attrs,afford,place){this.clear();this.seats(seats);this.root.classList.toggle('poor',!afford);
   this.show(`<div class="db-bet">${seats.map((s,p)=>`<button class="db-pick s${p}" ${attrs(p)} ${afford?'':'disabled'}><span><b>${esc(s.name)}</b>${this.game.tierChip(s.label)}</span></button>`).join('')}<span class="db-vs">VS</span><div class="db-place">${esc(place)}</div></div>`)}
- show(html){this.overlay.innerHTML=html;this.overlay.classList.toggle('on',!!html);this.root.classList.toggle('betting',!!this.overlay.querySelector('.db-bet'))}
+ show(html){this.overlay.innerHTML=html;this.overlay.classList.toggle('on',!!html);const betting=!!this.overlay.querySelector('.db-bet');this.root.classList.toggle('betting',betting);if(!betting)this.root.classList.remove('poor')}
  remove(){this.root.remove()}
 }
 
