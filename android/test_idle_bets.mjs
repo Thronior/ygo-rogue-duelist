@@ -195,7 +195,7 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  for(const x of M.TREE)if(x.req)assert.ok(M.TREE_BY[x.req[0]].at[1]<x.at[1],x.id+' sits above what it needs');}
 // ---- Destiny Duel: every power of 100 from 100, once ----
 {const d=M.newState();d.coins=99;assert.equal(M.destinyDue(d),0);d.coins=150;assert.equal(M.destinyDue(d),2);d.destiny=2;d.coins=9999;assert.equal(M.destinyDue(d),0,'1,000 is not a milestone');
- d.coins=12000;assert.equal(M.destinyDue(d),4);d.coins=5e7;assert.equal(M.destinyDue(d),6,'skipped milestones: the highest one');d.destiny=6;assert.equal(M.destinyDue(d),0,'once each');
+ d.coins=12000;assert.equal(M.destinyDue(d),4);d.coins=5e7;assert.equal(M.destinyDue(d),6,'skipped milestones: the highest one');d.destiny=6;assert.equal(M.destinyDue(d),0,'once each');d.coins=2e8;assert.equal(M.destinyDue(d),8);d.destiny=8;d.coins=5e10;assert.equal(M.destinyDue(d),0,'past 100M: every power of 1000');d.coins=2e11;assert.equal(M.destinyDue(d),11);d.destiny=11;d.coins=1e13;assert.equal(M.destinyDue(d),0);d.coins=1e14;assert.equal(M.destinyDue(d),14);
  assert.equal(M.sanitize({coins:5e5}).destiny,5,'older saves: milestones already passed count as played');}
 // ---- bulk buying, deck-out bonus ----
 {const b=M.newState();b.coins=1e6;const one=M.bulk(b,'fee_summon',1),five=M.bulk(b,'fee_summon',5);assert.equal(one.count,1);assert.equal(five.count,5);assert.ok(five.cost>one.cost*5,'each level dearer');
