@@ -8,7 +8,7 @@ Output: exports/shadow-betting/Shadow-Betting.apk (in the checkout that holds de
 Uses the Android SDK, JDK and signing key of the main checkout (the same ones the game's APK uses).
 """
 from pathlib import Path
-import shutil,subprocess,sys,time,zipfile
+import os,shutil,stat,subprocess,sys,time,zipfile
 from datetime import datetime
 from PIL import Image
 
@@ -31,8 +31,9 @@ def icon(dest):
  dest.parent.mkdir(parents=True,exist_ok=True);im.save(dest)
 
 def build():
+ def writable(func,path,_):os.chmod(path,stat.S_IWRITE);func(path)# copied read-only files (fonts) block a plain rmtree
  for d in (SITE,BUILD):
-  if d.exists():shutil.rmtree(d)
+  if d.exists():shutil.rmtree(d,onerror=writable)
  cache=MAIN/'temp/build/packaged-assets'
  build_shadow_betting.build(SITE,cache if cache.is_dir() else None)
  jdk=next((DEP/'jdk').glob('jdk-*'));bt=DEP/'sdk/android-15';platform=DEP/'sdk/android-35/android.jar'
