@@ -133,7 +133,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v),max=
  if(id==='scout')return ['Auto Bet backs the higher-tier CPU (random when the tiers are equal).']
  if(id==='highroller')return ['Doubles everything you earn.',...rows('×'+2**l,'×'+2**(l+1))]
  if(id==='purse')return ['+50% on correct champion bets, per level.',...rows(`+${50*l}%`,`+${50*(l+1)}%`)]
- if(/^char_/.test(id)){const b=ITEM[id].boost||1,v=2*power(id)*b,n=ITEM[id].charName;return [`+${fmt(v)} whenever ${n} wins a duel${b>1.01?` (×${b.toFixed(1)}: wins less often)`:''}. 15% more each level.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
+ if(/^char_/.test(id)){const b=ITEM[id].boost||1,v=2*power(id)*b,n=ITEM[id].charName;return [`+${fmt(v)} whenever ${n} wins a duel. 15% more each level.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
  if(id==='autochamp')return ['Places your champion bet as soon as a bracket opens (picks like Auto Bet).']
  if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: 9 more CPUs on 9 more boards, at higher stakes.`,`${s.brackets} of ${BRACKET_MAX} brackets open.`]
  return [it.text(l)]}
