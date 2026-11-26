@@ -294,7 +294,8 @@ export function damageDealt(tl){const d=[0,0];for(const f of tl.frames)for(const
 // (36 duels) every pair has met exactly once. Then the next 9 CPUs are drawn.
 export function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6d2b79f5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 // pool: [{id,tier,label}] every CPU deck of every tier. Characters don't repeat inside one roster.
-export function pickRoster(pool,random,size=ROSTER_SIZE){const out=[],seen=new Set();let guard=0;while(out.length<size&&guard++<size*50){const d=pool[Math.floor(random()*pool.length)];if(seen.has(d.id)&&guard<size*40)continue;seen.add(d.id);out.push(d)}return out}
+// weight(id): Spotlight makes a character come up more often in brackets too.
+export function pickRoster(pool,random,size=ROSTER_SIZE,weight=()=>1){const out=[],seen=new Set();let guard=0;const total=pool.reduce((t,d)=>t+weight(d.id),0);const draw=()=>{let r=random()*total;for(const d of pool){r-=weight(d.id);if(r<=0)return d}return pool[pool.length-1]};while(out.length<size&&guard++<size*50){const d=draw();if(seen.has(d.id)&&guard<size*40)continue;seen.add(d.id);out.push(d)}return out}
 export function roundPairs(round,random=Math.random,n=ROSTER_SIZE){const pairs=[];for(let i=0;i<n;i++){const j=(i+round+1)%n;pairs.push(random()<.5?[i,j]:[j,i])}
  for(let i=pairs.length-1;i>0;i--){const k=Math.floor(random()*(i+1));[pairs[i],pairs[k]]=[pairs[k],pairs[i]]}return pairs}
 export function standings(wins,damage){return wins.map((w,i)=>i).sort((a,b)=>wins[b]-wins[a]||damage[b]-damage[a]||a-b)}

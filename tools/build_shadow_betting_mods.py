@@ -97,7 +97,7 @@ for cid,records in decks.items():
  for k in relics:
   key=f'{k}@{cid}'
   r=dict(run,artifacts=[k])
-  out['relics'][key]={'relic':k,'name':content.ARTIFACTS[k][0],'text':content.ARTIFACTS[k][2],'art':content.ART_INFO[k].get('art',''),
+  out['relics'][key]={'relic':k,'name':content.ARTIFACTS[k][0],'text':content.ARTIFACTS[k][2],'art':(content.ARTIFACTS[k][0]+'.png') if (WEB/'assets/relics'/(content.ARTIFACTS[k][0]+'.png')).exists() else '','artCard':BY_NAME.get(str(content.ART_INFO[k].get('art','')).rsplit('.',1)[0]) or 0,
    's':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
  code=signature(cid,mains)
  out['chars'][cid]={'card':code,'cardName':g.BY_ID[code]['name'] if code else '','field':bool(code and g.BY_ID[code].get('race')=='Field' and 'Spell' in str(g.BY_ID[code].get('type'))),'relics':[f'{k}@{cid}' for k in relics],'curses':pick_curses(cid,cards,[c for r in records if r for c in r.get('extra',[])])}

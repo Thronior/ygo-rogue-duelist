@@ -100,6 +100,13 @@ def build(out,cache=None):
   m=re.search(r'const '+name+r'=([\[{].*?[\]}]);',model,re.S);assert m,name
   arts|=set(quoted(m.group(1)))
  for art in arts:add(f'assets/relics/{art}.png')
+ # Character upgrades: the tailored relics, curses and signature cards (tools/build_shadow_betting_mods.py).
+ mods=json.loads((web/'idle-bets-mods.json').read_text(encoding='utf8'));add('idle-bets-mods.json')
+ for r in mods['relics'].values():
+  if r.get('art'):add('assets/relics/'+r['art'])
+  if r.get('artCard'):add(f"assets/cards-thumb/{r['artCard']}.jpg");add(f"assets/cards/{r['artCard']}.jpg")
+ for c in mods['chars'].values():
+  if c.get('card'):add(f"assets/cards-thumb/{c['card']}.jpg");add(f"assets/cards/{c['card']}.jpg")
  for who in [*(content.get('characters') or []),*(content.get('cpuWatchOpponents') or {}).values()]:
   if isinstance(who,dict) and who.get('sprite'):add('assets/'+who['sprite'])
  ui=(web/'idle-bets.js').read_text(encoding='utf8')+(web/'idle-bets.css').read_text(encoding='utf8')

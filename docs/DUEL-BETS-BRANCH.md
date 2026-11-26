@@ -90,3 +90,15 @@ runtime/ai/node.exe node_modules/wrangler/bin/wrangler.js pages deploy <dir> --p
 ## Phone app
 
 `python/python.exe -B tools/build_shadow_betting_apk.py --install` builds **Shadow Betting** as its own Android app (`com.shadowrun.shadowbetting`, Dice Re-Roll icon): the standalone site in a WebView wrapper (`tools/shadow-betting/android`), fully offline, its own save. It uses the main checkout's Android SDK and signing key and writes `exports/shadow-betting/Shadow-Betting.apk` there. Not part of the game's APK or releases; reinstalling over it keeps the save. Xiaomi phones ask to confirm a USB install on the phone (Install via USB).
+
+## Prestige and character upgrades (2026-11-26)
+
+- **Regress** (★ button in the top bar, shown from 1M coins): coins become stars, 1 ★ per 500,000 (Star Power +10%/level). The run resets (coins, items, boards, brackets, character upgrades unless Old Friends); stars, the skill tree, records, settings and the guide stay.
+- **Skill tree** (18 nodes, `TREE` in idle-bets-model.js), after Scritchy Scratchy's Jack Point tree (start-with nodes, stacking +% nodes, steeply rising costs, a prestige-currency node, a keep-on-reset node):
+  - Bankroll: Seed Money (start with 100 → 100K coins), Starter Kit (Card Fees at 3/level), Season Pass (start with more boards), Haggler (−4% prices/level).
+  - Interest: Compound Interest (+10% on everything earned/level), Jackpot Fever (+50% jackpots), Underdog Fund / Rising Stars / Veterans / Legends (+20%/level on what a duel pays when that tier wins), High Stakes (+25% correct calls).
+  - Automation: Quick Start (Duel Speed), Standing Order (Auto Bet), Insider Tip (Scouting Report), Season Ticket (Auto Champion Bet).
+  - Legacy: Star Power, Fast Learner (items and characters appear sooner), Old Friends (keep character upgrades).
+- **Characters tab** is a roster of portraits; each opens a page: Payout (the char_ item), Spotlight (+25% how often they come up, boards and brackets), Signature Start (their signature card in hand at duel start), Iron Will (+100 LP/level), Intimidation (opponent −100 LP/level), 3 relics and 3 curses on opponents, tailored per character. Ultimate Collectors share one page without card/relics/curses.
+- Data: `python/python.exe -B tools/build_shadow_betting_mods.py` writes `android/web/idle-bets-mods.json` (signature card in the most of the character's decks, 88% of decks; relics = starting relic + best deck affinity from the Draft pool, no shadow relics; curses by deck style; each relic/curse's duel script for either seat, as Draft builds them). Re-run it when relics, curses or CPU decks change.
+- Duels with upgrades are recorded with them (starting LP, joined scripts); a duel's upgrade signature (`tl.mods`) decides whether a stored duel can be reused. 100 fully upgraded duels checked in the real engine: all finished, no engine errors.
