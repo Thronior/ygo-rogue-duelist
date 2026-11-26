@@ -590,3 +590,9 @@
 @keyframes db-dd-bg{from{opacity:0}to{opacity:1}}
 @keyframes db-dd-slam{0%{scale:3;opacity:0;filter:blur(6px)}60%{scale:.94;opacity:1;filter:none}100%{scale:1}}
 @keyframes db-dd-left{from{translate:-120vw 0}to{translate:0 0}}@keyframes db-dd-right{from{translate:120vw 0}to{translate:0 0}}
+/* Destiny Duel: tap a duelist to bet (no buttons; user, 2026-11-26). */
+.db-destiny.ready .db-dd-side{cursor:pointer;border-radius:12px;transition:background .15s,box-shadow .15s}
+.db-destiny.ready .db-dd-side:hover,.db-destiny.ready .db-dd-side:focus-visible{background:#f2cf8314;box-shadow:0 0 0 2px #f2cf83aa;outline:none}
+.db-destiny.ready .db-dd-side:hover img{filter:drop-shadow(0 0 26px #f2cf83)}
+.db-dd-hint{margin:0;font-family:var(--db-display);letter-spacing:.06em;color:#f2cf83;animation:db-dd-pulse 1.4s ease-in-out infinite}
+@keyframes db-dd-pulse{50%{opacity:.55}}
