@@ -107,9 +107,10 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  fee_damage:'Burn Proficiency',open5:'Golden Receipt',deckout:'Starving Library',fee_heal:'Healing Spring',open6:'Merchant Sigil',special:'Premature Triumph',flawless:'Life Shield',
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^(fee_.*|exodia|deckout|special|flawless|longgame|blitz)$/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 // The shop's two tab rows (user: Characters on the second line).
-export const TAB_ROWS=[['Payouts','Card Fees','CPU Tiers'],['Characters','Jackpots & Finishes','Automation','Expansion']];
+// Jackpots and finishes live in Card Fees (user, 2026-11-26).
+export const TAB_ROWS=[['Payouts','Card Fees','CPU Tiers'],['Characters','Automation','Expansion']];
 export const categoryOf=id=>CATEGORIES.find(([,re])=>re.test(id))?.[0]||'Other';
 for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice(5))-1]:ART[it.id];
 // Exact tooltip text: what one level does, what you have now, what the next level gives.
