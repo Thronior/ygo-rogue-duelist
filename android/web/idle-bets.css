@@ -424,3 +424,31 @@
 .db-item-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .db-item-text b .db-count{flex:none}
 @media (orientation:portrait){.db-item .db-item-text b{font-size:12px}}
+/* Phone grid cards: clear spacing, a fixed-size picture, name above its price (user, 2026-11-26: "super jumbled") */
+@media (orientation:portrait){
+ .db-shop-list{row-gap:0}
+ .db-item{align-items:center;gap:6px 10px;padding:9px 10px;border-bottom:1px solid #1e3a45;min-height:70px}
+ .db-item .db-icon{align-self:center;width:46px;height:46px;overflow:hidden;border-radius:6px}
+ .db-item .db-item-text{align-self:end}
+ .db-item .db-buy{align-self:start;font-size:15px;padding:4px 8px 3px;line-height:1.1}
+}
+/* More room between cards on phones (user, 2026-11-26) */
+@media (orientation:portrait){
+ .db-shop-list{gap:8px;padding:8px}
+ .db-item,.db-item:nth-child(2n){border:1px solid #1e3a45;border-radius:6px;padding:8px 10px;min-height:0;background:#ffffff06}
+}
+/* Phone portrait: grid rows always fit their card (auto rows were squeezed to their minimum by the list's fixed
+   height, which jumbled the cards); the money is one big centred number in the top bar, freeing the shop's money row
+   for the duels (user, 2026-11-26). */
+@media (orientation:portrait){
+ .db-shop-list{grid-auto-rows:max-content}
+ .db-shop>.db-money{position:fixed;z-index:4;top:0;left:50%;translate:-50% 0;height:54px;padding:0;border:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+ .db-shop>.db-money small{display:none}
+ .db-shop>.db-money .db-total{font-size:40px;line-height:1}
+ .db-sub{max-width:calc(50% - 80px);font-size:11px}
+}
+@media (orientation:portrait){
+ .db-top-buttons{margin-left:auto}
+ .db-shop>.db-money{height:auto;top:calc(var(--db-top-h,60px)/2);translate:-50% -50%}
+ .db-shop>.db-money .db-total{font-size:36px;line-height:1.1;padding-top:2px}
+}

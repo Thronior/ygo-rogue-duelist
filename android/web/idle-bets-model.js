@@ -141,13 +141,14 @@ export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // Price by the character's strongest deck tier (rank 0 Opening … 4 Endless/World Championship); as with every income
 // item, a dearer one earns more per win (power).
 // Ultimate Collector characters all share one item (char_uc), priced for how many of them there are.
-// A character's item appears once you have seen that character win CHAR_UNLOCK duels (any Collector, for char_uc).
+// Character items appear by price like every item (cheapest first, M.revealed); the old 3-wins unlock revealed the
+// strong, dear characters first (user, 2026-11-26).
 export const CHAR_UNLOCK=3;
 export const CHAR_ITEM={};
 export function registerCharacters(list){const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
- for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,ITEM_GROWTH,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:s=>(s.charWins?.[c.id]||0)>=CHAR_UNLOCK,portrait:c.sprite,charName:c.name}))}
+ for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,ITEM_GROWTH,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name}))}
  if(uc.length){for(const c of uc)CHAR_ITEM[c.id]='char_uc';const rank=Math.max(...uc.map(c=>c.rank));
-  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),ITEM_GROWTH,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:s=>(s.charWins?.uc||0)>=CHAR_UNLOCK,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
+  add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),ITEM_GROWTH,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
 export function itemCost(id,level){const it=ITEM[id];
  // Duel Speed: the first five levels are cheap (the 5th costs 50), then its ×1.8 climb continues from there.
  if(id==='speed')return Math.ceil(50*it.growth**(level-4));if(id==='bracket')return bracketOpenerCost(level+1);if(/^open\d$/.test(id))return boardOpenerCost(Number(id.slice(4)));// +level keeps every price strictly rising, even while rounding would repeat a small number.
