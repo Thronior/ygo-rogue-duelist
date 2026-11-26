@@ -406,7 +406,9 @@ class DestinyDuel{
   this.el=document.createElement('div');this.el.className='db-destiny';
   this.el.innerHTML=`<div class="db-dd-title"><b>Destiny Duel</b></div><div class="db-dd-stage"><div class="db-dd-wait"><span class="db-spinner"></span></div></div>`;
   game.root.querySelector('.duel-bets').append(this.el);this.stage=this.el.querySelector('.db-dd-stage');game.boardSound(DESTINY_SOUND,1);
-  game.supply.take().then(tl=>{if(this.dead){game.supply.release(tl);return}this.tl=tl;this.phase='intro';this.paintIntro()}).catch(()=>this.close())}
+  // Always two duelists of the same tier (user, 2026-11-26), recorded at the front of the queue.
+  const sup=game.supply;let pair=null;for(let i=0;i<30&&!pair;i++){const a=sup.randomSeat(),same=sup.pool.filter(d=>d.label===a.label&&d.id!==a.id);if(same.length)pair=[a,same[Math.floor(Math.random()*same.length)]]}
+  (pair?sup.record(pair,true):sup.take()).then(tl=>{if(this.dead){sup.release(tl);return}this.tl=tl;this.phase='intro';this.paintIntro()}).catch(()=>this.close())}
  paintIntro(){const g=this.game,seats=this.tl.seats.map(x=>g.seatOf(x));this.seats=seats;
   const tut=g.state.destinyTut?'':`<div class="db-dd-tut"><b>What is this?</b><p>Everything stops for one duel: you bet <b>all the coins you hold</b> on one of the two duelists.</p><p>Call it right and you get <b>5×</b> your bet back. Call it wrong and it is gone. Upgrades and items do not change this payout.</p><button class="db-dd-ok" data-dd="ok">Got it</button></div>`;
   this.stage.innerHTML=`<div class="db-dd-intro"><div class="db-dd-side p0"><img alt="" src="${esc(assetURL('assets/'+(seats[0].sprite||'')))}"><b>${esc(seats[0].name)}</b>${g.tierChip?g.tierChip(seats[0].label):''}</div><div class="db-dd-vs">VS</div><div class="db-dd-side p1"><img alt="" src="${esc(assetURL('assets/'+(seats[1].sprite||'')))}"><b>${esc(seats[1].name)}</b>${g.tierChip?g.tierChip(seats[1].label):''}</div></div>
