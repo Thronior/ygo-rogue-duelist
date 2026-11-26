@@ -242,8 +242,10 @@ export function autoPick(s,seats,random=Math.random,{level=1,slot=1}={}){
  // Fan Club: back the character you upgraded; if both are, the one with the higher Payout level.
  const fan=seats.map(x=>x&&x.id!=null&&charUps(s,x.id).fan&&!charUps(s,x.id).fanOff?1+lvl(s,CHAR_ITEM[x.id]||'char_'+x.id):0);if(fan[0]!==fan[1])return fan[0]>fan[1]?0:1;
  if(isOn(s,'betfav')){const v=seats.map(x=>x&&x.id!=null?charInvest(s,x.id):0);if(v[0]!==v[1])return v[0]>v[1]?0:1}
+ // Scouting Report comes before Payout Sense, so switching it off is a real choice (user, 2026-11-27).
+ if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}
  if(isOn(s,'betpay')){const v=seats.map(x=>winValue(s,x,level,slot));if(Math.abs(v[0]-v[1])>1e-9*Math.max(v[0],v[1]))return v[0]>v[1]?0:1}
- if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
+ return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
 // Every Calls item: +callUnit per correct call at level 1, each level worth 15% more than the one before.

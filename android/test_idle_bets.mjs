@@ -220,7 +220,8 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),0,'no Fan Club: the usual pick');c.coins=1e12;assert.ok(M.buyCharUp(c,5,'fan'));assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),1,'Fan Club: Auto Bet backs them');assert.equal(M.sanitize(JSON.parse(JSON.stringify(c))).chars['5'].fan,1,'Fan Club is saved');
  assert.ok(M.toggleFan(c,5));assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),0,'favourite switched off: the usual pick');assert.equal(M.sanitize(JSON.parse(JSON.stringify(c))).chars['5'].fanOff,true,'the switch is saved');M.toggleFan(c,5);assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),1);
  {const v=M.newState();v.coins=1e12;v.items.autobet=1;v.items.betpay=1;v.items.tier2=3;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>0),1,'Payout Sense counts tier upgrades');
-  v.items.char_5=30;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'and character Payout')}
+  v.items.char_5=30;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'and character Payout')
+  v.items.scout=1;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),1,'Scouting Report goes first when both are on');v.settings.off.scout=true;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'switched off: Payout Sense decides')}
  {const r=M.newState();r.coins=1e15;M.registerMods(mods);for(let i=0;i<4;i++)M.buyCharUp(r,5,'relic','a@5');assert.equal(M.copies(r.chars['5'].relics,'a@5'),3,'up to 3 copies of a relic');
   assert.equal(M.duelMods(r,[5,6]).passives.split('RELIC0').length-1,3,'copies stack');for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
   assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(r))).chars['5'].relics,['a@5','a@5','a@5'],'copies are saved');
