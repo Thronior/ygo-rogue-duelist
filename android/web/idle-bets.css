@@ -554,3 +554,12 @@
 .db-chip-money{margin-right:2px;font-size:10px;color:var(--db-dim);white-space:nowrap;vertical-align:middle}
 .db-next-star{display:block;margin-top:6px;color:var(--db-dim)}
 .db-modal[open]{display:flex;flex-direction:column;overflow:hidden}.db-modal-body{flex:1 1 auto;min-height:0}
+/* Character pages: upgrades as a grid of cards instead of one long list (user, 2026-11-26). */
+.db-char-modal{width:min(780px,96vw)}
+.db-up-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+.db-up-grid .db-up{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr auto;align-items:start;gap:4px 8px;padding:8px;border:1px solid #1e3a45;border-radius:6px;background:#0b1d26}
+.db-up-grid .db-up>:first-child{grid-row:1/3}
+.db-up-grid .db-up-text{grid-column:2;grid-row:1/3}
+.db-up-grid .db-up>:last-child{grid-column:1/-1;grid-row:3;justify-self:stretch;text-align:center}
+.db-up-grid .db-up .db-buy{min-width:0;width:100%}
+.db-up-grid .db-up-text small{font-size:11px}

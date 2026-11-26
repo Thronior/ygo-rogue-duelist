@@ -362,6 +362,9 @@ const TREE_ART={seed:'Deep Pockets',nest:'Glass Treasury',kit:'Armory Aid',haggl
  stakes:'Blind Fortune',t1:'The Underdog Clause',t2:'Tiny Courage',t3:"Giant's Oath",tE:'Phoenix Feather',quick:'Scorched Clock',order:'Razor Ledger',insider:'Deck Spyglass',
  season:'Millennium Eye',starpower:'Waning Star',learner:'Divine Archive',friends:'Kindred Bond'};
 for(const n of TREE)n.art=TREE_ART[n.id];
+// Every node's first level keeps its price; each later level costs 3× as much, 25% more per level on top (user,
+// 2026-11-26: "make the upgrades for stars more expensive except for the first few").
+for(const n of TREE){const base=n.cost;n.cost=l=>l<1?base(l):Math.ceil(base(l)*3*1.25**(l-1))}
 export const TREE_BY=Object.fromEntries(TREE.map(n=>[n.id,n]));
 export const BRANCHES=['Bankroll','Interest','Automation','Legacy'];
 export const SK_UNIT=56;// px per tree unit at zoom 1
@@ -371,11 +374,12 @@ const TIER_NODE={'Opening Duel':'t1','Tier 1':'t1','Tier 2':'t2','Tier 3':'t3',E
 export const interest=s=>1+.1*tl(s,'interest');
 export const discount=s=>1-.04*tl(s,'haggle');
 const revealFactor=s=>1-[0,.3,.55,.75][tl(s,'learner')];
-// Stars grow with the square root of the coins (1M: 1 ★, 100M: 10 ★, 10B: 100 ★). It was 1 ★ per 500K, and one regress
-// maxed the whole tree (Discord #shadow-betting, 2026-11-26; the user: "Agreed will fix").
+// Stars grow with the cube root of the coins, like Cookie Clicker's heavenly chips: each star needs more coins than the
+// last (1M: 1 ★, 8M: 2 ★, 1B: 10 ★, 1T: 100 ★). It was 1 ★ per 500K and one regress maxed the whole tree (Discord
+// #shadow-betting, 2026-11-26; the user: "make stars require more money to get incrementally").
 const starMult=s=>1+.1*tl(s,'starpower');
-export const starsFor=s=>s.coins>=REGRESS_MIN?Math.floor(Math.sqrt(s.coins/REGRESS_MIN)*starMult(s)):0;
-export const nextStarAt=s=>{const n=Math.max(1,starsFor(s)+1);return Math.ceil((n/starMult(s))**2*REGRESS_MIN)};
+export const starsFor=s=>s.coins>=REGRESS_MIN?Math.floor(Math.cbrt(s.coins/REGRESS_MIN)*starMult(s)+1e-9):0;
+export const nextStarAt=s=>{const n=Math.max(1,starsFor(s)+1);return Math.ceil((n/starMult(s))**3*REGRESS_MIN)};
 export const nodeOpen=(s,n)=>!n.req||tl(s,n.req[0])>=n.req[1];
 export function buyNode(s,id){const n=TREE_BY[id],l=tl(s,id);if(!n||l>=n.max||!nodeOpen(s,n))return false;const c=n.cost(l);if(s.stars<c)return false;s.stars-=c;s.tree[id]=l+1;return true}
 // A new run with the tree's start-with nodes; stars, the tree, records, stats and settings carry over.
