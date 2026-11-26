@@ -85,3 +85,7 @@ cd multiplayer/cloudflare
 runtime/ai/node.exe node_modules/wrangler/bin/wrangler.js pages deploy <dir> --project-name ygo-rogue --branch shadow-betting
 ```
 (Wrangler needs Node 22+: use the project's `runtime/ai/node.exe`, not the Node 14 on PATH.)
+
+## Phone app
+
+`python/python.exe -B tools/build_shadow_betting_apk.py --install` builds **Shadow Betting** as its own Android app (`com.shadowrun.shadowbetting`, Dice Re-Roll icon): the standalone site in a WebView wrapper (`tools/shadow-betting/android`), fully offline, its own save. It uses the main checkout's Android SDK and signing key and writes `exports/shadow-betting/Shadow-Betting.apk` there. Not part of the game's APK or releases; reinstalling over it keeps the save. Xiaomi phones ask to confirm a USB install on the phone (Install via USB).
