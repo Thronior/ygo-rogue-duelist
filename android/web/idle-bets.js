@@ -61,7 +61,6 @@ export class DuelBets{
   this.el.shop.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const row=e.target.closest('.db-item');if(row)this.showTip(row)});
   this.el.shop.addEventListener('pointerleave',()=>this.hideTip());
   this.el.shop.addEventListener('scroll',()=>this.hideTip(),{passive:true});
-  this.onShopResize=()=>{clearTimeout(this.shopResizeT);this.shopResizeT=setTimeout(()=>this.el&&this.renderShop(),200)};addEventListener('resize',this.onShopResize);
   this.el.shop.addEventListener('click',e=>{const icon=e.target.closest('.db-icon');if(!icon)return;const row=icon.closest('.db-item');if(this.tipFor===row.dataset.item)this.hideTip();else{this.showTip(row);clearTimeout(this.tipTimer);this.tipTimer=setTimeout(()=>this.hideTip(),4000)}});
  }
  showTip(row){const id=row.dataset.item,it=M.ITEM[id];if(!it)return;this.tipFor=id;const tip=this.el.tip;
@@ -109,11 +108,8 @@ export class DuelBets{
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- shop ----
  renderShop(){
-  // One plain list (cheapest first) while everything fits; category tabs only once that list would scroll (user, 2026-11-26).
+  // Category tabs, always shown (user, 2026-11-26); each lists its items from the cheapest to the dearest first price.
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
-  this.el.tabs.innerHTML='';this.el.tabs.hidden=true;this.el.shop.innerHTML=this.shopRows([...all].sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0)));
-  if(!this.el.shop.clientHeight||this.el.shop.scrollHeight<=this.el.shop.clientHeight+2){this.paintAfford();return}// not laid out yet (hidden page): the resize re-check decides
-  this.el.tabs.hidden=false;
   const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
   const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
   this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
@@ -261,7 +257,7 @@ export class DuelBets{
   // Stakes on duels still playing come back: nothing is decided while the screen is closed.
   for(const b of this.boards)b.refund();for(const b of this.brackets)b.refund();this.save();
   clearTimeout(this.timer);clearInterval(this.saveTimer);for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.supply.close();
-  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);removeEventListener('resize',this.onShopResize);removeEventListener('pagehide',this.onHide);for(const v of this.voices||[])v.pause();this.el=null;
+  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);removeEventListener('pagehide',this.onHide);for(const v of this.voices||[])v.pause();this.el=null;
  }
 }
 

@@ -406,4 +406,6 @@
 .db-guide-bubble{position:absolute;width:min(300px,80vw);padding:8px 12px;border:2px solid #ffd76a;border-radius:10px;background:#0b222ef2;color:#f2f7f6;box-shadow:0 6px 18px #000a;font-size:14px;line-height:1.35;pointer-events:auto}
 .db-guide-bubble p{margin:0 0 6px}.db-guide-bubble button{font:inherit;font-size:12px;padding:3px 10px;border-radius:5px;border:1px solid #668290;background:#102732;color:#cfe3e8;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.db-guide-hand svg{animation:none}}
-.db-shop-tabs[hidden]{display:none}
+/* The bet bar stays on one line on small boards (phone portrait): its text scales with the board's width */
+.db-overlay{container-type:size}
+.db-place{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10px,6cqw,22px)!important}
