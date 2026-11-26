@@ -289,8 +289,11 @@ export class DuelBets{
  // ---- the clock ----
  loop(){
   if(!this.el)return;const now=performance.now(),dt=document.hidden?0:Math.min(250,now-this.last);this.last=now;
-  if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}
-  if(dt>0)this.autoBet(dt);
+  // A Destiny Duel stops everything else and plays at 1x (user, 2026-11-26).
+  if(!this.destiny){const k=M.destinyDue(this.state);if(k)this.destiny=new DestinyDuel(this,k)}
+  if(this.destiny){if(dt>0)this.destiny.tick(dt)}
+  else{if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}
+  if(dt>0)this.autoBet(dt)}
   if(this.state.guide<M.GUIDE_DONE&&(this.guideTick=(this.guideTick||0)+1)%4===0)this.guide();
   const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),document.hidden?1000:watching?100:250);
  }
@@ -381,18 +384,52 @@ export class DuelBets{
 
 // One replayed duel. el = the board's DOM (null while nobody is looking).
 class Replay{
- constructor(game,tl,{level,slot,pick=null,start=0}){Object.assign(this,{game,tl,level,slot,pick});this.sched=M.schedule(tl);this.t=start;this.i=0;this.pending=0;this.earned=0;this.seats=tl.seats.map(s=>game.seatOf(s));
+ constructor(game,tl,{level,slot,pick=null,start=0,quiet=false}){Object.assign(this,{game,tl,level,slot,pick,quiet});this.sched=M.schedule(tl);this.t=start;this.i=0;this.pending=0;this.earned=0;this.seats=tl.seats.map(s=>game.seatOf(s));
   // Joining part-way (a bracket opened mid-round): what already happened pays at once.
   if(start>0){let lump=0;while(this.i<tl.frames.length&&this.sched.at[this.i]<=start){lump+=M.eventIncome(game.state,tl.frames[this.i][0],level);this.i++}this.earned+=lump;if(lump>0)game.gain(lump,{size:'small'})}}
  get done(){return this.t>=this.sched.total}
  lastBoard(upto){for(let i=upto;i>=0;i--)if(this.tl.frames[i]?.[1])return this.tl.frames[i][1];return null}
  tick(dt,view,anchor=null){
   this.t+=dt;const s=this.game.state;let shown=null,events=[];
-  while(this.i<this.tl.frames.length&&this.sched.at[this.i]<=this.t){const f=this.tl.frames[this.i++];events.push(...f[0]);if(f[1])shown=f[1];{const v=M.eventIncome(s,f[0],this.level);this.pending+=v;this.earned+=v}}
+  while(this.i<this.tl.frames.length&&this.sched.at[this.i]<=this.t){const f=this.tl.frames[this.i++];events.push(...f[0]);if(f[1])shown=f[1];if(!this.quiet){const v=M.eventIncome(s,f[0],this.level);this.pending+=v;this.earned+=v}}
   if(view&&(shown||events.length))view.frame(shown,events,this);
   if(this.pending>0&&(this.game.clock-(this.paidAt||0)>350||this.done)){this.paidAt=this.game.clock;const v=this.pending;this.pending=0;this.game.gain(v,{from:view?.root||anchor,size:'small'})}
  }
  result(){return M.resultOf(this.tl,this.seats)}
+}
+
+// ---- Destiny Duel: full screen, everything else paused, 1x speed, all-in bet for a flat 5x ----
+const DESTINY_SOUND='assets/sfx/card-reveal.wav',DESTINY_INTRO=2600,DESTINY_HOLD=4500;
+class DestinyDuel{
+ constructor(game,k){Object.assign(this,{game,k});const s=game.state;s.destiny=k;game.dirty=true;game.save();this.t=0;this.phase='load';
+  for(const d of game.root.querySelectorAll('dialog[open]'))d.close();game.hideTip?.();
+  this.el=document.createElement('div');this.el.className='db-destiny';
+  this.el.innerHTML=`<div class="db-dd-title"><b>Destiny Duel</b><span>${M.fmt(10**k)} coins reached</span></div><div class="db-dd-stage"><div class="db-dd-wait"><span class="db-spinner"></span></div></div>`;
+  game.root.querySelector('.duel-bets').append(this.el);this.stage=this.el.querySelector('.db-dd-stage');game.boardSound(DESTINY_SOUND,1);
+  game.supply.take().then(tl=>{if(this.dead){game.supply.release(tl);return}this.tl=tl;this.phase='intro';this.paintIntro()}).catch(()=>this.close())}
+ paintIntro(){const g=this.game,seats=this.tl.seats.map(x=>g.seatOf(x));this.seats=seats;
+  const tut=g.state.destinyTut?'':`<div class="db-dd-tut"><b>What is this?</b><p>The first time your coins reach a new power of ten, fate calls a Destiny Duel. Everything stops and you bet <b>all the coins you hold</b> on one of the two duelists.</p><p>Call it right and you get <b>5×</b> your bet back. Call it wrong and it is gone. Upgrades and items do not change this payout.</p><button class="db-dd-ok" data-dd="ok">Got it</button></div>`;
+  this.stage.innerHTML=`<div class="db-dd-intro"><div class="db-dd-side p0"><img alt="" src="${esc(assetURL('assets/'+(seats[0].sprite||'')))}"><b>${esc(seats[0].name)}</b>${g.tierChip?g.tierChip(seats[0].label):''}</div><div class="db-dd-vs">VS</div><div class="db-dd-side p1"><img alt="" src="${esc(assetURL('assets/'+(seats[1].sprite||'')))}"><b>${esc(seats[1].name)}</b>${g.tierChip?g.tierChip(seats[1].label):''}</div></div>
+   <div class="db-dd-bet ${tut?'held':''}"><p>All in: <b>${M.fmt(Math.floor(g.state.coins))}</b> coins · a right call pays <b>${M.fmt(Math.floor(g.state.coins)*M.DESTINY_PAYOUT)}</b></p><div class="db-dd-picks"><button data-dd="pick" data-seat="0">Back ${esc(seats[0].name)}</button><button data-dd="pick" data-seat="1">Back ${esc(seats[1].name)}</button></div></div>${tut}`;
+  this.el.onclick=e=>{const b=e.target.closest('[data-dd]');if(!b)return;
+   if(b.dataset.dd==='ok'){g.state.destinyTut=true;g.dirty=true;this.el.querySelector('.db-dd-tut')?.remove();this.el.querySelector('.db-dd-bet')?.classList.remove('held');return}
+   if(b.dataset.dd==='pick'&&this.phase==='intro'&&this.t>=DESTINY_INTRO)this.bet(Number(b.dataset.seat))}}
+ bet(seat){const g=this.game,s=g.state;this.stake=Math.floor(s.coins);if(!s.settings.infinite)s.coins-=this.stake;this.pick=seat;this.phase='play';g.dirty=true;g.paintTotal(true);g.boardSound('assets/sfx/shop-select.wav',.8);
+  this.stage.innerHTML='<div class="db-grid n1 db-dd-grid"></div>';
+  this.view=new BoardView(g,this.stage.firstChild,{title:'Destiny Duel',stakes:`All in ${M.fmt(this.stake)} · right call pays ${M.fmt(this.stake*M.DESTINY_PAYOUT)}`,slot:9});
+  this.replay=new Replay(g,this.tl,{level:1,slot:1,pick:seat,quiet:true});this.view.seats(this.replay.seats,seat);this.view.duelStart(seat)}
+ tick(dt){this.t+=dt;
+  if(this.phase==='intro'&&this.t>=DESTINY_INTRO)this.el.classList.add('ready');
+  if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
+  else if(this.phase==='result'){this.hold-=dt;if(this.hold<=0)this.close()}}
+ finish(){const g=this.game,s=g.state,r=this.replay.result(),won=r.winner===this.pick;this.phase='result';this.hold=DESTINY_HOLD;
+  this.view.ending(r.winner);this.view.outcome(r.winner,this.pick);
+  if(r.winner>1){if(!s.settings.infinite)s.coins+=this.stake;this.view.show('<div class="db-result"><b>No winner · your bet comes back</b></div>')}
+  else if(won){const pay=this.stake*M.DESTINY_PAYOUT;M.earn(s,pay);s.stats.destinyWins=(s.stats.destinyWins||0)+1;this.view.show(`<div class="db-result good"><b>Destiny! ${M.fmt(pay)} coins</b></div>`);g.fx?.(pay,this.view.root,'jackpot','');g.boardSound('assets/sfx/perfect-chime.wav',1)}
+  else{this.view.show(`<div class="db-result bad"><b>${esc(this.replay.seats[r.winner].name)} wins · fate said no</b></div>`);g.boardSound('assets/sfx/negation.wav',.8)}
+  // A payout that crosses the next power of ten does not start another Destiny Duel straight away.
+  s.destiny=Math.max(s.destiny||0,Math.floor(Math.log10(Math.max(1,s.coins))+1e-9));g.dirty=true;g.paintTotal(true);g.refreshShop()}
+ close(){this.dead=true;this.game.supply.release(this.tl);this.el.remove();if(this.game.destiny===this)this.game.destiny=null;this.game.last=performance.now()}
 }
 
 // A scaled-down duel field: card art in every zone, piles, hands and LP, with each CPU's portrait filling its

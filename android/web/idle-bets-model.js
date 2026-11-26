@@ -169,7 +169,7 @@ export const START_COINS=5;
 // First-time guide (Discord 2026-11-26, Nori: a pointing-hand helper like the main game's): 0 point at a duelist,
 // 1 point at an affordable upgrade, 2 done.
 export const GUIDE_DONE=2;
-export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0,stars:0,tree:{},regresses:0,chars:{},lifetime:0}}
+export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0,stars:0,tree:{},regresses:0,chars:{},lifetime:0,destiny:DESTINY_FIRST-1,destinyTut:false}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins,START_COINS));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -183,7 +183,9 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  // Character wins come from the deck stats (older saves had no separate count).
  s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);
  s.guide=Math.max(0,Math.min(GUIDE_DONE,Math.floor(num(raw.guide))));if(!('guide' in raw)&&s.stats.bets>0)s.guide=GUIDE_DONE;// older saves: no guide
- s.stars=Math.max(0,Math.floor(num(raw.stars)));s.regresses=Math.max(0,Math.floor(num(raw.regresses)));s.lifetime=Math.max(0,num(raw.lifetime));
+ s.stars=Math.max(0,Math.floor(num(raw.stars)));
+ // Destiny Duel milestones already played (older saves: the ones their coins have already passed count as played).
+ s.destiny='destiny' in raw?Math.max(0,Math.floor(num(raw.destiny))):Math.max(DESTINY_FIRST-1,Math.floor(Math.log10(Math.max(1,num(raw.coins)))+1e-9));s.destinyTut=!!raw.destinyTut;s.regresses=Math.max(0,Math.floor(num(raw.regresses)));s.lifetime=Math.max(0,num(raw.lifetime));
  // Seed Money used to have 4 levels; levels past the first are Nest Egg now (the root node, 2026-11-26).
  const rt={...(raw.tree&&typeof raw.tree==='object'?raw.tree:{})};if(num(rt.seed)>1){rt.nest=Math.max(num(rt.nest),num(rt.seed)-1);rt.seed=1}
  for(const n of TREE){const v=Math.floor(num(rt[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
@@ -195,6 +197,11 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
+// ---- Destiny Duel (user, 2026-11-26): the first time your coins reach each power of ten from 1,000 up, a forced duel
+// where you bet everything you hold on one duelist; a right call pays a flat 5x, whatever you own. ----
+export const DESTINY_FIRST=3,DESTINY_PAYOUT=5;
+// The milestone to play now (its power of ten), or 0. Infinite money never triggers one.
+export const destinyDue=s=>{if(s.settings?.infinite||!(s.coins>=10**DESTINY_FIRST))return 0;const k=Math.floor(Math.log10(s.coins)+1e-9);return k>(s.destiny||DESTINY_FIRST-1)?k:0};
 export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;s.lifetime=(s.lifetime||0)+amount;return amount}
 // Bought one-time items leave the shop, except automation ones (keep), which stay with an ON/OFF switch.
 // An item appears once you have earned half its first price (Cookie Clicker reveals a building as you near its price),
@@ -394,7 +401,7 @@ export const nodeOpen=(s,n)=>!n.req||tl(s,n.req[0])>=n.req[1];
 export function buyNode(s,id){const n=TREE_BY[id],l=tl(s,id);if(!n||l>=n.max||!nodeOpen(s,n))return false;const c=n.cost(l);if(s.stars<c)return false;s.stars-=c;s.tree[id]=l+1;return true}
 // A new run with the tree's start-with nodes; stars, the tree, records, stats and settings carry over.
 export function startRun(s){
- const keep={stars:s.stars,tree:s.tree,regresses:s.regresses,lifetime:s.lifetime,deckStats:s.deckStats,charWins:s.charWins,stats:s.stats,settings:s.settings,guide:s.guide,chars:tl(s,'friends')?s.chars:{}};
+ const keep={destiny:s.destiny,destinyTut:s.destinyTut,stars:s.stars,tree:s.tree,regresses:s.regresses,lifetime:s.lifetime,deckStats:s.deckStats,charWins:s.charWins,stats:s.stats,settings:s.settings,guide:s.guide,chars:tl(s,'friends')?s.chars:{}};
  const n=Object.assign(newState(),keep);n.coins=startCoins(tl(s,'seed')&&1+tl(s,'nest'));
  const fees=3*tl(s,'kit');if(fees)for(const it of ITEMS)if(/^fee_/.test(it.id)&&it.set<=1)n.items[it.id]=Math.max(n.items[it.id]||0,fees);
  const boards=1+tl(s,'pass');for(let k=2;k<=boards;k++)n.items['open'+k]=1;n.boards=boards;

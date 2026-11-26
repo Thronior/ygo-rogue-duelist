@@ -16,6 +16,9 @@ Each relic and curse carries its duel script for either seat (passives.multiplay
 so the duel worker, which has no Python, only joins strings.
 
 Usage (from the repository root): python/python.exe -B tools/build_shadow_betting_mods.py
+Simulated picks: python/python.exe -B tools/build_shadow_betting_mods.py --candidates <file>, then
+  runtime/ai/node.exe android/idle_bets_pick_mods.mjs android/web <file> tools/shadow-betting-mod-picks.json
+  then the plain build again; it ships each character's best combination from that file.
 """
 import json,re,sys
 from pathlib import Path
@@ -143,19 +146,63 @@ def pick_curses(cid,cards,extra):
   if k in CURSES and k not in picked:picked.append(k)
  return picked
 
-def signature(cid,mains):
- """The signature card in the most of the character's CPU Main Decks (their own signature cards first; else their
- strongest monster that the most decks share), so "starts with it" works in as many of their duels as possible."""
+# ---- candidates and simulated picks (user, 2026-11-26: "emulate duels with each character with 10 different
+# combinations and keep the ones that gave the most of an increase in winrate (across the same seeds)") ----
+# --candidates PATH writes each character's candidate relics, curses and signature cards, 10 combinations (the first
+# is the strategy pick above) and every duel script; android/idle_bets_pick_mods.mjs plays them all on the same seeds
+# and writes PICKS; the normal build then ships each character's winning combination.
+PICKS=ROOT/'tools/shadow-betting-mod-picks.json'
+def sig_candidates(cid,mains,exo):
+ """Signature cards in at least half of the character's decks: their own signature cards first (only when the decks
+ really play them: Arthur's anime Blue-Eyes is not in his Exodia decks), the Exodia head for Exodia decks, then the
+ monsters most decks share, strongest first."""
+ cover=lambda code:sum(1 for m in mains if code in m);half=len(mains)/2
  names=(chars.get(cid) or {}).get('cards') or []
- cover=lambda code:sum(1 for m in mains if code in m)
- sig=[BY_NAME.get(n) for n in names if BY_NAME.get(n)]
- best=max(sig,key=lambda c:(cover(c),-sig.index(c)),default=None)
- if best and cover(best):return best
+ own=[BY_NAME.get(n) for n in names if BY_NAME.get(n)]
  inside=set(c for m in mains for c in m)
- mons=[c for c in inside if c in g.BY_ID and (g.BY_ID[c].get('atk') is not None)]
- return max(mons,key=lambda c:(cover(c),g.BY_ID[c].get('atk') or 0,-c)) if mons else None
+ mons=sorted((c for c in inside if c in g.BY_ID and g.BY_ID[c].get('atk') is not None),key=lambda c:(-cover(c),-(g.BY_ID[c].get('atk') or 0),c))
+ out=[c for c in own if cover(c)>=half]
+ if exo>=.5:out+=[c for c in inside if c in g.BY_ID and g.BY_ID[c]['name']=='Exodia the Forbidden One']
+ out+=[c for c in mons if cover(c)>=half]
+ if not out:out=mons[:1]
+ seen=[];[seen.append(c) for c in out if c not in seen]
+ return seen[:4]
+def relic_candidates(cid,cards,extra,run,start,exo,heur):
+ sc=strategy_scores(cards,extra);order=[s for s,v in sorted(sc.items(),key=lambda kv:(-kv[1],kv[0])) if v>.15] or ['beatdown']
+ fit=ra.details(pool,run);mons=max(1,sum(1 for c in cards if c in g.BY_ID and g.BY_ID[c].get('atk') is not None))
+ core=sorted((k for k in pool if k not in BROAD and fit[k][0] and fit[k][1]/mons>=(.55 if k in ORBS else .3)),key=lambda k:(-fit[k][1]/mons*(.7 if k in ORBS else 1),k))
+ c=list(heur)+([start] if start in pool else [])+core[:3]
+ if exo>=.5:c+=STRATS['exodia'][0][:3]+STRATS['exodia'][1][:2]
+ for s in order[:3]:c+=[k for k in STRATS[s][0] if k in pool][:2]
+ for s in order[:2]:c+=[k for k in STRATS[s][1] if k in pool][:2]
+ seen=[];[seen.append(k) for k in c if k in pool and k not in seen]
+ return seen[:10]
+def curse_candidates(cid,cards,extra,heur):
+ sc=style_scores(cards,extra);c=list(heur)
+ for style,_ in sorted(sc.items(),key=lambda kv:(-kv[1],kv[0]))[:3]:c+=STYLE[style]
+ c+=STYLE['general']
+ seen=[];[seen.append(k) for k in c if k in CURSES and k not in seen]
+ return seen[:7]
+def combos(cid,rc,cc,sc,heur_r,heur_c):
+ import random
+ rng=random.Random('shadow-betting-mods-'+cid)
+ first=(tuple(heur_r),tuple(heur_c),sc[0] if sc else 0)
+ out=[first];tries=0
+ while len(out)<10 and tries<500:
+  tries+=1
+  c=(tuple(rng.sample(rc,min(3,len(rc)))),tuple(rng.sample(cc,min(3,len(cc)))),rng.choice(sc) if sc else 0)
+  if c not in out:out.append(c)
+ return [[list(a),list(b),cd] for a,b,cd in out]
+def relic_entry(k,run):
+ r=dict(run,artifacts=[k])
+ return {'relic':k,'shadow':k.startswith('cursed_'),'name':content.ARTIFACTS[k][0],'text':content.ARTIFACTS[k][2],'art':(content.ARTIFACTS[k][0]+'.png') if (WEB/'assets/relics'/(content.ARTIFACTS[k][0]+'.png')).exists() else '','artCard':BY_NAME.get(str(content.ART_INFO[k].get('art','')).rsplit('.',1)[0]) or 0,
+  's':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
+is_field=lambda code:bool(code and g.BY_ID[code].get('race')=='Field' and 'Spell' in str(g.BY_ID[code].get('type')))
 
-out={'chars':{},'relics':{},'curses':{}}
+import argparse
+ap=argparse.ArgumentParser();ap.add_argument('--candidates',type=Path);args=ap.parse_args()
+picks=json.loads(PICKS.read_text(encoding='utf8')) if PICKS.exists() and not args.candidates else {}
+out={'chars':{},'relics':{},'curses':{}};cand={'chars':{},'relics':{}}
 for cid,records in decks.items():
  mains=[r.get('main',[]) for r in records if r and r.get('main')]
  if not mains or cid not in chars:continue
@@ -167,18 +214,26 @@ for cid,records in decks.items():
  relics=pick_relics(cid,cards,extra,run,start,exo)
  strategy=['exodia'] if isinstance(relics,list) else relics[1]
  if isinstance(relics,tuple):relics=relics[0]
- for k in relics:
-  key=f'{k}@{cid}'
-  r=dict(run,artifacts=[k])
-  out['relics'][key]={'relic':k,'shadow':k.startswith('cursed_'),'name':content.ARTIFACTS[k][0],'text':content.ARTIFACTS[k][2],'art':(content.ARTIFACTS[k][0]+'.png') if (WEB/'assets/relics'/(content.ARTIFACTS[k][0]+'.png')).exists() else '','artCard':BY_NAME.get(str(content.ART_INFO[k].get('art','')).rsplit('.',1)[0]) or 0,
-   's':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
- code=signature(cid,mains)
- out['chars'][cid]={'card':code,'cardName':g.BY_ID[code]['name'] if code else '','field':bool(code and g.BY_ID[code].get('race')=='Field' and 'Spell' in str(g.BY_ID[code].get('type'))),'relics':[f'{k}@{cid}' for k in relics],'plan':strategy,'curses':pick_curses(cid,cards,[c for r in records if r for c in r.get('extra',[])])}
+ curses=pick_curses(cid,cards,extra);sigs=sig_candidates(cid,mains,exo);code=sigs[0] if sigs else None
+ if args.candidates:
+  rc=relic_candidates(cid,cards,extra,run,start,exo,relics);cc=curse_candidates(cid,cards,extra,curses)
+  for k in rc:cand['relics'][f'{k}@{cid}']={'s':relic_entry(k,run)['s']}
+  cand['chars'][cid]={'combos':[[[f'{k}@{cid}' for k in a],b,cd,is_field(cd)] for a,b,cd in combos(cid,rc,cc,sigs,relics,curses)]}
+  continue
+ sim=picks.get(cid)
+ if sim:relics=[k.split('@')[0] for k in sim['relics']];curses=sim['curses'];code=sim['card'] or code
+ for k in relics:out['relics'][f'{k}@{cid}']=relic_entry(k,run)
+ out['chars'][cid]={'card':code,'cardName':g.BY_ID[code]['name'] if code else '','field':is_field(code),'relics':[f'{k}@{cid}' for k in relics],'plan':strategy,'curses':curses,
+  **({'sim':{k:sim[k] for k in ('base','best','seeds')}} if sim else {})}
 ICONS=dict(re.findall(r"(\w+):'([\w-]+)'",re.search(r'const CURSE_ICONS=\{(.*?)\};',(WEB/'experience-ui.js').read_text(encoding='utf8')).group(1)))
 for k in CURSES:
  r=dict(dr._base(0),curses=[k])
  out['curses'][k]={'name':content.CURSES[k][0],'text':content.CURSES[k][1],
   's':['','']} if k=='drain' else {'name':content.CURSES[k][0],'text':content.CURSES[k][1],'s':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
 for k,c in out['curses'].items():c['icon']=f"assets/icons/yugipedia/genres-{ICONS.get(k,'cancel-out-effect')}.png"
+if args.candidates:
+ cand['curses']={k:{'s':v['s']} for k,v in out['curses'].items()}
+ args.candidates.write_text(json.dumps(cand,ensure_ascii=False,separators=(',',':')),encoding='utf8')
+ print(f"{len(cand['chars'])} characters, {len(cand['relics'])} candidate relic scripts -> {args.candidates}");raise SystemExit
 OUT.write_text(json.dumps(out,ensure_ascii=False,separators=(',',':')),encoding='utf8')
-print(f"{len(out['chars'])} characters, {len(out['relics'])} relic scripts, {len(out['curses'])} curses -> {OUT} ({OUT.stat().st_size//1024} KB)")
+print(f"{len(out['chars'])} characters ({sum(1 for c in out['chars'].values() if 'sim' in c)} from simulated picks), {len(out['relics'])} relic scripts, {len(out['curses'])} curses -> {OUT} ({OUT.stat().st_size//1024} KB)")

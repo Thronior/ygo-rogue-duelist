@@ -566,3 +566,27 @@
 .db-up-short{cursor:help}.db-up-grid .db-up-short{grid-template-rows:auto auto;align-items:center}
 .db-up-grid .db-up-short>:first-child{grid-row:1}.db-up-grid .db-up-short .db-up-text{grid-row:1}.db-up-grid .db-up-short>:last-child{grid-row:2}
 .db-up-tip{position:absolute;z-index:5}
+/* Destiny Duel (user, 2026-11-26): full screen, the title slams in, the duelists slide in, then the all-in bet. */
+.db-destiny{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 40%,#3b1030f2 0,#07040cfa 70%);animation:db-dd-bg .5s ease both}
+.db-dd-title{text-align:center;font-family:var(--db-display);animation:db-dd-slam .9s cubic-bezier(.2,1.6,.4,1) both}
+.db-dd-title b{display:block;font-weight:400;font-size:clamp(40px,10vw,96px);letter-spacing:.08em;color:#f2cf83;text-shadow:0 0 24px #ff5fa2,0 0 4px #000}
+.db-dd-title span{color:#e9c9ff;letter-spacing:.12em;font-size:clamp(14px,3vw,20px)}
+.db-dd-stage{flex:1;min-height:0;width:min(1100px,100%);display:flex;flex-direction:column;gap:10px;position:relative}
+.db-dd-wait{margin:auto}
+.db-dd-intro{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.db-dd-side{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;height:100%;justify-content:center}
+.db-dd-side img{max-height:min(46vh,420px);max-width:100%;object-fit:contain;filter:drop-shadow(0 0 18px #ff5fa288)}
+.db-dd-side b{font-family:var(--db-cardname);font-size:clamp(16px,3.4vw,26px);color:#fff;text-align:center}
+.db-dd-side.p0{animation:db-dd-left .9s .7s cubic-bezier(.2,.9,.3,1) both}.db-dd-side.p1{animation:db-dd-right .9s .7s cubic-bezier(.2,.9,.3,1) both}
+.db-dd-vs{font-family:var(--db-display);font-size:clamp(30px,7vw,64px);color:#f2cf83;animation:db-dd-bg .4s 1.5s both}
+.db-dd-bet{text-align:center;opacity:0;pointer-events:none;transition:opacity .4s}.db-destiny.ready .db-dd-bet:not(.held){opacity:1;pointer-events:auto}
+.db-dd-bet p{margin:0 0 8px;color:#f3e7ff}.db-dd-picks{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.db-dd-picks button{min-width:min(44vw,260px);padding:12px 16px;border-radius:8px;border:2px solid #f2cf83;background:#3a2410;color:#f2cf83;font-family:var(--db-display);font-size:clamp(16px,3.6vw,24px);letter-spacing:.05em;cursor:pointer}
+.db-dd-picks button:hover{background:#f2cf83;color:#1a1208}
+.db-dd-tut{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(440px,92%);padding:14px 16px;border-radius:10px;border:2px solid #f2cf83;background:#140b1cf5;box-shadow:0 10px 40px #000c;opacity:0;pointer-events:none;transition:opacity .4s}
+.db-destiny.ready .db-dd-tut{opacity:1;pointer-events:auto}.db-dd-tut b{color:#f2cf83}.db-dd-tut p{margin:8px 0;font-size:14px}
+.db-dd-ok{display:block;margin:10px auto 0;padding:8px 22px;border-radius:6px;border:1px solid #f2cf83;background:#946539;color:#fff4d7;font-weight:700;cursor:pointer}
+.db-dd-grid{flex:1;min-height:0}
+@keyframes db-dd-bg{from{opacity:0}to{opacity:1}}
+@keyframes db-dd-slam{0%{scale:3;opacity:0;filter:blur(6px)}60%{scale:.94;opacity:1;filter:none}100%{scale:1}}
+@keyframes db-dd-left{from{translate:-120vw 0}to{translate:0 0}}@keyframes db-dd-right{from{translate:120vw 0}to{translate:0 0}}
