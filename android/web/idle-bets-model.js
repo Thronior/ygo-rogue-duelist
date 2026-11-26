@@ -197,11 +197,11 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
-// ---- Destiny Duel (user, 2026-11-26): the first time your coins reach each power of ten from 1,000 up, a forced duel
-// where you bet everything you hold on one duelist; a right call pays a flat 5x, whatever you own. ----
-export const DESTINY_FIRST=3,DESTINY_PAYOUT=5;
+// ---- Destiny Duel (user, 2026-11-26): the first time your coins reach each power of 100 (100, 10K, 1M, 100M, ...), a
+// forced duel where you bet everything you hold on one duelist; a right call pays a flat 5x, whatever you own. ----
+export const DESTINY_FIRST=2,DESTINY_STEP=2,DESTINY_PAYOUT=5;
 // The milestone to play now (its power of ten), or 0. Infinite money never triggers one.
-export const destinyDue=s=>{if(s.settings?.infinite||!(s.coins>=10**DESTINY_FIRST))return 0;const k=Math.floor(Math.log10(s.coins)+1e-9);return k>(s.destiny||DESTINY_FIRST-1)?k:0};
+export const destinyDue=s=>{if(s.settings?.infinite||!(s.coins>=10**DESTINY_FIRST))return 0;const k=Math.floor(Math.log10(s.coins)+1e-9),m=k-(k-DESTINY_FIRST)%DESTINY_STEP;return m>(s.destiny||DESTINY_FIRST-1)?m:0};
 export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;s.lifetime=(s.lifetime||0)+amount;return amount}
 // Bought one-time items leave the shop, except automation ones (keep), which stay with an ON/OFF switch.
 // An item appears once you have earned half its first price (Cookie Clicker reveals a building as you near its price),

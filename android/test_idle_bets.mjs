@@ -193,6 +193,10 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.ok(!M.buyNode(M.newState(),'interest'),'every branch starts at the root');
  assert.deepEqual(M.sanitize({tree:{seed:3,kit:1}}).tree,{seed:1,nest:2,kit:1},'old Seed Money levels become Nest Egg');
  for(const x of M.TREE)if(x.req)assert.ok(M.TREE_BY[x.req[0]].at[1]<x.at[1],x.id+' sits above what it needs');}
+// ---- Destiny Duel: every power of 100 from 100, once ----
+{const d=M.newState();d.coins=99;assert.equal(M.destinyDue(d),0);d.coins=150;assert.equal(M.destinyDue(d),2);d.destiny=2;d.coins=9999;assert.equal(M.destinyDue(d),0,'1,000 is not a milestone');
+ d.coins=12000;assert.equal(M.destinyDue(d),4);d.coins=5e7;assert.equal(M.destinyDue(d),6,'skipped milestones: the highest one');d.destiny=6;assert.equal(M.destinyDue(d),0,'once each');
+ assert.equal(M.sanitize({coins:5e5}).destiny,5,'older saves: milestones already passed count as played');}
 // ---- bulk buying, deck-out bonus ----
 {const b=M.newState();b.coins=1e6;const one=M.bulk(b,'fee_summon',1),five=M.bulk(b,'fee_summon',5);assert.equal(one.count,1);assert.equal(five.count,5);assert.ok(five.cost>one.cost*5,'each level dearer');
  const mx=M.bulk(b,'fee_summon','max');assert.ok(mx.count>5&&mx.cost<=b.coins&&mx.cost+M.price(b,'fee_summon',1+mx.count)>b.coins,'MAX buys all you can afford');
