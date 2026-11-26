@@ -178,7 +178,7 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  if(s.boards<BOARD_MAX)s.brackets=0;else s.brackets=Math.max(1,s.brackets);
  for(const k of ['bets','correct','exodia','destiny','champions'])s.stats[k]=Math.max(0,Math.floor(num(raw.stats?.[k])));
  for(const [k,v] of Object.entries(raw.stats?.slots||{}))if(/^\d$/.test(k))s.stats.slots[k]=Math.max(0,Math.floor(num(v)));
- if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','betpay','betfav','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
+ if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;if(raw.settings?.bgRun)s.settings.bgRun=true;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','betpay','betfav','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
  if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
  // Character wins come from the deck stats (older saves had no separate count).
  s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);

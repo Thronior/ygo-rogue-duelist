@@ -8,6 +8,8 @@
 import * as M from './idle-bets-model.js';
 import {DuelSupply} from './idle-bets-library.js';
 import {assetURL} from './startup-assets.js';
+// The phone app (WebView on appassets.androidplatform.net, or any Android WebView) never runs in the background.
+const IS_APP=location.hostname==='appassets.androidplatform.net'||/; wv\)/.test(navigator.userAgent);
 import {balancedVolume} from './audio-balance.js';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -290,14 +292,20 @@ export class DuelBets{
  }
  // ---- the clock ----
  loop(){
-  if(!this.el)return;const now=performance.now(),dt=document.hidden?0:Math.min(250,now-this.last);this.last=now;
+  if(!this.el)return;const now=performance.now(),hidden=document.hidden,raw=now-this.last;this.last=now;
+  // Hidden tab: paused, unless "Pause when tabbed out" is off (web only). Background tabs get slow timers, so the time
+  // missed is caught up in 1 s steps, at most 10 minutes per wake-up.
+  let left=hidden?(this.state.settings.bgRun&&!IS_APP?Math.min(raw,600000):0):Math.min(250,raw);
+  do{const dt=Math.min(left,hidden?1000:250);left-=dt;this.step(dt)}while(left>0);
+  const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),hidden?1000:watching?100:250);
+ }
+ step(dt){
   // A Destiny Duel stops everything else and plays at 1x (user, 2026-11-26).
   if(!this.destiny){const k=M.destinyDue(this.state);if(k)this.destiny=new DestinyDuel(this,k)}
   if(this.destiny){if(dt>0)this.destiny.tick(dt)}
   else{if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}
   if(dt>0)this.autoBet(dt)}
   if(this.state.guide<M.GUIDE_DONE&&(this.guideTick=(this.guideTick||0)+1)%4===0)this.guide();
-  const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),document.hidden?1000:watching?100:250);
  }
  // Auto Bet: one waiting board per interval, in board order (normal boards, then bracket duels between rounds).
  // Auto Bet: a board bets once its betting screen has been up for the Auto Bet delay (5 s, shorter each level).
@@ -354,9 +362,10 @@ export class DuelBets{
  settings(){const s=this.state.settings,st=this.state.stats;
   const row=(name,value,label)=>`<label class="db-set"><input type="radio" name="fx" value="${value}" ${s.fx===value?'checked':''}> ${label}</label>`;
   const vol=k=>this.audio?`<label class="db-set db-vol">${k==='music'?'Music':'Sound'} <input type="range" min="0" max="100" step="5" value="${this.audio.get(k)}" data-vol="${k}"></label>`:'';
-  const d=this.modal('Settings',`${this.audio?`<h3>Volume</h3><div class="db-set-row">${vol('music')}${vol('sound')}</div>`:''}${M.itemLevel(this.state,'autobet')?`<h3>Automation</h3><label class="db-set"><input type="checkbox" data-auto="autobet" ${M.isOn(this.state,'autobet')?'checked':''}> Auto Bet</label>`:''}<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Shadow Betting</button>`,(e,d)=>{
+  const d=this.modal('Settings',`${this.audio?`<h3>Volume</h3><div class="db-set-row">${vol('music')}${vol('sound')}</div>`:''}${M.itemLevel(this.state,'autobet')?`<h3>Automation</h3><label class="db-set"><input type="checkbox" data-auto="autobet" ${M.isOn(this.state,'autobet')?'checked':''}> Auto Bet</label>`:''}${IS_APP?'':`<h3>Background</h3><label class="db-set"><input type="checkbox" data-bgpause ${s.bgRun?'':'checked'}> Pause when tabbed out</label>`}<h3>Coin effects</h3><div class="db-set-row">${row('fx','full','Full')}${row('fx','light','Light')}${row('fx','off','Off')}</div>${M.DEV_TOOLS?`<h3>Testing (this branch only)</h3><label class="db-set"><input type="checkbox" data-infinite ${s.infinite?'checked':''}> Infinite money</label>`:''}<h3>Records</h3><p>Bets placed: ${st.bets.toLocaleString()} · Correct calls: ${st.correct.toLocaleString()}<br>Exodia wins seen: ${st.exodia} · Champions called: ${st.champions}<br>Money earned: ${M.fmt(this.state.earned)}</p><h3>Progress</h3><button data-reset class="db-reset">Reset Shadow Betting</button>`,(e,d)=>{
    const r=e.target.closest('input[name="fx"]');if(r){s.fx=r.value;this.dirty=true}
    const auto=e.target.closest('[data-auto]');if(auto){const off=s.off||(s.off={});if(auto.checked)delete off[auto.dataset.auto];else off[auto.dataset.auto]=true;this.dirty=true;this.renderShop()}
+   const bg=e.target.closest('[data-bgpause]');if(bg){if(bg.checked)delete s.bgRun;else s.bgRun=true;this.dirty=true}
    const inf=e.target.closest('[data-infinite]');if(inf){s.infinite=inf.checked;this.dirty=true;this.paintTotal(true);this.refreshShop()}
    if(e.target.closest('[data-reset]')){if(!e.target.dataset.armed){e.target.dataset.armed='1';e.target.textContent='Tap again to erase all Shadow Betting progress';return}d.close();this.reset()}
   });if(this.audio)d.addEventListener('input',e=>{const k=e.target.dataset?.vol;if(k)this.audio.set(k,Number(e.target.value))})}
