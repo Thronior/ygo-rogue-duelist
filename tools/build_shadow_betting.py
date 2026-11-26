@@ -105,6 +105,8 @@ def build(out,cache=None):
  for r in mods['relics'].values():
   if r.get('art'):add('assets/relics/'+r['art'])
   if r.get('artCard'):add(f"assets/cards-thumb/{r['artCard']}.jpg");add(f"assets/cards/{r['artCard']}.jpg")
+ for c in mods['curses'].values():
+  if c.get('icon'):assert add(c['icon']),'missing '+c['icon']
  for c in mods['chars'].values():
   if c.get('card'):add(f"assets/cards-thumb/{c['card']}.jpg");add(f"assets/cards/{c['card']}.jpg")
  for who in [*(content.get('characters') or []),*(content.get('cpuWatchOpponents') or {}).values()]:
