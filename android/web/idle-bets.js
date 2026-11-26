@@ -184,10 +184,22 @@ export class DuelBets{
    const kind=b.dataset.up,ok=kind==='payout'?!!M.buy(this.state,itemId):M.buyCharUp(this.state,cid,kind,b.dataset.which||null);
    if(!ok){b.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.charSheetHTML(cid);this.paintTotal();this.refreshShop()});
-  d.classList.add('db-char-modal');this.charSheetOpen={d,cid}}
+  d.classList.add('db-char-modal');this.charSheetOpen={d,cid};this.upTips(d)}
+ // The effect tooltip for relic and curse cards on a character page: press (or hover with a mouse) to see it.
+ upTips(d){const tip=document.createElement('div');tip.className='db-tip db-up-tip';d.append(tip);let shown=null;
+  const show=el=>{shown=el;tip.innerHTML=`<b>${esc(el.dataset.tipName)}</b><p>${esc(el.dataset.tipText)}</p>`;const r=el.getBoundingClientRect(),dr=d.getBoundingClientRect();
+   tip.classList.add('on');const w=tip.offsetWidth,h=tip.offsetHeight;let x=r.left-dr.left+r.width/2-w/2,y=r.top-dr.top-h-6;if(y<4)y=r.bottom-dr.top+6;
+   tip.style.left=Math.max(4,Math.min(dr.width-w-4,x))+'px';tip.style.top=y+'px'};
+  const hide=()=>{shown=null;tip.classList.remove('on')};
+  d.addEventListener('click',e=>{const el=e.target.closest('[data-tip-name]');if(!el||e.target.closest('.db-buy')){if(!e.target.closest('.db-up-tip'))hide();return}shown===el?hide():show(el)},true);
+  d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip-name]');if(el&&el!==shown)show(el)});
+  d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip-name]');if(el&&!el.contains(e.relatedTarget))hide()});
+  d.querySelector('.db-modal-body')?.addEventListener('scroll',hide,{passive:true})}
  charSheetHTML(cid){const s=this.state,itemId=M.CHAR_ITEM[cid]||'char_'+cid,it=M.ITEM[itemId],key=itemId==='char_uc'?'uc':String(cid),data=M.mods().chars[key],u=M.charUps(s,cid),mods=M.mods();
   const btn=(kind,cost,owned,which='')=>owned?'<span class="db-owned">OWNED</span>':`<button class="db-buy ${M.canAfford(s,cost)?'':'poor'}" data-up="${kind}" ${which?`data-which="${esc(which)}"`:''}>${M.fmt(cost)}</button>`;
   const row=(icon,title,text,control)=>`<div class="db-up">${icon||'<span></span>'}<span class="db-up-text"><b>${title}</b><small>${text}</small></span>${control}</div>`;
+  // Relics and curses show only their icon and name; press or hover one for its effect, like the shop's items (user, 2026-11-26).
+  const tipRow=(icon,title,name,text,control)=>`<div class="db-up db-up-short" data-tip-name="${esc(name)}" data-tip-text="${esc(text)}" tabindex="0">${icon||'<span></span>'}<span class="db-up-text"><b>${title}</b></span>${control}</div>`;
   const lvl=(k)=>u[k]||0,max=k=>M.CHAR_UP[k].max;
   const pay=M.itemLevel(s,itemId),payMax=pay>=it.max,tip=M.tooltip(s,itemId);
   // The current bonus is shown, not only the first level's (Nori, Discord 2026-11-26).
@@ -198,8 +210,8 @@ export class DuelBets{
    data?.card?row('',`Signature Start`,`Starts every duel with ${esc(data.cardName)} ${data.field?'on the field':'in hand'} (when it is in the deck).`,btn('card',M.charUpCost(s,cid,'card'),!!u.card)):'',
    row('',`Iron Will <small class="db-count">${lvl('lp')}/${max('lp')}</small>`,`Starts with ${100*(lvl('lp')+1)} more LP${lvl('lp')?` (now +${100*lvl('lp')})`:''}.`,lvl('lp')>=max('lp')?'<span class="db-owned">MAX</span>':btn('lp',M.charUpCost(s,cid,'lp'),false)),
    row('',`Intimidation <small class="db-count">${lvl('foe')}/${max('foe')}</small>`,`Opponents start with ${100*(lvl('foe')+1)} fewer LP${lvl('foe')?` (now −${100*lvl('foe')})`:''}.`,lvl('foe')>=max('foe')?'<span class="db-owned">MAX</span>':btn('foe',M.charUpCost(s,cid,'foe'),false))];
-  const relics=(data?.relics||[]).map(k=>{const r=mods.relics[k];if(!r)return '';return row(r.art?`<img class="db-up-art" loading="lazy" alt="" src="${esc(assetURL('assets/relics/'+r.art))}">`:r.artCard?`<img class="db-up-art card" loading="lazy" alt="" src="${esc(assetURL('assets/cards-thumb/'+r.artCard+'.jpg'))}" data-full="${esc(assetURL('assets/cards/'+r.artCard+'.jpg'))}">`:'',esc(r.name)+(r.shadow?' <small class="db-shadow-tag">Shadow relic</small>':''),esc(r.text),btn('relic',M.charUpCost(s,cid,'relic'),(u.relics||[]).includes(k),k))}).join('');
-  const curses=(data?.curses||[]).map(k=>{const c=mods.curses[k];if(!c)return '';return row(`<span class="db-curse-art"><img alt="" src="${esc(assetURL(c.icon))}"></span>`,esc(c.name),'On their opponent: '+esc(c.text),btn('curse',M.charUpCost(s,cid,'curse'),(u.curses||[]).includes(k),k))}).join('');
+  const relics=(data?.relics||[]).map(k=>{const r=mods.relics[k];if(!r)return '';return tipRow(r.art?`<img class="db-up-art" loading="lazy" alt="" src="${esc(assetURL('assets/relics/'+r.art))}">`:r.artCard?`<img class="db-up-art card" loading="lazy" alt="" src="${esc(assetURL('assets/cards-thumb/'+r.artCard+'.jpg'))}" data-full="${esc(assetURL('assets/cards/'+r.artCard+'.jpg'))}">`:'',esc(r.name)+` <small class="db-count">${M.copies(u.relics,k)}/${M.MOD_COPIES}</small>`+(r.shadow?' <small class="db-shadow-tag">Shadow relic</small>':''),r.name,r.text,btn('relic',M.charUpCost(s,cid,'relic'),M.copies(u.relics,k)>=M.MOD_COPIES,k))}).join('');
+  const curses=(data?.curses||[]).map(k=>{const c=mods.curses[k];if(!c)return '';return tipRow(`<span class="db-curse-art"><img alt="" src="${esc(assetURL(c.icon))}"></span>`,esc(c.name)+` <small class="db-count">${M.copies(u.curses,k)}/${M.MOD_COPIES}</small>`,c.name,'On their opponent: '+c.text,btn('curse',M.charUpCost(s,cid,'curse'),M.copies(u.curses,k)>=M.MOD_COPIES,k))}).join('');
   return `<div class="db-sheet-head"><img alt="" src="${esc(assetURL('assets/'+it.portrait))}"><div>${(this.pool.filter(p=>p.id===cid).map(p=>this.tierChip(p.label)).join(''))}</div></div><div class="db-up-grid">${rows.join('')}</div>${relics?`<h3>Relics</h3><div class="db-up-grid">${relics}</div>`:''}${curses?`<h3>Curses</h3><div class="db-up-grid">${curses}</div>`:''}`}
  // ---- shop ----
  renderShop(){

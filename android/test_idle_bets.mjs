@@ -63,9 +63,9 @@ assert.ok(['tier1','tier2','tier3','endless'].every(id=>M.visibleItems(s).some(i
 assert.ok(M.itemCost('calls2',0)>M.itemCost('calls1',0)*10);
 s.coins=0;assert.equal(M.buy(s,'calls2'),null,'no money, no sale');
 
-// ---- speed: +0.1× per purchase, capped at 8× ----
+// ---- speed: +0.1× per purchase, capped at 10× ----
 s.settings.infinite=true;M.buy(s,'speed');assert.equal(M.speedOf(s),1.1);for(let i=0;i<100;i++)M.buy(s,'speed');
-assert.equal(M.speedOf(s),8);assert.equal(s.coins,0,'infinite money never spends');
+assert.equal(M.speedOf(s),10,'Duel Speed tops out at 10x');assert.equal(s.coins,0,'infinite money never spends');
 
 // ---- infinite money reaches every board, then brackets, up to 9 ----
 for(let k=3;k<=9;k++){M.buy(s,'calls'+(k-1));const res=M.buy(s,'open'+k);assert.ok(res,'opener '+k);assert.equal(s.boards,k)}
@@ -168,7 +168,7 @@ assert.ok(M.strength(weak,{'2:0':{g:40,w:36}})>M.strength(weak,{}),'recorded res
 
 // ---- saves: junk is cleaned, levels clamp, infinite money only with the test switch ----
 const clean=M.sanitize({coins:'12',items:{speed:99,bogus:3,calls1:-2},boards:20,brackets:4,settings:{fx:'nope',infinite:true}});
-assert.equal(clean.coins,12);assert.equal(clean.items.speed,70);assert.ok(!('bogus' in clean.items)&&!('calls1' in clean.items));
+assert.equal(clean.coins,12);assert.equal(clean.items.speed,90);assert.ok(!('bogus' in clean.items)&&!('calls1' in clean.items));
 assert.equal(clean.boards,9);assert.equal(clean.brackets,4);assert.equal(clean.settings.fx,'full');assert.equal(clean.settings.infinite,M.DEV_TOOLS);
 assert.equal(M.sanitize({boards:3,brackets:5}).brackets,0,'no brackets before nine boards');
 
@@ -197,7 +197,7 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
 {const b=M.newState();b.coins=1e6;const one=M.bulk(b,'fee_summon',1),five=M.bulk(b,'fee_summon',5);assert.equal(one.count,1);assert.equal(five.count,5);assert.ok(five.cost>one.cost*5,'each level dearer');
  const mx=M.bulk(b,'fee_summon','max');assert.ok(mx.count>5&&mx.cost<=b.coins&&mx.cost+M.price(b,'fee_summon',1+mx.count)>b.coins,'MAX buys all you can afford');
  b.coins=0;assert.equal(M.bulk(b,'fee_summon','max').count,0);
- const pay=M.duelPayout(M.newState(),{winner:0,reason:2,turns:30,winnerLp:4000},2,2);assert.ok(pay.parts.some(p=>p[0]==='Deck-out bonus'&&p[1]>0),'deck-out wins pay without the jackpot item');}
+ const pay=M.duelPayout(M.newState(),{winner:0,reason:2,turns:30,winnerLp:4000},2,2);assert.ok(pay.parts.some(p=>p[0]==='Deck-out jackpot'&&p[1]>0),'deck-out wins pay without the jackpot item');}
 // ---- character upgrades: payout, spotlight, signature card, LP, relics and curses ----
 {const mods={chars:{'5':{card:100,cardName:'X',field:false,relics:['a@5','b@5','c@5'],curses:['tax','mercy','drain']},'6':{card:200,relics:[],curses:[]}},relics:{'a@5':{name:'A',text:'',s:['RELIC0','RELIC1']}},curses:{tax:{s:['TAX0','TAX1']},mercy:{s:['M0','M1']},drain:{s:['','']}}};
  M.registerMods(mods);M.registerCharacters([{id:5,name:'Five',rank:1,sprite:'f.png',labels:['Tier 1']},{id:6,name:'Six',rank:1,sprite:'s.png',labels:['Tier 1']}]);
@@ -212,6 +212,10 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.notEqual(dm.sig,'');assert.equal(M.duelMods(c,[6,5]).lp[1],8000,'seats swap cleanly');
  assert.ok(M.charWeight(c,5)===1&&(M.buyCharUp(c,5,'spot'),M.charWeight(c,5)===1.6),'Spotlight: +60% per level');
  assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),0,'no Fan Club: the usual pick');c.coins=1e12;assert.ok(M.buyCharUp(c,5,'fan'));assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),1,'Fan Club: Auto Bet backs them');assert.equal(M.sanitize(JSON.parse(JSON.stringify(c))).chars['5'].fan,1,'Fan Club is saved');
+ {const r=M.newState();r.coins=1e15;M.registerMods(mods);for(let i=0;i<4;i++)M.buyCharUp(r,5,'relic','a@5');assert.equal(M.copies(r.chars['5'].relics,'a@5'),3,'up to 3 copies of a relic');
+  assert.equal(M.duelMods(r,[5,6]).passives.split('RELIC0').length-1,3,'copies stack');for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
+  assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(r))).chars['5'].relics,['a@5','a@5','a@5'],'copies are saved');
+  r.items.autobet=1;r.items.betfav=1;assert.equal(M.autoPick(r,[{id:6},{id:5}],()=>0),1,'Loyal Backer backs the most upgraded character')}
  assert.ok(M.charUpCost(c,5,'relic')>M.charUpCost(c,5,'lp'),'relics cost more than an LP level');
 }
 // ---- one real duel through the recorder (skipped without the generated content.json) ----

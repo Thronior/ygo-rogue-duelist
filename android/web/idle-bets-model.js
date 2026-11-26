@@ -59,9 +59,11 @@ export const ITEMS=[
  // Automation: Auto Bet backs a duelist on one waiting board every few seconds (faster per level);
  // Scouting Report makes it back the higher-tier CPU (a coin flip when both are the same tier).
  I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:20,text:l=>l?`Bets after ${autoSeconds(l)}s on the betting screen · next level ${autoSeconds(l+1)}s.`:`Bets on a random duelist once a board's betting screen has been up ${autoSeconds(1)}s.`,maxText:`Bets after ${autoSeconds(20)}s on the betting screen.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
+ I('betpay',3,'Payout Sense',38299233,40,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the duelist whose win pays you the most (their Payout upgrade).',show:s=>lvl(s,'scout')>=1}),
+ I('betfav',5,'Loyal Backer',34029630,40,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the character you have upgraded the most.',show:s=>lvl(s,'betpay')>=1}),
  I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
  // +0.1× per purchase (user, 2026-11-25), up to 8×; still the steepest-growing price in the opening shop.
- I('speed',1,'Duel Speed',16589042,10,1.8,'drastic',{max:70,text:l=>`Duels play at ${speedAt(l)}× now · next level ${speedAt(l+1)}×.`,maxText:'Duels play at 8× speed.',show:()=>true}),
+ I('speed',1,'Duel Speed',16589042,10,1.8,'drastic',{max:90,text:l=>`Duels play at ${speedAt(l)}× now · next level ${speedAt(l+1)}×.`,maxText:'Duels play at 10× speed.',show:()=>true}),
  I('open2',1,'The Big Leagues',37313786,20,1,'opener',{max:1,text:()=>'Opens board 2. Bets cost 10 and pay 100.',show:s=>lvl(s,'calls1')>=2||s.earned>=20}),
  calls(2),
  // CPU-tier bonuses come later: once Board 2 is open. The stronger the tier, the smaller the bonus.
@@ -81,7 +83,7 @@ export const ITEMS=[
  I('fee_damage',4,'Damage Fees',19523799,2,ITEM_GROWTH,'simple',{text:()=>'+0.2 for every 1,000 damage dealt.',show:s=>lvl(s,'fee_fusion')>=1}),
  I('open5',4,'Board 5: '+LEAGUES[4],72302403,20,1,'opener',{max:1,text:()=>`Opens board 5. Bets cost ${fmt(boardStake(5))} and pay ${fmt(boardPayout(5))}.`,show:s=>s.boards>=4&&lvl(s,'calls4')>=1}),
  calls(5),
- I('deckout',5,'Deck-Out Jackpot',70368879,3,3,'drastic',{max:20,text:()=>'+50 whenever a duel ends by deck-out.',show:s=>s.boards>=5}),
+ I('deckout',5,'Deck-Out Jackpot',70368879,3,3,'drastic',{max:20,text:l=>`Deck-out wins pay ${fmt(jackpotBase('deckout',{items:{deckout:l+1}}))} (now ${fmt(jackpotBase('deckout',{items:{deckout:l}}))}).`,show:s=>s.boards>=5}),
  I('fee_heal',5,"Healer's Tithe",11714098,2,ITEM_GROWTH,'simple',{text:()=>'+0.5 for every 1,000 LP gained.',show:s=>s.boards>=5}),
  I('open6',5,'Board 6: '+LEAGUES[5],83764718,20,1,'opener',{max:1,text:()=>`Opens board 6. Bets cost ${fmt(boardStake(6))} and pay ${fmt(boardPayout(6))}.`,show:s=>s.boards>=5&&lvl(s,'calls5')>=1}),
  calls(6),
@@ -107,7 +109,7 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  fee_damage:'Burn Proficiency',open5:'Golden Receipt',deckout:'Starving Library',fee_heal:'Healing Spring',open6:'Merchant Sigil',special:'Premature Triumph',flawless:'Life Shield',
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^(fee_.*|exodia|deckout|special|flawless|longgame|blitz)$/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^(fee_.*|exodia|deckout|special|flawless|longgame|blitz)$/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Automation',/^(speed|autobet|scout|betpay|betfav|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 // The shop's two tab rows (user: Characters on the second line).
 // Jackpots and finishes live in Card Fees (user, 2026-11-26).
 export const TAB_ROWS=[['Payouts','Card Fees','CPU Tiers'],['Characters','Automation','Expansion']];
@@ -176,7 +178,7 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  if(s.boards<BOARD_MAX)s.brackets=0;else s.brackets=Math.max(1,s.brackets);
  for(const k of ['bets','correct','exodia','destiny','champions'])s.stats[k]=Math.max(0,Math.floor(num(raw.stats?.[k])));
  for(const [k,v] of Object.entries(raw.stats?.slots||{}))if(/^\d$/.test(k))s.stats.slots[k]=Math.max(0,Math.floor(num(v)));
- if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
+ if(['full','light','off'].includes(raw.settings?.fx))s.settings.fx=raw.settings.fx;s.settings.infinite=DEV_TOOLS&&!!raw.settings?.infinite;for(const k of ['scout','betpay','betfav','autochamp','autobet'])if(raw.settings?.off?.[k])s.settings.off[k]=true;
  if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
  // Character wins come from the deck stats (older saves had no separate count).
  s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);
@@ -187,7 +189,7 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  for(const n of TREE){const v=Math.floor(num(rt[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
  if(raw.chars&&typeof raw.chars==='object')for(const [id,c] of Object.entries(raw.chars)){if(!/^(\d+|uc)$/.test(id)||!c||typeof c!=='object')continue;
   const o={};for(const k of ['spot','card','lp','foe','fan']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}
-  for(const k of ['relics','curses'])if(Array.isArray(c[k]))o[k]=c[k].filter(x=>typeof x==='string').slice(0,3);
+  for(const k of ['relics','curses'])if(Array.isArray(c[k])){const n={};o[k]=c[k].filter(x=>typeof x==='string'&&(n[x]=(n[x]||0)+1)<=MOD_COPIES).slice(0,9)}
   if(Object.keys(o).length)s.chars[id]=o}
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
@@ -225,6 +227,8 @@ export const tierRank=label=>TIER_RANK[label]??2;
 export function autoPick(s,seats,random=Math.random){
  // Fan Club: back the character you upgraded; if both are, the one with the higher Payout level.
  const fan=seats.map(x=>x&&x.id!=null&&charUps(s,x.id).fan?1+lvl(s,CHAR_ITEM[x.id]||'char_'+x.id):0);if(fan[0]!==fan[1])return fan[0]>fan[1]?0:1;
+ if(isOn(s,'betfav')){const v=seats.map(x=>x&&x.id!=null?charInvest(s,x.id):0);if(v[0]!==v[1])return v[0]>v[1]?0:1}
+ if(isOn(s,'betpay')){const v=seats.map(x=>x&&x.id!=null?charWinPay(s,x.id,lvl(s,CHAR_ITEM[x.id]||'char_'+x.id)):0);if(v[0]!==v[1])return v[0]>v[1]?0:1}
  if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
@@ -236,7 +240,11 @@ export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,l
 // (≈14× per set) late items out-earned the boards and the economy ran away (headless playtest, 2026-11-26).
 const POWER_REF=15,POWER=Math.log(10)/Math.log(BOARD_RATIO),powerCache=new Map();
 export function power(id){if(!powerCache.has(id))powerCache.set(id,Math.max(1,(itemCost(id,0)/POWER_REF)**POWER));return powerCache.get(id)}
-export function jackpotBase(kind,s){const l=lvl(s,kind);return (kind==='exodia'?50*2**l:kind==='deckout'?50*levelValue(l):kind==='special'?200*levelValue(l):0)*power(kind)}
+export function jackpotBase(kind,s){const l=lvl(s,kind);
+ // Deck-outs pay Exodia's starting jackpot by default; the Deck-Out Jackpot item adds to it (Thronior, Discord 2026-11-26:
+ // "by default, kind of like the exodia and destiny board jackpots ... the upgrade should just increase that amount").
+ if(kind==='deckout')return 50*power('exodia')+50*levelValue(l)*power('deckout');
+ return (kind==='exodia'?50*2**l:kind==='special'?200*levelValue(l):0)*power(kind)}
 // Income from one replayed frame's events on a board of this level.
 // Items pay the same on every board (like Cookie Clicker buildings, a new board never multiplies the old items);
 // only the bets and the Calls items grow with a board's stakes. High Roller multiplies everything.
@@ -258,7 +266,7 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=i
  const kind=winKind(result);
  const fever=1+.5*tl(s,'fever');
  if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*fever*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
- if(kind==='deckout'){add('Deck-out bonus',3*boardPayout(level)*scale*fever);add('Deck-out jackpot',jackpotBase('deckout',s)*scale*fever,true)}// bonus: user, Discord 2026-11-26
+ if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale*fever,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale*fever,true);
  if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*(ITEM[id]?.boost||1)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lv(s,'flawless')*power('flawless')*scale);
@@ -266,6 +274,8 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=i
  if(result.winner<2&&result.turns<=5)add('Blitz',10*lv(s,'blitz')*power('blitz')*scale);
  return {total:parts.reduce((a,p)=>a+p[1],0),parts}}
 
+// How much you have put into a character: Payout levels plus every character upgrade (Loyal Backer).
+export const charInvest=(s,id)=>{const u=charUps(s,id);return lvl(s,CHAR_ITEM[id]||'char_'+id)+(u.spot||0)+(u.card||0)+(u.lp||0)+(u.foe||0)+(u.fan||0)+(u.relics||[]).length+(u.curses||[]).length};
 export const charWinPay=(s,id,l)=>{const it=CHAR_ITEM[id]||'char_'+id;return l?2*levelValue(l)*power(it)*(ITEM[it]?.boost||1)*itemScale(s):0};
 // Shop bulk buying: how many levels n buys (n = 'max': as many as you can afford) and what they cost together
 // (Nori, Discord 2026-11-26: "Buy 5x, 10x, 50x or MAX"; the user: "Good point").
@@ -398,6 +408,8 @@ export function regress(s){const gained=starsFor(s);if(!gained)return null;const
 // card (starts each duel with its signature card), lp (+100 starting LP), foe (opponent −100 starting LP), relics and
 // curses (3 tailored each, idle-bets-mods.json). Prices are multiples of the character's payout price.
 // fan (Fan Club): Auto Bet backs this character whenever they duel (Discord 2026-11-26: the user and Nori).
+// Each tailored relic and curse can be bought up to 3 times per character; copies stack (user, 2026-11-26).
+export const MOD_COPIES=3;export const copies=(list,k)=>(list||[]).filter(x=>x===k).length;
 export const CHAR_UP={spot:{max:10,mult:1.5,growth:1.6},card:{max:1,mult:4,growth:1},lp:{max:20,mult:2,growth:1.35},foe:{max:20,mult:2,growth:1.35},fan:{max:1,mult:3,growth:1}};
 let MODS={chars:{},relics:{},curses:{}};
 export const registerMods=data=>{if(data&&data.chars)MODS=data};
@@ -409,7 +421,7 @@ export function charUpCost(s,id,kind,which=null){const u=charUps(s,id),b=charBas
  if(kind==='relic'||kind==='curse'){const owned=(u[kind+'s']||[]).length;return Math.ceil(b*6*2**owned*discount(s))}
  const c=CHAR_UP[kind];return Math.ceil(b*c.mult*c.growth**(u[kind]||0)*discount(s))}
 export function buyCharUp(s,id,kind,which=null){const key=charKey(id),u=s.chars[key]??={};
- if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||list.includes(which))return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
+ if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||copies(list,which)>=MOD_COPIES)return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
  const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
 // How often a character is picked for a duel (Spotlight: +60% per level, 7x at level 10; it was +25%, too weak:
 // the user, Discord 2026-11-26).
@@ -418,7 +430,7 @@ export const charWeight=(s,id)=>1+SPOT_STEP*(charUps(s,id).spot||0);
 // What a duel between these two characters is played with: starting LP and the passive script for both seats.
 // sig is '' when nothing applies, so plain duels keep sharing the library.
 export function duelMods(s,ids){const ups=ids.map(id=>charUps(s,id)),keys=ids.map(charKey);
- const lp=[0,1].map(p=>{let v=8000+100*(ups[p].lp||0)-100*(ups[1-p].foe||0);if((ups[1-p].curses||[]).includes('drain'))v-=1000;return Math.max(2000,v)});
+ const lp=[0,1].map(p=>{let v=8000+100*(ups[p].lp||0)-100*(ups[1-p].foe||0);v-=1000*copies(ups[1-p].curses,'drain');return Math.max(2000,v)});
  const parts=[];
  for(const p of [0,1]){const u=ups[p],o=ups[1-p];
   if(u.card&&MODS.chars[keys[p]]?.card)parts.push(startCardScript(p,MODS.chars[keys[p]].card,MODS.chars[keys[p]].field));

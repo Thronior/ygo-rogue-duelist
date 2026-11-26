@@ -563,3 +563,6 @@
 .db-up-grid .db-up>:last-child{grid-column:1/-1;grid-row:3;justify-self:stretch;text-align:center}
 .db-up-grid .db-up .db-buy{min-width:0;width:100%}
 .db-up-grid .db-up-text small{font-size:11px}
+.db-up-short{cursor:help}.db-up-grid .db-up-short{grid-template-rows:auto auto;align-items:center}
+.db-up-grid .db-up-short>:first-child{grid-row:1}.db-up-grid .db-up-short .db-up-text{grid-row:1}.db-up-grid .db-up-short>:last-child{grid-row:2}
+.db-up-tip{position:absolute;z-index:5}
