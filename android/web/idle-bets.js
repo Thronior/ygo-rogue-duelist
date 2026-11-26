@@ -719,13 +719,16 @@ class Bracket{
   this.game.dirty=true}
  finish(){const order=M.standings(this.wins,this.dmg),champ=order[0],s=this.game.state;
   if(this.bet){if(this.bet.pick===champ){s.stats.champions++;const v=M.championPayout(s,this.index);setTimeout(()=>{if(!this.game.el)return;this.game.gain(v,{from:this.game.openBracket===this?this.game.el.stage:this.tile,size:'big',label:'CHAMPION'})},300)}this.bet=null}
-  this.game.banner(this.game.seatOf(this.roster[champ]).name+' wins the '+M.bracketName(this.index)+'!');
+  // The winner shows big on the bracket itself (portrait, name, "Winner" on top), not as a banner across the whole
+  // screen (user, 2026-11-26).
   this.champion=champ;this.phase='final';this.left=FINAL_HOLD;this.table?.crown(champ);this.paintAll();this.game.save()}
  // ---- drawing ----
  tileStatus(){return this.phase==='bet'?(this.bet||this.skipBet?'Starting…':'Waiting for your champion bet'):this.phase==='final'?`Winner: ${this.game.seatOf(this.roster[this.champion]).name}`:`${this.played()} / ${this.total()} duels`}
  betHTML(){const g=this.game,s=g.state,money=`bet ${M.fmt(M.championStake(s,this.index))} · pays ${M.fmt(M.championPayout(s,this.index))}`;return this.bet?`Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)} · ${money}`:`Champion ${money}`}
  // While the bracket waits for its champion bet, a big prompt sits in its middle (the tile and the open view).
- promptHTML(){if(this.phase!=='bet'||this.bet||this.skipBet)return '';const s=this.game.state,stake=M.championStake(s,this.index),ok=M.canAfford(s,stake);
+ promptHTML(){
+  if(this.phase==='final'&&this.champion!=null){const w=this.game.seatOf(this.roster[this.champion]);return `<span class="db-winner"><small>Winner</small><img alt="" src="${esc(assetURL('assets/'+w.sprite))}"><b>${esc(w.name)}</b></span>`}
+  if(this.phase!=='bet'||this.bet||this.skipBet)return '';const s=this.game.state,stake=M.championStake(s,this.index),ok=M.canAfford(s,stake);
   return `<span class="db-champ-prompt"><span class="db-champ-btn" data-db="champion" data-b="${this.index}"><small>Bet on the champion</small><b>${M.fmt(stake)}</b><em>pays ${M.fmt(M.championPayout(s,this.index))}</em></span>${ok?'':`<span class="db-champ-skip" data-db="skip-champion" data-b="${this.index}">Start without a bet</span>`}</span>`}
  paintPrompt(host){if(!host)return;const html=this.promptHTML();let el=host.querySelector(':scope>.db-champ-host');if(!el){el=document.createElement('span');el.className='db-champ-host';host.append(el)}if(el.dataset.html!==html){el.dataset.html=html;el.innerHTML=html}}
  // The tile is a round-robin crosstable: the 9 CPUs down the side and across the top (18 portraits); each cell is
