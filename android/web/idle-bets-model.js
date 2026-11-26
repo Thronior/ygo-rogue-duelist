@@ -382,9 +382,10 @@ const TREE_ART={seed:'Deep Pockets',nest:'Glass Treasury',kit:'Armory Aid',haggl
  stakes:'Blind Fortune',t1:'The Underdog Clause',t2:'Tiny Courage',t3:"Giant's Oath",tE:'Phoenix Feather',quick:'Scorched Clock',order:'Razor Ledger',insider:'Deck Spyglass',
  season:'Millennium Eye',starpower:'Waning Star',learner:'Divine Archive',friends:'Kindred Bond'};
 for(const n of TREE)n.art=TREE_ART[n.id];
-// Every node's first level keeps its price; each later level costs 3× as much, 25% more per level on top (user,
-// 2026-11-26: "make the upgrades for stars more expensive except for the first few").
-for(const n of TREE){const base=n.cost;n.cost=l=>l<1?base(l):Math.ceil(base(l)*3*1.25**(l-1))}
+// Every node's first level keeps its price; each later level costs 3× as much, 5% more per level on top (user,
+// 2026-11-26: "make the upgrades for stars more expensive except for the first few"; +25% per level made Compound Interest
+// alone cost 791K stars, out of reach, so the tree is about 58K stars now).
+for(const n of TREE){const base=n.cost;n.cost=l=>l<1?base(l):Math.ceil(base(l)*3*1.05**(l-1))}
 export const TREE_BY=Object.fromEntries(TREE.map(n=>[n.id,n]));
 export const BRANCHES=['Bankroll','Interest','Automation','Legacy'];
 export const SK_UNIT=56;// px per tree unit at zoom 1
@@ -394,12 +395,18 @@ const TIER_NODE={'Opening Duel':'t1','Tier 1':'t1','Tier 2':'t2','Tier 3':'t3',E
 export const interest=s=>1+.1*tl(s,'interest');
 export const discount=s=>1-.04*tl(s,'haggle');
 const revealFactor=s=>1-[0,.3,.55,.75][tl(s,'learner')];
-// Stars grow with the cube root of the coins, like Cookie Clicker's heavenly chips: each star needs more coins than the
-// last (1M: 1 ★, 8M: 2 ★, 1B: 10 ★, 1T: 100 ★). It was 1 ★ per 500K and one regress maxed the whole tree (Discord
-// #shadow-betting, 2026-11-26; the user: "make stars require more money to get incrementally").
+// Stars come from the coins earned this run (buying upgrades no longer costs stars; Cookie Clicker counts cookies baked
+// this ascension). They grow with the cube root up to 1T (1M: 1 ★, 8M: 2 ★, 1B: 10 ★, 1T: 100 ★), then slower, with
+// the log of the coins: 100 + 100 × log10(coins ÷ 1T)^1.5 (1e15: 619, 1e24: 4,256, 1e36: 11,857). It was 1 ★ per 500K,
+// then a plain cube root, and bracket-scale coins maxed the whole tree in one regress (user, 2026-11-26: playtest).
 const starMult=s=>1+.1*tl(s,'starpower');
-export const starsFor=s=>s.coins>=REGRESS_MIN?Math.floor(Math.cbrt(s.coins/REGRESS_MIN)*starMult(s)+1e-9):0;
-export const nextStarAt=s=>{const n=Math.max(1,starsFor(s)+1);return Math.ceil((n/starMult(s))**3*REGRESS_MIN)};
+const STAR_KNEE=1e12;
+const rawStars=v=>v<REGRESS_MIN?0:v<STAR_KNEE?Math.cbrt(v/REGRESS_MIN):100+100*Math.log10(v/STAR_KNEE)**1.5;
+const starsAt=n=>n<=100?n**3*REGRESS_MIN:STAR_KNEE*10**(((n-100)/100)**(2/3));// coins that give n raw stars
+export const runEarned=s=>s.earned||0;
+export const starsFor=s=>runEarned(s)>=REGRESS_MIN?Math.floor(rawStars(runEarned(s))*starMult(s)+1e-9):0;
+export const nextStarAt=s=>{const n=Math.max(1,starsFor(s)+1);let v=Math.ceil(starsAt(n/starMult(s)));// float dust: one step either way, at most
+ if(starsFor({...s,earned:v})<n)v=Math.ceil(v*(1+1e-9)+1);else if(v-1!==v&&starsFor({...s,earned:v-1})>=n)v-=1;return v};
 export const nodeOpen=(s,n)=>!n.req||tl(s,n.req[0])>=n.req[1];
 export function buyNode(s,id){const n=TREE_BY[id],l=tl(s,id);if(!n||l>=n.max||!nodeOpen(s,n))return false;const c=n.cost(l);if(s.stars<c)return false;s.stars-=c;s.tree[id]=l+1;return true}
 // A new run with the tree's start-with nodes; stars, the tree, records, stats and settings carry over.

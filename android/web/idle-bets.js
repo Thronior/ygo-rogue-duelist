@@ -117,7 +117,7 @@ export class DuelBets{
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- prestige: the star button, Regress and the skill tree (M.TREE) ----
  paintStar(){const b=this.root.querySelector('.db-star');if(!b)return;const s=this.state;// always shown: before the first regress it says how to unlock the tree
-  b.querySelector('b').textContent=s.stars?String(s.stars):'';b.classList.toggle('ready',s.coins>=M.REGRESS_MIN)}
+  b.querySelector('b').textContent=s.stars?String(s.stars):'';b.classList.toggle('ready',M.runEarned(s)>=M.REGRESS_MIN)}
  prestige(){const d=this.modal('Regress',this.prestigeHTML(),(e,dlg)=>{
    if(this.skMoved)return;const z=e.target.closest('[data-skz]');if(z){this.skZoom(dlg,z.dataset.skz);return}
    const sk=e.target.closest('[data-sk]');if(sk){this.treeSel=sk.dataset.sk;for(const b of dlg.querySelectorAll('.db-sk'))b.classList.toggle('sel',b===sk);dlg.querySelector('.db-sk-info').innerHTML=this.treeInfo(this.treeSel);return}
@@ -128,10 +128,10 @@ export class DuelBets{
   d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]'),info=d.querySelector('.db-sk-info');if(sk&&info)info.innerHTML=this.treeInfo(sk.dataset.sk)});
   d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]');if(sk&&!sk.contains(e.relatedTarget)){const info=d.querySelector('.db-sk-info');if(info)info.innerHTML=this.treeInfo(this.treeSel)}})}
  prestigeHTML(){const s=this.state,gain=M.starsFor(s);
-  const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn your ${M.fmt(s.coins)} coins into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button><small class="db-next-star">Next ★ at ${M.fmt(M.nextStarAt(s))} coins.</small>`:''}</div>`;
+  const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn the ${M.fmt(M.runEarned(s))} coins you earned this run into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button><small class="db-next-star">Next ★ at ${M.fmt(M.nextStarAt(s))} coins earned.</small>`:''}</div>`;
   // The tree grows up from the root; each node is an icon, tap or hover one to read it below; drag and zoom to move
   // around (user, 2026-11-26). Hidden until the first regress.
-  if(!M.treeUnlocked(s))return head+`<div class="db-skill db-skill-locked"><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><p>${s.coins>=M.REGRESS_MIN?'Regress to unlock the skill tree':`Reach ${M.fmt(M.REGRESS_MIN)} coins to unlock`}</p></div>`;
+  if(!M.treeUnlocked(s))return head+`<div class="db-skill db-skill-locked"><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><p>${M.runEarned(s)>=M.REGRESS_MIN?'Regress to unlock the skill tree':`Reach ${M.fmt(M.REGRESS_MIN)} coins to unlock`}</p></div>`;
   const U=M.SK_UNIT,{w,h}=this.skSize(),X=n=>(n.at[0]+.5)*U,Y=n=>h-(n.at[1]+.8)*U;
   const lines=M.TREE.filter(n=>n.req).map(n=>{const p=M.TREE_BY[n.req[0]];return `<line class="${M.treeLevel(s,n.id)?'own':M.nodeOpen(s,n)?'open':''}" x1="${X(p)}" y1="${Y(p)}" x2="${X(n)}" y2="${Y(n)}"/>`}).join('');
   const nodes=M.TREE.map(n=>{const l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),ready=open&&!maxed&&s.stars>=n.cost(l);

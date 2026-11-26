@@ -178,8 +178,8 @@ assert.equal(M.fmt(12.34),'12.3');assert.equal(M.fmt(1234),'1,234');assert.equal
 assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23 reads 100Sx, not 99.99Sx');
 
 // ---- prestige: Regress at 1M coins, 1 star per 500K; the skill tree ----
-{let p=M.newState();p.coins=999999;assert.equal(M.regress(p),null,'no regress under 1M');
- p.coins=8.5e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'stars: cube root of the millions');
+{let p=M.newState();p.earned=999999;p.coins=5e9;assert.equal(M.regress(p),null,'no regress under 1M earned this run (coins held do not count)');
+ p.coins=10;p.earned=8.5e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'stars: cube root of the millions');
  let n=r.state;assert.equal(n.stars,2);assert.equal(n.regresses,1);assert.equal(n.boards,1);assert.equal(n.coins,5);assert.equal(n.items.fee_attack,undefined,'the run resets');
  assert.ok(!M.buyNode(n,'kit'),'Starter Kit needs Seed Money first');assert.ok(M.buyNode(n,'seed'));assert.equal(n.stars,1);
  n.stars=1000;for(const id of ['nest','kit','pass','quick','quick','order','insider','interest','haggle','haggle'])assert.ok(M.buyNode(n,id),id);
@@ -187,7 +187,9 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.equal(n.items.speed,10);assert.equal(n.items.autobet,3);assert.equal(n.items.scout,1);
  assert.equal(M.price(n,'calls1',10),Math.ceil(M.itemCost('calls1',10)*.92),'Haggler 2: 8% off');
  assert.ok(Math.abs(M.correctPayout(n,1,1)-5*1.1)<1e-9,'Compound Interest 1: +10%');
- n.tree.starpower=5;n.coins=1e9;assert.equal(M.starsFor(n),15,'Star Power 5: 10 stars x1.5');assert.equal(M.starsFor({...n,coins:1e12,tree:{}}),100);assert.equal(M.nextStarAt({...n,coins:1e9,tree:{}}),1331e6,'next star at 11 cubed millions');
+ n.tree.starpower=5;n.earned=1e9;assert.equal(M.starsFor(n),15,'Star Power 5: 10 stars x1.5');assert.equal(M.starsFor({...n,earned:1e12,tree:{}}),100);assert.equal(M.nextStarAt({...n,earned:1e9,tree:{}}),1331e6,'next star at 11 cubed millions');
+ assert.equal(M.starsFor({...n,earned:1e24,tree:{}}),4256,'past 1T stars grow with the log');assert.equal(M.starsFor({...n,earned:1e36,tree:{}}),11857);
+ {const q={...n,earned:1e18,tree:{}},next=M.nextStarAt(q);assert.equal(M.starsFor({...q,earned:next}),M.starsFor(q)+1,'next star past 1T');assert.equal(M.starsFor({...q,earned:next*.999}),M.starsFor(q))}
  assert.equal(M.TREE_BY.interest.cost(0),1,'first levels keep their price');assert.ok(M.TREE_BY.interest.cost(1)>=6,'later levels cost more');
  assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(n))).tree,n.tree,'the tree is saved');
  assert.ok(!M.buyNode(M.newState(),'interest'),'every branch starts at the root');

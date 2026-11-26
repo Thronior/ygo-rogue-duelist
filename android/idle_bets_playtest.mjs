@@ -63,7 +63,7 @@ const sp=Object.values(log.spent).reduce((a,b)=>a+b,0);
 console.log('spent by shop tab:',Object.entries(log.spent).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${(v/sp*100).toFixed(1)}%`).join(' · '));
 console.log('net per duel by board:',Object.entries(log.perBoard).map(([k,v])=>`B${k} ${M.fmt(v.net/v.duels)} (${v.duels} duels)`).join(' · '));
 const lv=Object.entries(s.items).filter(([,l])=>l>0).sort((a,b)=>b[1]-a[1]).map(([k,l])=>k+' '+l).join(', ');console.log('levels:',lv);
-console.log('hour · held coins · earned this run · stars if regressing now (held coins) · (if stars counted coins earned)');
-for(const h of log.hourly)console.log(`${String(h[0]).padStart(3)}h  ${M.fmt(h[3]).padStart(8)}  ${M.fmt(h[1]).padStart(8)}  ${String(M.starsFor({...s,coins:h[3]})).padStart(5)} (${M.starsFor({...s,coins:h[1]})})`);
+console.log('hour · held coins · earned this run · stars if regressing now');
+for(const h of log.hourly)console.log(`${String(h[0]).padStart(3)}h  ${M.fmt(h[3]).padStart(8)}  ${M.fmt(h[1]).padStart(8)}  ${String(M.starsFor({...s,earned:h[1]})).padStart(5)}`);
 console.log('earned by hour:',log.hourly.map(([h,e,bd])=>`${h}h ${M.fmt(e)} (${bd} boards)`).join(' · '));
 for(const [h,,bd,inc] of log.hourly){const tot=Object.values(inc).reduce((a,b)=>a+b,0)||1;console.log(`  hour ${h} (${bd} boards): `+Object.entries(inc).map(([k,v])=>`${k} ${(v/tot*100).toFixed(0)}%`).join(' '))}
