@@ -14,7 +14,9 @@ const mode=process.argv[3]||'smart',HOURS=Number(process.argv[4])||8;
 const RESULT_HOLD=1800,PICK=1.5;// game ms after a duel; seconds a person takes to tap a duelist
 let seed=7;const rand=()=>(seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296;
 const prep=lib.map(tl=>({tl,len:M.schedule(tl).total+RESULT_HOLD,seats:tl.seats.map((s,p)=>({...s,label:tl.labels[p]}))}));
-const s=M.newState();s.stats.bets=0;
+// TREE='{"seed":1,"interest":5,...}' starts the run as a regress with that skill tree would (prestige testing).
+const TREE=process.env.TREE?JSON.parse(process.env.TREE):null;
+const s=TREE?M.startRun({...M.newState(),tree:TREE}):M.newState();s.stats.bets=0;
 const SKIP=/^(autobet|scout|autochamp|bracket|purse)$/;
 const clone=x=>({...x,items:{...x.items},stats:{...x.stats}});
 const after=(x,id)=>{const t=clone(x);t.items[id]=(t.items[id]||0)+1;if(/^open\d$/.test(id))t.boards=Number(id.slice(4));return t};
@@ -41,7 +43,7 @@ function shop(){for(let guard=0;guard<500;guard++){
 let nextHour=3600;
 while(t<end&&s.boards<9){
  const b=boards.reduce((a,x)=>x.end<a.end?x:a);t=b.end;
- if(t>=nextHour){const inc={...log.income},prevInc=log.lastInc||{};log.hourly.push([nextHour/3600,s.earned,s.boards,Object.fromEntries(Object.entries(inc).map(([k,v])=>[k,v-(prevInc[k]||0)]))]);log.lastInc=inc;nextHour+=3600}
+ if(t>=nextHour){const inc={...log.income},prevInc=log.lastInc||{};log.hourly.push([nextHour/3600,s.earned,s.boards,s.coins,Object.fromEntries(Object.entries(inc).map(([k,v])=>[k,v-(prevInc[k]||0)]))]);log.lastInc=inc;nextHour+=3600}
  // The duel ends: it pays with the items owned now.
  const {d,bet,stake}=b.cur,tl=d.tl,lvl=b.level;
  let fees=0;for(const f of tl.frames)fees+=M.eventIncome(s,f[0],lvl);
@@ -61,5 +63,7 @@ const sp=Object.values(log.spent).reduce((a,b)=>a+b,0);
 console.log('spent by shop tab:',Object.entries(log.spent).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${(v/sp*100).toFixed(1)}%`).join(' · '));
 console.log('net per duel by board:',Object.entries(log.perBoard).map(([k,v])=>`B${k} ${M.fmt(v.net/v.duels)} (${v.duels} duels)`).join(' · '));
 const lv=Object.entries(s.items).filter(([,l])=>l>0).sort((a,b)=>b[1]-a[1]).map(([k,l])=>k+' '+l).join(', ');console.log('levels:',lv);
+console.log('hour · held coins · earned this run · stars if regressing now (held coins) · (if stars counted coins earned)');
+for(const h of log.hourly)console.log(`${String(h[0]).padStart(3)}h  ${M.fmt(h[3]).padStart(8)}  ${M.fmt(h[1]).padStart(8)}  ${String(M.starsFor({...s,coins:h[3]})).padStart(5)} (${M.starsFor({...s,coins:h[1]})})`);
 console.log('earned by hour:',log.hourly.map(([h,e,bd])=>`${h}h ${M.fmt(e)} (${bd} boards)`).join(' · '));
 for(const [h,,bd,inc] of log.hourly){const tot=Object.values(inc).reduce((a,b)=>a+b,0)||1;console.log(`  hour ${h} (${bd} boards): `+Object.entries(inc).map(([k,v])=>`${k} ${(v/tot*100).toFixed(0)}%`).join(' '))}

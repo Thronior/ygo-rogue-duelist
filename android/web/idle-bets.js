@@ -429,8 +429,10 @@ class DestinyDuel{
   if(r.winner>1){if(!s.settings.infinite)s.coins+=this.stake;this.view.show('<div class="db-result"><b>No winner · your bet comes back</b></div>')}
   else if(won){const pay=this.stake*M.DESTINY_PAYOUT;M.earn(s,pay);s.stats.destinyWins=(s.stats.destinyWins||0)+1;this.view.show(`<div class="db-result good"><b>Destiny! ${M.fmt(pay)} coins</b></div>`);g.fx?.(pay,this.view.root,'jackpot','');g.boardSound('assets/sfx/perfect-chime.wav',1)}
   else{this.view.show(`<div class="db-result bad"><b>${esc(this.replay.seats[r.winner].name)} wins · fate said no</b></div>`);g.boardSound('assets/sfx/negation.wav',.8)}
-  // A payout that crosses the next power of ten does not start another Destiny Duel straight away.
-  s.destiny=Math.max(s.destiny||0,Math.floor(Math.log10(Math.max(1,s.coins))+1e-9));g.dirty=true;g.paintTotal(true);g.refreshShop()}
+  // Lost: reaching this amount again opens it again (user, 2026-11-26). Won: done for good, and a payout that crosses
+  // the next milestone does not start another Destiny Duel straight away.
+  if(r.winner<2&&!won)s.destiny=M.destinyMilestone(this.k-1)||M.DESTINY_FIRST-1;
+  else s.destiny=Math.max(s.destiny||0,M.destinyMilestone(Math.floor(Math.log10(Math.max(1,s.coins))+1e-9)));g.dirty=true;g.paintTotal(true);g.refreshShop()}
  close(){this.dead=true;this.game.supply.release(this.tl);this.el.remove();if(this.game.destiny===this)this.game.destiny=null;this.game.last=performance.now()}
 }
 
