@@ -128,7 +128,7 @@ export class DuelBets{
   d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]'),info=d.querySelector('.db-sk-info');if(sk&&info)info.innerHTML=this.treeInfo(sk.dataset.sk)});
   d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]');if(sk&&!sk.contains(e.relatedTarget)){const info=d.querySelector('.db-sk-info');if(info)info.innerHTML=this.treeInfo(this.treeSel)}})}
  prestigeHTML(){const s=this.state,gain=M.starsFor(s);
-  const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn your ${M.fmt(s.coins)} coins into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button>`:`<p>Reach ${M.fmt(M.REGRESS_MIN)} coins to regress: 1 ★ for every ${M.fmt(M.STAR_COINS)}.</p>`}</div>`;
+  const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn your ${M.fmt(s.coins)} coins into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button><small class="db-next-star">Next ★ at ${M.fmt(M.nextStarAt(s))} coins.</small>`:''}</div>`;
   // The tree grows up from the root; each node is an icon, tap or hover one to read it below; drag and zoom to move
   // around (user, 2026-11-26). Hidden until the first regress.
   if(!M.treeUnlocked(s))return head+`<div class="db-skill db-skill-locked"><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><p>${s.coins>=M.REGRESS_MIN?'Regress to unlock the skill tree':`Reach ${M.fmt(M.REGRESS_MIN)} coins to unlock`}</p></div>`;
@@ -190,8 +190,11 @@ export class DuelBets{
   const row=(icon,title,text,control)=>`<div class="db-up">${icon||'<span></span>'}<span class="db-up-text"><b>${title}</b><small>${text}</small></span>${control}</div>`;
   const lvl=(k)=>u[k]||0,max=k=>M.CHAR_UP[k].max;
   const pay=M.itemLevel(s,itemId),payMax=pay>=it.max,tip=M.tooltip(s,itemId);
-  const rows=[row('',`Payout <small class="db-count">×${pay}</small>`,esc(tip[0]),payMax?'<span class="db-owned">MAX</span>':btn('payout',M.price(s,itemId,pay),false)),
-   row('',`Spotlight <small class="db-count">${lvl('spot')}/${max('spot')}</small>`,`Comes up in duels ${100+25*(lvl('spot')+(lvl('spot')<max('spot')?1:0))}% as often${lvl('spot')<max('spot')?' next level':''}.`,lvl('spot')>=max('spot')?'<span class="db-owned">MAX</span>':btn('spot',M.charUpCost(s,cid,'spot'),false)),
+  // The current bonus is shown, not only the first level's (Nori, Discord 2026-11-26).
+  const who=itemId==='char_uc'?'Ultimate Collector':(it.charName||'this character'),now=M.charWinPay(s,cid,pay),next=M.charWinPay(s,cid,pay+1),w=l=>`${(1+M.SPOT_STEP*l).toFixed(1).replace(/\.0$/,'')}×`;
+  const rows=[row('',`Payout <small class="db-count">×${pay}</small>`,pay?`Each ${esc(who)} win pays +${M.fmt(now)}${payMax?'':` (next level +${M.fmt(next)})`}.`:`Each ${esc(who)} win pays +${M.fmt(next)} once bought; every level adds 15% more.`,payMax?'<span class="db-owned">MAX</span>':btn('payout',M.price(s,itemId,pay),false)),
+   row('',`Spotlight <small class="db-count">${lvl('spot')}/${max('spot')}</small>`,`Comes up in duels ${w(lvl('spot'))} as often${lvl('spot')<max('spot')?` (next level ${w(lvl('spot')+1)})`:''}.`,lvl('spot')>=max('spot')?'<span class="db-owned">MAX</span>':btn('spot',M.charUpCost(s,cid,'spot'),false)),
+   row('',`Fan Club`,`Auto Bet always backs ${esc(who)} when they duel.`,btn('fan',M.charUpCost(s,cid,'fan'),!!u.fan)),
    data?.card?row('',`Signature Start`,`Starts every duel with ${esc(data.cardName)} ${data.field?'on the field':'in hand'} (when it is in the deck).`,btn('card',M.charUpCost(s,cid,'card'),!!u.card)):'',
    row('',`Iron Will <small class="db-count">${lvl('lp')}/${max('lp')}</small>`,`Starts with ${100*(lvl('lp')+1)} more LP${lvl('lp')?` (now +${100*lvl('lp')})`:''}.`,lvl('lp')>=max('lp')?'<span class="db-owned">MAX</span>':btn('lp',M.charUpCost(s,cid,'lp'),false)),
    row('',`Intimidation <small class="db-count">${lvl('foe')}/${max('foe')}</small>`,`Opponents start with ${100*(lvl('foe')+1)} fewer LP${lvl('foe')?` (now −${100*lvl('foe')})`:''}.`,lvl('foe')>=max('foe')?'<span class="db-owned">MAX</span>':btn('foe',M.charUpCost(s,cid,'foe'),false))];
@@ -205,15 +208,20 @@ export class DuelBets{
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
   const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
   const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
-  this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
+  const amounts=this.shopTab==='Characters'?'':`<div class="db-tabrow db-buy-amt" role="group" aria-label="How many to buy">${[1,5,10,50,'max'].map(n=>`<button data-db="buy-amt" data-n="${n}" class="${(this.buyN||1)===n?'on':''}">${n==='max'?'MAX':'×'+n}</button>`).join('')}</div>`;
+  this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('')+amounts;
   const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
   this.el.shop.innerHTML=this.shopTab==='Characters'?this.roster(items):this.shopRows(items);
   this.paintAfford();
  }
  shopRows(items){const s=this.state;
   return items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.price(s,it.id,level);
-   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b><span class="db-item-name" title="${esc(it.name)}">${esc(it.name)}</span>${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span>${maxed&&it.keep?`<button class="db-buy db-toggle ${M.isOn(s,it.id)?'on':''}" data-db="toggle-item" data-id="${it.id}">${M.isOn(s,it.id)?'ON':'OFF'}</button>`:`<button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button>`}</div>`}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>'}
- paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy:not(.db-toggle)')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;b.classList.toggle('poor',!M.canAfford(this.state,M.price(this.state,id,level)))}
+   return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b><span class="db-item-name" title="${esc(it.name)}">${esc(it.name)}</span>${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span>${maxed&&it.keep?`<button class="db-buy db-toggle ${M.isOn(s,it.id)?'on':''}" data-db="toggle-item" data-id="${it.id}">${M.isOn(s,it.id)?'ON':'OFF'}</button>`:`<button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':this.buyLabel(it.id)}</button>`}</div>`}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>'}
+ // What the buy button says and costs for the chosen amount (×1 shows the plain price).
+ buyInfo(id){const s=this.state,n=this.buyN||1,level=M.itemLevel(s,id);if(n===1)return {count:1,cost:M.price(s,id,level)};const b=M.bulk(s,id,n);return b.count?b:{count:1,cost:M.price(s,id,level)}}
+ buyLabel(id){const n=this.buyN||1,b=this.buyInfo(id);return n===1?M.fmt(b.cost):`<small>×${b.count}</small> ${M.fmt(b.cost)}`}
+ paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy:not(.db-toggle)')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;const info=this.buyInfo(id);b.classList.toggle('poor',!M.canAfford(this.state,info.cost));
+  if((this.buyN||1)!==1){const html=this.buyLabel(id);if(b.dataset.html!==html){b.dataset.html=html;b.innerHTML=html}}}
   // A dot on each tab that has something you can buy right now.
   const ok=new Set(M.visibleItems(this.state).filter(i=>{const l=M.itemLevel(this.state,i.id);return l<i.max&&M.canAfford(this.state,M.price(this.state,i.id,l))}).map(i=>M.categoryOf(i.id)));
   for(const t of this.el.tabs?.querySelectorAll('button')||[])t.classList.toggle('can',ok.has(t.dataset.cat))}
@@ -292,7 +300,8 @@ export class DuelBets{
   if(a==='deck-stats')return this.deckStats();
   if(a==='toggle-item'){const id=el.dataset.id,off=this.state.settings.off;if(off[id])delete off[id];else off[id]=true;this.dirty=true;this.renderShop();return}
   if(a==='shop-tab'){this.shopTab=el.dataset.cat;this.hideTip();this.renderShop();this.el.shop.scrollTop=0;return}
-  if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(r&&this.state.guide<M.GUIDE_DONE){this.state.guide=M.GUIDE_DONE;this.guide()}if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
+  if(a==='buy-amt'){this.buyN=el.dataset.n==='max'?'max':Number(el.dataset.n);this.renderShop();return}
+  if(a==='buy'){const id=el.dataset.id,info=this.buyInfo(id);let r=null;if(M.canAfford(this.state,info.cost))for(let i=0;i<info.count;i++){const x=M.buy(this.state,id);if(!x)break;r=x}if(r&&this.state.guide<M.GUIDE_DONE){this.state.guide=M.GUIDE_DONE;this.guide()}if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
    if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?M.bracketName(1)+'!':M.bracketName(this.state.brackets)+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
    this.save();return}
@@ -661,7 +670,7 @@ class Bracket{
   this.champion=champ;this.phase='final';this.left=FINAL_HOLD;this.table?.crown(champ);this.paintAll();this.game.save()}
  // ---- drawing ----
  tileStatus(){return this.phase==='bet'?(this.bet||this.skipBet?'Starting…':'Waiting for your champion bet'):this.phase==='final'?`Winner: ${this.game.seatOf(this.roster[this.champion]).name}`:`${this.played()} / ${this.total()} duels`}
- betHTML(){const g=this.game;return this.bet?`Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)}`:''}
+ betHTML(){const g=this.game,s=g.state,money=`bet ${M.fmt(M.championStake(s,this.index))} · pays ${M.fmt(M.championPayout(s,this.index))}`;return this.bet?`Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)} · ${money}`:`Champion ${money}`}
  // While the bracket waits for its champion bet, a big prompt sits in its middle (the tile and the open view).
  promptHTML(){if(this.phase!=='bet'||this.bet||this.skipBet)return '';const s=this.game.state,stake=M.championStake(s,this.index),ok=M.canAfford(s,stake);
   return `<span class="db-champ-prompt"><span class="db-champ-btn" data-db="champion" data-b="${this.index}"><small>Bet on the champion</small><b>${M.fmt(stake)}</b><em>pays ${M.fmt(M.championPayout(s,this.index))}</em></span>${ok?'':`<span class="db-champ-skip" data-db="skip-champion" data-b="${this.index}">Start without a bet</span>`}</span>`}
@@ -691,10 +700,10 @@ class Bracket{
  hideViews(){for(const v of this.views||[])v.remove();this.views=null;for(const d of this.slots)if(d)d.view=null}
  hide(){this.hideViews();this.head=null;this.table=null}
  paintAll(){if(this.game.openBracket!==this){this.paintTile();return}this.views?.forEach((v,i)=>this.paintDuel(this.slots[i],v));this.paintHead()}
- paintHead(){if(!this.head)return;const html=`<b>${esc(M.bracketName(this.index))}</b> · ${esc(this.tileStatus())}${this.bet?` · Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''}`;if(this.head.dataset.html!==html){this.head.dataset.html=html;this.head.innerHTML=html}this.paintPrompt(this.head.closest('.db-stage')?.querySelector('.db-bk-open'))}
+ paintHead(){if(!this.head)return;const html=`<b>${esc(M.bracketName(this.index))}</b> · ${esc(this.tileStatus())}${this.bet?` · Your pick: ${esc(this.game.seatOf(this.roster[this.bet.pick]).name)}`:''} · Champion bet ${M.fmt(M.championStake(this.game.state,this.index))}, pays ${M.fmt(M.championPayout(this.game.state,this.index))}`;if(this.head.dataset.html!==html){this.head.dataset.html=html;this.head.innerHTML=html}this.paintPrompt(this.head.closest('.db-stage')?.querySelector('.db-bk-open'))}
  // The board header: two bet buttons while betting is open, your pick after, the stakes otherwise.
  paintChips(d){const v=d?.view;if(!v)return;const level=this.level(d.slot),g=this.game,names=d.pair.map(i=>g.seatOf(this.roster[i]).name);
-  const html=this.bettable(d)?`<button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="0" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[0])}</button><button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="1" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[1])}</button>`
+  const html=this.bettable(d)?`<span class="db-chip-money">Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}</span><button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="0" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[0])}</button><button class="db-chip-bet" data-db="bracket-pick" data-b="${this.index}" data-duel="${d.slot-1}" data-seat="1" ${M.canAfford(g.state,M.boardStake(level))?'':'disabled'}>${esc(names[1])}</button>`
    :d.pick!=null?`Backing ${esc(names[d.pick])} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`:esc(`Bet ${M.fmt(M.boardStake(level))} · win ${M.fmt(M.correctPayout(g.state,d.slot,level))}`);
   v.setStakesHTML(html)}
  paintDuel(d,v=d?.view){if(!v)return;

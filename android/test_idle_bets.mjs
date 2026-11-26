@@ -179,7 +179,7 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
 
 // ---- prestige: Regress at 1M coins, 1 star per 500K; the skill tree ----
 {let p=M.newState();p.coins=999999;assert.equal(M.regress(p),null,'no regress under 1M');
- p.coins=1.3e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'1 star per 500K');
+ p.coins=4.2e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'stars: square root of the millions');
  let n=r.state;assert.equal(n.stars,2);assert.equal(n.regresses,1);assert.equal(n.boards,1);assert.equal(n.coins,5);assert.equal(n.items.fee_attack,undefined,'the run resets');
  assert.ok(!M.buyNode(n,'kit'),'Starter Kit needs Seed Money first');assert.ok(M.buyNode(n,'seed'));assert.equal(n.stars,1);
  n.stars=1000;for(const id of ['nest','kit','pass','quick','quick','order','insider','interest','haggle','haggle'])assert.ok(M.buyNode(n,id),id);
@@ -187,11 +187,16 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.equal(n.items.speed,10);assert.equal(n.items.autobet,3);assert.equal(n.items.scout,1);
  assert.equal(M.price(n,'calls1',10),Math.ceil(M.itemCost('calls1',10)*.92),'Haggler 2: 8% off');
  assert.ok(Math.abs(M.correctPayout(n,1,1)-5*1.1)<1e-9,'Compound Interest 1: +10%');
- n.tree.starpower=5;n.coins=2e6;assert.equal(M.starsFor(n),6,'Star Power 5: 4 stars x1.5');
+ n.tree.starpower=5;n.coins=1e8;assert.equal(M.starsFor(n),15,'Star Power 5: 10 stars x1.5');assert.equal(M.starsFor({...n,coins:1e10,tree:{}}),100);assert.equal(M.nextStarAt({...n,coins:1e8,tree:{}}),121e6,'next star at 11 squared millions');
  assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(n))).tree,n.tree,'the tree is saved');
  assert.ok(!M.buyNode(M.newState(),'interest'),'every branch starts at the root');
  assert.deepEqual(M.sanitize({tree:{seed:3,kit:1}}).tree,{seed:1,nest:2,kit:1},'old Seed Money levels become Nest Egg');
  for(const x of M.TREE)if(x.req)assert.ok(M.TREE_BY[x.req[0]].at[1]<x.at[1],x.id+' sits above what it needs');}
+// ---- bulk buying, deck-out bonus ----
+{const b=M.newState();b.coins=1e6;const one=M.bulk(b,'fee_summon',1),five=M.bulk(b,'fee_summon',5);assert.equal(one.count,1);assert.equal(five.count,5);assert.ok(five.cost>one.cost*5,'each level dearer');
+ const mx=M.bulk(b,'fee_summon','max');assert.ok(mx.count>5&&mx.cost<=b.coins&&mx.cost+M.price(b,'fee_summon',1+mx.count)>b.coins,'MAX buys all you can afford');
+ b.coins=0;assert.equal(M.bulk(b,'fee_summon','max').count,0);
+ const pay=M.duelPayout(M.newState(),{winner:0,reason:2,turns:30,winnerLp:4000},2,2);assert.ok(pay.parts.some(p=>p[0]==='Deck-out bonus'&&p[1]>0),'deck-out wins pay without the jackpot item');}
 // ---- character upgrades: payout, spotlight, signature card, LP, relics and curses ----
 {const mods={chars:{'5':{card:100,cardName:'X',field:false,relics:['a@5','b@5','c@5'],curses:['tax','mercy','drain']},'6':{card:200,relics:[],curses:[]}},relics:{'a@5':{name:'A',text:'',s:['RELIC0','RELIC1']}},curses:{tax:{s:['TAX0','TAX1']},mercy:{s:['M0','M1']},drain:{s:['','']}}};
  M.registerMods(mods);M.registerCharacters([{id:5,name:'Five',rank:1,sprite:'f.png',labels:['Tier 1']},{id:6,name:'Six',rank:1,sprite:'s.png',labels:['Tier 1']}]);
@@ -204,7 +209,8 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  assert.ok(dm.passives.includes('TAX1')&&!dm.passives.includes('TAX0'),"the curse lands on the opponent's seat");
  assert.ok(/Duel\.SendtoHand\(tc,0,REASON_RULE\)/.test(dm.passives)&&dm.passives.includes(',100)'),"signature card 100 into seat 0's hand");
  assert.notEqual(dm.sig,'');assert.equal(M.duelMods(c,[6,5]).lp[1],8000,'seats swap cleanly');
- assert.ok(M.charWeight(c,5)===1&&(M.buyCharUp(c,5,'spot'),M.charWeight(c,5)===1.25),'Spotlight: +25% per level');
+ assert.ok(M.charWeight(c,5)===1&&(M.buyCharUp(c,5,'spot'),M.charWeight(c,5)===1.6),'Spotlight: +60% per level');
+ assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),0,'no Fan Club: the usual pick');c.coins=1e12;assert.ok(M.buyCharUp(c,5,'fan'));assert.equal(M.autoPick(c,[{id:6},{id:5}],()=>0),1,'Fan Club: Auto Bet backs them');assert.equal(M.sanitize(JSON.parse(JSON.stringify(c))).chars['5'].fan,1,'Fan Club is saved');
  assert.ok(M.charUpCost(c,5,'relic')>M.charUpCost(c,5,'lp'),'relics cost more than an LP level');
 }
 // ---- one real duel through the recorder (skipped without the generated content.json) ----

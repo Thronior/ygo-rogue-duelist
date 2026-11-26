@@ -546,3 +546,11 @@
 .db-curse-art{display:grid;place-items:center;width:40px;height:40px;padding:5px;box-sizing:border-box;background:#49192bd9;border:1px solid #dc879a;border-radius:8px}
 .db-curse-art img{width:100%;height:100%;image-rendering:pixelated}
 .db-shadow-tag{font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#d6a6ff;border:1px solid #8c5ccc;border-radius:4px;padding:0 4px;white-space:nowrap}
+/* Discord 2026-11-26: buy amounts, bracket money, one scroll bar in windows. */
+.db-buy-amt{display:flex;gap:3px;padding:3px 4px}
+.db-buy-amt button{flex:1;min-width:0;padding:2px 0;border-radius:4px;border:1px solid #3d6270;background:#0b1d26;color:var(--db-dim);font-family:var(--db-display);font-size:13px;letter-spacing:.04em;cursor:pointer}
+.db-buy-amt button.on{border-color:#f2cf83;color:#f2cf83;background:#2a2412}
+.db-buy small{font-size:.75em;opacity:.85}
+.db-chip-money{margin-right:2px;font-size:10px;color:var(--db-dim);white-space:nowrap;vertical-align:middle}
+.db-next-star{display:block;margin-top:6px;color:var(--db-dim)}
+.db-modal[open]{display:flex;flex-direction:column;overflow:hidden}.db-modal-body{flex:1 1 auto;min-height:0}
