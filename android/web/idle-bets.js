@@ -250,8 +250,7 @@ export class DuelBets{
  deckStatsHTML(){const stats=this.state.deckStats||{};
   const rows=this.pool.map(d=>{const [g,w,ex,de]=stats[d.id+':'+d.tier]||[0,0,0,0],s=this.seatOf(d);return {...s,g,w,l:g-w,ex,de,score:g?(w+1)/(g+2):-1}})
    .sort((a,b)=>b.score-a.score||b.g-a.g||a.name.localeCompare(b.name));
-  const played=rows.filter(r=>r.g).length,duels=rows.reduce((n,r)=>n+r.g,0)/2;
-  return `<p class="db-stats-note">${Math.round(duels).toLocaleString()} duels played · ${played} of ${rows.length} decks have played · best to worst · updates every 10 s</p><table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th></tr></thead><tbody>${
+  return `<table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th></tr></thead><tbody>${
    rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td></tr>`).join('')}</tbody></table>`}
  deckStats(){const d=this.modal('CPU deck stats',`<div class="db-stats-wrap">${this.deckStatsHTML()}</div>`),body=d.querySelector('.db-modal-body');
   const timer=setInterval(()=>{if(!d.open||!this.el){clearInterval(timer);return}const top=body.scrollTop;d.querySelector('.db-stats-wrap').innerHTML=this.deckStatsHTML();body.scrollTop=top},10000);
