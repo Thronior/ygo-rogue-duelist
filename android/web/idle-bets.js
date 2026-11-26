@@ -440,7 +440,9 @@ class Board{
  tick(dt){
   if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){const g=this.game,s=g.state,ab=M.autoInterval(s)&&this.next&&M.canAfford(s,M.boardStake(this.level));
     this.bet(ab?M.autoPick(s,this.next.seats.map(x=>g.seatOf(x))):null,true);return}// time's up: Auto Bet (if owned) still gets its pick in
-   const place=this.view?.overlay.querySelector('.db-place'),left=this.secondsLeft();if(place&&!place.textContent.endsWith(' '+left))this.paint();
+   // Only the countdown number changes: redrawing the whole betting view every second replaced the buttons under a
+   // finger mid-tap, so phone taps were sometimes lost (user, 2026-11-26).
+   const place=this.view?.overlay.querySelector('.db-place'),left=this.secondsLeft();if(place&&!place.textContent.endsWith(' '+left))place.textContent=place.textContent.replace(/\d+$/,left);
    if(this.view&&!this.view.overlay.querySelector('.db-pick:not([disabled])')&&M.canAfford(this.game.state,M.boardStake(this.level)))this.paint()}
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
   else if(this.phase==='result'){this.hold-=dt/M.speedOf(this.game.state);if(this.hold<=0){this.game.supply.release(this.replay?.tl);this.replay=null;this.fetch();this.paint()}}

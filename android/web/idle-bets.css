@@ -468,3 +468,7 @@
 .db-toss i{display:grid;place-items:center;width:clamp(18px,8cqh,44px);aspect-ratio:1;border-radius:22%;background:#f4efe2;color:#1a1208;font-style:normal;font-family:var(--db-display);font-size:clamp(12px,5.5cqh,30px);line-height:1;box-shadow:0 2px 6px #000b,inset 0 -2px 0 #0003}
 .db-toss.coin i{border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#c8962e);color:#3a2600}
 .db-toss.coin i.t{background:radial-gradient(circle at 35% 30%,#eeeeee,#8f8f8f);color:#222}
+/* Nothing drawn over a board may catch a tap meant for a duelist (user, 2026-11-26: betting sometimes ignored taps on
+   phones): the guide bubble passes taps through except its Skip button, and every effect ignores pointers. */
+.db-guide-bubble{pointer-events:none}.db-guide-bubble button{pointer-events:auto}
+.db-fx,.db-fx *,.db-stamp,.db-flash,.db-ring,.db-poof,.db-shard,.db-dmg,.db-atk,.db-act,.db-toss,.db-art,.db-danger,.db-vs,.db-place{pointer-events:none}
