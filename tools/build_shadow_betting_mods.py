@@ -230,7 +230,11 @@ for k in CURSES:
  r=dict(dr._base(0),curses=[k])
  out['curses'][k]={'name':content.CURSES[k][0],'text':content.CURSES[k][1],
   's':['','']} if k=='drain' else {'name':content.CURSES[k][0],'text':content.CURSES[k][1],'s':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
-for k,c in out['curses'].items():c['icon']=f"assets/icons/yugipedia/genres-{ICONS.get(k,'cancel-out-effect')}.png"
+# Normal runs recolour each curse's icon (mobile.css .curse-icon.curse-<key> img{filter:...}); the same filter goes along.
+FILTERS=dict(re.findall(r'\.curse-icon\.curse-(\w+) img\{filter:([^}]+)\}',(WEB/'mobile.css').read_text(encoding='utf8')))
+for k,c in out['curses'].items():
+ c['icon']=f"assets/icons/yugipedia/genres-{ICONS.get(k,'cancel-out-effect')}.png"
+ if k in FILTERS:c['filter']=FILTERS[k].strip()
 if args.candidates:
  cand['curses']={k:{'s':v['s']} for k,v in out['curses'].items()}
  args.candidates.write_text(json.dumps(cand,ensure_ascii=False,separators=(',',':')),encoding='utf8')
