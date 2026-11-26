@@ -119,14 +119,27 @@ export class DuelBets{
  paintStar(){const b=this.root.querySelector('.db-star');if(!b)return;const s=this.state,show=s.regresses>0||s.stars>0||s.coins>=M.REGRESS_MIN||s.settings.infinite;
   b.hidden=!show;if(show){b.querySelector('b').textContent=s.stars?String(s.stars):'';b.classList.toggle('ready',s.coins>=M.REGRESS_MIN)}}
  prestige(){const d=this.modal('Regress',this.prestigeHTML(),(e,dlg)=>{
+   const sk=e.target.closest('[data-sk]');if(sk){this.treeSel=sk.dataset.sk;for(const b of dlg.querySelectorAll('.db-sk'))b.classList.toggle('sel',b===sk);dlg.querySelector('.db-sk-info').innerHTML=this.treeInfo(this.treeSel);return}
    const node=e.target.closest('[data-node]');if(node){if(M.buyNode(this.state,node.dataset.node)){this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML();this.paintTotal(true);this.refreshShop()}return}
    const go=e.target.closest('[data-regress]');if(go){if(!go.dataset.armed){go.dataset.armed='1';go.textContent='Tap again: start over for '+M.starsFor(this.state)+' ★';return}this.regressNow();dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML()}});
-  d.classList.add('db-prestige-modal')}
+  d.classList.add('db-prestige-modal');
+  // Hover shows a node without picking it; leaving the tree shows the picked one again.
+  d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]'),info=d.querySelector('.db-sk-info');if(sk&&info)info.innerHTML=this.treeInfo(sk.dataset.sk)});
+  d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]');if(sk&&!sk.contains(e.relatedTarget)){const info=d.querySelector('.db-sk-info');if(info)info.innerHTML=this.treeInfo(this.treeSel)}})}
  prestigeHTML(){const s=this.state,gain=M.starsFor(s);
   const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn your ${M.fmt(s.coins)} coins into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button>`:`<p>Reach ${M.fmt(M.REGRESS_MIN)} coins to regress: 1 ★ for every ${M.fmt(M.STAR_COINS)}.</p>`}</div>`;
-  const node=n=>{const l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),cost=maxed?0:n.cost(l),req=n.req&&M.TREE_BY[n.req[0]];
-   return `<div class="db-node ${maxed?'max':''} ${open?'':'locked'}"><b>${esc(n.name)} <small>${l}/${n.max}</small></b><p>${esc(n.text(Math.max(1,maxed?l:l+1)))}</p>${maxed?'<span class="db-node-max">MAX</span>':open?`<button class="db-buy ${s.stars<cost?'poor':''}" data-node="${n.id}" ${s.stars<cost?'disabled':''}>★ ${cost}</button>`:`<span class="db-node-req">Needs ${esc(req.name)} ${n.req[1]}</span>`}</div>`};
-  return head+`<div class="db-tree">${M.BRANCHES.map(br=>`<section><h3>${br}</h3>${M.TREE.filter(n=>n.branch===br).map(node).join('')}</section>`).join('')}</div>`}
+  // The tree grows up from the root; each node is an icon, tap or hover one to read it below (user, 2026-11-26).
+  const X=n=>(n.at[0]+.5)/M.TREE_COLS*100,Y=n=>10+(M.TREE_ROWS-1-n.at[1])/(M.TREE_ROWS-1)*76;// room below the root for its level
+  const lines=M.TREE.filter(n=>n.req).map(n=>{const p=M.TREE_BY[n.req[0]];return `<line class="${M.treeLevel(s,n.id)?'own':M.nodeOpen(s,n)?'open':''}" x1="${X(p)}" y1="${Y(p)}" x2="${X(n)}" y2="${Y(n)}"/>`}).join('');
+  const nodes=M.TREE.map(n=>{const l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),ready=open&&!maxed&&s.stars>=n.cost(l);
+   return `<button class="db-sk ${maxed?'max':l?'own':''} ${open?'':'locked'} ${ready?'ready':''} ${this.treeSel===n.id?'sel':''}" data-sk="${n.id}" style="left:${X(n)}%;top:${Y(n)}%" aria-label="${esc(n.name)}"><img alt="" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><small>${l}/${n.max}</small></button>`}).join('');
+  const labels=M.BRANCHES.map(br=>{const xs=M.TREE.filter(n=>n.branch===br).map(n=>n.at[0]);return `<span style="left:${((Math.min(...xs)+Math.max(...xs))/2+.5)/M.TREE_COLS*100}%">${br}</span>`}).join('');
+  return head+`<div class="db-skill-labels">${labels}</div><div class="db-skill"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div><div class="db-sk-info">${this.treeInfo(this.treeSel)}</div>`}
+ treeInfo(id){const n=M.TREE_BY[id];if(!n)return '<p class="db-sk-hint">Tap a node to see what it does.</p>';
+  const s=this.state,l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),cost=maxed?0:n.cost(l),req=n.req&&M.TREE_BY[n.req[0]];
+  const now=l?`<p><span>Now</span>${esc(n.text(l))}</p>`:'',next=maxed?'':`<p><span>${l?'Next':'Buy'}</span>${esc(n.text(l+1))}</p>`;
+  const act=maxed?'<span class="db-node-max">MAX</span>':open?`<button class="db-buy ${s.stars<cost?'poor':''}" data-node="${n.id}" ${s.stars<cost?'disabled':''}>★ ${cost}</button>`:`<span class="db-node-req">Needs ${esc(req.name)} ${req.max>1?'level '+n.req[1]:''}</span>`;
+  return `<img alt="" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><div><b>${esc(n.name)} <small>${n.branch} · ${l}/${n.max}</small></b>${now}${next}</div>${act}`}
  regressNow(){const r=M.regress(this.state);if(!r)return;for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;
   const inf=this.state.settings.infinite;this.state=r.state;this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout();this.boardSound('assets/sfx/rare-shimmer.wav',1)}
  // ---- characters: a roster of portraits; each opens its own page of upgrades ----

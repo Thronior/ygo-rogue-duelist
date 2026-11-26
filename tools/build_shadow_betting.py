@@ -96,7 +96,7 @@ def build(out,cache=None):
  # ---- art, sound, fonts ----
  for code in sorted(keep):add(f'assets/cards-thumb/{code}.jpg');add(f'assets/cards/{code}.jpg')
  arts=set()
- for name in ['CALL_ART','ART']:
+ for name in ['CALL_ART','ART','TREE_ART']:
   m=re.search(r'const '+name+r'=([\[{].*?[\]}]);',model,re.S);assert m,name
   arts|=set(quoted(m.group(1)))
  for art in arts:add(f'assets/relics/{art}.png')

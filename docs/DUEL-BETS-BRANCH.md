@@ -94,8 +94,8 @@ runtime/ai/node.exe node_modules/wrangler/bin/wrangler.js pages deploy <dir> --p
 ## Prestige and character upgrades (2026-11-26)
 
 - **Regress** (★ button in the top bar, shown from 1M coins): coins become stars, 1 ★ per 500,000 (Star Power +10%/level). The run resets (coins, items, boards, brackets, character upgrades unless Old Friends); stars, the skill tree, records, settings and the guide stay.
-- **Skill tree** (18 nodes, `TREE` in idle-bets-model.js), after Scritchy Scratchy's Jack Point tree (start-with nodes, stacking +% nodes, steeply rising costs, a prestige-currency node, a keep-on-reset node):
-  - Bankroll: Seed Money (start with 100 → 100K coins), Starter Kit (Card Fees at 3/level), Season Pass (start with more boards), Haggler (−4% prices/level).
+- **Skill tree** (19 nodes, `TREE` in idle-bets-model.js; drawn as relic icons joined by lines that grow up from one root, Seed Money (1 ★, start with 100 coins), which every branch needs; `at:[column,row]` places each node, hover or tap shows it in the panel below, user 2026-11-26), after Scritchy Scratchy's Jack Point tree (start-with nodes, stacking +% nodes, steeply rising costs, a prestige-currency node, a keep-on-reset node):
+  - Bankroll: Nest Egg (start with 1K → 100K coins; old saves' extra Seed Money levels move here), Starter Kit (Card Fees at 3/level), Season Pass (start with more boards), Haggler (−4% prices/level).
   - Interest: Compound Interest (+10% on everything earned/level), Jackpot Fever (+50% jackpots), Underdog Fund / Rising Stars / Veterans / Legends (+20%/level on what a duel pays when that tier wins), High Stakes (+25% correct calls).
   - Automation: Quick Start (Duel Speed), Standing Order (Auto Bet), Insider Tip (Scouting Report), Season Ticket (Auto Champion Bet).
   - Legacy: Star Power, Fast Learner (items and characters appear sooner), Old Friends (keep character upgrades).
