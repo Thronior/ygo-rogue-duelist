@@ -118,7 +118,10 @@ assert.equal(M.categoryOf('fee_trap'),'Card Fees');assert.equal(M.categoryOf('op
 M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'}]);
 assert.equal(M.categoryOf('char_900'),'Characters');
 const hid=M.newState();assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'characters are not available from the start');
-hid.earned=M.itemCost('char_900',0)/2;assert.ok(M.visibleItems(hid).some(i=>i.id==='char_900')&&!M.visibleItems(hid).some(i=>i.id==='char_901'),'characters appear by price, cheapest first');
+hid.earned=M.CHAR_REVEAL-1;assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'the first character needs CHAR_REVEAL earned');
+hid.earned=M.CHAR_REVEAL;assert.ok(M.visibleItems(hid).some(i=>i.id==='char_900')&&!M.visibleItems(hid).some(i=>i.id==='char_901'),'characters appear one at a time, cheapest first');
+{const chars=M.ITEMS.filter(i=>/^char_/.test(i.id)),seen=e=>{const st=M.newState();st.earned=e;return M.visibleItems(st).filter(i=>/^char_/.test(i.id)).length};
+ assert.equal(seen(M.CHAR_REVEAL),1);assert.ok(seen(1e6)>1&&seen(1e6)<=chars.length,'more characters as earnings grow');}
 for(let i=0;i<3;i++)M.recordDeckResult(hid,[{id:900,tier:0},{id:901,tier:4}],0,1);
 assert.equal(M.sanitize(JSON.parse(JSON.stringify(hid))).charWins[900],3,'rebuilt from deck stats on load');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
 assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');

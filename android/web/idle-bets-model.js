@@ -146,7 +146,7 @@ export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // strong, dear characters first (user, 2026-11-26).
 export const CHAR_UNLOCK=3;
 export const CHAR_ITEM={};
-export function registerCharacters(list){const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
+export function registerCharacters(list){charOrder=null;const uc=list.filter(c=>c.uc),add=it=>{if(!ITEM[it.id]){ITEMS.push(it);ITEM[it.id]=it}};
  for(const c of list.filter(c=>!c.uc)){CHAR_ITEM[c.id]='char_'+c.id;add(I('char_'+c.id,1,c.name+' Wins',0,4*3**c.rank,ITEM_GROWTH,'simple',{text:()=>`Pays whenever ${c.name} wins a duel.`,show:()=>true,portrait:c.sprite,charName:c.name}))}
  if(uc.length){for(const c of uc)CHAR_ITEM[c.id]='char_uc';const rank=Math.max(...uc.map(c=>c.rank));
   add(I('char_uc',1,'Ultimate Collector Wins',0,4*3**rank*Math.sqrt(uc.length),ITEM_GROWTH,'simple',{text:()=>'Pays whenever any Ultimate Collector wins a duel.',show:()=>true,portrait:uc[0].sprite,charName:'an Ultimate Collector',ucCount:uc.length}))}}
@@ -185,7 +185,13 @@ export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+
 // An item appears once you have earned half its first price (Cookie Clicker reveals a building as you near its price),
 // so a new game starts with only Lucky Calls and Summon Fees; owned items always stay.
 export const REVEAL=.5;
-export const revealed=(s,it)=>lvl(s,it.id)>0||it.id==='calls1'||(s.earned||0)>=itemCost(it.id,0)*REVEAL;
+// Characters come one at a time (user, 2026-11-26: "revealed much more slowly"): in price order (then name), the k-th
+// needs CHAR_REVEAL × CHAR_STEP^k earned in total (200, 320, 512… about 12 by 56K, 20 by 2.4M, all by ~300M).
+export const CHAR_REVEAL=200,CHAR_STEP=1.6;
+let charOrder=null;
+const charIndex=id=>{if(!charOrder){charOrder=new Map(ITEMS.filter(i=>/^char_/.test(i.id)).sort((a,b)=>itemCost(a.id,0)-itemCost(b.id,0)||String(a.charName||a.name).localeCompare(String(b.charName||b.name))).map((i,k)=>[i.id,k]))}return charOrder.get(id)??0};
+const charThreshold=id=>CHAR_REVEAL*CHAR_STEP**charIndex(id);
+export const revealed=(s,it)=>lvl(s,it.id)>0||it.id==='calls1'||((s.earned||0)>=itemCost(it.id,0)*REVEAL&&(!/^char_/.test(it.id)||(s.earned||0)>=charThreshold(it.id)));
 export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&revealed(s,it)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
 export const isOn=(s,id)=>lvl(s,id)>0&&!s.settings?.off?.[id];
 // Buying returns what changed so the screen can react ('board', 'bracket' or null).
