@@ -5,8 +5,7 @@
 const M=await import(process.env.BET_MODEL?new URL(process.env.BET_MODEL,import.meta.url).href:'./web/idle-bets-model.js');
 
 // ---- measured: average coins per duel at board level 1 with the item at level 1, per point of item power ----
-const RAW={fee_summon:.969,fee_attack:1.08,fee_spell:.644,fee_trap:.915,fee_destroy:1.519,fee_direct:2.394,fee_fusion:.006945,fee_damage:2.306,fee_heal:.5779,
- feat_summon:4.812,feat_battle:3.549,feat_activate:1.821,feat_set:1.757,feat_destroy:1.457,feat_survive:1.289,feat_victory:1.265};
+const RAW={fee_summon:.969,fee_attack:1.08,fee_spell:.644,fee_trap:.915,fee_destroy:1.519,fee_direct:2.394,fee_fusion:.006945,fee_damage:2.306,fee_heal:.5779};
 // Duel length at 1× (replay + bet window + result hold), how often things happen, who wins.
 const D={seconds:47.4+3.3,think:1.5,exodia:14/288,deckout:6/288,flawless:.198,longTurns:6.56,blitz:.042,
  winTier:{tier1:37/287,tier2:51/287,tier3:88/287,endless:111/287},hit:.5};

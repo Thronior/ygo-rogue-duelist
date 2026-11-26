@@ -52,7 +52,7 @@
 
 /* boards */
 .db-grid{flex:1;min-height:0;display:grid;gap:6px}
-.db-grid.n1{grid-template:minmax(0,min(100%,520px))/minmax(0,min(100%,820px));place-content:center}
+.db-grid.n1{grid-template:minmax(0,1fr)/minmax(0,1fr)}
 .db-grid.n2{grid-template:1fr/repeat(2,1fr)}.db-grid.n3,.db-grid.n4{grid-template:repeat(2,1fr)/repeat(2,1fr)}
 .db-grid.n5,.db-grid.n6{grid-template:repeat(2,1fr)/repeat(3,1fr)}.db-grid.n7,.db-grid.n8,.db-grid.n9{grid-template:repeat(3,1fr)/repeat(3,1fr)}
 @media (orientation:portrait){.db-grid.n2{grid-template:repeat(2,1fr)/1fr}.db-grid.n5,.db-grid.n6{grid-template:repeat(3,1fr)/repeat(2,1fr)}}
@@ -385,3 +385,24 @@
 .db-overlay:has(.db-pending){background:none;place-items:start end;padding:22px 6px 0 0;pointer-events:none}
 .db-pending{display:block;padding:3px;border-radius:50%;background:#061018cc}
 .db-pop.db-cost{font-size:20px;color:#ff8a7a;text-shadow:0 2px 0 #000,0 0 3px #000}
+/* Total money sits at the top of the shop (Discord: keep money and shop on the same side) */
+.db-shop>.db-money{flex:none;flex-direction:row;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--db-line)}
+.db-shop>.db-money .db-total{font-size:clamp(22px,3.2vw,34px)}
+/* Attack beams, activation pops (BoardView.attackLine / activation) */
+.db-atk{position:absolute;height:clamp(3px,1.1cqh,7px);margin-top:calc(clamp(3px,1.1cqh,7px)/-2);transform-origin:0 50%;border-radius:99px;pointer-events:none;z-index:6;
+ background:linear-gradient(90deg,#ffffff00,#ffd98a 30%,#fff6d8);box-shadow:0 0 8px 2px #ffb84d99}
+.db-atk.direct{background:linear-gradient(90deg,#ffffff00,#ff8a6a 30%,#ffe2d8);box-shadow:0 0 10px 3px #ff503099}
+.db-act{position:absolute;width:clamp(34px,15cqh,120px);aspect-ratio:421/614;translate:-50% -50%;pointer-events:none;z-index:7;border-radius:4px;box-shadow:0 0 0 2px var(--c),0 0 18px 6px var(--c)}
+.db-act img{width:100%;height:100%;object-fit:cover;border-radius:4px;display:block}
+.db-tip p:last-child{color:var(--db-text)}
+.db-tip p.note{color:var(--db-dim);font-size:.92em}
+.db-tip-stats{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:7px 0 0;padding-top:6px;border-top:1px solid #ffffff22}
+.db-tip-stats dt{color:var(--db-dim)}.db-tip-stats dd{margin:0;font-weight:700;color:#f2cf83;font-variant-numeric:tabular-nums}
+/* First-time guide (DuelBets.guide): the main game's pointing hand and coach bubble */
+.db-guide{position:absolute;inset:0;pointer-events:none;z-index:30}.db-guide[hidden]{display:none}
+.db-guide-hand{position:absolute;width:48px;height:56px;filter:drop-shadow(0 3px 4px #000a)}
+.db-guide-hand svg{display:block;width:100%;height:100%;animation:db-guide-point .7s ease-in-out infinite alternate}
+@keyframes db-guide-point{from{transform:translateY(6px)}to{transform:translateY(-4px)}}
+.db-guide-bubble{position:absolute;width:min(300px,80vw);padding:8px 12px;border:2px solid #ffd76a;border-radius:10px;background:#0b222ef2;color:#f2f7f6;box-shadow:0 6px 18px #000a;font-size:14px;line-height:1.35;pointer-events:auto}
+.db-guide-bubble p{margin:0 0 6px}.db-guide-bubble button{font:inherit;font-size:12px;padding:3px 10px;border-radius:5px;border:1px solid #668290;background:#102732;color:#cfe3e8;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.db-guide-hand svg{animation:none}}

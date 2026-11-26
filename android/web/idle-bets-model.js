@@ -34,7 +34,7 @@ export const bracketOpenerCost=b=>boardOpenerCost(9)*1000**(b-1);
 // - An item's income per level grows with its first price to the power 0.75 (Cookie Clicker: ~12× price for ~6× income).
 export const GROWTH=1.15;
 export const levelValue=l=>l>0?(GROWTH**l-1)/(GROWTH-1):0;
-const EXP_ITEM=/^(fee_|feat_|char_|calls\d$|flawless$|longgame$|blitz$|deckout$|special$|purse$)/;
+const EXP_ITEM=/^(fee_|char_|calls\d$|flawless$|longgame$|blitz$|deckout$|special$|purse$)/;
 export const ITEM_GROWTH=1.15;// every income item's own price growth (× GROWTH for its rising reward)
 // Global multipliers are priced like Cookie Clicker's upgrades: each step costs far more than the last.
 // The tier bonuses (+% on everything a tier wins) ×2.3 per level; High Roller (×2 everything) ×1,000 per level.
@@ -96,14 +96,6 @@ export const ITEMS=[
  I('open9',8,'Board 9: '+LEAGUES[8],32012841,20,1,'opener',{max:1,text:()=>`Opens board 9. Nine boards become your first bracket.`,show:s=>s.boards>=8&&lvl(s,'calls8')>=1}),
  calls(9),
  I('purse',9,"Champion's Purse",72989439,2,ITEM_GROWTH,'simple',{text:()=>'+50% to bracket champion payouts.',show:s=>s.brackets>=1}),
- // Duel Feats: the main game's battle coin rules, grouped (see FEAT_GROUP).
- I('feat_summon',1,'Summon Feats',70781052,8,ITEM_GROWTH,'simple',{text:()=>'Duel feats for summons.',show:()=>true}),
- I('feat_battle',1,'Battle Feats',5053103,8,ITEM_GROWTH,'simple',{text:()=>'Duel feats for attacks and damage.',show:()=>true}),
- I('feat_activate',2,'Activation Feats',55144522,4,ITEM_GROWTH,'simple',{text:()=>'Duel feats for activations.',show:s=>s.boards>=2}),
- I('feat_set',2,'Set Feats',44095762,4,ITEM_GROWTH,'simple',{text:()=>'Duel feats for setting cards.',show:s=>s.boards>=2}),
- I('feat_destroy',3,'Destruction Feats',12580477,4,ITEM_GROWTH,'simple',{text:()=>'Duel feats for destroying and banishing.',show:s=>s.boards>=3}),
- I('feat_survive',4,'Survival Feats',11714098,4,ITEM_GROWTH,'simple',{text:()=>'Duel feats for healing, drawing and a full field.',show:s=>s.boards>=4}),
- I('feat_victory',5,'Victory Feats',28566710,4,ITEM_GROWTH,'simple',{text:()=>'Duel feats for how the duel was won.',show:s=>s.boards>=5}),
  I('autochamp',9,'Auto Champion Bet',72989439,2000,1,'opener',{max:1,keep:true,text:()=>'Places the champion bet for you when a bracket opens for betting.',show:s=>s.brackets>=1}),
  I('bracket',9,'New Bracket',12580477,1,1,'opener',{max:BRACKET_MAX-1,text:l=>`Opens the ${bracketName(l+2)}: nine more boards at higher stakes.`,maxText:'All nine brackets are open.',show:s=>s.brackets>=1}),
 ];
@@ -113,12 +105,11 @@ const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion'
  autobet:'Weighted Dice',scout:'Mind Reader',speed:'Sun and Moon Dial',open2:'Grand Bazaar',fee_destroy:'Cracked Sword',fee_direct:'Lancer Spear',exodia:'Legendary Shackles',
  open3:'Treasure Map',fee_spell:'Magician Staff',fee_trap:'Trap Weaver',highroller:'Bottomless Purse',open4:'Booster Box',fee_fusion:'Fusion Chamber',
  fee_damage:'Burn Proficiency',open5:'Golden Receipt',deckout:'Starving Library',fee_heal:'Healing Spring',open6:'Merchant Sigil',special:'Premature Triumph',flawless:'Life Shield',
- open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler',
- feat_summon:'Ten-thousand Hands',feat_battle:'Warrior Blade',feat_activate:'Arcane Resonance',feat_set:'Trapbound Idol',feat_destroy:'Demonic Sword',feat_survive:'Phoenix Feather',feat_victory:'Champion\'s Burden'};
+ open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['Duel Feats',/^feat_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^fee_/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Jackpots & Finishes',/^(exodia|deckout|special|flawless|longgame|blitz)$/],['Automation',/^(speed|autobet|scout|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 // The shop's two tab rows (user: Characters on the second line).
-export const TAB_ROWS=[['Payouts','Card Fees','Duel Feats','CPU Tiers'],['Characters','Jackpots & Finishes','Automation','Expansion']];
+export const TAB_ROWS=[['Payouts','Card Fees','CPU Tiers'],['Characters','Jackpots & Finishes','Automation','Expansion']];
 export const categoryOf=id=>CATEGORIES.find(([,re])=>re.test(id))?.[0]||'Other';
 for(const it of ITEMS)it.art=/^calls\d$/.test(it.id)?CALL_ART[Number(it.id.slice(5))-1]:ART[it.id];
 // Exact tooltip text: what one level does, what you have now, what the next level gives.
@@ -126,24 +117,24 @@ const FEE={fee_summon:[.1,'every summon'],fee_attack:[.1,'every attack'],fee_spe
  fee_destroy:[.2,'every monster destroyed'],fee_direct:[.5,'every direct attack'],fee_fusion:[1,'every Fusion Summon (on top of Summon Fees)'],fee_damage:[.2,'every 1,000 damage dealt'],fee_heal:[.5,'every 1,000 LP gained']};
 const TIER_WHO={tier1:'a Tier 1 deck',tier2:'a Tier 2 deck',tier3:'a Tier 3 deck',endless:'an Endless deck'};
 const WIN={ flawless:[5,'the winner still has 8,000 LP or more'],blitz:[10,'a duel ends by turn 5'],deckout:[50,'a duel ends by deck-out'],special:[200,'a duel ends by an alternate win (not Exodia)']};
-const BOARD_LEVEL='The same on every board (High Roller multiplies it).';
-export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v);
- if(/^calls\d$/.test(id)){const k=Number(id.slice(5)),u=callUnit(k);return [`First level: +${fmt(u)} coins for every correct call on Board ${k} (Board ${k} of every bracket too, scaled to its stakes); each level after is worth 15% more.`,`Now: ${c(u*levelValue(l))} per correct call (total ${fmt(correctPayout(s,k,k))} with High Roller).`,`Next level: ${c(u*levelValue(l+1))}.`]}
- if(FEE[id]){const [v0,w]=FEE[id],v=v0*power(id);return [`First level: +${fmt(v)} coins for ${w}, on any board; each level after is worth 15% more.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} · next level: ${c(v*levelValue(l+1))}.`]}
- if(TIER_PCT[id]){const p=TIER_PCT[id];return [`Each level: +${p}% on everything a duel pays (fees, the correct call, jackpots, bonuses and feats) when ${TIER_WHO[id]} wins it, on any board.`,`Now: +${p*l}% · next level: +${p*(l+1)}%.`]}
- if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`First level: +${fmt(v)} coins whenever ${w}, on any board; each level after is worth 15% more.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} · next level: ${c(v*levelValue(l+1))}.`]}
- if(id==='exodia'){const name='An Exodia win';return [`${name} on any board pays a jackpot, doubled when you backed the winner. Each level doubles it.`,BOARD_LEVEL,`Now: ${fmt(jackpotBase(id,s))} · next level: ${fmt(jackpotBase(id,{items:{[id]:l+1}}))}.`]}
- if(id==='longgame'){const v=power(id);return [`Each level: +${fmt(v)} coins for every turn a duel lasts past turn 10, on any board.`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} per extra turn · next level: ${c(v*levelValue(l+1))}.`]}
- if(id==='speed')return [`Each level: every duel plays 0.1× faster, up to 8×.`,`Now: ${speedAt(l)}×${l<it.max?` · next level: ${speedAt(l+1)}×`:''}.`]
- if(id==='autobet')return [`Bets for you: once a board's betting screen has been up this long, it backs a duelist there (bracket duels: one bet per wait while a duel is open for bets). It only bets when you can pay the stake.`,`It starts at the full 10 s; each level makes the wait 15% shorter, down to 0.5 s.`,l?`Now: waits ${autoSeconds(l)} s${l<it.max?` · next level: ${autoSeconds(l+1)} s`:''}.`:`First level: waits ${autoSeconds(1)} s.`]
- if(id==='scout')return ['Auto Bet backs the CPU with the higher tier (Opening < Tier 1 < Tier 2 < Tier 3 < Endless). When both are the same tier it picks at random.','Bought once.']
- if(id==='highroller')return [`Each level doubles everything you earn: bets, fees, bonuses, jackpots and champions.`,`Now: ×${2**l} · next level: ×${2**(l+1)}.`]
- if(id==='purse')return [`Each level: +50% to what a correct bracket champion bet pays.`,`Now: +${50*l}% · next level: +${50*(l+1)}%.`]
- if(/^feat_/.test(id)){const g=id.slice(5),rules=RULES.filter(r=>FEAT_GROUP[r.metric]===g),by=new Map();for(const r of rules){const k=r.label.replace(/:.*$/,'')+(r.victoryOnly?' (winner)':'');(by.get(k)||by.set(k,[]).get(k)).push(`${r.threshold}+ ${r.coins}`)}
-  return [`The main game's duel coin rules, for both CPUs. Each level pays ${fmt(FEAT_SCALE*power(id)*100)}% of their coins, on every board.`,...[...by].map(([k,v])=>`${k}: ${v.join(' · ')}`),`Now: ×${fmt(levelValue(l))} · next level: ×${fmt(levelValue(l+1))}.`]}
- if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`First level: +${fmt(v)} coins whenever ${n} wins a duel, on any board; each level after is worth 15% more.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,BOARD_LEVEL,`Now: ${c(v*levelValue(l))} · next level: ${c(v*levelValue(l+1))}.`]}
- if(id==='autochamp')return ['A bracket waits for your champion bet before it starts. This places it for you as soon as a bracket opens for betting (when you can pay the stake).','It picks at random, or the highest-tier CPU when you own Scouting Report.','Bought once.']
- if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: a league of 9 more CPUs on 9 more boards (36 duels, everyone meets everyone once), with higher stakes than the last.`,`Brackets open: ${s.brackets} of ${BRACKET_MAX}.`]
+// Tooltip lines (Discord: the old ones were walls of text): one short sentence, then "Now: …" and "Next level: …",
+// which the shop shows as a small two-row table.
+export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v),max=l>=it.max;
+ const rows=(now,next)=>[`Now: ${now}`,...(max||next==null?[]:[`Next level: ${next}`])];
+ if(/^calls\d$/.test(id)){const k=Number(id.slice(5)),u=callUnit(k);return [`+${fmt(u)} on every correct call on Board ${k}, 15% more each level.`,...rows(c(u*levelValue(l)),c(u*levelValue(l+1))),`A correct call there pays ${fmt(correctPayout(s,k,k))}.`]}
+ if(FEE[id]){const [v0,w]=FEE[id],v=v0*power(id);return [`+${fmt(v)} for ${w}, in every duel. 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
+ if(TIER_PCT[id]){const p=TIER_PCT[id];return [`+${p}% on everything a duel pays when ${TIER_WHO[id]} wins it.`,...rows(`+${p*l}%`,`+${p*(l+1)}%`)]}
+ if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`+${fmt(v)} whenever ${w}. 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
+ if(id==='exodia')return ['Exodia wins pay a jackpot, doubled if you backed the winner. Each level doubles it.',...rows(fmt(jackpotBase(id,s)),fmt(jackpotBase(id,{items:{[id]:l+1}})))]
+ if(id==='longgame'){const v=power(id);return [`+${fmt(v)} for every turn past turn 10. 15% more each level.`,...rows(c(v*levelValue(l))+' a turn',c(v*levelValue(l+1))+' a turn')]}
+ if(id==='speed')return ['Every duel plays 0.1× faster per level, up to 8×.',...rows(speedAt(l)+'×',speedAt(l+1)+'×')]
+ if(id==='autobet')return ['Bets for you once a betting screen has been up this long. 15% shorter each level, down to 0.5 s.',...rows(l?autoSeconds(l)+' s':'off',autoSeconds(l+1)+' s')]
+ if(id==='scout')return ['Auto Bet backs the higher-tier CPU (random when the tiers are equal).']
+ if(id==='highroller')return ['Doubles everything you earn.',...rows('×'+2**l,'×'+2**(l+1))]
+ if(id==='purse')return ['+50% on correct champion bets, per level.',...rows(`+${50*l}%`,`+${50*(l+1)}%`)]
+ if(/^char_/.test(id)){const v=2*power(id),n=ITEM[id].charName;return [`+${fmt(v)} whenever ${n} wins a duel. 15% more each level.${ITEM[id].ucCount?` Covers all ${ITEM[id].ucCount} Ultimate Collectors.`:''}`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
+ if(id==='autochamp')return ['Places your champion bet as soon as a bracket opens (picks like Auto Bet).']
+ if(id==='bracket')return [`Opens the ${bracketName(s.brackets+1)||'next bracket'}: 9 more CPUs on 9 more boards, at higher stakes.`,`${s.brackets} of ${BRACKET_MAX} brackets open.`]
  return [it.text(l)]}
 export const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // Character items: one per CPU character, registered from the catalog at start (before a save is read).
@@ -166,7 +157,10 @@ export const itemLevel=lvl;
 // ---- state ----
 // A new game (and a reset) starts with 5 coins.
 export const START_COINS=5;
-export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{}}}
+// First-time guide (Discord 2026-11-26, Nori: a pointing-hand helper like the main game's): 0 point at a duelist,
+// 1 point at an affordable upgrade, 2 done.
+export const GUIDE_DONE=2;
+export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins,START_COINS));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -179,13 +173,18 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  if(raw.deckStats&&typeof raw.deckStats==='object')for(const [k,v] of Object.entries(raw.deckStats))if(/^\d+:\d+$/.test(k)&&Array.isArray(v)&&v.length===4)s.deckStats[k]=v.map(x=>Math.max(0,Math.floor(num(x))));
  // Character wins come from the deck stats (older saves had no separate count).
  s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);
+ s.guide=Math.max(0,Math.min(GUIDE_DONE,Math.floor(num(raw.guide))));if(!('guide' in raw)&&s.stats.bets>0)s.guide=GUIDE_DONE;// older saves: no guide
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
 export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;return amount}
 // Bought one-time items leave the shop, except automation ones (keep), which stay with an ON/OFF switch.
-export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
+// An item appears once you have earned half its first price (Cookie Clicker reveals a building as you near its price),
+// so a new game starts with only Lucky Calls and Summon Fees; owned items always stay.
+export const REVEAL=.5;
+export const revealed=(s,it)=>lvl(s,it.id)>0||it.id==='calls1'||(s.earned||0)>=itemCost(it.id,0)*REVEAL;
+export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&revealed(s,it)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
 export const isOn=(s,id)=>lvl(s,id)>0&&!s.settings?.off?.[id];
 // Buying returns what changed so the screen can react ('board', 'bracket' or null).
 export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.max||!it.show(s))return null;const cost=itemCost(id,level);if(!spend(s,cost))return null;
@@ -246,46 +245,6 @@ const TIER_LABEL={tier1:'Tier 1 upset',tier2:'Tier 2 win',tier3:'Tier 3 win',end
 export const tierPct=(s,tier)=>TIER_PCT[tier]?TIER_PCT[tier]*lvl(s,tier):0;
 export function withTierBonus(s,result,pay,fees=0){const tier=result.winner<2?tierKey(result.winnerTier||''):null,pct=tierPct(s,tier),v=pct/100*(pay.total+Math.max(0,fees||0));
  return v>0?{...pay,total:pay.total+v,parts:[...pay.parts,[`${TIER_LABEL[tier]} +${pct}%`,v]]}:pay}
-
-// ---- Duel Feats: the main game's battle coin rules (content.battleCoinRules), counted from a recorded duel ----
-let RULES=[];
-export function setCoinRules(rules){RULES=Array.isArray(rules)?rules.filter(r=>r&&r.metric&&Number.isFinite(r.threshold)&&Number.isFinite(r.coins)):[]}
-export const FEAT_SCALE=.05;
-export const FEAT_GROUP={summons:'summon',normal_summons:'summon',special_summons:'summon',tribute_summons:'summon',normal_monsters:'summon',effect_monsters:'summon',flip_summons:'summon',fusion:'summon',ritual:'summon',high_level:'summon',level_eight:'summon',unique_monsters:'summon',races:'summon',attributes:'summon',signature_played:'summon',
- sets:'set',monster_sets:'set',spell_trap_sets:'set',battle_destroy:'destroy',destroy:'destroy',destroyed_total:'destroy',banish:'destroy',spells:'activate',traps:'activate',effects:'activate',
- attacks:'battle',damage:'battle',effect_damage:'battle',big_hit:'battle',peak_attack:'battle',peak_defense:'battle',exact_lethal:'battle',healed:'survive',draws:'survive',peak_field:'survive',
- untouched:'victory',close_call:'victory',swift:'victory',blitz:'victory',quick:'victory',early_eight:'victory',early_ten:'victory',early_twenty:'victory',boss_victory:'victory'};
-const BOSS=/Endless|World Championship/;
-// info(code) -> {type (bit flags), level, race, attribute}; signatures: [Set of codes for seat 0, seat 1]; labels: deck labels per seat.
-export function duelMetrics(tl,info,signatures=[new Set(),new Set()],labels=['','']){
- const M=[0,1].map(()=>({summons:0,normal_summons:0,special_summons:0,tribute_summons:0,normal_monsters:0,effect_monsters:0,flip_summons:0,fusion:0,ritual:0,high_level:0,level_eight:0,signature_played:0,
-  sets:0,monster_sets:0,spell_trap_sets:0,battle_destroy:0,destroy:0,destroyed_total:0,banish:0,spells:0,traps:0,effects:0,attacks:0,damage:0,effect_damage:0,big_hit:0,peak_attack:0,peak_defense:0,exact_lethal:0,
-  healed:0,draws:0,peak_field:0,damage_taken:0,_u:new Set(),_r:new Set(),_a:new Set()}));
- const lp=[8000,8000],deck=[null,null];let phase=0,turn=0,attacked=false;
- const summoned=(p,code)=>{const c=info(code)||{},m=M[p];if(c.type&0x10)m.normal_monsters++;if(c.type&0x20)m.effect_monsters++;if(c.type&0x80)m.ritual++;if(c.level>=5)m.high_level++;if(c.level>=8)m.level_eight++;
-  m._u.add(code);if(c.race)m._r.add(c.race);if(c.attribute)m._a.add(c.attribute);if(signatures[p]?.has(code))m.signature_played=1};
- for(const [ev,board] of tl.frames){
-  for(const e of ev){const p=e[1],m=M[p];
-   if(e[0]==='t'){turn=p;attacked=false}
-   else if(e[0]==='p'){phase=p;if(p<8||p>=256)attacked=false}
-   else if(e[0]==='s'){m.summons++;if(e[4]===1)m.special_summons++;else if(e[4]===2)m.flip_summons++;else{m.normal_summons++;if((info(e[2])?.level||0)>=5)m.tribute_summons++}summoned(p,e[2])}
-   else if(e[0]==='f'){m.fusion++}
-   else if(e[0]==='n'){m.sets++;if(e[2])m.monster_sets++;else m.spell_trap_sets++}
-   else if(e[0]==='x'){const d=M[1-p];d.destroyed_total++;if(e[3])d.battle_destroy++;else d.destroy++}
-   else if(e[0]==='b')M[turn].banish++;
-   else if(e[0]==='c'){if(e[3]===2)m.spells++;else if(e[3]===4)m.traps++;else m.effects++;if(signatures[p]?.has(e[2]))m.signature_played=1}
-   else if(e[0]==='a'){m.attacks++;attacked=true}
-   else if(e[0]==='l'){const n=e[2];if(n<0){const hit=-n,d=M[1-p];d.damage+=hit;d.big_hit=Math.max(d.big_hit,hit);if(!(attacked&&phase>=8&&phase<256))d.effect_damage+=hit;if(lp[p]===hit)d.exact_lethal=1;m.damage_taken+=hit}else m.healed+=n;lp[p]=Math.max(0,lp[p]+n)}}
-  if(board)board.forEach((row,p)=>{const m=M[p];if(!row)return;if(deck[p]!=null&&row[2]<deck[p])m.draws+=deck[p]-row[2];deck[p]=row[2];let up=0;
-   for(let i=4;i<9;i++){const z=row[i];if(z&&(z[3]&5)){up++;m.peak_attack=Math.max(m.peak_attack,z[1]);m.peak_defense=Math.max(m.peak_defense,z[2])}}m.peak_field=Math.max(m.peak_field,up)})}
- const w=tl.winner,turns=tl.turns||0;
- for(const [p,m] of M.entries()){m.unique_monsters=m._u.size;m.races=m._r.size;m.attributes=m._a.size;delete m._u;delete m._r;delete m._a;const won=p===w;
-  Object.assign(m,{untouched:+(won&&m.damage_taken===0),close_call:+(won&&lp[p]>0&&lp[p]<=500),swift:+(won&&turns<=4),blitz:+(won&&turns<=2),quick:+(won&&turns<=6),early_eight:+(won&&turns<=8),early_ten:+(won&&turns<=10),early_twenty:+(won&&turns<=20),boss_victory:+(won&&BOSS.test(labels[1-p]||''))})}
- return M}
-// What the Duel Feats items pay for one duel: every rule either CPU reached (victory-only rules: the winner).
-export function featPayout(s,metrics,winner,level){let coins=0,hits=0;
- for(const r of RULES){const L=lv(s,'feat_'+FEAT_GROUP[r.metric]);if(!L)continue;for(const p of [0,1]){if(r.victoryOnly&&p!==winner)continue;if((metrics[p]?.[r.metric]||0)>=r.threshold){coins+=r.coins*L*power('feat_'+FEAT_GROUP[r.metric]);hits++}}}
- return {total:coins*FEAT_SCALE*itemScale(s),hits}}
 
 // Every finished duel the player's boards and brackets play, per deck ("id:tier" -> [duels, wins, Exodia wins, Destiny wins]).
 export function recordDeckResult(s,seats,winner,reason){seats.forEach((d,p)=>{if(!d)return;const k=d.id+':'+d.tier,v=s.deckStats[k]??=[0,0,0,0];v[0]++;if(winner===p){v[1]++;addCharWin(s,d.id,1);if(EXODIA_WINS.includes(reason))v[2]++;if(reason===21)v[3]++}})}

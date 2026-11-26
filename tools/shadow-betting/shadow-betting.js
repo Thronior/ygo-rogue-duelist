@@ -21,6 +21,10 @@ const audio={get:k=>vol[k],set(k,v){vol[k]=v;try{localStorage.setItem(KEY,JSON.s
 try{
  const content=await fetch('content.json').then(r=>{if(!r.ok)throw Error('Could not load the game data');return r.json()});
  tracks=(content.soundtrack||[]).map(t=>t.id).filter(Boolean);
- const root=document.getElementById('app');root.textContent='';
+ // A start screen first (Discord 2026-11-26: opening the link went straight into a 10 s bet timer).
+ const root=document.getElementById('app'),saved=!!localStorage.getItem('ygo-duel-bets-v1');
+ root.innerHTML=`<div class="sb-start"><img src="assets/menu/83241722.jpg" alt=""><h1>Shadow Betting</h1><p>Bet on CPU duels. Grow your winnings.</p><button>${saved?'Continue':'Start'}</button></div>`;
+ await new Promise(resolve=>root.querySelector('.sb-start button').addEventListener('click',resolve,{once:true}));
+ started=true;play();root.textContent='';
  new DuelBets({root,content,catalog:{cpuWatchDecks:content.cpuWatchDecks,cpuWatchOpponents:content.cpuWatchOpponents},volume:()=>vol.sound/100,audio});
-}catch(error){document.querySelector('.sb-loading small').textContent=(error?.message||'Could not start')+'. Reload the page to try again.'}
+}catch(error){const m=document.querySelector('.sb-loading small');if(m)m.textContent=(error?.message||'Could not start')+'. Reload the page to try again.'}

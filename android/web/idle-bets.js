@@ -28,10 +28,6 @@ export class DuelBets{
   this.pool=[];this.deckList={};
   for(const [id,records] of Object.entries(decks))records.forEach((r,t)=>{if(!r?.main?.length||!this.chars[id])return;const key=id+':'+t;this.pool.push({id:Number(id),tier:t,label:r.label||'Tier '+(t+1),key});this.deckList[key]={main:r.main,extra:r.extra||[]}});
   this.cards=new Map();for(const c of [...(content.cards||[]),...(content.tokenCards||[])])this.cards.set(c.id,c);
-  // Duel Feats use the main game's public battle coin rules.
-  M.setCoinRules(content.battleCoinRules);const byName=new Map([...this.cards.values()].map(c=>[c.name,c.id]));
-  this.cardInfo=code=>{const c=this.cards.get(code);return c?{type:Number(c.data?.type)||0,level:Number(c.level)||0,race:c.race,attribute:c.attribute}:null};
-  this.signatures=id=>new Set((this.chars[id]?.cards||[]).map(n=>byName.get(n)).filter(Boolean));
   {const best=new Map();for(const d of this.pool)best.set(d.id,Math.max(best.get(d.id)??0,M.tierRank(d.label)));
    M.registerCharacters([...best].map(([id,rank])=>({id,rank,uc:!!this.chars[id]?.ultimate_collector,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
   this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
@@ -57,7 +53,7 @@ export class DuelBets{
  tierChip(label){const t=M.tierKey(label),short={'Opening Duel':'Opening','World Championship':'WC'}[label]||label.replace('Tier ','T');return `<i class="db-tier ${t||'other'}" title="${esc(label)}">${esc(short)}</i>`}
  // ---- screen ----
  render(){
-  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="deck-stats" aria-label="CPU deck stats" title="CPU deck stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M8 2.5v3M12 2.5v3M16 2.5v3M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg></button><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button>${this.onExit?`<button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`:''}</div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
+  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="deck-stats" aria-label="CPU deck stats" title="CPU deck stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M8 2.5v3M12 2.5v3M16 2.5v3M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg></button><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button>${this.onExit?`<button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`:''}</div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
   this.el={tabs:this.root.querySelector('.db-shop-tabs'),total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
   this.paintTotal(true);this.renderShop();
   // Shop tooltips: hover an item (mouse) or tap its picture (touch) for exactly what it does.
@@ -68,11 +64,28 @@ export class DuelBets{
   this.el.shop.addEventListener('click',e=>{const icon=e.target.closest('.db-icon');if(!icon)return;const row=icon.closest('.db-item');if(this.tipFor===row.dataset.item)this.hideTip();else{this.showTip(row);clearTimeout(this.tipTimer);this.tipTimer=setTimeout(()=>this.hideTip(),4000)}});
  }
  showTip(row){const id=row.dataset.item,it=M.ITEM[id];if(!it)return;this.tipFor=id;const tip=this.el.tip;
-  tip.innerHTML=`<b>${esc(it.name)}</b>${M.tooltip(this.state,id).map(t=>`<p>${esc(t)}</p>`).join('')}`;tip.classList.add('on');
+  const lines=M.tooltip(this.state,id),stat=/^(Now|Next level): (.*)$/,stats=lines.filter(t=>stat.test(t)),text=lines.filter(t=>!stat.test(t));
+  tip.innerHTML=`<b>${esc(it.name)}</b><p>${esc(text[0]||'')}</p>${stats.length?`<dl class="db-tip-stats">${stats.map(t=>{const [,k,v]=t.match(stat);return `<dt>${k}</dt><dd>${esc(v)}</dd>`}).join('')}</dl>`:''}${text.slice(1).map(t=>`<p class="note">${esc(t)}</p>`).join('')}`;tip.classList.add('on');
   const r=row.getBoundingClientRect(),box=this.root.querySelector('.duel-bets').getBoundingClientRect(),portrait=matchMedia('(orientation:portrait)').matches;
   if(portrait){tip.style.left='8px';tip.style.right='8px';tip.style.top='';tip.style.bottom=(box.bottom-r.top+6)+'px'}
   else{tip.style.right=(box.right-r.left+8)+'px';tip.style.left='';tip.style.bottom='';tip.style.top=Math.max(8,Math.min(r.top-box.top,box.height-tip.offsetHeight-8))+'px'}}
  hideTip(){this.tipFor=null;this.el?.tip.classList.remove('on')}
+ // First-time guide: a pointing hand (the main game's shop-tour hand) and a coach bubble, placed every ~0.4 s while a
+ // step is open; nothing at all once it is done.
+ guide(){const step=this.state.guide,root=this.root.querySelector('.duel-bets');if(!root)return;
+  let target=null,text='';
+  if(step===0){target=this.el.stage.querySelector('.db-pick:not([disabled])');text='Tap the duelist you think will win. A correct call pays more than the bet.'}
+  else if(step===1){target=this.el.shop.querySelector('.db-buy:not(.poor):not([disabled]):not(.db-toggle)');text='You can afford an upgrade. Tap its price to buy it; hover or tap its picture to see what it does.'}
+  if(!this.guideEl){if(step>=M.GUIDE_DONE)return;this.guideEl=document.createElement('div');this.guideEl.className='db-guide';this.guideEl.innerHTML=`<div class="db-guide-hand">${GUIDE_HAND}</div><div class="db-guide-bubble"><p></p><button data-db="guide-skip">Skip tips</button></div>`;root.append(this.guideEl)}
+  const g=this.guideEl;if(step>=M.GUIDE_DONE||!target){g.hidden=true;if(step>=M.GUIDE_DONE){g.remove();this.guideEl=null}return}
+  g.hidden=false;g.querySelector('p').textContent=text;
+  // The fingertip (19,4 in the 48×56 hand) touches the target: a big one (a duelist's half) in its middle, a button
+  // at its bottom edge. The bubble goes under the hand, or above it when there is no room below.
+  const box=root.getBoundingClientRect(),r=target.getBoundingClientRect(),hand=g.firstChild,bubble=g.lastChild,big=r.height>120;
+  const tx=r.left-box.left+r.width/2,ty=big?r.top-box.top+r.height*.55:r.bottom-box.top-6;
+  const hx=Math.min(box.width-52,Math.max(4,tx-19)),hy=Math.min(box.height-60,Math.max(4,ty-4));hand.style.left=hx+'px';hand.style.top=hy+'px';
+  const bw=bubble.offsetWidth||280,bh=bubble.offsetHeight||70,below=hy+62+bh<box.height-4;
+  bubble.style.left=Math.min(box.width-bw-8,Math.max(8,hx+24-bw/2))+'px';bubble.style.top=(below?hy+62:Math.max(8,hy-bh-6))+'px'}
  // Boards before brackets; the bracket grid after; one bracket's boards when one is opened.
  layout(){
   for(const b of this.boards)b.detach();
@@ -95,12 +108,12 @@ export class DuelBets{
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- shop ----
  renderShop(){
-  // Category tabs; the open tab lists its items from the dearest to the cheapest first-purchase price.
+  // Category tabs; the open tab lists its items from the cheapest to the dearest first-purchase price.
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
   const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
   const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
   this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
-  const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
+  const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
   const head='';this.el.shop.innerHTML=items.map(it=>{const level=M.itemLevel(s,it.id),maxed=level>=it.max,cost=maxed?0:M.itemCost(it.id,level);
    return `<div class="db-item ${it.kind}" data-item="${it.id}"><span class="db-icon">${it.portrait?`<img class="face" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/'+it.portrait))}">`:it.art?`<img class="relic" loading="lazy" decoding="async" alt="" src="${esc(assetURL('assets/relics/'+it.art+'.png'))}">`:`<img loading="lazy" decoding="async" alt="" src="${assetURL('assets/cards-thumb/'+it.icon+'.jpg')}" data-full="${assetURL('assets/cards/'+it.icon+'.jpg')}">`}</span><span class="db-item-text"><b>${esc(it.name)}${it.kind!=='opener'||it.max>1?` <small class="db-count">${it.max===Infinity?'×'+level:level+'/'+it.max}</small>`:''}</b></span>${maxed&&it.keep?`<button class="db-buy db-toggle ${M.isOn(s,it.id)?'on':''}" data-db="toggle-item" data-id="${it.id}">${M.isOn(s,it.id)?'ON':'OFF'}</button>`:`<button class="db-buy" data-db="buy" data-id="${it.id}" ${maxed?'disabled':''}>${maxed?'MAX':M.fmt(cost)}</button>`}</div>`.replace(/^/,head)}).join('')||'<p class="db-empty">Win a bet to open the shop.</p>';
   this.paintAfford();
@@ -162,6 +175,7 @@ export class DuelBets{
   if(!this.el)return;const now=performance.now(),dt=document.hidden?0:Math.min(250,now-this.last);this.last=now;
   if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}
   if(dt>0)this.autoBet(dt);
+  if(this.state.guide<M.GUIDE_DONE&&(this.guideTick=(this.guideTick||0)+1)%4===0)this.guide();
   const watching=this.boards.length||this.openBracket;this.timer=setTimeout(()=>this.loop(),document.hidden?1000:watching?100:250);
  }
  // Auto Bet: one waiting board per interval, in board order (normal boards, then bracket duels between rounds).
@@ -175,11 +189,12 @@ export class DuelBets{
  // ---- input ----
  action(a,el){
   if(a==='exit')return this.exit();
+  if(a==='guide-skip'){this.state.guide=M.GUIDE_DONE;this.dirty=true;return this.guide()}
   if(a==='settings')return this.settings();
   if(a==='deck-stats')return this.deckStats();
   if(a==='toggle-item'){const id=el.dataset.id,off=this.state.settings.off;if(off[id])delete off[id];else off[id]=true;this.dirty=true;this.renderShop();return}
   if(a==='shop-tab'){this.shopTab=el.dataset.cat;this.hideTip();this.renderShop();this.el.shop.scrollTop=0;return}
-  if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
+  if(a==='buy'){const id=el.dataset.id,r=M.buy(this.state,id);if(r&&this.state.guide<M.GUIDE_DONE){this.state.guide=M.GUIDE_DONE;this.guide()}if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.updateSub();this.bought(id);if(this.tipFor===id){const row=this.el.shop.querySelector(`[data-item="${id}"]`);if(row)this.showTip(row)}
    if(r.kind==='board'||r.kind==='bracket'){this.sound('assets/sfx/rare-shimmer.wav',1);this.layout();this.arrive(r.kind==='bracket'?`.db-bracket[data-b="${this.state.brackets}"]`:`.db-board[data-slot="${this.state.boards}"]`);const label=r.kind==='bracket'?(this.state.brackets===1?M.bracketName(1)+'!':M.bracketName(this.state.brackets)+' open!'):'Board '+this.state.boards+' open!';this.banner(label)}
    this.save();return}
@@ -266,6 +281,7 @@ class Replay{
 const SLOT_HUES=[200,280,140,20,330,50,175,240,0];
 const CARD_BACK='assets/card-back.jpg',PHASES=[[1,'DP'],[2,'SP'],[4,'MP1'],[8,'BP'],[256,'MP2'],[512,'EP']];
 const cardSrc=code=>assetURL('assets/cards-thumb/'+code+'.jpg'),cardFull=code=>assetURL('assets/cards/'+code+'.jpg');
+const GUIDE_HAND='<svg viewBox="0 0 48 56" aria-hidden="true"><path d="M19 4c2.8 0 5 2.2 5 5v15.5l1.6-.4c2.7-.6 5 .6 5.9 2.7l1.3-.3c2.6-.6 5 .7 5.8 3l1.1-.2c3-.6 5.8 1.6 5.8 4.7V44c0 5-4 9-9 9H26.5c-3 0-5.8-1.4-7.6-3.8L7.3 34.1c-1.6-2.1-1.2-5.1 1-6.6 2-1.4 4.7-1.1 6.3.7L14 29V9c0-2.8 2.2-5 5-5z" fill="#fff6c9" stroke="#1d1405" stroke-width="3" stroke-linejoin="round"/><path d="M24 25v10M31 27v8M38 30v6" stroke="#1d1405" stroke-width="2.5" stroke-linecap="round"/></svg>';
 class BoardView{
  constructor(game,parent,{title,stakes,slot=1}){this.game=game;this.root=document.createElement('div');this.root.className='db-board';this.root.dataset.slot=slot;
   // Rows: 1 top hand/info · 2-3 top player's Spell/Trap and monsters · 4 middle · 5-6 bottom player's · 7 bottom hand.
@@ -299,11 +315,12 @@ class BoardView{
   for(const e of events){const p=e[1],v=this.sides[p];
    if(e[0]==='t'){this.turnN=(this.turnN||0)+1;this.turnEl.textContent='T'+this.turnN;this.turnEl.classList.toggle('p1',p===1)}
    else if(e[0]==='p')this.phase(p)
+   else if(e[0]==='c')this.activation(p,e[2],e[3])
    else if(e[0]==='s'||e[0]==='f'){const z=v.mz[e[3]],atk=v.last?.[4+e[3]]?.[1]||0,boss=e[0]==='f'||atk>=2500;
     // Boss monsters (2500+ ATK) and Fusions land hard: bigger slam, gold ring, a shake and a sound.
     if(anim&&z)z.animate(boss?[{scale:2.4,opacity:0,translate:`0 ${p?'-':''}30%`},{scale:.92,opacity:1,translate:'0 0',offset:.6},{scale:1}]:[{scale:1.6,opacity:.3},{scale:1,opacity:1}],{duration:boss?420:280,easing:'ease-out'});
-    this.ring(z,boss?'#ffd76a':'#ffffffaa');if(boss){this.shake(4);this.flash(p,'#ffd76a44',500);this.game.boardSound('assets/sfx/card-reveal.wav',.55)}}
-   else if(e[0]==='a'){const a=v.mz[e[2]];if(anim&&a)a.animate([{translate:'0 0',scale:1},{translate:`0 ${p?18:-18}%`,scale:1.12,offset:.35},{translate:`0 ${p?45:-45}%`,scale:1.05,offset:.6},{translate:'0 0',scale:1}],{duration:340,easing:'ease-in-out'});
+    this.glow(z,e[0]==='f'?'#c88cff':boss?'#ffd76a':'#9fe3ff');this.ring(z,boss?'#ffd76a':'#ffffffaa');if(boss){this.shake(4);this.flash(p,'#ffd76a44',500);this.game.boardSound('assets/sfx/card-reveal.wav',.55)}}
+   else if(e[0]==='a'){const a=v.mz[e[2]];this.attackLine(a,e[3]>=0?this.sides[1-p].mz[e[3]]:this.sides[1-p].gauge,e[3]<0);if(anim&&a)a.animate([{translate:'0 0',scale:1},{translate:`0 ${p?18:-18}%`,scale:1.12,offset:.35},{translate:`0 ${p?45:-45}%`,scale:1.05,offset:.6},{translate:'0 0',scale:1}],{duration:340,easing:'ease-in-out'});
     const t=e[3]>=0?this.sides[1-p].mz[e[3]]:null;if(anim&&t)t.animate([{opacity:1,translate:'0 0'},{opacity:.3,translate:'3px 0',offset:.3},{opacity:1,translate:'-3px 0',offset:.6},{opacity:1,translate:'0 0'}],{duration:340,delay:150});
     if(t)setTimeout(()=>this.ring(t,'#ff5050'),180);else setTimeout(()=>this.flash(1-p,'#ff303066',380),170)}
    else if(e[0]==='l'){const n=e[2];this.damage(p,n);if(anim)v.lp.animate([{scale:1.5,color:n<0?'#ff6a6a':'#7dff9a'},{scale:1}],{duration:420});
@@ -331,6 +348,23 @@ class BoardView{
  play(el,frames,opt){return el.animate(frames,opt).finished.catch(()=>{}).finally(()=>el.remove())}
  temp(cls,parent=this.field,tag='i'){const el=document.createElement(tag);el.className=cls;parent.append(el);return el}
  shake(px){if(this.lvl()<2||!px)return;this.mat.animate([{translate:'0 0'},{translate:`${px}px ${-px*.6}px`},{translate:`${-px}px ${px*.5}px`},{translate:`${px*.5}px ${-px*.3}px`},{translate:'0 0'}],{duration:280,easing:'ease-out'})}
+ // How much a board animates, by how busy the screen is (Discord 2026-11-26: show attacks, summons and activations,
+ // scaled back as more duels are on screen): 3 full (1-3 duels) · 2 medium (4-6) · 1 low (7+, or Light effects) · 0 none.
+ detail(){const l=this.lvl();if(!l)return 0;if(l===1)return 1;const n=this.game.openBracket?9:this.game.boards.length;return n<=3?3:n<=6?2:1}
+ // Attack: a beam from the attacker to the monster it hits, or to the defending player's LP bar on a direct attack.
+ attackLine(from,to,direct){if(!this.detail()||!from||!to)return;const box=this.field.getBoundingClientRect(),a=from.getBoundingClientRect(),b=to.getBoundingClientRect();if(!box.width||!a.width)return;
+  const x1=a.left+a.width/2-box.left,y1=a.top+a.height/2-box.top,x2=b.left+b.width/2-box.left,y2=b.top+b.height/2-box.top,len=Math.hypot(x2-x1,y2-y1);
+  const el=this.temp('db-atk'+(direct?' direct':''));el.style.left=x1+'px';el.style.top=y1+'px';el.style.width=len+'px';el.style.rotate=Math.atan2(y2-y1,x2-x1)+'rad';
+  this.play(el,[{scale:'0 1',opacity:1},{scale:'1 1',opacity:1,offset:.35},{scale:'1 1',opacity:1,offset:.7},{scale:'1 1',opacity:0}],{duration:620,easing:'ease-out'})}
+ // Summon: the zone lights up in the summon's colour.
+ glow(z,color){if(this.detail()<2||!z)return;z.animate([{boxShadow:`0 0 0 2px ${color},0 0 14px 4px ${color}`},{boxShadow:'0 0 0 0 transparent'}],{duration:700,easing:'ease-out'})}
+ // Activation: the card pops up over its player's side (green Spell, pink Trap, orange monster effect); medium detail
+ // just tints that side.
+ activation(p,code,kind){const d=this.detail();if(d<2||!code)return;const color=kind===2?'#3fcf9a':kind===4?'#e05aa8':'#f0a040';
+  if(d<3){this.flash(p,color+'55',420);return}
+  const el=this.temp('db-act');el.style.setProperty('--c',color);el.style.left=(p?70:30)+'%';el.style.top=(p?30:70)+'%';
+  const img=document.createElement('img');img.alt='';img.dataset.full=cardFull(code);img.src=cardSrc(code);el.append(img);
+  this.play(el,[{opacity:0,scale:.4},{opacity:1,scale:1.08,offset:.18},{opacity:1,scale:1,offset:.7},{opacity:0,scale:1.04}],{duration:900,easing:'ease-out'})}
  // A word slammed onto the board (DUEL!, CORRECT!, MISS…).
  stamp(text,cls,x=50,y=50){if(!this.lvl())return;const el=this.temp('db-stamp '+cls,this.field,'b');el.textContent=text;el.style.left=x+'%';el.style.top=y+'%';
   this.play(el,[{opacity:0,scale:2.6},{opacity:1,scale:.94,offset:.16},{opacity:1,scale:1,offset:.22},{opacity:1,scale:1,offset:.78},{opacity:0,scale:1.08}],{duration:1400,easing:'ease-out'})}
@@ -385,7 +419,7 @@ class Board{
  // No bet within 10 seconds: the duel starts anyway, without a bet (its fees still pay).
  secondsLeft(){return Math.max(0,Math.ceil((AUTO_START-(this.game.clock-(this.betSince??this.game.clock)))/1000))}
  bet(seat,auto=false){if(this.phase!=='bet')return;const stake=seat==null?0:M.boardStake(this.level);if(seat!=null&&!M.spend(this.game.state,stake)){this.paint();return}
-  const st=this.game.state.stats;if(seat!=null)st.bets++;this.stake=stake;this.game.spendFx(stake,this.view?.root);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
+  const st=this.game.state.stats;if(seat!=null){st.bets++;if(!auto&&this.game.state.guide<1){this.game.state.guide=1;this.game.guide()}}this.stake=stake;this.game.spendFx(stake,this.view?.root);this.game.dirty=true;this.game.paintTotal();this.game.refreshShop();
   this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.view?.duelStart(seat);this.game.boardSound(auto?'assets/sfx/deck-select.wav':'assets/sfx/shop-select.wav',auto?.35:.7)}
  tick(dt){
   if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){const g=this.game,s=g.state,ab=M.autoInterval(s)&&this.next&&M.canAfford(s,M.boardStake(this.level));
@@ -395,7 +429,7 @@ class Board{
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
   else if(this.phase==='result'){this.hold-=dt/M.speedOf(this.game.state);if(this.hold<=0){this.game.supply.release(this.replay?.tl);this.replay=null;this.fetch();this.paint()}}
  }
- finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=M.withTierBonus(s,r,g.withFeats(M.duelPayout(s,r,this.level,this.slot,pick),this.replay.tl,this.level),this.replay.earned),kind=r.reason;
+ finish(){const g=this.game,s=g.state,r=this.replay.result(),pick=this.replay.pick,pay=M.withTierBonus(s,r,M.duelPayout(s,r,this.level,this.slot,pick),this.replay.earned),kind=r.reason;
   this.stake=0;this.phase='result';this.hold=RESULT_HOLD;
   if(pick===r.winner){s.stats.correct++;s.stats.slots[this.slot]=(s.stats.slots[this.slot]||0)+1}
   if([16,20,31,33].includes(kind))s.stats.exodia++;if(kind===21)s.stats.destiny++;M.recordDeckResult(s,this.replay.tl.seats,r.winner,kind);
@@ -411,10 +445,6 @@ DuelBets.prototype.jackpot=function(label,from){if(!this.el||this.state.settings
  // Kept light on purpose: one image scaling in and out, no full-screen flash or shake.
  if(art){const img=document.createElement('img');img.className='db-splash';img.alt='';img.src=assetURL('assets/cards/'+art+'.jpg');img.style.left=at.x+'px';img.style.top=at.y+'px';img.style.width=Math.min(200,at.h*.55*.69,at.w*.4)+'px';this.el.fx.append(img);
   img.animate([{opacity:0,scale:.6},{opacity:1,scale:1,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1.08}],{duration:1800,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>img.remove())}};
-// Duel Feats for a recorded duel: added to its payout as one part.
-DuelBets.prototype.withFeats=function(pay,tl,level){if(!tl||!M.ITEMS.some(i=>/^feat_/.test(i.id)&&M.itemLevel(this.state,i.id)))return pay;
- const seats=tl.seats.map(x=>this.seatOf(x)),metrics=M.duelMetrics(tl,this.cardInfo,tl.seats.map(x=>this.signatures(x.id)),seats.map(x=>x.label)),f=M.featPayout(this.state,metrics,tl.winner,level);
- if(f.total>0){pay.parts.push([`Duel feats ×${f.hits}`,f.total,true]);pay.total+=f.total}return pay};
 DuelBets.prototype.payParts=function(pay,from){
  // Each part of a payout pops on its own: jackpots get the big treatment.
  pay.parts.forEach(([label,value,big],i)=>setTimeout(()=>{if(!this.el)return;const jackpot=/JACKPOT|Alternate|Deck-out/.test(label);this.gain(value,{from,size:jackpot?'jackpot':big?'medium':'small',label:big&&!jackpot?label:''});if(jackpot){this.jackpot(label,from);this.banner(label+'!',from||null)}},i*260));
@@ -512,7 +542,7 @@ class Bracket{
   this.table?.update(r.winner<2?d.pair[r.winner]:null,r.winner<2?d.pair[1-r.winner]:null);if(!this.game.openBracket)this.paintTile();
   if(d.pick===r.winner&&d.pick!=null){s.stats.correct++}
   if([16,20,31,33].includes(r.reason))s.stats.exodia++;if(r.reason===21)s.stats.destiny++;M.recordDeckResult(s,d.pair.map(i=>this.roster[i]),r.winner,r.reason);
-  const pay=M.withTierBonus(s,r,this.game.withFeats(M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),replay?.tl||d.model?.sample||null,this.level(d.slot)),fees);d.stake=0;
+  const pay=M.withTierBonus(s,r,M.duelPayout(s,r,this.level(d.slot),d.slot,d.pick),fees);d.stake=0;
   this.game.payParts(pay,d.view?.root||this.cellFor(d));d.view?.ending(r.winner);d.view?.outcome(r.winner,d.pick);
   if(d.view){const name=r.winner<2?this.game.seatOf(this.roster[d.pair[r.winner]]).name:'Nobody';d.view.setStakes('');d.view.show(`<div class="db-result ${d.pick==null?'':d.pick===r.winner?'good':'bad'}"><b>${esc(name)} wins</b></div>`)}
   this.game.dirty=true}

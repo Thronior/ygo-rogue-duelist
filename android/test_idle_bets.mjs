@@ -13,16 +13,20 @@ assert.equal(s.boards,1);assert.equal(s.brackets,0);
 assert.equal(M.boardStake(1),1);assert.equal(M.boardPayout(1),5);
 assert.equal(M.correctPayout(s,1,1),5,'board 1: bet 1, win 5');
 assert.equal(s.items.fee_summon,1,'a new game starts with Summon Fees at 1');
-assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon','fee_attack','fee_spell','fee_trap','speed','feat_summon','feat_battle'],'the opening shop: payout, monster/Spell/Trap fees, speed and the first feats');
+assert.deepEqual(M.visibleItems(s).map(i=>i.id),['calls1','fee_summon'],'a new game shows only Lucky Calls and Summon Fees');
+// Items appear as you earn half their first price (Cookie Clicker style), cheapest first.
+s.earned=2;assert.deepEqual(M.visibleItems(s).map(i=>i.id).sort(),['calls1','fee_spell','fee_summon','fee_trap'],'after earning 2: Spell and Trap Fees (price 4)');
+s.earned=5;assert.ok(['fee_attack','speed'].every(id=>M.visibleItems(s).some(i=>i.id===id)));s.earned=0;
+assert.ok(!M.ITEMS.some(i=>/^feat_/.test(i.id))&&!M.CATEGORIES.some(c=>c[0]==='Duel Feats'),'no Duel Feats (user, Discord 2026-11-26)');
 assert.ok(M.itemCost('tier1',0)>M.itemCost('tier2',0)&&M.itemCost('tier2',0)>M.itemCost('tier3',0)&&M.itemCost('tier3',0)>M.itemCost('endless',0),'smaller bonuses cost less');
 for(const it of M.ITEMS)assert.ok(M.tooltip(M.newState(),it.id).join(' ').length>20,'every item has a tooltip: '+it.id);
 assert.ok(M.tooltip({...M.newState(),items:{fee_summon:3}},'fee_summon').some(x=>x.includes('+0.3')),'the tooltip shows the current total');
 // Cookie Clicker scaling: rewards grow 15% per level, prices ×1.3225 (1.15²), so each next level pays back 15% slower.
 assert.deepEqual([0,1,2].map(l=>Math.round(M.levelValue(l)*100)/100),[0,1,2.15]);assert.ok(M.levelValue(10)>19&&M.levelValue(10)<21);
-for(const id of ['calls1','calls3','fee_summon','fee_heal','feat_victory','flawless']){const r=M.itemCost(id,40)/M.itemCost(id,39);assert.ok(Math.abs(r-1.3225)<.002,id+' price ×1.3225 per level, got '+r)
+for(const id of ['calls1','calls3','fee_summon','fee_heal','flawless']){const r=M.itemCost(id,40)/M.itemCost(id,39);assert.ok(Math.abs(r-1.3225)<.002,id+' price ×1.3225 per level, got '+r)
  const payback=l=>M.itemCost(id,l)/(M.levelValue(l+1)-M.levelValue(l));assert.ok(Math.abs(payback(31)/payback(30)-1.15)<.01,id+': each level pays back 15% slower')}
 // The dearer an income item's first purchase, the more one level earns.
-const inc=M.ITEMS.filter(i=>/^(fee_|feat_)/.test(i.id)).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
+const inc=M.ITEMS.filter(i=>/^fee_/.test(i.id)).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
 for(let i=1;i<inc.length;i++)assert.ok(M.power(inc[i].id)>=M.power(inc[i-1].id),`${inc[i].id} earns at least as much per level as the cheaper ${inc[i-1].id}`);
 
 // ---- prices: simple items creep up, drastic ones climb steeply ----
@@ -46,12 +50,12 @@ assert.ok(Math.abs(M.correctPayout(s,1,1)-7.15)<1e-9,'two Lucky Calls: 5 + 1 + 1
 // less to a correct call than that next board pays (user: Lucky Calls vs The Big Leagues).
 for(let k=1;k<=8;k++){const open=M.itemCost('open'+(k+1),0);let l=0;while(M.itemCost('calls'+k,l)<open)l++;
  const step=M.callsBonus(k,l+1)-M.callsBonus(k,l);assert.ok(step<M.boardPayout(k+1)/4,`calls${k} level ${l+1} (${M.itemCost('calls'+k,l)}) adds ${step}, under a quarter of board ${k+1}'s ${M.boardPayout(k+1)}`)}
-assert.ok(M.visibleItems(s).some(i=>i.id==='open2'));
+assert.ok(!M.visibleItems(s).some(i=>i.id==='open2'),'not until you have earned half its price');s.earned=50;assert.ok(M.visibleItems(s).some(i=>i.id==='open2'));
 let before=s.coins,r=M.buy(s,'open2');
 assert.equal(r.kind,'board');assert.equal(s.boards,2);assert.equal(s.coins,before-100);
 assert.ok(!M.visibleItems(s).some(i=>i.id==='open2'),'a bought opener leaves the shop');
 assert.equal(M.boardStake(2),10);assert.equal(M.boardPayout(2),100,'board 2: bet 10, win 100');
-assert.ok(M.visibleItems(s).some(i=>i.id==='calls2'),'board 2 brings its own, pricier set');
+s.earned=1000;assert.ok(M.visibleItems(s).some(i=>i.id==='calls2'),'board 2 brings its own, pricier set');
 assert.ok(['tier1','tier2','tier3','endless'].every(id=>M.visibleItems(s).some(i=>i.id===id)),'tier bonuses appear with Board 2');
 assert.ok(M.itemCost('calls2',0)>M.itemCost('calls1',0)*10);
 s.coins=0;assert.equal(M.buy(s,'calls2'),null,'no money, no sale');
@@ -108,34 +112,12 @@ assert.ok(!M.ITEM.destiny,'no Destiny jackpot (no CPU deck runs Destiny Board)')
 
 // ---- shop sections: every item has one ----
 for(const it of M.ITEMS)assert.notEqual(M.categoryOf(it.id),'Other','category for '+it.id);
-assert.equal(M.categoryOf('feat_summon'),'Duel Feats');assert.equal(M.categoryOf('open3'),'Expansion');
-
-// ---- Duel Feats: the main game's coin rules counted from a recorded duel ----
-M.setCoinRules([{label:'Monsters summoned: 1+',coins:1,metric:'summons',threshold:1},{label:'Monsters summoned: 3+',coins:2,metric:'summons',threshold:3},
- {label:'Special Summons: 1+',coins:3,metric:'special_summons',threshold:1},{label:'Cards set: 1+',coins:1,metric:'sets',threshold:1},
- {label:'Enemy cards destroyed by battle: 1+',coins:1,metric:'battle_destroy',threshold:1},{label:'Cards banished: 1+',coins:5,metric:'banish',threshold:1},
- {label:'Largest damage hit: 2000+',coins:3,metric:'big_hit',threshold:2000},{label:'Exact lethal damage',coins:30,metric:'exact_lethal',threshold:1},
- {label:'Effect damage dealt: 500+',coins:5,metric:'effect_damage',threshold:500},{label:'Win without taking damage',coins:8,metric:'untouched',threshold:1,victoryOnly:true},
- {label:'Level 8+ monsters summoned: 1+',coins:12,metric:'level_eight',threshold:1},{label:'Play your signature card',coins:10,metric:'signature_played',threshold:1}]);
-const info=c=>({1:{type:0x21,level:8,race:'Dragon',attribute:'LIGHT'},2:{type:0x11,level:4,race:'Warrior',attribute:'EARTH'}}[c]||null);
-const ftl={winner:0,reason:1,turns:5,seats:[{id:1,tier:0},{id:2,tier:0}],frames:[
- [[['t',0],['s',0,1,0,0],['n',0,0],['p',8],['a',0,0,-1],['p',64],['l',1,-3000]],[[8000,4,30,0,[1,3000,2500,1],0,0,0,0,0,0,0,0,0,0,0,0,0],[5000,5,30,0]]],
- [[['t',1],['s',1,2,0,1],['c',1,999,2],['l',0,0],['x',1,2,1,4],['b',0]]],
- [[['t',0],['p',4],['l',1,-5000]]]]};
-const fm=M.duelMetrics(ftl,info,[new Set([1]),new Set()],['Tier 1','Endless']);
-assert.equal(fm[0].summons,1);assert.equal(fm[0].tribute_summons,1,'a Level 8 Normal Summon counts as a Tribute Summon');assert.equal(fm[1].special_summons,1);
-assert.equal(fm[0].sets,1);assert.equal(fm[0].spell_trap_sets,1);assert.equal(fm[0].battle_destroy,1,'the destroying player gets the credit');
-assert.equal(fm[0].big_hit,5000);assert.equal(fm[0].effect_damage,5000,'damage outside an attack is effect damage');assert.equal(fm[0].exact_lethal,1,'5000 into 5000 LP');
-assert.equal(fm[0].untouched,1);assert.equal(fm[0].signature_played,1);assert.equal(fm[0].level_eight,1);assert.equal(fm[0].peak_attack,3000);assert.equal(fm[0].boss_victory,1,'beat an Endless deck');
-let fst=M.newState();assert.equal(M.featPayout(fst,fm,0,1).total,0,'no feat items, no feat coins');
-fst.items.feat_summon=2;const fp=M.featPayout(fst,fm,0,1);assert.ok(fp.total>0&&fp.hits>=3);
-fst.items.feat_victory=1;assert.ok(M.featPayout(fst,fm,1,1).total<M.featPayout(fst,fm,0,1).total+1e-9,'victory-only rules pay only for the winner');
-assert.ok(M.tooltip(fst,'feat_summon').some(x=>/Monsters summoned/.test(x)),'the tooltip lists the conditions');
+assert.equal(M.categoryOf('fee_trap'),'Card Fees');assert.equal(M.categoryOf('open3'),'Expansion');
 
 // ---- Characters: one item per CPU character, paying when that character wins ----
 M.registerCharacters([{id:900,name:'Test Weak',rank:0,sprite:'x.png'},{id:901,name:'Test Strong',rank:4,sprite:'y.png'}]);
 assert.equal(M.categoryOf('char_900'),'Characters');
-const hid=M.newState();assert.ok(!M.visibleItems(hid).some(i=>i.id==='char_900'),'characters are not available from the start');
+const hid=M.newState();hid.earned=1e9;assert.ok(!M.visibleItems(hid).some(i=>i.id==='char_900'),'characters are not available from the start');
 for(let i=0;i<3;i++)M.recordDeckResult(hid,[{id:900,tier:0},{id:901,tier:4}],0,1);assert.ok(M.visibleItems(hid).some(i=>i.id==='char_900')&&!M.visibleItems(hid).some(i=>i.id==='char_901'),'a character appears after 3 wins');
 assert.equal(M.sanitize(JSON.parse(JSON.stringify(hid))).charWins[900],3,'rebuilt from deck stats on load');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
 assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');
@@ -146,7 +128,7 @@ assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved
 assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
 M.registerCharacters([{id:910,name:'Collector A',rank:4,sprite:'a.png',uc:true},{id:911,name:'Collector B',rank:3,sprite:'b.png',uc:true}]);
 assert.ok(M.ITEM.char_uc&&!M.ITEM.char_910&&!M.ITEM.char_911,'Ultimate Collectors share one item');
-const ucs=M.newState();M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:911,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);assert.ok(M.visibleItems(ucs).some(i=>i.id==='char_uc'),'3 Collector wins in total unlock it');
+const ucs=M.newState();ucs.earned=1e9;M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:911,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);assert.ok(M.visibleItems(ucs).some(i=>i.id==='char_uc'),'3 Collector wins in total unlock it');
 const us=M.newState();us.items.char_uc=1;assert.ok(M.duelPayout(us,{winnerId:911,winner:1,reason:1,turns:9,winnerLp:100,winnerTier:'Endless'},1,1,null).parts.some(p=>p[0]==='Ultimate Collector wins'),'any Collector win pays it');
 assert.ok(M.itemCost('char_uc',0)>M.itemCost('char_901',0),'it costs more than one character of the same rank');
 
