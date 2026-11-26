@@ -18,7 +18,7 @@ export const levelScale=level=>10**(level-1);
 // Board 1: bet 1, win 5. Board k after that: bet 10^(k-1), win 10^k.
 export const boardStake=level=>level<=1?1:10**(level-1);
 export const boardPayout=level=>level<=1?5:10**level;
-export const BOARD_RATIO=35;
+export const BOARD_RATIO=25;
 export const boardOpenerCost=k=>100*BOARD_RATIO**(k-2);
 export const bracketOpenerCost=b=>boardOpenerCost(9)*1000**(b-1);
 
@@ -37,8 +37,8 @@ export const levelValue=l=>l>0?(GROWTH**l-1)/(GROWTH-1):0;
 const EXP_ITEM=/^(fee_|char_|calls\d$|flawless$|longgame$|blitz$|deckout$|special$|purse$)/;
 export const ITEM_GROWTH=1.15;// every income item's own price growth (× GROWTH for its rising reward)
 // Global multipliers are priced like Cookie Clicker's upgrades: each step costs far more than the last.
-// The tier bonuses (+% on everything a tier wins) ×2.3 per level; High Roller (×2 everything) ×1,000 per level.
-const TIER_GROWTH=2.3;
+// The tier bonuses (+% on everything a tier wins) ×5 per level; High Roller (×2 everything) ×1,000 per level.
+const TIER_GROWTH=5;// ×5 per level: a % on everything is a global multiplier (playtest: at ×2.3 it brought ~60% of late income)
 export const growsExp=id=>EXP_ITEM.test(id);
 export function speedAt(l){return Math.round((1+.1*l)*10)/10}
 // Auto Bet's interval in seconds at a level: 5s, 20% faster per level, never under 0.5s.
@@ -89,7 +89,7 @@ export const ITEMS=[
  I('flawless',6,'Flawless Bonus',5318639,2,ITEM_GROWTH,'simple',{text:()=>'+5 whenever the winner still has 8,000 LP or more.',show:s=>s.boards>=6}),
  I('open7',6,'Board 7: '+LEAGUES[6],50045299,20,1,'opener',{max:1,text:()=>`Opens board 7. Bets cost ${fmt(boardStake(7))} and pay ${fmt(boardPayout(7))}.`,show:s=>s.boards>=6&&lvl(s,'calls6')>=1}),
  calls(7),
- I('longgame',7,'Long Game',19613556,2,ITEM_GROWTH,'simple',{text:()=>'+1 for every turn past turn 10.',show:s=>s.boards>=7}),
+ I('longgame',7,'Long Game',19613556,2,ITEM_GROWTH,'simple',{text:()=>'Pays when a duel goes past turn 10.',show:s=>s.boards>=7}),
  I('open8',7,'Board 8: '+LEAGUES[7],98502113,20,1,'opener',{max:1,text:()=>`Opens board 8. Bets cost ${fmt(boardStake(8))} and pay ${fmt(boardPayout(8))}.`,show:s=>s.boards>=7&&lvl(s,'calls7')>=1}),
  calls(8),
  I('blitz',8,'Blitz Bonus',38033121,2,ITEM_GROWTH,'simple',{text:()=>'+10 whenever a duel ends by turn 5.',show:s=>s.boards>=8}),
@@ -127,7 +127,7 @@ export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v),max=
  if(TIER_PCT[id]){const p=TIER_PCT[id];return [`+${p}% on everything a duel pays when ${TIER_WHO[id]} wins it.`,...rows(`+${p*l}%`,`+${p*(l+1)}%`)]}
  if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`+${fmt(v)} whenever ${w}. 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
  if(id==='exodia')return ['Exodia wins pay a jackpot, doubled if you backed the winner. Each level doubles it.',...rows(fmt(jackpotBase(id,s)),fmt(jackpotBase(id,{items:{[id]:l+1}})))]
- if(id==='longgame'){const v=power(id);return [`+${fmt(v)} for every turn past turn 10. 15% more each level.`,...rows(c(v*levelValue(l))+' a turn',c(v*levelValue(l+1))+' a turn')]}
+ if(id==='longgame'){const v=power(id);return [`+${fmt(v)} when a duel goes past turn 10, +10% for each extra turn (up to double). 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
  if(id==='speed')return ['Every duel plays 0.1× faster per level, up to 8×.',...rows(speedAt(l)+'×',speedAt(l+1)+'×')]
  if(id==='autobet')return ['Bets for you once a betting screen has been up this long. 15% shorter each level, down to 0.5 s.',...rows(l?autoSeconds(l)+' s':'off',autoSeconds(l+1)+' s')]
  if(id==='scout')return ['Auto Bet backs the higher-tier CPU (random when the tiers are equal).']
@@ -218,10 +218,11 @@ export const callUnit=k=>k===1?1:boardPayout(k)*.25;
 // Every Calls item: +callUnit per correct call at level 1, each level worth 15% more than the one before.
 export function callsBonus(slot,l){return levelValue(l)*callUnit(slot)}
 export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,lvl(s,'calls'+slot))*levelScale(level)/levelScale(slot))*multiplier(s);
-// The dearer an income item's first purchase, the more each level earns: (first price / 15)^0.75, never under 1.
-// 15 is the opening shop's Summon Fees. Sub-linear so late items are strong without running away.
-const POWER_REF=15,powerCache=new Map();
-export function power(id){if(!powerCache.has(id))powerCache.set(id,Math.max(1,(itemCost(id,0)/POWER_REF)**.75));return powerCache.get(id)}
+// The dearer an income item's first purchase, the more each level earns: (first price / 15)^POWER, never under 1.
+// POWER = ln 10 / ln BOARD_RATIO: each board's item set (35× dearer) earns 10× the last, exactly like the stakes. With 0.75
+// (≈14× per set) late items out-earned the boards and the economy ran away (headless playtest, 2026-11-26).
+const POWER_REF=15,POWER=Math.log(10)/Math.log(BOARD_RATIO),powerCache=new Map();
+export function power(id){if(!powerCache.has(id))powerCache.set(id,Math.max(1,(itemCost(id,0)/POWER_REF)**POWER));return powerCache.get(id)}
 export function jackpotBase(kind,s){const l=lvl(s,kind);return (kind==='exodia'?50*2**l:kind==='deckout'?50*levelValue(l):kind==='special'?200*levelValue(l):0)*power(kind)}
 // Income from one replayed frame's events on a board of this level.
 // Items pay the same on every board (like Cookie Clicker buildings, a new board never multiplies the old items);
@@ -247,9 +248,13 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=i
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
  if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*(ITEM[id]?.boost||1)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lv(s,'flawless')*power('flawless')*scale);
- if(result.turns>10)add('Long game',(result.turns-10)*lv(s,'longgame')*power('longgame')*scale);
+ if(result.turns>10)add('Long game',longGameFactor(result.turns)*lv(s,'longgame')*power('longgame')*scale);
  if(result.winner<2&&result.turns<=5)add('Blitz',10*lv(s,'blitz')*power('blitz')*scale);
  return {total:parts.reduce((a,p)=>a+p[1],0),parts}}
+
+// Long Game pays once per duel past turn 10: +10% per extra turn, at most double (it used to pay per extra turn, about
+// 7.5× on an average duel, and ran away late: playtest 2026-11-26).
+export const longGameFactor=turns=>turns>10?1+Math.min(10,turns-10)/10:0;
 
 // Tier wins: a percentage on top of everything the duel paid (its fees, the call, jackpots, bonuses and feats).
 // Each level adds the same share; the share is smaller for stronger tiers.

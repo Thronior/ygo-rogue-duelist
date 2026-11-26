@@ -33,7 +33,10 @@ for(let i=1;i<inc.length;i++)assert.ok(M.power(inc[i].id)>=M.power(inc[i-1].id),
 const ratio=id=>M.itemCost(id,5)/M.itemCost(id,4);
 assert.ok(ratio('calls1')<1.5&&ratio('fee_summon')<1.5,'income items grow slowly');
 assert.ok(ratio('speed')>ratio('calls1')&&ratio('tier1')>2&&M.itemCost('highroller',1)/M.itemCost('highroller',0)>=999,'multipliers (speed, tier bonuses, High Roller) climb much faster');
-for(let k=3;k<=9;k++)assert.equal(M.itemCost('open'+k,0),M.itemCost('open'+(k-1),0)*35,'each board opener costs 35× the one before');
+for(let k=3;k<=9;k++)assert.equal(M.itemCost('open'+k,0),M.itemCost('open'+(k-1),0)*M.BOARD_RATIO,'each board opener costs BOARD_RATIO× the one before');
+// Each board's item set earns 10× the previous one, like the stakes (power = ln 10 / ln BOARD_RATIO).
+assert.ok(Math.abs(Math.log(M.power('fee_fusion')/M.power('fee_destroy'))/Math.log(M.itemCost('fee_fusion',0)/M.itemCost('fee_destroy',0))-Math.log(10)/Math.log(M.BOARD_RATIO))<1e-9,'power exponent ties sets to the stakes');
+assert.equal(M.longGameFactor(10),0);assert.equal(M.longGameFactor(11),1.1);assert.equal(M.longGameFactor(40),2,'Long Game: once per duel past turn 10, up to double');
 assert.equal(M.itemCost('open2',0),100,'The Big Leagues costs 100');
 assert.equal(M.itemCost('speed',4),50,'the 5th Duel Speed level costs 50');assert.ok(M.itemCost('speed',0)<=10,'the first is cheap');
 for(const it of M.ITEMS.filter(i=>i.max>1))for(let l=0;l<Math.min(it.max-1,12);l++)assert.ok(M.itemCost(it.id,l+1)>M.itemCost(it.id,l),`${it.id} gets dearer every purchase (level ${l})`);

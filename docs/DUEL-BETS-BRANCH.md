@@ -21,11 +21,12 @@ The main menu has a new **Shadow Betting** card (Dice Re-Roll art). You bet on w
 
 - **Income items** (Calls, Card Fees, Duel Feats, Characters, finishes): each level is worth 15% more than the one before and costs ×1.3225 (1.15²), so each next level takes 15% longer to pay back. That is Cookie Clicker's rule (a building costs 15% more per copy for the same income). Lucky Calls follows it too: +1 per correct call at level 1 (it used to grow like Fibonacci and outran everything).
 - **Items pay the same on every board.** A new board never multiplies old items, as in Cookie Clicker and AdVenture Capitalist. Only the bets and the Calls items grow with a board's stakes; High Roller multiplies everything.
-- **Item strength**: a level earns (first price ÷ 15)^0.75, like Cookie Clicker's buildings (about 12× the price for 6× the income).
-- **Boards**: stakes ×10 per board, like Scritchy Scratchy's first tickets ($10, $100, $1,000, $10,000). Openers cost 35× the one before (100, 3,500, 122,500…); each board's item set costs about 1/20 of the next opener. Brackets cost ×1,000 each for ×100 stakes, about the same ratio as two boards.
-- **Multipliers** are priced like Cookie Clicker's upgrades: tier bonuses ×2.3 per level, High Roller (×2 everything) ×1,000 per level, Duel Speed's own curve.
+- **Item strength**: a level earns (first price ÷ 15)^(ln 10 / ln 25) ≈ ^0.72, so each board's item set (25× dearer) earns 10× the last, exactly like the stakes. At ^0.75 with 35× openers, late items out-earned the boards and the economy ran away (headless playtest, 2026-11-26).
+- **Boards**: stakes ×10 per board, like Scritchy Scratchy's first tickets ($10, $100, $1,000, $10,000). Openers cost 25× the one before (100, 2,500, 62,500…); each board's item set costs about 1/20 of the next opener. Brackets cost ×1,000 each for ×100 stakes, about the same ratio as two boards.
+- **Multipliers** are priced like Cookie Clicker's upgrades: tier bonuses ×5 per level, High Roller (×2 everything) ×1,000 per level, Duel Speed's own curve.
+- **Long Game** pays once per duel past turn 10, +10% per extra turn, at most double. **Characters** that rarely win pay more per win: ×(50% ÷ their average win chance), ×1 to ×3.
 - **Rule from the user:** once a Calls item costs as much as the next board's opener, one more level adds less than a quarter of what that board pays (tested for every board).
-- **Simulator:** `node android/idle_bets_balance.mjs` (add `--log` or `--why`) plays a new game with best-payback buying, from 288 measured duels. Current result: board 2 at about 1 min, then waits of 10, 15, 23, 38, 65, 62 and 79 min; the first bracket after about 4.9 hours of active play.
+- **Simulator:** `node android/idle_bets_balance.mjs` (expected values). **Playtest:** `node android/idle_bets_record_library.mjs 400 lib.json` then `node android/idle_bets_playtest.mjs lib.json smart|naive [hours]` plays the real rules on real recorded duels with no rendering. 2026-11-26 after the fixes: smart player reaches the first bracket in about 4 h, correct calls stay 20-36% of income; a naive shopper has 7 boards after 12 h.
 
 ## How duels are produced
 
