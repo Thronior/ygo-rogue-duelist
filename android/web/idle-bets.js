@@ -108,12 +108,13 @@ export class DuelBets{
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- shop ----
  renderShop(){
-  // Category tabs, always shown (user, 2026-11-26); each lists its items from the cheapest to the dearest first price.
+  // Category tabs, always shown; each lists its items from the dearest first price at the top to the cheapest at the
+  // bottom (user, 2026-11-26). Dear items appear later anyway (M.revealed).
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
   const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
   const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
   this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('');
-  const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(a.id,0)-M.itemCost(b.id,0));
+  const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
   this.el.shop.innerHTML=this.shopRows(items);
   this.paintAfford();
  }

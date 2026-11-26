@@ -409,3 +409,13 @@
 /* The bet bar stays on one line on small boards (phone portrait): its text scales with the board's width */
 .db-overlay{container-type:size}
 .db-place{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10px,6cqw,22px)!important}
+/* Phone portrait (user, 2026-11-26): the shop starts higher and lists its items two side by side */
+@media (orientation:portrait){
+ .db-shop{height:46%}
+ .db-shop-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:0}
+ .db-item{grid-template-columns:40px minmax(0,1fr);grid-template-rows:auto auto;gap:3px 8px;min-height:0;padding:6px 8px;border-right:1px solid #1e3a45}
+ .db-item:nth-child(2n){border-right:0}
+ .db-item .db-icon{grid-row:1/3;width:40px;height:40px}
+ .db-item .db-item-text b{font-size:13px}
+ .db-item .db-buy{grid-column:2;justify-self:stretch;min-width:0;padding:3px 8px 2px;font-size:16px}
+}
