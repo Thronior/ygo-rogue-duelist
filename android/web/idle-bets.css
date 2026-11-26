@@ -504,3 +504,9 @@
 .db-char-modal h3{margin:12px 0 2px;font-family:var(--db-display);font-weight:400;letter-spacing:.06em;color:#f2cf83}
 .db-up .db-buy{justify-self:end;min-width:84px}
 .db-up-art.card{object-fit:cover;object-position:50% 28%;border-radius:4px}
+/* LP boxes and bars scale with the board, so small phone boards stay readable (user, Discord 2026-11-26: the life bars
+   did not shrink with the boards and covered the field). */
+.db-gauge{gap:clamp(1px,.8cqh,3px)}
+.db-gauge.p0{left:clamp(2px,1cqw,6px)}.db-gauge.p1{right:clamp(2px,1cqw,6px)}
+.db-gauge b{min-width:clamp(26px,10cqw,44px);font-size:clamp(9px,4.6cqh,17px);line-height:1.05;padding:clamp(1px,.4cqh,2px) clamp(2px,1cqw,6px) 0}
+.db-gauge i{width:clamp(5px,2.4cqw,14px);height:min(90px,24cqh)}

@@ -122,7 +122,7 @@ const WIN={ flawless:[5,'the winner still has 8,000 LP or more'],blitz:[10,'a du
 // which the shop shows as a small two-row table.
 export function tooltip(s,id){const it=ITEM[id],l=lvl(s,id),c=v=>'+'+fmt(v),max=l>=it.max;
  const rows=(now,next)=>[`Now: ${now}`,...(max||next==null?[]:[`Next level: ${next}`])];
- if(/^calls\d$/.test(id)){const k=Number(id.slice(5)),u=callUnit(k);return [`+${fmt(u)} on every correct call on Board ${k}, 15% more each level.`,...rows(c(u*levelValue(l)),c(u*levelValue(l+1))),`A correct call there pays ${fmt(correctPayout(s,k,k))}.`]}
+ if(/^calls\d$/.test(id)){const k=Number(id.slice(5)),u=callUnit(k),per=v=>c(v)+(Math.abs(v-1)<1e-9?' coin':' coins')+' a call';return [`Each correct call on Board ${k} pays ${fmt(u)} more coins; every level adds 15% more than the last.`,...rows(per(u*levelValue(l)),per(u*levelValue(l+1))),`A correct call there pays ${fmt(correctPayout(s,k,k))} coins in total.`]}
  if(FEE[id]){const [v0,w]=FEE[id],v=v0*power(id);return [`+${fmt(v)} for ${w}, in every duel. 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
  if(TIER_PCT[id]){const p=TIER_PCT[id];return [`+${p}% on everything a duel pays when ${TIER_WHO[id]} wins it.`,...rows(`+${p*l}%`,`+${p*(l+1)}%`)]}
  if(WIN[id]){const [v0,w]=WIN[id],v=v0*power(id);return [`+${fmt(v)} whenever ${w}. 15% more each level.`,...rows(c(v*levelValue(l)),c(v*levelValue(l+1)))]}
