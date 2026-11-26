@@ -452,3 +452,11 @@
  .db-shop>.db-money{height:auto;top:calc(var(--db-top-h,60px)/2);translate:-50% -50%}
  .db-shop>.db-money .db-total{font-size:36px;line-height:1.1;padding-top:2px}
 }
+/* Phone portrait: the money is moved into the top bar (DuelBets.placeMoney), centred between the status text and buttons */
+@media (orientation:portrait){
+ .db-top .db-sub{flex:1 1 0;max-width:none}
+ .db-top>.db-money{flex:none;display:flex;align-items:center;justify-content:center;padding:0 6px}
+ .db-top>.db-money small{display:none}
+ .db-top>.db-money .db-total{font-size:36px;line-height:1}
+ .db-top-buttons{flex:1 1 0;justify-content:flex-end;margin-left:0}
+}

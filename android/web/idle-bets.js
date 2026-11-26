@@ -55,6 +55,12 @@ export class DuelBets{
  render(){
   this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round" data-db="deck-stats" aria-label="CPU deck stats" title="CPU deck stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M8 2.5v3M12 2.5v3M16 2.5v3M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg></button><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button>${this.onExit?`<button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`:''}</div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
   this.el={tabs:this.root.querySelector('.db-shop-tabs'),total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
+  // The money sits on top of the shop, except on a phone held upright: then it is the big number in the middle of the
+  // top bar (user, 2026-11-26).
+  if(!this.placeMoney){this.portrait=matchMedia('(orientation:portrait)');this.placeMoney=()=>{if(!this.el)return;const m=this.root.querySelector('.db-money'),top=this.root.querySelector('.db-top'),shop=this.root.querySelector('.db-shop');if(!m||!top||!shop)return;
+   if(this.portrait.matches){if(m.parentNode!==top)top.insertBefore(m,top.querySelector('.db-top-buttons'))}else if(m.parentNode!==shop)shop.prepend(m)};
+   this.portrait.addEventListener('change',this.placeMoney)}
+  this.placeMoney();
   this.paintTotal(true);this.renderShop();
   // Shop tooltips: hover an item (mouse) or tap its picture (touch) for exactly what it does.
   this.el.tip=document.createElement('div');this.el.tip.className='db-tip';this.root.querySelector('.duel-bets').append(this.el.tip);
@@ -259,7 +265,7 @@ export class DuelBets{
   // Stakes on duels still playing come back: nothing is decided while the screen is closed.
   for(const b of this.boards)b.refund();for(const b of this.brackets)b.refund();this.save();
   clearTimeout(this.timer);clearInterval(this.saveTimer);for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.supply.close();
-  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);removeEventListener('pagehide',this.onHide);for(const v of this.voices||[])v.pause();this.el=null;
+  this.root.removeEventListener('click',this.onClick);this.root.removeEventListener('error',this.onError,true);document.removeEventListener('visibilitychange',this.onVisible);this.portrait?.removeEventListener('change',this.placeMoney);removeEventListener('pagehide',this.onHide);for(const v of this.voices||[])v.pause();this.el=null;
  }
 }
 
