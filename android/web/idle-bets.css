@@ -419,3 +419,8 @@
  .db-item .db-item-text b{font-size:13px}
  .db-item .db-buy{grid-column:2;justify-self:stretch;min-width:0;padding:3px 8px 2px;font-size:16px}
 }
+/* Shop names stay on one line and end in "…" when too long; the level count always shows (user, 2026-11-26) */
+.db-item-text b{display:flex;align-items:baseline;gap:5px;min-width:0}
+.db-item-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.db-item-text b .db-count{flex:none}
+@media (orientation:portrait){.db-item .db-item-text b{font-size:12px}}
