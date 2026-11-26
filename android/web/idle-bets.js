@@ -181,7 +181,7 @@ export class DuelBets{
  charIdOf(it){return it.id==='char_uc'?Number(Object.keys(M.CHAR_ITEM).find(k=>M.CHAR_ITEM[k]==='char_uc')):Number(it.id.slice(5))}
  charSheet(cid){cid=Number(cid);const itemId=M.CHAR_ITEM[cid]||'char_'+cid,it=M.ITEM[itemId];if(!it)return;
   const d=this.modal(it.id==='char_uc'?'Ultimate Collectors':it.charName,this.charSheetHTML(cid),(e,dlg)=>{const b=e.target.closest('[data-up]');if(!b||b.disabled)return;
-   const kind=b.dataset.up,ok=kind==='payout'?!!M.buy(this.state,itemId):M.buyCharUp(this.state,cid,kind,b.dataset.which||null);
+   const kind=b.dataset.up,ok=kind==='fan-toggle'?M.toggleFan(this.state,cid):kind==='payout'?!!M.buy(this.state,itemId):M.buyCharUp(this.state,cid,kind,b.dataset.which||null);
    if(!ok){b.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.charSheetHTML(cid);this.paintTotal();this.refreshShop()});
   d.classList.add('db-char-modal');this.charSheetOpen={d,cid};this.upTips(d)}
@@ -206,7 +206,7 @@ export class DuelBets{
   const who=itemId==='char_uc'?'Ultimate Collector':(it.charName||'this character'),now=M.charWinPay(s,cid,pay),next=M.charWinPay(s,cid,pay+1),w=l=>`${(1+M.SPOT_STEP*l).toFixed(1).replace(/\.0$/,'')}×`;
   const rows=[row('',`Payout <small class="db-count">×${pay}</small>`,pay?`Each ${esc(who)} win pays +${M.fmt(now)}${payMax?'':` (next level +${M.fmt(next)})`}.`:`Each ${esc(who)} win pays +${M.fmt(next)} once bought; every level adds 15% more.`,payMax?'<span class="db-owned">MAX</span>':btn('payout',M.price(s,itemId,pay),false)),
    row('',`Spotlight <small class="db-count">${lvl('spot')}/${max('spot')}</small>`,`Comes up in duels ${w(lvl('spot'))} as often${lvl('spot')<max('spot')?` (next level ${w(lvl('spot')+1)})`:''}.`,lvl('spot')>=max('spot')?'<span class="db-owned">MAX</span>':btn('spot',M.charUpCost(s,cid,'spot'),false)),
-   row('',`Fan Club`,`Auto Bet always backs ${esc(who)} when they duel.`,btn('fan',M.charUpCost(s,cid,'fan'),!!u.fan)),
+   row('',`Auto Bet Favourite`,`Auto Bet always backs ${esc(who)} when they duel.`,u.fan?`<button class="db-buy db-toggle ${u.fanOff?'':'on'}" data-up="fan-toggle">${u.fanOff?'OFF':'ON'}</button>`:btn('fan',M.charUpCost(s,cid,'fan'),false)),
    data?.card?row('',`Signature Start`,`Starts every duel with ${esc(data.cardName)} ${data.field?'on the field':'in hand'} (when it is in the deck).`,btn('card',M.charUpCost(s,cid,'card'),!!u.card)):'',
    row('',`Iron Will <small class="db-count">${lvl('lp')}/${max('lp')}</small>`,`Starts with ${100*(lvl('lp')+1)} more LP${lvl('lp')?` (now +${100*lvl('lp')})`:''}.`,lvl('lp')>=max('lp')?'<span class="db-owned">MAX</span>':btn('lp',M.charUpCost(s,cid,'lp'),false)),
    row('',`Intimidation <small class="db-count">${lvl('foe')}/${max('foe')}</small>`,`Opponents start with ${100*(lvl('foe')+1)} fewer LP${lvl('foe')?` (now −${100*lvl('foe')})`:''}.`,lvl('foe')>=max('foe')?'<span class="db-owned">MAX</span>':btn('foe',M.charUpCost(s,cid,'foe'),false))];
@@ -301,10 +301,10 @@ export class DuelBets{
  // Auto Bet: a board bets once its betting screen has been up for the Auto Bet delay (5 s, shorter each level).
  // Bracket duels: one bet per delay, counted only while a duel is open for bets.
  autoBet(dt){const wait=M.autoInterval(this.state);if(!wait)return;
-  for(const b of this.boards)if(b.phase==='bet'&&b.next&&this.clock-(b.betSince??this.clock)>=wait&&M.canAfford(this.state,M.boardStake(b.level)))b.bet(M.autoPick(this.state,b.next.seats.map(x=>this.seatOf(x))),true);
+  for(const b of this.boards)if(b.phase==='bet'&&b.next&&this.clock-(b.betSince??this.clock)>=wait&&M.canAfford(this.state,M.boardStake(b.level)))b.bet(M.autoPick(this.state,b.next.seats.map(x=>this.seatOf(x)),Math.random,{level:b.level,slot:b.slot}),true);
   let open=null;for(const br of this.brackets){const d=br.openBets()[0];if(d){open=[br,d];break}}
   if(!open){this.autoAt=0;return}this.autoAt=(this.autoAt||0)+dt;if(this.autoAt<wait)return;
-  this.autoAt=0;const [br,d]=open;br.betDuel(d.slot-1,M.autoPick(this.state,d.pair.map(i=>br.roster[i])))}
+  this.autoAt=0;const [br,d]=open;br.betDuel(d.slot-1,M.autoPick(this.state,d.pair.map(i=>this.seatOf(br.roster[i])),Math.random,{level:br.level(d.slot),slot:d.slot}))}
  // ---- input ----
  action(a,el){
   if(a==='exit')return this.exit();
@@ -592,7 +592,7 @@ class Board{
   this.replay=new Replay(this.game,this.next,{level:this.level,slot:this.slot,pick:seat});this.next=null;this.phase='play';this.view?.clear();this.paint();this.view?.duelStart(seat);this.game.boardSound(auto?'assets/sfx/deck-select.wav':'assets/sfx/shop-select.wav',auto?.35:.7)}
  tick(dt){
   if(this.phase==='bet'){if(this.game.clock-(this.betSince??this.game.clock)>=AUTO_START){const g=this.game,s=g.state,ab=M.autoInterval(s)&&this.next&&M.canAfford(s,M.boardStake(this.level));
-    this.bet(ab?M.autoPick(s,this.next.seats.map(x=>g.seatOf(x))):null,true);return}// time's up: Auto Bet (if owned) still gets its pick in
+    this.bet(ab?M.autoPick(s,this.next.seats.map(x=>g.seatOf(x)),Math.random,{level:this.level,slot:this.slot}):null,true);return}// time's up: Auto Bet (if owned) still gets its pick in
    // Only the countdown number changes: redrawing the whole betting view every second replaced the buttons under a
    // finger mid-tap, so phone taps were sometimes lost (user, 2026-11-26).
    const place=this.view?.overlay.querySelector('.db-place'),left=this.secondsLeft();if(place&&!place.textContent.endsWith(' '+left))place.textContent=place.textContent.replace(/\d+$/,left);
@@ -726,11 +726,11 @@ class Bracket{
  tileStatus(){return this.phase==='bet'?(this.bet||this.skipBet?'Starting…':'Waiting for your champion bet'):this.phase==='final'?`Winner: ${this.game.seatOf(this.roster[this.champion]).name}`:`${this.played()} / ${this.total()} duels`}
  betHTML(){const g=this.game,s=g.state,money=`bet ${M.fmt(M.championStake(s,this.index))} · pays ${M.fmt(M.championPayout(s,this.index))}`;return this.bet?`Your pick: ${esc(g.seatOf(this.roster[this.bet.pick]).name)} · ${money}`:`Champion ${money}`}
  // While the bracket waits for its champion bet, a big prompt sits in its middle (the tile and the open view).
- promptHTML(){
-  if(this.phase==='final'&&this.champion!=null){const w=this.game.seatOf(this.roster[this.champion]);return `<span class="db-winner"><small>Winner</small><img alt="" src="${esc(assetURL('assets/'+w.sprite))}"><b>${esc(w.name)}</b></span>`}
+ promptHTML(host=null){
+  if(this.phase==='final'&&this.champion!=null){if(!host?.classList.contains('db-bracket'))return '';const w=this.game.seatOf(this.roster[this.champion]);return `<span class="db-winner"><small>Winner</small><img alt="" src="${esc(assetURL('assets/'+w.sprite))}"><b>${esc(w.name)}</b></span>`}
   if(this.phase!=='bet'||this.bet||this.skipBet)return '';const s=this.game.state,stake=M.championStake(s,this.index),ok=M.canAfford(s,stake);
   return `<span class="db-champ-prompt"><span class="db-champ-btn" data-db="champion" data-b="${this.index}"><small>Bet on the champion</small><b>${M.fmt(stake)}</b><em>pays ${M.fmt(M.championPayout(s,this.index))}</em></span>${ok?'':`<span class="db-champ-skip" data-db="skip-champion" data-b="${this.index}">Start without a bet</span>`}</span>`}
- paintPrompt(host){if(!host)return;const html=this.promptHTML();let el=host.querySelector(':scope>.db-champ-host');if(!el){el=document.createElement('span');el.className='db-champ-host';host.append(el)}if(el.dataset.html!==html){el.dataset.html=html;el.innerHTML=html}}
+ paintPrompt(host){if(!host)return;const html=this.promptHTML(host);let el=host.querySelector(':scope>.db-champ-host');if(!el){el=document.createElement('span');el.className='db-champ-host';host.append(el)}if(el.dataset.html!==html){el.dataset.html=html;el.innerHTML=html}}
  // The tile is a round-robin crosstable: the 9 CPUs down the side and across the top (18 portraits); each cell is
  // one matchup — W/L for the row CPU once played, both portraits side by side while that duel is live.
  buildTile(){if(!this.tile)return;const n=M.ROSTER_SIZE,g=this.game,face=i=>`<img alt="" src="${assetURL('assets/'+g.seatOf(this.roster[i]).sprite)}">`;let cells='<i class="corner"></i>';

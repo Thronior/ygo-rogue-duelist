@@ -59,7 +59,7 @@ export const ITEMS=[
  // Automation: Auto Bet backs a duelist on one waiting board every few seconds (faster per level);
  // Scouting Report makes it back the higher-tier CPU (a coin flip when both are the same tier).
  I('autobet',1,'Auto Bet',72302403,6,1.6,'simple',{max:20,text:l=>l?`Bets after ${autoSeconds(l)}s on the betting screen · next level ${autoSeconds(l+1)}s.`:`Bets on a random duelist once a board's betting screen has been up ${autoSeconds(1)}s.`,maxText:`Bets after ${autoSeconds(20)}s on the betting screen.`,show:s=>s.stats.bets>=1||lvl(s,'calls1')>=1}),
- I('betpay',3,'Payout Sense',38299233,40,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the duelist whose win pays you the most (their Payout upgrade).',show:s=>lvl(s,'scout')>=1}),
+ I('betpay',3,'Payout Sense',38299233,40,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the duelist whose win would pay you the most, counting your character and tier upgrades.',show:s=>lvl(s,'scout')>=1}),
  I('betfav',5,'Loyal Backer',34029630,40,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the character you have upgraded the most.',show:s=>lvl(s,'betpay')>=1}),
  I('scout',1,'Scouting Report',4031928,60,1,'opener',{max:1,keep:true,text:()=>'Auto Bet backs the higher-tier CPU (random when both are the same tier).',show:s=>lvl(s,'autobet')>=1}),
  // +0.1× per purchase (user, 2026-11-25), up to 8×; still the steepest-growing price in the opening shop.
@@ -190,7 +190,7 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  const rt={...(raw.tree&&typeof raw.tree==='object'?raw.tree:{})};if(num(rt.seed)>1){rt.nest=Math.max(num(rt.nest),num(rt.seed)-1);rt.seed=1}
  for(const n of TREE){const v=Math.floor(num(rt[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
  if(raw.chars&&typeof raw.chars==='object')for(const [id,c] of Object.entries(raw.chars)){if(!/^(\d+|uc)$/.test(id)||!c||typeof c!=='object')continue;
-  const o={};for(const k of ['spot','card','lp','foe','fan']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}
+  const o={};for(const k of ['spot','card','lp','foe','fan']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}if(c.fanOff)o.fanOff=true;
   for(const k of ['relics','curses'])if(Array.isArray(c[k])){const n={};o[k]=c[k].filter(x=>typeof x==='string'&&(n[x]=(n[x]||0)+1)<=MOD_COPIES).slice(0,9)}
   if(Object.keys(o).length)s.chars[id]=o}
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
@@ -234,11 +234,15 @@ export const autoInterval=s=>isOn(s,'autobet')?autoSeconds(lvl(s,'autobet'))*100
 const TIER_RANK={'Opening Duel':0,'Tier 1':1,'Tier 2':2,'Tier 3':3,Endless:4,'World Championship':4};
 export const tierRank=label=>TIER_RANK[label]??2;
 // The seat Auto Bet backs: random, or with Scouting Report the higher tier (random on a tie).
-export function autoPick(s,seats,random=Math.random){
+// What backing this duelist pays you if they win: the correct call plus their character Payout, raised by their tier's
+// upgrade (Payout Sense; user, 2026-11-27: "whichever duelist would gain you the most from payout upgrades + tier upgrades").
+export const winValue=(s,seat,level=1,slot=1)=>{if(!seat)return 0;const it=seat.id!=null?(CHAR_ITEM[seat.id]||'char_'+seat.id):null;
+ return (correctPayout(s,slot,level)+(it?charWinPay(s,seat.id,lvl(s,it)):0))*(1+tierPct(s,tierKey(seat.label||''))/100)};
+export function autoPick(s,seats,random=Math.random,{level=1,slot=1}={}){
  // Fan Club: back the character you upgraded; if both are, the one with the higher Payout level.
- const fan=seats.map(x=>x&&x.id!=null&&charUps(s,x.id).fan?1+lvl(s,CHAR_ITEM[x.id]||'char_'+x.id):0);if(fan[0]!==fan[1])return fan[0]>fan[1]?0:1;
+ const fan=seats.map(x=>x&&x.id!=null&&charUps(s,x.id).fan&&!charUps(s,x.id).fanOff?1+lvl(s,CHAR_ITEM[x.id]||'char_'+x.id):0);if(fan[0]!==fan[1])return fan[0]>fan[1]?0:1;
  if(isOn(s,'betfav')){const v=seats.map(x=>x&&x.id!=null?charInvest(s,x.id):0);if(v[0]!==v[1])return v[0]>v[1]?0:1}
- if(isOn(s,'betpay')){const v=seats.map(x=>x&&x.id!=null?charWinPay(s,x.id,lvl(s,CHAR_ITEM[x.id]||'char_'+x.id)):0);if(v[0]!==v[1])return v[0]>v[1]?0:1}
+ if(isOn(s,'betpay')){const v=seats.map(x=>winValue(s,x,level,slot));if(Math.abs(v[0]-v[1])>1e-9*Math.max(v[0],v[1]))return v[0]>v[1]?0:1}
  if(isOn(s,'scout')){const a=tierRank(seats[0].label),b=tierRank(seats[1].label);if(a!==b)return a>b?0:1}return random()<.5?0:1}
 export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
@@ -437,6 +441,8 @@ export const charBase=id=>itemCost(CHAR_ITEM[id]||'char_'+id,0);
 export function charUpCost(s,id,kind,which=null){const u=charUps(s,id),b=charBase(id);
  if(kind==='relic'||kind==='curse'){const owned=(u[kind+'s']||[]).length;return Math.ceil(b*6*2**owned*discount(s))}
  const c=CHAR_UP[kind];return Math.ceil(b*c.mult*c.growth**(u[kind]||0)*discount(s))}
+// Auto Bet Favourite (fan) can be switched off and on again once bought.
+export function toggleFan(s,id){const u=s.chars[charKey(id)];if(!u?.fan)return false;if(u.fanOff)delete u.fanOff;else u.fanOff=true;return true}
 export function buyCharUp(s,id,kind,which=null){const key=charKey(id),u=s.chars[key]??={};
  if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||copies(list,which)>=MOD_COPIES)return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
  const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
