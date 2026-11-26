@@ -10,6 +10,7 @@
 //   attack (targetSeq -1 = direct) · ['l',p,amount] LP change · ['x',owner,code,battle,zone] destroyed on the field (zone 4 monster, 8 Spell/Trap)
 //   · ['n',p,monster] card set · ['b',owner] card banished · ['c',p,code,kind]
 //   activation (kind 1 monster, 2 spell, 4 trap) · ['p',phase] new phase (1 DP, 2 SP, 4 MP1, 8-128 BP, 256 MP2, 512 EP)
+//   · ['d',p,[values]] dice roll · ['o',p,[1 heads / 0 tails, …]] coin toss
 import {shuffleCPUDeck as shuffle} from './cpu-deck-model.js';
 export const TIMELINE_VERSION=4;
 const NEUTRAL_PASSIVES='-- SHADOW_RUN_RNG 2\nif Duel.EnableRogueAntiStreak then Duel.EnableRogueAntiStreak() end';
@@ -30,6 +31,8 @@ function events(engine,visuals){const out=[];
   else if(v.kind==='fusion-summon'&&v.card)out.push(['f',v.card.controller,Number(v.code),v.card.sequence]);
   else if(v.kind==='attack'&&v.card)out.push(['a',v.card.controller,v.card.sequence,v.target?v.target.sequence:-1]);
   else if(v.kind==='lp'&&v.amount)out.push(['l',v.player,v.amount]);
+  else if(v.kind==='dice')out.push(['d',v.player,[...(v.results||[])].map(Number)]);
+  else if(v.kind==='coin')out.push(['o',v.player,[...(v.results||[])].map(r=>r?1:0)]);
   else if(v.kind==='chain'&&v.stage==='activate'&&v.card)out.push(['c',v.card.controller,Number(v.code),cardKind(engine,v.code)]);
   else if(v.kind==='move'&&(v.reason&1)&&(v.from?.location===MZONE||v.from?.location===SZONE))out.push(['x',v.from.controller,Number(v.code)||0,v.reason&0x20?1:0,v.from.location]);
   else if(v.kind==='move'&&v.to?.location===REMOVED&&v.from?.location!==REMOVED)out.push(['b',v.from?.controller??v.to.controller]);

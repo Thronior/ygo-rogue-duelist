@@ -298,7 +298,8 @@ class BoardView{
   const cells=[];
   for(let i=0;i<5;i++){cells.push(zone('st p1 s'+i,2,6-i),zone('mz p1 m'+i,3,6-i),zone('mz p0 m'+i,5,2+i),zone('st p0 s'+i,6,2+i))}
   cells.push(zone('pile deck p1',2,1),zone('pile extra p1',2,7),zone('pile grave p1',3,1),zone('st field p1',3,7),zone('st field p0',5,1),zone('pile grave p0',5,7),zone('pile extra p0',6,1),zone('pile deck p0',6,7));
-  const info=p=>`<div class="db-who p${p}" style="grid-area:${p?1:7}/1/${p?2:8}/5"><span class="db-name"></span><span class="db-chip"></span></div><div class="db-hand p${p}" style="grid-area:${p?1:7}/5/${p?2:8}/8"></div>`;
+  // Each name sits on its portrait's side (bottom player left, top player right) and the hand on the other side.
+  const info=p=>`<div class="db-who p${p}" style="grid-area:${p?'1/4/2/8':'7/1/8/5'}"><span class="db-name"></span><span class="db-chip"></span></div><div class="db-hand p${p}" style="grid-area:${p?'1/1/2/4':'7/5/8/8'}"></div>`;
   this.root.innerHTML=`<div class="db-head"><span class="db-league">${esc(title)}</span><span class="db-stakes">${esc(stakes)}</span></div><div class="db-field"><img class="db-art a0" alt=""><img class="db-art a1" alt=""><i class="db-danger p0"></i><i class="db-danger p1"></i><div class="db-gauge p0"><b>8000</b><i><s></s></i></div><div class="db-gauge p1"><b>8000</b><i><s></s></i></div><div class="db-mat">${info(1)}${cells.join('')}<div class="db-mid" style="grid-area:4/1/5/8"><span class="db-phases"><b class="db-turn"></b>${PHASES.map(([n,t])=>`<i data-ph="${n}">${t}</i>`).join('')}</span></div>${info(0)}</div></div><div class="db-overlay"></div>`;
   parent.append(this.root);
   const q=s=>this.root.querySelector(s),zones=(p,cls)=>[0,1,2,3,4].map(i=>q(`.z.${cls}.p${p}.${cls==='mz'?'m':'s'}${i}`));
@@ -325,6 +326,7 @@ class BoardView{
    if(e[0]==='t'){this.turnN=(this.turnN||0)+1;this.turnEl.textContent='T'+this.turnN;this.turnEl.classList.toggle('p1',p===1)}
    else if(e[0]==='p')this.phase(p)
    else if(e[0]==='c')this.activation(p,e[2],e[3])
+   else if(e[0]==='d'||e[0]==='o')this.toss(p,e[0],e[2]||[])
    else if(e[0]==='s'||e[0]==='f'){const z=v.mz[e[3]],atk=v.last?.[4+e[3]]?.[1]||0,boss=e[0]==='f'||atk>=2500;
     // Boss monsters (2500+ ATK) and Fusions land hard: bigger slam, gold ring, a shake and a sound.
     if(anim&&z)z.animate(boss?[{scale:2.4,opacity:0,translate:`0 ${p?'-':''}30%`},{scale:.92,opacity:1,translate:'0 0',offset:.6},{scale:1}]:[{scale:1.6,opacity:.3},{scale:1,opacity:1}],{duration:boss?420:280,easing:'ease-out'});
@@ -374,6 +376,11 @@ class BoardView{
   const el=this.temp('db-act');el.style.setProperty('--c',color);el.style.left=(p?70:30)+'%';el.style.top=(p?30:70)+'%';
   const img=document.createElement('img');img.alt='';img.dataset.full=cardFull(code);img.src=cardSrc(code);el.append(img);
   this.play(el,[{opacity:0,scale:.4},{opacity:1,scale:1.08,offset:.18},{opacity:1,scale:1,offset:.7},{opacity:0,scale:1.04}],{duration:900,easing:'ease-out'})}
+ // Dice rolls and coin tosses: the results tumble in on the tossing player's side (dice faces, H / T coins).
+ toss(p,kind,results){if(!this.detail()||!results.length)return;const el=this.temp('db-toss '+(kind==='d'?'dice':'coin'));
+  el.innerHTML=results.slice(0,6).map(r=>kind==='d'?`<i>${Number(r)||'?'}</i>`:`<i class="${r?'h':'t'}">${r?'H':'T'}</i>`).join('');
+  el.style.left=(p?68:32)+'%';el.style.top=(p?22:78)+'%';
+  this.play(el,[{opacity:0,scale:.3,rotate:'-200deg'},{opacity:1,scale:1.15,rotate:'12deg',offset:.25},{opacity:1,scale:1,rotate:'0deg',offset:.35},{opacity:1,scale:1,offset:.85},{opacity:0,scale:1}],{duration:1500,easing:'ease-out'})}
  // A word slammed onto the board (DUEL!, CORRECT!, MISS…).
  stamp(text,cls,x=50,y=50){if(!this.lvl())return;const el=this.temp('db-stamp '+cls,this.field,'b');el.textContent=text;el.style.left=x+'%';el.style.top=y+'%';
   this.play(el,[{opacity:0,scale:2.6},{opacity:1,scale:.94,offset:.16},{opacity:1,scale:1,offset:.22},{opacity:1,scale:1,offset:.78},{opacity:0,scale:1.08}],{duration:1400,easing:'ease-out'})}
