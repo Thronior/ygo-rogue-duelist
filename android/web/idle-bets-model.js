@@ -324,27 +324,28 @@ export const treeLevel=tl;
 const geo=(a,r)=>l=>Math.ceil(a*r**l);
 export const startCoins=l=>l?100*10**(l-1):START_COINS;
 // The tree grows up from one root (user, 2026-11-26: "branches off of 1 starting thing that costs 1 and gives you starting
-// money", branches going the same direction, nodes shown as icons). at:[column 0-10, row 0-4 from the root up].
+// money", branches going the same direction and forking, nodes shown as icons). at:[x,y] in node units,
+// y up from the root; the view can be dragged and zoomed.
 export const TREE=[
- {id:'seed',branch:'Root',name:'Seed Money',max:1,cost:()=>1,at:[5,0],text:()=>`Start every run with ${fmt(startCoins(1))} coins.`},
- {id:'nest',branch:'Bankroll',name:'Nest Egg',max:3,cost:geo(2,2),req:['seed',1],at:[1,1],text:l=>`Start every run with ${fmt(startCoins(1+l))} coins.`},
- {id:'kit',branch:'Bankroll',name:'Starter Kit',max:5,cost:geo(2,2),req:['nest',1],at:[0,2],text:l=>`Start with every Card Fee at level ${3*l}.`},
- {id:'haggle',branch:'Bankroll',name:'Haggler',max:10,cost:geo(2,1.5),req:['nest',1],at:[2,2],text:l=>`Everything in the shop costs ${4*l}% less.`},
- {id:'pass',branch:'Bankroll',name:'Season Pass',max:5,cost:geo(3,3),req:['kit',1],at:[0,3],text:l=>`Start with ${l+1} boards open.`},
- {id:'interest',branch:'Interest',name:'Compound Interest',max:20,cost:geo(1,1.5),req:['seed',1],at:[4.5,1],text:l=>`+${10*l}% on everything you earn.`},
- {id:'fever',branch:'Interest',name:'Jackpot Fever',max:10,cost:geo(2,1.6),req:['interest',2],at:[3.5,2],text:l=>`Jackpots pay +${50*l}%.`},
- {id:'stakes',branch:'Interest',name:'High Stakes',max:10,cost:geo(3,1.6),req:['interest',3],at:[5.5,2],text:l=>`Correct calls pay +${25*l}%.`},
- {id:'t1',branch:'Interest',name:'Underdog Fund',max:10,cost:geo(2,1.6),req:['fever',1],at:[3,3],text:l=>`+${20*l}% on everything a duel pays when an Opening or Tier 1 deck wins.`},
- {id:'t2',branch:'Interest',name:'Rising Stars',max:10,cost:geo(2,1.6),req:['fever',1],at:[4,3],text:l=>`+${20*l}% on everything a duel pays when a Tier 2 deck wins.`},
- {id:'t3',branch:'Interest',name:'Veterans',max:10,cost:geo(2,1.6),req:['stakes',1],at:[5,3],text:l=>`+${20*l}% on everything a duel pays when a Tier 3 deck wins.`},
- {id:'tE',branch:'Interest',name:'Legends',max:10,cost:geo(2,1.6),req:['stakes',1],at:[6,3],text:l=>`+${20*l}% on everything a duel pays when an Endless deck wins.`},
- {id:'quick',branch:'Automation',name:'Quick Start',max:4,cost:geo(1,3),req:['seed',1],at:[7.5,1],text:l=>`Start with Duel Speed at level ${5*l}.`},
- {id:'order',branch:'Automation',name:'Standing Order',max:4,cost:geo(2,2),req:['quick',1],at:[7.5,2],text:l=>`Start with Auto Bet at level ${3*l}.`},
- {id:'insider',branch:'Automation',name:'Insider Tip',max:1,cost:()=>5,req:['order',1],at:[7.5,3],text:()=>'Start with Scouting Report.'},
- {id:'season',branch:'Automation',name:'Season Ticket',max:1,cost:()=>20,req:['insider',1],at:[7.5,4],text:()=>'Start with Auto Champion Bet.'},
- {id:'starpower',branch:'Legacy',name:'Star Power',max:10,cost:geo(2,1.6),req:['seed',1],at:[9.5,1],text:l=>`+${10*l}% stars from every regress.`},
- {id:'learner',branch:'Legacy',name:'Fast Learner',max:3,cost:geo(3,2),req:['starpower',1],at:[9,2],text:l=>`Upgrades and characters appear ${[0,30,55,75][l]}% sooner.`},
- {id:'friends',branch:'Legacy',name:'Old Friends',max:1,cost:()=>40,req:['starpower',3],at:[10,2],text:()=>'Keep your character upgrades when you regress.'},
+ {id:'seed',branch:'Root',name:'Seed Money',max:1,cost:()=>1,at:[9,0],text:()=>`Start every run with ${fmt(startCoins(1))} coins.`},
+ {id:'nest',branch:'Bankroll',name:'Nest Egg',max:3,cost:geo(2,2),req:['seed',1],at:[5,1],text:l=>`Start every run with ${fmt(startCoins(1+l))} coins.`},
+ {id:'kit',branch:'Bankroll',name:'Starter Kit',max:5,cost:geo(2,2),req:['nest',1],at:[3,2],text:l=>`Start with every Card Fee at level ${3*l}.`},
+ {id:'haggle',branch:'Bankroll',name:'Haggler',max:10,cost:geo(2,1.5),req:['nest',1],at:[4.4,2.5],text:l=>`Everything in the shop costs ${4*l}% less.`},
+ {id:'pass',branch:'Bankroll',name:'Season Pass',max:5,cost:geo(3,3),req:['kit',1],at:[1.5,3.2],text:l=>`Start with ${l+1} boards open.`},
+ {id:'interest',branch:'Interest',name:'Compound Interest',max:20,cost:geo(1,1.5),req:['seed',1],at:[7.5,1.6],text:l=>`+${10*l}% on everything you earn.`},
+ {id:'fever',branch:'Interest',name:'Jackpot Fever',max:10,cost:geo(2,1.6),req:['interest',2],at:[6.2,3],text:l=>`Jackpots pay +${50*l}%.`},
+ {id:'stakes',branch:'Interest',name:'High Stakes',max:10,cost:geo(3,1.6),req:['interest',3],at:[8.6,3.1],text:l=>`Correct calls pay +${25*l}%.`},
+ {id:'t1',branch:'Interest',name:'Underdog Fund',max:10,cost:geo(2,1.6),req:['fever',1],at:[5.2,4.4],text:l=>`+${20*l}% on everything a duel pays when an Opening or Tier 1 deck wins.`},
+ {id:'t2',branch:'Interest',name:'Rising Stars',max:10,cost:geo(2,1.6),req:['fever',1],at:[6.7,4.7],text:l=>`+${20*l}% on everything a duel pays when a Tier 2 deck wins.`},
+ {id:'t3',branch:'Interest',name:'Veterans',max:10,cost:geo(2,1.6),req:['stakes',1],at:[8.2,4.8],text:l=>`+${20*l}% on everything a duel pays when a Tier 3 deck wins.`},
+ {id:'tE',branch:'Interest',name:'Legends',max:10,cost:geo(2,1.6),req:['stakes',1],at:[9.7,4.5],text:l=>`+${20*l}% on everything a duel pays when an Endless deck wins.`},
+ {id:'quick',branch:'Automation',name:'Quick Start',max:4,cost:geo(1,3),req:['seed',1],at:[10.8,1.4],text:l=>`Start with Duel Speed at level ${5*l}.`},
+ {id:'order',branch:'Automation',name:'Standing Order',max:4,cost:geo(2,2),req:['quick',1],at:[11,2.9],text:l=>`Start with Auto Bet at level ${3*l}.`},
+ {id:'insider',branch:'Automation',name:'Insider Tip',max:1,cost:()=>5,req:['quick',2],at:[12.7,2.6],text:()=>'Start with Scouting Report.'},
+ {id:'season',branch:'Automation',name:'Season Ticket',max:1,cost:()=>20,req:['order',2],at:[11.4,4.4],text:()=>'Start with Auto Champion Bet.'},
+ {id:'starpower',branch:'Legacy',name:'Star Power',max:10,cost:geo(2,1.6),req:['seed',1],at:[13.4,1],text:l=>`+${10*l}% stars from every regress.`},
+ {id:'learner',branch:'Legacy',name:'Fast Learner',max:3,cost:geo(3,2),req:['starpower',1],at:[14.4,2.3],text:l=>`Upgrades and characters appear ${[0,30,55,75][l]}% sooner.`},
+ {id:'friends',branch:'Legacy',name:'Old Friends',max:1,cost:()=>40,req:['starpower',3],at:[16,1.9],text:()=>'Keep your character upgrades when you regress.'},
 ];
 // Skill-tree icons: relic cutouts (assets/relics/<name>.png).
 const TREE_ART={seed:'Deep Pockets',nest:'Glass Treasury',kit:'Armory Aid',haggle:'Black Market Seal',pass:"Duelist's Catalogue",interest:'Silver Chalice',fever:'Dice Jar',
@@ -353,7 +354,9 @@ const TREE_ART={seed:'Deep Pockets',nest:'Glass Treasury',kit:'Armory Aid',haggl
 for(const n of TREE)n.art=TREE_ART[n.id];
 export const TREE_BY=Object.fromEntries(TREE.map(n=>[n.id,n]));
 export const BRANCHES=['Bankroll','Interest','Automation','Legacy'];
-export const TREE_COLS=11,TREE_ROWS=5;
+export const SK_UNIT=56;// px per tree unit at zoom 1
+// The tree stays hidden until the first regress (user, 2026-11-26).
+export const treeUnlocked=s=>s.regresses>0||s.stars>0||Object.keys(s.tree||{}).length>0;
 const TIER_NODE={'Opening Duel':'t1','Tier 1':'t1','Tier 2':'t2','Tier 3':'t3',Endless:'tE','World Championship':'tE'};
 export const interest=s=>1+.1*tl(s,'interest');
 export const discount=s=>1-.04*tl(s,'haggle');

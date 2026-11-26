@@ -476,19 +476,25 @@
 .db-board.poor .db-field,.db-board.poor .db-pick,.db-board.poor .db-vs{filter:grayscale(1) brightness(.55)}
 .db-board.poor .db-place{background:#4a4a4a;border-color:#888;color:#ddd}
 /* Prestige: the star button, Regress and the skill tree */
-.db-star{position:relative;font-size:20px;color:#f2cf83}.db-star.ready{box-shadow:0 0 0 2px #f2cf83,0 0 12px #f2cf8399}
+.db-star{position:relative;font-size:20px;color:#f2cf83}.db-star-tw{width:78%;height:78%;object-fit:contain;pointer-events:none}.db-star.ready{box-shadow:0 0 0 2px #f2cf83,0 0 12px #f2cf8399}
 .db-star b{position:absolute;right:-4px;bottom:-4px;min-width:16px;padding:0 3px;border-radius:8px;background:#946539;color:#fff4d7;font-size:10px;line-height:16px;font-family:Arial,sans-serif}
 .db-star b:empty{display:none}
 .db-prestige-modal{width:min(1100px,96vw)}
 .db-stars{display:flex;align-items:baseline;gap:8px;font-family:var(--db-display)}.db-stars b{font-size:34px;color:#f2cf83;font-weight:400}.db-stars span{color:var(--db-dim)}
 .db-regress{margin:6px 0 12px;padding:10px;border:1px solid #1e3a45;border-radius:6px;background:#ffffff06}.db-regress p{margin:0 0 8px}
-.db-skill-labels{position:relative;height:18px;margin-top:4px}.db-skill-labels span{position:absolute;translate:-50% 0;white-space:nowrap;font-family:var(--db-display);font-size:clamp(11px,2.6vw,15px);letter-spacing:.06em;color:#f2cf83}
-.db-skill{position:relative;container-type:inline-size;aspect-ratio:11/7;max-height:62vh;margin:0 auto;border:1px solid #1e3a45;border-radius:8px;background:radial-gradient(ellipse at 50% 100%,#1b3a46 0,#0b1d26 70%)}
-.db-skill svg{position:absolute;inset:0;width:100%;height:100%}
-.db-skill line{stroke:#2c4a55;stroke-width:2;vector-effect:non-scaling-stroke}.db-skill line.open{stroke:#5f8794}.db-skill line.own{stroke:#f2cf83;stroke-width:3}
-.db-sk{position:absolute;translate:-50% -50%;width:clamp(26px,8.6cqw,54px);aspect-ratio:1;padding:0;border:2px solid #3d6270;border-radius:50%;background:#0b1d26;cursor:pointer;display:grid;place-items:center}
+.db-skill{position:relative;height:clamp(260px,52vh,520px);overflow:hidden;touch-action:none;cursor:grab;user-select:none;border:1px solid #1e3a45;border-radius:8px;background:radial-gradient(ellipse at 50% 100%,#1b3a46 0,#0b1d26 70%)}
+.db-skill.dragging{cursor:grabbing}
+.db-skill-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.db-skill svg{position:absolute;left:0;top:0;overflow:visible}
+.db-skill line{stroke:#2c4a55;stroke-width:3}.db-skill line.open{stroke:#5f8794}.db-skill line.own{stroke:#f2cf83;stroke-width:4}
+.db-sk-branch{position:absolute;translate:-50% -50%;white-space:nowrap;font-family:var(--db-display);font-size:18px;letter-spacing:.08em;color:#f2cf83cc;pointer-events:none}
+.db-skill-zoom{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:4px}
+.db-skill-zoom button{width:30px;height:30px;padding:0;border-radius:6px;border:1px solid #3d6270;background:#0b1d26e6;color:#f2cf83;font-size:18px;line-height:1}
+.db-skill-locked{display:grid;place-content:center;justify-items:center;gap:10px;cursor:default;touch-action:auto;text-align:center}
+.db-skill-locked img{width:min(150px,40%);filter:grayscale(1) brightness(.45)}.db-skill-locked p{margin:0;font-family:var(--db-display);font-size:22px;letter-spacing:.05em;color:#f2cf83}
+.db-sk{position:absolute;translate:-50% -50%;width:calc(var(--u)*.86);aspect-ratio:1;padding:0;border:2px solid #3d6270;border-radius:50%;background:#0b1d26;cursor:pointer;display:grid;place-items:center}
 .db-sk img{width:82%;height:82%;object-fit:contain;pointer-events:none}
-.db-sk small{position:absolute;top:100%;left:50%;translate:-50% 1px;font-size:clamp(8px,1.9cqw,11px);line-height:1;color:var(--db-dim);white-space:nowrap;pointer-events:none}
+.db-sk small{position:absolute;top:100%;left:50%;translate:-50% 2px;font-size:12px;line-height:1;color:var(--db-dim);white-space:nowrap;pointer-events:none}
 .db-sk.locked{filter:grayscale(1) brightness(.55)}.db-sk.own{border-color:#c9a85c}.db-sk.max{border-color:#f2cf83;box-shadow:0 0 10px #f2cf8366}.db-sk.own small,.db-sk.max small{color:#f2cf83}
 .db-sk.ready{border-color:#7fd7a0;box-shadow:0 0 8px #7fd7a088}.db-sk.sel{outline:2px solid #fff;outline-offset:2px}
 .db-sk-info{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;min-height:64px;margin-top:10px;padding:8px 10px;border:1px solid #2c4a55;border-radius:6px;background:#0b1d26}
@@ -520,3 +526,19 @@
 .db-gauge.p0{left:clamp(2px,1cqw,6px)}.db-gauge.p1{right:clamp(2px,1cqw,6px)}
 .db-gauge b{min-width:clamp(26px,10cqw,44px);font-size:clamp(9px,4.6cqh,17px);line-height:1.05;padding:clamp(1px,.4cqh,2px) clamp(2px,1cqw,6px) 0}
 .db-gauge i{width:clamp(5px,2.4cqw,14px);height:min(90px,24cqh)}
+
+/* Regress: Time Wizard rewinds the clock (user, 2026-11-26). */
+.db-rewind{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:all;background:radial-gradient(circle,#3a2a5ecc 0,#05080ff2 70%);animation:db-rw-bg 2.9s ease both}
+.db-rewind>*{grid-area:1/1}
+.db-rw-clock{width:min(78vw,78vh,560px);aspect-ratio:1;border-radius:50%;border:6px solid #f2cf83aa;box-shadow:0 0 40px #b78cff88,inset 0 0 40px #b78cff55;background:repeating-conic-gradient(#f2cf8355 0 1deg,transparent 1deg 30deg);position:relative;animation:db-rw-clock 2.9s ease both}
+.db-rw-clock i{position:absolute;left:50%;bottom:50%;width:6px;margin-left:-3px;border-radius:3px;background:#f2cf83;transform-origin:50% 100%}
+.db-rw-h{height:28%;animation:db-rw-spin 2.2s cubic-bezier(.3,0,.2,1) both}.db-rw-m{height:42%;animation:db-rw-spin-fast 2.2s cubic-bezier(.3,0,.2,1) both}
+.db-rewind img{width:min(52vw,52vh,360px);filter:drop-shadow(0 0 24px #b78cff);animation:db-rw-wiz 2.9s cubic-bezier(.2,.8,.2,1) both}
+.db-rewind b{align-self:end;margin-bottom:14vh;font-family:var(--db-display);font-weight:400;font-size:clamp(36px,9vw,72px);color:#f2cf83;text-shadow:0 0 18px #f2cf83aa;animation:db-rw-stars 2.9s ease both}
+.db-rewind.fast,.db-rewind.fast *{animation-duration:.9s!important}
+@keyframes db-rw-bg{0%{opacity:0}10%,82%{opacity:1}100%{opacity:0}}
+@keyframes db-rw-clock{0%{scale:.3;opacity:0}15%{scale:1;opacity:1}80%{scale:1;opacity:1;filter:none}88%{filter:brightness(3)}100%{scale:1.6;opacity:0}}
+@keyframes db-rw-spin{from{rotate:0deg}to{rotate:-720deg}}
+@keyframes db-rw-spin-fast{from{rotate:0deg}to{rotate:-4320deg}}
+@keyframes db-rw-wiz{0%{scale:0;rotate:-540deg;opacity:0}30%{scale:1.1;rotate:0deg;opacity:1}38%{scale:1}60%{translate:0 -3%}70%{translate:0 0}82%{scale:1;opacity:1}100%{scale:.2;rotate:360deg;opacity:0}}
+@keyframes db-rw-stars{0%,45%{opacity:0;scale:.4}58%{opacity:1;scale:1.2}66%,85%{opacity:1;scale:1}100%{opacity:0}}

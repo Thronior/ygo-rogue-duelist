@@ -182,9 +182,9 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  p.coins=1.3e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'1 star per 500K');
  let n=r.state;assert.equal(n.stars,2);assert.equal(n.regresses,1);assert.equal(n.boards,1);assert.equal(n.coins,5);assert.equal(n.items.fee_attack,undefined,'the run resets');
  assert.ok(!M.buyNode(n,'kit'),'Starter Kit needs Seed Money first');assert.ok(M.buyNode(n,'seed'));assert.equal(n.stars,1);
- n.stars=1000;for(const id of ['nest','kit','pass','quick','order','insider','interest','haggle','haggle'])assert.ok(M.buyNode(n,id),id);
+ n.stars=1000;for(const id of ['nest','kit','pass','quick','quick','order','insider','interest','haggle','haggle'])assert.ok(M.buyNode(n,id),id);
  n=M.startRun(n);assert.equal(n.coins,1000,'Seed Money + Nest Egg 1: 1,000 coins');assert.equal(n.items.fee_spell,3,'Starter Kit 1: fees at 3');assert.equal(n.boards,2,'Season Pass 1: 2 boards');
- assert.equal(n.items.speed,5);assert.equal(n.items.autobet,3);assert.equal(n.items.scout,1);
+ assert.equal(n.items.speed,10);assert.equal(n.items.autobet,3);assert.equal(n.items.scout,1);
  assert.equal(M.price(n,'calls1',10),Math.ceil(M.itemCost('calls1',10)*.92),'Haggler 2: 8% off');
  assert.ok(Math.abs(M.correctPayout(n,1,1)-5*1.1)<1e-9,'Compound Interest 1: +10%');
  n.tree.starpower=5;n.coins=2e6;assert.equal(M.starsFor(n),6,'Star Power 5: 4 stars x1.5');

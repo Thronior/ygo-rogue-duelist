@@ -56,7 +56,7 @@ export class DuelBets{
  tierChip(label){const t=M.tierKey(label),short={'Opening Duel':'Opening','World Championship':'WC'}[label]||label.replace('Tier ','T');return `<i class="db-tier ${t||'other'}" title="${esc(label)}">${esc(short)}</i>`}
  // ---- screen ----
  render(){
-  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round db-star" data-db="prestige" aria-label="Regress and skill tree" title="Regress and skill tree" hidden>★<b class="db-star-n"></b></button><button class="db-round" data-db="deck-stats" aria-label="CPU deck stats" title="CPU deck stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M8 2.5v3M12 2.5v3M16 2.5v3M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg></button><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button>${this.onExit?`<button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`:''}</div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
+  this.root.innerHTML=`<section class="duel-bets"><header class="db-top"><div class="db-sub"></div><div class="db-top-buttons"><button class="db-round db-star" data-db="prestige" aria-label="Regress and skill tree" title="Regress and skill tree"><img class="db-star-tw" alt="" src="${assetURL('assets/ui/time-wizard-96.png')}"><b class="db-star-n"></b></button><button class="db-round" data-db="deck-stats" aria-label="CPU deck stats" title="CPU deck stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M8 2.5v3M12 2.5v3M16 2.5v3M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg></button><button class="db-round" data-db="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 3 .6-2h4.8l.6 2 1.6.9 2-.5 2.4 4.2-1.4 1.5v1.8l1.4 1.5-2.4 4.2-2-.5-1.6.9-.6 2H9l-.6-2-1.6-.9-2 .5-2.4-4.2 1.4-1.5V9.1L2.4 7.6l2.4-4.2 2 .5Z" transform="translate(0 2)"/><circle cx="12" cy="12" r="3.3"/></svg></button>${this.onExit?`<button class="db-round" data-db="exit" aria-label="Save and exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`:''}</div></header><div class="db-body"><main class="db-stage"></main><aside class="db-shop" aria-label="Upgrades"><div class="db-money"><small>TOTAL MONEY</small><b class="db-total"></b></div><nav class="db-shop-tabs" role="tablist"></nav><div class="db-shop-list"></div></aside></div><div class="db-fx" aria-hidden="true"></div></section>`;
   this.el={tabs:this.root.querySelector('.db-shop-tabs'),total:this.root.querySelector('.db-total'),sub:this.root.querySelector('.db-sub'),stage:this.root.querySelector('.db-stage'),shop:this.root.querySelector('.db-shop-list'),fx:this.root.querySelector('.db-fx')};
   // The money sits on top of the shop, except on a phone held upright: then it is the big number in the middle of the
   // top bar (user, 2026-11-26).
@@ -116,32 +116,65 @@ export class DuelBets{
  }
  updateSub(){const s=this.state;this.el.sub.textContent=`${M.speedOf(s)}× speed${M.multiplier(s)>1?' · ×'+M.multiplier(s)+' payouts':''}${s.brackets?` · ${s.brackets} bracket${s.brackets>1?'s':''}`:` · ${s.boards} board${s.boards>1?'s':''}`}`}
  // ---- prestige: the star button, Regress and the skill tree (M.TREE) ----
- paintStar(){const b=this.root.querySelector('.db-star');if(!b)return;const s=this.state,show=s.regresses>0||s.stars>0||s.coins>=M.REGRESS_MIN||s.settings.infinite;
-  b.hidden=!show;if(show){b.querySelector('b').textContent=s.stars?String(s.stars):'';b.classList.toggle('ready',s.coins>=M.REGRESS_MIN)}}
+ paintStar(){const b=this.root.querySelector('.db-star');if(!b)return;const s=this.state;// always shown: before the first regress it says how to unlock the tree
+  b.querySelector('b').textContent=s.stars?String(s.stars):'';b.classList.toggle('ready',s.coins>=M.REGRESS_MIN)}
  prestige(){const d=this.modal('Regress',this.prestigeHTML(),(e,dlg)=>{
+   if(this.skMoved)return;const z=e.target.closest('[data-skz]');if(z){this.skZoom(dlg,z.dataset.skz);return}
    const sk=e.target.closest('[data-sk]');if(sk){this.treeSel=sk.dataset.sk;for(const b of dlg.querySelectorAll('.db-sk'))b.classList.toggle('sel',b===sk);dlg.querySelector('.db-sk-info').innerHTML=this.treeInfo(this.treeSel);return}
-   const node=e.target.closest('[data-node]');if(node){if(M.buyNode(this.state,node.dataset.node)){this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML();this.paintTotal(true);this.refreshShop()}return}
-   const go=e.target.closest('[data-regress]');if(go){if(!go.dataset.armed){go.dataset.armed='1';go.textContent='Tap again: start over for '+M.starsFor(this.state)+' ★';return}this.regressNow();dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML()}});
-  d.classList.add('db-prestige-modal');
+   const node=e.target.closest('[data-node]');if(node){if(M.buyNode(this.state,node.dataset.node)){this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML();this.skApply(dlg);this.paintTotal(true);this.refreshShop()}return}
+   const go=e.target.closest('[data-regress]');if(go){if(!go.dataset.armed){go.dataset.armed='1';go.textContent='Tap again: start over for '+M.starsFor(this.state)+' ★';return}dlg.close();this.regressNow()}});
+  d.classList.add('db-prestige-modal');this.skApply(d);this.skPanZoom(d);
   // Hover shows a node without picking it; leaving the tree shows the picked one again.
   d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]'),info=d.querySelector('.db-sk-info');if(sk&&info)info.innerHTML=this.treeInfo(sk.dataset.sk)});
   d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]');if(sk&&!sk.contains(e.relatedTarget)){const info=d.querySelector('.db-sk-info');if(info)info.innerHTML=this.treeInfo(this.treeSel)}})}
  prestigeHTML(){const s=this.state,gain=M.starsFor(s);
   const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn your ${M.fmt(s.coins)} coins into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button>`:`<p>Reach ${M.fmt(M.REGRESS_MIN)} coins to regress: 1 ★ for every ${M.fmt(M.STAR_COINS)}.</p>`}</div>`;
-  // The tree grows up from the root; each node is an icon, tap or hover one to read it below (user, 2026-11-26).
-  const X=n=>(n.at[0]+.5)/M.TREE_COLS*100,Y=n=>10+(M.TREE_ROWS-1-n.at[1])/(M.TREE_ROWS-1)*76;// room below the root for its level
+  // The tree grows up from the root; each node is an icon, tap or hover one to read it below; drag and zoom to move
+  // around (user, 2026-11-26). Hidden until the first regress.
+  if(!M.treeUnlocked(s))return head+`<div class="db-skill db-skill-locked"><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><p>${s.coins>=M.REGRESS_MIN?'Regress to unlock the skill tree':`Reach ${M.fmt(M.REGRESS_MIN)} coins to unlock`}</p></div>`;
+  const U=M.SK_UNIT,{w,h}=this.skSize(),X=n=>(n.at[0]+.5)*U,Y=n=>h-(n.at[1]+.8)*U;
   const lines=M.TREE.filter(n=>n.req).map(n=>{const p=M.TREE_BY[n.req[0]];return `<line class="${M.treeLevel(s,n.id)?'own':M.nodeOpen(s,n)?'open':''}" x1="${X(p)}" y1="${Y(p)}" x2="${X(n)}" y2="${Y(n)}"/>`}).join('');
   const nodes=M.TREE.map(n=>{const l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),ready=open&&!maxed&&s.stars>=n.cost(l);
-   return `<button class="db-sk ${maxed?'max':l?'own':''} ${open?'':'locked'} ${ready?'ready':''} ${this.treeSel===n.id?'sel':''}" data-sk="${n.id}" style="left:${X(n)}%;top:${Y(n)}%" aria-label="${esc(n.name)}"><img alt="" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><small>${l}/${n.max}</small></button>`}).join('');
-  const labels=M.BRANCHES.map(br=>{const xs=M.TREE.filter(n=>n.branch===br).map(n=>n.at[0]);return `<span style="left:${((Math.min(...xs)+Math.max(...xs))/2+.5)/M.TREE_COLS*100}%">${br}</span>`}).join('');
-  return head+`<div class="db-skill-labels">${labels}</div><div class="db-skill"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div><div class="db-sk-info">${this.treeInfo(this.treeSel)}</div>`}
+   return `<button class="db-sk ${maxed?'max':l?'own':''} ${open?'':'locked'} ${ready?'ready':''} ${this.treeSel===n.id?'sel':''}" data-sk="${n.id}" style="left:${X(n)}px;top:${Y(n)}px" aria-label="${esc(n.name)}"><img alt="" draggable="false" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><small>${l}/${n.max}</small></button>`}).join('');
+  const labels=M.BRANCHES.map(br=>{const b=M.TREE.filter(n=>n.branch===br),top=b.reduce((a,n)=>n.at[1]>a.at[1]?n:a);return `<span class="db-sk-branch" style="left:${b.reduce((t,n)=>t+X(n),0)/b.length}px;top:${Y(top)-U*.95}px">${br}</span>`}).join('');
+  return head+`<div class="db-skill"><div class="db-skill-world" style="width:${w}px;height:${h}px;--u:${U}px"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${lines}</svg>${labels}${nodes}</div><div class="db-skill-zoom"><button data-skz="in" aria-label="Zoom in">+</button><button data-skz="out" aria-label="Zoom out">−</button><button data-skz="fit" aria-label="Show the whole tree">⤢</button></div></div><div class="db-sk-info">${this.treeInfo(this.treeSel)}</div>`}
+ skSize(){const U=M.SK_UNIT;return {w:(Math.max(...M.TREE.map(n=>n.at[0]))+1)*U,h:(Math.max(...M.TREE.map(n=>n.at[1]))+2.2)*U}}
+ // ---- skill tree view: drag to pan, pinch / wheel / buttons to zoom; the view is kept while the window is open ----
+ skFit(box){const {w,h}=this.skSize(),cw=box.clientWidth,ch=box.clientHeight,z=Math.max(Math.min(cw/w,ch/h),30/M.SK_UNIT);
+  const root=M.TREE[0],rx=(root.at[0]+.5)*M.SK_UNIT;return {z,x:w*z<=cw?(cw-w*z)/2:cw/2-rx*z,y:h*z<=ch?(ch-h*z)/2:ch-h*z}}
+ skApply(d){const box=d.querySelector('.db-skill:not(.db-skill-locked)'),world=box?.querySelector('.db-skill-world');if(!world)return;
+  if(!this.skView)this.skView=this.skFit(box);const {w,h}=this.skSize(),v=this.skView,cw=box.clientWidth,ch=box.clientHeight;
+  v.x=Math.min(cw*.6,Math.max(cw*.4-w*v.z,v.x));v.y=Math.min(ch*.6,Math.max(ch*.4-h*v.z,v.y));// keep part of the tree in view
+  world.style.transform=`translate(${v.x}px,${v.y}px) scale(${v.z})`}
+ skZoomAt(d,px,py,f){const box=d.querySelector('.db-skill');if(!box||!this.skView)return;const v=this.skView,fit=this.skFit(box),z=Math.min(2.5,Math.max(Math.min(fit.z,.45),v.z*f));
+  v.x=px-(px-v.x)*z/v.z;v.y=py-(py-v.y)*z/v.z;v.z=z;this.skApply(d)}
+ skZoom(d,how){const box=d.querySelector('.db-skill');if(!box)return;if(how==='fit'){this.skView=this.skFit(box);this.skApply(d);return}
+  this.skZoomAt(d,box.clientWidth/2,box.clientHeight/2,how==='in'?1.3:1/1.3)}
+ skPanZoom(d){const pts=new Map();let moved=0,last=null;
+  const mid=()=>{const p=[...pts.values()];return p.length>1?{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2,dist:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}:{...p[0],dist:0}};
+  const move=e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const m=mid(),box=d.querySelector('.db-skill');if(!box||!last||!this.skView)return;
+   const dx=m.x-last.x,dy=m.y-last.y;moved+=Math.abs(dx)+Math.abs(dy);this.skView.x+=dx;this.skView.y+=dy;
+   if(pts.size>1&&last.dist){const r=box.getBoundingClientRect();this.skZoomAt(d,m.x-r.left,m.y-r.top,m.dist/last.dist)}else this.skApply(d);last=m};
+  const up=e=>{pts.delete(e.pointerId);last=pts.size?mid():null;if(!pts.size){removeEventListener('pointermove',move);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+   if(moved>6){this.skMoved=true;setTimeout(()=>{this.skMoved=false})}d.querySelector('.db-skill')?.classList.remove('dragging')}};
+  d.addEventListener('pointerdown',e=>{const box=e.target.closest('.db-skill');if(!box||box.classList.contains('db-skill-locked')||e.target.closest('.db-skill-zoom')||e.button>0)return;
+   if(!pts.size){moved=0;addEventListener('pointermove',move);addEventListener('pointerup',up);addEventListener('pointercancel',up)}
+   pts.set(e.pointerId,{x:e.clientX,y:e.clientY});last=mid();box.classList.add('dragging')});
+  d.addEventListener('wheel',e=>{const box=e.target.closest('.db-skill');if(!box||box.classList.contains('db-skill-locked'))return;e.preventDefault();const r=box.getBoundingClientRect();
+   this.skZoomAt(d,e.clientX-r.left,e.clientY-r.top,Math.exp(-e.deltaY*.0015))},{passive:false});
+  d.addEventListener('close',()=>{this.skView=null})}
  treeInfo(id){const n=M.TREE_BY[id];if(!n)return '<p class="db-sk-hint">Tap a node to see what it does.</p>';
   const s=this.state,l=M.treeLevel(s,n.id),maxed=l>=n.max,open=M.nodeOpen(s,n),cost=maxed?0:n.cost(l),req=n.req&&M.TREE_BY[n.req[0]];
   const now=l?`<p><span>Now</span>${esc(n.text(l))}</p>`:'',next=maxed?'':`<p><span>${l?'Next':'Buy'}</span>${esc(n.text(l+1))}</p>`;
   const act=maxed?'<span class="db-node-max">MAX</span>':open?`<button class="db-buy ${s.stars<cost?'poor':''}" data-node="${n.id}" ${s.stars<cost?'disabled':''}>★ ${cost}</button>`:`<span class="db-node-req">Needs ${esc(req.name)} ${req.max>1?'level '+n.req[1]:''}</span>`;
   return `<img alt="" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><div><b>${esc(n.name)} <small>${n.branch} · ${l}/${n.max}</small></b>${now}${next}</div>${act}`}
- regressNow(){const r=M.regress(this.state);if(!r)return;for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;
-  const inf=this.state.settings.infinite;this.state=r.state;this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout();this.boardSound('assets/sfx/rare-shimmer.wav',1)}
+ regressNow(){const r=M.regress(this.state);if(!r)return;const fx=this.rewindFX(r.gained);for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;
+  const inf=this.state.settings.infinite;this.state=r.state;this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout();fx.then(()=>this.prestige())}
+ // Regress animation (user, 2026-11-26): Time Wizard spins in over a clock that winds backwards, then the stars.
+ rewindFX(gained){const fast=this.state.settings.fx==='off',el=document.createElement('div');el.className='db-rewind'+(fast?' fast':'');
+  el.innerHTML=`<div class="db-rw-clock"><i class="db-rw-h"></i><i class="db-rw-m"></i></div><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><b>+${gained} ★</b>`;
+  this.root.querySelector('.duel-bets').append(el);this.boardSound('assets/sfx/reward-reel.wav',.8);if(!fast)setTimeout(()=>this.boardSound('assets/sfx/rare-shimmer.wav',1),1500);
+  return new Promise(done=>setTimeout(()=>{el.remove();done()},fast?900:2900))}
  // ---- characters: a roster of portraits; each opens its own page of upgrades ----
  roster(items){const s=this.state;return `<div class="db-roster-grid">${items.map(it=>{const cid=this.charIdOf(it),u=M.charUps(s,cid),n=M.itemLevel(s,it.id)+(u.spot||0)+(u.card||0)+(u.lp||0)+(u.foe||0)+(u.relics||[]).length+(u.curses||[]).length;
    return `<button class="db-char" data-db="char" data-char="${esc(String(cid))}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+it.portrait))}"><span>${esc(it.charName||it.name)}</span>${n?`<i>${n}</i>`:''}</button>`}).join('')}</div>`}
@@ -290,7 +323,8 @@ export class DuelBets{
   // Banners showing at the same time stack instead of covering each other.
   const live=[...this.el.fx.querySelectorAll('.db-banner')].length;if(live)b.style.marginTop=(live*(at?34:60))+'px';this.el.fx.append(b);b.animate([{opacity:0,scale:.6},{opacity:1,scale:1.05,offset:.15},{opacity:1,scale:1,offset:.8},{opacity:0,scale:1}],{duration:2200,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>b.remove())}
  modal(title,body,onClick){const d=document.createElement('dialog');d.className='db-modal';d.innerHTML=`<header><h2>${esc(title)}</h2><button data-close aria-label="Close">✕</button></header><div class="db-modal-body">${body}</div>`;this.root.querySelector('.duel-bets').append(d);
-  d.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
+  d.addEventListener('click',e=>{if(this.skMoved)return;// a tree drag that ends outside the window is not a click
+   if(e.target.closest('[data-close]')||e.target===d){d.close();return}onClick?.(e,d)});d.onclose=()=>d.remove();d.showModal();return d}
  settings(){const s=this.state.settings,st=this.state.stats;
   const row=(name,value,label)=>`<label class="db-set"><input type="radio" name="fx" value="${value}" ${s.fx===value?'checked':''}> ${label}</label>`;
   const vol=k=>this.audio?`<label class="db-set db-vol">${k==='music'?'Music':'Sound'} <input type="range" min="0" max="100" step="5" value="${this.audio.get(k)}" data-vol="${k}"></label>`:'';

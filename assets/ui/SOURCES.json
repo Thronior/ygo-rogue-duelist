@@ -11,5 +11,7 @@
     "chain": "Chain Energy",
     "achievements": "Graceful Charity",
     "heal": "Red Medicine"
-  }
+  },
+  "time-wizard-96": "assets/time-wizard.png (the loading-screen cutout), trimmed to its outline and downscaled for Shadow Betting.",
+  "time-wizard-320": "assets/time-wizard.png (the loading-screen cutout), trimmed to its outline and downscaled for Shadow Betting."
 }
