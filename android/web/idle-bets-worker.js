@@ -20,7 +20,7 @@ onmessage=async({data:m})=>{
   if(m.type==='init'){ready=init(m);await ready;postMessage({type:'ready'});return}
   if(m.type==='script'){await ready;if(m.text)engine.scripts[m.name]=m.text;return}
   if(m.type==='sim'){await ready;const t0=performance.now();
-   const tl=recordDuel(engine,[decks[m.seats[0].key],decks[m.seats[1].key]],m.seats.map(({id,tier})=>({id,tier})),m.seed);
+   const tl=recordDuel(engine,[decks[m.seats[0].key],decks[m.seats[1].key]],m.seats.map(({id,tier})=>({id,tier})),m.seed,{lp:m.lp||[8000,8000],passives:m.passives||''});if(m.sig)tl.mods=m.sig;
    engine.visuals?.splice?.(0);
    postMessage({type:'done',id:m.id,tl,ms:performance.now()-t0});return}
  }catch(error){postMessage({type:'failed',id:m.id,error:String(error?.message||error)})}

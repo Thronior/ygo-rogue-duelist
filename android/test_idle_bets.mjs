@@ -177,6 +177,33 @@ assert.equal(M.sanitize({boards:3,brackets:5}).brackets,0,'no brackets before ni
 assert.equal(M.fmt(12.34),'12.3');assert.equal(M.fmt(1234),'1,234');assert.equal(M.fmt(1.5e6),'1.5M');assert.equal(M.fmt(2e15),'2Qa');assert.equal(M.fmt(Infinity),'∞');
 assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23 reads 100Sx, not 99.99Sx');
 
+// ---- prestige: Regress at 1M coins, 1 star per 500K; the skill tree ----
+{let p=M.newState();p.coins=999999;assert.equal(M.regress(p),null,'no regress under 1M');
+ p.coins=1.3e6;p.items.fee_attack=5;p.boards=4;const r=M.regress(p);assert.equal(r.gained,2,'1 star per 500K');
+ let n=r.state;assert.equal(n.stars,2);assert.equal(n.regresses,1);assert.equal(n.boards,1);assert.equal(n.coins,5);assert.equal(n.items.fee_attack,undefined,'the run resets');
+ assert.ok(!M.buyNode(n,'kit'),'Starter Kit needs Seed Money first');assert.ok(M.buyNode(n,'seed'));assert.equal(n.stars,1);
+ n.stars=1000;for(const id of ['seed','kit','pass','quick','order','insider','interest','haggle','haggle'])M.buyNode(n,id);
+ n=M.startRun(n);assert.equal(n.coins,1000,'Seed Money 2: 1,000 coins');assert.equal(n.items.fee_spell,3,'Starter Kit 1: fees at 3');assert.equal(n.boards,2,'Season Pass 1: 2 boards');
+ assert.equal(n.items.speed,5);assert.equal(n.items.autobet,3);assert.equal(n.items.scout,1);
+ assert.equal(M.price(n,'calls1',10),Math.ceil(M.itemCost('calls1',10)*.92),'Haggler 2: 8% off');
+ assert.ok(Math.abs(M.correctPayout(n,1,1)-5*1.1)<1e-9,'Compound Interest 1: +10%');
+ n.tree.starpower=5;n.coins=2e6;assert.equal(M.starsFor(n),6,'Star Power 5: 4 stars x1.5');
+ assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(n))).tree,n.tree,'the tree is saved');}
+// ---- character upgrades: payout, spotlight, signature card, LP, relics and curses ----
+{const mods={chars:{'5':{card:100,cardName:'X',field:false,relics:['a@5','b@5','c@5'],curses:['tax','mercy','drain']},'6':{card:200,relics:[],curses:[]}},relics:{'a@5':{name:'A',text:'',s:['RELIC0','RELIC1']}},curses:{tax:{s:['TAX0','TAX1']},mercy:{s:['M0','M1']},drain:{s:['','']}}};
+ M.registerMods(mods);M.registerCharacters([{id:5,name:'Five',rank:1,sprite:'f.png',labels:['Tier 1']},{id:6,name:'Six',rank:1,sprite:'s.png',labels:['Tier 1']}]);
+ const c=M.newState();assert.equal(M.duelMods(c,[5,6]).sig,'','no upgrades: plain duels keep sharing the library');
+ c.coins=1e9;assert.ok(M.buyCharUp(c,5,'lp'));assert.ok(M.buyCharUp(c,6,'foe'));assert.ok(M.buyCharUp(c,5,'card'));assert.ok(!M.buyCharUp(c,5,'card'),'the card is bought once');
+ assert.ok(M.buyCharUp(c,5,'relic','a@5'));assert.ok(!M.buyCharUp(c,5,'relic','zzz'),'only its own three');assert.ok(M.buyCharUp(c,6,'curse','tax')===false,'curses must be the character\'s own');
+ assert.ok(M.buyCharUp(c,5,'curse','tax'));assert.ok(M.buyCharUp(c,5,'curse','drain'));
+ const dm=M.duelMods(c,[5,6]);assert.deepEqual(dm.lp,[8000,7000],"5: +100 LP, -100 from 6's Intimidation; 6: -1000 from 5's Withering Soul");
+ assert.ok(dm.passives.includes('RELIC0')&&!dm.passives.includes('RELIC1'),"the relic acts for its owner's seat");
+ assert.ok(dm.passives.includes('TAX1')&&!dm.passives.includes('TAX0'),"the curse lands on the opponent's seat");
+ assert.ok(/Duel\.SendtoHand\(tc,0,REASON_RULE\)/.test(dm.passives)&&dm.passives.includes(',100)'),"signature card 100 into seat 0's hand");
+ assert.notEqual(dm.sig,'');assert.equal(M.duelMods(c,[6,5]).lp[1],8000,'seats swap cleanly');
+ assert.ok(M.charWeight(c,5)===1&&(M.buyCharUp(c,5,'spot'),M.charWeight(c,5)===1.25),'Spotlight: +25% per level');
+ assert.ok(M.charUpCost(c,5,'relic')>M.charUpCost(c,5,'lp'),'relics cost more than an LP level');
+}
 // ---- one real duel through the recorder (skipped without the generated content.json) ----
 const web=path.join(path.dirname(fileURLToPath(import.meta.url)),'web');
 if(fs.existsSync(path.join(web,'content.json'))){

@@ -13,7 +13,9 @@ const done=req=>new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.res
 
 export class DuelSupply{
  // pool: [{id,tier,label,key}] · deckList: {key: {main,extra}} · cards: content cards (+ tokens)
- constructor({pool,deckList,cards}){Object.assign(this,{pool,deckList,cards});this.fresh=[];this.waiting=[];this.jobs=new Map();this.nextId=1;this.index=[];this.stats={};this.busy=0;this.target=1;this.msAvg=600;this.closed=false;this.recent=[];this.queue=[];this.active=new Set()}
+ // modsFor(ids): the character upgrades a duel between these characters is played with ({lp,passives,sig}; sig '' = none).
+ // weight(id): how often a character is picked (Spotlight).
+ constructor({pool,deckList,cards,modsFor=()=>({sig:''}),weight=()=>1}){Object.assign(this,{pool,deckList,cards,modsFor,weight});this.fresh=[];this.waiting=[];this.jobs=new Map();this.nextId=1;this.index=[];this.stats={};this.busy=0;this.target=1;this.msAvg=600;this.closed=false;this.recent=[];this.queue=[];this.active=new Set()}
  async start(){
   try{this.db=await open();this.index=(await done(this.db.transaction(STORE).objectStore(STORE).getAllKeys()))||[];this.stats=(await done(this.db.transaction(META).objectStore(META).get('stats')))||{}}catch{this.db=null}
   this.worker=new Worker(new URL('./idle-bets-worker.js',import.meta.url),{type:'module'});
@@ -28,14 +30,16 @@ export class DuelSupply{
   this.pump();
  }
  setTarget(n){this.target=Math.max(0,n);this.pump()}
- randomSeat(){return this.pool[Math.floor(Math.random()*this.pool.length)]}
+ randomSeat(){let total=0;for(const d of this.pool)total+=this.weight(d.id);let r=Math.random()*total;for(const d of this.pool){r-=this.weight(d.id);if(r<=0)return d}return this.pool[this.pool.length-1]}
+ // A stored duel still fits when it was played with the upgrades these two characters have now.
+ fits(tl){return (tl.mods||'')===this.modsFor(tl.seats.map(x=>x.id)).sig}
  randomPair(){const a=this.randomSeat();let b=this.randomSeat(),guard=0;while(b.id===a.id&&guard++<20)b=this.randomSeat();return [a,b]}
  // One duel between these two decks (bracket boards). Resolves with the timeline.
  // alive() false = the board no longer needs it (settled meanwhile), so it is dropped unplayed.
  record(pair,priority=true,alive=()=>true){return new Promise((resolve,reject)=>{const id=this.nextId++;this.jobs.set(id,{resolve,reject,pair,priority,alive});priority?this.queue.unshift(id):this.queue.push(id);this.pump()})}
  // A duel for a free board: a fresh one if ready, else an older one from the library, else wait.
  async take(){
-  if(this.fresh.length)return this.use(this.fresh.shift());
+  while(this.fresh.length){const tl=this.fresh.shift();if(this.fits(tl))return this.use(tl)}
   // Wait a little for a new duel; a phone that can't keep up replays an older one instead.
   return new Promise((resolve,reject)=>{const w={resolve,reject};this.waiting.push(w);this.pump();
    w.timer=setTimeout(async()=>{if(!this.waiting.includes(w))return;const old=await this.fromLibrary();if(old&&this.waiting.includes(w)){this.waiting.splice(this.waiting.indexOf(w),1);resolve(this.use(old))}},Math.min(4000,Math.max(800,this.msAvg*2)))})}
@@ -45,7 +49,7 @@ export class DuelSupply{
   for(let tries=0;tries<6;tries++){
    const choices=this.index.filter(k=>!this.recent.includes(k));const key=choices[Math.floor(Math.random()*choices.length)];
    if(key==null)return null;this.recent.push(key);if(this.recent.length>Math.min(40,this.index.length>>1))this.recent.shift();
-   try{const tl=(await done(this.db.transaction(STORE).objectStore(STORE).get(key)))?.tl;if(tl&&!this.active.has(sig(tl)))return tl}catch{return null}}
+   try{const tl=(await done(this.db.transaction(STORE).objectStore(STORE).get(key)))?.tl;if(tl&&!this.active.has(sig(tl))&&this.fits(tl))return tl}catch{return null}}
   return null}
  use(tl){this.active.add(sig(tl));return tl}
  release(tl){if(tl)this.active.delete(sig(tl))}
@@ -56,7 +60,7 @@ export class DuelSupply{
   while(this.queue.length){const id=this.queue.shift(),j=this.jobs.get(id);if(!j)continue;if(!j.alive()){this.jobs.delete(id);j.reject(Error('stale'));continue}this.send(id,j.pair);return}
   if(this.fresh.length+0<this.target+this.waiting.length){const id=this.nextId++;this.jobs.set(id,{fresh:true,pair:this.randomPair()});this.send(id,this.jobs.get(id).pair)}
  }
- send(id,pair){this.busy=1;this.worker.postMessage({type:'sim',id,seats:pair.map(d=>({id:d.id,tier:d.tier,key:d.key})),seed:(Math.random()*2**32)>>>0})}
+ send(id,pair){this.busy=1;const m=this.modsFor(pair.map(d=>d.id));this.worker.postMessage({type:'sim',id,seats:pair.map(d=>({id:d.id,tier:d.tier,key:d.key})),seed:(Math.random()*2**32)>>>0,lp:m.lp,passives:m.passives,sig:m.sig})}
  message(m){
   if(m.type==='ready'){this.readyResolve?.();return}
   if(m.type==='missing'){this.worker?.postMessage({type:'script',name:m.name,text:this.allScripts?.[m.name]});return}

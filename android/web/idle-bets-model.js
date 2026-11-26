@@ -167,7 +167,7 @@ export const START_COINS=5;
 // First-time guide (Discord 2026-11-26, Nori: a pointing-hand helper like the main game's): 0 point at a duelist,
 // 1 point at an affordable upgrade, 2 done.
 export const GUIDE_DONE=2;
-export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0}}
+export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0,stars:0,tree:{},regresses:0,chars:{},lifetime:0}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins,START_COINS));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -181,11 +181,17 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  // Character wins come from the deck stats (older saves had no separate count).
  s.charWins={};for(const [k,v] of Object.entries(s.deckStats))addCharWin(s,Number(k.split(':')[0]),v[1]);
  s.guide=Math.max(0,Math.min(GUIDE_DONE,Math.floor(num(raw.guide))));if(!('guide' in raw)&&s.stats.bets>0)s.guide=GUIDE_DONE;// older saves: no guide
+ s.stars=Math.max(0,Math.floor(num(raw.stars)));s.regresses=Math.max(0,Math.floor(num(raw.regresses)));s.lifetime=Math.max(0,num(raw.lifetime));
+ for(const n of TREE){const v=Math.floor(num(raw.tree?.[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
+ if(raw.chars&&typeof raw.chars==='object')for(const [id,c] of Object.entries(raw.chars)){if(!/^(\d+|uc)$/.test(id)||!c||typeof c!=='object')continue;
+  const o={};for(const k of ['spot','card','lp','foe']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}
+  for(const k of ['relics','curses'])if(Array.isArray(c[k]))o[k]=c[k].filter(x=>typeof x==='string').slice(0,3);
+  if(Object.keys(o).length)s.chars[id]=o}
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
-export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;return amount}
+export function earn(s,amount){if(!(amount>0))return 0;s.coins+=amount;s.earned+=amount;s.lifetime=(s.lifetime||0)+amount;return amount}
 // Bought one-time items leave the shop, except automation ones (keep), which stay with an ON/OFF switch.
 // An item appears once you have earned half its first price (Cookie Clicker reveals a building as you near its price),
 // so a new game starts with only Lucky Calls and Summon Fees; owned items always stay.
@@ -196,11 +202,13 @@ export const CHAR_REVEAL=200,CHAR_STEP=1.6;
 let charOrder=null;
 const charIndex=id=>{if(!charOrder){charOrder=new Map(ITEMS.filter(i=>/^char_/.test(i.id)).sort((a,b)=>itemCost(a.id,0)-itemCost(b.id,0)||String(a.charName||a.name).localeCompare(String(b.charName||b.name))).map((i,k)=>[i.id,k]))}return charOrder.get(id)??0};
 const charThreshold=id=>CHAR_REVEAL*CHAR_STEP**charIndex(id);
-export const revealed=(s,it)=>lvl(s,it.id)>0||it.id==='calls1'||((s.earned||0)>=itemCost(it.id,0)*REVEAL&&(!/^char_/.test(it.id)||(s.earned||0)>=charThreshold(it.id)));
+export const revealed=(s,it)=>{const e=(s.earned||0)/revealFactor(s);return lvl(s,it.id)>0||it.id==='calls1'||(e>=itemCost(it.id,0)*REVEAL&&(!/^char_/.test(it.id)||e>=charThreshold(it.id)))};
 export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&revealed(s,it)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
 export const isOn=(s,id)=>lvl(s,id)>0&&!s.settings?.off?.[id];
 // Buying returns what changed so the screen can react ('board', 'bracket' or null).
-export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.max||!it.show(s))return null;const cost=itemCost(id,level);if(!spend(s,cost))return null;
+// What an item costs you now: its price less the skill tree's Haggler discount.
+export const price=(s,id,level)=>Math.max(1,Math.ceil(itemCost(id,level)*discount(s)));
+export function buy(s,id){const it=ITEM[id],level=lvl(s,id);if(!it||level>=it.max||!it.show(s))return null;const cost=price(s,id,level);if(!spend(s,cost))return null;
  s.items[id]=level+1;
  if(/^open\d$/.test(id)){s.boards=Math.max(s.boards,Number(id.slice(4)));if(s.boards>=BOARD_MAX){s.brackets=Math.max(1,s.brackets);return {kind:'bracket',cost}}return {kind:'board',cost}}
  if(id==='bracket'){s.brackets=Math.min(BRACKET_MAX,s.brackets+1);return {kind:'bracket',cost}}
@@ -217,7 +225,7 @@ export const multiplier=s=>2**lvl(s,'highroller');
 export const callUnit=k=>k===1?1:boardPayout(k)*.25;
 // Every Calls item: +callUnit per correct call at level 1, each level worth 15% more than the one before.
 export function callsBonus(slot,l){return levelValue(l)*callUnit(slot)}
-export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,lvl(s,'calls'+slot))*levelScale(level)/levelScale(slot))*multiplier(s);
+export const correctPayout=(s,slot,level)=>(boardPayout(level)+callsBonus(slot,lvl(s,'calls'+slot))*levelScale(level)/levelScale(slot))*multiplier(s)*interest(s)*(1+.25*tl(s,'stakes'));
 // The dearer an income item's first purchase, the more each level earns: (first price / 15)^POWER, never under 1.
 // POWER = ln 10 / ln BOARD_RATIO: each board's item set (35× dearer) earns 10× the last, exactly like the stakes. With 0.75
 // (≈14× per set) late items out-earned the boards and the economy ran away (headless playtest, 2026-11-26).
@@ -227,7 +235,7 @@ export function jackpotBase(kind,s){const l=lvl(s,kind);return (kind==='exodia'?
 // Income from one replayed frame's events on a board of this level.
 // Items pay the same on every board (like Cookie Clicker buildings, a new board never multiplies the old items);
 // only the bets and the Calls items grow with a board's stakes. High Roller multiplies everything.
-export const itemScale=s=>multiplier(s);
+export const itemScale=s=>multiplier(s)*interest(s);
 export function eventIncome(s,events,level){let total=0;const scale=itemScale(s),f=(id,v)=>{const l=lvl(s,id);return l?levelValue(l)*v*power(id):0};
  for(const e of events){
   if(e[0]==='s'||e[0]==='f'){total+=f('fee_summon',.1);if(e[0]==='f')total+=f('fee_fusion',1)}
@@ -243,9 +251,10 @@ export const tierKey=label=>/^Tier 1/.test(label)?'tier1':/^Tier 2/.test(label)?
 export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=itemScale(s),add=(label,v,big=false)=>{if(v>0)parts.push([label,v,big])};
  if(pick!=null&&result.winner===pick)add('Correct call',correctPayout(s,slot,level),true);
  const kind=winKind(result);
- if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
- if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale,true);
- if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale,true);
+ const fever=1+.5*tl(s,'fever');
+ if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*fever*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
+ if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale*fever,true);
+ if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale*fever,true);
  if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*(ITEM[id]?.boost||1)*scale)}
  if(result.winner<2&&result.winnerLp>=8000)add('Flawless',5*lv(s,'flawless')*power('flawless')*scale);
  if(result.turns>10)add('Long game',longGameFactor(result.turns)*lv(s,'longgame')*power('longgame')*scale);
@@ -262,7 +271,9 @@ export const TIER_PCT={tier1:10,tier2:7,tier3:5,endless:3};
 const TIER_LABEL={tier1:'Tier 1 upset',tier2:'Tier 2 win',tier3:'Tier 3 win',endless:'Endless win'};
 export const tierPct=(s,tier)=>TIER_PCT[tier]?TIER_PCT[tier]*lvl(s,tier):0;
 export function withTierBonus(s,result,pay,fees=0){const tier=result.winner<2?tierKey(result.winnerTier||''):null,pct=tierPct(s,tier),v=pct/100*(pay.total+Math.max(0,fees||0));
- return v>0?{...pay,total:pay.total+v,parts:[...pay.parts,[`${TIER_LABEL[tier]} +${pct}%`,v]]}:pay}
+ const node=result.winner<2?TIER_NODE[result.winnerTier]:null,tp=node?20*tl(s,node):0,tv=tp/100*(pay.total+Math.max(0,fees||0));
+ let out=pay;if(v>0)out={...out,total:out.total+v,parts:[...out.parts,[`${TIER_LABEL[tier]} +${pct}%`,v]]};
+ if(tv>0)out={...out,total:out.total+tv,parts:[...out.parts,[`${TREE_BY[node].name} +${tp}%`,tv]]};return out}
 
 // Every finished duel the player's boards and brackets play, per deck ("id:tier" -> [duels, wins, Exodia wins, Destiny wins]).
 export function recordDeckResult(s,seats,winner,reason){seats.forEach((d,p)=>{if(!d)return;const k=d.id+':'+d.tier,v=s.deckStats[k]??=[0,0,0,0];v[0]++;if(winner===p){v[1]++;addCharWin(s,d.id,1);if(EXODIA_WINS.includes(reason))v[2]++;if(reason===21)v[3]++}})}
@@ -300,3 +311,85 @@ export function modelWinKind(deck,stats,random){const st=stats?.[deck.id+':'+dec
 const SUFFIX=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td','Qad','Qid','Sxd','Spd','Ocd','Nod','Vg'];
 export function fmt(n){if(!Number.isFinite(n))return '∞';const a=Math.abs(n);if(a<100)return (Math.floor(n*10)/10).toLocaleString('en-US');if(a<1e4)return Math.floor(n).toLocaleString('en-US');
  const k=Math.min(SUFFIX.length-1,Math.floor(Math.log10(a)/3));if(k>=SUFFIX.length-1&&a>=1e66)return n.toExponential(2).replace('+','');const v=Math.round(n/1000**k*1e9)/1e9;return (v>=100?Math.floor(v):Math.floor(v*100)/100).toLocaleString('en-US')+SUFFIX[k]}
+
+// ---- prestige: Regress turns coins into stars; stars buy skill-tree nodes that last through every regress ----
+// (user, 2026-11-26; node kinds after Scritchy Scratchy's Jack Point tree: start-with nodes, stacking +% nodes, steeply
+// rising costs, a prestige-currency node, a keep-on-reset node).
+export const REGRESS_MIN=1e6,STAR_COINS=5e5;
+const tl=(s,id)=>s.tree?.[id]||0;
+export const treeLevel=tl;
+const geo=(a,r)=>l=>Math.ceil(a*r**l);
+export const startCoins=l=>l?100*10**(l-1):START_COINS;
+export const TREE=[
+ {id:'seed',branch:'Bankroll',name:'Seed Money',max:4,cost:geo(1,2),text:l=>`Start every run with ${fmt(startCoins(l))} coins.`},
+ {id:'kit',branch:'Bankroll',name:'Starter Kit',max:5,cost:geo(2,2),req:['seed',1],text:l=>`Start with every Card Fee at level ${3*l}.`},
+ {id:'pass',branch:'Bankroll',name:'Season Pass',max:5,cost:geo(3,3),req:['kit',1],text:l=>`Start with ${l+1} boards open.`},
+ {id:'haggle',branch:'Bankroll',name:'Haggler',max:10,cost:geo(2,1.5),req:['seed',2],text:l=>`Everything in the shop costs ${4*l}% less.`},
+ {id:'interest',branch:'Interest',name:'Compound Interest',max:20,cost:geo(1,1.5),text:l=>`+${10*l}% on everything you earn.`},
+ {id:'fever',branch:'Interest',name:'Jackpot Fever',max:10,cost:geo(2,1.6),req:['interest',2],text:l=>`Jackpots pay +${50*l}%.`},
+ {id:'t1',branch:'Interest',name:'Underdog Fund',max:10,cost:geo(2,1.6),req:['interest',3],text:l=>`+${20*l}% on everything a duel pays when an Opening or Tier 1 deck wins.`},
+ {id:'t2',branch:'Interest',name:'Rising Stars',max:10,cost:geo(2,1.6),req:['interest',3],text:l=>`+${20*l}% on everything a duel pays when a Tier 2 deck wins.`},
+ {id:'t3',branch:'Interest',name:'Veterans',max:10,cost:geo(2,1.6),req:['interest',3],text:l=>`+${20*l}% on everything a duel pays when a Tier 3 deck wins.`},
+ {id:'tE',branch:'Interest',name:'Legends',max:10,cost:geo(2,1.6),req:['interest',3],text:l=>`+${20*l}% on everything a duel pays when an Endless deck wins.`},
+ {id:'stakes',branch:'Interest',name:'High Stakes',max:10,cost:geo(3,1.6),req:['interest',5],text:l=>`Correct calls pay +${25*l}%.`},
+ {id:'quick',branch:'Automation',name:'Quick Start',max:4,cost:geo(1,3),text:l=>`Start with Duel Speed at level ${5*l}.`},
+ {id:'order',branch:'Automation',name:'Standing Order',max:4,cost:geo(2,2),req:['quick',1],text:l=>`Start with Auto Bet at level ${3*l}.`},
+ {id:'insider',branch:'Automation',name:'Insider Tip',max:1,cost:()=>5,req:['order',1],text:()=>'Start with Scouting Report.'},
+ {id:'season',branch:'Automation',name:'Season Ticket',max:1,cost:()=>20,req:['insider',1],text:()=>'Start with Auto Champion Bet.'},
+ {id:'starpower',branch:'Legacy',name:'Star Power',max:10,cost:geo(2,1.6),text:l=>`+${10*l}% stars from every regress.`},
+ {id:'learner',branch:'Legacy',name:'Fast Learner',max:3,cost:geo(3,2),req:['starpower',1],text:l=>`Upgrades and characters appear ${[0,30,55,75][l]}% sooner.`},
+ {id:'friends',branch:'Legacy',name:'Old Friends',max:1,cost:()=>40,req:['starpower',3],text:()=>'Keep your character upgrades when you regress.'},
+];
+export const TREE_BY=Object.fromEntries(TREE.map(n=>[n.id,n]));
+export const BRANCHES=['Bankroll','Interest','Automation','Legacy'];
+const TIER_NODE={'Opening Duel':'t1','Tier 1':'t1','Tier 2':'t2','Tier 3':'t3',Endless:'tE','World Championship':'tE'};
+export const interest=s=>1+.1*tl(s,'interest');
+export const discount=s=>1-.04*tl(s,'haggle');
+const revealFactor=s=>1-[0,.3,.55,.75][tl(s,'learner')];
+export const starsFor=s=>s.coins>=REGRESS_MIN?Math.floor(s.coins/STAR_COINS*(1+.1*tl(s,'starpower'))):0;
+export const nodeOpen=(s,n)=>!n.req||tl(s,n.req[0])>=n.req[1];
+export function buyNode(s,id){const n=TREE_BY[id],l=tl(s,id);if(!n||l>=n.max||!nodeOpen(s,n))return false;const c=n.cost(l);if(s.stars<c)return false;s.stars-=c;s.tree[id]=l+1;return true}
+// A new run with the tree's start-with nodes; stars, the tree, records, stats and settings carry over.
+export function startRun(s){
+ const keep={stars:s.stars,tree:s.tree,regresses:s.regresses,lifetime:s.lifetime,deckStats:s.deckStats,charWins:s.charWins,stats:s.stats,settings:s.settings,guide:s.guide,chars:tl(s,'friends')?s.chars:{}};
+ const n=Object.assign(newState(),keep);n.coins=startCoins(tl(s,'seed'));
+ const fees=3*tl(s,'kit');if(fees)for(const it of ITEMS)if(/^fee_/.test(it.id)&&it.set<=1)n.items[it.id]=Math.max(n.items[it.id]||0,fees);
+ const boards=1+tl(s,'pass');for(let k=2;k<=boards;k++)n.items['open'+k]=1;n.boards=boards;
+ if(tl(s,'quick'))n.items.speed=5*tl(s,'quick');if(tl(s,'order'))n.items.autobet=3*tl(s,'order');
+ if(tl(s,'insider'))n.items.scout=1;if(tl(s,'season'))n.items.autochamp=1;
+ return n}
+export function regress(s){const gained=starsFor(s);if(!gained)return null;const n=startRun({...s,stars:s.stars+gained,regresses:(s.regresses||0)+1});return {state:n,gained}}
+
+// ---- character upgrades: each CPU character has a page of upgrades (user, 2026-11-26) ----
+// Payout is the char_ item. The rest live in s.chars[id] ('uc' = every Ultimate Collector): spot (appears more often),
+// card (starts each duel with its signature card), lp (+100 starting LP), foe (opponent −100 starting LP), relics and
+// curses (3 tailored each, idle-bets-mods.json). Prices are multiples of the character's payout price.
+export const CHAR_UP={spot:{max:10,mult:1.5,growth:1.6},card:{max:1,mult:4,growth:1},lp:{max:20,mult:2,growth:1.35},foe:{max:20,mult:2,growth:1.35}};
+let MODS={chars:{},relics:{},curses:{}};
+export const registerMods=data=>{if(data&&data.chars)MODS=data};
+export const mods=()=>MODS;
+const charKey=id=>CHAR_ITEM[id]==='char_uc'?'uc':String(id);
+export const charUps=(s,id)=>s.chars?.[charKey(id)]||{};
+export const charBase=id=>itemCost(CHAR_ITEM[id]||'char_'+id,0);
+export function charUpCost(s,id,kind,which=null){const u=charUps(s,id),b=charBase(id);
+ if(kind==='relic'||kind==='curse'){const owned=(u[kind+'s']||[]).length;return Math.ceil(b*6*2**owned*discount(s))}
+ const c=CHAR_UP[kind];return Math.ceil(b*c.mult*c.growth**(u[kind]||0)*discount(s))}
+export function buyCharUp(s,id,kind,which=null){const key=charKey(id),u=s.chars[key]??={};
+ if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||list.includes(which))return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
+ const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
+// How often a character is picked for a duel (Spotlight: +25% per level).
+export const charWeight=(s,id)=>1+.25*(charUps(s,id).spot||0);
+// What a duel between these two characters is played with: starting LP and the passive script for both seats.
+// sig is '' when nothing applies, so plain duels keep sharing the library.
+export function duelMods(s,ids){const ups=ids.map(id=>charUps(s,id)),keys=ids.map(charKey);
+ const lp=[0,1].map(p=>{let v=8000+100*(ups[p].lp||0)-100*(ups[1-p].foe||0);if((ups[1-p].curses||[]).includes('drain'))v-=1000;return Math.max(2000,v)});
+ const parts=[];
+ for(const p of [0,1]){const u=ups[p],o=ups[1-p];
+  if(u.card&&MODS.chars[keys[p]]?.card)parts.push(startCardScript(p,MODS.chars[keys[p]].card,MODS.chars[keys[p]].field));
+  for(const r of u.relics||[])if(MODS.relics[r])parts.push(MODS.relics[r].s[p]);
+  for(const c of o.curses||[])if(MODS.curses[c]?.s?.[p])parts.push(MODS.curses[c].s[p])}
+ const sig=(lp[0]!==8000||lp[1]!==8000||parts.length)?JSON.stringify([lp,ups.map(u=>[u.card||0,(u.relics||[]).slice().sort(),(u.curses||[]).slice().sort()])]):'';
+ return {lp,passives:parts.join('\n'),sig}}
+// The signature card at the start of the duel: into the hand from the Deck (a Field Spell goes face-up to the Field Zone).
+export function startCardScript(p,code,field){return `do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)
+e:SetOperation(function(e) e:Reset() local tc=Duel.GetFirstMatchingCard(Card.IsCode,${p},LOCATION_DECK,0,nil,${Number(code)}) if not tc then return end ${field?`Duel.MoveToField(tc,${p},${p},LOCATION_FZONE,POS_FACEUP,true)`:`Duel.SendtoHand(tc,${p},REASON_RULE)`} end) Duel.RegisterEffect(e,${p}) end`}

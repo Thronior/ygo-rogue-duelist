@@ -43,9 +43,10 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // decks: [{main,extra}, {main,extra}] · seats: [{id,tier},{id,tier}] (kept for the board's labels).
 // No turn limit: duels run until someone wins (deck-out ends the longest ones). maxDecisions only stops a
 // duel the core would loop forever (none seen), which then counts as a draw.
-export function recordDuel(engine,decks,seats,seed,{maxDecisions=100000}={}){
+// lp and passives: the players' character upgrades (starting LP, signature card, relics, curses; idle-bets-model duelMods).
+export function recordDuel(engine,decks,seats,seed,{maxDecisions=100000,lp=[8000,8000],passives=''}={}){
  seed>>>=0;
- let state=engine.start(shuffle(decks[0].main,seed,0),shuffle(decks[1].main,seed,1),8000,8000,5,seed,decks[0].extra||[],decks[1].extra||[],NEUTRAL_PASSIVES);
+ let state=engine.start(shuffle(decks[0].main,seed,0),shuffle(decks[1].main,seed,1),lp[0],lp[1],5,seed,decks[0].extra||[],decks[1].extra||[],NEUTRAL_PASSIVES+(passives?String.fromCharCode(10)+passives:''));
  // Never a game replay: the engine records every duel for the replay journal (replays.js) unless this is cleared.
  engine.replayRecord=null;clearTimeout(engine.replaySaveTimer);
  const frames=[];let last=null,decisions=0;
