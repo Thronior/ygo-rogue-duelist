@@ -57,7 +57,12 @@ def build(out,cache=None):
  model=(web/'idle-bets-model.js').read_text(encoding='utf8')
  assert model.count('export const DEV_TOOLS=true;')==1,'DEV_TOOLS switch not found'
  files['idle-bets-model.js']=model.replace('export const DEV_TOOLS=true;','export const DEV_TOOLS=false;// standalone site: no test tools').encode('utf8')
- for name in ['index.html','shadow-betting.js']:add(name,templates/name)
+ # Each build gets an id: build.json, and the same id in shadow-betting.js (the page's update check).
+ import time;build_id=time.strftime('%Y%m%d%H%M%S')
+ add('index.html',templates/'index.html')
+ sb=(templates/'shadow-betting.js').read_text(encoding='utf8');assert sb.count("'__SB_BUILD__'")==1,'build id slot'
+ files['shadow-betting.js']=sb.replace("'__SB_BUILD__'",repr(build_id)).encode('utf8')
+ files['build.json']=json.dumps({'id':build_id}).encode('utf8')
 
  # ---- game data: only what the CPU decks can reach ----
  content=json.loads((web/'content.json').read_text(encoding='utf8'))

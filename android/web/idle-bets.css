@@ -603,3 +603,6 @@
 .db-winner img{flex:0 1 auto;min-height:0;max-height:min(340px,62%);max-width:90%;width:auto;object-fit:contain;filter:drop-shadow(0 0 18px #f2cf8388)}
 .db-winner b{flex:none;font-family:var(--db-cardname);font-size:clamp(13px,2.2vw,32px);color:#fff;text-shadow:0 2px 4px #000;text-align:center}
 @keyframes db-winner-in{from{scale:.5;opacity:0}to{scale:1;opacity:1}}
+/* Skill tree level numbers: bigger, bold, outlined (Discord 2026-11-26: hard to read). */
+.db-sk{width:calc(var(--u)*.98)}.db-sk small{font-size:17px;font-weight:900;color:#e8f3f1;-webkit-text-stroke:3px #05080f;paint-order:stroke fill;text-shadow:0 0 6px #000,0 1px 2px #000;translate:-50% 3px}
+.db-sk.own small,.db-sk.max small{color:#f2cf83}

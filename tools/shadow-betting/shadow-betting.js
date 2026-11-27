@@ -3,6 +3,14 @@
 import {DuelBets} from './idle-bets.js';
 import {balancedVolume} from './audio-balance.js';
 
+// A tab left open keeps running the old version after an update (Discord 2026-11-26: players needed Ctrl+Shift+R).
+// The build writes build.json and puts the same id here; every 5 minutes the page compares them and, when a new
+// version is out, offers a reload. The phone app ships its own files, so its id never changes.
+const BUILD='__SB_BUILD__';
+function checkUpdate(){fetch('build.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(b=>{if(!b||!b.id||b.id===BUILD||document.querySelector('.sb-update'))return;
+ const el=document.createElement('button');el.className='sb-update';el.textContent='A new version is out · tap to reload';el.onclick=()=>location.reload();document.body.append(el)}).catch(()=>{})}
+setInterval(checkUpdate,5*60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
+
 const KEY='shadow-betting-audio';
 const vol={music:40,sound:70};
 try{Object.assign(vol,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{}

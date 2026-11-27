@@ -87,7 +87,7 @@ export const ITEMS=[
  I('fee_heal',5,"Healer's Tithe",11714098,2,ITEM_GROWTH,'simple',{text:()=>'+0.5 for every 1,000 LP gained.',show:s=>s.boards>=5}),
  I('open6',5,'Board 6: '+LEAGUES[5],83764718,20,1,'opener',{max:1,text:()=>`Opens board 6. Bets cost ${fmt(boardStake(6))} and pay ${fmt(boardPayout(6))}.`,show:s=>s.boards>=5&&lvl(s,'calls5')>=1}),
  calls(6),
- I('special',6,'Alternate Win Jackpot',28566710,3,3,'drastic',{max:20,text:()=>'+200 whenever a duel ends by a special win other than Exodia.',show:s=>s.boards>=6}),
+ I('special',6,'Alternate Win Jackpot',28566710,3,3,'drastic',{max:20,text:l=>`Alternate wins (not Exodia) pay ${fmt(jackpotBase('special',{items:{special:l+1}}))} (now ${fmt(jackpotBase('special',{items:{special:l}}))}).`,show:s=>s.boards>=6}),
  I('flawless',6,'Flawless Bonus',5318639,2,ITEM_GROWTH,'simple',{text:()=>'+5 whenever the winner still has 8,000 LP or more.',show:s=>s.boards>=6}),
  I('open7',6,'Board 7: '+LEAGUES[6],50045299,20,1,'opener',{max:1,text:()=>`Opens board 7. Bets cost ${fmt(boardStake(7))} and pay ${fmt(boardPayout(7))}.`,show:s=>s.boards>=6&&lvl(s,'calls6')>=1}),
  calls(7),
@@ -260,7 +260,8 @@ export function jackpotBase(kind,s){const l=lvl(s,kind);
  // Deck-outs pay Exodia's starting jackpot by default; the Deck-Out Jackpot item adds to it (Thronior, Discord 2026-11-26:
  // "by default, kind of like the exodia and destiny board jackpots ... the upgrade should just increase that amount").
  if(kind==='deckout')return 50*power('exodia')+50*levelValue(l)*power('deckout');
- return (kind==='exodia'?50*2**l:kind==='special'?200*levelValue(l):0)*power(kind)}
+ if(kind==='special')return 200*power('exodia')+200*levelValue(l)*power('special');// alternate wins: the same idea
+ return (kind==='exodia'?50*2**l:0)*power(kind)}
 // Income from one replayed frame's events on a board of this level.
 // Items pay the same on every board (like Cookie Clicker buildings, a new board never multiplies the old items);
 // only the bets and the Calls items grow with a board's stakes. High Roller multiplies everything.
