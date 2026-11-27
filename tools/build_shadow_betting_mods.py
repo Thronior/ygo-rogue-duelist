@@ -207,19 +207,27 @@ is_field=lambda code:bool(code and g.BY_ID[code].get('race')=='Field' and 'Spell
 import relic_fusions as rf
 FUSED_POOL={f[0]:f for f in rf.FUSED if f[0] not in ('gold_sarcophagus','jar_of_greed','grand_bazaar','bottomless_purse')}
 FUSED_ANY=['masterwork_blade','gaia_plate','sacred_phoenix','invincible']
-def fused_candidates(picked,cands,n=4):
+# Variety (user, 2026-11-27): up to 6 candidates that share pieces with the character's relics; the general ones only fill
+# in below 3; and in the merge, no fused relic goes to more than FUSED_CAP characters (clearest winners choose first).
+FUSED_CAP=6
+def fused_candidates(picked,cands,n=6):
  score={k:3*len(set(f[4])&set(picked))+len(set(f[4])&set(cands)) for k,f in FUSED_POOL.items()}
  best=[k for k,v in sorted(score.items(),key=lambda kv:(-kv[1],kv[0])) if v>0][:n]
  for k in FUSED_ANY:
-  if len(best)>=n:break
+  if len(best)>=3:break
   if k in FUSED_POOL and k not in best:best.append(k)
  return best
 import argparse
-ap=argparse.ArgumentParser();ap.add_argument('--candidates',type=Path);ap.add_argument('--fused-candidates',type=Path);ap.add_argument('--merge-fused',type=Path);args=ap.parse_args()
-if args.merge_fused:# the fused-relic simulation's winners go into the picks file
- picks=json.loads(PICKS.read_text(encoding='utf8'));res=json.loads(args.merge_fused.read_text(encoding='utf8'))
- for cid,r in res.items():
-  if cid in picks:picks[cid]['fused']=r['relics'][-1];picks[cid]['fusedWins']=r['best'];picks[cid]['fusedBase']=picks[cid].get('best')
+ap=argparse.ArgumentParser();ap.add_argument('--candidates',type=Path);ap.add_argument('--fused-candidates',type=Path);ap.add_argument('--merge-fused',type=Path);ap.add_argument('--fused-from',type=Path);args=ap.parse_args()
+if args.merge_fused:# the fused-relic simulation's results go into the picks file, at most FUSED_CAP characters per relic
+ picks=json.loads(PICKS.read_text(encoding='utf8'));res=json.loads(args.merge_fused.read_text(encoding='utf8'));fc=json.loads(args.fused_from.read_text(encoding='utf8'))
+ opts={cid:sorted(((w,i) for i,w in enumerate(r['wins'])),reverse=True) for cid,r in res.items()}
+ margin=lambda cid:opts[cid][0][0]-(opts[cid][1][0] if len(opts[cid])>1 else 0)
+ used={}
+ for cid in sorted(opts,key=lambda c:(-margin(c),c)):
+  combos=fc['chars'][cid]['combos'];choice=next(((w,i) for w,i in opts[cid] if used.get(combos[i][0][-1].split('@')[0],0)<FUSED_CAP),opts[cid][0])
+  key=combos[choice[1]][0][-1];used[key.split('@')[0]]=used.get(key.split('@')[0],0)+1
+  if cid in picks:picks[cid]['fused']=key;picks[cid]['fusedWins']=choice[0];picks[cid]['fusedBest']=opts[cid][0][0]
  PICKS.write_text(json.dumps(picks,separators=(',',':')).replace('},"','},\n"'),encoding='utf8');print(f"fused relics for {len(res)} characters -> {PICKS}");raise SystemExit
 picks=json.loads(PICKS.read_text(encoding='utf8')) if PICKS.exists() and not args.candidates else {}
 out={'chars':{},'relics':{},'curses':{}};cand={'chars':{},'relics':{}}
