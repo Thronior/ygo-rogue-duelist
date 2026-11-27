@@ -124,13 +124,14 @@ export class DuelBets{
    if(this.skMoved)return;const z=e.target.closest('[data-skz]');if(z){this.skZoom(dlg,z.dataset.skz);return}
    const sk=e.target.closest('[data-sk]');if(sk){this.treeSel=sk.dataset.sk;for(const b of dlg.querySelectorAll('.db-sk'))b.classList.toggle('sel',b===sk);dlg.querySelector('.db-sk-info').innerHTML=this.treeInfo(this.treeSel);return}
    const node=e.target.closest('[data-node]');if(node){if(M.buyNode(this.state,node.dataset.node)){this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.prestigeHTML();this.skApply(dlg);this.paintTotal(true);this.refreshShop()}return}
+   if(e.target.closest('[data-newrun]')){dlg.close();return}
    const go=e.target.closest('[data-regress]');if(go){if(!go.dataset.armed){go.dataset.armed='1';go.textContent='Tap again: start over for '+M.starsFor(this.state)+' ★';return}dlg.close();this.regressNow()}});
-  d.classList.add('db-prestige-modal');this.skApply(d);this.skPanZoom(d);
+  d.classList.add('db-prestige-modal');this.skApply(d);this.skPanZoom(d);d.addEventListener('close',()=>this.finishRegress());
   // Hover shows a node without picking it; leaving the tree shows the picked one again.
   d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]'),info=d.querySelector('.db-sk-info');if(sk&&info)info.innerHTML=this.treeInfo(sk.dataset.sk)});
   d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const sk=e.target.closest('[data-sk]');if(sk&&!sk.contains(e.relatedTarget)){const info=d.querySelector('.db-sk-info');if(info)info.innerHTML=this.treeInfo(this.treeSel)}})}
- prestigeHTML(){const s=this.state,gain=M.starsFor(s);
-  const head=`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn the ${M.fmt(M.runEarned(s))} coins you earned this run into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button><small class="db-next-star">Next ★ at ${M.fmt(M.nextStarAt(s))} coins earned.</small>`:''}</div>`;
+ prestigeHTML(){const s=this.state,gain=s.pendingRun?0:M.starsFor(s);
+  const head=s.pendingRun?`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress"><p>Spend your stars now: what you buy applies to the new run, which starts when you close this window.</p><button class="db-reset db-newrun" data-newrun>Start the new run</button></div>`:`<div class="db-stars"><b>★ ${s.stars}</b><span>stars</span></div><div class="db-regress">${gain?`<p>Start over and turn the ${M.fmt(M.runEarned(s))} coins you earned this run into <b>${gain} ★</b>. You keep your stars, the skill tree and your records.</p><button class="db-reset" data-regress>Regress for ${gain} ★</button><small class="db-next-star">Next ★ at ${M.fmt(M.nextStarAt(s))} coins earned.</small>`:''}</div>`;
   // The tree grows up from the root; each node is an icon, tap or hover one to read it below; drag and zoom to move
   // around (user, 2026-11-26). Hidden until the first regress.
   if(!M.treeUnlocked(s))return head+`<div class="db-skill db-skill-locked"><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><p>${M.runEarned(s)>=M.REGRESS_MIN?'Regress to unlock the skill tree':`Reach ${M.fmt(M.REGRESS_MIN)} coins to unlock`}</p></div>`;
@@ -170,8 +171,10 @@ export class DuelBets{
   const now=l?`<p><span>Now</span>${esc(n.text(l))}</p>`:'',next=maxed?'':`<p><span>${l?'Next':'Buy'}</span>${esc(n.text(l+1))}</p>`;
   const act=maxed?'<span class="db-node-max">MAX</span>':open?`<button class="db-buy ${s.stars<cost?'poor':''}" data-node="${n.id}" ${s.stars<cost?'disabled':''}>★ ${cost}</button>`:`<span class="db-node-req">Needs ${esc(req.name)} ${req.max>1?'level '+n.req[1]:''}</span>`;
   return `<img alt="" src="${esc(assetURL('assets/relics/'+n.art+'.png'))}"><div><b>${esc(n.name)} <small>${n.branch} · ${l}/${n.max}</small></b>${now}${next}</div>${act}`}
- regressNow(){const r=M.regress(this.state);if(!r)return;const fx=this.rewindFX(r.gained);for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;
-  const inf=this.state.settings.infinite;this.state=r.state;this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout();fx.then(()=>this.prestige())}
+ // Regress: stars first, then the tree (everything paused); the new run starts when the tree window closes.
+ regressNow(){const g=M.regressBegin(this.state);if(!g)return;this.save();this.rewindFX(g).then(()=>this.prestige())}
+ finishRegress(){if(!this.state.pendingRun)return;for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;
+  const inf=this.state.settings.infinite;this.state=M.finishRun(this.state);this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout()}
  // Regress animation (user, 2026-11-26): Time Wizard spins in over a clock that winds backwards, then the stars.
  rewindFX(gained){const fast=this.state.settings.fx==='off',el=document.createElement('div');el.className='db-rewind'+(fast?' fast':'');
   el.innerHTML=`<div class="db-rw-clock"><i class="db-rw-h"></i><i class="db-rw-m"></i></div><img alt="" src="${esc(assetURL('assets/ui/time-wizard-320.png'))}"><b>+${gained} ★</b>`;
@@ -182,8 +185,13 @@ export class DuelBets{
    return `<button class="db-char" data-db="char" data-char="${esc(String(cid))}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+it.portrait))}"><span>${esc(it.charName||it.name)}</span>${n?`<i>${n}</i>`:''}</button>`}).join('')}</div>`}
  charIdOf(it){return it.id==='char_uc'?Number(Object.keys(M.CHAR_ITEM).find(k=>M.CHAR_ITEM[k]==='char_uc')):Number(it.id.slice(5))}
  charSheet(cid){cid=Number(cid);const itemId=M.CHAR_ITEM[cid]||'char_'+cid,it=M.ITEM[itemId];if(!it)return;
-  const d=this.modal(it.id==='char_uc'?'Ultimate Collectors':it.charName,this.charSheetHTML(cid),(e,dlg)=>{const b=e.target.closest('[data-up]');if(!b||b.disabled)return;
-   const kind=b.dataset.up,ok=kind==='fan-toggle'?M.toggleFan(this.state,cid):kind==='payout'?!!M.buy(this.state,itemId):M.buyCharUp(this.state,cid,kind,b.dataset.which||null);
+  const d=this.modal(it.id==='char_uc'?'Ultimate Collectors':it.charName,this.charSheetHTML(cid),(e,dlg)=>{
+   const amt=e.target.closest('[data-amt]');if(amt){this.buyN=amt.dataset.amt==='max'?'max':Number(amt.dataset.amt);dlg.querySelector('.db-modal-body').innerHTML=this.charSheetHTML(cid);this.renderShop();return}
+   const b=e.target.closest('[data-up]');if(!b||b.disabled)return;
+   const kind=b.dataset.up,info=this.charBuyInfo(cid,kind);let ok=false;
+   if(kind==='fan-toggle')ok=M.toggleFan(this.state,cid);
+   else if(info){if(M.canAfford(this.state,info.cost))for(let i=0;i<info.count;i++){const x=kind==='payout'?!!M.buy(this.state,itemId):M.buyCharUp(this.state,cid,kind);if(!x)break;ok=true}}
+   else ok=M.buyCharUp(this.state,cid,kind,b.dataset.which||null);
    if(!ok){b.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
    this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.querySelector('.db-modal-body').innerHTML=this.charSheetHTML(cid);this.paintTotal();this.refreshShop()});
   d.classList.add('db-char-modal');this.charSheetOpen={d,cid};this.upTips(d)}
@@ -197,8 +205,14 @@ export class DuelBets{
   d.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip-name]');if(el&&el!==shown)show(el)});
   d.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip-name]');if(el&&!el.contains(e.relatedTarget))hide()});
   d.querySelector('.db-modal-body')?.addEventListener('scroll',hide,{passive:true})}
+ // Levels the character page buys at once with the chosen buy amount (null: a one-time upgrade).
+ charBuyInfo(cid,kind){const s=this.state,n=this.buyN||1,itemId=M.CHAR_ITEM[cid]||'char_'+cid;
+  if(kind==='payout'){const l=M.itemLevel(s,itemId);if(n===1)return {count:1,cost:M.price(s,itemId,l)};const b=M.bulk(s,itemId,n);return b.count?b:{count:1,cost:M.price(s,itemId,l)}}
+  if(!['spot','lp','foe'].includes(kind))return null;const b=M.charBulk(s,cid,kind,n);return b.count?b:{count:1,cost:M.charUpCost(s,cid,kind)}}
  charSheetHTML(cid){const s=this.state,itemId=M.CHAR_ITEM[cid]||'char_'+cid,it=M.ITEM[itemId],key=itemId==='char_uc'?'uc':String(cid),data=M.mods().chars[key],u=M.charUps(s,cid),mods=M.mods();
   const btn=(kind,cost,owned,which='')=>owned?'<span class="db-owned">OWNED</span>':`<button class="db-buy ${M.canAfford(s,cost)?'':'poor'}" data-up="${kind}" ${which?`data-which="${esc(which)}"`:''}>${M.fmt(cost)}</button>`;
+  const mbtn=kind=>{const info=this.charBuyInfo(cid,kind),n=this.buyN||1;return `<button class="db-buy ${M.canAfford(s,info.cost)?'':'poor'}" data-up="${kind}">${n===1?'':`<small>×${info.count}</small> `}${M.fmt(info.cost)}</button>`};
+  const amounts=`<div class="db-buy-amt db-sheet-amt" role="group" aria-label="How many to buy">${[1,5,10,50,'max'].map(n=>`<button data-amt="${n}" class="${(this.buyN||1)===n?'on':''}">${n==='max'?'MAX':'×'+n}</button>`).join('')}</div>`;
   const row=(icon,title,text,control)=>`<div class="db-up">${icon||'<span></span>'}<span class="db-up-text"><b>${title}</b><small>${text}</small></span>${control}</div>`;
   // Relics and curses show only their icon and name; press or hover one for its effect, like the shop's items (user, 2026-11-26).
   const tipRow=(icon,title,name,text,control)=>`<div class="db-up db-up-short" data-tip-name="${esc(name)}" data-tip-text="${esc(text)}" tabindex="0">${icon||'<span></span>'}<span class="db-up-text"><b>${title}</b></span>${control}</div>`;
@@ -206,15 +220,17 @@ export class DuelBets{
   const pay=M.itemLevel(s,itemId),payMax=pay>=it.max,tip=M.tooltip(s,itemId);
   // The current bonus is shown, not only the first level's (Nori, Discord 2026-11-26).
   const who=itemId==='char_uc'?'Ultimate Collector':(it.charName||'this character'),now=M.charWinPay(s,cid,pay),next=M.charWinPay(s,cid,pay+1),w=l=>`${(1+M.SPOT_STEP*l).toFixed(1).replace(/\.0$/,'')}×`;
-  const rows=[row('',`Payout <small class="db-count">×${pay}</small>`,pay?`Each ${esc(who)} win pays +${M.fmt(now)}${payMax?'':` (next level +${M.fmt(next)})`}.`:`Each ${esc(who)} win pays +${M.fmt(next)} once bought; every level adds 15% more.`,payMax?'<span class="db-owned">MAX</span>':btn('payout',M.price(s,itemId,pay),false)),
-   row('',`Spotlight <small class="db-count">${lvl('spot')}/${max('spot')}</small>`,`Comes up in duels ${w(lvl('spot'))} as often${lvl('spot')<max('spot')?` (next level ${w(lvl('spot')+1)})`:''}.`,lvl('spot')>=max('spot')?'<span class="db-owned">MAX</span>':btn('spot',M.charUpCost(s,cid,'spot'),false)),
+  const rows=[row('',`Payout <small class="db-count">×${pay}</small>`,pay?`Each ${esc(who)} win pays +${M.fmt(now)}${payMax?'':` (next level +${M.fmt(next)})`}.`:`Each ${esc(who)} win pays +${M.fmt(next)} once bought; every level adds 15% more.`,payMax?'<span class="db-owned">MAX</span>':mbtn('payout')),
+   row('',`Spotlight <small class="db-count">${lvl('spot')}/${max('spot')}</small>`,`Comes up in duels ${w(lvl('spot'))} as often${lvl('spot')<max('spot')?` (next level ${w(lvl('spot')+1)})`:''}.`,lvl('spot')>=max('spot')?'<span class="db-owned">MAX</span>':mbtn('spot')),
    row('',`Auto Bet Favourite`,`Auto Bet always backs ${esc(who)} when they duel.`,u.fan?`<button class="db-buy db-toggle ${u.fanOff?'':'on'}" data-up="fan-toggle">${u.fanOff?'OFF':'ON'}</button>`:btn('fan',M.charUpCost(s,cid,'fan'),false)),
    data?.card?row('',`Signature Start`,`Starts every duel with ${esc(data.cardName)} ${data.field?'on the field':'in hand'} (when it is in the deck).`,btn('card',M.charUpCost(s,cid,'card'),!!u.card)):'',
-   row('',`Iron Will <small class="db-count">${lvl('lp')}/${max('lp')}</small>`,`Starts with ${100*(lvl('lp')+1)} more LP${lvl('lp')?` (now +${100*lvl('lp')})`:''}.`,lvl('lp')>=max('lp')?'<span class="db-owned">MAX</span>':btn('lp',M.charUpCost(s,cid,'lp'),false)),
-   row('',`Intimidation <small class="db-count">${lvl('foe')}/${max('foe')}</small>`,`Opponents start with ${100*(lvl('foe')+1)} fewer LP${lvl('foe')?` (now −${100*lvl('foe')})`:''}.`,lvl('foe')>=max('foe')?'<span class="db-owned">MAX</span>':btn('foe',M.charUpCost(s,cid,'foe'),false))];
-  const relics=(data?.relics||[]).map(k=>{const r=mods.relics[k];if(!r)return '';return tipRow(r.art?`<img class="db-up-art" loading="lazy" alt="" src="${esc(assetURL('assets/relics/'+r.art))}">`:r.artCard?`<img class="db-up-art card" loading="lazy" alt="" src="${esc(assetURL('assets/cards-thumb/'+r.artCard+'.jpg'))}" data-full="${esc(assetURL('assets/cards/'+r.artCard+'.jpg'))}">`:'',esc(r.name)+` <small class="db-count">${M.copies(u.relics,k)}/${M.MOD_COPIES}</small>`+(r.shadow?' <small class="db-shadow-tag">Shadow relic</small>':''),r.name,r.text,btn('relic',M.charUpCost(s,cid,'relic'),M.copies(u.relics,k)>=M.MOD_COPIES,k))}).join('');
-  const curses=(data?.curses||[]).map(k=>{const c=mods.curses[k];if(!c)return '';return tipRow(`<span class="db-curse-art"><img alt="" src="${esc(assetURL(c.icon))}"${c.filter?` style="filter:${esc(c.filter)}"`:''}></span>`,esc(c.name)+` <small class="db-count">${M.copies(u.curses,k)}/${M.MOD_COPIES}</small>`,c.name,'On their opponent: '+c.text,btn('curse',M.charUpCost(s,cid,'curse'),M.copies(u.curses,k)>=M.MOD_COPIES,k))}).join('');
-  return `<div class="db-sheet-head"><img alt="" src="${esc(assetURL('assets/'+it.portrait))}"><div>${(this.pool.filter(p=>p.id===cid).map(p=>this.tierChip(p.label)).join(''))}</div></div><div class="db-up-grid">${rows.join('')}</div>${relics?`<h3>Relics</h3><div class="db-up-grid">${relics}</div>`:''}${curses?`<h3>Curses</h3><div class="db-up-grid">${curses}</div>`:''}`}
+   row('',`Iron Will <small class="db-count">${lvl('lp')}/${max('lp')}</small>`,`Starts with ${100*(lvl('lp')+1)} more LP${lvl('lp')?` (now +${100*lvl('lp')})`:''}.`,lvl('lp')>=max('lp')?'<span class="db-owned">MAX</span>':mbtn('lp')),
+   row('',`Intimidation <small class="db-count">${lvl('foe')}/${max('foe')}</small>`,`Opponents start with ${100*(lvl('foe')+1)} fewer LP${lvl('foe')?` (now −${100*lvl('foe')})`:''}.`,lvl('foe')>=max('foe')?'<span class="db-owned">MAX</span>':mbtn('foe'))];
+  const relics=(data?.relics||[]).map(k=>{const r=mods.relics[k];if(!r)return '';return tipRow(r.art?`<img class="db-up-art" loading="lazy" alt="" src="${esc(assetURL('assets/relics/'+r.art))}">`:r.artCard?`<img class="db-up-art card" loading="lazy" alt="" src="${esc(assetURL('assets/cards-thumb/'+r.artCard+'.jpg'))}" data-full="${esc(assetURL('assets/cards/'+r.artCard+'.jpg'))}">`:'',esc(r.name)+(r.shadow?' <small class="db-shadow-tag">Shadow relic</small>':''),r.name,r.text,btn('relic',M.charUpCost(s,cid,'relic'),M.copies(u.relics,k)>=1,k))}).join('');
+  // Fused Relic: once all three relics are bought, a super expensive upgrade that makes each of them count twice.
+  const fused=M.allRelics(s,cid)?tipRow(`<span class="db-fused-art">${(data.relics||[]).map(k=>mods.relics[k]).filter(Boolean).map(r=>r.art?`<img alt="" src="${esc(assetURL('assets/relics/'+r.art))}">`:r.artCard?`<img alt="" class="card" src="${esc(assetURL('assets/cards-thumb/'+r.artCard+'.jpg'))}">`:'').join('')}</span>`,'Fused Relic','Fused Relic','All three relics above count twice in every duel.',btn('fused',M.charUpCost(s,cid,'fused'),!!u.fused)):'';
+  const curses=(data?.curses||[]).map(k=>{const c=mods.curses[k];if(!c)return '';return tipRow(`<span class="db-curse-art"><img alt="" src="${esc(assetURL(c.icon))}"${c.filter?` style="filter:${esc(c.filter)}"`:''}></span>`,esc(c.name)+(M.modLimit('curse',k)>1?` <small class="db-count">${M.copies(u.curses,k)}/${M.modLimit('curse',k)}</small>`:''),c.name,'On their opponent: '+c.text,btn('curse',M.charUpCost(s,cid,'curse'),M.copies(u.curses,k)>=M.modLimit('curse',k),k))}).join('');
+  return `<div class="db-sheet-head"><img alt="" src="${esc(assetURL('assets/'+it.portrait))}"><div>${(this.pool.filter(p=>p.id===cid).map(p=>this.tierChip(p.label)).join(''))}</div></div>${amounts}<div class="db-up-grid">${rows.join('')}</div>${relics?`<h3>Relics</h3><div class="db-up-grid">${relics}${fused}</div>`:''}${curses?`<h3>Curses</h3><div class="db-up-grid">${curses}</div>`:''}`}
  // ---- shop ----
  renderShop(){
   // Category tabs, always shown; each lists its items from the dearest first price at the top to the cheapest at the
@@ -301,6 +317,7 @@ export class DuelBets{
  }
  step(dt){
   // A Destiny Duel stops everything else and plays at 1x (user, 2026-11-26).
+  if(this.state.pendingRun)return;// regressing: the boards wait for the new run
   if(!this.destiny){const k=M.destinyDue(this.state);if(k)this.destiny=new DestinyDuel(this,k)}
   if(this.destiny){if(dt>0)this.destiny.tick(dt)}
   else{if(dt>0){const gdt=dt*M.speedOf(this.state);this.clock+=dt;for(const b of this.boards)b.tick(gdt);for(const b of this.brackets)b.tick(gdt,dt)}

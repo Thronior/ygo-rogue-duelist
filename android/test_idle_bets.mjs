@@ -192,6 +192,8 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  {const q={...n,earned:1e18,tree:{}},next=M.nextStarAt(q);assert.equal(M.starsFor({...q,earned:next}),M.starsFor(q)+1,'next star past 1T');assert.equal(M.starsFor({...q,earned:next*.999}),M.starsFor(q))}
  assert.equal(M.TREE_BY.interest.cost(0),1,'first levels keep their price');assert.ok(M.TREE_BY.interest.cost(1)>=6,'later levels cost more');
  assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(n))).tree,n.tree,'the tree is saved');
+ {const g=M.newState();g.earned=1e9;assert.equal(M.regressBegin(g),10);assert.ok(g.pendingRun&&g.stars===10,'stars first, the run waits');assert.ok(M.buyNode(g,'seed'));const n2=M.finishRun(g);assert.equal(n2.coins,M.startCoins(1),'what was bought before the new run applies to it');assert.ok(!n2.pendingRun);
+  assert.ok(!M.sanitize({...g,pendingRun:true}).pendingRun,'a reload mid-regress starts the new run')}
  assert.ok(!M.buyNode(M.newState(),'interest'),'every branch starts at the root');
  assert.deepEqual(M.sanitize({tree:{seed:3,kit:1}}).tree,{seed:1,nest:2,kit:1},'old Seed Money levels become Nest Egg');
  for(const x of M.TREE)if(x.req)assert.ok(M.TREE_BY[x.req[0]].at[1]<x.at[1],x.id+' sits above what it needs');}
@@ -222,9 +224,12 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  {const v=M.newState();v.coins=1e12;v.items.autobet=1;v.items.betpay=1;v.items.tier2=3;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>0),1,'Payout Sense counts tier upgrades');
   v.items.char_5=30;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'and character Payout')
   v.items.scout=1;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),1,'Scouting Report goes first when both are on');v.settings.off.scout=true;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'switched off: Payout Sense decides')}
- {const r=M.newState();r.coins=1e15;M.registerMods(mods);for(let i=0;i<4;i++)M.buyCharUp(r,5,'relic','a@5');assert.equal(M.copies(r.chars['5'].relics,'a@5'),3,'up to 3 copies of a relic');
-  assert.equal(M.duelMods(r,[5,6]).passives.split('RELIC0').length-1,3,'copies stack');for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
-  assert.deepEqual(M.sanitize(JSON.parse(JSON.stringify(r))).chars['5'].relics,['a@5','a@5','a@5'],'copies are saved');
+ {const r=M.newState();r.coins=1e15;M.registerMods(mods);for(let i=0;i<4;i++)M.buyCharUp(r,5,'relic','a@5');assert.equal(M.copies(r.chars['5'].relics,'a@5'),1,'one copy of a relic');
+  assert.ok(!M.buyCharUp(r,5,'fused'),'Fused Relic needs all three relics');M.buyCharUp(r,5,'relic','b@5');M.buyCharUp(r,5,'relic','c@5');assert.ok(M.buyCharUp(r,5,'fused'));
+  assert.equal(M.duelMods(r,[5,6]).passives.split('RELIC0').length-1,2,'Fused Relic: each relic counts twice');for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
+  for(let i=0;i<3;i++)M.buyCharUp(r,5,'curse','mercy');assert.equal(M.copies(r.chars['5'].curses,'mercy'),1,'curses that do not stack: one copy');
+  assert.deepEqual(M.sanitize({chars:{'5':{relics:['a@5','a@5','a@5'],curses:['tax','tax','tax','tax']}}}).chars['5'],{relics:['a@5'],curses:['tax','tax','tax']},'older saves: extra relic copies drop');
+  {const q=M.newState();q.coins=1e15;assert.equal(M.charBulk(q,5,'lp',5).count,5);assert.equal(M.charBulk(q,5,'lp','max').count,20,'MAX up to the cap')}
   r.items.autobet=1;r.items.betfav=1;assert.equal(M.autoPick(r,[{id:6},{id:5}],()=>0),1,'Loyal Backer backs the most upgraded character')}
  assert.ok(M.charUpCost(c,5,'relic')>M.charUpCost(c,5,'lp'),'relics cost more than an LP level');
 }

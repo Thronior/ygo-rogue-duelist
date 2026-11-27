@@ -190,10 +190,11 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  const rt={...(raw.tree&&typeof raw.tree==='object'?raw.tree:{})};if(num(rt.seed)>1){rt.nest=Math.max(num(rt.nest),num(rt.seed)-1);rt.seed=1}
  for(const n of TREE){const v=Math.floor(num(rt[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
  if(raw.chars&&typeof raw.chars==='object')for(const [id,c] of Object.entries(raw.chars)){if(!/^(\d+|uc)$/.test(id)||!c||typeof c!=='object')continue;
-  const o={};for(const k of ['spot','card','lp','foe','fan']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}if(c.fanOff)o.fanOff=true;
-  for(const k of ['relics','curses'])if(Array.isArray(c[k])){const n={};o[k]=c[k].filter(x=>typeof x==='string'&&(n[x]=(n[x]||0)+1)<=MOD_COPIES).slice(0,9)}
+  const o={};for(const k of ['spot','card','lp','foe','fan','fused']){const v=Math.floor(num(c[k]));if(v>0)o[k]=Math.min(v,CHAR_UP[k].max)}if(c.fanOff)o.fanOff=true;
+  for(const k of ['relics','curses'])if(Array.isArray(c[k])){const n={};o[k]=c[k].filter(x=>typeof x==='string'&&(n[x]=(n[x]||0)+1)<=modLimit(k==='relics'?'relic':'curse',x)).slice(0,9)}
   if(Object.keys(o).length)s.chars[id]=o}
  if(Array.isArray(raw.brackets_saved))s.brackets_saved=raw.brackets_saved.filter(b=>b&&Array.isArray(b.roster)&&b.roster.length===ROSTER_SIZE).slice(0,BRACKET_MAX);
+ if(raw.pendingRun)return startRun(s);// left mid-regress: the new run starts now
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
@@ -425,16 +426,26 @@ export function startRun(s){
  if(tl(s,'quick'))n.items.speed=5*tl(s,'quick');if(tl(s,'order'))n.items.autobet=3*tl(s,'order');
  if(tl(s,'insider'))n.items.scout=1;if(tl(s,'season'))n.items.autochamp=1;
  return n}
-export function regress(s){const gained=starsFor(s);if(!gained)return null;const n=startRun({...s,stars:s.stars+gained,regresses:(s.regresses||0)+1});return {state:n,gained}}
+// Regressing first adds the stars and leaves the run waiting (pendingRun), so the skill tree's start-with upgrades bought
+// right then apply to the new run; finishRun starts it (user, Discord 2026-11-27: "The upgrade tree should appear before
+// it regresses you"). A reload in between starts the new run at once.
+export function regressBegin(s){const gained=starsFor(s);if(!gained||s.pendingRun)return 0;s.stars+=gained;s.regresses=(s.regresses||0)+1;s.pendingRun=true;return gained}
+export const finishRun=s=>startRun({...s,pendingRun:false});
+export function regress(s){const gained=regressBegin(s);if(!gained)return null;return {state:finishRun(s),gained}}
 
 // ---- character upgrades: each CPU character has a page of upgrades (user, 2026-11-26) ----
 // Payout is the char_ item. The rest live in s.chars[id] ('uc' = every Ultimate Collector): spot (appears more often),
 // card (starts each duel with its signature card), lp (+100 starting LP), foe (opponent −100 starting LP), relics and
 // curses (3 tailored each, idle-bets-mods.json). Prices are multiples of the character's payout price.
 // fan (Fan Club): Auto Bet backs this character whenever they duel (Discord 2026-11-26: the user and Nori).
-// Each tailored relic and curse can be bought up to 3 times per character; copies stack (user, 2026-11-26).
+// Relics: one copy each (3 stacking copies were too strong); curses: up to 3 stacking copies, except the ones that do
+// not stack, as in singleplayer (feedback_update.nonstackable_curses + Mercy once per duel). After all three relics, a
+// super expensive Fused Relic makes each count twice (the user, Discord #shadow-betting 2026-11-27).
 export const MOD_COPIES=3;export const copies=(list,k)=>(list||[]).filter(x=>x===k).length;
-export const CHAR_UP={spot:{max:10,mult:1.5,growth:1.6},card:{max:1,mult:4,growth:1},lp:{max:20,mult:2,growth:1.35},foe:{max:20,mult:2,growth:1.35},fan:{max:1,mult:3,growth:1}};
+export const CURSE_ONCE=new Set(['relic_seal','mirror_stats','effect_reverser','shield_breaker','relic_mirror','no_specials','miller','mercy','no_recovery','fireproof_vest']);
+export const modLimit=(kind,k)=>kind==='relic'?1:CURSE_ONCE.has(k)?1:MOD_COPIES;
+export const CHAR_UP={spot:{max:10,mult:1.5,growth:1.6},card:{max:1,mult:4,growth:1},lp:{max:20,mult:2,growth:1.35},foe:{max:20,mult:2,growth:1.35},fan:{max:1,mult:3,growth:1},fused:{max:1,mult:400,growth:1}};
+export const allRelics=(s,id)=>{const want=MODS.chars[charKey(id)]?.relics||[],own=charUps(s,id).relics||[];return want.length>0&&want.every(k=>own.includes(k))};
 let MODS={chars:{},relics:{},curses:{}};
 export const registerMods=data=>{if(data&&data.chars)MODS=data};
 export const mods=()=>MODS;
@@ -444,11 +455,14 @@ export const charBase=id=>itemCost(CHAR_ITEM[id]||'char_'+id,0);
 export function charUpCost(s,id,kind,which=null){const u=charUps(s,id),b=charBase(id);
  if(kind==='relic'||kind==='curse'){const owned=(u[kind+'s']||[]).length;return Math.ceil(b*6*2**owned*discount(s))}
  const c=CHAR_UP[kind];return Math.ceil(b*c.mult*c.growth**(u[kind]||0)*discount(s))}
+// Several levels of a character upgrade at once (the shop's buy amounts on the character page; Nori, Discord 2026-11-26).
+export function charBulk(s,id,kind,n){const c=CHAR_UP[kind];if(!c)return {count:0,cost:0};const u=charUps(s,id),b=charBase(id);let l=u[kind]||0,count=0,cost=0;const want=n==='max'?1000:n;
+ while(count<want&&l<c.max){const k=Math.ceil(b*c.mult*c.growth**l*discount(s));if(n==='max'&&!canAfford(s,cost+k))break;cost+=k;count++;l++}return {count,cost}}
 // Auto Bet Favourite (fan) can be switched off and on again once bought.
 export function toggleFan(s,id){const u=s.chars[charKey(id)];if(!u?.fan)return false;if(u.fanOff)delete u.fanOff;else u.fanOff=true;return true}
 export function buyCharUp(s,id,kind,which=null){const key=charKey(id),u=s.chars[key]??={};
- if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||copies(list,which)>=MOD_COPIES)return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
- const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
+ if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||copies(list,which)>=modLimit(kind,which))return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
+ const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;if(kind==='fused'&&!allRelics(s,id))return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
 // How often a character is picked for a duel (Spotlight: +60% per level, 7x at level 10; it was +25%, too weak:
 // the user, Discord 2026-11-26).
 export const SPOT_STEP=.6;
@@ -460,9 +474,9 @@ export function duelMods(s,ids){const ups=ids.map(id=>charUps(s,id)),keys=ids.ma
  const parts=[];
  for(const p of [0,1]){const u=ups[p],o=ups[1-p];
   if(u.card&&MODS.chars[keys[p]]?.card)parts.push(startCardScript(p,MODS.chars[keys[p]].card,MODS.chars[keys[p]].field));
-  for(const r of u.relics||[])if(MODS.relics[r])parts.push(MODS.relics[r].s[p]);
+  for(const r of u.relics||[])if(MODS.relics[r])for(let i=u.fused?2:1;i>0;i--)parts.push(MODS.relics[r].s[p]);
   for(const c of o.curses||[])if(MODS.curses[c]?.s?.[p])parts.push(MODS.curses[c].s[p])}
- const sig=(lp[0]!==8000||lp[1]!==8000||parts.length)?JSON.stringify([lp,ups.map(u=>[u.card||0,(u.relics||[]).slice().sort(),(u.curses||[]).slice().sort()])]):'';
+ const sig=(lp[0]!==8000||lp[1]!==8000||parts.length)?JSON.stringify([lp,ups.map(u=>[u.card||0,(u.relics||[]).slice().sort(),(u.curses||[]).slice().sort(),u.fused||0])]):'';
  return {lp,passives:parts.join('\n'),sig}}
 // The signature card at the start of the duel: into the hand from the Deck (a Field Spell goes face-up to the Field Zone).
 export function startCardScript(p,code,field){return `do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_STARTUP)

@@ -606,3 +606,7 @@
 /* Skill tree level numbers: bigger, bold, outlined (Discord 2026-11-26: hard to read). */
 .db-sk{width:calc(var(--u)*.98)}.db-sk small{font-size:17px;font-weight:900;color:#e8f3f1;-webkit-text-stroke:3px #05080f;paint-order:stroke fill;text-shadow:0 0 6px #000,0 1px 2px #000;translate:-50% 3px}
 .db-sk.own small,.db-sk.max small{color:#f2cf83}
+/* Fused Relic: the three relic icons overlapping. Character-page buy amounts sit above the upgrades. */
+.db-fused-art{position:relative;display:block;width:44px;height:40px}.db-fused-art img{position:absolute;width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 4px #b78cff)}
+.db-fused-art img:nth-child(1){left:0;top:0}.db-fused-art img:nth-child(2){left:18px;top:0}.db-fused-art img:nth-child(3){left:9px;top:14px}.db-fused-art img.card{object-fit:cover;border-radius:3px}
+.db-sheet-amt{margin:0 0 6px;padding:0}
