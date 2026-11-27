@@ -636,3 +636,6 @@
 .db-stats-rate{font-weight:700;color:#fff}
 .db-fused-tag{font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#f2cf83;border:1px solid #c9a85c;border-radius:4px;padding:0 4px;white-space:nowrap}
 .db-fused-glow{filter:drop-shadow(0 0 6px #f2cf83)}
+.db-links{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.db-link{display:inline-flex;align-items:center;padding:8px 14px;border-radius:6px;border:1px solid #f2cf83;background:#3a2410;color:#f2cf83;font:700 14px Arial,sans-serif;text-decoration:none;cursor:pointer}
+.db-link:hover{background:#f2cf83;color:#1a1208}

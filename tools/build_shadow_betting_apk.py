@@ -35,7 +35,8 @@ def build():
  for d in (SITE,BUILD):
   if d.exists():shutil.rmtree(d,onerror=writable)
  cache=MAIN/'temp/build/packaged-assets'
- build_shadow_betting.build(SITE,cache if cache.is_dir() else None)
+ code=int(time.time()//60);version=datetime.now().strftime('%Y.%m%d.%H%M')# x.y.z for the updater (2026.1127.1715)
+ build_shadow_betting.build(SITE,cache if cache.is_dir() else None,version=version)
  jdk=next((DEP/'jdk').glob('jdk-*'));bt=DEP/'sdk/android-15';platform=DEP/'sdk/android-35/android.jar'
  classes=BUILD/'classes';classes.mkdir(parents=True)
  run([jdk/'bin/javac.exe','-encoding','UTF-8','-source','8','-target','8','-classpath',platform,'-d',classes,*(HERE/'src').rglob('*.java')])
@@ -46,7 +47,6 @@ def build():
  linked=BUILD/'linked';linked.mkdir()
  for folder in res.rglob('*'):
   if folder.is_dir():(linked/'res'/folder.relative_to(res)).mkdir(parents=True,exist_ok=True)# --output-to-dir only fills existing folders
- code=int(time.time()//60);version=datetime.now().strftime('%Y.%m.%d.%H%M')
  run([bt/'aapt2.exe','link',*sorted(compiled.glob('*.flat')),'-o',linked,'--output-to-dir','--manifest',HERE/'AndroidManifest.xml','-I',platform,'--replace-version','--version-code',str(code),'--version-name',version])
  unsigned=BUILD/'unsigned.apk'
  with zipfile.ZipFile(unsigned,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
@@ -66,6 +66,7 @@ def build():
  run(sign+['sign','--ks',key,'--ks-key-alias','shadowrun','--ks-pass','pass:shadowrun-private','--out',APK,aligned])
  run(sign+['verify',APK])
  print(f'APK: {APK} ({APK.stat().st_size/1048576:.1f} MiB), version {version}',flush=True)
+ return version
 
 def install():
  adb=DEP/'sdk/platform-tools/adb.exe'

@@ -111,3 +111,8 @@ runtime/ai/node.exe node_modules/wrangler/bin/wrangler.js pages deploy <dir> --p
 - After 5 Destiny Duels (`SLOTS_AFTER`) each tier can buy more slots (`slotCost`: 1e7 / 1e9 / 1e11 / 1e13, ×100 per slot); you choose who fills a slot. Older saves: characters they had upgraded join the roster in their highest tier as bought slots (`migrateRoster`). The roster survives regressing.
 - Regressing adds the stars and opens the tree before the run resets (`regressBegin` / `finishRun`); relics are 1 copy each, curses up to 3 (one-time curses 1); a Fused Relic after all three relics makes each count twice.
 
+## Standalone downloads (user, 2026-11-27)
+- Settings show "Join the Discord" (the game's invite) and, on the web, "Download the Android app"; in the app, "Check for updates".
+- Android: `python/python.exe -B tools/publish_shadow_betting.py` builds the APK (version YYYY.MMDD.HHMM), writes `shadow-betting-manifest.json` and uploads both to the GitHub pre-release `shadow-betting` (never "latest", so the game's updater ignores it). The app checks the release title against its build.json version at start and updates through `UpdateActivity` (the game's updater, ported: SHA-256 + signing key checks, full APKs only). Downloads: https://github.com/Thronior/ygo-rogue-duelist/releases/download/shadow-betting/Shadow-Betting.apk
+- itch.io: the same tool writes `exports/shadow-betting/Shadow-Betting-itch-<version>.zip` (`build_shadow_betting.py --itch`: images in 8 MB bundles served by a service worker, ~120 files, under itch's 1,000-file limit). Upload it as an HTML game.
+

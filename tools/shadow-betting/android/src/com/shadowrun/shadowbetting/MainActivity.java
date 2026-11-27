@@ -1,6 +1,7 @@
 package com.shadowrun.shadowbetting;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -9,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 /** Shadow Betting on its own: the standalone minigame site (tools/build_shadow_betting.py) inside a WebView.
-    Everything is served from the APK under one HTTPS origin; nothing is fetched from the network.
+    Everything is served from the APK under one HTTPS origin; the network is only used to look for and download updates.
     A separate app from the game (its own package and save). */
 public final class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
@@ -26,6 +27,7 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        UpdateCleanupReceiver.clearInstalled(this);
         WebView.setWebContentsDebuggingEnabled(false);
         web = new WebView(this);
         web.setBackgroundColor(0xFF0B0D12);
@@ -41,7 +43,12 @@ public final class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setTextZoom(100);
         web.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView w, WebResourceRequest r) { return !(r.isForMainFrame() && bundled(r.getUrl())); }
+            // Links out of the game (Discord, the GitHub download) open in the browser, never in this WebView.
+            @Override public boolean shouldOverrideUrlLoading(WebView w, WebResourceRequest r) {
+                Uri u = r.getUrl();if (r.isForMainFrame() && bundled(u)) return false;
+                if ("https".equals(u.getScheme())) try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
+                return true;
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView w, WebResourceRequest r) {
                 Uri uri = r.getUrl(); String path = uri.getPath();
                 try {
@@ -61,9 +68,15 @@ public final class MainActivity extends Activity {
                 } catch (IOException e) { return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", Collections.emptyMap(), new ByteArrayInputStream(new byte[0])); }
             }
         });
+        web.addJavascriptInterface(new Bridge(), "ShadowBettingApp");
         web.loadUrl("https://" + HOST + "/index.html");
     }
 
+    /** For the page: updates come from the "shadow-betting" GitHub release, as the game's app updates from its releases. */
+    private final class Bridge {
+        @JavascriptInterface public void openUpdate() { runOnUiThread(() -> startActivity(new Intent(MainActivity.this, UpdateActivity.class))); }
+        @JavascriptInterface public void openLink(String url) { runOnUiThread(() -> { try { Uri u = Uri.parse(url); if ("https".equals(u.getScheme())) startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {} }); }
+    }
     @Override public void onWindowFocusChanged(boolean focus) { super.onWindowFocusChanged(focus); if (focus) immersive(); }
     // In the background the page is hidden (music stops, the game saves) and its timers pause.
     @Override protected void onPause() { if (web != null) { web.onPause(); web.pauseTimers(); } super.onPause(); }
