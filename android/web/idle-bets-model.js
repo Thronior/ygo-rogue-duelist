@@ -169,7 +169,7 @@ export const START_COINS=5;
 // First-time guide (Discord 2026-11-26, Nori: a pointing-hand helper like the main game's): 0 point at a duelist,
 // 1 point at an affordable upgrade, 2 done.
 export const GUIDE_DONE=2;
-export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0,stars:0,tree:{},regresses:0,chars:{},lifetime:0,destiny:DESTINY_FIRST-1,destinyTut:false}}
+export function newState(){return {v:1,coins:START_COINS,earned:0,spent:0,items:{fee_summon:1},boards:1,brackets:0,stats:{bets:0,correct:0,slots:{},exodia:0,destiny:0,champions:0},settings:{fx:'full',infinite:false,off:{}},brackets_saved:[],deckStats:{},guide:0,stars:0,tree:{},regresses:0,chars:{},lifetime:0,destiny:DESTINY_FIRST-1,destinyTut:false,roster:{},slots:{},rosterPicks:0,destinyPlayed:0,rosterInit:true}}
 const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')return s;
  s.coins=Math.max(0,num(raw.coins,START_COINS));s.earned=Math.max(0,num(raw.earned));s.spent=Math.max(0,num(raw.spent));
@@ -185,7 +185,11 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  s.guide=Math.max(0,Math.min(GUIDE_DONE,Math.floor(num(raw.guide))));if(!('guide' in raw)&&s.stats.bets>0)s.guide=GUIDE_DONE;// older saves: no guide
  s.stars=Math.max(0,Math.floor(num(raw.stars)));
  // Destiny Duel milestones already played (older saves: the ones their coins have already passed count as played).
- s.destiny='destiny' in raw?Math.max(0,Math.floor(num(raw.destiny))):Math.max(DESTINY_FIRST-1,Math.floor(Math.log10(Math.max(1,num(raw.coins)))+1e-9));s.destinyTut=!!raw.destinyTut;s.regresses=Math.max(0,Math.floor(num(raw.regresses)));s.lifetime=Math.max(0,num(raw.lifetime));
+ s.destiny='destiny' in raw?Math.max(0,Math.floor(num(raw.destiny))):Math.max(DESTINY_FIRST-1,Math.floor(Math.log10(Math.max(1,num(raw.coins)))+1e-9));s.destinyTut=!!raw.destinyTut;
+ // Roster (older saves have none: the game fills it from the characters they had upgraded, rosterInit false).
+ s.roster={};for(const t of ROSTER_TIERS){const a=raw.roster?.[t];if(Array.isArray(a))s.roster[t]=[...new Set(a.map(Number).filter(Number.isFinite))]}
+ s.slots={};for(const t of ROSTER_TIERS){const v=Math.floor(num(raw.slots?.[t]));if(v>0)s.slots[t]=v}
+ s.rosterPicks=Math.max(0,Math.min(ROSTER_TIERS.length,Math.floor(num(raw.rosterPicks))));s.destinyPlayed=Math.max(0,Math.floor(num(raw.destinyPlayed)));s.rosterInit=!!raw.rosterInit;s.regresses=Math.max(0,Math.floor(num(raw.regresses)));s.lifetime=Math.max(0,num(raw.lifetime));
  // Seed Money used to have 4 levels; levels past the first are Nest Egg now (the root node, 2026-11-26).
  const rt={...(raw.tree&&typeof raw.tree==='object'?raw.tree:{})};if(num(rt.seed)>1){rt.nest=Math.max(num(rt.nest),num(rt.seed)-1);rt.seed=1}
  for(const n of TREE){const v=Math.floor(num(rt[n.id]));if(v>0)s.tree[n.id]=Math.min(v,n.max)}
@@ -198,6 +202,27 @@ export function sanitize(raw){const s=newState();if(!raw||typeof raw!=='object')
  return s}
 export const canAfford=(s,cost)=>s.settings.infinite||s.coins>=cost;
 export function spend(s,cost){if(!canAfford(s,cost))return false;if(!s.settings.infinite)s.coins-=cost;s.spent+=cost;return true}
+// ---- Roster (the user, Discord #shadow-betting 2026-11-27): characters are collected, not revealed. The first four
+// Destiny Duels each let you choose a duelist from one tier (Tier 1, Tier 2, Tier 3, Endless); your bet rides on them and
+// a win puts them in that tier of your roster, where you can upgrade them. Roster duelists come up in at least 1 of 10
+// duels. After the 5th Destiny Duel you can buy more slots per tier and choose who fills them. ----
+export const ROSTER_TIERS=['Tier 1','Tier 2','Tier 3','Endless'];
+export const ROSTER_SHORT={'Tier 1':'T1','Tier 2':'T2','Tier 3':'T3',Endless:'Endless'};
+export const SLOTS_AFTER=5;
+const SLOT_BASE={'Tier 1':1e7,'Tier 2':1e9,'Tier 3':1e11,Endless:1e13};
+export const rosterOf=(s,t)=>s.roster?.[t]||[];
+export const inRoster=(s,id)=>ROSTER_TIERS.some(t=>rosterOf(s,t).includes(Number(id)));
+const itemInRoster=(s,itemId)=>ROSTER_TIERS.some(t=>rosterOf(s,t).some(id=>(CHAR_ITEM[id]||'char_'+id)===itemId));
+export const rosterPickTier=s=>ROSTER_TIERS[s.rosterPicks||0]||null;
+export const slotCap=(s,t)=>(ROSTER_TIERS.indexOf(t)<(s.rosterPicks||0)?1:0)+(s.slots?.[t]||0);
+export const openSlots=(s,t)=>Math.max(0,slotCap(s,t)-rosterOf(s,t).length);
+export const slotsUnlocked=s=>(s.destinyPlayed||0)>=SLOTS_AFTER;
+export const slotCost=(s,t)=>Math.ceil(SLOT_BASE[t]*100**(s.slots?.[t]||0)*discount(s));
+export function buySlot(s,t){if(!slotsUnlocked(s)||!ROSTER_TIERS.includes(t))return false;if(!spend(s,slotCost(s,t)))return false;(s.slots??={})[t]=(s.slots[t]||0)+1;return true}
+export function rosterAdd(s,t,id){id=Number(id);if(!ROSTER_TIERS.includes(t)||openSlots(s,t)<1||rosterOf(s,t).includes(id))return false;((s.roster??={})[t]??=[]).push(id);return true}
+// A Destiny Duel pick that won: the duelist joins that tier and the next pick moves to the next tier.
+export function rosterWin(s,t,id){if(rosterPickTier(s)!==t)return false;s.rosterPicks=(s.rosterPicks||0)+1;return rosterAdd(s,t,id)}
+
 // ---- Destiny Duel (user, 2026-11-26): the first time your coins reach each power of 100 up to 100M (100, 10K, 1M, 100M),
 // then each power of 1000 after it (100B, 100T, ...), a forced duel where you bet everything you hold on one duelist; a
 // right call pays a flat 5x, whatever you own. ----
@@ -217,7 +242,8 @@ export const CHAR_REVEAL=200,CHAR_STEP=1.6;
 let charOrder=null;
 const charIndex=id=>{if(!charOrder){charOrder=new Map(ITEMS.filter(i=>/^char_/.test(i.id)).sort((a,b)=>itemCost(a.id,0)-itemCost(b.id,0)||String(a.charName||a.name).localeCompare(String(b.charName||b.name))).map((i,k)=>[i.id,k]))}return charOrder.get(id)??0};
 const charThreshold=id=>CHAR_REVEAL*CHAR_STEP**charIndex(id);
-export const revealed=(s,it)=>{const e=(s.earned||0)/revealFactor(s);return lvl(s,it.id)>0||it.id==='calls1'||(e>=itemCost(it.id,0)*REVEAL&&(!/^char_/.test(it.id)||e>=charThreshold(it.id)))};
+export const revealed=(s,it)=>{if(/^char_/.test(it.id))return itemInRoster(s,it.id);// characters: only the roster
+ const e=(s.earned||0)/revealFactor(s);return lvl(s,it.id)>0||it.id==='calls1'||(e>=itemCost(it.id,0)*REVEAL&&(!/^char_/.test(it.id)||e>=charThreshold(it.id)))};
 export const visibleItems=s=>ITEMS.filter(it=>it.set<=Math.max(s.boards,s.brackets?9:0)&&it.show(s)&&revealed(s,it)&&!(it.kind==='opener'&&!it.keep&&lvl(s,it.id)>=it.max));
 export const isOn=(s,id)=>lvl(s,id)>0&&!s.settings?.off?.[id];
 // Buying returns what changed so the screen can react ('board', 'bracket' or null).
@@ -419,7 +445,7 @@ export const nodeOpen=(s,n)=>!n.req||tl(s,n.req[0])>=n.req[1];
 export function buyNode(s,id){const n=TREE_BY[id],l=tl(s,id);if(!n||l>=n.max||!nodeOpen(s,n))return false;const c=n.cost(l);if(s.stars<c)return false;s.stars-=c;s.tree[id]=l+1;return true}
 // A new run with the tree's start-with nodes; stars, the tree, records, stats and settings carry over.
 export function startRun(s){
- const keep={destiny:s.destiny,destinyTut:s.destinyTut,stars:s.stars,tree:s.tree,regresses:s.regresses,lifetime:s.lifetime,deckStats:s.deckStats,charWins:s.charWins,stats:s.stats,settings:s.settings,guide:s.guide,chars:tl(s,'friends')?s.chars:{}};
+ const keep={roster:s.roster,slots:s.slots,rosterPicks:s.rosterPicks,destinyPlayed:s.destinyPlayed,rosterInit:s.rosterInit,destiny:s.destiny,destinyTut:s.destinyTut,stars:s.stars,tree:s.tree,regresses:s.regresses,lifetime:s.lifetime,deckStats:s.deckStats,charWins:s.charWins,stats:s.stats,settings:s.settings,guide:s.guide,chars:tl(s,'friends')?s.chars:{}};
  const n=Object.assign(newState(),keep);n.coins=startCoins(tl(s,'seed')&&1+tl(s,'nest'));
  const fees=3*tl(s,'kit');if(fees)for(const it of ITEMS)if(/^fee_/.test(it.id)&&it.set<=1)n.items[it.id]=Math.max(n.items[it.id]||0,fees);
  const boards=1+tl(s,'pass');for(let k=2;k<=boards;k++)n.items['open'+k]=1;n.boards=boards;

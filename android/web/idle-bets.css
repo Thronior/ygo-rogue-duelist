@@ -610,3 +610,13 @@
 .db-fused-art{position:relative;display:block;width:44px;height:40px}.db-fused-art img{position:absolute;width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 4px #b78cff)}
 .db-fused-art img:nth-child(1){left:0;top:0}.db-fused-art img:nth-child(2){left:18px;top:0}.db-fused-art img:nth-child(3){left:9px;top:14px}.db-fused-art img.card{object-fit:cover;border-radius:3px}
 .db-sheet-amt{margin:0 0 6px;padding:0}
+/* Roster by tier; Destiny Duel duelist choice (user, 2026-11-27). */
+.db-roster-tiers{grid-column:1/-1;display:flex;gap:3px;padding:6px 6px 0}
+.db-roster-tiers button{flex:1;padding:5px 0;border-radius:5px;border:1px solid #3d6270;background:#0b1d26;color:var(--db-dim);font-family:var(--db-display);letter-spacing:.05em;font-size:14px;cursor:pointer}
+.db-roster-tiers button.on{border-color:#f2cf83;color:#f2cf83;background:#2a2412}.db-roster-tiers small{opacity:.7}
+.db-slot{border-style:dashed;justify-content:center;align-content:center;min-height:110px;color:#f2cf83}.db-slot b{font-size:30px;line-height:1}
+.db-slot-buy{display:block;margin:4px 8px 10px;width:calc(100% - 16px);grid-column:1/-1}
+.db-shop .db-empty{grid-column:1/-1;margin:6px 10px;color:var(--db-dim);font-size:13px}
+.db-dd-choose{flex:1;min-height:0;overflow:auto;text-align:center;color:#f3e7ff}.db-dd-choose>p{margin:4px 0}
+.db-dd-choose .db-roster-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.db-dd-choose .db-char img{width:72px;height:72px;object-fit:cover;object-position:50% 15%;border-radius:6px}

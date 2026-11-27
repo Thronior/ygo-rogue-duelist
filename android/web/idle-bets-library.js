@@ -15,7 +15,7 @@ export class DuelSupply{
  // pool: [{id,tier,label,key}] · deckList: {key: {main,extra}} · cards: content cards (+ tokens)
  // modsFor(ids): the character upgrades a duel between these characters is played with ({lp,passives,sig}; sig '' = none).
  // weight(id): how often a character is picked (Spotlight).
- constructor({pool,deckList,cards,modsFor=()=>({sig:''}),weight=()=>1}){Object.assign(this,{pool,deckList,cards,modsFor,weight});this.fresh=[];this.waiting=[];this.jobs=new Map();this.nextId=1;this.index=[];this.stats={};this.busy=0;this.target=1;this.msAvg=600;this.closed=false;this.recent=[];this.queue=[];this.active=new Set()}
+ constructor({pool,deckList,cards,modsFor=()=>({sig:''}),weight=()=>1,featured=()=>[]}){Object.assign(this,{pool,deckList,cards,modsFor,weight,featured});this.fresh=[];this.waiting=[];this.jobs=new Map();this.nextId=1;this.index=[];this.stats={};this.busy=0;this.target=1;this.msAvg=600;this.closed=false;this.recent=[];this.queue=[];this.active=new Set()}
  async start(){
   try{this.db=await open();this.index=(await done(this.db.transaction(STORE).objectStore(STORE).getAllKeys()))||[];this.stats=(await done(this.db.transaction(META).objectStore(META).get('stats')))||{}}catch{this.db=null}
   this.worker=new Worker(new URL('./idle-bets-worker.js',import.meta.url),{type:'module'});
@@ -33,7 +33,8 @@ export class DuelSupply{
  randomSeat(){let total=0;for(const d of this.pool)total+=this.weight(d.id);let r=Math.random()*total;for(const d of this.pool){r-=this.weight(d.id);if(r<=0)return d}return this.pool[this.pool.length-1]}
  // A stored duel still fits when it was played with the upgrades these two characters have now.
  fits(tl){return (tl.mods||'')===this.modsFor(tl.seats.map(x=>x.id)).sig}
- randomPair(){const a=this.randomSeat();let b=this.randomSeat(),guard=0;while(b.id===a.id&&guard++<20)b=this.randomSeat();return [a,b]}
+ // Roster duelists (featured) come up in at least 1 of 10 duels each (user, 2026-11-27).
+ randomPair(){const f=this.featured()||[];const a=f.length&&Math.random()<Math.min(.8,.1*f.length)?f[Math.floor(Math.random()*f.length)]:this.randomSeat();let b=this.randomSeat(),guard=0;while(b.id===a.id&&guard++<20)b=this.randomSeat();return [a,b]}
  // One duel between these two decks (bracket boards). Resolves with the timeline.
  // alive() false = the board no longer needs it (settled meanwhile), so it is dropped unplayed.
  record(pair,priority=true,alive=()=>true){return new Promise((resolve,reject)=>{const id=this.nextId++;this.jobs.set(id,{resolve,reject,pair,priority,alive});priority?this.queue.unshift(id):this.queue.push(id);this.pump()})}

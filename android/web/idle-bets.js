@@ -33,8 +33,9 @@ export class DuelBets{
   {const best=new Map();for(const d of this.pool)best.set(d.id,Math.max(best.get(d.id)??0,M.tierRank(d.label)));
    const labels=new Map();for(const d of this.pool){if(!labels.has(d.id))labels.set(d.id,[]);labels.get(d.id).push(d.label)}
    M.registerCharacters([...best].map(([id,rank])=>({id,rank,labels:labels.get(id)||[],uc:!!this.chars[id]?.ultimate_collector,name:this.chars[id]?.name||'CPU',sprite:this.chars[id]?.sprite||''})).sort((a,b)=>a.name.localeCompare(b.name)))}
-  this.state=M.sanitize(this.load());this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
-  this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])],modsFor:ids=>M.duelMods(this.state,ids),weight:id=>M.charWeight(this.state,id)});
+  this.state=M.sanitize(this.load());this.migrateRoster();this.boards=[];this.brackets=[];this.openBracket=null;this.clock=0;this.dirty=false;this.shown=this.state.coins;
+  this.supply=new DuelSupply({pool:this.pool,deckList:this.deckList,cards:[...(content.cards||[]),...(content.tokenCards||[])],modsFor:ids=>M.duelMods(this.state,ids),weight:id=>M.charWeight(this.state,id),
+   featured:()=>M.ROSTER_TIERS.flatMap(t=>M.rosterOf(this.state,t).map(id=>this.pool.find(p=>p.id===id&&p.label===t)||this.pool.find(p=>p.id===id))).filter(Boolean)});
   // Each character's signature card, relics and curses (tools/build_shadow_betting_mods.py).
   fetch('idle-bets-mods.json').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;M.registerMods(d);if(this.el&&this.shopTab==='Characters')this.renderShop()}).catch(()=>{});
   this.onClick=e=>{const b=e.target.closest('[data-db]');if(!b||!this.root.contains(b))return;e.preventDefault();this.action(b.dataset.db,b)};
@@ -181,6 +182,25 @@ export class DuelBets{
   this.root.querySelector('.duel-bets').append(el);this.boardSound('assets/sfx/reward-reel.wav',.8);if(!fast)setTimeout(()=>this.boardSound('assets/sfx/rare-shimmer.wav',1),1500);
   return new Promise(done=>setTimeout(()=>{el.remove();done()},fast?900:2900))}
  // ---- characters: a roster of portraits; each opens its own page of upgrades ----
+ // Older saves: the characters they had upgraded join the roster in their highest tier, as bought slots.
+ migrateRoster(){const s=this.state;if(s.rosterInit)return;s.rosterInit=true;
+  for(const [k,u] of Object.entries(M.ITEM).filter(([k])=>/^char_\d+$/.test(k))){const id=Number(k.slice(5)),ups=M.charUps(s,id);
+   if(!(M.itemLevel(s,k)>0||Object.keys(ups).length))continue;const tiers=this.pool.filter(p=>p.id===id&&M.ROSTER_TIERS.includes(p.label)).map(p=>p.label);
+   const t=tiers.sort((a,b)=>M.ROSTER_TIERS.indexOf(b)-M.ROSTER_TIERS.indexOf(a))[0]||'Tier 1';(s.slots[t]=(s.slots[t]||0)+1);(s.roster[t]??=[]).push(id)}
+  this.dirty=true}
+ // Characters tab: the roster by tier (user, 2026-11-27).
+ rosterTab(){const s=this.state,t=M.ROSTER_TIERS.includes(this.rosterTier)?this.rosterTier:M.ROSTER_TIERS[0],short=M.ROSTER_SHORT[t];
+  const tabs=`<div class="db-roster-tiers">${M.ROSTER_TIERS.map(x=>`<button data-db="roster-tier" data-tier="${x}" class="${x===t?'on':''}">${M.ROSTER_SHORT[x]} <small>${M.rosterOf(s,x).length}</small></button>`).join('')}</div>`;
+  const face=id=>{const it=M.ITEM[M.CHAR_ITEM[id]||'char_'+id],u=M.charUps(s,id),n=(it?M.itemLevel(s,it.id):0)+(u.spot||0)+(u.card||0)+(u.lp||0)+(u.foe||0)+(u.relics||[]).length+(u.curses||[]).length,ch=this.chars[id]||{};
+   return `<button class="db-char" data-db="char" data-char="${id}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+(ch.sprite||'')))}"><span>${esc(ch.name||'CPU')}</span>${n?`<i>${n}</i>`:''}</button>`};
+  const empty=Array.from({length:M.openSlots(s,t)},()=>`<button class="db-char db-slot" data-db="slot-pick" data-tier="${t}"><b>+</b><span>Choose a duelist</span></button>`).join('');
+  const members=M.rosterOf(s,t).map(face).join('');
+  const pick=M.rosterPickTier(s),note=members||empty?'':pick===t?`Your next Destiny Duel lets you choose your ${short} duelist. Win it and they join this tab.`:`Your ${short} duelist comes from a later Destiny Duel.`;
+  const slot=M.slotsUnlocked(s)?`<button class="db-buy db-slot-buy ${M.canAfford(s,M.slotCost(s,t))?'':'poor'}" data-db="buy-slot" data-tier="${t}">New ${short} slot · ${M.fmt(M.slotCost(s,t))}</button>`:(s.rosterPicks?`<p class="db-empty">More slots after ${M.SLOTS_AFTER} Destiny Duels (${s.destinyPlayed||0}/${M.SLOTS_AFTER}).</p>`:'');
+  return `${tabs}<div class="db-roster-grid">${members}${empty}</div>${note?`<p class="db-empty">${note}</p>`:''}${slot}`}
+ slotPicker(t){const s=this.state,ids=[...new Set(this.pool.filter(p=>p.label===t).map(p=>p.id))].filter(id=>!M.rosterOf(s,t).includes(id)).sort((a,b)=>(this.chars[a]?.name||'').localeCompare(this.chars[b]?.name||''));
+  const d=this.modal(`Choose a ${M.ROSTER_SHORT[t]} duelist`,`<div class="db-roster-grid">${ids.map(id=>`<button class="db-char" data-pickid="${id}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+(this.chars[id]?.sprite||'')))}"><span>${esc(this.chars[id]?.name||'CPU')}</span></button>`).join('')}</div>`,(e,dlg)=>{
+   const b=e.target.closest('[data-pickid]');if(!b)return;if(M.rosterAdd(this.state,t,b.dataset.pickid)){this.dirty=true;this.boardSound('assets/sfx/purchase-coins.wav',.7);dlg.close();this.renderShop()}});d.classList.add('db-char-modal')}
  roster(items){const s=this.state;return `<div class="db-roster-grid">${items.map(it=>{const cid=this.charIdOf(it),u=M.charUps(s,cid),n=M.itemLevel(s,it.id)+(u.spot||0)+(u.card||0)+(u.lp||0)+(u.foe||0)+(u.relics||[]).length+(u.curses||[]).length;
    return `<button class="db-char" data-db="char" data-char="${esc(String(cid))}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+it.portrait))}"><span>${esc(it.charName||it.name)}</span>${n?`<i>${n}</i>`:''}</button>`}).join('')}</div>`}
  charIdOf(it){return it.id==='char_uc'?Number(Object.keys(M.CHAR_ITEM).find(k=>M.CHAR_ITEM[k]==='char_uc')):Number(it.id.slice(5))}
@@ -236,12 +256,13 @@ export class DuelBets{
   // Category tabs, always shown; each lists its items from the dearest first price at the top to the cheapest at the
   // bottom (user, 2026-11-26). Dear items appear later anyway (M.revealed).
   const s=this.state,all=M.visibleItems(s);this.shopIds=all.map(i=>i.id).join();
-  const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
+  const rosterOn=s.rosterPicks>0||M.ROSTER_TIERS.some(t=>M.rosterOf(s,t).length)||s.destinyPlayed>0;
+  const cats=M.CATEGORIES.map(c=>c[0]).filter(c=>c==='Characters'?rosterOn:all.some(i=>M.categoryOf(i.id)===c));if(!cats.includes(this.shopTab))this.shopTab=cats[0];
   const tab=c=>`<button role="tab" data-db="shop-tab" data-cat="${esc(c)}" aria-selected="${c===this.shopTab}" class="${c===this.shopTab?'on':''}">${esc(c)}<i></i></button>`;
   const amounts=this.shopTab==='Characters'?'':`<div class="db-tabrow db-buy-amt" role="group" aria-label="How many to buy">${[1,5,10,50,'max'].map(n=>`<button data-db="buy-amt" data-n="${n}" class="${(this.buyN||1)===n?'on':''}">${n==='max'?'MAX':'×'+n}</button>`).join('')}</div>`;
   this.el.tabs.innerHTML=M.TAB_ROWS.map(row=>row.filter(c=>cats.includes(c))).filter(row=>row.length).map(row=>`<div class="db-tabrow">${row.map(tab).join('')}</div>`).join('')+amounts;
   const items=all.filter(i=>M.categoryOf(i.id)===this.shopTab).sort((a,b)=>M.itemCost(b.id,0)-M.itemCost(a.id,0));
-  this.el.shop.innerHTML=this.shopTab==='Characters'?this.roster(items):this.shopRows(items);
+  this.el.shop.innerHTML=this.shopTab==='Characters'?this.rosterTab():this.shopRows(items);
   this.paintAfford();
  }
  shopRows(items){const s=this.state;
@@ -252,7 +273,7 @@ export class DuelBets{
  single(id){const it=M.ITEM[id];return !it||it.max<=1||it.kind==='opener'||M.categoryOf(id)==='Expansion'}
  buyInfo(id){const s=this.state,n=this.single(id)?1:this.buyN||1,level=M.itemLevel(s,id);if(n===1)return {count:1,cost:M.price(s,id,level)};const b=M.bulk(s,id,n);return b.count?b:{count:1,cost:M.price(s,id,level)}}
  buyLabel(id){const n=this.single(id)?1:this.buyN||1,b=this.buyInfo(id);return n===1?M.fmt(b.cost):`<small>×${b.count}</small> ${M.fmt(b.cost)}`}
- paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy:not(.db-toggle)')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;const info=this.buyInfo(id);b.classList.toggle('poor',!M.canAfford(this.state,info.cost));
+ paintAfford(){for(const b of this.el.shop.querySelectorAll('.db-buy[data-id]:not(.db-toggle)')){const id=b.dataset.id,level=M.itemLevel(this.state,id);if(level>=M.ITEM[id].max)continue;const info=this.buyInfo(id);b.classList.toggle('poor',!M.canAfford(this.state,info.cost));
   if((this.buyN||1)!==1){const html=this.buyLabel(id);if(b.dataset.html!==html){b.dataset.html=html;b.innerHTML=html}}}
   // A dot on each tab that has something you can buy right now.
   const ok=new Set(M.visibleItems(this.state).filter(i=>{const l=M.itemLevel(this.state,i.id);return l<i.max&&M.canAfford(this.state,M.price(this.state,i.id,l))}).map(i=>M.categoryOf(i.id)));
@@ -341,6 +362,9 @@ export class DuelBets{
   if(a==='char')return this.charSheet(el.dataset.char);
   if(a==='deck-stats')return this.deckStats();
   if(a==='toggle-item'){const id=el.dataset.id,off=this.state.settings.off;if(off[id])delete off[id];else off[id]=true;this.dirty=true;this.renderShop();return}
+  if(a==='roster-tier'){this.rosterTier=el.dataset.tier;this.renderShop();return}
+  if(a==='slot-pick'){this.slotPicker(el.dataset.tier);return}
+  if(a==='buy-slot'){if(M.buySlot(this.state,el.dataset.tier)){this.dirty=true;this.sound('assets/sfx/purchase-coins.wav',.8);this.paintTotal();this.renderShop();this.slotPicker(el.dataset.tier)}else el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
   if(a==='shop-tab'){this.shopTab=el.dataset.cat;this.hideTip();this.renderShop();this.el.shop.scrollTop=0;return}
   if(a==='buy-amt'){this.buyN=el.dataset.n==='max'?'max':Number(el.dataset.n);this.renderShop();return}
   if(a==='buy'){const id=el.dataset.id,info=this.buyInfo(id);let r=null;if(M.canAfford(this.state,info.cost))for(let i=0;i<info.count;i++){const x=M.buy(this.state,id);if(!x)break;r=x}if(r&&this.state.guide<M.GUIDE_DONE){this.state.guide=M.GUIDE_DONE;this.guide()}if(!r){el.animate([{translate:'0 0'},{translate:'-4px 0'},{translate:'4px 0'},{translate:'0 0'}],{duration:220});return}
@@ -434,10 +458,20 @@ class DestinyDuel{
   this.el=document.createElement('div');this.el.className='db-destiny';
   this.el.innerHTML=`<div class="db-dd-title"><b>Destiny Duel</b></div><div class="db-dd-stage"><div class="db-dd-wait"><span class="db-spinner"></span></div></div>`;
   game.root.querySelector('.duel-bets').append(this.el);this.stage=this.el.querySelector('.db-dd-stage');game.boardSound(DESTINY_SOUND,1);
+  // The first four Destiny Duels: choose a duelist of the next roster tier; your bet rides on them (user, 2026-11-27).
+  this.pickTier=M.rosterPickTier(s);if(this.pickTier){this.phase='choose';this.paintChoose();return}
   // Always two duelists of the same tier (user, 2026-11-26), recorded at the front of the queue.
   const sup=game.supply;let pair=null;for(let i=0;i<30&&!pair;i++){const a=sup.randomSeat(),same=sup.pool.filter(d=>d.label===a.label&&d.id!==a.id);if(same.length)pair=[a,same[Math.floor(Math.random()*same.length)]]}
   (pair?sup.record(pair,true):sup.take()).then(tl=>{if(this.dead){sup.release(tl);return}this.tl=tl;this.phase='intro';this.paintIntro()}).catch(()=>this.close())}
+ paintChoose(){const g=this.game,t=this.pickTier,short=M.ROSTER_SHORT[t],ids=[...new Set(g.pool.filter(p=>p.label===t).map(p=>p.id))].sort((a,b)=>(g.chars[a]?.name||'').localeCompare(g.chars[b]?.name||''));
+  this.stage.innerHTML=`<div class="db-dd-choose"><p class="db-dd-hint">Choose your ${short} duelist</p><p>They duel with <b>all ${M.fmt(Math.floor(g.state.coins))} coins</b> you hold riding on them. Win and you get 5× back and they join your roster (Characters tab), where you can upgrade them.</p><div class="db-roster-grid">${ids.map(id=>`<button class="db-char" data-dd="choose" data-id="${id}"><img loading="lazy" alt="" src="${esc(assetURL('assets/'+(g.chars[id]?.sprite||'')))}"><span>${esc(g.chars[id]?.name||'CPU')}</span></button>`).join('')}</div></div>`;
+  this.el.onclick=e=>{const b=e.target.closest('[data-dd="choose"]');if(!b||this.phase!=='choose')return;this.chosen=Number(b.dataset.id);this.phase='load';g.state.destinyTut=true;
+   const sup=g.supply,mine=g.pool.find(p=>p.id===this.chosen&&p.label===t),foes=g.pool.filter(p=>p.label===t&&p.id!==this.chosen);
+   this.stage.innerHTML='<div class="db-dd-wait"><span class="db-spinner"></span></div>';
+   sup.record([mine,foes[Math.floor(Math.random()*foes.length)]],true).then(tl=>{if(this.dead){sup.release(tl);return}this.tl=tl;this.phase='intro';this.t=0;this.paintIntro()}).catch(()=>this.close())}}
  paintIntro(){const g=this.game,seats=this.tl.seats.map(x=>g.seatOf(x));this.seats=seats;
+  if(this.chosen!=null){// your chosen duelist: the bet rides on them by itself
+   this.stage.innerHTML=`<div class="db-dd-intro"><div class="db-dd-side p0"><img alt="" src="${esc(assetURL('assets/'+(seats[0].sprite||'')))}"><b>${esc(seats[0].name)}</b>${g.tierChip(seats[0].label)}</div><div class="db-dd-vs">VS</div><div class="db-dd-side p1"><img alt="" src="${esc(assetURL('assets/'+(seats[1].sprite||'')))}"><b>${esc(seats[1].name)}</b>${g.tierChip(seats[1].label)}</div></div><div class="db-dd-bet"><p>All in on <b>${esc(seats[0].name)}</b>: <b>${M.fmt(Math.floor(g.state.coins))}</b> coins · a win pays <b>${M.fmt(Math.floor(g.state.coins)*M.DESTINY_PAYOUT)}</b> and ${esc(seats[0].name)} joins your roster</p></div>`;this.el.onclick=null;return}
   const tut=g.state.destinyTut?'':`<div class="db-dd-tut"><b>What is this?</b><p>Everything stops for one duel: you bet <b>all the coins you hold</b> on one of the two duelists.</p><p>Call it right and you get <b>5×</b> your bet back. Call it wrong and it is gone. Upgrades and items do not change this payout.</p><button class="db-dd-ok" data-dd="ok">Got it</button></div>`;
   this.stage.innerHTML=`<div class="db-dd-intro"><div class="db-dd-side p0" data-dd="pick" data-seat="0" role="button" tabindex="0" aria-label="Bet on ${esc(seats[0].name)}"><img alt="" src="${esc(assetURL('assets/'+(seats[0].sprite||'')))}"><b>${esc(seats[0].name)}</b>${g.tierChip?g.tierChip(seats[0].label):''}</div><div class="db-dd-vs">VS</div><div class="db-dd-side p1" data-dd="pick" data-seat="1" role="button" tabindex="0" aria-label="Bet on ${esc(seats[1].name)}"><img alt="" src="${esc(assetURL('assets/'+(seats[1].sprite||'')))}"><b>${esc(seats[1].name)}</b>${g.tierChip?g.tierChip(seats[1].label):''}</div></div>
    <div class="db-dd-bet ${tut?'held':''}"><p>All in: <b>${M.fmt(Math.floor(g.state.coins))}</b> coins · a right call pays <b>${M.fmt(Math.floor(g.state.coins)*M.DESTINY_PAYOUT)}</b></p><p class="db-dd-hint">Tap a duelist to bet on them.</p></div>${tut}`;
@@ -449,19 +483,20 @@ class DestinyDuel{
   this.view=new BoardView(g,this.stage.firstChild,{title:'Destiny Duel',stakes:`All in ${M.fmt(this.stake)} · right call pays ${M.fmt(this.stake*M.DESTINY_PAYOUT)}`,slot:9});
   this.replay=new Replay(g,this.tl,{level:1,slot:1,pick:seat,quiet:true});this.view.seats(this.replay.seats,seat);this.view.duelStart(seat)}
  tick(dt){this.t+=dt;
-  if(this.phase==='intro'&&this.t>=DESTINY_INTRO)this.el.classList.add('ready');
+  if(this.phase==='intro'&&this.t>=DESTINY_INTRO){this.el.classList.add('ready');if(this.chosen!=null&&this.t>=DESTINY_INTRO+2500)this.bet(0)}// your chosen duelist: read the stakes, then it starts
   if(this.phase==='play'){this.replay.tick(dt,this.view);if(this.replay.done)this.finish()}
   else if(this.phase==='result'){this.hold-=dt;if(this.hold<=0)this.close()}}
- finish(){const g=this.game,s=g.state,r=this.replay.result(),won=r.winner===this.pick;this.phase='result';this.hold=DESTINY_HOLD;
+ finish(){const g=this.game,s=g.state,r=this.replay.result(),won=r.winner===this.pick;this.phase='result';this.hold=DESTINY_HOLD;s.destinyPlayed=(s.destinyPlayed||0)+1;
+  const joins=won&&this.chosen!=null&&M.rosterWin(s,this.pickTier,this.chosen);
   this.view.ending(r.winner);this.view.outcome(r.winner,this.pick);
   if(r.winner>1){if(!s.settings.infinite)s.coins+=this.stake;this.view.show('<div class="db-result"><b>No winner · your bet comes back</b></div>')}
-  else if(won){const pay=this.stake*M.DESTINY_PAYOUT;M.earn(s,pay);s.stats.destinyWins=(s.stats.destinyWins||0)+1;this.view.show(`<div class="db-result good"><b>Destiny! ${M.fmt(pay)} coins</b></div>`);g.fx?.(pay,this.view.root,'jackpot','');g.boardSound('assets/sfx/perfect-chime.wav',1)}
+  else if(won){const pay=this.stake*M.DESTINY_PAYOUT;M.earn(s,pay);s.stats.destinyWins=(s.stats.destinyWins||0)+1;this.view.show(`<div class="db-result good"><b>Destiny! ${M.fmt(pay)} coins${joins?` · ${esc(this.replay.seats[this.pick].name)} joins your roster`:''}</b></div>`);g.fx?.(pay,this.view.root,'jackpot','');g.boardSound('assets/sfx/perfect-chime.wav',1)}
   else{this.view.show(`<div class="db-result bad"><b>${esc(this.replay.seats[r.winner].name)} wins · fate said no</b></div>`);g.boardSound('assets/sfx/negation.wav',.8)}
   // Lost: reaching this amount again opens it again (user, 2026-11-26). Won: done for good, and a payout that crosses
   // the next milestone does not start another Destiny Duel straight away.
   if(r.winner<2&&!won)s.destiny=M.destinyMilestone(this.k-1)||M.DESTINY_FIRST-1;
   else s.destiny=Math.max(s.destiny||0,M.destinyMilestone(Math.floor(Math.log10(Math.max(1,s.coins))+1e-9)));g.dirty=true;g.paintTotal(true);g.refreshShop()}
- close(){this.dead=true;this.game.supply.release(this.tl);this.el.remove();if(this.game.destiny===this)this.game.destiny=null;this.game.last=performance.now()}
+ close(){this.dead=true;this.game.supply.release(this.tl);this.el.remove();if(this.game.destiny===this)this.game.destiny=null;this.game.last=performance.now();this.game.renderShop?.()}
 }
 
 // A scaled-down duel field: card art in every zone, piles, hands and LP, with each CPU's portrait filling its

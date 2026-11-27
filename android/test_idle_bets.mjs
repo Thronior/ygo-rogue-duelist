@@ -123,10 +123,15 @@ assert.ok(M.ITEM.char_902.boost>1.6&&M.ITEM.char_903.boost>1.3&&M.ITEM.char_903.
 assert.equal(M.ITEM.char_904.boost,1,'a character with decks up to Endless gets no boost');
 assert.equal(M.categoryOf('char_900'),'Characters');
 const hid=M.newState();assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'characters are not available from the start');
-hid.earned=M.CHAR_REVEAL-1;assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'the first character needs CHAR_REVEAL earned');
-hid.earned=M.CHAR_REVEAL;assert.ok(M.visibleItems(hid).some(i=>i.id==='char_900')&&!M.visibleItems(hid).some(i=>i.id==='char_901'),'characters appear one at a time, cheapest first');
-{const chars=M.ITEMS.filter(i=>/^char_/.test(i.id)),seen=e=>{const st=M.newState();st.earned=e;return M.visibleItems(st).filter(i=>/^char_/.test(i.id)).length};
- assert.equal(seen(M.CHAR_REVEAL),1);assert.ok(seen(1e6)>1&&seen(1e6)<=chars.length,'more characters as earnings grow');}
+hid.earned=1e30;assert.ok(!M.visibleItems(hid).some(i=>/^char_/.test(i.id)),'characters come from the roster, not from earnings');
+// ---- roster: Destiny Duel picks by tier, slots after the 5th Destiny Duel ----
+{const r=M.newState();assert.equal(M.rosterPickTier(r),'Tier 1');assert.equal(M.openSlots(r,'Tier 1'),0);
+ assert.ok(!M.rosterWin(r,'Tier 2',903),'picks go tier by tier');assert.ok(M.rosterWin(r,'Tier 1',902));assert.deepEqual(M.rosterOf(r,'Tier 1'),[902]);assert.equal(M.rosterPickTier(r),'Tier 2');
+ assert.ok(M.visibleItems(r).some(i=>i.id==='char_902'),'a roster duelist can be upgraded');
+ r.coins=1e20;assert.ok(!M.buySlot(r,'Tier 1'),'no slots before the 5th Destiny Duel');r.destinyPlayed=5;assert.ok(M.buySlot(r,'Tier 1'));assert.equal(M.openSlots(r,'Tier 1'),1);
+ assert.ok(M.rosterAdd(r,'Tier 1',900));assert.ok(!M.rosterAdd(r,'Tier 1',901),'one duelist per slot');assert.ok(M.slotCost(r,'Tier 1')>1e7,'each slot costs more');
+ const k=M.sanitize(JSON.parse(JSON.stringify(r)));assert.deepEqual(k.roster['Tier 1'],[902,900]);assert.equal(k.rosterPicks,1);assert.equal(k.slots['Tier 1'],1);
+ const n=M.startRun({...r});assert.deepEqual(n.roster['Tier 1'],[902,900],'the roster stays through a regress');}
 for(let i=0;i<3;i++)M.recordDeckResult(hid,[{id:900,tier:0},{id:901,tier:4}],0,1);
 assert.equal(M.sanitize(JSON.parse(JSON.stringify(hid))).charWins[900],3,'rebuilt from deck stats on load');assert.ok(M.itemCost('char_901',0)>M.itemCost('char_900',0),'stronger characters cost more');
 assert.ok(M.power('char_901')>M.power('char_900'),'and earn more per win');
@@ -137,7 +142,7 @@ assert.equal(M.sanitize({items:{char_901:3,char_999:2}}).items.char_901,3,'saved
 assert.equal(M.sanitize({items:{char_999:2}}).items.char_999,undefined);
 M.registerCharacters([{id:910,name:'Collector A',rank:4,sprite:'a.png',uc:true},{id:911,name:'Collector B',rank:3,sprite:'b.png',uc:true}]);
 assert.ok(M.ITEM.char_uc&&!M.ITEM.char_910&&!M.ITEM.char_911,'Ultimate Collectors share one item');
-const ucs=M.newState();ucs.earned=1e9;M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:911,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);assert.ok(M.visibleItems(ucs).some(i=>i.id==='char_uc'),'shown once you have earned enough');
+const ucs=M.newState();ucs.earned=1e9;M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:911,tier:0},{id:1,tier:0}],0,1);M.recordDeckResult(ucs,[{id:910,tier:0},{id:1,tier:0}],0,1);assert.ok(!M.visibleItems(ucs).some(i=>i.id==='char_uc'),'not without a Collector in the roster');ucs.roster={'Endless':[911]};assert.ok(M.visibleItems(ucs).some(i=>i.id==='char_uc'),'a Collector in the roster shows the shared item');
 const us=M.newState();us.items.char_uc=1;assert.ok(M.duelPayout(us,{winnerId:911,winner:1,reason:1,turns:9,winnerLp:100,winnerTier:'Endless'},1,1,null).parts.some(p=>p[0]==='Ultimate Collector wins'),'any Collector win pays it');
 assert.ok(M.itemCost('char_uc',0)>M.itemCost('char_901',0),'it costs more than one character of the same rank');
 
