@@ -216,7 +216,7 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
  b.coins=0;assert.equal(M.bulk(b,'fee_summon','max').count,0);
  const pay=M.duelPayout(M.newState(),{winner:0,reason:2,turns:30,winnerLp:4000},2,2);assert.ok(pay.parts.some(p=>p[0]==='Deck-out jackpot'&&p[1]>0),'deck-out wins pay without the jackpot item');}
 // ---- character upgrades: payout, spotlight, signature card, LP, relics and curses ----
-{const mods={chars:{'5':{card:100,cardName:'X',field:false,relics:['a@5','b@5','c@5'],curses:['tax','mercy','drain']},'6':{card:200,relics:[],curses:[]}},relics:{'a@5':{name:'A',text:'',s:['RELIC0','RELIC1']}},curses:{tax:{s:['TAX0','TAX1']},mercy:{s:['M0','M1']},drain:{s:['','']}}};
+{const mods={chars:{'5':{card:100,cardName:'X',field:false,relics:['a@5','b@5','c@5'],curses:['tax','mercy','drain'],fused:'f@5'},'6':{card:200,relics:[],curses:[]}},relics:{'a@5':{name:'A',text:'',s:['RELIC0','RELIC1']},'f@5':{name:'F',text:'',s:['FUSED0','FUSED1']}},curses:{tax:{s:['TAX0','TAX1']},mercy:{s:['M0','M1']},drain:{s:['','']}}};
  M.registerMods(mods);M.registerCharacters([{id:5,name:'Five',rank:1,sprite:'f.png',labels:['Tier 1']},{id:6,name:'Six',rank:1,sprite:'s.png',labels:['Tier 1']}]);
  const c=M.newState();assert.equal(M.duelMods(c,[5,6]).sig,'','no upgrades: plain duels keep sharing the library');
  c.coins=1e9;assert.ok(M.buyCharUp(c,5,'lp'));assert.ok(M.buyCharUp(c,6,'foe'));assert.ok(M.buyCharUp(c,5,'card'));assert.ok(!M.buyCharUp(c,5,'card'),'the card is bought once');
@@ -235,7 +235,7 @@ assert.equal(M.fmt(M.championStake(M.newState(),8)),'100Sx','no float dust: 1e23
   v.items.scout=1;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),1,'Scouting Report goes first when both are on');v.settings.off.scout=true;assert.equal(M.autoPick(v,[{id:5,label:'Tier 1'},{id:6,label:'Tier 2'}],()=>1),0,'switched off: Payout Sense decides')}
  {const r=M.newState();r.coins=1e15;M.registerMods(mods);for(let i=0;i<4;i++)M.buyCharUp(r,5,'relic','a@5');assert.equal(M.copies(r.chars['5'].relics,'a@5'),1,'one copy of a relic');
   assert.ok(!M.buyCharUp(r,5,'fused'),'Fused Relic needs all three relics');M.buyCharUp(r,5,'relic','b@5');M.buyCharUp(r,5,'relic','c@5');assert.ok(M.buyCharUp(r,5,'fused'));
-  assert.equal(M.duelMods(r,[5,6]).passives.split('RELIC0').length-1,2,'Fused Relic: each relic counts twice');for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
+  {const ps=M.duelMods(r,[5,6]).passives;assert.equal(ps.split('RELIC0').length-1,1,'relics count once');assert.ok(ps.includes('FUSED0'),'the fused relic plays for its character')}for(let i=0;i<2;i++)M.buyCharUp(r,5,'curse','drain');assert.equal(M.duelMods(r,[5,6]).lp[1],6000,'two Withering Souls: -2000 LP');
   for(let i=0;i<3;i++)M.buyCharUp(r,5,'curse','mercy');assert.equal(M.copies(r.chars['5'].curses,'mercy'),1,'curses that do not stack: one copy');
   assert.deepEqual(M.sanitize({chars:{'5':{relics:['a@5','a@5','a@5'],curses:['tax','tax','tax','tax']}}}).chars['5'],{relics:['a@5'],curses:['tax','tax','tax']},'older saves: extra relic copies drop');
   {const q=M.newState();q.coins=1e15;assert.equal(M.charBulk(q,5,'lp',5).count,5);assert.equal(M.charBulk(q,5,'lp','max').count,20,'MAX up to the cap')}

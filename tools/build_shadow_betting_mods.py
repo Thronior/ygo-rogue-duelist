@@ -199,8 +199,28 @@ def relic_entry(k,run):
   's':[rules(passives.multiplayer_script(r,0)),rules(passives.multiplayer_script(r,1))]}
 is_field=lambda code:bool(code and g.BY_ID[code].get('race')=='Field' and 'Spell' in str(g.BY_ID[code].get('type')))
 
+# ---- the Fused Relic (user, 2026-11-27): after a character's three relics, one fused relic from the main game's fusion pool
+# (relic_fusions.FUSED) that helps that character. Candidates: the fused relics whose pieces overlap the character's
+# relics most (its picked relics count 3, its other candidates 1), topped up with ones that help any deck; the one that
+# wins most on the same seeds next to the character's full upgrade set is kept (--fused-candidates, then
+# android/idle_bets_pick_mods.mjs, then --merge-fused). Fused relics that only pay out outside duels are left out. ----
+import relic_fusions as rf
+FUSED_POOL={f[0]:f for f in rf.FUSED if f[0] not in ('gold_sarcophagus','jar_of_greed','grand_bazaar','bottomless_purse')}
+FUSED_ANY=['masterwork_blade','gaia_plate','sacred_phoenix','invincible']
+def fused_candidates(picked,cands,n=4):
+ score={k:3*len(set(f[4])&set(picked))+len(set(f[4])&set(cands)) for k,f in FUSED_POOL.items()}
+ best=[k for k,v in sorted(score.items(),key=lambda kv:(-kv[1],kv[0])) if v>0][:n]
+ for k in FUSED_ANY:
+  if len(best)>=n:break
+  if k in FUSED_POOL and k not in best:best.append(k)
+ return best
 import argparse
-ap=argparse.ArgumentParser();ap.add_argument('--candidates',type=Path);args=ap.parse_args()
+ap=argparse.ArgumentParser();ap.add_argument('--candidates',type=Path);ap.add_argument('--fused-candidates',type=Path);ap.add_argument('--merge-fused',type=Path);args=ap.parse_args()
+if args.merge_fused:# the fused-relic simulation's winners go into the picks file
+ picks=json.loads(PICKS.read_text(encoding='utf8'));res=json.loads(args.merge_fused.read_text(encoding='utf8'))
+ for cid,r in res.items():
+  if cid in picks:picks[cid]['fused']=r['relics'][-1];picks[cid]['fusedWins']=r['best'];picks[cid]['fusedBase']=picks[cid].get('best')
+ PICKS.write_text(json.dumps(picks,separators=(',',':')).replace('},"','},\n"'),encoding='utf8');print(f"fused relics for {len(res)} characters -> {PICKS}");raise SystemExit
 picks=json.loads(PICKS.read_text(encoding='utf8')) if PICKS.exists() and not args.candidates else {}
 out={'chars':{},'relics':{},'curses':{}};cand={'chars':{},'relics':{}}
 for cid,records in decks.items():
@@ -220,10 +240,21 @@ for cid,records in decks.items():
   for k in rc:cand['relics'][f'{k}@{cid}']={'s':relic_entry(k,run)['s']}
   cand['chars'][cid]={'combos':[[[f'{k}@{cid}' for k in a],b,cd,is_field(cd)] for a,b,cd in combos(cid,rc,cc,sigs,relics,curses)]}
   continue
+ if args.fused_candidates:
+  sim=picks.get(cid)
+  if not sim:continue
+  rc=relic_candidates(cid,cards,extra,run,start,exo,relics);mine=[k.split('@')[0] for k in sim['relics']]
+  for k in mine:cand['relics'][f'{k}@{cid}']={'s':relic_entry(k,run)['s']}
+  fc=fused_candidates(mine,rc)
+  for k in fc:cand['relics'][f'{k}@{cid}']={'s':relic_entry(k,run)['s']}
+  cand['chars'][cid]={'combos':[[sim['relics']+[f'{k}@{cid}'],sim['curses'],sim['card'],is_field(sim['card'])] for k in fc]}
+  continue
  sim=picks.get(cid)
  if sim:relics=[k.split('@')[0] for k in sim['relics']];curses=sim['curses'];code=sim['card'] or code
  for k in relics:out['relics'][f'{k}@{cid}']=relic_entry(k,run)
- out['chars'][cid]={'card':code,'cardName':g.BY_ID[code]['name'] if code else '','field':is_field(code),'relics':[f'{k}@{cid}' for k in relics],'plan':strategy,'curses':curses,
+ fused=(sim or {}).get('fused')
+ if fused:out['relics'][fused]={**relic_entry(fused.split('@')[0],run),'fused':True}
+ out['chars'][cid]={**({'fused':fused} if fused else {}),'card':code,'cardName':g.BY_ID[code]['name'] if code else '','field':is_field(code),'relics':[f'{k}@{cid}' for k in relics],'plan':strategy,'curses':curses,
   **({'sim':{k:sim[k] for k in ('base','best','seeds')}} if sim else {})}
 ICONS=dict(re.findall(r"(\w+):'([\w-]+)'",re.search(r'const CURSE_ICONS=\{(.*?)\};',(WEB/'experience-ui.js').read_text(encoding='utf8')).group(1)))
 for k in CURSES:
@@ -235,9 +266,9 @@ FILTERS=dict(re.findall(r'\.curse-icon\.curse-(\w+) img\{filter:([^}]+)\}',(WEB/
 for k,c in out['curses'].items():
  c['icon']=f"assets/icons/yugipedia/genres-{ICONS.get(k,'cancel-out-effect')}.png"
  if k in FILTERS:c['filter']=FILTERS[k].strip()
-if args.candidates:
+if args.candidates or args.fused_candidates:
  cand['curses']={k:{'s':v['s']} for k,v in out['curses'].items()}
- args.candidates.write_text(json.dumps(cand,ensure_ascii=False,separators=(',',':')),encoding='utf8')
- print(f"{len(cand['chars'])} characters, {len(cand['relics'])} candidate relic scripts -> {args.candidates}");raise SystemExit
+ (args.candidates or args.fused_candidates).write_text(json.dumps(cand,ensure_ascii=False,separators=(',',':')),encoding='utf8')
+ print(f"{len(cand['chars'])} characters, {len(cand['relics'])} candidate relic scripts -> {args.candidates or args.fused_candidates}");raise SystemExit
 OUT.write_text(json.dumps(out,ensure_ascii=False,separators=(',',':')),encoding='utf8')
 print(f"{len(out['chars'])} characters ({sum(1 for c in out['chars'].values() if 'sim' in c)} from simulated picks), {len(out['relics'])} relic scripts, {len(out['curses'])} curses -> {OUT} ({OUT.stat().st_size//1024} KB)")

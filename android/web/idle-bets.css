@@ -634,3 +634,5 @@
 .db-stats-wrap .db-stats thead button{all:unset;cursor:pointer;color:#f2cf83;font-family:var(--db-display);letter-spacing:.04em;font-size:13px}.db-stats-wrap .db-stats thead button.on{text-decoration:underline}
 .db-stats-name{display:inline-flex;align-items:center;gap:8px;font-weight:600}.db-stats-name img{width:30px;height:30px;object-fit:cover;object-position:50% 15%;border-radius:4px}
 .db-stats-rate{font-weight:700;color:#fff}
+.db-fused-tag{font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#f2cf83;border:1px solid #c9a85c;border-radius:4px;padding:0 4px;white-space:nowrap}
+.db-fused-glow{filter:drop-shadow(0 0 6px #f2cf83)}

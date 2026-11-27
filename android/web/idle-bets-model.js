@@ -469,7 +469,8 @@ export function regress(s){const gained=regressBegin(s);if(!gained)return null;r
 // fan (Fan Club): Auto Bet backs this character whenever they duel (Discord 2026-11-26: the user and Nori).
 // Relics: one copy each (3 stacking copies were too strong); curses: up to 3 stacking copies, except the ones that do
 // not stack, as in singleplayer (feedback_update.nonstackable_curses + Mercy once per duel). After all three relics, a
-// super expensive Fused Relic makes each count twice (the user, Discord #shadow-betting 2026-11-27).
+// super expensive Fused Relic: one fused relic from the main game's fusion pool, picked by simulation for that character
+// (the user, Discord #shadow-betting and 2026-11-27).
 export const MOD_COPIES=3;export const copies=(list,k)=>(list||[]).filter(x=>x===k).length;
 export const CURSE_ONCE=new Set(['relic_seal','mirror_stats','effect_reverser','shield_breaker','relic_mirror','no_specials','miller','mercy','no_recovery','fireproof_vest']);
 export const modLimit=(kind,k)=>kind==='relic'?1:CURSE_ONCE.has(k)?1:MOD_COPIES;
@@ -491,7 +492,7 @@ export function charBulk(s,id,kind,n){const c=CHAR_UP[kind];if(!c)return {count:
 export function toggleFan(s,id){const u=s.chars[charKey(id)];if(!u?.fan)return false;if(u.fanOff)delete u.fanOff;else u.fanOff=true;return true}
 export function buyCharUp(s,id,kind,which=null){const key=charKey(id),u=s.chars[key]??={};
  if(kind==='relic'||kind==='curse'){const list=u[kind+'s']??=[];const allowed=(MODS.chars[key]?.[kind+'s'])||[];if(!allowed.includes(which)||copies(list,which)>=modLimit(kind,which))return false;const c=charUpCost(s,id,kind);if(!spend(s,c))return false;list.push(which);return true}
- const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;if(kind==='fused'&&!allRelics(s,id))return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
+ const c=CHAR_UP[kind];if(!c||(u[kind]||0)>=c.max)return false;if(kind==='card'&&!MODS.chars[key]?.card)return false;if(kind==='fused'&&(!allRelics(s,id)||!MODS.chars[key]?.fused))return false;const cost=charUpCost(s,id,kind);if(!spend(s,cost))return false;u[kind]=(u[kind]||0)+1;return true}
 // How often a character is picked for a duel (Spotlight: +60% per level, 7x at level 10; it was +25%, too weak:
 // the user, Discord 2026-11-26).
 export const SPOT_STEP=.6;
@@ -503,7 +504,8 @@ export function duelMods(s,ids){const ups=ids.map(id=>charUps(s,id)),keys=ids.ma
  const parts=[];
  for(const p of [0,1]){const u=ups[p],o=ups[1-p];
   if(u.card&&MODS.chars[keys[p]]?.card)parts.push(startCardScript(p,MODS.chars[keys[p]].card,MODS.chars[keys[p]].field));
-  for(const r of u.relics||[])if(MODS.relics[r])for(let i=u.fused?2:1;i>0;i--)parts.push(MODS.relics[r].s[p]);
+  for(const r of u.relics||[])if(MODS.relics[r])parts.push(MODS.relics[r].s[p]);
+  {const f=u.fused&&MODS.chars[keys[p]]?.fused;if(f&&MODS.relics[f])parts.push(MODS.relics[f].s[p])}// the character's fused relic
   for(const c of o.curses||[])if(MODS.curses[c]?.s?.[p])parts.push(MODS.curses[c].s[p])}
  const sig=(lp[0]!==8000||lp[1]!==8000||parts.length)?JSON.stringify([lp,ups.map(u=>[u.card||0,(u.relics||[]).slice().sort(),(u.curses||[]).slice().sort(),u.fused||0])]):'';
  return {lp,passives:parts.join('\n'),sig}}
