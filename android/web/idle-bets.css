@@ -620,3 +620,17 @@
 .db-dd-choose{flex:1;min-height:0;overflow:auto;text-align:center;color:#f3e7ff}.db-dd-choose>p{margin:4px 0}
 .db-dd-choose .db-roster-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
 .db-dd-choose .db-char img{width:72px;height:72px;object-fit:cover;object-position:50% 15%;border-radius:6px}
+/* CPU deck stats like the main game's Stats tab (user, 2026-11-27). */
+.db-stats-modal{width:min(760px,96vw)}
+.db-stats-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}
+.db-stats-tabs button{padding:6px 12px;border-radius:5px;border:1px solid #3d6270;background:#0b1d26;color:var(--db-dim);font-family:var(--db-display);letter-spacing:.04em;font-size:14px;cursor:pointer}
+.db-stats-tabs button.on{border-color:#f2cf83;background:#946539;color:#fff4d7}
+.db-stats-search{width:100%;box-sizing:border-box;margin:0 0 8px;padding:7px 10px;border-radius:6px;border:1px solid #3d6270;background:#06121a;color:var(--db-text);font:inherit}
+.db-stats-table-wrap{overflow:auto}
+.db-stats-wrap table.db-stats{width:100%;border-collapse:collapse;font-size:13px}
+.db-stats-wrap .db-stats th,.db-stats-wrap .db-stats td{padding:5px 8px;border-bottom:1px solid #1e3a45;text-align:right;white-space:nowrap}
+.db-stats-wrap .db-stats th[scope=row],.db-stats-wrap .db-stats thead th:first-child{text-align:left}
+.db-stats-wrap .db-stats thead th{position:sticky;top:0;background:#102732;z-index:1}
+.db-stats-wrap .db-stats thead button{all:unset;cursor:pointer;color:#f2cf83;font-family:var(--db-display);letter-spacing:.04em;font-size:13px}.db-stats-wrap .db-stats thead button.on{text-decoration:underline}
+.db-stats-name{display:inline-flex;align-items:center;gap:8px;font-weight:600}.db-stats-name img{width:30px;height:30px;object-fit:cover;object-position:50% 15%;border-radius:4px}
+.db-stats-rate{font-weight:700;color:#fff}

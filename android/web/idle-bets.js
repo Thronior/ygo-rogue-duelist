@@ -413,13 +413,28 @@ export class DuelBets{
  // CPU deck stats: every finished duel on your boards and brackets, per deck, best to worst. Ranked by a smoothed
  // win rate ((wins+1)/(duels+2)) so a 1–0 deck doesn't outrank a 40–10 one; decks with no duels yet come last.
  // Built fresh each time it opens and every 10 seconds while it stays open.
- deckStatsHTML(){const stats=this.state.deckStats||{};
-  const rows=this.pool.map(d=>{const [g,w,ex,de]=stats[d.id+':'+d.tier]||[0,0,0,0],s=this.seatOf(d);return {...s,g,w,l:g-w,ex,de,score:g?(w+1)/(g+2):-1}})
-   .sort((a,b)=>b.score-a.score||b.g-a.g||a.name.localeCompare(b.name));
-  return `<table class="db-stats"><thead><tr><th>#</th><th></th><th>CPU</th><th>Deck</th><th>Duels</th><th>W</th><th>L</th><th>Win %</th><th>Exodia</th></tr></thead><tbody>${
-   rows.map((r,i)=>`<tr class="${r.g?'':'none'}"><td>${i+1}</td><td><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}"></td><td>${esc(r.name)}</td><td>${this.tierChip(r.label)}</td><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td>${r.g?Math.round(r.w/r.g*100)+'%':'–'}</td><td>${r.ex||''}</td></tr>`).join('')}</tbody></table>`}
- deckStats(){const d=this.modal('CPU deck stats',`<div class="db-stats-wrap">${this.deckStatsHTML()}</div>`),body=d.querySelector('.db-modal-body');
-  const timer=setInterval(()=>{if(!d.open||!this.el){clearInterval(timer);return}const top=body.scrollTop;d.querySelector('.db-stats-wrap').innerHTML=this.deckStatsHTML();body.scrollTop=top},10000);
+ // CPU deck stats, laid out like the main game's Stats tab (the user, Discord 2026-11-27): tier tabs (Ultimate Collectors
+ // apart), a search box, sortable columns and a win-rate cell shaded red to green, stronger with more duels.
+ statsGroups(){const stats=this.state.deckStats||{},order=['Opening Duel','Tier 1','Tier 2','Tier 3','Endless','World Championship','Ultimate Collectors'],groups=new Map();
+  for(const d of this.pool){const [g,w,ex]=stats[d.id+':'+d.tier]||[0,0,0];if(!g)continue;const seat=this.seatOf(d),k=this.chars[d.id]?.ultimate_collector?'Ultimate Collectors':d.label;
+   if(!groups.has(k))groups.set(k,[]);groups.get(k).push({id:d.id,name:seat.name,sprite:seat.sprite,g,w,l:g-w,ex,rate:w/g})}
+  return order.filter(k=>groups.has(k)).map(k=>[k,groups.get(k)])}
+ deckStatsHTML(){const groups=this.statsGroups();if(!groups.length)return '<p class="db-empty">No CPU duels recorded yet.</p>';
+  const pick=groups.find(([k])=>k===this.statsTier)||groups.find(([k])=>k==='Tier 1')||groups[0];this.statsTier=pick[0];
+  const sort=this.statsSort||{k:'g',dir:-1},rows=pick[1].slice().sort((a,b)=>(sort.k==='name'?a.name.localeCompare(b.name):a[sort.k]-b[sort.k])*sort.dir||b.g-a.g);
+  const shade=r=>`background:hsla(${Math.round(r.rate*120)},55%,42%,${(Math.min(1,r.g/10)*.35+.06).toFixed(2)})`;
+  const head=(k,label)=>`<th scope="col"><button data-ssort="${k}" class="${sort.k===k?'on':''}">${label}${sort.k===k?(sort.dir<0?' ▼':' ▲'):''}</button></th>`;
+  const tabs=`<div class="db-stats-tabs" role="tablist">${groups.map(([k])=>`<button role="tab" data-stier="${esc(k)}" aria-selected="${k===pick[0]}" class="${k===pick[0]?'on':''}">${esc(k==='Opening Duel'?'Opening duel':k)}</button>`).join('')}</div>`;
+  const q=(this.statsQuery||'').toLowerCase();
+  return `${tabs}<input class="db-stats-search" type="search" placeholder="Search CPUs" value="${esc(this.statsQuery||'')}" data-squery><div class="db-stats-table-wrap"><table class="db-stats"><thead><tr>${head('name','CPU')}${head('g','Duels')}${head('w','Wins')}${head('l','Losses')}${head('rate','Win rate')}</tr></thead><tbody>${
+   rows.map(r=>`<tr data-name="${esc(r.name.toLowerCase())}" ${q&&!r.name.toLowerCase().includes(q)?'hidden':''}><th scope="row"><span class="db-stats-name"><img loading="lazy" alt="" src="${assetURL('assets/'+r.sprite)}">${esc(r.name)}</span></th><td>${r.g}</td><td>${r.w}</td><td>${r.l}</td><td class="db-stats-rate" style="${shade(r)}">${Math.round(r.rate*100)}%</td></tr>`).join('')}</tbody></table></div>`}
+ deckStats(){const paint=()=>{const wrap=d.querySelector('.db-stats-wrap'),body=d.querySelector('.db-modal-body'),top=body.scrollTop,focus=document.activeElement?.matches?.('[data-squery]');wrap.innerHTML=this.deckStatsHTML();body.scrollTop=top;if(focus){const i=wrap.querySelector('[data-squery]');i.focus();i.setSelectionRange(i.value.length,i.value.length)}};
+  const d=this.modal('CPU deck stats',`<div class="db-stats-wrap">${this.deckStatsHTML()}</div>`,e=>{
+   const t=e.target.closest('[data-stier]');if(t){this.statsTier=t.dataset.stier;paint();return}
+   const s=e.target.closest('[data-ssort]');if(s){const k=s.dataset.ssort,cur=this.statsSort||{k:'g',dir:-1};this.statsSort={k,dir:cur.k===k?-cur.dir:(k==='name'?1:-1)};paint()}});
+  d.classList.add('db-stats-modal');
+  d.addEventListener('input',e=>{if(!e.target.matches('[data-squery]'))return;this.statsQuery=e.target.value;const q=e.target.value.toLowerCase();for(const tr of d.querySelectorAll('.db-stats tbody tr'))tr.hidden=!!q&&!tr.dataset.name.includes(q)});
+  const timer=setInterval(()=>{if(!d.open||!this.el){clearInterval(timer);return}paint()},10000);
   d.addEventListener('close',()=>clearInterval(timer))}
  reset(){for(const b of this.boards)b.destroy();for(const b of this.brackets)b.destroy();this.boards=[];this.brackets=[];this.openBracket=null;const inf=this.state.settings.infinite;this.state=M.newState();this.state.settings.infinite=inf;this.save();this.paintTotal(true);this.renderShop();this.layout()}
  championPicker(b){if(b.phase!=='bet'||b.bet)return;const stake=M.championStake(this.state,b.index),pay=M.championPayout(this.state,b.index);
