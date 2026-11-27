@@ -1,6 +1,6 @@
 # Shadow Betting (incremental minigame, "Duel Bets" in code) — branch notes
 
-Branch `claude/incremental-minigame-228fdc`, based on v0.2.45. **Not merged.** Merge into `main` only when the user says the minigame is finished.
+Branch `shadow-betting`, based on v0.2.45. **Not merged.** Merge into `main` only when the user says the minigame is finished.
 
 ## What it is
 

@@ -34,7 +34,7 @@ def main():
  if gh('release','view',TAG,check=False).returncode==0:
   gh('release','upload',TAG,str(apk),str(mf),'--clobber');gh('release','edit',TAG,'--title',title,'--prerelease','--latest=false')
  else:
-  gh('release','create',TAG,str(apk),str(mf),'--title',title,'--notes',notes,'--prerelease','--latest=false','--target','claude/incremental-minigame-228fdc')
+  gh('release','create',TAG,str(apk),str(mf),'--title',title,'--notes',notes,'--prerelease','--latest=false','--target','shadow-betting')
  print(f'Released {title} on {REPO} (tag {TAG}, pre-release)',flush=True)
 
 if __name__=='__main__':main()
