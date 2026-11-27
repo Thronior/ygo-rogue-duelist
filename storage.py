@@ -99,7 +99,7 @@ def settings():
  resolution=p.get('resolution','1280x880')
  if resolution not in ['1024x768','1280x720','1280x880','1600x900','1920x1080']:resolution='1280x880'
  compatibility=p.get('compatibilityMode')
- return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),skipPackAnimations=bool(p.get('skipPackAnimations',False)),autoPickSingle=bool(p.get('autoPickSingle',True)),spinEffects=bool(p.get('spinEffects',True)),orientation=p.get('orientation') if p.get('orientation') in ('portrait','landscape') else 'auto',autoPlacement=bool(p.get('autoPlacement',False)) if p.get('autoPlacementSet') else True,autoPlacementSet=bool(p.get('autoPlacementSet',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),japaneseNames=bool(p.get('japaneseNames',False)),deckSplit=bool(p.get('deckSplit',False)) if p.get('deckSplitSet') else True,deckSplitSet=bool(p.get('deckSplitSet',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=50 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),cpuDelay=bounded('cpuDelay',0,0,1000),sleeve=sleeve_setting(p.get('sleeve')),sleeveUnlockedFirst=bool(p.get('sleeveUnlockedFirst',False)),characterSettings=character_settings(p.get('characterSettings')),hotkeys=hotkeys_setting(p.get('hotkeys')))
+ return dict(pauseWhenHidden=bool(p.get('pauseWhenHidden',True)),performanceMode=bool(p.get('performanceMode',False)),fasterAnimations=bool(p.get('fasterAnimations',False)),skipPackAnimations=bool(p.get('skipPackAnimations',False)),autoPickSingle=bool(p.get('autoPickSingle',True)),spinEffects=bool(p.get('spinEffects',True)),orientation=p.get('orientation') if p.get('orientation') in ('portrait','landscape') else 'auto',autoPlacement=bool(p.get('autoPlacement',False)) if p.get('autoPlacementSet') else True,autoPlacementSet=bool(p.get('autoPlacementSet',False)),explainActions=bool(p.get('explainActions',True)),reduceMotion=bool(p.get('reduceMotion',False)),japaneseNames=bool(p.get('japaneseNames',False)),deckTraitCounts=bool(p.get('deckTraitCounts',False)),deckSplit=bool(p.get('deckSplit',False)) if p.get('deckSplitSet') else True,deckSplitSet=bool(p.get('deckSplitSet',False)),deckColumns=bounded('deckColumns',0,0,20),duelTheme=p.get('duelTheme') if p.get('duelTheme') in ('duel-disk','shadow-realm','clean-tournament','millennium-stone','kaiba-hologram','pixel-art') else '',textSize=bounded('textSize',100,50,150),uiScale=(lambda v:v if v>=50 else 0)(bounded('uiScale',0,0,200)),fpsCap=bounded('fpsCap',120,30,120),simpleBackgrounds=bool(p.get('simpleBackgrounds',False)),compatibilityMode=None if compatibility is None else bool(compatibility),resolution=resolution,fullscreen=bool(p.get('fullscreen',False)),master=volume('master',100),music=volume('music',40),sound=volume('sound',30),voice=volume('voice',volume('sound',30)),menu=volume('menu',volume('sound',30)),effectsOff=[k for k in (p.get('effectsOff') if isinstance(p.get('effectsOff'),list) else []) if isinstance(k,str)][:32],favoritePacks=list(dict.fromkeys(k for k in (p.get('favoritePacks') if isinstance(p.get('favoritePacks'),list) else []) if isinstance(k,str) and len(k)<=64))[:300],manualResponseWindow=bounded('manualResponseWindow',200,0,2000),cpuDelay=bounded('cpuDelay',0,0,1000),sleeve=sleeve_setting(p.get('sleeve')),sleeveUnlockedFirst=bool(p.get('sleeveUnlockedFirst',False)),characterSettings=character_settings(p.get('characterSettings')),hotkeys=hotkeys_setting(p.get('hotkeys')))
 
 
 def sleeve_setting(value):
@@ -205,6 +205,32 @@ def run_history():
  if any(isinstance(row,dict) and returned_secret(row) for row in rows):p['run_history']=rows=[row for row in rows if not (isinstance(row,dict) and returned_secret(row))];write(ROOT/'profile.json',p)
  return sorted(rows,key=lambda row:row.get('finished_at') or row.get('started_at') or 0,reverse=True)
 
+
+def merge_room_profile(incoming, current=None):
+ """A Tag/Draft room hands back the profile it snapshotted when the room was made, plus that room's progress. A resumed
+ old room must not roll newer progress back: unlocks, clears and counters only ever grow, and anything the room's copy
+ lacks is kept (Badaaron, Discord 2026-11-26: Final Message and Challenge Levels had to be unlocked again)."""
+ current=profile() if current is None else current
+ if not isinstance(incoming,dict):return current
+ merged=dict(incoming)
+ for key,value in current.items():merged.setdefault(key,value)
+ levels=dict(current.get('character_levels') or {})
+ for key,value in (incoming.get('character_levels') or {}).items():
+  try:levels[key]=max(int(levels.get(key,-1)),int(value))
+  except (TypeError,ValueError):pass
+ if levels:merged['character_levels']=levels
+ for key in ('unlocked','won_as','sleeves_earned','achievements','loadouts_unlocked'):
+  a,b=incoming.get(key),current.get(key)
+  if isinstance(a,list) and isinstance(b,list):merged[key]=a+[x for x in b if x not in a]
+ for key in ('gallery_unlocked','relicless_unlocked','cpu_viewer_unlocked','variants_unlocked','unlock_all'):
+  if current.get(key):merged[key]=current[key]
+ for key in ('wins','runs','victories'):
+  if isinstance(current.get(key),(int,float)) and isinstance(incoming.get(key),(int,float)):merged[key]=max(current[key],incoming[key])
+ rows=incoming.get('run_history');old=current.get('run_history')
+ if isinstance(rows,list) and isinstance(old,list):
+  ids={r.get('id') for r in rows if isinstance(r,dict) and r.get('id')}
+  merged['run_history']=rows+[r for r in old if isinstance(r,dict) and r.get('id') and r['id'] not in ids]
+ return merged
 
 def merge_desktop_profile(raw, metrics=()):
  """Validate a desktop profile and merge monotonically; never import save slots."""

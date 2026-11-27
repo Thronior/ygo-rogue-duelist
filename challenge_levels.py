@@ -3,7 +3,18 @@ import storage
 DESCRIPTIONS=["No modifiers", "All enemies start with 8000 LP", "Amplified Boss Curses", "Duel coin rewards reduced by 25%", "Start with 4000 LP; between-duel healing capped at 4000 LP", "Opponents receive a thematic combat relic", "Start with a chosen curse. Curses persist through every duel; each boss adds one."]
 def highest(profile, character):
  return max(-1,min(6,int(profile.get('character_levels',{}).get(str(character),-1))))
-def unlocked(profile, character):return min(6,highest(profile,character)+1)
+# Shared Challenge Level starts (user, 2026-11-26): once 3 different characters have beaten Level X, every character can
+# start at X, up to 5 (Level 6 is never shared). This only unlocks levels: character_levels still holds each character's
+# own clears, which the roster colours, "Completed" marks, sleeves and alternates read (user: colours change only when that
+# character beats a run). android/web/difficulty-preference.js sharedStart mirrors this.
+SHARED_CHARACTERS,SHARED_CAP=3,5
+def shared_start(profile):
+ levels=[]
+ for value in (profile.get('character_levels') or {}).values():
+  try:levels.append(max(-1,min(6,int(value))))
+  except (TypeError,ValueError):pass
+ return max([x for x in range(1,SHARED_CAP+1) if sum(l>=x for l in levels)>=SHARED_CHARACTERS],default=0)
+def unlocked(profile, character):return min(6,max(highest(profile,character)+1,shared_start(profile)))
 def validate(character, level):
  level=int(level)
  if level==-1 and storage.profile().get('relicless_unlocked'):return -1

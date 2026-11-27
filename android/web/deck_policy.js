@@ -211,7 +211,8 @@ export function deckPolicy(x){
     const attacker=e.attackCard?.controller===1-p&&same(c,e.attackTarget)?enemy.find(x=>same(x,e.attackCard)):null;
     const doomed=attacker&&face(c)&&atk(attacker)>((c.position&1)?atk(c):(c.defense??0));
     const ownStop=(e.activeChain||[]).some(l=>l.player===p&&!l.inactive);
-    return doomed&&!ownStop&&own.some(t=>!same(t,c)&&face(t)&&(t.position&1))?90:-1;
+    // The boosted monster must then beat the attacker, or the replayed attack just destroys it instead (flag 170d9f3c, 2026-11-26).
+    return doomed&&!ownStop&&own.some(t=>!same(t,c)&&face(t)&&(t.position&1)&&atk(t)+1000>atk(attacker))?90:-1;
    }
   }
   if(n==='Human-Wave Tactics')return chain&&e.phase===512&&free>0&&q(p,L.DECK).some(lowNormal)?95:-1;

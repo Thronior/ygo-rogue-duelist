@@ -10,6 +10,8 @@ ROWS=[
  # 10K survey relics the user picked (2026-11-25): a Sanctuary in the Sky burn for Fairy decks (survey row 226) and
  # Weevil's anime Parasite Paracide infestation (survey row 393). Names and art are mine; none were given.
  ('sanctuary_hymn','Sanctuary Hymn',90,'While "The Sanctuary in the Sky" is face-up on the field, each time you gain LP by the effect of a Fairy monster, inflict damage to your opponent equal to the LP you gained.','Dancing Fairy','Fairy'),
+ # Serenity's Zera's Sanctuary loadout (user, 2026-11-26, from MonkehestMan's loadout list): the Tribute must be a Fairy.
+ ('herald_of_heaven','Herald of Heaven',100,'Once per Duel, while "The Sanctuary in the Sky" is face-up on the field: You can Tribute 1 Fairy monster; Special Summon 1 Level 7 or higher Fairy monster from your hand or Deck, ignoring its Summoning conditions.','Archlord Zerato','Fairy'),
  ('parasite_infestation','Parasite Infestation',80,'At the start of each Duel, shuffle 1 "Parasite Paracide" from outside the Duel into your opponent\'s Deck face-up.','Parasite Paracide','Insect'),
  ('machine_foundry','Fusion Dividend',90,'Earn 30 coins each time you Fusion Summon. Coins are collected after the duel.','Fusion Sage',''),
  ('swordsman_oath','Level Bonus',85,'Your LV monsters gain 400 ATK.','Silent Swordsman LV5','LV'),
@@ -82,6 +84,16 @@ def effect(kind):
   # Sanctuary is face-up. Healing Echo's extra 200 comes from a relic, not a Fairy, so it adds no damage.
   fairy='re~=nil and re:GetHandler()~=nil and re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsRace(RACE_FAIRY)'
   return event('EVENT_RECOVER','Duel.Damage(1,ev,REASON_EFFECT)',f'ep==0 and ev>0 and {fairy} and Duel.IsEnvironment({SANCTUARY})')
+ if key=='herald_of_heaven':
+  # Black Chaos Rite's summon procedure on every Level 7+ Fairy in the hand or Deck. The procedure is a proper summon,
+  # so Archlord Zerato's and Shinato's own conditions (aux.FALSE) don't block it. Either player's Sanctuary counts.
+  from approved_relic_effects import summon_proc
+  return summon_proc(None,'LOCATION_HAND|LOCATION_DECK',0,'used',
+   'local function fodder(c,tp) return c:IsRace(RACE_FAIRY) and c:IsReleasable() and D.GetMZoneCount(tp,c)>0 end',
+   f'return D.IsEnvironment({SANCTUARY}) and D.IsExistingMatchingCard(fodder,tp,LOCATION_MZONE,0,1,nil,tp)',
+   'D.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE) local sg=D.GetMatchingGroup(fodder,tp,LOCATION_MZONE,0,nil,tp):Select(tp,1,1,true,nil) if not sg or #sg==0 then return false end',
+   'used=true Duel.Release(sg,REASON_COST)','false',
+   handlers='function(c) return c:IsMonster() and c:IsRace(RACE_FAIRY) and c:GetOriginalLevel()>=7 end')
  if key=='parasite_infestation':
   # As Parasite Paracide's own FLIP effect does it (c27911549.lua): the card goes face-up into the opponent's Deck and gets
   # the forced trigger for when they draw it (Special Summon to their field in Defense Position, 1000 damage to them,

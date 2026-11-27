@@ -74,6 +74,14 @@ for region,names,locale in [('EN',english,'na'),('JP',japanese,'jp')]:
 # Explicit user-requested opponent cards outside the standard pack cutoff.
 for card in json.loads((ROOT/'data/opponent-card-exceptions.json').read_text(encoding='utf8')):
  cards[card['id']]=card
+# A Spell/Trap's race is its kind (Quick-Play, Field, Counter...), which draws its icon and badge; some imports said Normal
+# (flag 4c884cbf, 2026-11-26: Roulette Spider). Trap monsters such as Stronghold keep their monster Type.
+def _spell_trap_race(t):
+ if t&2:return 'Ritual' if t&0x80 else 'Field' if t&0x80000 else 'Equip' if t&0x40000 else 'Continuous' if t&0x20000 else 'Quick-Play' if t&0x10000 else 'Normal'
+ return 'Counter' if t&0x100000 else 'Continuous' if t&0x20000 else 'Normal'
+for card in cards.values():
+ t=card['data']['type']
+ if t&6 and not t&1 and card.get('race') in ('Normal','0','Quick-Play','Continuous','Equip','Field','Ritual','Counter'):card['race']=_spell_trap_race(t)
 from update_pack_rarities import annotate
 annotate(packs)
 from pack_merges import merge_pack_catalog

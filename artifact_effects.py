@@ -17,7 +17,8 @@ def effect(kind,amount,attribute=''):
  if result is not None:return result
  # Face-down monsters too (Discord 2026-11-24: a Tag opponent's Change of Heart took a face-down monster; field effects skip
  # Set cards without EFFECT_FLAG_SET_AVAILABLE). Player 0 is the whole team in Tag, so both partners' monsters are covered.
- if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_MZONE,0) Duel.RegisterEffect(e,0) end'''
+ # Only monsters you own: a monster you took (Enemy Controller, Change of Heart) still goes back (flag 3080f92a, 2026-11-26).
+ if kind=='loyalty':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANNOT_CHANGE_CONTROL) e:SetProperty(EFFECT_FLAG_SET_AVAILABLE) e:SetTargetRange(LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:GetOwner()==e:GetHandlerPlayer() end) Duel.RegisterEffect(e,0) end'''
  if kind=='this_life_mine':return '''do local used=false local e=Effect.GlobalEffect()
 e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PAY_LPCOST)
 e:SetCondition(function(e,tp,eg,ep,ev) return not used and ep==0 and ev>0 end)
@@ -280,9 +281,11 @@ local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CANN
  # Only an activated card effect counts: relic and curse damage comes from continuous global effects.
  if kind=='first_effect_damage':return '''do local last=-1 local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_CHANGE_DAMAGE) e:SetProperty(EFFECT_FLAG_PLAYER_TARGET) e:SetTargetRange(1,0)
 e:SetValue(function(e,re,val,r) if val>0 and (r&REASON_EFFECT)~=0 and re and re:IsActivated() and last~=Duel.GetTurnCount() then last=Duel.GetTurnCount() return 0 end return val end) Duel.RegisterEffect(e,0) end'''
- if kind=='hot_deck':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_DRAW)
-e:SetCondition(function(e,tp,eg,ep,ev) return ep==1 and ev>0 and Duel.GetTurnCount()>0 end)
-e:SetOperation(function(e,tp,eg,ep,ev) Duel.DiscardDeck(1,ev,REASON_EFFECT) end) Duel.RegisterEffect(e,0) end'''
+ # A draw caused by its own mill (the opponent's Parting Gift) re-entered it with no count: "effect went wrong" (flag
+ # da667c60, 2026-11-26). That nested draw is not milled.
+ if kind=='hot_deck':return '''do local busy=false local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_DRAW)
+e:SetCondition(function(e,tp,eg,ep,ev) return not busy and ep==1 and (ev or 0)>0 and Duel.GetTurnCount()>0 end)
+e:SetOperation(function(e,tp,eg,ep,ev) busy=true Duel.DiscardDeck(1,ev,REASON_EFFECT) busy=false end) Duel.RegisterEffect(e,0) end'''
  if kind=='token_defender':return '''do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD|EFFECT_TYPE_CONTINUOUS) e:SetCode(EVENT_PHASE_START|PHASE_END) e:SetCountLimit(1)
 e:SetCondition(function() return Duel.GetTurnPlayer()==0 and Duel.GetFieldGroupCount(0,LOCATION_MZONE,0)==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 end)
 e:SetOperation(function() Duel.SpecialSummon(Duel.CreateToken(0,60764582),0,0,0,false,false,POS_FACEUP_DEFENSE) end) Duel.RegisterEffect(e,0) end'''

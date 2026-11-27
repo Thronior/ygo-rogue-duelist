@@ -26638,5 +26638,281 @@
   "en": "Each time you pay LP for an effect, inflict damage to your opponent equal to half the LP you paid (rounded down), then gain LP equal to half the LP you paid (rounded down). The first time you pay LP each Duel, gain LP equal to all the LP you paid instead.",
   "kind": "exact",
   "ctx": "relic effect (solar_covenant)"
+ },
+ {
+  "group": "python",
+  "en": "Piercing and direct attacks",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Staple Spells",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Staple Monsters",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "LV monsters",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Deck searchers",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Blue-Eyes cards",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Ninja cards",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "python",
+  "en": "Ojama cards",
+  "kind": "exact",
+  "ctx": "shop_rewards.py"
+ },
+ {
+  "group": "character",
+  "en": "Zera's Sanctuary",
+  "kind": "exact",
+  "ctx": "variant title of Serenity Wheeler"
+ },
+ {
+  "group": "relic",
+  "en": "Herald of Heaven",
+  "kind": "exact",
+  "ctx": "relic name (herald_of_heaven)"
+ },
+ {
+  "group": "relic",
+  "en": "Once per Duel, while \"The Sanctuary in the Sky\" is face-up on the field: You can Tribute 1 Fairy monster; Special Summon 1 Level 7 or higher Fairy monster from your hand or Deck, ignoring its Summoning conditions.",
+  "kind": "exact",
+  "ctx": "relic effect (herald_of_heaven)"
+ },
+ {
+  "group": "character",
+  "en": "Pharaoh's Magic",
+  "kind": "exact",
+  "ctx": "main loadout title of character 0"
+ },
+ {
+  "group": "character",
+  "en": "White Lightning Destruction",
+  "kind": "exact",
+  "ctx": "main loadout title of character 1"
+ },
+ {
+  "group": "character",
+  "en": "Brooklyn Bladers",
+  "kind": "exact",
+  "ctx": "main loadout title of character 2"
+ },
+ {
+  "group": "character",
+  "en": "Harpie Storm",
+  "kind": "exact",
+  "ctx": "main loadout title of character 3"
+ },
+ {
+  "group": "character",
+  "en": "Lucky Metal",
+  "kind": "exact",
+  "ctx": "main loadout title of character 4"
+ },
+ {
+  "group": "character",
+  "en": "Masquerade Shadows",
+  "kind": "exact",
+  "ctx": "main loadout title of character 5"
+ },
+ {
+  "group": "character",
+  "en": "Darkness Necromancer",
+  "kind": "exact",
+  "ctx": "main loadout title of character 6"
+ },
+ {
+  "group": "character",
+  "en": "Restricting Eye",
+  "kind": "exact",
+  "ctx": "main loadout title of character 7"
+ },
+ {
+  "group": "character",
+  "en": "Jurassic Stampede",
+  "kind": "exact",
+  "ctx": "main loadout title of character 8"
+ },
+ {
+  "group": "character",
+  "en": "Rising Undead",
+  "kind": "exact",
+  "ctx": "main loadout title of character 9"
+ },
+ {
+  "group": "character",
+  "en": "Swarming Hive",
+  "kind": "exact",
+  "ctx": "main loadout title of character 10"
+ },
+ {
+  "group": "character",
+  "en": "Eternal Flames",
+  "kind": "exact",
+  "ctx": "main loadout title of character 11"
+ },
+ {
+  "group": "character",
+  "en": "Gagagoogoo",
+  "kind": "exact",
+  "ctx": "main loadout title of character 12"
+ },
+ {
+  "group": "character",
+  "en": "Blinding Blades",
+  "kind": "exact",
+  "ctx": "main loadout title of character 13"
+ },
+ {
+  "group": "character",
+  "en": "Future's Will",
+  "kind": "exact",
+  "ctx": "main loadout title of character 14"
+ },
+ {
+  "group": "character",
+  "en": "Serket's Tomb",
+  "kind": "exact",
+  "ctx": "main loadout title of character 15"
+ },
+ {
+  "group": "character",
+  "en": "Psychic Units",
+  "kind": "exact",
+  "ctx": "main loadout title of character 16"
+ },
+ {
+  "group": "character",
+  "en": "Crimson Magic",
+  "kind": "exact",
+  "ctx": "main loadout title of character 17"
+ },
+ {
+  "group": "character",
+  "en": "Legends of the Sea",
+  "kind": "exact",
+  "ctx": "main loadout title of character 18"
+ },
+ {
+  "group": "character",
+  "en": "Dungeon Dice",
+  "kind": "exact",
+  "ctx": "main loadout title of character 19"
+ },
+ {
+  "group": "character",
+  "en": "Ark Genesis",
+  "kind": "exact",
+  "ctx": "main loadout title of character 20"
+ },
+ {
+  "group": "character",
+  "en": "Guardians Labyrinth",
+  "kind": "exact",
+  "ctx": "main loadout title of character 21"
+ },
+ {
+  "group": "character",
+  "en": "Healing Flames",
+  "kind": "exact",
+  "ctx": "main loadout title of character 22"
+ },
+ {
+  "group": "character",
+  "en": "The Forbidden One",
+  "kind": "exact",
+  "ctx": "main loadout title of character 23"
+ },
+ {
+  "group": "character",
+  "en": "Thunder Thief",
+  "kind": "exact",
+  "ctx": "main loadout title of character 24"
+ },
+ {
+  "group": "character",
+  "en": "Golden Grave",
+  "kind": "exact",
+  "ctx": "main loadout title of character 28"
+ },
+ {
+  "group": "character",
+  "en": "Divine Phoenix",
+  "kind": "exact",
+  "ctx": "main loadout title of character 30"
+ },
+ {
+  "group": "character",
+  "en": "Pyramid of Light",
+  "kind": "exact",
+  "ctx": "main loadout title of character 31"
+ },
+ {
+  "group": "character",
+  "en": "Millennium Defender",
+  "kind": "exact",
+  "ctx": "main loadout title of character 32"
+ },
+ {
+  "group": "character",
+  "en": "Dark Illusions",
+  "kind": "exact",
+  "ctx": "main loadout title of character 33"
+ },
+ {
+  "group": "character",
+  "en": "Shadow Realm",
+  "kind": "exact",
+  "ctx": "main loadout title of character 34"
+ },
+ {
+  "group": "character",
+  "en": "Sacred Guardian",
+  "kind": "exact",
+  "ctx": "main loadout title of character 35"
+ },
+ {
+  "group": "character",
+  "en": "Twisted Fate",
+  "kind": "exact",
+  "ctx": "main loadout title of character 36"
+ },
+ {
+  "group": "character",
+  "en": "Mirror Match",
+  "kind": "exact",
+  "ctx": "main loadout title of character 37"
+ },
+ {
+  "group": "character",
+  "en": "Robotic Precision",
+  "kind": "exact",
+  "ctx": "main loadout title of character 38"
  }
 ]

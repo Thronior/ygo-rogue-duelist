@@ -73,7 +73,10 @@ export function packSummaryHtml(parts,base=''){
  if(parts.types.length)out+=label('Main monster types:')+list('race',parts.types)+end;
  if(parts.series.length)out+=label('Archetypes:')+list('series',parts.series)+end;
  out+=label('Support:')+(parts.themes.length?list('theme',parts.themes):esc(t('mixed monsters, Spells and Traps')));
- return out+translateWith('. {0} different cards. Click to inspect.',parts.count);
+ out+=translateWith('. {0} different cards. Click to inspect.',parts.count);
+ // The rest of the pack's Types, each a filter link too (CITYDRIVER, 2026-11-26).
+ if(parts.otherTypes?.length)out+=`<br><span class="pack-other-types">${label('Other monster types:')}${list('race',parts.otherTypes)}</span>`;
+ return out;
 }
 
 // A "{0}" pattern translated through i18n.js, then filled with HTML (already escaped) or a number.

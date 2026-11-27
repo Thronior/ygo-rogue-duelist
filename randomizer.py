@@ -484,7 +484,9 @@ AURAS['sacred_phoenix_nephthys']=dict(fits={'m_main'},text='If destroyed by a ca
 AURAS['talisman_sealing']=dict(fits={'s_cont','t_cont'},text='While you control Sealmaster Meisei, prevent the activation and effects of the specified card type; destroy this card if you no longer control that monster.',real_only=True)
 AURAS['equip_indes_effect_targeted']=dict(fits={'s_equip'},text='The equipped monster cannot be destroyed by effects that target it.',real_only=True)
 AURAS['equip_self_destroy_atk']=dict(fits={'s_equip'},text='Destroy this card if the equipped monster has {n} or more ATK.',n=R(1300,1300),real_only=True)
-AURAS['kaiser_colosseum']=dict(fits={'s_cont'},text='The opponent cannot control more monsters than you; Tribute Summons are restricted by the same monster limit.',real_only=True)
+# Its limit only applies as monsters are placed, so a condition such as "While it is the Battle Phase" leaves it doing nothing
+# (Discord 2026-11-26, a random Thousand Energy).
+AURAS['kaiser_colosseum']=dict(fits={'s_cont'},no_conds=True,text='The opponent cannot control more monsters than you; Tribute Summons are restricted by the same monster limit.',real_only=True)
 AURAS['guardian_kayest']=dict(fits={'m_main'},text='Cannot be Summoned without the named face-up support; unaffected by Spells and cannot be selected as an attack target.',real_only=True)
 AURAS['suijin_attack_zero']=dict(fits={'m_main'},text='Once while face-up, when attacked during the opponent’s damage calculation, make the attacking monster’s ATK 0 for that calculation.',real_only=True)
 AURAS['castle_gate']=dict(fits={'m_main'},text='Cannot be destroyed by battle; once per turn in Attack Position, Tribute a Level 5 or lower monster to inflict damage equal to its original ATK.',real_only=True)
@@ -3611,7 +3613,9 @@ DEAL_MODE=bool(DECK)
 ROLLED_SHARE=.12      # this share of cards comes from the old free-rolling model instead of the deal
 # pieces the deal keeps with their own real card (tools/build_randomizer_templates.py SETUP_ONLY): a rolled card would
 # have them alone ("Place 1 counter on this card ...", "While this card is a monster ...")
-ROLL_OFF={'wave_motion_counter','breaker_place_counter','hannibal_counter_setup','hannibal_normal_summon_counter',
+# wave_motion_damage only works with the counter that wave_motion_counter places (flag 384f9fb7, 2026-11-26: a rolled card
+# could never be activated).
+ROLL_OFF={'wave_motion_counter','wave_motion_damage','breaker_place_counter','hannibal_counter_setup','hannibal_normal_summon_counter',
  'royal_magical_library_counters','spell_counter_per_spell_activation','mausoleum_proc','manticore_grave_flag',
  'gilasaurus_procedure_summoned','tiki_soul_protect','zoma_burn','blast_with_chain_destroyed','ninjitsu_transform_leave_destroy'}
 WHIMSY=.22            # a dealt effect gets one twist: an extra action, cost or condition, or one condition less

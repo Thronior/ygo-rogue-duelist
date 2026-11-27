@@ -662,32 +662,30 @@
       "background": "character-backgrounds/variant-28.jpg"
     },
     "29": {
-      "name": "Saintly Fusion",
-      "starting_relic": "fusion_chamber",
+      "name": "Zera's Sanctuary",
+      "starting_relic": "herald_of_heaven",
       "supporting_packs": [
-        "EN-MRD",
-        "EN-FET"
+        "JP-308",
+        "EN-MRL"
       ],
       "cards": [
-        "St. Joan",
-        "Fusion Gate",
-        "Darklord Marie",
-        "The Forgiving Maiden"
+        "The Sanctuary in the Sky",
+        "Warrior of Zera",
+        "Archlord Zerato"
       ],
       "pack_additions": [
-        "St. Joan",
-        "Fusion Gate",
-        "Darklord Marie",
-        "The Forgiving Maiden",
-        "Polymerization",
-        "King of the Swamp",
-        "The Light - Hex-Sealed Fusion",
-        "The Dark - Hex-Sealed Fusion",
-        "Re-Fusion",
-        "Fusion Weapon"
+        "The Sanctuary in the Sky",
+        "Warrior of Zera",
+        "Archlord Zerato",
+        "The Agent of Force - Mars",
+        "The Agent of Judgment - Saturn",
+        "The Agent of Wisdom - Mercury",
+        "The Agent of Creation - Venus",
+        "Mystical Shine Ball",
+        "Light of Judgment"
       ],
-      "background_card": "St. Joan",
-      "background": "character-backgrounds/variant-29.jpg"
+      "background_card": "Archlord Zerato",
+      "background": "character-backgrounds/variant-29-zera.jpg"
     },
     "30": {
       "name": "Egyptian Gods",

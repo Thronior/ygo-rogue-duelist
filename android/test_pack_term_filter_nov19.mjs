@@ -27,8 +27,10 @@ for(const p of content.packs){
  const parts=packSummaryParts(content,p.id);if(!parts)continue;
  const html=packSummaryHtml(parts,allCardsPackDescription(p)),found=links(html),cards=packCards(p);
  // English text without tags reads as the summary did before (minus the Puzzle packs' shorter form).
- if(!allCardsPackDescription(p))assert.equal(html.replace(/<[^>]+>/g,'').replace(/&#39;/g,"'"),packSummary(content,p.id),p.id);
- const expected=allCardsPackDescription(p)?parts.series.length:parts.types.length+parts.attributes.length+parts.series.length+parts.themes.length;
+ // The "Other monster types:" line after it (CITYDRIVER, 2026-11-26) lists the rest of the pack's Types as links too.
+ const other=parts.otherTypes?.length?'Other monster types: '+parts.otherTypes.join(', '):'';
+ if(!allCardsPackDescription(p))assert.equal(html.replace(/<br>/g,'').replace(/<[^>]+>/g,'').replace(/&#39;/g,"'"),packSummary(content,p.id)+other,p.id);
+ const expected=allCardsPackDescription(p)?parts.series.length:parts.types.length+(parts.otherTypes?.length||0)+parts.attributes.length+parts.series.length+parts.themes.length;
  assert.equal(found.length,expected,`${p.id}: one link per term`);
  for(const {kind,value} of found){
   const hits=cards.filter(packTermMatcher(content,kind,value));

@@ -29,6 +29,17 @@ Current clients use `/v2/...` for tag rooms and the relay, `/v2/draft/...` and `
 
 Release order when online play changes version: deploy this Worker with `allow`, publish the web, itch and Android clients, then set `block`, deploy again and check that `/health` reports `legacyClients: blocked` and `POST /v1/poll` returns 426. `tools/refresh_fallen_collectors.py` tries `/v2/collector/fallen` first and falls back to the legacy path on a Worker that predates it. Already-open old tabs keep retrying refused calls until they reload; each retry still counts as a Worker request but no longer reaches a Durable Object. The gate itself takes effect at once, but a busy Durable Object can keep running the previous code for a few minutes after a deploy (about five minutes for the room registry on 2026-10-26), so re-check `/v2/relay` before calling a deploy verified.
 
+## 2v2 Draft rooms
+
+A normal Draft host option since 2026-11-26 ("2v2 (4 players)"). A Draft host with draft protocol 5 can ask for `size: 4`. The room then takes four players in join order, and seats never move. The lobby has four slots: slots 1–2 are always Team A and 3–4 Team B (`room.slots`, slot → seat). Joiners fill the first open slot, and before the draft the host drags a player to another slot (the `move` call, `{from, to}`). `room.teams` (seat → team) follows the slots. `room.first`, `room.winner` and `room.score` count teams. The helpers live in `android/web/collector-rules.js` (`teamOf`, `teamSeats`, `duelOrder`).
+
+- The Draft Screen offers 5 relics and 5 packs. The teams alternate picks, losing team first.
+- A surrender loses the duel for the team. Leaving, or one player running out of disconnect time or turn time, loses the match for the team.
+- `MatchHub` reads `size` from the registry summary. It takes seats 0–3. Clock and result votes need every seat that is online, and at least two.
+- The clients play EDOPro's tag duel in TagDuel's `team` mode.
+- Random Pack ids for seats 2 and 3 sit in the upper halves of seat 0's and seat 1's blocks.
+- Tests: `draft-2v2.test.mjs`, `android/test_draft_2v2_duel.mjs`, and `android/test_draft_2v2_browser.cjs`, which runs four Chrome clients against `wrangler dev`.
+
 ## Room tool route
 
 `POST /v3/admin` (`admin.mjs`) serves the local developer tool in `tools/room-admin`.

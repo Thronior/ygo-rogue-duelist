@@ -1,0 +1,109 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_47,.patch-notes-sheet.pn0_2_47 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_47{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_47 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_47 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_47 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_47 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_47 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big .pn0_2_47-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big>*{position:relative}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big p.pn0_2_47-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way img,.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-relics .pn0_2_47-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-packs .pn0_2_47-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art.pn0_2_47-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips span{border:1px solid #b5824a;border-radius:999px;padding:4px 12px;font:400 18px Bebas;letter-spacing:1.5px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;background:#0b1a22}</style><div class="patch-notes-sheet pn0_2_47"><div class="pn0_2_47-kick">YGO Rogue Duelist</div><h1>Update 0.2.47</h1>
+
+<section class="pn0_2_47-cols" style="margin-top:28px">
+<div class="pn0_2_47-big"><em>10K survey</em><h3>The results are in</h3>
+<p class="pn0_2_47-lead">The survey is <b>closed</b>. Thank you for every vote! Play the <b>Survey Quiz</b>: guess what players picked, game-show style, and <b>share your score</b>. Then see the <b>full results</b>, with a world map of where everyone plays.</p></div>
+<div class="pn0_2_47-big"><em>Draft Duels</em><h3>2v2 Draft</h3>
+<p class="pn0_2_47-lead">Host a <b>2v2 room for four players</b>: drag players into teams, draft together and duel as a team. Tag and Draft also get a <b>Random</b> character button.</p>
+<div class="pn0_2_47-seats"><span>Team A</span><i>VS</i><span>Team B</span></div></div>
+</section>
+
+<section class="pn0_2_47-big"><em>Shop</em><h3>Shop categories rework</h3>
+<p class="pn0_2_47-lead">Archetype shelves now focus on <b>their own cards</b>, broad shelves (Types, Attributes, Spells, Traps…) follow <b>your Deck</b>, and each opponent shows <b>one relic guaranteed</b> in the next shop. New shelves:</p>
+<div class="pn0_2_47-chips"><span>Staple Spells</span><span>Staple Monsters</span><span>LV</span><span>Tribute Summons</span><span>Spell Counters</span><span>Tokens</span><span>Deck searchers</span><span>Blue-Eyes</span><span>Ninja</span><span>Chaos</span><span>Ojama</span></div></section>
+
+<section class="pn0_2_47-big"><em>Duelists</em><h3>Loadout changes</h3>
+<div class="pn0_2_47-ways">
+<div class="pn0_2_47-way"><img src="assets/relics/18378582.jpg"><p><b>Serenity: Zera's Sanctuary</b>New loadout with <b>The Sanctuary in the Sky</b>, <b>Warrior of Zera</b> and <b>Archlord Zerato</b>, and the new relic <b>Herald of Heaven</b>. Saintly Fusion is now her main loadout, and her pack adds every Sanctuary card and more Fairy support.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/31786629.jpg')"></div><p><b>Mokuba</b>Starts with <b>Thunder Dragon ×2</b> and <b>Snatch Steal</b>. His pack adds <b>Twin-Headed Thunder Dragon</b> and <b>Zaborg</b>.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>Dartz</b>Starts with <b>The Seal of Orichalcos</b>.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/126218.jpg')"></div><p><b>Duke</b>Starts with <b>Skull Dice</b>. Every main loadout now has its own <b>name</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_47-cols">
+<div class="pn0_2_47-big"><em>Challenge Levels</em><h3>Shared starts</h3>
+<p class="pn0_2_47-lead">Once <b>3 of your duelists</b> have beaten a Challenge Level, <b>every duelist</b> can start there (up to Level 5). Their colours still change only when <b>they</b> beat it.</p></div>
+<div class="pn0_2_47-big"><em>Duels</em><h3>More variety</h3>
+<p class="pn0_2_47-lead">Every opponent has <b>their own music</b>. Every duelist can now be met in <b>duels 7 and 8</b> with their Tier 3 deck. New portraits:</p>
+<div class="pn0_2_47-portraits"><img src="assets/opponents/valon.png"><img src="assets/opponents/strings.png"><img src="assets/opponents/alister.png"></div></div>
+</section>
+
+<section class="pn0_2_47-cols">
+<div><h2>Changes</h2><ul class="pn0_2_47-small">
+<li><span>🏹</span><span>An <b>attack arrow</b> stays on the board until the attack ends.</span></li>
+<li><span>🔍</span><span>Collection › Packs: <b>search a card name</b> to find the packs that hold it. Pack windows list <b>every Type</b> and a <b>Staples</b> filter.</span></li>
+<li><span>📊</span><span>Deck editor: optional <b>Attribute and Type counts</b> (Settings › Display).</span></li>
+<li><span>🗑️</span><span>Free Duels: <b>delete</b> custom decks.</span></li>
+<li><span>🏆</span><span>Ultimate Collector: <b>Unready</b> while siding, <b>Limited</b> marks on your deck, and Monster / Spell / Trap counts.</span></li>
+<li><span>🪙</span><span>Tag victories pay <b>25% more coins</b>.</span></li>
+<li><span>🔒</span><span><b>Relic Seal</b> below Challenge Level 2 seals <b>half</b> of your relics (rounded up).</span></li>
+<li><span>🎭</span><span><b>Name Changer</b>: picking Toon makes them <b>Toon monsters</b>, and its archetype counts for <b>Magician Staff</b> and card previews.</span></li>
+<li><span>🖨️</span><span><b>Faulty Printer</b> also misprints free <b>Random Packs</b>.</span></li>
+<li><span>🌈</span><span>Randomized cards: "cannot control more monsters" effects send the <b>extra monsters to the GY</b>.</span></li>
+<li><span>🔗</span><span><b>Link devices</b>: join another device's link anytime; shows the link ID and last sync.</span></li>
+<li><span>🧠</span><span>CPU: attacks <b>directly</b> with Jinzo #7 and Toons, and past an unattackable Legendary Fisherman; better <b>Waboku</b>, <b>Negate Attack</b>, <b>Newdoria</b> and Tribute choices.</span></li>
+<li><span>👆</span><span><b>Legion the Fiend Jester</b>'s summon choice works with one tap.</span></li>
+<li><span>🎨</span><span><b>Parting Gift</b> has its own art. The <b>Easy</b> button is easier to spot.</span></li>
+</ul></div>
+<div><h2>Fixes</h2><ul class="pn0_2_47-small">
+<li><span>⚖️</span><span>The CPU's <b>Obelisk</b> no longer Tributes itself.</span></li>
+<li><span>🐑</span><span><b>Double Spell</b> copying <b>Scapegoat</b> Summons the Sheep Tokens.</span></li>
+<li><span>🤝</span><span><b>Loyalty</b> no longer keeps a monster you took with Enemy Controller.</span></li>
+<li><span>🔥</span><span><b>Hot Deck</b> no longer causes an "effect went wrong" error.</span></li>
+<li><span>⭐</span><span><b>Stars Aligned</b> no longer asks when your field is full.</span></li>
+<li><span>🩸</span><span><b>Ritual Scar</b> shows the right ATK during the Duel.</span></li>
+<li><span>💾</span><span>Resuming an old Tag or Draft room no longer <b>rolls back</b> your Challenge Levels.</span></li>
+<li><span>🃏</span><span>Roulette Spider and other Quick-Play, Field and Counter cards show their real <b>icons</b>.</span></li>
+<li><span>🔢</span><span>The <b>ATK sort</b> works on a new run's first deck screen.</span></li>
+<li><span>🎲</span><span>Randomized Standby Phase burn cards can be used, and "…, then …" effects no longer need the second part to be possible.</span></li>
+</ul></div>
+</section></div>

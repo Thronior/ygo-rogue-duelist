@@ -13760,9 +13760,11 @@ local function target(rand)
 			return ((l1~=0 and chkc:IsControler(tp) and chkc:IsLocation(l1)) or (l2~=0 and chkc:IsControler(1-tp) and chkc:IsLocation(l2))) and a.filter(chkc,e,tp,tact)
 		end
 		if chk==0 then
-			for _,p in ipairs(rand.acts) do
+			-- Later actions follow ", then": only the first one and any that choose targets must be possible
+			-- (Discord 2026-11-26: "... then destroy all face-up Fish monsters" needed a Fish to activate).
+			for i,p in ipairs(rand.acts) do
 				local a=R.Act[p.k]
-				if a.check and not a.check(e,tp,eg,ep,ev,re,r,rp,p) then return false end
+				if a.check and (i==1 or a.target) and not a.check(e,tp,eg,ep,ev,re,r,rp,p) then return false end
 			end
 			return true
 		end
@@ -13968,9 +13970,9 @@ function R.RitualSpell(c,s,id,rand)
 		local doable={}
 		local run=operation(rand)
 		after=function(mat,e,tp,eg,ep,ev,re,r,rp,tc)
-			for _,p in ipairs(rand.acts) do
+			for i,p in ipairs(rand.acts) do
 				local a=R.Act[p.k]
-				if a.check and not a.check(e,tp,eg,ep,ev,re,r,rp,p) then return end
+				if a.check and (i==1 or a.target) and not a.check(e,tp,eg,ep,ev,re,r,rp,p) then return end
 			end
 			Duel.BreakEffect()
 			run(e,tp,eg,ep,ev,re,r,rp)
@@ -15567,6 +15569,7 @@ R.Aura.kaiser_colosseum=function(e,p,field,c)
 	e:SetCode(EFFECT_MAX_MZONE)
 	e:SetTargetRange(0,1)
 	e:SetValue(function(se,fp,rp,r)
+		local tp=se:GetHandlerPlayer()
 		local limit=Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)
 		if rp==tp or r~=LOCATION_REASON_TOFIELD or limit==0 then return 99 end
 		return limit
@@ -15578,6 +15581,7 @@ R.Aura.kaiser_colosseum=function(e,p,field,c)
 	tribute:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_IGNORE_IMMUNE)
 	tribute:SetTargetRange(LOCATION_MZONE,0)
 	tribute:SetValue(function(se,tc)
+		local tp=se:GetHandlerPlayer()
 		if tc:IsControler(tp) then return false end
 		local minr,maxr=tc:GetTributeRequirement()
 		local own=Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)
@@ -15588,6 +15592,26 @@ R.Aura.kaiser_colosseum=function(e,p,field,c)
 		return opp-maxr+extra+1>own-extra
 	end)
 	c:RegisterEffect(tribute)
+	-- Enforced like Rivalry of Warlords (MonkehestMan, Discord 2026-11-26, user: "true"): while you control a monster, an
+	-- opponent who controls more monsters than you sends the extra ones to the GY.
+	local adjust=Effect.CreateEffect(c)
+	adjust:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	adjust:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	adjust:SetCode(EVENT_ADJUST)
+	adjust:SetRange(LOCATION_SZONE)
+	adjust:SetOperation(function(se)
+		local phase=Duel.GetCurrentPhase()
+		if (phase==PHASE_DAMAGE and not Duel.IsDamageCalculated()) or phase==PHASE_DAMAGE_CAL then return end
+		local me=se:GetHandlerPlayer()
+		local own=Duel.GetFieldGroupCount(me,LOCATION_MZONE,0)
+		local g=Duel.GetFieldGroup(me,0,LOCATION_MZONE)
+		local over=#g-own
+		if own==0 or over<=0 then return end
+		Duel.Hint(HINT_SELECTMSG,1-me,HINTMSG_TOGRAVE)
+		local sg=g:Select(1-me,over,over,nil)
+		if Duel.SendtoGrave(sg,REASON_RULE)>0 then Duel.Readjust() end
+	end)
+	c:RegisterEffect(adjust)
 end
 R.Rule.guardian_kayest={reg=function(c,rand,p)
 	local code=p.code or 95515060

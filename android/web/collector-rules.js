@@ -6,10 +6,34 @@ const counts = cards => cards.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
 export const deckCards = deck => [...(deck.main||[]),...(deck.side||[]),...(deck.extra||[])];
 // Draft Random Pack cards (user, 2026-11-16): made on each device from a seed, so the Worker has no data for them.
 // Booster k of seat s numbers its cards inside 199,000,000 + s x 1,000,000 + k x 1,000 (random_cards.draft_booster).
-export const RANDOM_FIRST=199000000,RANDOM_SEAT=1000000,RANDOM_BLOCK=1000,RANDOM_MAX=RANDOM_SEAT/RANDOM_BLOCK;
+// 2v2 rooms (2026-11-26): seats 2 and 3 take the upper halves of seat 0's and seat 1's blocks, so every id stays below
+// 201,000,000 (isRandomId) and seats 0 and 1 keep their numbers. That leaves 500 boosters per seat (random_cards.py).
+export const RANDOM_FIRST=199000000,RANDOM_SEAT=1000000,RANDOM_HALF=500000,RANDOM_BLOCK=1000,RANDOM_MAX=RANDOM_HALF/RANDOM_BLOCK;
 export const isRandomId=id=>{const n=Number(id);return n>=191000000&&n<201000000;};
-export const randomBlock=(seat,k)=>RANDOM_FIRST+seat*RANDOM_SEAT+k*RANDOM_BLOCK;
-export const randomBooster=(id,seat)=>{const k=Math.floor((id-RANDOM_FIRST-seat*RANDOM_SEAT)/RANDOM_BLOCK);return Number.isInteger(id)&&k>=0&&k<RANDOM_MAX?k:-1;};
+const seatBase=seat=>RANDOM_FIRST+(seat%2)*RANDOM_SEAT+(seat>>1)*RANDOM_HALF;
+export const randomBlock=(seat,k)=>seatBase(seat)+k*RANDOM_BLOCK;
+export const randomBooster=(id,seat)=>{const k=Math.floor((id-seatBase(seat))/RANDOM_BLOCK);return Number.isInteger(id)&&k>=0&&k<RANDOM_MAX?k:-1;};
+// 2v2 Draft rooms (room.size 4, user 2026-11-26): four seats in join order, two teams. The lobby has four slots: slots 1
+// and 2 are always Team A, slots 3 and 4 Team B (room.slots: slot -> seat, null while open). Joiners fill the first
+// open slot and the host drags players between slots. Seats never move, because a hub socket that gets replaced stops
+// for good; room.teams (seat -> team) follows the slots. room.first, room.winner and room.score count teams. A 1v1
+// room is the same with team = seat.
+export const roomSize=room=>room?.size===4?4:2;
+export const teamOf=(room,seat)=>room?.size===4?(room.teams?.[seat]??seat%2):seat;
+export const teamSeats=(room,team)=>Array.from({length:roomSize(room)},(_,s)=>s).filter(s=>teamOf(room,s)===team);
+// The engine's duelist order: the team going first, then the other, partners in seat order. Partners take turns
+// leading off: in even-numbered games the higher seat goes first.
+export const duelOrder=room=>[room.first,1-room.first].map(t=>{const s=teamSeats(room,t);return (room.game|0)%2===0?s.reverse():s;});
+// Room seats and engine duelists. A 1v1 room's engine player is seat ^ first. A 2v2 Draft room (room.size 4) plays
+// EDOPro's tag duel: duelist slot = engine team x 2 + partner, in duelOrder.
+export function duelMap(r){
+ if(r?.size!==4)return {team:false,slot:seat=>seat^r.first,seat:slot=>slot^r.first};
+ const order=duelOrder(r),slots=new Map(order.flatMap((seats,t)=>seats.map((seat,i)=>[seat,t*2+i])));
+ return {team:true,order,slot:seat=>slots.get(seat),seat:slot=>order[slot>>1]?.[slot&1]};
+}
+export const teamsFromSlots=slots=>{const teams=[0,1,0,1];slots.forEach((seat,k)=>{if(seat!=null)teams[seat]=k<2?0:1;});return teams;};
+// The host's move: the player in slot `from` goes to slot `to`, and whoever was there (or the open seat) takes `from`.
+export const moveSlot=(slots,from,to)=>{const next=[...slots];[next[from],next[to]]=[next[to],next[from]];return next;};
 // The randomized ids a seat may use: one copy each, inside one of its first `count` booster blocks.
 export const randomAllowance=(seat,count)=>id=>{const k=randomBooster(id,seat);return k>=0&&k<count;};
 // randomOk (Draft Duels only): a check for randomized ids. They skip the catalog, copy and name checks; the clients

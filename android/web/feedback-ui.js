@@ -1,3 +1,21 @@
+// Ritual Scar / Grand Ritual Altar count Ritual Summons across Duels. The run's count only grows when a Duel ends, so the
+// current Duel's own summons are added while it runs (DrogarMythos, 2026-11-26: the card said -300 while it had -200).
+let liveRitualSummons=0;
+export const setLiveRitualSummons=n=>{liveRitualSummons=Number(n)||0};
+export const ritualScarCount=run=>(run?.ritual_scar_count||0)+liveRitualSummons;
+// Name Changer's archetypes (one per copy): monsters count as them for archetype relics, as in the duel (Nistua,
+// 2026-11-26: Harpie Lady Sisters' Nest showed no boost on Name Changer "Harpie" monsters).
+// Relic Seal (user, Discord 2026-11-26): below Challenge Level 2 it negates half of your relics, rounded up; from Level 2 on,
+// all of them. The same pick as approved_relics.seal_pick: relic indices ordered by an FNV-1a hash of the run start, loop,
+// round and index, so the screen marks exactly the relics the Duel negates.
+function sealHash(text){let h=0x811c9dc5;for(let i=0;i<text.length;i++)h=Math.imul(h^text.charCodeAt(i),0x01000193)>>>0;return h}
+export function sealPick(run){
+ const n=(run?.artifacts||[]).length,all=[...Array(n).keys()];if((run?.challenge_level||0)>=2)return all;
+ const start=Math.trunc(Number(run?.started_at)||0);
+ return all.map(i=>[sealHash(`seal:${start}:${run.loop||0}:${run.round||0}:${i}`),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).slice(0,Math.ceil(n/2)).map(x=>x[1]).sort((a,b)=>a-b);
+}
+export function unsealedArtifacts(run){const sealed=new Set(sealPick(run));return (run?.artifacts||[]).filter((_,i)=>!sealed.has(i))}
+export const nameChanges=run=>new Set((run?.name_changes||[]).slice(0,(run?.artifacts||[]).filter(k=>k==='name_changer').length).map(Number));
 export const monsterTypes=['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'];
 
 export const attributes={1:'EARTH',2:'WATER',4:'FIRE',8:'WIND',16:'LIGHT',32:'DARK',64:'DIVINE'};
@@ -67,11 +85,11 @@ export function bossCurseNote(run,icon){
 }
 
 export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index),a=c.atk,d=c.defense;if(run.challenge_level===-1){a=card.atk;d=card.defense;if(run.artifacts?.includes('sword_and_shield'))[a,d]=[d,a];return [a,d]}// From Level 6 curses stay for the whole run, so the deck editor shows them too (doubled, as in passives.py).
- const sticky=[...(run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[]),...bossStatCurses(run)],curses=k=>sticky.filter(x=>x===k).length;const swords=curses('relic_seal')?0:(run.artifacts||[]).filter(k=>k==='sword_and_shield'||(k==='magic_mirror'&&run.mirror_copy==='sword_and_shield')).length;if((swords+curses('mirror_stats'))%2)[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x);
+ const sticky=[...(run.challenge_level>=6?(run.persistent_curses||run.curses||[]):[]),...bossStatCurses(run)],curses=k=>sticky.filter(x=>x===k).length;const usable=curses('relic_seal')?unsealedArtifacts(run):run.artifacts||[],swords=usable.filter(k=>k==='sword_and_shield'||(k==='magic_mirror'&&run.mirror_copy==='sword_and_shield')).length;if((swords+curses('mirror_stats'))%2)[a,d]=[d,a];const t=c.data.type,l=c.level,cardAttributes=effectiveAttributes(card,run,index),inSet=x=>!!c.data.setcodes?.some(code=>(Number(code)&0xfff)===x)||!!(t&1)&&nameChanges(run).has(x);
 
- for(const raw of curses('relic_seal')?[]:run.artifacts||[]){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
+ for(const raw of usable){const id=raw==='magic_mirror'?run.mirror_copy:raw,r=info[id];if(!r)continue;const k=r.effect,n=Number(r.amount)||0,f=r.filter||'';const matches=!f||f.split('/').includes(c.race)||cardAttributes.includes(f)||(c.race==='Beast-Warrior'&&['Warrior','Beast'].includes(f));
 
- if(k==='atk'&&r.parameters?.dark_magician&&(t&1)&&c.name.includes('Dark Magician'))a+=Number(r.parameters.dark_magician)||0;// Magician Staff (2026-11-16)
+ if(k==='atk'&&r.parameters?.dark_magician&&(t&1)&&(c.name.includes('Dark Magician')||nameChanges(run).has(0x10a2)))a+=Number(r.parameters.dark_magician)||0;// Magician Staff (2026-11-16)
  if(k==='atk'&&matches)a+=n;else if(k==='def')d+=n;else if(k==='both'&&matches){a+=n;d+=n;}else if(k==='normal'&&(t&16)||k==='tribute'&&l>=5||k==='small'&&l<=3)a+=n;
 
 
@@ -94,7 +112,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='approved_commoners_chain'){const v=t&16?300:t&32?-200:0;a+=v;d+=v;}
  else if(k==='approved_zombies_bargain')a+=800;
  else if(k==='approved_warriors_vow')a+=200;
- else if(k==='approved_ritual_scar')a+=100*(run.ritual_scar_count||0)-300;
+ else if(k==='approved_ritual_scar')a+=100*ritualScarCount(run)-300;
  else if(k==='approved_fusion_fever'&&(t&64))a+=1000;
  else if(k==='variant_swordsman_oath'&&c.data.setcodes?.some(code=>(Number(code)&0xfff)===0x41))a+=400;
  else if(k==='approved_golden_grave')d-=400;
@@ -109,7 +127,7 @@ export function deckStats(card,run,index,info){let c=modifiedCard(card,run,index
  else if(k==='fused_undying_legion'&&c.race==='Zombie')a+=1200;
  else if(k==='fused_immortal_dark_magic'&&c.race==='Spellcaster')a+=600;
  else if(k==='fused_my_pride_and_soul'&&c.race==='Dragon'){a+=800;d+=800;}
- else if(k==='fused_grand_ritual_altar')a+=200*(run.ritual_scar_count||0);
+ else if(k==='fused_grand_ritual_altar')a+=200*ritualScarCount(run);
  // Archetype and card-type bonuses (Discord, 2026-11-14: Spirit Sanctuary's +500 was missing from the editor).
  else if(k==='fused_spirit_sanctuary'&&(t&0x200))a+=500;
  else if(k==='fused_chaos_orb'&&cardAttributes.some(x=>x==='LIGHT'||x==='DARK'))a+=400;

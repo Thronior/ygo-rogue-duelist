@@ -70,8 +70,9 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	local tg=te:GetTarget()
 	local co=te:GetCost()
 	local op=te:GetOperation()
-	-- Curtain identifies its own summon through the resolving handler.
-	local ce=tc:IsCode(99789342) and e or te
+	-- Curtain, Scapegoat, Stray Lambs and Fires of Doomsday identify their own summon (their "except by this effect" lock)
+	-- through the resolving handler: copied, the tokens are summoned by Double Spell (TheLarvi, Discord 2026-11-26: no Sheep).
+	local ce=tc:IsCode(99789342,73915051,60764581,46173679) and e or te
 	e:SetCategory(te:GetCategory())
 	e:SetProperty(te:GetProperty())
 	Duel.ClearTargetCard()

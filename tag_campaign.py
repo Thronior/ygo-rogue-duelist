@@ -365,7 +365,7 @@ class TagCampaign:
 
   for _ in range(12):
 
-   if all(reward['key']!=o.get('key') and reward['pack']!=o.get('pack') for o in others):break
+   if all(reward['key']!=o.get('key') and reward['pack']!=o.get('pack') and (not reward.get('relic') or reward.get('relic')!=o.get('relic')) for o in others):break
 
    reward=shop_rewards.route_rewards([new],self.rng,self.profiles[0],self.players)[str(new)]
 

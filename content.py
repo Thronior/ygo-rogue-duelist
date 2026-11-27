@@ -173,7 +173,7 @@ artifact('stamp',"Collector's Stamp",80,'Every single you buy includes a free ra
 artifact('archfiend_contract','Archfiend Contract',85,'Adds one extra random Archfiend card to every shop and reroll.','Pandemonium','like_archfiend',1,'draw')
 
 CURSES={
- 'relic_seal':('Relic Seal','Negate all effects of your relics during this Duel, including their benefits and drawbacks. Shop and post-duel effects are unaffected.'),
+ 'relic_seal':('Relic Seal','Negate the effects of half of your relics (rounded up) during this Duel, including their benefits and drawbacks. Shop and post-duel effects are unaffected.'),
  'frailty':('Cracked Blade','Your monsters lose 200 ATK during this boss duel.'),
  'tax':('Shadow Toll','Take 200 damage at the end of each of your turns.'),
  'mercy':('Dulled Edge','Your outgoing battle damage is halved.'),

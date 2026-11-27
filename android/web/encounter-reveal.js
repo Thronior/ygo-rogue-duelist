@@ -3,10 +3,18 @@ import {rewardIcon} from './reward-icons.js';
 import {coinLabel} from './coin-label.js';
 import {isFavouritePack} from './pack-favourites.js';
 import {pageRect} from './ui-zoom.js';
+import {relicImage} from './ui-art.js';
 // Favourite packs show a star on the opponent's guaranteed pack (Discord, Nov 15: players opened each pack to check).
 export const favouriteMark=id=>isFavouritePack(id)?' <span class="pack-fav-mark" title="Favourite pack" aria-label="Favourite pack">★</span>':'';
 export const escapeEncounter=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const esc=escapeEncounter;
+// Guaranteed shop relic (user, 2026-11-26): the relic art alone at the end of the SHOP BOOST row, no border, no glow, no
+// label. Tapping it shows the relic's effect (mobile.js 'route-relic'); the shop after this opponent stocks it.
+export function routeRelicChip(content,reward){
+ const key=reward?.relic,info=key&&content.artifactInfo?.[key],name=content.artifacts?.[key]?.[0];
+ if(!info||!name)return '';
+ return `<button type="button" class="route-relic-chip" data-do="route-relic" data-relic="${esc(key)}" title="${esc(name)}" aria-label="Shop relic: ${esc(name)}"><span class="route-relic-art" style="background-image:url('${relicImage(info.art)}')"></span></button>`;
+}
 const ucTag='<span class="uc-opponent-tag" title="Ultimate Collector opponent" aria-label="Ultimate Collector opponent">UC</span>';
 export const hasSpyglass=r=>(r.artifacts||[]).includes('deck_spyglass')||r.mirror_copy==='deck_spyglass';
 export const bossRerollPrice=r=>{if(freeJarUse(r,'cyber_jar','boss'))return 0;const n=Math.max(0,Number(r.boss_rerolls)||0);return n<2?[30,50][n]:100+(n-2)*50};
@@ -29,7 +37,7 @@ export function encounterCard(content,r,i,{button,curseIcons}={}){
  // A missing reward or pack leaves its row out instead of stopping the screen (Discord, 2026-11-16: the relicless
  // hidden fight had no reward for its opponent, so "Cannot read 'pack'" stuck the run on load).
  const reward=r.route_rewards?.[i],p=reward&&content.packs.find(x=>x.id===reward.pack),boss=(r.round+1)%3===0;
- return `<section class="opponent${hasSpyglass(r)?' can-peek':''}" data-encounter="${i}">${encounterPortrait(content,r,i)}${reward?`<div class="reward"><img class="boost-icon" src="${rewardIcon(reward.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward.label)}</b></span></div>`:''}${p?`<button type="button" class="reward encounter-pack${isFavouritePack(p.id)?' favourite-pack':''}" data-do="inspect-pack" data-pack="${esc(p.id)}" aria-label="Inspect ${esc(p.name)} pack contents"><img src="assets/packs/${esc(p.id)}.jpg" alt=""><span>GUARANTEED PACK<br>${esc(p.name)}${favouriteMark(p.id)}<small>View contents</small></span></button>`:''}${r.route_curses?.[i]?.length?curseIcons(content,r.route_curses[i]):''}${hasSpyglass(r)?button('View deck','peek-deck',`data-opponent="${i}"`):''}${boss?button('Challenge boss','start',`data-opponent="${i}"`,'primary'):button(START_LABEL,'start',`data-opponent="${i}" aria-label="Start duel"`,'primary')}</section>`;
+ return `<section class="opponent${hasSpyglass(r)?' can-peek':''}" data-encounter="${i}">${encounterPortrait(content,r,i)}${reward?`<div class="reward${reward.relic?' has-relic-chip':''}"><img class="boost-icon" src="${rewardIcon(reward.key)}" alt=""><span>SHOP BOOST<br><b>${esc(reward.label)}</b></span>${routeRelicChip(content,reward)}</div>`:''}${p?`<button type="button" class="reward encounter-pack${isFavouritePack(p.id)?' favourite-pack':''}" data-do="inspect-pack" data-pack="${esc(p.id)}" aria-label="Inspect ${esc(p.name)} pack contents"><img src="assets/packs/${esc(p.id)}.jpg" alt=""><span>GUARANTEED PACK<br>${esc(p.name)}${favouriteMark(p.id)}<small>View contents</small></span></button>`:''}${r.route_curses?.[i]?.length?curseIcons(content,r.route_curses[i]):''}${hasSpyglass(r)?button('View deck','peek-deck',`data-opponent="${i}"`):''}${boss?button('Challenge boss','start',`data-opponent="${i}"`,'primary'):button(START_LABEL,'start',`data-opponent="${i}" aria-label="Start duel"`,'primary')}</section>`;
 }
 // The deck name a boss is revealed with; empty for ordinary duels. Kept as data, not shown since 2026-11-03.
 export function bossDeckName(content,r,i){

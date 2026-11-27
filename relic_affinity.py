@@ -314,7 +314,8 @@ def related_ids(deck):
 # Opponent-screen categories (user, 2026-11-14): same deck weighting as relics. A category's ceiling comes from the share of
 # cards it covers (Types/Attributes among monsters; archetype themes use ARCHETYPE_CEILING); Types and Attributes follow
 # their share of the Deck, every other theme counts cards (narrow_progress). A category the Deck lacks counts DEAD_CARD.
-ARCHETYPE_CATEGORIES=frozenset({'amazoness','archfiend','darkmagician','darkscorpion','exodia','gravekeeper','guardian','harpie','toon'})
+ARCHETYPE_CATEGORIES=frozenset({'amazoness','archfiend','darkmagician','darkscorpion','exodia','gravekeeper','guardian','harpie','toon',
+ 'blueeyes','chaos','ninja','ojama','lv'})
 CATEGORY_CEILINGS_FILE=Path(__file__).parent/'data/category-ceilings.json'
 try:_category_ceilings={k:float(v) for k,v in json.loads(CATEGORY_CEILINGS_FILE.read_text(encoding='utf8')).items()}
 except (OSError,ValueError):_category_ceilings=None

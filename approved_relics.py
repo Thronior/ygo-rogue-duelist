@@ -26,14 +26,14 @@ REGULAR=[
 ('deck_thinning','Deck Thinning',100,'Your Main Deck minimum is 10 cards lower (min. 20).','Magical Mallet'),
 ('relic_picker','Relic Picker',100,'When acquired, choose 1 of 3 random regular relics you do not own and gain it (1 reroll). This relic is then consumed.','Magical Merchant'),
 ('card_picker','Card Picker',200,'When acquired, choose any card in the game and add it to your card pool. This relic is then consumed.','Witch of the Black Forest'),
-('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype.','Shapesnatch'),
+('name_changer','Name Changer',150,'When acquired, choose an archetype. Monsters in your hand, Deck, GY and on the field are also treated as that archetype. Choosing Toon also makes them Toon monsters.','Shapesnatch'),
 ('anime_rule','Anime Rule #1',55,'You can Normal Summon monsters in face-up Defense Position.','Light of Intervention'),
 ('mind_reader','Mind Reader',80,'Once per turn, at the start of your Standby Phase, look at 1 Set card your opponent controls. It stays Set.','Mind Haxorz'),
 # Discord relic suggestions (Dragunfire, M) with Thronior's edits, added on the user's request on 2026-11-11.
 # Names and art for Overkill Bounty, Parting Gift and Tactical Espionage are mine; their authors gave none.
 ('illusionary_tribute','Illusionary Tribute',150,'Once per Duel, you can Tribute Spells and Traps you control for a Tribute Summon in place of monsters.','Thousand-Eyes Idol'),
 ('overkill_bounty','Overkill Bounty',90,"If you win the Duel, earn 20 additional coins for each 1000 damage the final blow dealt beyond your opponent's remaining LP.",'Meteor of Destruction'),
-('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Last Will'),
+('parting_gift','Parting Gift',80,"Once per turn, when a monster you own is sent to your GY by an opponent's card effect: draw 1 card.",'Precious Cards from Beyond'),  # was Last Will, the same scroll as Last Word (Ricape, 2026-11-26)
 ('tactical_espionage','Tactical Espionage',100,'When you Normal Summon a monster, no Trap Cards can be activated.','Tactical Espionage Expert'),
 ('stars_aligned','Stars Aligned',100,'Once per turn, during your End Phase, if you have at least 1 monster in your GY and all monsters in your GY and on your field have the same Level: Special Summon 1 monster of that Level from your hand.','Hoshiningen'),
 # Requested by the user on 2026-11-04.
@@ -330,8 +330,31 @@ def mirror_view(run):
  keys=run.get('mirrored_relics',[]) if 'relic_mirror' in run.get('curses',[]) else []
  return dict(run,artifacts=list(keys),curses=[],boss_curse=None,mirrored_relics=[],first_player=0,mirror_copy=run.get('mirror_copy') if 'magic_mirror' in keys else None,mirror_only=True)
 
+def _seal_hash(text):
+ h=0x811c9dc5
+ for b in text.encode('utf8'):h=((h^b)*0x01000193)&0xffffffff
+ return h
+
+def seal_pick(run):
+ """Relic Seal (user, Discord 2026-11-26): below Challenge Level 2 it seals half of the relics, rounded up; from Level 2 on,
+ all of them. The half is the same all Duel long and the client works it out the same way (feedback-ui.js sealPick):
+ relic indices ordered by an FNV-1a hash of the run start, loop, round and index. Returns indices into artifacts."""
+ n=len(run.get('artifacts',[]))
+ if run.get('challenge_level',0)>=2:return list(range(n))
+ start=int(run.get('started_at') or 0)
+ order=sorted(range(n),key=lambda i:(_seal_hash(f"seal:{start}:{run.get('loop',0)}:{run.get('round',0)}:{i}"),i))
+ return sorted(order[:(n+1)//2])
+
+def sealed_relics(run):
+ """Indices of the relics Relic Seal negates in this Duel (none without the curse)."""
+ return seal_pick(run) if 'relic_seal' in run.get('curses',[]) else []
+
 def duel_run(run):
  """A duel-only view; never remove owned relics from the saved campaign."""
  if run.get('challenge_level')==-1:return dict(run,artifacts=[],curses=[],boss_curse=None,mirror_copy=None,duel_modifications=[],relics_suppressed=True)
  if 'relic_seal' not in run.get('curses',[]):return run
+ arts=run.get('artifacts',[]);sealed=set(sealed_relics(run))
+ if len(sealed)<len(arts):
+  kept=[a for i,a in enumerate(arts) if i not in sealed]
+  return dict(run,artifacts=kept,mirror_copy=run.get('mirror_copy') if 'magic_mirror' in kept else None)
  return dict(run,artifacts=[],mirror_copy=None,duel_modifications=[],relics_suppressed=True)

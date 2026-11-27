@@ -14,7 +14,9 @@ export function backupFingerprint(backup){
 }
 // .bak files are last-known-good copies the game only reads when a save file is damaged; a restore writes fresh
 // files and the game makes new .bak copies on its next save, so they are not uploaded (about half the size).
-export const backupFiles=files=>Object.fromEntries(Object.entries(files).filter(([name])=>!name.endsWith('.bak')));
+// The device link (device-sync.json) belongs to this device: a backup restored elsewhere must not move that device to this
+// one's link, or unlink it (Sir Renity, 2026-11-26).
+export const backupFiles=files=>Object.fromEntries(Object.entries(files).filter(([name])=>!name.endsWith('.bak')&&name!=='device-sync.json'));
 
 // Cloud save code (2026-10-29): 10 characters without look-alikes (no 0/O, 1/I/L), shown as K7QXM-4TB9R.
 // PBKDF2 turns it into an AES-GCM key, a lookup id and a write password. The save is encrypted on the device,
@@ -141,6 +143,6 @@ export async function restoreRecovery(value,{loadSave,storeSave,storage=localSto
  // The current save is read only to put it back if the import fails: an unreadable one must not block the import
  // (v0.2.44 web: an empty save made this throw "This backup is empty.", so Settings › Devices & App imports failed).
  const {files,extras}=validateRecovery(value),before=await Promise.resolve().then(loadSave).catch(()=>null),previous=Object.fromEntries(EXTRAS.map(k=>[k,storage.getItem(k)]));
- try{if(!value.keepExtras)for(const key of EXTRAS){if(key in extras)storage.setItem(key,extras[key]);else storage.removeItem(key)}await storeSave(JSON.stringify(files));}
+ try{if(!value.keepExtras)for(const key of EXTRAS){if(key in extras)storage.setItem(key,extras[key]);else storage.removeItem(key)}let own=null;try{own=before&&JSON.parse(before)['device-sync.json']}catch{}const restored={...files};delete restored['device-sync.json'];if(own)restored['device-sync.json']=own;await storeSave(JSON.stringify(restored));}
  catch(error){for(const [key,text] of Object.entries(previous)){try{if(text===null)storage.removeItem(key);else storage.setItem(key,text)}catch{}}if(before!==null)try{await storeSave(before)}catch{}throw error}
 }

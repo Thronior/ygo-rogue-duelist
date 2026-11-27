@@ -1,7 +1,7 @@
 // Only official releases (signed build IDs) may use this Worker: multiplayer/shared/official-build.mjs. Self-hosters: remove
 // BUILD_PUBLIC_KEY (or set your own), see SELF-HOSTING.md. UNSIGNED_UNTIL (ISO time) lets older unsigned releases in while
 // players update; set it at release. DAILY_REQUEST_CAP: requests a day before this Worker refuses calls until 00:00 UTC.
-// 10K survey (survey.mjs): SURVEY_CLOSED "true" ends it; the CSV export needs the secret SURVEY_ADMIN_TOKEN
+// 10K survey (survey.mjs): SURVEY_CLOSED "true" ends it (closed 2026-11-27, user: results quiz in android/web/survey-results.js); the CSV export needs the secret SURVEY_ADMIN_TOKEN
 // (npx wrangler secret put SURVEY_ADMIN_TOKEN, 16+ characters).
 {
  "name": "ygo-rogue-stats",
@@ -12,7 +12,7 @@
   "BUILD_PUBLIC_KEY": "c-59GAosQ5eN_O1ad3ZyC0jSrQYkzhxvWB4SQVrooso",
   "UNSIGNED_UNTIL": "2026-12-01T23:00:00Z",
   "DAILY_REQUEST_CAP": "300000",
-  "SURVEY_CLOSED": ""
+  "SURVEY_CLOSED": "true"
  },
  "observability": {
   "enabled": false

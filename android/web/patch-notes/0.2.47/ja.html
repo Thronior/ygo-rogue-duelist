@@ -1,0 +1,109 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_47,.patch-notes-sheet.pn0_2_47 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_47{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_47 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_47 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_47 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_47 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_47 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big .pn0_2_47-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big>*{position:relative}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big p.pn0_2_47-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way img,.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-relics .pn0_2_47-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-packs .pn0_2_47-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art.pn0_2_47-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips span{border:1px solid #b5824a;border-radius:999px;padding:4px 12px;font:400 18px Bebas;letter-spacing:1.5px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;background:#0b1a22}</style><div class="patch-notes-sheet pn0_2_47"><div class="pn0_2_47-kick">YGO Rogue Duelist</div><h1>アップデート 0.2.47</h1>
+
+<section class="pn0_2_47-cols" style="margin-top:28px">
+<div class="pn0_2_47-big"><em>10Kアンケート</em><h3>結果発表</h3>
+<p class="pn0_2_47-lead">アンケートは<b>終了</b>しました。投票ありがとうございました！<b>アンケートクイズ</b>でプレイヤーの回答をクイズ番組風に当てて、<b>スコアをシェア</b>しましょう。その後は世界地図付きの<b>全結果</b>を見られます。</p></div>
+<div class="pn0_2_47-big"><em>ドラフトデュエル</em><h3>2v2ドラフト</h3>
+<p class="pn0_2_47-lead"><b>4人用の2v2ルーム</b>を作成できます。プレイヤーをチームにドラッグし、一緒にドラフトしてチームでデュエルしましょう。タッグとドラフトに<b>ランダムキャラクター</b>ボタンも追加されました。</p>
+<div class="pn0_2_47-seats"><span>チームA</span><i>VS</i><span>チームB</span></div></div>
+</section>
+
+<section class="pn0_2_47-big"><em>ショップ</em><h3>ショップのカテゴリーを刷新</h3>
+<p class="pn0_2_47-lead">テーマの棚は<b>そのテーマのカード</b>中心になり、一般の棚（種族、属性、魔法、罠…）は<b>あなたのデッキ</b>に合わせて並びます。各対戦相手には次のショップで<b>確定で並ぶレリック</b>が1つ表示されます。新しい棚：</p>
+<div class="pn0_2_47-chips"><span>定番の魔法カード</span><span>定番のモンスター</span><span>LV</span><span>アドバンス召喚</span><span>魔力カウンター</span><span>トークン</span><span>デッキサーチ</span><span>ブルーアイズ</span><span>忍者</span><span>カオス</span><span>おジャマ</span></div></section>
+
+<section class="pn0_2_47-big"><em>デュエリスト</em><h3>ロードアウトの変更</h3>
+<div class="pn0_2_47-ways">
+<div class="pn0_2_47-way"><img src="assets/relics/18378582.jpg"><p><b>川井静香：ゼラの聖域</b><b>天空の聖域</b>、<b>ゼラの戦士</b>、<b>大天使ゼラート</b>と新レリック<b>天界の使者</b>の新ロードアウト。聖なる融合がメインのロードアウトになり、パックに天空の聖域のカード全種と天使族サポートが追加されました。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/31786629.jpg')"></div><p><b>海馬モクバ</b><b>サンダー・ドラゴン</b>×2と<b>強奪</b>でスタート。パックに<b>双頭の雷龍</b>と<b>雷帝ザボルグ</b>が追加されました。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>ダーツ</b><b>オレイカルコスの結界</b>でスタートします。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/126218.jpg')"></div><p><b>御伽龍児</b><b>悪魔のサイコロ</b>でスタートします。すべてのメインロードアウトに<b>名前</b>が付きました。</p></div>
+</div></section>
+
+<section class="pn0_2_47-cols">
+<div class="pn0_2_47-big"><em>チャレンジレベル</em><h3>共通の開始レベル</h3>
+<p class="pn0_2_47-lead"><b>3人のデュエリスト</b>があるチャレンジレベルをクリアすると、<b>全デュエリスト</b>がそのレベルから始められます（最大レベル5）。色が変わるのは<b>そのデュエリスト自身</b>がクリアしたときだけです。</p></div>
+<div class="pn0_2_47-big"><em>デュエル</em><h3>もっと多彩に</h3>
+<p class="pn0_2_47-lead">対戦相手ごとに<b>専用BGM</b>が付きました。すべてのデュエリストが<b>7戦目と8戦目</b>にティア3デッキで登場するようになりました。新しい肖像：</p>
+<div class="pn0_2_47-portraits"><img src="assets/opponents/valon.png"><img src="assets/opponents/strings.png"><img src="assets/opponents/alister.png"></div></div>
+</section>
+
+<section class="pn0_2_47-cols">
+<div><h2>変更点</h2><ul class="pn0_2_47-small">
+<li><span>🏹</span><span><b>攻撃の矢印</b>が攻撃終了まで盤面に表示されます。</span></li>
+<li><span>🔍</span><span>コレクション › パック：<b>カード名で検索</b>すると、そのカードが入っているパックが見つかります。パック画面に<b>すべての種族</b>と<b>汎用カード</b>フィルターが表示されます。</span></li>
+<li><span>📊</span><span>デッキ編集：<b>属性・種族の数</b>を表示できます（設定 › 表示）。</span></li>
+<li><span>🗑️</span><span>フリーデュエル：カスタムデッキを<b>削除</b>できます。</span></li>
+<li><span>🏆</span><span>アルティメット・コレクター：サイディング中の<b>準備解除</b>、デッキの<b>制限</b>表示、モンスター／魔法／罠の枚数表示。</span></li>
+<li><span>🪙</span><span>タッグの勝利で<b>コインが25%増加</b>します。</span></li>
+<li><span>🔒</span><span>チャレンジレベル2未満では、<b>レリック封印</b>が封じるのはレリックの<b>半分</b>（切り上げ）です。</span></li>
+<li><span>🎭</span><span><b>ネームチェンジャー</b>：トゥーンを選ぶと<b>トゥーンモンスター</b>になり、そのテーマは<b>魔術師の杖</b>やカードのプレビューにも反映されます。</span></li>
+<li><span>🖨️</span><span><b>欠陥プリンター</b>が無料の<b>ランダムパック</b>にも適用されます。</span></li>
+<li><span>🌈</span><span>ランダムカード：「より多くのモンスターをコントロールできない」効果で、<b>超えた分のモンスターが墓地へ送られます</b>。</span></li>
+<li><span>🔗</span><span><b>端末をリンク</b>：いつでも別の端末のリンクに参加できます。リンクIDと最終同期が表示されます。</span></li>
+<li><span>🧠</span><span>CPU：人造人間７号やトゥーンで<b>直接攻撃</b>し、攻撃できない伝説のフィッシャーマンがいても直接攻撃します。<b>和睦の使者</b>、<b>攻撃の無力化</b>、<b>ニュードリュア</b>、リリースの判断が改善されました。</span></li>
+<li><span>👆</span><span><b>魔道化リジョン</b>の召喚方法の選択が1回のタップで決まります。</span></li>
+<li><span>🎨</span><span><b>別れの贈り物</b>に専用のイラストが付きました。<b>イージー</b>ボタンが見つけやすくなりました。</span></li>
+</ul></div>
+<div><h2>修正</h2><ul class="pn0_2_47-small">
+<li><span>⚖️</span><span>CPUの<b>オベリスクの巨神兵</b>が自分自身をリリースしなくなりました。</span></li>
+<li><span>🐑</span><span><b>二重魔法</b>で<b>スケープ・ゴート</b>をコピーすると羊トークンが特殊召喚されます。</span></li>
+<li><span>🤝</span><span><b>忠誠</b>がエネミーコントローラーで奪ったモンスターを保持しなくなりました。</span></li>
+<li><span>🔥</span><span><b>ホットデッキ</b>で効果エラーが起きなくなりました。</span></li>
+<li><span>⭐</span><span>場が埋まっているとき、<b>星の整列</b>が確認しなくなりました。</span></li>
+<li><span>🩸</span><span>デュエル中、<b>儀式の傷跡</b>が正しい攻撃力を表示します。</span></li>
+<li><span>💾</span><span>古いタッグやドラフトのルームを再開しても、チャレンジレベルが<b>巻き戻らなくなりました</b>。</span></li>
+<li><span>🃏</span><span>ルーレット・スパイダーなど速攻・フィールド・カウンターのカードが正しい<b>アイコン</b>を表示します。</span></li>
+<li><span>🔢</span><span>新しいランの最初のデッキ画面で<b>攻撃力順の並べ替え</b>が使えます。</span></li>
+<li><span>🎲</span><span>スタンバイフェイズにダメージを与えるランダムカードが使えるようになり、「…、その後…」の効果は後半が実行できなくても発動できます。</span></li>
+</ul></div>
+</section></div>

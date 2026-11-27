@@ -15,7 +15,10 @@ for pack,ids in zip(r['packs'],r['pack_ids']):assert set(pack)<=set(PACK_BY_ID[i
 # Late routes use the core boss pool; tier-exclusive and UC opponents (added 2026-10-02) join it.
 seen=set()
 for seed in range(50):
- r=g.new_run(0,random.Random(seed));r['round']=6;g.routes(r,random.Random(seed));assert set(r['routes'])<=set([0,1,6,15,17,27])|set(TIER_EXCLUSIVE_OPPONENTS)|set(UC_OPPONENTS)
+ r=g.new_run(0,random.Random(seed));r['round']=6;g.routes(r,random.Random(seed))
+ # Duels 7-8 offer the whole Tier 3 roster (user, 2026-11-26; tools/test_tier_opponents_nov26.py); only the final boss keeps the short list.
+ import content;assert set(r['routes'])<=set(content.eligible_opponents(6))
+ f=g.new_run(0,random.Random(seed));f['round']=8;g.routes(f,random.Random(seed));assert set(f['routes'])<=set([0,1,6,15,17,27])|set(TIER_EXCLUSIVE_OPPONENTS)|set(UC_OPPONENTS)
  for reward in r['route_rewards'].values():
   seen.add(reward['key']);r['bias']=reward['key'];r['shop_reward']=reward;g.restock(r,random.Random(seed))
   singles=[g.BY_ID[x['id']] for x in r['shop'] if x['kind']=='single']

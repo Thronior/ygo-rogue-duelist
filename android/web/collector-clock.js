@@ -37,12 +37,13 @@ export function pauseBarMarkup(bar){
 }
 // Your own deck on the prize screen, so you pick cards that fit it: one tile per card with its copies, Monsters,
 // then Spells, then Traps, each by name. Tapping a tile opens the card (data-collector="inspect").
-export function ownDeckMarkup(deck,lookup,image){
+// `badge(card)` adds a mark to each tile: the prize screen passes the Limited / Semi-limited icon (CITYDRIVER, 2026-11-26).
+export function ownDeckMarkup(deck,lookup,image,badge=()=>''){
  const kind=c=>c?.data?.type&1?0:c?.data?.type&2?1:2;
  const section=(title,ids)=>{
   const counts=new Map();for(const id of ids||[])counts.set(id,(counts.get(id)||0)+1);
   const rows=[...counts].map(([id,n])=>({id,n,c:lookup(id)})).sort((a,b)=>kind(a.c)-kind(b.c)||String(a.c?.name||'').localeCompare(String(b.c?.name||'')));
-  return `<h3>${esc(title)} <span>${(ids||[]).length}</span></h3>${rows.length?`<div class="cardgrid collector-own-grid">${rows.map(({id,n,c})=>`<button class="cardbtn" data-collector="inspect" data-id="${id}"><img src="${image(id)}" loading="lazy" draggable="false" alt=""><span>${esc(c?.name||'')}</span>${n>1?`<b class="collector-own-count">×${n}</b>`:''}</button>`).join('')}</div>`:''}`;
+  return `<h3>${esc(title)} <span>${(ids||[]).length}</span></h3>${rows.length?`<div class="cardgrid collector-own-grid">${rows.map(({id,n,c})=>`<button class="cardbtn" data-collector="inspect" data-id="${id}">${badge(c)}<img src="${image(id)}" loading="lazy" draggable="false" alt=""><span>${esc(c?.name||'')}</span>${n>1?`<b class="collector-own-count">×${n}</b>`:''}</button>`).join('')}</div>`:''}`;
  };
  return `<section class="collector-own-deck" aria-label="Your deck">${section('Main Deck',deck?.main)}${deck?.side?.length?section('Side Deck',deck.side):''}${deck?.extra?.length?section('Fusion Deck',deck.extra):''}</section>`;
 }

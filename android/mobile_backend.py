@@ -77,7 +77,7 @@ def dispatch(raw):
   if action=='tag-auto-preview':
    from copy import deepcopy
    preview=deepcopy(value);g.auto_deck(preview);result=preview['selected']
-  elif action=='tag-profile':storage.write(storage.ROOT/'profile.json',value)
+  elif action=='tag-profile':storage.write(storage.ROOT/'profile.json',storage.merge_room_profile(value))
   elif action=='tag-create':
    tag_session=TagCampaign(value['characters'],value['profiles'],value.get('level',0),lobby=value.get('lobby',False),variants=value.get('variants',(0,0)),easy=bool(value.get('easy')));tag_session.room_code=value['code'];checkpoint();result=tag_session.view(0)
   elif action=='tag-restore':

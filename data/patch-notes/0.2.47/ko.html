@@ -1,0 +1,110 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_47,.patch-notes-sheet.pn0_2_47 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_47{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_47 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_47 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_47 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_47 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_47 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big .pn0_2_47-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big>*{position:relative}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big p.pn0_2_47-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way img,.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-relics .pn0_2_47-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-packs .pn0_2_47-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47{word-break:keep-all}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art.pn0_2_47-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips span{border:1px solid #b5824a;border-radius:999px;padding:4px 12px;font:400 18px Bebas;letter-spacing:1.5px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;background:#0b1a22}</style><div class="patch-notes-sheet pn0_2_47"><div class="pn0_2_47-kick">YGO Rogue Duelist</div><h1>업데이트 0.2.47</h1>
+
+<section class="pn0_2_47-cols" style="margin-top:28px">
+<div class="pn0_2_47-big"><em>10K 설문</em><h3>결과가 나왔습니다</h3>
+<p class="pn0_2_47-lead">설문이 <b>마감</b>되었습니다. 투표해 주셔서 감사합니다! <b>설문 퀴즈</b>에서 플레이어들의 선택을 퀴즈쇼처럼 맞혀 보고 <b>점수를 공유</b>하세요. 그다음 플레이어들이 어디서 플레이하는지 보여 주는 세계 지도와 함께 <b>전체 결과</b>를 볼 수 있습니다.</p></div>
+<div class="pn0_2_47-big"><em>드래프트 듀얼</em><h3>2v2 드래프트</h3>
+<p class="pn0_2_47-lead"><b>4인용 2v2 방</b>을 만들 수 있습니다. 플레이어를 팀으로 끌어다 놓고 함께 드래프트한 뒤 팀으로 듀얼하세요. 태그와 드래프트에 <b>랜덤 캐릭터</b> 버튼도 생겼습니다.</p>
+<div class="pn0_2_47-seats"><span>A팀</span><i>VS</i><span>B팀</span></div></div>
+</section>
+
+<section class="pn0_2_47-big"><em>상점</em><h3>상점 카테고리 개편</h3>
+<p class="pn0_2_47-lead">테마 진열대는 <b>해당 테마 카드</b> 위주로, 일반 진열대(종족, 속성, 마법, 함정…)는 <b>내 덱</b>에 맞춰 구성됩니다. 각 상대는 다음 상점에 <b>확정으로 나오는 유물</b> 1개를 보여 줍니다. 새 진열대:</p>
+<div class="pn0_2_47-chips"><span>필수 마법 카드</span><span>필수 몬스터</span><span>LV</span><span>어드밴스 소환</span><span>마력 카운터</span><span>토큰</span><span>덱 서치</span><span>푸른 눈</span><span>닌자</span><span>카오스</span><span>방해꾼</span></div></section>
+
+<section class="pn0_2_47-big"><em>듀얼리스트</em><h3>로드아웃 변경</h3>
+<div class="pn0_2_47-ways">
+<div class="pn0_2_47-way"><img src="assets/relics/18378582.jpg"><p><b>조앤: 제라의 성역</b><b>천공의 성역</b>, <b>제라의 전사</b>, <b>대천사 제라토</b>와 새 유물 <b>천계의 사자</b>이 있는 새 로드아웃. 성스러운 융합이 메인 로드아웃이 되었고, 팩에 천공의 성역 카드 전부와 천사족 지원 카드가 추가되었습니다.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/31786629.jpg')"></div><p><b>모크바</b><b>썬더 드래곤</b> ×2와 <b>강탈</b>로 시작합니다. 팩에 <b>두 머리의 썬더 드래곤</b>과 <b>번개 제왕 자보르그</b>가 추가되었습니다.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>다츠</b><b>오리컬코스의 결계</b>로 시작합니다.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/126218.jpg')"></div><p><b>듀크</b><b>악마의 주사위</b>로 시작합니다. 모든 메인 로드아웃에 <b>이름</b>이 생겼습니다.</p></div>
+</div></section>
+
+<section class="pn0_2_47-cols">
+<div class="pn0_2_47-big"><em>챌린지 레벨</em><h3>공유 시작 레벨</h3>
+<p class="pn0_2_47-lead"><b>듀얼리스트 3명</b>이 어떤 챌린지 레벨을 클리어하면 <b>모든 듀얼리스트</b>가 그 레벨부터 시작할 수 있습니다(최대 레벨 5). 색은 여전히 <b>해당 듀얼리스트</b>가 직접 클리어해야 바뀝니다.</p></div>
+<div class="pn0_2_47-big"><em>듀얼</em><h3>더 다양하게</h3>
+<p class="pn0_2_47-lead">상대마다 <b>전용 음악</b>이 생겼습니다. 이제 모든 듀얼리스트가 <b>7번째와 8번째 듀얼</b>에서 티어 3 덱으로 등장할 수 있습니다. 새 초상화:</p>
+<div class="pn0_2_47-portraits"><img src="assets/opponents/valon.png"><img src="assets/opponents/strings.png"><img src="assets/opponents/alister.png"></div></div>
+</section>
+
+<section class="pn0_2_47-cols">
+<div><h2>변경 사항</h2><ul class="pn0_2_47-small">
+<li><span>🏹</span><span><b>공격 화살표</b>가 공격이 끝날 때까지 필드에 남습니다.</span></li>
+<li><span>🔍</span><span>컬렉션 › 팩: <b>카드 이름을 검색</b>하면 그 카드가 들어 있는 팩을 찾을 수 있습니다. 팩 창에 <b>모든 종족</b>과 <b>범용 카드</b> 필터가 표시됩니다.</span></li>
+<li><span>📊</span><span>덱 편집기: <b>속성·종족 수</b>를 선택적으로 표시합니다(설정 › 화면).</span></li>
+<li><span>🗑️</span><span>프리 듀얼: 커스텀 덱을 <b>삭제</b>할 수 있습니다.</span></li>
+<li><span>🏆</span><span>얼티밋 컬렉터: 사이딩 중 <b>준비 해제</b>, 덱의 <b>제한</b> 표시, 몬스터 / 마법 / 함정 수 표시.</span></li>
+<li><span>🪙</span><span>태그 승리 시 <b>코인을 25% 더</b> 받습니다.</span></li>
+<li><span>🔒</span><span>챌린지 레벨 2 미만에서 <b>유물 봉인</b>은 유물의 <b>절반</b>(올림)만 봉인합니다.</span></li>
+<li><span>🎭</span><span><b>네임 체인저</b>: 툰을 고르면 <b>툰 몬스터</b>가 되고, 그 테마가 <b>마법사의 지팡이</b>와 카드 미리보기에도 적용됩니다.</span></li>
+<li><span>🖨️</span><span><b>불량 프린터</b>가 무료 <b>랜덤 팩</b>에도 적용됩니다.</span></li>
+<li><span>🌈</span><span>랜덤 카드: "더 많은 몬스터를 컨트롤할 수 없다" 효과가 <b>초과한 몬스터를 묘지로 보냅니다</b>.</span></li>
+<li><span>🔗</span><span><b>기기 연결</b>: 언제든 다른 기기의 연결에 참여할 수 있고, 연결 ID와 마지막 동기화가 표시됩니다.</span></li>
+<li><span>🧠</span><span>CPU: 인조인간 7호와 툰으로 <b>직접 공격</b>하고, 공격할 수 없는 전설의 어부이 있어도 직접 공격합니다. <b>화목의 사자</b>, <b>공격 무력화</b>, <b>뉴도리아</b>, 릴리스 선택이 개선되었습니다.</span></li>
+<li><span>👆</span><span><b>마도화 리젼</b>의 소환 방법 선택이 한 번 탭으로 됩니다.</span></li>
+<li><span>🎨</span><span><b>이별의 선물</b>에 전용 일러스트가 생겼습니다. <b>쉬움</b> 버튼이 더 잘 보입니다.</span></li>
+</ul></div>
+<div><h2>수정 사항</h2><ul class="pn0_2_47-small">
+<li><span>⚖️</span><span>CPU의 <b>오벨리스크의 거신병</b>가 더 이상 자신을 릴리스하지 않습니다.</span></li>
+<li><span>🐑</span><span><b>이중마법</b>로 <b>희생양</b>를 복사하면 양 토큰이 소환됩니다.</span></li>
+<li><span>🤝</span><span><b>충성</b>가 에너미 컨트롤러로 빼앗은 몬스터를 더 이상 붙잡아 두지 않습니다.</span></li>
+<li><span>🔥</span><span><b>핫 덱</b>에서 효과 오류가 더 이상 발생하지 않습니다.</span></li>
+<li><span>⭐</span><span>필드가 가득 찼을 때 <b>별들의 정렬</b>가 더 이상 묻지 않습니다.</span></li>
+<li><span>🩸</span><span>듀얼 중 <b>의식의 흉터</b>가 올바른 공격력을 표시합니다.</span></li>
+<li><span>💾</span><span>예전 태그나 드래프트 방을 이어서 해도 챌린지 레벨이 <b>되돌아가지 않습니다</b>.</span></li>
+<li><span>🃏</span><span>룰렛 스파이더 등 속공·필드·카운터 카드가 올바른 <b>아이콘</b>을 표시합니다.</span></li>
+<li><span>🔢</span><span>새 런의 첫 덱 화면에서 <b>공격력 정렬</b>이 작동합니다.</span></li>
+<li><span>🎲</span><span>스탠바이 페이즈 번 랜덤 카드를 사용할 수 있고, "…, 그 후 …" 효과는 뒷부분이 불가능해도 발동할 수 있습니다.</span></li>
+</ul></div>
+</section></div>

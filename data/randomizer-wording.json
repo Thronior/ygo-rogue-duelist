@@ -944,7 +944,7 @@
   "text": "Trap Cards on the field cannot be activated. Negate all Trap effects on the field."
  },
  "kaiser_colosseum": {
-  "text": "Your opponent cannot control more monsters than you control."
+  "text": "While you control a monster, your opponent cannot control more monsters than you control; they send any extra ones to the GY."
  },
  "kiseitai": {
   "text": "when this face-down card is attacked, equip it to the attacking monster; during each of your opponent's Standby Phases, gain LP equal to half that monster's ATK"

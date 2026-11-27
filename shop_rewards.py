@@ -109,11 +109,20 @@ LABELS['spelltrap_removal']='Spell & Trap Removal'
 LABELS['direct']='Direct Attacks'
 DIRECT_ATTACKS={"Alligator's Sword Dragon",'Amphibious Bugroth MK-3','Black Tyranno','Blue-Eyes Toon Dragon','Checkmate','Dark Scorpion Combination','Decayed Commander','Delta Attacker','Drillago','Gear Golem the Moving Fortress','Jinzo #7','Jowls of Dark Demise','Kiryu','Leghul','Manga Ryu-Ran','Mucus Yolk','Mystic Lamp','Nightmare Horse','Ooguchi','Opti-Camouflage Armor',"Queen's Double",'Rainbow Flower','Reaper on the Nightmare','Rocket Jumper',"Sebek's Blessing",'Secret Pass to the Treasures','Servant of Catabolism','Shooting Star Bow - Ceal','Spirit Reaper','Toon Cannon Soldier','Toon Dark Magician Girl','Toon Gemini Elf','Toon Goblin Attack Force','Toon Masked Sorcerer','Toon Mermaid','Toon Summoned Skull','Overpowering Eye','Silent Swordsman LV5','Ancient Dragon','Shadowslayer','Raging Flame Sprite'}
 
+# Category rework (user, 2026-11-26): Piercing joins Direct Attacks; "Staple Traps" becomes a general staples list and
+# gains Staple Spells and Staple Monsters; Normal Spells/Traps become every Spell (but Ritual Spells) and every Trap;
+# Exodia, Special Summons and the new LV, Tribute Summon, Spell Counter, Token, Deck searcher, Blue-Eyes, Ninja, Chaos
+# and Ojama categories. Chaos, Ojama and Deck searchers were retired word buckets; they are real categories again.
+LABELS.update({'direct':'Piercing and direct attacks','exodia':'Exodia','summon':'Special Summons',
+ 'staple_trap':'Staple Traps','staple_spell':'Staple Spells','staple_monster':'Staple Monsters','spell':'Spells','trap':'Traps',
+ 'lv':'LV monsters','tribute':'Tribute Summons','spell_counter':'Spell Counters','token':'Tokens','search':'Deck searchers',
+ 'blueeyes':'Blue-Eyes cards','ninja':'Ninja cards','chaos':'Chaos cards','ojama':'Ojama cards'})
 # Retire arbitrary word buckets; old saves keep their pack and gain a useful theme.
 RETIRED_THEMES={'sword':'equip','shield':'stall','book':'Spellcaster',
- 'magician':'Spellcaster','goblin':'gambling','cyber':'Machine','chaos':'banish',
- 'quickplay':'quick_counter','counter':'quick_counter','search':'summon','ojama':'normal',
- 'battle':'Warrior','Divine-Beast':'DIVINE'}
+ 'magician':'Spellcaster','goblin':'gambling','cyber':'Machine',
+ 'quickplay':'quick_counter','counter':'quick_counter',
+ 'battle':'Warrior','Divine-Beast':'DIVINE',
+ 'pierce':'direct','hole':'staple_trap','normal_spell':'spell','normal_trap':'trap'}
 RETIRED_THEMES.update({key.lower():key for key in MONSTER_TYPES if key.lower() in LABELS and key.lower()!=key})
 for _key in RETIRED_THEMES:LABELS.pop(_key,None)
 # Divine-Beast keeps a label for race coverage, but is never offered as a reward.
@@ -133,17 +142,20 @@ def normalize_run(run):
  if 'route_rewards' in run:run['route_rewards']={k:normalize_reward(v) for k,v in run['route_rewards'].items()}
  if run.get('tag_shop_rewards'):run['tag_shop_rewards']=[normalize_reward(r) for r in run['tag_shop_rewards']]
 
-def tag_featured(cards,rewards,rng):
- """Three A offers, then two B offers; reserve scarce matches before overlaps."""
+def tag_featured(cards,rewards,rng,boost=None):
+ """Three A offers, then two B offers; reserve scarce matches before overlaps. `boost` is the Decks' card weighting
+ ({card id: multiplier}); broad categories use it on their deck-weighted slots (deck_weighted_slots)."""
  pools=[[c for c in cards if matches(c,r['key'])] for r in rewards]
  slots=[pools[0]]*3+[pools[1]]*2
  keys=[rewards[0]['key']]*3+[rewards[1]['key']]*2
+ weighted=[i<deck_weighted_slots(keys[0],3) for i in range(3)]+[i<deck_weighted_slots(keys[1],2) for i in range(2)]
+ boost=boost or {}
  order=sorted(range(5),key=lambda i:len(slots[i]))
  chosen=[None]*5;used=set()
  def choose(depth):
   if depth==5:return True
   i=order[depth];available=[c for c in slots[i] if c['id'] not in used]
-  available.sort(key=lambda c:rng.random()**(1/(card_rarity.weight(c['id'])*focus_weight(c,keys[i]))),reverse=True)
+  available.sort(key=lambda c:rng.random()**(1/(card_rarity.weight(c['id'])*focus_weight(c,keys[i])*(boost.get(c['id'],1.0) if weighted[i] else 1.0))),reverse=True)
   for c in available:
    chosen[i]=c;used.add(c['id'])
    if choose(depth+1):return True
@@ -202,27 +214,161 @@ NEGATION |= {'A-Team: Trap Disposal Unit','Horus the Black Flame Dragon LV8','Si
 FUSION_SUPPORT = {'Polymerization','Fusion Sage','Fusion Gate','Metamorphosis','De-Fusion','King of the Swamp','The Light - Hex-Sealed Fusion','The Dark - Hex-Sealed Fusion','The Earth - Hex-Sealed Fusion','Re-Fusion','Centrifugal Field'}
 LABELS['fusion']='Fusion monsters and support'
 
+# Staples (user, 2026-11-26): the cards most Decks of this era would play, replacing the old Trap Hole list.
+STAPLE_TRAPS={'Mirror Force','Torrential Tribute','Bottomless Trap Hole','Trap Hole','Acid Trap Hole','Sakuretsu Armor',
+ 'Magic Cylinder','Call of the Haunted','Ring of Destruction','Solemn Judgment','Magic Jammer','Seven Tools of the Bandit',
+ 'Dust Tornado','Compulsory Evacuation Device','Royal Decree','Waboku','Negate Attack','Threatening Roar','Draining Shield',
+ 'Widespread Ruin','Horn of Heaven','Trap Dustshoot','Reckless Greed','Imperial Order','Royal Oppression',
+ 'Deck Devastation Virus','Crush Card Virus','Ceasefire','Gravity Bind','Ultimate Offering','Spellbinding Circle',
+ 'Shadow Spell','Michizure','Jar of Greed','Return from the Different Dimension','Mind Crush','Bottomless Shifting Sand',
+ 'Magic Drain','Skill Drain','Raigeki Break','Phoenix Wing Wind Blast','Mask of Restrict','Time Seal','Trap Jammer',
+ 'Judgment of Anubis','Spell Shield Type-8','Magical Arm Shield','Metalmorph','Divine Wrath',"Robbin' Goblin",
+ 'Kunai with Chain','Two-Pronged Attack','Enchanted Javelin','Mirror Wall','Blast Held by a Tribute'}
+STAPLE_SPELLS={'Pot of Greed','Graceful Charity','Raigeki','Dark Hole','Heavy Storm',"Harpie's Feather Duster",
+ 'Mystical Space Typhoon','Monster Reborn','Premature Burial','Change of Heart','Snatch Steal','Swords of Revealing Light',
+ 'Delinquent Duo','Confiscation','The Forceful Sentry','Painful Choice','Card Destruction','Upstart Goblin',
+ 'Nobleman of Crossout','Smashing Ground','Fissure','Book of Moon','Scapegoat','Giant Trunade','Brain Control',
+ 'Lightning Vortex','Reinforcement of the Army','Enemy Controller','Mage Power','United We Stand','Megamorph',
+ 'Axe of Despair','Shrink','Creature Swap','Limiter Removal','Level Limit - Area B','Messenger of Peace',
+ 'Mirage of Nightmare','Magical Mallet','Hammer Shot','Dimension Fusion','Soul Exchange','Tribute to the Doomed',
+ 'Emergency Provisions','Mass Driver','Gold Sarcophagus','Card of Safe Return','Shield Crush','Rush Recklessly',
+ 'Black Pendant','Monster Recovery','Swords of Concealing Light','Heart of the Underdog','Terraforming','Big Bang Shot',
+ 'Offerings to the Doomed','Polymerization','Reload','Different Dimension Capsule','The Shallow Grave','Malevolent Nuzzler'}
+STAPLE_MONSTERS={'Sangan','Witch of the Black Forest','Breaker the Magical Warrior','Jinzo',
+ 'Black Luster Soldier - Envoy of the Beginning','Chaos Emperor Dragon - Envoy of the End','Tribe-Infecting Virus',
+ 'Exiled Force','D.D. Warrior Lady','Spirit Reaper','Magician of Faith','Morphing Jar','Cyber Jar','Sinister Serpent',
+ 'Mystic Tomato','Giant Rat','Shining Angel','Airknight Parshath','Asura Priest','Kycoo the Ghost Destroyer','Tsukuyomi',
+ 'Yata-Garasu','Dark Magician of Chaos','Injection Fairy Lily','Thousand-Eyes Restrict','Fiber Jar','Night Assailant',
+ 'Magical Scientist','Mystic Swordsman LV2','Don Zaloog','Snipe Hunter','Berserk Gorilla','Abyss Soldier',
+ 'Sasuke Samurai #4','Old Vindictive Magician','Twin-Headed Behemoth','Zaborg the Thunder Monarch',
+ 'Mobius the Frost Monarch','Granmarg the Rock Monarch','Thestalos the Firestorm Monarch','Raiza the Storm Monarch',
+ 'Caius the Shadow Monarch','D.D. Assailant',"Gravekeeper's Spy",'Marshmallon','Spear Dragon','Blade Knight',
+ 'Mask of Darkness','Penguin Soldier','Man-Eater Bug','Nimble Momonga','Reflect Bounder','Newdoria','Chaos Sorcerer',
+ 'Mataza the Zapper','Gemini Elf','Vorse Raider','Summoned Skull','Big Shield Gardna','Des Lacooda','Blowback Dragon',
+ 'Lava Golem','Morphing Jar #2','Sacred Phoenix of Nephthys','Command Knight','Marauding Captain','Kuriboh',
+ 'Blast Sphere','UFO Turtle','Mother Grizzly','Flying Kamakiri #1',"Van'Dalgyon the Dark Dragon Lord",
+ 'Nobleman-Eater Bug','Banisher of the Light','Manju of the Ten Thousand Hands','Senju of the Thousand Hands',
+ 'Ninja Grandmaster Sasuke','Freed the Matchless General','Total Defense Shogun'}
+# Exodia (user, 2026-11-26): the pieces, Exodia Necross, Exxod and Contract with Exodia, plus the draw cards and the cards
+# that add Normal Monsters (the four limbs) from the GY to the hand.
+NORMAL_RECOVERY={'Dark Factory of Mass Production','Backup Soldier','Monster Reincarnation'}
+# Hand return and Discard are a little narrower (user, 2026-11-26, 10-20% thinner): Spirits that only return themselves
+# and Equips that do, and removal/negation cards whose only discard is their cost.
+BOUNCE_EXCLUDE={'Asura Priest','Yata-Garasu','Tsukuyomi','Dark Dust Spirit','Inaba White Rabbit','Maharaghi','Susa Soldier',
+ 'Great Long Nose','Fushi No Tori','Yamata Dragon','Butterfly Dagger - Elma','Regenerating Mummy'}
+DISCARD_EXCLUDE={'Arcana Knight Joker','Dark Core','Divine Wrath','Final Destiny','Magic Jammer','Malice Dispersion',
+ 'Raigeki Break','Snipe Hunter','Spell Purification','Tribe-Infecting Virus','Tribute to the Doomed','Lightning Vortex',
+ 'Phoenix Wing Wind Blast','Spell Vanishing'}
+_SEARCH=re.compile(r"from your Deck to your hand|add (?:1|one|up to \w+) [^.]*?from your Deck|take 1 [^.]*from your Deck",re.I)
+_TOKEN=re.compile(r'\bTokens?\b')
+# Cards that only stop Tributes for a Tribute Summon (Scapegoat, Ojama Trio...) are not Tribute Summon cards.
+_NO_TRIBUTE=re.compile(r'cannot be Tributed for a Tribute Summon|cannot be used as a Tribute')
+
 # Guardian shelves keep every card named "Guardian" but favour the archetype: the six Guardians and their Equip Spells
 # weigh x6, so on average about 1 of the 5 featured cards is outside it (0-2 on 95% of shelves). User, 2026-11-20,
 # after Eriko's Discord report of a shelf of Celtic/Gate/Throne Room Guardians and Shine Palace.
-GUARDIAN_FOCUS_WEIGHT=6
-def focus_weight(card,key):
- if RETIRED_THEMES.get(key,key)!='guardian':return 1.0
- from archetype_relics import GUARDIAN_EQUIPS
- return GUARDIAN_FOCUS_WEIGHT if card['name'] in GUARDIAN_EQUIPS or card['name'] in GUARDIAN_ARCHETYPE else 1.0
 GUARDIAN_ARCHETYPE={'Guardian Baou','Guardian Ceal','Guardian Elma','Guardian Grarl',"Guardian Kay'est",'Guardian Tryce'}
+# Every archetype shelf works the same way since 2026-11-26 (user, after Discord: "Harpie cards" offered any Winged Beast,
+# Dark Scorpion and Amazoness random Warriors, "Jars and pots" loose draw cards). The support extras stay in the pool,
+# but the archetype's own cards weigh x6: a card whose name has the archetype, or whose text names it in quotes ("Harpie
+# Lady", "Toon World"), plus the hand picks below. Those core cards always join the pool, so Toon World, Dark Paladin
+# and Elegant Egotist are now offered too.
+FOCUS_WEIGHT=GUARDIAN_FOCUS_WEIGHT=6
+# Shelves whose extras outnumber the core weigh it more, so each averages about 1 off-theme card in 5 like Guardian.
+FOCUS_WEIGHTS={'harpie':12,'exodia':14,'jar':9,'darkscorpion':8,'ojama':12}
+CORE_WORDS={'harpie':('Harpie',),'darkscorpion':('Dark Scorpion',),'amazoness':('Amazoness',),
+ 'gravekeeper':('Gravekeeper','Necrovalley'),'darkmagician':('Dark Magician',),'archfiend':('Archfiend',),
+ 'toon':('Toon',),'jar':('Jar','Pot'),'blueeyes':('Blue-Eyes',),'chaos':('Chaos','Black Luster'),'ojama':('Ojama',)}
+CORE_PATTERNS={key:re.compile(r'\b(?:'+'|'.join(re.escape(w) for w in words)+r')\b') for key,words in CORE_WORDS.items()}
+CORE_QUOTED={key:re.compile(r'"(?:'+'|'.join(re.escape(w) for w in words)+r')\b') for key,words in CORE_WORDS.items()}
+CORE_EXTRA={'darkscorpion':{'Don Zaloog'},'exodia':EXODIA_SET|{'Exxod, Master of The Guard'},'toon':{'Comic Hand'},'guardian':GUARDIAN_ARCHETYPE}
+# Gryphon Wing names "Harpie's Feather Duster" only to stop it.
+CORE_EXCLUDE={'harpie':{'Gryphon Wing'}}
+CORE_KEYS=frozenset(CORE_WORDS)|frozenset(CORE_EXTRA)
+_core_cache={}
+def is_core(card,key):
+ key=RETIRED_THEMES.get(key,key)
+ if key not in CORE_KEYS:return False
+ name=card['name'];memo=(card.get('id'),name,key)
+ if memo in _core_cache:return _core_cache[memo]
+ if name in CORE_EXCLUDE.get(key,()):out=False
+ elif name in CORE_EXTRA.get(key,()):out=True
+ elif key=='guardian':
+  from archetype_relics import GUARDIAN_EQUIPS
+  out=name in GUARDIAN_EQUIPS
+ elif key=='toon' and card['data']['type']&1 and card['data']['type']&0x400000:out=True
+ elif key in CORE_PATTERNS:out=bool(CORE_PATTERNS[key].search(name) or CORE_QUOTED[key].search(card.get('desc') or ''))
+ else:out=False
+ _core_cache[memo]=out
+ return out
+# Type and Attribute shelves (user, 2026-11-26): Spells, Traps and monsters whose effect supports the Type or Attribute
+# weigh a little more than plain monsters of it.
+SUPPORT_WEIGHT=1.5
+def supports(card,key):
+ if key not in MONSTER_TYPES and key not in ATTRIBUTES:return False
+ name=card['name']
+ return key in supported(card.get('desc')) or name in RACE_SUPPORT.get(key,()) or name in ATTR_SUPPORT.get(key,()) or (key=='DIVINE' and name in DIVINE_SUPPORT)
+# Weak Normal Monsters (user, 2026-11-26): the Normal Monsters in the Stinkers pack weigh x0.5 on every featured shelf but
+# Normal Monsters'.
+WEAK_NORMAL_WEIGHT=.5
+STINKERS_PACK='CUSTOM-STINKERS'
+_weak_normals=None
+def weak_normal(card):
+ global _weak_normals
+ if _weak_normals is None:
+  pack=PACK_BY_ID.get(STINKERS_PACK) or {}
+  _weak_normals=frozenset(pack.get('common',[]))|frozenset(pack.get('rare',[]))
+ t=card['data']['type']
+ return bool(t&1 and t&16) and card.get('id') in _weak_normals
+def focus_weight(card,key):
+ key=RETIRED_THEMES.get(key,key)
+ weight=FOCUS_WEIGHTS.get(key,FOCUS_WEIGHT) if is_core(card,key) else 1.0
+ if supports(card,key):weight*=SUPPORT_WEIGHT
+ if key!='normal' and weak_normal(card):weight*=WEAK_NORMAL_WEIGHT
+ return weight
+# Broad shelves follow the Deck (user, 2026-11-26): their featured cards use the same Deck weighting as general stock
+# (relic_affinity.card_multipliers), so even a "WATER monsters" shelf leans toward cards the Deck can use. Spells and Traps
+# stay broad: 3 of their 5 featured cards follow the Deck, 2 are random. Archetype and effect categories are narrow
+# enough already and keep their own pool.
+DECK_WEIGHTED=frozenset(MONSTER_TYPES)|frozenset(ATTRIBUTES)|frozenset({'lowlevel','midlevel','highlevel','toplevel',
+ 'normal','effect','flip','fusion','equip','continuous','banish','discard','graveyard','destruction','monster_removal'})
+PARTLY_DECK_WEIGHTED={'spell':3,'trap':3}
+def deck_weighted_slots(key,count=5):
+ """How many of a category's `count` featured cards use the Deck weighting."""
+ key=RETIRED_THEMES.get(key,key)
+ if key in PARTLY_DECK_WEIGHTED:return min(count,round(PARTLY_DECK_WEIGHTED[key]*count/5))
+ return count if key in DECK_WEIGHTED else 0
 
 def matches(card,key):
  if card.get('id')==190000050:return False
  key=RETIRED_THEMES.get(key,key)
  t=card['data']['type']
+ if key in CORE_KEYS and is_core(card,key):return True
  if key in ATTRIBUTES:
   if key=='DIVINE' and card['name'] in DIVINE_SUPPORT:return True
   return (bool(t&1) and card['attribute']==key) or key in supported(card.get('desc'))
  if key=='normal':return bool(t&1 and t&16)
  if key=='effect':return bool(t&1 and t&32)
  if key=='flip':return bool(t&1 and t&0x200000)
- if key=='normal_spell':return bool(t&2) and not bool(t&(0x80|0x10000|0x20000|0x40000|0x80000))
+ if key=='spell':return bool(t&2) and not bool(t&0x80)
+ if key=='trap':return bool(t&4)
+ if key in ('staple_trap','staple_spell','staple_monster'):
+  return card['name'] in {'staple_trap':STAPLE_TRAPS,'staple_spell':STAPLE_SPELLS,'staple_monster':STAPLE_MONSTERS}[key]
+ if key=='lv':
+  import archetype_relics
+  return archetype_relics.matches('evolution_tablet',card)
+ if key=='ninja':
+  import archetype_relics
+  return archetype_relics.matches('ninja_scroll',card)
+ if key=='tribute':
+  d=card.get('desc') or ''
+  return 'Monarch' in card['name'] or ('Tribute Summon' in d and not _NO_TRIBUTE.search(d))
+ if key=='spell_counter':return 'Spell Counter' in (card.get('desc') or '')
+ if key=='token':return bool(_TOKEN.search(card.get('desc') or ''))
+ if key=='search':return bool(_SEARCH.search(card.get('desc') or '')) or card['name'] in ('Painful Choice','Different Dimension Capsule')
+ if key=='blueeyes':return card['name'] in RACE_SUPPORT['Dragon']
+ if key=='chaos':return card['name'] in CHAOS_SUPPORT
+ if key=='ojama':return card['name'] in OJAMA_SUPPORT
  if key=='quick_counter':return bool((t&2 and t&0x10000) or (t&4 and t&0x100000))
  if key=='continuous':return bool(t&6 and t&0x20000)
  if key=='ritual':return bool(t&0x80 and t&3)
@@ -231,9 +377,9 @@ def matches(card,key):
  if key=='negation':return bool(t&4 and t&0x100000) or card['name'] in NEGATION or card['name'] in ('Dark Balter the Terrible','Ryu Senshi')
  if key=='destruction':return card['name'] in DESTRUCTION or 'destroy' in (card.get('desc') or '').lower()
  if key=='graveyard':return 'graveyard' in (card.get('desc') or '').lower() or 'GY' in (card.get('desc') or '')
- if key=='bounce':d=(card.get('desc') or '').lower();return 'return' in d and 'hand' in d
+ if key=='bounce':d=(card.get('desc') or '').lower();return 'return' in d and 'hand' in d and card['name'] not in BOUNCE_EXCLUDE
  if key=='banish':d=(card.get('desc') or '').lower();return 'remove from play' in d or 'removed from play' in d or 'banish' in d or 'remove from the game' in d or 'removed from the game' in d
- if key=='discard':return 'discard' in (card.get('desc') or '').lower()
+ if key=='discard':return 'discard' in (card.get('desc') or '').lower() and card['name'] not in DISCARD_EXCLUDE
  if key=='control':
   if card['name'] in CONTROL_EXTRA:return True
   d=(card.get('desc') or '').lower()
@@ -247,18 +393,16 @@ def matches(card,key):
  if key=='union':return (bool(t&1) and 'union' in (card.get('type') or '').lower()) or card['name'] in UNION_SUPPORT
  if key=='fusion':return bool(t&0x40) or card['name'] in FUSION_SUPPORT
  if key=='equip':return bool(t&0x40000) or card['name'] in EQUIPTRAP
- if key=='direct':return card['name'] in DIRECT_ATTACKS
+ if key=='direct':return card['name'] in DIRECT_ATTACKS or card['name'] in PIERCE or 'piercing' in (card.get('desc') or '').lower()
  if key=='field':return bool(t&2 and t&0x80000) or card['name'] in FIELD_SUPPORT
- if key=='normal_trap':return bool(t&4) and not bool(t&(0x20000|0x100000))
  if key=='draw':return card['name'] in DRAW
  if key=='burn':return card['name'] in BURN
  if key=='heal':return card['name'] in HEAL
  if key=='stall':return card['name'] in STALL
- if key=='pierce':return card['name'] in PIERCE or 'piercing' in (card.get('desc') or '').lower()
  if key=='sword':return key in card['name'].lower()
  if key=='archfiend':return 'archfiend' in card['name'].lower() or card['name'] in ARCHFIEND_SUPPORT
  if key=='harpie':return 'harpie' in card['name'].lower() or (bool(t&1) and card.get('race')=='Winged Beast')
- if key=='exodia':return card['name'] in EXODIA_SET or card['name'] in DRAW
+ if key=='exodia':return card['name'] in EXODIA_SET or card['name'] in DRAW or card['name'] in NORMAL_RECOVERY
  if key=='gravekeeper':return 'gravekeeper' in card['name'].lower() or card['name'] in GRAVE_SUPPORT
  # Guardian monsters plus their dedicated Equip Spells, whose names don't say "Guardian" (user, 2026-11-08).
  if key=='guardian':
@@ -267,13 +411,11 @@ def matches(card,key):
  if key=='goblin':return 'goblin' in card['name'].lower() or card['name'] in DICE
  if key=='magician':return 'magician' in card['name'].lower() or card['name'] in MAGICIAN_SUPPORT
  if key=='jar':return 'jar' in card['name'].lower() or 'pot' in card['name'].lower() or card['name'] in FLIP_SUPPORT or card['name'] in DRAW or card['name'] in GREED
- if key=='hole':return 'hole' in card['name'].lower() or card['name'] in BATTLETRAP
  if key=='monster_removal':return card['name'] in MONSTER_REMOVAL or card['name'] in REMOVAL_BOTH
  if key=='spelltrap_removal':return card['name'] in SPELLTRAP_REMOVAL or card['name'] in REMOVAL_BOTH
  if key=='book':return 'book' in card['name'].lower() or card['name'] in BOOKCASTER
  if key=='shield':return 'shield' in card['name'].lower() or card['name'] in DEFENSE
  if key=='cyber':return 'cyber' in card['name'].lower() or card['name'] in MACHINE_SUPPORT
- if key=='chaos':return 'chaos' in card['name'].lower() or card['name'] in CHAOS_SUPPORT
  if key=='darkmagician':return 'dark magician' in card['name'].lower() or card['name'] in DM_SUPPORT
  if key=='darkscorpion':return 'dark scorpion' in card['name'].lower() or card['name']=='Don Zaloog' or card['name'] in WARRIOR_SUPPORT
  if card['name'] in RACE_SUPPORT.get(key,()):return True
@@ -309,13 +451,20 @@ CATEGORY_RELICS={
  'lowlevel':('small','underdog_clause','tenacity_of_the_weak','protect_the_weak'),'midlevel':('village_banner','echo_glass','stars_aligned'),
  'highlevel':('tribute','tribute_dividend','gate_calling','jin_trio'),'toplevel':('tribute_free','boss_monster','tribute','dark_lotus','gate_calling','solo','titans_charge','dragon_lords_decree'),
  'burn':('flame','burn_proficiency','static_coil'),'heal':('healing_echo','spring','quiet_library','ring_of_defense'),
- 'stall':('patient_guardian','quiet_library','buckler','straw_doll','sword_and_shield'),'pierce':('pierce','battle_proficiency'),
- 'direct':('battle_proficiency','seal'),'draw':('eye','second_wind','deep_pockets'),
+ 'stall':('patient_guardian','quiet_library','buckler','straw_doll','sword_and_shield'),
+ 'direct':('pierce','battle_proficiency','seal'),'draw':('eye','second_wind','deep_pockets'),
  'discard':('last_word','second_wind','inkwell'),'gambling':('lets_go_gambling','weighted_coins','weighted_dice'),
  'jar':('dice_jar','cyber_jar','morphing_jar_2','jar_of_echoes'),'negation':('solemn_relic','boss_monster'),
  'quick_counter':('solemn_relic','this_life_mine'),'continuous':('arcane_resonance','trap_weaver'),
- 'normal_trap':('returning_tide','trap_weaver'),'hole':('returning_tide','patient_guardian'),
- 'normal_spell':('final_hour','level_up_relic','eye'),'field':('terraforming_relic','field_amplifier','ocean_relic'),
+ 'trap':('returning_tide','trap_weaver'),'staple_trap':('returning_tide','patient_guardian','trap_weaver'),
+ 'spell':('final_hour','level_up_relic','eye'),'field':('terraforming_relic','field_amplifier','ocean_relic'),
+ 'staple_spell':('final_hour','eye','second_wind'),'staple_monster':('menagerie','last_word','second_wind'),
+ 'lv':('swordsman_oath','evolution_tablet','level_one','level_up_relic','level_up_chain'),
+ 'tribute':('tribute','tribute_dividend','tribute_free','illusionary_tribute'),
+ 'spell_counter':('counterweight','spell_provider','spell_counter_engine','mage'),
+ 'token':('token_regiment','token_resonance','token_martyrs','token_defender'),'search':('eye','deep_pockets','second_wind'),
+ 'blueeyes':('blue_eyes_radiance','twin_eyes','dragon_blood_fusion','dragon'),'ninja':('ninja_scroll','blade'),
+ 'chaos':('chaos_orb','eclipse','exile_standard','third_gate'),'ojama':('ojama_gang','normal','tenacity_of_the_weak','underdog_clause'),
  'equip':('armory_crest','guardian_arsenal','armory_aid','ultimate_armory'),'banish':('third_gate','exile_standard'),
  'graveyard':('grave_lantern','the_creator','epitaph'),'destruction':('grave_lantern','the_creator'),
  'summon':('the_creator','tribute_free','dark_lotus','soul_fusion','guardians_call','twin_eyes','black_chaos_rite'),'control':('loyalty','tribute_dividend'),
@@ -414,12 +563,44 @@ def route_rewards(routes,rng,profile=None,runs=None):
   use=[w*(deck.get(k,1.0) if slot<CATEGORY_WEIGHTED_SLOTS else 1.0) for k,w in zip(keys,weights)]
   pick=rng.choices(range(len(keys)),weights=use,k=1)[0]
   chosen_keys.append(keys.pop(pick));weights.pop(pick)
- if deck:rng.shuffle(chosen_keys)
+ relics=route_relics(chosen_keys,[bool(deck) and slot<CATEGORY_WEIGHTED_SLOTS for slot in range(count)],runs,rng)
+ pairs=list(zip(chosen_keys,relics))
+ # The deck-weighted picks land on random opponents; each keeps the relic rolled for its category.
+ if deck:rng.shuffle(pairs)
  packs=[p['id'] for p in PACKS if not p.get('draft_only') and pack_offered(p,rng) and unlocks.available('pack',p['id'],profile)]
  if len(packs)>=count:chosen_packs=rng.sample(packs,count)
  else:
   chosen_packs=rng.sample(packs,len(packs));chosen_packs+=[rng.choice(packs or ['EN-LOB']) for _ in range(count-len(chosen_packs))]
- return {str(route):dict(key=key,label=LABELS.get(key,key+' monsters'),pack=pack) for route,key,pack in zip(order,chosen_keys,chosen_packs)}
+ out={}
+ for route,(key,relic),pack in zip(order,pairs,chosen_packs):
+  out[str(route)]=dict(key=key,label=LABELS.get(key,key+' monsters'),pack=pack)
+  if relic:out[str(route)]['relic']=relic
+ return out
+
+# Guaranteed shop relic (user, 2026-11-26, survey decisions): every opponent on the encounter screen shows a relic that the
+# shop after beating it is sure to stock in one of its normal relic slots (campaign_expansion.restock; rerolls drop it, the
+# relic lock keeps it). The opponents whose category used the Deck weighting (the first CATEGORY_WEIGHTED_SLOTS picks) roll
+# it like the shop's first relic slot: the Deck's relic themes plus that opponent's category relics x CATEGORY_RELIC_BOOST
+# (archetype_relics.shop_sample). The others roll a plain relic by rarity. No two opponents share a relic.
+def route_relics(keys,weighted,runs,rng):
+ runs=[r for r in ([runs] if isinstance(runs,dict) else runs or []) if r]
+ if not runs or 'artifacts' not in runs[0] or 'character' not in runs[0]:return [None]*len(keys)
+ import campaign as g,archetype_relics
+ if not hasattr(g,'shop_relic_pool'):return [None]*len(keys)
+ run=runs[0];pool=list(g.shop_relic_pool(run))
+ if not pool:return [None]*len(keys)
+ base={k:v[0] for k,v in archetype_relics.offer_weights(pool,run,shop=True).items()}
+ out=[]
+ for key,deck_weighted in zip(keys,weighted):
+  left=[a for a in pool if a not in out]
+  if not left:out.append(None);continue
+  if deck_weighted:
+   pick=archetype_relics.shop_sample(left,1,run,rng,category_relics(key),CATEGORY_RELIC_BOOST)
+   out.append(pick[0] if pick else None)
+  else:
+   w=[base.get(a,1.0) for a in left]
+   out.append(rng.choices(left,weights=w if sum(w)>0 else None,k=1)[0])
+ return out
 
 
 def guarantee_exodia(offers,pool,rng,slots=None):

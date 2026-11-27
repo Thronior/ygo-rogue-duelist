@@ -1,0 +1,109 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_47,.patch-notes-sheet.pn0_2_47 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_47{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_47 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_47 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_47 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_47 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_47 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big .pn0_2_47-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big>*{position:relative}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big p.pn0_2_47-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way img,.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-relics .pn0_2_47-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-packs .pn0_2_47-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art.pn0_2_47-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips span{border:1px solid #b5824a;border-radius:999px;padding:4px 12px;font:400 18px Bebas;letter-spacing:1.5px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;background:#0b1a22}</style><div class="patch-notes-sheet pn0_2_47"><div class="pn0_2_47-kick">YGO Rogue Duelist</div><h1>更新 0.2.47</h1>
+
+<section class="pn0_2_47-cols" style="margin-top:28px">
+<div class="pn0_2_47-big"><em>10K问卷</em><h3>结果出炉</h3>
+<p class="pn0_2_47-lead">问卷已<b>结束</b>，感谢每一票！来玩<b>问卷竞猜</b>：像综艺节目一样猜猜玩家们选了什么，并<b>分享你的分数</b>。之后可查看附带世界地图的<b>完整结果</b>。</p></div>
+<div class="pn0_2_47-big"><em>轮抽决斗</em><h3>2v2轮抽</h3>
+<p class="pn0_2_47-lead">可创建<b>四人2v2房间</b>：把玩家拖入队伍，一起轮抽并组队决斗。双打和轮抽还新增了<b>随机角色</b>按钮。</p>
+<div class="pn0_2_47-seats"><span>A队</span><i>VS</i><span>B队</span></div></div>
+</section>
+
+<section class="pn0_2_47-big"><em>商店</em><h3>商店分类重做</h3>
+<p class="pn0_2_47-lead">系列货架现在主打<b>该系列自己的卡</b>，通用货架（种族、属性、魔法、陷阱…）会参考<b>你的卡组</b>，每个对手都会显示下一家商店中<b>必定出现的一件遗物</b>。新货架：</p>
+<div class="pn0_2_47-chips"><span>常用魔法卡</span><span>常用怪兽</span><span>LV</span><span>上级召唤</span><span>魔力指示物</span><span>衍生物</span><span>检索卡</span><span>青眼</span><span>忍者</span><span>混沌</span><span>扰乱</span></div></section>
+
+<section class="pn0_2_47-big"><em>决斗者</em><h3>配置变更</h3>
+<div class="pn0_2_47-ways">
+<div class="pn0_2_47-way"><img src="assets/relics/18378582.jpg"><p><b>川井静香：杰拉的圣域</b>新配置包含<b>天空的圣域</b>、<b>杰拉的战士</b>、<b>大天使 杰拉特</b>以及新遗物<b>天界使者</b>。圣洁融合现为她的主配置，她的卡包加入了全部天空圣域卡和更多天使族支援。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/31786629.jpg')"></div><p><b>海马圭平</b>开局带有<b>雷龙</b>×2和<b>强夺</b>。他的卡包加入了<b>双头雷龙</b>和<b>雷帝 扎博尔格</b>。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>达兹</b>开局带有<b>山铜结界</b>。</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/126218.jpg')"></div><p><b>御伽龙儿</b>开局带有<b>恶魔的骰子</b>。每个主配置现在都有自己的<b>名称</b>。</p></div>
+</div></section>
+
+<section class="pn0_2_47-cols">
+<div class="pn0_2_47-big"><em>挑战等级</em><h3>共享起始等级</h3>
+<p class="pn0_2_47-lead">当<b>你的3名决斗者</b>通过某个挑战等级后，<b>所有决斗者</b>都可以从该等级开始（最高5级）。角色颜色仍只会在<b>其本人</b>通过时改变。</p></div>
+<div class="pn0_2_47-big"><em>决斗</em><h3>更多变化</h3>
+<p class="pn0_2_47-lead">每个对手都有<b>专属音乐</b>。现在所有决斗者都可能在<b>第7和第8场决斗</b>中以第3梯队卡组出现。新头像：</p>
+<div class="pn0_2_47-portraits"><img src="assets/opponents/valon.png"><img src="assets/opponents/strings.png"><img src="assets/opponents/alister.png"></div></div>
+</section>
+
+<section class="pn0_2_47-cols">
+<div><h2>改动</h2><ul class="pn0_2_47-small">
+<li><span>🏹</span><span><b>攻击箭头</b>会一直显示在场上，直到攻击结束。</span></li>
+<li><span>🔍</span><span>收藏 › 补充包：<b>搜索卡名</b>即可找到包含该卡的补充包。补充包窗口会列出<b>所有种族</b>，并提供<b>泛用卡</b>筛选。</span></li>
+<li><span>📊</span><span>卡组编辑器：可选显示<b>属性与种族统计</b>（设置 › 显示）。</span></li>
+<li><span>🗑️</span><span>自由决斗：可<b>删除</b>自定义卡组。</span></li>
+<li><span>🏆</span><span>终极收藏家：换副时可<b>取消准备</b>，卡组显示<b>限制</b>标记，并统计怪兽 / 魔法 / 陷阱数量。</span></li>
+<li><span>🪙</span><span>双打胜利可获得<b>多25%的金币</b>。</span></li>
+<li><span>🔒</span><span>挑战等级2以下时，<b>遗物封印</b>只封印你<b>一半</b>的遗物（向上取整）。</span></li>
+<li><span>🎭</span><span><b>名称变更器</b>：选择卡通后会变成<b>卡通怪兽</b>，该系列也会计入<b>魔术师之杖</b>和卡片预览。</span></li>
+<li><span>🖨️</span><span><b>故障印刷机</b>现在也会作用于免费<b>随机补充包</b>。</span></li>
+<li><span>🌈</span><span>随机卡：“不能控制更多怪兽”的效果会把<b>多出的怪兽送去墓地</b>。</span></li>
+<li><span>🔗</span><span><b>连接设备</b>：随时可加入其他设备的连接，并显示连接ID和上次同步时间。</span></li>
+<li><span>🧠</span><span>CPU：会用人造人7号和卡通怪兽<b>直接攻击</b>，面对无法被攻击的传说的渔人也会直接攻击；<b>和睦的使者</b>、<b>攻击无力化</b>、<b>阴间领路人</b>和解放的判断更好了。</span></li>
+<li><span>👆</span><span><b>魔道化 利真</b>的召唤方式选择点一下即可。</span></li>
+<li><span>🎨</span><span><b>临别赠礼</b>有了专属卡图。<b>简单</b>按钮更醒目了。</span></li>
+</ul></div>
+<div><h2>修复</h2><ul class="pn0_2_47-small">
+<li><span>⚖️</span><span>CPU的<b>欧贝利斯克之巨神兵</b>不会再解放自己。</span></li>
+<li><span>🐑</span><span><b>二重魔法</b>复制<b>替罪羊</b>时会正常特殊召唤羊衍生物。</span></li>
+<li><span>🤝</span><span><b>忠诚</b>不会再留住用敌人操纵器夺取的怪兽。</span></li>
+<li><span>🔥</span><span><b>火热卡组</b>不会再导致效果错误。</span></li>
+<li><span>⭐</span><span>场上已满时，<b>群星连珠</b>不会再询问。</span></li>
+<li><span>🩸</span><span>决斗中<b>仪式之疤</b>会显示正确的攻击力。</span></li>
+<li><span>💾</span><span>继续旧的双打或轮抽房间时，挑战等级不会再<b>回退</b>。</span></li>
+<li><span>🃏</span><span>轮盘蜘蛛等速攻、场地和反击卡会显示正确的<b>图标</b>。</span></li>
+<li><span>🔢</span><span>新冒险的第一个卡组界面中<b>按攻击力排序</b>可正常使用。</span></li>
+<li><span>🎲</span><span>准备阶段造成伤害的随机卡现在可以使用，“…，之后…”的效果也不再要求后半部分可以执行。</span></li>
+</ul></div>
+</section></div>

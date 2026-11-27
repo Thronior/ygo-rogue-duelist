@@ -628,10 +628,13 @@ export function smartContext(e,p,L,prompt=null){
   // v: ATK, f: share of battle damage it deals (Susa Soldier halves it), d: can it still attack directly afterwards.
   // Asura Priest either attacks every monster once each (never directly after that) or makes one ordinary attack,
   // which can go direct once the others cleared the way: both are tried (replay review 2026-11-22).
-  const ready=activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&!spent.some(x=>same(x,c)));
-  if(blockers.length&&theyPick(blockers))return patricianSum(ready,blockers,extra);
+  const all=activeAttackers(p).filter(c=>attackAllowed(c,!blockers.length)&&!c.attack_disabled&&!spent.some(x=>same(x,c)));
+  // Monsters that attack directly over the blockers deal their damage whatever the blockers are (directCapable).
+  const over=blockers.length?all.filter(c=>directCapable(c)):[],ready=all.filter(c=>!over.includes(c));
+  const overDamage=over.reduce((n,c)=>n+Math.floor(battleDamage(atk(c))*(halfDamage(c)?.5:1))*Math.max(0,swings(c)-(c.attack_count||0)),0);
+  if(blockers.length&&theyPick(blockers))return overDamage+patricianSum(ready,blockers,extra);
   const sweep=ready.some(c=>attacksAll(c)&&!c.attack_count)&&blockers.length>1;
-  return Math.max(battleSum(ready,blockers,extra,false),sweep?battleSum(ready,blockers,extra,true):0);
+  return overDamage+Math.max(battleSum(ready,blockers,extra,false),sweep?battleSum(ready,blockers,extra,true):0);
  }
  // Patrician of Darkness (Discord 2026-11-24): its controller picks the target of each attack. Strongest attacks go
  // first; one that does not clear every monster left is sent at one it does not clear, and one that does takes the
@@ -716,7 +719,9 @@ export function smartContext(e,p,L,prompt=null){
  function emergency(n,targets){
   if(n==='Ring of Destruction'&&targets.some(c=>atk(c)===e.lp[1-p]))return true;
   const a=enemy.find(x=>same(x,e.attackCard)),t=own.find(x=>same(x,e.attackTarget));
-  if(a?.controller===1-p&&targets.some(c=>same(c,a))&&!e.battleProtected?.[p]){
+  // Once the attack's target has left the field (destroyed in that battle: Newdoria's trigger), the battle is over and this
+  // attacker deals no more damage now (flag b394b63c, 2026-11-26).
+  if(a?.controller===1-p&&targets.some(c=>same(c,a))&&!e.battleProtected?.[p]&&!(e.attackTarget&&!t)){
    const damage=battleDamage(t?((t.position&1)?Math.max(0,atk(a)-atk(t)):0):atk(a),1-p);
    if(damage>=e.lp[p])return true;
   }
@@ -988,7 +993,8 @@ export function smartContext(e,p,L,prompt=null){
   const attackers=[current,...enemy.filter(x=>!same(x,current)&&face(x)&&(x.position&1)&&!x.attack_disabled&&!(x.attack_count>0)&&!attackBlocked(x,1-p))];
   let damage=0;
   for(const attacker of attackers){
-   if((e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&e.name(link.code)==='Book of Moon'&&(link.targets||[]).some(t=>same(t,attacker))))continue;
+   // Ready for Intercepting turns its target face-down like Book of Moon (flag 1761eff9, 2026-11-26: Waboku chained on top).
+   if((e.activeChain||[]).some(link=>!link.inactive&&link.player===p&&['Book of Moon','Ready for Intercepting'].includes(e.name(link.code))&&(link.targets||[]).some(t=>same(t,attacker))))continue;
    const declared=same(attacker,current),target=declared&&e.attackTarget?own.find(x=>same(x,e.attackTarget)):null;
    const defenders=declared?(target?[target]:[]):own;
    if(!defenders.length){damage+=Math.max(0,atk(attacker));continue}
@@ -1153,7 +1159,7 @@ export function smartContext(e,p,L,prompt=null){
   if(e.player!==p||openingTurn||e.phase>=256||prompt?.to_bp===false||battleLocked)return [];
   return own.filter(a=>face(a)&&(a.position&1)&&!a.attack_disabled&&!attackBlocked(a,p)&&(!(a.attack_count>0)||same(a,e.attackCard)));
  }
- function moonPending(c){return !!c&&(e.activeChain||[]).some(link=>!link.inactive&&e.name(link.code)==='Book of Moon'&&(link.targets||[]).some(t=>same(t,c)));}
+ function moonPending(c){return !!c&&(e.activeChain||[]).some(link=>!link.inactive&&['Book of Moon','Ready for Intercepting'].includes(e.name(link.code))&&(link.targets||[]).some(t=>same(t,c)));}
  function moonRescue(){
   // Fissure only destroys face-up monsters. Do not pretend to save one by
   // merely redirecting it into another valuable face-up friendly monster.
@@ -2793,6 +2799,9 @@ export function smartContext(e,p,L,prompt=null){
   return effectsEnabled(p)&&ojamaParts.includes(n)&&!own.some(x=>name(x)===n)&&own.length<5&&hand.some(x=>name(x)==='Ojama Delta Hurricane!!')&&ojamaParts.filter(part=>part!==n).every(part=>own.some(x=>name(x)===part));
  }
 function preferSet(c){const n=name(c);if(wanghuDestroys(c))return true;if(sleepFlips&&!(data(c).type&0x200000))return false;if(n==='Rescue Cat'&&effectsEnabled(p)&&rescueCatReady())return false;if(n==='Fire Princess'&&firePrincessSafe())return false;
+  // Face-up it cannot be attacked (The Legendary Fisherman under Umi): Summon it rather than Set it (Discord 2026-11-25).
+  if(!(data(c).type&0x200000)&&attackLocked({...c,position:1},true))return false;
+  if(directLethalSummon(c))return false;
   // Slate Warrior's 1900 ATK is worth attacking with now: summon it when it can attack this turn, instead of
   // Setting it for a flip it may never get (player report, 2026-11-04). Against an empty field it is Set unless
   // it can attack directly this turn (Main Phase 1, Battle Phase ahead, direct attacks allowed).
@@ -3246,6 +3255,9 @@ if(!effectsEnabled(p))return 0;
  // null when it makes no difference. As in the manual switch (duel.js), a visible attacker that beats
  // this monster's ATK means Defense; saferPosition weighs piercing damage.
  function betterPosition(c){
+  // A monster that cannot be attacked loses nothing in Attack Position (Discord 2026-11-25: A Legendary Ocean put The Legendary
+  // Fisherman in Defense against a stronger monster although Umi kept it safe).
+  if(attackLocked({...c,position:1},true))return true;
   const bash=relic(1-p,'cursed_shield_bash'),swing=x=>bash&&!(x.position&1)?def(x):atk(x);
   const attackers=enemy.filter(x=>face(x)&&!attackBlocked(x,1-p,true));
   const losesAttack=attackers.some(x=>swing(x)>projectedAttack(c)),losesDefense=attackers.some(x=>swing(x)>projectedDefense(c));
@@ -3293,6 +3305,19 @@ if(!effectsEnabled(p))return 0;
   return true;}
  // Cards that keep a monster out of attack range. The core never offers it as a target, so it can't justify a
  // summon or an attack: a 0 DEF Relinquished beside Magician's Valkyria only looks like a free kill.
+ // Monsters that attack directly whatever the opponent controls (云洛, Discord 2026-11-26: Jinzo #7 and Toons were switched
+ // to Defense or Set even when their direct attack won the Duel). Conditional ones only when their condition holds now.
+ const ALWAYS_DIRECT=new Set(['Jinzo #7','Leghul','Mucus Yolk','Mystic Lamp','Nightmare Horse','Ooguchi',"Queen's Double",'Raging Flame Sprite','Rainbow Flower','Reaper on the Nightmare','Servant of Catabolism']);
+ function directCapable(c){
+  if(!c||!effectsEnabled(p))return false;const n=name(c);if(ALWAYS_DIRECT.has(n))return true;
+  if(data(c).type&0x400000)return [...back].some(x=>face(x)&&name(x)==='Toon World')&&!enemy.some(t=>face(t)&&(data(t).type&0x400000));
+  if(n==='Amphibious Bugroth MK-3')return [...back,...theirBack].some(x=>face(x)&&name(x)==='Umi');
+  if(['Black Tyranno','Rocket Jumper'].includes(n))return enemy.length>0&&!theirBack.length&&enemy.every(t=>!(t.position&1));
+  if(n==='Shadowslayer')return enemy.length>0&&enemy.every(t=>!(t.position&1));
+  return false;
+ }
+ // Summoning it now wins with its direct attack this turn (Toons cannot attack the turn they are Summoned).
+ function directLethalSummon(c){return e.player===p&&e.phase===4&&prompt?.to_bp!==false&&!openingTurn&&!battleLocked&&!e.battleProtected?.[1-p]&&!(data(c).type&0x400000)&&directCapable(c)&&battleDamage(projectedAttack(c))>=e.lp[1-p];}
  function attackLocked(t,mine=own.some(x=>same(x,t))){
   const side=mine?own:enemy,others=side.filter(x=>!same(x,t)),field=side===own?back:theirBack,n=name(t);
   const guard=(card,covers)=>covers&&others.some(x=>name(x)===card&&enabled(x));
@@ -3688,7 +3713,9 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   if(/Dark Necrofear/.test(fxN||'')){if(info.allGrave)return -expendable(cand)-(nm==='Darklord Marie'?10000:0)-((chaosPair&&(hasAttribute(cand,'LIGHT')||hasAttribute(cand,'DARK')))?5000:0);return (cand.controller!==p?20000:0)+atk(cand);}
   if(/Chaos Emperor Dragon/.test(fxN||'')&&info.allGrave){const C=info.cands.filter(c=>c.location===L.GRAVE);const cheap=a=>C.filter(c=>(e.cards.get(c.code)?.attribute)===a).sort((x,y)=>expendable(x)-expendable(y))[0];const pick=[cheap('LIGHT'),cheap('DARK')];return pick.includes(cand)?5000-expendable(cand):-expendable(cand);}
   if(/Soul of Purity and Light/.test(fxN||'')&&info.allGrave){if(!hasAttribute(cand,'LIGHT'))return -100000;const Ls=info.cands.filter(c=>hasAttribute(c,'LIGHT')).sort((x,y)=>expendable(x)-expendable(y)).slice(0,2);return Ls.includes(cand)?5000-expendable(cand):-expendable(cand);}
-  if(/Newdoria/.test(fxN||''))return (cand.controller!==p?15000:-100000)+atk(cand);
+  // The monster that can still attack this turn first (flag b394b63c, 2026-11-26: it took the one that had attacked, and the
+  // other dealt lethal).
+  if(/Newdoria/.test(fxN||''))return cand.controller!==p?15000+atk(cand)+remainingBattleDamage(enemy.find(x=>same(x,cand))||cand):-100000;
   if(/Hane-Hane/.test(fxN||'')){if(cand.controller!==p)return 15000+((e.cards.get(cand.code)?.level||0)*500)+atk(cand)+remainingBattleDamage(enemy.find(x=>same(x,cand))||cand);return ownSacrificeScore(cand,true);}
   if(/Shining Angel/.test(fxN||'')){if((e.cards.get(cand.code)?.attribute)!=='LIGHT'||atk(cand)>1500)return -100000;const wall=e.lp[p]<3000||enemyPower>ownPower;return 10000+(wall?((cand.defense??e.data[cand.code]?.defense)??0):atk(cand));}
   if(fxN==='Dust Tornado'&&cand.location===L.HAND)return data(cand).type&0x80000?-100000:(data(cand).type&4?20000:10000)+expendable(cand)*-.01;
@@ -3705,7 +3732,7 @@ if(n==='Relinquished'&&effectsEnabled(p))return -1000000;let s=-Math.max(0,(def(
   // No effect is resolving: the name comes through as '#undefined', so test the code.
   if(!e.effect?.code&&e.selectionHint===500&&cand.controller===p&&cand.location===L.MZONE){const live=own.find(x=>same(x,cand))||cand;return -expendable(live)+(data(live).type&0x4000?5000:0)+tributeAdj(live);}
   return null;}
-  function position(n,c){if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
+  function position(n,c){if(c&&attackLocked({...c,position:1},true))return true;if(c&&directLethalSummon(c))return true;if(n==='Relinquished'&&effectsEnabled(p)&&!openingTurn&&e.phase===4&&back.length<5&&!attackBlocked(c,p,true)){const target=enemy.filter(face).sort((a,b)=>atk(b)-atk(a))[0];if(target&&atk(target)>0&&atk(target)>Math.max(0,...enemy.filter(x=>!same(x,target)).map(power)))return true;}const safe=c&&saferPosition(c);if(safe!==null&&safe!==undefined)return safe;if(c&&(data(c).type&0x200000)&&atk(c)<1000)return false;if(n==='Spirit Reaper')return reaperDirectReady(c);if(n==='Reaper on the Nightmare'&&effectsEnabled(p))return directAttackNow(c);if(c&&attackBlocked(c,p,true)){const attackers=enemy.filter(x=>face(x)&&(x.position&1)).map(atk),attack=projectedAttack(c),defense=projectedDefense(c);return attack>=defense&&attackers.every(value=>value<=attack);}if(n==='Shining Angel')return true;if(n==="Queen's Double")return true;if(n==='Reflect Bounder')return true;return null;}
   const deckOutClock={myDeck,oppDeck,myExpectedDraws,oppExpectedDraws,myDeckOutTurns,oppDeckOutTurns,mode:deckOutMode};
-  return {wanghuDestroys,wallPayment,necrossPlan:necross,necrossSetFirst,necrossPieceSet,swings,halfDamage,attacksAll,attackReadyValue,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
+  return {directCapable,directLethalSummon,wanghuDestroys,wallPayment,necrossPlan:necross,necrossSetFirst,necrossPieceSet,swings,halfDamage,attacksAll,attackReadyValue,lethalClear,lpCost,lethalCost,lethalUpkeep,releaseUpkeep,coinRedo,ownLossPick,statSources,attackLocked,betterPosition,battleProof,holdHandForBattle,comboChoice:useful=>combos.choose(useful),burnPlan:combos.burnPlan,battleLine:ready=>combos.battleLine(ready),readyAttackers:()=>activeAttackers(p).filter(c=>!c.attack_disabled&&!(c.attack_count>0)),virusRace,attackOpportunity,hiddenDefense,planDamage,battleBeforeSummon,cyberJarFlipUseful,handLimitScore,discardBenefit,handLoss,coffinMonsterLoss,resourceOption,pantherTributeAllowed,combatPower,clearedLane,replayRule,incomingDamage,saferPosition,battleDamage,healingAllowed,effectsEnabled,reaperDirectReady,reaperBattleReady,setAllowed:deck.setAllowed,setScore:deck.setScore,summonUtility,attackBlocked,tributeWorth,projectedAttack,projectedDefense,activation,expendable,ritualReady,fusionReady,threat,LOCK,preferSet,summonScore,specialOk,flipUseful,pierce,attackBackfires,attackAllowed,attackScore,tributeAdj,targetScore,position,suicideScore,deckOutClock,optionalDrawSafe,optionalMillSafe,spiritStays,sleepFlips};
 }

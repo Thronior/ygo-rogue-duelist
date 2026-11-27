@@ -11,12 +11,15 @@ export function flipPerspective(value){
 const LOG_SIDES=[[/^(Turn \d+ · )Your turn$/,'$1Opponent’s turn'],[/^(Turn \d+ · )Opponent’s turn$/,'$1Your turn'],[/^You take /,'Opponent takes '],[/^Opponent takes /,'You take '],[/^You pay /,'Opponent pays '],[/^Opponent pays /,'You pay '],[/^You recover /,'Opponent recovers '],[/^Opponent recovers /,'You recover '],[/^You (\w+) Summon /,'Opponent $1 Summons '],[/^Opponent (\w+) Summons /,'You $1 Summon '],[/^You · /,'Opponent · '],[/^Opponent · /,'You · '],[/^You guessed /,'Opponent guessed '],[/^Opponent guessed /,'You guessed ']];
 export function seatLogs(logs,seat){return (logs||[]).map(line=>{if(seat!==1)return line;const side=LOG_SIDES.find(([pattern])=>pattern.test(line));return side?line.replace(side[0],side[1]):line})}
 // Uses EDOPro's real extra-duelist slots, never merges partners' decks.
+// mode 'team' (2v2 Draft rooms, 2026-11-26): four humans, two per engine team. A duelist is a slot, team x 2 + partner,
+// and each slot answers its own prompts. Everything else follows PvP: hidden cards stay hidden per team, and team 1 sees
+// the duel from its own side.
 export class TagDuel extends MobileDuel {
  startTag({teams,lp,enemyLP,draw=5,enemyDraw=5,seed,passives='',names,mode='tag',rules=null}){
-  this.presentationKey=seed;this.pvp=mode==='pvp';
-  if(!Array.isArray(teams)||teams.length!==2||teams.some(t=>t.length!==(this.pvp?1:2)||t.some(d=>!d.main?.length)))throw Error('Tag duels need four decks.');
+  this.presentationKey=seed;this.team=mode==='team';this.pvp=mode==='pvp'||this.team;
+  if(!Array.isArray(teams)||teams.length!==2||teams.some(t=>t.length!==(this.pvp&&!this.team?1:2)||t.some(d=>!d.main?.length)))throw Error('Tag duels need four decks.');
   this.activeSeats=[0,0];this.tagNames=names||[['Host','Partner'],['Opponent 1','Opponent 2']];this.responseNumber=0;
-  return this.start(teams[0][0].main,teams[1][0].main,lp,enemyLP,draw,seed,teams[0][0].extra||[],teams[1][0].extra||[],passives,enemyDraw,this.pvp?null:teams,rules);
+  return this.start(teams[0][0].main,teams[1][0].main,lp,enemyLP,draw,seed,teams[0][0].extra||[],teams[1][0].extra||[],passives,enemyDraw,this.pvp&&!this.team?null:teams,rules);
  }
  onMessage(message){
   // Which partner put each of the team's field cards there, so a face-down card shows its owner's sleeve (sleeves.js).
@@ -35,11 +38,11 @@ export class TagDuel extends MobileDuel {
   super.onMessage(message);
  }
  snapshot(){return {...super.snapshot(),tag:{presentationDuel:this.presentationKey,activeSeats:[...this.activeSeats],fieldSeats:{...this.fieldSeats},names:this.tagNames,responseNumber:this.responseNumber}}}
- get respondingSeat(){return this.pvp?(this.pending?.player??null):this.pending?.player===0?this.activeSeats[0]:null}
+ get respondingSeat(){if(this.team){const p=this.pending?.player;return p===0||p===1?p*2+this.activeSeats[p]:null}return this.pvp?(this.pending?.player??null):this.pending?.player===0?this.activeSeats[0]:null}
  respondFor(seat,number,response){
   if(this.respondingSeat!==seat)throw Error('Wait for your teammate.');
   if(number!==this.responseNumber)throw Error('That choice is stale. Refresh the duel state.');
-  if(this.pvp&&seat===1)response=flipPerspective(response);
+  if(this.pvp&&(this.team?seat>>1:seat)===1)response=flipPerspective(response);
   const result=this.respond(response);this.responseNumber++;result.tag.responseNumber=this.responseNumber;return result;
  }
  // The team's relic and curse numbers, so the screen's stand-in engine can forecast a hand monster's field stats as
@@ -47,6 +50,7 @@ export class TagDuel extends MobileDuel {
  // swaps activeCurses. PvP has one side's numbers only, so it sends none (aiModifiers:null) and shows no forecast.
  statModifiers(){const {relicFeedback,...stats}=this.aiModifiers||{};return {...stats}}
  snapshotFor(seat){
+  if(this.team)return this.teamSnapshot(seat);
   if(this.pvp)return this.pvpSnapshot(seat);
   const state=this.snapshot();state.tag.rewardEvents=this.summary().filter(e=>['summon','activate','set','attack','damage','damage_taken','effect_damage','draw','recover','exact_lethal','overkill','duel_metrics','battle_destroy','destroy','banish','tribute_summons','ancient_treasure','lp_lost','sleeve_metrics'].includes(e.kind));state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.waitingForPartner=!!this.pending&&this.respondingSeat===1-seat&&!this.finished;
   state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:this.logs,revealedHands:[{...(this.revealedHands?.[0]||{})},{}],aiModifiers:this.statModifiers()};
@@ -60,7 +64,8 @@ export class TagDuel extends MobileDuel {
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
   return state;
  }
- pvpSnapshot(seat){
+ // canRespond: whether this side holds the prompt (2v2 passes it; PvP works it out).
+ pvpSnapshot(seat,canRespond=this.respondingSeat===seat){
   if(seat!==0&&seat!==1)throw Error('Invalid player seat.');
   let state=structuredClone(this.snapshot());const opponent=1-seat;
   state.players[seat].extraCards=this.query(seat,L.EXTRA);
@@ -69,7 +74,7 @@ export class TagDuel extends MobileDuel {
   enemy.hand=enemy.hand.map((c,sequence)=>c&&this.handRevealed(seat,{...c,controller:opponent,location:L.HAND,sequence})?c:{code:0});
   for(const zone of ['monsters','spells'])enemy[zone]=enemy[zone].map(c=>c&&!(c.position&5)?{controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE,sequence:c.sequence,position:c.position,code:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE}),rememberedCode:this.knownFieldCard(seat,{...c,controller:opponent,location:zone==='monsters'?L.MZONE:L.SZONE})}:c);
   enemy.banished=enemy.banished.map(c=>c&&!(c.position&5)?{code:0,position:c.position}:c);
-  if(this.respondingSeat!==seat)state.pending=null;
+  if(!canRespond)state.pending=null;
   const reveals={};for(const [key,code] of Object.entries(this.revealedHands?.[seat]||{})){const [side,seq]=key.split(':');reveals[(Number(side)^seat)+':'+seq]=code}
   state.tag.ui={chainDepth:this.chainDepth,activeChain:(this.activeChain||[]).map(c=>({code:c.code,link:c.link})),inDamageStep:!!this.inDamageStep,selectionHint:this.selectionHint,materialSubject:this.materialSubject,logs:seatLogs(this.logs,seat),revealedHands:[reveals,{}],aiModifiers:null};
   if(seat===1){state=flipPerspective(state);state.players.reverse();state.lp.reverse();state.tag.names.reverse();}
@@ -77,7 +82,18 @@ export class TagDuel extends MobileDuel {
   state.tag.waitingForOpponent=!!this.pending&&this.respondingSeat===opponent&&!this.finished;state.tag.pvp=true;state.tag.localSeat=seat;state.tag.canRespond=this.respondingSeat===seat;state.tag.activeSeats=[0,0];
   return state;
  }
+ // A 2v2 duelist's view: the PvP view of their team, with the partners' names and who is acting.
+ teamSnapshot(slot){
+  if(!Number.isInteger(slot)||slot<0||slot>3)throw Error('Invalid player seat.');
+  const team=slot>>1,acting=this.respondingSeat,state=this.pvpSnapshot(team,acting===slot);
+  state.tag.team=true;state.tag.localSeat=slot&1;state.tag.canRespond=acting===slot;
+  state.tag.waitingForPartner=!!this.pending&&acting!==null&&acting!==slot&&acting>>1===team&&!this.finished;
+  state.tag.waitingForOpponent=!!this.pending&&acting!==null&&acting>>1!==team&&!this.finished;
+  state.tag.activeSeats=team===1?[this.activeSeats[1],this.activeSeats[0]]:[...this.activeSeats];
+  return state;
+ }
  cuesFor(seat,cues){
+  if(this.team)seat=seat>>1;
   if(!this.pvp)return cues;
   // Movement animations must not expose either human's private card identities.
   const safe=cues.filter(c=>c.kind!=='reveal'||c.public===true||c.audience===seat).map(c=>c.kind==='move'?{...c,code:0}:c);

@@ -69,9 +69,12 @@ for(const p of [0,1]){
  }
  // 5. Juragedo on the field: Tribute it when it is about to die, not on top of our own attack stopper.
  {
-  const jura=mon('Juragedo',p,0),tomato=mon('Mystic Tomato',p,1),tiki=mon('Grand Tiki Elder',o,0,1,{attack:2500});
+  // The boost must then beat the attacker (flag 170d9f3c, 2026-11-26): 1400+1000 beats 2300, not 2500.
+  const jura=mon('Juragedo',p,0),tomato=mon('Mystic Tomato',p,1),tiki=mon('Grand Tiki Elder',o,0,1,{attack:2300});
   const battle={player:o,phase:8,attackCard:at(tiki),attackTarget:at(jura)};
   ok(smartContext(duel(p,{mzone:[jura,tomato]},{mzone:[tiki]},battle),p,L).activation(jura,true)>=0,'doomed Juragedo boosts Mystic Tomato instead');
+  const big=mon('Grand Tiki Elder',o,0,1,{attack:2500});
+  ok(smartContext(duel(p,{mzone:[jura,tomato]},{mzone:[big]},{...battle,attackCard:at(big)}),p,L).activation(jura,true)<0,'no Tribute when the boosted Tomato would still lose');
   ok(smartContext(duel(p,{mzone:[jura,tomato]},{mzone:[tiki]},{...battle,activeChain:[{code:id('Sakuretsu Armor'),player:p}]}),p,L).activation(jura,true)<0,'not while our Sakuretsu Armor answers the attack');
   const doll=mon('Rogue Doll',o,0),snipeT={...snipe,sequence:2};
   const save={player:o,phase:8,attackCard:at(doll),attackTarget:at(snipeT)};

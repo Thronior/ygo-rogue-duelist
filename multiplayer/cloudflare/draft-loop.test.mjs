@@ -18,7 +18,7 @@ const play=async(call,room,winner)=>{await call(0,'result',{number:room.events.l
 const draftRound=async(call,reg,room,size)=>{for(let i=0;i<2;i++){await call(i,'deck',{deck:deckOf(reg.data.players['p'+i].pool,size)});await call(i,'ready');}};
 
 test('draft loop opening: four starting boosters once, buildable to 20 for every duelist',()=>{
- for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,(c.starting_packs?.length||4)+3,c.name);assert.equal(new Set(result.packIds.slice(-3)).size,3,'three different duelist packs');assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
+ for(const c of catalog.characters.filter(c=>!c.copycat&&!c.engine_deck)){const result=draftPool(c.id,undefined,true);assert.equal(result.packs.length,(c.starting_packs?.length||4)+3,c.name);assert.equal(new Set(result.packIds.slice(-3)).size,3,'three different duelist packs');for(let k=0;k<20;k++){const again=draftPool(c.id,undefined,true),own=again.packIds.slice(0,-3);assert.equal(again.packIds.length,own.length+3,c.name);assert(!again.packIds.slice(-3).some(id=>own.includes(id)||id===c.pack),c.name+': an extra pack is never the duelist’s own');}assert.deepEqual(result.pool.slice(0,c.signatures.length),c.signatures);assert(buildable(result.pool)>=20,c.name);}
  assert.deepEqual([0,1,2,3,9].map(minDeckFor),[20,30,40,40,40]);
 });
 

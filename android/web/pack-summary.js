@@ -48,6 +48,10 @@ export const typeCard=(c,race)=>!!c&&(!!(c.data?.type&1)&&c.race===race||support
 const DRAW_RE=new RegExp(GENRES.find(g=>g.id==='increase-draw').pattern,'i');
 export const drawCard=c=>{const t=c?.data?.type|0;if(!c||(t&17)===17)return false;const ids=CARD_GENRES[c.id];return ids?ids.includes('increase-draw'):DRAW_RE.test(c.desc||'')};
 export const equipSpell=c=>((c?.data?.type|0)&0x40002)===0x40002;
+// Staples (CITYDRIVER and Voda, 2026-11-26: they open packs looking for these): a hand-picked list of cards that fit
+// almost any deck. The link and the Collection › Packs filter show the pack's copies of them.
+export const STAPLES=new Set(['Pot of Greed','Graceful Charity','Raigeki',"Harpie's Feather Duster",'Heavy Storm','Mystical Space Typhoon','Monster Reborn','Change of Heart','Snatch Steal','Mirror Force','Torrential Tribute','Book of Moon','Sangan']);
+export const stapleCard=c=>!!c&&STAPLES.has(c.name);
 
 // Support themes: `has` decides whether the summary names it (at least `min` cards), `match` which cards the link shows.
 // The Fusion and Ritual links also show the Spells that summon them.
@@ -59,6 +63,7 @@ export const PACK_THEMES=[
  {name:'LP recovery',min:4,has:recovery,match:recovery},
  {name:'card draw',min:1,has:drawCard,match:drawCard},
  {name:'Equip Spells',min:1,has:equipSpell,match:equipSpell},
+ {name:'Staples',min:1,has:stapleCard,match:stapleCard},
 ];
 
 export function packSummaryParts(content,pid){
@@ -66,11 +71,14 @@ export function packSummaryParts(content,pid){
  const ids=new Set([...(p.common||[]),...(p.rare||[])]),cards=content.cards.filter(c=>ids.has(c.id)),counts={};
  // Each card counts once per Type: as a monster of it, or as support for it.
  for(const c of cards){const own=c.data.type&1?c.race:null;if(own)counts[own]=(counts[own]||0)+1;for(const r of supportedTypes(c))if(r!==own)counts[r]=(counts[r]||0)+1}
- const types=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name])=>name);
+ const ranked=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name])=>name),types=ranked.slice(0,3);
+ // Every other Type the pack has, as filter links after the summary (CITYDRIVER, 2026-11-26: Machine was missing when it
+ // wasn't in a pack's top 3).
+ const otherTypes=ranked.slice(3);
  const themes=PACK_THEMES.filter(x=>cards.filter(x.has).length>=x.min).map(x=>x.name);
  const present=new Set();for(const c of cards)for(const s of cardSeries(c))present.add(s);
  const dartz=pid==='DRAFT-DARTZ';
- return {types:dartz?[]:types,attributes:dartz?['LIGHT','DARK']:[],series:dartz?['Chaos']:PACK_SERIES.map(([name])=>name).filter(name=>present.has(name)),themes,count:ids.size};
+ return {types:dartz?[]:types,otherTypes:dartz?[]:otherTypes,attributes:dartz?['LIGHT','DARK']:[],series:dartz?['Chaos']:PACK_SERIES.map(([name])=>name).filter(name=>present.has(name)),themes,count:ids.size};
 }
 
 // Which cards a summary term stands for. Built on a click, never while the window opens.

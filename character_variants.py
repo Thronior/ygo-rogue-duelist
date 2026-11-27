@@ -3,7 +3,10 @@ import json
 from pathlib import Path
 DATA=json.loads((Path(__file__).parent/'data/character-variants.json').read_text(encoding='utf8'))
 VARIANTS=DATA['variants']
+# Main loadout names, shown instead of "Standard" (user, 2026-11-27).
+MAIN_NAMES=json.loads((Path(__file__).parent/'data/loadout-names.json').read_text(encoding='utf8'))['names']
 def install(characters):
+ for index,name in MAIN_NAMES.items():characters[int(index)]['loadout_name']=name
  # Pegasus's Ritual loadout is now standard; his alternate is the Toon build.
  characters[7].update(starting_relic='ten_thousand_hands',cards=['Relinquished','Black Illusion Ritual','Dark-Eyes Illusionist'],starting_packs=[characters[7]['pack']]*2+['JP-DL1','EN-MFC'])
  characters[30]['starting_relic']='burn_proficiency'

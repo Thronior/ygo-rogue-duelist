@@ -14,7 +14,8 @@ const extract = name => {
   }
 };
 // draftSorted caches its order (draftSortCache) and puts No marks last; draftSortedFresh sorts (2026-11-16).
-const body = `let draftSortCache=null;
+const body = `let draftSortCache=null;const poolPrints=new WeakMap();
+${extract('poolPrint')}
 ${extract('draftOrder')}
 ${extract('draftSorted')}
 ${extract('draftSortedFresh')}

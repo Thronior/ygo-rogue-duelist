@@ -236,7 +236,10 @@ def install(g):
   """Who routes() may offer on run['round']; avoid keeps a stretch's planned boss out of its ordinary duels."""
   rd=run['round'];boss=(rd+1)%BOSS_EVERY==0;tutorial=deck_round(run)==0 and not run.get('loop')
   if tutorial:choices=list(TUTORIAL_OPPONENTS)
-  elif rd>=6:choices=[0,1,6,15,17,27]
+  # Duels 7 and 8 offer every duelist like any ordinary duel (user, 2026-11-26): the six-duelist list used to cover them
+  # too, and once ~30 Tier 3-only opponents joined, the top-up below that let Yami Marik and the rest in never ran, so
+  # their Tier 3 decks were never met in a run. The final boss keeps its own list.
+  elif rd>=6 and boss:choices=[0,1,6,15,17,27]
   elif boss:choices=[0,1,3,4,6,7,11,15,17,27]
   else:choices=list(GAME_DECKS)
   eligible=eligible_opponents(deck_round(run),run.get('loop',0))
@@ -316,7 +319,7 @@ def install(g):
    packs=[]
   r=dict(version=3,shop_rerolls=0,character=index,lp=8000,gold=40,round=0,stage='draft',pool=signatures+sum(packs,[]),selected=list(range(len(signatures))),guaranteed=signatures,packs=packs,artifacts=[],history=[],shop=[],duel=None,curses=[],boss_cursed=[],boss_rules=3,boss_curse=None,purchased=0)
   r['new_cards_from']=0
-  r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else 'Standard',campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
+  r.update(variant=variant,variant_name=char.get('alternate',{}).get('name') if variant else char.get('loadout_name','Standard'),campaign_rules=4,started_at=time.time(),unlocks_earned=[],stats={},pack_ids=pack_ids)
   if char.get('copycat') or char.get('engine_deck'):r['selected']=[];r['guaranteed']=[];r['stage']='draft'
   if char.get('randomized'):
    # "Randomizing cards" (user, 2026-11-15): the run's cards are made now, and the 4 starting packs come from them.
@@ -528,6 +531,7 @@ def install(g):
  FINAL_COUNTDOWN_COINS=300
  # Exodia wins (CITYDRIVER, user 2026-11-20): handled like Final Countdown, with a lower floor ("maybe not 300").
  EXODIA_COINS=150
+ TAG_VICTORY_BONUS=25  # percent
  def rewards(run,events,reason=None):
   tally,_=old_rewards(run,events)
   tally['Artifacts']=amount(run,'gold')
@@ -582,6 +586,11 @@ def install(g):
   if run.get('challenge_level',0)>=3:
    reduced=total*3//4;tally['Challenge level penalty']=reduced-total;total=reduced
    notes['Challenge level penalty']=['−25%','']
+  # Tag is harder than solo, so each victory pays the team 25% more (user, Discord 2026-11-26; a flat +20 until the user
+  # asked for a percentage, 2026-11-27). Only the host's payout becomes the team's coins (tag_campaign.finish), so it counts once.
+  if run.get('history_mode')=='tag' and total>0:
+   bonus=total*TAG_VICTORY_BONUS//100;tally['Tag team bonus']=bonus;total+=bonus
+   notes['Tag team bonus']=[f'+{TAG_VICTORY_BONUS}%','']
   if easy_mode.active(run):
    bonus=easy_mode.coin_bonus(total);tally[easy_mode.BONUS_LINE]=bonus;total+=bonus
    notes[easy_mode.BONUS_LINE]=[f'+{easy_mode.COIN_BONUS}%','']
@@ -647,7 +656,7 @@ def install(g):
   # such signal, still treat a win at 1,000 LP or less as the save; a plain low-LP win must not spend it.
   saved=any(e.get('kind')=='relic_used' and e.get('relic')=='phoenix_rebirth' for e in result.get('events',[]))
   if not saved and result.get('phoenix_signal') is False:saved=result.get('winner')==0 and run['lp']<=1000
-  if 'relic_seal' not in run.get('curses',[]) and 'phoenix_rebirth' in run.get('artifacts',[]) and saved:
+  if 'phoenix_rebirth' in ar.duel_run(run).get('artifacts',[]) and saved:
    run['artifacts']=[a for a in run['artifacts'] if a!='phoenix_rebirth'];run['phoenix_spent']=True
   import character_progression
   character_progression.duel(g,run,result,won,boss)
@@ -703,6 +712,9 @@ def install(g):
    else:reward_slots.prepare(run,defeated_deck,reward_start)
    # Absolute Random: a free Random Pack per copy, after the reward cards; the client opens it (run['free_packs']).
    run['free_packs']=random_cards.free_pack(run,rng) if ar.has(run,'absolute_random') and not copies_deck(run) else []
+   _base=len(run['pool'])-sum(len(x['cards']) for x in run['free_packs'])
+   for _pack in run['free_packs']:
+    _pack['misprints']=roll_misprints(run,_pack['cards'],_base,rng);_base+=len(_pack['cards'])
    if run.get('encore_active'):run.update(encore_active=False,encore_won=True)
    run['stage']='complete' if run['round']==RUN_LENGTH or run.get('secret_challenge') else 'shop'
    endless.mark_final(run)
@@ -799,9 +811,16 @@ def install(g):
   if general_stock:
    top=stock_sample(eligible,5,affinity=True)
   elif run.get('history_mode')=='tag' and len(run.get('tag_shop_rewards',[]))==2:
-   top=shop_rewards.tag_featured(themed+[removal],run['tag_shop_rewards'],rng)
+   offered=themed+[removal]
+   # Broad Tag categories follow both Decks too (shop_rewards.deck_weighted_slots, user 2026-11-26).
+   deck_boost=archetype_relics.fused_stock_boost(relic_affinity.card_multipliers(offered,run),offered,run) if any(shop_rewards.deck_weighted_slots(r['key']) for r in run['tag_shop_rewards']) else None
+   top=shop_rewards.tag_featured(offered,run['tag_shop_rewards'],rng,deck_boost)
   else:
-   top=stock_sample(pool,min(5,len(pool)),focus=bias)
+   # Broad categories (Types, Attributes, Levels, Spells, Traps...) pick some or all of their featured cards with the
+   # Deck weighting as well (user, 2026-11-26); the rest of the shelf stays random within the category.
+   count=min(5,len(pool));weighted=shop_rewards.deck_weighted_slots(bias,count) if preferred else 0
+   top=stock_sample(pool,weighted,affinity=True,focus=bias) if weighted else []
+   top+=stock_sample([c for c in pool if c not in top],count-len(top),focus=bias)
    top+=stock_sample([c for c in themed if c not in top],5-len(top))
   # Exodia always shows at least one Forbidden One piece in its featured stock.
   tag_rewards=run.get('tag_shop_rewards',[])
@@ -914,6 +933,11 @@ def install(g):
   # no longer be offered (owned, fused away) drops its lock; they take relic slots first, the rest are rolled as usual.
   kept=[a for a in dict.fromkeys(run.get('relic_locks') or []) if a in available][:count]
   run['relic_locks']=kept
+  # The beaten opponent's guaranteed relic (shop_rewards.route_relics, user 2026-11-26) takes the next relic slot; in Tag
+  # each of the two opponents' relics does. Rerolls don't keep it: players lock it themselves.
+  beaten=tag_rewards if run.get('history_mode')=='tag' and len(tag_rewards)==2 else [run.get('shop_reward') or {}]
+  guaranteed=[] if general_stock else [a for a in dict.fromkeys(r.get('relic') for r in beaten) if a and a in available and a not in kept][:max(0,count-len(kept))]
+  kept=kept+guaranteed
   prices={a:ar.price(run,'artifact',max(1,round(ARTIFACTS[a][1]*modifier))) for a in available}
   chosen=kept+archetype_relics.shop_sample([a for a in available if a not in kept],count-len(kept),run,rng,favored,shop_rewards.CATEGORY_RELIC_BOOST,prices)
   items += [dict(kind='artifact',id=a,price=ARTIFACTS[a][1],sold=False) for a in chosen]
@@ -1038,6 +1062,24 @@ def install(g):
   # A weighted relic that fused straight away has no face left to choose.
   if key in ('weighted_coins','weighted_dice') and key in run['artifacts']:choice_relics.queue_weight_pick(run,key)
   return obtained
+ # Faulty Printer: each monster obtained has a chance to come out misprinted. `base` is the pool index of the first card.
+ # Bought singles and packs, and Absolute Random's free Random Packs (Discord 2026-11-26: rainbow packs never misprinted).
+ def roll_misprints(run,obtained,base,rng=random):
+  if not owns(run,'faulty_printer'):return []
+  from feedback_update import RACE_VALUES, ATTRIBUTE_VALUES
+  _chance=amount(run,'faulty')/100;_faulty=run.setdefault('card_mods',{});_fresh=[]
+  for _offset,_cid in enumerate(obtained):
+   _c=g.BY_ID.get(_cid)
+   if not _c or not _c['data']['type']&1:continue
+   if rng.random()<_chance:
+    _delta=[max(-(_c['atk'] or 0),rng.randint(-1000,1000)),max(-(_c['defense'] or 0),rng.randint(-1000,1000))]
+    # Only Types that monsters in the card pool actually have (no Psychic, Wyrm, Cyberse...).
+    _pool_types=sorted({RACE_VALUES[c['race']] for c in g.CARDS if c['data']['type']&1 and c['race'] in RACE_VALUES})
+    _delta.extend([rng.choice(_pool_types),rng.choice(list(ATTRIBUTE_VALUES.values()))])
+    _faulty[str(base+_offset)]=_delta
+    _race={v:k for k,v in RACE_VALUES.items()}.get(_delta[2],_c['race']);_attribute={v:k for k,v in ATTRIBUTE_VALUES.items()}.get(_delta[3],_c['attribute'])
+    _fresh.append(dict(pool=base+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1],race=_c['race'],new_race=_race,attribute=_c['attribute'],new_attribute=_attribute))
+  return _fresh
  def buy(run,index,rng=random):
   cursed_relics.require_choice(run)
   if run['stage']!='shop':raise ValueError('Shop is closed.')
@@ -1069,22 +1111,7 @@ def install(g):
   elif item['kind']=='artifact':obtained+=acquire_relic(run,item['id'],rng)
   if item['kind'] in ('single','pack') and amount(run,'purchase_clone'):
    obtained+= [cid for cid in obtained[:] if rng.random()<amount(run,'purchase_clone')/100]
-  run['last_misprints']=[]
-  if owns(run,'faulty_printer') and item['kind'] in ('single','pack'):
-   _chance=amount(run,'faulty')/100;_faulty=run.setdefault('card_mods',{});_fresh=[]
-   for _offset,_cid in enumerate(obtained):
-    _c=g.BY_ID.get(_cid)
-    if not _c or not _c['data']['type']&1:continue
-    if rng.random()<_chance:
-     _delta=[max(-(_c['atk'] or 0),rng.randint(-1000,1000)),max(-(_c['defense'] or 0),rng.randint(-1000,1000))]
-     from feedback_update import RACE_VALUES, ATTRIBUTE_VALUES
-     # Only Types that monsters in the card pool actually have (no Psychic, Wyrm, Cyberse...).
-     _pool_types=sorted({RACE_VALUES[c['race']] for c in g.CARDS if c['data']['type']&1 and c['race'] in RACE_VALUES})
-     _delta.extend([rng.choice(_pool_types),rng.choice(list(ATTRIBUTE_VALUES.values()))])
-     _faulty[str(len(run['pool'])+_offset)]=_delta
-     _race={v:k for k,v in RACE_VALUES.items()}.get(_delta[2],_c['race']);_attribute={v:k for k,v in ATTRIBUTE_VALUES.items()}.get(_delta[3],_c['attribute'])
-     _fresh.append(dict(pool=len(run['pool'])+_offset,id=_cid,name=_c['name'],atk=_c['atk'] or 0,defense=_c['defense'] or 0,datk=_delta[0],ddef=_delta[1],race=_c['race'],new_race=_race,attribute=_c['attribute'],new_attribute=_attribute))
-   run['last_misprints']=_fresh
+  run['last_misprints']=roll_misprints(run,obtained,len(run['pool']),rng) if item['kind'] in ('single','pack') else []
   stats=run.setdefault('stats',{})
   if not payment.in_lp(run):stats['coins_spent']=stats.get('coins_spent',0)+item['price']
   if item['kind']=='pack':stats['packs_bought']=stats.get('packs_bought',0)+1
@@ -1116,7 +1143,7 @@ def install(g):
    _out.append(dict(kind=run['shop'][i]['kind'],id=run['shop'][i]['id'],cards=_cards))
   run['last_misprints']=_all_mis
   return _out
- for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','banish_relic','shop_relic_pool','sell_relic','buy','buy_many','unlock_text','unlock_rule','update_profile']:
+ for name in ['acquire_relic','load_run','save','open_pack','new_run','copy_deck','engine_deck','routes','prepare_duel','opponent_deck','rewards','finish_duel','restock','reroll_price','reroll_shop','lock_relic','banish_relic','shop_relic_pool','sell_relic','buy','buy_many','roll_misprints','unlock_text','unlock_rule','update_profile']:
   setattr(g,name,locals()[name])
  g.banish_price=banish_price
  g.bounty_complete=bounty_complete

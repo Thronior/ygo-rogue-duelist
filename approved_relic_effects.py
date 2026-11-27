@@ -116,10 +116,11 @@ local function give(c) if not c:IsMonster() or c:GetFlagEffect(93720111)>0 then 
   out.append(event('EVENT_SUMMON_SUCCESS','--[[relic-hint]] Duel.SetChainLimitTillChainEnd(function(re) return not re:GetHandler():IsTrap() or not re:IsHasType(EFFECT_TYPE_ACTIVATE) end)','eg:IsExists(function(c) return c:IsControler(0) end,1,nil)'))
  elif key=='stars_aligned':
   # The turn player is the relic's owner here, so the summon needs no fixed player number (Relic Mirror gives it to the opponent).
-  # At least 1 monster in your GY (user, 2026-11-18: an empty GY no longer counts).
+  # At least 1 monster in your GY (user, 2026-11-18: an empty GY no longer counts). The free zone is checked again when it
+  # resolves: another End Phase effect may have filled it, and the chosen monster went to the GY (flag 1962e4d3, 2026-11-26).
   out.append('''do local function level() if not Duel.IsExistingMatchingCard(Card.IsMonster,0,LOCATION_GRAVE,0,1,nil) then return nil end local g=Duel.GetMatchingGroup(Card.IsMonster,0,LOCATION_GRAVE|LOCATION_MZONE,0,nil) if #g==0 then return nil end local l=g:GetFirst():GetLevel() if l<=0 or g:IsExists(function(c) return c:GetLevel()~=l end,1,nil) then return nil end return l end
 local function can(c,e,l,p) return c:IsMonster() and c:GetLevel()==l and c:IsCanBeSpecialSummoned(e,0,p,false,false) end
-'''+event('EVENT_PHASE_START|PHASE_END','local p=Duel.GetTurnPlayer() local l=level() if not l then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local g=Duel.SelectMatchingCard(0,can,0,LOCATION_HAND,0,0,1,nil,e,l,p) if #g>0 then Duel.SpecialSummon(g,0,p,p,false,false,POS_FACEUP) end','Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and level()~=nil and Duel.IsExistingMatchingCard(can,0,LOCATION_HAND,0,1,nil,e,level(),Duel.GetTurnPlayer())',True)+' end')
+'''+event('EVENT_PHASE_START|PHASE_END','local p=Duel.GetTurnPlayer() local l=level() if not l or Duel.GetLocationCount(0,LOCATION_MZONE)<=0 then return end --[[relic-ask]] Duel.Hint(HINT_SELECTMSG,0,HINTMSG_SPSUMMON) local g=Duel.SelectMatchingCard(0,can,0,LOCATION_HAND,0,0,1,nil,e,l,p) if #g>0 then Duel.SpecialSummon(g,0,p,p,false,false,POS_FACEUP) end','Duel.GetTurnPlayer()==0 and Duel.GetLocationCount(0,LOCATION_MZONE)>0 and level()~=nil and Duel.IsExistingMatchingCard(can,0,LOCATION_HAND,0,1,nil,e,level(),Duel.GetTurnPlayer())',True)+' end')
  elif key=='anime_rule_2':
   # "You destroy": the effect's player is you (rp). One hit of damage for everything a single effect destroyed.
   hit='function(c) return c:IsPreviousControler(1) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsReason(REASON_EFFECT) end'

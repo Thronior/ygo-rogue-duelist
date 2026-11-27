@@ -23,6 +23,8 @@ const later=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const SOUNDS={perfect:'assets/sfx/perfect-chime.wav',coin:'assets/sfx/purchase-coins.wav',ding:'assets/sfx/reward-ding.wav','reroll-loop':'assets/sfx/reward-reel.wav'};
 let player=()=>null;
 export function setJuiceSound(play){player=play}
+// Any effect file at the effects volume (the survey results quiz).
+export function effectSound(path,gain=1){return player(path,{gain})}
 // Finisher voices sit 3 dB above the other effects so they carry over the hit and the coin pickups.
 function sound(name,{loop=false}={}){const voice=name.startsWith('kill-')||name==='you-lose',path=SOUNDS[name]||(voice?`assets/sfx/${name}.wav`:null);return path?player(path,{loop,gain:loop?.55:voice?1.4:1,voice}):null}
 function fadeOut(voice,ms=90){if(!voice?.pause)return;const from=voice.volume,t0=performance.now();const step=()=>{const k=Math.min(1,(performance.now()-t0)/ms);voice.volume=from*(1-k);if(k<1)requestAnimationFrame(step);else voice.pause()};requestAnimationFrame(step)}

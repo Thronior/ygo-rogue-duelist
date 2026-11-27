@@ -47,7 +47,8 @@ export function draftPool(character,random=secureRandom,loop=false,variant=0){
  // The draft loop opening also deals three different duelists' packs (Discord 2026-11-23, Deds/Dragunfire: too few packs
  // to start with), one booster each, on top of the loadout's own.
  // A randomized loadout (all Random Packs) gets three more Random Packs instead.
- const extra=[],left=loop?[...DRAFT_PACKS]:[];if(loop&&usual.every(id=>id===RANDOM_PACK))extra.push(RANDOM_PACK,RANDOM_PACK,RANDOM_PACK);
+ // Never the player's own character pack (report 2026-11-26: it could come up as an "other duelist" extra).
+ const own=new Set([...usual,c.pack]),extra=[],left=loop?DRAFT_PACKS.filter(id=>!own.has(id)):[];if(loop&&usual.every(id=>id===RANDOM_PACK))extra.push(RANDOM_PACK,RANDOM_PACK,RANDOM_PACK);
  while(extra.length<3&&left.length)extra.push(left.splice(Math.floor(random()*left.length),1)[0]);
  const ids=loop?[...usual,...extra]:[...usual,...usual],minimum=loop?minDeckFor(0):40;
  for(let attempt=0;attempt<500;attempt++){
@@ -62,7 +63,8 @@ export function draftPool(character,random=secureRandom,loop=false,variant=0){
 // randomPack: rooms of clients that can build Random Packs (draft protocol 4) add it to the pack rotation.
 // allRandom (user, 2026-11-25): both players play a randomized loadout (Copycat's Randomizer), so all three packs are
 // Random Packs. Picks are by index, so the two players still take different slots.
-export function draftOffer(random=secureRandom,{relics=true,randomPack=false,allRandom=false}={}){
+// count (2026-11-26): a 2v2 room's four players pick from five of each.
+export function draftOffer(random=secureRandom,{relics=true,randomPack=false,allRandom=false,count=3}={}){
  const sample=(xs,n,weight=()=>1)=>{const left=[...xs],out=[];while(out.length<n&&left.length){let value=random()*left.reduce((s,x)=>s+weight(x),0),i=0;for(;i<left.length-1;i++){value-=weight(left[i]);if(value<0)break;}out.push(left.splice(i,1)[0]);}return out;};
- return {relics:relics?sample(DRAFT_RELICS,3,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:randomPack&&allRandom?[RANDOM_PACK,RANDOM_PACK,RANDOM_PACK]:sample(randomPack?[...DRAFT_PACKS,RANDOM_PACK]:DRAFT_PACKS,3)};
+ return {relics:relics?sample(DRAFT_RELICS,count,k=>DRAFT_RELIC_WEIGHTS[k]):[],packs:randomPack&&allRandom?Array(count).fill(RANDOM_PACK):sample(randomPack?[...DRAFT_PACKS,RANDOM_PACK]:DRAFT_PACKS,count)};
 }

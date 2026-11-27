@@ -416,7 +416,7 @@ async function withImages(d){
 
 let displayFace=null;
 // Loaded once, only when a card is drawn; a slow or offline load falls back to the system fonts.
-function displayFont(){
+export function displayFont(){
  displayFace??=(async()=>{try{if(typeof FontFace!=='function'||!globalThis.document?.fonts)return;const face=new FontFace('YGO Display','url(assets/fonts/BebasNeue-Regular.ttf)');document.fonts.add(await Promise.race([face.load(),new Promise((_,reject)=>setTimeout(()=>reject(Error('Font timed out')),2500))]))}catch{}})();
  return displayFace;
 }

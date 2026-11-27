@@ -1,0 +1,109 @@
+<style>@font-face{font-family:Bebas;src:url('assets/fonts/BebasNeue-Regular.ttf')}
+.patch-notes-sheet.pn0_2_47,.patch-notes-sheet.pn0_2_47 *{box-sizing:border-box}
+.patch-notes-sheet.pn0_2_47{width:1400px;margin-bottom:40px;color:#eef3f0;font-family:Arial,sans-serif;background:linear-gradient(#061419d9,#061419f2 300px,#061419),url('assets/character-select-background.png') top/cover;padding:44px 48px 48px}
+.patch-notes-sheet.pn0_2_47 h1{font:400 104px/0.95 Bebas;margin:0;letter-spacing:2px;color:#f3d78e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-kick{font:400 34px Bebas;letter-spacing:5px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 h2{font:400 38px Bebas;letter-spacing:3px;color:#f3d78e;margin:0 0 14px;border-bottom:2px solid #b5824a;padding-bottom:4px}
+.patch-notes-sheet.pn0_2_47 section{margin-top:30px}
+.patch-notes-sheet.pn0_2_47 b{color:#ffe7a8;font-weight:700}
+.patch-notes-sheet.pn0_2_47 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.patch-notes-sheet.pn0_2_47 li{display:flex;align-items:flex-start;gap:12px;font-size:18px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 li>span:first-child{font-size:22px;width:30px;text-align:center;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big{position:relative;background:#10232d;border:1px solid #b5824a;border-radius:12px;padding:20px 22px;overflow:hidden}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big .pn0_2_47-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big>*{position:relative}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big h3{font:400 50px Bebas;letter-spacing:2px;margin:0;color:#fff}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big em{font:400 22px Bebas;letter-spacing:2px;color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-big p.pn0_2_47-lead{font-size:20px;margin:4px 0 0;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-small li{font-size:17px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-ways{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way{display:flex;gap:14px;align-items:flex-start;background:#0b1a22cc;border:1px solid #b5824a77;border-radius:10px;padding:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way img,.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid #b5824a;flex:none}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art{background-size:136% auto;background-position:50% 27%;background-repeat:no-repeat;background-color:#0b1a22}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-sprite{object-fit:contain;background:radial-gradient(#2a3f4c,#0b1a22)}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p{margin:0;font-size:16px;line-height:1.32}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p b:first-child{font-size:21px;display:block;margin-bottom:4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way p i{color:#8fd8d2;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-relics .pn0_2_47-way p{font-size:15px;line-height:1.3}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-packs .pn0_2_47-way p{font-size:16.5px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-marks{display:inline-flex;gap:8px;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 17px/1 Arial,sans-serif;background:#07171acc;border:2px solid #9fb4ba;color:#9fb4ba}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-yes{background:#3a2a07ee;border-color:#ffd76a;color:#ffd76a;box-shadow:0 0 12px #ffd76a88}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-mark.pn0_2_47-no{background:#3a0b0bee;border-color:#ff6b6b;color:#ff8a8a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-gear{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#0d2028;border:2px solid #ffe3af;vertical-align:middle;margin:0 4px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chip{display:inline-block;font:700 15px/1 Arial,sans-serif;padding:4px 8px;border-radius:12px;background:#2a1406;border:1px solid #ffb24a;color:#ffd38a;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-fixhi{background:#2a1416;border-color:#d0675e}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal h4{font:400 26px Bebas;letter-spacing:2px;margin:0 0 8px;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal ul{gap:6px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li{font-size:17px;gap:8px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-bal li>span:first-child{font-size:16px;width:auto;color:#8fd8d2}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-trade{display:inline-block;font:700 16px/1 Arial,sans-serif;padding:7px 12px;border-radius:6px;background:linear-gradient(#ffd86e,#f0a23a);border:1px solid #fff0b8;color:#2a1600;box-shadow:0 0 10px #ffb84a66;vertical-align:middle}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-way .pn0_2_47-art.pn0_2_47-crop{background-size:130.9% auto;background-position:50% 38.4%}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats span{flex:1;border:1px solid #b5824a;border-radius:8px;display:grid;place-items:center;padding:10px 0;font:400 22px Bebas;letter-spacing:2px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-seats i{flex:none;display:grid;place-items:center;font:400 26px Bebas;color:#9fb4ba;font-style:normal}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-chips span{border:1px solid #b5824a;border-radius:999px;padding:4px 12px;font:400 18px Bebas;letter-spacing:1.5px;color:#f3d78e;background:#2a1d0a}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits{display:flex;gap:12px;margin-top:14px}
+.patch-notes-sheet.pn0_2_47 .pn0_2_47-portraits img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #b5824a;background:#0b1a22}</style><div class="patch-notes-sheet pn0_2_47"><div class="pn0_2_47-kick">YGO Rogue Duelist</div><h1>Actualización 0.2.47</h1>
+
+<section class="pn0_2_47-cols" style="margin-top:28px">
+<div class="pn0_2_47-big"><em>Encuesta 10K</em><h3>Ya están los resultados</h3>
+<p class="pn0_2_47-lead">La encuesta está <b>cerrada</b>. ¡Gracias por cada voto! Juega al <b>quiz de la encuesta</b>: adivina qué eligieron los jugadores, como en un concurso, y <b>comparte tu puntuación</b>. Después mira los <b>resultados completos</b>, con un mapa del mundo de dónde se juega.</p></div>
+<div class="pn0_2_47-big"><em>Duelos de Draft</em><h3>Draft 2v2</h3>
+<p class="pn0_2_47-lead">Crea una <b>sala 2v2 para cuatro jugadores</b>: arrastra a los jugadores a los equipos, haced el draft juntos y luchad en equipo. Tag y Draft también tienen un botón de <b>Personaje aleatorio</b>.</p>
+<div class="pn0_2_47-seats"><span>Equipo A</span><i>VS</i><span>Equipo B</span></div></div>
+</section>
+
+<section class="pn0_2_47-big"><em>Tienda</em><h3>Nuevas categorías de la tienda</h3>
+<p class="pn0_2_47-lead">Las estanterías de arquetipo se centran en <b>sus propias cartas</b>, las generales (Tipos, Atributos, Mágicas, Trampas…) siguen <b>tu deck</b> y cada rival muestra <b>una reliquia garantizada</b> en la siguiente tienda. Nuevas estanterías:</p>
+<div class="pn0_2_47-chips"><span>Mágicas básicas</span><span>Monstruos básicos</span><span>LV</span><span>Invocaciones por Sacrificio</span><span>Contadores Mágicos</span><span>Fichas</span><span>Búsqueda en el Deck</span><span>Ojos Azules</span><span>Ninja</span><span>Caos</span><span>Ojama</span></div></section>
+
+<section class="pn0_2_47-big"><em>Duelistas</em><h3>Cambios de equipamiento</h3>
+<div class="pn0_2_47-ways">
+<div class="pn0_2_47-way"><img src="assets/relics/18378582.jpg"><p><b>Serenity: Santuario de Zera</b>Nuevo equipamiento con <b>El Santuario en el Cielo</b>, <b>Guerrero de Zera</b> y <b>Archlord Zerato</b>, y la nueva reliquia <b>Heraldo del Cielo</b>. Fusión Santa es ahora su equipamiento principal, y su sobre añade todas las cartas del Santuario y más apoyo Hada.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/31786629.jpg')"></div><p><b>Mokuba</b>Empieza con <b>Dragón de Trueno ×2</b> y <b>Robo Oportunista</b>. Su sobre añade <b>Dragón de Trueno de Cabezas Gemelas</b> y <b>Zaborg el Monarca del Trueno</b>.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/48179391.jpg')"></div><p><b>Dartz</b>Empieza con <b>El Sello de Oricalcos</b>.</p></div>
+<div class="pn0_2_47-way"><div class="pn0_2_47-art pn0_2_47-crop" style="background-image:url('assets/cards/126218.jpg')"></div><p><b>Duke</b>Empieza con <b>Dado de Cráneo</b>. Cada equipamiento principal tiene ahora su propio <b>nombre</b>.</p></div>
+</div></section>
+
+<section class="pn0_2_47-cols">
+<div class="pn0_2_47-big"><em>Niveles de desafío</em><h3>Inicios compartidos</h3>
+<p class="pn0_2_47-lead">Cuando <b>3 de tus duelistas</b> superan un Nivel de desafío, <b>todos los duelistas</b> pueden empezar en él (hasta el nivel 5). Sus colores solo cambian cuando lo superan <b>ellos mismos</b>.</p></div>
+<div class="pn0_2_47-big"><em>Duelos</em><h3>Más variedad</h3>
+<p class="pn0_2_47-lead">Cada rival tiene <b>su propia música</b>. Ahora puedes encontrarte con cualquier duelista en los <b>duelos 7 y 8</b> con su deck de nivel 3. Nuevos retratos:</p>
+<div class="pn0_2_47-portraits"><img src="assets/opponents/valon.png"><img src="assets/opponents/strings.png"><img src="assets/opponents/alister.png"></div></div>
+</section>
+
+<section class="pn0_2_47-cols">
+<div><h2>Cambios</h2><ul class="pn0_2_47-small">
+<li><span>🏹</span><span>Una <b>flecha de ataque</b> se queda en el campo hasta que termina el ataque.</span></li>
+<li><span>🔍</span><span>Colección › Sobres: <b>busca el nombre de una carta</b> para encontrar los sobres que la contienen. Las ventanas de sobres muestran <b>todos los Tipos</b> y un filtro <b>Imprescindibles</b>.</span></li>
+<li><span>📊</span><span>Editor de decks: <b>recuento de Atributos y Tipos</b> opcional (Ajustes › Pantalla).</span></li>
+<li><span>🗑️</span><span>Duelos libres: <b>borra</b> decks personalizados.</span></li>
+<li><span>🏆</span><span>Coleccionista Definitivo: <b>No listo</b> al cambiar cartas, marcas de <b>Limitada</b> en tu deck y recuento de Monstruos / Mágicas / Trampas.</span></li>
+<li><span>🪙</span><span>Las victorias en Tag dan <b>un 25 % más de monedas</b>.</span></li>
+<li><span>🔒</span><span><b>Sello de Reliquias</b> por debajo del Nivel de desafío 2 sella <b>la mitad</b> de tus reliquias (redondeando hacia arriba).</span></li>
+<li><span>🎭</span><span><b>Cambiador de Nombres</b>: elegir Toon los convierte en <b>monstruos Toon</b>, y su arquetipo cuenta para <b>Báculo del Mago</b> y las vistas previas.</span></li>
+<li><span>🖨️</span><span><b>Impresora Defectuosa</b> también afecta a los <b>sobres aleatorios</b> gratuitos.</span></li>
+<li><span>🌈</span><span>Cartas aleatorias: los efectos de «no puede controlar más monstruos» mandan los <b>monstruos sobrantes al Cementerio</b>.</span></li>
+<li><span>🔗</span><span><b>Vincular dispositivos</b>: únete al vínculo de otro dispositivo cuando quieras; muestra el ID del vínculo y la última sincronización.</span></li>
+<li><span>🧠</span><span>CPU: ataca <b>directamente</b> con Jinzo #7 y los Toon, también si hay un El Pescador Legendario al que no se puede atacar; mejores decisiones con <b>Waboku</b>, <b>Negar Ataque</b>, <b>Newdoria</b> y los Sacrificios.</span></li>
+<li><span>👆</span><span>La elección de invocación de <b>Legión del Bufón Demoníaco</b> funciona con un solo toque.</span></li>
+<li><span>🎨</span><span><b>Regalo de Despedida</b> tiene su propia ilustración. El botón <b>Fácil</b> se ve mejor.</span></li>
+</ul></div>
+<div><h2>Correcciones</h2><ul class="pn0_2_47-small">
+<li><span>⚖️</span><span>El <b>Obelisco el Atormentador</b> de la CPU ya no se sacrifica a sí mismo.</span></li>
+<li><span>🐑</span><span><b>Hechizo Doble</b> al copiar <b>Scapegoat</b> invoca las Fichas Oveja.</span></li>
+<li><span>🤝</span><span><b>Lealtad</b> ya no retiene un monstruo que tomaste con Controlador de Enemigos.</span></li>
+<li><span>🔥</span><span><b>Deck Caliente</b> ya no provoca un error de efecto.</span></li>
+<li><span>⭐</span><span><b>Estrellas Alineadas</b> ya no pregunta si tu campo está lleno.</span></li>
+<li><span>🩸</span><span><b>Cicatriz Ritual</b> muestra el ATK correcto durante el duelo.</span></li>
+<li><span>💾</span><span>Retomar una sala antigua de Tag o Draft ya no <b>hace retroceder</b> tus Niveles de desafío.</span></li>
+<li><span>🃏</span><span>Ruleta de Araña y otras cartas de Juego Rápido, Campo y Contraefecto muestran sus <b>iconos</b> reales.</span></li>
+<li><span>🔢</span><span>El <b>orden por ATK</b> funciona en la primera pantalla de deck de una partida nueva.</span></li>
+<li><span>🎲</span><span>Las cartas aleatorias de daño en la Standby Phase se pueden usar, y los efectos «…, luego …» ya no necesitan que la segunda parte sea posible.</span></li>
+</ul></div>
+</section></div>

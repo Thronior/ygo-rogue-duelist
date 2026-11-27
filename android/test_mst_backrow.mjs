@@ -13,13 +13,17 @@ for(const p of [0,1]){
  put(1-p,L.SZONE);check(smartContext(e,p,L).activation(mst)<0,'No waste without opponent back row');
  e.player=p;e.phase=4;
  const idle={type:M.SELECT_IDLECMD,player:p,activates:[],summons:[],special_summons:[],pos_changes:[],monster_sets:[],spell_sets:[c('Waboku',p,L.HAND)],to_bp:false,to_ep:true};
- for(let occupied=0;occupied<=5;occupied++)for(const field of [false,true]){
+ // The fifth zone is kept for a Spell in hand; with only Traps in hand it can be used too (flag d94caeeb, 2026-11-26: a
+ // returned Negate Attack was never Set again).
+ for(const spellInHand of [true,false])for(let occupied=0;occupied<=5;occupied++)for(const field of [false,true]){
   const row=Array(6).fill(null);for(let i=0;i<occupied;i++)row[i]=c('Waboku',p,L.SZONE,i);if(field)row[5]=c('Umi',p,L.SZONE,5,1);zones[p+':'+L.SZONE]=row;
-  const response=e.auto(idle);check((response.action===I.SELECT_SPELL_SET)===(occupied<4),'Stop setting at four; field spells do not consume a main slot');
+  zones[p+':'+L.HAND]=spellInHand?[c('Pot of Greed',p,L.HAND,0,1)]:[c('Waboku',p,L.HAND,0,1)];
+  const response=e.auto(idle);check((response.action===I.SELECT_SPELL_SET)===(occupied<(spellInHand?4:5)),spellInHand?'Stop setting at four while a Spell waits in hand; field spells do not consume a main slot':'With only Traps in hand, the fifth zone is used');
  }
+ zones[p+':'+L.HAND]=[];
  put(p,L.SZONE,...Array.from({length:4},(_,i)=>c('Waboku',p,L.SZONE,i)));put(1-p,L.SZONE,set);
  const response=e.auto({...idle,activates:[mst]});check(response.action===I.SELECT_ACTIVATE,'A spell can still be activated from hand with four occupied zones');
 }
 console.log('PASS '+checks+' MST and reserved-back-row checks across both seats');
-// Real core: both CPUs receive only settable traps. They must leave one zone open.
-const e=await new MobileDuel(meta.cards).init([data,read('scripts')]);try{let state=e.start(Array(30).fill(id('Waboku')),Array(30).fill(id('Waboku')),8000,8000,5,31);let max=[0,0];for(let i=0;i<1800&&!state.finished;i++){state=e.respond(e.auto());for(const p of [0,1]){const n=e.query(p,L.SZONE).slice(0,5).filter(Boolean).length;max[p]=Math.max(max[p],n);assert(n<=4,'AI must never set a fifth back-row card');}}assert.deepEqual(max,[4,4]);assert(state.finished,JSON.stringify({turn:e.turn,pending:e.pending,errors:e.errors}));assert.deepEqual(e.errors,[]);console.log('PASS complete real-core duel: both AIs stop at four back-row cards')}finally{e.destroy()}
+// Real core: both CPUs receive only settable traps. With no Spell to keep a zone for, all five may be used.
+const e=await new MobileDuel(meta.cards).init([data,read('scripts')]);try{let state=e.start(Array(30).fill(id('Waboku')),Array(30).fill(id('Waboku')),8000,8000,5,31);let max=[0,0];for(let i=0;i<1800&&!state.finished;i++){state=e.respond(e.auto());for(const p of [0,1]){const n=e.query(p,L.SZONE).slice(0,5).filter(Boolean).length;max[p]=Math.max(max[p],n);assert(n<=5,'never more than five back-row cards');}}assert.deepEqual(max,[5,5]);assert(state.finished,JSON.stringify({turn:e.turn,pending:e.pending,errors:e.errors}));assert.deepEqual(e.errors,[]);console.log('PASS complete real-core duel: with only Traps, both AIs fill all five back-row zones')}finally{e.destroy()}

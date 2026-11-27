@@ -103,8 +103,9 @@ Duel.RegisterEffect(e,0) local special=e:Clone() special:SetCode(EVENT_SPSUMMON_
    stat('EFFECT_UPDATE_ATTACK',amount,condition)
    # Magician Staff: "Dark Magician" monsters (approved_relic_effects.DARK_MAGICIANS) gain a second bonus.
    if params.get('dark_magician'):
-    from approved_relic_effects import DARK_MAGICIANS
-    stat('EFFECT_UPDATE_ATTACK',int(params['dark_magician']),'c:IsCode('+','.join(map(str,DARK_MAGICIANS))+')')
+    # Name Changer's "Dark Magician" pick counts too (Septarium, Discord 2026-11-26), as for the other Dark Magician relics.
+    from approved_relic_effects import DARK_MAGICIANS,DARK_MAGICIAN_SET
+    stat('EFFECT_UPDATE_ATTACK',int(params['dark_magician']),'(c:IsCode('+','.join(map(str,DARK_MAGICIANS))+') or c:IsSetCard('+DARK_MAGICIAN_SET+'))')
   elif kind=='def':stat('EFFECT_UPDATE_DEFENSE',amount)
   elif kind=='both':
    stat('EFFECT_UPDATE_ATTACK',amount,condition);stat('EFFECT_UPDATE_DEFENSE',amount,condition)
@@ -183,6 +184,9 @@ end
  # Name Changer: every monster you own, wherever it is (hand, Deck, Extra Deck, GY, banished, field).
  for setcode in run.get('name_changes',[])[:run.get('artifacts',[]).count('name_changer')]:
   lines.append(f'do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_SETCODE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue({int(setcode)}) Duel.RegisterEffect(e,0) end')
+  # "Toon" also makes them Toon monsters, so Toon relics and cards that need a Toon monster treat them as one
+  # (Badaaron, 2026-11-26: they were "Toon" by name only, unlike real Toon monsters).
+  if int(setcode)==0x62:lines.append('do local e=Effect.GlobalEffect() e:SetType(EFFECT_TYPE_FIELD) e:SetCode(EFFECT_ADD_TYPE) e:SetTargetRange(LOCATION_HAND|LOCATION_DECK|LOCATION_EXTRA|LOCATION_GRAVE|LOCATION_REMOVED|LOCATION_MZONE,0) e:SetTarget(function(e,c) return c:IsMonster() end) e:SetValue(TYPE_TOON) Duel.RegisterEffect(e,0) end')
  from choice_relics import weight_script
  lines.append(weight_script(run))
  # One combined Surgery effect, after card modifications so it also overrides a modified attribute.
