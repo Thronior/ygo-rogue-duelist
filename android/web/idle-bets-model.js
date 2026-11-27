@@ -74,6 +74,8 @@ export const ITEMS=[
  I('fee_destroy',2,'Wreckage Fees',12580477,1.6,ITEM_GROWTH,'simple',{text:()=>'+0.2 for every monster destroyed.',show:s=>s.boards>=2}),
  I('fee_direct',2,'Direct Hit Fees',46986414,2.4,ITEM_GROWTH,'simple',{text:()=>'+0.5 for every direct attack.',show:s=>lvl(s,'fee_destroy')>=1}),
  I('exodia',2,'Exodia Jackpot',33396948,8,4,'drastic',{max:20,text:l=>`Exodia wins pay ${fmt(jackpotBase('exodia',{items:{exodia:l+1}}))} (now ${fmt(jackpotBase('exodia',{items:{exodia:l}}))}).`,show:s=>s.boards>=2}),
+ // Stinker Jackpot (user, 2026-11-27): an Opening Duel deck winning pays the same jackpot as Exodia, with its own upgrade.
+ I('stinker',2,'Stinker Jackpot',40640057,8,4,'drastic',{max:20,text:l=>`Opening Duel deck wins pay ${fmt(jackpotBase('stinker',{items:{stinker:l+1}}))} (now ${fmt(jackpotBase('stinker',{items:{stinker:l}}))}).`,show:s=>s.boards>=2}),
  I('open3',2,'Board 3: '+LEAGUES[2],32807846,20,1,'opener',{max:1,text:()=>`Opens board 3. Bets cost ${fmt(boardStake(3))} and pay ${fmt(boardPayout(3))}.`,show:s=>s.boards>=2&&lvl(s,'calls2')>=1}),
  calls(3),
  I('highroller',3,'High Roller',3549275,15,1000,'drastic',{max:12,text:l=>`Everything pays ×${2**(l+1)} (now ×${2**l}).`,show:s=>s.boards>=3}),
@@ -104,12 +106,12 @@ export const ITEMS=[
 // Shop pictures are relic cutouts (assets/relics/<name>.png), one per item.
 const CALL_ART=["Let's Go Gambling",'Weighted Coins','Divine Gambler',"Duelist's Wager",'Golden Scale','Golden Receipt','Merchant Sigil',"Collector's Stamp",'Champion Trophy'];
 const ART={tier1:"Underdog's Banner",tier2:"Warrior's Vow",tier3:'Lone Champion',endless:'Eternal Flame',fee_summon:'Tribute Power',fee_attack:'Battle Proficiency',
- autobet:'Weighted Dice',scout:'Mind Reader',speed:'Sun and Moon Dial',open2:'Grand Bazaar',fee_destroy:'Cracked Sword',fee_direct:'Lancer Spear',exodia:'Legendary Shackles',
+ autobet:'Weighted Dice',scout:'Mind Reader',speed:'Sun and Moon Dial',open2:'Grand Bazaar',fee_destroy:'Cracked Sword',fee_direct:'Lancer Spear',exodia:'Legendary Shackles',stinker:'Straw Doll',
  open3:'Treasure Map',fee_spell:'Magician Staff',fee_trap:'Trap Weaver',highroller:'Bottomless Purse',open4:'Booster Box',fee_fusion:'Fusion Chamber',
  fee_damage:'Burn Proficiency',open5:'Golden Receipt',deckout:'Starving Library',fee_heal:'Healing Spring',open6:'Merchant Sigil',special:'Premature Triumph',flawless:'Life Shield',
  open7:'Golden Scale',longgame:'Ominous Clock',open8:"Collector's Stamp",blitz:'Reckless Spear',open9:'Champion Trophy',purse:'Loaded Purse',bracket:'Twin Banner',autochamp:'Divine Gambler'};
 // Shop sections, in order. Every item belongs to one.
-export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^(fee_.*|exodia|deckout|special|flawless|longgame|blitz)$/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Automation',/^(speed|autobet|scout|betpay|betfav|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
+export const CATEGORIES=[['Payouts',/^(calls\d|highroller|purse)$/],['Card Fees',/^(fee_.*|exodia|stinker|deckout|special|flawless|longgame|blitz)$/],['CPU Tiers',/^(tier[123]|endless)$/],['Characters',/^char_/],['Automation',/^(speed|autobet|scout|betpay|betfav|autochamp)$/],['Expansion',/^(open\d|bracket)$/]];
 // The shop's two tab rows (user: Characters on the second line).
 // Jackpots and finishes live in Card Fees (user, 2026-11-26).
 export const TAB_ROWS=[['Payouts','Card Fees','CPU Tiers'],['Characters','Automation','Expansion']];
@@ -288,7 +290,7 @@ export function jackpotBase(kind,s){const l=lvl(s,kind);
  // "by default, kind of like the exodia and destiny board jackpots ... the upgrade should just increase that amount").
  if(kind==='deckout')return 50*power('exodia')+50*levelValue(l)*power('deckout');
  if(kind==='special')return 200*power('exodia')+200*levelValue(l)*power('special');// alternate wins: the same idea
- return (kind==='exodia'?50*2**l:0)*power(kind)}
+ return (kind==='exodia'||kind==='stinker'?50*2**l:0)*power(kind)}
 // Income from one replayed frame's events on a board of this level.
 // Items pay the same on every board (like Cookie Clicker buildings, a new board never multiplies the old items);
 // only the bets and the Calls items grow with a board's stakes. High Roller multiplies everything.
@@ -310,6 +312,7 @@ export function duelPayout(s,result,level,slot,pick=null){const parts=[],scale=i
  const kind=winKind(result);
  const fever=1+.5*tl(s,'fever');
  if(kind==='exodia'){const v=jackpotBase(kind,s)*scale*fever*(pick!=null&&result.winner===pick?2:1);add('EXODIA JACKPOT',v,true)}
+ if(result.winner<2&&result.winnerTier==='Opening Duel'){const v=jackpotBase('stinker',s)*scale*fever*(pick!=null&&result.winner===pick?2:1);add('STINKER JACKPOT',v,true)}
  if(kind==='deckout')add('Deck-out jackpot',jackpotBase('deckout',s)*scale*fever,true);
  if(kind==='special')add('Alternate win jackpot',jackpotBase('special',s)*scale*fever,true);
  if(result.winner<2&&result.winnerId!=null){const id=CHAR_ITEM[result.winnerId]||'char_'+result.winnerId,l=lvl(s,id);if(l)add(id==='char_uc'?'Ultimate Collector wins':(ITEM[id]?.charName||'Character')+' wins',2*levelValue(l)*power(id)*(ITEM[id]?.boost||1)*scale)}
